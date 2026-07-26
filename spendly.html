@@ -422,6 +422,40 @@ label.finput { cursor:pointer; }
 /* The one exception: a textarea is meant to wrap. */
 .farea { height:88px; align-items:flex-start; padding-top:13px; white-space:normal; overflow:auto; }
 .farea > span { white-space:normal; text-overflow:clip; }
+
+/* iOS zooms the page whenever a focused control computes under 16px, and every field
+   here is 12.5 or 13.5px. Clamping the viewport does not help -- Safari has ignored
+   maximum-scale and user-scalable since iOS 10, on purpose, so that a reader can
+   always zoom. The computed size is the only lever it actually reads, and it reads
+   the computed one: a transform is a paint operation and does not touch it. So the
+   control computes at 16px and is scaled straight back to the size it already was.
+   Nothing looks bigger, which is the whole point -- raising the size for real is the
+   design, and the design is not the thing to change here.
+   The origin pins the left edge so text starts exactly where it did, and the negative
+   margin hands the layout box back the width the scale took off it. Overshoot is
+   bounded by whatever trailing chip shares the row -- 0.156 x its width, about 4px at
+   worst -- and .finput clips, so it stays inside the field. Only the text is visible
+   in any case: the control carries no border or background of its own.
+   Coarse pointers only. Desktop has no such behaviour and keeps the untransformed
+   text, which is also the sharper of the two. */
+@media (pointer: coarse) {
+  .finput > input, .finput > textarea {
+    font-size:16px; transform:scale(.84375); transform-origin:left center;
+    margin-right:-18.518%;
+  }
+  .toolbar .finput > input, .gfind > .finput > input {
+    font-size:16px; transform:scale(.78125); transform-origin:left center;
+    margin-right:-28%;
+  }
+  /* The textarea is the one control scaled in both axes rather than one: it is a
+     block with a real height, not a single line centred in a fixed row. Origin moves
+     to the top corner and the height is inflated by the same factor so the visible
+     box still ends where .farea expects it to. */
+  .finput > textarea {
+    transform-origin:left top;
+    height:71.111px; margin-bottom:-11.111px;
+  }
+}
 .fhelp { font-size:12px; color:var(--muted); }
 .factions { display:flex; gap:10px; margin-top:6px; }
 .factions.split { justify-content:space-between; }
@@ -2077,44 +2111,3 @@ label.finput { cursor:pointer; }
 })();
 </script>
 
-<script>
-/* iOS zooms the page when a control smaller than 16px takes focus, and every field
-   here is 12.5 or 13.5px. Raising them to 16px is the usual answer and the one thing
-   we will not do -- it is the design. So the clamp is temporary instead: maximum-scale
-   pins the page for as long as a field is focused, and is dropped the moment it is not.
-   Pinch-zoom therefore stays available exactly when a reader would reach for it, which
-   is what a permanent user-scalable=no would have cost (WCAG 2.1 SC 1.4.4). Scoped to
-   coarse pointers because the viewport meta is a no-op anywhere else. */
-(function () {
-  if (!matchMedia('(pointer: coarse)').matches) return;
-
-  /* Two of these reach the published page: the shell's in <head> and this file's own
-     at the top of the body. The later one parsed is the one that governs, so they
-     have to move together -- pinning only the first is a no-op. */
-  const metas = [...document.querySelectorAll('meta[name="viewport"]')]
-    .map(m => ({ m, released: m.content, pinned: m.content + ', maximum-scale=1' }));
-  if (!metas.length) return;
-
-  /* Only the controls that actually trigger it: text-entry fields and selects.
-     Checkboxes, radios and buttons take focus without ever zooming. */
-  const FLAT = /^(button|checkbox|radio|submit|reset|file|image|range|color|hidden)$/;
-  const zooms = el =>
-    !!el && (el.matches('textarea, select') ||
-             (el.matches('input') && !FLAT.test(el.type)));
-
-  const set = pin => metas.forEach(s => {
-    const v = pin ? s.pinned : s.released;
-    if (s.m.content !== v) s.m.content = v;
-  });
-
-  /* Armed on pointerdown as well as focusin: focusin can land after Safari has
-     already committed to the zoom, and the pointer event precedes it. */
-  addEventListener('pointerdown', e => { if (zooms(e.target)) set(true); }, true);
-  addEventListener('focusin', e => { if (zooms(e.target)) set(true); }, true);
-  addEventListener('focusout', () => {
-    /* Released only once focus has settled somewhere that is not a field -- moving
-       between two inputs must not unpin and repin, which is itself a zoom. */
-    requestAnimationFrame(() => { if (!zooms(document.activeElement)) set(false); });
-  }, true);
-})();
-</script>
