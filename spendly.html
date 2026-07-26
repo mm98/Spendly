@@ -522,12 +522,12 @@ label.finput { cursor:pointer; }
      margin and a padding, so it has to total the same 12px the top bar and the
      tab strip use -- otherwise the cards hang inside the header above them.
      Kept as 0 + 12 rather than 4 + 8 so the number is legible here. */
+  /* Square corners stop at the paper. The sheet and the main panel are the page's
+     own edge and have nothing to be rounded against once they run full width, but
+     the cards sitting on them keep their radius -- they are objects on the paper,
+     not the paper. Controls keep theirs for the same reason. */
   .sheet { margin:8px 0 14px; padding:14px 12px; border-radius:0; }
   .subwrap { padding:6px 12px 2px; }
-  /* Square corners on the content surfaces. The cards are the only rounded thing
-     left in this layer once the sheet and the main panel go flat, so they square
-     off too -- controls keep their radii, they read as controls, not background. */
-  .card { border-radius:0; }
   .favs { grid-template-columns:1fr; }
   .callout { display:none; }
   .hero-num { font-size:23px; }
