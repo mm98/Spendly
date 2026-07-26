@@ -387,8 +387,27 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
 .ffile { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
 label.finput { cursor:pointer; }
 .fname { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
-/* The native date field keeps its own picker button; ours would be a second one. */
-.finput > input[type="date"]::-webkit-calendar-picker-indicator { margin-left:auto; opacity:.55; cursor:pointer; }
+/* The trailing slot on a date field used to be the browser's to fill, which held up
+   everywhere except iOS -- it never renders ::-webkit-calendar-picker-indicator, so
+   these were the only fields on the phone with nothing on the right. That read as
+   symmetric while the value was centred and as a hole once it moved left. So the
+   glyph is ours now, drawn on every platform, and the native indicator is flattened
+   to a transparent hit target sitting exactly on top of it. Both are still needed:
+   Chrome and desktop Safari open the picker only from the indicator, since clicking
+   the value there edits a segment, while iOS opens it from the input itself and the
+   glyph simply passes the tap through.
+   Our glyph is the one taken out of flow, not the indicator -- the indicator is shadow
+   content and stays inside the input's box however it is positioned, so pinning that
+   instead just moves it off the glyph. With the glyph absolute the input is the only
+   item left in flow and spans the whole field, which puts its trailing indicator
+   exactly under the glyph and makes the entire field the tap target on iOS.
+   The one date field carrying a unit chip is left off .fdate and keeps the native
+   indicator: an out-of-flow glyph at right:15px would sit on top of that chip. */
+.finput.fdate { position:relative; }
+.finput.fdate > svg.i { position:absolute; right:15px; top:0; bottom:0; margin:auto 0; pointer-events:none; }
+.finput.fdate > input[type="date"]::-webkit-calendar-picker-indicator {
+  margin-left:auto; padding:0; width:15px; height:15px; opacity:0; cursor:pointer;
+}
 /* iOS 15+ puts the value in a ::-webkit-date-and-time-value pseudo-element that
    defaults to width:100% and text-align:center, and text-align on the input itself
    does not reach it. Ours is flex:1 so it spans the row, which is what left the date
@@ -1308,7 +1327,7 @@ label.finput { cursor:pointer; }
               <div class="frow2">
                 <label class="ffield"><span>Vendor</span>
                   <div class="finput"><input type="text" value="Bilka" placeholder="Search vendors…" aria-label="Vendor"><span class="stchip" style="height:24px;font-size:10.5px">matched</span></div></label>
-                <label class="ffield"><span>Date</span><div class="finput"><input type="date" value="2026-07-18" aria-label="Order date"></div></label>
+                <label class="ffield"><span>Date</span><div class="finput fdate"><input type="date" value="2026-07-18" aria-label="Order date"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></div></label>
               </div>
               <div class="frow2">
                 <label class="ffield"><span>Shipping fee</span><div class="finput"><input type="text" inputmode="decimal" value="0,00" aria-label="Shipping fee"><span class="unit">kr.</span></div>
@@ -1399,8 +1418,8 @@ label.finput { cursor:pointer; }
               <label class="ffield"><span>Category</span><div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Any category" aria-label="Category"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
             </div>
             <div class="frow2">
-              <label class="ffield"><span>From</span><div class="finput"><input type="date" value="2026-07-01" aria-label="From date"></div></label>
-              <label class="ffield"><span>To</span><div class="finput"><input type="date" value="2026-07-31" aria-label="To date"></div></label>
+              <label class="ffield"><span>From</span><div class="finput fdate"><input type="date" value="2026-07-01" aria-label="From date"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></div></label>
+              <label class="ffield"><span>To</span><div class="finput fdate"><input type="date" value="2026-07-31" aria-label="To date"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></div></label>
             </div>
             <div class="frow2">
               <label class="ffield"><span>Min amount</span><div class="finput"><input type="text" inputmode="decimal" placeholder="0,00" aria-label="Minimum amount"><span class="unit">kr.</span></div></label>
