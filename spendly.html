@@ -21,6 +21,12 @@
   --sidebar:transparent;
   --side-active:#E4E7E2;
   --ink:#0B0F0D;
+  /* The active edge of a field: focus-within, and an open combobox. Referenced in
+     four places and never declared, so every one of them resolved to unset -- the
+     border fell back to currentColor, which reads as ink and hid the omission,
+     while the 1px ring beside it silently computed to none. Same value as --ink
+     today, kept separate so that edge can be tuned without moving every heading. */
+  --ink-strong:#0B0F0D;
   --ink-2:#3A423D;
   --muted:#6C766D;
   --muted-2:#9AA39D;
@@ -547,8 +553,11 @@ label.finput { cursor:pointer; }
   .main { margin:0; border-radius:0; box-shadow:none; }
   .side { position:fixed; inset:auto 0 0 0; height:auto; z-index:30; flex-direction:row; align-items:center; padding:8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); gap:0; border-top:1px solid var(--hair); background:#EFF1EF; }
   .side .brand, .side .foot { display:none; }
-  .nav { grid-auto-flow:column; width:100%; gap:2px; }
-  .nav a { flex-direction:column; gap:4px; min-height:50px; padding:6px 2px; font-size:10px; border-radius:12px; justify-content:center; }
+  /* Five equal columns, icon over label, labels always visible. The explicit track
+     is what makes them equal -- an implicit column flow sizes each one to its own
+     label, so "Categories" would take more of the bar than "Home". */
+  .nav { grid-auto-flow:row; grid-template-columns:repeat(5,minmax(0,1fr)); width:100%; gap:2px; }
+  .nav a { flex-direction:column; gap:4px; min-height:48px; padding:6px 2px; font-size:9.5px; border-radius:12px; justify-content:center; }
   .nav a.on { background:transparent; color:var(--ink); }
   .main { padding-bottom:76px; }
   .top { flex-wrap:wrap; padding:12px; }
@@ -607,7 +616,7 @@ label.finput { cursor:pointer; }
   .content { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
 }
 @media (max-width:1180px) { .olgrid { grid-template-columns:minmax(0,1fr); } .forr { grid-auto-columns:minmax(180px,1fr); overflow-x:auto; } }
-@media (max-width:700px) { .subwrap { overflow-x:auto; scrollbar-width:none; } .subtabs { flex-wrap:nowrap; } .forr { grid-auto-flow:row; grid-auto-columns:unset; grid-template-columns:1fr; } .between { flex-wrap:wrap; } .nav { grid-auto-flow:row; grid-template-columns:repeat(5,minmax(0,1fr)); } .nav a { font-size:9.5px; padding:6px 2px; min-height:48px; gap:4px; justify-content:center; } .statnums { justify-content:flex-start; gap:18px; } .gfind { display:none; } .toolbar { flex-wrap:wrap; } .toolbar .finput { flex:1 1 100%; min-width:0; } }
+@media (max-width:700px) { .subwrap { overflow-x:auto; scrollbar-width:none; } .subtabs { flex-wrap:nowrap; } .forr { grid-auto-flow:row; grid-auto-columns:unset; grid-template-columns:1fr; } .between { flex-wrap:wrap; } .statnums { justify-content:flex-start; gap:18px; } .gfind { display:none; } .toolbar { flex-wrap:wrap; } .toolbar .finput { flex:1 1 100%; min-width:0; } }
 /* Reduced motion calms the interface but must never freeze a busy indicator:
    a stopped spinner reads as a hung app. Progress keeps moving, just slower. */
 @media (prefers-reduced-motion: reduce) {
