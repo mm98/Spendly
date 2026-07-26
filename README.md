@@ -342,6 +342,13 @@ taller than the FILTERS and Sort controls sharing its row.
 - Exactly **one dark card per screen** — the AI/contextual slot.
 - A card header that navigates gets the chevron **and** the standard `.card-hr` hairline. The tally
   was 35 headers with the hairline against 4 without, and the 4 were the chart cards.
+- **The body's `14px` top padding is the default for a reason: do not tighten it under a hairline.**
+  The two spend cards overrode `.card-b` to `padding-top: 2px`, which left the first line of text
+  4.5px below the rule on Orders / Overview and 10px on the Home hero, against an 18–24px band on
+  every other card in the file. It does not read as tight spacing, it reads as the text colliding
+  with the border. Measure from the hairline's bottom edge to the top of the first glyph's em box,
+  not to the element box — a big number hides 5–6px of half-leading inside its line box and a
+  12px label hides 2px, so equal padding on the two looks nothing alike.
 
 ### Dashboard personalisation
 
@@ -394,8 +401,9 @@ chart with floating callout, Orders/Saved half-underline tabs, category split ba
 legend), dark AI scan card, latest orders, saved-vs-retail, then the personalised card row. Title is
 "Home", no greeting.
 
-**Orders / Overview** — comparison chart card (current solid vs previous dashed, dashed guide, halo
-marker, ruler ticks, "Compare with" chip), twin LATEST cards, FOR YOU promo row (tag pills;
+**Orders / Overview** — comparison chart card (current period solid, previous period in a lighter
+tint of the same hue, dashed guide, halo marker, ruler ticks, a `.serieskey` naming both periods), twin LATEST
+cards, FOR YOU promo row (tag pills;
 horizontal scroll ≤1180, stacks ≤700), rail with returns, question of the day, category breakdown
 (Expenses | Budget segmented plus donut), ORDER SETTINGS.
 
@@ -492,6 +500,22 @@ data changes.
   markers (`data-marker`) are placed from data too.
 - A `ResizeObserver` handles charts on hidden pages, which measure zero wide until shown — nothing has
   to be redrawn by hand on navigation.
+
+### Comparison charts
+
+- **The comparison period is always the one immediately before — never a picker.** Orders / Overview
+  shipped a "Compare with: June ▾" chip that implied a choice the app does not have; a control that
+  can only ever hold one value is a lie about the interface (§13). State the period instead: the
+  Statistics card does it in the header (`Overview · July against June`), Orders / Overview does it
+  in the series key.
+- **A key names every plotted line or it is not a key.** Orders / Overview drew two series and
+  labelled one of them, leaving the reader to guess that the pale line was June — the chip that
+  actually said "June" sat on the far side of the card, styled as a control rather than as a legend.
+  `.serieskey` is the pattern: one 9px swatch per series in that series' own stroke colour, 12px
+  `--ink-2` label, `flex-wrap` so it stacks rather than overflows at 390px.
+- Do not repeat the card header in the body. Under a header reading `SPENT · JULY 2026`, an
+  "Expenses" caption above the number says nothing the header has not already said, and it cost the
+  number its leading.
 
 ## 15. Responsive containment
 
