@@ -104,6 +104,7 @@ Sampled from the reference sheets, declared once in `:root`.
 | `--card-line` | `#E9ECE8` | 1px border, every card |
 | `--hair` | `#EDEFEA` | header dividers, row separators |
 | `--ink` | `#0B0F0D` | headings, numbers |
+| `--ink-strong` | `#0B0F0D` | the active edge of a field — `:focus-within`, open combobox |
 | `--ink-2` | `#3A423D` | body, sidebar items |
 | `--muted` | `#6C766D` | help text, meta — holds 4.5:1 on white |
 | `--muted-2` | `#9AA39D` | axis labels, de-emphasised chevrons |
