@@ -1,3 +1,5 @@
+#Spendly
+
 > A personal ledger. Orders, receipts, vendors and categories for one person, with a receipt scanner
 > that drafts the order for you. Danish formats throughout.
 
