@@ -136,7 +136,13 @@ away when the sheet went white. Delete it or use it, but do not reintroduce a ti
 - Base is **500 (Medium) at 14px**; 400 reads too light against the sheets. 16px at ≥2200.
 - Headings and leads: 600, `letter-spacing: -0.01em` to `-0.02em`. Lead sentence style is 16px/600
   ("Your biggest vendor: …").
-- Big numbers: 700, `-0.02em`, always `font-variant-numeric: tabular-nums`.
+- Big numbers: 700, `-0.02em`, always `font-variant-numeric: tabular-nums`. The weight and tracking
+  ride on the size class (`.hero-num`, `.fav-num`, `.big`); the tabular figures ride on `.num`
+  alongside it, so a headline figure carries both. **A class with no rule behind it is worse than no
+  class**: `.big` was applied at four sites and defined at none, so the Orders and Statistics
+  headline figures quietly rendered at the body's 500 with proportional figures for as long as they
+  existed. Nothing looked broken — they simply were not the number this section describes. Grep for
+  the selector, not just the class attribute.
 - Caps micro-labels — card headers, KPI labels: 11–11.5px, `letter-spacing: .08em`, uppercase, 600.
 - Danish formats everywhere: `1.187,25 kr.`, dates `18.07.2026` or `24 July 2026`.
 

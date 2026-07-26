@@ -64,6 +64,11 @@ body {
 }
 :focus-visible { outline:2px solid var(--teal); outline-offset:2px; border-radius:6px; }
 .num { font-variant-numeric:tabular-nums; }
+/* The generic big-number class, matching .hero-num and .fav-num. It shipped with no rule at
+   all for a while, so four headline figures rendered at the body's 500 with proportional
+   figures while the spec called for 700 -- a class that looks styled and is not. Size stays
+   inline per site; weight and tracking do not. See README section 3. */
+.big { font-weight:700; letter-spacing:-.02em; }
 .between { display:flex; align-items:center; justify-content:space-between; gap:14px; }
 svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
@@ -945,7 +950,7 @@ label.finput { cursor:pointer; }
                4.5px under the hairline -- the tightest in the file, against a 14-24px band
                everywhere else -- and it read as a rendering fault. See README section 10. -->
           <div class="card-b">
-            <div class="big" style="font-size:24px">24.418,57 kr.</div>
+            <div class="big num" style="font-size:24px">24.418,57 kr.</div>
             <!-- The comparison period is fixed to the one before, so the key names both plotted
                  lines instead of offering a choice the app does not have. -->
             <div class="serieskey"><span><i style="background:#4F5BD5"></i>July</span><span><i style="background:#B9BFF0"></i>June</span></div>
@@ -1639,7 +1644,7 @@ label.finput { cursor:pointer; }
     <!-- ============ STATISTICS · Equity Management pattern ============ -->
     <div class="page pagegrid" data-page="stats">
       <div class="between" style="flex-wrap:wrap;gap:12px;padding:2px 2px 0"><div class="rowline"><button class="arrbtn" aria-label="Previous period"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button><b style="font-size:16px;letter-spacing:-.01em">July 2026</b><button class="arrbtn" aria-label="Next period" disabled="" style="opacity:.45"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
-        <div class="rowline"><span class="big" style="font-size:22px">24.418,57 kr.</span><span class="stchip warn">18% up vs June</span></div>
+        <div class="rowline"><span class="big num" style="font-size:22px">24.418,57 kr.</span><span class="stchip warn">18% up vs June</span></div>
       </div>
       <div class="kpis">
         <div class="kpi"><span>Orders</span><b class="num">23</b><span class="delta neutral"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>21% up vs June</span><i>June: 19 orders</i></div>
@@ -1662,7 +1667,7 @@ label.finput { cursor:pointer; }
           <div class="card-h"><span class="lab">Pace</span><span class="fhelp">25 days in</span></div>
           <div class="card-hr"></div>
           <div class="card-b">
-            <div class="big" style="font-size:22px">30.300 kr.</div>
+            <div class="big num" style="font-size:22px">30.300 kr.</div>
             <span class="fhelp">projected for July · 24.418,57 kr. spent so far</span>
             <div class="meter" style="margin-top:14px" role="img" aria-label="Spent 24.418 of a projected 30.300 kroner; the marker is where June ended">
               <i style="width:80%"></i><b style="left:68%"></b>
@@ -1674,7 +1679,7 @@ label.finput { cursor:pointer; }
           <div class="card-h"><span class="lab">Weekly rhythm</span><span class="fhelp">busiest day: Sunday</span></div>
           <div class="card-hr"></div>
           <div class="card-b">
-            <div class="big" style="font-size:22px">34% <span style="font-weight:500;font-size:14px;color:var(--muted)">of spend lands on weekends</span></div>
+            <div class="big num" style="font-size:22px">34% <span style="font-weight:500;font-size:14px;color:var(--muted)">of spend lands on weekends</span></div>
             <div class="wk" style="height:86px" aria-hidden="true">
               <div><span class="bar" style="height:34px"><i style="--f:0%"></i></span><span>Mon</span></div>
               <div><span class="bar" style="height:46px"><i style="--f:0%"></i></span><span>Tue</span></div>
