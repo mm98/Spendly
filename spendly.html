@@ -277,8 +277,11 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
 .kbd { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid #DFE3DE; background:#F7F8F5; font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--ink-2); }
 .chip2 { display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 11px; border-radius:10px; border:1px solid #E2E5E1; background:#fff; font-size:11px; font-weight:600; color:var(--ink-2); white-space:nowrap; }
 .sentence { font-size:16px; font-weight:600; color:var(--ink); letter-spacing:-.01em; line-height:1.4; margin:2px 0 10px; }
+/* Selection may not change a segment's text metrics: the track is width:max-content, so
+   a heavier active label resizes the control and everything sharing its row. The pill
+   carries the selection alone. S9. */
 .subtabs button { font:inherit; white-space:nowrap; padding:9px 19px; border-radius:11px; font-size:13px; font-weight:500; color:#3E453F; cursor:pointer; border:0; background:transparent; }
-.subtabs button.on { background:var(--dark); color:#fff; font-weight:600; }
+.subtabs button.on { background:var(--dark); color:#fff; }
 .pagegrid { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
 .twin { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .viewall { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; height:44px; border:1px solid #E2E4DF; border-radius:12px; background:#fff; font-size:12px; font-weight:600; letter-spacing:.08em; color:var(--ink); cursor:pointer; margin-top:12px; }
@@ -382,7 +385,7 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
    than the FILTERS and Sort controls sharing its row. Trailing bits (unit, key
    cap, status chip, thumbnail) keep their size; only the value column gives way. */
 .finput { white-space:nowrap; overflow:hidden; min-width:0; height:48px; border:1px solid #E2E4DF; border-radius:12px; background:#fff; display:flex; align-items:center; gap:9px; padding:0 15px; font-size:13.5px; color:var(--ink); }
-.finput > span:not(.unit):not(.kbd):not(.stchip):not(.fthumb):not(.chip2) { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.finput > span:not(.unit):not(.kbd):not(.stchip):not(.fthumb):not(.chip2):not(.dtrail) { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
 /* Real controls, styled by the shell around them. The input carries no chrome of
    its own, so a native <input type="date"> gets the OS picker and a mobile
    keyboard while still looking like the rest of the system. */
@@ -394,27 +397,19 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
 .ffile { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
 label.finput { cursor:pointer; }
 .fname { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
-/* The trailing slot on a date field used to be the browser's to fill, which held up
-   everywhere except iOS -- it never renders ::-webkit-calendar-picker-indicator, so
-   these were the only fields on the phone with nothing on the right. That read as
-   symmetric while the value was centred and as a hole once it moved left. So the
-   glyph is ours now, drawn on every platform, and the native indicator is flattened
-   to a transparent hit target sitting exactly on top of it. Both are still needed:
-   Chrome and desktop Safari open the picker only from the indicator, since clicking
-   the value there edits a segment, while iOS opens it from the input itself and the
-   glyph simply passes the tap through.
-   Our glyph is the one taken out of flow, not the indicator -- the indicator is shadow
-   content and stays inside the input's box however it is positioned, so pinning that
-   instead just moves it off the glyph. With the glyph absolute the input is the only
-   item left in flow and spans the whole field, which puts its trailing indicator
-   exactly under the glyph and makes the entire field the tap target on iOS.
-   The one date field carrying a unit chip is left off .fdate and keeps the native
-   indicator: an out-of-flow glyph at right:15px would sit on top of that chip. */
+/* No engine may draw a calendar beside ours (S8 is Tabler only, and a browser-drawn
+   icon is a native icon). Blink and WebKit expose their indicator, so it goes; Gecko's
+   button reaches no selector, so the input runs past the shell's edge instead and parks
+   it in the overflow .finput already clips -- that +56px is load-bearing, not slack.
+   The trail leaves flow, never the input: the field being the input is what makes the
+   whole of it the tap target on iOS. S17. */
 .finput.fdate { position:relative; }
-.finput.fdate > svg.i { position:absolute; right:15px; top:0; bottom:0; margin:auto 0; pointer-events:none; }
-.finput.fdate > input[type="date"]::-webkit-calendar-picker-indicator {
-  margin-left:auto; padding:0; width:15px; height:15px; opacity:0; cursor:pointer;
-}
+.finput.fdate > .dtrail { position:absolute; right:15px; top:0; bottom:0; display:flex; align-items:center; gap:9px; }
+.finput.fdate > .dtrail > svg.i { cursor:pointer; }
+.finput.fdate > input[type="date"] { flex:none; width:calc(100% + 56px); }
+/* Unscoped for the same reason as the value pseudo-element below: time, month and
+   datetime-local carry the same indicator, and it does not exist on other types. */
+.finput > input::-webkit-calendar-picker-indicator { display:none; }
 /* iOS 15+ puts the value in a ::-webkit-date-and-time-value pseudo-element that
    defaults to width:100% and text-align:center, and text-align on the input itself
    does not reach it. Ours is flex:1 so it spans the row, which is what left the date
@@ -1124,7 +1119,7 @@ label.finput { cursor:pointer; }
                     </div>
                   </div>
                   <span class="fhelp">Every dropdown is this combobox: type to search, grouped results, create from the foot.</span></label>
-                <label class="ffield"><span>Date</span><div class="finput"><input type="date" value="2026-07-25" aria-label="Order date"><span class="unit">today</span></div></label>
+                <label class="ffield"><span>Date</span><div class="finput fdate"><input type="date" value="2026-07-25" aria-label="Order date"><span class="dtrail"><span class="unit">today</span><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
               </div>
               <div class="ffield"><span>Status</span>
                 <div class="subtabs mini" role="tablist">
@@ -1371,7 +1366,7 @@ label.finput { cursor:pointer; }
               <div class="frow2">
                 <label class="ffield"><span>Vendor</span>
                   <div class="finput"><input type="text" value="Bilka" placeholder="Search vendors…" aria-label="Vendor"><span class="stchip" style="height:24px;font-size:10.5px">matched</span></div></label>
-                <label class="ffield"><span>Date</span><div class="finput fdate"><input type="date" value="2026-07-18" aria-label="Order date"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></div></label>
+                <label class="ffield"><span>Date</span><div class="finput fdate"><input type="date" value="2026-07-18" aria-label="Order date"><span class="dtrail"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
               </div>
               <div class="frow2">
                 <label class="ffield"><span>Shipping fee</span><div class="finput"><input type="text" inputmode="decimal" value="0,00" aria-label="Shipping fee"><span class="unit">kr.</span></div>
@@ -1462,8 +1457,8 @@ label.finput { cursor:pointer; }
               <label class="ffield"><span>Category</span><div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Any category" aria-label="Category"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
             </div>
             <div class="frow2">
-              <label class="ffield"><span>From</span><div class="finput fdate"><input type="date" value="2026-07-01" aria-label="From date"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></div></label>
-              <label class="ffield"><span>To</span><div class="finput fdate"><input type="date" value="2026-07-31" aria-label="To date"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></div></label>
+              <label class="ffield"><span>From</span><div class="finput fdate"><input type="date" value="2026-07-01" aria-label="From date"><span class="dtrail"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
+              <label class="ffield"><span>To</span><div class="finput fdate"><input type="date" value="2026-07-31" aria-label="To date"><span class="dtrail"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
             </div>
             <div class="frow2">
               <label class="ffield"><span>Min amount</span><div class="finput"><input type="text" inputmode="decimal" placeholder="0,00" aria-label="Minimum amount"><span class="unit">kr.</span></div></label>
@@ -1960,6 +1955,30 @@ label.finput { cursor:pointer; }
         e.preventDefault();
         select((i + step + items.length) % items.length);
       });
+    });
+  });
+
+  /* No native affordance survives the CSS, so the glyph opens the picker itself. Where
+     showPicker() is missing (iOS < 16) nothing is bound at all -- a dead listener would
+     swallow the tap .ffield forwards to the input. Alt+Down keeps it off the mouse (S13).
+     S17. */
+  document.querySelectorAll('.finput.fdate').forEach(field => {
+    const input = field.querySelector('input[type="date"]');
+    const trail = field.querySelector('.dtrail');
+    if (!input || !trail || typeof input.showPicker !== 'function') return;
+    const openPicker = () => {
+      input.focus();
+      // Chrome throws if the call is not carried by a user gesture; both callers are.
+      try { input.showPicker(); } catch (e) {}
+    };
+    trail.addEventListener('click', e => {
+      e.preventDefault();  // the label would otherwise forward this to the input as well
+      openPicker();
+    });
+    input.addEventListener('keydown', e => {
+      if (!e.altKey || e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      openPicker();
     });
   });
 

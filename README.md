@@ -274,6 +274,12 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   field, not a chip group.** It fills its column, stands 48px tall like the inputs beside it, and its
   segments flex to equal widths. The intrinsic-width 38px version belongs to toolbars, never to a
   form.
+- **Selecting a segment may not change its text metrics.** The track is `width:max-content`, so a
+  heavier active label widens the whole control, and every control sharing its row — the toolbar
+  search is `flex:1` — resizes to absorb the difference; because the labels are not equal-width the
+  jump differs per segment (300px on Spend, 298 on Name). The dark pill already carries the
+  selection, so it carries it alone: weight on top of it bought a 1–2px shift on every click, at any
+  number of segments. Nothing about this is per-control — it is why no toggle reserves widths.
 - Help text under a field is muted 12px. Watch the specificity trap: `.ffield > span` styles the
   label, so a `.fhelp` span in the same field inherits label weight and colour unless it is
   overridden at equal or higher specificity.
@@ -310,7 +316,8 @@ carries no chrome of its own:
 - **Amounts are `type="text"` with `inputmode="decimal"`, deliberately.** Danish decimals use a
   comma, which `type="number"` rejects; `inputmode` gets the numeric keyboard without the parsing.
   Quantities use `inputmode="numeric"`.
-- Dates are `type="date"` — the OS picker is the point, and it makes the calendar affordance native.
+- Dates are `type="date"` — the OS picker is the point. The calendar glyph and the click that opens it
+  are ours on every engine, though: see [§17](#17-ios-and-webkit).
 - The photo field is `<label class="finput">` wrapping `<input type="file" accept="image/*">`, with
   the chosen filename rendered as text.
 - Combobox fields are typeable inputs, per [§7](#7-comboboxes).
@@ -451,7 +458,8 @@ instance below shipped because a shape was copied from the reference without ask
 - **Chevron direction carries meaning** — right = navigate away, down = expand in place. Do not mix
   them; the Home legend used down-chevrons on rows that navigate.
 - **Date fields carry the calendar icon, never a chevron.** A chevron promises a list; a date field
-  opens the OS picker.
+  opens the OS picker. The icon is ours on every engine and the browser's own is taken off the field
+  ([§17](#17-ios-and-webkit)) — so the glyph is what opens the picker, on click or Alt+Down.
 - **Anything clickable is keyboard operable.** A `div` with a click handler needs `tabindex="0"`, a
   role and an Enter handler, or it is mouse-only. Native `<button>` / `<a>` is preferred. Rows carry
   `role="link"`, so they activate on Enter and leave Space alone — Space still scrolls, which is what
@@ -583,16 +591,31 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
   pseudo-element does not exist on other input types, so the rule is inert there. Blink and Gecko
   already left-align.
 - iOS never renders `::-webkit-calendar-picker-indicator`, so date fields were the only ones on a
-  phone with an empty trailing slot. **The glyph is ours now**, drawn on every platform, with the
-  native indicator flattened to a transparent hit target sitting exactly on top of it. Both are
-  needed: Chrome and desktop Safari open the picker only from the indicator (clicking the value there
-  edits a segment), while iOS opens it from the input itself and the glyph passes the tap through.
-- **Our glyph is what leaves flow, not the indicator.** The indicator is shadow content and stays
-  inside the input's box however it is positioned, so pinning that instead just moves it off the
-  glyph. With the glyph absolute, the input is the only item left in flow and spans the whole field,
-  which puts its indicator exactly under the glyph and makes the entire field the tap target on iOS.
-- The one date field carrying a unit chip is left off `.fdate` and keeps the native indicator: an
-  out-of-flow glyph at `right:15px` would sit on top of that chip.
+  phone with an empty trailing slot. **The glyph is ours on every platform** — and it is the only one
+  the field may show. A browser-drawn calendar is a native icon, which [§8](#8-icons) does not allow
+  whatever it looks like, so each engine's own affordance comes off the field:
+  - Blink and WebKit expose theirs, so it goes outright:
+    `::-webkit-calendar-picker-indicator { display:none }`, unscoped for the same reason as the value
+    pseudo-element above.
+  - **Gecko exposes nothing.** Firefox draws a picker button inside the input and no selector reaches
+    it ([bugzilla 1830890](https://bugzilla.mozilla.org/show_bug.cgi?id=1830890), open), which is why
+    desktop Firefox showed two calendars on every date field — its button and ours, near enough on top
+    of each other to read as one smeared glyph. Since it cannot be hidden it is moved: the input runs
+    `calc(100% + 56px)`, past the shell's right edge, and the button rides out with it into overflow
+    `.finput` already clips. Only the button moves — the value sits at the left, the trail is out of
+    flow.
+- **The trail is what leaves flow, never the input.** An out-of-flow input would stop spanning the
+  field, and the field being the input is what makes the whole of it the tap target on iOS.
+- **Everything trailing rides in `.dtrail`**, so the one date field carrying a unit chip lays out like
+  the others instead of opting out: chip first, glyph last, which keeps the affordance where it sits
+  on every other date field.
+- **The picker opens from the glyph**, through `showPicker()`, on every engine — no native affordance
+  is left to click, and the field behaves the same everywhere instead of once per engine. Where
+  `showPicker()` is missing (iOS before 16) nothing is bound at all: the trail stays inert inside
+  `.ffield`, the label forwards the tap to the input, and iOS opens the picker off the input the way
+  it always has. Binding a dead listener would take that away by swallowing the tap. Alt+Down does the
+  same from the keyboard, so the glyph is not a mouse-only control ([§13](#13-honest-affordances)) —
+  and typing the date into the segments never needed the picker at all.
 
 ## 18. Accessibility
 
