@@ -1,1 +1,636 @@
-# Splendy
+# Spendly
+
+> A personal ledger. Orders, receipts, vendors and categories for one person, with a receipt scanner
+> that drafts the order for you. Danish formats throughout.
+
+This repository is the **design system** for Spendly and the prototype that proves it. Everything
+below is a rule the prototype already implements and the port has to hold to — not a moodboard.
+
+| File | What it is |
+| --- | --- |
+| [`spendly.html`](spendly.html) | The whole prototype. Every route, clickable, self-contained: markup, CSS, JS and four Poppins weights embedded as woff2 data URIs. |
+| `README.md` | This document. The system, rule by rule. |
+
+## Quick start
+
+```bash
+git clone https://github.com/mm98/spendly.git
+cd spendly
+open spendly.html          # macOS · use `xdg-open` on Linux, `start` on Windows
+```
+
+No build, no dependencies, no network. Resize to 390px to see the phone layout, or open it on a
+phone — the mobile rules in [§16](#16-the-phone-layout) and [§17](#17-ios-and-webkit) only show up
+there.
+
+## Ground rules
+
+- **Reference**: "AI-Powered Personal Finance Dashboard" (Savexa) by Tamim Al Arafat for Tenso UI UX
+  Agency — [dribbble.com/shots/27234630](https://dribbble.com/shots/27234630). The layout language
+  follows the reference; all content, structure and components are Spendly's own.
+- **Verification standard**: every rule here was settled by rendering the prototype and comparing
+  screenshots against the reference sheets, then re-rendering at 390px and on desktop after each
+  change. Hold to the same standard: screenshot before claiming a match, and say what was measured.
+- **Where a rule cost a bug, the bug is written down with it.** That is the argument for the rule and
+  the reason not to quietly undo it.
+- **Before adding a variant, count.** Grep for the pattern and match the tally, not the one neighbour
+  you happened to be looking at.
+
+## Contents
+
+| | |
+| --- | --- |
+| [1. Shell and layout](#1-shell-and-layout) | [11. Page patterns](#11-page-patterns) |
+| [2. Color](#2-color) | [12. Chrome](#12-chrome) |
+| [3. Typography](#3-typography) | [13. Honest affordances](#13-honest-affordances) |
+| [4. Elevation and shape](#4-elevation-and-shape) | [14. Charts](#14-charts) |
+| [5. Control geometry](#5-control-geometry) | [15. Responsive containment](#15-responsive-containment) |
+| [6. Buttons](#6-buttons) | [16. The phone layout](#16-the-phone-layout) |
+| [7. Comboboxes](#7-comboboxes) | [17. iOS and WebKit](#17-ios-and-webkit) |
+| [8. Icons](#8-icons) | [18. Accessibility](#18-accessibility) |
+| [9. Forms and fields](#9-forms-and-fields) | [19. Notes for the port](#19-notes-for-the-port) |
+| [10. Cards](#10-cards) | |
+
+---
+
+## 1. Shell and layout
+
+- The app background is gray-green `#EFF1EF`. The sidebar sits directly on it, with no panel of its
+  own.
+- The whole main area — top bar, sub-tabs, content — is a **white floating layer**, left-rounded
+  (`border-radius: 26px 0 0 26px`), ~12px top and bottom inset, flush right. It reads as a layer on
+  top of the gray.
+- The top bar lives inside the white layer: page title left, global finder and actions right,
+  hairline underneath.
+- Sub-tabs render in a white band under the top bar, **inside the same container as the content**, so
+  their edges can never drift apart.
+- **No content max-width. Full-bleed at every screen size, including 4K.** Explicit decision; do not
+  reintroduce caps. Wide-screen alignment comes from shared edges, not from synced max-widths.
+- Grid wrappers always declare `grid-template-columns: minmax(0,1fr)`. Never rely on an implicit
+  track — it sizes to its widest child's min-content and overflows.
+
+### Breakpoints
+
+| Width | What changes |
+| --- | --- |
+| **≤700** | The phone layout ([§16](#16-the-phone-layout)) |
+| **≤900** | Card rows go to two columns; twin cards and KPI rows stack |
+| **≤1180** | Two-column page grids collapse to one, rail below main; the promo row starts scrolling |
+| **≥2200** | Scales up rather than centring: 16px base text, 300px sidebar, wider content ratio |
+
+### Viewport
+
+> [!IMPORTANT]
+> The document must declare `<meta name="viewport" content="width=device-width, initial-scale=1">`.
+> Without it a browser lays the page out at its ~980px fallback and scales the result down, so none
+> of the breakpoints above ever match and device emulation shows a shrunken desktop.
+
+This bit the standalone prototype: the mobile CSS was all present and correct, and one missing line
+made it unreachable. `spendly.html` declares the tag and re-injects it from script if it is missing,
+so a shell that strips it cannot silently take the mobile layout down.
+
+**Never add `maximum-scale=1` or `user-scalable=no`.** It blocks pinch-zoom and fails WCAG 2.2 AA
+(1.4.4 Resize Text) — and it does not do the job it gets added for, see [§17](#17-ios-and-webkit).
+
+## 2. Color
+
+Sampled from the reference sheets, declared once in `:root`.
+
+| Token | Value | Use |
+| --- | --- | --- |
+| app background | `#EFF1EF` | gray shell, sidebar ground (desktop only, see [§16](#16-the-phone-layout)) |
+| `--side-active` | `#E4E7E2` + 1px lift | active nav pill; darker than the ground, never white |
+| `--card` | `#FFFFFF` | all cards, on the white layer |
+| `--card-line` | `#E9ECE8` | 1px border, every card |
+| `--hair` | `#EDEFEA` | header dividers, row separators |
+| `--ink` | `#0B0F0D` | headings, numbers |
+| `--ink-2` | `#3A423D` | body, sidebar items |
+| `--muted` | `#6C766D` | help text, meta — holds 4.5:1 on white |
+| `--muted-2` | `#9AA39D` | axis labels, de-emphasised chevrons |
+| `--green` | `#14AC72` | savings, positive deltas, progress |
+| `--green-soft` | `#DFF3EA` | positive notes, status chip, match highlight |
+| `--teal` | `#07625E` | split-bar dominant segment, focus ring |
+| `--dark` / `--dark-2` | `#0B1A12` → `#12241A` | the one dark card per screen, dark buttons |
+| `--dark-text` | `#ADB8AF` | body text on dark |
+| `--blue` / `--blue-light` | `#4F5BD5` → `#A5B4FC` | spending line gradient |
+| donut set | `#1FA8E0` `#14AC72` `#E8C51B` `#8B5CF6` `#D34F2E` `#F09A38` | category ring segments, with gaps |
+| icon squares | `#C43F2A` `#E9C517` `#8B5CF6` `#1FA8E0` | 36–44px rounded-square category icons |
+| warm (caution) | text `#8A6A1F`, tint `#F6ECD9` | duplicate warnings, unfavourable deltas, uncertain lines |
+| track | `#E7EAE5` | meters, progress backgrounds |
+| `--bar-pale` | `#E2ECE9` | unfilled weekday bars |
+
+**Semantics**: green = favourable (savings up, cost metrics down); warm amber = caution or
+unfavourable (spend above the previous period); neutral ink for counts.
+
+> [!IMPORTANT]
+> Color is never the only carrier. Always icon **plus** words — "21% up vs June".
+
+`--canvas` (`#F3F5F3`) is still declared and no longer used anywhere: the inset tinted canvas went
+away when the sheet went white. Delete it or use it, but do not reintroduce a tint under the cards.
+
+## 3. Typography
+
+- **Poppins**, weights 400/500/600/700, self-hosted — latin subset woff2, ~8KB per weight, includes
+  æøå. The prototype embeds all four as data URIs so it stays one file.
+- Base is **500 (Medium) at 14px**; 400 reads too light against the sheets. 16px at ≥2200.
+- Headings and leads: 600, `letter-spacing: -0.01em` to `-0.02em`. Lead sentence style is 16px/600
+  ("Your biggest vendor: …").
+- Big numbers: 700, `-0.02em`, always `font-variant-numeric: tabular-nums`.
+- Caps micro-labels — card headers, KPI labels: 11–11.5px, `letter-spacing: .08em`, uppercase, 600.
+- Danish formats everywhere: `1.187,25 kr.`, dates `18.07.2026` or `24 July 2026`.
+
+## 4. Elevation and shape
+
+**Flat surfaces carry a border, never a shadow.** Shadows are reserved for the things that genuinely
+float:
+
+1. the white main layer on the gray shell,
+2. open combobox and finder panels,
+3. the active sidebar pill (1px lift).
+
+On a phone the main layer stops floating — it goes edge to edge and drops its shadow — so only the
+latter two carry one there.
+
+Cards are white, `1px solid #E9ECE8`, radius 15px. The dark card matches the card radius and takes no
+shadow. Floating panels use radius 14px and a real shadow.
+
+**No pills, no circles.** Everything rectangular is a rounded rect: buttons 10–12px, chips 8–10px,
+cards 15px, the scan prompt bar 16px. Circles are allowed only for genuinely round data marks — donut
+and progress rings, legend dots, vendor initial badges, the toggle knob.
+
+## 5. Control geometry
+
+Two tiers, and nothing between them.
+
+| Tier | Height | Radius | Where |
+| --- | --- | --- | --- |
+| **Toolbar** | 38px | 10px | top-bar finder, list search inputs, FILTERS, sort combobox chips, toolbar segmented sorts |
+| **Form entry** | 48px | 12px | all entry fields, comboboxes in forms, date fields, segmented controls in forms (textarea 88px) |
+
+Adjacent controls in one row share one tier.
+
+**Form controls keep the same height in every state.** The photo field is 48px empty ("Add a product
+photo…") and 48px filled — 32px thumbnail, filename, rounded-rect remove button. Variable-size
+content such as photos and long values renders in list rows and panels, never inside the form grid.
+
+## 6. Buttons
+
+Two sizes carry almost everything. The prototype drifted to 12 distinct button geometries;
+consolidating took it to 8, and most of the drift was inline `style=` overrides on a shared class
+rather than real tiers — `.arrbtn` rendered at 30px in 8 places and 34px in 6, from one inline
+override.
+
+> [!WARNING]
+> Never set a button's height or radius inline.
+
+| Tier | Spec | Used for |
+| --- | --- | --- |
+| **Compact** | 32px / r10 | top bar SCAN RECEIPT and NEW ORDER, section pills (`.pillbtn`), compact actions (`.btn-caps.sm`, `.ghostbtn.sm`), icon buttons (`.arrbtn`), card personalisation |
+| **Page** | 38px / r12 | `.btn-caps` dark and `.ghostbtn` outline — SAVE ORDER, CANCEL, NEXT STEP, FILTERS |
+| **Hero** | 48px | hero-panel CTAs only, on the page tier's radius |
+| **Card foot** | 44px full-width | `.viewall`, the SEE ALL row. The one documented exception |
+| **Key cap** | 22px / r7 | `.kbd` shortcut hints (CTRL K) |
+
+The compact tier is one size at both breakpoints and passes WCAG 2.5.8 AA (24px floor) with room.
+**No circular buttons anywhere.**
+
+- Every control mixing icon and text is a flex container (`align-items:center; gap`) — never
+  baseline-aligned icons, never per-icon margins.
+- Flow footers: CANCEL/BACK outline left, primary dark right (`justify-content: space-between`).
+- **Button labels are ALWAYS caps.** All 32 of them are, so a title-case label is never acceptable,
+  and two buttons side by side share one type spec — size, weight, tracking — rather than each
+  carrying its own inline style. SCAN RECEIPT shipped title-case against 32 caps neighbours purely
+  because nobody counted.
+- Where a label shortens responsively, put the droppable words in a `<span class="wide-only">`
+  **inside** the label span, never as a second flex child: `.btn` has `gap:8px`, so a bare text node
+  plus a span renders as two flex items with a gap between the words. Keep the full wording in
+  `aria-label`; the visible text stays a substring of it, which is what WCAG 2.5.3 Label in Name
+  requires.
+
+## 7. Comboboxes
+
+**No native selects, ever.** Every dropdown is the same searchable combobox.
+
+- **Closed until asked for.** The field shows the current value and opens on click, Enter or Down. It
+  closes on outside click, Escape (focus returns to the field), choosing an option, or navigating
+  away. The chevron rotates 180° while open.
+- **Field**: search icon, current or typed text, Tabler `chevron-down` right-aligned.
+- **Panel**: white, r14, floating shadow, optgroups with caps headers (FAVOURITES / ALL VENDORS),
+  options with light-green `mark` match-highlighting and right-aligned meta (counts, amounts).
+- **Foot action**: `＋ CREATE VENDOR "…"` — create from search.
+- **Keyboard**: type to filter, arrows move, Enter selects, Escape closes. Exposed as
+  `role="listbox"` / `aria-selected`; options are deliberately not focusable, per the listbox pattern.
+- ARIA 1.2 puts `role="combobox"` and `aria-expanded` **on the input**, not on a wrapper div. Space
+  types a space; only Down and Enter open the list.
+
+The **global finder** is this component in the top bar (38px tier, CTRL K): grouped cross-entity
+results — Orders, Vendors, Notes and item text — plus a foot action into the filtered All-orders
+view. Hidden on phones, where per-page search covers it.
+
+**The command palette is not a dropdown.** It is anchored to the finder's left edge but takes its own
+width (`width: max(100%, 560px)`) rather than inheriting the field's.
+
+## 8. Icons
+
+**Tabler only. No emoji, ever, and no typographic stand-ins.** Icons come from the Tabler sprite
+(v3.44.0) at stroke-width 2. Three things are banned outright:
+
+1. **Emoji as UI** — 🧾 📄 📷 📦 ✅ 👀 🏷️ and friends. They render differently per platform and break
+   the visual system.
+2. **Typographic glyphs used as icons** — `⋮ › ‹ ✓ ✦ ★ ＋ × ⚙ ⟳ ≡ ◎ ⇅ ⎋ ! … %` are icons wearing a
+   text costume. Each has a real Tabler equivalent: `dots-vertical`, `chevron-right`, `chevron-left`,
+   `check`, `sparkles`, `star`, `plus`, `x`, `settings`, `search`, `bolt`, `sparkles`, `arrows-sort`,
+   `arrow-back-up`, `alert-triangle`, `dots`, `percentage`.
+3. **Hand-drawn path data** — if a `d=` attribute was not copied from Tabler, it does not ship.
+   Approximations drift off-grid and read as sloppy next to the real ones.
+
+What stays as text: `×` as a multiplication sign in prices ("2 × 89,95 kr."), `·` as a separator, `…`
+in truncated placeholder copy. That is typography, not iconography.
+
+**Sizes** run 12–20px by context: nav 19, form and toolbar buttons 14–15, chevrons 15, list-row tiles
+16–17, thumbnails 17–20, decorative panel marks 34–46 at stroke-width 1.6.
+
+Never icon-only navigation: every nav icon has a visible label at every width.
+
+**Brand mark**: `ti-receipt`, white stroke on a green `#14AC72` tile, 34px / radius 10, beside the
+wordmark at 22px / 700. The green tile was chosen over dark and bare-stroke treatments; it is the one
+place the accent is spent on chrome. **The wordmark is "Spendly" — never "Splendy".**
+
+**Icons the port's sprite still needs**, all present in Tabler v3.44.0: `chevron-down`,
+`dots-vertical`, `dots`, `arrows-sort`, `arrow-back-up`, `arrow-up`, `bolt`, `sparkles`, `settings`,
+`camera`, `device-desktop`, `basket`, `plug`, `filter-2`, `percentage`.
+
+## 9. Forms and fields
+
+- Two-step order creation — **Order details → Add the items** — with the stepper card on top: icon
+  tile, green progress bar, label; completed steps become green check tiles.
+- Labels above fields, help text under, actions split left/right at the footer. One equal 16px gap
+  horizontally and vertically; row fields top-aligned in `1fr 1fr` columns that collapse to one at
+  ≤700.
+- Unit suffix chips inside inputs (`kr.`, `pcs`), fixed width, excluded from shrinking.
+- Enums are segmented controls — Status: Delivered / Ordered / Returned, plus "Any" in filters: one
+  shared bordered container, dark active segment. **Inside a form a segmented control is an entry
+  field, not a chip group.** It fills its column, stands 48px tall like the inputs beside it, and its
+  segments flex to equal widths. The intrinsic-width 38px version belongs to toolbars, never to a
+  form.
+- Help text under a field is muted 12px. Watch the specificity trap: `.ffield > span` styles the
+  label, so a `.fhelp` span in the same field inherits label weight and colour unless it is
+  overridden at equal or higher specificity.
+- Multi-select as chips inside the field — categories, removable ×.
+- Toggle-revealed optional sections ("More details?": green switch, right-aligned).
+- A live **summary card** in the rail mirrors the form: key/value rows, a green "Total est." that
+  builds as items are added, savings line.
+- **Scan review**: every extracted value editable *including shipping*; VAT reconciliation note (the
+  document total incl. 25% moms anchors the draft); matched-vendor chip; per-line checkmarks with
+  uncertain lines flagged warm; duplicate warning linking to the existing order.
+
+### Fields are real form controls
+
+> [!WARNING]
+> Never fake an input with a `<div>` and a `<span>`.
+
+The prototype had 24 fake fields and zero real ones, and every field-level bug traced back to it: the
+search "placeholder" wrapped to two lines and pushed the control off its geometry tier; date fields
+showed a chevron and could not open a picker; nothing had a mobile keyboard, an accessible name, or
+native truncation.
+
+`.finput` is the **shell** — border, radius, tier height, flex row. Inside it sits a real control that
+carries no chrome of its own:
+
+```css
+.finput > input, .finput > textarea {
+  flex: 1; min-width: 0; font: inherit; color: inherit;
+  background: none; border: 0; padding: 0; outline: none; text-overflow: ellipsis;
+}
+.finput:focus-within { border-color: var(--ink-strong); box-shadow: 0 0 0 1px var(--ink-strong); }
+```
+
+- Every input declares an explicit `type`, and every one has an `aria-label`.
+- **Amounts are `type="text"` with `inputmode="decimal"`, deliberately.** Danish decimals use a
+  comma, which `type="number"` rejects; `inputmode` gets the numeric keyboard without the parsing.
+  Quantities use `inputmode="numeric"`.
+- Dates are `type="date"` — the OS picker is the point, and it makes the calendar affordance native.
+- The photo field is `<label class="finput">` wrapping `<input type="file" accept="image/*">`, with
+  the chosen filename rendered as text.
+- Combobox fields are typeable inputs, per [§7](#7-comboboxes).
+- `:focus-within` on the shell replaces any hand-managed focus class.
+
+**Control text never wraps.** `.finput`, `.copt`, `.combo-action`, `.chip2` and segmented-control
+labels are all `white-space: nowrap` with `text-overflow: ellipsis`. The single exception is `.farea`
+(textarea), which must wrap. **Only the value column gives way** — units, key caps, status chips,
+thumbnails and category chips are fixed tokens, excluded from shrinking. A wrapping placeholder also
+knocks the control off its geometry tier: that is how the search field grew to two lines and stood
+taller than the FILTERS and Sort controls sharing its row.
+
+## 10. Cards
+
+- Header: caps label left; optionally a bordered context chip (the `Save · 4.52% APY` pattern) or an
+  EDIT-style pill (32px/r10) right. Hairline below the header.
+- Inner gray panels: `#F2F4F1`, r12, rows with 40px rounded-square icons, **no dividers between rows**
+  — spacing only — and green amounts right.
+- SEE ALL is the 44px full-width outline button at the card foot. Underlined caps links
+  (`.linkcaps`) appear only inside empty states.
+- Empty states: loop glyph, one sentence, underlined caps action.
+- Exactly **one dark card per screen** — the AI/contextual slot.
+- A card header that navigates gets the chevron **and** the standard `.card-hr` hairline. The tally
+  was 35 headers with the hairline against 4 without, and the 4 were the chart cards.
+
+### Dashboard personalisation
+
+The home dashboard's second row is a set the user picks and orders.
+
+> [!NOTE]
+> It is **not** called Favourites. That word already means the `IsFavorite` star on a Vendor or
+> Category record, and reusing it for pinned widgets collides with a concept the app already ships.
+> The section is "Your cards".
+
+- **Catalogue of six, three on by default**: Spending rhythm, Category breakdown, Top vendors *(on)*;
+  Favourite categories, Saved vs retail, Monthly pace *(available)*. Every one is backed by data that
+  already exists, so nothing here needs a new query.
+- **Favourite categories must stay in the catalogue.** The live app renders a favourite-categories
+  shortcut row on Home today (`CategoryService.GetFavoritesAsync`); dropping it from the redesign
+  would orphan a working feature.
+- EDIT swaps the section actions to DONE (dark, confirm-first) + CANCEL, dashes the card borders, and
+  prepends a per-card toolbar: position readout ("2 of 3"), move earlier, move later, remove. A tray
+  card below lists what can be added.
+- **Reordering is button-driven, never drag-only.** A drag handle alone excludes keyboard and switch
+  users; [§18](#18-accessibility) requires a button or menu equivalent, so start there rather than
+  bolting one on.
+- Ends are `disabled`, not hidden, so the control set does not reflow as cards move. When the button
+  that just moved a card becomes disabled at position 1, focus falls to the sibling direction button
+  rather than to `<body>`.
+- One polite live region announces every change — "Top vendors moved to position 1 of 3", "Monthly
+  pace added at position 3".
+- CANCEL restores the snapshot taken on entering edit mode; Escape does the same. Nothing persists
+  until DONE.
+- Empty is a real state: removing every card shows a dashed placeholder, not a bare heading.
+- The affordance is a dashed border, deliberately not an animation, because the
+  [§18](#18-accessibility) reduced-motion reset would strip it.
+- **Read unknown card keys defensively.** The stored list outlives any given catalogue, so filter it
+  against the cards that actually exist before applying it, or a renamed card wipes the dashboard.
+  The prototype persists to `localStorage['spendly.cards']` and tolerates storage being refused; the
+  port stores it server-side ([§19](#19-notes-for-the-port)).
+
+> [!CAUTION]
+> **Cost us a bug.** Any class that sets a `display` value outranks the UA's `[hidden] {display:none}`
+> rule, so `.pillbtn` / `.btn-caps` kept rendering while hidden and EDIT, DONE and CANCEL all showed
+> at once. Ship a global `[hidden] { display: none !important; }`.
+
+## 11. Page patterns
+
+Routes in the prototype: `home`, `orders` (Overview), `orders2` (All orders), `detail`, `create` →
+`create2`, `scan` → `scan2` → `scan3`, `vendors`, `categories`, `stats`.
+
+**Home** — spent-this-month hero (big number, savings line, range chips with a bordered active state,
+chart with floating callout, Orders/Saved half-underline tabs, category split bar and expandable
+legend), dark AI scan card, latest orders, saved-vs-retail, then the personalised card row. Title is
+"Home", no greeting.
+
+**Orders / Overview** — comparison chart card (current solid vs previous dashed, dashed guide, halo
+marker, ruler ticks, "Compare with" chip), twin LATEST cards, FOR YOU promo row (tag pills;
+horizontal scroll ≤1180, stacks ≤700), rail with returns, question of the day, category breakdown
+(Expenses | Budget segmented plus donut), ORDER SETTINGS.
+
+**Orders / All orders** — the search surface: 38px finder input (vendor, note, item text), FILTERS
+toggling an inline panel (vendor and category comboboxes, from/to, min/max with `kr.` units, status
+segmented including Any, APPLY 32px + CLEAR), active filters as removable × chips plus CLEAR ALL,
+sort combobox chip, results line "N match · filtered from total", rows with status chips and saved
+amounts, PREVIOUS/NEXT. Sub-tabs double as one-tap status filters.
+
+**Order detail** — back arrow in the **top bar**, never floating in a card. **No internal ids shown.**
+Header card (vendor, date and count, category chips, status chip, edit/delete); items with photos and
+**paid prices only** — retail never displays on details; totals with the order-level green saved
+line; rail with details facts, attachments (ADD FILE, open/delete) and the contextual dark scan card.
+
+**Scan flow** — three steps, Upload → Reading → Review, with the stepper. Reading is a full-width card
+sharing the stepper's edges, with a centred column inside: document preview, filename headline, help
+line, an **indeterminate progress bar** (a 38% segment sliding on a 420px track, `aria-busy` on the
+card, no percentage claimed because a scan has none) and the review link. No spinner — the moving bar
+carries the busy state on its own. Review as in [§9](#9-forms-and-fields), with the draft fields
+paired two to a row: **Vendor and Date on the first line, Shipping fee and Status on the second.**
+
+**Vendors** — hero panel (warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
+(caps header and chip, sentence, inner panel rows, full-width VIEW ORDERS), full-width search with
+Spend/Name/Orders/Saved segmented, horizontal all-vendors card row.
+
+**Categories** — full-width search with Spend/Name/Orders segmented, icon-square list rows with
+percentage of expenses and amounts, question card, breakdown donut.
+
+**Statistics**, with every current metric kept — presets segmented (Monthly / Yearly / All time /
+Custom) plus a period pager (‹ July 2026 ›) and a headline with delta chip; four KPI cards each with
+an explicit previous-period delta (trend icon, "x% up/down vs June", previous value); race chart;
+**Pace** (projection, meter with fill and previous-period-end marker, plus note); **Weekly rhythm**
+(weekend share, busiest day, 7 mini columns); breakdown ring with gaps; month columns; returns note.
+
+## 12. Chrome
+
+A personal, single-user system: **no avatar, no help "?", no bell, no greeting, no visible internal
+ids.** Top bar = title + global finder + SCAN RECEIPT (dark) + NEW ORDER (outline).
+
+**Both creation paths stay on the phone.** Scanning is the fast path, but typing an order is the one
+you need when there is no receipt to scan, so it must never become the desktop-only option. The
+prototype hid NEW ORDER below 700px and left the app scan-only on the device where orders are most
+often added. On mobile the labels shorten to SCAN and NEW so the pair still fits one row, with the
+full wording kept in the accessible name.
+
+`.gfind` carries the `margin-left:auto` that pushes the actions right and is hidden on mobile, so
+`.top .acts` has to take that job over or the buttons sit against the title.
+
+The sidebar foot is the wordmark line alone — `Spendly · personal ledger`. **No legal, privacy or
+terms links**: there is no second party here to disclose anything to. Hidden entirely on mobile.
+
+## 13. Honest affordances
+
+The most common defect found in this design was chrome that looks interactive and is not. Every
+instance below shipped because a shape was copied from the reference without asking what it would do.
+
+- **A chevron means "this goes somewhere".** It appears only on something that navigates, and
+  anything that navigates carries one. Audit both directions: the prototype had 12 chevrons, all
+  dead, and after wiring them 9 rows were clickable with no chevron at all.
+- **Chevron direction carries meaning** — right = navigate away, down = expand in place. Do not mix
+  them; the Home legend used down-chevrons on rows that navigate.
+- **Date fields carry the calendar icon, never a chevron.** A chevron promises a list; a date field
+  opens the OS picker.
+- **Anything clickable is keyboard operable.** A `div` with a click handler needs `tabindex="0"`, a
+  role and an Enter handler, or it is mouse-only. Native `<button>` / `<a>` is preferred. Rows carry
+  `role="link"`, so they activate on Enter and leave Space alone — Space still scrolls, which is what
+  a link does.
+- **A `role="tab"` is a promise.** Tabs are `<button>`, carry roving `tabindex` (selected 0, rest -1),
+  respond to Left/Right, and keep `aria-selected` in sync. Twelve `<span role="tab">` elements
+  announced as tabs while being inert. This holds for the inline segmented controls (`.subtabs.mini`)
+  and the hero's Orders/Saved pair as much as for the page sub-tabs.
+- **A tab must change what is on screen.** Tabs that could not — Delivered, Returned, Reports, and the
+  statistics period tabs that duplicated that page's own pager — were deleted, not left as decoration.
+- **No decorative controls at all.** The kebab was a `<span aria-hidden="true">` with no handler and
+  no intended action, inherited from the reference's card menu; it invites a click that does nothing.
+  Deleted. The hero `[+]` went too: it duplicated the top bar's NEW ORDER and existed only because
+  that button was hidden on mobile.
+
+## 14. Charts
+
+> [!WARNING]
+> Never scale a fixed `viewBox` to fit. Both `preserveAspectRatio="none"` and
+> `width:100% + aspect-ratio` zoom the whole drawing: the stroke thickens, marker circles turn into
+> ellipses, and with `none` the curve's slope changes with window width, which misreads the data.
+
+Instead, hold the height fixed and remap the viewBox onto the element's real pixel box on every
+resize — `viewBox="0 0 <measuredWidth> <fixedHeight>"` — so one user unit is always one CSS pixel.
+Stroke widths and markers then stay constant in screen pixels, and only the horizontal spacing of the
+data changes.
+
+- Keep the series as data (`data-series`) and regenerate the path rather than hand-authoring bezier
+  control points: the numbers stay legible and re-plot at any width. Baselines (`data-baseline`) and
+  markers (`data-marker`) are placed from data too.
+- A `ResizeObserver` handles charts on hidden pages, which measure zero wide until shown — nothing has
+  to be redrawn by hand on navigation.
+
+## 15. Responsive containment
+
+**Audit clipped content, not document overflow.** `document.scrollWidth - clientWidth` was 0 on every
+page while the Orders filter panel was 76px wider than its card and simply cut off: a card clips its
+own children without the document ever overflowing, so the controls become unreachable with no
+scrollbar to reveal them. Measure `el.scrollWidth - el.clientWidth` on every element instead,
+excluding the deliberate scrollers (`.hrow`, `.forr`).
+
+The cause is almost always the same — **flex and grid children default to `min-width:auto`**, so a
+long placeholder, a `white-space:nowrap` price or a fixed-width chip refuses to shrink and bursts the
+container. Rules that follow:
+
+- Give every layout container in a form panel `min-width:0`: `.tsec`, `.ffield`, `.finput`, and
+  `.tsec > *`, `.frow2 > *`, `.rowline > *`, `.card-b > *`.
+- A single-column grid's implicit column is `auto`, which sizes to its widest item's min-content and
+  can exceed the container. Use `grid-template-columns: minmax(0,1fr)`.
+- **Only the text column may shrink.** Icon tiles, nowrap prices and drag handles are fixed
+  affordances; blanket `min-width:0` on row children clipped prices by 29px and squeezed a 15px drag
+  handle to 6px. Target the description (`.irow > span:has(b)`) and give the rest `flex:none`.
+- Rows with fixed columns that cannot fit a phone stack instead — `.orow` becomes two rows via
+  `grid-template-areas`.
+- **Row content sits flush with the card's content box.** Six row types use `padding: Npx 0`; `.orow`
+  alone had `12px 6px` and sat 6px inside the header and footer above and below it. Likewise a
+  trailing chevron column is `auto`, not a fixed 26px around a 15px glyph, or the row stops short of
+  the card edge.
+
+## 16. The phone layout
+
+Everything here is scoped to `≤700px`. It was settled after the desktop system and supersedes the
+earlier "shrink the floating layer" approach.
+
+- **The content area is flat white and edge to edge.** The canvas tint exists to frame the floating
+  white sheet against the sidebar; a phone has no sidebar, so all the tint produced was an 8px border
+  around the content — decoration paid for in width the dense rows actually need. `body` goes white
+  and `.main` drops its margin, radius and shadow.
+- **Square corners stop at the paper.** The sheet and the main panel are the page's own edge and have
+  nothing to be rounded against once they run full width, so they square off. **Cards keep their 15px
+  radius** and controls keep theirs — they are objects on the paper, not the paper. "No round corners
+  on mobile" was a rule about the layer, never about everything inside it.
+- **One gutter for the whole phone layout: 12px.** Top bar, sub-tab strip and sheet all use it, so
+  header, sub-tabs and cards share a left edge. The sheet's inset is split across a margin and a
+  padding, which is exactly how a mismatch hides — `10 + 12` reads as intentional at a glance without
+  ever totalling the gutter the rest of the layout uses. Keep it stated as `0 + 12` so the number
+  stays legible.
+- **The sidebar becomes a fixed bottom tab bar**: all five destinations as equal columns
+  (`repeat(5, minmax(0,1fr))`), icon over label, labels always visible, ~48px targets,
+  `env(safe-area-inset-bottom)` respected, and `.main` padded to clear it.
+- **The tab bar keeps the `#EFF1EF` tint** plus a top hairline. That tint is the one thing separating
+  the bar from content scrolling under it; making it white cost that separation and had to be bought
+  back with a shadow and a pill that were never asked for. On tint the active tab reads from its bare
+  1px lift, no fill — which is how it was designed.
+- **Layout shifts**: `.orow` stacks to two rows; `.irow` wraps with the description keeping a 60%
+  basis; `.frow2` and `.olgrid` go single-column; card rows go single-column; the hero callout is
+  hidden; the global finder is hidden and `.top .acts` takes over the right-alignment; sub-tabs
+  scroll horizontally without a visible scrollbar.
+- **A wrapping segmented control takes its height from the buttons** (`min-height:38px`), not from the
+  container. `.ffield .subtabs button` zeroes vertical padding and outranks `.subtabs.mini button` on
+  source order alone, so with `height:auto` and no padding the control collapsed to text height — a
+  ~26px strip under 48px inputs. At 38px the buttons put an unwrapped control back at 48px, matching
+  the fields above it.
+
+## 17. iOS and WebKit
+
+Two WebKit-only bugs, each with a wrong-looking obvious fix. Neither is worth re-litigating.
+
+### Zoom on focus
+
+iOS zooms the page whenever a focused control computes under 16px, and every field here is 12.5 or
+13.5px.
+
+- Raising the sizes is the usual fix and the one thing this must not do — the sizes are the design.
+- **Clamping the viewport does not work.** Safari has ignored `maximum-scale` and `user-scalable`
+  since iOS 10, deliberately, so that a reader can always zoom. A clamp is dead weight that would
+  also fail WCAG 1.4.4 if it were ever honoured.
+- The computed font size is the only lever Safari reads, and it reads the *computed* one — a transform
+  is a paint operation and does not touch it. So under `@media (pointer: coarse)` each control
+  computes at 16px and is scaled straight back to the size it already was: `.84375` for the 13.5px
+  form fields, `.78125` for the 12.5px toolbar and global search. Nothing looks bigger, which is the
+  whole point.
+- `transform-origin: left center` pins the left edge so text starts exactly where it did, and a
+  negative `margin-right` hands the layout box back the width the scale took off it. Overshoot is
+  bounded by whatever trailing chip shares the row — about `0.156 ×` its width, ~4px worst case — and
+  `.finput` clips, so it stays inside the field.
+- The textarea is scaled in both axes rather than one — it is a block with a real height, not a single
+  line centred in a fixed row — so it gets a top-left origin and an inflated height instead.
+- Coarse pointers only. Desktop has no such behaviour and keeps the untransformed, sharper text.
+
+### Date fields
+
+- iOS 15+ renders the value into `::-webkit-date-and-time-value`, which defaults to `width:100%` and
+  `text-align:center`, and `text-align` on the input does not reach it. Ours is `flex:1` so it spans
+  the row, which is what left the date stranded mid-field while every neighbouring value sat left.
+  Overriding the pseudo-element is the documented fix (Apple DTS,
+  [developer.apple.com/forums/thread/691305](https://developer.apple.com/forums/thread/691305)).
+  **Not scoped to `[type=date]`** — time, month and datetime-local behave the same way, and the
+  pseudo-element does not exist on other input types, so the rule is inert there. Blink and Gecko
+  already left-align.
+- iOS never renders `::-webkit-calendar-picker-indicator`, so date fields were the only ones on a
+  phone with an empty trailing slot. **The glyph is ours now**, drawn on every platform, with the
+  native indicator flattened to a transparent hit target sitting exactly on top of it. Both are
+  needed: Chrome and desktop Safari open the picker only from the indicator (clicking the value there
+  edits a segment), while iOS opens it from the input itself and the glyph passes the tap through.
+- **Our glyph is what leaves flow, not the indicator.** The indicator is shadow content and stays
+  inside the input's box however it is positioned, so pinning that instead just moves it off the
+  glyph. With the glyph absolute, the input is the only item left in flow and spans the whole field,
+  which puts its indicator exactly under the glyph and makes the entire field the tap target on iOS.
+- The one date field carrying a unit chip is left off `.fdate` and keeps the native indicator: an
+  out-of-flow glyph at `right:15px` would sit on top of that chip.
+
+## 18. Accessibility
+
+- WCAG 2.2 AA floor; muted text tuned to hold 4.5:1 on white.
+- Deltas and statuses are words plus icons, never colour alone.
+- Comboboxes: listbox semantics, roving focus, Escape restores focus to the field.
+- Panels and detail regions: focus moves to the heading on open, returns to the trigger on close.
+- Live regions polite and single per surface — filter counts, period changes, card reordering.
+- Focus is always visible: `:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }`.
+- Touch targets ≥44px effective on mobile nav; drag actions always have a button or menu equivalent;
+  Escape cancels inline edits.
+- Pinch-zoom is never blocked ([§1](#1-shell-and-layout), [§17](#17-ios-and-webkit)).
+
+> [!IMPORTANT]
+> Progress indicators never freeze under `prefers-reduced-motion`. The blanket `* { animation: none }`
+> reset is wrong — it turns a busy state into what looks like a hung app. Exclude busy indicators from
+> the reset and slow them instead: `.pbar.indet i` runs 1.5s normally, 2.6s linear under reduced
+> motion.
+
+## 19. Notes for the port
+
+- **Shell first**: `MainLayout.razor` plus tokens in `earnify.css`. Keep the single `--theme` master
+  derivation and map [§2](#2-color) onto it; independent masters for green and warm, as danger is
+  today. `earnify.min.css` is what ships — run `dotnet build` after edits, since the dev server locks
+  `bin\`.
+- **Fonts**: self-host Poppins woff2 in `wwwroot/fonts`, latin subset incl. æøå.
+- **Sub-tabs must share the content container** — one constraint, nothing drifts.
+- **The global finder needs a small cross-entity endpoint**: orders by vendor, note and item text,
+  plus vendors and categories.
+- **Drop `maximum-scale=1` from `Components/App.razor`** ([§1](#1-shell-and-layout),
+  [§17](#17-ios-and-webkit)). Keep `viewport-fit=cover`, which the mobile tab bar depends on for
+  `env(safe-area-inset-bottom)`.
+- **Dashboard card choice needs somewhere to live.** There are six DbSets and none of them is
+  settings. For one user the cheapest honest option is a key/value preference table (`Key` PK string,
+  `Value` JSON string) holding a single row — `dashboard.cards` =
+  `["rhythm","breakdown","vendors"]`: one migration, and the next preference (default statistics
+  period, page size) costs nothing more. A `DashboardCard(CardKey, SortOrder, IsVisible)` table is
+  more relational but only ever serves this one feature. Do not reach for `localStorage`: on Blazor
+  Server that means JS interop for something the server already has a database for, and the choice
+  would not follow the user between devices.
+- **Follow CLAUDE.md's uniformity discipline** — before adding any variant, grep for the pattern and
+  match the tally, not a single neighbour.
