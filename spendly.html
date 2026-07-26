@@ -114,11 +114,10 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
 
 /* card */
 /* Elevation rule: flat surfaces carry a border, never a shadow.
-   Shadows are reserved for things that actually float: the white
+   Shadows are reserved for the three things that float: the white
    main layer, open combobox panels, and the active nav pill.
-   On a phone that set shifts rather than grows — the main layer goes
-   edge to edge and drops its shadow, and the fixed tab bar takes it up,
-   since there the bar is the layer content passes beneath. */
+   On a phone the main layer stops floating — it goes edge to edge and
+   drops its shadow — so only the latter two carry one there. */
 .card { background:var(--card); border:1px solid var(--card-line); border-radius:var(--r-card); }
 .card-h { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px 12px; }
 .card-h .lab { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink); }
@@ -480,25 +479,20 @@ label.finput { cursor:pointer; }
 @media (max-width:700px) {
   .app { grid-template-columns:1fr; }
   /* The canvas tint exists to frame the floating white sheet against the sidebar.
-     A phone has no sidebar, so all it produced here was an 8px border around the
-     content — decoration paid for in width the dense rows below actually need
-     (see .orow and .irow, which already wrap to fit). Content goes edge to edge
-     on white instead. */
+     A phone has no sidebar, so all it produced in the content area was an 8px
+     border around the sheet — decoration paid for in width the dense rows below
+     actually need (see .orow and .irow, which already wrap to fit). The content
+     area goes flat white and edge to edge; the tab bar below keeps the tint,
+     which is what still separates it from the content scrolling under it. */
   body { background:#fff; }
   .main { margin:0; border-radius:0; box-shadow:none; }
-  /* The one job the tint did do is separate the fixed tab bar from the content
-     scrolling under it. A hairline plus a soft lift carries that on white, so the
-     bar stays legible without tinting the whole page to get it. */
-  .side { position:fixed; inset:auto 0 0 0; height:auto; z-index:30; flex-direction:row; align-items:center; padding:8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); gap:0; border-top:1px solid var(--card-line); background:#fff; box-shadow:0 -6px 18px rgb(11 26 18 / .06); }
+  .side { position:fixed; inset:auto 0 0 0; height:auto; z-index:30; flex-direction:row; align-items:center; padding:8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); gap:0; border-top:1px solid var(--hair); background:#EFF1EF; }
   .side .brand, .side .foot { display:none; }
   .nav { grid-auto-flow:column; width:100%; gap:2px; }
   .nav a { flex-direction:column; gap:4px; min-height:50px; padding:6px 2px; font-size:10px; border-radius:12px; justify-content:center; }
-  /* On the tinted bar the active tab could read from a bare shadow. On white that
-     shadow has nothing to sit against, so the pill comes back — same fill the
-     sidebar uses on desktop, so the active state is one treatment everywhere. */
-  .nav a.on { background:var(--side-active); color:var(--ink); }
+  .nav a.on { background:transparent; color:var(--ink); }
   .main { padding-bottom:76px; }
-  .top { flex-wrap:wrap; padding:12px 16px; }
+  .top { flex-wrap:wrap; padding:12px; }
   .top h1 { font-size:16px; }
   /* Both creation paths stay reachable on a phone. Scanning is the fast path, but
      typing an order is the one you need when there is no receipt to scan, so it
@@ -525,11 +519,15 @@ label.finput { cursor:pointer; }
      hidden here, so .acts has to take the job over or it sits against the title. */
   .top .acts { margin-left:auto; }
   /* One gutter for the whole phone layout. The sheet's inset is split across a
-     margin and a padding, so it has to total the 16px the top bar and the tab
-     strip already use -- otherwise the cards hang 6px inside the header above
-     them. Kept as 0 + 16 rather than 4 + 12 so the number is legible here. */
-  .sheet { margin:8px 0 14px; padding:14px 16px; border-radius:16px; }
-  .subwrap { padding:6px 16px 2px; }
+     margin and a padding, so it has to total the same 12px the top bar and the
+     tab strip use -- otherwise the cards hang inside the header above them.
+     Kept as 0 + 12 rather than 4 + 8 so the number is legible here. */
+  .sheet { margin:8px 0 14px; padding:14px 12px; border-radius:0; }
+  .subwrap { padding:6px 12px 2px; }
+  /* Square corners on the content surfaces. The cards are the only rounded thing
+     left in this layer once the sheet and the main panel go flat, so they square
+     off too -- controls keep their radii, they read as controls, not background. */
+  .card { border-radius:0; }
   .favs { grid-template-columns:1fr; }
   .callout { display:none; }
   .hero-num { font-size:23px; }
