@@ -524,7 +524,11 @@ label.finput { cursor:pointer; }
   /* .gfind carries the margin-left:auto that pushes the actions right, and it is
      hidden here, so .acts has to take the job over or it sits against the title. */
   .top .acts { margin-left:auto; }
-  .sheet { margin:8px 10px 14px; padding:14px 12px; border-radius:16px; }
+  /* One gutter for the whole phone layout. The sheet's inset is split across a
+     margin and a padding, so it has to total the 16px the top bar and the tab
+     strip already use -- otherwise the cards hang 6px inside the header above
+     them. Kept as 0 + 16 rather than 4 + 12 so the number is legible here. */
+  .sheet { margin:8px 0 14px; padding:14px 16px; border-radius:16px; }
   .subwrap { padding:6px 16px 2px; }
   .favs { grid-template-columns:1fr; }
   .callout { display:none; }
