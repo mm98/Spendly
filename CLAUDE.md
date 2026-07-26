@@ -74,9 +74,12 @@ native icon nobody had looked at in a while.
 
 - **The single file is a constraint, not an accident.** No dependency, no build step, no network
   request, no external asset. A fix that needs any of those is the wrong fix.
-- **Comments carry the why, not the what.** The file explains what a rule cost — which browser, which
-  bug, which alternative was tried and why it failed. Match that density; a mechanical restatement of
-  the CSS is noise.
+- **A comment is a tripwire, not documentation.** The README holds the argument; the comment exists
+  because nobody greps a spec before deleting what looks like a magic number, and this file is full of
+  values that look like mistakes — `calc(100% + 56px)`, `min-height:38px`, the iOS rule that computes
+  16px and scales it back. State the constraint, what breaks without it, and the section that explains
+  it. Three or four lines. Re-arguing the case inline gives one rule two homes and they drift; a
+  restatement of the CSS is noise either way.
 - **Match the surrounding idiom** — naming, comment voice, `--` for dashes inside CSS comments, the
   house habit of stating the defect before the rule.
 
