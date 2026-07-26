@@ -2076,3 +2076,45 @@ label.finput { cursor:pointer; }
   show((location.hash || '').replace('#', '') || 'home');
 })();
 </script>
+
+<script>
+/* iOS zooms the page when a control smaller than 16px takes focus, and every field
+   here is 12.5 or 13.5px. Raising them to 16px is the usual answer and the one thing
+   we will not do -- it is the design. So the clamp is temporary instead: maximum-scale
+   pins the page for as long as a field is focused, and is dropped the moment it is not.
+   Pinch-zoom therefore stays available exactly when a reader would reach for it, which
+   is what a permanent user-scalable=no would have cost (WCAG 2.1 SC 1.4.4). Scoped to
+   coarse pointers because the viewport meta is a no-op anywhere else. */
+(function () {
+  if (!matchMedia('(pointer: coarse)').matches) return;
+
+  /* Two of these reach the published page: the shell's in <head> and this file's own
+     at the top of the body. The later one parsed is the one that governs, so they
+     have to move together -- pinning only the first is a no-op. */
+  const metas = [...document.querySelectorAll('meta[name="viewport"]')]
+    .map(m => ({ m, released: m.content, pinned: m.content + ', maximum-scale=1' }));
+  if (!metas.length) return;
+
+  /* Only the controls that actually trigger it: text-entry fields and selects.
+     Checkboxes, radios and buttons take focus without ever zooming. */
+  const FLAT = /^(button|checkbox|radio|submit|reset|file|image|range|color|hidden)$/;
+  const zooms = el =>
+    !!el && (el.matches('textarea, select') ||
+             (el.matches('input') && !FLAT.test(el.type)));
+
+  const set = pin => metas.forEach(s => {
+    const v = pin ? s.pinned : s.released;
+    if (s.m.content !== v) s.m.content = v;
+  });
+
+  /* Armed on pointerdown as well as focusin: focusin can land after Safari has
+     already committed to the zoom, and the pointer event precedes it. */
+  addEventListener('pointerdown', e => { if (zooms(e.target)) set(true); }, true);
+  addEventListener('focusin', e => { if (zooms(e.target)) set(true); }, true);
+  addEventListener('focusout', () => {
+    /* Released only once focus has settled somewhere that is not a field -- moving
+       between two inputs must not unpin and repin, which is itself a zoom. */
+    requestAnimationFrame(() => { if (!zooms(document.activeElement)) set(false); });
+  }, true);
+})();
+</script>
