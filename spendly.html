@@ -123,7 +123,11 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
 .page[data-view="favourites"] [data-view-only="overview"],
 .page[data-view="manage"] [data-view-only="overview"] { display:none; }
 .row[data-go]:hover, .cat-row[data-go]:hover, .card-h[data-go]:hover { background:var(--hair); }
-.card-h[data-go] { border-radius:var(--r-card) var(--r-card) 0 0; }
+/* The header sits inside the card's 1px border, so its own curve is the card's
+   radius less that border. At the full radius the curve is too wide for the space
+   and pulls away from the border at the top corners, leaving a pale sliver of card
+   showing between the two once the header lights up. */
+.card-h[data-go] { border-radius:calc(var(--r-card) - 1px) calc(var(--r-card) - 1px) 0 0; }
 .card-hr { height:1px; background:var(--hair); margin:0 20px; }
 /* The header highlight runs edge to edge, but the rule beneath it is inset to the
    content, and both are --hair. Left alone, the lit block ends on two lines a pixel
