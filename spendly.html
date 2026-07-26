@@ -389,11 +389,15 @@ label.finput { cursor:pointer; }
 .fname { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
 /* The native date field keeps its own picker button; ours would be a second one. */
 .finput > input[type="date"]::-webkit-calendar-picker-indicator { margin-left:auto; opacity:.55; cursor:pointer; }
-/* iOS renders the date into its own pseudo-element and centres it in whatever width
-   the input has. The input is flex:1, so it takes the full row and the date drifted
-   to the middle of it while every neighbouring field sat left. Desktop browsers
-   already left-align, so this only bites on the phone. */
-.finput > input[type="date"]::-webkit-date-and-time-value { text-align:left; }
+/* iOS 15+ puts the value in a ::-webkit-date-and-time-value pseudo-element that
+   defaults to width:100% and text-align:center, and text-align on the input itself
+   does not reach it. Ours is flex:1 so it spans the row, which is what left the date
+   stranded mid-field while every neighbouring value sat left. Overriding the
+   pseudo-element is the documented fix (Apple DTS, developer.apple.com/forums/thread/691305).
+   Not restricted to [type=date]: time, month and datetime-local behave the same way,
+   and the pseudo-element does not exist on other input types, so this is inert there.
+   Blink and Gecko already left-align, so nothing changes off WebKit. */
+.finput > input::-webkit-date-and-time-value { text-align:left; }
 .finput:focus-within { border-color:var(--ink-strong); box-shadow:0 0 0 1px var(--ink-strong); }
 .finput.ph { color:var(--muted); }
 /* The one exception: a textarea is meant to wrap. */
