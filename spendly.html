@@ -389,6 +389,11 @@ label.finput { cursor:pointer; }
 .fname { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
 /* The native date field keeps its own picker button; ours would be a second one. */
 .finput > input[type="date"]::-webkit-calendar-picker-indicator { margin-left:auto; opacity:.55; cursor:pointer; }
+/* iOS renders the date into its own pseudo-element and centres it in whatever width
+   the input has. The input is flex:1, so it takes the full row and the date drifted
+   to the middle of it while every neighbouring field sat left. Desktop browsers
+   already left-align, so this only bites on the phone. */
+.finput > input[type="date"]::-webkit-date-and-time-value { text-align:left; }
 .finput:focus-within { border-color:var(--ink-strong); box-shadow:0 0 0 1px var(--ink-strong); }
 .finput.ph { color:var(--muted); }
 /* The one exception: a textarea is meant to wrap. */
@@ -508,7 +513,16 @@ label.finput { cursor:pointer; }
   .orow > .ot { grid-area:t; }
   .orow > .ochev { grid-area:c; }
   .rowline { flex-wrap:wrap; }
+  /* Wrapping needs height:auto, but the buttons have no vertical padding to fall
+     back on -- .ffield .subtabs button zeroes it, and it outranks .subtabs.mini
+     button only by source order, both being two classes and an element. So the
+     control collapsed to text height: a ~26px strip sitting under 48px inputs.
+     Height comes from the buttons instead. 38px is what the desktop rule already
+     gives them -- its 48px minus the 1px borders and the 4px track padding either
+     side -- so an unwrapped control lands at the same 48px as the inputs above it
+     and each wrapped row stays the size it is everywhere else. */
   .ffield .subtabs { height:auto; flex-wrap:wrap; }
+  .ffield .subtabs button { min-height:38px; }
   .factions { flex-wrap:wrap; }
   /* The item row carries an icon, a drag handle, a nowrap price and two action
      buttons. On a phone those fixed widths leave the description nothing, so the
