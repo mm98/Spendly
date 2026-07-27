@@ -151,8 +151,8 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
 .hero-num { font-size:27px; font-weight:700; letter-spacing:-.02em; margin:2px 0 0; }
 .hero-delta { font-size:11.5px; color:var(--green); font-weight:600; margin-top:2px; }
 .ranges { display:flex; gap:14px; align-items:center; margin-top:14px; }
-.ranges span { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.02em; cursor:pointer; padding:6px 2px; }
-.ranges span.on { color:var(--ink); border:1px solid #D9DED8; border-radius:9px; padding:6px 11px; background:var(--card); }
+.ranges button { font:inherit; background:none; border:0; font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.02em; cursor:pointer; padding:6px 2px; }
+.ranges button.on { color:var(--ink); border:1px solid #D9DED8; border-radius:9px; padding:6px 11px; background:var(--card); }
 .chart-wrap { position:relative; margin-top:8px; }
 .callout { position:absolute; left:34%; top:26%; background:var(--card); border-radius:12px; box-shadow:0 2px 6px rgb(11 26 18 / .06), 0 14px 34px rgb(11 26 18 / .12); padding:10px 14px; font-size:11px; color:var(--ink-2); max-width:264px; line-height:1.5; }
 .callout { border-radius:16px; }
@@ -728,7 +728,7 @@ label.finput { cursor:pointer; }
               <div class="hero-delta num">saved 2.106,00 kr. vs retail (9,4%)</div>
             </div>
             <div class="ranges" role="group" aria-label="Range">
-              <span>1D</span><span>1W</span><span class="on">1M</span><span>3M</span><span>YTD</span><span>ALL</span>
+              <button type="button" data-range="1W" aria-pressed="false">1W</button><button type="button" data-range="1M" class="on" aria-pressed="true">1M</button><button type="button" data-range="3M" aria-pressed="false">3M</button><button type="button" data-range="YTD" aria-pressed="false">YTD</button><button type="button" data-range="ALL" aria-pressed="false">ALL</button>
             </div>
             <div class="chart-wrap">
               <svg class="chart" data-h="130" data-pad="0" style="display:block;width:100%;height:130px" role="img" aria-label="Daily spend through July"><path id="heroSeries" data-series="96,92,98,78,90,84,96,70,84,76,92,88,96,60,74,66,88,80,72,94,84,52,26,60,84,92,68,44,62,34,56,48,58,50,54" data-kind="line" fill="none" stroke="#3A423D" stroke-width="1.6"></path></svg>
@@ -1674,10 +1674,10 @@ label.finput { cursor:pointer; }
       </div>
       <section class="card" aria-label="Overview">
         <div class="card-h"><span class="lab">Overview · July against June</span>
-          <div class="ranges" style="margin:0"><span>1W</span><span class="on">1M</span><span>3M</span><span>YTD</span><span>ALL</span></div></div>
+          <div class="ranges" role="group" aria-label="Range" style="margin:0"><button type="button" data-range="1W" aria-pressed="false">1W</button><button type="button" data-range="1M" class="on" aria-pressed="true">1M</button><button type="button" data-range="3M" aria-pressed="false">3M</button><button type="button" data-range="YTD" aria-pressed="false">YTD</button><button type="button" data-range="ALL" aria-pressed="false">ALL</button></div></div>
         <div class="card-hr"></div>
         <div class="card-b" style="padding-top:4px">
-          <svg class="chart" data-h="210" data-pad="10" style="display:block;width:100%;height:210px" role="img" aria-label="Cumulative spend per day, July solid, June dashed"><defs><linearGradient id="gr2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14AC72" stop-opacity=".2"></stop><stop offset="1" stop-color="#14AC72" stop-opacity="0"></stop></linearGradient></defs><path data-series="180,160,138,108,76,46,20" data-kind="area" fill="url(#gr2)" stroke="none"></path><path data-series="180,160,138,108,76,46,20" data-kind="curve" fill="none" stroke="#14AC72" stroke-width="2.4"></path><path data-series="186,174,158,138,118,100,86" data-kind="curve" fill="none" stroke="#95ABAA" stroke-width="1.6" stroke-dasharray="4 4"></path></svg>
+          <svg class="chart" data-h="210" data-pad="10" style="display:block;width:100%;height:210px" role="img" aria-label="Cumulative spend per day, July solid, June dashed"><defs><linearGradient id="gr2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14AC72" stop-opacity=".2"></stop><stop offset="1" stop-color="#14AC72" stop-opacity="0"></stop></linearGradient></defs><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="area" fill="url(#gr2)" stroke="none"></path><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="curve" fill="none" stroke="#14AC72" stroke-width="2.4"></path><path data-series="186,184,183,178,175,172,170,167,164,162,160,155,148,143,141,139,136,130,126,119,114,109,104,99,94,93,92,91,88,86" data-kind="curve" fill="none" stroke="#95ABAA" stroke-width="1.6" stroke-dasharray="4 4"></path></svg>
           <div class="ruler" aria-hidden="true"></div>
           <div class="axis num"><span>01</span><span>08</span><span>15</span><span>22</span><span>29</span></div>
         </div>
@@ -1990,7 +1990,9 @@ label.finput { cursor:pointer; }
       const host = series[parseInt(c.dataset.markerSeries || 0, 10)];
       if (!host) return;
       const ys = host.dataset.series.split(',').map(Number);
-      const i = parseInt(c.dataset.marker, 10);
+      // A shorter range means fewer points than the marker was authored against,
+      // and an index past the end writes cx/cy="undefined" and drops the marker.
+      const i = Math.min(parseInt(c.dataset.marker, 10), ys.length - 1);
       c.setAttribute('cx', xAt(ys.length, i).toFixed(1));
       c.setAttribute('cy', ys[i]);
     });
@@ -2069,7 +2071,13 @@ label.finput { cursor:pointer; }
       t.setAttribute('aria-selected', on ? 'true' : 'false');
       t.tabIndex = on ? 0 : -1;
     });
-    if (heroSeries) { heroSeries.dataset.series = tab.dataset.seriesValues; drawChart(heroSeries.closest('svg')); }
+    // The tab owns which series, the range owns how much of it, so the tab hands
+    // over the full series and lets the range re-apply -- otherwise whichever was
+    // clicked last wins and the other control silently stops working.
+    if (heroSeries) {
+      heroSeries.dataset.seriesFull = tab.dataset.seriesValues;
+      applyRange(heroSeries.closest('svg'), rangeOf(heroSeries.closest('.card')));
+    }
   }
   tabs.forEach((tab, i) => {
     tab.addEventListener('click', () => pickSeries(tab));
@@ -2081,6 +2089,60 @@ label.finput { cursor:pointer; }
       const next = tabs[(i + step + tabs.length) % tabs.length];
       pickSeries(next); next.focus();
     });
+  });
+
+  /* ---- range chips ----
+     Five buttons, not spans: they were styled spans with an active state and no
+     handler, so they read as a control and did nothing at all. The chart is what
+     they change. 1W slices the month the prototype holds and 1M is that month;
+     3M, YTD and ALL are longer than anything here, so they bucket the same month
+     into the number of points they would carry -- demo data, like every figure in
+     this file, and the one honest alternative to a dead control. README 6 and 13. */
+  const RANGE_BUCKETS = { '3M': 13, 'YTD': 12, 'ALL': 6 };
+
+  function ranged(full, key) {
+    if (key === '1W') return full.slice(-7);   // inside the month: the last seven days
+    const n = RANGE_BUCKETS[key];
+    if (!n) return full;                       // 1M, and anything unrecognised
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const a = Math.floor(i * full.length / n);
+      const b = Math.max(a + 1, Math.floor((i + 1) * full.length / n));
+      const part = full.slice(a, b);
+      out.push(Math.round(part.reduce((sum, v) => sum + v, 0) / part.length));
+    }
+    return out;
+  }
+
+  function rangeOf(card) {
+    const group = card && card.querySelector('.ranges');
+    return (group && group.dataset.range) || '1M';
+  }
+
+  function applyRange(chart, key) {
+    if (!chart) return;
+    chart.querySelectorAll('[data-series]').forEach(el => {
+      if (!el.dataset.seriesFull) el.dataset.seriesFull = el.dataset.series;
+      el.dataset.series = ranged(el.dataset.seriesFull.split(',').map(Number), key).join(',');
+    });
+    drawChart(chart);
+  }
+
+  document.querySelectorAll('.ranges').forEach(group => {
+    const buttons = [...group.querySelectorAll('[data-range]')];
+    const card = group.closest('.card');
+    const chart = card && card.querySelector('svg.chart');
+    if (!buttons.length || !chart) return;
+    group.dataset.range = (group.querySelector('.on') || buttons[0]).dataset.range;
+    buttons.forEach(btn => btn.addEventListener('click', () => {
+      buttons.forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      group.dataset.range = btn.dataset.range;
+      applyRange(chart, btn.dataset.range);
+    }));
   });
 
   /* ---- dashboard card personalisation ----
