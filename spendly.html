@@ -108,7 +108,17 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .topbar h1 { margin:0; font-size:19px; font-weight:700; letter-spacing:-.01em; }
 .topbar h1 .topbar-title-wave { font-weight:400; }
 .topbar .topbar-actions { margin-left:auto; display:flex; align-items:center; gap:10px; }
-.button { display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 16px; border-radius:10px; border:1px solid transparent; font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; text-decoration:none; }
+/* Every text button in the system starts here and every variant below states only
+   its difference from it -- the box, the 1px edge, and the page's own type, which a
+   <button> does not inherit on its own. Four buttons used to restate this block in
+   full and drifted apart doing it: three gaps, three radii and four font sizes for
+   what is one control. A variant is never written alone -- class="button button-caps" -- because the shape lives here now, not in the variant. S6. */
+.button {
+	display:inline-flex; align-items:center; justify-content:center; gap:8px;
+	height:38px; padding:0 16px; border:1px solid transparent; border-radius:10px;
+	background:none; color:inherit; font:inherit; font-size:12.5px; font-weight:600;
+	cursor:pointer; white-space:nowrap; text-decoration:none;
+}
 .button.button-primary { background:var(--dark); color:#fff; }
 .button.button-outline { background:var(--card); border-color:#D9DED8; color:var(--ink); }
 /* Every button label in this system is caps, and the two topbar actions share one
@@ -116,7 +126,17 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    32px/r10 size serves both the top bar and section actions, at both breakpoints,
    rather than each surface inventing a height. */
 .topbar .topbar-actions .button { height:32px; padding:0 15px; gap:6px; font-size:11px; letter-spacing:.04em; }
-.icon-button { width:38px; height:38px; border-radius:11px; border:1px solid #E2E5E1; background:var(--card); display:inline-grid; place-items:center; color:var(--ink-2); cursor:pointer; }
+/* The square icon buttons. Same base, and each variant carries only its size --
+   26, 28, 32, 38 and 40px were five separate copies of this rule. */
+.icon-button {
+	display:inline-grid; place-items:center; border:1px solid #E2E4DF;
+	border-radius:8px; background:var(--card); color:var(--ink-2); cursor:pointer;
+}
+.icon-button.icon-button-large { width:38px; height:38px; border-radius:11px; border-color:#E2E5E1; }
+.icon-button.icon-button-arrow { width:32px; height:32px; border-radius:10px; }
+.icon-button.icon-button-clear { width:26px; height:26px; margin-left:auto; flex:none; }
+.icon-button.icon-button-send { width:40px; height:40px; border-radius:12px; border:0; background:var(--dark); color:#fff; display:grid; flex:none; }
+.icon-button.icon-button-reorder { width:28px; height:28px; flex:none; }
 .avatar { width:38px; height:38px; border-radius:11px; background:var(--teal); color:#fff; display:grid; place-items:center; font-size:11.5px; font-weight:700; }
 
 /* the rounded content sheet: sidebar and top bar sit on the white shell,
@@ -134,7 +154,14 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    main layer, open combobox panels, and the active nav pill.
    On a phone the main layer stops floating — it goes edge to edge and
    drops its shadow — so only the latter two carry one there. */
+/* The card surface. The KPI tile, the question card and the dark AI card each
+   restated this box in full -- one of them with the radius written out as 15px
+   rather than the token, so --r-card only moved three of the four. They are
+   variants now: class="card card-kpi". */
 .card { background:var(--card); border:1px solid var(--card-line); border-radius:var(--r-card); }
+.card.card-kpi { padding:16px 18px; display:grid; gap:2px; }
+.card.card-question { padding:18px; }
+.card.card-ai { background:linear-gradient(160deg, var(--dark-2), var(--dark) 55%); border:0; padding:18px; color:#fff; }
 .card-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px 12px; }
 .card-header .section-label { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink); }
 .card-header .chevron { color:var(--ink-2); }
@@ -187,7 +214,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 /* section head */
 .section-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 2px; }
 .section-header .section-label { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink); }
-.button-pill { display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 15px; border-radius:10px; border:1px solid #DFE3DE; background:var(--card); font:inherit; font-size:11px; font-weight:600; letter-spacing:.04em; color:var(--ink); cursor:pointer; }
+.button.button-pill { gap:6px; height:32px; padding:0 15px; border-color:#DFE3DE; background:var(--card); color:var(--ink); font-size:11px; letter-spacing:.04em; }
 
 /* dashboard card row */
 .dashboard-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
@@ -201,10 +228,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .dashboard-cards.is-editing > .card { border-style:dashed; border-color:var(--muted-2); }
 .card-reorder-bar { display:flex; align-items:center; gap:6px; padding:11px 14px 0; }
 .card-reorder-bar .card-reorder-position { font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-right:auto; }
-.card-reorder-button { width:28px; height:28px; border-radius:8px; border:1px solid #E2E4DF; background:var(--card); display:inline-grid; place-items:center; color:var(--ink-2); cursor:pointer; flex:none; }
-.card-reorder-button svg { width:14px; height:14px; }
-.card-reorder-button:disabled { opacity:.35; cursor:default; }
-.card-reorder-button.card-reorder-button-remove { color:var(--donut-red); }
+.icon-button-reorder svg { width:14px; height:14px; }
+.icon-button-reorder:disabled { opacity:.35; cursor:default; }
+.icon-button-reorder.icon-button-reorder-remove { color:var(--donut-red); }
 .card-tray { margin-top:18px; }
 .card-tray-row { display:flex; align-items:center; gap:13px; padding:11px 0; border-top:1px solid var(--hair); }
 .card-tray-row:first-child { border-top:0; }
@@ -243,7 +269,6 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .category-row .amount { margin-left:auto; font-weight:600; font-size:13px; }
 
 /* dark AI card */
-.ai-card { background:linear-gradient(160deg, var(--dark-2), var(--dark) 55%); border-radius:var(--r-card); padding:18px; color:#fff; }
 .ai-card-header { display:flex; align-items:center; gap:12px; }
 .progress-ring { width:40px; height:40px; border-radius:50%; flex:none; position:relative;
 	background:conic-gradient(var(--green) 0 33%, rgb(255 255 255 / .22) 33% 100%); }
@@ -255,8 +280,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .ai-card-headline { font-size:19px; font-weight:700; letter-spacing:-.01em; margin:16px 0 8px; }
 .ai-card-body { font-size:12.5px; color:var(--dark-text); line-height:1.55; margin:0; }
 .ai-card-actions { display:flex; align-items:center; gap:18px; margin-top:16px; }
-.ai-card-button { height:38px; padding:0 18px; border-radius:12px; border:0; background:#fff; color:var(--ink); font:inherit; font-size:11.5px; font-weight:700; letter-spacing:.05em; cursor:pointer; }
-.ai-card-link { font:inherit; background:none; border:0; padding:0; font-size:11.5px; font-weight:700; letter-spacing:.05em; color:#fff; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+/* White on the dark card, rather than a button of its own. */
+.button.button-invert { padding:0 18px; border:0; border-radius:12px; background:var(--card); color:var(--ink); font-size:11.5px; font-weight:700; letter-spacing:.05em; }
+.button-link.button-link-invert { font-size:11.5px; letter-spacing:.05em; color:#fff; }
 .ai-card-mark { margin-left:auto; width:44px; height:44px; color:var(--green); flex:none; }
 .ai-card-mark svg { width:100%; height:100%; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
 
@@ -307,7 +333,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .segmented button.is-on { background:var(--dark); color:#fff; }
 .page-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
 .two-column { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-.button-block { font:inherit; padding:0; display:flex; align-items:center; justify-content:center; gap:7px; width:100%; height:44px; border:1px solid #E2E4DF; border-radius:12px; background:#fff; font-size:12px; font-weight:600; letter-spacing:.08em; color:var(--ink); cursor:pointer; margin-top:12px; }
+.button.button-block { display:flex; width:100%; height:44px; padding:0; gap:7px; border-color:#E2E4DF; border-radius:12px; background:var(--card); color:var(--ink); font-size:12px; letter-spacing:.08em; margin-top:12px; }
 .button-link { font:inherit; background:none; border:0; padding:0; display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-decoration:underline; text-underline-offset:3px; color:var(--ink); cursor:pointer; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:18px; align-items:start; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; min-width:0; }
@@ -327,10 +353,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .segmented.segmented-compact { padding:3px; border-radius:12px; }
 .segmented.segmented-compact button { padding:7px 16px; border-radius:9px; font-size:12px; }
 .row-inline { display:flex; align-items:center; gap:10px; }
-.button-arrow { width:32px; height:32px; border-radius:10px; border:1px solid #E2E4DF; background:#fff; display:inline-grid; place-items:center; color:var(--ink-2); cursor:pointer; }
 .toolbar { flex-wrap:nowrap; gap:10px; }
 .toolbar .field-shell { flex:1; height:38px; border-radius:10px; font-size:12.5px; padding:0 13px; }
-.toolbar .button-ghost { border-radius:10px; }
+.toolbar .button.button-ghost { border-radius:10px; }
 .toolbar .chip { border-radius:10px; }
 .global-finder { position:relative; margin-left:auto; flex:1; max-width:430px; }
 .global-finder > .field-shell { cursor:pointer; height:38px; border-radius:10px; font-size:12.5px; padding:0 13px; }
@@ -345,10 +370,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .field > span.field-help { font-size:12px; font-weight:500; color:var(--muted); }
 .field-thumb { width:32px; height:32px; border-radius:8px; background:#F0F2EF; display:grid; place-items:center; color:#7C867E; flex:none; }
 .kpi-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
-.kpi { background:var(--card); border:1px solid var(--card-line); border-radius:15px; padding:16px 18px; display:grid; gap:2px; }
-.kpi span { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; }
-.kpi b { font-size:21px; color:var(--ink); font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
-.kpi i { font-style:normal; font-size:12px; color:var(--muted); }
+.card-kpi span { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+.card-kpi b { font-size:21px; color:var(--ink); font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+.card-kpi i { font-style:normal; font-size:12px; color:var(--muted); }
 .delta { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; }
 .delta.delta-good { color:var(--green); }
 .delta.delta-bad { color:#8A6A1F; }
@@ -371,9 +395,10 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .order-row .order-row-chevron { color:var(--muted); }
 .chip-status.chip-status-warning { background:#F6ECD9; color:#8A6A1F; }
 .chip-status.chip-status-warning::before { background:#D9A63C; }
-.note-positive { background:#DFF3EA; border-radius:12px; padding:11px 14px; font-size:13px; color:var(--ink); }
+.note { border-radius:12px; padding:11px 14px; font-size:13px; color:var(--ink); }
+.note.note-positive { background:#DFF3EA; }
+.note.note-warning { background:#F6ECD9; }
 .note-positive b { color:#0E7A52; }
-.note-warning { background:#F6ECD9; border-radius:12px; padding:11px 14px; font-size:13px; color:var(--ink); }
 .note-warning b { color:#8A6A1F; }
 .progress-bar { height:6px; border-radius:3px; background:#E7EAE5; overflow:hidden; }
 .progress-bar i { display:block; height:100%; width:72%; background:var(--green); border-radius:3px; }
@@ -384,7 +409,6 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .chip-status { display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 12px; border-radius:9px; background:#DFF3EA; color:#0E7A52; font-size:11.5px; font-weight:600; }
 .chip-status::before { content:""; width:6px; height:6px; border-radius:50%; background:#14AC72; }
 .document-thumb { width:44px; height:44px; border-radius:10px; display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; }
-.button-clear { width:26px; height:26px; border-radius:8px; border:1px solid #E2E4DF; background:#fff; margin-left:auto; display:inline-grid; place-items:center; color:var(--ink-2); cursor:pointer; flex:none; }
 /* combobox: the system's replacement for every native select.
    Searchable, grouped, with a create action at the foot. */
 .combobox { position:relative; }
@@ -519,13 +543,11 @@ label.field-shell { cursor:pointer; }
 .field .segmented button { flex:1; min-width:0; display:flex; align-items:center; justify-content:center; padding:0 6px; border-radius:9px; font-size:12.5px; }
 .page-hero { text-align:left; padding:38px 42px; background:#EDEEE7; border-radius:20px; }
 .page-hero h2 { margin:0 0 8px; font-size:30px; font-weight:600; letter-spacing:-.02em; color:var(--ink-strong); }
-.page-hero .button-caps { height:48px; padding:0 24px; font-size:13px; }
+.page-hero .button.button-caps { height:48px; padding:0 24px; font-size:13px; }
 .page-hero p { margin:0 0 18px; font-size:14px; color:var(--muted); max-width:52ch; }
-.button-caps.button-compact, .button-ghost.button-compact { height:32px; padding:0 13px; font-size:10.5px; border-radius:10px; }
-.button-caps { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:38px; padding:0 16px; border-radius:12px; border:0; background:var(--dark); color:#fff; font:inherit; font-size:11.5px; font-weight:600; letter-spacing:.08em; cursor:pointer; }
+.button.button-caps { gap:6px; border:0; border-radius:12px; background:var(--dark); color:#fff; font-size:11.5px; letter-spacing:.08em; }
 .ai-prompt-bar { display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--card-line); border-radius:16px; box-shadow:var(--shadow); padding:8px 8px 8px 20px; max-width:640px; margin:0 auto; }
 .ai-prompt-bar .field-shell-placeholder { color:var(--muted); font-size:13px; flex:1; }
-.button-send { width:40px; height:40px; border-radius:12px; border:0; background:var(--dark); color:#fff; display:grid; place-items:center; cursor:pointer; flex:none; }
 .ai-suggestion-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
 .ai-suggestion-row button { font:inherit; display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px; border-radius:10px; border:1px solid #D9DED8; background:var(--card); font-size:12px; font-weight:500; color:var(--ink-2); cursor:pointer; }
 .centered-column { max-width:760px; margin:0 auto; text-align:center; padding:26px 0 10px; }
@@ -533,8 +555,11 @@ label.field-shell { cursor:pointer; }
 .centered-column > p { margin:0 0 20px; font-size:13px; color:var(--muted); }
 .spotlight-pair { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .spotlight-pair .card .card-body { display:grid; gap:8px; }
-.button-ghost { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:38px; padding:0 15px; border-radius:12px; border:1px solid #E2E4DF; background:var(--card); font:inherit; font-size:12px; font-weight:600; letter-spacing:.08em; color:var(--ink); cursor:pointer; width:max-content; }
+.button.button-ghost { gap:6px; padding:0 15px; border-color:#E2E4DF; border-radius:12px; background:var(--card); color:var(--ink); font-size:12px; letter-spacing:.08em; width:max-content; }
 .spotlight-pair .button-ghost { width:100%; margin-top:4px; }
+/* Placed after the variants on purpose: it weighs the same as they do, so it only
+   wins by sitting later in the file. Moving it up silently restores the 38px tier. */
+.button.button-compact { height:32px; padding:0 13px; font-size:10.5px; border-radius:10px; }
 .scroll-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(210px,1fr); gap:14px; overflow-x:auto; padding-bottom:4px; }
 .spend-gauge-row { display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
 .spend-gauge { width:170px; height:170px; border-radius:50%; position:relative; flex:none;
@@ -550,9 +575,8 @@ label.field-shell { cursor:pointer; }
 .account-row:first-child { border-top:0; }
 .account-row .amount { margin-left:auto; font-weight:600; font-size:13px; }
 .account-row .chevron { color:var(--muted-2); }
-.question-card { background:var(--card); border:1px solid var(--card-line); border-radius:var(--r-card); padding:18px; }
-.question-card .question-card-label { font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; }
-.question-card .question-card-title { font-size:15px; font-weight:700; margin:8px 0 12px; letter-spacing:-.01em; }
+.card-question .card-question-label { font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; }
+.card-question .card-question-title { font-size:15px; font-weight:700; margin:8px 0 12px; letter-spacing:-.01em; }
 .stat-figures { display:flex; gap:26px; justify-content:flex-end; }
 .stat-figures .stat-figure { text-align:right; }
 .stat-figures .stat-figure b { display:block; font-size:19px; font-weight:700; letter-spacing:-.01em; }
@@ -709,7 +733,7 @@ label.field-shell { cursor:pointer; }
 
 	<div class="main-panel">
 		<header class="topbar">
-			<button type="button" class="button-arrow" id="backBtn" style="display:none" aria-label="Back to orders"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button>
+			<button type="button" class="icon-button icon-button-arrow" id="backBtn" style="display:none" aria-label="Back to orders"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button>
 			<h1 id="ptitle" tabindex="-1">Home</h1>
 			<div class="global-finder" id="gfind">
 				<div class="field-shell">
@@ -789,9 +813,9 @@ label.field-shell { cursor:pointer; }
 				<div class="section-header">
 					<span class="section-label">Your cards</span>
 					<span class="row-inline" id="cardActions">
-						<button type="button" class="button-pill" id="cardsEdit"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg>EDIT</button>
-						<button type="button" class="button-caps button-compact" id="cardsDone" hidden><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 12l5 5l10 -10"></path></svg>DONE</button>
-						<button type="button" class="button-pill" id="cardsCancel" hidden>CANCEL</button>
+						<button type="button" class="button button-pill" id="cardsEdit"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg>EDIT</button>
+						<button type="button" class="button button-caps button-compact" id="cardsDone" hidden><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 12l5 5l10 -10"></path></svg>DONE</button>
+						<button type="button" class="button button-pill" id="cardsCancel" hidden>CANCEL</button>
 					</span>
 				</div>
 				<p class="screenreader-only" id="cardLive" role="status" aria-live="polite"></p>
@@ -936,7 +960,7 @@ label.field-shell { cursor:pointer; }
 			<div class="content-column-side">
 
 				<!-- dark AI card -->
-				<section class="ai-card" id="aiCard" aria-label="AI receipt scanning">
+				<section class="card card-ai" id="aiCard" aria-label="AI receipt scanning">
 					<div class="ai-card-header" data-go="scan" tabindex="0" role="link" aria-label="Finish setting up Spendly, open Scan receipt">
 						<span class="progress-ring"><b>1/3</b></span>
 						<span class="ai-card-title"><b>Get receipts read for you</b><i>Finish setting up Spendly</i></span>
@@ -945,8 +969,8 @@ label.field-shell { cursor:pointer; }
 					<div class="ai-card-headline" style="font-size:17px">Scan receipts, skip typing</div>
 					<p class="ai-card-body">A PDF, photo or screenshot becomes a draft order. You review every value before it is saved.</p>
 					<div class="ai-card-actions">
-						<button type="button" class="ai-card-button" data-go="scan">SCAN A RECEIPT</button>
-						<button type="button" class="ai-card-link" data-dismiss="aiCard">LATER</button>
+						<button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button>
+						<button type="button" class="button-link button-link-invert" data-dismiss="aiCard">LATER</button>
 						<span class="ai-card-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 					</div>
 				</section>
@@ -1030,7 +1054,7 @@ label.field-shell { cursor:pointer; }
 							<div class="row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">15 July</span></span>
 								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><i style="background:#1FA8E0"></i><i style="background:#235553"></i></span>+500,00 kr.</span></div>
-							<button type="button" class="button-block" data-go="orders2">SEE ALL</button>
+							<button type="button" class="button button-block" data-go="orders2">SEE ALL</button>
 						</div>
 					</section>
 					<section class="card" aria-label="Waiting receipts">
@@ -1042,12 +1066,12 @@ label.field-shell { cursor:pointer; }
 								<p>No receipts waiting. Scan one and the order drafts itself.</p>
 								<button type="button" class="button-link" data-go="scan">SCAN A RECEIPT</button>
 							</div>
-							<button type="button" class="button-block" data-go="orders2">SEE ALL</button>
+							<button type="button" class="button button-block" data-go="orders2">SEE ALL</button>
 						</div>
 					</section>
 				</div>
 				<section class="card" aria-label="For you">
-					<div class="card-header"><span class="section-label">For you</span><button type="button" class="button-pill">HOW IT WORKS</button></div>
+					<div class="card-header"><span class="section-label">For you</span><button type="button" class="button button-pill">HOW IT WORKS</button></div>
 					<div class="card-rule"></div>
 					<div class="card-body promo-row">
 						<div class="promo"><span class="chip-tag" style="background:#F6E3F1;color:#A2477F"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"></path></svg>Quick wins</span>
@@ -1074,7 +1098,7 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body">
 						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em;line-height:1.35;margin:2px 0 14px">What did Groceries cost me in June?</div>
-						<button type="button" class="button-block" style="margin-top:0"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6"></path></svg>ASK SPENDLY</button>
+						<button type="button" class="button button-block" style="margin-top:0"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6"></path></svg>ASK SPENDLY</button>
 					</div>
 				</section>
 				<section class="card" aria-label="Category breakdown">
@@ -1092,16 +1116,16 @@ label.field-shell { cursor:pointer; }
 							<div class="category-row" data-go="orders2" tabindex="0" role="link"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><span><b>Household</b><i>13% of expenses</i></span><span class="amount tabular-figures">6.110 kr.</span><span class="chevron" style="color:var(--muted-2)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></div>
 							<div class="category-row" data-go="orders2" tabindex="0" role="link"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><span><b>Home office</b><i>10% of expenses</i></span><span class="amount tabular-figures">4.880 kr.</span><span class="chevron" style="color:var(--muted-2)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></div>
 						</div>
-						<button type="button" class="button-block" data-go="orders2">SEE ALL</button>
+						<button type="button" class="button button-block" data-go="orders2">SEE ALL</button>
 					</div>
 				</section>
-				<button type="button" class="button-block" style="margin-top:0"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065 M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path></svg>ORDER SETTINGS</button>
+				<button type="button" class="button button-block" style="margin-top:0"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065 M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path></svg>ORDER SETTINGS</button>
 			</div>
 		</div></div>
 		<div class="page page-grid" data-page="orders-legacy" hidden="">
 			<section class="card" aria-label="Spend over July">
 				<div class="card-header"><span class="section-label">Spent · July 2026</span>
-					<button type="button" class="button-pill">MONTHLY <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6l6 -6"></path></svg></button></div>
+					<button type="button" class="button button-pill">MONTHLY <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6l6 -6"></path></svg></button></div>
 				<div class="card-rule"></div>
 				<div class="card-body" style="padding-top:0">
 					<div class="chart-caption"><b class="tabular-figures" style="font-size:23px">24.418,57 kr.</b></div>
@@ -1130,7 +1154,7 @@ label.field-shell { cursor:pointer; }
 						<div class="row"><span class="entry-avatar" style="background:#235553">JY</span>
 							<span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 July · 1.049,00 kr.</span></span>
 							<span class="amount tabular-figures" style="color:var(--muted)">0 kr.</span></div>
-						<button type="button" class="button-block" data-go="orders2">VIEW ALL</button>
+						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
 					</div>
 				</section>
 				<section class="card" aria-label="By vendor">
@@ -1142,9 +1166,9 @@ label.field-shell { cursor:pointer; }
 						<div class="account-row"><span class="entry-avatar" style="background:#1FA8E0;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:10.5px;font-weight:700">EL</span><span style="font-size:12.5px;font-weight:600">Elgiganten</span><span class="amount tabular-figures">2.499,00 kr.</span></div>
 						<div class="empty-note" style="padding:18px 10px 8px">
 							<i>A paper receipt in your pocket? It can file itself.</i>
-							<button type="button" class="button-caps">SCAN A RECEIPT</button>
+							<button type="button" class="button button-caps">SCAN A RECEIPT</button>
 						</div>
-						<button type="button" class="button-block" data-go="orders2">VIEW ALL</button>
+						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
 					</div>
 				</section>
 			</div>
@@ -1212,8 +1236,8 @@ label.field-shell { cursor:pointer; }
 								<label class="field"><span>Note</span><div class="field-shell field-shell-area"><textarea placeholder="Anything worth remembering about this purchase." aria-label="Note"></textarea></div></label>
 							</div>
 							<div class="form-actions form-actions-split">
-								<button type="button" class="button-ghost">CANCEL</button>
-								<button type="button" class="button-caps" id="toStep2">NEXT STEP</button>
+								<button type="button" class="button button-ghost">CANCEL</button>
+								<button type="button" class="button button-caps" id="toStep2">NEXT STEP</button>
 							</div>
 						</div>
 					</div>
@@ -1235,10 +1259,10 @@ label.field-shell { cursor:pointer; }
 						<span class="field-help">Items are added in step 2; the total builds as you add them.</span>
 					</div>
 				</section>
-				<section class="ai-card" aria-label="Scan instead">
+				<section class="card card-ai" aria-label="Scan instead">
 					<div class="ai-card-headline" style="font-size:16px;margin-top:2px">Have the receipt? Skip the form.</div>
 					<p class="ai-card-body">A photo or PDF fills every field for you; you only review it.</p>
-					<div class="ai-card-actions" style="margin-top:12px"><button type="button" class="ai-card-button" data-go="scan">SCAN A RECEIPT</button>
+					<div class="ai-card-actions" style="margin-top:12px"><button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button>
 						<span class="ai-card-mark" style="width:34px;height:34px" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span></div>
 				</section>
 			</div>
@@ -1274,10 +1298,10 @@ label.field-shell { cursor:pointer; }
 									<label class="field"><span>Retail price</span><div class="field-shell"><input type="text" inputmode="decimal" placeholder="104,95" aria-label="Retail price"><span class="field-unit">kr.</span></div>
 										<span class="field-help">Optional. Powers the saved-vs-retail figures.</span></label>
 									<label class="field"><span>Photo</span>
-										<label class="field-shell"><span class="field-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><input type="file" accept="image/*" aria-label="Product photo" class="field-file-input"><span class="field-file-name">shampoo-500ml.jpg</span><button type="button" class="button-clear" aria-label="Remove photo"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button></label><span class="field-help">Uploaded state keeps the field height; the photo shows large on the item row below, not in the form.</span></label>
+										<label class="field-shell"><span class="field-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><input type="file" accept="image/*" aria-label="Product photo" class="field-file-input"><span class="field-file-name">shampoo-500ml.jpg</span><button type="button" class="icon-button icon-button-clear" aria-label="Remove photo"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button></label><span class="field-help">Uploaded state keeps the field height; the photo shows large on the item row below, not in the form.</span></label>
 								</div>
 								<div class="form-actions">
-									<button type="button" class="button-caps button-compact"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5l0 14 M5 12l14 0"></path></svg>ADD ITEM</button>
+									<button type="button" class="button button-caps button-compact"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5l0 14 M5 12l14 0"></path></svg>ADD ITEM</button>
 									<span class="field-help" style="align-self:center">Enter adds and keeps the form; Escape clears it.</span>
 								</div>
 							</div>
@@ -1288,16 +1312,16 @@ label.field-shell { cursor:pointer; }
 									<div class="item-row"><span style="color:var(--muted-2,#9AA39B);cursor:grab"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
 										<span><b>Shampoo, 500 ml</b><i>2 × 89,95 kr. · retail 104,95 kr.</i></span>
 										<span class="amount tabular-figures" style="color:var(--ink)">179,90 kr.</span>
-										<span class="row-inline" style="gap:2px"><button type="button" class="button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
+										<span class="row-inline" style="gap:2px"><button type="button" class="icon-button icon-button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
 									<div class="item-row"><span style="color:var(--muted-2,#9AA39B);cursor:grab"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
 										<span><b>Tandpasta</b><i>3 × 22,95 kr. · retail 26,95 kr.</i></span>
 										<span class="amount tabular-figures" style="color:var(--ink)">68,85 kr.</span>
-										<span class="row-inline" style="gap:2px"><button type="button" class="button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
+										<span class="row-inline" style="gap:2px"><button type="button" class="icon-button icon-button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
 								</div>
 							</div>
 							<div class="form-actions form-actions-split">
-								<button type="button" class="button-ghost" id="toStep1"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>BACK</button>
-								<button type="button" class="button-caps" id="saveOrder">SAVE ORDER</button>
+								<button type="button" class="button button-ghost" id="toStep1"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>BACK</button>
+								<button type="button" class="button button-caps" id="saveOrder">SAVE ORDER</button>
 							</div>
 						</div>
 					</div>
@@ -1342,8 +1366,8 @@ label.field-shell { cursor:pointer; }
 							<div><div style="font-size:22px;font-weight:600;letter-spacing:-.01em">Proshop</div>
 									<div class="field-help" style="font-size:12.5px">24 July 2026 · 4 items</div></div>
 							<div class="row-inline" style="gap:8px;flex-wrap:nowrap"><span class="chip-status">Delivered</span>
-								<button type="button" class="button-arrow" aria-label="Edit order"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button>
-								<button type="button" class="button-arrow" aria-label="Delete order"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></div>
+								<button type="button" class="icon-button icon-button-arrow" aria-label="Edit order"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button>
+								<button type="button" class="icon-button icon-button-arrow" aria-label="Delete order"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></div>
 						</div>
 						<div class="row-inline" style="gap:6px;margin-top:12px"><span class="chip">Electronics</span><span class="chip">Home office</span></div>
 					</div>
@@ -1379,18 +1403,18 @@ label.field-shell { cursor:pointer; }
 					</div>
 				</section>
 				<section class="card" aria-label="Attachments">
-					<div class="card-header"><span class="section-label">Attachments · 1</span><button type="button" class="button-pill">ADD FILE</button></div>
+					<div class="card-header"><span class="section-label">Attachments · 1</span><button type="button" class="button button-pill">ADD FILE</button></div>
 					<div class="card-rule"></div>
 					<div class="card-body" style="padding-top:6px">
 						<div class="item-row"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
 							<span><b>faktura-303.pdf</b><i>Scanned 24 July · 214 KB</i></span>
-							<span class="row-inline" style="gap:4px;flex-wrap:nowrap;margin-left:auto"><button type="button" class="button-arrow" aria-label="Open attachment"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></button><button type="button" class="button-arrow" aria-label="Delete attachment"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
+							<span class="row-inline" style="gap:4px;flex-wrap:nowrap;margin-left:auto"><button type="button" class="icon-button icon-button-arrow" aria-label="Open attachment"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete attachment"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
 					</div>
 				</section>
-				<section class="ai-card" aria-label="Scan another">
+				<section class="card card-ai" aria-label="Scan another">
 					<div class="ai-card-headline" style="font-size:16px;margin-top:2px">Another receipt from this trip?</div>
 					<p class="ai-card-body">Scan it and Spendly checks it against this order for duplicates.</p>
-					<div class="ai-card-actions" style="margin-top:12px"><button type="button" class="ai-card-button" data-go="scan">SCAN A RECEIPT</button></div>
+					<div class="ai-card-actions" style="margin-top:12px"><button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button></div>
 				</section>
 			</div>
 		</div></div>
@@ -1435,7 +1459,7 @@ label.field-shell { cursor:pointer; }
 					<div class="card-body" style="padding:20px 22px">
 						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em">Review the draft</div>
 						<p style="margin:2px 0 16px;font-size:13px;color:var(--muted)">Every value is editable. Nothing is stored until you save.</p>
-						<div class="note-positive" style="margin-bottom:16px"><b>Total matches.</b> The document total 1.187,25 kr. includes 25% VAT and agrees with the 23 lines read.</div>
+						<div class="note note-positive" style="margin-bottom:16px"><b>Total matches.</b> The document total 1.187,25 kr. includes 25% VAT and agrees with the 23 lines read.</div>
 						<div class="form" style="max-width:none">
 							<label class="field"><span>Vendor</span>
 								<div class="field-shell"><input type="text" value="Bilka" placeholder="Search vendors…" aria-label="Vendor" aria-required="true"><span class="chip-status" style="height:24px;font-size:10.5px">matched</span></div></label>
@@ -1459,10 +1483,10 @@ label.field-shell { cursor:pointer; }
 								<div class="space-between" style="margin-bottom:4px"><span class="section-label" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Lines read · 23</span>
 									<span class="field-help">tap a line to correct it</span></div>
 								<div class="inset-panel">
-									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Rugbrød, skiveskåret</b><i>1 × 24,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--ink)">24,95 kr.</span><button type="button" class="button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Minimælk 1 l</b><i>4 × 10,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--ink)">43,80 kr.</span><button type="button" class="button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Kaffe, formalet 400 g</b><i>1 × 54,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--ink)">54,95 kr.</span><button type="button" class="button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#8A6A1F"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><b>Line 14 was hard to read</b><i>Guessed: Smør, 250 g · 1 × 21,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--ink)">21,95 kr.</span><button type="button" class="button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Rugbrød, skiveskåret</b><i>1 × 24,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--ink)">24,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Minimælk 1 l</b><i>4 × 10,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--ink)">43,80 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Kaffe, formalet 400 g</b><i>1 × 54,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--ink)">54,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#8A6A1F"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><b>Line 14 was hard to read</b><i>Guessed: Smør, 250 g · 1 × 21,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--ink)">21,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
 									<div class="item-row"><span class="item-row-icon" style="background:#EFF3EE;color:var(--muted)"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span><b>19 more lines</b><i>1.041,60 kr. together</i></span><span class="button-link" style="margin-left:auto">SHOW ALL</span></div>
 								</div>
 							</div>
@@ -1471,8 +1495,8 @@ label.field-shell { cursor:pointer; }
 							<div class="card-rule" style="margin:2px 0 0"></div>
 							<div class="summary-total">Total<span class="summary-total-value tabular-figures" style="color:var(--ink-strong)">1.187,25 kr.</span></div>
 							<div class="form-actions form-actions-split">
-								<button type="button" class="button-ghost" data-go="scan">DISCARD</button>
-								<button type="button" class="button-caps" data-go="orders">SAVE ORDER</button>
+								<button type="button" class="button button-ghost" data-go="scan">DISCARD</button>
+								<button type="button" class="button button-caps" data-go="orders">SAVE ORDER</button>
 							</div>
 						</div>
 					</div>
@@ -1480,7 +1504,7 @@ label.field-shell { cursor:pointer; }
 			</div>
 			<div class="order-list-column">
 				<section class="card" aria-label="Source document">
-					<div class="card-header"><span class="section-label">Source</span><button type="button" class="button-pill">OPEN</button></div>
+					<div class="card-header"><span class="section-label">Source</span><button type="button" class="button button-pill">OPEN</button></div>
 					<div class="card-rule"></div>
 					<div class="card-body">
 						<div class="document-preview" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></div>
@@ -1492,7 +1516,7 @@ label.field-shell { cursor:pointer; }
 					<div class="card-header"><span class="section-label">Possible duplicate</span></div>
 					<div class="card-rule"></div>
 					<div class="card-body">
-						<div class="note-warning" style="margin-bottom:10px"><b>Check before saving.</b> You already have a Bilka order within 14 days of this date.</div>
+						<div class="note note-warning" style="margin-bottom:10px"><b>Check before saving.</b> You already have a Bilka order within 14 days of this date.</div>
 						<div class="item-row" data-go="detail" tabindex="0" role="link" style="cursor:pointer"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 							<span><b>Bilka · 16 July</b><i>23 items · could be a second trip</i></span>
 							<span class="amount tabular-figures" style="color:var(--ink)">894,40 kr.</span></div>
@@ -1519,7 +1543,7 @@ label.field-shell { cursor:pointer; }
 				<div class="card-body" style="padding:16px 18px;display:grid;gap:12px">
 					<div class="row-inline toolbar">
 						<div class="field-shell"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor, note or item text…" aria-label="Search orders"></div>
-						<button type="button" class="button-ghost" style="flex:none" data-filters-toggle aria-expanded="true" aria-controls="filterPanel"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS<svg class="icon chevron-icon" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></button>
+						<button type="button" class="button button-ghost" style="flex:none" data-filters-toggle aria-expanded="true" aria-controls="filterPanel"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS<svg class="icon chevron-icon" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></button>
 						<div class="chip" style="height:38px;flex:none">Sort: Date, newest<svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
 					</div>
 					<div class="row-inline" style="gap:6px">
@@ -1551,8 +1575,8 @@ label.field-shell { cursor:pointer; }
 								<button type="button" role="tab" aria-selected="false">Returned</button>
 							</div></div>
 						<div class="form-actions">
-							<button type="button" class="button-caps button-compact">APPLY FILTERS</button>
-							<button type="button" class="button-ghost button-compact">CLEAR</button>
+							<button type="button" class="button button-caps button-compact">APPLY FILTERS</button>
+							<button type="button" class="button button-ghost button-compact">CLEAR</button>
 						</div>
 					</div>
 				</div>
@@ -1582,8 +1606,8 @@ label.field-shell { cursor:pointer; }
 					<div class="space-between" style="margin-top:12px">
 						<span class="field-help">Showing 1 to 3 of 3</span>
 						<span class="row-inline" style="gap:8px">
-							<button type="button" class="button-ghost" disabled="" style="opacity:.45"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>PREVIOUS</button>
-							<button type="button" class="button-ghost" disabled="" style="opacity:.45">NEXT<svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></button>
+							<button type="button" class="button button-ghost" disabled="" style="opacity:.45"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>PREVIOUS</button>
+							<button type="button" class="button button-ghost" disabled="" style="opacity:.45">NEXT<svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></button>
 						</span>
 					</div>
 				</div>
@@ -1595,9 +1619,9 @@ label.field-shell { cursor:pointer; }
 			<div class="page-hero">
 				<h2>Every shop you buy from, in one place.</h2>
 				<p>Vendors collect their orders, totals and savings automatically. Favourites stay on top.</p>
-				<button type="button" class="button-caps">ADD VENDOR</button>
+				<button type="button" class="button button-caps">ADD VENDOR</button>
 			</div>
-			<div class="section-header" data-view-only="overview"><span class="section-label">Favourites</span><button type="button" class="button-pill">SEE ALL</button></div>
+			<div class="section-header" data-view-only="overview"><span class="section-label">Favourites</span><button type="button" class="button button-pill">SEE ALL</button></div>
 			<div class="spotlight-pair">
 				<section class="card"><div class="card-header"><span class="section-label">Proshop</span><span class="chip"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245"></path></svg>Favourite · saved 6.940 kr.</span></div>
 					<div class="card-rule"></div>
@@ -1607,7 +1631,7 @@ label.field-shell { cursor:pointer; }
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><span><b>Saved vs retail</b><i>Proshop · all time</i></span><span class="amount tabular-figures">6.940 kr.</span></div>
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><span><b>Latest order</b><i>24 July · 4 items</i></span><span class="amount tabular-figures">612,00 kr.</span></div>
 						</div>
-						<button type="button" class="button-ghost">VIEW ORDERS</button>
+						<button type="button" class="button button-ghost">VIEW ORDERS</button>
 					</div></section>
 				<section class="card"><div class="card-header"><span class="section-label">Bilka</span><span class="chip"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245"></path></svg>Favourite · saved 3.210 kr.</span></div>
 					<div class="card-rule"></div>
@@ -1617,7 +1641,7 @@ label.field-shell { cursor:pointer; }
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><span><b>Saved vs retail</b><i>Bilka · all time</i></span><span class="amount tabular-figures">3.210 kr.</span></div>
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><span><b>Latest order</b><i>18 July · 23 items</i></span><span class="amount tabular-figures">146,10 kr.</span></div>
 						</div>
-						<button type="button" class="button-ghost">VIEW ORDERS</button>
+						<button type="button" class="button button-ghost">VIEW ORDERS</button>
 					</div></section>
 			</div>
 			<div class="section-header" data-view-only="overview"><span class="section-label">All vendors</span></div>
@@ -1639,7 +1663,7 @@ label.field-shell { cursor:pointer; }
 				<div class="ai-prompt-bar">
 					<span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px;color:var(--muted-2)"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 					<span class="field-shell-placeholder">Drop a receipt here, or click to choose a file…</span>
-					<button type="button" class="button-send" data-go="scan2" aria-label="Scan"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 5l0 14 M18 11l-6 -6 M6 11l6 -6"></path></svg></button>
+					<button type="button" class="icon-button icon-button-send" data-go="scan2" aria-label="Scan"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 5l0 14 M18 11l-6 -6 M6 11l6 -6"></path></svg></button>
 				</div>
 				<div class="ai-suggestion-row">
 					<button type="button" data-go="scan2"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg>PDF invoice</button>
@@ -1649,9 +1673,9 @@ label.field-shell { cursor:pointer; }
 					</div>
 			</div>
 			<div class="two-column" style="margin-top:22px">
-				<div class="question-card">
-					<span class="question-card-label">What the AI checks</span>
-					<div class="question-card-title">Nothing is stored until you approve it</div>
+				<div class="card card-question">
+					<span class="card-question-label">What the AI checks</span>
+					<div class="card-question-title">Nothing is stored until you approve it</div>
 					<div class="account-row"><span><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px;color:#12A56B"><path d="M5 12l5 5l10 -10"></path></svg></span><span style="font-size:12.5px">Totals reconciled against the printed total, incl. 25% VAT</span></div>
 					<div class="account-row"><span><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px;color:var(--ink-2)"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg></span><span style="font-size:12.5px">Possible duplicates flagged with date and amount to compare</span></div>
 					<div class="account-row"><span><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px;color:var(--ink-2)"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"></path></svg></span><span style="font-size:12.5px">Vendor matched to your list, or offered as a new vendor</span></div>
@@ -1664,7 +1688,7 @@ label.field-shell { cursor:pointer; }
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>kvittering-bilka.jpg</b><i>18 July · 23 items found</i></span><span class="amount tabular-figures" style="color:var(--ink)">1.187,25 kr.</span></div>
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>faktura-303.pdf</b><i>24 July · 4 items found</i></span><span class="amount tabular-figures" style="color:var(--ink)">4.298,00 kr.</span></div>
 						</div>
-						<button type="button" class="button-block" data-go="orders2">VIEW ALL</button>
+						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
 					</div>
 				</section>
 			</div>
@@ -1675,7 +1699,7 @@ label.field-shell { cursor:pointer; }
 			<div class="row-inline toolbar"><div class="field-shell"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search category name…" aria-label="Search categories"></div><div class="segmented segmented-compact"><button type="button" class="is-on">Spend</button><button type="button">Name</button><button type="button">Orders</button></div></div>
 			<div class="two-column">
 				<section class="card" aria-label="Categories">
-					<div class="card-header"><span class="section-label">Categories</span><button type="button" class="button-pill">ADD</button></div>
+					<div class="card-header"><span class="section-label">Categories</span><button type="button" class="button button-pill">ADD</button></div>
 					<div class="card-rule"></div>
 					<div class="card-body">
 						<div class="category-rows" style="margin-top:0">
@@ -1685,14 +1709,14 @@ label.field-shell { cursor:pointer; }
 							<div class="category-row" data-go="orders2" tabindex="0" role="link"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><span><b>Home office</b><i>10% of expenses</i></span><span class="amount tabular-figures">4.880 kr.</span><span class="chevron" style="color:var(--muted-2)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></div>
 							<div class="category-row" data-go="orders2" tabindex="0" role="link"><span class="category-icon" style="background:#45524C"><svg class="icon" viewBox="0 0 24 24"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"></path></svg></span><span><b>Everything else</b><i>12% of expenses</i></span><span class="amount tabular-figures">5.550 kr.</span><span class="chevron" style="color:var(--muted-2)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></div>
 						</div>
-						<button type="button" class="button-block" data-go="orders2">VIEW ALL</button>
+						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
 					</div>
 				</section>
 				<div class="page-grid" data-view-only="overview">
-					<div class="question-card">
-						<span class="question-card-label">Question of the day</span>
-						<div class="question-card-title">What did Groceries cost in June?</div>
-						<button type="button" class="button-ghost">SEE THE ANSWER</button>
+					<div class="card card-question">
+						<span class="card-question-label">Question of the day</span>
+						<div class="card-question-title">What did Groceries cost in June?</div>
+						<button type="button" class="button button-ghost">SEE THE ANSWER</button>
 					</div>
 					<section class="card" aria-label="Breakdown">
 						<div class="card-header"><span class="section-label">Breakdown · July</span></div>
@@ -1709,14 +1733,14 @@ label.field-shell { cursor:pointer; }
 
 		<!-- ============ STATISTICS · Equity Management pattern ============ -->
 		<div class="page page-grid" data-page="stats">
-			<div class="space-between" style="flex-wrap:wrap;gap:12px;padding:2px 2px 0"><div class="row-inline"><button type="button" class="button-arrow" aria-label="Previous period"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button><b style="font-size:16px;letter-spacing:-.01em">July 2026</b><button type="button" class="button-arrow" aria-label="Next period" disabled="" style="opacity:.45"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+			<div class="space-between" style="flex-wrap:wrap;gap:12px;padding:2px 2px 0"><div class="row-inline"><button type="button" class="icon-button icon-button-arrow" aria-label="Previous period"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button><b style="font-size:16px;letter-spacing:-.01em">July 2026</b><button type="button" class="icon-button icon-button-arrow" aria-label="Next period" disabled="" style="opacity:.45"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
 				<div class="row-inline"><span class="figure-large tabular-figures" style="font-size:22px">24.418,57 kr.</span><span class="chip-status chip-status-warning">18% up vs June</span></div>
 			</div>
 			<div class="kpi-row">
-				<div class="kpi"><span>Orders</span><b class="tabular-figures">23</b><span class="delta delta-neutral"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>21% up vs June</span><i>June: 19 orders</i></div>
-				<div class="kpi"><span>Average order</span><b class="tabular-figures">1.062 kr.</b><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0"></path></svg>2% down vs June</span><i>June: 1.088 kr.</i></div>
-				<div class="kpi"><span>Saved vs retail</span><b class="tabular-figures">2.106 kr.</b><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>11% up vs June</span><i>9% under retail prices</i></div>
-				<div class="kpi"><span>Shipping</span><b class="tabular-figures">388 kr.</b><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0"></path></svg>6% down vs June</span><i>1,6% of spend</i></div>
+				<div class="card card-kpi"><span>Orders</span><b class="tabular-figures">23</b><span class="delta delta-neutral"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>21% up vs June</span><i>June: 19 orders</i></div>
+				<div class="card card-kpi"><span>Average order</span><b class="tabular-figures">1.062 kr.</b><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0"></path></svg>2% down vs June</span><i>June: 1.088 kr.</i></div>
+				<div class="card card-kpi"><span>Saved vs retail</span><b class="tabular-figures">2.106 kr.</b><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>11% up vs June</span><i>9% under retail prices</i></div>
+				<div class="card card-kpi"><span>Shipping</span><b class="tabular-figures">388 kr.</b><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0"></path></svg>6% down vs June</span><i>1,6% of spend</i></div>
 			</div>
 			<section class="card" aria-label="Overview">
 				<div class="card-header"><span class="section-label">Overview · July against June</span>
@@ -2247,15 +2271,15 @@ label.field-shell { cursor:pointer; }
 				bar.className = 'card-reorder-bar';
 				bar.innerHTML =
 					'<span class="card-reorder-position">' + (i + 1) + ' of ' + on.length + '</span>' +
-					'<button type="button" class="card-reorder-button" data-act="left" aria-label="Move ' + n + ' earlier"' + (i === 0 ? ' disabled' : '') + '>' + icon('left') + '</button>' +
-					'<button type="button" class="card-reorder-button" data-act="right" aria-label="Move ' + n + ' later"' + (i === on.length - 1 ? ' disabled' : '') + '>' + icon('right') + '</button>' +
-					'<button type="button" class="card-reorder-button card-reorder-button-remove" data-act="rm" aria-label="Remove ' + n + '">' + icon('rm') + '</button>';
+					'<button type="button" class="icon-button icon-button-reorder" data-act="left" aria-label="Move ' + n + ' earlier"' + (i === 0 ? ' disabled' : '') + '>' + icon('left') + '</button>' +
+					'<button type="button" class="icon-button icon-button-reorder" data-act="right" aria-label="Move ' + n + ' later"' + (i === on.length - 1 ? ' disabled' : '') + '>' + icon('right') + '</button>' +
+					'<button type="button" class="icon-button icon-button-reorder icon-button-reorder-remove" data-act="rm" aria-label="Remove ' + n + '">' + icon('rm') + '</button>';
 				c.prepend(bar);
 			});
 			const off = all.filter(c => c.hidden);
 			trayList.innerHTML = off.length
 				? off.map(c => '<div class="card-tray-row"><span><b>' + c.dataset.name + '</b><i>' + c.dataset.desc + '</i></span>'
-					+ '<button type="button" class="button-pill" data-add="' + c.dataset.card + '">ADD</button></div>').join('')
+					+ '<button type="button" class="button button-pill" data-add="' + c.dataset.card + '">ADD</button></div>').join('')
 				: '<p class="card-tray-empty">Every card is already on your dashboard.</p>';
 		}
 
