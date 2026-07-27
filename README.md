@@ -813,6 +813,12 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
 - Comboboxes: listbox semantics, roving focus, Escape restores focus to the field.
 - Panels and detail regions: focus moves to the heading on open, returns to the trigger on close.
 - Live regions polite and single per surface — filter counts, period changes, card reordering.
+- **The back arrow names where it goes**, and goes there. Its label was a fixed "Back to orders"
+  while the two scan steps return to the scan page, so it announced the wrong destination on two of
+  the three pages that carry it; it is `Back to ' + TITLES[target]` now. It was also inert for as
+  long as it existed — the click handler is bound by a load-time `[data-go]` sweep and the button's
+  target is assigned per page afterwards, so it drew, focused and announced correctly while
+  navigating nowhere.
 - Focus is always visible: `:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }`.
 - Touch targets ≥44px effective on mobile nav; drag actions always have a button or menu equivalent;
   Escape cancels inline edits.
@@ -914,9 +920,9 @@ An id names one element. Same alphabet as a class — kebab-case, whole words:
 - **No abbreviations, exactly as for a class.** `ptitle`, `gfind`, `favs`, `bl` and `gr` all had to
   be decoded before they could be used; they are `page-title`, `global-finder`, `dashboard-cards`,
   `home-spend-gradient` and `home-savings-gradient`.
-- **Never number an id**, for the reason a variant is never numbered. `bl`/`bl2` and `gr`/`gr2` were
-  one gradient drawn on two pages; the digit recorded that a second was wanted and never which page
-  wanted it. Naming the page says both: `home-spend-gradient`, `orders-legacy-spend-gradient`.
+- **Never number an id**, for the reason a variant is never numbered. `gr` and `gr2` were one
+  gradient drawn on two pages; the digit recorded that a second was wanted and never which page
+  wanted it. Naming the page says both: `home-savings-gradient` and `stats-spend-gradient`.
 - **Where the element is a component, its id is its class.** `.dashboard-cards` carries
   `id="dashboard-cards"`. The two namespaces are separate and may agree, and agreeing leaves one
   name to remember instead of two to reconcile.
