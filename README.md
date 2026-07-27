@@ -186,7 +186,7 @@ away when the sheet went white. Delete it or use it, but do not reintroduce a ti
 - Headings and leads: 600, `letter-spacing: -0.01em` to `-0.02em`. Lead sentence style is 16px/600
   ("Your biggest vendor: …").
 - Big numbers: 700, `-0.02em`, always `font-variant-numeric: tabular-nums`. The weight and tracking
-  ride on the size class (`.hero-figure`, `.dashboard-card-figure`, `.figure-large`); the tabular figures ride on `.tabular-figures`
+  ride on the size class (`.figure-headline`, `.figure-card`, `.figure-large`); the tabular figures ride on `.tabular-figures`
   alongside it, so a headline figure carries both. **A class with no rule behind it is worse than no
   class**: `.figure-large` was applied at four sites and defined at none, so the Orders and Statistics
   headline figures quietly rendered at the body's 500 with proportional figures for as long as they
@@ -243,7 +243,7 @@ override.
 | --- | --- | --- |
 | **Compact** | 32px / r10 | top bar SCAN RECEIPT and NEW ORDER, section pills (`.button.button-pill`), compact actions (`.button.button-caps.button-compact`, `.button.button-ghost.button-compact`), icon buttons (`.icon-button.icon-button-arrow`), card personalisation |
 | **Page** | 38px / r12 | `.button.button-caps` dark and `.button.button-ghost` outline — SAVE ORDER, CANCEL, NEXT STEP, FILTERS |
-| **Hero** | 48px | hero-panel CTAs only, on the page tier's radius |
+| **Hero** | 48px | `.hero` CTAs only, on the page tier's radius |
 | **Card foot** | 44px full-width | `.button.button-block`, the SEE ALL row. The one documented exception |
 | **Key cap** | 22px / r7 | `.key-cap` shortcut hints (CTRL K) |
 
@@ -574,7 +574,14 @@ on the receipt. The cost of getting it wrong is specific to this screen. A work-
 from a receipt would have taken the default, landed in the month's spend, and stayed there until
 someone went looking for it.
 
-**Vendors** — hero panel (warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
+**A page hero is one component with two framings.** `.hero` holds the type — 30px/600 heading,
+14px sentence at a 52ch measure, 48px caps action — and the variant holds the frame: `.hero-panel`
+is the tinted, left-aligned block, `.hero-column` is the centred 760px column. They were two
+unrelated classes and drifted: the scan page's heading was 26px/700 and its sentence 13px, which put
+it outside [§3](#3-typography) on both counts, and its sentence ran the full 740px — about 95
+characters, well past a readable measure. Unifying moved that one page and nothing else.
+
+**Vendors** — hero panel (`.hero.hero-panel`: warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
 (caps header and chip, sentence, inner panel rows, full-width VIEW ORDERS), full-width search with
 Spend/Name/Orders/Saved segmented, horizontal all-vendors card row.
 
@@ -860,7 +867,7 @@ Three kinds of name, and the shape of the name tells you which one you are looki
 
 > [!WARNING]
 > **Folding a variant onto a base changes what wins.** A variant is two classes where it used to be
-> one, so every context rule that tuned it — `.toolbar`, `.page-hero`, and the compact size modifier
+> one, so every context rule that tuned it — `.toolbar`, `.hero-panel`, and the compact size modifier
 > — went from losing on specificity to tying, and a tie is decided by source order. Nothing errors:
 > the control keeps rendering, at the wrong tier.
 

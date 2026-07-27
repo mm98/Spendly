@@ -88,7 +88,7 @@ body {
 }
 :focus-visible { outline:2px solid var(--teal); outline-offset:2px; border-radius:6px; }
 .tabular-figures { font-variant-numeric:tabular-nums; }
-/* The generic big-number class, matching .hero-figure and .dashboard-card-figure. It shipped with no rule at
+/* The generic big-number class, matching .figure-headline and .figure-card. It shipped with no rule at
    all for a while, so four headline figures rendered at the body's 500 with proportional
    figures while the spec called for 700 -- a class that looks styled and is not. Size stays
    inline per site; weight and tracking do not. See README section 3. */
@@ -199,8 +199,8 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .card-body { padding:14px 20px 18px; }
 
 /* hero card */
-.hero-figure { font-size:27px; font-weight:700; letter-spacing:-.02em; margin:2px 0 0; }
-.hero-delta { font-size:11.5px; color:var(--green); font-weight:600; margin-top:2px; }
+.figure-headline { font-size:27px; font-weight:700; letter-spacing:-.02em; margin:2px 0 0; }
+.figure-delta { font-size:11.5px; color:var(--green); font-weight:600; margin-top:2px; }
 .range-tabs { display:flex; gap:14px; align-items:center; margin-top:14px; }
 .range-tabs button { font:inherit; background:none; border:0; font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.02em; cursor:pointer; padding:6px 2px; }
 .range-tabs button.is-on { color:var(--ink); border:1px solid #D9DED8; border-radius:9px; padding:6px 11px; background:var(--card); }
@@ -229,7 +229,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 
 /* dashboard card row */
 .dashboard-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
-.dashboard-card-figure { font-size:21px; font-weight:700; letter-spacing:-.02em; }
+.figure-card { font-size:21px; font-weight:700; letter-spacing:-.02em; }
 
 /* card personalisation.
    Reordering is button-driven, never drag-only: a keyboard has to be able to do
@@ -552,18 +552,25 @@ label.field-shell { cursor:pointer; }
 /* a segmented control inside a form is an entry field: full width, 48px tier, equal segments */
 .field .segmented { width:100%; height:48px; padding:4px; border-radius:var(--radius-page); }
 .field .segmented button { flex:1; min-width:0; display:flex; align-items:center; justify-content:center; padding:0 6px; border-radius:9px; font-size:12.5px; }
-.page-hero { text-align:left; padding:38px 42px; background:#EDEEE7; border-radius:20px; }
-.page-hero h2 { margin:0 0 8px; font-size:30px; font-weight:600; letter-spacing:-.02em; color:var(--ink-strong); }
-.page-hero .button.button-caps { height:48px; padding:0 24px; font-size:13px; }
-.page-hero p { margin:0 0 18px; font-size:14px; color:var(--muted); max-width:52ch; }
+/* A page hero: a heading, one sentence, and the thing you do next. Two exist --
+   the vendors panel and the scan column -- and they had drifted apart on type,
+   26px/700 against 30px/600 and a 13px sentence against 14px. That put the scan
+   one outside README section 3 twice over: headings are 600 there, and 14px is
+   the base size. The type is shared here and only the framing varies, so the
+   next hero cannot invent a third heading size. S3, S19. */
+.hero h2 { margin:0 0 8px; font-size:30px; font-weight:600; letter-spacing:-.02em; color:var(--ink-strong); }
+.hero p { margin:0 0 18px; font-size:14px; color:var(--muted); max-width:52ch; }
+.hero .button.button-caps { height:48px; padding:0 24px; font-size:13px; }
+.hero.hero-panel { text-align:left; padding:38px 42px; background:#EDEEE7; border-radius:20px; }
+/* Centred, so the sentence has to be centred in the column as well as in itself --
+   max-width alone would pin it to the left edge of a 760px block. */
+.hero.hero-column { max-width:760px; margin:0 auto; text-align:center; padding:26px 0 10px; }
+.hero.hero-column p { margin-inline:auto; }
 .button.button-caps { gap:6px; border:0; border-radius:var(--radius-page); background:var(--dark); color:#fff; font-size:11.5px; letter-spacing:.08em; }
 .ai-prompt-bar { display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--card-line); border-radius:16px; box-shadow:var(--shadow); padding:8px 8px 8px 20px; max-width:640px; margin:0 auto; }
 .ai-prompt-bar .field-shell-placeholder { color:var(--muted); font-size:13px; flex:1; }
 .ai-suggestion-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
 .ai-suggestion-row button { font:inherit; display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px; border-radius:var(--radius-compact); border:1px solid #D9DED8; background:var(--card); font-size:12px; font-weight:500; color:var(--ink-2); cursor:pointer; }
-.centered-column { max-width:760px; margin:0 auto; text-align:center; padding:26px 0 10px; }
-.centered-column h2 { margin:0 0 8px; font-size:26px; font-weight:700; letter-spacing:-.02em; }
-.centered-column > p { margin:0 0 20px; font-size:13px; color:var(--muted); }
 .spotlight-pair { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .spotlight-pair .card .card-body { display:grid; gap:8px; }
 .button.button-ghost { gap:6px; padding:0 15px; border-color:var(--border-hairline); border-radius:var(--radius-page); background:var(--card); color:var(--ink); font-size:12px; letter-spacing:.08em; width:max-content; }
@@ -708,7 +715,7 @@ label.field-shell { cursor:pointer; }
 	.segmented { flex-wrap:nowrap; }
 	.dashboard-cards { grid-template-columns:1fr; }
 	.chart-callout { display:none; }
-	.hero-figure { font-size:23px; }
+	.figure-headline { font-size:23px; }
 	.range-tabs { flex-wrap:wrap; gap:8px 12px; }
 	.stat-figures { justify-content:flex-start; gap:18px; }
 }
@@ -794,8 +801,8 @@ label.field-shell { cursor:pointer; }
 					     number that close to the rule reads as a drawing error. See README section 10. -->
 					<div class="card-body">
 						<div>
-							<div class="hero-figure tabular-figures">24.418,57 kr.</div>
-							<div class="hero-delta tabular-figures">saved 2.106,00 kr. vs retail (9,4%)</div>
+							<div class="figure-headline tabular-figures">24.418,57 kr.</div>
+							<div class="figure-delta tabular-figures">saved 2.106,00 kr. vs retail (9,4%)</div>
 						</div>
 						<div class="range-tabs" role="group" aria-label="Range">
 							<button type="button" data-range="1W" aria-pressed="false">1W</button><button type="button" data-range="1M" class="is-on" aria-pressed="true">1M</button><button type="button" data-range="3M" aria-pressed="false">3M</button><button type="button" data-range="YTD" aria-pressed="false">YTD</button><button type="button" data-range="ALL" aria-pressed="false">ALL</button>
@@ -837,7 +844,7 @@ label.field-shell { cursor:pointer; }
 						<div class="card-header"><span class="section-label">Spending rhythm</span></div>
 						<div class="card-rule"></div>
 						<div class="card-body">
-							<div class="dashboard-card-figure tabular-figures">1.062,00 kr.</div>
+							<div class="figure-card tabular-figures">1.062,00 kr.</div>
 							<i style="font-style:normal;font-size:11px;color:var(--muted)">average order · July</i>
 							<div class="weekday-bars" aria-hidden="true">
 								<div><span class="chart-bar" style="height:40px"><i style="--f:0%"></i></span><span>Mon</span></div>
@@ -888,7 +895,7 @@ label.field-shell { cursor:pointer; }
 						<div class="card-header" data-go="vendors" tabindex="0" role="link" aria-label="Top vendors, open Vendors"><span class="section-label">Top vendors</span><span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></div>
 						<div class="card-rule"></div>
 						<div class="card-body">
-							<div class="dashboard-card-figure tabular-figures">48.210 kr.</div>
+							<div class="figure-card tabular-figures">48.210 kr.</div>
 							<i style="font-style:normal;font-size:11px;color:var(--muted)">Proshop · all time</i>
 							<div class="entry-list">
 								<div class="row"><span class="entry-avatar" style="background:#235553">PR</span>
@@ -935,7 +942,7 @@ label.field-shell { cursor:pointer; }
 						<div class="card-header"><span class="section-label">Saved vs retail</span></div>
 						<div class="card-rule"></div>
 						<div class="card-body">
-							<div class="dashboard-card-figure tabular-figures">2.106,00 kr.</div>
+							<div class="figure-card tabular-figures">2.106,00 kr.</div>
 							<i style="font-style:normal;font-size:11px;color:var(--muted)">saved this month</i>
 							<div style="margin-top:14px">
 								<span class="chip-saving tabular-figures"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>9,4% under retail</span>
@@ -948,7 +955,7 @@ label.field-shell { cursor:pointer; }
 						<div class="card-header"><span class="section-label">Monthly pace</span></div>
 						<div class="card-rule"></div>
 						<div class="card-body">
-							<div class="dashboard-card-figure tabular-figures">30.300 kr.</div>
+							<div class="figure-card tabular-figures">30.300 kr.</div>
 							<i style="font-style:normal;font-size:11px;color:var(--muted)">projected for July · 25 days in</i>
 							<div class="meter" style="margin-top:16px" role="img" aria-label="Spent 24.418 of a projected 30.300 kroner; the marker is where June ended">
 								<i style="width:80%"></i><b style="left:68%"></b>
@@ -1140,7 +1147,7 @@ label.field-shell { cursor:pointer; }
 				<div class="card-rule"></div>
 				<div class="card-body" style="padding-top:0">
 					<div class="chart-caption"><b class="tabular-figures" style="font-size:23px">24.418,57 kr.</b></div>
-					<div class="hero-delta tabular-figures">saved 2.106,00 kr. vs retail (9,4%)</div>
+					<div class="figure-delta tabular-figures">saved 2.106,00 kr. vs retail (9,4%)</div>
 					<svg class="chart" data-h="230" data-pad="10" style="display:block;width:100%;height:230px;margin-top:10px" role="img" aria-label="Cumulative spend through July"><defs><linearGradient id="bl2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F5BD5"></stop><stop offset="1" stop-color="#A5B4FC"></stop></linearGradient></defs><line data-baseline="196" stroke="#E4E7E2" stroke-dasharray="3 4"></line><path data-series="206,176,140,110,78,48,22,14" data-kind="curve" fill="none" stroke="url(#bl2)" stroke-width="2.6"></path><circle data-marker="2" r="5" fill="#fff" stroke="#4F5BD5" stroke-width="2"></circle></svg>
 					<div class="chart-axis tabular-figures"><span>01</span><span>05</span><span>10</span><span>15</span><span>20</span><span>25</span><span>29</span></div>
 				</div>
@@ -1627,7 +1634,7 @@ label.field-shell { cursor:pointer; }
 
 		<!-- ============ VENDORS · Investment Exploration pattern ============ -->
 		<div class="page page-grid" data-page="vendors">
-			<div class="page-hero">
+			<div class="hero hero-panel">
 				<h2>Every shop you buy from, in one place.</h2>
 				<p>Vendors collect their orders, totals and savings automatically. Favourites stay on top.</p>
 				<button type="button" class="button button-caps">ADD VENDOR</button>
@@ -1658,17 +1665,17 @@ label.field-shell { cursor:pointer; }
 			<div class="section-header" data-view-only="overview"><span class="section-label">All vendors</span></div>
 			<div class="row-inline toolbar" data-view-only="overview"><div class="field-shell"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor name…" aria-label="Search vendors"></div><div class="segmented segmented-compact"><button type="button" class="is-on">Spend</button><button type="button">Name</button><button type="button">Orders</button><button type="button">Saved</button></div></div>
 			<div class="scroll-row" data-view-only="overview">
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#877364">FØ</span><span><span class="entry-name">Føtex</span><br><span class="entry-meta">71 orders</span></span></div></div><div class="dashboard-card-figure tabular-figures" style="font-size:17px">28.140 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 1.905 kr.</i></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#1FA8E0">EL</span><span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span></div></div><div class="dashboard-card-figure tabular-figures" style="font-size:17px">26.499 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 4.120 kr.</i></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#F09A38">MA</span><span><span class="entry-name">Matas</span><br><span class="entry-meta">29 orders</span></span></div></div><div class="dashboard-card-figure tabular-figures" style="font-size:17px">11.640 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 1.480 kr.</i></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#8B5CF6">ZA</span><span><span class="entry-name">Zalando</span><br><span class="entry-meta">22 orders</span></span></div></div><div class="dashboard-card-figure tabular-figures" style="font-size:17px">9.870 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 2.640 kr.</i></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#235553">JY</span><span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 orders</span></span></div></div><div class="dashboard-card-figure tabular-figures" style="font-size:17px">7.415 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 380 kr.</i></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#877364">FØ</span><span><span class="entry-name">Føtex</span><br><span class="entry-meta">71 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">28.140 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 1.905 kr.</i></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#1FA8E0">EL</span><span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">26.499 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 4.120 kr.</i></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#F09A38">MA</span><span><span class="entry-name">Matas</span><br><span class="entry-meta">29 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">11.640 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 1.480 kr.</i></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#8B5CF6">ZA</span><span><span class="entry-name">Zalando</span><br><span class="entry-meta">22 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">9.870 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 2.640 kr.</i></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="row" style="padding-top:0"><span class="entry-avatar" style="background:#235553">JY</span><span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">7.415 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--muted)">saved 380 kr.</i></div></section>
 			</div>
 		</div>
 
 		<!-- ============ SCAN · AI Advice pattern ============ -->
 		<div class="page" data-page="scan">
-			<div class="centered-column">
+			<div class="hero hero-column">
 				<h2>Receipts read at your fingertips.</h2>
 				<p>Drop a PDF, photo or screenshot. The AI drafts the order; you review every value before it is saved.</p>
 				<div class="ai-prompt-bar">
