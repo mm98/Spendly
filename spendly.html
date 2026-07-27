@@ -553,6 +553,13 @@ label.finput { cursor:pointer; }
 }
 @media (max-width:900px) {
   .favs { grid-template-columns:1fr 1fr; }
+  /* The phone layout starts at 700, so from 701 to 900 the 300px sidebar is still
+     standing while the filter panel is still two columns: From/To and Min/Max get
+     165px each at the low end, and a phone in landscape (844) lands right in it.
+     These two rows collapse at 900 instead -- the panel gets taller, which a
+     filter panel can afford and a squeezed date field cannot. Only these two:
+     .keep-pair below holds the vendor/category row two-up at every width. S9, S15. */
+  .frow2.stack-early { grid-template-columns:1fr; }
 }
 @media (min-width:2200px) {
   body { font-size:16px; }
@@ -592,6 +599,14 @@ label.finput { cursor:pointer; }
      "NEW" keeps the pair on one row; the full wording stays in the accessible name. */
   .wide-only { display:none; }
   .frow2 { grid-template-columns:1fr; }
+  /* The one exception to that collapse. A vendor and a category are one short
+     word each, so the filter panel keeps them paired on a phone and spends the
+     height it saves on the fields that need width -- the two .stack-early rows
+     under them. 139px per column at 390px, the narrowest field in the file: 104px
+     of text room, and "Any category" wants 109, so that one placeholder truncates
+     by 5px on the smallest phone. Truncating is what a placeholder here does
+     (S9); it is the cost of the pairing, not a defect in it. S9, S16. */
+  .frow2.keep-pair { grid-template-columns:1fr 1fr; }
   /* minmax(0,1fr), not 1fr: 1fr is minmax(auto,1fr) and inflates on a nowrap price
      or a fixed chip, which is the clipping this layout keeps hitting. README 15. */
   .olgrid { grid-template-columns:minmax(0,1fr); }
@@ -1490,15 +1505,15 @@ label.finput { cursor:pointer; }
           </div>
           <p class="sr-only" role="status" id="filterLive"></p>
           <div class="tsec" id="filterPanel">
-            <div class="frow2">
+            <div class="frow2 keep-pair">
               <label class="ffield"><span>Vendor</span><div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Bilka" placeholder="Any vendor" aria-label="Vendor"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
               <label class="ffield"><span>Category</span><div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Any category" aria-label="Category"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
             </div>
-            <div class="frow2">
+            <div class="frow2 stack-early">
               <label class="ffield"><span>From</span><div class="finput fdate"><input type="date" value="2026-07-01" aria-label="From date"><span class="dtrail"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
               <label class="ffield"><span>To</span><div class="finput fdate"><input type="date" value="2026-07-31" aria-label="To date"><span class="dtrail"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
             </div>
-            <div class="frow2">
+            <div class="frow2 stack-early">
               <label class="ffield"><span>Min amount</span><div class="finput"><input type="text" inputmode="decimal" placeholder="0,00" aria-label="Minimum amount"><span class="unit">kr.</span></div></label>
               <label class="ffield"><span>Max amount</span><div class="finput"><input type="text" inputmode="decimal" placeholder="Any" aria-label="Maximum amount"><span class="unit">kr.</span></div></label>
             </div>
