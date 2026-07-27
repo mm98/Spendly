@@ -88,6 +88,28 @@ there.
 - Grid wrappers always declare `grid-template-columns: minmax(0,1fr)`. Never rely on an implicit
   track — it sizes to its widest child's min-content and overflows.
 
+### Class naming
+
+Classes are BEM: `block`, `block__element`, `block--modifier`. A block stands alone (`card`, `field`,
+`combo`); an element belongs to one (`card__body`, `field__help`); a modifier changes one
+(`form__row--stack-early`, `status-chip--warn`). Nothing is abbreviated, and no name carries a number.
+
+The file was not written this way, and the names recorded what no reader could reconstruct. `frow2`
+was a form row, and its `2` separated it from a `.frow` that has never existed here — 0 rules, 0 uses
+— exactly as `chip2`'s separated it from `.chip`. Twelve row classes carried five different shapes
+between them: `row`, `irow`, `orow`, `hrow`, `frow2`, `sumrow`, `rowline`, `trayrow`, `chiprow`,
+`cat-row`, `acc-row`, `cat-rows`. Nothing in a name told you whether it was a block, a piece of one,
+or a variant of one.
+
+Two carve-outs, both deliberate. **State that crosses blocks stays an `is-` flag** — `is-active`,
+`is-open`, `is-editing`, `is-small` — because a modifier belongs to exactly one block by definition,
+while `.on` sits on pages, tabs, nav links and toggle buttons alike; giving each its own modifier
+would mean the script had to know which block it was holding. **A rename has to prove it changed
+nothing**: render every page at desktop and phone, plus the states only the script can reach, and
+require every render byte-identical. This one was accepted on 30 of 30 identical with 0 console
+errors — and that gate is what caught a global rewrite quietly turning `classList.toggle` into
+`classList.switch` and the property access `t.on` into `t.is-active`.
+
 ### Breakpoints
 
 | Width | What changes |
@@ -186,9 +208,9 @@ away when the sheet went white. Delete it or use it, but do not reintroduce a ti
 - Headings and leads: 600, `letter-spacing: -0.01em` to `-0.02em`. Lead sentence style is 16px/600
   ("Your biggest vendor: …").
 - Big numbers: 700, `-0.02em`, always `font-variant-numeric: tabular-nums`. The weight and tracking
-  ride on the size class (`.hero-num`, `.fav-num`, `.big`); the tabular figures ride on `.num`
+  ride on the size class (`.hero__number`, `.favourite-number`, `.numeric--large`); the tabular figures ride on `.numeric`
   alongside it, so a headline figure carries both. **A class with no rule behind it is worse than no
-  class**: `.big` was applied at four sites and defined at none, so the Orders and Statistics
+  class**: `.numeric--large` was applied at four sites and defined at none, so the Orders and Statistics
   headline figures quietly rendered at the body's 500 with proportional figures for as long as they
   existed. Nothing looked broken — they simply were not the number this section describes. Grep for
   the selector, not just the class attribute.
@@ -233,7 +255,7 @@ content such as photos and long values renders in list rows and panels, never in
 
 Two sizes carry almost everything. The prototype drifted to 12 distinct button geometries;
 consolidating took it to 8, and most of the drift was inline `style=` overrides on a shared class
-rather than real tiers — `.arrbtn` rendered at 30px in 8 places and 34px in 6, from one inline
+rather than real tiers — `.button-arrow` rendered at 30px in 8 places and 34px in 6, from one inline
 override.
 
 > [!WARNING]
@@ -241,11 +263,11 @@ override.
 
 | Tier | Spec | Used for |
 | --- | --- | --- |
-| **Compact** | 32px / r10 | top bar SCAN RECEIPT and NEW ORDER, section pills (`.pillbtn`), compact actions (`.btn-caps.sm`, `.ghostbtn.sm`), icon buttons (`.arrbtn`), card personalisation |
-| **Page** | 38px / r12 | `.btn-caps` dark and `.ghostbtn` outline — SAVE ORDER, CANCEL, NEXT STEP, FILTERS |
+| **Compact** | 32px / r10 | top bar SCAN RECEIPT and NEW ORDER, section pills (`.button-pill`), compact actions (`.button-caps.is-small`, `.button-ghost.is-small`), icon buttons (`.button-arrow`), card personalisation |
+| **Page** | 38px / r12 | `.button-caps` dark and `.button-ghost` outline — SAVE ORDER, CANCEL, NEXT STEP, FILTERS |
 | **Hero** | 48px | hero-panel CTAs only, on the page tier's radius |
-| **Card foot** | 44px full-width | `.viewall`, the SEE ALL row. The one documented exception |
-| **Key cap** | 22px / r7 | `.kbd` shortcut hints (CTRL K) |
+| **Card foot** | 44px full-width | `.button-view-all`, the SEE ALL row. The one documented exception |
+| **Key cap** | 22px / r7 | `.key-cap` shortcut hints (CTRL K) |
 
 The compact tier is one size at both breakpoints and passes WCAG 2.5.8 AA (24px floor) with room.
 **No circular buttons anywhere.**
@@ -253,9 +275,9 @@ The compact tier is one size at both breakpoints and passes WCAG 2.5.8 AA (24px 
 > [!IMPORTANT]
 > **A control that looks like a button is a `<button type="button">`.** Never a styled `<span>`.
 
-`.viewall` shipped as 5 buttons and 4 spans, `.linkcaps` as 6 spans and none, and the split cost two
+`.button-view-all` shipped as 5 buttons and 4 spans, `.button-link-caps` as 6 spans and none, and the split cost two
 different defects at once. The spans were mouse-only — no focus, no Enter, and at 17px tall the
-`.linkcaps` ones were under WCAG 2.5.8's 24px floor as well. And because `.viewall` never declared
+`.button-link-caps` ones were under WCAG 2.5.8's 24px floor as well. And because `.button-view-all` never declared
 `font:inherit`, the five real buttons rendered in the UA's Arial while their span twins rendered in
 Poppins, on the same screen, for a year.
 
@@ -277,7 +299,7 @@ Poppins, on the same screen, for a year.
   carrying its own inline style. SCAN RECEIPT shipped title-case against 32 caps neighbours purely
   because nobody counted.
 - Where a label shortens responsively, put the droppable words in a `<span class="wide-only">`
-  **inside** the label span, never as a second flex child: `.btn` has `gap:8px`, so a bare text node
+  **inside** the label span, never as a second flex child: `.button` has `gap:8px`, so a bare text node
   plus a span renders as two flex items with a gap between the words. Keep the full wording in
   `aria-label`; the visible text stays a substring of it, which is what WCAG 2.5.3 Label in Name
   requires.
@@ -370,9 +392,9 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   number of segments. Nothing about this is per-control — it is why no toggle reserves widths.
 - **A range stays on one line; a row of names breaks.** Two fields side by side are not all the same
   kind of pair. **From/To and Min/Max are one control each** — an end is read against the other end,
-  so they hold their pairing down to the smallest phone (`.keep-pair`, past the ≤700 collapse that
+  so they hold their pairing down to the smallest phone (`.form__row--keep-pair`, past the ≤700 collapse that
   would otherwise split them). **Category and Kind are two independent values** that happen to share a
-  row, and they carry names, so that row breaks to one field per line at ≤900 (`.stack-early`) — the
+  row, and they carry names, so that row breaks to one field per line at ≤900 (`.form__row--stack-early`) — the
   phone layout starts at 700, so from 701 to 900 the sidebar is still standing and a name is down to
   165px, with a phone in landscape (844px) inside that band. **Vendor holds a row by itself at every
   width**, because it carries the longest strings in the panel — `Silvan · Materialer`, and whatever a
@@ -382,11 +404,11 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   roles reversed; the fifth field is what the extra 88px bought, not a worse arrangement of the same
   four. **Which way a row splits is a question about what the fields mean, not about their width.**
   This holds for every range, not just these two: a from/to or a min/max pair added anywhere gets
-  `.keep-pair` on the row. The tally today is two — All orders' dates and amounts — and both carry it;
+  `.form__row--keep-pair` on the row. The tally today is two — All orders' dates and amounts — and both carry it;
   count before adding a third. Ports without these class names still owe the behaviour: a range does
   not break apart on a phone.
-- Help text under a field is muted 12px. Watch the specificity trap: `.ffield > span` styles the
-  label, so a `.fhelp` span in the same field inherits label weight and colour unless it is
+- Help text under a field is muted 12px. Watch the specificity trap: `.field > span` styles the
+  label, so a `.field__help` span in the same field inherits label weight and colour unless it is
   overridden at equal or higher specificity.
 - Multi-select as chips inside the field — categories, removable ×.
 - Toggle-revealed optional sections ("More details?": green switch, right-aligned).
@@ -432,15 +454,15 @@ search "placeholder" wrapped to two lines and pushed the control off its geometr
 showed a chevron and could not open a picker; nothing had a mobile keyboard, an accessible name, or
 native truncation.
 
-`.finput` is the **shell** — border, radius, tier height, flex row. Inside it sits a real control that
+`.field__input` is the **shell** — border, radius, tier height, flex row. Inside it sits a real control that
 carries no chrome of its own:
 
 ```css
-.finput > input, .finput > textarea {
+.field__input > input, .field__input > textarea {
   flex: 1; min-width: 0; font: inherit; color: inherit;
   background: none; border: 0; padding: 0; outline: none; text-overflow: ellipsis;
 }
-.finput:focus-within { border-color: var(--ink-strong); box-shadow: 0 0 0 1px var(--ink-strong); }
+.field__input:focus-within { border-color: var(--ink-strong); box-shadow: 0 0 0 1px var(--ink-strong); }
 ```
 
 - Every input declares an explicit `type`, and every one has an `aria-label`.
@@ -449,13 +471,13 @@ carries no chrome of its own:
   Quantities use `inputmode="numeric"`.
 - Dates are `type="date"` — the OS picker is the point. The calendar glyph and the click that opens it
   are ours on every engine, though: see [§17](#17-ios-and-webkit).
-- The photo field is `<label class="finput">` wrapping `<input type="file" accept="image/*">`, with
+- The photo field is `<label class="field__input">` wrapping `<input type="file" accept="image/*">`, with
   the chosen filename rendered as text.
 - Combobox fields are typeable inputs, per [§7](#7-comboboxes).
 - `:focus-within` on the shell replaces any hand-managed focus class.
 
-**Control text never wraps.** `.finput`, `.copt`, `.combo-action`, `.chip2` and segmented-control
-labels are all `white-space: nowrap` with `text-overflow: ellipsis`. The single exception is `.farea`
+**Control text never wraps.** `.field__input`, `.combo__option`, `.combo__action`, `.chip` and segmented-control
+labels are all `white-space: nowrap` with `text-overflow: ellipsis`. The single exception is `.field__input--textarea`
 (textarea), which must wrap. **Only the value column gives way** — units, key caps, status chips,
 thumbnails and category chips are fixed tokens, excluded from shrinking. A wrapping placeholder also
 knocks the control off its geometry tier: that is how the search field grew to two lines and stood
@@ -468,13 +490,13 @@ taller than the FILTERS and Sort controls sharing its row.
 - Inner gray panels: `#F2F4F1`, r12, rows with 40px rounded-square icons, **no dividers between rows**
   — spacing only — and green amounts right.
 - SEE ALL is the 44px full-width outline button at the card foot. Underlined caps links
-  (`.linkcaps`) appear only inside empty states.
+  (`.button-link-caps`) appear only inside empty states.
 - Empty states: loop glyph, one sentence, underlined caps action.
 - Exactly **one dark card per screen** — the AI/contextual slot.
-- A card header that navigates gets the chevron **and** the standard `.card-hr` hairline. The tally
+- A card header that navigates gets the chevron **and** the standard `.card__rule` hairline. The tally
   was 35 headers with the hairline against 4 without, and the 4 were the chart cards.
 - **The body's `14px` top padding is the default for a reason: do not tighten it under a hairline.**
-  The two spend cards overrode `.card-b` to `padding-top: 2px`, which left the first line of text
+  The two spend cards overrode `.card__body` to `padding-top: 2px`, which left the first line of text
   4.5px below the rule on Orders / Overview and 10px on the Home hero, against an 18–24px band on
   every other card in the file. It does not read as tight spacing, it reads as the text colliding
   with the border. Measure from the hairline's bottom edge to the top of the first glyph's em box,
@@ -519,7 +541,7 @@ The home dashboard's second row is a set the user picks and orders.
 
 > [!CAUTION]
 > **Cost us a bug.** Any class that sets a `display` value outranks the UA's `[hidden] {display:none}`
-> rule, so `.pillbtn` / `.btn-caps` kept rendering while hidden and EDIT, DONE and CANCEL all showed
+> rule, so `.button-pill` / `.button-caps` kept rendering while hidden and EDIT, DONE and CANCEL all showed
 > at once. Ship a global `[hidden] { display: none !important; }`.
 
 ## 11. Page patterns
@@ -540,7 +562,7 @@ legend), dark AI scan card, latest orders, saved-vs-retail, then the personalise
 "Home", no greeting.
 
 **Orders / Overview** — comparison chart card (current period solid, previous period in a lighter
-tint of the same hue, dashed guide, halo marker, ruler ticks, a `.serieskey` naming both periods), twin LATEST
+tint of the same hue, dashed guide, halo marker, ruler ticks, a `.series-key` naming both periods), twin LATEST
 cards, FOR YOU promo row (tag pills;
 horizontal scroll ≤1180, stacks ≤700), rail with returns, question of the day, category breakdown
 (Expenses | Budget segmented plus donut), ORDER SETTINGS.
@@ -598,8 +620,8 @@ prototype hid NEW ORDER below 700px and left the app scan-only on the device whe
 often added. On mobile the labels shorten to SCAN and NEW so the pair still fits one row, with the
 full wording kept in the accessible name.
 
-`.gfind` carries the `margin-left:auto` that pushes the actions right and is hidden on mobile, so
-`.top .acts` has to take that job over or the buttons sit against the title.
+`.global-find` carries the `margin-left:auto` that pushes the actions right and is hidden on mobile, so
+`.topbar .topbar__actions` has to take that job over or the buttons sit against the title.
 
 The sidebar foot is the wordmark line alone — `Spendly · personal ledger`. **No legal, privacy or
 terms links**: there is no second party here to disclose anything to. Hidden entirely on mobile.
@@ -623,7 +645,7 @@ instance below shipped because a shape was copied from the reference without ask
   a link does.
 - **A `role="tab"` is a promise.** Tabs are `<button>`, carry roving `tabindex` (selected 0, rest -1),
   respond to Left/Right, and keep `aria-selected` in sync. Twelve `<span role="tab">` elements
-  announced as tabs while being inert. This holds for the inline segmented controls (`.subtabs.mini`)
+  announced as tabs while being inert. This holds for the inline segmented controls (`.tabs.tabs--compact`)
   and the hero's Orders/Saved pair as much as for the page sub-tabs.
 - **A tab must change what is on screen.** Tabs that could not — Delivered, Returned, Reports, and the
   statistics period tabs that duplicated that page's own pager — were deleted, not left as decoration.
@@ -668,7 +690,7 @@ data changes.
 - **A key names every plotted line or it is not a key.** Orders / Overview drew two series and
   labelled one of them, leaving the reader to guess that the pale line was June — the chip that
   actually said "June" sat on the far side of the card, styled as a control rather than as a legend.
-  `.serieskey` is the pattern: one 9px swatch per series in that series' own stroke colour, 12px
+  `.series-key` is the pattern: one 9px swatch per series in that series' own stroke colour, 12px
   `--ink-2` label, `flex-wrap` so it stacks rather than overflows at 390px.
 - Do not repeat the card header in the body. Under a header reading `SPENT · JULY 2026`, an
   "Expenses" caption above the number says nothing the header has not already said, and it cost the
@@ -680,22 +702,22 @@ data changes.
 page while the Orders filter panel was 76px wider than its card and simply cut off: a card clips its
 own children without the document ever overflowing, so the controls become unreachable with no
 scrollbar to reveal them. Measure `el.scrollWidth - el.clientWidth` on every element instead,
-excluding the deliberate scrollers (`.hrow`, `.forr`).
+excluding the deliberate scrollers (`.header-row`, `.scroll-rail`).
 
 The cause is almost always the same — **flex and grid children default to `min-width:auto`**, so a
 long placeholder, a `white-space:nowrap` price or a fixed-width chip refuses to shrink and bursts the
 container. Rules that follow:
 
-- Give every layout container in a form panel `min-width:0`: `.tsec`, `.ffield`, `.finput`, and
-  `.tsec > *`, `.frow2 > *`, `.rowline > *`, `.card-b > *`.
+- Give every layout container in a form panel `min-width:0`: `.form__section`, `.field`, `.field__input`, and
+  `.form__section > *`, `.form__row > *`, `.inline-row > *`, `.card__body > *`.
 - A single-column grid's implicit column is `auto`, which sizes to its widest item's min-content and
   can exceed the container. Use `grid-template-columns: minmax(0,1fr)`.
 - **Only the text column may shrink.** Icon tiles, nowrap prices and drag handles are fixed
   affordances; blanket `min-width:0` on row children clipped prices by 29px and squeezed a 15px drag
-  handle to 6px. Target the description (`.irow > span:has(b)`) and give the rest `flex:none`.
-- Rows with fixed columns that cannot fit a phone stack instead — `.orow` becomes two rows via
+  handle to 6px. Target the description (`.info-row > span:has(b)`) and give the rest `flex:none`.
+- Rows with fixed columns that cannot fit a phone stack instead — `.order-row` becomes two rows via
   `grid-template-areas`.
-- **Row content sits flush with the card's content box.** Six row types use `padding: Npx 0`; `.orow`
+- **Row content sits flush with the card's content box.** Six row types use `padding: Npx 0`; `.order-row`
   alone had `12px 6px` and sat 6px inside the header and footer above and below it. Likewise a
   trailing chevron column is `auto`, not a fixed 26px around a 15px glyph, or the row stops short of
   the card edge.
@@ -708,7 +730,7 @@ earlier "shrink the floating layer" approach.
 - **The content area is flat white and edge to edge.** The canvas tint exists to frame the floating
   white sheet against the sidebar; a phone has no sidebar, so all the tint produced was an 8px border
   around the content — decoration paid for in width the dense rows actually need. `body` goes white
-  and `.main` drops its margin, radius and shadow.
+  and `.app__main` drops its margin, radius and shadow.
 - **Square corners stop at the paper.** The sheet and the main panel are the page's own edge and have
   nothing to be rounded against once they run full width, so they square off. **Cards keep their 15px
   radius** and controls keep theirs — they are objects on the paper, not the paper. "No round corners
@@ -720,18 +742,18 @@ earlier "shrink the floating layer" approach.
   stays legible.
 - **The sidebar becomes a fixed bottom tab bar**: all five destinations as equal columns
   (`repeat(5, minmax(0,1fr))`), icon over label, labels always visible, ~48px targets,
-  `env(safe-area-inset-bottom)` respected, and `.main` padded to clear it.
+  `env(safe-area-inset-bottom)` respected, and `.app__main` padded to clear it.
 - **The tab bar keeps the `#EFF1EF` tint** plus a top hairline. That tint is the one thing separating
   the bar from content scrolling under it; making it white cost that separation and had to be bought
   back with a shadow and a pill that were never asked for. On tint the active tab reads from its bare
   1px lift, no fill — which is how it was designed.
-- **Layout shifts**: `.orow` stacks to two rows; `.irow` wraps with the description keeping a 60%
-  basis; `.frow2` and `.olgrid` go single-column — except the filter panel's From/To and Min/Max rows,
+- **Layout shifts**: `.order-row` stacks to two rows; `.info-row` wraps with the description keeping a 60%
+  basis; `.form__row` and `.order-layout` go single-column — except the filter panel's From/To and Min/Max rows,
   which stay side by side ([§9](#9-forms-and-fields)); card rows go single-column; the hero callout is
-  hidden; the global finder is hidden and `.top .acts` takes over the right-alignment; sub-tabs
+  hidden; the global finder is hidden and `.topbar .topbar__actions` takes over the right-alignment; sub-tabs
   scroll horizontally without a visible scrollbar.
 - **A wrapping segmented control takes its height from the buttons** (`min-height:38px`), not from the
-  container. `.ffield .subtabs button` zeroes vertical padding and outranks `.subtabs.mini button` on
+  container. `.field .tabs button` zeroes vertical padding and outranks `.tabs.tabs--compact button` on
   source order alone, so with `height:auto` and no padding the control collapsed to text height — a
   ~26px strip under 48px inputs. At 38px the buttons put an unwrapped control back at 48px, matching
   the fields above it.
@@ -757,7 +779,7 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
 - `transform-origin: left center` pins the left edge so text starts exactly where it did, and a
   negative `margin-right` hands the layout box back the width the scale took off it. Overshoot is
   bounded by whatever trailing chip shares the row — about `0.156 ×` its width, ~4px worst case — and
-  `.finput` clips, so it stays inside the field.
+  `.field__input` clips, so it stays inside the field.
 - The textarea is scaled in both axes rather than one — it is a block with a real height, not a single
   line centred in a fixed row — so it gets a top-left origin and an inflated height instead.
 - Coarse pointers only. Desktop has no such behaviour and keeps the untransformed, sharper text.
@@ -784,17 +806,17 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
     desktop Firefox showed two calendars on every date field — its button and ours, near enough on top
     of each other to read as one smeared glyph. Since it cannot be hidden it is moved: the input runs
     `calc(100% + 56px)`, past the shell's right edge, and the button rides out with it into overflow
-    `.finput` already clips. Only the button moves — the value sits at the left, the trail is out of
+    `.field__input` already clips. Only the button moves — the value sits at the left, the trail is out of
     flow.
 - **The trail is what leaves flow, never the input.** An out-of-flow input would stop spanning the
   field, and the field being the input is what makes the whole of it the tap target on iOS.
-- **Everything trailing rides in `.dtrail`**, so the one date field carrying a unit chip lays out like
+- **Everything trailing rides in `.field__trail`**, so the one date field carrying a unit chip lays out like
   the others instead of opting out: chip first, glyph last, which keeps the affordance where it sits
   on every other date field.
 - **The picker opens from the glyph**, through `showPicker()`, on every engine — no native affordance
   is left to click, and the field behaves the same everywhere instead of once per engine. Where
   `showPicker()` is missing (iOS before 16) nothing is bound at all: the trail stays inert inside
-  `.ffield`, the label forwards the tap to the input, and iOS opens the picker off the input the way
+  `.field`, the label forwards the tap to the input, and iOS opens the picker off the input the way
   it always has. Binding a dead listener would take that away by swallowing the tap. Alt+Down does the
   same from the keyboard, so the glyph is not a mouse-only control ([§13](#13-honest-affordances)) —
   and typing the date into the segments never needed the picker at all.
@@ -814,7 +836,7 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
 > [!IMPORTANT]
 > Progress indicators never freeze under `prefers-reduced-motion`. The blanket `* { animation: none }`
 > reset is wrong — it turns a busy state into what looks like a hung app. Exclude busy indicators from
-> the reset and slow them instead: `.pbar.indet i` runs 1.5s normally, 2.6s linear under reduced
+> the reset and slow them instead: `.progress-bar.progress-bar--indeterminate i` runs 1.5s normally, 2.6s linear under reduced
 > motion.
 
 ## 19. Notes for the port
