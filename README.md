@@ -859,6 +859,15 @@ Three kinds of name, and the shape of the name tells you which one you are looki
   *two columns*, `.empty2`/`.ring2`/`.hero2`/`.lab2` were *the other one*, and `.chip2` was a second
   chip whose first had never existed. A number records the moment someone needed another one; it
   never records what makes it different.
+- **Hiding is the `hidden` attribute — never a class, never an inline style.** A `.hidden` class
+  would be a second mechanism for a job the platform already does, and it says nothing to a screen
+  reader. `[hidden] { display: none !important }` carries the `!important` because any class that
+  sets a display value outranks the UA rule, which is most of them — `.icon-button` is
+  `inline-grid`, so the back button rendered straight through `hidden` until the reset was added.
+- **A wrapper is named for the slot it fills, not for what a page happens to put in it.** `.page-bar`
+  is the band under the top bar, sharing the sheet's gutters so its contents line up with the cards
+  below ([§1](#1-shell-and-layout)); sub-tabs are merely what every page currently puts there.
+  Naming it `.subtab-bar` made a container sound like a contract.
 - **Shared values are tokens, not classes.** `--radius-compact`, `--radius-page`, `--radius-card`,
   `--border-hairline`. A utility class would put the value in the markup, and there is no single
   radius to name `.rounded` anyway — 22 distinct values across 89 declarations, the commonest
@@ -870,6 +879,14 @@ Three kinds of name, and the shape of the name tells you which one you are looki
 > one, so every context rule that tuned it — `.toolbar`, `.hero-panel`, and the compact size modifier
 > — went from losing on specificity to tying, and a tie is decided by source order. Nothing errors:
 > the control keeps rendering, at the wrong tier.
+
+> [!WARNING]
+> **A rule that cannot fire looks exactly like one that works.** `.subtab-bar:empty { display:none }`
+> could never match: the tablist element is always in the markup, so the wrapper is never empty. What
+> actually hid the band was the tab builder reaching up to `subtabs.parentElement.style` — JS styling
+> an element it does not own, one wrapper away from hiding the wrong one, and an inline
+> `display:none` in the served DOM for its trouble. It is `:not(:has(button))` now, in CSS, where it
+> can be read. Grep for a selector's *match*, not just its presence.
 
 > [!WARNING]
 > **Renaming an identifier orphans its parts.** `.kpi span` and `.question-card .question-card-label`
