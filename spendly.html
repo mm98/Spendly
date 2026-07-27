@@ -491,6 +491,11 @@ label.finput { cursor:pointer; }
    container in the filter panel has to be allowed to shrink. */
 .tsec { border:1px solid var(--card-line); border-radius:14px; padding:14px 16px; display:grid; gap:14px; min-width:0; }
 .tsec > *, .frow2 > *, .rowline > * { min-width:0; }
+/* The disclosure's label is the same string in both states and the chevron turns
+   instead. The toolbar is nowrap around a flex:1 search field, so a wider "HIDE
+   FILTERS" would move the search on every click -- the shift that keeps weight
+   off the segmented control, from the button side. S9, S13. */
+[data-filters-toggle][aria-expanded="true"] .chev-i { transform:rotate(180deg); }
 .card-b > * { min-width:0; }
 .toggle { width:44px; height:26px; border-radius:999px; background:var(--green); position:relative; flex:none; border:0; cursor:pointer; }
 .toggle::after { content:""; position:absolute; top:3px; right:3px; width:20px; height:20px; background:#fff; border-radius:50%; box-shadow:0 1px 2px rgb(0 0 0 / .18); }
@@ -1155,8 +1160,8 @@ label.finput { cursor:pointer; }
               </div>
               <div class="ffield"><span>Status</span>
                 <div class="subtabs mini" role="tablist">
-                  <button type="button" class="on" role="tab" aria-selected="true">Delivered</button>
                   <button type="button" role="tab" aria-selected="false">Ordered</button>
+                  <button type="button" class="on" role="tab" aria-selected="true">Delivered</button>
                   <button type="button" role="tab" aria-selected="false">Returned</button>
                 </div></div>
               <label class="ffield"><span>Categories</span>
@@ -1405,8 +1410,8 @@ label.finput { cursor:pointer; }
                   <span class="fhelp">Not on the receipt; add it if the order was delivered.</span></label>
                 <div class="ffield"><span>Status</span>
                   <div class="subtabs mini" role="tablist">
-                    <button type="button" class="on" role="tab" aria-selected="true">Delivered</button>
                     <button type="button" role="tab" aria-selected="false">Ordered</button>
+                    <button type="button" class="on" role="tab" aria-selected="true">Delivered</button>
                     <button type="button" role="tab" aria-selected="false">Returned</button>
                   </div></div>
               </div>
@@ -1474,7 +1479,7 @@ label.finput { cursor:pointer; }
         <div class="card-b" style="padding:16px 18px;display:grid;gap:12px">
           <div class="rowline toolbar">
             <div class="finput"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor, note or item text…" aria-label="Search orders"></div>
-            <button type="button" class="ghostbtn" style="flex:none"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS</button>
+            <button type="button" class="ghostbtn" style="flex:none" data-filters-toggle aria-expanded="true" aria-controls="filterPanel"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS<svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></button>
             <div class="chip2" style="height:38px;flex:none">Sort: Date, newest<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
           </div>
           <div class="rowline" style="gap:6px">
@@ -1484,7 +1489,7 @@ label.finput { cursor:pointer; }
             <button type="button" class="linkcaps" style="margin-left:6px" data-clear-filters>CLEAR ALL</button>
           </div>
           <p class="sr-only" role="status" id="filterLive"></p>
-          <div class="tsec">
+          <div class="tsec" id="filterPanel">
             <div class="frow2">
               <label class="ffield"><span>Vendor</span><div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Bilka" placeholder="Any vendor" aria-label="Vendor"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
               <label class="ffield"><span>Category</span><div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Any category" aria-label="Category"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
@@ -1500,8 +1505,8 @@ label.finput { cursor:pointer; }
             <div class="ffield"><span>Status</span>
               <div class="subtabs mini" role="tablist">
                 <button type="button" class="on" role="tab" aria-selected="true">Any</button>
-                <button type="button" role="tab" aria-selected="false">Delivered</button>
                 <button type="button" role="tab" aria-selected="false">Ordered</button>
+                <button type="button" role="tab" aria-selected="false">Delivered</button>
                 <button type="button" role="tab" aria-selected="false">Returned</button>
               </div></div>
             <div class="factions">
@@ -1905,6 +1910,20 @@ label.finput { cursor:pointer; }
       (search || ptitle).focus();
     });
   }
+  /* FILTERS owns the panel below it. It carried nothing but a border before, which
+     is the decorative-control rule with the button already drawn: it looked like it
+     toggled the panel and the README said it did. aria-expanded is the state -- no
+     live-region message, since a disclosure announces itself. S13. */
+  const filterToggle = document.querySelector('[data-filters-toggle]');
+  const filterPanel = document.getElementById('filterPanel');
+  if (filterToggle && filterPanel) {
+    filterToggle.addEventListener('click', () => {
+      const open = filterToggle.getAttribute('aria-expanded') !== 'true';
+      filterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      filterPanel.hidden = !open;
+    });
+  }
+
   document.querySelectorAll('.combo').forEach(combo => {
     const shell = combo.querySelector('.finput');
     // ARIA 1.2 puts role=combobox on the input, so that is what owns aria-expanded.

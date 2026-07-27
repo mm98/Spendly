@@ -313,11 +313,18 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   horizontally and vertically; row fields top-aligned in `1fr 1fr` columns that collapse to one at
   ≤700.
 - Unit suffix chips inside inputs (`kr.`, `pcs`), fixed width, excluded from shrinking.
-- Enums are segmented controls — Status: Delivered / Ordered / Returned, plus "Any" in filters: one
+- Enums are segmented controls — Status: Ordered / Delivered / Returned, plus "Any" in filters: one
   shared bordered container, dark active segment. **Inside a form a segmented control is an entry
   field, not a chip group.** It fills its column, stands 48px tall like the inputs beside it, and its
   segments flex to equal widths. The intrinsic-width 38px version belongs to toolbars, never to a
   form.
+- **Segments run in the order the thing happens, not the order they were typed.** Status shipped as
+  Delivered / Ordered / Returned in all three of its controls, which reads left to right as a claim
+  that an order is delivered before it is placed. The lifecycle is the sort key — Ordered → Delivered
+  → Returned — and it is the same in the create form, the scan review and the filter panel. A segment
+  that stands outside the sequence rather than in it, filters' **Any**, leads; it is the default, not
+  a stage. Which segment is *selected* is a separate decision from where it sits: both forms still
+  open on Delivered, because most orders are entered after they arrive.
 - **Selecting a segment may not change its text metrics.** The track is `width:max-content`, so a
   heavier active label widens the whole control, and every control sharing its row — the toolbar
   search is `flex:1` — resizes to absorb the difference; because the labels are not equal-width the
@@ -459,10 +466,10 @@ horizontal scroll ≤1180, stacks ≤700), rail with returns, question of the da
 (Expenses | Budget segmented plus donut), ORDER SETTINGS.
 
 **Orders / All orders** — the search surface: 38px finder input (vendor, note, item text), FILTERS
-toggling an inline panel (vendor and category comboboxes, from/to, min/max with `kr.` units, status
-segmented including Any, APPLY 32px + CLEAR), active filters as removable × chips plus CLEAR ALL,
-sort combobox chip, results line "N match · filtered from total", rows with status chips and saved
-amounts, PREVIOUS/NEXT. Sub-tabs double as one-tap status filters.
+disclosing the inline panel it opens and collapses (vendor and category comboboxes, from/to, min/max
+with `kr.` units, status segmented led by Any, APPLY 32px + CLEAR), active filters as removable ×
+chips plus CLEAR ALL, sort combobox chip, results line "N match · filtered from total", rows with
+status chips and saved amounts, PREVIOUS/NEXT. Sub-tabs double as one-tap status filters.
 
 **Order detail** — back arrow in the **top bar**, never floating in a card. **No internal ids shown.**
 Header card (vendor, date and count, category chips, status chip, edit/delete); items with photos and
@@ -529,6 +536,14 @@ instance below shipped because a shape was copied from the reference without ask
   and the hero's Orders/Saved pair as much as for the page sub-tabs.
 - **A tab must change what is on screen.** Tabs that could not — Delivered, Returned, Reports, and the
   statistics period tabs that duplicated that page's own pager — were deleted, not left as decoration.
+- **A disclosure button owns its panel.** All orders' FILTERS stood above the filter panel with a
+  border, an icon and no handler — the decorative-control rule again, in its hardest form to spot,
+  because this document already said the button toggled the panel and the screenshot showed both. The
+  button carries `aria-expanded`, `aria-controls` names the panel, and the panel is `hidden` when
+  collapsed; it starts open, so the page still shows both control tiers on load. **The label is the
+  same string in both states** — the chevron rotates instead. "HIDE FILTERS" is wider than "FILTERS",
+  and the search beside it is `flex:1` in a `nowrap` row, so a changing label would move the search on
+  every click: the segmented control's rule ([§9](#9-forms-and-fields)) arriving from the button side.
 - **No decorative controls at all.** The kebab was a `<span aria-hidden="true">` with no handler and
   no intended action, inherited from the reference's card menu; it invites a click that does nothing.
   Deleted. The hero `[+]` went too: it duplicated the top bar's NEW ORDER and existed only because

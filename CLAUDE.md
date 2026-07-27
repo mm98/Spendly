@@ -19,8 +19,8 @@ shows. Opening the HTML in a browser is the whole toolchain.
 ## Verification
 
 The README's standard is the floor: render the prototype, screenshot it at desktop and 390px, and say
-what was measured rather than that it looks right. Two axes it does not name have each shipped a bug,
-so they are part of the standard now.
+what was measured rather than that it looks right. Three axes it does not name have each shipped a
+bug, so they are part of the standard now.
 
 **One engine is not coverage.** Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
@@ -34,6 +34,15 @@ changed width when the selection moved, because the active segment was bolder an
 `width:max-content` — visible in any engine, invisible in any single screenshot. Exercise every state
 a control has (selected/resting, empty/filled, open/closed, wrapped/unwrapped) and compare geometry
 across them.
+
+**A correct render is not a correct control.** The status segmented control read Delivered / Ordered
+/ Returned in all three places it appears, for as long as it existed — pixel-perfect in every engine,
+identical in every state, and saying that an order is delivered before it is placed. FILTERS, one
+card above it, was drawn complete and toggled nothing. Geometry has no opinion about the order of
+labels and a screenshot has none about whether a button is wired, so neither defect could fail a
+measurement nobody thought to write. Where a control enumerates something that happens in sequence,
+read it left to right and check the sequence is true; where it names an action, fire it and assert
+the state it promises actually moved.
 
 **Say which of these you actually ran.** An engine that could not be launched is an engine that was
 not checked, and the honest report is "verified in Blink, Gecko unverified — no binary available",
