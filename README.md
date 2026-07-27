@@ -220,6 +220,25 @@ override.
 The compact tier is one size at both breakpoints and passes WCAG 2.5.8 AA (24px floor) with room.
 **No circular buttons anywhere.**
 
+> [!IMPORTANT]
+> **A control that looks like a button is a `<button type="button">`.** Never a styled `<span>`.
+
+`.viewall` shipped as 5 buttons and 4 spans, `.linkcaps` as 6 spans and none, and the split cost two
+different defects at once. The spans were mouse-only — no focus, no Enter, and at 17px tall the
+`.linkcaps` ones were under WCAG 2.5.8's 24px floor as well. And because `.viewall` never declared
+`font:inherit`, the five real buttons rendered in the UA's Arial while their span twins rendered in
+Poppins, on the same screen, for a year.
+
+- **A button needs the type reset a span never did**: `font:inherit; background:none; border:0;
+  padding:0` before the rule's own font-size and weight. Missing `font:inherit` is invisible until
+  something else on the page uses the same class.
+- **Every `<button>` carries an explicit `type="button"`.** All 87 do. Without it the default is
+  `submit`, which is inert here only because this prototype has no `<form>` — inside a Blazor
+  `EditForm` the same markup posts the form.
+- **A converted control must gain the action it was pretending to have.** A dead span is mouse-only;
+  a dead button is mouse-only *and* in the tab order, announced as a control that does nothing. So
+  each one dismisses, clears, removes or navigates — and because each removes the element focus was
+  on, each hands focus somewhere deliberate and announces once through the surface's live region.
 - Every control mixing icon and text is a flex container (`align-items:center; gap`) — never
   baseline-aligned icons, never per-icon margins.
 - Flow footers: CANCEL/BACK outline left, primary dark right (`justify-content: space-between`).

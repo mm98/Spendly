@@ -243,7 +243,7 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
 .dk-body { font-size:12.5px; color:var(--dark-text); line-height:1.55; margin:0; }
 .dk-acts { display:flex; align-items:center; gap:18px; margin-top:16px; }
 .dk-btn { height:38px; padding:0 18px; border-radius:12px; border:0; background:#fff; color:var(--ink); font:inherit; font-size:11.5px; font-weight:700; letter-spacing:.05em; cursor:pointer; }
-.dk-link { font-size:11.5px; font-weight:700; letter-spacing:.05em; color:#fff; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.dk-link { font:inherit; background:none; border:0; padding:0; font-size:11.5px; font-weight:700; letter-spacing:.05em; color:#fff; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
 .dk-emoji { margin-left:auto; width:44px; height:44px; color:var(--green); flex:none; }
 .dk-emoji svg { width:100%; height:100%; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
 
@@ -285,7 +285,7 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
 .irow i { font-style:normal; font-size:11px; color:var(--muted); display:block; }
 .irow .amt { margin-left:auto; color:var(--green); font-weight:600; font-size:13px; white-space:nowrap; }
 .kbd { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid #DFE3DE; background:#F7F8F5; font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--ink-2); }
-.chip2 { display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 11px; border-radius:10px; border:1px solid #E2E5E1; background:#fff; font-size:11px; font-weight:600; color:var(--ink-2); white-space:nowrap; }
+.chip2 { font:inherit; display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 11px; border-radius:10px; border:1px solid #E2E5E1; background:#fff; font-size:11px; font-weight:600; color:var(--ink-2); white-space:nowrap; }
 .sentence { font-size:16px; font-weight:600; color:var(--ink); letter-spacing:-.01em; line-height:1.4; margin:2px 0 10px; }
 /* Selection may not change a segment's text metrics: the track is width:max-content, so
    a heavier active label resizes the control and everything sharing its row. The pill
@@ -294,8 +294,8 @@ svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2;
 .subtabs button.on { background:var(--dark); color:#fff; }
 .pagegrid { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
 .twin { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-.viewall { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; height:44px; border:1px solid #E2E4DF; border-radius:12px; background:#fff; font-size:12px; font-weight:600; letter-spacing:.08em; color:var(--ink); cursor:pointer; margin-top:12px; }
-.linkcaps { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-decoration:underline; text-underline-offset:3px; color:var(--ink); cursor:pointer; }
+.viewall { font:inherit; padding:0; display:flex; align-items:center; justify-content:center; gap:7px; width:100%; height:44px; border:1px solid #E2E4DF; border-radius:12px; background:#fff; font-size:12px; font-weight:600; letter-spacing:.08em; color:var(--ink); cursor:pointer; margin-top:12px; }
+.linkcaps { font:inherit; background:none; border:0; padding:0; display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-decoration:underline; text-underline-offset:3px; color:var(--ink); cursor:pointer; }
 .olgrid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:18px; align-items:start; }
 .olcol { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; min-width:0; }
 .tx .glyph { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; color:var(--ink-2); background:#F3F5F1; flex:none; }
@@ -509,7 +509,7 @@ label.finput { cursor:pointer; }
 .ai-bar .ph { color:var(--muted); font-size:13px; flex:1; }
 .ai-send { width:40px; height:40px; border-radius:12px; border:0; background:var(--dark); color:#fff; display:grid; place-items:center; cursor:pointer; flex:none; }
 .chiprow { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
-.chiprow span { display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px; border-radius:10px; border:1px solid #D9DED8; background:var(--card); font-size:12px; font-weight:500; color:var(--ink-2); cursor:pointer; }
+.chiprow button { font:inherit; display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px; border-radius:10px; border:1px solid #D9DED8; background:var(--card); font-size:12px; font-weight:500; color:var(--ink-2); cursor:pointer; }
 .center-wrap { max-width:760px; margin:0 auto; text-align:center; padding:26px 0 10px; }
 .center-wrap h2 { margin:0 0 8px; font-size:26px; font-weight:700; letter-spacing:-.02em; }
 .center-wrap > p { margin:0 0 20px; font-size:13px; color:var(--muted); }
@@ -674,8 +674,8 @@ label.finput { cursor:pointer; }
 
   <div class="main">
     <header class="top">
-      <button class="arrbtn" id="backBtn" style="display:none" aria-label="Back to orders"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button>
-      <h1 id="ptitle">Home</h1>
+      <button type="button" class="arrbtn" id="backBtn" style="display:none" aria-label="Back to orders"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button>
+      <h1 id="ptitle" tabindex="-1">Home</h1>
       <div class="gfind" id="gfind">
         <div class="finput">
           <svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg>
@@ -697,10 +697,10 @@ label.finput { cursor:pointer; }
         </div>
       </div>
       <div class="acts">
-        <button class="btn dark" id="scanBtn" aria-label="Scan receipt">
+        <button type="button" class="btn dark" id="scanBtn" aria-label="Scan receipt">
           <svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M8 12h8 M8 9h6 M8 15h4 M3 7v-2a2 2 0 0 1 2 -2h2 M3 17v2a2 2 0 0 0 2 2h2 M17 3h2a2 2 0 0 1 2 2v2 M17 21h2a2 2 0 0 0 2 -2v-2"></path></svg>
           <span>SCAN<span class="wide-only"> RECEIPT</span></span></button>
-        <button class="btn line" id="newBtn" aria-label="New order"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5l0 14 M5 12l14 0"></path></svg><span>NEW<span class="wide-only"> ORDER</span></span></button>
+        <button type="button" class="btn line" id="newBtn" aria-label="New order"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5l0 14 M5 12l14 0"></path></svg><span>NEW<span class="wide-only"> ORDER</span></span></button>
                 </div>
     </header>
 
@@ -754,9 +754,9 @@ label.finput { cursor:pointer; }
         <div class="sect">
           <span class="lab">Your cards</span>
           <span class="rowline" id="cardActions">
-            <button class="pillbtn" id="cardsEdit"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg>EDIT</button>
-            <button class="btn-caps sm" id="cardsDone" hidden><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 12l5 5l10 -10"></path></svg>DONE</button>
-            <button class="pillbtn" id="cardsCancel" hidden>CANCEL</button>
+            <button type="button" class="pillbtn" id="cardsEdit"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg>EDIT</button>
+            <button type="button" class="btn-caps sm" id="cardsDone" hidden><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 12l5 5l10 -10"></path></svg>DONE</button>
+            <button type="button" class="pillbtn" id="cardsCancel" hidden>CANCEL</button>
           </span>
         </div>
         <p class="sr-only" id="cardLive" role="status" aria-live="polite"></p>
@@ -901,7 +901,7 @@ label.finput { cursor:pointer; }
       <div class="colR">
 
         <!-- dark AI card -->
-        <section class="dark-card" aria-label="AI receipt scanning">
+        <section class="dark-card" id="aiCard" aria-label="AI receipt scanning">
           <div class="dk-top" data-go="scan" tabindex="0" role="link" aria-label="Finish setting up Spendly, open Scan receipt">
             <span class="ring"><b>1/3</b></span>
             <span class="t"><b>Get receipts read for you</b><i>Finish setting up Spendly</i></span>
@@ -910,8 +910,8 @@ label.finput { cursor:pointer; }
           <div class="dk-hl" style="font-size:17px">Scan receipts, skip typing</div>
           <p class="dk-body">A PDF, photo or screenshot becomes a draft order. You review every value before it is saved.</p>
           <div class="dk-acts">
-            <button class="dk-btn" data-go="scan">SCAN A RECEIPT</button>
-            <span class="dk-link">LATER</span>
+            <button type="button" class="dk-btn" data-go="scan">SCAN A RECEIPT</button>
+            <button type="button" class="dk-link" data-dismiss="aiCard">LATER</button>
             <span class="dk-emoji" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
           </div>
         </section>
@@ -995,7 +995,7 @@ label.finput { cursor:pointer; }
               <div class="row"><span class="glyph"><svg class="i" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
                 <span><span class="n">Elgiganten</span><br><span class="d">15 July</span></span>
                 <span class="amt num"><span class="dots" aria-hidden="true"><i style="background:#1FA8E0"></i><i style="background:#235553"></i></span>+500,00 kr.</span></div>
-              <button class="viewall">SEE ALL</button>
+              <button type="button" class="viewall" data-go="orders2">SEE ALL</button>
             </div>
           </section>
           <section class="card" aria-label="Waiting receipts">
@@ -1005,14 +1005,14 @@ label.finput { cursor:pointer; }
               <div class="empty2">
                 <span class="loop"><svg class="i" viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg></span>
                 <p>No receipts waiting. Scan one and the order drafts itself.</p>
-                <span class="linkcaps" data-go="scan" tabindex="0" role="link">SCAN A RECEIPT</span>
+                <button type="button" class="linkcaps" data-go="scan">SCAN A RECEIPT</button>
               </div>
-              <button class="viewall">SEE ALL</button>
+              <button type="button" class="viewall" data-go="orders2">SEE ALL</button>
             </div>
           </section>
         </div>
         <section class="card" aria-label="For you">
-          <div class="card-h"><span class="lab">For you</span><button class="pillbtn">HOW IT WORKS</button></div>
+          <div class="card-h"><span class="lab">For you</span><button type="button" class="pillbtn">HOW IT WORKS</button></div>
           <div class="card-hr"></div>
           <div class="card-b forr">
             <div class="promo"><span class="tagpill" style="background:#F6E3F1;color:#A2477F"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"></path></svg>Quick wins</span>
@@ -1031,7 +1031,7 @@ label.finput { cursor:pointer; }
           <div class="card-b"><div class="empty2">
             <span class="loop"><svg class="i" viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg></span>
             <p>No open returns found</p>
-            <span class="linkcaps">SEE RETURN HISTORY</span>
+            <button type="button" class="linkcaps" data-go="orders2">SEE RETURN HISTORY</button>
           </div></div>
         </section>
         <section class="card" aria-label="Question of the day">
@@ -1039,7 +1039,7 @@ label.finput { cursor:pointer; }
           <div class="card-hr"></div>
           <div class="card-b">
             <div style="font-size:19px;font-weight:600;letter-spacing:-.01em;line-height:1.35;margin:2px 0 14px">What did Groceries cost me in June?</div>
-            <button class="viewall" style="margin-top:0"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6"></path></svg>ASK SPENDLY</button>
+            <button type="button" class="viewall" style="margin-top:0"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6"></path></svg>ASK SPENDLY</button>
           </div>
         </section>
         <section class="card" aria-label="Category breakdown">
@@ -1057,16 +1057,16 @@ label.finput { cursor:pointer; }
               <div class="cat-row" data-go="orders2" tabindex="0" role="link"><span class="cat-ic" style="background:var(--icon-purple)"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><span><b>Household</b><i>13% of expenses</i></span><span class="amt num">6.110 kr.</span><span class="chev" style="color:var(--muted-2)"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></div>
               <div class="cat-row" data-go="orders2" tabindex="0" role="link"><span class="cat-ic" style="background:var(--donut-blue)"><svg class="i" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><span><b>Home office</b><i>10% of expenses</i></span><span class="amt num">4.880 kr.</span><span class="chev" style="color:var(--muted-2)"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></div>
             </div>
-            <button class="viewall">SEE ALL</button>
+            <button type="button" class="viewall" data-go="orders2">SEE ALL</button>
           </div>
         </section>
-        <button class="viewall" style="margin-top:0"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065 M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path></svg>ORDER SETTINGS</button>
+        <button type="button" class="viewall" style="margin-top:0"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065 M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path></svg>ORDER SETTINGS</button>
       </div>
     </div></div>
     <div class="page pagegrid" data-page="orders-legacy" hidden="">
       <section class="card" aria-label="Spend over July">
         <div class="card-h"><span class="lab">Spent · July 2026</span>
-          <button class="pillbtn">MONTHLY <svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6l6 -6"></path></svg></button></div>
+          <button type="button" class="pillbtn">MONTHLY <svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6l6 -6"></path></svg></button></div>
         <div class="card-hr"></div>
         <div class="card-b" style="padding-top:0">
           <div class="spend-cap"><b class="num" style="font-size:23px">24.418,57 kr.</b></div>
@@ -1095,7 +1095,7 @@ label.finput { cursor:pointer; }
             <div class="row"><span class="dot" style="background:#235553">JY</span>
               <span><span class="n">Jysk</span><br><span class="d">11 July · 1.049,00 kr.</span></span>
               <span class="amt num" style="color:var(--muted)">0 kr.</span></div>
-            <span class="viewall">VIEW ALL</span>
+            <button type="button" class="viewall" data-go="orders2">VIEW ALL</button>
           </div>
         </section>
         <section class="card" aria-label="By vendor">
@@ -1107,9 +1107,9 @@ label.finput { cursor:pointer; }
             <div class="acc-row"><span class="dot" style="background:#1FA8E0;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:10.5px;font-weight:700">EL</span><span style="font-size:12.5px;font-weight:600">Elgiganten</span><span class="amt num">2.499,00 kr.</span></div>
             <div class="empty" style="padding:18px 10px 8px">
               <i>A paper receipt in your pocket? It can file itself.</i>
-              <button class="btn-caps">SCAN A RECEIPT</button>
+              <button type="button" class="btn-caps">SCAN A RECEIPT</button>
             </div>
-            <span class="viewall">VIEW ALL</span>
+            <button type="button" class="viewall" data-go="orders2">VIEW ALL</button>
           </div>
         </section>
       </div>
@@ -1164,7 +1164,7 @@ label.finput { cursor:pointer; }
                   <span class="chip2">Household<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span><span class="chip2">Groceries<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span>
                   <input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Add category…" aria-label="Add category" style="flex:1 1 120px"></div></label>
               <div class="tsec">
-                <div class="between"><b style="font-size:14px">More details?</b><button class="toggle" role="switch" aria-checked="true" aria-label="More details"></button></div>
+                <div class="between"><b style="font-size:14px">More details?</b><button type="button" class="toggle" role="switch" aria-checked="true" aria-label="More details"></button></div>
                 <div class="frow2">
                   <label class="ffield"><span>Shipping fee</span><div class="finput"><input type="text" inputmode="decimal" placeholder="0,00" aria-label="Shipping fee"><span class="unit">kr.</span></div></label>
                   <label class="ffield"><span>Order reference</span><div class="finput"><input type="text" placeholder="Optional" aria-label="Note"></div></label>
@@ -1172,8 +1172,8 @@ label.finput { cursor:pointer; }
                 <label class="ffield"><span>Note</span><div class="finput farea"><textarea placeholder="Anything worth remembering about this purchase." aria-label="Note"></textarea></div></label>
               </div>
               <div class="factions split">
-                <button class="ghostbtn">CANCEL</button>
-                <button class="btn-caps" id="toStep2">NEXT STEP</button>
+                <button type="button" class="ghostbtn">CANCEL</button>
+                <button type="button" class="btn-caps" id="toStep2">NEXT STEP</button>
               </div>
             </div>
           </div>
@@ -1197,7 +1197,7 @@ label.finput { cursor:pointer; }
         <section class="dark-card" aria-label="Scan instead">
           <div class="dk-hl" style="font-size:16px;margin-top:2px">Have the receipt? Skip the form.</div>
           <p class="dk-body">A photo or PDF fills every field for you; you only review it.</p>
-          <div class="dk-acts" style="margin-top:12px"><button class="dk-btn" data-go="scan">SCAN A RECEIPT</button>
+          <div class="dk-acts" style="margin-top:12px"><button type="button" class="dk-btn" data-go="scan">SCAN A RECEIPT</button>
             <span class="dk-emoji" style="width:34px;height:34px" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span></div>
         </section>
       </div>
@@ -1236,7 +1236,7 @@ label.finput { cursor:pointer; }
                     <label class="finput"><span class="fthumb" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><input type="file" accept="image/*" aria-label="Product photo" class="ffile"><span class="fname">shampoo-500ml.jpg</span><button type="button" class="fclear" aria-label="Remove photo"><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button></label><span class="fhelp">Uploaded state keeps the field height; the photo shows large on the item row below, not in the form.</span></label>
                 </div>
                 <div class="factions">
-                  <button class="btn-caps sm"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5l0 14 M5 12l14 0"></path></svg>ADD ITEM</button>
+                  <button type="button" class="btn-caps sm"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5l0 14 M5 12l14 0"></path></svg>ADD ITEM</button>
                   <span class="fhelp" style="align-self:center">Enter adds and keeps the form; Escape clears it.</span>
                 </div>
               </div>
@@ -1247,16 +1247,16 @@ label.finput { cursor:pointer; }
                   <div class="irow"><span style="color:var(--muted-2,#9AA39B);cursor:grab"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
                     <span><b>Shampoo, 500 ml</b><i>2 × 89,95 kr. · retail 104,95 kr.</i></span>
                     <span class="amt num" style="color:var(--ink)">179,90 kr.</span>
-                    <span class="rowline" style="gap:2px"><button class="arrbtn" aria-label="Edit"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button class="arrbtn" aria-label="Delete"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
+                    <span class="rowline" style="gap:2px"><button type="button" class="arrbtn" aria-label="Edit"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="arrbtn" aria-label="Delete"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
                   <div class="irow"><span style="color:var(--muted-2,#9AA39B);cursor:grab"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
                     <span><b>Tandpasta</b><i>3 × 22,95 kr. · retail 26,95 kr.</i></span>
                     <span class="amt num" style="color:var(--ink)">68,85 kr.</span>
-                    <span class="rowline" style="gap:2px"><button class="arrbtn" aria-label="Edit"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button class="arrbtn" aria-label="Delete"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
+                    <span class="rowline" style="gap:2px"><button type="button" class="arrbtn" aria-label="Edit"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="arrbtn" aria-label="Delete"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
                 </div>
               </div>
               <div class="factions split">
-                <button class="ghostbtn" id="toStep1"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>BACK</button>
-                <button class="btn-caps" id="saveOrder">SAVE ORDER</button>
+                <button type="button" class="ghostbtn" id="toStep1"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>BACK</button>
+                <button type="button" class="btn-caps" id="saveOrder">SAVE ORDER</button>
               </div>
             </div>
           </div>
@@ -1301,8 +1301,8 @@ label.finput { cursor:pointer; }
               <div><div style="font-size:22px;font-weight:600;letter-spacing:-.01em">Proshop</div>
                   <div class="fhelp" style="font-size:12.5px">24 July 2026 · 4 items</div></div>
               <div class="rowline" style="gap:8px;flex-wrap:nowrap"><span class="stchip">Delivered</span>
-                <button class="arrbtn" aria-label="Edit order"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button>
-                <button class="arrbtn" aria-label="Delete order"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></div>
+                <button type="button" class="arrbtn" aria-label="Edit order"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button>
+                <button type="button" class="arrbtn" aria-label="Delete order"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></div>
             </div>
             <div class="rowline" style="gap:6px;margin-top:12px"><span class="chip2">Electronics</span><span class="chip2">Home office</span></div>
           </div>
@@ -1337,18 +1337,18 @@ label.finput { cursor:pointer; }
           </div>
         </section>
         <section class="card" aria-label="Attachments">
-          <div class="card-h"><span class="lab">Attachments · 1</span><button class="pillbtn">ADD FILE</button></div>
+          <div class="card-h"><span class="lab">Attachments · 1</span><button type="button" class="pillbtn">ADD FILE</button></div>
           <div class="card-hr"></div>
           <div class="card-b" style="padding-top:6px">
             <div class="irow"><span class="dthumb" style="font-size:0"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
               <span><b>faktura-303.pdf</b><i>Scanned 24 July · 214 KB</i></span>
-              <span class="rowline" style="gap:4px;flex-wrap:nowrap;margin-left:auto"><button class="arrbtn" aria-label="Open attachment"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></button><button class="arrbtn" aria-label="Delete attachment"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
+              <span class="rowline" style="gap:4px;flex-wrap:nowrap;margin-left:auto"><button type="button" class="arrbtn" aria-label="Open attachment"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></button><button type="button" class="arrbtn" aria-label="Delete attachment"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
           </div>
         </section>
         <section class="dark-card" aria-label="Scan another">
           <div class="dk-hl" style="font-size:16px;margin-top:2px">Another receipt from this trip?</div>
           <p class="dk-body">Scan it and Spendly checks it against this order for duplicates.</p>
-          <div class="dk-acts" style="margin-top:12px"><button class="dk-btn" data-go="scan">SCAN A RECEIPT</button></div>
+          <div class="dk-acts" style="margin-top:12px"><button type="button" class="dk-btn" data-go="scan">SCAN A RECEIPT</button></div>
         </section>
       </div>
     </div></div>
@@ -1371,7 +1371,7 @@ label.finput { cursor:pointer; }
             <span class="fhelp">This usually takes a few seconds. Nothing is stored until you approve the review.</span>
           </div>
           <div class="pbar indet" style="width:100%;max-width:420px" role="progressbar" aria-label="Reading progress"><i></i></div>
-          <span class="linkcaps" data-go="scan3" tabindex="0" role="link">OPEN THE REVIEW</span>
+          <button type="button" class="linkcaps" data-go="scan3">OPEN THE REVIEW</button>
         </div>
       </section>
     </div>
@@ -1414,10 +1414,10 @@ label.finput { cursor:pointer; }
                 <div class="between" style="margin-bottom:4px"><span class="lab" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Lines read · 23</span>
                   <span class="fhelp">tap a line to correct it</span></div>
                 <div class="innerpanel">
-                  <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Rugbrød, skiveskåret</b><i>1 × 24,95 kr.</i></span><span class="amt num" style="color:var(--ink)">24,95 kr.</span><button class="arrbtn" aria-label="Edit line"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-                  <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Minimælk 1 l</b><i>4 × 10,95 kr.</i></span><span class="amt num" style="color:var(--ink)">43,80 kr.</span><button class="arrbtn" aria-label="Edit line"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-                  <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Kaffe, formalet 400 g</b><i>1 × 54,95 kr.</i></span><span class="amt num" style="color:var(--ink)">54,95 kr.</span><button class="arrbtn" aria-label="Edit line"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-                  <div class="irow"><span class="iic" style="background:#F6ECD9;color:#8A6A1F"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><b>Line 14 was hard to read</b><i>Guessed: Smør, 250 g · 1 × 21,95 kr.</i></span><span class="amt num" style="color:var(--ink)">21,95 kr.</span><button class="arrbtn" aria-label="Edit line"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+                  <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Rugbrød, skiveskåret</b><i>1 × 24,95 kr.</i></span><span class="amt num" style="color:var(--ink)">24,95 kr.</span><button type="button" class="arrbtn" aria-label="Edit line"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+                  <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Minimælk 1 l</b><i>4 × 10,95 kr.</i></span><span class="amt num" style="color:var(--ink)">43,80 kr.</span><button type="button" class="arrbtn" aria-label="Edit line"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+                  <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Kaffe, formalet 400 g</b><i>1 × 54,95 kr.</i></span><span class="amt num" style="color:var(--ink)">54,95 kr.</span><button type="button" class="arrbtn" aria-label="Edit line"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+                  <div class="irow"><span class="iic" style="background:#F6ECD9;color:#8A6A1F"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><b>Line 14 was hard to read</b><i>Guessed: Smør, 250 g · 1 × 21,95 kr.</i></span><span class="amt num" style="color:var(--ink)">21,95 kr.</span><button type="button" class="arrbtn" aria-label="Edit line"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
                   <div class="irow"><span class="iic" style="background:#EFF3EE;color:var(--muted)"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span><b>19 more lines</b><i>1.041,60 kr. together</i></span><span class="linkcaps" style="margin-left:auto">SHOW ALL</span></div>
                 </div>
               </div>
@@ -1426,8 +1426,8 @@ label.finput { cursor:pointer; }
               <div class="card-hr" style="margin:2px 0 0"></div>
               <div class="sum-total">Total<span class="v num" style="color:var(--ink-strong)">1.187,25 kr.</span></div>
               <div class="factions split">
-                <button class="ghostbtn" data-go="scan">DISCARD</button>
-                <button class="btn-caps" data-go="orders">SAVE ORDER</button>
+                <button type="button" class="ghostbtn" data-go="scan">DISCARD</button>
+                <button type="button" class="btn-caps" data-go="orders">SAVE ORDER</button>
               </div>
             </div>
           </div>
@@ -1435,7 +1435,7 @@ label.finput { cursor:pointer; }
       </div>
       <div class="olcol">
         <section class="card" aria-label="Source document">
-          <div class="card-h"><span class="lab">Source</span><button class="pillbtn">OPEN</button></div>
+          <div class="card-h"><span class="lab">Source</span><button type="button" class="pillbtn">OPEN</button></div>
           <div class="card-hr"></div>
           <div class="card-b">
             <div class="docprev" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></div>
@@ -1474,15 +1474,16 @@ label.finput { cursor:pointer; }
         <div class="card-b" style="padding:16px 18px;display:grid;gap:12px">
           <div class="rowline toolbar">
             <div class="finput"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor, note or item text…" aria-label="Search orders"></div>
-            <button class="ghostbtn" style="flex:none"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS</button>
+            <button type="button" class="ghostbtn" style="flex:none"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS</button>
             <div class="chip2" style="height:38px;flex:none">Sort: Date, newest<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
           </div>
           <div class="rowline" style="gap:6px">
-            <span class="chip2">July 2026<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span>
-            <span class="chip2">Delivered<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span>
-            <span class="chip2">Vendor: Bilka<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span>
-            <span class="linkcaps" style="margin-left:6px">CLEAR ALL</span>
+            <button type="button" class="chip2" data-remove-filter aria-label="Remove filter July 2026">July 2026<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button>
+            <button type="button" class="chip2" data-remove-filter aria-label="Remove filter Delivered">Delivered<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button>
+            <button type="button" class="chip2" data-remove-filter aria-label="Remove filter Vendor: Bilka">Vendor: Bilka<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button>
+            <button type="button" class="linkcaps" style="margin-left:6px" data-clear-filters>CLEAR ALL</button>
           </div>
+          <p class="sr-only" role="status" id="filterLive"></p>
           <div class="tsec">
             <div class="frow2">
               <label class="ffield"><span>Vendor</span><div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Bilka" placeholder="Any vendor" aria-label="Vendor"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
@@ -1504,8 +1505,8 @@ label.finput { cursor:pointer; }
                 <button type="button" role="tab" aria-selected="false">Returned</button>
               </div></div>
             <div class="factions">
-              <button class="btn-caps sm">APPLY FILTERS</button>
-              <button class="ghostbtn sm">CLEAR</button>
+              <button type="button" class="btn-caps sm">APPLY FILTERS</button>
+              <button type="button" class="ghostbtn sm">CLEAR</button>
             </div>
           </div>
         </div>
@@ -1535,8 +1536,8 @@ label.finput { cursor:pointer; }
           <div class="between" style="margin-top:12px">
             <span class="fhelp">Showing 1 to 3 of 3</span>
             <span class="rowline" style="gap:8px">
-              <button class="ghostbtn" disabled="" style="opacity:.45"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>PREVIOUS</button>
-              <button class="ghostbtn" disabled="" style="opacity:.45">NEXT<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></button>
+              <button type="button" class="ghostbtn" disabled="" style="opacity:.45"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>PREVIOUS</button>
+              <button type="button" class="ghostbtn" disabled="" style="opacity:.45">NEXT<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></button>
             </span>
           </div>
         </div>
@@ -1548,9 +1549,9 @@ label.finput { cursor:pointer; }
       <div class="hero2">
         <h2>Every shop you buy from, in one place.</h2>
         <p>Vendors collect their orders, totals and savings automatically. Favourites stay on top.</p>
-        <button class="btn-caps">ADD VENDOR</button>
+        <button type="button" class="btn-caps">ADD VENDOR</button>
       </div>
-      <div class="sect" data-view-only="overview"><span class="lab">Favourites</span><button class="pillbtn">SEE ALL</button></div>
+      <div class="sect" data-view-only="overview"><span class="lab">Favourites</span><button type="button" class="pillbtn">SEE ALL</button></div>
       <div class="spot">
         <section class="card"><div class="card-h"><span class="lab">Proshop</span><span class="chip2"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245"></path></svg>Favourite · saved 6.940 kr.</span></div>
           <div class="card-hr"></div>
@@ -1560,7 +1561,7 @@ label.finput { cursor:pointer; }
               <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><span><b>Saved vs retail</b><i>Proshop · all time</i></span><span class="amt num">6.940 kr.</span></div>
               <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><span><b>Latest order</b><i>24 July · 4 items</i></span><span class="amt num">612,00 kr.</span></div>
             </div>
-            <button class="ghostbtn">VIEW ORDERS</button>
+            <button type="button" class="ghostbtn">VIEW ORDERS</button>
           </div></section>
         <section class="card"><div class="card-h"><span class="lab">Bilka</span><span class="chip2"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245"></path></svg>Favourite · saved 3.210 kr.</span></div>
           <div class="card-hr"></div>
@@ -1570,7 +1571,7 @@ label.finput { cursor:pointer; }
               <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><span><b>Saved vs retail</b><i>Bilka · all time</i></span><span class="amt num">3.210 kr.</span></div>
               <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><span><b>Latest order</b><i>18 July · 23 items</i></span><span class="amt num">146,10 kr.</span></div>
             </div>
-            <button class="ghostbtn">VIEW ORDERS</button>
+            <button type="button" class="ghostbtn">VIEW ORDERS</button>
           </div></section>
       </div>
       <div class="sect" data-view-only="overview"><span class="lab">All vendors</span></div>
@@ -1592,14 +1593,14 @@ label.finput { cursor:pointer; }
         <div class="ai-bar">
           <span aria-hidden="true"><svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px;color:var(--muted-2)"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
           <span class="ph">Drop a receipt here, or click to choose a file…</span>
-          <button class="ai-send" data-go="scan2" aria-label="Scan"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 5l0 14 M18 11l-6 -6 M6 11l6 -6"></path></svg></button>
+          <button type="button" class="ai-send" data-go="scan2" aria-label="Scan"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 5l0 14 M18 11l-6 -6 M6 11l6 -6"></path></svg></button>
         </div>
         <div class="chiprow">
-          <span><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg>PDF invoice</span>
-          <span><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2 M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path></svg>Photo of a paper receipt</span>
-          <span><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg>Screenshot of an order email</span>
-          <span><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg>Order confirmation</span>
-        </div>
+          <button type="button" data-go="scan2"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg>PDF invoice</button>
+          <button type="button" data-go="scan2"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2 M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path></svg>Photo of a paper receipt</button>
+          <button type="button" data-go="scan2"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg>Screenshot of an order email</button>
+          <button type="button" data-go="scan2"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg>Order confirmation</button>
+          </div>
       </div>
       <div class="twin" style="margin-top:22px">
         <div class="qcard">
@@ -1617,7 +1618,7 @@ label.finput { cursor:pointer; }
               <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>kvittering-bilka.jpg</b><i>18 July · 23 items found</i></span><span class="amt num" style="color:var(--ink)">1.187,25 kr.</span></div>
               <div class="irow"><span class="iic"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>faktura-303.pdf</b><i>24 July · 4 items found</i></span><span class="amt num" style="color:var(--ink)">4.298,00 kr.</span></div>
             </div>
-            <span class="viewall">VIEW ALL</span>
+            <button type="button" class="viewall" data-go="orders2">VIEW ALL</button>
           </div>
         </section>
       </div>
@@ -1628,7 +1629,7 @@ label.finput { cursor:pointer; }
       <div class="rowline toolbar"><div class="finput"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search category name…" aria-label="Search categories"></div><div class="subtabs mini"><button type="button" class="on">Spend</button><button type="button">Name</button><button type="button">Orders</button></div></div>
       <div class="twin">
         <section class="card" aria-label="Categories">
-          <div class="card-h"><span class="lab">Categories</span><button class="pillbtn">ADD</button></div>
+          <div class="card-h"><span class="lab">Categories</span><button type="button" class="pillbtn">ADD</button></div>
           <div class="card-hr"></div>
           <div class="card-b">
             <div class="cat-rows" style="margin-top:0">
@@ -1638,14 +1639,14 @@ label.finput { cursor:pointer; }
               <div class="cat-row" data-go="orders2" tabindex="0" role="link"><span class="cat-ic" style="background:var(--donut-blue)"><svg class="i" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><span><b>Home office</b><i>10% of expenses</i></span><span class="amt num">4.880 kr.</span><span class="chev" style="color:var(--muted-2)"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></div>
               <div class="cat-row" data-go="orders2" tabindex="0" role="link"><span class="cat-ic" style="background:#45524C"><svg class="i" viewBox="0 0 24 24"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"></path></svg></span><span><b>Everything else</b><i>12% of expenses</i></span><span class="amt num">5.550 kr.</span><span class="chev" style="color:var(--muted-2)"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></div>
             </div>
-            <span class="viewall">VIEW ALL</span>
+            <button type="button" class="viewall" data-go="orders2">VIEW ALL</button>
           </div>
         </section>
         <div class="pagegrid" data-view-only="overview">
           <div class="qcard">
             <span class="q-lab">Question of the day</span>
             <div class="q-t">What did Groceries cost in June?</div>
-            <button class="ghostbtn">SEE THE ANSWER</button>
+            <button type="button" class="ghostbtn">SEE THE ANSWER</button>
           </div>
           <section class="card" aria-label="Breakdown">
             <div class="card-h"><span class="lab">Breakdown · July</span></div>
@@ -1662,7 +1663,7 @@ label.finput { cursor:pointer; }
 
     <!-- ============ STATISTICS · Equity Management pattern ============ -->
     <div class="page pagegrid" data-page="stats">
-      <div class="between" style="flex-wrap:wrap;gap:12px;padding:2px 2px 0"><div class="rowline"><button class="arrbtn" aria-label="Previous period"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button><b style="font-size:16px;letter-spacing:-.01em">July 2026</b><button class="arrbtn" aria-label="Next period" disabled="" style="opacity:.45"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+      <div class="between" style="flex-wrap:wrap;gap:12px;padding:2px 2px 0"><div class="rowline"><button type="button" class="arrbtn" aria-label="Previous period"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button><b style="font-size:16px;letter-spacing:-.01em">July 2026</b><button type="button" class="arrbtn" aria-label="Next period" disabled="" style="opacity:.45"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
         <div class="rowline"><span class="big num" style="font-size:22px">24.418,57 kr.</span><span class="stchip warn">18% up vs June</span></div>
       </div>
       <div class="kpis">
@@ -1745,7 +1746,7 @@ label.finput { cursor:pointer; }
         <div class="card-hr"></div>
         <div class="card-b"><div class="empty2" style="padding:14px 12px">
           <p>No open returns. Zalando was returned on 5 July and refunded in full: 799,00 kr.</p>
-          <span class="linkcaps">SEE RETURN HISTORY</span>
+          <button type="button" class="linkcaps" data-go="orders2">SEE RETURN HISTORY</button>
         </div></div>
       </section>
     </div>
@@ -1862,6 +1863,48 @@ label.finput { cursor:pointer; }
   });
   const saveOrder = document.getElementById('saveOrder');
   if (saveOrder) saveOrder.addEventListener('click', () => show('orders'));
+
+  /* Controls that look like buttons are buttons, so the ones that act in place --
+     dismiss, remove a filter, clear them all -- need the action they promise or
+     they are worse as buttons than they were as spans: focusable and still inert.
+     Each one also has to leave focus somewhere, since it removes the element the
+     focus was on, and each announces once. README 13 and 18. */
+  const say = (id, msg) => { const el = document.getElementById(id); if (el) el.textContent = msg; };
+
+  document.querySelectorAll('[data-dismiss]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = document.getElementById(btn.dataset.dismiss);
+      if (!card) return;
+      card.hidden = true;
+      ptitle.focus();                       // the card held the focus; hand it to the heading
+    });
+  });
+
+  const filterRow = document.querySelector('[data-clear-filters]')?.closest('.rowline');
+  if (filterRow) {
+    const chips = () => [...filterRow.querySelectorAll('[data-remove-filter]:not([hidden])')];
+    const clearAll = filterRow.querySelector('[data-clear-filters]');
+    const search = document.querySelector('.page[data-page="orders2"] .toolbar input');
+    const count = () => { const n = chips().length;
+      return n ? n + (n === 1 ? ' filter still active.' : ' filters still active.') : 'No filters left.'; };
+
+    filterRow.addEventListener('click', e => {
+      const chip = e.target.closest('[data-remove-filter]');
+      if (!chip) return;
+      const rest = chips();
+      const next = rest[rest.indexOf(chip) + 1] || rest[rest.indexOf(chip) - 1] || clearAll;
+      chip.hidden = true;
+      say('filterLive', chip.textContent.trim() + ' removed. ' + count());
+      if (!chips().length) { clearAll.hidden = true; (search || ptitle).focus(); } else next.focus();
+    });
+
+    clearAll.addEventListener('click', () => {
+      chips().forEach(c => { c.hidden = true; });
+      clearAll.hidden = true;
+      say('filterLive', 'All filters cleared.');
+      (search || ptitle).focus();
+    });
+  }
   document.querySelectorAll('.combo').forEach(combo => {
     const shell = combo.querySelector('.finput');
     // ARIA 1.2 puts role=combobox on the input, so that is what owns aria-expanded.
