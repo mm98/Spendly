@@ -23,7 +23,7 @@ layer floats on the gray shell; the sidebar sits directly on it.
 **All orders** — the search surface, with the filter panel open. Both control tiers are visible: 38px
 toolbar controls in the top row, 48px entry fields in the panel below them.
 
-![Spendly's all-orders screen: search field, FILTERS and sort controls, removable filter chips, a filter panel with comboboxes, date and amount fields and a segmented status control, then result rows with status chips](docs/all-orders.png)
+![Spendly's all-orders screen: search field, FILTERS and sort controls, removable filter chips, a filter panel with a full-width vendor combobox, category and kind comboboxes, date and amount fields and a segmented status control, then the first result row with its status chip](docs/all-orders.png)
 
 **Phone, 390px** — flat white and edge to edge on one 12px gutter. The paper is square, the cards on
 it keep their radius, the labels shorten to SCAN and NEW, and the sidebar has become five equal tabs.
@@ -355,6 +355,13 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   that stands outside the sequence rather than in it, filters' **Any**, leads; it is the default, not
   a stage. Which segment is *selected* is a separate decision from where it sits: both forms still
   open on Delivered, because most orders are entered after they arrive.
+- **An enum earns a segmented control by being short and sequential; otherwise it is a combobox.**
+  Kind — Expense / Gift / Sold / Work / Other, which records whether an order was your money at all —
+  is an enum and is not segmented. Its values name ways an order reached Spendly, not stages an order
+  passes through, so the sequence rule above has nothing to put in order, and six segments in a 48px
+  row are unreadable at every width the form gets. It uses the same combobox as Vendor and Category,
+  and carries its consequence in help text under the field, since "Kind" alone does not say what the
+  field decides. Status stays segmented: three values, one lifecycle.
 - **Selecting a segment may not change its text metrics.** The track is `width:max-content`, so a
   heavier active label widens the whole control, and every control sharing its row — the toolbar
   search is `flex:1` — resizes to absorb the difference; because the labels are not equal-width the
@@ -364,13 +371,16 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
 - **A range stays on one line; a row of names breaks.** Two fields side by side are not all the same
   kind of pair. **From/To and Min/Max are one control each** — an end is read against the other end,
   so they hold their pairing down to the smallest phone (`.keep-pair`, past the ≤700 collapse that
-  would otherwise split them). **Vendor and Category are two independent values** that happen to share
-  a row, and they carry the long strings, so that row breaks to one field per line at ≤900
-  (`.stack-early`) — the phone layout starts at 700, so from 701 to 900 the sidebar is still standing
-  and a name is down to 165px, with a phone in landscape (844px) inside that band. At 390px: names get
-  the full 294px, each range column gets 139px, and the values fit it — a date wants 163px of text
-  room and has it, an amount 81. Panel height 509px against the 599 it would take with the roles
-  reversed. **Which way a row splits is a question about what the fields mean, not about their width.**
+  would otherwise split them). **Category and Kind are two independent values** that happen to share a
+  row, and they carry names, so that row breaks to one field per line at ≤900 (`.stack-early`) — the
+  phone layout starts at 700, so from 701 to 900 the sidebar is still standing and a name is down to
+  165px, with a phone in landscape (844px) inside that band. **Vendor holds a row by itself at every
+  width**, because it carries the longest strings in the panel — `Silvan · Materialer`, and whatever a
+  user creates — and a pair gave it half the room at exactly the widths where it had least. At 390px:
+  names get the full 294px, each range column gets 139px, and the values fit it — a date wants 163px
+  of text room and has it, an amount 81. Panel height 597px against the 687 it would take with the
+  roles reversed; the fifth field is what the extra 88px bought, not a worse arrangement of the same
+  four. **Which way a row splits is a question about what the fields mean, not about their width.**
   This holds for every range, not just these two: a from/to or a min/max pair added anywhere gets
   `.keep-pair` on the row. The tally today is two — All orders' dates and amounts — and both carry it;
   count before adding a third. Ports without these class names still owe the behaviour: a range does
@@ -510,15 +520,19 @@ horizontal scroll ≤1180, stacks ≤700), rail with returns, question of the da
 (Expenses | Budget segmented plus donut), ORDER SETTINGS.
 
 **Orders / All orders** — the search surface: 38px finder input (vendor, note, item text), FILTERS
-disclosing the inline panel it opens and collapses (vendor and category comboboxes, from/to, min/max
-with `kr.` units, status segmented led by Any, APPLY 32px + CLEAR), active filters as removable ×
+disclosing the inline panel it opens and collapses (a full-width vendor combobox, then category and
+kind comboboxes, from/to, min/max with `kr.` units, status segmented led by Any, APPLY 32px +
+CLEAR), active filters as removable ×
 chips plus CLEAR ALL, sort combobox chip, results line "N match · filtered from total", rows with
 status chips and saved amounts, PREVIOUS/NEXT. Sub-tabs double as one-tap status filters.
 
 **Order detail** — back arrow in the **top bar**, never floating in a card. **No internal ids shown.**
 Header card (vendor, date and count, category chips, status chip, edit/delete); items with photos and
 **paid prices only** — retail never displays on details; totals with the order-level green saved
-line; rail with details facts, attachments (ADD FILE, open/delete) and the contextual dark scan card.
+line; rail with details facts (status, date, vendor, categories, **kind**, saved vs retail),
+attachments (ADD FILE, open/delete) and the contextual dark scan card. **Kind is shown wherever
+Categories is** — this rail and the create summary — so a total with a hole in it can be explained
+from the order that made it.
 
 **Scan flow** — three steps, Upload → Reading → Review, with the stepper. Reading is a full-width card
 sharing the stepper's edges, with a centred column inside: document preview, filename headline, help
@@ -526,6 +540,9 @@ line, an **indeterminate progress bar** (a 38% segment sliding on a 420px track,
 card, no percentage claimed because a scan has none) and the review link. No spinner — the moving bar
 carries the busy state on its own. Review as in [§9](#9-forms-and-fields), with the draft fields
 paired two to a row: **Vendor and Date on the first line, Shipping fee and Status on the second.**
+**Kind is deliberately not on the review.** A receipt records what was bought, never whose money paid
+for it, so there is nothing for the scan to read and nothing for the reviewer to confirm; the draft
+takes the default and the field is set on the order. Its absence here is a decision, not an omission.
 
 **Vendors** — hero panel (warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
 (caps header and chip, sentence, inner panel rows, full-width VIEW ORDERS), full-width search with
@@ -795,5 +812,26 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
   more relational but only ever serves this one feature. Do not reach for `localStorage`: on Blazor
   Server that means JS interop for something the server already has a database for, and the choice
   would not follow the user between devices.
+- **`Order.Status` is two fields, not one.** It shipped as `None/Expense/Gift/Sold/Work/Other`, which
+  is not a status: no member can follow another, and `None = 0` is a stage no order is ever in. Those
+  values answer whether the order was the user's money at all — `Work` means work bought it and it
+  cost them nothing — and their only consumer is a yes/no. Split them. `OrderStatus { Ordered = 1,
+  Delivered = 2, Returned = 3 }` is the lifecycle, numbered in that order because [§9](#9-forms-and-fields)
+  makes the sequence the sort key, with no `None` and no `Any` — `Any` is a filter sentinel, null on
+  the query object, never an enum member. `SpendKind` keeps the old integers so not a row migrates.
+  **Rename that column, never redefine it in place**: reusing `Status` for the lifecycle silently
+  reinterprets every existing row — `Expense` reads back as `Ordered`, `Sold` as `Returned`, `Work`
+  and `Other` fall outside the enum — and nothing anywhere errors.
+- **Whether an order counts as spend is derived, and one expression owns it.** Two inputs, not one: a
+  returned order is refunded, so it stops counting the moment its status changes, and a stored flag
+  would have to be rewritten by every path that touches status — the first one that forgets leaves a
+  refund in the month's spend. The same expression gates **both** families of total: the spend
+  figures and saved-vs-retail. A work-bought order carries real paid and retail prices, so leaving it
+  in the saved total claims a discount that was never the user's. Write it as an
+  `Expression<Func<Order, bool>>`, not a `[NotMapped]` property — EF cannot translate a property into
+  SQL, and every headline on the overview sums through it. **Port the existing predicate verbatim
+  before changing what it means**, in its own commit: `Gift` and `Sold` are recorded but their spend
+  treatment was never written down, and if the enum and the rule move together a shifted total has
+  two possible causes.
 - **Follow CLAUDE.md's uniformity discipline** — before adding any variant, grep for the pattern and
   match the tally, not a single neighbour.
