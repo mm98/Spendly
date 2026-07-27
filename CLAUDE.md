@@ -58,6 +58,21 @@ reports itself as a difference on every run and buries the real ones.
 Rects do not cover everything: a bare text label is not an element, so a button whose label shifts
 inside an unmoved box shows nothing. Keep at least one instance of anything you fold on a shot.
 
+**Prove the harness is quiet before you trust its diff.** Freezing animations is not the whole of it:
+charts are drawn from JS and redrawn by a `ResizeObserver` when a hidden page is shown, and that
+callback lands after the click returns. Measuring straight after navigating raced it — two runs of a
+byte-identical file disagreed on 38 geometry fields across 11 chart elements, and 26 of those went on
+to appear in a real before/after diff as if the change had caused them. Run the baseline against the
+unchanged file twice and require zero differences first; a diff with a floor of noise cannot tell you
+that the floor is all it found. Waiting for drawn geometry to stop changing across three frames took
+it to 0 of 92,916.
+
+**Drive the app the way the app drives itself.** The router shows a page by toggling `.is-on`, and
+`.page:not(.is-on)` is `display:none !important`, so a harness that hid pages with the `hidden`
+attribute instead rendered nothing and cheerfully recorded 75,348 measurements of it. Read how the
+state is actually set before scripting it, then assert you arrived — one line printing which page is
+on catches an entire run that measured the wrong thing, or nothing at all.
+
 **Say which of these you actually ran.** An engine that could not be launched is an engine that was
 not checked, and the honest report is "verified in Blink, Gecko unverified — no binary available",
 not silence. Never let a reader infer coverage that does not exist.
