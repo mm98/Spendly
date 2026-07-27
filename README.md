@@ -395,6 +395,16 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
 - **Scan review**: every extracted value editable *including shipping*; VAT reconciliation note (the
   document total incl. 25% moms anchors the draft); matched-vendor chip; per-line checkmarks with
   uncertain lines flagged warm; duplicate warning linking to the existing order.
+- **The receipt prefills the form; it does not decide which fields the form has.** The field set
+  belongs to the order — everything it needs before it can be saved — and the scan fills in whatever
+  it can read of that set. Vendor, date and lines arrive read from the document; Status, Shipping fee
+  and Kind arrive as defaults the reviewer confirms or corrects, which is why the card says *every
+  value is editable, nothing is stored until you save*. Which is which gets marked rather than
+  assumed — the matched chip, the per-line checkmarks, the `Guessed:` line under an uncertain read —
+  and that marking is what lets one form hold both kinds of value honestly. Asking instead whether a
+  receipt could supply a value is how a field goes missing from the review, and a field missing from
+  the review is one that takes its default forever, since the scan flow saves orders without the
+  create form ever opening.
 
 ### Fields are real form controls
 
@@ -541,12 +551,12 @@ card, no percentage claimed because a scan has none) and the review link. No spi
 carries the busy state on its own. Review as in [§9](#9-forms-and-fields), with the draft fields
 paired two to a row under a full-width vendor: **Date and Status on the first line, Shipping fee and
 Kind on the second** — the same shape as the create form, so the two teach one layout rather than
-two. **A field earns its place on the review by needing confirmation, not by being readable off the
-receipt.** Kind was left off this form once, on the grounds that a receipt cannot say whose money
-paid for the order. Neither can it say the order arrived, and Status is here; Shipping fee is here
-saying so in its own help text. The scan flow creates orders without the create form ever opening,
-so a field missing here is a field that can only ever take its default — which for Kind means a
-work-bought order lands in the month's spend and stays there until someone goes looking for it.
+two. Kind was left off this form once, on the grounds that a receipt cannot say whose money paid for
+the order — which is the wrong question, per [§9](#9-forms-and-fields): neither can it say the order
+arrived, and Status is here, and Shipping fee is here with help text saying outright that it is not
+on the receipt. The cost of getting it wrong is specific to this screen. A work-bought order scanned
+from a receipt would have taken the default, landed in the month's spend, and stayed there until
+someone went looking for it.
 
 **Vendors** — hero panel (warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
 (caps header and chip, sentence, inner panel rows, full-width VIEW ORDERS), full-width search with
