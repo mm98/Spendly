@@ -407,13 +407,20 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   create form ever opening.
 - **Create and scan are two doors to one saved order, so the review carries every field the order
   requires.** A required value stays required whichever door it came through, and the receipt may not
-  carry it; the review is the last screen before save, so it is where the rest gets supplied. Today
-  that check cannot be run: nothing marks a field required — no `required`, no `aria-required`, two
-  `Optional` placeholders in the file — so the two field sets can drift apart without anything
-  failing. They differ by one as it stands: the create form has **Categories** and the review does
-  not. Whether that is a gap turns on whether an order needs a category, which nobody has written
-  down. The port should mark required fields and hold the two sets in step; until it does, compare
-  them by hand before adding a field to either form.
+  carry it; the review is the last screen before save, so it is where the rest gets supplied.
+  **Required: Vendor, Date, Kind, and at least one item.** Shipping fee is optional and zero by
+  default; Categories is optional, which is why the review does not carry it and why the two forms
+  differing there is not a drift. The required fields carry `aria-required` in both forms, so the
+  sets can be compared with a grep instead of by eye — the check Kind failed when it was missing from
+  the review.
+- **Required and defaulted are not opposites.** Required means the field may not be saved empty;
+  the default is what it holds before anyone touches it. Kind is both: required, and opening on
+  **Expense**. Status is the same pattern one row up, opening on Delivered. **Where a default decides
+  a total, it must be the value that counts.** An order wrongly counted as spend is visible — it sits
+  in a figure the user recognises and can go find. An order wrongly excluded is invisible, and
+  nothing on any screen says a number is missing something. So the safe default is the conservative
+  one, and Kind's is `Expense`; the values that quietly remove money from the totals are never
+  reached by leaving a field alone.
 
 ### Fields are real form controls
 
@@ -844,7 +851,11 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
   the query object, never an enum member. `SpendKind` keeps the old integers so not a row migrates.
   **Rename that column, never redefine it in place**: reusing `Status` for the lifecycle silently
   reinterprets every existing row — `Expense` reads back as `Ordered`, `Sold` as `Returned`, `Work`
-  and `Other` fall outside the enum — and nothing anywhere errors.
+  and `Other` fall outside the enum — and nothing anywhere errors. **`None = 0` is not a state a new
+  order can reach**: Kind is required on both forms and both open on `Expense`
+  ([§9](#9-forms-and-fields)), so nothing writes it. It marks rows that predate the requirement, and
+  what the predicate does with it is a decision about history, not about new orders — which is worth
+  knowing before anyone treats a wall of zeroes as deliberate classification.
 - **Whether an order counts as spend is derived, and one expression owns it.** Two inputs, not one: a
   returned order is refunded, so it stops counting the moment its status changes, and a stored flag
   would have to be rewritten by every path that touches status — the first one that forgets leaves a

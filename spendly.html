@@ -1171,7 +1171,7 @@ label.finput { cursor:pointer; }
 						<div class="fform" style="max-width:none">
 							<label class="ffield"><span>Vendor</span>
 								<div class="combo">
-									<div class="finput"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="text" role="combobox" aria-expanded="false" aria-controls="vendorPanel" aria-autocomplete="list" value="Matas" placeholder="Search vendors…" aria-label="Vendor"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
+									<div class="finput"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="text" role="combobox" aria-expanded="false" aria-controls="vendorPanel" aria-autocomplete="list" value="Matas" placeholder="Search vendors…" aria-label="Vendor" aria-required="true"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
 									<div class="combo-panel" id="vendorPanel" role="listbox" aria-label="Vendors">
 										<div class="cgroup"><span>Favourites</span>
 											<div class="copt"><span class="star"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;stroke:none"><path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z"></path></svg></span><mark>Mat</mark>as<span class="meta">29 orders</span></div>
@@ -1186,7 +1186,7 @@ label.finput { cursor:pointer; }
 								</div>
 								<span class="fhelp">Every dropdown is this combobox: type to search, grouped results, create from the foot.</span></label>
 							<div class="frow2">
-								<label class="ffield"><span>Date</span><div class="finput fdate"><input type="date" value="2026-07-25" aria-label="Order date"><span class="dtrail"><span class="unit">today</span><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
+								<label class="ffield"><span>Date</span><div class="finput fdate"><input type="date" value="2026-07-25" aria-label="Order date" aria-required="true"><span class="dtrail"><span class="unit">today</span><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
 								<div class="ffield"><span>Status</span>
 									<div class="subtabs mini" role="tablist">
 										<button type="button" role="tab" aria-selected="false">Ordered</button>
@@ -1200,7 +1200,7 @@ label.finput { cursor:pointer; }
 										<span class="chip2">Household<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span><span class="chip2">Groceries<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span>
 										<input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Add category…" aria-label="Add category" style="flex:1 1 120px"></div></label>
 								<label class="ffield"><span>Kind</span>
-									<div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Expense" placeholder="Expense" aria-label="Kind"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
+									<div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Expense" placeholder="Expense" aria-label="Kind" aria-required="true"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
 									<span class="fhelp">Only expenses count towards your totals.</span></label>
 							</div>
 							<div class="tsec">
@@ -1438,9 +1438,9 @@ label.finput { cursor:pointer; }
 						<div class="pos-note" style="margin-bottom:16px"><b>Total matches.</b> The document total 1.187,25 kr. includes 25% VAT and agrees with the 23 lines read.</div>
 						<div class="fform" style="max-width:none">
 							<label class="ffield"><span>Vendor</span>
-								<div class="finput"><input type="text" value="Bilka" placeholder="Search vendors…" aria-label="Vendor"><span class="stchip" style="height:24px;font-size:10.5px">matched</span></div></label>
+								<div class="finput"><input type="text" value="Bilka" placeholder="Search vendors…" aria-label="Vendor" aria-required="true"><span class="stchip" style="height:24px;font-size:10.5px">matched</span></div></label>
 							<div class="frow2">
-								<label class="ffield"><span>Date</span><div class="finput fdate"><input type="date" value="2026-07-18" aria-label="Order date"><span class="dtrail"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
+								<label class="ffield"><span>Date</span><div class="finput fdate"><input type="date" value="2026-07-18" aria-label="Order date" aria-required="true"><span class="dtrail"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
 								<div class="ffield"><span>Status</span>
 									<div class="subtabs mini" role="tablist">
 										<button type="button" role="tab" aria-selected="false">Ordered</button>
@@ -1452,7 +1452,7 @@ label.finput { cursor:pointer; }
 								<label class="ffield"><span>Shipping fee</span><div class="finput"><input type="text" inputmode="decimal" value="0,00" aria-label="Shipping fee"><span class="unit">kr.</span></div>
 									<span class="fhelp">Not on the receipt; add it if the order was delivered.</span></label>
 								<label class="ffield"><span>Kind</span>
-									<div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Expense" placeholder="Expense" aria-label="Kind"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
+									<div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Expense" placeholder="Expense" aria-label="Kind" aria-required="true"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
 									<span class="fhelp">Only expenses count towards your totals.</span></label>
 							</div>
 							<div>
