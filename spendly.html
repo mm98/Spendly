@@ -759,9 +759,9 @@ label.field-shell { cursor:pointer; }
 
 	<div class="main-panel">
 		<header class="topbar">
-			<button type="button" class="icon-button icon-button-arrow" id="backBtn" hidden aria-label="Back to orders"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button>
-			<h1 id="ptitle" tabindex="-1">Home</h1>
-			<div class="global-finder" id="gfind">
+			<button type="button" class="icon-button icon-button-arrow" id="back-button" hidden aria-label="Back to orders"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button>
+			<h1 id="page-title" tabindex="-1">Home</h1>
+			<div class="global-finder" id="global-finder">
 				<div class="field-shell">
 					<svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg>
 					<input type="search" value="bil" placeholder="Search orders, vendors, notes…" aria-label="Search everything">
@@ -782,10 +782,10 @@ label.field-shell { cursor:pointer; }
 				</div>
 			</div>
 			<div class="topbar-actions">
-				<button type="button" class="button button-primary" id="scanBtn" aria-label="Scan receipt">
+				<button type="button" class="button button-primary" id="scan-button" aria-label="Scan receipt">
 					<svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M8 12h8 M8 9h6 M8 15h4 M3 7v-2a2 2 0 0 1 2 -2h2 M3 17v2a2 2 0 0 0 2 2h2 M17 3h2a2 2 0 0 1 2 2v2 M17 21h2a2 2 0 0 0 2 -2v-2"></path></svg>
 					<span>SCAN<span class="wide-only"> RECEIPT</span></span></button>
-				<button type="button" class="button button-outline" id="newBtn" aria-label="New order"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5l0 14 M5 12l14 0"></path></svg><span>NEW<span class="wide-only"> ORDER</span></span></button>
+				<button type="button" class="button button-outline" id="new-order-button" aria-label="New order"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5l0 14 M5 12l14 0"></path></svg><span>NEW<span class="wide-only"> ORDER</span></span></button>
 								</div>
 		</header>
 
@@ -816,7 +816,7 @@ label.field-shell { cursor:pointer; }
 							<button type="button" data-range="1W" aria-pressed="false">1W</button><button type="button" data-range="1M" class="is-on" aria-pressed="true">1M</button><button type="button" data-range="3M" aria-pressed="false">3M</button><button type="button" data-range="YTD" aria-pressed="false">YTD</button><button type="button" data-range="ALL" aria-pressed="false">ALL</button>
 						</div>
 						<div class="chart-wrap">
-							<svg class="chart" data-h="130" data-pad="0" style="display:block;width:100%;height:130px" role="img" aria-label="Daily spend through July"><path id="heroSeries" data-series="96,92,98,78,90,84,96,70,84,76,92,88,96,60,74,66,88,80,72,94,84,52,26,60,84,92,68,44,62,34,56,48,58,50,54" data-kind="line" fill="none" stroke="#3A423D" stroke-width="1.6"></path></svg>
+							<svg class="chart" data-h="130" data-pad="0" style="display:block;width:100%;height:130px" role="img" aria-label="Daily spend through July"><path id="hero-series" data-series="96,92,98,78,90,84,96,70,84,76,92,88,96,60,74,66,88,80,72,94,84,52,26,60,84,92,68,44,62,34,56,48,58,50,54" data-kind="line" fill="none" stroke="#3A423D" stroke-width="1.6"></path></svg>
 							<div class="chart-callout">Quiet week so far. Biggest day was the 23rd: 4.298,00 kr. at Proshop.</div>
 						</div>
 						<div class="compare-tabs" role="tablist" aria-label="Hero chart series">
@@ -838,15 +838,15 @@ label.field-shell { cursor:pointer; }
 				<!-- the cards on this dashboard, and their order, belong to the user -->
 				<div class="section-header">
 					<span class="section-label">Your cards</span>
-					<span class="row-inline" id="cardActions">
-						<button type="button" class="button button-pill" id="cardsEdit"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg>EDIT</button>
-						<button type="button" class="button button-caps button-compact" id="cardsDone" hidden><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 12l5 5l10 -10"></path></svg>DONE</button>
-						<button type="button" class="button button-pill" id="cardsCancel" hidden>CANCEL</button>
+					<span class="row-inline" id="dashboard-cards-actions">
+						<button type="button" class="button button-pill" id="dashboard-cards-edit"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg>EDIT</button>
+						<button type="button" class="button button-caps button-compact" id="dashboard-cards-done" hidden><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M5 12l5 5l10 -10"></path></svg>DONE</button>
+						<button type="button" class="button button-pill" id="dashboard-cards-cancel" hidden>CANCEL</button>
 					</span>
 				</div>
-				<p class="screenreader-only" id="cardLive" role="status" aria-live="polite"></p>
+				<p class="screenreader-only" id="dashboard-cards-live-region" role="status" aria-live="polite"></p>
 
-				<div class="dashboard-cards" id="favs">
+				<div class="dashboard-cards" id="dashboard-cards">
 
 					<section class="card" data-card="rhythm" data-name="Spending rhythm" data-desc="Average order, and which weekday you spend on" aria-label="Spending rhythm">
 						<div class="card-header"><span class="section-label">Spending rhythm</span></div>
@@ -973,12 +973,12 @@ label.field-shell { cursor:pointer; }
 					</section>
 
 				</div>
-				<p class="dashboard-cards-empty" id="favsEmpty" hidden>No cards on your dashboard yet. Pick some with EDIT.</p>
+				<p class="dashboard-cards-empty" id="dashboard-cards-empty" hidden>No cards on your dashboard yet. Pick some with EDIT.</p>
 
-				<section class="card card-tray" id="cardTray" aria-label="Cards you can add" hidden>
+				<section class="card card-tray" id="card-tray" aria-label="Cards you can add" hidden>
 					<div class="card-header"><span class="section-label">Cards you can add</span></div>
 					<div class="card-rule"></div>
-					<div class="card-body" id="trayList"></div>
+					<div class="card-body" id="card-tray-list"></div>
 				</section>
 			</div>
 
@@ -986,7 +986,7 @@ label.field-shell { cursor:pointer; }
 			<div class="content-column-side">
 
 				<!-- dark AI card -->
-				<section class="card card-ai" id="aiCard" aria-label="AI receipt scanning">
+				<section class="card card-ai" id="ai-card" aria-label="AI receipt scanning">
 					<div class="ai-card-header" data-go="scan" tabindex="0" role="link" aria-label="Finish setting up Spendly, open Scan receipt">
 						<span class="progress-ring"><b>1/3</b></span>
 						<span class="ai-card-title"><b>Get receipts read for you</b><i>Finish setting up Spendly</i></span>
@@ -996,7 +996,7 @@ label.field-shell { cursor:pointer; }
 					<p class="ai-card-body">A PDF, photo or screenshot becomes a draft order. You review every value before it is saved.</p>
 					<div class="ai-card-actions">
 						<button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button>
-						<button type="button" class="button-link button-link-invert" data-dismiss="aiCard">LATER</button>
+						<button type="button" class="button-link button-link-invert" data-dismiss="ai-card">LATER</button>
 						<span class="ai-card-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 					</div>
 				</section>
@@ -1010,7 +1010,7 @@ label.field-shell { cursor:pointer; }
 							<i>Spent this month</i>
 							<b class="tabular-figures">24.418,57 kr.</b>
 						</div>
-						<svg class="chart" data-h="110" data-pad="6" style="display:block;width:100%;height:110px;margin-top:6px" role="img" aria-label="Cumulative spend through July"><defs><linearGradient id="bl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F5BD5"></stop><stop offset="1" stop-color="#A5B4FC"></stop></linearGradient></defs><line data-baseline="92" stroke="#E4E7E2" stroke-dasharray="3 4"></line><path data-series="96,78,58,46,32,18,8" data-kind="curve" fill="none" stroke="url(#bl)" stroke-width="2.4"></path><circle data-marker="1" r="4.5" fill="#fff" stroke="#4F5BD5" stroke-width="2"></circle></svg>
+						<svg class="chart" data-h="110" data-pad="6" style="display:block;width:100%;height:110px;margin-top:6px" role="img" aria-label="Cumulative spend through July"><defs><linearGradient id="home-spend-gradient" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F5BD5"></stop><stop offset="1" stop-color="#A5B4FC"></stop></linearGradient></defs><line data-baseline="92" stroke="#E4E7E2" stroke-dasharray="3 4"></line><path data-series="96,78,58,46,32,18,8" data-kind="curve" fill="none" stroke="url(#home-spend-gradient)" stroke-width="2.4"></path><circle data-marker="1" r="4.5" fill="#fff" stroke="#4F5BD5" stroke-width="2"></circle></svg>
 						<div class="chart-axis tabular-figures"><span>01</span><span>08</span><span>15</span><span>22</span><span>29</span></div>
 						<div class="entry-list">
 							<div class="list-heading">Latest orders</div>
@@ -1036,7 +1036,7 @@ label.field-shell { cursor:pointer; }
 							<div class="chart-caption"><i>Total saved</i><b class="tabular-figures">2.106,00 kr.</b></div>
 							<span class="chip-saving tabular-figures"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>9,4%</span>
 						</div>
-						<svg class="chart" data-h="90" data-pad="0" style="display:block;width:100%;height:90px;margin-top:8px" role="img" aria-label="Savings growth through July"><defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14AC72" stop-opacity=".22"></stop><stop offset="1" stop-color="#14AC72" stop-opacity="0"></stop></linearGradient></defs><path data-series="84,70,48,22,12" data-kind="area" fill="url(#gr)" stroke="none"></path><path data-series="84,70,48,22,12" data-kind="curve" fill="none" stroke="#14AC72" stroke-width="2.2"></path></svg>
+						<svg class="chart" data-h="90" data-pad="0" style="display:block;width:100%;height:90px;margin-top:8px" role="img" aria-label="Savings growth through July"><defs><linearGradient id="home-savings-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14AC72" stop-opacity=".22"></stop><stop offset="1" stop-color="#14AC72" stop-opacity="0"></stop></linearGradient></defs><path data-series="84,70,48,22,12" data-kind="area" fill="url(#home-savings-gradient)" stroke="none"></path><path data-series="84,70,48,22,12" data-kind="curve" fill="none" stroke="#14AC72" stroke-width="2.2"></path></svg>
 						<div class="chart-axis tabular-figures"><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span></div>
 					</div>
 				</section>
@@ -1148,57 +1148,6 @@ label.field-shell { cursor:pointer; }
 				<button type="button" class="button button-block" style="margin-top:0"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065 M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path></svg>ORDER SETTINGS</button>
 			</div>
 		</div></div>
-		<div class="page page-grid" data-page="orders-legacy" hidden="">
-			<section class="card" aria-label="Spend over July">
-				<div class="card-header"><span class="section-label">Spent · July 2026</span>
-					<button type="button" class="button button-pill">MONTHLY <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6l6 -6"></path></svg></button></div>
-				<div class="card-rule"></div>
-				<div class="card-body" style="padding-top:0">
-					<div class="chart-caption"><b class="tabular-figures" style="font-size:23px">24.418,57 kr.</b></div>
-					<div class="figure-delta tabular-figures">saved 2.106,00 kr. vs retail (9,4%)</div>
-					<svg class="chart" data-h="230" data-pad="10" style="display:block;width:100%;height:230px;margin-top:10px" role="img" aria-label="Cumulative spend through July"><defs><linearGradient id="bl2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F5BD5"></stop><stop offset="1" stop-color="#A5B4FC"></stop></linearGradient></defs><line data-baseline="196" stroke="#E4E7E2" stroke-dasharray="3 4"></line><path data-series="206,176,140,110,78,48,22,14" data-kind="curve" fill="none" stroke="url(#bl2)" stroke-width="2.6"></path><circle data-marker="2" r="5" fill="#fff" stroke="#4F5BD5" stroke-width="2"></circle></svg>
-					<div class="chart-axis tabular-figures"><span>01</span><span>05</span><span>10</span><span>15</span><span>20</span><span>25</span><span>29</span></div>
-				</div>
-			</section>
-			<div class="two-column">
-				<section class="card" aria-label="Latest orders">
-					<div class="card-header"><span class="section-label">Latest orders</span></div>
-					<div class="card-rule"></div>
-					<div class="card-body entry-list" style="padding-top:6px">
-						<div class="row"><span class="entry-avatar" style="background:#8B5CF6">PR</span>
-							<span><span class="entry-name">Proshop</span><br><span class="entry-meta">24 July · 4.298,00 kr.</span></span>
-							<span class="amount tabular-figures">+612,00 kr.</span></div>
-						<div class="row"><span class="entry-avatar" style="background:#F09A38">MA</span>
-							<span><span class="entry-name">Matas</span><br><span class="entry-meta">21 July · 642,50 kr.</span></span>
-							<span class="amount tabular-figures">+88,00 kr.</span></div>
-						<div class="row"><span class="entry-avatar" style="background:#14AC72">BI</span>
-							<span><span class="entry-name">Bilka</span><br><span class="entry-meta">18 July · 1.187,25 kr.</span></span>
-							<span class="amount tabular-figures">+146,10 kr.</span></div>
-						<div class="row"><span class="entry-avatar" style="background:#1FA8E0">EL</span>
-							<span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">15 July · 2.499,00 kr.</span></span>
-							<span class="amount tabular-figures">+500,00 kr.</span></div>
-						<div class="row"><span class="entry-avatar" style="background:#235553">JY</span>
-							<span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 July · 1.049,00 kr.</span></span>
-							<span class="amount tabular-figures" style="color:var(--muted)">0 kr.</span></div>
-						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
-					</div>
-				</section>
-				<section class="card" aria-label="By vendor">
-					<div class="card-header"><span class="section-label">By vendor · July</span></div>
-					<div class="card-rule"></div>
-					<div class="card-body" style="padding-top:6px">
-						<div class="account-row"><span class="entry-avatar" style="background:#235553;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:10.5px;font-weight:700">PR</span><span style="font-size:12.5px;font-weight:600">Proshop</span><span class="amount tabular-figures">4.298,00 kr.</span></div>
-						<div class="account-row"><span class="entry-avatar" style="background:#14AC72;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:10.5px;font-weight:700">BI</span><span style="font-size:12.5px;font-weight:600">Bilka</span><span class="amount tabular-figures">2.081,65 kr.</span></div>
-						<div class="account-row"><span class="entry-avatar" style="background:#1FA8E0;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:10.5px;font-weight:700">EL</span><span style="font-size:12.5px;font-weight:600">Elgiganten</span><span class="amount tabular-figures">2.499,00 kr.</span></div>
-						<div class="empty-note" style="padding:18px 10px 8px">
-							<i>A paper receipt in your pocket? It can file itself.</i>
-							<button type="button" class="button button-caps">SCAN A RECEIPT</button>
-						</div>
-						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
-					</div>
-				</section>
-			</div>
-		</div>
 
 		<!-- ============ NEW ORDER · form entry in the system's control language ============ -->
 		<div class="page" data-page="create">
@@ -1221,8 +1170,8 @@ label.field-shell { cursor:pointer; }
 						<div class="form" style="max-width:none">
 							<label class="field"><span>Vendor</span>
 								<div class="combobox">
-									<div class="field-shell"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="text" role="combobox" aria-expanded="false" aria-controls="vendorPanel" aria-autocomplete="list" value="Matas" placeholder="Search vendors…" aria-label="Vendor" aria-required="true"><svg class="icon chevron-icon" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
-									<div class="combobox-panel" id="vendorPanel" role="listbox" aria-label="Vendors">
+									<div class="field-shell"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="text" role="combobox" aria-expanded="false" aria-controls="vendor-panel" aria-autocomplete="list" value="Matas" placeholder="Search vendors…" aria-label="Vendor" aria-required="true"><svg class="icon chevron-icon" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
+									<div class="combobox-panel" id="vendor-panel" role="listbox" aria-label="Vendors">
 										<div class="combobox-group"><span>Favourites</span>
 											<div class="combobox-option"><span class="combobox-option-star"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;stroke:none"><path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z"></path></svg></span><mark>Mat</mark>as<span class="combobox-option-meta">29 orders</span></div>
 											<div class="combobox-option"><span class="combobox-option-star"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;stroke:none"><path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z"></path></svg></span>Proshop<span class="combobox-option-meta">34 orders</span></div>
@@ -1263,7 +1212,7 @@ label.field-shell { cursor:pointer; }
 							</div>
 							<div class="form-actions form-actions-split">
 								<button type="button" class="button button-ghost">CANCEL</button>
-								<button type="button" class="button button-caps" id="toStep2">NEXT STEP</button>
+								<button type="button" class="button button-caps" id="to-step-2">NEXT STEP</button>
 							</div>
 						</div>
 					</div>
@@ -1346,8 +1295,8 @@ label.field-shell { cursor:pointer; }
 								</div>
 							</div>
 							<div class="form-actions form-actions-split">
-								<button type="button" class="button button-ghost" id="toStep1"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>BACK</button>
-								<button type="button" class="button button-caps" id="saveOrder">SAVE ORDER</button>
+								<button type="button" class="button button-ghost" id="to-step-1"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 6l-6 6l6 6"></path></svg>BACK</button>
+								<button type="button" class="button button-caps" id="save-order">SAVE ORDER</button>
 							</div>
 						</div>
 					</div>
@@ -1569,7 +1518,7 @@ label.field-shell { cursor:pointer; }
 				<div class="card-body" style="padding:16px 18px;display:grid;gap:12px">
 					<div class="row-inline toolbar">
 						<div class="field-shell"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor, note or item text…" aria-label="Search orders"></div>
-						<button type="button" class="button button-ghost" style="flex:none" data-filters-toggle aria-expanded="true" aria-controls="filterPanel"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS<svg class="icon chevron-icon" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></button>
+						<button type="button" class="button button-ghost" style="flex:none" data-filters-toggle aria-expanded="true" aria-controls="filter-panel"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS<svg class="icon chevron-icon" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></button>
 						<div class="chip" style="height:38px;flex:none">Sort: Date, newest<svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
 					</div>
 					<div class="row-inline" style="gap:6px">
@@ -1578,8 +1527,8 @@ label.field-shell { cursor:pointer; }
 						<button type="button" class="chip" data-remove-filter aria-label="Remove filter Vendor: Bilka">Vendor: Bilka<svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;color:#8B948C"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button>
 						<button type="button" class="button-link" style="margin-left:6px" data-clear-filters>CLEAR ALL</button>
 					</div>
-					<p class="screenreader-only" role="status" id="filterLive"></p>
-					<div class="filter-section" id="filterPanel">
+					<p class="screenreader-only" role="status" id="filter-live-region"></p>
+					<div class="filter-section" id="filter-panel">
 						<label class="field"><span>Vendor</span><div class="field-shell"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Bilka" placeholder="Any vendor" aria-label="Vendor"><svg class="icon chevron-icon" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
 						<div class="field-pair field-pair-stack-early">
 							<label class="field"><span>Category</span><div class="field-shell"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Any category" aria-label="Category"><svg class="icon chevron-icon" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
@@ -1773,7 +1722,7 @@ label.field-shell { cursor:pointer; }
 					<div class="range-tabs" role="group" aria-label="Range" style="margin:0"><button type="button" data-range="1W" aria-pressed="false">1W</button><button type="button" data-range="1M" class="is-on" aria-pressed="true">1M</button><button type="button" data-range="3M" aria-pressed="false">3M</button><button type="button" data-range="YTD" aria-pressed="false">YTD</button><button type="button" data-range="ALL" aria-pressed="false">ALL</button></div></div>
 				<div class="card-rule"></div>
 				<div class="card-body" style="padding-top:4px">
-					<svg class="chart" data-h="210" data-pad="10" style="display:block;width:100%;height:210px" role="img" aria-label="Cumulative spend per day, July solid, June dashed"><defs><linearGradient id="gr2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14AC72" stop-opacity=".2"></stop><stop offset="1" stop-color="#14AC72" stop-opacity="0"></stop></linearGradient></defs><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="area" fill="url(#gr2)" stroke="none"></path><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="curve" fill="none" stroke="#14AC72" stroke-width="2.4"></path><path data-series="186,184,183,178,175,172,170,167,164,162,160,155,148,143,141,139,136,130,126,119,114,109,104,99,94,93,92,91,88,86" data-kind="curve" fill="none" stroke="#95ABAA" stroke-width="1.6" stroke-dasharray="4 4"></path></svg>
+					<svg class="chart" data-h="210" data-pad="10" style="display:block;width:100%;height:210px" role="img" aria-label="Cumulative spend per day, July solid, June dashed"><defs><linearGradient id="stats-spend-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14AC72" stop-opacity=".2"></stop><stop offset="1" stop-color="#14AC72" stop-opacity="0"></stop></linearGradient></defs><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="area" fill="url(#stats-spend-gradient)" stroke="none"></path><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="curve" fill="none" stroke="#14AC72" stroke-width="2.4"></path><path data-series="186,184,183,178,175,172,170,167,164,162,160,155,148,143,141,139,136,130,126,119,114,109,104,99,94,93,92,91,88,86" data-kind="curve" fill="none" stroke="#95ABAA" stroke-width="1.6" stroke-dasharray="4 4"></path></svg>
 					<div class="chart-ruler" aria-hidden="true"></div>
 					<div class="chart-axis tabular-figures"><span>01</span><span>08</span><span>15</span><span>22</span><span>29</span></div>
 				</div>
@@ -1873,7 +1822,8 @@ label.field-shell { cursor:pointer; }
 		stats: [], scan: [], create: [], create2: [], detail: [], scan2: [], scan3: []
 	};
 	const subtabs = document.getElementById('subtabs');
-	const ptitle = document.getElementById('ptitle');
+	const pageTitle = document.getElementById('page-title');
+	const backButton = document.getElementById('back-button');
 
 	/* Subtabs are a real tablist: buttons, roving tabindex, arrow keys, and a
 	   selection that actually changes what is on screen. */
@@ -1926,25 +1876,44 @@ label.field-shell { cursor:pointer; }
 			a.classList.toggle('is-on', on);
 			if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
 		});
-		const bb = document.getElementById('backBtn'); if (bb) { const bk = ({ detail: 'orders', scan2: 'scan', scan3: 'scan' })[page]; bb.hidden = !bk; if (bk) bb.dataset.go = bk; }
-		ptitle.innerHTML = TITLES[page] || 'Spendly';
+		if (backButton) {
+			const backTarget = ({ detail: 'orders', scan2: 'scan', scan3: 'scan' })[page];
+			backButton.hidden = !backTarget;
+			if (backTarget) {
+				backButton.dataset.go = backTarget;
+				/* The label names where the button goes. It was a fixed "Back to orders"
+				   while the two scan steps go back to the scan page, so it announced the
+				   wrong destination on two of the three pages it appears on. S18. */
+				backButton.setAttribute('aria-label', 'Back to ' + TITLES[backTarget].toLowerCase());
+			}
+		}
+		pageTitle.innerHTML = TITLES[page] || 'Spendly';
 		buildTabs(page);
 		window.scrollTo(0, 0);
-		const gfx = document.getElementById('gfind'); if (gfx) gfx.classList.remove('is-open');
+		const globalFinder = document.getElementById('global-finder'); if (globalFinder) globalFinder.classList.remove('is-open');
 		document.querySelectorAll('.combobox.is-open').forEach(c => c.classList.remove('is-open'));
 	}
 
 	document.querySelectorAll('.sidebar-nav a').forEach(a =>
 		a.addEventListener('click', e => { e.preventDefault(); show(a.dataset.page); }));
-	const scanBtn = document.getElementById('scanBtn');
-	if (scanBtn) scanBtn.addEventListener('click', () => show('scan'));
-	const newBtn = document.getElementById('newBtn');
-	if (newBtn) newBtn.addEventListener('click', () => show('create'));
-	const gf = document.getElementById('gfind');
-	if (gf) { gf.addEventListener('click', e => { gf.classList.toggle('is-open'); e.stopPropagation(); }); document.addEventListener('click', () => gf.classList.remove('is-open')); }
-	const toStep2 = document.getElementById('toStep2');
+	/* Bound here rather than by the [data-go] pass below, which binds what carries the
+	   attribute at load. The back button's target changes per page, so show() assigns
+	   data-go after that pass has run and the button never got a listener: it drew
+	   correctly, went nowhere, and no screenshot could say so. Reads the attribute at
+	   click time, so it follows whatever show() last set. S1. */
+	if (backButton) backButton.addEventListener('click', e => {
+		e.stopPropagation();
+		if (backButton.dataset.go) show(backButton.dataset.go);
+	});
+	const scanButton = document.getElementById('scan-button');
+	if (scanButton) scanButton.addEventListener('click', () => show('scan'));
+	const newOrderButton = document.getElementById('new-order-button');
+	if (newOrderButton) newOrderButton.addEventListener('click', () => show('create'));
+	const globalFinder = document.getElementById('global-finder');
+	if (globalFinder) { globalFinder.addEventListener('click', e => { globalFinder.classList.toggle('is-open'); e.stopPropagation(); }); document.addEventListener('click', () => globalFinder.classList.remove('is-open')); }
+	const toStep2 = document.getElementById('to-step-2');
 	if (toStep2) toStep2.addEventListener('click', () => show('create2'));
-	const toStep1 = document.getElementById('toStep1');
+	const toStep1 = document.getElementById('to-step-1');
 	if (toStep1) toStep1.addEventListener('click', () => show('create'));
 	document.querySelectorAll('[data-go]').forEach(el => {
 		el.addEventListener('click', e => { e.stopPropagation(); show(el.dataset.go); });
@@ -1956,7 +1925,7 @@ label.field-shell { cursor:pointer; }
 			});
 		}
 	});
-	const saveOrder = document.getElementById('saveOrder');
+	const saveOrder = document.getElementById('save-order');
 	if (saveOrder) saveOrder.addEventListener('click', () => show('orders'));
 
 	/* Controls that look like buttons are buttons, so the ones that act in place --
@@ -1971,7 +1940,7 @@ label.field-shell { cursor:pointer; }
 			const card = document.getElementById(btn.dataset.dismiss);
 			if (!card) return;
 			card.hidden = true;
-			ptitle.focus();                       // the card held the focus; hand it to the heading
+			pageTitle.focus();                    // the card held the focus; hand it to the heading
 		});
 	});
 
@@ -1989,15 +1958,15 @@ label.field-shell { cursor:pointer; }
 			const rest = chips();
 			const next = rest[rest.indexOf(chip) + 1] || rest[rest.indexOf(chip) - 1] || clearAll;
 			chip.hidden = true;
-			say('filterLive', chip.textContent.trim() + ' removed. ' + count());
-			if (!chips().length) { clearAll.hidden = true; (search || ptitle).focus(); } else next.focus();
+			say('filter-live-region', chip.textContent.trim() + ' removed. ' + count());
+			if (!chips().length) { clearAll.hidden = true; (search || pageTitle).focus(); } else next.focus();
 		});
 
 		clearAll.addEventListener('click', () => {
 			chips().forEach(c => { c.hidden = true; });
 			clearAll.hidden = true;
-			say('filterLive', 'All filters cleared.');
-			(search || ptitle).focus();
+			say('filter-live-region', 'All filters cleared.');
+			(search || pageTitle).focus();
 		});
 	}
 	/* FILTERS owns the panel below it. It carried nothing but a border before, which
@@ -2005,7 +1974,7 @@ label.field-shell { cursor:pointer; }
 	   toggled the panel and the README said it did. aria-expanded is the state -- no
 	   live-region message, since a disclosure announces itself. S13. */
 	const filterToggle = document.querySelector('[data-filters-toggle]');
-	const filterPanel = document.getElementById('filterPanel');
+	const filterPanel = document.getElementById('filter-panel');
 	if (filterToggle && filterPanel) {
 		filterToggle.addEventListener('click', () => {
 			const open = filterToggle.getAttribute('aria-expanded') !== 'true';
@@ -2171,7 +2140,7 @@ label.field-shell { cursor:pointer; }
 	/* The Orders/Saved pair under the hero number is a real tablist: it chooses
 	   which series the chart above plots. It carried cursor:pointer and an active
 	   underline from the start, so it always looked interactive. */
-	const heroSeries = document.getElementById('heroSeries');
+	const heroSeries = document.getElementById('hero-series');
 	const tabs = [...document.querySelectorAll('[data-series-for="hero"]')];
 	function pickSeries(tab) {
 		tabs.forEach(t => {
@@ -2258,37 +2227,37 @@ label.field-shell { cursor:pointer; }
 	   Which cards sit on the dashboard, and in what order, is the user's choice,
 	   so it persists. Reordering is button-driven rather than drag-only: a keyboard
 	   has to be able to do it, and a drag handle alone would shut one out. */
-	const favs = document.getElementById('favs');
-	if (favs) {
+	const dashboardCards = document.getElementById('dashboard-cards');
+	if (dashboardCards) {
 		const KEY = 'spendly.cards';
-		const all = [...favs.children];
-		const tray = document.getElementById('cardTray');
-		const trayList = document.getElementById('trayList');
-		const live = document.getElementById('cardLive');
-		const editBtn = document.getElementById('cardsEdit');
-		const doneBtn = document.getElementById('cardsDone');
-		const cancelBtn = document.getElementById('cardsCancel');
+		const all = [...dashboardCards.children];
+		const cardTray = document.getElementById('card-tray');
+		const cardTrayList = document.getElementById('card-tray-list');
+		const liveRegion = document.getElementById('dashboard-cards-live-region');
+		const editButton = document.getElementById('dashboard-cards-edit');
+		const doneButton = document.getElementById('dashboard-cards-done');
+		const cancelButton = document.getElementById('dashboard-cards-cancel');
 		const PATH = { left: 'M15 6l-6 6l6 6', right: 'M9 6l6 6l-6 6', rm: 'M18 6l-12 12 M6 6l12 12' };
 		let snapshot = null;
 
-		const shown = () => [...favs.children].filter(c => !c.hidden);
+		const shown = () => [...dashboardCards.children].filter(c => !c.hidden);
 		const keysOf = () => shown().map(c => c.dataset.card);
 		const byKey = k => all.find(c => c.dataset.card === k);
-		const say = m => { if (live) live.textContent = m; };
+		const say = m => { if (liveRegion) liveRegion.textContent = m; };
 		const icon = k => '<svg class="icon" viewBox="0 0 24 24"><path d="' + PATH[k] + '"></path></svg>';
 
-		const empty = document.getElementById('favsEmpty');
-		const syncEmpty = () => { if (empty) empty.hidden = shown().length > 0; };
+		const emptyNote = document.getElementById('dashboard-cards-empty');
+		const syncEmpty = () => { if (emptyNote) emptyNote.hidden = shown().length > 0; };
 
 		function apply(list) {
-			list.forEach(k => { const c = byKey(k); if (c) { c.hidden = false; favs.appendChild(c); } });
-			all.forEach(c => { if (list.indexOf(c.dataset.card) < 0) { c.hidden = true; favs.appendChild(c); } });
+			list.forEach(k => { const c = byKey(k); if (c) { c.hidden = false; dashboardCards.appendChild(c); } });
+			all.forEach(c => { if (list.indexOf(c.dataset.card) < 0) { c.hidden = true; dashboardCards.appendChild(c); } });
 			syncEmpty();
 		}
 
 		function paint() {
 			syncEmpty();
-			favs.querySelectorAll('.card-reorder-bar').forEach(b => b.remove());
+			dashboardCards.querySelectorAll('.card-reorder-bar').forEach(b => b.remove());
 			const on = shown();
 			on.forEach((c, i) => {
 				const n = c.dataset.name;
@@ -2302,7 +2271,7 @@ label.field-shell { cursor:pointer; }
 				c.prepend(bar);
 			});
 			const off = all.filter(c => c.hidden);
-			trayList.innerHTML = off.length
+			cardTrayList.innerHTML = off.length
 				? off.map(c => '<div class="card-tray-row"><span><b>' + c.dataset.name + '</b><i>' + c.dataset.desc + '</i></span>'
 					+ '<button type="button" class="button button-pill" data-add="' + c.dataset.card + '">ADD</button></div>').join('')
 				: '<p class="card-tray-empty">Every card is already on your dashboard.</p>';
@@ -2313,14 +2282,14 @@ label.field-shell { cursor:pointer; }
 			const b = card.querySelector('[data-act="' + act + '"]');
 			if (b && !b.disabled) { b.focus(); return; }
 			const alt = card.querySelector('[data-act]:not(:disabled)');
-			(alt || doneBtn).focus();
+			(alt || doneButton).focus();
 		}
 
 		function move(card, act) {
 			const on = shown();
 			const i = on.indexOf(card);
-			if (act === 'left' && i > 0) favs.insertBefore(card, on[i - 1]);
-			else if (act === 'right' && i < on.length - 1) favs.insertBefore(on[i + 1], card);
+			if (act === 'left' && i > 0) dashboardCards.insertBefore(card, on[i - 1]);
+			else if (act === 'right' && i < on.length - 1) dashboardCards.insertBefore(on[i + 1], card);
 			paint();
 			say(card.dataset.name + ' moved to position ' + (shown().indexOf(card) + 1) + ' of ' + shown().length + '.');
 			refocus(card, act);
@@ -2328,52 +2297,52 @@ label.field-shell { cursor:pointer; }
 
 		function drop(card) {
 			card.hidden = true;
-			favs.appendChild(card);
+			dashboardCards.appendChild(card);
 			paint();
 			say(card.dataset.name + ' removed. You can add it back below.');
-			(trayList.querySelector('[data-add="' + card.dataset.card + '"]') || doneBtn).focus();
+			(cardTrayList.querySelector('[data-add="' + card.dataset.card + '"]') || doneButton).focus();
 		}
 
 		function add(key) {
 			const c = byKey(key);
 			if (!c) return;
 			c.hidden = false;
-			favs.appendChild(c);
+			dashboardCards.appendChild(c);
 			paint();
 			say(c.dataset.name + ' added at position ' + shown().length + '.');
 			refocus(c, 'rm');
 		}
 
 		function editing(on) {
-			favs.classList.toggle('is-editing', on);
-			tray.hidden = !on;
-			editBtn.hidden = on;
-			doneBtn.hidden = !on;
-			cancelBtn.hidden = !on;
-			if (on) { snapshot = keysOf(); paint(); doneBtn.focus(); }
-			else { favs.querySelectorAll('.card-reorder-bar').forEach(b => b.remove()); editBtn.focus(); }
+			dashboardCards.classList.toggle('is-editing', on);
+			cardTray.hidden = !on;
+			editButton.hidden = on;
+			doneButton.hidden = !on;
+			cancelButton.hidden = !on;
+			if (on) { snapshot = keysOf(); paint(); doneButton.focus(); }
+			else { dashboardCards.querySelectorAll('.card-reorder-bar').forEach(b => b.remove()); editButton.focus(); }
 		}
 
-		editBtn.addEventListener('click', () => { editing(true); say('Editing your cards. Use the arrows to reorder.'); });
-		doneBtn.addEventListener('click', () => {
+		editButton.addEventListener('click', () => { editing(true); say('Editing your cards. Use the arrows to reorder.'); });
+		doneButton.addEventListener('click', () => {
 			try { localStorage.setItem(KEY, JSON.stringify(keysOf())); } catch (e) { /* storage refused: the choice still holds for this session */ }
 			editing(false);
 			say('Your cards were saved.');
 		});
-		cancelBtn.addEventListener('click', () => { apply(snapshot); editing(false); say('Changes discarded.'); });
+		cancelButton.addEventListener('click', () => { apply(snapshot); editing(false); say('Changes discarded.'); });
 
-		favs.addEventListener('click', e => {
+		dashboardCards.addEventListener('click', e => {
 			const b = e.target.closest('[data-act]');
 			if (!b) return;
 			const card = b.closest('.card');
 			if (b.dataset.act === 'rm') drop(card); else move(card, b.dataset.act);
 		});
-		trayList.addEventListener('click', e => {
+		cardTrayList.addEventListener('click', e => {
 			const b = e.target.closest('[data-add]');
 			if (b) add(b.dataset.add);
 		});
 		document.addEventListener('keydown', e => {
-			if (e.key === 'Escape' && favs.classList.contains('is-editing')) cancelBtn.click();
+			if (e.key === 'Escape' && dashboardCards.classList.contains('is-editing')) cancelButton.click();
 		});
 
 		try {

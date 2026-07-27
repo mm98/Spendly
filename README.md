@@ -67,7 +67,7 @@ there.
 | [6. Buttons](#6-buttons) | [16. The phone layout](#16-the-phone-layout) |
 | [7. Comboboxes](#7-comboboxes) | [17. iOS and WebKit](#17-ios-and-webkit) |
 | [8. Icons](#8-icons) | [18. Accessibility](#18-accessibility) |
-| [9. Forms and fields](#9-forms-and-fields) | [19. Class names](#19-class-names) |
+| [9. Forms and fields](#9-forms-and-fields) | [19. Names in the markup](#19-names-in-the-markup) |
 | [10. Cards](#10-cards) | [20. Notes for the port](#20-notes-for-the-port) |
 
 ---
@@ -813,6 +813,12 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
 - Comboboxes: listbox semantics, roving focus, Escape restores focus to the field.
 - Panels and detail regions: focus moves to the heading on open, returns to the trigger on close.
 - Live regions polite and single per surface — filter counts, period changes, card reordering.
+- **The back arrow names where it goes**, and goes there. Its label was a fixed "Back to orders"
+  while the two scan steps return to the scan page, so it announced the wrong destination on two of
+  the three pages that carry it; it is `Back to ' + TITLES[target]` now. It was also inert for as
+  long as it existed — the click handler is bound by a load-time `[data-go]` sweep and the button's
+  target is assigned per page afterwards, so it drew, focused and announced correctly while
+  navigating nowhere.
 - Focus is always visible: `:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }`.
 - Touch targets ≥44px effective on mobile nav; drag actions always have a button or menu equivalent;
   Escape cancels inline edits.
@@ -824,14 +830,19 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
 > the reset and slow them instead: `.progress-bar.progress-bar-indeterminate i` runs 1.5s normally, 2.6s linear under reduced
 > motion.
 
-## 19. Class names
+## 19. Names in the markup
+
+Two systems name things here — classes name components, ids name single elements — and both are
+kebab-case whole words, so an element is not spelled two ways in one attribute pair.
+
+### Class names
 
 A class names a component. Its variants are written next to it, never instead of it:
 
 ```html
 <button class="button button-caps button-compact">SAVE ORDER</button>
 <section class="card card-kpi">
-<span class="icon-button icon-button-arrow">
+<button type="button" class="icon-button icon-button-arrow">
 ```
 
 Three kinds of name, and the shape of the name tells you which one you are looking at:
@@ -894,10 +905,44 @@ Three kinds of name, and the shape of the name tells you which one you are looki
 > ancestor* before calling a rename done — 661 rect differences on the categories page were the only
 > thing that said so.
 
+### Ids
+
+An id names one element. Same alphabet as a class — kebab-case, whole words:
+
+```html
+<button type="button" id="back-button" class="icon-button icon-button-arrow">
+<div id="dashboard-cards" class="dashboard-cards">
+```
+
+- **Kebab-case, never camelCase.** 19 of the 28 ids were camelCase — `backBtn`, `cardsEdit`,
+  `saveOrder` — sitting on the same elements as kebab-case classes, so the markup carried two
+  spelling systems at once and neither told you which to expect on the next attribute.
+- **No abbreviations, exactly as for a class.** `ptitle`, `gfind`, `favs`, `bl` and `gr` all had to
+  be decoded before they could be used; they are `page-title`, `global-finder`, `dashboard-cards`,
+  `home-spend-gradient` and `home-savings-gradient`.
+- **Never number an id**, for the reason a variant is never numbered. `gr` and `gr2` were one
+  gradient drawn on two pages; the digit recorded that a second was wanted and never which page
+  wanted it. Naming the page says both: `home-savings-gradient` and `stats-spend-gradient`.
+- **Where the element is a component, its id is its class.** `.dashboard-cards` carries
+  `id="dashboard-cards"`. The two namespaces are separate and may agree, and agreeing leaves one
+  name to remember instead of two to reconcile.
+- **The script's handle mirrors the id in camelCase.** Kebab is not legal in a JS identifier, so
+  this is the one place the two systems differ in shape — but never in words:
+  `const dashboardCards = document.getElementById('dashboard-cards')`. `editBtn` standing for
+  `id="dashboard-cards-edit"` is the drift this rule exists to stop.
+
+> [!WARNING]
+> **Most references to an id are not selectors.** A rename has to reach `aria-controls`,
+> `data-dismiss`, `url(#…)` inside a `fill` or `stroke`, and any helper taking an id as a string —
+> `say('filter-live-region', …)` passes one as an argument, where no grep for `getElementById` finds
+> it. Grep the id itself, and check the rendered result: a stale `url(#…)` still parses, still
+> renders, and silently drops the fill.
+
 **For the port**: this is the component boundary. An identifier is a `.razor` component, its variants
 are that component's parameters, and its parts are the markup inside it. Scoped `.razor.css` makes the
 identifier prefix on a part redundant — keep it anyway while the prototype is the reference, or the
-two stop matching.
+two stop matching. Ids do not survive the port as-is: a `.razor` component rendered twice would emit
+the id twice, so anything the script reaches by id becomes an `@ref` or a parameter.
 
 ## 20. Notes for the port
 
