@@ -97,6 +97,36 @@ there.
 | **≤1180** | Two-column page grids collapse to one, rail below main; the promo row starts scrolling |
 | **≥2200** | Scales up rather than centring: 16px base text, 300px sidebar, wider content ratio |
 
+### Document skeleton
+
+> [!IMPORTANT]
+> The document must be a whole HTML document: `<!doctype html>`, `<html lang="en">`, `<head>` and
+> `<body>`, with `<meta charset="utf-8">` as the first thing in `<head>`. The file is saved as UTF-8
+> **with** a byte-order mark.
+
+`spendly.html` had none of that. It opened on the viewport tag and ended on `</script>`; a browser
+synthesises the missing elements either way, so the prototype rendered and two defects rode along
+unseen for as long as the file existed.
+
+- **No doctype is quirks mode.** `document.compatMode` read `BackCompat`. Against the same file with
+  a doctype prepended, 243 elements sat on different geometry and the phone layout ran 60px short.
+  Every engine keeps its own quirks list, so a correct render in Blink says nothing about the other
+  two — standards mode is the only mode all three agree on.
+- **No declared encoding is a guess.** Opened from disk, Chromium sniffed UTF-8 and got away with it.
+  Served as plain `text/html`, the same bytes decoded as windows-1252 and drew `Spent Â· July 2026`.
+  99 characters in the file are non-ASCII — 68 `·`, the `…` in placeholders, `×`, `→`, `—`, and the
+  æøå the Poppins subset in [§3](#3-typography) exists to carry.
+
+Keep charset first in `<head>`: a browser stops looking for it after 1024 bytes, and the embedded
+fonts underneath it are ~40KB, so anything inserted above it pushes it out of range. The BOM and the
+meta tag are both there on purpose, because neither covers the other's failure. A server sending the
+wrong `charset` header outranks the meta tag and only the BOM survives it; a pipeline that strips the
+BOM leaves only the meta tag. Together the file decoded as UTF-8 from `file://`, over `text/html`
+with no charset, and over `text/html; charset=windows-1252` — zero mojibake in all four cases.
+
+`lang="en"` is the interface language. The money is Danish (`1.187,25 kr.`) and so are the vendor
+names, but nothing on screen is written in Danish.
+
 ### Viewport
 
 > [!IMPORTANT]
@@ -753,6 +783,10 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
 - **Drop `maximum-scale=1` from `Components/App.razor`** ([§1](#1-shell-and-layout),
   [§17](#17-ios-and-webkit)). Keep `viewport-fit=cover`, which the mobile tab bar depends on for
   `env(safe-area-inset-bottom)`.
+- **`App.razor` owns the document skeleton** ([§1](#1-shell-and-layout)): doctype, `lang`, and
+  `<meta charset="utf-8">` first in `<head>`. Kestrel sends `charset=utf-8` so the prototype's BOM
+  stops being the thing holding the encoding up — the meta tag still has to be there, because a
+  static export or a CDN in front of it need not be so careful.
 - **Dashboard card choice needs somewhere to live.** There are six DbSets and none of them is
   settings. For one user the cheapest honest option is a key/value preference table (`Key` PK string,
   `Value` JSON string) holding a single row — `dashboard.cards` =

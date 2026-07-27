@@ -1,3 +1,16 @@
+﻿<!doctype html>
+<!-- The doctype is load-bearing. Without it the page parses in quirks mode, which moved 243
+     elements off their standards-mode geometry and ran the phone layout 60px short. See
+     README section 1, Document skeleton. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Keep charset the first thing in head. A browser stops sniffing for it after 1024 bytes, and
+     the style block below is ~40KB of font data, so nothing may be inserted above this line --
+     put new head content underneath. With no declaration the encoding is a guess: served as
+     plain text/html this file decoded as windows-1252 and rendered "Spent A- July 2026" for
+     every one of its 99 non-ASCII characters. The BOM outranks a server sending the wrong
+     charset; this tag is what survives the BOM being stripped. See README section 1. -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spendly</title>
 
@@ -671,6 +684,9 @@ label.finput { cursor:pointer; }
   .pbar.indet i { animation-duration:2.6s; animation-timing-function:linear; }
 }
 </style>
+</head>
+
+<body>
 
 <div class="app">
 
@@ -2310,3 +2326,5 @@ label.finput { cursor:pointer; }
 })();
 </script>
 
+</body>
+</html>
