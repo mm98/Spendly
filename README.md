@@ -341,6 +341,10 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   the full 294px, each range column gets 139px, and the values fit it — a date wants 163px of text
   room and has it, an amount 81. Panel height 509px against the 599 it would take with the roles
   reversed. **Which way a row splits is a question about what the fields mean, not about their width.**
+  This holds for every range, not just these two: a from/to or a min/max pair added anywhere gets
+  `.keep-pair` on the row. The tally today is two — All orders' dates and amounts — and both carry it;
+  count before adding a third. Ports without these class names still owe the behaviour: a range does
+  not break apart on a phone.
 - Help text under a field is muted 12px. Watch the specificity trap: `.ffield > span` styles the
   label, so a `.fhelp` span in the same field inherits label weight and colour unless it is
   overridden at equal or higher specificity.
