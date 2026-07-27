@@ -44,6 +44,20 @@ measurement nobody thought to write. Where a control enumerates something that h
 read it left to right and check the sequence is true; where it names an action, fire it and assert
 the state it promises actually moved.
 
+**Three screens are not the file.** `docs/` holds three states of thirteen pages, so a change that
+touches everything needs a wider net than a re-render. Renaming every class broke the sidebar icons
+to 114px unstyled — that one happened to sit on `docs/home.png`, which was luck: the same break on
+the scan or create page would have shipped, because nothing renders those. Walk every page at every
+breakpoint, read back `getBoundingClientRect()` and the computed styles, and diff the two runs.
+75,582 element records across 39 states cost a minute and caught two defects no screenshot was
+pointed at — the other was five rules left scoped to an identifier the markup no longer carried,
+which reported itself as 661 moved rectangles on a page no shot covers. Freeze animations first
+(`getAnimations().forEach(a => { a.pause(); a.currentTime = 0 })`), or the indeterminate progress bar
+reports itself as a difference on every run and buries the real ones.
+
+Rects do not cover everything: a bare text label is not an element, so a button whose label shifts
+inside an unmoved box shows nothing. Keep at least one instance of anything you fold on a shot.
+
 **Say which of these you actually ran.** An engine that could not be launched is an engine that was
 not checked, and the honest report is "verified in Blink, Gecko unverified — no binary available",
 not silence. Never let a reader infer coverage that does not exist.
