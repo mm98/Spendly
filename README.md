@@ -10,6 +10,25 @@ below is a rule the prototype already implements and the port has to hold to —
 | --- | --- |
 | [`spendly.html`](spendly.html) | The whole prototype. Every route, clickable, self-contained: markup, CSS, JS and four Poppins weights embedded as woff2 data URIs. |
 | `README.md` | This document. The system, rule by rule. |
+| `CLAUDE.md` | How to work in here — verifying, measuring, what may be claimed. |
+| `docs/` | The screenshots below. Rendered from the prototype, never hand-edited. |
+
+## Screens
+
+**Home** — the spent-this-month hero, the personalised card row, one dark card per screen. The white
+layer floats on the gray shell; the sidebar sits directly on it.
+
+![Spendly's home screen at 1440px: sidebar, floating white layer, spend hero with chart and category split, and the Your cards row](docs/home.png)
+
+**All orders** — the search surface, with the filter panel open. Both control tiers are visible: 38px
+toolbar controls in the top row, 48px entry fields in the panel below them.
+
+![Spendly's all-orders screen: search field, FILTERS and sort controls, removable filter chips, a filter panel with comboboxes, date and amount fields and a segmented status control, then result rows with status chips](docs/all-orders.png)
+
+**Phone, 390px** — flat white and edge to edge on one 12px gutter. The paper is square, the cards on
+it keep their radius, the labels shorten to SCAN and NEW, and the sidebar has become five equal tabs.
+
+<img src="docs/phone.png" alt="Spendly's home screen on a phone: shortened SCAN and NEW buttons, a full-width card on white, and a tinted bottom tab bar with five labelled destinations" width="320">
 
 ## Quick start
 

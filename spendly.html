@@ -499,7 +499,6 @@ label.finput { cursor:pointer; }
 /* a segmented control inside a form is an entry field: full width, 48px tier, equal segments */
 .ffield .subtabs { width:100%; height:48px; padding:4px; border-radius:12px; }
 .ffield .subtabs button { flex:1; min-width:0; display:flex; align-items:center; justify-content:center; padding:0 6px; border-radius:9px; font-size:12.5px; }
-@media (max-width:700px) { .frow2 { grid-template-columns:1fr; } .olgrid { grid-template-columns:1fr; } }
 .hero2 { text-align:left; padding:38px 42px; background:#EDEEE7; border-radius:20px; }
 .hero2 h2 { margin:0 0 8px; font-size:30px; font-weight:600; letter-spacing:-.02em; color:var(--ink-strong); }
 .hero2 .btn-caps { height:48px; padding:0 24px; font-size:13px; }
@@ -550,6 +549,17 @@ label.finput { cursor:pointer; }
 @media (max-width:900px) {
   .favs { grid-template-columns:1fr 1fr; }
 }
+@media (min-width:2200px) {
+  body { font-size:16px; }
+  .app { grid-template-columns:300px minmax(0,1fr); }
+  .content { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
+}
+@media (max-width:1180px) { .olgrid { grid-template-columns:minmax(0,1fr); } .forr { grid-auto-columns:minmax(180px,1fr); overflow-x:auto; } }
+/* The phone layout is this one block, and it is the last breakpoint in the file so
+   its rules win over the wider ones without any of them needing a bump. Split across
+   two blocks it disagreed with itself in silence: the nav was sized 50px/10px here
+   and 48px/9.5px there, and the comment on .top .acts pointed at a .gfind rule that
+   lived somewhere else entirely. Keep it one block. README section 16. */
 @media (max-width:700px) {
   .app { grid-template-columns:1fr; }
   /* The canvas tint exists to frame the floating white sheet against the sidebar.
@@ -577,6 +587,9 @@ label.finput { cursor:pointer; }
      "NEW" keeps the pair on one row; the full wording stays in the accessible name. */
   .wide-only { display:none; }
   .frow2 { grid-template-columns:1fr; }
+  /* minmax(0,1fr), not 1fr: 1fr is minmax(auto,1fr) and inflates on a nowrap price
+     or a fixed chip, which is the clipping this layout keeps hitting. README 15. */
+  .olgrid { grid-template-columns:minmax(0,1fr); }
   /* The order row's fixed columns (auto + 150px + 26px + gaps) cannot fit a phone,
      so it stacks: identity and chevron on top, status and total beneath. */
   .orow { grid-template-columns:minmax(0,1fr) auto auto; grid-template-areas:"m m c" "s t t"; row-gap:8px; column-gap:10px; }
@@ -585,6 +598,7 @@ label.finput { cursor:pointer; }
   .orow > .ot { grid-area:t; }
   .orow > .ochev { grid-area:c; }
   .rowline { flex-wrap:wrap; }
+  .between { flex-wrap:wrap; }
   /* Wrapping needs height:auto, but the buttons have no vertical padding to fall
      back on -- .ffield .subtabs button zeroes it, and it outranks .subtabs.mini
      button only by source order, both being two classes and an element. So the
@@ -596,13 +610,21 @@ label.finput { cursor:pointer; }
   .ffield .subtabs { height:auto; flex-wrap:wrap; }
   .ffield .subtabs button { min-height:38px; }
   .factions { flex-wrap:wrap; }
+  /* A toolbar's search field takes the first row to itself; the buttons that shared
+     its row on desktop wrap under it rather than shrinking below their tier. */
+  .toolbar { flex-wrap:wrap; }
+  .toolbar .finput { flex:1 1 100%; min-width:0; }
   /* The item row carries an icon, a drag handle, a nowrap price and two action
      buttons. On a phone those fixed widths leave the description nothing, so the
      row wraps and the description keeps a majority basis. */
   .irow { flex-wrap:wrap; row-gap:6px; }
   .irow > span:has(b) { flex:1 1 60%; }
+  /* The promo row scrolls sideways from 1180 down; on a phone it stacks instead --
+     a 180px card and a swipe are both too small to be worth it at this width. */
+  .forr { grid-auto-flow:row; grid-auto-columns:unset; grid-template-columns:1fr; }
   /* .gfind carries the margin-left:auto that pushes the actions right, and it is
      hidden here, so .acts has to take the job over or it sits against the title. */
+  .gfind { display:none; }
   .top .acts { margin-left:auto; }
   /* One gutter for the whole phone layout. The sheet's inset is split across a
      margin and a padding, so it has to total the same 12px the top bar and the
@@ -613,19 +635,16 @@ label.finput { cursor:pointer; }
      the cards sitting on them keep their radius -- they are objects on the paper,
      not the paper. Controls keep theirs for the same reason. */
   .sheet { margin:8px 0 14px; padding:14px 12px; border-radius:0; }
-  .subwrap { padding:6px 12px 2px; }
+  /* The strip scrolls rather than wrapping: a second row of sub-tabs would push the
+     first card below the fold, and the tabs are a set you scan, not a paragraph. */
+  .subwrap { padding:6px 12px 2px; overflow-x:auto; scrollbar-width:none; }
+  .subtabs { flex-wrap:nowrap; }
   .favs { grid-template-columns:1fr; }
   .callout { display:none; }
   .hero-num { font-size:23px; }
   .ranges { flex-wrap:wrap; gap:8px 12px; }
+  .statnums { justify-content:flex-start; gap:18px; }
 }
-@media (min-width:2200px) {
-  body { font-size:16px; }
-  .app { grid-template-columns:300px minmax(0,1fr); }
-  .content { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
-}
-@media (max-width:1180px) { .olgrid { grid-template-columns:minmax(0,1fr); } .forr { grid-auto-columns:minmax(180px,1fr); overflow-x:auto; } }
-@media (max-width:700px) { .subwrap { overflow-x:auto; scrollbar-width:none; } .subtabs { flex-wrap:nowrap; } .forr { grid-auto-flow:row; grid-auto-columns:unset; grid-template-columns:1fr; } .between { flex-wrap:wrap; } .statnums { justify-content:flex-start; gap:18px; } .gfind { display:none; } .toolbar { flex-wrap:wrap; } .toolbar .finput { flex:1 1 100%; min-width:0; } }
 /* Reduced motion calms the interface but must never freeze a busy indicator:
    a stopped spinner reads as a hung app. Progress keeps moving, just slower. */
 @media (prefers-reduced-motion: reduce) {

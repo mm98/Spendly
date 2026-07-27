@@ -1,8 +1,9 @@
 # Working in this repo
 
-Spendly is two files. `spendly.html` is the entire prototype — every route, markup, CSS, JS and four
-Poppins weights as woff2 data URIs, with no build, no dependencies and no network. `README.md` is the
-design system it proves. Opening the HTML in a browser is the whole toolchain.
+Spendly is one prototype and its documentation. `spendly.html` is the entire prototype — every route,
+markup, CSS, JS and four Poppins weights as woff2 data URIs, with no build, no dependencies and no
+network. `README.md` is the design system it proves, and `docs/` holds the screenshots that document
+shows. Opening the HTML in a browser is the whole toolchain.
 
 ## Division of labour
 
@@ -57,6 +58,17 @@ The same shape covers overhang and clipping (`el.right - parent.right`), the pho
 (`documentElement.scrollWidth` against `clientWidth`), and wiring (spy on the API a handler is meant
 to call, dispatch the event, assert it fired). Screenshots are for the reader; the number is the
 evidence.
+
+## Screenshots in the README
+
+The shots in `docs/` are rendered from the prototype and never cropped by hand or touched up:
+Chromium at 1440x900 for the two desktop ones, an iPhone 13 descriptor for the phone one, all at
+`deviceScaleFactor: 2` and driven by the same harness used for measuring.
+
+The phone shot needs that descriptor rather than a 390px window. `pointer: coarse` is what the iOS
+rules key off, and a plain narrow viewport does not match it — the shot would show a layout no phone
+renders. Regenerate whatever a change moves: a stale screenshot is a wrong claim about the product,
+and it is the one claim a reader believes without checking.
 
 ## Uniformity
 
