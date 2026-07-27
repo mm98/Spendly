@@ -103,6 +103,14 @@ native icon nobody had looked at in a while.
   restatement of the CSS is noise either way.
 - **Match the surrounding idiom** — naming, comment voice, `--` for dashes inside CSS comments, the
   house habit of stating the defect before the rule.
+- **Tabs indent, spaces align.** One tab per level of nesting, in markup, CSS and script alike. The
+  only spaces at the start of a line are the ones holding a comment's continuation under the text it
+  hangs from — `<!-- ` is five columns and `/* ` is three, and a tab there would only line up at one
+  tab width. Never mix the two in the same run: tabs first, then any alignment.
+- **Reformatting must prove it changed nothing.** Re-render and diff the pixels against `docs/` — the
+  tab conversion was accepted on 0 differing pixels of 5,184,000, not on inspection. Expanding the
+  leading tabs back should reproduce the previous file byte for byte; if it does not, the diff is
+  hiding an edit.
 
 ## Reporting
 
