@@ -405,6 +405,15 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   receipt could supply a value is how a field goes missing from the review, and a field missing from
   the review is one that takes its default forever, since the scan flow saves orders without the
   create form ever opening.
+- **Create and scan are two doors to one saved order, so the review carries every field the order
+  requires.** A required value stays required whichever door it came through, and the receipt may not
+  carry it; the review is the last screen before save, so it is where the rest gets supplied. Today
+  that check cannot be run: nothing marks a field required — no `required`, no `aria-required`, two
+  `Optional` placeholders in the file — so the two field sets can drift apart without anything
+  failing. They differ by one as it stands: the create form has **Categories** and the review does
+  not. Whether that is a gap turns on whether an order needs a category, which nobody has written
+  down. The port should mark required fields and hold the two sets in step; until it does, compare
+  them by hand before adding a field to either form.
 
 ### Fields are real form controls
 
