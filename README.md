@@ -331,6 +331,15 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   jump differs per segment (300px on Spend, 298 on Name). The dark pill already carries the
   selection, so it carries it alone: weight on top of it bought a 1–2px shift on every click, at any
   number of segments. Nothing about this is per-control — it is why no toggle reserves widths.
+- **A paired row collapses on the width its own fields need, not on one global breakpoint.** All
+  orders' filter panel is the case: the phone layout starts at 700, so from 701 to 900 the 300px
+  sidebar is still standing while the panel is still two columns, and From/To and Min/Max fall to
+  165px each at the bottom of that band — with a phone in landscape (844px) sitting inside it. Those
+  two rows collapse at ≤900 (`.stack-early`). The vendor/category row above them stays paired at every
+  width (`.keep-pair`): two short words do not need 294px, and the panel is long enough already. At
+  390px that is 294px for each value row against 139px per paired column — 104px of text room where
+  "Any category" wants 109, so that one placeholder truncates by 5px. A placeholder truncating is what
+  this system does; it is the price of the pairing, not a fault in it.
 - Help text under a field is muted 12px. Watch the specificity trap: `.ffield > span` styles the
   label, so a `.fhelp` span in the same field inherits label weight and colour unless it is
   overridden at equal or higher specificity.
@@ -635,7 +644,8 @@ earlier "shrink the floating layer" approach.
   back with a shadow and a pill that were never asked for. On tint the active tab reads from its bare
   1px lift, no fill — which is how it was designed.
 - **Layout shifts**: `.orow` stacks to two rows; `.irow` wraps with the description keeping a 60%
-  basis; `.frow2` and `.olgrid` go single-column; card rows go single-column; the hero callout is
+  basis; `.frow2` and `.olgrid` go single-column — except the filter panel's vendor/category row,
+  which stays paired ([§9](#9-forms-and-fields)); card rows go single-column; the hero callout is
   hidden; the global finder is hidden and `.top .acts` takes over the right-alignment; sub-tabs
   scroll horizontally without a visible scrollbar.
 - **A wrapping segmented control takes its height from the buttons** (`min-height:38px`), not from the
