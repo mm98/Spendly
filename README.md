@@ -313,11 +313,18 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
   horizontally and vertically; row fields top-aligned in `1fr 1fr` columns that collapse to one at
   ≤700.
 - Unit suffix chips inside inputs (`kr.`, `pcs`), fixed width, excluded from shrinking.
-- Enums are segmented controls — Status: Delivered / Ordered / Returned, plus "Any" in filters: one
+- Enums are segmented controls — Status: Ordered / Delivered / Returned, plus "Any" in filters: one
   shared bordered container, dark active segment. **Inside a form a segmented control is an entry
   field, not a chip group.** It fills its column, stands 48px tall like the inputs beside it, and its
   segments flex to equal widths. The intrinsic-width 38px version belongs to toolbars, never to a
   form.
+- **Segments run in the order the thing happens, not the order they were typed.** Status shipped as
+  Delivered / Ordered / Returned in all three of its controls, which reads left to right as a claim
+  that an order is delivered before it is placed. The lifecycle is the sort key — Ordered → Delivered
+  → Returned — and it is the same in the create form, the scan review and the filter panel. A segment
+  that stands outside the sequence rather than in it, filters' **Any**, leads; it is the default, not
+  a stage. Which segment is *selected* is a separate decision from where it sits: both forms still
+  open on Delivered, because most orders are entered after they arrive.
 - **Selecting a segment may not change its text metrics.** The track is `width:max-content`, so a
   heavier active label widens the whole control, and every control sharing its row — the toolbar
   search is `flex:1` — resizes to absorb the difference; because the labels are not equal-width the
