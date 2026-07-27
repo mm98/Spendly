@@ -440,6 +440,13 @@ The home dashboard's second row is a set the user picks and orders.
 Routes in the prototype: `home`, `orders` (Overview), `orders2` (All orders), `detail`, `create` →
 `create2`, `scan` → `scan2` → `scan3`, `vendors`, `categories`, `stats`.
 
+**Range chips** — one control, one set, on both pages that carry a chart: **1W · 1M · 3M · YTD ·
+ALL**, buttons in a `role="group"`, active one bordered and `aria-pressed="true"`. No 1D: a ledger of
+orders has nothing to say about a single day. They re-plot the chart they sit in — 1W slices the last
+seven days, 1M is the month the prototype holds, and the three longer ranges bucket that month into
+the point count they would carry. Where a chart also has a series switcher, the switcher owns *which*
+series and the range owns *how much*, so neither resets the other.
+
 **Home** — spent-this-month hero (big number, savings line, range chips with a bordered active state,
 chart with floating callout, Orders/Saved half-underline tabs, category split bar and expandable
 legend), dark AI scan card, latest orders, saved-vs-retail, then the personalised card row. Title is
@@ -476,8 +483,8 @@ Spend/Name/Orders/Saved segmented, horizontal all-vendors card row.
 **Categories** — full-width search with Spend/Name/Orders segmented, icon-square list rows with
 percentage of expenses and amounts, question card, breakdown donut.
 
-**Statistics**, with every current metric kept — presets segmented (Monthly / Yearly / All time /
-Custom) plus a period pager (‹ July 2026 ›) and a headline with delta chip; four KPI cards each with
+**Statistics**, with every current metric kept — a period pager (‹ July 2026 ›) and a headline with
+delta chip, plus the same five range chips as Home on the comparison card; four KPI cards each with
 an explicit previous-period delta (trend icon, "x% up/down vs June", previous value); race chart;
 **Pace** (projection, meter with fill and previous-period-end marker, plus note); **Weekly rhythm**
 (weekend share, busiest day, 7 mini columns); breakdown ring with gaps; month columns; returns note.
