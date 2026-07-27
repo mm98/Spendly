@@ -530,19 +530,23 @@ status chips and saved amounts, PREVIOUS/NEXT. Sub-tabs double as one-tap status
 Header card (vendor, date and count, category chips, status chip, edit/delete); items with photos and
 **paid prices only** — retail never displays on details; totals with the order-level green saved
 line; rail with details facts (status, date, vendor, categories, **kind**, saved vs retail),
-attachments (ADD FILE, open/delete) and the contextual dark scan card. **Kind is shown wherever
-Categories is** — this rail and the create summary — so a total with a hole in it can be explained
-from the order that made it.
+attachments (ADD FILE, open/delete) and the contextual dark scan card. **Every summary that shows
+Categories shows Kind** — this rail and the create summary — so a total with a hole in it can be
+explained from the order that made it.
 
 **Scan flow** — three steps, Upload → Reading → Review, with the stepper. Reading is a full-width card
 sharing the stepper's edges, with a centred column inside: document preview, filename headline, help
 line, an **indeterminate progress bar** (a 38% segment sliding on a 420px track, `aria-busy` on the
 card, no percentage claimed because a scan has none) and the review link. No spinner — the moving bar
 carries the busy state on its own. Review as in [§9](#9-forms-and-fields), with the draft fields
-paired two to a row: **Vendor and Date on the first line, Shipping fee and Status on the second.**
-**Kind is deliberately not on the review.** A receipt records what was bought, never whose money paid
-for it, so there is nothing for the scan to read and nothing for the reviewer to confirm; the draft
-takes the default and the field is set on the order. Its absence here is a decision, not an omission.
+paired two to a row under a full-width vendor: **Date and Status on the first line, Shipping fee and
+Kind on the second** — the same shape as the create form, so the two teach one layout rather than
+two. **A field earns its place on the review by needing confirmation, not by being readable off the
+receipt.** Kind was left off this form once, on the grounds that a receipt cannot say whose money
+paid for the order. Neither can it say the order arrived, and Status is here; Shipping fee is here
+saying so in its own help text. The scan flow creates orders without the create form ever opening,
+so a field missing here is a field that can only ever take its default — which for Kind means a
+work-bought order lands in the month's spend and stays there until someone goes looking for it.
 
 **Vendors** — hero panel (warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
 (caps header and chip, sentence, inner panel rows, full-width VIEW ORDERS), full-width search with

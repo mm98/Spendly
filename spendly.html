@@ -1437,20 +1437,23 @@ label.finput { cursor:pointer; }
 						<p style="margin:2px 0 16px;font-size:13px;color:var(--muted)">Every value is editable. Nothing is stored until you save.</p>
 						<div class="pos-note" style="margin-bottom:16px"><b>Total matches.</b> The document total 1.187,25 kr. includes 25% VAT and agrees with the 23 lines read.</div>
 						<div class="fform" style="max-width:none">
+							<label class="ffield"><span>Vendor</span>
+								<div class="finput"><input type="text" value="Bilka" placeholder="Search vendors…" aria-label="Vendor"><span class="stchip" style="height:24px;font-size:10.5px">matched</span></div></label>
 							<div class="frow2">
-								<label class="ffield"><span>Vendor</span>
-									<div class="finput"><input type="text" value="Bilka" placeholder="Search vendors…" aria-label="Vendor"><span class="stchip" style="height:24px;font-size:10.5px">matched</span></div></label>
 								<label class="ffield"><span>Date</span><div class="finput fdate"><input type="date" value="2026-07-18" aria-label="Order date"><span class="dtrail"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--muted)"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
-							</div>
-							<div class="frow2">
-								<label class="ffield"><span>Shipping fee</span><div class="finput"><input type="text" inputmode="decimal" value="0,00" aria-label="Shipping fee"><span class="unit">kr.</span></div>
-									<span class="fhelp">Not on the receipt; add it if the order was delivered.</span></label>
 								<div class="ffield"><span>Status</span>
 									<div class="subtabs mini" role="tablist">
 										<button type="button" role="tab" aria-selected="false">Ordered</button>
 										<button type="button" class="on" role="tab" aria-selected="true">Delivered</button>
 										<button type="button" role="tab" aria-selected="false">Returned</button>
 									</div></div>
+							</div>
+							<div class="frow2">
+								<label class="ffield"><span>Shipping fee</span><div class="finput"><input type="text" inputmode="decimal" value="0,00" aria-label="Shipping fee"><span class="unit">kr.</span></div>
+									<span class="fhelp">Not on the receipt; add it if the order was delivered.</span></label>
+								<label class="ffield"><span>Kind</span>
+									<div class="finput"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Expense" placeholder="Expense" aria-label="Kind"><svg class="i chev-i" viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:auto;color:var(--muted)"><path d="M6 9l6 6l6 -6"></path></svg></div>
+									<span class="fhelp">Only expenses count towards your totals.</span></label>
 							</div>
 							<div>
 								<div class="between" style="margin-bottom:4px"><span class="lab" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Lines read · 23</span>
