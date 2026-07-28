@@ -321,6 +321,27 @@ key's label was the one label in the file with no element around it, so it read 
 declared for itself while every other list title read 13/600 — invisible to any rule keyed on a title
 class, because there was no title. It is `.chart-legend-row-title` now ([§19](#19-names-in-the-markup)).
 
+**The meta line ellipses; the title wraps.** `.item-row-meta` is `white-space: nowrap; overflow: hidden;
+text-overflow: ellipsis` — the pattern [§9](#9-forms-and-fields) sets for control text, applied to the one
+part of a row that is a remark rather than a name. Left to wrap it took a second line on 12 of the 28
+metas the file renders, at one width or another and at 390 as readily as at 1440: the Logitech line on
+*Order details* stood **95.56px against the 80.84px of the three rows beside it**, a step big enough to
+read as a hole in the list rather than as more text. The title keeps `overflow-wrap: anywhere` — it names
+the thing the row is about, so it may not be cut. **The cost is stated, not hidden:** truncation removes
+up to 18 characters, and on *New order* it takes the `retail 104,95 kr.` half of a two-part meta at 701px.
+A meta that must be read in full is a meta that belongs on the row's title or in a panel, not a reason to
+let one row grow taller than its neighbours.
+
+> [!WARNING]
+> **An ellipsis needs a container that is allowed to be narrower than its text**, and `min-width: 0` on
+> the wrapper is only half of that. Under `nowrap` the meta's min-content becomes the whole string, so
+> `.inset-panel` — a single-column grid, sized by the implicit `auto` track — grew to fit it: the
+> *Totals reconciled* row on *Review scan* measured **327px of min-content (36 tile + 12 gap + 279 of
+> text) inside a 322.41px panel**, overhung it by 4.59px and drew no ellipsis at all, because the box it
+> would have been cut to never got smaller than the text. `grid-template-columns: minmax(0,1fr)` per
+> [§15](#15-responsive-containment) is what makes the truncation possible; the nowrap alone only moves
+> the overflow somewhere harder to see.
+
 **A `line-height` in `em` on a wrapper is a length, and a length does not re-resolve.** `.entry-text`
 was pinned at `1.45em`, computed once against its own inherited 14px — 20.3px — and handed to both a
 13px name and an 11px meta, so the pair stood 40.6px against every other list's 34.8px. That 5.8px was
@@ -944,7 +965,12 @@ container. Rules that follow:
 - Give every layout container in a form panel `min-width:0`: `.filter-section`, `.field`, `.field-shell`, and
   `.filter-section > *`, `.field-pair > *`, `.row-inline > *`, `.card-body > *`.
 - A single-column grid's implicit column is `auto`, which sizes to its widest item's min-content and
-  can exceed the container. Use `grid-template-columns: minmax(0,1fr)`.
+  can exceed the container. Use `grid-template-columns: minmax(0,1fr)`. `.inset-panel` had gone
+  without it because nothing inside had a min-content worth the name; giving `.item-row-meta` its
+  ellipsis ([§5](#5-control-geometry)) turned one row's min-content into 327px of unbreakable string
+  and the panel's track went with it, 4.59px past a 322.41px content box. **The rule is not "grids
+  that overflow today" — it is every single-column grid**, since what a track sizes to is decided by
+  content that has not been written yet.
 - **Only the text column may shrink.** Icon tiles, nowrap prices and drag handles are fixed
   affordances; blanket `min-width:0` on row children clipped prices by 29px and squeezed a 15px drag
   handle to 6px. Target the description (`.item-row > span:has(b)`) and give the rest `flex:none`.

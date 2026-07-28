@@ -514,10 +514,15 @@ svg.chart { width:100%; display:block; }
 .page:not(.is-on) { display:none !important; }
 .page.is-on { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
 .segmented { display:inline-flex; gap:2px; padding:4px; background:#F1F2EE; border:1px solid #E5E7E2; border-radius:14px; width:max-content; }
-.inset-panel { background:#F2F4F1; border-radius:var(--radius-page); padding:8px 14px; display:grid; }
+/* minmax(0,1fr), not the implicit auto column: an auto track sizes to its widest
+   item's min-content, and a nowrap meta made one scan3 row 327px of min-content --
+   36 tile + 12 gap + 279 of text -- inside a 322.41px panel. The track took the
+   327, so the row overhung by 4.59px and the ellipsis it was meant to draw never
+   appeared. README 15. */
+.inset-panel { background:#F2F4F1; border-radius:var(--radius-page); padding:8px 14px; display:grid; grid-template-columns:minmax(0,1fr); }
 .item-row > div:has(.item-row-title) { min-width:0; }
 .item-row > span:not(:has(.item-row-title)) { flex:none; }
-.item-row-title, .item-row-meta { overflow-wrap:anywhere; }
+.item-row-title { overflow-wrap:anywhere; }
 .item-row .item-row-icon { width:36px; height:36px; border-radius:var(--radius-compact); background:#DFF0E6; color:#12A56B; display:grid; place-items:center; font-size:14px; font-weight:700; flex:none; }
 .item-row .item-row-icon svg.icon { width:17px; height:17px; }
 /* The drag handle was a bare <span> styling itself, down to a var(--text-faint,#9AA39B)
@@ -525,7 +530,13 @@ svg.chart { width:100%; display:block; }
 .item-row .item-row-grip { color:var(--text-faint); cursor:grab; }
 .item-row .item-row-grip svg.icon { width:15px; height:15px; }
 .item-row-title { font-size:13px; font-weight:600; color:var(--text-strong,#0B0F0D); }
-.item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
+/* The meta ellipses rather than wrapping. A second line here costs the row 14.72px
+   and the step reads as a broken list rather than as more text -- 12 of 28 metas
+   wrapped at one width or another, at 390 and at 1440 alike. The title above still
+   wraps: it names the thing, so it may not be cut. Only narrows because the wrapper
+   carries min-width:0 -- without that the box never gets shorter than the text and
+   no ellipsis is ever drawn. README 5, README 15. */
+.item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .item-row .amount { margin-left:auto; color:var(--text); font-weight:600; font-size:13px; white-space:nowrap; }
 .spotlight-pair .item-row .amount { color:var(--text-positive); }
 .key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid #DFE3DE; background:#F7F8F5; font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
