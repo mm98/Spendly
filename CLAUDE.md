@@ -73,6 +73,15 @@ attribute instead rendered nothing and cheerfully recorded 75,348 measurements o
 state is actually set before scripting it, then assert you arrived — one line printing which page is
 on catches an entire run that measured the wrong thing, or nothing at all.
 
+**Toggling that class is still not navigating.** `show()` also builds the sub-tab bar, sets the page
+title, moves the sidebar highlight and retargets the back button, and it is a closure — not on
+`window`. A harness that only toggles `.is-on` therefore renders eleven of twelve pages carrying
+home's title and home's tabs, and measures that without complaint. The gap is not cosmetic:
+`docs/all-orders.png` is the orders page with its *All orders* sub-tab selected, which no toggle can
+reach, so diffing a toggled render against it reported 696,674 differing pixels of 5,184,000 that had
+nothing to do with the change under test. Navigate by clicking what a user clicks — sidebar link,
+`[data-go]`, sub-tab — and print the title and the tab labels on arrival, not just the page name.
+
 **Say which of these you actually ran.** An engine that could not be launched is an engine that was
 not checked, and the honest report is "verified in Blink, Gecko unverified — no binary available",
 not silence. Never let a reader infer coverage that does not exist.

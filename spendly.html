@@ -459,8 +459,13 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .field-shell > input::placeholder, .field-shell > textarea::placeholder { color:var(--muted); opacity:1; }
 .field-shell > textarea { resize:none; height:60px; line-height:1.45; }
 .field-shell > input[type="search"]::-webkit-search-cancel-button { -webkit-appearance:none; appearance:none; }
-/* The file input is presented by the shell: the chosen name renders as text. */
-.field-file-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+/* The file input is presented by the shell: the chosen name renders as text.
+   Scoped to beat the generic `.field-shell > input` above, which is one type
+   selector heavier than a lone class -- unscoped, its width:100% won, and an
+   absolute box in a static shell resolves that against the viewport. The input
+   was 1440px wide and invisible, hanging 657px off the right of the only page
+   that carries one and scrolling the document into blank space. S15. */
+.field-shell > .field-file-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
 label.field-shell { cursor:pointer; }
 .field-file-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
 /* No engine may draw a calendar beside ours (S8 is Tabler only, and a browser-drawn

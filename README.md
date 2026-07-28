@@ -689,6 +689,16 @@ own children without the document ever overflowing, so the controls become unrea
 scrollbar to reveal them. Measure `el.scrollWidth - el.clientWidth` on every element instead,
 excluding the deliberate scrollers (`.scroll-row`, `.promo-row`).
 
+**Then measure document overflow too -- it is a second check, not a superseded one.** The hidden file
+input on New order step 2 set `width:1px` and lost to `.field-shell > input { width:100% }`, which is
+one type selector heavier than a lone class; an absolutely positioned box whose ancestors are all
+static resolves that against the viewport. It was 1440px wide, invisible, and hung 657px off the
+right of the page, scrolling the document into blank space at every width from 390 up. The element
+audit above cannot see it -- nothing clips a box that no ancestor contains, so every
+`el.scrollWidth - el.clientWidth` reads 0 while the document grows. Assert
+`documentElement.scrollWidth === clientWidth` on every page as well; it was the only page of twelve
+that failed, and it failed at all five widths.
+
 The cause is almost always the same — **flex and grid children default to `min-width:auto`**, so a
 long placeholder, a `white-space:nowrap` price or a fixed-width chip refuses to shrink and bursts the
 container. Rules that follow:
