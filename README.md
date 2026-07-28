@@ -147,27 +147,28 @@ Sampled from the reference sheets, declared once in `:root`.
 
 | Token | Value | Use |
 | --- | --- | --- |
-| app background | `#EFF1EF` | gray shell, sidebar ground (desktop only, see [§16](#16-the-phone-layout)) |
-| `--side-active` | `#E4E7E2` + 1px lift | active nav pill; darker than the ground, never white |
-| `--card` | `#FFFFFF` | all cards, on the white layer |
-| `--card-line` | `#E9ECE8` | 1px border, every card |
-| `--hair` | `#EDEFEA` | header dividers, row separators |
-| `--ink` | `#0B0F0D` | headings, numbers |
-| `--ink-strong` | `#0B0F0D` | the active edge of a field — `:focus-within`, open combobox |
-| `--ink-2` | `#3A423D` | body, sidebar items |
-| `--muted` | `#6C766D` | help text, meta — holds 4.5:1 on white |
-| `--muted-2` | `#9AA39D` | axis labels, de-emphasised chevrons |
+| `--bg-app` | `#EFF1EF` | gray shell, sidebar ground (desktop only, see [§16](#16-the-phone-layout)) |
+| `--bg-nav-active` | `#E4E7E2` + 1px lift | active nav pill; darker than the ground, never white |
+| `--bg-card` | `#FFFFFF` | all cards, on the white layer |
+| `--border-card` | `#E9ECE8` | 1px border, every card |
+| `--border-divider` | `#EDEFEA` | dividers inside a card: between rows, under a header |
+| `--bg-row-hover` | `#F6F7F4` | the pointer on a row or card header that navigates — never a divider |
+| `--text` | `#0B0F0D` | headings, numbers |
+| `--text-strong` | `#0B0F0D` | the active edge of a field — `:focus-within`, open combobox |
+| `--text-body` | `#3A423D` | body copy, sidebar items |
+| `--text-muted` | `#6C766D` | help text, meta — holds 4.5:1 on white |
+| `--text-faint` | `#9AA39D` | the faintest readable tier — axis labels, resting chevrons, dashed edges |
 | `--green` | `#14AC72` | savings, positive deltas, progress |
-| `--green-soft` | `#DFF3EA` | positive notes, status chip, match highlight |
+| `--bg-positive` | `#DFF3EA` | positive notes, status chip, match highlight |
 | `--teal` | `#07625E` | split-bar dominant segment, focus ring |
-| `--dark` / `--dark-2` | `#0B1A12` → `#12241A` | the one dark card per screen, dark buttons |
-| `--dark-text` | `#ADB8AF` | body text on dark |
-| `--blue` / `--blue-light` | `#4F5BD5` → `#A5B4FC` | spending line gradient |
+| `--bg-dark` / `--bg-dark-lift` | `#0B1A12` → `#12241A` | the one dark card per screen, dark buttons; `-lift` is the gradient's lit end |
+| `--text-on-dark` | `#ADB8AF` | body text on dark |
+| `--blue` / `--blue-light` | `#4F5BD5` / `#B9BFF0` | the July and June comparison series |
 | donut set | `#1FA8E0` `#14AC72` `#E8C51B` `#8B5CF6` `#D34F2E` `#F09A38` | category ring segments, with gaps |
 | icon squares | `#C43F2A` `#E9C517` `#8B5CF6` `#1FA8E0` | 36–44px rounded-square category icons |
 | warm (caution) | text `#8A6A1F`, tint `#F6ECD9` | duplicate warnings, unfavourable deltas, uncertain lines |
 | track | `#E7EAE5` | meters, progress backgrounds |
-| `--bar-pale` | `#E2ECE9` | unfilled weekday bars |
+| `--bg-bar-track` | `#E2ECE9` | unfilled weekday bars |
 
 **Semantics**: green = favourable (savings up, cost metrics down); warm amber = caution or
 unfavourable (spend above the previous period); neutral ink for counts.
@@ -471,7 +472,7 @@ taller than the FILTERS and Sort controls sharing its row.
   (`.button-link`) appear only inside empty states.
 - Empty states: loop glyph, one sentence, underlined caps action.
 - Exactly **one dark card per screen** — the AI/contextual slot.
-- A card header that navigates gets the chevron **and** the standard `.card-rule` hairline. The tally
+- A card header that navigates gets the chevron **and** the standard `.card-divider` hairline. The tally
   was 35 headers with the hairline against 4 without, and the 4 were the chart cards.
 - **The body's `14px` top padding is the default for a reason: do not tighten it under a hairline.**
   The two spend cards overrode `.card-body` to `padding-top: 2px`, which left the first line of text
@@ -624,10 +625,35 @@ instance below shipped because a shape was copied from the reference without ask
 - **Date fields carry the calendar icon, never a chevron.** A chevron promises a list; a date field
   opens the OS picker. The icon is ours on every engine and the browser's own is taken off the field
   ([§17](#17-ios-and-webkit)) — so the glyph is what opens the picker, on click or Alt+Down.
-- **Anything clickable is keyboard operable.** A `div` with a click handler needs `tabindex="0"`, a
-  role and an Enter handler, or it is mouse-only. Native `<button>` / `<a>` is preferred. Rows carry
-  `role="link"`, so they activate on Enter and leave Space alone — Space still scrolls, which is what
-  a link does.
+- **Anything clickable is the element for the job, not a div wearing its role.** Twenty-six rows, card
+  headers and the brand were `<div role="link" tabindex="0">` with a hand-written Enter handler, against
+  five real `<a>` in the whole file — a link rebuilt three attributes and nine lines at a time, and
+  rebuilt only as far as someone remembered. They are `<a href="#">` now and the handler is one
+  `preventDefault` (the href is `#`, so without it every row click appends a fragment and jumps to the
+  top). Enter comes from the platform, Space still scrolls because that is what a link does, and
+  middle-click, ⌘-click, the context menu and open-in-new-tab arrive with it — none of which a `role`
+  can provide. `a[data-go]` carries `color:inherit; text-decoration:none`, keyed on the attribute
+  rather than a class because eight different components navigate this way, and on `a` specifically so
+  the `<button data-go>` elements keep their own colours.
+- **A hover tint gets its own token, not the divider's.** One token drew both, and a value chosen to
+  read as a 1px line edge-on is too heavy spread across a whole row: it announced a selection where
+  the pointer only meant "this goes somewhere". `--bg-row-hover` is `#F6F7F4`, half the contrast against
+  `--bg-card` — 9/8/11 off white against `--border-divider`'s 18/16/21. The card header that navigates takes the
+  same token, since it is the same affordance one band up; two tints for one meaning would be the
+  drift the token exists to stop. The rule under a lit header no longer vanishes into it — it reads
+  as the bottom edge of the lit band, which is why that rule still goes full-bleed on hover
+  ([§10](#10-cards)): the two lines a pixel apart were the defect, not the colour match.
+- **A row's hover tint bleeds 10px past the body gutter; the row's content does not.** The card body's
+  20px padding is right for text and too tight for a highlight -- the tint stopped hard against the
+  first glyph and the chevron at both ends. The header above already lights up edge to edge, so this
+  is the same affordance for a row that sits inside the padding. Ten is half the gutter and leaves
+  11px of card either side; the full 20 reaches the card's inner border and reads as the row escaping
+  the card. Draw it with two offset `box-shadow`s, not a wider box and not a positioned pseudo-element.
+  A wider box drags every divider out with it, since the divider between rows is the row's own
+  `border-top`. A pseudo-element needs `position:relative` on the row to hang off, and that alone
+  dropped these rows from subpixel to grayscale text antialiasing -- 5,726 pixels of `docs/home.png`
+  changed, every one a glyph edge, for a highlight that was not even on screen. The shadow form
+  changes nothing until `:hover`: 0 differing fields across 110,560 elements.
 - **A `role="tab"` is a promise.** Tabs are `<button>`, carry roving `tabindex` (selected 0, rest -1),
   respond to Left/Right, and keep `aria-selected` in sync. Twelve `<span role="tab">` elements
   announced as tabs while being inert. This holds for the inline segmented controls (`.segmented.segmented-compact`)
@@ -646,6 +672,15 @@ instance below shipped because a shape was copied from the reference without ask
   no intended action, inherited from the reference's card menu; it invites a click that does nothing.
   Deleted. The hero `[+]` went too: it duplicated the top bar's NEW ORDER and existed only because
   that button was hidden on mobile.
+
+> [!WARNING]
+> **Changing an element's tag re-sorts every `*-of-type` selector around it.** `.order-row:last-of-type`
+> means "the last row in the list" and counts tags instead. The pager `div` under the rows was the last
+> `div`, so the rule matched nothing and all three rows kept a trailing hairline nobody had noticed in
+> a screenshot that shows it. Making the first row an `<a>` then left it the only element of its type,
+> so the dead rule woke on the wrong row and stripped the border from the top of the list — 190 moved
+> rectangles, from one 1px line. Neither state is what the rule says. Write `:not(:has(~ .order-row))`,
+> which counts the same thing the name does.
 
 ## 14. Charts
 
@@ -676,7 +711,7 @@ data changes.
   labelled one of them, leaving the reader to guess that the pale line was June — the chip that
   actually said "June" sat on the far side of the card, styled as a control rather than as a legend.
   `.chart-series-key` is the pattern: one 9px swatch per series in that series' own stroke colour, 12px
-  `--ink-2` label, `flex-wrap` so it stacks rather than overflows at 390px.
+  `--text-body` label, `flex-wrap` so it stacks rather than overflows at 390px.
 - Do not repeat the card header in the body. Under a header reading `SPENT · JULY 2026`, an
   "Expenses" caption above the number says nothing the header has not already said, and it cost the
   number its leading.
@@ -688,6 +723,16 @@ page while the Orders filter panel was 76px wider than its card and simply cut o
 own children without the document ever overflowing, so the controls become unreachable with no
 scrollbar to reveal them. Measure `el.scrollWidth - el.clientWidth` on every element instead,
 excluding the deliberate scrollers (`.scroll-row`, `.promo-row`).
+
+**Then measure document overflow too -- it is a second check, not a superseded one.** The hidden file
+input on New order step 2 set `width:1px` and lost to `.field-shell > input { width:100% }`, which is
+one type selector heavier than a lone class; an absolutely positioned box whose ancestors are all
+static resolves that against the viewport. It was 1440px wide, invisible, and hung 657px off the
+right of the page, scrolling the document into blank space at every width from 390 up. The element
+audit above cannot see it -- nothing clips a box that no ancestor contains, so every
+`el.scrollWidth - el.clientWidth` reads 0 while the document grows. Assert
+`documentElement.scrollWidth === clientWidth` on every page as well; it was the only page of twelve
+that failed, and it failed at all five widths.
 
 The cause is almost always the same — **flex and grid children default to `min-width:auto`**, so a
 long placeholder, a `white-space:nowrap` price or a fixed-width chip refuses to shrink and bursts the
@@ -863,13 +908,53 @@ Three kinds of name, and the shape of the name tells you which one you are looki
 - **A base is only worth having when the variants share more than they override.** The four chips
   share two declarations and differ on eight, so they stay four components. Forcing a base there
   would make four different badges look like one family, which is a worse lie than the duplication.
+  The six row components fail the same test: `display:flex` and `align-items:center` are all they
+  share, against gaps of 10/11/12/13, paddings of 7/10/11/12 and a hairline four of them do not have.
+- **A part carries its identifier in its name, not just in its selector.** `.entry-list-row`, never
+  `.entry-list .row` -- the tally is 103 parts written bare against 47 scoped. A generic child name
+  cannot be grepped: `class="row"` was 22 elements across two unrelated components that disagreed on
+  gap, padding, border and font size, so moving one between them restyled it and no selector said
+  which was which. Scoping also hides a part that has outlived its parent. `.account-row .amount` and
+  `.account-row .chevron` matched nothing on any page for as long as that row had been a checklist,
+  and neither end reports it -- nothing about `.account-row` says a child rule points at it, and
+  nothing about `.amount` says one of its six parents is gone. Whichever way the port scopes CSS, it
+  scopes by file and not by ancestor, so the ancestor buys nothing there either.
+- **A colour token is named for the surface it paints.** That is the one thing its value cannot tell
+  you, so the name carries it: `--text-*` is glyphs, `--bg-*` is a fill, `--border-*` is an edge.
+  Nothing writes "color" — a token is one. Before this, `--hair` said a line was thin and never what
+  it divided, and sat two lines from `--border-hairline`: two names reading as synonyms for greys
+  three shades apart. They are `--border-divider`, `--border-card` and `--border-control` now, and
+  which edge each draws is in the name. 247 references moved and not a pixel did.
+- **The named hues are the deliberate exception.** `--green` is text on a positive delta and fill on
+  a progress bar — 7 uses against 12 — so a surface prefix would be wrong half the time. `--green`,
+  `--teal`, the blues, the donut set and the icon set stay named for the hue, because that is what
+  they are: a palette, not a role.
+- **`<b>` and `<i>` are not "bold span" and "small span".** 196 of them carried this file's type: row
+  titles, meta lines, and 41 empty boxes drawing a bar fill, a swatch or a gauge marker, where `<i>`
+  computed `font-style:italic` on an element holding no text at all. They are `<span>` with part
+  names now — `.item-row-title`, `.category-row-meta`, `.chart-bar-fill`, `.meter-marker`. The one
+  that stayed semantic went the other way: the note lead-ins ("Total matches.") are `<strong>`, which
+  is what they always meant. Two things have to be measured before a tag can go:
+  - **The UA's bold is often load-bearing.** `.promo b`, `.card-kpi b`, `.empty-note b` and two
+    one-offs with no rule at all rendered 700 only because they were `<b>`. Grep each rule for
+    `font-weight` before converting; where it is absent the tag was the declaration.
+  - **A `<span>` lands in every rule keyed on a bare `span`.** `.card-kpi span` was sizing the label,
+    the value *and* the delta together; `.item-row > span:has(b)` stopped matching at all, and the
+    description column lost `min-width:0`, stopped shrinking and unwrapped a line on a page no
+    screenshot covers. Do **not** rename the bare-tag rule to get it out of the way — that strips its
+    styling from everything else it was feeding, which is how one fix became 566 moved rectangles.
+    Scope the new part to outrank it (`.card-kpi .card-kpi-value` is (0,2,0) against (0,1,1)) and
+    answer every property it sets: size, tracking, case, colour, weight.
+
 - **No abbreviations, and no shorthand.** A name that has to be decoded gets a seventh variant
   bolted onto it by someone who did not decode it. The stylesheet had reached `.iic`, `.sic`,
   `.olcol`, `.dk-hl`, `.forr`, `.om`/`.ot`/`.ov` and the single letters `.c`/`.d`/`.n`/`.t`/`.v`.
-- **Never number a variant.** Six existed and the digit meant three different things: `.frow2` was
-  *two columns*, `.empty2`/`.ring2`/`.hero2`/`.lab2` were *the other one*, and `.chip2` was a second
-  chip whose first had never existed. A number records the moment someone needed another one; it
-  never records what makes it different.
+- **Never number a variant, and that includes tokens.** Six classes existed and the digit meant three
+  different things: `.frow2` was *two columns*, `.empty2`/`.ring2`/`.hero2`/`.lab2` were *the other
+  one*, and `.chip2` was a second chip whose first had never existed. A number records the moment
+  someone needed another one; it never records what makes it different. The token block had the same
+  three — `--ink-2`, `--muted-2`, `--dark-2` — which could only be told from their unnumbered
+  neighbours by reading their hex. They are `--text-body`, `--text-faint` and `--bg-dark-lift`.
 - **Hiding is the `hidden` attribute — never a class, never an inline style.** A `.hidden` class
   would be a second mechanism for a job the platform already does, and it says nothing to a screen
   reader. `[hidden] { display: none !important }` carries the `!important` because any class that
