@@ -167,7 +167,7 @@ Sampled from the reference sheets, declared once in `:root`.
 | `--blue` / `--blue-light` | `#4F5BD5` / `#B9BFF0` | the July and June comparison series |
 | donut set | `#1FA8E0` `#14AC72` `#E8C51B` `#8B5CF6` `#D34F2E` `#F09A38` | category ring segments, with gaps |
 | icon squares | `#C43F2A` `#E9C517` `#8B5CF6` `#1FA8E0` | 36–44px rounded-square category icons |
-| avatar fills | `#235553` `#877364` `#4F5BD5` `#0E7A52` `#AD620D` `#8453F5` `#177DA7` | 28px vendor initials, white 10px/700 on top |
+| avatar fills | `#235553` `#877364` `#4F5BD5` `#0E7A52` `#AD620D` `#8453F5` `#177DA7` | 36px vendor initials, white 10px/700 on top |
 | warm (caution) | text `#84651E`, tint `#F6ECD9` | duplicate warnings, unfavourable deltas, uncertain lines |
 | track | `#E7EAE5` | meters, progress backgrounds |
 | `--bg-bar-track` | `#E2ECE9` | unfilled weekday bars |
@@ -266,6 +266,28 @@ Adjacent controls in one row share one tier.
 **Form controls keep the same height in every state.** The photo field is 48px empty ("Add a product
 photo…") and 48px filled — 32px thumbnail, filename, rounded-rect remove button. Variable-size
 content such as photos and long values renders in list rows and panels, never inside the form grid.
+
+### One data row
+
+A tile, two lines of text, an amount, sometimes a chevron. Every list of records is that row, and it
+is one spec:
+
+| | |
+| --- | --- |
+| **Row** | `padding: 10px 0`, `gap: 12px`, `align-items: center` |
+| **Tile** | 36×36, `var(--radius-compact)` |
+| **Type** | title 13px/600 · meta 11px `--text-muted` · amount 13px/600 |
+
+`.category-row` and `.entry-list-row` are the same component and had drifted apart on every value
+they own — gap 12 against 11, padding 10 against 7, tile 36 against 34, and 13/11/13 type against
+12.5/10/12.5 — which reads as two components until the rows are measured side by side, and then it
+reads as neither one being decided. `.item-row` already carried 10px and 13/11/13, so two of the
+three agreed and the third was the outlier; the tile radius went the same way, `--radius-compact` in
+16 places against a literal `11px` in 4. **Count before you match**, and match the tally rather than
+the neighbour you happened to open ([ground rules](#ground-rules)).
+
+`.order-row` is deliberately outside this: it is the page's own table, on its own denser scale
+(13.5/11.5, `padding: 12px 0`) and stacking to `grid-template-areas` on a phone ([§15](#15-responsive-containment)).
 
 ## 6. Buttons
 
@@ -658,6 +680,15 @@ an explicit previous-period delta (trend icon, "x% up/down vs June", previous va
 
 A personal, single-user system: **no avatar, no help "?", no bell, no greeting, no visible internal
 ids.** Top bar = title + global finder + SCAN RECEIPT (dark) + NEW ORDER (outline).
+
+That rule reaches inside the lists too, and it took a while to notice there: every row of Orders'
+*Latest orders* carried a pair of overlapping 15px circles beside its figure, `aria-hidden`, in no
+other list, explained nowhere. Overlapping faces mean *these people are on this*, which is a real
+affordance in the shared-finances app the layout language comes from and is nothing at all here —
+there is no second party to show. They were the only ornament in the file with no referent, and they
+were reading as data: the leftmost circle even took a per-row colour. Deleted. **An element that
+encodes nothing is worse than one that decorates, because a colour that varies by row invites a
+reader to work out what it varies with.**
 
 **Both creation paths stay on the phone.** Scanning is the fast path, but typing an order is the one
 you need when there is no receipt to scan, so it must never become the desktop-only option. The
