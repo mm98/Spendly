@@ -246,14 +246,14 @@ a[data-go] { color:inherit; text-decoration:none; }
    and pulls away from the border at the top corners, leaving a pale sliver of card
    showing between the two once the header lights up. */
 .card-header[data-go] { border-radius:calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0; }
-.card-rule { height:1px; background:var(--border-divider); margin:0 20px; }
+.card-divider { height:1px; background:var(--border-divider); margin:0 20px; }
 /* The header highlight runs edge to edge, but the rule beneath it is inset to the
    content. Left alone, the lit block ends on two lines a pixel apart and the step
    reads as a misdrawn border. While the header is lit the rule runs the full width
    instead, so the block ends on one straight edge. The rule no longer vanishes into
    the highlight -- it is --border-divider against --bg-row-hover now, and it reads as the
    bottom edge of the lit band rather than as part of the fill. */
-.card-header[data-go]:hover + .card-rule { margin-inline:0; }
+.card-header[data-go]:hover + .card-divider { margin-inline:0; }
 .card-body { padding:14px 20px 18px; }
 
 /* hero card */
@@ -862,7 +862,7 @@ label.field-shell { cursor:pointer; }
 					<a href="#" class="card-header" data-go="stats" aria-label="Spent this month, open Statistics">
 						<span class="section-label">Spent this month</span><span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span>
 					</a>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<!-- No padding-top override. Same defect as the Orders comparison card: 2px here put the
 					     big number 10px under the hairline against an 18-24px band everywhere else, and a
 					     number that close to the rule reads as a drawing error. See README section 10. -->
@@ -909,7 +909,7 @@ label.field-shell { cursor:pointer; }
 
 					<section class="card" data-card="rhythm" data-name="Spending rhythm" data-desc="Average order, and which weekday you spend on" aria-label="Spending rhythm">
 						<div class="card-header"><span class="section-label">Spending rhythm</span></div>
-						<div class="card-rule"></div>
+						<div class="card-divider"></div>
 						<div class="card-body">
 							<div class="figure-card tabular-figures">1.062,00 kr.</div>
 							<span class="card-caption" style="font-style:normal;font-size:11px;color:var(--text-muted)">average order · July</span>
@@ -928,7 +928,7 @@ label.field-shell { cursor:pointer; }
 
 					<section class="card" data-card="breakdown" data-name="Category breakdown" data-desc="Where this month's spend went, by category" aria-label="Category breakdown">
 						<div class="card-header"><span class="section-label">Category breakdown</span></div>
-						<div class="card-rule"></div>
+						<div class="card-divider"></div>
 						<div class="card-body">
 							<div class="donut-box">
 								<div class="donut" role="img" aria-label="Category split of 24.418 kroner this month">
@@ -960,7 +960,7 @@ label.field-shell { cursor:pointer; }
 
 					<section class="card" data-card="vendors" data-name="Top vendors" data-desc="The shops you spend the most at, all time" aria-label="Top vendors">
 						<a href="#" class="card-header" data-go="vendors" aria-label="Top vendors, open Vendors"><span class="section-label">Top vendors</span><span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-						<div class="card-rule"></div>
+						<div class="card-divider"></div>
 						<div class="card-body">
 							<div class="figure-card tabular-figures">48.210 kr.</div>
 							<span class="card-caption" style="font-style:normal;font-size:11px;color:var(--text-muted)">Proshop · all time</span>
@@ -980,7 +980,7 @@ label.field-shell { cursor:pointer; }
 
 					<section class="card" data-card="favcats" data-name="Favourite categories" data-desc="The categories you starred, with spend and savings" aria-label="Favourite categories" hidden>
 						<div class="card-header"><span class="section-label">Favourite categories</span></div>
-						<div class="card-rule"></div>
+						<div class="card-divider"></div>
 						<div class="card-body">
 							<div class="category-rows" style="margin-top:0">
 								<div class="category-row">
@@ -1007,7 +1007,7 @@ label.field-shell { cursor:pointer; }
 
 					<section class="card" data-card="saved" data-name="Saved vs retail" data-desc="What you paid against the retail price, this month" aria-label="Saved vs retail" hidden>
 						<div class="card-header"><span class="section-label">Saved vs retail</span></div>
-						<div class="card-rule"></div>
+						<div class="card-divider"></div>
 						<div class="card-body">
 							<div class="figure-card tabular-figures">2.106,00 kr.</div>
 							<span class="card-caption" style="font-style:normal;font-size:11px;color:var(--text-muted)">saved this month</span>
@@ -1020,7 +1020,7 @@ label.field-shell { cursor:pointer; }
 
 					<section class="card" data-card="pace" data-name="Monthly pace" data-desc="Where July lands if the rest of the month looks like the start" aria-label="Monthly pace" hidden>
 						<div class="card-header"><span class="section-label">Monthly pace</span></div>
-						<div class="card-rule"></div>
+						<div class="card-divider"></div>
 						<div class="card-body">
 							<div class="figure-card tabular-figures">30.300 kr.</div>
 							<span class="card-caption" style="font-style:normal;font-size:11px;color:var(--text-muted)">projected for July · 25 days in</span>
@@ -1036,7 +1036,7 @@ label.field-shell { cursor:pointer; }
 
 				<section class="card card-tray" id="card-tray" aria-label="Cards you can add" hidden>
 					<div class="card-header"><span class="section-label">Cards you can add</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body" id="card-tray-list"></div>
 				</section>
 			</div>
@@ -1063,7 +1063,7 @@ label.field-shell { cursor:pointer; }
 				<!-- orders / spending -->
 				<section class="card" aria-label="Orders">
 					<a href="#" class="card-header" data-go="orders" aria-label="Orders, open Orders"><span class="section-label">Orders</span><span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="chart-caption">
 							<span class="chart-caption-label">Spent this month</span>
@@ -1089,7 +1089,7 @@ label.field-shell { cursor:pointer; }
 				<!-- saved vs retail -->
 				<section class="card" aria-label="Saved vs retail">
 					<a href="#" class="card-header" data-go="stats" aria-label="Saved vs retail, open Statistics"><span class="section-label">Saved vs retail</span><span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
 							<div class="chart-caption"><span class="chart-caption-label">Total saved</span><span class="chart-caption-value tabular-figures">2.106,00 kr.</span></div>
@@ -1108,7 +1108,7 @@ label.field-shell { cursor:pointer; }
 			<div class="order-list-column">
 				<section class="card" aria-label="Spent over July">
 					<a href="#" class="card-header" data-go="stats" aria-label="Spent July 2026, open Statistics"><span class="section-label">Spent · July 2026</span><span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<!-- No padding-top override here. The 2px this card used to carry put the first line
 					     4.5px under the hairline -- the tightest in the file, against a 14-24px band
 					     everywhere else -- and it read as a rendering fault. See README section 10. -->
@@ -1125,7 +1125,7 @@ label.field-shell { cursor:pointer; }
 				<div class="two-column">
 					<section class="card" aria-label="Latest orders">
 						<div class="card-header"><span class="section-label">Latest orders</span></div>
-						<div class="card-rule"></div>
+						<div class="card-divider"></div>
 						<div class="card-body entry-list" style="padding-top:6px">
 							<a href="#" class="entry-list-row" data-go="detail"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<span><span class="entry-name">Proshop</span><br><span class="entry-meta">24 July</span></span>
@@ -1144,7 +1144,7 @@ label.field-shell { cursor:pointer; }
 					</section>
 					<section class="card" aria-label="Waiting receipts">
 						<div class="card-header"><span class="section-label">Latest receipts</span></div>
-						<div class="card-rule"></div>
+						<div class="card-divider"></div>
 						<div class="card-body" style="padding-top:6px">
 							<div class="empty-state">
 								<span class="empty-state-icon"><svg class="icon" viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg></span>
@@ -1157,7 +1157,7 @@ label.field-shell { cursor:pointer; }
 				</div>
 				<section class="card" aria-label="For you">
 					<div class="card-header"><span class="section-label">For you</span><button type="button" class="button button-pill">HOW IT WORKS</button></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body promo-row">
 						<div class="promo"><span class="chip-tag" style="background:#F6E3F1;color:#A2477F"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"></path></svg>Quick wins</span>
 							<span class="promo-title">Name that vendor</span><p>3 orders have unmatched vendor names. Confirm them to keep totals clean.</p></div>
@@ -1171,7 +1171,7 @@ label.field-shell { cursor:pointer; }
 			<div class="order-list-column">
 				<section class="card" aria-label="Returns this month">
 					<div class="card-header"><span class="section-label">Returns this month</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body"><div class="empty-state">
 						<span class="empty-state-icon"><svg class="icon" viewBox="0 0 24 24" style="width:19px;height:19px"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg></span>
 						<p>No open returns found</p>
@@ -1180,7 +1180,7 @@ label.field-shell { cursor:pointer; }
 				</section>
 				<section class="card" aria-label="Question of the day">
 					<div class="card-header"><span class="section-label">Question of the day</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em;line-height:1.35;margin:2px 0 14px">What did Groceries cost me in June?</div>
 						<button type="button" class="button button-block" style="margin-top:0"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6"></path></svg>ASK SPENDLY</button>
@@ -1188,7 +1188,7 @@ label.field-shell { cursor:pointer; }
 				</section>
 				<section class="card" aria-label="Category breakdown">
 					<div class="card-header"><span class="section-label">Category breakdown</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="segmented segmented-compact" role="tablist" style="margin-bottom:14px">
 							<button type="button" class="is-on" role="tab" aria-selected="true">Expenses</button><button type="button" role="tab" aria-selected="false">Budget</button>
@@ -1288,7 +1288,7 @@ label.field-shell { cursor:pointer; }
 						<div class="summary-row">Categories<span class="summary-row-value">Household, Groceries</span></div>
 						<div class="summary-row">Kind<span class="summary-row-value">Expense</span></div>
 						<div class="summary-row" style="border-bottom:0">Shipping<span class="summary-row-value tabular-figures">0,00 kr.</span></div>
-						<div class="card-rule" style="margin:4px 0 0"></div>
+						<div class="card-divider" style="margin:4px 0 0"></div>
 						<div class="summary-total">Total est.<span class="summary-total-value tabular-figures">0,00 kr.</span></div>
 						<span class="field-help">Items are added in step 2; the total builds as you add them.</span>
 					</div>
@@ -1372,14 +1372,14 @@ label.field-shell { cursor:pointer; }
 						<span class="section-label" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:600;display:block;margin-top:10px">Items</span>
 						<div class="summary-row">Shampoo, 500 ml × 2<span class="summary-row-value tabular-figures">179,90 kr.</span></div>
 						<div class="summary-row" style="border-bottom:0">Tandpasta × 3<span class="summary-row-value tabular-figures">68,85 kr.</span></div>
-						<div class="card-rule" style="margin:4px 0 0"></div>
+						<div class="card-divider" style="margin:4px 0 0"></div>
 						<div class="summary-total">Total est.<span class="summary-total-value tabular-figures">248,75 kr.</span></div>
 						<span class="field-help" style="color:var(--green);font-weight:600">saved 42,00 kr. vs retail (14,4%)</span>
 					</div>
 				</section>
 				<section class="card" aria-label="Tips">
 					<div class="card-header"><span class="section-label">Good to know</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="inset-panel">
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M3 9l4 -4l4 4m-4 -4v14 M21 15l-4 4l-4 -4m4 4v-14"></path></svg></span><span><span class="item-row-title">Drag to reorder</span><span class="item-row-meta">The order here is the order on the receipt.</span></span></div>
@@ -1408,16 +1408,16 @@ label.field-shell { cursor:pointer; }
 				</section>
 				<section class="card" aria-label="Items">
 					<div class="card-header"><span class="section-label">Items · 4</span><span class="field-help tabular-figures">4.249,00 kr.</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body" style="padding-top:6px">
 						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Dell UltraSharp U2723QE 27 tommer</span><span class="item-row-meta">1 × 3.199,00 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">3.199,00 kr.</span></div>
 						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Logitech MX Master 3S</span><span class="item-row-meta">1 × 749,00 kr. · Replaces the one that drowned in coffee</span></span><span class="amount tabular-figures" style="color:var(--text)">749,00 kr.</span></div>
 						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">USB-C dock, 6 porte</span><span class="item-row-meta">1 × 249,00 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">249,00 kr.</span></div>
 						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Kabelbindere, 100 stk.</span><span class="item-row-meta">2 × 26,00 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">52,00 kr.</span></div>
-						<div class="card-rule" style="margin:6px 0 0"></div>
+						<div class="card-divider" style="margin:6px 0 0"></div>
 						<div class="summary-row">Items subtotal<span class="summary-row-value tabular-figures">4.249,00 kr.</span></div>
 						<div class="summary-row" style="border-bottom:0">Shipping<span class="summary-row-value tabular-figures">49,00 kr.</span></div>
-						<div class="card-rule" style="margin:2px 0 0"></div>
+						<div class="card-divider" style="margin:2px 0 0"></div>
 						<div class="summary-total">Total<span class="summary-total-value tabular-figures" style="color:var(--text-strong)">4.298,00 kr.</span></div>
 						<span class="field-help" style="color:var(--green);font-weight:600">saved 612,00 kr. vs retail (12,5%)</span>
 					</div>
@@ -1426,7 +1426,7 @@ label.field-shell { cursor:pointer; }
 			<div class="order-list-column">
 				<section class="card" aria-label="Details">
 					<div class="card-header"><span class="section-label">Details</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body" style="padding-top:4px">
 						<div class="summary-row">Status<span class="summary-row-value">Delivered</span></div>
 						<div class="summary-row">Date<span class="summary-row-value tabular-figures">24.07.2026</span></div>
@@ -1438,7 +1438,7 @@ label.field-shell { cursor:pointer; }
 				</section>
 				<section class="card" aria-label="Attachments">
 					<div class="card-header"><span class="section-label">Attachments · 1</span><button type="button" class="button button-pill">ADD FILE</button></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body" style="padding-top:6px">
 						<div class="item-row"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
 							<span><span class="item-row-title">faktura-303.pdf</span><span class="item-row-meta">Scanned 24 July · 214 KB</span></span>
@@ -1526,7 +1526,7 @@ label.field-shell { cursor:pointer; }
 							</div>
 							<div class="summary-row">Lines subtotal<span class="summary-row-value tabular-figures">1.187,25 kr.</span></div>
 							<div class="summary-row" style="border-bottom:0">Shipping<span class="summary-row-value tabular-figures">0,00 kr.</span></div>
-							<div class="card-rule" style="margin:2px 0 0"></div>
+							<div class="card-divider" style="margin:2px 0 0"></div>
 							<div class="summary-total">Total<span class="summary-total-value tabular-figures" style="color:var(--text-strong)">1.187,25 kr.</span></div>
 							<div class="form-actions form-actions-split">
 								<button type="button" class="button button-ghost" data-go="scan">DISCARD</button>
@@ -1539,7 +1539,7 @@ label.field-shell { cursor:pointer; }
 			<div class="order-list-column">
 				<section class="card" aria-label="Source document">
 					<div class="card-header"><span class="section-label">Source</span><button type="button" class="button button-pill">OPEN</button></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="document-preview" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></div>
 						<div class="space-between" style="margin-top:10px"><span style="font-size:12.5px;font-weight:600">kvittering-bilka.jpg</span><span class="field-help">2,1 MB</span></div>
@@ -1548,7 +1548,7 @@ label.field-shell { cursor:pointer; }
 				</section>
 				<section class="card" aria-label="Possible duplicate">
 					<div class="card-header"><span class="section-label">Possible duplicate</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="note note-warning" style="margin-bottom:10px"><strong>Check before saving.</strong> You already have a Bilka order within 14 days of this date.</div>
 						<a href="#" class="item-row" data-go="detail"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
@@ -1558,7 +1558,7 @@ label.field-shell { cursor:pointer; }
 				</section>
 				<section class="card" aria-label="What was checked">
 					<div class="card-header"><span class="section-label">What was checked</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="inset-panel">
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Totals reconciled</span><span class="item-row-meta">Document total incl. 25% VAT anchors the draft.</span></span></div>
@@ -1617,7 +1617,7 @@ label.field-shell { cursor:pointer; }
 			</section>
 			<section class="card" aria-label="Orders">
 				<div class="card-header"><span class="section-label">Orders · 3 match</span><span class="field-help">filtered from 142</span></div>
-				<div class="card-rule"></div>
+				<div class="card-divider"></div>
 				<div class="card-body" style="padding-top:4px">
 					<a href="#" class="order-row" data-go="detail">
 						<span><span class="order-row-vendor">Bilka</span><span class="order-row-meta">18 July · 23 items · Groceries</span></span>
@@ -1658,7 +1658,7 @@ label.field-shell { cursor:pointer; }
 			<div class="section-header" data-view-only="overview"><span class="section-label">Favourites</span><button type="button" class="button button-pill">SEE ALL</button></div>
 			<div class="spotlight-pair">
 				<section class="card"><div class="card-header"><span class="section-label">Proshop</span><span class="chip"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245"></path></svg>Favourite · saved 6.940 kr.</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="lead-sentence">Your biggest vendor: 48.210 kr. across 34 orders.</div>
 						<div class="inset-panel">
@@ -1668,7 +1668,7 @@ label.field-shell { cursor:pointer; }
 						<button type="button" class="button button-ghost">VIEW ORDERS</button>
 					</div></section>
 				<section class="card"><div class="card-header"><span class="section-label">Bilka</span><span class="chip"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245"></path></svg>Favourite · saved 3.210 kr.</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="lead-sentence">Your most frequent vendor: 96 orders, 41.882 kr.</div>
 						<div class="inset-panel">
@@ -1716,7 +1716,7 @@ label.field-shell { cursor:pointer; }
 				</div>
 				<section class="card" aria-label="Recent scans">
 					<div class="card-header"><span class="section-label">Recent scans</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body" style="padding-top:10px">
 						<div class="inset-panel">
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">kvittering-bilka.jpg</span><span class="item-row-meta">18 July · 23 items found</span></span><span class="amount tabular-figures" style="color:var(--text)">1.187,25 kr.</span></div>
@@ -1734,7 +1734,7 @@ label.field-shell { cursor:pointer; }
 			<div class="two-column">
 				<section class="card" aria-label="Categories">
 					<div class="card-header"><span class="section-label">Categories</span><button type="button" class="button button-pill">ADD</button></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="category-rows" style="margin-top:0">
 							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><span><span class="category-row-title">Groceries</span><span class="category-row-meta">38% of expenses</span></span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
@@ -1754,7 +1754,7 @@ label.field-shell { cursor:pointer; }
 					</div>
 					<section class="card" aria-label="Breakdown">
 						<div class="card-header"><span class="section-label">Breakdown · July</span></div>
-						<div class="card-rule"></div>
+						<div class="card-divider"></div>
 						<div class="card-body donut-box">
 							<div class="donut" role="img" aria-label="Category split of 24.418 kroner">
 								<span class="ring-centre"><span class="ring-centre-value tabular-figures">24.418 kr.</span><span class="ring-centre-label">Spent this month</span></span>
@@ -1779,7 +1779,7 @@ label.field-shell { cursor:pointer; }
 			<section class="card" aria-label="Overview">
 				<div class="card-header"><span class="section-label">Overview · July against June</span>
 					<div class="range-tabs" role="group" aria-label="Range" style="margin:0"><button type="button" data-range="1W" aria-pressed="false">1W</button><button type="button" data-range="1M" class="is-on" aria-pressed="true">1M</button><button type="button" data-range="3M" aria-pressed="false">3M</button><button type="button" data-range="YTD" aria-pressed="false">YTD</button><button type="button" data-range="ALL" aria-pressed="false">ALL</button></div></div>
-				<div class="card-rule"></div>
+				<div class="card-divider"></div>
 				<div class="card-body" style="padding-top:4px">
 					<svg class="chart" data-h="210" data-pad="10" style="display:block;width:100%;height:210px" role="img" aria-label="Cumulative spend per day, July solid, June dashed"><defs><linearGradient id="stats-spend-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14AC72" stop-opacity=".2"></stop><stop offset="1" stop-color="#14AC72" stop-opacity="0"></stop></linearGradient></defs><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="area" fill="url(#stats-spend-gradient)" stroke="none"></path><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="curve" fill="none" stroke="#14AC72" stroke-width="2.4"></path><path data-series="186,184,183,178,175,172,170,167,164,162,160,155,148,143,141,139,136,130,126,119,114,109,104,99,94,93,92,91,88,86" data-kind="curve" fill="none" stroke="#95ABAA" stroke-width="1.6" stroke-dasharray="4 4"></path></svg>
 					<div class="chart-ruler" aria-hidden="true"></div>
@@ -1789,7 +1789,7 @@ label.field-shell { cursor:pointer; }
 			<div class="two-column">
 				<section class="card" aria-label="Pace">
 					<div class="card-header"><span class="section-label">Pace</span><span class="field-help">25 days in</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="figure-large tabular-figures" style="font-size:22px">30.300 kr.</div>
 						<span class="field-help">projected for July · 24.418,57 kr. spent so far</span>
@@ -1801,7 +1801,7 @@ label.field-shell { cursor:pointer; }
 				</section>
 				<section class="card" aria-label="Weekly rhythm">
 					<div class="card-header"><span class="section-label">Weekly rhythm</span><span class="field-help">busiest day: Sunday</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="figure-large tabular-figures" style="font-size:22px">34% <span style="font-weight:500;font-size:14px;color:var(--text-muted)">of spend lands on weekends</span></div>
 						<div class="weekday-bars" style="height:86px" aria-hidden="true">
@@ -1819,7 +1819,7 @@ label.field-shell { cursor:pointer; }
 			<div class="two-column">
 				<section class="card" aria-label="Where it went">
 					<div class="card-header"><span class="section-label">Where it went</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body spend-gauge-row">
 						<div class="spend-gauge"><span class="ring-centre"><span class="ring-centre-value tabular-figures">24.418 kr.</span><span class="ring-centre-label">July 2026</span></span></div>
 						<div class="chart-legend" style="flex:1;min-width:170px">
@@ -1832,7 +1832,7 @@ label.field-shell { cursor:pointer; }
 				</section>
 				<section class="card" aria-label="Last six months">
 					<div class="card-header"><span class="section-label">Last six months</span><span class="field-help">July is the highest so far</span></div>
-					<div class="card-rule"></div>
+					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="month-columns">
 							<div><span class="month-columns-fill" style="height:48%"></span><span>Feb</span></div>
@@ -1847,7 +1847,7 @@ label.field-shell { cursor:pointer; }
 			</div>
 			<section class="card" aria-label="Returns">
 				<div class="card-header"><span class="section-label">Returns · July</span></div>
-				<div class="card-rule"></div>
+				<div class="card-divider"></div>
 				<div class="card-body"><div class="empty-state" style="padding:14px 12px">
 					<p>No open returns. Zalando was returned on 5 July and refunded in full: 799,00 kr.</p>
 					<button type="button" class="button-link" data-go="orders2">SEE RETURN HISTORY</button>

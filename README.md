@@ -472,7 +472,7 @@ taller than the FILTERS and Sort controls sharing its row.
   (`.button-link`) appear only inside empty states.
 - Empty states: loop glyph, one sentence, underlined caps action.
 - Exactly **one dark card per screen** — the AI/contextual slot.
-- A card header that navigates gets the chevron **and** the standard `.card-rule` hairline. The tally
+- A card header that navigates gets the chevron **and** the standard `.card-divider` hairline. The tally
   was 35 headers with the hairline against 4 without, and the 4 were the chart cards.
 - **The body's `14px` top padding is the default for a reason: do not tighten it under a hairline.**
   The two spend cards overrode `.card-body` to `padding-top: 2px`, which left the first line of text
