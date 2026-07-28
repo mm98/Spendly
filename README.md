@@ -1108,6 +1108,28 @@ Three kinds of name, and the shape of the name tells you which one you are looki
     Expect the converted elements' own rects to change regardless — an inline box's rect is its font's
     content area, a block's is its line box — and check that nothing *around* them did.
 
+- **A block is a `<div>`. Never a `<span>` told to be one.** 186 of them carried a class declaring
+  `display:block` — row titles, meta lines, and the textless boxes drawing a bar fill, a swatch or a
+  gauge marker. It is the same defect as the `<br>` above with the tag reversed: the element says
+  inline and the box is not, and the stylesheet has to correct the markup on every render. This is
+  also why `<b>` and `<i>` could not simply have been kept and styled — they are phrasing content too,
+  so the block ones would have needed the same correction. Three things the sweep turned up:
+  - **The set is bigger than the rules match.** 137 elements matched a rule; 51 more had to come with
+    them, because a `<div>` may not sit inside a `<span>` — the parser breaks it up. Take the closure
+    over span ancestors before counting, or half the conversion produces invalid markup.
+  - **Two of them cannot be divs at all.** `.compare-tabs-value` sits inside a `<button>`, whose
+    content model is phrasing content only. They stay spans, and that is the rule's one exception:
+    where a block-styled span is inside a button, the button is the thing to change, not the span.
+  - **Every bare-tag rule keyed on `span` is a tripwire.** Five stopped matching what they had fed:
+    `.chart-series-key span` and `.combobox-group > span` went to zero, `.item-row > span:has(…)` to
+    zero across both its copies, and `.weekday-bars span` and `.month-columns span` quietly halved.
+    The first three name their parts now (`.chart-series-key-row`, `.combobox-group-heading`, and a
+    `> div:has()`); the last two were always meant for their labels and now match only those. Read the
+    match count of every rule naming a bare tag before and after, not just the ones you edited.
+
+  The `display:block` declarations are left standing on the converted elements. They are redundant on
+  a `<div>`, but redundant is not the same as safe to delete, and dropping 23 of them is its own change
+  with its own walk.
 - **No abbreviations, and no shorthand.** A name that has to be decoded gets a seventh variant
   bolted onto it by someone who did not decode it. The stylesheet had reached `.iic`, `.sic`,
   `.olcol`, `.dk-hl`, `.forr`, `.om`/`.ot`/`.ov` and the single letters `.c`/`.d`/`.n`/`.t`/`.v`.
