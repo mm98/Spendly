@@ -35,6 +35,15 @@ changed width when the selection moved, because the active segment was bolder an
 a control has (selected/resting, empty/filled, open/closed, wrapped/unwrapped) and compare geometry
 across them.
 
+**A declaration that is redundant in one viewport is not a redundant declaration.** Dropping each
+remaining inline declaration, reading the computed value back and restoring it found 8 that changed
+nothing — a clean, mechanical proof, run at 1440 only. Three of the 8 were phone overrides: the
+`@media (max-width:700px)` rule `.row-inline { flex-wrap:wrap }` is exactly what they were holding
+off, and they read as dead at desktop because that is where they agree with the cascade. The full
+walk caught all three at 390px, 42 fields across 14 states. Any probe that decides a value is
+unnecessary has to run at every width the stylesheet has an opinion about, or it is only testing
+where nothing disagrees.
+
 **A correct render is not a correct control.** The status segmented control read Delivered / Ordered
 / Returned in all three places it appears, for as long as it existed — pixel-perfect in every engine,
 identical in every state, and saying that an order is delivered before it is placed. FILTERS, one

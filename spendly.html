@@ -120,10 +120,17 @@ body {
 .tabular-figures { font-variant-numeric:tabular-nums; }
 /* The generic big-number class, matching .figure-headline and .figure-card. It shipped with no rule at
    all for a while, so four headline figures rendered at the body's 500 with proportional
-   figures while the spec called for 700 -- a class that looks styled and is not. Size stays
-   inline per site; weight and tracking do not. See README section 3. */
-.figure-large { font-weight:700; letter-spacing:-.02em; }
+   figures while the spec called for 700 -- a class that looks styled and is not. The size
+   was inline per site after that, which let one site drift to 24px against three at 22px;
+   a size class that does not set a size is the same defect wearing the earlier fix. See
+   README section 3. */
+.figure-large { font-size:22px; font-weight:700; letter-spacing:-.02em; }
 .space-between { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+/* Held against the phone rule .row-inline { flex-wrap:wrap } -- a status row and
+   a pair of icon buttons that must stay on one line at every width. Two classes
+   deep so the media query cannot outrank it on source order. */
+.row-inline.row-inline-nowrap { flex-wrap:nowrap; }
+.key-cap-push { margin-left:auto; }
 .space-between-tight { margin-bottom:4px; }
 svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
@@ -278,6 +285,17 @@ a[data-go] { color:inherit; text-decoration:none; }
    bottom edge of the lit band rather than as part of the fill. */
 .card-header[data-go]:hover + .card-divider { margin-inline:0; }
 .card-body { padding:14px 20px 18px; }
+/* Card body padding. Five variants lived inline, and the three that only tightened
+   the top of a list card disagreed at 6px, 4px and 10px for one job -- section 10's
+   warning is about not tightening under a hairline, not about doing it three ways.
+   .card-steps and the summary card are reachable by structure; the other two are not,
+   so they are named. Match counts checked: 4, 2, 4, 8, 1, 1. */
+.card-steps .card-body { padding:16px 20px; }
+.card-body:has(> .card-subheading) { padding:18px 20px; }
+.card-body-page { padding:20px 22px; }
+.card-body-tight { padding-top:6px; }
+.card-body-centered { padding:34px 28px; display:grid; justify-items:center; gap:14px; text-align:center; }
+.card-body-filters { padding:16px 18px; display:grid; gap:12px; }
 /* The page heading inside a card and the sentence under it. Seven headings were
    unclassed <div>s carrying the full spec, which is how two of them ended up at
    17px against the other five at 19px, and the lead's bottom margin at 16px
@@ -322,6 +340,8 @@ svg.chart { width:100%; display:block; }
 /* dashboard card row */
 .dashboard-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
 .figure-card { font-size:21px; font-weight:700; letter-spacing:-.02em; }
+/* The vendor cards ride in a horizontal scroller and take the smaller figure. */
+.scroll-row .figure-card { font-size:17px; }
 
 /* card personalisation.
    Reordering is button-driven, never drag-only: a keyboard has to be able to do
@@ -383,7 +403,7 @@ svg.chart { width:100%; display:block; }
 .ai-card-title-text { display:block; font-size:13.5px; font-weight:700; }
 .ai-card-title-meta { font-style:normal; font-size:11.5px; color:var(--text-on-dark); }
 .ai-card-header .chevron { margin-left:auto; color:var(--text-on-dark); }
-.ai-card-headline { font-size:19px; font-weight:700; letter-spacing:-.01em; margin:16px 0 8px; }
+.ai-card-headline { font-size:16px; font-weight:700; letter-spacing:-.01em; margin:2px 0 8px; }
 .ai-card-body { font-size:12.5px; color:var(--text-on-dark); line-height:1.55; margin:0; }
 .ai-card-actions { display:flex; align-items:center; gap:18px; margin-top:12px; }
 /* White on the dark card, rather than a button of its own. */
@@ -667,13 +687,18 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .stepper-step.stepper-step-done .stepper-step-label { color:var(--text); }
 .summary-row { display:flex; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid var(--border-divider); font-size:13px; color:var(--text-muted); }
 .summary-row-value { font-weight:600; color:var(--text); text-align:right; }
+.summary-row-value-saving { color:var(--green); }
 /* The rule is "last in its run", and the run ends three different ways across
    the six lists -- at the end of the card body, at a .card-divider before the
    total, and at a .section-label starting the next group. Matching on what
    follows covers all three; :last-child alone missed two of them. */
 .summary-row:not(:has(+ .summary-row)) { border-bottom:0; }
 .summary-total { display:flex; justify-content:space-between; align-items:baseline; padding-top:14px; font-size:16px; font-weight:600; }
-.summary-total .summary-total-value { color:var(--green); font-weight:700; font-size:19px; }
+/* The settled total is the default; green marks the estimate you are still
+   composing. The rule had it the other way round, so both real totals set
+   --text-strong inline to undo it. */
+.summary-total .summary-total-value { color:var(--text-strong); font-weight:700; font-size:19px; }
+.summary-total .summary-total-value-estimate { color:var(--green); }
 /* Flex/grid children default to min-width:auto, so a long placeholder or a
    nowrap chip forces the whole panel wider than its card and the overflow gets
    clipped, not scrolled: the controls simply become unreachable. Every layout
@@ -900,7 +925,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<div class="field-shell">
 					<svg class="icon" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg>
 					<input type="search" value="bil" placeholder="Search orders, vendors, notes…" aria-label="Search everything">
-					<span class="key-cap" style="margin-left:auto">CTRL K</span>
+					<span class="key-cap key-cap-push">CTRL K</span>
 				</div>
 				<div class="combobox-panel" role="listbox" aria-label="Search everything">
 					<div class="combobox-group"><span>Orders</span>
@@ -1127,7 +1152,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<span class="ai-card-title"><span class="ai-card-title-text">Get receipts read for you</span><span class="ai-card-title-meta">Finish setting up Spendly</span></span>
 						<span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span>
 					</a>
-					<div class="ai-card-headline" style="font-size:17px">Scan receipts, skip typing</div>
+					<div class="ai-card-headline">Scan receipts, skip typing</div>
 					<p class="ai-card-body">A PDF, photo or screenshot becomes a draft order. You review every value before it is saved.</p>
 					<div class="ai-card-actions">
 						<button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button>
@@ -1189,7 +1214,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					     4.5px under the hairline -- the tightest in the file, against a 14-24px band
 					     everywhere else -- and it read as a rendering fault. See README section 10. -->
 					<div class="card-body">
-						<div class="figure-large tabular-figures" style="font-size:24px">24.418,57 kr.</div>
+						<div class="figure-large tabular-figures">24.418,57 kr.</div>
 						<!-- The comparison period is fixed to the one before, so the key names both plotted
 						     lines instead of offering a choice the app does not have. -->
 						<div class="chart-series-key"><span><span class="chart-series-key-swatch" style="background:var(--blue)"></span>July</span><span><span class="chart-series-key-swatch" style="background:var(--blue-light)"></span>June</span></div>
@@ -1202,10 +1227,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<section class="card" aria-label="Latest orders">
 						<div class="card-header"><span class="section-label">Latest orders</span></div>
 						<div class="card-divider"></div>
-						<div class="card-body entry-list" style="padding-top:6px">
+						<div class="card-body entry-list card-body-tight">
 							<a href="#" class="entry-list-row" data-go="detail"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<span><span class="entry-name">Proshop</span><br><span class="entry-meta">24 July</span></span>
-								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#8B5CF6"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+612,00 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#8B5CF6"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+612,00 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<span><span class="entry-name">Matas</span><br><span class="entry-meta">21 July</span></span>
 								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#F09A38"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+88,00 kr.</span></div>
@@ -1221,7 +1246,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<section class="card" aria-label="Waiting receipts">
 						<div class="card-header"><span class="section-label">Latest receipts</span></div>
 						<div class="card-divider"></div>
-						<div class="card-body" style="padding-top:6px">
+						<div class="card-body card-body-tight">
 							<div class="empty-state">
 								<span class="empty-state-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg></span>
 								<p>No receipts waiting. Scan one and the order drafts itself.</p>
@@ -1287,7 +1312,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		<!-- ============ NEW ORDER · form entry in the system's control language ============ -->
 		<div class="page" data-page="create">
 			<section class="card card-steps" aria-label="Steps">
-				<div class="card-body" style="padding:16px 20px">
+				<div class="card-body">
 					<div class="stepper">
 						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 							<span class="stepper-bar"></span><span class="stepper-step-label">Order details</span></div>
@@ -1299,7 +1324,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="order-list-grid">
 			<div class="order-list-column">
 				<section class="card" aria-label="Order details">
-					<div class="card-body" style="padding:20px 22px">
+					<div class="card-body card-body-page">
 						<div class="card-headline">Order details</div>
 						<p class="card-lead">Where you bought, when, and how it arrived.</p>
 						<div class="form form-wide">
@@ -1338,7 +1363,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 									<span class="field-help">Only expenses count towards your totals.</span></label>
 							</div>
 							<div class="filter-section">
-								<div class="space-between"><span class="panel-heading" style="font-size:14px">More details?</span><button type="button" class="switch" role="switch" aria-checked="true" aria-label="More details"></button></div>
+								<div class="space-between"><span class="panel-heading">More details?</span><button type="button" class="switch" role="switch" aria-checked="true" aria-label="More details"></button></div>
 								<div class="field-pair">
 									<label class="field"><span>Shipping fee</span><div class="field-shell"><input type="text" inputmode="decimal" placeholder="0,00" aria-label="Shipping fee"><span class="field-unit">kr.</span></div></label>
 									<label class="field"><span>Order reference</span><div class="field-shell"><input type="text" placeholder="Optional" aria-label="Note"></div></label>
@@ -1355,7 +1380,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			</div>
 			<div class="order-list-column">
 				<section class="card" aria-label="Order summary">
-					<div class="card-body" style="padding:18px 20px">
+					<div class="card-body">
 						<div class="card-subheading">Order summary</div>
 						<span class="section-label">Order details</span>
 						<div class="summary-row">Vendor<span class="summary-row-value">Matas</span></div>
@@ -1365,12 +1390,12 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="summary-row">Kind<span class="summary-row-value">Expense</span></div>
 						<div class="summary-row">Shipping<span class="summary-row-value tabular-figures">0,00 kr.</span></div>
 						<div class="card-divider card-divider-tight"></div>
-						<div class="summary-total">Total est.<span class="summary-total-value tabular-figures">0,00 kr.</span></div>
+						<div class="summary-total">Total est.<span class="summary-total-value summary-total-value-estimate tabular-figures">0,00 kr.</span></div>
 						<span class="field-help">Items are added in step 2; the total builds as you add them.</span>
 					</div>
 				</section>
 				<section class="card card-ai" aria-label="Scan instead">
-					<div class="ai-card-headline" style="font-size:16px;margin-top:2px">Have the receipt? Skip the form.</div>
+					<div class="ai-card-headline">Have the receipt? Skip the form.</div>
 					<p class="ai-card-body">A photo or PDF fills every field for you; you only review it.</p>
 					<div class="ai-card-actions"><button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button>
 						<span class="ai-card-mark" style="width:34px;height:34px" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span></div>
@@ -1382,7 +1407,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		<!-- ============ NEW ORDER · step 2: add the items ============ -->
 		<div class="page" data-page="create2">
 			<section class="card card-steps" aria-label="Steps">
-				<div class="card-body" style="padding:16px 20px">
+				<div class="card-body">
 					<div class="stepper">
 						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Order details</span></div>
 						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
@@ -1393,7 +1418,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="order-list-grid">
 			<div class="order-list-column">
 				<section class="card" aria-label="Add the items">
-					<div class="card-body" style="padding:20px 22px">
+					<div class="card-body card-body-page">
 						<div class="card-headline">Add the items</div>
 						<p class="card-lead">Line by line, with the price you paid and what it would have cost at retail.</p>
 						<div class="form form-wide">
@@ -1439,7 +1464,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			</div>
 			<div class="order-list-column">
 				<section class="card" aria-label="Order summary">
-					<div class="card-body" style="padding:18px 20px">
+					<div class="card-body">
 						<div class="card-subheading">Order summary</div>
 						<span class="section-label">Order details</span>
 						<div class="summary-row">Vendor<span class="summary-row-value">Matas</span></div>
@@ -1449,7 +1474,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="summary-row">Shampoo, 500 ml × 2<span class="summary-row-value tabular-figures">179,90 kr.</span></div>
 						<div class="summary-row">Tandpasta × 3<span class="summary-row-value tabular-figures">68,85 kr.</span></div>
 						<div class="card-divider card-divider-tight"></div>
-						<div class="summary-total">Total est.<span class="summary-total-value tabular-figures">248,75 kr.</span></div>
+						<div class="summary-total">Total est.<span class="summary-total-value summary-total-value-estimate tabular-figures">248,75 kr.</span></div>
 						<span class="field-help" style="color:var(--green);font-weight:600">saved 42,00 kr. vs retail (14,4%)</span>
 					</div>
 				</section>
@@ -1471,11 +1496,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		<div class="page" data-page="detail"><div class="order-list-grid">
 			<div class="order-list-column">
 				<section class="card" aria-label="Order">
-					<div class="card-body" style="padding:20px 22px">
+					<div class="card-body card-body-page">
 						<div class="space-between" style="align-items:flex-start">
 							<div><div style="font-size:22px;font-weight:600;letter-spacing:-.01em">Proshop</div>
 									<div class="field-help" style="font-size:12.5px">24 July 2026 · 4 items</div></div>
-							<div class="row-inline" style="gap:8px;flex-wrap:nowrap"><span class="chip-status">Delivered</span>
+							<div class="row-inline row-inline-nowrap" style="gap:8px"><span class="chip-status">Delivered</span>
 								<button type="button" class="icon-button icon-button-arrow" aria-label="Edit order"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button>
 								<button type="button" class="icon-button icon-button-arrow" aria-label="Delete order"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></div>
 						</div>
@@ -1485,7 +1510,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<section class="card" aria-label="Items">
 					<div class="card-header"><span class="section-label">Items · 4</span><span class="field-help tabular-figures">4.249,00 kr.</span></div>
 					<div class="card-divider"></div>
-					<div class="card-body" style="padding-top:6px">
+					<div class="card-body card-body-tight">
 						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Dell UltraSharp U2723QE 27 tommer</span><span class="item-row-meta">1 × 3.199,00 kr.</span></span><span class="amount tabular-figures">3.199,00 kr.</span></div>
 						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Logitech MX Master 3S</span><span class="item-row-meta">1 × 749,00 kr. · Replaces the one that drowned in coffee</span></span><span class="amount tabular-figures">749,00 kr.</span></div>
 						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">USB-C dock, 6 porte</span><span class="item-row-meta">1 × 249,00 kr.</span></span><span class="amount tabular-figures">249,00 kr.</span></div>
@@ -1494,7 +1519,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="summary-row">Items subtotal<span class="summary-row-value tabular-figures">4.249,00 kr.</span></div>
 						<div class="summary-row">Shipping<span class="summary-row-value tabular-figures">49,00 kr.</span></div>
 						<div class="card-divider" style="margin:2px 0 0"></div>
-						<div class="summary-total">Total<span class="summary-total-value tabular-figures" style="color:var(--text-strong)">4.298,00 kr.</span></div>
+						<div class="summary-total">Total<span class="summary-total-value tabular-figures">4.298,00 kr.</span></div>
 						<span class="field-help" style="color:var(--green);font-weight:600">saved 612,00 kr. vs retail (12,5%)</span>
 					</div>
 				</section>
@@ -1503,26 +1528,26 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<section class="card" aria-label="Details">
 					<div class="card-header"><span class="section-label">Details</span></div>
 					<div class="card-divider"></div>
-					<div class="card-body" style="padding-top:4px">
+					<div class="card-body card-body-tight">
 						<div class="summary-row">Status<span class="summary-row-value">Delivered</span></div>
 						<div class="summary-row">Date<span class="summary-row-value tabular-figures">24.07.2026</span></div>
 						<div class="summary-row">Vendor<span class="summary-row-value">Proshop</span></div>
 						<div class="summary-row">Categories<span class="summary-row-value">Electronics, Home office</span></div>
 						<div class="summary-row">Kind<span class="summary-row-value">Expense</span></div>
-						<div class="summary-row">Saved vs retail<span class="summary-row-value tabular-figures" style="color:var(--green)">612,00 kr. (12,5%)</span></div>
+						<div class="summary-row">Saved vs retail<span class="summary-row-value tabular-figures summary-row-value-saving">612,00 kr. (12,5%)</span></div>
 					</div>
 				</section>
 				<section class="card" aria-label="Attachments">
 					<div class="card-header"><span class="section-label">Attachments · 1</span><button type="button" class="button button-pill">ADD FILE</button></div>
 					<div class="card-divider"></div>
-					<div class="card-body" style="padding-top:6px">
+					<div class="card-body card-body-tight">
 						<div class="item-row"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
 							<span><span class="item-row-title">faktura-303.pdf</span><span class="item-row-meta">Scanned 24 July · 214 KB</span></span>
-							<span class="row-inline" style="gap:4px;flex-wrap:nowrap;margin-left:auto"><button type="button" class="icon-button icon-button-arrow" aria-label="Open attachment"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete attachment"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
+							<span class="row-inline row-inline-nowrap" style="gap:4px;margin-left:auto"><button type="button" class="icon-button icon-button-arrow" aria-label="Open attachment"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete attachment"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
 					</div>
 				</section>
 				<section class="card card-ai" aria-label="Scan another">
-					<div class="ai-card-headline" style="font-size:16px;margin-top:2px">Another receipt from this trip?</div>
+					<div class="ai-card-headline">Another receipt from this trip?</div>
 					<p class="ai-card-body">Scan it and Spendly checks it against this order for duplicates.</p>
 					<div class="ai-card-actions"><button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button></div>
 				</section>
@@ -1531,7 +1556,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		<!-- ============ SCAN · step 2: reading ============ -->
 		<div class="page" data-page="scan2">
 			<section class="card card-steps" aria-label="Steps">
-				<div class="card-body" style="padding:16px 20px">
+				<div class="card-body">
 					<div class="stepper" style="grid-template-columns:1fr 1fr 1fr">
 						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Upload</span></div>
 						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M8 12h8 M8 9h6 M8 15h4 M3 7v-2a2 2 0 0 1 2 -2h2 M3 17v2a2 2 0 0 0 2 2h2 M17 3h2a2 2 0 0 1 2 2v2 M17 21h2a2 2 0 0 0 2 -2v-2"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Reading</span></div>
@@ -1540,7 +1565,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				</div>
 			</section>
 			<section class="card" aria-label="Reading the document" aria-busy="true">
-				<div class="card-body" style="padding:34px 28px;display:grid;justify-items:center;gap:14px;text-align:center">
+				<div class="card-body card-body-centered">
 					<div class="document-preview" style="width:120px;height:150px" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></div>
 					<div>
 						<div class="card-headline">Reading kvittering-bilka.jpg</div>
@@ -1555,7 +1580,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		<!-- ============ SCAN · step 3: review ============ -->
 		<div class="page" data-page="scan3">
 			<section class="card card-steps" aria-label="Steps">
-				<div class="card-body" style="padding:16px 20px">
+				<div class="card-body">
 					<div class="stepper" style="grid-template-columns:1fr 1fr 1fr">
 						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Upload</span></div>
 						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Reading</span></div>
@@ -1566,7 +1591,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="order-list-grid">
 			<div class="order-list-column">
 				<section class="card" aria-label="Review the draft">
-					<div class="card-body" style="padding:20px 22px">
+					<div class="card-body card-body-page">
 						<div class="card-headline">Review the draft</div>
 						<p class="card-lead">Every value is editable. Nothing is stored until you save.</p>
 						<div class="note note-positive" style="margin-bottom:16px"><strong>Total matches.</strong> The document total 1.187,25 kr. includes 25% VAT and agrees with the 23 lines read.</div>
@@ -1603,7 +1628,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 							<div class="summary-row">Lines subtotal<span class="summary-row-value tabular-figures">1.187,25 kr.</span></div>
 							<div class="summary-row">Shipping<span class="summary-row-value tabular-figures">0,00 kr.</span></div>
 							<div class="card-divider" style="margin:2px 0 0"></div>
-							<div class="summary-total">Total<span class="summary-total-value tabular-figures" style="color:var(--text-strong)">1.187,25 kr.</span></div>
+							<div class="summary-total">Total<span class="summary-total-value tabular-figures">1.187,25 kr.</span></div>
 							<div class="form-actions form-actions-split">
 								<button type="button" class="button button-ghost" data-go="scan">DISCARD</button>
 								<button type="button" class="button button-caps" data-go="orders">SAVE ORDER</button>
@@ -1650,7 +1675,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		<!-- ============ ORDERS · All orders: search + filters ============ -->
 		<div class="page page-grid" data-page="orders2">
 			<section class="card" aria-label="Search and filters">
-				<div class="card-body" style="padding:16px 18px;display:grid;gap:12px">
+				<div class="card-body card-body-filters">
 					<div class="row-inline toolbar">
 						<div class="field-shell"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor, note or item text…" aria-label="Search orders"></div>
 						<button type="button" class="button button-ghost" style="flex:none" data-filters-toggle aria-expanded="true" aria-controls="filter-panel"><svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS<svg class="icon chevron-icon" viewBox="0 0 24 24" style="color:var(--text-muted)"><path d="M6 9l6 6l6 -6"></path></svg></button>
@@ -1694,7 +1719,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<section class="card" aria-label="Orders">
 				<div class="card-header"><span class="section-label">Orders · 3 match</span><span class="field-help">filtered from 142</span></div>
 				<div class="card-divider"></div>
-				<div class="card-body" style="padding-top:4px">
+				<div class="card-body card-body-tight">
 					<a href="#" class="order-row" data-go="detail">
 						<span><span class="order-row-vendor">Bilka</span><span class="order-row-meta">18 July · 23 items · Groceries</span></span>
 						<span class="chip-status">Delivered</span>
@@ -1757,11 +1782,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="section-header" data-view-only="overview"><span class="section-label">All vendors</span></div>
 			<div class="row-inline toolbar" data-view-only="overview"><div class="field-shell"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor name…" aria-label="Search vendors"></div><div class="segmented segmented-compact"><button type="button" class="is-on">Spend</button><button type="button">Name</button><button type="button">Orders</button><button type="button">Saved</button></div></div>
 			<div class="scroll-row" data-view-only="overview">
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#877364">FØ</span><span><span class="entry-name">Føtex</span><br><span class="entry-meta">71 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">28.140 kr.</div><span class="card-caption">saved 1.905 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#1FA8E0">EL</span><span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">26.499 kr.</div><span class="card-caption">saved 4.120 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#F09A38">MA</span><span><span class="entry-name">Matas</span><br><span class="entry-meta">29 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">11.640 kr.</div><span class="card-caption">saved 1.480 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#8B5CF6">ZA</span><span><span class="entry-name">Zalando</span><br><span class="entry-meta">22 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">9.870 kr.</div><span class="card-caption">saved 2.640 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#235553">JY</span><span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">7.415 kr.</div><span class="card-caption">saved 380 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#877364">FØ</span><span><span class="entry-name">Føtex</span><br><span class="entry-meta">71 orders</span></span></div></div><div class="figure-card tabular-figures">28.140 kr.</div><span class="card-caption">saved 1.905 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#1FA8E0">EL</span><span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span></div></div><div class="figure-card tabular-figures">26.499 kr.</div><span class="card-caption">saved 4.120 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#F09A38">MA</span><span><span class="entry-name">Matas</span><br><span class="entry-meta">29 orders</span></span></div></div><div class="figure-card tabular-figures">11.640 kr.</div><span class="card-caption">saved 1.480 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#8B5CF6">ZA</span><span><span class="entry-name">Zalando</span><br><span class="entry-meta">22 orders</span></span></div></div><div class="figure-card tabular-figures">9.870 kr.</div><span class="card-caption">saved 2.640 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#235553">JY</span><span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 orders</span></span></div></div><div class="figure-card tabular-figures">7.415 kr.</div><span class="card-caption">saved 380 kr.</span></div></section>
 			</div>
 		</div>
 
@@ -1793,7 +1818,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<section class="card" aria-label="Recent scans">
 					<div class="card-header"><span class="section-label">Recent scans</span></div>
 					<div class="card-divider"></div>
-					<div class="card-body" style="padding-top:10px">
+					<div class="card-body card-body-tight">
 						<div class="inset-panel">
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">kvittering-bilka.jpg</span><span class="item-row-meta">18 July · 23 items found</span></span><span class="amount tabular-figures">1.187,25 kr.</span></div>
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">faktura-303.pdf</span><span class="item-row-meta">24 July · 4 items found</span></span><span class="amount tabular-figures">4.298,00 kr.</span></div>
@@ -1844,7 +1869,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		<!-- ============ STATISTICS · Equity Management pattern ============ -->
 		<div class="page page-grid" data-page="stats">
 			<div class="space-between" style="flex-wrap:wrap;gap:12px;padding:2px 2px 0"><div class="row-inline"><button type="button" class="icon-button icon-button-arrow" aria-label="Previous period"><svg class="icon" viewBox="0 0 24 24"><path d="M15 6l-6 6l6 6"></path></svg></button><span class="panel-heading" style="font-size:16px;letter-spacing:-.01em">July 2026</span><button type="button" class="icon-button icon-button-arrow" aria-label="Next period" disabled="" style="opacity:.45"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
-				<div class="row-inline"><span class="figure-large tabular-figures" style="font-size:22px">24.418,57 kr.</span><span class="chip-status chip-status-warning">18% up vs June</span></div>
+				<div class="row-inline"><span class="figure-large tabular-figures">24.418,57 kr.</span><span class="chip-status chip-status-warning">18% up vs June</span></div>
 			</div>
 			<div class="kpi-row">
 				<div class="card card-kpi"><span>Orders</span><span class="card-kpi-value tabular-figures">23</span><span class="delta delta-neutral"><svg class="icon" viewBox="0 0 24 24"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>21% up vs June</span><span class="card-kpi-label">June: 19 orders</span></div>
@@ -1856,7 +1881,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<div class="card-header"><span class="section-label">Overview · July against June</span>
 					<div class="range-tabs" role="group" aria-label="Range" style="margin:0"><button type="button" data-range="1W" aria-pressed="false">1W</button><button type="button" data-range="1M" class="is-on" aria-pressed="true">1M</button><button type="button" data-range="3M" aria-pressed="false">3M</button><button type="button" data-range="YTD" aria-pressed="false">YTD</button><button type="button" data-range="ALL" aria-pressed="false">ALL</button></div></div>
 				<div class="card-divider"></div>
-				<div class="card-body" style="padding-top:4px">
+				<div class="card-body card-body-tight">
 					<svg class="chart" data-h="210" data-pad="10" style="height:210px" role="img" aria-label="Cumulative spend per day, July solid, June dashed"><defs><linearGradient id="stats-spend-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14AC72" stop-opacity=".2"></stop><stop offset="1" stop-color="#14AC72" stop-opacity="0"></stop></linearGradient></defs><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="area" fill="url(#stats-spend-gradient)" stroke="none"></path><path data-series="180,178,175,173,168,165,161,159,152,148,143,140,137,135,127,121,114,111,106,100,97,93,84,71,63,59,56,50,39,32,20" data-kind="curve" fill="none" stroke="#14AC72" stroke-width="2.4"></path><path data-series="186,184,183,178,175,172,170,167,164,162,160,155,148,143,141,139,136,130,126,119,114,109,104,99,94,93,92,91,88,86" data-kind="curve" fill="none" stroke="#95ABAA" stroke-width="1.6" stroke-dasharray="4 4"></path></svg>
 					<div class="chart-ruler" aria-hidden="true"></div>
 					<div class="chart-axis tabular-figures"><span>01</span><span>08</span><span>15</span><span>22</span><span>29</span></div>
@@ -1867,7 +1892,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-header"><span class="section-label">Pace</span><span class="field-help">25 days in</span></div>
 					<div class="card-divider"></div>
 					<div class="card-body">
-						<div class="figure-large tabular-figures" style="font-size:22px">30.300 kr.</div>
+						<div class="figure-large tabular-figures">30.300 kr.</div>
 						<span class="field-help">projected for July · 24.418,57 kr. spent so far</span>
 						<div class="meter" style="margin-top:14px" role="img" aria-label="Spent 24.418 of a projected 30.300 kroner; the marker is where June ended">
 							<span class="meter-fill" style="width:80%"></span><span class="meter-marker" style="left:68%"></span>
@@ -1879,7 +1904,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-header"><span class="section-label">Weekly rhythm</span><span class="field-help">busiest day: Sunday</span></div>
 					<div class="card-divider"></div>
 					<div class="card-body">
-						<div class="figure-large tabular-figures" style="font-size:22px">34% <span style="font-weight:500;font-size:14px;color:var(--text-muted)">of spend lands on weekends</span></div>
+						<div class="figure-large tabular-figures">34% <span style="font-weight:500;font-size:14px;color:var(--text-muted)">of spend lands on weekends</span></div>
 						<div class="weekday-bars" style="height:86px" aria-hidden="true">
 							<div><span class="chart-bar" style="height:34px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Mon</span></div>
 							<div><span class="chart-bar" style="height:46px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Tue</span></div>

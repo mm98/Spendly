@@ -195,7 +195,10 @@ away when the sheet went white. Delete it or use it, but do not reintroduce a ti
   class**: `.figure-large` was applied at four sites and defined at none, so the Orders and Statistics
   headline figures quietly rendered at the body's 500 with proportional figures for as long as they
   existed. Nothing looked broken — they simply were not the number this section describes. Grep for
-  the selector, not just the class attribute.
+  the selector, not just the class attribute. **A size class sets its size**: after that fix
+  `.figure-large` still carried only weight and tracking, with the size left inline "per site", and
+  one site promptly drifted to 24px against three at 22px. It is 22px in the rule now.
+  `.figure-card` is 21px, or 17px in a `.scroll-row`, where the vendor cards ride.
 - Caps micro-labels — card headers, KPI labels: 11–11.5px, `letter-spacing: .08em`, uppercase, 600.
 - Danish formats everywhere: `1.187,25 kr.`, dates `18.07.2026` or `24 July 2026`.
 
@@ -498,6 +501,14 @@ taller than the FILTERS and Sort controls sharing its row.
   with the border. Measure from the hairline's bottom edge to the top of the first glyph's em box,
   not to the element box — a big number hides 5–6px of half-leading inside its line box and a
   12px label hides 2px, so equal padding on the two looks nothing alike.
+- **Padding is set by which kind of body it is, never per card.** Five variants lived inline across
+  20 card bodies, and the eight list cards that tighten the top under a header disagreed at 6px, 4px
+  and 10px for one job — the rule above is about not tightening too far, not about doing it three
+  ways. Two are reachable by structure (`.card-steps .card-body`, and the summary card as
+  `.card-body:has(> .card-subheading)`); the rest are named: `.card-body-page` for a flow page's main
+  card, `.card-body-tight` for a list under a header, `.card-body-centered`, `.card-body-filters`.
+  Check what a new selector matches before trusting it — `:has(> .card-headline)` looked like the
+  fourth structural case and matched four bodies where only three wanted the padding.
 
 ### Dashboard personalisation
 
