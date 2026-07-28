@@ -147,28 +147,28 @@ Sampled from the reference sheets, declared once in `:root`.
 
 | Token | Value | Use |
 | --- | --- | --- |
-| app background | `#EFF1EF` | gray shell, sidebar ground (desktop only, see [§16](#16-the-phone-layout)) |
-| `--side-active` | `#E4E7E2` + 1px lift | active nav pill; darker than the ground, never white |
-| `--card` | `#FFFFFF` | all cards, on the white layer |
-| `--card-line` | `#E9ECE8` | 1px border, every card |
-| `--divider` | `#EDEFEA` | dividers inside a card: between rows, under a header |
-| `--row-hover` | `#F6F7F4` | the pointer on a row or card header that navigates — never a divider |
-| `--ink` | `#0B0F0D` | headings, numbers |
-| `--ink-strong` | `#0B0F0D` | the active edge of a field — `:focus-within`, open combobox |
-| `--ink-body` | `#3A423D` | body copy, sidebar items |
-| `--muted` | `#6C766D` | help text, meta — holds 4.5:1 on white |
-| `--muted-faint` | `#9AA39D` | the faintest readable tier — axis labels, resting chevrons, dashed edges |
+| `--bg-app` | `#EFF1EF` | gray shell, sidebar ground (desktop only, see [§16](#16-the-phone-layout)) |
+| `--bg-nav-active` | `#E4E7E2` + 1px lift | active nav pill; darker than the ground, never white |
+| `--bg-card` | `#FFFFFF` | all cards, on the white layer |
+| `--border-card` | `#E9ECE8` | 1px border, every card |
+| `--border-divider` | `#EDEFEA` | dividers inside a card: between rows, under a header |
+| `--bg-row-hover` | `#F6F7F4` | the pointer on a row or card header that navigates — never a divider |
+| `--text` | `#0B0F0D` | headings, numbers |
+| `--text-strong` | `#0B0F0D` | the active edge of a field — `:focus-within`, open combobox |
+| `--text-body` | `#3A423D` | body copy, sidebar items |
+| `--text-muted` | `#6C766D` | help text, meta — holds 4.5:1 on white |
+| `--text-faint` | `#9AA39D` | the faintest readable tier — axis labels, resting chevrons, dashed edges |
 | `--green` | `#14AC72` | savings, positive deltas, progress |
-| `--green-soft` | `#DFF3EA` | positive notes, status chip, match highlight |
+| `--bg-positive` | `#DFF3EA` | positive notes, status chip, match highlight |
 | `--teal` | `#07625E` | split-bar dominant segment, focus ring |
-| `--dark` / `--dark-lift` | `#0B1A12` → `#12241A` | the one dark card per screen, dark buttons; `-lift` is the gradient's lit end |
-| `--dark-text` | `#ADB8AF` | body text on dark |
-| `--blue` / `--blue-light` | `#4F5BD5` → `#A5B4FC` | spending line gradient |
+| `--bg-dark` / `--bg-dark-lift` | `#0B1A12` → `#12241A` | the one dark card per screen, dark buttons; `-lift` is the gradient's lit end |
+| `--text-on-dark` | `#ADB8AF` | body text on dark |
+| `--blue` / `--blue-light` | `#4F5BD5` / `#B9BFF0` | the July and June comparison series |
 | donut set | `#1FA8E0` `#14AC72` `#E8C51B` `#8B5CF6` `#D34F2E` `#F09A38` | category ring segments, with gaps |
 | icon squares | `#C43F2A` `#E9C517` `#8B5CF6` `#1FA8E0` | 36–44px rounded-square category icons |
 | warm (caution) | text `#8A6A1F`, tint `#F6ECD9` | duplicate warnings, unfavourable deltas, uncertain lines |
 | track | `#E7EAE5` | meters, progress backgrounds |
-| `--bar-pale` | `#E2ECE9` | unfilled weekday bars |
+| `--bg-bar-track` | `#E2ECE9` | unfilled weekday bars |
 
 **Semantics**: green = favourable (savings up, cost metrics down); warm amber = caution or
 unfavourable (spend above the previous period); neutral ink for counts.
@@ -637,8 +637,8 @@ instance below shipped because a shape was copied from the reference without ask
   the `<button data-go>` elements keep their own colours.
 - **A hover tint gets its own token, not the divider's.** One token drew both, and a value chosen to
   read as a 1px line edge-on is too heavy spread across a whole row: it announced a selection where
-  the pointer only meant "this goes somewhere". `--row-hover` is `#F6F7F4`, half the contrast against
-  `--card` — 9/8/11 off white against `--divider`'s 18/16/21. The card header that navigates takes the
+  the pointer only meant "this goes somewhere". `--bg-row-hover` is `#F6F7F4`, half the contrast against
+  `--bg-card` — 9/8/11 off white against `--border-divider`'s 18/16/21. The card header that navigates takes the
   same token, since it is the same affordance one band up; two tints for one meaning would be the
   drift the token exists to stop. The rule under a lit header no longer vanishes into it — it reads
   as the bottom edge of the lit band, which is why that rule still goes full-bleed on hover
@@ -711,7 +711,7 @@ data changes.
   labelled one of them, leaving the reader to guess that the pale line was June — the chip that
   actually said "June" sat on the far side of the card, styled as a control rather than as a legend.
   `.chart-series-key` is the pattern: one 9px swatch per series in that series' own stroke colour, 12px
-  `--ink-body` label, `flex-wrap` so it stacks rather than overflows at 390px.
+  `--text-body` label, `flex-wrap` so it stacks rather than overflows at 390px.
 - Do not repeat the card header in the body. Under a header reading `SPENT · JULY 2026`, an
   "Expenses" caption above the number says nothing the header has not already said, and it cost the
   number its leading.
@@ -919,12 +919,16 @@ Three kinds of name, and the shape of the name tells you which one you are looki
   and neither end reports it -- nothing about `.account-row` says a child rule points at it, and
   nothing about `.amount` says one of its six parents is gone. Whichever way the port scopes CSS, it
   scopes by file and not by ancestor, so the ancestor buys nothing there either.
-- **A token is named for its job, not for what it looks like.** `--hair` said the line was thin and
-  never said what it divided, and it sat two lines from `--border-hairline` — a different grey doing
-  a different job, so the two names read as synonyms for values three shades apart. It is `--divider`
-  now: the line inside a card, between rows and under a header. The card's own edge stays
-  `--card-line`, a control's stays `--border-hairline`, and the three names no longer have to be
-  told apart by their values.
+- **A colour token is named for the surface it paints.** That is the one thing its value cannot tell
+  you, so the name carries it: `--text-*` is glyphs, `--bg-*` is a fill, `--border-*` is an edge.
+  Nothing writes "color" — a token is one. Before this, `--hair` said a line was thin and never what
+  it divided, and sat two lines from `--border-hairline`: two names reading as synonyms for greys
+  three shades apart. They are `--border-divider`, `--border-card` and `--border-control` now, and
+  which edge each draws is in the name. 247 references moved and not a pixel did.
+- **The named hues are the deliberate exception.** `--green` is text on a positive delta and fill on
+  a progress bar — 7 uses against 12 — so a surface prefix would be wrong half the time. `--green`,
+  `--teal`, the blues, the donut set and the icon set stay named for the hue, because that is what
+  they are: a palette, not a role.
 - **No abbreviations, and no shorthand.** A name that has to be decoded gets a seventh variant
   bolted onto it by someone who did not decode it. The stylesheet had reached `.iic`, `.sic`,
   `.olcol`, `.dk-hl`, `.forr`, `.om`/`.ot`/`.ov` and the single letters `.c`/`.d`/`.n`/`.t`/`.v`.
@@ -933,7 +937,7 @@ Three kinds of name, and the shape of the name tells you which one you are looki
   one*, and `.chip2` was a second chip whose first had never existed. A number records the moment
   someone needed another one; it never records what makes it different. The token block had the same
   three — `--ink-2`, `--muted-2`, `--dark-2` — which could only be told from their unnumbered
-  neighbours by reading their hex. They are `--ink-body`, `--muted-faint` and `--dark-lift`.
+  neighbours by reading their hex. They are `--text-body`, `--text-faint` and `--bg-dark-lift`.
 - **Hiding is the `hidden` attribute — never a class, never an inline style.** A `.hidden` class
   would be a second mechanism for a job the platform already does, and it says nothing to a screen
   reader. `[hidden] { display: none !important }` carries the `!important` because any class that
