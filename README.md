@@ -185,14 +185,20 @@ away when the sheet went white. Delete it or use it, but do not reintroduce a ti
   æøå. The prototype embeds all four as data URIs so it stays one file.
 - Base is **500 (Medium) at 14px**; 400 reads too light against the sheets. 16px at ≥2200.
 - Headings and leads: 600, `letter-spacing: -0.01em` to `-0.02em`. Lead sentence style is 16px/600
-  ("Your biggest vendor: …").
+  ("Your biggest vendor: …"). In a card these are `.card-headline` (19px), `.card-subheading` (17px)
+  and `.card-lead` under them; all seven headings were unclassed `<div>`s carrying the spec inline,
+  which is how two drifted to 17px against the other five and the lead's bottom margin to 16px
+  against 18px.
 - Big numbers: 700, `-0.02em`, always `font-variant-numeric: tabular-nums`. The weight and tracking
   ride on the size class (`.figure-headline`, `.figure-card`, `.figure-large`); the tabular figures ride on `.tabular-figures`
   alongside it, so a headline figure carries both. **A class with no rule behind it is worse than no
   class**: `.figure-large` was applied at four sites and defined at none, so the Orders and Statistics
   headline figures quietly rendered at the body's 500 with proportional figures for as long as they
   existed. Nothing looked broken — they simply were not the number this section describes. Grep for
-  the selector, not just the class attribute.
+  the selector, not just the class attribute. **A size class sets its size**: after that fix
+  `.figure-large` still carried only weight and tracking, with the size left inline "per site", and
+  one site promptly drifted to 24px against three at 22px. It is 22px in the rule now.
+  `.figure-card` is 21px, or 17px in a `.scroll-row`, where the vendor cards ride.
 - Caps micro-labels — card headers, KPI labels: 11–11.5px, `letter-spacing: .08em`, uppercase, 600.
 - Danish formats everywhere: `1.187,25 kr.`, dates `18.07.2026` or `24 July 2026`.
 
@@ -325,6 +331,20 @@ in truncated placeholder copy. That is typography, not iconography.
 
 **Sizes** run 12–20px by context: nav 19, form and toolbar buttons 14–15, chevrons 15, list-row tiles
 16–17, thumbnails 17–20, decorative panel marks 34–46 at stroke-width 1.6.
+
+> [!WARNING]
+> **Never set an icon's size in the markup.**
+
+**The container sets the size.** `svg.icon` is 18px and each container overrides it once —
+`.chevron svg.icon`, `.item-row-icon svg.icon`, `.button svg.icon`. 141 icons carried the size as an
+inline `width`/`height` pair instead, and the values drifted in exactly the way a shared class exists
+to prevent: `.icon-button-arrow` drew its glyph at 14px in 8 places, 15px in 4 and 16px in 3 — the
+defect [§6](#6-buttons) already records for that button's own geometry, one element further in.
+`.document-thumb` held 20px in 4 places and 18px in 2 for the same slot, and the two top-bar buttons
+sat side by side at 14px and 15px against §6's rule that adjacent buttons share one spec. A size
+written into the markup cannot be reached by a media query, by a theme, or by the next edit to the
+class, which is the whole reason it must not live there. Thirteen of the 141 set `width:18px;height:18px`,
+which is what the base already computes.
 
 Never icon-only navigation: every nav icon has a visible label at every width.
 
@@ -481,6 +501,14 @@ taller than the FILTERS and Sort controls sharing its row.
   with the border. Measure from the hairline's bottom edge to the top of the first glyph's em box,
   not to the element box — a big number hides 5–6px of half-leading inside its line box and a
   12px label hides 2px, so equal padding on the two looks nothing alike.
+- **Padding is set by which kind of body it is, never per card.** Five variants lived inline across
+  20 card bodies, and the eight list cards that tighten the top under a header disagreed at 6px, 4px
+  and 10px for one job — the rule above is about not tightening too far, not about doing it three
+  ways. Two are reachable by structure (`.card-steps .card-body`, and the summary card as
+  `.card-body:has(> .card-subheading)`); the rest are named: `.card-body-page` for a flow page's main
+  card, `.card-body-tight` for a list under a header, `.card-body-centered`, `.card-body-filters`.
+  Check what a new selector matches before trusting it — `:has(> .card-headline)` looked like the
+  fourth structural case and matched four bodies where only three wanted the padding.
 
 ### Dashboard personalisation
 
@@ -969,6 +997,24 @@ Three kinds of name, and the shape of the name tells you which one you are looki
   radius to name `.rounded` anyway — 22 distinct values across 89 declarations, the commonest
   covering 19% of them. `--radius-card` already proved the point: four surfaces shared it and one
   wrote `15px` out by hand, so the token only ever moved three of them.
+- **A component gets a base rule, not only context-scoped ones.** This is where inline styles come
+  from — not carelessness, but a class the stylesheet cannot see. `.section-label` was reached only as
+  `.card-header .section-label` and `.section-header .section-label`, and `.card-caption` by nothing at
+  all, so every instance outside a blessed container had no rule that could touch it and carried the
+  full spec in the markup: 39 section labels took 11.5px from CSS while the 5 that sat elsewhere were
+  hand-written at 11px, in the one micro-label spec [§3](#3-typography) pins to 11–11.5px. The copy in
+  the markup always drifts from the rule it duplicates, because nothing makes them agree. Write the
+  base rule first and let the container override it.
+- **A default that most of its uses override is the wrong default.** `.item-row .amount` painted every
+  amount green and 13 of its 17 uses set it back to `--text` inline. Green belonged to the vendor
+  spotlight panel alone — four figures — so the rule now states the common case and
+  `.spotlight-pair .item-row .amount` states the exception. Count which side is the majority before
+  deciding which one gets the inline override; here it had been backwards for as long as the rule existed.
+- **Structure that repeats is a selector, not an attribute.** Six summary rows ended their run with an
+  inline `border-bottom:0` and five list rows opened theirs with `padding-top:0`. The runs end three
+  different ways — at the end of the card body, at a `.card-divider` before the total, and at a
+  `.section-label` starting the next group — so `:last-child` catches only four of the six;
+  `:not(:has(+ .summary-row))` catches all six and says what the rule actually means.
 
 > [!WARNING]
 > **Folding a variant onto a base changes what wins.** A variant is two classes where it used to be
