@@ -279,11 +279,23 @@ that row, and it is one spec — **`.category-row` is the template**:
 | **Type** | title 13px/600 · meta 11px `--text-muted` · right-hand figure 13px/600 |
 | **Leading** | inherited unitless `1.45`, resolving against each line's own size — 18.85 + 15.95 = 34.8px of pair |
 
-The spec is **written once**, as one grouped selector over `.chart-legend-row`, `.card-tray-row`,
-`.category-row`, `.entry-list-row` and `.item-row`. Four copies of a declaration block is what four
-near-misses are made of: these five had drifted to gaps of 10, 12 and 13, paddings of 10, 11 and 12,
-tiles of 36, 40 and 44, and one list's text pair standing 5.8px taller than the rest. Restating the
-box per family is what let that happen, so no family restates it.
+**The row is `.data-row`, and it is an identifier with six variants.** `.chart-legend-row`,
+`.card-tray-row`, `.category-row`, `.entry-list-row`, `.item-row` and `.order-row` are written beside
+it and name only what that list holds; the `-row` suffix is what marks them as its family. Before the
+identifier existed the six families *were* the spec, six copies of it, and they had drifted to gaps
+of 10, 12 and 13, paddings of 10, 11 and 12, tiles of 36, 40 and 44, and one list's text pair
+standing 5.8px taller than the rest.
+
+> [!IMPORTANT]
+> **The identifier is not only for the box — it is what every rule about "a row" keys on.** A shared
+> value written as a list of family names is a list that has to be extended by hand, and it will not
+> be. The hover tint was three such names and covered three of the five families that had navigating
+> rows, so the All-orders results and the duplicate-order row took the pointer and the chevron and
+> then lit nothing: **4 of 21 navigating rows promised a destination and answered with no tint**, for
+> as long as both existed. It is `.data-row[data-go]:hover` now — one rule, keyed on the identifier
+> and on the attribute that makes a row navigate, so a row that learns to navigate lights up because
+> it is a row, not because someone remembered to add it. **Do not add a family name to a rule that
+> could key on `.data-row`.**
 
 **What a row still owns is what it holds, not how it is spaced.** These are variants, not drift:
 
@@ -316,8 +328,12 @@ the whole of "Latest orders is spaced differently from Category breakdown". The 
 from a `<br>` layout removed in S19; keeping it kept that layout's leading. Let the unitless `1.45`
 fall through.
 
-`.order-row` is deliberately outside this: it is the page's own table, on its own denser scale
-(13.5/11.5, `padding: 12px 0`) and stacking to `grid-template-areas` on a phone ([§15](#15-responsive-containment)).
+`.order-row` is the one variant that redraws the box: it is the page's own table, so it takes a fixed
+column grid instead of a flex run, `padding: 12px 0` to carry its denser 13.5/11.5 scale, and stacks
+to `grid-template-areas` on a phone ([§15](#15-responsive-containment)). It is still a `.data-row` —
+it lights up on hover, it carries a chevron where it navigates, and it does **not** restate `gap: 12px`
+or `align-items: center`, which it already agreed with. A variant restating a value it copies is the
+near-miss the identifier exists to stop; a variant is only its differences.
 
 **Count before you match**, and match the tally rather than the neighbour you happened to open
 ([ground rules](#ground-rules)).
@@ -1122,12 +1138,16 @@ Three kinds of name, and the shape of the name tells you which one you are looki
 - **A base is only worth having when the variants share more than they override.** The four chips
   share two declarations and differ on eight, so they stay four components. Forcing a base there
   would make four different badges look like one family, which is a worse lie than the duplication.
-  The row components used to fail the same test and no longer do — `display:flex`,
-  `align-items:center`, one gap and one padding is the whole of the box, and five of the six now
-  agree on all four ([§5](#5-control-geometry)). The test is worth re-running when a family is
-  edited, in both directions: what these five override is now a fill, a shape and a line count, and
-  a shared row spec earns its place exactly while that stays true. `.order-row` still fails it, and
-  stays out.
+  The row components used to fail the same test and now pass it, so they have a base: `.data-row`,
+  with the six `-row` families written beside it ([§5](#5-control-geometry)). Five share the box
+  outright; `.order-row` redraws it and still shares the gap, the alignment, the hover, the chevron
+  and the chevron's meaning. Re-run the test when a family is edited, in both directions.
+- **The test is about declarations, but the payoff is about rules that have not been written yet.**
+  Counting only shared declarations undersold `.data-row`: the box was four of them, which is close
+  enough to the chips' two that it reads as a toss-up. What settled it is that *every rule keyed on
+  "a row" gets one home* — the hover tint, the pointer, the chevron slot — and each of those was
+  otherwise a list of family names that one family was always missing from. A base earns its place
+  on the rules it prevents from drifting, not only on the declarations it collects today.
 - **A part carries its identifier in its name, not just in its selector.** `.entry-list-row`, never
   `.entry-list .row` -- the tally is 103 parts written bare against 47 scoped. A generic child name
   cannot be grepped: `class="row"` was 22 elements across two unrelated components that disagreed on

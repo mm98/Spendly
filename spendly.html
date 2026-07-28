@@ -280,16 +280,16 @@ a[data-go] { color:inherit; text-decoration:none; }
 .page[data-view="favourites"] [data-view-only="overview"],
 .page[data-view="manage"] [data-view-only="overview"] { display:none; }
 .card-header[data-go]:hover { background:var(--bg-row-hover); }
-/* One data row, written once. Five lists on this page are the same component -- a tile,
-   one or two lines of text, a right-hand column, sometimes a chevron -- and they had
-   drifted on every value that makes a set of lists read as one system: gaps of 10, 12
-   and 13, paddings of 10, 11 and 12, tiles of 36, 40 and 44, and a text pair 5.8px
-   taller on .entry-list-row than on the rest. Four near-misses is what four copies of
-   this declaration block buy; one grouped selector is what stops the fifth. What a row
+/* One data row, written once. Every list of records on this page is .data-row and the
+   six family classes beside it name only what that list holds -- they are its variants,
+   and the -row suffix is what says so. Before the identifier existed the families were
+   the spec, six copies of it, and they had drifted on every value that makes a set of
+   lists read as one system: gaps of 10, 12 and 13, paddings of 10, 11 and 12, tiles of
+   36, 40 and 44, and a text pair 5.8px taller on .entry-list-row than on the rest.
+   Write the shared thing here, not a sixth near-miss beside five survivors. What a row
    still owns is what it holds, not how it is spaced -- the colour of the right-hand
    figure, a round avatar in place of a tile, one line where another has two. README 5. */
-.chart-legend-row, .card-tray-row, .category-row, .entry-list-row, .item-row {
-	display:flex; align-items:center; gap:12px; padding:10px 0; }
+.data-row { display:flex; align-items:center; gap:12px; padding:10px 0; }
 /* A row's highlight bleeds 10px past the body's 20px gutter at both ends, so the
    tint clears the first glyph and the chevron instead of stopping against them.
    The header above already lights up edge to edge; this is the same idea for a
@@ -301,8 +301,14 @@ a[data-go] { color:inherit; text-decoration:none; }
    position:relative alone drops these rows from subpixel to grayscale text
    antialiasing: 5,726 pixels of docs/home.png changed, every one of them a glyph
    edge, for a highlight that was not even on screen. A shadow paints outside the
-   border box without touching layout, paint order or the resting state. S13. */
-.chart-legend-row[data-go]:hover, .entry-list-row[data-go]:hover, .category-row[data-go]:hover {
+   border box without touching layout, paint order or the resting state. S13.
+   Keyed on the identifier and the attribute that makes the row navigate, not on a
+   list of families. As three names it covered three of the five families that had
+   navigating rows, so the All-orders results and the duplicate-order row took the
+   pointer and the chevron and then lit nothing -- 4 of 21 navigating rows promising
+   a destination and answering with no tint. A rule that has to be extended by hand
+   every time a row learns to navigate will be, right up until it is not. S13. */
+.data-row[data-go]:hover {
 	background:var(--bg-row-hover); border-radius:var(--radius-compact);
 	box-shadow:-10px 0 0 var(--bg-row-hover), 10px 0 0 var(--bg-row-hover); }
 /* The header sits inside the card's 1px border, so its own curve is the card's
@@ -601,7 +607,12 @@ svg.chart { width:100%; display:block; }
 /* No cursor:pointer here. It sat on the class, so it drew a hand over two rows that
    were <div>s carrying a dead chevron -- the class promising what only [data-go]
    delivers. Every navigating row already takes the hand from that attribute. S13. */
-.order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-divider); }
+/* The page's own table, and the one .data-row variant that redraws the box: a fixed
+   column grid rather than a flex run, and 12px of padding against the row spec's 10 to
+   carry its denser 13.5/11.5 type. gap:12px and align-items:center are not restated --
+   they are the identifier's and they already agreed, and a value restated beside the one
+   it copies is the near-miss the identifier exists to stop. README 5. */
+.order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; padding:12px 0; border-bottom:1px solid var(--border-divider); }
 /* The list's outer edge carries no divider, the same way .category-row clears its
    first border-top. Written as "no .order-row after me" because :last-of-type
    counts by tag: the pager div below the rows was the last div, so the rule
@@ -1066,9 +1077,9 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 							<span class="chart-split-bar-segment" style="width:92%; background:var(--teal)"></span>
 						</div>
 						<div class="chart-legend">
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span><span class="chart-legend-row-title">Groceries</span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--teal)"></span><span class="chart-legend-row-title">Electronics</span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:#45524C"></span><span class="chart-legend-row-title">Everything else</span><span class="amount tabular-figures">7.190 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span><span class="chart-legend-row-title">Groceries</span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--teal)"></span><span class="chart-legend-row-title">Electronics</span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:#45524C"></span><span class="chart-legend-row-title">Everything else</span><span class="amount tabular-figures">7.190 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 						</div>
 					</div>
 				</section>
@@ -1115,19 +1126,19 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 								</div>
 							</div>
 							<div class="category-rows">
-								<div class="category-row">
+								<div class="data-row category-row">
 									<span class="category-icon" style="background:var(--icon-red)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span>
 									<div><div class="category-row-title">Groceries</div><div class="category-row-meta">38% of expenses</div></div>
 									<span class="amount tabular-figures">18.420 kr.</span>
 								</div>
-								<div class="category-row">
+								<div class="data-row category-row">
 									<span class="category-icon" style="background:var(--icon-yellow)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span>
 									<div><div class="category-row-title">Electronics</div><div class="category-row-meta">27% of expenses</div></div>
 									<span class="amount tabular-figures">12.940 kr.</span>
 								</div>
-								<div class="category-row">
+								<div class="data-row category-row">
 									<span class="category-icon" style="background:var(--icon-purple)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span>
 									<div><div class="category-row-title">Household</div><div class="category-row-meta">13% of expenses</div></div>
@@ -1144,13 +1155,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 							<div class="figure-card tabular-figures">48.210 kr.</div>
 							<span class="card-caption">Proshop · all time</span>
 							<div class="entry-list">
-								<div class="entry-list-row"><span class="entry-avatar" style="background:#235553">PR</span>
+								<div class="data-row entry-list-row"><span class="entry-avatar" style="background:#235553">PR</span>
 									<div class="entry-text"><div class="entry-name">Proshop</div><div class="entry-meta">34 orders</div></div>
 									<div class="amount"><span class="tabular-figures">48.210 kr.</span><div class="entry-amount-sub">saved 6.940 kr.</div></div></div>
-								<div class="entry-list-row"><span class="entry-avatar" style="background:#877364">BI</span>
+								<div class="data-row entry-list-row"><span class="entry-avatar" style="background:#877364">BI</span>
 									<div class="entry-text"><div class="entry-name">Bilka</div><div class="entry-meta">96 orders</div></div>
 									<div class="amount"><span class="tabular-figures">41.882 kr.</span><div class="entry-amount-sub">saved 3.210 kr.</div></div></div>
-								<div class="entry-list-row"><span class="entry-avatar" style="background:#4F5BD5">EL</span>
+								<div class="data-row entry-list-row"><span class="entry-avatar" style="background:#4F5BD5">EL</span>
 									<div class="entry-text"><div class="entry-name">Elgiganten</div><div class="entry-meta">18 orders</div></div>
 									<div class="amount"><span class="tabular-figures">26.499 kr.</span><div class="entry-amount-sub">saved 4.120 kr.</div></div></div>
 							</div>
@@ -1162,19 +1173,19 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="card-divider"></div>
 						<div class="card-body">
 							<div class="category-rows">
-								<div class="category-row">
+								<div class="data-row category-row">
 									<span class="category-icon" style="background:var(--icon-red)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span>
 									<div><div class="category-row-title">Groceries</div><div class="category-row-meta">saved 1.240 kr.</div></div>
 									<span class="amount tabular-figures">18.420 kr.</span>
 								</div>
-								<div class="category-row">
+								<div class="data-row category-row">
 									<span class="category-icon" style="background:var(--icon-purple)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span>
 									<div><div class="category-row-title">Household</div><div class="category-row-meta">saved 310 kr.</div></div>
 									<span class="amount tabular-figures">6.110 kr.</span>
 								</div>
-								<div class="category-row">
+								<div class="data-row category-row">
 									<span class="category-icon" style="background:var(--donut-blue)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span>
 									<div><div class="category-row-title">Home office</div><div class="category-row-meta">saved 505 kr.</div></div>
@@ -1257,13 +1268,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="chart-axis tabular-figures"><span>01</span><span>08</span><span>15</span><span>22</span><span>29</span></div>
 						<div class="entry-list">
 							<div class="list-heading">Latest orders</div>
-							<div class="entry-list-row"><span class="entry-avatar" style="background:#0E7A52">BI</span>
+							<div class="data-row entry-list-row"><span class="entry-avatar" style="background:#0E7A52">BI</span>
 								<div class="entry-text"><div class="entry-name">Bilka</div><div class="entry-meta">18 July · 1.187,25 kr.</div></div>
 								<span class="amount tabular-figures">+146,10 kr.</span></div>
-							<div class="entry-list-row"><span class="entry-avatar" style="background:#AD620D">MA</span>
+							<div class="data-row entry-list-row"><span class="entry-avatar" style="background:#AD620D">MA</span>
 								<div class="entry-text"><div class="entry-name">Matas</div><div class="entry-meta">21 July · 642,50 kr.</div></div>
 								<span class="amount tabular-figures">+88,00 kr.</span></div>
-							<div class="entry-list-row"><span class="entry-avatar" style="background:#8453F5">PR</span>
+							<div class="data-row entry-list-row"><span class="entry-avatar" style="background:#8453F5">PR</span>
 								<div class="entry-text"><div class="entry-name">Proshop</div><div class="entry-meta">24 July · 4.298,00 kr.</div></div>
 								<span class="amount tabular-figures">+612,00 kr.</span></div>
 						</div>
@@ -1311,16 +1322,16 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="card-header"><span class="section-label">Latest orders</span></div>
 						<div class="card-divider"></div>
 						<div class="card-body entry-list card-body-tight">
-							<a href="#" class="entry-list-row" data-go="detail"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
+							<a href="#" class="data-row entry-list-row" data-go="detail"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<div class="entry-text"><div class="entry-name">Proshop</div><div class="entry-meta">24 July</div></div>
 								<span class="amount tabular-figures">+612,00 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
+							<div class="data-row entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<div class="entry-text"><div class="entry-name">Matas</div><div class="entry-meta">21 July</div></div>
 								<span class="amount tabular-figures">+88,00 kr.</span></div>
-							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
+							<div class="data-row entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<div class="entry-text"><div class="entry-name">Bilka</div><div class="entry-meta">18 July</div></div>
 								<span class="amount tabular-figures">+146,10 kr.</span></div>
-							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
+							<div class="data-row entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<div class="entry-text"><div class="entry-name">Elgiganten</div><div class="entry-meta">15 July</div></div>
 								<span class="amount tabular-figures">+500,00 kr.</span></div>
 							<button type="button" class="button button-block" data-go="orders2">SEE ALL</button>
@@ -1380,10 +1391,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="donut-box"><div class="donut" role="img" aria-label="Category split of 24.418 kroner this month">
 							<span class="ring-centre"><span class="ring-centre-value tabular-figures">24.418 kr.</span><span class="ring-centre-label">Spent this month</span></span></div></div>
 						<div class="category-rows">
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><div><div class="category-row-title">Groceries</div><div class="category-row-meta">38% of expenses</div></div><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-yellow)"><svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span><div><div class="category-row-title">Electronics</div><div class="category-row-meta">27% of expenses</div></div><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><div><div class="category-row-title">Household</div><div class="category-row-meta">13% of expenses</div></div><span class="amount tabular-figures">6.110 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><div><div class="category-row-title">Home office</div><div class="category-row-meta">10% of expenses</div></div><span class="amount tabular-figures">4.880 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><div><div class="category-row-title">Groceries</div><div class="category-row-meta">38% of expenses</div></div><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-yellow)"><svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span><div><div class="category-row-title">Electronics</div><div class="category-row-meta">27% of expenses</div></div><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><div><div class="category-row-title">Household</div><div class="category-row-meta">13% of expenses</div></div><span class="amount tabular-figures">6.110 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row category-row" data-go="orders2"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><div><div class="category-row-title">Home office</div><div class="category-row-meta">10% of expenses</div></div><span class="amount tabular-figures">4.880 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 						</div>
 						<button type="button" class="button button-block" data-go="orders2">SEE ALL</button>
 					</div>
@@ -1527,11 +1538,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 								<div class="space-between space-between-tight"><span class="section-label">Items · 2</span>
 									<span class="field-help">drag to reorder</span></div>
 								<div class="inset-panel">
-									<div class="item-row"><span class="item-row-grip"><svg class="icon" viewBox="0 0 24 24"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
+									<div class="data-row item-row"><span class="item-row-grip"><svg class="icon" viewBox="0 0 24 24"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
 										<div><div class="item-row-title">Shampoo, 500 ml</div><div class="item-row-meta">2 × 89,95 kr. · retail 104,95 kr.</div></div>
 										<span class="amount tabular-figures">179,90 kr.</span>
 										<span class="row-inline" style="gap:2px"><button type="button" class="icon-button icon-button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
-									<div class="item-row"><span class="item-row-grip"><svg class="icon" viewBox="0 0 24 24"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
+									<div class="data-row item-row"><span class="item-row-grip"><svg class="icon" viewBox="0 0 24 24"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
 										<div><div class="item-row-title">Tandpasta</div><div class="item-row-meta">3 × 22,95 kr. · retail 26,95 kr.</div></div>
 										<span class="amount tabular-figures">68,85 kr.</span>
 										<span class="row-inline" style="gap:2px"><button type="button" class="icon-button icon-button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
@@ -1566,8 +1577,8 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M3 9l4 -4l4 4m-4 -4v14 M21 15l-4 4l-4 -4m4 4v-14"></path></svg></span><div><div class="item-row-title">Drag to reorder</div><div class="item-row-meta">The order here is the order on the receipt.</div></div></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 14l-4 -4l4 -4 M5 10h11a4 4 0 1 1 0 8h-1"></path></svg></span><div><div class="item-row-title">Escape cancels</div><div class="item-row-meta">An inline edit rolls back untouched.</div></div></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M3 9l4 -4l4 4m-4 -4v14 M21 15l-4 4l-4 -4m4 4v-14"></path></svg></span><div><div class="item-row-title">Drag to reorder</div><div class="item-row-meta">The order here is the order on the receipt.</div></div></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 14l-4 -4l4 -4 M5 10h11a4 4 0 1 1 0 8h-1"></path></svg></span><div><div class="item-row-title">Escape cancels</div><div class="item-row-meta">An inline edit rolls back untouched.</div></div></div>
 						</div>
 					</div>
 				</section>
@@ -1594,10 +1605,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-header"><span class="section-label">Items · 4</span><span class="field-help tabular-figures">4.249,00 kr.</span></div>
 					<div class="card-divider"></div>
 					<div class="card-body card-body-tight">
-						<div class="item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Dell UltraSharp U2723QE 27 tommer</div><div class="item-row-meta">1 × 3.199,00 kr.</div></div><span class="amount tabular-figures">3.199,00 kr.</span></div>
-						<div class="item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Logitech MX Master 3S</div><div class="item-row-meta">1 × 749,00 kr. · Replaces the one that drowned in coffee</div></div><span class="amount tabular-figures">749,00 kr.</span></div>
-						<div class="item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">USB-C dock, 6 porte</div><div class="item-row-meta">1 × 249,00 kr.</div></div><span class="amount tabular-figures">249,00 kr.</span></div>
-						<div class="item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Kabelbindere, 100 stk.</div><div class="item-row-meta">2 × 26,00 kr.</div></div><span class="amount tabular-figures">52,00 kr.</span></div>
+						<div class="data-row item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Dell UltraSharp U2723QE 27 tommer</div><div class="item-row-meta">1 × 3.199,00 kr.</div></div><span class="amount tabular-figures">3.199,00 kr.</span></div>
+						<div class="data-row item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Logitech MX Master 3S</div><div class="item-row-meta">1 × 749,00 kr. · Replaces the one that drowned in coffee</div></div><span class="amount tabular-figures">749,00 kr.</span></div>
+						<div class="data-row item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">USB-C dock, 6 porte</div><div class="item-row-meta">1 × 249,00 kr.</div></div><span class="amount tabular-figures">249,00 kr.</span></div>
+						<div class="data-row item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Kabelbindere, 100 stk.</div><div class="item-row-meta">2 × 26,00 kr.</div></div><span class="amount tabular-figures">52,00 kr.</span></div>
 						<div class="card-divider" style="margin:6px 0 0"></div>
 						<div class="summary-row">Items subtotal<span class="summary-row-value tabular-figures">4.249,00 kr.</span></div>
 						<div class="summary-row">Shipping<span class="summary-row-value tabular-figures">49,00 kr.</span></div>
@@ -1624,7 +1635,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-header"><span class="section-label">Attachments · 1</span><button type="button" class="button button-pill">ADD FILE</button></div>
 					<div class="card-divider"></div>
 					<div class="card-body card-body-tight">
-						<div class="item-row"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
+						<div class="data-row item-row"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
 							<div><div class="item-row-title">faktura-303.pdf</div><div class="item-row-meta">Scanned 24 July · 214 KB</div></div>
 							<span class="row-inline row-inline-nowrap" style="gap:4px;margin-left:auto"><button type="button" class="icon-button icon-button-arrow" aria-label="Open attachment"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete attachment"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
 					</div>
@@ -1701,11 +1712,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 								<div class="space-between space-between-tight"><span class="section-label">Lines read · 23</span>
 									<span class="field-help">tap a line to correct it</span></div>
 								<div class="inset-panel">
-									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Rugbrød, skiveskåret</div><div class="item-row-meta">1 × 24,95 kr.</div></div><span class="amount tabular-figures">24,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Minimælk 1 l</div><div class="item-row-meta">4 × 10,95 kr.</div></div><span class="amount tabular-figures">43,80 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Kaffe, formalet 400 g</div><div class="item-row-meta">1 × 54,95 kr.</div></div><span class="amount tabular-figures">54,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#84651E"><svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><div><div class="item-row-title">Line 14 was hard to read</div><div class="item-row-meta">Guessed: Smør, 250 g · 1 × 21,95 kr.</div></div><span class="amount tabular-figures">21,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon" style="background:#EFF3EE;color:var(--text-muted)"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><div><div class="item-row-title">19 more lines</div><div class="item-row-meta">1.041,60 kr. together</div></div><span class="button-link" style="margin-left:auto">SHOW ALL</span></div>
+									<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Rugbrød, skiveskåret</div><div class="item-row-meta">1 × 24,95 kr.</div></div><span class="amount tabular-figures">24,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Minimælk 1 l</div><div class="item-row-meta">4 × 10,95 kr.</div></div><span class="amount tabular-figures">43,80 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Kaffe, formalet 400 g</div><div class="item-row-meta">1 × 54,95 kr.</div></div><span class="amount tabular-figures">54,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="data-row item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#84651E"><svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><div><div class="item-row-title">Line 14 was hard to read</div><div class="item-row-meta">Guessed: Smør, 250 g · 1 × 21,95 kr.</div></div><span class="amount tabular-figures">21,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="data-row item-row"><span class="item-row-icon" style="background:#EFF3EE;color:var(--text-muted)"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><div><div class="item-row-title">19 more lines</div><div class="item-row-meta">1.041,60 kr. together</div></div><span class="button-link" style="margin-left:auto">SHOW ALL</span></div>
 								</div>
 							</div>
 							<div class="summary-row">Lines subtotal<span class="summary-row-value tabular-figures">1.187,25 kr.</span></div>
@@ -1735,7 +1746,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="note note-warning" style="margin-bottom:10px"><strong>Check before saving.</strong> You already have a Bilka order within 14 days of this date.</div>
-						<a href="#" class="item-row" data-go="detail"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
+						<a href="#" class="data-row item-row" data-go="detail"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 							<div><div class="item-row-title">Bilka · 16 July</div><div class="item-row-meta">23 items · could be a second trip</div></div>
 							<span class="amount tabular-figures">894,40 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 					</div>
@@ -1745,9 +1756,9 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Totals reconciled</div><div class="item-row-meta">Document total incl. 25% VAT anchors the draft.</div></div></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Vendor matched</div><div class="item-row-meta">Bilka, from your vendor list.</div></div></div>
-							<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#84651E"><svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><div><div class="item-row-title">1 line uncertain</div><div class="item-row-meta">Line 14 is flagged above for review.</div></div></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Totals reconciled</div><div class="item-row-meta">Document total incl. 25% VAT anchors the draft.</div></div></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">Vendor matched</div><div class="item-row-meta">Bilka, from your vendor list.</div></div></div>
+							<div class="data-row item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#84651E"><svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><div><div class="item-row-title">1 line uncertain</div><div class="item-row-meta">Line 14 is flagged above for review.</div></div></div>
 						</div>
 					</div>
 				</section>
@@ -1803,19 +1814,19 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<div class="card-header"><span class="section-label">Orders · 3 match</span><span class="field-help">filtered from 142</span></div>
 				<div class="card-divider"></div>
 				<div class="card-body card-body-tight">
-					<a href="#" class="order-row" data-go="detail">
+					<a href="#" class="data-row order-row" data-go="detail">
 						<div><div class="order-row-vendor">Bilka</div><div class="order-row-meta">18 July · 23 items · Groceries</div></div>
 						<span class="chip-status">Delivered</span>
 						<div class="order-row-total tabular-figures">1.187,25 kr.<div class="order-row-total-saved">saved 146,10 kr.</div></div>
 						<span class="order-row-chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span>
 					</a>
-					<a href="#" class="order-row" data-go="detail">
+					<a href="#" class="data-row order-row" data-go="detail">
 						<div><div class="order-row-vendor">Bilka</div><div class="order-row-meta">9 July · 16 items · Groceries, Household</div></div>
 						<span class="chip-status">Delivered</span>
 						<div class="order-row-total tabular-figures">894,40 kr.<div class="order-row-total-saved">saved 62,25 kr.</div></div>
 						<span class="order-row-chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span>
 					</a>
-					<a href="#" class="order-row" data-go="detail">
+					<a href="#" class="data-row order-row" data-go="detail">
 						<div><div class="order-row-vendor">Bilka</div><div class="order-row-meta">2 July · 9 items · Groceries</div></div>
 						<span class="chip-status">Delivered</span>
 						<div class="order-row-total tabular-figures">640,80 kr.<div class="order-row-total-saved">saved 41,00 kr.</div></div>
@@ -1846,8 +1857,8 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-body">
 						<div class="lead-sentence">Your biggest vendor: 48.210 kr. across 34 orders.</div>
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><div><div class="item-row-title">Saved vs retail</div><div class="item-row-meta">Proshop · all time</div></div><span class="amount tabular-figures">6.940 kr.</span></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><div><div class="item-row-title">Latest order</div><div class="item-row-meta">24 July · 4 items</div></div><span class="amount tabular-figures">612,00 kr.</span></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><div><div class="item-row-title">Saved vs retail</div><div class="item-row-meta">Proshop · all time</div></div><span class="amount tabular-figures">6.940 kr.</span></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><div><div class="item-row-title">Latest order</div><div class="item-row-meta">24 July · 4 items</div></div><span class="amount tabular-figures">612,00 kr.</span></div>
 						</div>
 						<button type="button" class="button button-ghost">VIEW ORDERS</button>
 					</div></section>
@@ -1856,8 +1867,8 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-body">
 						<div class="lead-sentence">Your most frequent vendor: 96 orders, 41.882 kr.</div>
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><div><div class="item-row-title">Saved vs retail</div><div class="item-row-meta">Bilka · all time</div></div><span class="amount tabular-figures">3.210 kr.</span></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><div><div class="item-row-title">Latest order</div><div class="item-row-meta">18 July · 23 items</div></div><span class="amount tabular-figures">146,10 kr.</span></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><div><div class="item-row-title">Saved vs retail</div><div class="item-row-meta">Bilka · all time</div></div><span class="amount tabular-figures">3.210 kr.</span></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><div><div class="item-row-title">Latest order</div><div class="item-row-meta">18 July · 23 items</div></div><span class="amount tabular-figures">146,10 kr.</span></div>
 						</div>
 						<button type="button" class="button button-ghost">VIEW ORDERS</button>
 					</div></section>
@@ -1869,11 +1880,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			     no way to tab to them. tabindex="0" gives the strip itself arrow-key
 			     scrolling, and the group carries the heading it sits under. S18. -->
 			<div class="scroll-row" data-view-only="overview" tabindex="0" role="region" aria-label="All vendors">
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#877364">FØ</span><div class="entry-text"><div class="entry-name">Føtex</div><div class="entry-meta">71 orders</div></div></div></div><div class="figure-card tabular-figures">28.140 kr.</div><span class="card-caption">saved 1.905 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#177DA7">EL</span><div class="entry-text"><div class="entry-name">Elgiganten</div><div class="entry-meta">18 orders</div></div></div></div><div class="figure-card tabular-figures">26.499 kr.</div><span class="card-caption">saved 4.120 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#AD620D">MA</span><div class="entry-text"><div class="entry-name">Matas</div><div class="entry-meta">29 orders</div></div></div></div><div class="figure-card tabular-figures">11.640 kr.</div><span class="card-caption">saved 1.480 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#8453F5">ZA</span><div class="entry-text"><div class="entry-name">Zalando</div><div class="entry-meta">22 orders</div></div></div></div><div class="figure-card tabular-figures">9.870 kr.</div><span class="card-caption">saved 2.640 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#235553">JY</span><div class="entry-text"><div class="entry-name">Jysk</div><div class="entry-meta">11 orders</div></div></div></div><div class="figure-card tabular-figures">7.415 kr.</div><span class="card-caption">saved 380 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="data-row entry-list-row"><span class="entry-avatar" style="background:#877364">FØ</span><div class="entry-text"><div class="entry-name">Føtex</div><div class="entry-meta">71 orders</div></div></div></div><div class="figure-card tabular-figures">28.140 kr.</div><span class="card-caption">saved 1.905 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="data-row entry-list-row"><span class="entry-avatar" style="background:#177DA7">EL</span><div class="entry-text"><div class="entry-name">Elgiganten</div><div class="entry-meta">18 orders</div></div></div></div><div class="figure-card tabular-figures">26.499 kr.</div><span class="card-caption">saved 4.120 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="data-row entry-list-row"><span class="entry-avatar" style="background:#AD620D">MA</span><div class="entry-text"><div class="entry-name">Matas</div><div class="entry-meta">29 orders</div></div></div></div><div class="figure-card tabular-figures">11.640 kr.</div><span class="card-caption">saved 1.480 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="data-row entry-list-row"><span class="entry-avatar" style="background:#8453F5">ZA</span><div class="entry-text"><div class="entry-name">Zalando</div><div class="entry-meta">22 orders</div></div></div></div><div class="figure-card tabular-figures">9.870 kr.</div><span class="card-caption">saved 2.640 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="data-row entry-list-row"><span class="entry-avatar" style="background:#235553">JY</span><div class="entry-text"><div class="entry-name">Jysk</div><div class="entry-meta">11 orders</div></div></div></div><div class="figure-card tabular-figures">7.415 kr.</div><span class="card-caption">saved 380 kr.</span></div></section>
 			</div>
 		</div>
 
@@ -1907,8 +1918,8 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-divider"></div>
 					<div class="card-body card-body-tight">
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">kvittering-bilka.jpg</div><div class="item-row-meta">18 July · 23 items found</div></div><span class="amount tabular-figures">1.187,25 kr.</span></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">faktura-303.pdf</div><div class="item-row-meta">24 July · 4 items found</div></div><span class="amount tabular-figures">4.298,00 kr.</span></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">kvittering-bilka.jpg</div><div class="item-row-meta">18 July · 23 items found</div></div><span class="amount tabular-figures">1.187,25 kr.</span></div>
+							<div class="data-row item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><div><div class="item-row-title">faktura-303.pdf</div><div class="item-row-meta">24 July · 4 items found</div></div><span class="amount tabular-figures">4.298,00 kr.</span></div>
 						</div>
 						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
 					</div>
@@ -1925,11 +1936,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="category-rows">
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><div><div class="category-row-title">Groceries</div><div class="category-row-meta">38% of expenses</div></div><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-yellow)"><svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span><div><div class="category-row-title">Electronics</div><div class="category-row-meta">27% of expenses</div></div><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><div><div class="category-row-title">Household</div><div class="category-row-meta">13% of expenses</div></div><span class="amount tabular-figures">6.110 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><div><div class="category-row-title">Home office</div><div class="category-row-meta">10% of expenses</div></div><span class="amount tabular-figures">4.880 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:#45524C"><svg class="icon" viewBox="0 0 24 24"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"></path></svg></span><div><div class="category-row-title">Everything else</div><div class="category-row-meta">12% of expenses</div></div><span class="amount tabular-figures">5.550 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><div><div class="category-row-title">Groceries</div><div class="category-row-meta">38% of expenses</div></div><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-yellow)"><svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span><div><div class="category-row-title">Electronics</div><div class="category-row-meta">27% of expenses</div></div><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><div><div class="category-row-title">Household</div><div class="category-row-meta">13% of expenses</div></div><span class="amount tabular-figures">6.110 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row category-row" data-go="orders2"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><div><div class="category-row-title">Home office</div><div class="category-row-meta">10% of expenses</div></div><span class="amount tabular-figures">4.880 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row category-row" data-go="orders2"><span class="category-icon" style="background:#45524C"><svg class="icon" viewBox="0 0 24 24"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"></path></svg></span><div><div class="category-row-title">Everything else</div><div class="category-row-meta">12% of expenses</div></div><span class="amount tabular-figures">5.550 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 						</div>
 						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
 					</div>
@@ -2017,10 +2028,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-body spend-gauge-row">
 						<div class="spend-gauge"><span class="ring-centre"><span class="ring-centre-value tabular-figures">24.418 kr.</span><span class="ring-centre-label">July 2026</span></span></div>
 						<div class="chart-legend" style="flex:1;min-width:170px">
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-blue)"></span><span class="chart-legend-row-title">Groceries</span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span><span class="chart-legend-row-title">Electronics</span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-yellow)"></span><span class="chart-legend-row-title">Household</span><span class="amount tabular-figures">6.110 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-purple)"></span><span class="chart-legend-row-title">Everything else</span><span class="amount tabular-figures">5.550 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-blue)"></span><span class="chart-legend-row-title">Groceries</span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span><span class="chart-legend-row-title">Electronics</span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-yellow)"></span><span class="chart-legend-row-title">Household</span><span class="amount tabular-figures">6.110 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="data-row chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-purple)"></span><span class="chart-legend-row-title">Everything else</span><span class="amount tabular-figures">5.550 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 						</div>
 					</div>
 				</section>
@@ -2523,7 +2534,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			});
 			const off = all.filter(c => c.hidden);
 			cardTrayList.innerHTML = off.length
-				? off.map(c => '<div class="card-tray-row"><div><div class="card-tray-row-title">' + c.dataset.name + '</div><div class="card-tray-row-meta">' + c.dataset.desc + '</div></div>'
+				? off.map(c => '<div class="data-row card-tray-row"><div><div class="card-tray-row-title">' + c.dataset.name + '</div><div class="card-tray-row-meta">' + c.dataset.desc + '</div></div>'
 					+ '<button type="button" class="button button-pill" data-add="' + c.dataset.card + '">ADD</button></div>').join('')
 				: '<p class="card-tray-empty">Every card is already on your dashboard.</p>';
 		}
