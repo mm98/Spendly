@@ -31,9 +31,10 @@
 	/* A colour token is named for the surface it paints, because that is the one
 	   thing its value cannot tell you: --text-* is glyphs, --bg-* is a fill,
 	   --border-* is an edge. Nothing writes "color" -- a token is one. The named
-	   hues below the three families are the deliberate exception: --green is text
-	   on a positive delta and fill on a progress bar, 7 uses against 12, so a
-	   surface prefix would be wrong half the time. S2, S19. */
+	   hues below the three families are the exception left standing: fills and chart
+	   series, where no surface prefix is right. --green used to be the argument for
+	   that exception, painting glyphs and fills both at 7 uses against 12, until
+	   contrast split the glyph half off into --text-positive. S2, S19. */
 	--text:#0B0F0D;
 	/* The active edge of a field: focus-within, and an open combobox. Referenced in
 	   four places and never declared, so every one of them resolved to unset -- the
@@ -43,11 +44,16 @@
 	   heading. */
 	--text-strong:#0B0F0D;
 	/* The two quiet tiers under --text -- body copy and sidebar items, then the
-	   faintest marks that still have to be read: axis labels, resting chevrons, the
-	   dashed empty-state edge. They were --ink-2 and --muted-2, and a digit records
-	   only that someone needed a second one. */
+	   faintest marks, which is every glyph --text-faint may paint: resting chevrons,
+	   the drag grip, the dashed empty-state edge. Text is not one of them; it held
+	   axis labels and the sidebar footer at 2.59:1 while calling them readable, and
+	   no fourth tier fits between 4.5:1 and body copy, so both moved up a tier.
+	   --text-muted is tuned against #EDEEE7, the darkest surface a muted glyph lands
+	   on -- "4.5:1 on white" was true and left every tint failing. They were --ink-2
+	   and --muted-2, and a digit records only that someone needed a second one.
+	   S2, S18. */
 	--text-body:#3A423D;
-	--text-muted:#6C766D;
+	--text-muted:#636D64;
 	--text-faint:#9AA39D;
 	/* The x inside a chip, which is lighter than the chip's own text so the
 	   label reads first. Five chips wrote it out as #8B948C. */
@@ -81,6 +87,12 @@
 	--border-control:#E2E4DF;
 
 	--green:#14AC72;
+	/* Green ink and green fill are not one colour. #14AC72 reads 2.93:1 as text on a
+	   card and 2.65:1 on an inset panel, and eight rules printed savings figures in
+	   it; the three chips that sit on a tint had already been hand-written #0E7A52 to
+	   stay legible, so that value is the token. --green keeps the fills and the one
+	   mark on the dark card, where a darker green would disappear. S2, S18. */
+	--text-positive:#0E7A52;
 	--teal:#07625E;
 	/* The July and June series. Both were written out in the markup and the light one
 	   had drifted from its token -- #B9BFF0 on screen against #A5B4FC here -- so the
@@ -149,7 +161,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .sidebar-nav a svg.icon { width:19px; height:19px; }
 .sidebar-nav a.is-on { background:var(--bg-nav-active); color:var(--text); font-weight:600; }
 .sidebar-nav a.is-on svg.icon { stroke-width:2.1; }
-.sidebar .sidebar-footer { margin-top:auto; padding:0 10px; font-size:11.5px; color:var(--text-faint); display:grid; gap:6px; }
+.sidebar .sidebar-footer { margin-top:auto; padding:0 10px; font-size:11.5px; color:var(--text-muted); display:grid; gap:6px; }
 
 /* topbar */
 .main-panel { min-width:0; display:flex; flex-direction:column; background:#fff; border-radius:26px 0 0 26px; margin:12px 0; overflow:hidden; box-shadow:0 2px 14px rgb(11 26 18 / .05); }
@@ -309,7 +321,7 @@ a[data-go] { color:inherit; text-decoration:none; }
 
 /* hero card */
 .figure-headline { font-size:27px; font-weight:700; letter-spacing:-.02em; margin:2px 0 0; }
-.figure-delta { font-size:11.5px; color:var(--green); font-weight:600; margin-top:2px; }
+.figure-delta { font-size:11.5px; color:var(--text-positive); font-weight:600; margin-top:2px; }
 .range-tabs { display:flex; gap:14px; align-items:center; margin-top:14px; }
 .range-tabs button { font:inherit; background:none; border:0; font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.02em; cursor:pointer; padding:6px 2px; }
 .range-tabs button.is-on { color:var(--text); border:1px solid #D9DED8; border-radius:9px; padding:6px 11px; background:var(--bg-card); }
@@ -416,7 +428,7 @@ svg.chart { width:100%; display:block; }
 .chart-caption { padding:2px 0 0; }
 .chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); display:block; }
 .chart-caption-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
-.chart-axis { display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-faint); margin-top:4px; }
+.chart-axis { display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:4px; }
 /* Key for a two-series chart. Both lines get named -- a swatch that labels one of two
    plotted series is worse than no key at all. Wraps rather than overflows on a phone. */
 .chart-series-key { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; color:var(--text-body); margin-top:2px; }
@@ -425,16 +437,20 @@ svg.chart { width:100%; display:block; }
 .entry-list { margin-top:8px; }
 .entry-list .list-heading { font-size:11.5px; color:var(--text-muted); font-weight:500; margin:10px 0 2px; }
 .entry-list-row { display:flex; align-items:center; gap:11px; padding:7px 0; }
+/* The fill is written per avatar in the markup, and it is a text background, not a
+   swatch -- these initials are white at 10px/700, so every value has to clear 4.5:1
+   against white. Four of the seven were the donut's chart hues, which are picked to
+   separate ring segments and reached 2.24:1 under type. S2, S18. */
 .entry-list .entry-avatar { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
 .entry-list .entry-name { font-size:12.5px; font-weight:600; }
 .entry-list .entry-meta { font-size:10px; color:var(--text-muted); }
-.entry-list .amount { margin-left:auto; text-align:right; font-size:12.5px; font-weight:600; color:var(--green); white-space:nowrap; flex:none; }
+.entry-list .amount { margin-left:auto; text-align:right; font-size:12.5px; font-weight:600; color:var(--text-positive); white-space:nowrap; flex:none; }
 /* A two-tone amount: the row's green label with the figure itself in --text. */
 .entry-list .amount .tabular-figures { color:var(--text); }
 .entry-list .entry-amount-sub { display:block; font-style:normal; font-size:10px; color:var(--text-muted); font-weight:500; }
 
 /* saved card */
-.chip-saving { display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:8px; background:var(--bg-positive); color:#0E7A52; font-size:11px; font-weight:700; }
+.chip-saving { display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:8px; background:var(--bg-positive); color:var(--text-positive); font-size:11px; font-weight:700; }
 .chip-saving svg.icon { width:13px; height:13px; }
 
 
@@ -457,7 +473,7 @@ svg.chart { width:100%; display:block; }
 .item-row-title { font-size:13px; font-weight:600; display:block; color:var(--text-strong,#0B0F0D); }
 .item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
 .item-row .amount { margin-left:auto; color:var(--text); font-weight:600; font-size:13px; white-space:nowrap; }
-.spotlight-pair .item-row .amount { color:var(--green); }
+.spotlight-pair .item-row .amount { color:var(--text-positive); }
 .key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid #DFE3DE; background:#F7F8F5; font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
 .chip { font:inherit; display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 11px; border-radius:var(--radius-compact); border:1px solid #E2E5E1; background:#fff; font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; }
 .chip svg.icon { width:13px; height:13px; color:var(--chip-glyph); }
@@ -518,8 +534,8 @@ svg.chart { width:100%; display:block; }
 .card-kpi .card-kpi-label { font-size:12px; color:var(--text-muted); letter-spacing:normal; text-transform:none; font-weight:500; }
 .delta { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; }
 .delta svg.icon { width:13px; height:13px; }
-.delta.delta-good { color:var(--green); }
-.delta.delta-bad { color:#8A6A1F; }
+.delta.delta-good { color:var(--text-positive); }
+.delta.delta-bad { color:#84651E; }
 .delta.delta-neutral { color:var(--text-body,#3A423D); }
 .meter { position:relative; height:10px; border-radius:5px; background:#E7EAE5; }
 .meter-fill { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--green); }
@@ -541,23 +557,23 @@ svg.chart { width:100%; display:block; }
 .order-row .order-row-vendor { display:block; font-size:13.5px; font-weight:600; color:var(--text); }
 .order-row .order-row-meta { display:block; font-size:11.5px; color:var(--text-muted); }
 .order-row .order-row-total { text-align:right; font-weight:600; font-size:13.5px; }
-.order-row .order-row-total-saved { display:block; font-style:normal; font-size:11px; color:var(--green); font-weight:600; }
+.order-row .order-row-total-saved { display:block; font-style:normal; font-size:11px; color:var(--text-positive); font-weight:600; }
 .order-row .order-row-chevron { color:var(--text-muted); }
 .order-row .order-row-chevron svg.icon { width:15px; height:15px; }
-.chip-status.chip-status-warning { background:#F6ECD9; color:#8A6A1F; }
+.chip-status.chip-status-warning { background:#F6ECD9; color:#84651E; }
 .chip-status.chip-status-warning::before { background:#D9A63C; }
 .note { border-radius:var(--radius-page); padding:11px 14px; font-size:13px; color:var(--text); }
 .note.note-positive { background:#DFF3EA; }
 .note.note-warning { background:#F6ECD9; }
-.note-positive strong { color:#0E7A52; }
-.note-warning strong { color:#8A6A1F; }
+.note-positive strong { color:var(--text-positive); }
+.note-warning strong { color:#84651E; }
 .progress-bar { height:6px; border-radius:3px; background:#E7EAE5; overflow:hidden; }
 .progress-bar-fill { display:block; height:100%; width:72%; background:var(--green); border-radius:3px; }
 .progress-bar.progress-bar-indeterminate .progress-bar-fill { width:38%; animation:pslide 1.5s ease-in-out infinite; }
 @keyframes pslide { from { transform:translateX(-100%); } to { transform:translateX(264%); } }
 .document-preview { background:#F2F4F1; border-radius:var(--radius-page); display:grid; place-items:center; height:180px; color:#9AA39B; }
 .document-preview svg { width:46px; height:46px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-.chip-status { display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 12px; border-radius:9px; background:#DFF3EA; color:#0E7A52; font-size:11.5px; font-weight:600; }
+.chip-status { display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 12px; border-radius:9px; background:#DFF3EA; color:var(--text-positive); font-size:11.5px; font-weight:600; }
 .chip-status::before { content:""; width:6px; height:6px; border-radius:50%; background:#14AC72; }
 .document-thumb { width:44px; height:44px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; }
 .document-thumb svg.icon { width:20px; height:20px; }
@@ -687,7 +703,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .stepper-step.stepper-step-done .stepper-step-label { color:var(--text); }
 .summary-row { display:flex; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid var(--border-divider); font-size:13px; color:var(--text-muted); }
 .summary-row-value { font-weight:600; color:var(--text); text-align:right; }
-.summary-row-value-saving { color:var(--green); }
+.summary-row-value-saving { color:var(--text-positive); }
 /* The rule is "last in its run", and the run ends three different ways across
    the six lists -- at the end of the card body, at a .card-divider before the
    total, and at a .section-label starting the next group. Matching on what
@@ -698,7 +714,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    composing. The rule had it the other way round, so both real totals set
    --text-strong inline to undo it. */
 .summary-total .summary-total-value { color:var(--text-strong); font-weight:700; font-size:19px; }
-.summary-total .summary-total-value-estimate { color:var(--green); }
+.summary-total .summary-total-value-estimate { color:var(--text-positive); }
 /* Flex/grid children default to min-width:auto, so a long placeholder or a
    nowrap chip forces the whole panel wider than its card and the overflow gets
    clipped, not scrolled: the controls simply become unreachable. Every layout
@@ -944,11 +960,16 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="topbar-actions">
 				<button type="button" class="button button-primary" id="scan-button" aria-label="Scan receipt">
 					<svg class="icon" viewBox="0 0 24 24"><path d="M8 12h8 M8 9h6 M8 15h4 M3 7v-2a2 2 0 0 1 2 -2h2 M3 17v2a2 2 0 0 0 2 2h2 M17 3h2a2 2 0 0 1 2 2v2 M17 21h2a2 2 0 0 0 2 -2v-2"></path></svg>
-					<span>SCAN<span class="wide-only"> RECEIPT</span></span></button>
-				<button type="button" class="button button-outline" id="new-order-button" aria-label="New order"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5l0 14 M5 12l14 0"></path></svg><span>NEW<span class="wide-only"> ORDER</span></span></button>
+					<span>SCAN <span class="wide-only">RECEIPT</span></span></button>
+				<button type="button" class="button button-outline" id="new-order-button" aria-label="New order"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5l0 14 M5 12l14 0"></path></svg><span>NEW <span class="wide-only">ORDER</span></span></button>
 								</div>
 		</header>
 
+		<!-- The one <main> per document. Everything below the top bar is the page: the
+		     sub-tab band selects within it, so it is inside rather than beside. Without
+		     it the sheet was a bare <div> and every card, heading and row on 12 pages sat
+		     in no landmark at all -- 108 of them by axe's count. S1, S18. -->
+		<main>
 		<div class="page-bar"><div class="segmented" id="subtabs" role="tablist"></div></div>
 
 		<div class="content-sheet"><div class="content-sheet-inner"><div id="pages">
@@ -1147,9 +1168,14 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 
 				<!-- dark AI card -->
 				<section class="card card-ai" id="ai-card" aria-label="AI receipt scanning">
-					<a href="#" class="ai-card-header" data-go="scan" aria-label="Finish setting up Spendly, open Scan receipt">
+					<!-- Every card header here labels itself "<its own words>, open <destination>",
+					     so speech recognition can act on what is printed. This one named the
+					     sub-line and dropped the title the eye reads first, which leaves no
+					     spoken phrase that activates the link. S18. -->
+					<a href="#" class="ai-card-header" data-go="scan" aria-label="1/3 Get receipts read for you, finish setting up Spendly, open Scan receipt">
 						<span class="progress-ring"><span class="progress-ring-value">1/3</span></span>
-						<span class="ai-card-title"><span class="ai-card-title-text">Get receipts read for you</span><span class="ai-card-title-meta">Finish setting up Spendly</span></span>
+						<span class="ai-card-title"><span class="ai-card-title-text">Get receipts read for you</span>
+							<span class="ai-card-title-meta">Finish setting up Spendly</span></span>
 						<span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span>
 					</a>
 					<div class="ai-card-headline">Scan receipts, skip typing</div>
@@ -1174,13 +1200,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="chart-axis tabular-figures"><span>01</span><span>08</span><span>15</span><span>22</span><span>29</span></div>
 						<div class="entry-list">
 							<div class="list-heading">Latest orders</div>
-							<div class="entry-list-row"><span class="entry-avatar" style="background:#14AC72">BI</span>
+							<div class="entry-list-row"><span class="entry-avatar" style="background:#0E7A52">BI</span>
 								<span><span class="entry-name">Bilka</span><br><span class="entry-meta">18 July · 1.187,25 kr.</span></span>
 								<span class="amount tabular-figures">+146,10 kr.</span></div>
-							<div class="entry-list-row"><span class="entry-avatar" style="background:#F09A38">MA</span>
+							<div class="entry-list-row"><span class="entry-avatar" style="background:#AD620D">MA</span>
 								<span><span class="entry-name">Matas</span><br><span class="entry-meta">21 July · 642,50 kr.</span></span>
 								<span class="amount tabular-figures">+88,00 kr.</span></div>
-							<div class="entry-list-row"><span class="entry-avatar" style="background:#8B5CF6">PR</span>
+							<div class="entry-list-row"><span class="entry-avatar" style="background:#8453F5">PR</span>
 								<span><span class="entry-name">Proshop</span><br><span class="entry-meta">24 July · 4.298,00 kr.</span></span>
 								<span class="amount tabular-figures">+612,00 kr.</span></div>
 						</div>
@@ -1208,7 +1234,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		<div class="page" data-page="orders"><div class="order-list-grid">
 			<div class="order-list-column">
 				<section class="card" aria-label="Spent over July">
-					<a href="#" class="card-header" data-go="stats" aria-label="Spent July 2026, open Statistics"><span class="section-label">Spent · July 2026</span><span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+					<a href="#" class="card-header" data-go="stats" aria-label="Spent · July 2026, open Statistics"><span class="section-label">Spent · July 2026</span><span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 					<div class="card-divider"></div>
 					<!-- No padding-top override here. The 2px this card used to carry put the first line
 					     4.5px under the hairline -- the tightest in the file, against a 14-24px band
@@ -1475,7 +1501,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="summary-row">Tandpasta × 3<span class="summary-row-value tabular-figures">68,85 kr.</span></div>
 						<div class="card-divider card-divider-tight"></div>
 						<div class="summary-total">Total est.<span class="summary-total-value summary-total-value-estimate tabular-figures">248,75 kr.</span></div>
-						<span class="field-help" style="color:var(--green);font-weight:600">saved 42,00 kr. vs retail (14,4%)</span>
+						<span class="field-help" style="color:var(--text-positive);font-weight:600">saved 42,00 kr. vs retail (14,4%)</span>
 					</div>
 				</section>
 				<section class="card" aria-label="Tips">
@@ -1520,7 +1546,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="summary-row">Shipping<span class="summary-row-value tabular-figures">49,00 kr.</span></div>
 						<div class="card-divider" style="margin:2px 0 0"></div>
 						<div class="summary-total">Total<span class="summary-total-value tabular-figures">4.298,00 kr.</span></div>
-						<span class="field-help" style="color:var(--green);font-weight:600">saved 612,00 kr. vs retail (12,5%)</span>
+						<span class="field-help" style="color:var(--text-positive);font-weight:600">saved 612,00 kr. vs retail (12,5%)</span>
 					</div>
 				</section>
 			</div>
@@ -1621,7 +1647,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Rugbrød, skiveskåret</span><span class="item-row-meta">1 × 24,95 kr.</span></span><span class="amount tabular-figures">24,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
 									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Minimælk 1 l</span><span class="item-row-meta">4 × 10,95 kr.</span></span><span class="amount tabular-figures">43,80 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
 									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Kaffe, formalet 400 g</span><span class="item-row-meta">1 × 54,95 kr.</span></span><span class="amount tabular-figures">54,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#8A6A1F"><svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><span class="item-row-title">Line 14 was hard to read</span><span class="item-row-meta">Guessed: Smør, 250 g · 1 × 21,95 kr.</span></span><span class="amount tabular-figures">21,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#84651E"><svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><span class="item-row-title">Line 14 was hard to read</span><span class="item-row-meta">Guessed: Smør, 250 g · 1 × 21,95 kr.</span></span><span class="amount tabular-figures">21,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
 									<div class="item-row"><span class="item-row-icon" style="background:#EFF3EE;color:var(--text-muted)"><svg class="icon" viewBox="0 0 24 24"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span><span class="item-row-title">19 more lines</span><span class="item-row-meta">1.041,60 kr. together</span></span><span class="button-link" style="margin-left:auto">SHOW ALL</span></div>
 								</div>
 							</div>
@@ -1664,7 +1690,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="inset-panel">
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Totals reconciled</span><span class="item-row-meta">Document total incl. 25% VAT anchors the draft.</span></span></div>
 							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Vendor matched</span><span class="item-row-meta">Bilka, from your vendor list.</span></span></div>
-							<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#8A6A1F"><svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><span class="item-row-title">1 line uncertain</span><span class="item-row-meta">Line 14 is flagged above for review.</span></span></div>
+							<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#84651E"><svg class="icon" viewBox="0 0 24 24"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><span class="item-row-title">1 line uncertain</span><span class="item-row-meta">Line 14 is flagged above for review.</span></span></div>
 						</div>
 					</div>
 				</section>
@@ -1781,11 +1807,15 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			</div>
 			<div class="section-header" data-view-only="overview"><span class="section-label">All vendors</span></div>
 			<div class="row-inline toolbar" data-view-only="overview"><div class="field-shell"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor name…" aria-label="Search vendors"></div><div class="segmented segmented-compact"><button type="button" class="is-on">Spend</button><button type="button">Name</button><button type="button">Orders</button><button type="button">Saved</button></div></div>
-			<div class="scroll-row" data-view-only="overview">
+			<!-- A horizontal scroller whose cards hold nothing focusable is unreachable
+			     without a pointer: five vendors scrolled past the right edge at 390px with
+			     no way to tab to them. tabindex="0" gives the strip itself arrow-key
+			     scrolling, and the group carries the heading it sits under. S18. -->
+			<div class="scroll-row" data-view-only="overview" tabindex="0" role="region" aria-label="All vendors">
 				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#877364">FØ</span><span><span class="entry-name">Føtex</span><br><span class="entry-meta">71 orders</span></span></div></div><div class="figure-card tabular-figures">28.140 kr.</div><span class="card-caption">saved 1.905 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#1FA8E0">EL</span><span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span></div></div><div class="figure-card tabular-figures">26.499 kr.</div><span class="card-caption">saved 4.120 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#F09A38">MA</span><span><span class="entry-name">Matas</span><br><span class="entry-meta">29 orders</span></span></div></div><div class="figure-card tabular-figures">11.640 kr.</div><span class="card-caption">saved 1.480 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#8B5CF6">ZA</span><span><span class="entry-name">Zalando</span><br><span class="entry-meta">22 orders</span></span></div></div><div class="figure-card tabular-figures">9.870 kr.</div><span class="card-caption">saved 2.640 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#177DA7">EL</span><span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span></div></div><div class="figure-card tabular-figures">26.499 kr.</div><span class="card-caption">saved 4.120 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#AD620D">MA</span><span><span class="entry-name">Matas</span><br><span class="entry-meta">29 orders</span></span></div></div><div class="figure-card tabular-figures">11.640 kr.</div><span class="card-caption">saved 1.480 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#8453F5">ZA</span><span><span class="entry-name">Zalando</span><br><span class="entry-meta">22 orders</span></span></div></div><div class="figure-card tabular-figures">9.870 kr.</div><span class="card-caption">saved 2.640 kr.</span></div></section>
 				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#235553">JY</span><span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 orders</span></span></div></div><div class="figure-card tabular-figures">7.415 kr.</div><span class="card-caption">saved 380 kr.</span></div></section>
 			</div>
 		</div>
@@ -1958,6 +1988,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 
 
 		</div></div></div>
+		</main>
 
 	</div>
 </div>
