@@ -326,6 +326,20 @@ in truncated placeholder copy. That is typography, not iconography.
 **Sizes** run 12–20px by context: nav 19, form and toolbar buttons 14–15, chevrons 15, list-row tiles
 16–17, thumbnails 17–20, decorative panel marks 34–46 at stroke-width 1.6.
 
+> [!WARNING]
+> **Never set an icon's size in the markup.**
+
+**The container sets the size.** `svg.icon` is 18px and each container overrides it once —
+`.chevron svg.icon`, `.item-row-icon svg.icon`, `.button svg.icon`. 141 icons carried the size as an
+inline `width`/`height` pair instead, and the values drifted in exactly the way a shared class exists
+to prevent: `.icon-button-arrow` drew its glyph at 14px in 8 places, 15px in 4 and 16px in 3 — the
+defect [§6](#6-buttons) already records for that button's own geometry, one element further in.
+`.document-thumb` held 20px in 4 places and 18px in 2 for the same slot, and the two top-bar buttons
+sat side by side at 14px and 15px against §6's rule that adjacent buttons share one spec. A size
+written into the markup cannot be reached by a media query, by a theme, or by the next edit to the
+class, which is the whole reason it must not live there. Thirteen of the 141 set `width:18px;height:18px`,
+which is what the base already computes.
+
 Never icon-only navigation: every nav icon has a visible label at every width.
 
 **Brand mark**: `ti-receipt`, white stroke on a green `#14AC72` tile, 34px / radius 10, beside the
@@ -969,6 +983,24 @@ Three kinds of name, and the shape of the name tells you which one you are looki
   radius to name `.rounded` anyway — 22 distinct values across 89 declarations, the commonest
   covering 19% of them. `--radius-card` already proved the point: four surfaces shared it and one
   wrote `15px` out by hand, so the token only ever moved three of them.
+- **A component gets a base rule, not only context-scoped ones.** This is where inline styles come
+  from — not carelessness, but a class the stylesheet cannot see. `.section-label` was reached only as
+  `.card-header .section-label` and `.section-header .section-label`, and `.card-caption` by nothing at
+  all, so every instance outside a blessed container had no rule that could touch it and carried the
+  full spec in the markup: 39 section labels took 11.5px from CSS while the 5 that sat elsewhere were
+  hand-written at 11px, in the one micro-label spec [§3](#3-typography) pins to 11–11.5px. The copy in
+  the markup always drifts from the rule it duplicates, because nothing makes them agree. Write the
+  base rule first and let the container override it.
+- **A default that most of its uses override is the wrong default.** `.item-row .amount` painted every
+  amount green and 13 of its 17 uses set it back to `--text` inline. Green belonged to the vendor
+  spotlight panel alone — four figures — so the rule now states the common case and
+  `.spotlight-pair .item-row .amount` states the exception. Count which side is the majority before
+  deciding which one gets the inline override; here it had been backwards for as long as the rule existed.
+- **Structure that repeats is a selector, not an attribute.** Six summary rows ended their run with an
+  inline `border-bottom:0` and five list rows opened theirs with `padding-top:0`. The runs end three
+  different ways — at the end of the card body, at a `.card-divider` before the total, and at a
+  `.section-label` starting the next group — so `:last-child` catches only four of the six;
+  `:not(:has(+ .summary-row))` catches all six and says what the rule actually means.
 
 > [!WARNING]
 > **Folding a variant onto a base changes what wins.** A variant is two classes where it used to be

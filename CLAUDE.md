@@ -135,6 +135,19 @@ grep -c 'the-pattern' spendly.html    # then match the majority, or change all o
 Four date fields existed and only three carried the glyph, which is exactly how the fourth kept a bare
 native icon nobody had looked at in a while.
 
+**`grep -c` counts lines, not matches.** The file's inline styles were reported as 291 and were 421 —
+markup lines here carry several elements each, so a third of the job was invisible to the count that
+opened it. `grep -o 'pattern' file | wc -l` is the number of occurrences; `grep -c` is the number of
+lines holding at least one. Any tally that decides scope needs the first.
+
+**A new selector is a claim about how many elements it matches.** Moving 409 declarations into the
+stylesheet meant writing about thirty rules, and three reached further than intended — `.inset-panel
+.item-row .amount` was meant for four vendor figures and painted twelve, because the line-item lists
+sit in an inset panel too. Geometry was identical in all twelve; only the computed colour moved, so
+nothing but the walk's style fields could have caught it. Read the match count back
+(`document.querySelectorAll(sel).length`) and require the number you meant, before and after. A rule
+that renders plausibly is not a rule that matched what you aimed at.
+
 ## Changing spendly.html
 
 - **The single file is a constraint, not an accident.** No dependency, no build step, no network
