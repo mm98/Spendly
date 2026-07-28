@@ -205,6 +205,16 @@ intentions, and the cascade hides it wherever the two happen to agree. Read the 
 (`document.querySelectorAll(sel).length` against the union of the families) and check the survivors
 declare only their differences.
 
+**A comment that names a value it does not own goes stale silently.** The `.field-pair-stack-early`
+note called it "the 300px sidebar" for the 701 to 900 band; the sidebar is 236px across all of it,
+and the 300px rule sat in the very next block down, under `min-width:2200px`, where it had always
+been. Nothing renders a comment, so no walk, shot or pixel diff has an opinion about one, and
+`grep -n '300px'` returns it beside two live rail min-widths — the wrong line arrives looking like
+the right ones. Its own arithmetic is what dated it: the 165px in the next clause measures 164.5
+against a 236px sidebar and 132.5 against a 300px one, so it was written for the value the comment
+does not state. When you move a value, grep the number in prose as well as in CSS, and re-derive
+the figures a comment computes from it.
+
 **Removing a declaration hands the property back to whatever was underneath.** `.chart-legend-row`
 lost its `font-size:12.5px` and the row went to the inherited 14px, which reached the swatch, the
 chevron, the icon and its path — 245 elements' worth of computed-style diff, all of it inert, since

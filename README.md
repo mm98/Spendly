@@ -95,7 +95,7 @@ there.
 | **≤700** | The phone layout ([§16](#16-the-phone-layout)) |
 | **≤900** | Card rows go to two columns; twin cards and KPI rows stack |
 | **≤1180** | Two-column page grids collapse to one, rail below main; the promo row starts scrolling |
-| **≥2200** | Scales up rather than centring: 16px base text, 300px sidebar, wider content ratio |
+| **≥2200** | Scales up rather than centring: 16px base text, 250px sidebar, wider content ratio |
 
 ### Document skeleton
 
