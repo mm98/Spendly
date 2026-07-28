@@ -1023,6 +1023,21 @@ Three kinds of name, and the shape of the name tells you which one you are looki
     Scope the new part to outrank it (`.card-kpi .card-kpi-value` is (0,2,0) against (0,1,1)) and
     answer every property it sets: size, tracking, case, colour, weight.
 
+- **`<br>` is not a layout tool.** 15 of them stacked a vendor's name over its meta line inside a bare
+  `<span>` — a line break doing a box's job, so the two lines could not be spaced, styled apart or
+  reordered, and the pair had no element to name. They are `.entry-text` wrappers holding `.entry-name`
+  and `.entry-meta` as `<div>`s now. Removing one has a trap under it:
+  - **A line that becomes its own block re-resolves the leading.** `line-height` is the unitless `1.45`
+    from `body`, and a ratio resolves against the element's *own* font-size. Both lines had been struck
+    from the wrapper's 14px strut at 20.3px each; as blocks they compute 18.1px and 14.5px, which drops
+    the pair from 40.6px to 32.6px and lifts every row holding one by 8px. The wrapper states the
+    leading as a length instead — `1.45em`, computed once to 20.3px — so the children inherit the
+    value rather than the ratio.
+  - **The box survives, the baseline does not.** The strut now comes from each line's own font, so the
+    glyphs settle 0.35px and 1.35px higher inside boxes that did not move: 2,465 pixels of
+    `docs/home.png` and nothing else in the file, across 51,348 element records at both breakpoints.
+    Expect the converted elements' own rects to change regardless — an inline box's rect is its font's
+    content area, a block's is its line box — and check that nothing *around* them did.
 - **No abbreviations, and no shorthand.** A name that has to be decoded gets a seventh variant
   bolted onto it by someone who did not decode it. The stylesheet had reached `.iic`, `.sic`,
   `.olcol`, `.dk-hl`, `.forr`, `.om`/`.ot`/`.ov` and the single letters `.c`/`.d`/`.n`/`.t`/`.v`.
