@@ -269,25 +269,74 @@ content such as photos and long values renders in list rows and panels, never in
 
 ### One data row
 
-A tile, two lines of text, an amount, sometimes a chevron. Every list of records is that row, and it
-is one spec:
+A tile, one or two lines of text, a right-hand column, sometimes a chevron. Every list of records is
+that row, and it is one spec — **`.category-row` is the template**:
 
 | | |
 | --- | --- |
 | **Row** | `padding: 10px 0`, `gap: 12px`, `align-items: center` |
-| **Tile** | 36×36, `var(--radius-compact)` |
-| **Type** | title 13px/600 · meta 11px `--text-muted` · amount 13px/600 |
+| **Tile** | 36×36, `var(--radius-compact)`, 17px glyph |
+| **Type** | title 13px/600 · meta 11px `--text-muted` · right-hand figure 13px/600 |
+| **Leading** | inherited unitless `1.45`, resolving against each line's own size — 18.85 + 15.95 = 34.8px of pair |
 
-`.category-row` and `.entry-list-row` are the same component and had drifted apart on every value
-they own — gap 12 against 11, padding 10 against 7, tile 36 against 34, and 13/11/13 type against
-12.5/10/12.5 — which reads as two components until the rows are measured side by side, and then it
-reads as neither one being decided. `.item-row` already carried 10px and 13/11/13, so two of the
-three agreed and the third was the outlier; the tile radius went the same way, `--radius-compact` in
-16 places against a literal `11px` in 4. **Count before you match**, and match the tally rather than
-the neighbour you happened to open ([ground rules](#ground-rules)).
+**The row is `.data-row`, and it is an identifier with six variants.** `.chart-legend-row`,
+`.card-tray-row`, `.category-row`, `.entry-list-row`, `.item-row` and `.order-row` are written beside
+it and name only what that list holds; the `-row` suffix is what marks them as its family. Before the
+identifier existed the six families *were* the spec, six copies of it, and they had drifted to gaps
+of 10, 12 and 13, paddings of 10, 11 and 12, tiles of 36, 40 and 44, and one list's text pair
+standing 5.8px taller than the rest.
 
-`.order-row` is deliberately outside this: it is the page's own table, on its own denser scale
-(13.5/11.5, `padding: 12px 0`) and stacking to `grid-template-areas` on a phone ([§15](#15-responsive-containment)).
+> [!IMPORTANT]
+> **The identifier is not only for the box — it is what every rule about "a row" keys on.** A shared
+> value written as a list of family names is a list that has to be extended by hand, and it will not
+> be. The hover tint was three such names and covered three of the five families that had navigating
+> rows, so the All-orders results and the duplicate-order row took the pointer and the chevron and
+> then lit nothing: **4 of 21 navigating rows promised a destination and answered with no tint**, for
+> as long as both existed. It is `.data-row[data-go]:hover` now — one rule, keyed on the identifier
+> and on the attribute that makes a row navigate, so a row that learns to navigate lights up because
+> it is a row, not because someone remembered to add it. **Do not add a family name to a rule that
+> could key on `.data-row`.**
+
+**What a row still owns is what it holds, not how it is spaced.** These are variants, not drift:
+
+- **the colour of the right-hand figure** — `--text` on most, `--text-positive` where the figure is a saving
+- **a round avatar in place of a tile** — `.entry-avatar` is initials on a fill, 36×36 at `border-radius:50%`
+- **one line where another has two**, and a swatch where another has a tile — the donut key is a
+  chart legend, so it keeps an 11px swatch and a single label
+- **a hairline between rows** — `.category-row`, `.chart-legend-row` and `.card-tray-row` carry
+  `border-top` and clear it on the first row; the two list families inside a card body do not
+
+> [!NOTE]
+> **The hairline is the one row value still split three-two, and it is undecided rather than
+> settled.** *Category breakdown* rules between its rows and *Latest orders* does not, which is
+> visible the moment the two cards sit on one screen. It was left alone when the rest of the spec
+> was unified because a divider is a different kind of decision from a gap: it adds ink to ~40 rows
+> that currently have none, and the argument for it — a list of records reads as a list — runs
+> against the argument that a card body with four rows and a divider under its header is already
+> ruled enough. Whichever way it goes, it goes for all five families at once. Do not settle it one
+> card at a time.
+
+**A bare text node is not a part, and takes the row's font-size instead of the spec's.** The donut
+key's label was the one label in the file with no element around it, so it read at the 12.5px the row
+declared for itself while every other list title read 13/600 — invisible to any rule keyed on a title
+class, because there was no title. It is `.chart-legend-row-title` now ([§19](#19-names-in-the-markup)).
+
+**A `line-height` in `em` on a wrapper is a length, and a length does not re-resolve.** `.entry-text`
+was pinned at `1.45em`, computed once against its own inherited 14px — 20.3px — and handed to both a
+13px name and an 11px meta, so the pair stood 40.6px against every other list's 34.8px. That 5.8px was
+the whole of "Latest orders is spaced differently from Category breakdown". The value was inherited
+from a `<br>` layout removed in S19; keeping it kept that layout's leading. Let the unitless `1.45`
+fall through.
+
+`.order-row` is the one variant that redraws the box: it is the page's own table, so it takes a fixed
+column grid instead of a flex run, `padding: 12px 0` to carry its denser 13.5/11.5 scale, and stacks
+to `grid-template-areas` on a phone ([§15](#15-responsive-containment)). It is still a `.data-row` —
+it lights up on hover, it carries a chevron where it navigates, and it does **not** restate `gap: 12px`
+or `align-items: center`, which it already agreed with. A variant restating a value it copies is the
+near-miss the identifier exists to stop; a variant is only its differences.
+
+**Count before you match**, and match the tally rather than the neighbour you happened to open
+([ground rules](#ground-rules)).
 
 ## 6. Buttons
 
@@ -382,8 +431,11 @@ width (`width: max(100%, 560px)`) rather than inheriting the field's.
 What stays as text: `×` as a multiplication sign in prices ("2 × 89,95 kr."), `·` as a separator, `…`
 in truncated placeholder copy. That is typography, not iconography.
 
-**Sizes** run 12–20px by context: nav 19, form and toolbar buttons 14–15, chevrons 15, list-row tiles
-16–17, thumbnails 17–20, decorative panel marks 34–46 at stroke-width 1.6.
+**Sizes** run 12–20px by context: nav 19, form and toolbar buttons 14–15, chevrons 15, decorative
+panel marks 34–46 at stroke-width 1.6. **A list-row tile is 17**, thumbnail or not — the tile is the
+row spec's ([§5](#5-control-geometry)), so a glyph sitting in one takes the tile's size and not its
+own component's. `.item-row-icon` at 16 in a 40px tile and `.document-thumb` at 20 in a 44px one were
+two components' worth of tile geometry inside one row.
 
 > [!WARNING]
 > **Never set an icon's size in the markup.**
@@ -539,6 +591,28 @@ taller than the FILTERS and Sort controls sharing its row.
 
 - Header: caps label left; optionally a bordered context chip (the `Save · 4.52% APY` pattern) or an
   EDIT-style pill (32px/r10) right. Hairline below the header.
+- **The label sets the band's height; the thing on the right does not.** `.card-header` is
+  `height: calc(28px + 11.5px * 1.45)` — its padding plus the label's line box — and every control it
+  can hold is shorter than that, so each one centres inside the band instead of stretching it. Left
+  in flow to size the header, one component drew **six heights**, decided entirely by what sat on the
+  right: a 32px pill made four headers 60, 30px range tabs made one 57.94, a 28px chip made two 56, a
+  17px caption made five 45.39, and the twenty carrying a label alone stood at 44.67. Nothing about
+  *Categories* wants to be 15px taller than *Spending rhythm* next to it; it was taller because it
+  has an ADD button. **All 32 headers are 44.67 at both breakpoints, with no exception.** It is
+  stated as a `height` and not a `min-height` because the defect is a header growing, never one
+  shrinking.
+  - **A control that will not fit the band does not belong in the band.** The range tabs were the one
+    right-hand item taller than 44.67 — five buttons wrapping to two rows and 66px at 390, beside a
+    label that wrapped with them, for a header 93.88 tall. They moved to the **card body**, which is
+    where the hero card's identical control already sat; the `style="margin:0"` pinning them into the
+    header was the tell that they were fighting it. Two placements for one control is what let one
+    header keep a different height. Prefer moving the control to carving an exception into the rule —
+    an exception is a second spec with a `:not()` in front of it.
+  - `.section-header` has the same defect and takes the opposite fix: its own band is 24.67 and the
+    32px pill two of the three carry does **not** fit inside it, so shrinking to the label would hang
+    the button 3.7px out of the band at both ends. These level up to the control (`min-height: 40px`)
+    rather than down to the label. Which way a band resolves depends on whether its tallest control
+    fits inside it — check that before copying either rule.
 - Inner gray panels: `#F2F4F1`, r12, rows with 40px rounded-square icons, **no dividers between rows**
   — spacing only — and green amounts right.
 - SEE ALL is the 44px full-width outline button at the card foot. Underlined caps links
@@ -755,7 +829,8 @@ instance below shipped because a shape was copied from the reference without ask
   ([§10](#10-cards)): the two lines a pixel apart were the defect, not the colour match.
 - **A tight top belongs to the container, not to the row.** A row's own padding is the box its hover
   tint paints, so padding trimmed off a row to close a gap is padding the lit band loses on one side
-  and keeps on the other. `.entry-list-row` is `padding:7px 0` and the first row's top 7px was zeroed
+  and keeps on the other. `.entry-list-row` was `padding:7px 0` when this was found and is the row
+  spec's `10px 0` now ([§5](#5-control-geometry)); the first row's top 7px was zeroed
   to sit it under the card divider: the glyph in Orders' *Latest orders* then sat 3.30px below the
   band's top edge and 10.30px above its bottom, and the amount 11.23 and 18.23 — a band 7px heavier
   at the foot of the one row in the file that lights up. Take it off the container instead, where
@@ -875,7 +950,8 @@ container. Rules that follow:
   handle to 6px. Target the description (`.item-row > span:has(b)`) and give the rest `flex:none`.
 - Rows with fixed columns that cannot fit a phone stack instead — `.order-row` becomes two rows via
   `grid-template-areas`.
-- **Row content sits flush with the card's content box.** Six row types use `padding: Npx 0`; `.order-row`
+- **Row content sits flush with the card's content box.** Every row type uses `padding: Npx 0` — one
+  `10px 0` across the five that share the row spec ([§5](#5-control-geometry)); `.order-row`
   alone had `12px 6px` and sat 6px inside the header and footer above and below it. Likewise a
   trailing chevron column is `auto`, not a fixed 26px around a 15px glyph, or the row stops short of
   the card edge.
@@ -905,8 +981,16 @@ earlier "shrink the floating layer" approach.
   the bar from content scrolling under it; making it white cost that separation and had to be bought
   back with a shadow and a pill that were never asked for. On tint the active tab reads from its bare
   1px lift, no fill — which is how it was designed.
-- **Layout shifts**: `.order-row` stacks to two rows; `.item-row` wraps with the description keeping a 60%
-  basis; `.field-pair` and `.order-list-grid` go single-column — except the filter panel's From/To and Min/Max rows,
+- **Layout shifts**: `.order-row` stacks to two rows; `.item-row` wraps with the description keeping a 64%
+  basis — **that basis is a wrap threshold, not a proportion, so give it margin.** At 60% it decided
+  where a row broke by about 1%: the description's basis came to 175.2px of a 292px row against the
+  178px left once the tile, the figure and two gaps were taken out, so trimming 6px off the tile
+  ([§5](#5-control-geometry)) flipped the row onto one line, squeezed the description to 178px,
+  wrapped a meta and left a trailing edit button alone on the next line under the tile. The usable
+  window is 61–63.6% across the card widths in this file; 64% sits clear of the low edge and past the
+  high one deliberately, since the row it wraps there was the only one of four in its list still
+  sitting on a single line. A basis that close to its threshold is a wrap decided by whatever the
+  fixed columns last measured; `.field-pair` and `.order-list-grid` go single-column — except the filter panel's From/To and Min/Max rows,
   which stay side by side ([§9](#9-forms-and-fields)); card rows go single-column; the hero callout is
   hidden; the global finder is hidden and `.topbar .topbar-actions` takes over the right-alignment; sub-tabs
   scroll horizontally without a visible scrollbar.
@@ -1054,8 +1138,16 @@ Three kinds of name, and the shape of the name tells you which one you are looki
 - **A base is only worth having when the variants share more than they override.** The four chips
   share two declarations and differ on eight, so they stay four components. Forcing a base there
   would make four different badges look like one family, which is a worse lie than the duplication.
-  The six row components fail the same test: `display:flex` and `align-items:center` are all they
-  share, against gaps of 10/11/12/13, paddings of 7/10/11/12 and a hairline four of them do not have.
+  The row components used to fail the same test and now pass it, so they have a base: `.data-row`,
+  with the six `-row` families written beside it ([§5](#5-control-geometry)). Five share the box
+  outright; `.order-row` redraws it and still shares the gap, the alignment, the hover, the chevron
+  and the chevron's meaning. Re-run the test when a family is edited, in both directions.
+- **The test is about declarations, but the payoff is about rules that have not been written yet.**
+  Counting only shared declarations undersold `.data-row`: the box was four of them, which is close
+  enough to the chips' two that it reads as a toss-up. What settled it is that *every rule keyed on
+  "a row" gets one home* — the hover tint, the pointer, the chevron slot — and each of those was
+  otherwise a list of family names that one family was always missing from. A base earns its place
+  on the rules it prevents from drifting, not only on the declarations it collects today.
 - **A part carries its identifier in its name, not just in its selector.** `.entry-list-row`, never
   `.entry-list .row` -- the tally is 103 parts written bare against 47 scoped. A generic child name
   cannot be grepped: `class="row"` was 22 elements across two unrelated components that disagreed on
