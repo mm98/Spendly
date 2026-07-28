@@ -678,7 +678,16 @@ instance below shipped because a shape was copied from the reference without ask
 
 - **A chevron means "this goes somewhere".** It appears only on something that navigates, and
   anything that navigates carries one. Audit both directions: the prototype had 12 chevrons, all
-  dead, and after wiring them 9 rows were clickable with no chevron at all.
+  dead, and after wiring them 9 rows were clickable with no chevron at all. Both directions failed
+  again later, in one list each, which is why the audit is a script and not a read-through: All
+  orders drew three identical rows where only the first was an `<a>`, so two chevrons pointed at
+  nothing and `.order-row`'s own `cursor:pointer` put a hand on them; the scan review's duplicate
+  row was the reverse, a link with no chevron at all. Walk every row and card header, read
+  `[data-go]`, the chevron and the computed `cursor`, and require the three to agree — 98 rows and
+  headers, 26 navigating, 26 chevrons, and no hand on anything inert.
+- **The hand comes from `[data-go]`, never from a row class.** `.order-row { cursor:pointer }` drew
+  one over the two rows that went nowhere: a class cannot know whether the element it styles
+  navigates, and the attribute that decides already carries the rule.
 - **Chevron direction carries meaning** — right = navigate away, down = expand in place. Do not mix
   them; the Home legend used down-chevrons on rows that navigate.
 - **A chevron takes its 26px out of the row it sits in, so a list where only some rows navigate must
