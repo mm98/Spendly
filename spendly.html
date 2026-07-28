@@ -239,6 +239,16 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    total is unchanged, so the header keeps its height and nothing below it reflows --
    the label rises 2px and the lit block is even around it. S13. */
 .card-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 20px; }
+/* One band height, whatever the header happens to carry. The band is the label's line
+   box plus its padding -- 14 + 11.5x1.45 + 14 -- and a control on the right sits in it
+   rather than setting it. Left to size the band, the 32px pill drew four headers at 60,
+   the 30px range tabs one at 57.94, the 28px chip two at 56 and a 17px caption five at
+   45.39, against the twenty carrying a label alone at 44.67: one component, six heights,
+   and the only thing deciding which was what sat on the right. Every control a header
+   takes is shorter than the band, so none of them overflow it -- the tallest is the pill
+   at 32 against 44.67. Stated as a height rather than a min-height because the defect is
+   headers growing, not headers shrinking. README 10. */
+.card-header:not(:has(.range-tabs)) { height:calc(28px + 11.5px * 1.45); }
 .card-header .section-label { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); }
 /* Base specs, so a component used outside a blessed container still has a rule
    that reaches it. Without these .section-label and .card-caption were styled
@@ -362,7 +372,12 @@ svg.chart { width:100%; display:block; }
 .chart-legend .chevron { color:var(--text-faint); margin-left:6px; }
 
 /* section head */
-.section-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 2px; }
+/* Same defect one band up, fixed the other way round. A section header's own band is
+   24.67, and the 32px pill two of the three carry does not fit inside it -- shrinking to
+   the label would hang the button 3.7px out of the band at both ends, over whatever sits
+   above and below. So these level up to the control instead of down to the label: one
+   header gains air, none overflow, and the three are one height. README 10. */
+.section-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 2px; min-height:40px; }
 .section-header .section-label { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); }
 .button.button-pill { gap:6px; height:32px; padding:0 15px; border-color:#DFE3DE; background:var(--bg-card); color:var(--text); font-size:11px; letter-spacing:.04em; }
 
@@ -908,7 +923,16 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   buttons. On a phone those fixed widths leave the description nothing, so the
 	   row wraps and the description keeps a majority basis. */
 	.item-row { flex-wrap:wrap; row-gap:6px; }
-	.item-row > div:has(.item-row-title) { flex:1 1 60%; }
+	/* 64%, not 60%. The basis decides where the row breaks, and at 60% it was deciding
+	   it by 1%: the description's basis came to 175.2px of a 292px row against the
+	   178px left once a 36px tile, a 54px figure and two gaps were taken out, so the
+	   row broke after the description only while the fixed columns stayed wide enough
+	   to push it over. Shrinking the tile from 40 to 36 took 6px out of that sum, the
+	   row started fitting on one line, and the description dropped to 178px -- which
+	   wrapped a meta to two lines and left the trailing edit button alone on the next
+	   line, flush under the tile. Any value from 62% clears the threshold; 64% clears
+	   it by more than the tile geometry can move. README 15. */
+	.item-row > div:has(.item-row-title) { flex:1 1 64%; }
 	/* The promo row scrolls sideways from 1180 down; on a phone it stacks instead --
 	   a 180px card and a swipe are both too small to be worth it at this width. */
 	.promo-row { grid-auto-flow:row; grid-auto-columns:unset; grid-template-columns:1fr; }

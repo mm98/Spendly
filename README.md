@@ -294,6 +294,16 @@ box per family is what let that happen, so no family restates it.
 - **a hairline between rows** — `.category-row`, `.chart-legend-row` and `.card-tray-row` carry
   `border-top` and clear it on the first row; the two list families inside a card body do not
 
+> [!NOTE]
+> **The hairline is the one row value still split three-two, and it is undecided rather than
+> settled.** *Category breakdown* rules between its rows and *Latest orders* does not, which is
+> visible the moment the two cards sit on one screen. It was left alone when the rest of the spec
+> was unified because a divider is a different kind of decision from a gap: it adds ink to ~40 rows
+> that currently have none, and the argument for it — a list of records reads as a list — runs
+> against the argument that a card body with four rows and a divider under its header is already
+> ruled enough. Whichever way it goes, it goes for all five families at once. Do not settle it one
+> card at a time.
+
 **A bare text node is not a part, and takes the row's font-size instead of the spec's.** The donut
 key's label was the one label in the file with no element around it, so it read at the 12.5px the row
 declared for itself while every other list title read 13/600 — invisible to any rule keyed on a title
@@ -565,6 +575,23 @@ taller than the FILTERS and Sort controls sharing its row.
 
 - Header: caps label left; optionally a bordered context chip (the `Save · 4.52% APY` pattern) or an
   EDIT-style pill (32px/r10) right. Hairline below the header.
+- **The label sets the band's height; the thing on the right does not.** `.card-header` is
+  `height: calc(28px + 11.5px * 1.45)` — its padding plus the label's line box — and every control it
+  can hold is shorter than that, so each one centres inside the band instead of stretching it. Left
+  in flow to size the header, one component drew **six heights**, decided entirely by what sat on the
+  right: a 32px pill made four headers 60, 30px range tabs made one 57.94, a 28px chip made two 56, a
+  17px caption made five 45.39, and the twenty carrying a label alone stood at 44.67. Nothing about
+  *Categories* wants to be 15px taller than *Spending rhythm* next to it; it was taller because it
+  has an ADD button. It is stated as a `height` and not a `min-height` because the defect is a header
+  growing, never one shrinking.
+  - The one exception is the header holding `.range-tabs`, excluded by `:not(:has(.range-tabs))`.
+    That is a control **group**, not a control — it wraps to two rows at 390 and stands 66px, so it
+    is the one right-hand item that really does need the band to grow.
+  - `.section-header` has the same defect and takes the opposite fix: its own band is 24.67 and the
+    32px pill two of the three carry does **not** fit inside it, so shrinking to the label would hang
+    the button 3.7px out of the band at both ends. These level up to the control (`min-height: 40px`)
+    rather than down to the label. Which way a band resolves depends on whether its tallest control
+    fits inside it — check that before copying either rule.
 - Inner gray panels: `#F2F4F1`, r12, rows with 40px rounded-square icons, **no dividers between rows**
   — spacing only — and green amounts right.
 - SEE ALL is the 44px full-width outline button at the card foot. Underlined caps links
@@ -933,8 +960,16 @@ earlier "shrink the floating layer" approach.
   the bar from content scrolling under it; making it white cost that separation and had to be bought
   back with a shadow and a pill that were never asked for. On tint the active tab reads from its bare
   1px lift, no fill — which is how it was designed.
-- **Layout shifts**: `.order-row` stacks to two rows; `.item-row` wraps with the description keeping a 60%
-  basis; `.field-pair` and `.order-list-grid` go single-column — except the filter panel's From/To and Min/Max rows,
+- **Layout shifts**: `.order-row` stacks to two rows; `.item-row` wraps with the description keeping a 64%
+  basis — **that basis is a wrap threshold, not a proportion, so give it margin.** At 60% it decided
+  where a row broke by about 1%: the description's basis came to 175.2px of a 292px row against the
+  178px left once the tile, the figure and two gaps were taken out, so trimming 6px off the tile
+  ([§5](#5-control-geometry)) flipped the row onto one line, squeezed the description to 178px,
+  wrapped a meta and left a trailing edit button alone on the next line under the tile. The usable
+  window is 61–63.6% across the card widths in this file; 64% sits clear of the low edge and past the
+  high one deliberately, since the row it wraps there was the only one of four in its list still
+  sitting on a single line. A basis that close to its threshold is a wrap decided by whatever the
+  fixed columns last measured; `.field-pair` and `.order-list-grid` go single-column — except the filter panel's From/To and Min/Max rows,
   which stay side by side ([§9](#9-forms-and-fields)); card rows go single-column; the hero callout is
   hidden; the global finder is hidden and `.topbar .topbar-actions` takes over the right-alignment; sub-tabs
   scroll horizontally without a visible scrollbar.
