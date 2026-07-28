@@ -84,6 +84,21 @@ and 49,584 removed for a change that moved nothing. Both runs hold the same elem
 order; number them in `querySelectorAll('*')` order, skip the element you inserted, and assert the
 tag matches at each position — the same walk then read 238 rect diffs, all in one place.
 
+Document order is not immune to the same trap, only cheaper to fix: seven `<span>`s wrapped around
+seven bare labels renumbered the tail of every state they appear in, and the walk came back with
+45,223 tag mismatches, 245 added and 6,285 text diffs on a change that touched five CSS rules. The
+tag assertion is what says so — an index diff with no tag check would have reported those 45,223 as
+geometry. Filter the inserted selector out of the record on both runs (`SKIP='.new-part'`) and the
+numbering realigns; the same walk then read 0 added, 0 removed, 0 tag mismatches and 0 text diffs.
+Skipping is safe only because the elements are new on one side; never skip an element that exists in
+both runs, or the diff stops covering it.
+
+**Freeze before you wait, not after.** The settle loop and the freeze are both required and the order
+between them is not free: a wait-for-stable-geometry loop started before the freeze samples the
+indeterminate progress bar forever and never returns. It does not fail — it hangs, with a browser
+open and nothing on stdout, which reads as "the walk is slow" for as long as you let it. Freeze,
+then settle, then freeze again for anything the settle woke.
+
 **Prove the harness is quiet before you trust its diff.** Freezing animations is not the whole of it:
 charts are drawn from JS and redrawn by a `ResizeObserver` when a hidden page is shown, and that
 callback lands after the click returns. Measuring straight after navigating raced it — two runs of a
@@ -159,6 +174,13 @@ machine, and check `docs/` only for the states and the sizes. When a change does
 where it was regenerated — a shot re-rendered elsewhere carries that machine's text with it, so the
 committed image changes far more than the edit did.
 
+**So measure the floor rather than assuming it.** The container that renders these shots is not
+always the wrong container: Chromium 141.0.7390.37 under the Playwright 1.56.1 bundle rendered the
+untouched file at 0 of 5,184,000 against all three committed shots, and a regeneration from there
+carries only the edit. One run of the unchanged file against `docs/` is what tells you which case you
+are in, and it costs a minute — claiming a shot is clean, and claiming it is unusable, are the same
+unverified claim in opposite directions.
+
 ## Uniformity
 
 Before adding a variant, grep for the pattern and match the tally, not the one neighbour in view. The
@@ -175,6 +197,20 @@ native icon nobody had looked at in a while.
 markup lines here carry several elements each, so a third of the job was invisible to the count that
 opened it. `grep -o 'pattern' file | wc -l` is the number of occurrences; `grep -c` is the number of
 lines holding at least one. Any tally that decides scope needs the first.
+
+**A shared value has to be deleted from every copy, not set in one more place.** Unifying five row
+families meant the grouped rule and then removing `display`, `align-items`, `gap` and `padding` from
+each family's own block — a rule added beside four survivors is a fifth near-miss with better
+intentions, and the cascade hides it wherever the two happen to agree. Read the count back
+(`document.querySelectorAll(sel).length` against the union of the families) and check the survivors
+declare only their differences.
+
+**Removing a declaration hands the property back to whatever was underneath.** `.chart-legend-row`
+lost its `font-size:12.5px` and the row went to the inherited 14px, which reached the swatch, the
+chevron, the icon and its path — 245 elements' worth of computed-style diff, all of it inert, since
+every one of those is sized in px. Inert is not the same as intended: the same removal is what left
+the label at 14px until it was given a part of its own. Diff the computed styles either side and
+account for every property that moved, including the ones that changed nothing.
 
 **A new selector is a claim about how many elements it matches.** Moving 409 declarations into the
 stylesheet meant writing about thirty rules, and three reached further than intended — `.inset-panel

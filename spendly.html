@@ -268,6 +268,16 @@ a[data-go] { color:inherit; text-decoration:none; }
 .page[data-view="favourites"] [data-view-only="overview"],
 .page[data-view="manage"] [data-view-only="overview"] { display:none; }
 .card-header[data-go]:hover { background:var(--bg-row-hover); }
+/* One data row, written once. Five lists on this page are the same component -- a tile,
+   one or two lines of text, a right-hand column, sometimes a chevron -- and they had
+   drifted on every value that makes a set of lists read as one system: gaps of 10, 12
+   and 13, paddings of 10, 11 and 12, tiles of 36, 40 and 44, and a text pair 5.8px
+   taller on .entry-list-row than on the rest. Four near-misses is what four copies of
+   this declaration block buy; one grouped selector is what stops the fifth. What a row
+   still owns is what it holds, not how it is spaced -- the colour of the right-hand
+   figure, a round avatar in place of a tile, one line where another has two. README 5. */
+.chart-legend-row, .card-tray-row, .category-row, .entry-list-row, .item-row {
+	display:flex; align-items:center; gap:12px; padding:10px 0; }
 /* A row's highlight bleeds 10px past the body's 20px gutter at both ends, so the
    tint clears the first glyph and the chevron instead of stopping against them.
    The header above already lights up edge to edge; this is the same idea for a
@@ -338,11 +348,17 @@ a[data-go] { color:inherit; text-decoration:none; }
 .chart-split-bar { display:flex; gap:3px; height:9px; margin-top:14px; }
 .chart-split-bar-segment { border-radius:5px; }
 .chart-legend { margin-top:4px; }
-.chart-legend-row { display:flex; align-items:center; gap:10px; padding:12px 0; border-top:1px solid var(--border-divider); font-size:12.5px; }
+.chart-legend-row { border-top:1px solid var(--border-divider); }
 .chart-legend-row:first-child { border-top:0; }
+/* The swatch is this row's difference: a key to a plotted hue, not a tile holding a
+   glyph, so it keeps its 11px against the row spec's 36. */
 .chart-legend .chart-swatch { width:11px; height:11px; border-radius:3.5px; flex:none; }
 svg.chart { width:100%; display:block; }
-.chart-legend .amount { margin-left:auto; font-weight:600; }
+/* The label was a bare text node taking 12.5px off the row, which is how the one list
+   with no element around its own label ended up half a point under every other list's
+   title. It is a part with a name now, at the row spec's 13/600. README 5, 19. */
+.chart-legend-row-title { font-size:13px; font-weight:600; }
+.chart-legend .amount { margin-left:auto; font-size:13px; font-weight:600; }
 .chart-legend .chevron { color:var(--text-faint); margin-left:6px; }
 
 /* section head */
@@ -370,7 +386,7 @@ svg.chart { width:100%; display:block; }
 .icon-button-reorder:disabled { opacity:.35; cursor:default; }
 .icon-button-reorder.icon-button-reorder-remove { color:var(--donut-red); }
 .card-tray { margin-top:18px; }
-.card-tray-row { display:flex; align-items:center; gap:13px; padding:11px 0; border-top:1px solid var(--border-divider); }
+.card-tray-row { border-top:1px solid var(--border-divider); }
 .card-tray-row:first-child { border-top:0; }
 .card-tray-row-title { font-size:13px; font-weight:600; }
 .card-tray-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
@@ -399,7 +415,7 @@ svg.chart { width:100%; display:block; }
 .donut .ring-centre-label { font-style:normal; font-size:9.5px; color:var(--text-muted); }
 .category-rows { margin-top:12px; display:grid; }
 .card-body > .category-rows:first-child { margin-top:0; }
-.category-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--border-divider); }
+.category-row { border-top:1px solid var(--border-divider); }
 .category-row:first-child { border-top:0; }
 .category-icon { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; flex:none; }
 .category-icon svg.icon { width:17px; height:17px; stroke-width:2; }
@@ -437,24 +453,18 @@ svg.chart { width:100%; display:block; }
 .chart-series-key .chart-series-key-swatch { width:9px; height:9px; border-radius:3px; flex:none; }
 .entry-list { margin-top:8px; }
 .entry-list .list-heading { font-size:11.5px; color:var(--text-muted); font-weight:500; margin:10px 0 2px; }
-/* One row spec, not four near-misses. This row and .category-row are the same
-   component -- tile, two lines of text, an amount, sometimes a chevron -- and they had
-   drifted apart on every value they own: gap 11 against 12, padding 7 against 10, tile
-   34 against 36, and 12.5/10/12.5 type against 13/11/13. .item-row already carried
-   10px and 13/11/13 too, so the pair below is the tally and this row was the outlier.
-   S19. */
-.entry-list-row { display:flex; align-items:center; gap:12px; padding:10px 0; }
 /* The fill is written per avatar in the markup, and it is a text background, not a
    swatch -- these initials are white at 10px/700, so every value has to clear 4.5:1
    against white. Four of the seven were the donut's chart hues, which are picked to
    separate ring segments and reached 2.24:1 under type. S2, S18. */
 .entry-list .entry-avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
-/* The name sat over the meta on a <br>, so both lines took their height from the
-   wrapper's own 14px strut. Each line is its own block now, and the inherited unitless
-   1.45 would resolve against its own font-size instead -- 40.6px of pair becomes 32.6px
-   and every row holding one lifts 8px. A length computes here once, and is what the
-   two lines inherit. S19. */
-.entry-list .entry-text { line-height:1.45em; }
+/* No line-height here. Pinning the wrapper at 1.45em computed one length off its own
+   inherited 14px -- 20.3px -- and handed it to both lines, so a 13px name and an 11px
+   meta were struck on the same 20.3px leading and the pair stood 40.6px tall. Every
+   other list lets the unitless 1.45 resolve against each line's own size, 18.85 + 15.95
+   = 34.8px, and the 5.8px was the whole of "Latest orders is spaced differently from
+   Category breakdown". The value was inherited from a <br> layout that has been gone
+   since S19; keeping it kept that layout's leading. README 5. */
 .entry-list .entry-name { font-size:13px; font-weight:600; }
 .entry-list .entry-meta { font-size:11px; color:var(--text-muted); }
 .entry-list .amount { margin-left:auto; text-align:right; font-size:13px; font-weight:600; color:var(--text-positive); white-space:nowrap; flex:none; }
@@ -482,13 +492,11 @@ svg.chart { width:100%; display:block; }
 .page.is-on { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
 .segmented { display:inline-flex; gap:2px; padding:4px; background:#F1F2EE; border:1px solid #E5E7E2; border-radius:14px; width:max-content; }
 .inset-panel { background:#F2F4F1; border-radius:var(--radius-page); padding:8px 14px; display:grid; }
-.item-row { display:flex; align-items:center; gap:13px; padding:10px 0; }
-.item-row-roomy { padding:12px 0; }
 .item-row > div:has(.item-row-title) { min-width:0; }
 .item-row > span:not(:has(.item-row-title)) { flex:none; }
 .item-row-title, .item-row-meta { overflow-wrap:anywhere; }
-.item-row .item-row-icon { width:40px; height:40px; border-radius:var(--radius-page); background:#DFF0E6; color:#12A56B; display:grid; place-items:center; font-size:14px; font-weight:700; flex:none; }
-.item-row .item-row-icon svg.icon { width:16px; height:16px; }
+.item-row .item-row-icon { width:36px; height:36px; border-radius:var(--radius-compact); background:#DFF0E6; color:#12A56B; display:grid; place-items:center; font-size:14px; font-weight:700; flex:none; }
+.item-row .item-row-icon svg.icon { width:17px; height:17px; }
 /* The drag handle was a bare <span> styling itself, down to a var(--text-faint,#9AA39B)
    whose fallback had drifted a digit from the token it falls back to. */
 .item-row .item-row-grip { color:var(--text-faint); cursor:grab; }
@@ -605,8 +613,10 @@ svg.chart { width:100%; display:block; }
 .document-preview svg { width:46px; height:46px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
 .chip-status { display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 12px; border-radius:9px; background:#DFF3EA; color:var(--text-positive); font-size:11.5px; font-weight:600; }
 .chip-status::before { content:""; width:6px; height:6px; border-radius:50%; background:#14AC72; }
-.document-thumb { width:44px; height:44px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; }
-.document-thumb svg.icon { width:20px; height:20px; }
+/* A thumbnail in a list row is the row's tile, so it is the row spec's tile: 36 and
+   --radius-compact, not a 44px box of its own. It only ever appears inside .item-row. */
+.document-thumb { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; }
+.document-thumb svg.icon { width:17px; height:17px; }
 /* combobox: the system's replacement for every native select.
    Searchable, grouped, with a create action at the foot. */
 .combobox { position:relative; }
@@ -1030,9 +1040,9 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 							<span class="chart-split-bar-segment" style="width:92%; background:var(--teal)"></span>
 						</div>
 						<div class="chart-legend">
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span>Groceries<span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--teal)"></span>Electronics<span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:#45524C"></span>Everything else<span class="amount tabular-figures">7.190 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span><span class="chart-legend-row-title">Groceries</span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--teal)"></span><span class="chart-legend-row-title">Electronics</span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:#45524C"></span><span class="chart-legend-row-title">Everything else</span><span class="amount tabular-figures">7.190 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 						</div>
 					</div>
 				</section>
@@ -1558,10 +1568,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-header"><span class="section-label">Items · 4</span><span class="field-help tabular-figures">4.249,00 kr.</span></div>
 					<div class="card-divider"></div>
 					<div class="card-body card-body-tight">
-						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Dell UltraSharp U2723QE 27 tommer</div><div class="item-row-meta">1 × 3.199,00 kr.</div></div><span class="amount tabular-figures">3.199,00 kr.</span></div>
-						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Logitech MX Master 3S</div><div class="item-row-meta">1 × 749,00 kr. · Replaces the one that drowned in coffee</div></div><span class="amount tabular-figures">749,00 kr.</span></div>
-						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">USB-C dock, 6 porte</div><div class="item-row-meta">1 × 249,00 kr.</div></div><span class="amount tabular-figures">249,00 kr.</span></div>
-						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Kabelbindere, 100 stk.</div><div class="item-row-meta">2 × 26,00 kr.</div></div><span class="amount tabular-figures">52,00 kr.</span></div>
+						<div class="item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Dell UltraSharp U2723QE 27 tommer</div><div class="item-row-meta">1 × 3.199,00 kr.</div></div><span class="amount tabular-figures">3.199,00 kr.</span></div>
+						<div class="item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Logitech MX Master 3S</div><div class="item-row-meta">1 × 749,00 kr. · Replaces the one that drowned in coffee</div></div><span class="amount tabular-figures">749,00 kr.</span></div>
+						<div class="item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">USB-C dock, 6 porte</div><div class="item-row-meta">1 × 249,00 kr.</div></div><span class="amount tabular-figures">249,00 kr.</span></div>
+						<div class="item-row"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><div><div class="item-row-title">Kabelbindere, 100 stk.</div><div class="item-row-meta">2 × 26,00 kr.</div></div><span class="amount tabular-figures">52,00 kr.</span></div>
 						<div class="card-divider" style="margin:6px 0 0"></div>
 						<div class="summary-row">Items subtotal<span class="summary-row-value tabular-figures">4.249,00 kr.</span></div>
 						<div class="summary-row">Shipping<span class="summary-row-value tabular-figures">49,00 kr.</span></div>
@@ -1975,10 +1985,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-body spend-gauge-row">
 						<div class="spend-gauge"><span class="ring-centre"><span class="ring-centre-value tabular-figures">24.418 kr.</span><span class="ring-centre-label">July 2026</span></span></div>
 						<div class="chart-legend" style="flex:1;min-width:170px">
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-blue)"></span>Groceries<span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span>Electronics<span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-yellow)"></span>Household<span class="amount tabular-figures">6.110 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-purple)"></span>Everything else<span class="amount tabular-figures">5.550 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-blue)"></span><span class="chart-legend-row-title">Groceries</span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span><span class="chart-legend-row-title">Electronics</span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-yellow)"></span><span class="chart-legend-row-title">Household</span><span class="amount tabular-figures">6.110 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-purple)"></span><span class="chart-legend-row-title">Everything else</span><span class="amount tabular-figures">5.550 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 						</div>
 					</div>
 				</section>
