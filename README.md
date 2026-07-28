@@ -863,6 +863,17 @@ Three kinds of name, and the shape of the name tells you which one you are looki
 - **A base is only worth having when the variants share more than they override.** The four chips
   share two declarations and differ on eight, so they stay four components. Forcing a base there
   would make four different badges look like one family, which is a worse lie than the duplication.
+  The six row components fail the same test: `display:flex` and `align-items:center` are all they
+  share, against gaps of 10/11/12/13, paddings of 7/10/11/12 and a hairline four of them do not have.
+- **A part carries its identifier in its name, not just in its selector.** `.entry-list-row`, never
+  `.entry-list .row` -- the tally is 103 parts written bare against 47 scoped. A generic child name
+  cannot be grepped: `class="row"` was 22 elements across two unrelated components that disagreed on
+  gap, padding, border and font size, so moving one between them restyled it and no selector said
+  which was which. Scoping also hides a part that has outlived its parent. `.account-row .amount` and
+  `.account-row .chevron` matched nothing on any page for as long as that row had been a checklist,
+  and neither end reports it -- nothing about `.account-row` says a child rule points at it, and
+  nothing about `.amount` says one of its six parents is gone. Whichever way the port scopes CSS, it
+  scopes by file and not by ancestor, so the ancestor buys nothing there either.
 - **No abbreviations, and no shorthand.** A name that has to be decoded gets a seventh variant
   bolted onto it by someone who did not decode it. The stylesheet had reached `.iic`, `.sic`,
   `.olcol`, `.dk-hl`, `.forr`, `.om`/`.ot`/`.ov` and the single letters `.c`/`.d`/`.n`/`.t`/`.v`.
