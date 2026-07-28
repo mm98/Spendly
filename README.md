@@ -185,7 +185,10 @@ away when the sheet went white. Delete it or use it, but do not reintroduce a ti
   æøå. The prototype embeds all four as data URIs so it stays one file.
 - Base is **500 (Medium) at 14px**; 400 reads too light against the sheets. 16px at ≥2200.
 - Headings and leads: 600, `letter-spacing: -0.01em` to `-0.02em`. Lead sentence style is 16px/600
-  ("Your biggest vendor: …").
+  ("Your biggest vendor: …"). In a card these are `.card-headline` (19px), `.card-subheading` (17px)
+  and `.card-lead` under them; all seven headings were unclassed `<div>`s carrying the spec inline,
+  which is how two drifted to 17px against the other five and the lead's bottom margin to 16px
+  against 18px.
 - Big numbers: 700, `-0.02em`, always `font-variant-numeric: tabular-nums`. The weight and tracking
   ride on the size class (`.figure-headline`, `.figure-card`, `.figure-large`); the tabular figures ride on `.tabular-figures`
   alongside it, so a headline figure carries both. **A class with no rule behind it is worse than no

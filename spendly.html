@@ -124,6 +124,7 @@ body {
    inline per site; weight and tracking do not. See README section 3. */
 .figure-large { font-weight:700; letter-spacing:-.02em; }
 .space-between { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.space-between-tight { margin-bottom:4px; }
 svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
 /* ---------------- shell ---------------- */
@@ -268,6 +269,7 @@ a[data-go] { color:inherit; text-decoration:none; }
    showing between the two once the header lights up. */
 .card-header[data-go] { border-radius:calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0; }
 .card-divider { height:1px; background:var(--border-divider); margin:0 20px; }
+.card-divider-tight { margin:4px 0 0; }
 /* The header highlight runs edge to edge, but the rule beneath it is inset to the
    content. Left alone, the lit block ends on two lines a pixel apart and the step
    reads as a misdrawn border. While the header is lit the rule runs the full width
@@ -276,6 +278,16 @@ a[data-go] { color:inherit; text-decoration:none; }
    bottom edge of the lit band rather than as part of the fill. */
 .card-header[data-go]:hover + .card-divider { margin-inline:0; }
 .card-body { padding:14px 20px 18px; }
+/* The page heading inside a card and the sentence under it. Seven headings were
+   unclassed <div>s carrying the full spec, which is how two of them ended up at
+   17px against the other five at 19px, and the lead's bottom margin at 16px
+   against 18px. S3 sets the weight and tracking; these name the two sizes. */
+.card-headline { font-size:19px; font-weight:600; letter-spacing:-.01em; }
+.card-subheading { font-size:17px; font-weight:600; letter-spacing:-.01em; margin-bottom:6px; }
+.card-headline-question { line-height:1.35; margin:2px 0 14px; }
+.card-lead { margin:2px 0 18px; font-size:13px; color:var(--text-muted); }
+/* The stepper card sits tight against the form below it. */
+.card-steps { margin-bottom:2px; }
 
 /* hero card */
 .figure-headline { font-size:27px; font-weight:700; letter-spacing:-.02em; margin:2px 0 0; }
@@ -353,6 +365,7 @@ svg.chart { width:100%; display:block; }
 .donut .ring-centre-value { font-size:16.5px; font-weight:700; letter-spacing:-.01em; }
 .donut .ring-centre-label { font-style:normal; font-size:9.5px; color:var(--text-muted); }
 .category-rows { margin-top:12px; display:grid; }
+.card-body > .category-rows:first-child { margin-top:0; }
 .category-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--border-divider); }
 .category-row:first-child { border-top:0; }
 .category-icon { width:36px; height:36px; border-radius:11px; display:grid; place-items:center; color:#fff; flex:none; }
@@ -372,7 +385,7 @@ svg.chart { width:100%; display:block; }
 .ai-card-header .chevron { margin-left:auto; color:var(--text-on-dark); }
 .ai-card-headline { font-size:19px; font-weight:700; letter-spacing:-.01em; margin:16px 0 8px; }
 .ai-card-body { font-size:12.5px; color:var(--text-on-dark); line-height:1.55; margin:0; }
-.ai-card-actions { display:flex; align-items:center; gap:18px; margin-top:16px; }
+.ai-card-actions { display:flex; align-items:center; gap:18px; margin-top:12px; }
 /* White on the dark card, rather than a button of its own. */
 .button.button-invert { padding:0 18px; border:0; border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:11.5px; font-weight:700; letter-spacing:.05em; }
 .button-link.button-link-invert { font-size:11.5px; letter-spacing:.05em; color:#fff; }
@@ -396,6 +409,8 @@ svg.chart { width:100%; display:block; }
 .entry-list .entry-name { font-size:12.5px; font-weight:600; }
 .entry-list .entry-meta { font-size:10px; color:var(--text-muted); }
 .entry-list .amount { margin-left:auto; text-align:right; font-size:12.5px; font-weight:600; color:var(--green); white-space:nowrap; flex:none; }
+/* A two-tone amount: the row's green label with the figure itself in --text. */
+.entry-list .amount .tabular-figures { color:var(--text); }
 .entry-list .entry-amount-sub { display:block; font-style:normal; font-size:10px; color:var(--text-muted); font-weight:500; }
 
 /* saved card */
@@ -409,6 +424,7 @@ svg.chart { width:100%; display:block; }
 .segmented { display:inline-flex; gap:2px; padding:4px; background:#F1F2EE; border:1px solid #E5E7E2; border-radius:14px; width:max-content; }
 .inset-panel { background:#F2F4F1; border-radius:var(--radius-page); padding:8px 14px; display:grid; }
 .item-row { display:flex; align-items:center; gap:13px; padding:10px 0; }
+.item-row-roomy { padding:12px 0; }
 .item-row > span:has(.item-row-title) { min-width:0; }
 .item-row > span:not(:has(.item-row-title)) { flex:none; }
 .item-row-title, .item-row-meta { overflow-wrap:anywhere; }
@@ -469,6 +485,7 @@ svg.chart { width:100%; display:block; }
 .topbar .topbar-actions { margin-left:14px; }
 /* form entry, same geometry as the sheets' controls */
 .form { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; max-width:640px; }
+.form-wide { max-width:none; }
 .form > * { min-width:0; }
 .field { display:grid; gap:7px; align-content:start; min-width:0; }
 .field > span { font-size:13px; font-weight:600; color:var(--text); }
@@ -717,6 +734,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .empty-note-meta { font-style:normal; font-size:11.5px; color:var(--text-muted); max-width:34ch; }
 .account-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--border-divider); }
 .account-row:first-child { border-top:0; }
+.account-row-text { font-size:12.5px; }
 .account-row > span > svg.icon { width:17px; height:17px; }
 .card-question .card-question-label { font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--text-muted); text-transform:uppercase; }
 .card-question .card-question-title { font-size:15px; font-weight:700; margin:8px 0 12px; letter-spacing:-.01em; }
@@ -1025,13 +1043,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 							<div class="entry-list">
 								<div class="entry-list-row"><span class="entry-avatar" style="background:#235553">PR</span>
 									<span><span class="entry-name">Proshop</span><br><span class="entry-meta">34 orders</span></span>
-									<span class="amount"><span style="color:var(--text)" class="tabular-figures">48.210 kr.</span><span class="entry-amount-sub">saved 6.940 kr.</span></span></div>
+									<span class="amount"><span class="tabular-figures">48.210 kr.</span><span class="entry-amount-sub">saved 6.940 kr.</span></span></div>
 								<div class="entry-list-row"><span class="entry-avatar" style="background:#877364">BI</span>
 									<span><span class="entry-name">Bilka</span><br><span class="entry-meta">96 orders</span></span>
-									<span class="amount"><span style="color:var(--text)" class="tabular-figures">41.882 kr.</span><span class="entry-amount-sub">saved 3.210 kr.</span></span></div>
+									<span class="amount"><span class="tabular-figures">41.882 kr.</span><span class="entry-amount-sub">saved 3.210 kr.</span></span></div>
 								<div class="entry-list-row"><span class="entry-avatar" style="background:#4F5BD5">EL</span>
 									<span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span>
-									<span class="amount"><span style="color:var(--text)" class="tabular-figures">26.499 kr.</span><span class="entry-amount-sub">saved 4.120 kr.</span></span></div>
+									<span class="amount"><span class="tabular-figures">26.499 kr.</span><span class="entry-amount-sub">saved 4.120 kr.</span></span></div>
 							</div>
 						</div>
 					</section>
@@ -1040,7 +1058,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="card-header"><span class="section-label">Favourite categories</span></div>
 						<div class="card-divider"></div>
 						<div class="card-body">
-							<div class="category-rows" style="margin-top:0">
+							<div class="category-rows">
 								<div class="category-row">
 									<span class="category-icon" style="background:var(--icon-red)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span>
@@ -1240,7 +1258,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-header"><span class="section-label">Question of the day</span></div>
 					<div class="card-divider"></div>
 					<div class="card-body">
-						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em;line-height:1.35;margin:2px 0 14px">What did Groceries cost me in June?</div>
+						<div class="card-headline card-headline-question">What did Groceries cost me in June?</div>
 						<button type="button" class="button button-block" style="margin-top:0"><svg class="icon" viewBox="0 0 24 24"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6"></path></svg>ASK SPENDLY</button>
 					</div>
 				</section>
@@ -1268,7 +1286,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 
 		<!-- ============ NEW ORDER · form entry in the system's control language ============ -->
 		<div class="page" data-page="create">
-			<section class="card" aria-label="Steps" style="margin-bottom:2px">
+			<section class="card card-steps" aria-label="Steps">
 				<div class="card-body" style="padding:16px 20px">
 					<div class="stepper">
 						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
@@ -1282,9 +1300,9 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="order-list-column">
 				<section class="card" aria-label="Order details">
 					<div class="card-body" style="padding:20px 22px">
-						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em">Order details</div>
-						<p style="margin:2px 0 18px;font-size:13px;color:var(--text-muted)">Where you bought, when, and how it arrived.</p>
-						<div class="form" style="max-width:none">
+						<div class="card-headline">Order details</div>
+						<p class="card-lead">Where you bought, when, and how it arrived.</p>
+						<div class="form form-wide">
 							<label class="field"><span>Vendor</span>
 								<div class="combobox">
 									<div class="field-shell"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="text" role="combobox" aria-expanded="false" aria-controls="vendor-panel" aria-autocomplete="list" value="Matas" placeholder="Search vendors…" aria-label="Vendor" aria-required="true"><svg class="icon chevron-icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div>
@@ -1338,7 +1356,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="order-list-column">
 				<section class="card" aria-label="Order summary">
 					<div class="card-body" style="padding:18px 20px">
-						<div style="font-size:17px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px">Order summary</div>
+						<div class="card-subheading">Order summary</div>
 						<span class="section-label">Order details</span>
 						<div class="summary-row">Vendor<span class="summary-row-value">Matas</span></div>
 						<div class="summary-row">Date<span class="summary-row-value">25.07.2026</span></div>
@@ -1346,7 +1364,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="summary-row">Categories<span class="summary-row-value">Household, Groceries</span></div>
 						<div class="summary-row">Kind<span class="summary-row-value">Expense</span></div>
 						<div class="summary-row">Shipping<span class="summary-row-value tabular-figures">0,00 kr.</span></div>
-						<div class="card-divider" style="margin:4px 0 0"></div>
+						<div class="card-divider card-divider-tight"></div>
 						<div class="summary-total">Total est.<span class="summary-total-value tabular-figures">0,00 kr.</span></div>
 						<span class="field-help">Items are added in step 2; the total builds as you add them.</span>
 					</div>
@@ -1354,7 +1372,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<section class="card card-ai" aria-label="Scan instead">
 					<div class="ai-card-headline" style="font-size:16px;margin-top:2px">Have the receipt? Skip the form.</div>
 					<p class="ai-card-body">A photo or PDF fills every field for you; you only review it.</p>
-					<div class="ai-card-actions" style="margin-top:12px"><button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button>
+					<div class="ai-card-actions"><button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button>
 						<span class="ai-card-mark" style="width:34px;height:34px" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span></div>
 				</section>
 			</div>
@@ -1363,7 +1381,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 
 		<!-- ============ NEW ORDER · step 2: add the items ============ -->
 		<div class="page" data-page="create2">
-			<section class="card" aria-label="Steps" style="margin-bottom:2px">
+			<section class="card card-steps" aria-label="Steps">
 				<div class="card-body" style="padding:16px 20px">
 					<div class="stepper">
 						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Order details</span></div>
@@ -1376,9 +1394,9 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="order-list-column">
 				<section class="card" aria-label="Add the items">
 					<div class="card-body" style="padding:20px 22px">
-						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em">Add the items</div>
-						<p style="margin:2px 0 18px;font-size:13px;color:var(--text-muted)">Line by line, with the price you paid and what it would have cost at retail.</p>
-						<div class="form" style="max-width:none">
+						<div class="card-headline">Add the items</div>
+						<p class="card-lead">Line by line, with the price you paid and what it would have cost at retail.</p>
+						<div class="form form-wide">
 							<div class="filter-section">
 								<label class="field"><span>Description</span>
 									<div class="field-shell"><input type="text" value="Shampoo, 500 ml" aria-label="Description"></div></label>
@@ -1398,7 +1416,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 								</div>
 							</div>
 							<div>
-								<div class="space-between" style="margin-bottom:4px"><span class="section-label">Items · 2</span>
+								<div class="space-between space-between-tight"><span class="section-label">Items · 2</span>
 									<span class="field-help">drag to reorder</span></div>
 								<div class="inset-panel">
 									<div class="item-row"><span class="item-row-grip"><svg class="icon" viewBox="0 0 24 24"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
@@ -1422,7 +1440,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="order-list-column">
 				<section class="card" aria-label="Order summary">
 					<div class="card-body" style="padding:18px 20px">
-						<div style="font-size:17px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px">Order summary</div>
+						<div class="card-subheading">Order summary</div>
 						<span class="section-label">Order details</span>
 						<div class="summary-row">Vendor<span class="summary-row-value">Matas</span></div>
 						<div class="summary-row">Date<span class="summary-row-value">25.07.2026</span></div>
@@ -1430,7 +1448,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<span class="section-label" style="display:block;margin-top:10px">Items</span>
 						<div class="summary-row">Shampoo, 500 ml × 2<span class="summary-row-value tabular-figures">179,90 kr.</span></div>
 						<div class="summary-row">Tandpasta × 3<span class="summary-row-value tabular-figures">68,85 kr.</span></div>
-						<div class="card-divider" style="margin:4px 0 0"></div>
+						<div class="card-divider card-divider-tight"></div>
 						<div class="summary-total">Total est.<span class="summary-total-value tabular-figures">248,75 kr.</span></div>
 						<span class="field-help" style="color:var(--green);font-weight:600">saved 42,00 kr. vs retail (14,4%)</span>
 					</div>
@@ -1468,10 +1486,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-header"><span class="section-label">Items · 4</span><span class="field-help tabular-figures">4.249,00 kr.</span></div>
 					<div class="card-divider"></div>
 					<div class="card-body" style="padding-top:6px">
-						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Dell UltraSharp U2723QE 27 tommer</span><span class="item-row-meta">1 × 3.199,00 kr.</span></span><span class="amount tabular-figures">3.199,00 kr.</span></div>
-						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Logitech MX Master 3S</span><span class="item-row-meta">1 × 749,00 kr. · Replaces the one that drowned in coffee</span></span><span class="amount tabular-figures">749,00 kr.</span></div>
-						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">USB-C dock, 6 porte</span><span class="item-row-meta">1 × 249,00 kr.</span></span><span class="amount tabular-figures">249,00 kr.</span></div>
-						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Kabelbindere, 100 stk.</span><span class="item-row-meta">2 × 26,00 kr.</span></span><span class="amount tabular-figures">52,00 kr.</span></div>
+						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Dell UltraSharp U2723QE 27 tommer</span><span class="item-row-meta">1 × 3.199,00 kr.</span></span><span class="amount tabular-figures">3.199,00 kr.</span></div>
+						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Logitech MX Master 3S</span><span class="item-row-meta">1 × 749,00 kr. · Replaces the one that drowned in coffee</span></span><span class="amount tabular-figures">749,00 kr.</span></div>
+						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">USB-C dock, 6 porte</span><span class="item-row-meta">1 × 249,00 kr.</span></span><span class="amount tabular-figures">249,00 kr.</span></div>
+						<div class="item-row item-row-roomy"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Kabelbindere, 100 stk.</span><span class="item-row-meta">2 × 26,00 kr.</span></span><span class="amount tabular-figures">52,00 kr.</span></div>
 						<div class="card-divider" style="margin:6px 0 0"></div>
 						<div class="summary-row">Items subtotal<span class="summary-row-value tabular-figures">4.249,00 kr.</span></div>
 						<div class="summary-row">Shipping<span class="summary-row-value tabular-figures">49,00 kr.</span></div>
@@ -1506,13 +1524,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<section class="card card-ai" aria-label="Scan another">
 					<div class="ai-card-headline" style="font-size:16px;margin-top:2px">Another receipt from this trip?</div>
 					<p class="ai-card-body">Scan it and Spendly checks it against this order for duplicates.</p>
-					<div class="ai-card-actions" style="margin-top:12px"><button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button></div>
+					<div class="ai-card-actions"><button type="button" class="button button-invert" data-go="scan">SCAN A RECEIPT</button></div>
 				</section>
 			</div>
 		</div></div>
 		<!-- ============ SCAN · step 2: reading ============ -->
 		<div class="page" data-page="scan2">
-			<section class="card" aria-label="Steps" style="margin-bottom:2px">
+			<section class="card card-steps" aria-label="Steps">
 				<div class="card-body" style="padding:16px 20px">
 					<div class="stepper" style="grid-template-columns:1fr 1fr 1fr">
 						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Upload</span></div>
@@ -1525,7 +1543,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<div class="card-body" style="padding:34px 28px;display:grid;justify-items:center;gap:14px;text-align:center">
 					<div class="document-preview" style="width:120px;height:150px" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></div>
 					<div>
-						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em">Reading kvittering-bilka.jpg</div>
+						<div class="card-headline">Reading kvittering-bilka.jpg</div>
 						<span class="field-help">This usually takes a few seconds. Nothing is stored until you approve the review.</span>
 					</div>
 					<div class="progress-bar progress-bar-indeterminate" style="width:100%;max-width:420px" role="progressbar" aria-label="Reading progress"><span class="progress-bar-fill"></span></div>
@@ -1536,7 +1554,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 
 		<!-- ============ SCAN · step 3: review ============ -->
 		<div class="page" data-page="scan3">
-			<section class="card" aria-label="Steps" style="margin-bottom:2px">
+			<section class="card card-steps" aria-label="Steps">
 				<div class="card-body" style="padding:16px 20px">
 					<div class="stepper" style="grid-template-columns:1fr 1fr 1fr">
 						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Upload</span></div>
@@ -1549,10 +1567,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			<div class="order-list-column">
 				<section class="card" aria-label="Review the draft">
 					<div class="card-body" style="padding:20px 22px">
-						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em">Review the draft</div>
-						<p style="margin:2px 0 16px;font-size:13px;color:var(--text-muted)">Every value is editable. Nothing is stored until you save.</p>
+						<div class="card-headline">Review the draft</div>
+						<p class="card-lead">Every value is editable. Nothing is stored until you save.</p>
 						<div class="note note-positive" style="margin-bottom:16px"><strong>Total matches.</strong> The document total 1.187,25 kr. includes 25% VAT and agrees with the 23 lines read.</div>
-						<div class="form" style="max-width:none">
+						<div class="form form-wide">
 							<label class="field"><span>Vendor</span>
 								<div class="field-shell"><input type="text" value="Bilka" placeholder="Search vendors…" aria-label="Vendor" aria-required="true"><span class="chip-status" style="height:24px;font-size:10.5px">matched</span></div></label>
 							<div class="field-pair">
@@ -1572,7 +1590,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 									<span class="field-help">Only expenses count towards your totals.</span></label>
 							</div>
 							<div>
-								<div class="space-between" style="margin-bottom:4px"><span class="section-label">Lines read · 23</span>
+								<div class="space-between space-between-tight"><span class="section-label">Lines read · 23</span>
 									<span class="field-help">tap a line to correct it</span></div>
 								<div class="inset-panel">
 									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Rugbrød, skiveskåret</span><span class="item-row-meta">1 × 24,95 kr.</span></span><span class="amount tabular-figures">24,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
@@ -1768,9 +1786,9 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<div class="card card-question">
 					<span class="card-question-label">What the AI checks</span>
 					<div class="card-question-title">Nothing is stored until you approve it</div>
-					<div class="account-row"><span><svg class="icon" viewBox="0 0 24 24" style="color:#12A56B"><path d="M5 12l5 5l10 -10"></path></svg></span><span style="font-size:12.5px">Totals reconciled against the printed total, incl. 25% VAT</span></div>
-					<div class="account-row"><span><svg class="icon" viewBox="0 0 24 24" style="color:var(--text-body)"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg></span><span style="font-size:12.5px">Possible duplicates flagged with date and amount to compare</span></div>
-					<div class="account-row"><span><svg class="icon" viewBox="0 0 24 24" style="color:var(--text-body)"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"></path></svg></span><span style="font-size:12.5px">Vendor matched to your list, or offered as a new vendor</span></div>
+					<div class="account-row"><span><svg class="icon" viewBox="0 0 24 24" style="color:#12A56B"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="account-row-text">Totals reconciled against the printed total, incl. 25% VAT</span></div>
+					<div class="account-row"><span><svg class="icon" viewBox="0 0 24 24" style="color:var(--text-body)"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg></span><span class="account-row-text">Possible duplicates flagged with date and amount to compare</span></div>
+					<div class="account-row"><span><svg class="icon" viewBox="0 0 24 24" style="color:var(--text-body)"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"></path></svg></span><span class="account-row-text">Vendor matched to your list, or offered as a new vendor</span></div>
 				</div>
 				<section class="card" aria-label="Recent scans">
 					<div class="card-header"><span class="section-label">Recent scans</span></div>
@@ -1794,7 +1812,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 					<div class="card-header"><span class="section-label">Categories</span><button type="button" class="button button-pill">ADD</button></div>
 					<div class="card-divider"></div>
 					<div class="card-body">
-						<div class="category-rows" style="margin-top:0">
+						<div class="category-rows">
 							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><span><span class="category-row-title">Groceries</span><span class="category-row-meta">38% of expenses</span></span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-yellow)"><svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span><span><span class="category-row-title">Electronics</span><span class="category-row-meta">27% of expenses</span></span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><span><span class="category-row-title">Household</span><span class="category-row-meta">13% of expenses</span></span><span class="amount tabular-figures">6.110 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
