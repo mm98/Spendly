@@ -582,11 +582,16 @@ taller than the FILTERS and Sort controls sharing its row.
   right: a 32px pill made four headers 60, 30px range tabs made one 57.94, a 28px chip made two 56, a
   17px caption made five 45.39, and the twenty carrying a label alone stood at 44.67. Nothing about
   *Categories* wants to be 15px taller than *Spending rhythm* next to it; it was taller because it
-  has an ADD button. It is stated as a `height` and not a `min-height` because the defect is a header
-  growing, never one shrinking.
-  - The one exception is the header holding `.range-tabs`, excluded by `:not(:has(.range-tabs))`.
-    That is a control **group**, not a control — it wraps to two rows at 390 and stands 66px, so it
-    is the one right-hand item that really does need the band to grow.
+  has an ADD button. **All 32 headers are 44.67 at both breakpoints, with no exception.** It is
+  stated as a `height` and not a `min-height` because the defect is a header growing, never one
+  shrinking.
+  - **A control that will not fit the band does not belong in the band.** The range tabs were the one
+    right-hand item taller than 44.67 — five buttons wrapping to two rows and 66px at 390, beside a
+    label that wrapped with them, for a header 93.88 tall. They moved to the **card body**, which is
+    where the hero card's identical control already sat; the `style="margin:0"` pinning them into the
+    header was the tell that they were fighting it. Two placements for one control is what let one
+    header keep a different height. Prefer moving the control to carving an exception into the rule —
+    an exception is a second spec with a `:not()` in front of it.
   - `.section-header` has the same defect and takes the opposite fix: its own band is 24.67 and the
     32px pill two of the three carry does **not** fit inside it, so shrinking to the label would hang
     the button 3.7px out of the band at both ends. These level up to the control (`min-height: 40px`)
