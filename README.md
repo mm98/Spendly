@@ -725,6 +725,12 @@ instance below shipped because a shape was copied from the reference without ask
   and leave its padding alone, which is the same idea one property over. Audit this by walking every
   element a `:hover` rule paints and comparing `padding-top` to `padding-bottom`; count the border
   only where it is transparent, since an opaque one paints over the tint it would otherwise offset.
+- **A header that lights up is a band too.** `.card-header` was `16px 20px 12px` — more air above the
+  label than between it and the divider under it, which is defensible spacing right up until the five
+  headers that navigate paint it: the label's ink measured 20px below the lit band's top edge and 16px
+  above its bottom. Even padding, `14px 20px`, keeps the same 28px total, so no header changes height
+  and nothing reflows — the label rises 2px and the block is even around it. Spacing tuned for a
+  resting state is a claim about a lit one wherever a hover rule paints a background.
 - **A row's hover tint bleeds 10px past the body gutter; the row's content does not.** The card body's
   20px padding is right for text and too tight for a highlight -- the tint stopped hard against the
   first glyph and the chevron at both ends. The header above already lights up edge to edge, so this
