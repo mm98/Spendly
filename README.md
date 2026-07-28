@@ -929,6 +929,23 @@ Three kinds of name, and the shape of the name tells you which one you are looki
   a progress bar — 7 uses against 12 — so a surface prefix would be wrong half the time. `--green`,
   `--teal`, the blues, the donut set and the icon set stay named for the hue, because that is what
   they are: a palette, not a role.
+- **`<b>` and `<i>` are not "bold span" and "small span".** 196 of them carried this file's type: row
+  titles, meta lines, and 41 empty boxes drawing a bar fill, a swatch or a gauge marker, where `<i>`
+  computed `font-style:italic` on an element holding no text at all. They are `<span>` with part
+  names now — `.item-row-title`, `.category-row-meta`, `.chart-bar-fill`, `.meter-marker`. The one
+  that stayed semantic went the other way: the note lead-ins ("Total matches.") are `<strong>`, which
+  is what they always meant. Two things have to be measured before a tag can go:
+  - **The UA's bold is often load-bearing.** `.promo b`, `.card-kpi b`, `.empty-note b` and two
+    one-offs with no rule at all rendered 700 only because they were `<b>`. Grep each rule for
+    `font-weight` before converting; where it is absent the tag was the declaration.
+  - **A `<span>` lands in every rule keyed on a bare `span`.** `.card-kpi span` was sizing the label,
+    the value *and* the delta together; `.item-row > span:has(b)` stopped matching at all, and the
+    description column lost `min-width:0`, stopped shrinking and unwrapped a line on a page no
+    screenshot covers. Do **not** rename the bare-tag rule to get it out of the way — that strips its
+    styling from everything else it was feeding, which is how one fix became 566 moved rectangles.
+    Scope the new part to outrank it (`.card-kpi .card-kpi-value` is (0,2,0) against (0,1,1)) and
+    answer every property it sets: size, tracking, case, colour, weight.
+
 - **No abbreviations, and no shorthand.** A name that has to be decoded gets a seventh variant
   bolted onto it by someone who did not decode it. The stylesheet had reached `.iic`, `.sic`,
   `.olcol`, `.dk-hl`, `.forr`, `.om`/`.ot`/`.ov` and the single letters `.c`/`.d`/`.n`/`.t`/`.v`.

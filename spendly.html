@@ -132,7 +132,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .brand { display:flex; align-items:center; gap:11px; padding:0 10px; }
 .brand-mark { width:34px; height:34px; border-radius:var(--radius-compact); background:var(--green); display:grid; place-items:center; flex:none; }
 .brand-mark svg { width:20px; height:20px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-.brand b { font-size:22px; font-weight:700; letter-spacing:-.01em; color:var(--text); }
+.brand-name { font-size:22px; font-weight:700; letter-spacing:-.01em; color:var(--text); }
 .sidebar-nav { display:grid; gap:8px; }
 .sidebar-nav a { display:flex; align-items:center; gap:13px; min-height:48px; padding:0 15px; border-radius:14px; text-decoration:none; color:#3C433D; font-size:14.5px; font-weight:500; }
 .sidebar-nav a svg.icon { width:19px; height:19px; }
@@ -267,12 +267,12 @@ a[data-go] { color:inherit; text-decoration:none; }
 .chart-callout { border-radius:16px; }
 .compare-tabs { display:flex; margin-top:6px; box-shadow:inset 0 -1px 0 var(--border-divider); }
 .compare-tabs button { flex:1; font:inherit; background:none; border:0; text-align:center; padding:10px 4px 12px; cursor:pointer; border-bottom:2px solid transparent; }
-.compare-tabs button b { display:block; font-size:13px; font-weight:600; color:var(--text); }
-.compare-tabs button i { font-style:normal; font-size:11.5px; color:var(--text-muted); }
+.compare-tabs .compare-tabs-value { display:block; font-size:13px; font-weight:600; color:var(--text); }
+.compare-tabs .compare-tabs-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
 .compare-tabs button.is-on { border-bottom-color:var(--text); }
-.compare-tabs button:not(.is-on) b { color:var(--text-muted); }
+.compare-tabs button:not(.is-on) .compare-tabs-value { color:var(--text-muted); }
 .chart-split-bar { display:flex; gap:3px; height:9px; margin-top:14px; }
-.chart-split-bar i { border-radius:5px; }
+.chart-split-bar-segment { border-radius:5px; }
 .chart-legend { margin-top:4px; }
 .chart-legend-row { display:flex; align-items:center; gap:10px; padding:12px 0; border-top:1px solid var(--border-divider); font-size:12.5px; }
 .chart-legend-row:first-child { border-top:0; }
@@ -303,8 +303,8 @@ a[data-go] { color:inherit; text-decoration:none; }
 .card-tray { margin-top:18px; }
 .card-tray-row { display:flex; align-items:center; gap:13px; padding:11px 0; border-top:1px solid var(--border-divider); }
 .card-tray-row:first-child { border-top:0; }
-.card-tray-row b { font-size:13px; font-weight:600; display:block; }
-.card-tray-row i { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
+.card-tray-row-title { font-size:13px; font-weight:600; display:block; }
+.card-tray-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
 .card-tray-row .button-pill { margin-left:auto; flex:none; }
 .card-tray-empty { margin:0; padding:4px 0; font-size:12px; color:var(--text-muted); }
 .dashboard-cards-empty { margin:0; padding:26px 20px; text-align:center; font-size:12.5px; color:var(--text-muted); border:1px dashed var(--text-faint); border-radius:var(--radius-card); }
@@ -314,7 +314,7 @@ a[data-go] { color:inherit; text-decoration:none; }
 .weekday-bars > div { flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-end; height:100%; }
 .weekday-bars .chart-bar { align-self:stretch; }
 .weekday-bars .chart-bar { display:block; width:100%; border-radius:var(--radius-compact); background:var(--bg-bar-track); position:relative; overflow:hidden; }
-.weekday-bars .chart-bar i { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact); display:block; }
+.weekday-bars .chart-bar-fill { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact); display:block; }
 .weekday-bars span { font-size:11px; color:var(--text-muted); font-weight:500; }
 .chart-legend-inline { display:flex; align-items:center; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-divider); font-size:11.5px; color:var(--text-body); }
 .chart-legend-inline .chart-swatch { width:10px; height:10px; border-radius:3px; background:var(--green); }
@@ -326,15 +326,15 @@ a[data-go] { color:inherit; text-decoration:none; }
 	background:conic-gradient(var(--donut-red) 0 13%, var(--donut-yellow) 13% 27%, var(--donut-purple) 27% 33%, var(--donut-orange) 33% 43%, var(--donut-blue) 43% 100%); }
 .donut::before { content:""; position:absolute; inset:17px; background:var(--bg-card); border-radius:50%; }
 .donut .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:1px; z-index:1; text-align:center; }
-.donut .ring-centre b { font-size:16.5px; font-weight:700; letter-spacing:-.01em; }
-.donut .ring-centre i { font-style:normal; font-size:9.5px; color:var(--text-muted); }
+.donut .ring-centre-value { font-size:16.5px; font-weight:700; letter-spacing:-.01em; }
+.donut .ring-centre-label { font-style:normal; font-size:9.5px; color:var(--text-muted); }
 .category-rows { margin-top:12px; display:grid; }
 .category-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--border-divider); }
 .category-row:first-child { border-top:0; }
 .category-icon { width:36px; height:36px; border-radius:11px; display:grid; place-items:center; color:#fff; flex:none; }
 .category-icon svg.icon { width:17px; height:17px; stroke-width:2; }
-.category-row b { font-size:13px; font-weight:600; display:block; }
-.category-row i { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
+.category-row-title { font-size:13px; font-weight:600; display:block; }
+.category-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
 .category-row .amount { margin-left:auto; font-weight:600; font-size:13px; }
 
 /* dark AI card */
@@ -342,9 +342,9 @@ a[data-go] { color:inherit; text-decoration:none; }
 .progress-ring { width:40px; height:40px; border-radius:50%; flex:none; position:relative;
 	background:conic-gradient(var(--green) 0 33%, rgb(255 255 255 / .22) 33% 100%); }
 .progress-ring::before { content:""; position:absolute; inset:4px; border-radius:50%; background:var(--bg-dark); }
-.progress-ring b { position:absolute; inset:0; display:grid; place-items:center; font-size:10px; font-weight:600; z-index:1; }
-.ai-card-header .ai-card-title b { display:block; font-size:13.5px; font-weight:700; }
-.ai-card-header .ai-card-title i { font-style:normal; font-size:11.5px; color:var(--text-on-dark); }
+.progress-ring-value { position:absolute; inset:0; display:grid; place-items:center; font-size:10px; font-weight:600; z-index:1; }
+.ai-card-title-text { display:block; font-size:13.5px; font-weight:700; }
+.ai-card-title-meta { font-style:normal; font-size:11.5px; color:var(--text-on-dark); }
 .ai-card-header .chevron { margin-left:auto; color:var(--text-on-dark); }
 .ai-card-headline { font-size:19px; font-weight:700; letter-spacing:-.01em; margin:16px 0 8px; }
 .ai-card-body { font-size:12.5px; color:var(--text-on-dark); line-height:1.55; margin:0; }
@@ -357,14 +357,14 @@ a[data-go] { color:inherit; text-decoration:none; }
 
 /* orders (spending) card */
 .chart-caption { padding:2px 0 0; }
-.chart-caption i { font-style:normal; font-size:11.5px; color:var(--text-muted); display:block; }
-.chart-caption b { font-size:19px; font-weight:700; letter-spacing:-.01em; }
+.chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); display:block; }
+.chart-caption-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
 .chart-axis { display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-faint); margin-top:4px; }
 /* Key for a two-series chart. Both lines get named -- a swatch that labels one of two
    plotted series is worse than no key at all. Wraps rather than overflows on a phone. */
 .chart-series-key { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; color:var(--text-body); margin-top:2px; }
 .chart-series-key span { display:inline-flex; align-items:center; gap:6px; }
-.chart-series-key i { width:9px; height:9px; border-radius:3px; flex:none; }
+.chart-series-key .chart-series-key-swatch { display:block; width:9px; height:9px; border-radius:3px; flex:none; }
 .entry-list { margin-top:8px; }
 .entry-list .list-heading { font-size:11.5px; color:var(--text-muted); font-weight:500; margin:10px 0 2px; }
 .entry-list-row { display:flex; align-items:center; gap:11px; padding:7px 0; }
@@ -372,7 +372,7 @@ a[data-go] { color:inherit; text-decoration:none; }
 .entry-list .entry-name { font-size:12.5px; font-weight:600; }
 .entry-list .entry-meta { font-size:10px; color:var(--text-muted); }
 .entry-list .amount { margin-left:auto; text-align:right; font-size:12.5px; font-weight:600; color:var(--green); white-space:nowrap; flex:none; }
-.entry-list .amount i { display:block; font-style:normal; font-size:10px; color:var(--text-muted); font-weight:500; }
+.entry-list .entry-amount-sub { display:block; font-style:normal; font-size:10px; color:var(--text-muted); font-weight:500; }
 
 /* saved card */
 .chip-saving { display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:8px; background:var(--bg-positive); color:#0E7A52; font-size:11px; font-weight:700; }
@@ -384,12 +384,12 @@ a[data-go] { color:inherit; text-decoration:none; }
 .segmented { display:inline-flex; gap:2px; padding:4px; background:#F1F2EE; border:1px solid #E5E7E2; border-radius:14px; width:max-content; }
 .inset-panel { background:#F2F4F1; border-radius:var(--radius-page); padding:8px 14px; display:grid; }
 .item-row { display:flex; align-items:center; gap:13px; padding:10px 0; }
-.item-row > span:has(b) { min-width:0; }
-.item-row > span:not(:has(b)) { flex:none; }
-.item-row b, .item-row i { overflow-wrap:anywhere; }
+.item-row > span:has(.item-row-title) { min-width:0; }
+.item-row > span:not(:has(.item-row-title)) { flex:none; }
+.item-row-title, .item-row-meta { overflow-wrap:anywhere; }
 .item-row .item-row-icon { width:40px; height:40px; border-radius:var(--radius-page); background:#DFF0E6; color:#12A56B; display:grid; place-items:center; font-size:14px; font-weight:700; flex:none; }
-.item-row b { font-size:13px; font-weight:600; display:block; color:var(--text-strong,#0B0F0D); }
-.item-row i { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
+.item-row-title { font-size:13px; font-weight:600; display:block; color:var(--text-strong,#0B0F0D); }
+.item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
 .item-row .amount { margin-left:auto; color:var(--green); font-weight:600; font-size:13px; white-space:nowrap; }
 .key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid #DFE3DE; background:#F7F8F5; font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
 .chip { font:inherit; display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 11px; border-radius:var(--radius-compact); border:1px solid #E2E5E1; background:#fff; font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; }
@@ -407,14 +407,15 @@ a[data-go] { color:inherit; text-decoration:none; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; min-width:0; }
 .entry-list .entry-glyph { width:34px; height:34px; border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:#F3F5F1; flex:none; }
 .avatar-stack { display:inline-flex; margin-right:9px; vertical-align:middle; }
-.avatar-stack i { width:15px; height:15px; border-radius:50%; display:block; border:2.5px solid #fff; }
-.avatar-stack i + i { margin-left:-7px; }
+.avatar-stack-face { width:15px; height:15px; border-radius:50%; display:block; border:2.5px solid #fff; }
+.avatar-stack-face + .avatar-stack-face { margin-left:-7px; }
 .empty-state { display:grid; justify-items:center; gap:10px; padding:24px 12px; text-align:center; }
 .empty-state .empty-state-icon { width:42px; height:42px; border-radius:var(--radius-page); border:1px solid #DFE3DE; background:#F7F8F5; display:grid; place-items:center; color:#9AA39B; }
 .empty-state p { margin:0; font-size:13.5px; color:var(--text-body); max-width:30ch; }
 .chip-tag { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:8px; font-size:11px; font-weight:600; width:max-content; }
 .promo { border:1px solid var(--border-card); border-radius:14px; padding:14px; display:grid; gap:8px; min-width:0; align-content:start; }
-.promo b { font-size:14.5px; letter-spacing:-.01em; }
+.panel-heading { font-weight:700; }
+.promo-title { font-weight:700; font-size:14.5px; letter-spacing:-.01em; }
 .promo p { margin:0; font-size:12px; color:var(--text-muted); line-height:1.5; }
 .promo-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(200px,1fr); gap:12px; overflow:hidden; }
 .chart-ruler { height:9px; background:repeating-linear-gradient(to right, #D9DDD8 0 1px, transparent 1px 23px); margin-top:8px; }
@@ -439,19 +440,19 @@ a[data-go] { color:inherit; text-decoration:none; }
 .field-thumb { width:32px; height:32px; border-radius:8px; background:#F0F2EF; display:grid; place-items:center; color:#7C867E; flex:none; }
 .kpi-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
 .card-kpi span { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); font-weight:600; }
-.card-kpi b { font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
-.card-kpi i { font-style:normal; font-size:12px; color:var(--text-muted); }
+.card-kpi .card-kpi-value { font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.02em; text-transform:none; font-weight:700; }
+.card-kpi .card-kpi-label { font-size:12px; color:var(--text-muted); letter-spacing:normal; text-transform:none; font-weight:500; }
 .delta { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; }
 .delta.delta-good { color:var(--green); }
 .delta.delta-bad { color:#8A6A1F; }
 .delta.delta-neutral { color:var(--text-body,#3A423D); }
 .meter { position:relative; height:10px; border-radius:5px; background:#E7EAE5; }
-.meter i { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--green); }
-.meter b { position:absolute; top:-4px; bottom:-4px; width:2.5px; border-radius:2px; background:var(--text); }
+.meter-fill { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--green); }
+.meter-marker { position:absolute; top:-4px; bottom:-4px; width:2.5px; border-radius:2px; background:var(--text); }
 .month-columns { display:flex; align-items:flex-end; gap:14px; height:150px; }
 .month-columns > div { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%; }
-.month-columns i { width:100%; border-radius:8px 8px 4px 4px; background:#E2ECE9; display:block; }
-.month-columns .is-on i { background:var(--green); }
+.month-columns-fill { width:100%; border-radius:8px 8px 4px 4px; background:#E2ECE9; display:block; }
+.month-columns .is-on .month-columns-fill { background:var(--green); }
 .month-columns span { font-size:11px; color:var(--text-muted); }
 @media (max-width:900px) { .kpi-row { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 .order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-divider); cursor:pointer; }
@@ -465,18 +466,18 @@ a[data-go] { color:inherit; text-decoration:none; }
 .order-row .order-row-vendor { display:block; font-size:13.5px; font-weight:600; color:var(--text); }
 .order-row .order-row-meta { display:block; font-size:11.5px; color:var(--text-muted); }
 .order-row .order-row-total { text-align:right; font-weight:600; font-size:13.5px; }
-.order-row .order-row-total i { display:block; font-style:normal; font-size:11px; color:var(--green); font-weight:600; }
+.order-row .order-row-total-saved { display:block; font-style:normal; font-size:11px; color:var(--green); font-weight:600; }
 .order-row .order-row-chevron { color:var(--text-muted); }
 .chip-status.chip-status-warning { background:#F6ECD9; color:#8A6A1F; }
 .chip-status.chip-status-warning::before { background:#D9A63C; }
 .note { border-radius:var(--radius-page); padding:11px 14px; font-size:13px; color:var(--text); }
 .note.note-positive { background:#DFF3EA; }
 .note.note-warning { background:#F6ECD9; }
-.note-positive b { color:#0E7A52; }
-.note-warning b { color:#8A6A1F; }
+.note-positive strong { color:#0E7A52; }
+.note-warning strong { color:#8A6A1F; }
 .progress-bar { height:6px; border-radius:3px; background:#E7EAE5; overflow:hidden; }
-.progress-bar i { display:block; height:100%; width:72%; background:var(--green); border-radius:3px; }
-.progress-bar.progress-bar-indeterminate i { width:38%; animation:pslide 1.5s ease-in-out infinite; }
+.progress-bar-fill { display:block; height:100%; width:72%; background:var(--green); border-radius:3px; }
+.progress-bar.progress-bar-indeterminate .progress-bar-fill { width:38%; animation:pslide 1.5s ease-in-out infinite; }
 @keyframes pslide { from { transform:translateX(-100%); } to { transform:translateX(264%); } }
 .document-preview { background:#F2F4F1; border-radius:var(--radius-page); display:grid; place-items:center; height:180px; color:#9AA39B; }
 .document-preview svg { width:46px; height:46px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
@@ -592,13 +593,13 @@ label.field-shell { cursor:pointer; }
 .stepper-step .stepper-icon { width:40px; height:40px; border-radius:var(--radius-page); border:1px solid var(--border-control); display:grid; place-items:center; color:var(--text-body); background:#fff; }
 .stepper-step .stepper-bar { height:4px; border-radius:2px; background:#E7EAE5; width:100%; }
 .stepper-step.is-on .stepper-bar { background:var(--green); }
-.stepper-step b { font-size:13.5px; font-weight:600; color:var(--text); }
-.stepper-step:not(.is-on) b { color:var(--text-muted); font-weight:500; }
+.stepper-step-label { font-size:13.5px; font-weight:600; color:var(--text); }
+.stepper-step:not(.is-on) .stepper-step-label { color:var(--text-muted); font-weight:500; }
 .stepper-step.stepper-step-done .stepper-icon { background:var(--green); border-color:var(--green); color:#fff; }
 .stepper-step.stepper-step-done .stepper-bar { background:var(--green); }
-.stepper-step.stepper-step-done b { color:var(--text); }
+.stepper-step.stepper-step-done .stepper-step-label { color:var(--text); }
 .summary-row { display:flex; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid var(--border-divider); font-size:13px; color:var(--text-muted); }
-.summary-row b { font-weight:600; color:var(--text); text-align:right; }
+.summary-row-value { font-weight:600; color:var(--text); text-align:right; }
 .summary-total { display:flex; justify-content:space-between; align-items:baseline; padding-top:14px; font-size:16px; font-weight:600; }
 .summary-total .summary-total-value { color:var(--green); font-weight:700; font-size:19px; }
 /* Flex/grid children default to min-width:auto, so a long placeholder or a
@@ -652,19 +653,19 @@ label.field-shell { cursor:pointer; }
 	background:conic-gradient(var(--donut-blue) 0 46%, var(--bg-card) 46% 48%, var(--green) 48% 69%, var(--bg-card) 69% 71%, var(--donut-yellow) 71% 84%, var(--bg-card) 84% 86%, var(--donut-purple) 86% 98%, var(--bg-card) 98% 100%); }
 .spend-gauge::before { content:""; position:absolute; inset:22px; background:var(--bg-card); border-radius:50%; }
 .spend-gauge .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:2px; z-index:1; text-align:center; }
-.spend-gauge .ring-centre b { font-size:19px; font-weight:700; letter-spacing:-.01em; }
-.spend-gauge .ring-centre i { font-style:normal; font-size:10px; color:var(--text-muted); }
+.spend-gauge .ring-centre-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
+.spend-gauge .ring-centre-label { font-style:normal; font-size:10px; color:var(--text-muted); }
 .empty-note { display:grid; place-items:center; gap:6px; padding:30px 16px; text-align:center; }
-.empty-note b { font-size:13px; }
-.empty-note i { font-style:normal; font-size:11.5px; color:var(--text-muted); max-width:34ch; }
+.empty-note-title { font-weight:700; font-size:13px; }
+.empty-note-meta { font-style:normal; font-size:11.5px; color:var(--text-muted); max-width:34ch; }
 .account-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--border-divider); }
 .account-row:first-child { border-top:0; }
 .card-question .card-question-label { font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--text-muted); text-transform:uppercase; }
 .card-question .card-question-title { font-size:15px; font-weight:700; margin:8px 0 12px; letter-spacing:-.01em; }
 .stat-figures { display:flex; gap:26px; justify-content:flex-end; }
 .stat-figures .stat-figure { text-align:right; }
-.stat-figures .stat-figure b { display:block; font-size:19px; font-weight:700; letter-spacing:-.01em; }
-.stat-figures .stat-figure i { font-style:normal; font-size:11px; color:var(--text-muted); }
+.stat-figures .stat-figure-value { display:block; font-size:19px; font-weight:700; letter-spacing:-.01em; }
+.stat-figures .stat-figure-label { font-style:normal; font-size:11px; color:var(--text-muted); }
 @media (max-width:900px) { .two-column, .spotlight-pair { grid-template-columns:1fr; } .stat-figures { justify-content:flex-start; } }
 
 /* ---------------- responsive ---------------- */
@@ -758,7 +759,7 @@ label.field-shell { cursor:pointer; }
 	   buttons. On a phone those fixed widths leave the description nothing, so the
 	   row wraps and the description keeps a majority basis. */
 	.item-row { flex-wrap:wrap; row-gap:6px; }
-	.item-row > span:has(b) { flex:1 1 60%; }
+	.item-row > span:has(.item-row-title) { flex:1 1 60%; }
 	/* The promo row scrolls sideways from 1180 down; on a phone it stacks instead --
 	   a 180px card and a swipe are both too small to be worth it at this width. */
 	.promo-row { grid-auto-flow:row; grid-auto-columns:unset; grid-template-columns:1fr; }
@@ -788,8 +789,8 @@ label.field-shell { cursor:pointer; }
 /* Reduced motion calms the interface but must never freeze a busy indicator:
    a stopped spinner reads as a hung app. Progress keeps moving, just slower. */
 @media (prefers-reduced-motion: reduce) {
-	*:not(.progress-bar.progress-bar-indeterminate i) { animation:none !important; transition:none !important; }
-	.progress-bar.progress-bar-indeterminate i { animation-duration:2.6s; animation-timing-function:linear; }
+	*:not(.progress-bar.progress-bar-indeterminate .progress-bar-fill) { animation:none !important; transition:none !important; }
+	.progress-bar.progress-bar-indeterminate .progress-bar-fill { animation-duration:2.6s; animation-timing-function:linear; }
 }
 </style>
 </head>
@@ -801,7 +802,7 @@ label.field-shell { cursor:pointer; }
 	<aside class="sidebar">
 		<a href="#" class="brand" data-go="home" aria-label="Spendly, go to home">
 			<span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
-			<b>Spendly</b>
+			<span class="brand-name">Spendly</span>
 		</a>
 		<nav class="sidebar-nav" aria-label="Primary">
 			<a href="#" class="is-on" aria-current="page" data-page="home">
@@ -878,12 +879,12 @@ label.field-shell { cursor:pointer; }
 							<div class="chart-callout">Quiet week so far. Biggest day was the 23rd: 4.298,00 kr. at Proshop.</div>
 						</div>
 						<div class="compare-tabs" role="tablist" aria-label="Hero chart series">
-							<button type="button" role="tab" aria-selected="true" class="is-on" data-series-for="hero" data-series-values="96,92,98,78,90,84,96,70,84,76,92,88,96,60,74,66,88,80,72,94,84,52,26,60,84,92,68,44,62,34,56,48,58,50,54"><b>Orders</b><i class="tabular-figures">23</i></button>
-							<button type="button" role="tab" aria-selected="false" tabindex="-1" data-series-for="hero" data-series-values="118,120,116,110,119,114,121,104,117,112,120,118,122,98,113,106,119,115,109,121,116,92,74,108,118,121,110,88,105,80,102,96,107,99,103"><b>Saved</b><i class="tabular-figures">2.106,00 kr.</i></button>
+							<button type="button" role="tab" aria-selected="true" class="is-on" data-series-for="hero" data-series-values="96,92,98,78,90,84,96,70,84,76,92,88,96,60,74,66,88,80,72,94,84,52,26,60,84,92,68,44,62,34,56,48,58,50,54"><span class="compare-tabs-value">Orders</span><span class="compare-tabs-label tabular-figures">23</span></button>
+							<button type="button" role="tab" aria-selected="false" tabindex="-1" data-series-for="hero" data-series-values="118,120,116,110,119,114,121,104,117,112,120,118,122,98,113,106,119,115,109,121,116,92,74,108,118,121,110,88,105,80,102,96,107,99,103"><span class="compare-tabs-value">Saved</span><span class="compare-tabs-label tabular-figures">2.106,00 kr.</span></button>
 						</div>
 						<div class="chart-split-bar" aria-hidden="true">
-							<i style="width:8%; background:var(--green)"></i>
-							<i style="width:92%; background:var(--teal)"></i>
+							<span class="chart-split-bar-segment" style="width:8%; background:var(--green)"></span>
+							<span class="chart-split-bar-segment" style="width:92%; background:var(--teal)"></span>
 						</div>
 						<div class="chart-legend">
 							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span>Groceries<span class="amount tabular-figures">18.420 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
@@ -911,15 +912,15 @@ label.field-shell { cursor:pointer; }
 						<div class="card-rule"></div>
 						<div class="card-body">
 							<div class="figure-card tabular-figures">1.062,00 kr.</div>
-							<i style="font-style:normal;font-size:11px;color:var(--text-muted)">average order · July</i>
+							<span class="card-caption" style="font-style:normal;font-size:11px;color:var(--text-muted)">average order · July</span>
 							<div class="weekday-bars" aria-hidden="true">
-								<div><span class="chart-bar" style="height:40px"><i style="--f:0%"></i></span><span>Mon</span></div>
-								<div><span class="chart-bar" style="height:56px"><i style="--f:0%"></i></span><span>Tue</span></div>
-								<div><span class="chart-bar" style="height:70px;background:#BFE5D2"><i style="--f:55%"></i></span><span>Wed</span></div>
-								<div><span class="chart-bar" style="height:31px"><i style="--f:0%"></i></span><span>Thu</span></div>
-								<div><span class="chart-bar" style="height:36px"><i style="--f:0%"></i></span><span>Fri</span></div>
-								<div><span class="chart-bar" style="height:47px"><i style="--f:0%"></i></span><span>Sat</span></div>
-								<div><span class="chart-bar" style="height:84px"><i style="--f:0%"></i></span><span>Sun</span></div>
+								<div><span class="chart-bar" style="height:40px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Mon</span></div>
+								<div><span class="chart-bar" style="height:56px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Tue</span></div>
+								<div><span class="chart-bar" style="height:70px;background:#BFE5D2"><span class="chart-bar-fill" style="--f:55%"></span></span><span>Wed</span></div>
+								<div><span class="chart-bar" style="height:31px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Thu</span></div>
+								<div><span class="chart-bar" style="height:36px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Fri</span></div>
+								<div><span class="chart-bar" style="height:47px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Sat</span></div>
+								<div><span class="chart-bar" style="height:84px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Sun</span></div>
 							</div>
 							<div class="chart-legend-inline"><span class="chart-swatch"></span><span style="white-space:nowrap">Sunday peak</span><span class="amount tabular-figures" style="white-space:nowrap">6.410 kr.</span></div>
 						</div>
@@ -931,26 +932,26 @@ label.field-shell { cursor:pointer; }
 						<div class="card-body">
 							<div class="donut-box">
 								<div class="donut" role="img" aria-label="Category split of 24.418 kroner this month">
-									<span class="ring-centre"><b class="tabular-figures">24.418 kr.</b><i>Spent this month</i></span>
+									<span class="ring-centre"><span class="ring-centre-value tabular-figures">24.418 kr.</span><span class="ring-centre-label">Spent this month</span></span>
 								</div>
 							</div>
 							<div class="category-rows">
 								<div class="category-row">
 									<span class="category-icon" style="background:var(--icon-red)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span>
-									<span><b>Groceries</b><i>38% of expenses</i></span>
+									<span><span class="category-row-title">Groceries</span><span class="category-row-meta">38% of expenses</span></span>
 									<span class="amount tabular-figures">18.420 kr.</span>
 								</div>
 								<div class="category-row">
 									<span class="category-icon" style="background:var(--icon-yellow)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span>
-									<span><b>Electronics</b><i>27% of expenses</i></span>
+									<span><span class="category-row-title">Electronics</span><span class="category-row-meta">27% of expenses</span></span>
 									<span class="amount tabular-figures">12.940 kr.</span>
 								</div>
 								<div class="category-row">
 									<span class="category-icon" style="background:var(--icon-purple)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span>
-									<span><b>Household</b><i>13% of expenses</i></span>
+									<span><span class="category-row-title">Household</span><span class="category-row-meta">13% of expenses</span></span>
 									<span class="amount tabular-figures">6.110 kr.</span>
 								</div>
 							</div>
@@ -962,17 +963,17 @@ label.field-shell { cursor:pointer; }
 						<div class="card-rule"></div>
 						<div class="card-body">
 							<div class="figure-card tabular-figures">48.210 kr.</div>
-							<i style="font-style:normal;font-size:11px;color:var(--text-muted)">Proshop · all time</i>
+							<span class="card-caption" style="font-style:normal;font-size:11px;color:var(--text-muted)">Proshop · all time</span>
 							<div class="entry-list">
 								<div class="entry-list-row"><span class="entry-avatar" style="background:#235553">PR</span>
 									<span><span class="entry-name">Proshop</span><br><span class="entry-meta">34 orders</span></span>
-									<span class="amount"><span style="color:var(--text)" class="tabular-figures">48.210 kr.</span><i>saved 6.940 kr.</i></span></div>
+									<span class="amount"><span style="color:var(--text)" class="tabular-figures">48.210 kr.</span><span class="entry-amount-sub">saved 6.940 kr.</span></span></div>
 								<div class="entry-list-row"><span class="entry-avatar" style="background:#877364">BI</span>
 									<span><span class="entry-name">Bilka</span><br><span class="entry-meta">96 orders</span></span>
-									<span class="amount"><span style="color:var(--text)" class="tabular-figures">41.882 kr.</span><i>saved 3.210 kr.</i></span></div>
+									<span class="amount"><span style="color:var(--text)" class="tabular-figures">41.882 kr.</span><span class="entry-amount-sub">saved 3.210 kr.</span></span></div>
 								<div class="entry-list-row"><span class="entry-avatar" style="background:#4F5BD5">EL</span>
 									<span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span>
-									<span class="amount"><span style="color:var(--text)" class="tabular-figures">26.499 kr.</span><i>saved 4.120 kr.</i></span></div>
+									<span class="amount"><span style="color:var(--text)" class="tabular-figures">26.499 kr.</span><span class="entry-amount-sub">saved 4.120 kr.</span></span></div>
 							</div>
 						</div>
 					</section>
@@ -985,19 +986,19 @@ label.field-shell { cursor:pointer; }
 								<div class="category-row">
 									<span class="category-icon" style="background:var(--icon-red)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span>
-									<span><b>Groceries</b><i>saved 1.240 kr.</i></span>
+									<span><span class="category-row-title">Groceries</span><span class="category-row-meta">saved 1.240 kr.</span></span>
 									<span class="amount tabular-figures">18.420 kr.</span>
 								</div>
 								<div class="category-row">
 									<span class="category-icon" style="background:var(--icon-purple)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span>
-									<span><b>Household</b><i>saved 310 kr.</i></span>
+									<span><span class="category-row-title">Household</span><span class="category-row-meta">saved 310 kr.</span></span>
 									<span class="amount tabular-figures">6.110 kr.</span>
 								</div>
 								<div class="category-row">
 									<span class="category-icon" style="background:var(--donut-blue)">
 										<svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span>
-									<span><b>Home office</b><i>saved 505 kr.</i></span>
+									<span><span class="category-row-title">Home office</span><span class="category-row-meta">saved 505 kr.</span></span>
 									<span class="amount tabular-figures">4.880 kr.</span>
 								</div>
 							</div>
@@ -1009,7 +1010,7 @@ label.field-shell { cursor:pointer; }
 						<div class="card-rule"></div>
 						<div class="card-body">
 							<div class="figure-card tabular-figures">2.106,00 kr.</div>
-							<i style="font-style:normal;font-size:11px;color:var(--text-muted)">saved this month</i>
+							<span class="card-caption" style="font-style:normal;font-size:11px;color:var(--text-muted)">saved this month</span>
 							<div style="margin-top:14px">
 								<span class="chip-saving tabular-figures"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>9,4% under retail</span>
 							</div>
@@ -1022,9 +1023,9 @@ label.field-shell { cursor:pointer; }
 						<div class="card-rule"></div>
 						<div class="card-body">
 							<div class="figure-card tabular-figures">30.300 kr.</div>
-							<i style="font-style:normal;font-size:11px;color:var(--text-muted)">projected for July · 25 days in</i>
+							<span class="card-caption" style="font-style:normal;font-size:11px;color:var(--text-muted)">projected for July · 25 days in</span>
 							<div class="meter" style="margin-top:16px" role="img" aria-label="Spent 24.418 of a projected 30.300 kroner; the marker is where June ended">
-								<i style="width:80%"></i><b style="left:68%"></b>
+								<span class="meter-fill" style="width:80%"></span><span class="meter-marker" style="left:68%"></span>
 							</div>
 							<div class="chart-legend-inline"><span class="chart-swatch"></span><span>June ended at</span><span class="amount tabular-figures">20.680 kr.</span></div>
 						</div>
@@ -1046,8 +1047,8 @@ label.field-shell { cursor:pointer; }
 				<!-- dark AI card -->
 				<section class="card card-ai" id="ai-card" aria-label="AI receipt scanning">
 					<a href="#" class="ai-card-header" data-go="scan" aria-label="Finish setting up Spendly, open Scan receipt">
-						<span class="progress-ring"><b>1/3</b></span>
-						<span class="ai-card-title"><b>Get receipts read for you</b><i>Finish setting up Spendly</i></span>
+						<span class="progress-ring"><span class="progress-ring-value">1/3</span></span>
+						<span class="ai-card-title"><span class="ai-card-title-text">Get receipts read for you</span><span class="ai-card-title-meta">Finish setting up Spendly</span></span>
 						<span class="chevron" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span>
 					</a>
 					<div class="ai-card-headline" style="font-size:17px">Scan receipts, skip typing</div>
@@ -1065,8 +1066,8 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body">
 						<div class="chart-caption">
-							<i>Spent this month</i>
-							<b class="tabular-figures">24.418,57 kr.</b>
+							<span class="chart-caption-label">Spent this month</span>
+							<span class="chart-caption-value tabular-figures">24.418,57 kr.</span>
 						</div>
 						<svg class="chart" data-h="110" data-pad="6" style="display:block;width:100%;height:110px;margin-top:6px" role="img" aria-label="Cumulative spend through July"><defs><linearGradient id="home-spend-gradient" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F5BD5"></stop><stop offset="1" stop-color="#A5B4FC"></stop></linearGradient></defs><line data-baseline="92" stroke="#E4E7E2" stroke-dasharray="3 4"></line><path data-series="96,78,58,46,32,18,8" data-kind="curve" fill="none" stroke="url(#home-spend-gradient)" stroke-width="2.4"></path><circle data-marker="1" r="4.5" fill="#fff" stroke="#4F5BD5" stroke-width="2"></circle></svg>
 						<div class="chart-axis tabular-figures"><span>01</span><span>08</span><span>15</span><span>22</span><span>29</span></div>
@@ -1091,7 +1092,7 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body">
 						<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-							<div class="chart-caption"><i>Total saved</i><b class="tabular-figures">2.106,00 kr.</b></div>
+							<div class="chart-caption"><span class="chart-caption-label">Total saved</span><span class="chart-caption-value tabular-figures">2.106,00 kr.</span></div>
 							<span class="chip-saving tabular-figures"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>9,4%</span>
 						</div>
 						<svg class="chart" data-h="90" data-pad="0" style="display:block;width:100%;height:90px;margin-top:8px" role="img" aria-label="Savings growth through July"><defs><linearGradient id="home-savings-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14AC72" stop-opacity=".22"></stop><stop offset="1" stop-color="#14AC72" stop-opacity="0"></stop></linearGradient></defs><path data-series="84,70,48,22,12" data-kind="area" fill="url(#home-savings-gradient)" stroke="none"></path><path data-series="84,70,48,22,12" data-kind="curve" fill="none" stroke="#14AC72" stroke-width="2.2"></path></svg>
@@ -1115,7 +1116,7 @@ label.field-shell { cursor:pointer; }
 						<div class="figure-large tabular-figures" style="font-size:24px">24.418,57 kr.</div>
 						<!-- The comparison period is fixed to the one before, so the key names both plotted
 						     lines instead of offering a choice the app does not have. -->
-						<div class="chart-series-key"><span><i style="background:var(--blue)"></i>July</span><span><i style="background:var(--blue-light)"></i>June</span></div>
+						<div class="chart-series-key"><span><span class="chart-series-key-swatch" style="background:var(--blue)"></span>July</span><span><span class="chart-series-key-swatch" style="background:var(--blue-light)"></span>June</span></div>
 						<svg class="chart" data-h="250" data-pad="10" style="display:block;width:100%;height:250px;margin-top:8px" role="img" aria-label="July against June, day by day"><line data-baseline="128" stroke="#D9DDD8" stroke-dasharray="5 5"></line><path data-series="216,198,178,156,138,122,108" data-kind="curve" fill="none" stroke="#B9BFF0" stroke-width="2"></path><path data-series="226,196,160,128,88,60,36,16" data-kind="curve" fill="none" stroke="#4F5BD5" stroke-width="2.6"></path><circle data-marker="3" data-marker-series="1" r="13" fill="#4F5BD5" opacity=".14"></circle><circle data-marker="3" data-marker-series="1" r="5.5" fill="#fff" stroke="#4F5BD5" stroke-width="3"></circle></svg>
 						<div class="chart-ruler" aria-hidden="true"></div>
 						<div class="chart-axis tabular-figures"><span>01</span><span>08</span><span>15</span><span>22</span><span>29</span></div>
@@ -1128,16 +1129,16 @@ label.field-shell { cursor:pointer; }
 						<div class="card-body entry-list" style="padding-top:6px">
 							<a href="#" class="entry-list-row" data-go="detail"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<span><span class="entry-name">Proshop</span><br><span class="entry-meta">24 July</span></span>
-								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><i style="background:#8B5CF6"></i><i style="background:#235553"></i></span>+612,00 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#8B5CF6"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+612,00 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<span><span class="entry-name">Matas</span><br><span class="entry-meta">21 July</span></span>
-								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><i style="background:#F09A38"></i><i style="background:#235553"></i></span>+88,00 kr.</span></div>
+								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#F09A38"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+88,00 kr.</span></div>
 							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<span><span class="entry-name">Bilka</span><br><span class="entry-meta">18 July</span></span>
-								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><i style="background:#14AC72"></i><i style="background:#235553"></i></span>+146,10 kr.</span></div>
+								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#14AC72"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+146,10 kr.</span></div>
 							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
 								<span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">15 July</span></span>
-								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><i style="background:#1FA8E0"></i><i style="background:#235553"></i></span>+500,00 kr.</span></div>
+								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#1FA8E0"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+500,00 kr.</span></div>
 							<button type="button" class="button button-block" data-go="orders2">SEE ALL</button>
 						</div>
 					</section>
@@ -1159,11 +1160,11 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body promo-row">
 						<div class="promo"><span class="chip-tag" style="background:#F6E3F1;color:#A2477F"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"></path></svg>Quick wins</span>
-							<b>Name that vendor</b><p>3 orders have unmatched vendor names. Confirm them to keep totals clean.</p></div>
+							<span class="promo-title">Name that vendor</span><p>3 orders have unmatched vendor names. Confirm them to keep totals clean.</p></div>
 						<div class="promo"><span class="chip-tag" style="background:#DFF0F7;color:#20708C"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6"></path></svg>AI scan</span>
-							<b>Forward email receipts</b><p>Screenshots of order emails scan just as well as paper receipts.</p></div>
+							<span class="promo-title">Forward email receipts</span><p>Screenshots of order emails scan just as well as paper receipts.</p></div>
 						<div class="promo"><span class="chip-tag" style="background:#F6E3F1;color:#A2477F"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"></path></svg>Quick wins</span>
-							<b>Mark deliveries</b><p>1 order is still marked ordered after ten days. Check if it arrived.</p></div>
+							<span class="promo-title">Mark deliveries</span><p>1 order is still marked ordered after ten days. Check if it arrived.</p></div>
 					</div>
 				</section>
 			</div>
@@ -1193,12 +1194,12 @@ label.field-shell { cursor:pointer; }
 							<button type="button" class="is-on" role="tab" aria-selected="true">Expenses</button><button type="button" role="tab" aria-selected="false">Budget</button>
 						</div>
 						<div class="donut-box"><div class="donut" role="img" aria-label="Category split of 24.418 kroner this month">
-							<span class="ring-centre"><b class="tabular-figures">24.418 kr.</b><i>Spent this month</i></span></div></div>
+							<span class="ring-centre"><span class="ring-centre-value tabular-figures">24.418 kr.</span><span class="ring-centre-label">Spent this month</span></span></div></div>
 						<div class="category-rows">
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><span><b>Groceries</b><i>38% of expenses</i></span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-yellow)"><svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span><span><b>Electronics</b><i>27% of expenses</i></span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><span><b>Household</b><i>13% of expenses</i></span><span class="amount tabular-figures">6.110 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><span><b>Home office</b><i>10% of expenses</i></span><span class="amount tabular-figures">4.880 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><span><span class="category-row-title">Groceries</span><span class="category-row-meta">38% of expenses</span></span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-yellow)"><svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span><span><span class="category-row-title">Electronics</span><span class="category-row-meta">27% of expenses</span></span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><span><span class="category-row-title">Household</span><span class="category-row-meta">13% of expenses</span></span><span class="amount tabular-figures">6.110 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><span><span class="category-row-title">Home office</span><span class="category-row-meta">10% of expenses</span></span><span class="amount tabular-figures">4.880 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 						</div>
 						<button type="button" class="button button-block" data-go="orders2">SEE ALL</button>
 					</div>
@@ -1213,9 +1214,9 @@ label.field-shell { cursor:pointer; }
 				<div class="card-body" style="padding:16px 20px">
 					<div class="stepper">
 						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
-							<span class="stepper-bar"></span><b>Order details</b></div>
+							<span class="stepper-bar"></span><span class="stepper-step-label">Order details</span></div>
 						<div class="stepper-step"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
-							<span class="stepper-bar"></span><b>Add the items</b></div>
+							<span class="stepper-bar"></span><span class="stepper-step-label">Add the items</span></div>
 					</div>
 				</div>
 			</section>
@@ -1261,7 +1262,7 @@ label.field-shell { cursor:pointer; }
 									<span class="field-help">Only expenses count towards your totals.</span></label>
 							</div>
 							<div class="filter-section">
-								<div class="space-between"><b style="font-size:14px">More details?</b><button type="button" class="switch" role="switch" aria-checked="true" aria-label="More details"></button></div>
+								<div class="space-between"><span class="panel-heading" style="font-size:14px">More details?</span><button type="button" class="switch" role="switch" aria-checked="true" aria-label="More details"></button></div>
 								<div class="field-pair">
 									<label class="field"><span>Shipping fee</span><div class="field-shell"><input type="text" inputmode="decimal" placeholder="0,00" aria-label="Shipping fee"><span class="field-unit">kr.</span></div></label>
 									<label class="field"><span>Order reference</span><div class="field-shell"><input type="text" placeholder="Optional" aria-label="Note"></div></label>
@@ -1281,12 +1282,12 @@ label.field-shell { cursor:pointer; }
 					<div class="card-body" style="padding:18px 20px">
 						<div style="font-size:17px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px">Order summary</div>
 						<span class="section-label" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:600">Order details</span>
-						<div class="summary-row">Vendor<b>Matas</b></div>
-						<div class="summary-row">Date<b>25.07.2026</b></div>
-						<div class="summary-row">Status<b>Delivered</b></div>
-						<div class="summary-row">Categories<b>Household, Groceries</b></div>
-						<div class="summary-row">Kind<b>Expense</b></div>
-						<div class="summary-row" style="border-bottom:0">Shipping<b class="tabular-figures">0,00 kr.</b></div>
+						<div class="summary-row">Vendor<span class="summary-row-value">Matas</span></div>
+						<div class="summary-row">Date<span class="summary-row-value">25.07.2026</span></div>
+						<div class="summary-row">Status<span class="summary-row-value">Delivered</span></div>
+						<div class="summary-row">Categories<span class="summary-row-value">Household, Groceries</span></div>
+						<div class="summary-row">Kind<span class="summary-row-value">Expense</span></div>
+						<div class="summary-row" style="border-bottom:0">Shipping<span class="summary-row-value tabular-figures">0,00 kr.</span></div>
 						<div class="card-rule" style="margin:4px 0 0"></div>
 						<div class="summary-total">Total est.<span class="summary-total-value tabular-figures">0,00 kr.</span></div>
 						<span class="field-help">Items are added in step 2; the total builds as you add them.</span>
@@ -1307,9 +1308,9 @@ label.field-shell { cursor:pointer; }
 			<section class="card" aria-label="Steps" style="margin-bottom:2px">
 				<div class="card-body" style="padding:16px 20px">
 					<div class="stepper">
-						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><b>Order details</b></div>
+						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Order details</span></div>
 						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
-							<span class="stepper-bar"></span><b>Add the items</b></div>
+							<span class="stepper-bar"></span><span class="stepper-step-label">Add the items</span></div>
 					</div>
 				</div>
 			</section>
@@ -1343,11 +1344,11 @@ label.field-shell { cursor:pointer; }
 									<span class="field-help">drag to reorder</span></div>
 								<div class="inset-panel">
 									<div class="item-row"><span style="color:var(--text-faint,#9AA39B);cursor:grab"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
-										<span><b>Shampoo, 500 ml</b><i>2 × 89,95 kr. · retail 104,95 kr.</i></span>
+										<span><span class="item-row-title">Shampoo, 500 ml</span><span class="item-row-meta">2 × 89,95 kr. · retail 104,95 kr.</span></span>
 										<span class="amount tabular-figures" style="color:var(--text)">179,90 kr.</span>
 										<span class="row-inline" style="gap:2px"><button type="button" class="icon-button icon-button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
 									<div class="item-row"><span style="color:var(--text-faint,#9AA39B);cursor:grab"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
-										<span><b>Tandpasta</b><i>3 × 22,95 kr. · retail 26,95 kr.</i></span>
+										<span><span class="item-row-title">Tandpasta</span><span class="item-row-meta">3 × 22,95 kr. · retail 26,95 kr.</span></span>
 										<span class="amount tabular-figures" style="color:var(--text)">68,85 kr.</span>
 										<span class="row-inline" style="gap:2px"><button type="button" class="icon-button icon-button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
 								</div>
@@ -1365,12 +1366,12 @@ label.field-shell { cursor:pointer; }
 					<div class="card-body" style="padding:18px 20px">
 						<div style="font-size:17px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px">Order summary</div>
 						<span class="section-label" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:600">Order details</span>
-						<div class="summary-row">Vendor<b>Matas</b></div>
-						<div class="summary-row">Date<b>25.07.2026</b></div>
-						<div class="summary-row" style="border-bottom:0">Status<b>Delivered</b></div>
+						<div class="summary-row">Vendor<span class="summary-row-value">Matas</span></div>
+						<div class="summary-row">Date<span class="summary-row-value">25.07.2026</span></div>
+						<div class="summary-row" style="border-bottom:0">Status<span class="summary-row-value">Delivered</span></div>
 						<span class="section-label" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:600;display:block;margin-top:10px">Items</span>
-						<div class="summary-row">Shampoo, 500 ml × 2<b class="tabular-figures">179,90 kr.</b></div>
-						<div class="summary-row" style="border-bottom:0">Tandpasta × 3<b class="tabular-figures">68,85 kr.</b></div>
+						<div class="summary-row">Shampoo, 500 ml × 2<span class="summary-row-value tabular-figures">179,90 kr.</span></div>
+						<div class="summary-row" style="border-bottom:0">Tandpasta × 3<span class="summary-row-value tabular-figures">68,85 kr.</span></div>
 						<div class="card-rule" style="margin:4px 0 0"></div>
 						<div class="summary-total">Total est.<span class="summary-total-value tabular-figures">248,75 kr.</span></div>
 						<span class="field-help" style="color:var(--green);font-weight:600">saved 42,00 kr. vs retail (14,4%)</span>
@@ -1381,8 +1382,8 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body">
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M3 9l4 -4l4 4m-4 -4v14 M21 15l-4 4l-4 -4m4 4v-14"></path></svg></span><span><b>Drag to reorder</b><i>The order here is the order on the receipt.</i></span></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 14l-4 -4l4 -4 M5 10h11a4 4 0 1 1 0 8h-1"></path></svg></span><span><b>Escape cancels</b><i>An inline edit rolls back untouched.</i></span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M3 9l4 -4l4 4m-4 -4v14 M21 15l-4 4l-4 -4m4 4v-14"></path></svg></span><span><span class="item-row-title">Drag to reorder</span><span class="item-row-meta">The order here is the order on the receipt.</span></span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 14l-4 -4l4 -4 M5 10h11a4 4 0 1 1 0 8h-1"></path></svg></span><span><span class="item-row-title">Escape cancels</span><span class="item-row-meta">An inline edit rolls back untouched.</span></span></div>
 						</div>
 					</div>
 				</section>
@@ -1409,13 +1410,13 @@ label.field-shell { cursor:pointer; }
 					<div class="card-header"><span class="section-label">Items · 4</span><span class="field-help tabular-figures">4.249,00 kr.</span></div>
 					<div class="card-rule"></div>
 					<div class="card-body" style="padding-top:6px">
-						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><b>Dell UltraSharp U2723QE 27 tommer</b><i>1 × 3.199,00 kr.</i></span><span class="amount tabular-figures" style="color:var(--text)">3.199,00 kr.</span></div>
-						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><b>Logitech MX Master 3S</b><i>1 × 749,00 kr. · Replaces the one that drowned in coffee</i></span><span class="amount tabular-figures" style="color:var(--text)">749,00 kr.</span></div>
-						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><b>USB-C dock, 6 porte</b><i>1 × 249,00 kr.</i></span><span class="amount tabular-figures" style="color:var(--text)">249,00 kr.</span></div>
-						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><b>Kabelbindere, 100 stk.</b><i>2 × 26,00 kr.</i></span><span class="amount tabular-figures" style="color:var(--text)">52,00 kr.</span></div>
+						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Dell UltraSharp U2723QE 27 tommer</span><span class="item-row-meta">1 × 3.199,00 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">3.199,00 kr.</span></div>
+						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Logitech MX Master 3S</span><span class="item-row-meta">1 × 749,00 kr. · Replaces the one that drowned in coffee</span></span><span class="amount tabular-figures" style="color:var(--text)">749,00 kr.</span></div>
+						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">USB-C dock, 6 porte</span><span class="item-row-meta">1 × 249,00 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">249,00 kr.</span></div>
+						<div class="item-row" style="padding:12px 0"><span class="document-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><span><span class="item-row-title">Kabelbindere, 100 stk.</span><span class="item-row-meta">2 × 26,00 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">52,00 kr.</span></div>
 						<div class="card-rule" style="margin:6px 0 0"></div>
-						<div class="summary-row">Items subtotal<b class="tabular-figures">4.249,00 kr.</b></div>
-						<div class="summary-row" style="border-bottom:0">Shipping<b class="tabular-figures">49,00 kr.</b></div>
+						<div class="summary-row">Items subtotal<span class="summary-row-value tabular-figures">4.249,00 kr.</span></div>
+						<div class="summary-row" style="border-bottom:0">Shipping<span class="summary-row-value tabular-figures">49,00 kr.</span></div>
 						<div class="card-rule" style="margin:2px 0 0"></div>
 						<div class="summary-total">Total<span class="summary-total-value tabular-figures" style="color:var(--text-strong)">4.298,00 kr.</span></div>
 						<span class="field-help" style="color:var(--green);font-weight:600">saved 612,00 kr. vs retail (12,5%)</span>
@@ -1427,12 +1428,12 @@ label.field-shell { cursor:pointer; }
 					<div class="card-header"><span class="section-label">Details</span></div>
 					<div class="card-rule"></div>
 					<div class="card-body" style="padding-top:4px">
-						<div class="summary-row">Status<b>Delivered</b></div>
-						<div class="summary-row">Date<b class="tabular-figures">24.07.2026</b></div>
-						<div class="summary-row">Vendor<b>Proshop</b></div>
-						<div class="summary-row">Categories<b>Electronics, Home office</b></div>
-						<div class="summary-row">Kind<b>Expense</b></div>
-						<div class="summary-row" style="border-bottom:0">Saved vs retail<b class="tabular-figures" style="color:var(--green)">612,00 kr. (12,5%)</b></div>
+						<div class="summary-row">Status<span class="summary-row-value">Delivered</span></div>
+						<div class="summary-row">Date<span class="summary-row-value tabular-figures">24.07.2026</span></div>
+						<div class="summary-row">Vendor<span class="summary-row-value">Proshop</span></div>
+						<div class="summary-row">Categories<span class="summary-row-value">Electronics, Home office</span></div>
+						<div class="summary-row">Kind<span class="summary-row-value">Expense</span></div>
+						<div class="summary-row" style="border-bottom:0">Saved vs retail<span class="summary-row-value tabular-figures" style="color:var(--green)">612,00 kr. (12,5%)</span></div>
 					</div>
 				</section>
 				<section class="card" aria-label="Attachments">
@@ -1440,7 +1441,7 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body" style="padding-top:6px">
 						<div class="item-row"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span>
-							<span><b>faktura-303.pdf</b><i>Scanned 24 July · 214 KB</i></span>
+							<span><span class="item-row-title">faktura-303.pdf</span><span class="item-row-meta">Scanned 24 July · 214 KB</span></span>
 							<span class="row-inline" style="gap:4px;flex-wrap:nowrap;margin-left:auto"><button type="button" class="icon-button icon-button-arrow" aria-label="Open attachment"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete attachment"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
 					</div>
 				</section>
@@ -1456,9 +1457,9 @@ label.field-shell { cursor:pointer; }
 			<section class="card" aria-label="Steps" style="margin-bottom:2px">
 				<div class="card-body" style="padding:16px 20px">
 					<div class="stepper" style="grid-template-columns:1fr 1fr 1fr">
-						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><b>Upload</b></div>
-						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M8 12h8 M8 9h6 M8 15h4 M3 7v-2a2 2 0 0 1 2 -2h2 M3 17v2a2 2 0 0 0 2 2h2 M17 3h2a2 2 0 0 1 2 2v2 M17 21h2a2 2 0 0 0 2 -2v-2"></path></svg></span><span class="stepper-bar"></span><b>Reading</b></div>
-						<div class="stepper-step"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span><span class="stepper-bar"></span><b>Review</b></div>
+						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Upload</span></div>
+						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M8 12h8 M8 9h6 M8 15h4 M3 7v-2a2 2 0 0 1 2 -2h2 M3 17v2a2 2 0 0 0 2 2h2 M17 3h2a2 2 0 0 1 2 2v2 M17 21h2a2 2 0 0 0 2 -2v-2"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Reading</span></div>
+						<div class="stepper-step"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Review</span></div>
 					</div>
 				</div>
 			</section>
@@ -1469,7 +1470,7 @@ label.field-shell { cursor:pointer; }
 						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em">Reading kvittering-bilka.jpg</div>
 						<span class="field-help">This usually takes a few seconds. Nothing is stored until you approve the review.</span>
 					</div>
-					<div class="progress-bar progress-bar-indeterminate" style="width:100%;max-width:420px" role="progressbar" aria-label="Reading progress"><i></i></div>
+					<div class="progress-bar progress-bar-indeterminate" style="width:100%;max-width:420px" role="progressbar" aria-label="Reading progress"><span class="progress-bar-fill"></span></div>
 					<button type="button" class="button-link" data-go="scan3">OPEN THE REVIEW</button>
 				</div>
 			</section>
@@ -1480,9 +1481,9 @@ label.field-shell { cursor:pointer; }
 			<section class="card" aria-label="Steps" style="margin-bottom:2px">
 				<div class="card-body" style="padding:16px 20px">
 					<div class="stepper" style="grid-template-columns:1fr 1fr 1fr">
-						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><b>Upload</b></div>
-						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><b>Reading</b></div>
-						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span><span class="stepper-bar"></span><b>Review</b></div>
+						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Upload</span></div>
+						<div class="stepper-step stepper-step-done"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5l10 -10"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Reading</span></div>
+						<div class="stepper-step is-on"><span class="stepper-icon"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M9 9l1 0 M9 13l6 0 M9 17l6 0"></path></svg></span><span class="stepper-bar"></span><span class="stepper-step-label">Review</span></div>
 					</div>
 				</div>
 			</section>
@@ -1492,7 +1493,7 @@ label.field-shell { cursor:pointer; }
 					<div class="card-body" style="padding:20px 22px">
 						<div style="font-size:19px;font-weight:600;letter-spacing:-.01em">Review the draft</div>
 						<p style="margin:2px 0 16px;font-size:13px;color:var(--text-muted)">Every value is editable. Nothing is stored until you save.</p>
-						<div class="note note-positive" style="margin-bottom:16px"><b>Total matches.</b> The document total 1.187,25 kr. includes 25% VAT and agrees with the 23 lines read.</div>
+						<div class="note note-positive" style="margin-bottom:16px"><strong>Total matches.</strong> The document total 1.187,25 kr. includes 25% VAT and agrees with the 23 lines read.</div>
 						<div class="form" style="max-width:none">
 							<label class="field"><span>Vendor</span>
 								<div class="field-shell"><input type="text" value="Bilka" placeholder="Search vendors…" aria-label="Vendor" aria-required="true"><span class="chip-status" style="height:24px;font-size:10.5px">matched</span></div></label>
@@ -1516,15 +1517,15 @@ label.field-shell { cursor:pointer; }
 								<div class="space-between" style="margin-bottom:4px"><span class="section-label" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Lines read · 23</span>
 									<span class="field-help">tap a line to correct it</span></div>
 								<div class="inset-panel">
-									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Rugbrød, skiveskåret</b><i>1 × 24,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--text)">24,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Minimælk 1 l</b><i>4 × 10,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--text)">43,80 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Kaffe, formalet 400 g</b><i>1 × 54,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--text)">54,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#8A6A1F"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><b>Line 14 was hard to read</b><i>Guessed: Smør, 250 g · 1 × 21,95 kr.</i></span><span class="amount tabular-figures" style="color:var(--text)">21,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
-									<div class="item-row"><span class="item-row-icon" style="background:#EFF3EE;color:var(--text-muted)"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span><b>19 more lines</b><i>1.041,60 kr. together</i></span><span class="button-link" style="margin-left:auto">SHOW ALL</span></div>
+									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Rugbrød, skiveskåret</span><span class="item-row-meta">1 × 24,95 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">24,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Minimælk 1 l</span><span class="item-row-meta">4 × 10,95 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">43,80 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Kaffe, formalet 400 g</span><span class="item-row-meta">1 × 54,95 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">54,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#8A6A1F"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><span class="item-row-title">Line 14 was hard to read</span><span class="item-row-meta">Guessed: Smør, 250 g · 1 × 21,95 kr.</span></span><span class="amount tabular-figures" style="color:var(--text)">21,95 kr.</span><button type="button" class="icon-button icon-button-arrow" aria-label="Edit line"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button></div>
+									<div class="item-row"><span class="item-row-icon" style="background:#EFF3EE;color:var(--text-muted)"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span><span class="item-row-title">19 more lines</span><span class="item-row-meta">1.041,60 kr. together</span></span><span class="button-link" style="margin-left:auto">SHOW ALL</span></div>
 								</div>
 							</div>
-							<div class="summary-row">Lines subtotal<b class="tabular-figures">1.187,25 kr.</b></div>
-							<div class="summary-row" style="border-bottom:0">Shipping<b class="tabular-figures">0,00 kr.</b></div>
+							<div class="summary-row">Lines subtotal<span class="summary-row-value tabular-figures">1.187,25 kr.</span></div>
+							<div class="summary-row" style="border-bottom:0">Shipping<span class="summary-row-value tabular-figures">0,00 kr.</span></div>
 							<div class="card-rule" style="margin:2px 0 0"></div>
 							<div class="summary-total">Total<span class="summary-total-value tabular-figures" style="color:var(--text-strong)">1.187,25 kr.</span></div>
 							<div class="form-actions form-actions-split">
@@ -1549,9 +1550,9 @@ label.field-shell { cursor:pointer; }
 					<div class="card-header"><span class="section-label">Possible duplicate</span></div>
 					<div class="card-rule"></div>
 					<div class="card-body">
-						<div class="note note-warning" style="margin-bottom:10px"><b>Check before saving.</b> You already have a Bilka order within 14 days of this date.</div>
+						<div class="note note-warning" style="margin-bottom:10px"><strong>Check before saving.</strong> You already have a Bilka order within 14 days of this date.</div>
 						<a href="#" class="item-row" data-go="detail"><span class="document-thumb" style="font-size:0"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
-							<span><b>Bilka · 16 July</b><i>23 items · could be a second trip</i></span>
+							<span><span class="item-row-title">Bilka · 16 July</span><span class="item-row-meta">23 items · could be a second trip</span></span>
 							<span class="amount tabular-figures" style="color:var(--text)">894,40 kr.</span></a>
 					</div>
 				</section>
@@ -1560,9 +1561,9 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body">
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Totals reconciled</b><i>Document total incl. 25% VAT anchors the draft.</i></span></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>Vendor matched</b><i>Bilka, from your vendor list.</i></span></div>
-							<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#8A6A1F"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><b>1 line uncertain</b><i>Line 14 is flagged above for review.</i></span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Totals reconciled</span><span class="item-row-meta">Document total incl. 25% VAT anchors the draft.</span></span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">Vendor matched</span><span class="item-row-meta">Bilka, from your vendor list.</span></span></div>
+							<div class="item-row"><span class="item-row-icon" style="background:#F6ECD9;color:#8A6A1F"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0 M12 16h.01"></path></svg></span><span><span class="item-row-title">1 line uncertain</span><span class="item-row-meta">Line 14 is flagged above for review.</span></span></div>
 						</div>
 					</div>
 				</section>
@@ -1621,19 +1622,19 @@ label.field-shell { cursor:pointer; }
 					<a href="#" class="order-row" data-go="detail">
 						<span><span class="order-row-vendor">Bilka</span><span class="order-row-meta">18 July · 23 items · Groceries</span></span>
 						<span class="chip-status">Delivered</span>
-						<span class="order-row-total tabular-figures">1.187,25 kr.<i>saved 146,10 kr.</i></span>
+						<span class="order-row-total tabular-figures">1.187,25 kr.<span class="order-row-total-saved">saved 146,10 kr.</span></span>
 						<span class="order-row-chevron"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span>
 					</a>
 					<div class="order-row">
 						<span><span class="order-row-vendor">Bilka</span><span class="order-row-meta">9 July · 16 items · Groceries, Household</span></span>
 						<span class="chip-status">Delivered</span>
-						<span class="order-row-total tabular-figures">894,40 kr.<i>saved 62,25 kr.</i></span>
+						<span class="order-row-total tabular-figures">894,40 kr.<span class="order-row-total-saved">saved 62,25 kr.</span></span>
 						<span class="order-row-chevron"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span>
 					</div>
 					<div class="order-row">
 						<span><span class="order-row-vendor">Bilka</span><span class="order-row-meta">2 July · 9 items · Groceries</span></span>
 						<span class="chip-status">Delivered</span>
-						<span class="order-row-total tabular-figures">640,80 kr.<i>saved 41,00 kr.</i></span>
+						<span class="order-row-total tabular-figures">640,80 kr.<span class="order-row-total-saved">saved 41,00 kr.</span></span>
 						<span class="order-row-chevron"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span>
 					</div>
 					<div class="space-between" style="margin-top:12px">
@@ -1661,8 +1662,8 @@ label.field-shell { cursor:pointer; }
 					<div class="card-body">
 						<div class="lead-sentence">Your biggest vendor: 48.210 kr. across 34 orders.</div>
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><span><b>Saved vs retail</b><i>Proshop · all time</i></span><span class="amount tabular-figures">6.940 kr.</span></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><span><b>Latest order</b><i>24 July · 4 items</i></span><span class="amount tabular-figures">612,00 kr.</span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><span><span class="item-row-title">Saved vs retail</span><span class="item-row-meta">Proshop · all time</span></span><span class="amount tabular-figures">6.940 kr.</span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><span><span class="item-row-title">Latest order</span><span class="item-row-meta">24 July · 4 items</span></span><span class="amount tabular-figures">612,00 kr.</span></div>
 						</div>
 						<button type="button" class="button button-ghost">VIEW ORDERS</button>
 					</div></section>
@@ -1671,8 +1672,8 @@ label.field-shell { cursor:pointer; }
 					<div class="card-body">
 						<div class="lead-sentence">Your most frequent vendor: 96 orders, 41.882 kr.</div>
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><span><b>Saved vs retail</b><i>Bilka · all time</i></span><span class="amount tabular-figures">3.210 kr.</span></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><span><b>Latest order</b><i>18 July · 23 items</i></span><span class="amount tabular-figures">146,10 kr.</span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M16 17a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 7a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 18l12 -12"></path></svg></span><span><span class="item-row-title">Saved vs retail</span><span class="item-row-meta">Bilka · all time</span></span><span class="amount tabular-figures">3.210 kr.</span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span><span><span class="item-row-title">Latest order</span><span class="item-row-meta">18 July · 23 items</span></span><span class="amount tabular-figures">146,10 kr.</span></div>
 						</div>
 						<button type="button" class="button button-ghost">VIEW ORDERS</button>
 					</div></section>
@@ -1680,11 +1681,11 @@ label.field-shell { cursor:pointer; }
 			<div class="section-header" data-view-only="overview"><span class="section-label">All vendors</span></div>
 			<div class="row-inline toolbar" data-view-only="overview"><div class="field-shell"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--text-muted)"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor name…" aria-label="Search vendors"></div><div class="segmented segmented-compact"><button type="button" class="is-on">Spend</button><button type="button">Name</button><button type="button">Orders</button><button type="button">Saved</button></div></div>
 			<div class="scroll-row" data-view-only="overview">
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#877364">FØ</span><span><span class="entry-name">Føtex</span><br><span class="entry-meta">71 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">28.140 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 1.905 kr.</i></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#1FA8E0">EL</span><span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">26.499 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 4.120 kr.</i></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#F09A38">MA</span><span><span class="entry-name">Matas</span><br><span class="entry-meta">29 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">11.640 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 1.480 kr.</i></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#8B5CF6">ZA</span><span><span class="entry-name">Zalando</span><br><span class="entry-meta">22 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">9.870 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 2.640 kr.</i></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#235553">JY</span><span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">7.415 kr.</div><i style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 380 kr.</i></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#877364">FØ</span><span><span class="entry-name">Føtex</span><br><span class="entry-meta">71 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">28.140 kr.</div><span class="card-caption" style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 1.905 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#1FA8E0">EL</span><span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">26.499 kr.</div><span class="card-caption" style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 4.120 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#F09A38">MA</span><span><span class="entry-name">Matas</span><br><span class="entry-meta">29 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">11.640 kr.</div><span class="card-caption" style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 1.480 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#8B5CF6">ZA</span><span><span class="entry-name">Zalando</span><br><span class="entry-meta">22 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">9.870 kr.</div><span class="card-caption" style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 2.640 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row" style="padding-top:0"><span class="entry-avatar" style="background:#235553">JY</span><span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 orders</span></span></div></div><div class="figure-card tabular-figures" style="font-size:17px">7.415 kr.</div><span class="card-caption" style="font-style:normal;font-size:10.5px;color:var(--text-muted)">saved 380 kr.</span></div></section>
 			</div>
 		</div>
 
@@ -1718,8 +1719,8 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body" style="padding-top:10px">
 						<div class="inset-panel">
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>kvittering-bilka.jpg</b><i>18 July · 23 items found</i></span><span class="amount tabular-figures" style="color:var(--text)">1.187,25 kr.</span></div>
-							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><b>faktura-303.pdf</b><i>24 July · 4 items found</i></span><span class="amount tabular-figures" style="color:var(--text)">4.298,00 kr.</span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">kvittering-bilka.jpg</span><span class="item-row-meta">18 July · 23 items found</span></span><span class="amount tabular-figures" style="color:var(--text)">1.187,25 kr.</span></div>
+							<div class="item-row"><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5l10 -10"></path></svg></span><span><span class="item-row-title">faktura-303.pdf</span><span class="item-row-meta">24 July · 4 items found</span></span><span class="amount tabular-figures" style="color:var(--text)">4.298,00 kr.</span></div>
 						</div>
 						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
 					</div>
@@ -1736,11 +1737,11 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body">
 						<div class="category-rows" style="margin-top:0">
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><span><b>Groceries</b><i>38% of expenses</i></span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-yellow)"><svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span><span><b>Electronics</b><i>27% of expenses</i></span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><span><b>Household</b><i>13% of expenses</i></span><span class="amount tabular-figures">6.110 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><span><b>Home office</b><i>10% of expenses</i></span><span class="amount tabular-figures">4.880 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
-							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:#45524C"><svg class="icon" viewBox="0 0 24 24"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"></path></svg></span><span><b>Everything else</b><i>12% of expenses</i></span><span class="amount tabular-figures">5.550 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-red)"><svg class="icon" viewBox="0 0 24 24"><path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304 M17 10l-2 -6 M7 10l2 -6"></path></svg></span><span><span class="category-row-title">Groceries</span><span class="category-row-meta">38% of expenses</span></span><span class="amount tabular-figures">18.420 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-yellow)"><svg class="icon" viewBox="0 0 24 24"><path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054 M4 20l3.5 -3.5 M15 4l-3.5 3.5 M20 9l-3.5 3.5"></path></svg></span><span><span class="category-row-title">Electronics</span><span class="category-row-meta">27% of expenses</span></span><span class="amount tabular-figures">12.940 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--icon-purple)"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0 M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7 M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path></svg></span><span><span class="category-row-title">Household</span><span class="category-row-meta">13% of expenses</span></span><span class="amount tabular-figures">6.110 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:var(--donut-blue)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10 M7 20h10 M9 16v4 M15 16v4"></path></svg></span><span><span class="category-row-title">Home office</span><span class="category-row-meta">10% of expenses</span></span><span class="amount tabular-figures">4.880 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
+							<a href="#" class="category-row" data-go="orders2"><span class="category-icon" style="background:#45524C"><svg class="icon" viewBox="0 0 24 24"><path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3"></path></svg></span><span><span class="category-row-title">Everything else</span><span class="category-row-meta">12% of expenses</span></span><span class="amount tabular-figures">5.550 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 						</div>
 						<button type="button" class="button button-block" data-go="orders2">VIEW ALL</button>
 					</div>
@@ -1756,7 +1757,7 @@ label.field-shell { cursor:pointer; }
 						<div class="card-rule"></div>
 						<div class="card-body donut-box">
 							<div class="donut" role="img" aria-label="Category split of 24.418 kroner">
-								<span class="ring-centre"><b class="tabular-figures">24.418 kr.</b><i>Spent this month</i></span>
+								<span class="ring-centre"><span class="ring-centre-value tabular-figures">24.418 kr.</span><span class="ring-centre-label">Spent this month</span></span>
 							</div>
 						</div>
 					</section>
@@ -1766,14 +1767,14 @@ label.field-shell { cursor:pointer; }
 
 		<!-- ============ STATISTICS · Equity Management pattern ============ -->
 		<div class="page page-grid" data-page="stats">
-			<div class="space-between" style="flex-wrap:wrap;gap:12px;padding:2px 2px 0"><div class="row-inline"><button type="button" class="icon-button icon-button-arrow" aria-label="Previous period"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button><b style="font-size:16px;letter-spacing:-.01em">July 2026</b><button type="button" class="icon-button icon-button-arrow" aria-label="Next period" disabled="" style="opacity:.45"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+			<div class="space-between" style="flex-wrap:wrap;gap:12px;padding:2px 2px 0"><div class="row-inline"><button type="button" class="icon-button icon-button-arrow" aria-label="Previous period"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 6l-6 6l6 6"></path></svg></button><span class="panel-heading" style="font-size:16px;letter-spacing:-.01em">July 2026</span><button type="button" class="icon-button icon-button-arrow" aria-label="Next period" disabled="" style="opacity:.45"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
 				<div class="row-inline"><span class="figure-large tabular-figures" style="font-size:22px">24.418,57 kr.</span><span class="chip-status chip-status-warning">18% up vs June</span></div>
 			</div>
 			<div class="kpi-row">
-				<div class="card card-kpi"><span>Orders</span><b class="tabular-figures">23</b><span class="delta delta-neutral"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>21% up vs June</span><i>June: 19 orders</i></div>
-				<div class="card card-kpi"><span>Average order</span><b class="tabular-figures">1.062 kr.</b><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0"></path></svg>2% down vs June</span><i>June: 1.088 kr.</i></div>
-				<div class="card card-kpi"><span>Saved vs retail</span><b class="tabular-figures">2.106 kr.</b><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>11% up vs June</span><i>9% under retail prices</i></div>
-				<div class="card card-kpi"><span>Shipping</span><b class="tabular-figures">388 kr.</b><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0"></path></svg>6% down vs June</span><i>1,6% of spend</i></div>
+				<div class="card card-kpi"><span>Orders</span><span class="card-kpi-value tabular-figures">23</span><span class="delta delta-neutral"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>21% up vs June</span><span class="card-kpi-label">June: 19 orders</span></div>
+				<div class="card card-kpi"><span>Average order</span><span class="card-kpi-value tabular-figures">1.062 kr.</span><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0"></path></svg>2% down vs June</span><span class="card-kpi-label">June: 1.088 kr.</span></div>
+				<div class="card card-kpi"><span>Saved vs retail</span><span class="card-kpi-value tabular-figures">2.106 kr.</span><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 17l6 -6l4 4l8 -8 M14 7l7 0l0 7"></path></svg>11% up vs June</span><span class="card-kpi-label">9% under retail prices</span></div>
+				<div class="card card-kpi"><span>Shipping</span><span class="card-kpi-value tabular-figures">388 kr.</span><span class="delta delta-good"><svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0"></path></svg>6% down vs June</span><span class="card-kpi-label">1,6% of spend</span></div>
 			</div>
 			<section class="card" aria-label="Overview">
 				<div class="card-header"><span class="section-label">Overview · July against June</span>
@@ -1793,7 +1794,7 @@ label.field-shell { cursor:pointer; }
 						<div class="figure-large tabular-figures" style="font-size:22px">30.300 kr.</div>
 						<span class="field-help">projected for July · 24.418,57 kr. spent so far</span>
 						<div class="meter" style="margin-top:14px" role="img" aria-label="Spent 24.418 of a projected 30.300 kroner; the marker is where June ended">
-							<i style="width:80%"></i><b style="left:68%"></b>
+							<span class="meter-fill" style="width:80%"></span><span class="meter-marker" style="left:68%"></span>
 						</div>
 						<span class="field-help" style="margin-top:8px;display:block">The marker is where June ended: 20.680 kr.</span>
 					</div>
@@ -1804,13 +1805,13 @@ label.field-shell { cursor:pointer; }
 					<div class="card-body">
 						<div class="figure-large tabular-figures" style="font-size:22px">34% <span style="font-weight:500;font-size:14px;color:var(--text-muted)">of spend lands on weekends</span></div>
 						<div class="weekday-bars" style="height:86px" aria-hidden="true">
-							<div><span class="chart-bar" style="height:34px"><i style="--f:0%"></i></span><span>Mon</span></div>
-							<div><span class="chart-bar" style="height:46px"><i style="--f:0%"></i></span><span>Tue</span></div>
-							<div><span class="chart-bar" style="height:58px"><i style="--f:0%"></i></span><span>Wed</span></div>
-							<div><span class="chart-bar" style="height:28px"><i style="--f:0%"></i></span><span>Thu</span></div>
-							<div><span class="chart-bar" style="height:32px"><i style="--f:0%"></i></span><span>Fri</span></div>
-							<div><span class="chart-bar" style="height:44px"><i style="--f:0%"></i></span><span>Sat</span></div>
-							<div><span class="chart-bar" style="height:70px;background:#BFE5D2"><i style="--f:55%"></i></span><span>Sun</span></div>
+							<div><span class="chart-bar" style="height:34px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Mon</span></div>
+							<div><span class="chart-bar" style="height:46px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Tue</span></div>
+							<div><span class="chart-bar" style="height:58px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Wed</span></div>
+							<div><span class="chart-bar" style="height:28px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Thu</span></div>
+							<div><span class="chart-bar" style="height:32px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Fri</span></div>
+							<div><span class="chart-bar" style="height:44px"><span class="chart-bar-fill" style="--f:0%"></span></span><span>Sat</span></div>
+							<div><span class="chart-bar" style="height:70px;background:#BFE5D2"><span class="chart-bar-fill" style="--f:55%"></span></span><span>Sun</span></div>
 						</div>
 					</div>
 				</section>
@@ -1820,7 +1821,7 @@ label.field-shell { cursor:pointer; }
 					<div class="card-header"><span class="section-label">Where it went</span></div>
 					<div class="card-rule"></div>
 					<div class="card-body spend-gauge-row">
-						<div class="spend-gauge"><span class="ring-centre"><b class="tabular-figures">24.418 kr.</b><i>July 2026</i></span></div>
+						<div class="spend-gauge"><span class="ring-centre"><span class="ring-centre-value tabular-figures">24.418 kr.</span><span class="ring-centre-label">July 2026</span></span></div>
 						<div class="chart-legend" style="flex:1;min-width:170px">
 							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--donut-blue)"></span>Groceries<span class="amount tabular-figures">18.420 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 							<a href="#" class="chart-legend-row" data-go="orders2"><span class="chart-swatch" style="background:var(--green)"></span>Electronics<span class="amount tabular-figures">12.940 kr.</span><span class="chevron" style="color:var(--text-faint)"><svg class="icon" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
@@ -1834,12 +1835,12 @@ label.field-shell { cursor:pointer; }
 					<div class="card-rule"></div>
 					<div class="card-body">
 						<div class="month-columns">
-							<div><i style="height:48%"></i><span>Feb</span></div>
-							<div><i style="height:69%"></i><span>Mar</span></div>
-							<div><i style="height:43%"></i><span>Apr</span></div>
-							<div><i style="height:82%"></i><span>May</span></div>
-							<div><i style="height:85%"></i><span>Jun</span></div>
-							<div class="is-on"><i style="height:100%"></i><span>Jul</span></div>
+							<div><span class="month-columns-fill" style="height:48%"></span><span>Feb</span></div>
+							<div><span class="month-columns-fill" style="height:69%"></span><span>Mar</span></div>
+							<div><span class="month-columns-fill" style="height:43%"></span><span>Apr</span></div>
+							<div><span class="month-columns-fill" style="height:82%"></span><span>May</span></div>
+							<div><span class="month-columns-fill" style="height:85%"></span><span>Jun</span></div>
+							<div class="is-on"><span class="month-columns-fill" style="height:100%"></span><span>Jul</span></div>
 						</div>
 					</div>
 				</section>
@@ -2327,7 +2328,7 @@ label.field-shell { cursor:pointer; }
 			});
 			const off = all.filter(c => c.hidden);
 			cardTrayList.innerHTML = off.length
-				? off.map(c => '<div class="card-tray-row"><span><b>' + c.dataset.name + '</b><i>' + c.dataset.desc + '</i></span>'
+				? off.map(c => '<div class="card-tray-row"><span><span class="card-tray-row-title">' + c.dataset.name + '</span><span class="card-tray-row-meta">' + c.dataset.desc + '</span></span>'
 					+ '<button type="button" class="button button-pill" data-add="' + c.dataset.card + '">ADD</button></div>').join('')
 				: '<p class="card-tray-empty">Every card is already on your dashboard.</p>';
 		}

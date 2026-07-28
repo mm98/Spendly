@@ -82,6 +82,12 @@ reach, so diffing a toggled render against it reported 696,674 differing pixels 
 nothing to do with the change under test. Navigate by clicking what a user clicks — sidebar link,
 `[data-go]`, sub-tab — and print the title and the tab labels on arrival, not just the page name.
 
+**Iterate against the full walk, never a cheap proxy for it.** Converting 196 elements, a computed-style
+comparison of one page said 13 things were wrong; they were fixed, and the page agreed. The full walk
+then found 566 moved rectangles on `scan3` — a page the single-page check never loaded. A proxy that
+only samples where you are looking will tell you that you are finished, and the fix that follows a
+false all-clear is the one that ships. The walk costs four minutes; a wrong answer costs the change.
+
 **Say which of these you actually ran.** An engine that could not be launched is an engine that was
 not checked, and the honest report is "verified in Blink, Gecko unverified — no binary available",
 not silence. Never let a reader infer coverage that does not exist.
