@@ -149,6 +149,16 @@ rules key off, and a plain narrow viewport does not match it — the shot would 
 renders. Regenerate whatever a change moves: a stale screenshot is a wrong claim about the product,
 and it is the one claim a reader believes without checking.
 
+**`docs/` is not a baseline unless your machine reproduces it.** The tab conversion was accepted on 0
+differing pixels against these shots; the same comparison run in a container came back 83,630 of
+5,184,000 on a file that had not been touched — every one a glyph edge, boxes and icons identical,
+because a different Chromium build rasterises text and resolves advances differently. That floor
+swallows the change under test: a 4,829-pixel edit to `all-orders.png` arrives inside a 89,367-pixel
+disagreement. Diff your own before and after renders, which are deterministic to the pixel on one
+machine, and check `docs/` only for the states and the sizes. When a change does move a shot, say
+where it was regenerated — a shot re-rendered elsewhere carries that machine's text with it, so the
+committed image changes far more than the edit did.
+
 ## Uniformity
 
 Before adding a variant, grep for the pattern and match the tally, not the one neighbour in view. The

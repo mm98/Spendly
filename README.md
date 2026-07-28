@@ -678,9 +678,29 @@ instance below shipped because a shape was copied from the reference without ask
 
 - **A chevron means "this goes somewhere".** It appears only on something that navigates, and
   anything that navigates carries one. Audit both directions: the prototype had 12 chevrons, all
-  dead, and after wiring them 9 rows were clickable with no chevron at all.
+  dead, and after wiring them 9 rows were clickable with no chevron at all. Both directions failed
+  again later, in one list each, which is why the audit is a script and not a read-through: All
+  orders drew three identical rows where only the first was an `<a>`, so two chevrons pointed at
+  nothing and `.order-row`'s own `cursor:pointer` put a hand on them; the scan review's duplicate
+  row was the reverse, a link with no chevron at all. Walk every row and card header, read
+  `[data-go]`, the chevron and the computed `cursor`, and require the three to agree — 98 rows and
+  headers, 26 navigating, 26 chevrons, and no hand on anything inert.
+- **The hand comes from `[data-go]`, never from a row class.** `.order-row { cursor:pointer }` drew
+  one over the two rows that went nowhere: a class cannot know whether the element it styles
+  navigates, and the attribute that decides already carries the rule.
 - **Chevron direction carries meaning** — right = navigate away, down = expand in place. Do not mix
   them; the Home legend used down-chevrons on rows that navigate.
+- **A chevron takes its 26px out of the row it sits in, so a list where only some rows navigate must
+  reserve the slot on all of them.** The glyph is 15px and the row's gap is 11px, and both come out
+  of the right-hand run: Orders' *Latest orders* holds four rows, one of them a link, and that row
+  ended its figure at 576.78 while the other three ended at 602.78 — the money column stepping in by
+  26px on the only row a pointer ever lights up. The rows that do not navigate hold the slot open
+  (`::after { content:''; width:15px }`) instead of filling it with a chevron, which would buy the
+  column back with a promise the row does not keep. The all-orders list never had the defect and
+  shows the other way to get it right: its chevron sits in a grid track, and a track is reserved for
+  every row whether that row fills it or not. Only reserve where a list actually mixes the two —
+  keyed on `.entry-list:has(.chevron)`, the rule reaches 3 rows of the file's 15 and leaves the 11 in
+  lists where nothing navigates at full width.
 - **Date fields carry the calendar icon, never a chevron.** A chevron promises a list; a date field
   opens the OS picker. The icon is ours on every engine and the browser's own is taken off the field
   ([§17](#17-ios-and-webkit)) — so the glyph is what opens the picker, on click or Alt+Down.
@@ -702,6 +722,24 @@ instance below shipped because a shape was copied from the reference without ask
   drift the token exists to stop. The rule under a lit header no longer vanishes into it — it reads
   as the bottom edge of the lit band, which is why that rule still goes full-bleed on hover
   ([§10](#10-cards)): the two lines a pixel apart were the defect, not the colour match.
+- **A tight top belongs to the container, not to the row.** A row's own padding is the box its hover
+  tint paints, so padding trimmed off a row to close a gap is padding the lit band loses on one side
+  and keeps on the other. `.entry-list-row` is `padding:7px 0` and the first row's top 7px was zeroed
+  to sit it under the card divider: the glyph in Orders' *Latest orders* then sat 3.30px below the
+  band's top edge and 10.30px above its bottom, and the amount 11.23 and 18.23 — a band 7px heavier
+  at the foot of the one row in the file that lights up. Take it off the container instead, where
+  nothing draws a background: the body gives up its own 6px, the text lands within a pixel of where
+  it was, and glyph and amount come back to 10.30/10.30 and 18.23/18.23. The two other hoverable row
+  families never had it — `.chart-legend-row` and `.category-row` clear the first row's `border-top`
+  and leave its padding alone, which is the same idea one property over. Audit this by walking every
+  element a `:hover` rule paints and comparing `padding-top` to `padding-bottom`; count the border
+  only where it is transparent, since an opaque one paints over the tint it would otherwise offset.
+- **A header that lights up is a band too.** `.card-header` was `16px 20px 12px` — more air above the
+  label than between it and the divider under it, which is defensible spacing right up until the five
+  headers that navigate paint it: the label's ink measured 20px below the lit band's top edge and 16px
+  above its bottom. Even padding, `14px 20px`, keeps the same 28px total, so no header changes height
+  and nothing reflows — the label rises 2px and the block is even around it. Spacing tuned for a
+  resting state is a claim about a lit one wherever a hover rule paints a background.
 - **A row's hover tint bleeds 10px past the body gutter; the row's content does not.** The card body's
   20px padding is right for text and too tight for a highlight -- the tint stopped hard against the
   first glyph and the chevron at both ends. The header above already lights up edge to edge, so this
@@ -1034,10 +1072,11 @@ Three kinds of name, and the shape of the name tells you which one you are looki
     leading as a length instead — `1.45em`, computed once to 20.3px — so the children inherit the
     value rather than the ratio.
   - **The box survives, the baseline does not.** The strut now comes from each line's own font, so the
-    glyphs settle 0.35px and 1.35px higher inside boxes that did not move: 2,465 pixels of
-    `docs/home.png` and nothing else in the file, across 51,348 element records at both breakpoints.
+    glyphs settle 0.35px and 1.35px higher inside boxes that did not move: 2,470 pixels of
+    `docs/home.png` and nothing else in the file, across 51,432 element records at both breakpoints.
     Expect the converted elements' own rects to change regardless — an inline box's rect is its font's
     content area, a block's is its line box — and check that nothing *around* them did.
+
 - **No abbreviations, and no shorthand.** A name that has to be decoded gets a seventh variant
   bolted onto it by someone who did not decode it. The stylesheet had reached `.iic`, `.sic`,
   `.olcol`, `.dk-hl`, `.forr`, `.om`/`.ot`/`.ov` and the single letters `.c`/`.d`/`.n`/`.t`/`.v`.
