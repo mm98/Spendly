@@ -628,6 +628,17 @@ instance below shipped because a shape was copied from the reference without ask
   role and an Enter handler, or it is mouse-only. Native `<button>` / `<a>` is preferred. Rows carry
   `role="link"`, so they activate on Enter and leave Space alone — Space still scrolls, which is what
   a link does.
+- **A row's hover tint bleeds 10px past the body gutter; the row's content does not.** The card body's
+  20px padding is right for text and too tight for a highlight -- the tint stopped hard against the
+  first glyph and the chevron at both ends. The header above already lights up edge to edge, so this
+  is the same affordance for a row that sits inside the padding. Ten is half the gutter and leaves
+  11px of card either side; the full 20 reaches the card's inner border and reads as the row escaping
+  the card. Draw it with two offset `box-shadow`s, not a wider box and not a positioned pseudo-element.
+  A wider box drags every divider out with it, since the divider between rows is the row's own
+  `border-top`. A pseudo-element needs `position:relative` on the row to hang off, and that alone
+  dropped these rows from subpixel to grayscale text antialiasing -- 5,726 pixels of `docs/home.png`
+  changed, every one a glyph edge, for a highlight that was not even on screen. The shadow form
+  changes nothing until `:hover`: 0 differing fields across 110,560 elements.
 - **A `role="tab"` is a promise.** Tabs are `<button>`, carry roving `tabindex` (selected 0, rest -1),
   respond to Left/Right, and keep `aria-selected` in sync. Twelve `<span role="tab">` elements
   announced as tabs while being inert. This holds for the inline segmented controls (`.segmented.segmented-compact`)
