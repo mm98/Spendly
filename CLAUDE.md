@@ -67,6 +67,23 @@ reports itself as a difference on every run and buries the real ones.
 Rects do not cover everything: a bare text label is not an element, so a button whose label shifts
 inside an unmoved box shows nothing. Keep at least one instance of anything you fold on a shot.
 
+**An audit tool reports on the DOM it loaded and the rules it happened to run.** Lighthouse scored
+the accessibility of this file by opening it: one page of thirteen, at one width. It found 17
+insufficient-contrast elements. The same rule driven over 14 states at two breakpoints found 170,
+and 108 elements outside any landmark that its one-page view had no way to count. Then the reverse
+error, in the other direction: a walk filtered to the WCAG and best-practice tags came back with
+zero violations while Lighthouse was still failing `label-content-name-mismatch`, because that rule
+ships **experimental** and axe leaves experimental rules off unless asked. Enabling every rule
+(`for (const r of axe.getRules()) rules[r.ruleId] = { enabled: true }`) turned that one finding into
+30 across 15 states, and surfaced two more defects on top. Run the checker over every state the app
+has, with every rule it owns, and read its defaults before believing a clean sheet.
+
+**Key elements by document order, not by ancestry.** Wrapping the page in one `<main>` renumbered
+every path below it, and a diff keyed on `tag[index]/tag[index]/…` reported 49,612 elements added
+and 49,584 removed for a change that moved nothing. Both runs hold the same elements in the same
+order; number them in `querySelectorAll('*')` order, skip the element you inserted, and assert the
+tag matches at each position — the same walk then read 238 rect diffs, all in one place.
+
 **Prove the harness is quiet before you trust its diff.** Freezing animations is not the whole of it:
 charts are drawn from JS and redrawn by a `ResizeObserver` when a hidden page is shown, and that
 callback lands after the click returns. Measuring straight after navigating raced it — two runs of a

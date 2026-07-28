@@ -156,9 +156,10 @@ Sampled from the reference sheets, declared once in `:root`.
 | `--text` | `#0B0F0D` | headings, numbers |
 | `--text-strong` | `#0B0F0D` | the active edge of a field — `:focus-within`, open combobox |
 | `--text-body` | `#3A423D` | body copy, sidebar items |
-| `--text-muted` | `#6C766D` | help text, meta — holds 4.5:1 on white |
-| `--text-faint` | `#9AA39D` | the faintest readable tier — axis labels, resting chevrons, dashed edges |
-| `--green` | `#14AC72` | savings, positive deltas, progress |
+| `--text-muted` | `#636D64` | help text, meta, axis labels — the faintest tier that carries words |
+| `--text-faint` | `#9AA39D` | marks, never text — resting chevrons, the drag grip, dashed edges |
+| `--green` | `#14AC72` | fills: progress bars, meters, weekday bars, swatches, the brand mark |
+| `--text-positive` | `#0E7A52` | the same green as type: savings figures, favourable deltas |
 | `--bg-positive` | `#DFF3EA` | positive notes, status chip, match highlight |
 | `--teal` | `#07625E` | split-bar dominant segment, focus ring |
 | `--bg-dark` / `--bg-dark-lift` | `#0B1A12` → `#12241A` | the one dark card per screen, dark buttons; `-lift` is the gradient's lit end |
@@ -166,7 +167,8 @@ Sampled from the reference sheets, declared once in `:root`.
 | `--blue` / `--blue-light` | `#4F5BD5` / `#B9BFF0` | the July and June comparison series |
 | donut set | `#1FA8E0` `#14AC72` `#E8C51B` `#8B5CF6` `#D34F2E` `#F09A38` | category ring segments, with gaps |
 | icon squares | `#C43F2A` `#E9C517` `#8B5CF6` `#1FA8E0` | 36–44px rounded-square category icons |
-| warm (caution) | text `#8A6A1F`, tint `#F6ECD9` | duplicate warnings, unfavourable deltas, uncertain lines |
+| avatar fills | `#235553` `#877364` `#4F5BD5` `#0E7A52` `#AD620D` `#8453F5` `#177DA7` | 28px vendor initials, white 10px/700 on top |
+| warm (caution) | text `#84651E`, tint `#F6ECD9` | duplicate warnings, unfavourable deltas, uncertain lines |
 | track | `#E7EAE5` | meters, progress backgrounds |
 | `--bg-bar-track` | `#E2ECE9` | unfilled weekday bars |
 
@@ -175,6 +177,35 @@ unfavourable (spend above the previous period); neutral ink for counts.
 
 > [!IMPORTANT]
 > Color is never the only carrier. Always icon **plus** words — "21% up vs June".
+
+### A value that paints glyphs is measured against every surface it lands on
+
+Nine of these values were sampled for how they look and never checked against the ink-on-paper they
+actually make. Across the whole file — 14 pages at two breakpoints — 170 runs of text sat under the
+4.5:1 the section below claims as the floor. What each one taught:
+
+- **A tier that cannot be read is not a tier.** `--text-faint` was documented as "the faintest
+  readable tier" at 2.59:1 on a card and 2.28:1 on the shell, and the two runs of real text it
+  painted — chart axis labels and the sidebar footer — were the two it could least afford. There is
+  no room for a third readable grey: any value that clears 4.5:1 lands on top of `--text-muted`. So
+  the tier keeps its value and loses the job. It paints marks now — resting chevrons, the drag grip,
+  the dashed empty-state edge, all `aria-hidden` or decorative — and text moves up to `--text-muted`.
+- **"Holds 4.5:1 on white" is a claim about one background.** `--text-muted` did hold it on white,
+  at 4.72:1, and this file has five other surfaces. On the inset panel it was 4.27:1 across 44
+  elements and on the vendors hero panel 4.04:1. Tune the token against the darkest surface it can
+  land on — `#EDEEE7` — not the one it happens to sit on in the screenshot you took.
+- **Green as ink and green as fill are two colours.** `#14AC72` is right for a progress bar and
+  reads 2.93:1 as type. Eight rules printed savings figures in it; three chips that sit on a tint had
+  already been hand-written `#0E7A52` to stay legible, which is the whole argument, made once and not
+  generalised. That value is `--text-positive` now. `--green` keeps the fills.
+- **A chart hue under white type is a text background.** Four of the seven `.entry-avatar` fills were
+  borrowed from the donut set, which is picked to separate ring segments against each other. White
+  10px/700 initials on `#F09A38` are 2.24:1. The avatar palette is its own row above, and every value
+  in it clears 4.5:1 against white.
+
+Screenshots cannot fail this: every one of the 170 rendered exactly as designed. Read the pair back
+from the DOM — `getComputedStyle` on the glyph, the first non-transparent fill above it — and assert
+the ratio, at every breakpoint, on every page.
 
 `--canvas` (`#F3F5F3`) is still declared and no longer used anywhere: the inset tinted canvas went
 away when the sheet went white. Delete it or use it, but do not reintroduce a tint under the cards.
@@ -881,8 +912,26 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
 
 ## 18. Accessibility
 
-- WCAG 2.2 AA floor; muted text tuned to hold 4.5:1 on white.
+- WCAG 2.2 AA floor; every text colour tuned against the darkest surface it lands on, not against
+  white ([§2](#2-color)). Verified as 0 axe violations across 14 pages × 2 breakpoints, and
+  Lighthouse accessibility 100 on both the mobile and desktop presets.
 - Deltas and statuses are words plus icons, never colour alone.
+- **One `<main>`, and it holds the page.** The sheet under the top bar was a bare `<div>`, so the
+  document had no main landmark and every card, heading and row on twelve pages — 108 elements —
+  sat in no landmark at all. `<main>` wraps the sub-tab band and the content sheet together: the
+  band selects within the page, so it belongs inside rather than beside. The sidebar `<nav>` and the
+  `<header>` are the landmarks either side of it.
+- **A label must contain the words on screen**, or nobody can say the control's name to activate it.
+  Three failed, and two of them failed on whitespace rather than wording: `<span>SCAN<span
+  class="wide-only"> RECEIPT</span></span>` puts the space *inside* the hidden span, so a consumer
+  that concatenates per element reads "SCANRECEIPT" — the space belongs in the outer run. The AI
+  card header ran two lines together the same way and then named only the second one. The orders
+  card header dropped the `·` its heading prints. Keep the pattern `<its own words>, open
+  <destination>`, and keep the words byte-for-byte.
+- **A scroll container with nothing focusable inside it is pointer-only.** The vendor strip on the
+  phone scrolled five cards past the right edge and no key reached them; it carries `tabindex="0"`
+  with `role="region"` and the heading it sits under. `role="group"` is not enough — a focusable
+  element needs a widget role or a landmark one.
 - Comboboxes: listbox semantics, roving focus, Escape restores focus to the field.
 - Panels and detail regions: focus moves to the heading on open, returns to the trigger on close.
 - Live regions polite and single per surface — filter counts, period changes, card reordering.
