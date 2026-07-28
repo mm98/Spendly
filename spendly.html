@@ -167,7 +167,6 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .main-panel { min-width:0; display:flex; flex-direction:column; background:#fff; border-radius:26px 0 0 26px; margin:12px 0; overflow:hidden; box-shadow:0 2px 14px rgb(11 26 18 / .05); }
 .topbar { display:flex; align-items:center; gap:10px; padding:12px 24px; background:#fff; border-bottom:1px solid var(--border-divider); position:sticky; top:0; z-index:10; }
 .topbar h1 { margin:0; font-size:19px; font-weight:700; letter-spacing:-.01em; }
-.topbar h1 .topbar-title-wave { font-weight:400; }
 .topbar .topbar-actions { margin-left:auto; display:flex; align-items:center; gap:10px; }
 /* Every text button in the system starts here and every variant below states only
    its difference from it -- the box, the 1px edge, and the page's own type, which a
@@ -198,12 +197,10 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 	display:inline-grid; place-items:center; border:1px solid var(--border-control);
 	border-radius:8px; background:var(--bg-card); color:var(--text-body); cursor:pointer;
 }
-.icon-button.icon-button-large { width:38px; height:38px; border-radius:11px; border-color:#E2E5E1; }
 .icon-button.icon-button-arrow { width:32px; height:32px; border-radius:var(--radius-compact); }
 .icon-button.icon-button-clear { width:26px; height:26px; margin-left:auto; flex:none; }
 .icon-button.icon-button-send { width:40px; height:40px; border-radius:var(--radius-page); border:0; background:var(--bg-dark); color:#fff; display:grid; flex:none; }
 .icon-button.icon-button-reorder { width:28px; height:28px; flex:none; }
-.avatar { width:38px; height:38px; border-radius:11px; background:var(--teal); color:#fff; display:grid; place-items:center; font-size:11.5px; font-weight:700; }
 
 /* the rounded content sheet: sidebar and top bar sit on the white shell,
    the canvas itself is an inset rounded panel the cards sit on */
@@ -375,8 +372,8 @@ svg.chart { width:100%; display:block; }
 .card-tray { margin-top:18px; }
 .card-tray-row { display:flex; align-items:center; gap:13px; padding:11px 0; border-top:1px solid var(--border-divider); }
 .card-tray-row:first-child { border-top:0; }
-.card-tray-row-title { font-size:13px; font-weight:600; display:block; }
-.card-tray-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
+.card-tray-row-title { font-size:13px; font-weight:600; }
+.card-tray-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .card-tray-row .button-pill { margin-left:auto; flex:none; }
 .card-tray-empty { margin:0; padding:4px 0; font-size:12px; color:var(--text-muted); }
 .dashboard-cards-empty { margin:0; padding:26px 20px; text-align:center; font-size:12.5px; color:var(--text-muted); border:1px dashed var(--text-faint); border-radius:var(--radius-card); }
@@ -385,8 +382,8 @@ svg.chart { width:100%; display:block; }
 .weekday-bars { display:flex; align-items:flex-end; gap:8px; height:112px; margin-top:14px; }
 .weekday-bars > div { flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-end; height:100%; }
 .weekday-bars .chart-bar { align-self:stretch; }
-.weekday-bars .chart-bar { display:block; width:100%; border-radius:var(--radius-compact); background:var(--bg-bar-track); position:relative; overflow:hidden; }
-.weekday-bars .chart-bar-fill { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact); display:block; }
+.weekday-bars .chart-bar { width:100%; border-radius:var(--radius-compact); background:var(--bg-bar-track); position:relative; overflow:hidden; }
+.weekday-bars .chart-bar-fill { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact); }
 .weekday-bars span { font-size:11px; color:var(--text-muted); font-weight:500; }
 .chart-legend-inline { display:flex; align-items:center; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-divider); font-size:11.5px; color:var(--text-body); }
 .chart-legend-inline .chart-swatch { width:10px; height:10px; border-radius:3px; background:var(--green); }
@@ -406,8 +403,8 @@ svg.chart { width:100%; display:block; }
 .category-row:first-child { border-top:0; }
 .category-icon { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; flex:none; }
 .category-icon svg.icon { width:17px; height:17px; stroke-width:2; }
-.category-row-title { font-size:13px; font-weight:600; display:block; }
-.category-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
+.category-row-title { font-size:13px; font-weight:600; }
+.category-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .category-row .amount { margin-left:auto; font-weight:600; font-size:13px; }
 
 /* dark AI card */
@@ -416,7 +413,7 @@ svg.chart { width:100%; display:block; }
 	background:conic-gradient(var(--green) 0 33%, rgb(255 255 255 / .22) 33% 100%); }
 .progress-ring::before { content:""; position:absolute; inset:4px; border-radius:50%; background:var(--bg-dark); }
 .progress-ring-value { position:absolute; inset:0; display:grid; place-items:center; font-size:10px; font-weight:600; z-index:1; }
-.ai-card-title-text { display:block; font-size:13.5px; font-weight:700; }
+.ai-card-title-text { font-size:13.5px; font-weight:700; }
 .ai-card-title-meta { font-style:normal; font-size:11.5px; color:var(--text-on-dark); }
 .ai-card-header .chevron { margin-left:auto; color:var(--text-on-dark); }
 .ai-card-headline { font-size:16px; font-weight:700; letter-spacing:-.01em; margin:2px 0 8px; }
@@ -430,14 +427,14 @@ svg.chart { width:100%; display:block; }
 
 /* orders (spending) card */
 .chart-caption { padding:2px 0 0; }
-.chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); display:block; }
+.chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
 .chart-caption-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
 .chart-axis { display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:4px; }
 /* Key for a two-series chart. Both lines get named -- a swatch that labels one of two
    plotted series is worse than no key at all. Wraps rather than overflows on a phone. */
 .chart-series-key { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; color:var(--text-body); margin-top:2px; }
 .chart-series-key .chart-series-key-row { display:inline-flex; align-items:center; gap:6px; }
-.chart-series-key .chart-series-key-swatch { display:block; width:9px; height:9px; border-radius:3px; flex:none; }
+.chart-series-key .chart-series-key-swatch { width:9px; height:9px; border-radius:3px; flex:none; }
 .entry-list { margin-top:8px; }
 .entry-list .list-heading { font-size:11.5px; color:var(--text-muted); font-weight:500; margin:10px 0 2px; }
 /* One row spec, not four near-misses. This row and .category-row are the same
@@ -463,7 +460,7 @@ svg.chart { width:100%; display:block; }
 .entry-list .amount { margin-left:auto; text-align:right; font-size:13px; font-weight:600; color:var(--text-positive); white-space:nowrap; flex:none; }
 /* A two-tone amount: the row's green label with the figure itself in --text. */
 .entry-list .amount .tabular-figures { color:var(--text); }
-.entry-list .entry-amount-sub { display:block; font-style:normal; font-size:11px; color:var(--text-muted); font-weight:500; }
+.entry-list .entry-amount-sub { font-style:normal; font-size:11px; color:var(--text-muted); font-weight:500; }
 /* The chevron is a flex item like any other, so the row that navigates spends 26px of
    its right-hand run on one and lands its figure 26px left of the rows that do not --
    the money column stepping in on the only row a pointer ever lights up. The rows
@@ -496,8 +493,8 @@ svg.chart { width:100%; display:block; }
    whose fallback had drifted a digit from the token it falls back to. */
 .item-row .item-row-grip { color:var(--text-faint); cursor:grab; }
 .item-row .item-row-grip svg.icon { width:15px; height:15px; }
-.item-row-title { font-size:13px; font-weight:600; display:block; color:var(--text-strong,#0B0F0D); }
-.item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); display:block; }
+.item-row-title { font-size:13px; font-weight:600; color:var(--text-strong,#0B0F0D); }
+.item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .item-row .amount { margin-left:auto; color:var(--text); font-weight:600; font-size:13px; white-space:nowrap; }
 .spotlight-pair .item-row .amount { color:var(--text-positive); }
 .key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid #DFE3DE; background:#F7F8F5; font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
@@ -566,14 +563,13 @@ svg.chart { width:100%; display:block; }
 .delta { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; }
 .delta svg.icon { width:13px; height:13px; }
 .delta.delta-good { color:var(--text-positive); }
-.delta.delta-bad { color:#84651E; }
 .delta.delta-neutral { color:var(--text-body,#3A423D); }
 .meter { position:relative; height:10px; border-radius:5px; background:#E7EAE5; }
 .meter-fill { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--green); }
 .meter-marker { position:absolute; top:-4px; bottom:-4px; width:2.5px; border-radius:2px; background:var(--text); }
 .month-columns { display:flex; align-items:flex-end; gap:14px; height:150px; }
 .month-columns > div { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%; }
-.month-columns-fill { width:100%; border-radius:8px 8px 4px 4px; background:#E2ECE9; display:block; }
+.month-columns-fill { width:100%; border-radius:8px 8px 4px 4px; background:#E2ECE9; }
 .month-columns .is-on .month-columns-fill { background:var(--green); }
 .month-columns span { font-size:11px; color:var(--text-muted); }
 @media (max-width:900px) { .kpi-row { grid-template-columns:repeat(2,minmax(0,1fr)); } }
@@ -588,10 +584,10 @@ svg.chart { width:100%; display:block; }
    row became an <a>, the only one of its type, and it was the anchor that lost
    its border instead. A tag is not what makes this the last row. S15. */
 .order-row:not(:has(~ .order-row)) { border-bottom:0; }
-.order-row .order-row-vendor { display:block; font-size:13.5px; font-weight:600; color:var(--text); }
-.order-row .order-row-meta { display:block; font-size:11.5px; color:var(--text-muted); }
+.order-row .order-row-vendor { font-size:13.5px; font-weight:600; color:var(--text); }
+.order-row .order-row-meta { font-size:11.5px; color:var(--text-muted); }
 .order-row .order-row-total { text-align:right; font-weight:600; font-size:13.5px; }
-.order-row .order-row-total-saved { display:block; font-style:normal; font-size:11px; color:var(--text-positive); font-weight:600; }
+.order-row .order-row-total-saved { font-style:normal; font-size:11px; color:var(--text-positive); font-weight:600; }
 .order-row .order-row-chevron { color:var(--text-muted); }
 .order-row .order-row-chevron svg.icon { width:15px; height:15px; }
 .chip-status.chip-status-warning { background:#F6ECD9; color:#84651E; }
@@ -602,7 +598,7 @@ svg.chart { width:100%; display:block; }
 .note-positive strong { color:var(--text-positive); }
 .note-warning strong { color:#84651E; }
 .progress-bar { height:6px; border-radius:3px; background:#E7EAE5; overflow:hidden; }
-.progress-bar-fill { display:block; height:100%; width:72%; background:var(--green); border-radius:3px; }
+.progress-bar-fill { height:100%; width:72%; background:var(--green); border-radius:3px; }
 .progress-bar.progress-bar-indeterminate .progress-bar-fill { width:38%; animation:pslide 1.5s ease-in-out infinite; }
 @keyframes pslide { from { transform:translateX(-100%); } to { transform:translateX(264%); } }
 .document-preview { background:#F2F4F1; border-radius:var(--radius-page); display:grid; place-items:center; height:180px; color:#9AA39B; }
@@ -621,7 +617,7 @@ svg.chart { width:100%; display:block; }
 .combobox.is-open > .field-shell .chevron-icon { transform:rotate(180deg); }
 .combobox-panel { position:absolute; top:calc(100% + 6px); left:0; right:0; background:#fff; border:1px solid var(--border-control); border-radius:14px; box-shadow:0 18px 44px rgb(11 26 18 / .14); padding:6px; z-index:6; }
 .combobox-group { padding:8px 4px 3px; }
-.combobox-group-heading { display:block; font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--text-muted); font-weight:600; padding:2px 10px 4px; }
+.combobox-group-heading { font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--text-muted); font-weight:600; padding:2px 10px 4px; }
 .combobox-option { display:flex; align-items:center; padding:10px 12px; border-radius:var(--radius-compact); font-size:13.5px; color:var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .combobox-option:hover { background:#F5F7F4; }
 .combobox-option.combobox-option-highlighted { background:#F1F3EE; }
@@ -687,7 +683,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .field-shell.field-shell-placeholder { color:var(--text-muted); }
 /* The one exception: a textarea is meant to wrap. */
 .field-shell-area { height:88px; align-items:flex-start; padding-top:13px; white-space:normal; overflow:auto; }
-.field-shell-area > span { white-space:normal; text-overflow:clip; }
 
 /* iOS zooms the page whenever a focused control computes under 16px, and every field
    here is 12.5 or 13.5px. Clamping the viewport does not help -- Safari has ignored
@@ -804,20 +799,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .spend-gauge .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:2px; z-index:1; text-align:center; }
 .spend-gauge .ring-centre-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
 .spend-gauge .ring-centre-label { font-style:normal; font-size:10px; color:var(--text-muted); }
-.empty-note { display:grid; place-items:center; gap:6px; padding:30px 16px; text-align:center; }
-.empty-note-title { font-weight:700; font-size:13px; }
-.empty-note-meta { font-style:normal; font-size:11.5px; color:var(--text-muted); max-width:34ch; }
 .account-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--border-divider); }
 .account-row:first-child { border-top:0; }
 .account-row-text { font-size:12.5px; }
 .account-row > span > svg.icon { width:17px; height:17px; }
 .card-question .card-question-label { font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--text-muted); text-transform:uppercase; }
 .card-question .card-question-title { font-size:15px; font-weight:700; margin:8px 0 12px; letter-spacing:-.01em; }
-.stat-figures { display:flex; gap:26px; justify-content:flex-end; }
-.stat-figures .stat-figure { text-align:right; }
-.stat-figures .stat-figure-value { display:block; font-size:19px; font-weight:700; letter-spacing:-.01em; }
-.stat-figures .stat-figure-label { font-style:normal; font-size:11px; color:var(--text-muted); }
-@media (max-width:900px) { .two-column, .spotlight-pair { grid-template-columns:1fr; } .stat-figures { justify-content:flex-start; } }
+@media (max-width:900px) { .two-column, .spotlight-pair { grid-template-columns:1fr; } }
 
 /* ---------------- responsive ---------------- */
 @media (max-width:1180px) {
@@ -935,7 +923,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	.chart-callout { display:none; }
 	.figure-headline { font-size:23px; }
 	.range-tabs { flex-wrap:wrap; gap:8px 12px; }
-	.stat-figures { justify-content:flex-start; gap:18px; }
 }
 /* Reduced motion calms the interface but must never freeze a busy indicator:
    a stopped spinner reads as a hung app. Progress keeps moving, just slower. */
@@ -2494,7 +2481,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			});
 			const off = all.filter(c => c.hidden);
 			cardTrayList.innerHTML = off.length
-				? off.map(c => '<div class="card-tray-row"><span><span class="card-tray-row-title">' + c.dataset.name + '</span><span class="card-tray-row-meta">' + c.dataset.desc + '</span></span>'
+				? off.map(c => '<div class="card-tray-row"><div><div class="card-tray-row-title">' + c.dataset.name + '</div><div class="card-tray-row-meta">' + c.dataset.desc + '</div></div>'
 					+ '<button type="button" class="button button-pill" data-add="' + c.dataset.card + '">ADD</button></div>').join('')
 				: '<p class="card-tray-empty">Every card is already on your dashboard.</p>';
 		}

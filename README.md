@@ -1127,9 +1127,29 @@ Three kinds of name, and the shape of the name tells you which one you are looki
     `> div:has()`); the last two were always meant for their labels and now match only those. Read the
     match count of every rule naming a bare tag before and after, not just the ones you edited.
 
-  The `display:block` declarations are left standing on the converted elements. They are redundant on
-  a `<div>`, but redundant is not the same as safe to delete, and dropping 23 of them is its own change
-  with its own walk.
+  - **Markup the script builds is markup too.** `.card-tray-row-title` and `.card-tray-row-meta`
+    matched nothing in the file and were built as spans by JS, so a walk over the static DOM said the
+    rules were dead while they were the only thing stacking those rows. The tray only fills once a
+    card has been removed, which no page walk reaches. Drive the state before believing a zero.
+
+  Once they were divs the `display:block` came off — 18 declarations, and 0 differences of 25,548
+  element records at both breakpoints, which is what makes it safe rather than plausible. Four rules
+  keep it and must: `.compare-tabs .compare-tabs-value` is the span-in-a-button above, `svg.chart`
+  is an `<svg>` and those are inline, and `.combobox.is-open > .combobox-panel` and
+  `.global-finder.is-open .combobox-panel` are state toggles overriding a `display:none`. A
+  declaration that reveals something is not a redundant one.
+
+- **A rule that matches nothing is not always a dead rule, and the difference is a state.** Counting
+  every selector across all 14 pages, both breakpoints and the states only JS reaches — edit mode,
+  the open finder, an open combobox — left 17 matching nothing. Only 12 were really dead and are
+  gone: `.avatar`, `.empty-note` and its two parts, the four `.stat-figures` rules, the two media
+  copies, `.topbar-title-wave`, `.icon-button-large`, `.delta-bad` and `.field-shell-area > span`.
+  Of the rest, `.card-tray-empty` is written by the script when nothing has been removed yet, and
+  `:focus-visible` matches whatever holds focus — neither can be counted by `querySelectorAll`. Two
+  are worth knowing about and are deliberately still there, because the bug is the selector and not
+  the rule: `.account-row:first-child` never fires, since all three account rows have a heading
+  above them, and `.field-shell.field-shell-placeholder` wants both classes on one element where the
+  markup only ever carries the second.
 - **No abbreviations, and no shorthand.** A name that has to be decoded gets a seventh variant
   bolted onto it by someone who did not decode it. The stylesheet had reached `.iic`, `.sic`,
   `.olcol`, `.dk-hl`, `.forr`, `.om`/`.ot`/`.ov` and the single letters `.c`/`.d`/`.n`/`.t`/`.v`.
