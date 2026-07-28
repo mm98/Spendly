@@ -448,6 +448,16 @@ svg.chart { width:100%; display:block; }
 /* A two-tone amount: the row's green label with the figure itself in --text. */
 .entry-list .amount .tabular-figures { color:var(--text); }
 .entry-list .entry-amount-sub { display:block; font-style:normal; font-size:10px; color:var(--text-muted); font-weight:500; }
+/* The chevron is a flex item like any other, so the row that navigates spends 26px of
+   its right-hand run on one and lands its figure 26px left of the rows that do not --
+   the money column stepping in on the only row a pointer ever lights up. The rows
+   without a chevron hold the same slot open rather than filling it: a chevron there
+   would buy the column back with a promise the row does not keep. Keyed on a list
+   that mixes the two, because that is what asks for the slot -- the 11 rows in lists
+   where nothing navigates keep their full width. The 15px is the chevron's own; the
+   11px beside it is the row's gap, which the extra item earns by being an item. S13. */
+.entry-list:has(.chevron) > .entry-list-row:not(:has(.chevron))::after {
+	content:''; width:15px; flex:none; }
 
 /* saved card */
 .chip-saving { display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:8px; background:var(--bg-positive); color:var(--text-positive); font-size:11px; font-weight:700; }

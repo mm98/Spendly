@@ -681,6 +681,17 @@ instance below shipped because a shape was copied from the reference without ask
   dead, and after wiring them 9 rows were clickable with no chevron at all.
 - **Chevron direction carries meaning** — right = navigate away, down = expand in place. Do not mix
   them; the Home legend used down-chevrons on rows that navigate.
+- **A chevron takes its 26px out of the row it sits in, so a list where only some rows navigate must
+  reserve the slot on all of them.** The glyph is 15px and the row's gap is 11px, and both come out
+  of the right-hand run: Orders' *Latest orders* holds four rows, one of them a link, and that row
+  ended its figure at 576.78 while the other three ended at 602.78 — the money column stepping in by
+  26px on the only row a pointer ever lights up. The rows that do not navigate hold the slot open
+  (`::after { content:''; width:15px }`) instead of filling it with a chevron, which would buy the
+  column back with a promise the row does not keep. The all-orders list never had the defect and
+  shows the other way to get it right: its chevron sits in a grid track, and a track is reserved for
+  every row whether that row fills it or not. Only reserve where a list actually mixes the two —
+  keyed on `.entry-list:has(.chevron)`, the rule reaches 3 rows of the file's 15 and leaves the 11 in
+  lists where nothing navigates at full width.
 - **Date fields carry the calendar icon, never a chevron.** A chevron promises a list; a date field
   opens the OS picker. The icon is ours on every engine and the browser's own is taken off the field
   ([§17](#17-ios-and-webkit)) — so the glyph is what opens the picker, on click or Alt+Down.
