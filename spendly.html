@@ -446,6 +446,12 @@ svg.chart { width:100%; display:block; }
    against white. Four of the seven were the donut's chart hues, which are picked to
    separate ring segments and reached 2.24:1 under type. S2, S18. */
 .entry-list .entry-avatar { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
+/* The name sat over the meta on a <br>, so both lines took their height from the
+   wrapper's own 14px strut. Each line is its own block now, and the inherited unitless
+   1.45 would resolve against its own font-size instead -- 40.6px of pair becomes 32.6px
+   and every row holding one lifts 8px. A length computes here once, and is what the
+   two lines inherit. S19. */
+.entry-list .entry-text { line-height:1.45em; }
 .entry-list .entry-name { font-size:12.5px; font-weight:600; }
 .entry-list .entry-meta { font-size:10px; color:var(--text-muted); }
 .entry-list .amount { margin-left:auto; text-align:right; font-size:12.5px; font-weight:600; color:var(--text-positive); white-space:nowrap; flex:none; }
@@ -1113,13 +1119,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 							<span class="card-caption">Proshop · all time</span>
 							<div class="entry-list">
 								<div class="entry-list-row"><span class="entry-avatar" style="background:#235553">PR</span>
-									<span><span class="entry-name">Proshop</span><br><span class="entry-meta">34 orders</span></span>
+									<div class="entry-text"><div class="entry-name">Proshop</div><div class="entry-meta">34 orders</div></div>
 									<span class="amount"><span class="tabular-figures">48.210 kr.</span><span class="entry-amount-sub">saved 6.940 kr.</span></span></div>
 								<div class="entry-list-row"><span class="entry-avatar" style="background:#877364">BI</span>
-									<span><span class="entry-name">Bilka</span><br><span class="entry-meta">96 orders</span></span>
+									<div class="entry-text"><div class="entry-name">Bilka</div><div class="entry-meta">96 orders</div></div>
 									<span class="amount"><span class="tabular-figures">41.882 kr.</span><span class="entry-amount-sub">saved 3.210 kr.</span></span></div>
 								<div class="entry-list-row"><span class="entry-avatar" style="background:#4F5BD5">EL</span>
-									<span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span>
+									<div class="entry-text"><div class="entry-name">Elgiganten</div><div class="entry-meta">18 orders</div></div>
 									<span class="amount"><span class="tabular-figures">26.499 kr.</span><span class="entry-amount-sub">saved 4.120 kr.</span></span></div>
 							</div>
 						</div>
@@ -1226,13 +1232,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="entry-list">
 							<div class="list-heading">Latest orders</div>
 							<div class="entry-list-row"><span class="entry-avatar" style="background:#0E7A52">BI</span>
-								<span><span class="entry-name">Bilka</span><br><span class="entry-meta">18 July · 1.187,25 kr.</span></span>
+								<div class="entry-text"><div class="entry-name">Bilka</div><div class="entry-meta">18 July · 1.187,25 kr.</div></div>
 								<span class="amount tabular-figures">+146,10 kr.</span></div>
 							<div class="entry-list-row"><span class="entry-avatar" style="background:#AD620D">MA</span>
-								<span><span class="entry-name">Matas</span><br><span class="entry-meta">21 July · 642,50 kr.</span></span>
+								<div class="entry-text"><div class="entry-name">Matas</div><div class="entry-meta">21 July · 642,50 kr.</div></div>
 								<span class="amount tabular-figures">+88,00 kr.</span></div>
 							<div class="entry-list-row"><span class="entry-avatar" style="background:#8453F5">PR</span>
-								<span><span class="entry-name">Proshop</span><br><span class="entry-meta">24 July · 4.298,00 kr.</span></span>
+								<div class="entry-text"><div class="entry-name">Proshop</div><div class="entry-meta">24 July · 4.298,00 kr.</div></div>
 								<span class="amount tabular-figures">+612,00 kr.</span></div>
 						</div>
 					</div>
@@ -1280,16 +1286,16 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="card-divider"></div>
 						<div class="card-body entry-list card-body-tight">
 							<a href="#" class="entry-list-row" data-go="detail"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
-								<span><span class="entry-name">Proshop</span><br><span class="entry-meta">24 July</span></span>
+								<div class="entry-text"><div class="entry-name">Proshop</div><div class="entry-meta">24 July</div></div>
 								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#8B5CF6"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+612,00 kr.</span><span class="chevron"><svg class="icon" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6"></path></svg></span></a>
 							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
-								<span><span class="entry-name">Matas</span><br><span class="entry-meta">21 July</span></span>
+								<div class="entry-text"><div class="entry-name">Matas</div><div class="entry-meta">21 July</div></div>
 								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#F09A38"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+88,00 kr.</span></div>
 							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
-								<span><span class="entry-name">Bilka</span><br><span class="entry-meta">18 July</span></span>
+								<div class="entry-text"><div class="entry-name">Bilka</div><div class="entry-meta">18 July</div></div>
 								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#14AC72"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+146,10 kr.</span></div>
 							<div class="entry-list-row"><span class="entry-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2"></path></svg></span>
-								<span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">15 July</span></span>
+								<div class="entry-text"><div class="entry-name">Elgiganten</div><div class="entry-meta">15 July</div></div>
 								<span class="amount tabular-figures"><span class="avatar-stack" aria-hidden="true"><span class="avatar-stack-face" style="background:#1FA8E0"></span><span class="avatar-stack-face" style="background:#235553"></span></span>+500,00 kr.</span></div>
 							<button type="button" class="button button-block" data-go="orders2">SEE ALL</button>
 						</div>
@@ -1837,11 +1843,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			     no way to tab to them. tabindex="0" gives the strip itself arrow-key
 			     scrolling, and the group carries the heading it sits under. S18. -->
 			<div class="scroll-row" data-view-only="overview" tabindex="0" role="region" aria-label="All vendors">
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#877364">FØ</span><span><span class="entry-name">Føtex</span><br><span class="entry-meta">71 orders</span></span></div></div><div class="figure-card tabular-figures">28.140 kr.</div><span class="card-caption">saved 1.905 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#177DA7">EL</span><span><span class="entry-name">Elgiganten</span><br><span class="entry-meta">18 orders</span></span></div></div><div class="figure-card tabular-figures">26.499 kr.</div><span class="card-caption">saved 4.120 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#AD620D">MA</span><span><span class="entry-name">Matas</span><br><span class="entry-meta">29 orders</span></span></div></div><div class="figure-card tabular-figures">11.640 kr.</div><span class="card-caption">saved 1.480 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#8453F5">ZA</span><span><span class="entry-name">Zalando</span><br><span class="entry-meta">22 orders</span></span></div></div><div class="figure-card tabular-figures">9.870 kr.</div><span class="card-caption">saved 2.640 kr.</span></div></section>
-				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#235553">JY</span><span><span class="entry-name">Jysk</span><br><span class="entry-meta">11 orders</span></span></div></div><div class="figure-card tabular-figures">7.415 kr.</div><span class="card-caption">saved 380 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#877364">FØ</span><div class="entry-text"><div class="entry-name">Føtex</div><div class="entry-meta">71 orders</div></div></div></div><div class="figure-card tabular-figures">28.140 kr.</div><span class="card-caption">saved 1.905 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#177DA7">EL</span><div class="entry-text"><div class="entry-name">Elgiganten</div><div class="entry-meta">18 orders</div></div></div></div><div class="figure-card tabular-figures">26.499 kr.</div><span class="card-caption">saved 4.120 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#AD620D">MA</span><div class="entry-text"><div class="entry-name">Matas</div><div class="entry-meta">29 orders</div></div></div></div><div class="figure-card tabular-figures">11.640 kr.</div><span class="card-caption">saved 1.480 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#8453F5">ZA</span><div class="entry-text"><div class="entry-name">Zalando</div><div class="entry-meta">22 orders</div></div></div></div><div class="figure-card tabular-figures">9.870 kr.</div><span class="card-caption">saved 2.640 kr.</span></div></section>
+				<section class="card"><div class="card-body"><div class="entry-list"><div class="entry-list-row"><span class="entry-avatar" style="background:#235553">JY</span><div class="entry-text"><div class="entry-name">Jysk</div><div class="entry-meta">11 orders</div></div></div></div><div class="figure-card tabular-figures">7.415 kr.</div><span class="card-caption">saved 380 kr.</span></div></section>
 			</div>
 		</div>
 
