@@ -624,10 +624,16 @@ instance below shipped because a shape was copied from the reference without ask
 - **Date fields carry the calendar icon, never a chevron.** A chevron promises a list; a date field
   opens the OS picker. The icon is ours on every engine and the browser's own is taken off the field
   ([§17](#17-ios-and-webkit)) — so the glyph is what opens the picker, on click or Alt+Down.
-- **Anything clickable is keyboard operable.** A `div` with a click handler needs `tabindex="0"`, a
-  role and an Enter handler, or it is mouse-only. Native `<button>` / `<a>` is preferred. Rows carry
-  `role="link"`, so they activate on Enter and leave Space alone — Space still scrolls, which is what
-  a link does.
+- **Anything clickable is the element for the job, not a div wearing its role.** Twenty-six rows, card
+  headers and the brand were `<div role="link" tabindex="0">` with a hand-written Enter handler, against
+  five real `<a>` in the whole file — a link rebuilt three attributes and nine lines at a time, and
+  rebuilt only as far as someone remembered. They are `<a href="#">` now and the handler is one
+  `preventDefault` (the href is `#`, so without it every row click appends a fragment and jumps to the
+  top). Enter comes from the platform, Space still scrolls because that is what a link does, and
+  middle-click, ⌘-click, the context menu and open-in-new-tab arrive with it — none of which a `role`
+  can provide. `a[data-go]` carries `color:inherit; text-decoration:none`, keyed on the attribute
+  rather than a class because eight different components navigate this way, and on `a` specifically so
+  the `<button data-go>` elements keep their own colours.
 - **A row's hover tint bleeds 10px past the body gutter; the row's content does not.** The card body's
   20px padding is right for text and too tight for a highlight -- the tint stopped hard against the
   first glyph and the chevron at both ends. The header above already lights up edge to edge, so this
@@ -657,6 +663,15 @@ instance below shipped because a shape was copied from the reference without ask
   no intended action, inherited from the reference's card menu; it invites a click that does nothing.
   Deleted. The hero `[+]` went too: it duplicated the top bar's NEW ORDER and existed only because
   that button was hidden on mobile.
+
+> [!WARNING]
+> **Changing an element's tag re-sorts every `*-of-type` selector around it.** `.order-row:last-of-type`
+> means "the last row in the list" and counts tags instead. The pager `div` under the rows was the last
+> `div`, so the rule matched nothing and all three rows kept a trailing hairline nobody had noticed in
+> a screenshot that shows it. Making the first row an `<a>` then left it the only element of its type,
+> so the dead rule woke on the wrong row and stripped the border from the top of the list — 190 moved
+> rectangles, from one 1px line. Neither state is what the rule says. Write `:not(:has(~ .order-row))`,
+> which counts the same thing the name does.
 
 ## 14. Charts
 
