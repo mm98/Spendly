@@ -713,6 +713,18 @@ instance below shipped because a shape was copied from the reference without ask
   drift the token exists to stop. The rule under a lit header no longer vanishes into it — it reads
   as the bottom edge of the lit band, which is why that rule still goes full-bleed on hover
   ([§10](#10-cards)): the two lines a pixel apart were the defect, not the colour match.
+- **A tight top belongs to the container, not to the row.** A row's own padding is the box its hover
+  tint paints, so padding trimmed off a row to close a gap is padding the lit band loses on one side
+  and keeps on the other. `.entry-list-row` is `padding:7px 0` and the first row's top 7px was zeroed
+  to sit it under the card divider: the glyph in Orders' *Latest orders* then sat 3.30px below the
+  band's top edge and 10.30px above its bottom, and the amount 11.23 and 18.23 — a band 7px heavier
+  at the foot of the one row in the file that lights up. Take it off the container instead, where
+  nothing draws a background: the body gives up its own 6px, the text lands within a pixel of where
+  it was, and glyph and amount come back to 10.30/10.30 and 18.23/18.23. The two other hoverable row
+  families never had it — `.chart-legend-row` and `.category-row` clear the first row's `border-top`
+  and leave its padding alone, which is the same idea one property over. Audit this by walking every
+  element a `:hover` rule paints and comparing `padding-top` to `padding-bottom`; count the border
+  only where it is transparent, since an opaque one paints over the tint it would otherwise offset.
 - **A row's hover tint bleeds 10px past the body gutter; the row's content does not.** The card body's
   20px padding is right for text and too tight for a highlight -- the tint stopped hard against the
   first glyph and the chevron at both ends. The header above already lights up edge to edge, so this

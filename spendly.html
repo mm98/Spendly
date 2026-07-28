@@ -501,7 +501,15 @@ svg.chart { width:100%; display:block; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; min-width:0; }
 .entry-list .entry-glyph { width:34px; height:34px; border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:#F3F5F1; flex:none; }
 .entry-list .entry-glyph svg.icon { width:17px; height:17px; }
-.entry-list > .entry-list-row:first-child { padding-top:0; }
+/* A tight top belongs to the container, not to the row. The row's padding is the box
+   the hover tint paints, so the 7px taken off the first row to close the gap under the
+   divider is 7px the lit band loses above the text and keeps below it -- ink 2px under
+   the band's top edge and 8.3px above its bottom, on the one row in the file that ever
+   lights up. Where a row can light up the body gives up its own 6px instead: the text
+   lands 1px from where it was, the band is even, and the lists whose rows never light
+   up keep the tight top, since nothing there ever draws the box. S13. */
+.entry-list:not(:has(.entry-list-row[data-go])) > .entry-list-row:first-child { padding-top:0; }
+.card-body-tight:has(> .entry-list-row[data-go]) { padding-top:0; }
 .avatar-stack { display:inline-flex; margin-right:9px; vertical-align:middle; }
 .avatar-stack-face { width:15px; height:15px; border-radius:50%; display:block; border:2.5px solid #fff; }
 .avatar-stack-face + .avatar-stack-face { margin-left:-7px; }
