@@ -23,17 +23,15 @@ shows. Opening the HTML in a browser is the whole toolchain.
 Re-checking these each session is the waste this heading exists to stop. They are facts about the
 box, not about any change.
 
-- **All three engines are installed.** Blink **141.0.7390.37**, Gecko **142.0.1** and WebKit **26.0**,
-  under the globally installed Playwright 1.56.1 (`/opt/node22/lib/node_modules/playwright`), in
-  `/opt/pw-browsers` -- export `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers` or the launchers look
-  elsewhere and report the binary as missing. Launch all three and measure.
-- **A session that finds only Chromium is a session whose environment lost the cache.** The other two
-  arrive from the environment's setup script; if they are absent, `playwright install --with-deps
-  firefox webkit` fetches them, and it is the one time `playwright install` is the right move.
-  WebKit needs system libraries the base image does not ship -- it downloads happily and then fails
-  to launch on `libenchant-2`, `libsecret-1`, `libwayland-server`, `libmanette-0.2`, `libGLESv2` and
-  `libx264`. `playwright install-deps webkit` pulls them from the Ubuntu archives. The download and
-  the dependencies are two separate failures and only the first reports itself clearly.
+- **All three engines are installed, every session. Just launch them.** Blink **141.0.7390.37**,
+  Gecko **142.0.1** and WebKit **26.0**, under the globally installed Playwright 1.56.1
+  (`/opt/node22/lib/node_modules/playwright`). The environment's setup script installs them with
+  their system libraries before the session starts and the environment cache keeps them, so their
+  presence is a given, not a thing to confirm. `PLAYWRIGHT_BROWSERS_PATH` is already set to
+  `/opt/pw-browsers`, so `chromium`, `firefox` and `webkit` resolve with no configuration. Do not
+  `ls` the directory first, do not probe a launcher in a try/catch before the real run, and never
+  run `playwright install` -- each of those spends a step per session re-confirming something
+  settled.
 - **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
   screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
   case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
@@ -61,11 +59,9 @@ box, not about any change.
 
 ### When a page can be rendered
 
-**Check what is installed before writing the probe, not after it fails.** One `ls /opt/pw-browsers`
-costs a second; discovering from a half-finished run that a launcher throws costs the run. The same
-habit covers the failure itself -- `Download failure, code=1` names no host and no cause, and
-guessing one from it happened to be right once and was still a guess. The proxy records the real
-answer, so ask it.
+**When a fetch fails, ask the proxy rather than reading the failure.** `Download failure, code=1`
+names no host and no cause; guessing one from it happened to be right once and was still a guess.
+`curl -sS "$HTTPS_PROXY/__agentproxy/status"` records what was actually refused and why.
 
 The README's standard is the floor: render the prototype, screenshot it at desktop and 390px, and say
 what was measured rather than that it looks right. Three axes it does not name have each shipped a
