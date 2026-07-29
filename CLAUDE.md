@@ -38,8 +38,15 @@ box, not about any change.
   `playwright.download.prss.microsoft.com:443`. Confirm it in one command rather than inferring it
   from the failure -- `curl -sS "$HTTPS_PROXY/__agentproxy/status"` lists `recentRelayFailures` with
   the host and the reason, and `/root/.ccr/README.md` says a 403 is reported, never retried or routed
-  around. Lifting it is an environment change and not a code one: the two hosts have to be allowed by
-  the session's network policy, after which the install works normally. No system browser exists
+  around. The host being up is not the question, and neither is whether it loads from a laptop: the 403
+  is raised by this container's gateway before anything reaches the CDN, and the allowlist is per
+  environment. Lifting it is an environment change and not a code one -- the two hosts have to be
+  allowed by the session's network policy, after which the install works normally. Every other route
+  is shut too, so do not go hunting for one: `archive.mozilla.org`, `download.mozilla.org`,
+  `ftp.mozilla.org` and `deb.debian.org` are all 403, and Playwright cannot drive a stock Firefox
+  anyway -- it needs its own patched build. `github.com`, `objects.githubusercontent.com` and
+  `registry.npmjs.org` *are* reachable, and pulling browser builds through them would be routing
+  around an egress denial the proxy README forbids routing around. Not a workaround to reach for. No system browser exists
   outside the Playwright bundle either -- no `firefox`, `firefox-esr`, `epiphany` or
   `google-chrome` on `PATH`. Do not go looking for them and do not retry the download. Anything engine-shaped therefore ships on Blink
   evidence and is reported that way -- "verified in Blink; Gecko and WebKit unverified, no binary
