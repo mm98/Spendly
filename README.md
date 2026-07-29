@@ -528,10 +528,14 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
 - **A range stays on one line; a row of names breaks.** Two fields side by side are not all the same
   kind of pair. **From/To and Min/Max are one control each** — an end is read against the other end,
   so they hold their pairing down to the smallest phone (`.field-pair-keep`, past the ≤700 collapse that
-  would otherwise split them). **Category and Kind are two independent values** that happen to share a
-  row, and they carry names, so that row breaks to one field per line at ≤900 (`.field-pair-stack-early`) — the
+  would otherwise split them). **Category and Kind are two independent values** that carry names,
+  so a row holding both breaks to one field per line at ≤900 (`.field-pair-stack-early`) — the
   phone layout starts at 700, so from 701 to 900 the sidebar is still standing and a name is down to
-  165px, with a phone in landscape (844px) inside that band. **Vendor holds a row by itself at every
+  165px, with a phone in landscape (844px) inside that band. That is the filter panel, where both
+  are one-line comboboxes. **On the create form they do not share a row at any width**, because
+  Categories is a field that *grows*: every chip added to it makes it taller while Kind stays a
+  single 48px row beside it, so the two labels line up and nothing under them does. A field whose
+  height is data has no business in a pair. **Vendor holds a row by itself at every
   width**, because it carries the longest strings in the panel — `Silvan · Materialer`, and whatever a
   user creates — and a pair gave it half the room at exactly the widths where it had least. At 390px:
   names get the full 294px, each range column gets 139px, and the values fit it — a date wants 163px
@@ -861,8 +865,31 @@ it outside [§3](#3-typography) on both counts, and its sentence ran the full 74
 characters, well past a readable measure. Unifying moved that one page and nothing else.
 
 **Vendors** — hero panel (`.hero.hero-panel`: warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
-(caps header and chip, sentence, inner panel rows, full-width VIEW ORDERS), full-width search with
+(linked caps header, sentence, inner panel rows), full-width search with
 Spend/Name/Orders/Saved segmented, horizontal all-vendors card row.
+
+**One vendor card, in two sizes.** The spotlight card and the all-vendors card said the same
+things in two arrangements: one reached the vendor's orders through a full-width VIEW ORDERS at
+its foot, the other through its header band. The header is the way in on both now — label left,
+chevron right, the whole band a link, which is what [§10](#10-cards) already says every card
+does — and the foot is where the buttons live. A second control for one destination is not a
+second affordance, it is a second thing to keep in step.
+
+**A header chip has to say something the card does not.** The spotlight header carried
+`Favourite · saved 6.940 kr.` above a panel whose first row is *Saved vs retail · 6.940 kr.*, and
+beside a star that is the favourite state and toggles it — three controls and a label in one
+band, for two facts, one of them printed twice. The chip went. The `Save · 4.52% APY` pattern in
+[§10](#10-cards) is the case that stays: it carries a figure that appears nowhere else on its card.
+
+**A linked header holds no buttons.** Once the band is a link, a button inside it is two things
+to activate in one box and no engine agrees about which one a click means. That is the other
+half of why the star and the pencil sit at the foot of the card rather than in its header.
+
+**A horizontal scroller reserves a lane for its scrollbar.** `.scroll-row` had `padding-bottom:4px`,
+which is not a scrollbar — a classic 15px bar is then drawn hard against the cards' bottom border
+and reads as lying on top of them. It is the same `14px` as the gap between the cards, so the bar
+gets a band of its own rather than a new number. Overlay scrollbars (macOS, and headless Chromium,
+which is why no harness here can see this one) hide the defect completely.
 
 **Categories** — full-width search with Spend/Name/Orders segmented, icon-square list rows with
 percentage of expenses and amounts, question card, breakdown donut.

@@ -1,0 +1,140 @@
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { Icon } from './Icon.jsx'
+
+/* One combobox, used by every dropdown in the app: type to search, grouped results, create
+   from the foot. The prototype's own help text promises exactly that, so a second dropdown
+   pattern anywhere would be a promise the app breaks in one place.
+
+   ARIA 1.2 puts role=combobox on the input, so the input is what owns aria-expanded --
+   not the wrapper, and not the shell. Space types a space in a real input, so only Down and
+   Enter open the list; Escape closes it and hands focus back. */
+
+const join = (...parts) => parts.filter(Boolean).join(' ')
+
+/** Marks the typed text inside a result. The prototype hard-codes <mark>Bil</mark>ka, which
+    is right for one query and wrong for every other -- doing it from the value means the
+    highlight always describes what was actually typed. */
+function Marked({ text, query }) {
+	const needle = query.trim()
+	if (!needle) return text
+	const at = text.toLowerCase().indexOf(needle.toLowerCase())
+	if (at < 0) return text
+	return (
+		<>
+			{text.slice(0, at)}
+			<mark>{text.slice(at, at + needle.length)}</mark>
+			{text.slice(at + needle.length)}
+		</>
+	)
+}
+
+export function Combobox({
+	value, onChange, onSelect, groups = [], action, placeholder, label, required,
+	leadingIcon, id, invalid, describedBy, children, chips
+}) {
+	const [open, setOpen] = useState(false)
+	const wrapper = useRef(null)
+	const input = useRef(null)
+	const panelId = useId().replace(/:/g, '') + '-panel'
+
+	/* Closing on an outside click is a document listener, so it has to ignore clicks inside
+	   this combobox -- otherwise choosing an option closes the list before the choice lands. */
+	useEffect(() => {
+		if (!open) return
+		const onDocumentClick = e => { if (!wrapper.current?.contains(e.target)) setOpen(false) }
+		const onKey = e => {
+			if (e.key !== 'Escape') return
+			setOpen(false)
+			input.current?.focus()
+		}
+		document.addEventListener('click', onDocumentClick)
+		document.addEventListener('keydown', onKey)
+		return () => {
+			document.removeEventListener('click', onDocumentClick)
+			document.removeEventListener('keydown', onKey)
+		}
+	}, [open])
+
+	/* preventDefault matters here: a Field renders as <label>, so a click anywhere inside it
+	   is forwarded to the labelled control -- and the input's own click handler reopens the
+	   list a beat after this closed it. The option is a div, so nothing is lost by stopping
+	   the default; focus is put back on the input deliberately below. */
+	const choose = useCallback((e, option) => {
+		e.preventDefault()
+		e.stopPropagation()
+		onSelect ? onSelect(option) : onChange?.(option.label)
+		setOpen(false)
+		input.current?.focus()
+	}, [onChange, onSelect])
+
+	/* Chips ride inside the shell, not above it.
+
+	   A field whose values sit in a stack over the input is a field whose input starts lower
+	   than the one beside it, and the pair stops lining up the moment one of them has a value.
+	   The prototype puts them in the same box for that reason: the shell grows downwards from
+	   a shared top edge, so both fields still start on the same line. README 9. */
+	const wrapping = Boolean(chips)
+
+	return (
+		<div className={join('combobox', open && 'is-open')} ref={wrapper}>
+			<div className="field-shell"
+				style={wrapping ? { height: 'auto', minHeight: 48, padding: '8px 10px', flexWrap: 'wrap' } : undefined}>
+				{leadingIcon ? <Icon name={leadingIcon} /> : null}
+				{chips}
+				<input ref={input} type="text" id={id} role="combobox"
+					style={wrapping ? { flex: '1 1 120px' } : undefined}
+					aria-expanded={open} aria-controls={panelId} aria-autocomplete="list"
+					aria-label={label} aria-required={required || undefined}
+					aria-invalid={invalid ? 'true' : undefined}
+					aria-describedby={invalid ? describedBy : undefined}
+					value={value} placeholder={placeholder}
+					onChange={e => { onChange?.(e.target.value); setOpen(true) }}
+					onClick={() => setOpen(true)}
+					onKeyDown={e => {
+						if (e.key === 'Escape') { setOpen(false); return }
+						if (e.key !== 'ArrowDown' && e.key !== 'Enter') return
+						e.preventDefault()
+						/* Enter runs the action at the foot of the list -- CREATE VENDOR "…", ADD
+						   CATEGORY "…" -- but only when what was typed matches nothing already there.
+						   Typing the name of something that exists and pressing Enter should pick it,
+						   not make a second one. */
+						const typed = String(value ?? '').trim()
+						if (e.key === 'Enter' && action && typed) {
+							const match = groups.flatMap(g => g.options)
+								.find(o => o.label.toLowerCase() === typed.toLowerCase())
+							if (match) { choose(e, match); return }
+							action.onSelect?.(typed)
+							setOpen(false)
+							return
+						}
+						setOpen(true)
+					}} />
+				<Icon name="chevronDown" className="icon chevron-icon" />
+			</div>
+			<div className="combobox-panel" id={panelId} role="listbox" aria-label={label}>
+				{groups.map(group => (
+					<div className="combobox-group" key={group.heading}>
+						<div className="combobox-group-heading">{group.heading}</div>
+						{group.options.map((option, i) => (
+							<div key={option.id ?? option.label}
+								className={join('combobox-option', option.highlighted && 'combobox-option-highlighted')}
+								role="option" aria-selected={option.highlighted ? true : undefined}
+								onClick={e => choose(e, option)}>
+								{option.star ? <span className="combobox-option-star"><Icon name="starFilled" /></span> : null}
+								<Marked text={option.label} query={value ?? ''} />
+								{option.meta ? <span className="combobox-option-meta">{option.meta}</span> : null}
+							</div>
+						))}
+					</div>
+				))}
+				{children}
+				{action ? (
+					<div className="combobox-action"
+						onClick={e => { e.preventDefault(); e.stopPropagation(); action.onSelect?.(value); setOpen(false) }}>
+						{action.icon ? <Icon name={action.icon} /> : null}{action.label}
+					</div>
+				) : null}
+			</div>
+		</div>
+	)
+}
