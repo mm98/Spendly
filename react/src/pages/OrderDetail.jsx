@@ -6,6 +6,7 @@ import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview } from '../components/Viz.jsx'
 import { DropZone, HiddenFileInput, describeFile } from '../components/FileInput.jsx'
+import { useDelete } from '../components/FormPage.jsx'
 import { AiCard } from '../components/AiCard.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
@@ -14,7 +15,7 @@ import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	addAttachments, deleteOrder, getHomeContent, getOrder, getOrderAsDraft, getOrders,
-	getOrdersOverview, getSettings, removeAttachment, updateOrder
+	getOrdersOverview, removeAttachment, updateOrder
 } from '../api/client.js'
 import { kr, longDate, percent, shortDate } from '../api/format.js'
 
@@ -33,13 +34,11 @@ import { kr, longDate, percent, shortDate } from '../api/format.js'
 export default function OrderDetail() {
 	const { id } = useParams()
 	const state = useApi(getOrder, [id])
-	const settings = useApi(getSettings)
 	const navigate = useNavigate()
 	/* Everything this page reports is the result of an action -- marked, attached, removed --
 	   so all of it goes to the toast layer. Nothing here is a form verdict about fields the
 	   user has to go back and fix, which is the one kind of message that stays on the page. */
 	const toast = useToast()
-	const [confirming, setConfirming] = useState(false)
 	const [openFile, setOpenFile] = useState(null)
 	const filePicker = useRef(null)
 
@@ -60,11 +59,19 @@ export default function OrderDetail() {
 			.catch(() => toast('That did not save.', 'negative'))
 	}
 
-	const remove = () => {
-		deleteOrder(id)
+	/* The same asking, the same warm note and the same setting as deleting a category or a
+	   vendor -- one destructive action written once, rather than one per screen that agrees
+	   about whether to ask until the day one of them is changed. See FormPage.jsx. */
+	const del = useDelete({
+		what: 'order',
+		variant: 'block',
+		detail: state.data
+			? `${state.data.vendor?.name}, ${longDate(state.data.date)}, ${kr(state.data.total)}.`
+			: '',
+		onDelete: () => deleteOrder(id)
 			.then(() => { invalidateOrder(); navigate('/orders/all') })
 			.catch(() => toast('That did not delete.', 'negative'))
-	}
+	})
 
 	const attach = files => {
 		const list = files.map(describeFile)
@@ -108,21 +115,11 @@ export default function OrderDetail() {
 									</div>
 									<div className="row-inline row-inline-nowrap" style={{ gap: 8 }}>
 										<IconButton icon="pencil" label="Edit order" to={`/orders/${id}/edit`} />
-										<IconButton icon="trash" label="Delete order"
-											onClick={() => (settings.data?.confirmDelete === false ? remove() : setConfirming(true))} />
+										{del.iconButton}
 									</div>
 								</div>
 
-								{confirming ? (
-									<div className="note note-warning" style={{ marginTop: 12 }}>
-										<strong>Delete this order?</strong> {order.vendor?.name}, {longDate(order.date)},
-										{' '}{kr(order.total)}. This cannot be undone.
-										<div className="form-actions" style={{ marginTop: 10 }}>
-											<Button variant="caps compact" onClick={remove}>DELETE</Button>
-											<Button variant="ghost compact" onClick={() => setConfirming(false)}>CANCEL</Button>
-										</div>
-									</div>
-								) : null}
+								{del.note}
 
 								<div className="row-inline" style={{ gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
 									{order.categories.map(c => <Chip key={c.id}>{c.name}</Chip>)}

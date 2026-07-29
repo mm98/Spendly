@@ -5,6 +5,8 @@ import AllOrders from './pages/AllOrders.jsx'
 import OrderDetail from './pages/OrderDetail.jsx'
 import { NewOrderDetails, NewOrderItems, NewOrderLayout } from './pages/NewOrder.jsx'
 import Settings from './pages/Settings.jsx'
+import CategoryForm from './pages/CategoryForm.jsx'
+import VendorForm from './pages/VendorForm.jsx'
 import { ScanReading, ScanReview, ScanUpload } from './pages/Scan.jsx'
 import Vendors from './pages/Vendors.jsx'
 import Categories from './pages/Categories.jsx'
@@ -69,10 +71,26 @@ export const routes = [
 					handle: { title: 'Review scan', navKey: 'orders', back: { to: '/scan', label: 'scan receipt' } } }
 			] },
 
-			{ path: 'vendors', element: <Vendors />,
-				handle: { title: 'Vendors', navKey: 'vendors', tabs: VIEW_TABS('Favourites') } },
-			{ path: 'categories', element: <Categories />,
-				handle: { title: 'Categories', navKey: 'categories', tabs: VIEW_TABS('Manage') } },
+			/* A vendor and a category are edited on their own page, the same as an order. Two
+			   patterns for one job is a system with a hole in it -- and the inline one nested a
+			   bordered section inside a card body inside a card, which at 390px leaves the fields
+			   about as wide as their own labels. */
+			{ path: 'vendors', children: [
+				{ index: true, element: <Vendors />,
+					handle: { title: 'Vendors', navKey: 'vendors', tabs: VIEW_TABS('Favourites') } },
+				{ path: 'new', element: <VendorForm mode="create" />,
+					handle: { title: 'New vendor', navKey: 'vendors', back: { to: '/vendors', label: 'vendors' } } },
+				{ path: ':id/edit', element: <VendorForm mode="edit" />,
+					handle: { title: 'Edit vendor', navKey: 'vendors', back: { to: '/vendors', label: 'vendors' } } }
+			] },
+			{ path: 'categories', children: [
+				{ index: true, element: <Categories />,
+					handle: { title: 'Categories', navKey: 'categories', tabs: VIEW_TABS('Manage') } },
+				{ path: 'new', element: <CategoryForm mode="create" />,
+					handle: { title: 'New category', navKey: 'categories', back: { to: '/categories', label: 'categories' } } },
+				{ path: ':id/edit', element: <CategoryForm mode="edit" />,
+					handle: { title: 'Edit category', navKey: 'categories', back: { to: '/categories', label: 'categories' } } }
+			] },
 			{ path: 'stats', element: <Stats />, handle: { title: 'Statistics', navKey: 'stats' } },
 			{ path: 'settings', element: <Settings />,
 				handle: { title: 'Order settings', navKey: 'orders', back: { to: '/orders', label: 'orders' } } },

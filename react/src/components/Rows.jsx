@@ -2,6 +2,7 @@ import { forwardRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from './Icon.jsx'
 import { kr, krRound } from '../api/format.js'
+import { inkOn } from '../api/colour.js'
 
 /* Every list row in the app.
 
@@ -30,7 +31,12 @@ const Chevron = () => <span className="chevron"><Icon name="chevronRight" /></sp
 export function EntryRow({ avatar, glyph, name, meta, amount, sub, to, children }) {
 	return (
 		<Row to={to} family="entry-list-row">
-			{avatar ? <span className="entry-avatar" style={{ background: avatar.colour }}>{avatar.initials}</span> : null}
+			{/* The initials are inked from the tile they sit on. The stylesheet says #fff, which is
+			    right for the palette that shipped and wrong for any colour the user picks. */}
+			{avatar ? (
+				<span className="entry-avatar"
+					style={{ background: avatar.colour, color: inkOn(avatar.colour) }}>{avatar.initials}</span>
+			) : null}
 			{glyph ? <span className="entry-glyph"><Icon name={glyph} /></span> : null}
 			<div className="entry-text">
 				<div className="entry-name">{name}</div>
@@ -49,7 +55,9 @@ export function EntryRow({ avatar, glyph, name, meta, amount, sub, to, children 
 export function CategoryRow({ category, meta, to }) {
 	return (
 		<Row to={to} family="category-row">
-			<span className="category-icon" style={{ background: category.colour }}><Icon name={category.icon} /></span>
+			<span className="category-icon"
+				style={{ background: category.colour, color: inkOn(category.colour) }}>
+				<Icon name={category.icon} /></span>
 			<div>
 				<div className="category-row-title">{category.name}</div>
 				<div className="category-row-meta">{meta ?? `${category.share}% of expenses`}</div>

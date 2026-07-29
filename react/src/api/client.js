@@ -300,21 +300,34 @@ export async function createVendor(name, look = {}, signal) {
 	await wait(signal)
 	const clean = String(name).trim()
 	if (!clean) { const e = new Error('A vendor needs a name.'); e.status = 400; throw e }
-	const existing = store.vendors.find(v => v.name.toLowerCase() === clean.toLowerCase())
-	if (existing) return copy(existing)
+	/* Refused the same way a duplicate category is, rather than quietly handing back the
+	   vendor that is already there: two create endpoints that disagree about what a duplicate
+	   means are two rules for one thing, and the caller cannot tell which it got. */
+	if (store.vendors.some(v => v.name.toLowerCase() === clean.toLowerCase())) {
+		const e = new Error('You already have a vendor called ' + clean + '.')
+		e.status = 409
+		throw e
+	}
 	const vendor = {
 		id: 'v-' + clean.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36),
 		name: clean,
-		initials: clean.slice(0, 2).toUpperCase(),
+		initials: look.initials ?? clean.slice(0, 2).toUpperCase(),
 		/* The caller's colour where it gave one. Failing that, picked from the palette by the
 		   name, so the same vendor is at least the same colour on every render rather than a
 		   different one each time the list is drawn. */
 		colour: look.colour ?? ['#235553', '#877364', '#177DA7', '#AD620D', '#8453F5', '#4F5BD5'][
 			[...clean].reduce((n, c) => n + c.charCodeAt(0), 0) % 6],
-		orders: 0, spend: 0, saved: 0, favourite: false
+		orders: 0, spend: 0, saved: 0, favourite: Boolean(look.favourite)
 	}
 	store.vendors = [...store.vendors, vendor]
 	persistList('vendors', store.vendors, seed.vendors)
+	return copy(vendor)
+}
+
+export async function getVendor(id, signal) {
+	await wait(signal)
+	const vendor = store.vendors.find(v => v.id === id)
+	if (!vendor) { const e = new Error('No vendor ' + id); e.status = 404; throw e }
 	return copy(vendor)
 }
 
@@ -350,18 +363,27 @@ export async function createCategory(name, look = {}, signal) {
 		e.status = 409
 		throw e
 	}
-	/* The glyph and the colour are the caller's. They used to be assigned from a palette by
-	   position and a tag glyph regardless of what the category was for -- a value the user can
-	   see, cannot explain and could not change. */
+	/* The glyph, the colour and the budget are the caller's, and they arrive with the create
+	   rather than in an update straight after it: a form that writes twice can half-succeed,
+	   and the second write is the one carrying everything the user chose. The look used to be
+	   assigned from a palette by position, with a tag glyph regardless of what the category was
+	   for -- a value the user can see, cannot explain and could not change. */
 	const category = {
 		id: 'c-' + clean.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36),
 		name: clean,
 		icon: look.icon ?? 'tag',
 		colour: look.colour ?? 'var(--icon-red)',
-		spend: 0, share: 0, saved: 0, budget: 0
+		spend: 0, share: 0, saved: 0, budget: Number(look.budget) || 0
 	}
 	store.categories = [...store.categories, category]
 	persistList('categories', store.categories, seed.categories)
+	return copy(category)
+}
+
+export async function getCategory(id, signal) {
+	await wait(signal)
+	const category = store.categories.find(c => c.id === id)
+	if (!category) { const e = new Error('No category ' + id); e.status = 404; throw e }
 	return copy(category)
 }
 
@@ -562,6 +584,11 @@ const highlight = (text, needle) => {
 const COMMANDS = [
 	{ id: 'cmd-new', label: 'New order', meta: 'Create', to: '/orders/new', keywords: 'new order create add' },
 	{ id: 'cmd-scan', label: 'Scan a receipt', meta: 'Create', to: '/scan', keywords: 'scan receipt upload pdf photo ai' },
+	/* Every record the app can create is creatable from here, on one route shape:
+	   /<records>/new. A palette that offers one of the three teaches that the other two are
+	   somewhere else. */
+	{ id: 'cmd-new-vendor', label: 'New vendor', meta: 'Create', to: '/vendors/new', keywords: 'new vendor shop store create add' },
+	{ id: 'cmd-new-category', label: 'New category', meta: 'Create', to: '/categories/new', keywords: 'new category tag budget create add' },
 	{ id: 'cmd-orders', label: 'All orders', meta: 'Go to', to: '/orders/all', keywords: 'orders list all search filter' },
 	{ id: 'cmd-vendors', label: 'Vendors', meta: 'Go to', to: '/vendors', keywords: 'vendors shops stores' },
 	{ id: 'cmd-categories', label: 'Categories', meta: 'Go to', to: '/categories', keywords: 'categories tags manage' },

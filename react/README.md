@@ -43,8 +43,10 @@ src/
 | `/scan` | Scan: four ways in, each naming the document it hands the flow |
 | `/scan/reading` | Reading the document that was chosen |
 | `/scan/review` | The draft, editable line by line, saved as a real order |
-| `/vendors` | Vendors: create, favourite, delete, search, sort |
-| `/categories` | Categories, and a Manage tab that renames, budgets and deletes |
+| `/vendors` | Vendors: favourite, search, sort |
+| `/vendors/new`, `/vendors/:id/edit` | A vendor, on the same form page an order uses |
+| `/categories` | Categories, and a Manage tab whose rows open the record |
+| `/categories/new`, `/categories/:id/edit` | A category: name, budget, colour, glyph, delete |
 | `/stats` | Statistics, with a pager over three months |
 | `/settings` | Order settings — what ORDER SETTINGS opens |
 
@@ -147,11 +149,34 @@ appears — the chevron 30 times, the receipt 13 — which is the drift the unif
 about. Naming them makes the count a fact you can read off the object, and an unknown name
 throws rather than drawing nothing.
 
+**`FormPage.jsx`** owns the page every form is drawn on, and the one way a record is deleted.
+Five screens create or edit something -- order details, order items, scan review, category,
+vendor -- and they were five arrangements of the same parts, already drifting: two nested the
+form in a bordered section inside a card body inside a card, which at 390px leaves the fields
+about as wide as their own labels; one paired a 32px CANCEL with a 48px save; two invented
+their own rail. Now each passes its fields in and gets the same card headline, lead sentence,
+verdict line, summary rail and split footer. Measured: one `.card-body-page` per form, one
+`.form`, one `.form-status`, a two-button footer at a matching 38px, on all seven routes.
+
+Deleting is the same story one level down. An order asked before it deleted, a category and a
+vendor went the moment the trash was clicked, and only the order read the setting that says
+whether to ask -- a destructive action that asks on one screen and not another is not a
+setting, it is a coin toss. `useDelete` is that question written once; it is a hook rather than
+a component because the button and the note do not always sit together (on an order the trash
+is up in the header band, per README 11).
+
 **`Form.jsx`** owns what a rejection looks like: the message under its field, the red edge on
 the shell, `aria-invalid` and `aria-describedby` on the control, and one sentence in the
-form's own status line naming the fields. Two forms reject values; neither one draws a
+form's own status line naming the fields. Five forms reject values; none of them draws a
 rejection itself. A second copy of that marking is the near-miss the uniformity rule is
 about — the two would agree until the day one of them was fixed.
+
+The *rules* are shared too, in `api/rules.js`. Create and scan are two doors to one saved
+order, so a value required at one door is required at the other and refused in the same words —
+and they had already parted company: the scan review checked nothing at all, so a receipt whose
+vendor line came back blank saved an order with no vendor on it, through a form whose twin says
+*Who did you buy from?* about that field. The review now runs the same four rules step 1 runs,
+and a corrected receipt line runs the item form's three.
 
 `Chart.jsx` remaps the viewBox 1:1 onto the element's pixel box on every resize, so one user
 unit is always one CSS pixel and stroke widths hold. In React that means the width is state
@@ -222,6 +247,13 @@ word and the full set can go in.
 
 Neither picker draws anything new: the swatches and the icon grid are `.icon-button`, and the
 search is the same `.field-shell` as every other search in the app.
+
+Both pickers live on the record's own page, because there is one way to write a record here.
+They were inline editors on the list pages first — a bordered section opening inside a card
+body inside a card, and on Vendors inside a horizontal scroller as well. That is a second way
+to do a job the app already had a way to do, and on a phone it is a form about as wide as its
+own labels. ADD now opens `/<records>/new`, a row or a pencil opens `/<records>/:id/edit`, and
+DELETE sits on that page. The command palette offers all three creates on the one route shape.
 
 ### The command palette
 
