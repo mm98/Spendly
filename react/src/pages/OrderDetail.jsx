@@ -1,25 +1,82 @@
-import { useParams } from 'react-router-dom'
+import { useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
+import { DocumentPreview } from '../components/Viz.jsx'
 import { AiCard } from '../components/AiCard.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Chip, StatusChip } from '../components/Chip.jsx'
-import { useApi } from '../api/useApi.js'
-import { getOrder } from '../api/client.js'
+import { Chip } from '../components/Chip.jsx'
+import { FormStatus, Segmented } from '../components/Form.jsx'
+import { invalidate, useApi } from '../api/useApi.js'
+import {
+	addAttachment, deleteOrder, getHomeContent, getOrder, getOrderAsDraft, getOrders,
+	getOrdersOverview, getSettings, removeAttachment, updateOrder
+} from '../api/client.js'
 import { kr, longDate, percent, shortDate } from '../api/format.js'
 
-/* One order.
+/* One order, and everything you can do to it.
 
-   The items list and the three summary lines under it are the same records: the subtotal is
-   the lines added up, and the total is that plus shipping. Printing a stored total beside
-   lines that do not add to it is the defect this page is most able to hide, because both
-   halves look right on their own. */
+   The items list and the summary lines under it are the same records: the subtotal is the
+   lines added up, and the total is that plus shipping. Printing a stored total beside lines
+   that do not add to it is the defect this page is most able to hide, because both halves
+   look right on their own.
+
+   Every control here acts. Status is a live segmented control rather than a chip, because
+   marking an order delivered is the single commonest thing to do to one and walking through
+   the edit form for it is three screens too many. Edit opens the New order flow with this
+   order in it. Delete asks first, unless Settings says not to. */
 
 export default function OrderDetail() {
 	const { id } = useParams()
 	const state = useApi(getOrder, [id])
+	const settings = useApi(getSettings)
+	const navigate = useNavigate()
+	const [status, setStatus] = useState({ message: '', good: true })
+	const [confirming, setConfirming] = useState(false)
+	const [openFile, setOpenFile] = useState(null)
+	const filePicker = useRef(null)
+
+	/* Anything that counts orders, or shows this one, is stale the moment it is written. */
+	const invalidateOrder = () => {
+		invalidate(getOrder); invalidate(getOrders); invalidate(getHomeContent)
+		invalidate(getOrdersOverview); invalidate(getOrderAsDraft)
+	}
+
+	const setOrderStatus = (order, next) => {
+		updateOrder(id, {
+			vendor: order.vendor?.name, date: order.date, status: next, kind: order.kind,
+			categories: order.categories.map(c => c.name),
+			shipping: order.shipping ? String(order.shipping).replace('.', ',') : '',
+			reference: order.reference, note: order.note, items: order.items
+		})
+			.then(() => { invalidateOrder(); state.refresh(); setStatus({ message: `Marked ${next.toLowerCase()}.`, good: true }) })
+			.catch(() => setStatus({ message: 'That did not save.', good: false }))
+	}
+
+	const remove = () => {
+		deleteOrder(id)
+			.then(() => { invalidateOrder(); navigate('/orders/all') })
+			.catch(() => setStatus({ message: 'That did not delete.', good: false }))
+	}
+
+	const attach = file => {
+		if (!file) return
+		addAttachment(id, file)
+			.then(() => { invalidateOrder(); state.refresh(); setStatus({ message: `${file.name} attached.`, good: true }) })
+			.catch(() => setStatus({ message: 'That did not attach.', good: false }))
+	}
+
+	const detach = file => {
+		removeAttachment(id, file.id)
+			.then(() => {
+				invalidateOrder(); state.refresh()
+				if (openFile === file.id) setOpenFile(null)
+				setStatus({ message: `${file.name} removed.`, good: true })
+			})
+			.catch(() => setStatus({ message: 'That did not remove.', good: false }))
+	}
 
 	return (
 		<Page>
@@ -36,13 +93,36 @@ export default function OrderDetail() {
 											{longDate(order.date)} · {order.itemCount} items</div>
 									</div>
 									<div className="row-inline row-inline-nowrap" style={{ gap: 8 }}>
-										<StatusChip>{order.status}</StatusChip>
-										<IconButton icon="pencil" label="Edit order" />
-										<IconButton icon="trash" label="Delete order" />
+										<IconButton icon="pencil" label="Edit order" to={`/orders/${id}/edit`} />
+										<IconButton icon="trash" label="Delete order"
+											onClick={() => (settings.data?.confirmDelete === false ? remove() : setConfirming(true))} />
 									</div>
 								</div>
-								<div className="row-inline" style={{ gap: 6, marginTop: 12 }}>
+
+								<FormStatus message={status.message} good={status.good} />
+
+								{confirming ? (
+									<div className="note note-warning" style={{ marginTop: 12 }}>
+										<strong>Delete this order?</strong> {order.vendor?.name}, {longDate(order.date)},
+										{' '}{kr(order.total)}. This cannot be undone.
+										<div className="form-actions" style={{ marginTop: 10 }}>
+											<Button variant="caps compact" onClick={remove}>DELETE</Button>
+											<Button variant="ghost compact" onClick={() => setConfirming(false)}>CANCEL</Button>
+										</div>
+									</div>
+								) : null}
+
+								<div className="row-inline" style={{ gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
 									{order.categories.map(c => <Chip key={c.id}>{c.name}</Chip>)}
+									{order.categories.length === 0
+										? <span className="field-help">No categories on this order.</span>
+										: null}
+								</div>
+
+								<div className="field" style={{ marginTop: 14 }}>
+									<span>Status</span>
+									<Segmented options={['Ordered', 'Delivered', 'Returned']} value={order.status}
+										onChange={next => setOrderStatus(order, next)} label="Order status" />
 								</div>
 							</CardBody>
 						</Card>
@@ -56,13 +136,16 @@ export default function OrderDetail() {
 								{order.items.map(item => (
 									<ItemRow key={item.id} thumb="photo" title={item.title}
 										meta={`${item.quantity} × ${kr(item.price)}`
+											+ (item.retail ? ` · retail ${kr(item.retail)}` : '')
 											+ (item.note ? ` · ${item.note}` : '')}
 										amount={kr(item.price * item.quantity)} />
 								))}
+								{/* A receipt with more lines than are listed says so rather than letting the
+								    count above and the rows below quietly disagree. */}
 								{order.itemCount > order.items.length ? (
 									<ItemRow icon="dots" iconTone={{ background: '#EFF3EE', color: 'var(--text-muted)' }}
 										title={`${order.itemCount - order.items.length} more lines`}
-										meta="On the receipt, not shown here." />
+										meta="On the receipt, and in the total below." />
 								) : null}
 								<div className="card-divider" style={{ margin: '6px 0 0' }} />
 								<SummaryRow label="Items subtotal" value={kr(order.subtotal)} />
@@ -74,6 +157,7 @@ export default function OrderDetail() {
 										saved {kr(order.saved)} vs retail ({percent(order.savedPercent)})
 									</span>
 								) : null}
+								<Button variant="block" icon="pencil" to={`/orders/${id}/edit/items`}>EDIT ITEMS</Button>
 							</CardBody>
 						</Card>
 					</div>
@@ -87,29 +171,58 @@ export default function OrderDetail() {
 								<SummaryRow label="Date" value={shortDate(order.date)} />
 								<div className="summary-row">Vendor<span className="summary-row-value">{order.vendor?.name}</span></div>
 								<div className="summary-row">Categories
-									<span className="summary-row-value">{order.categories.map(c => c.name).join(', ')}</span></div>
+									<span className="summary-row-value">
+										{order.categories.map(c => c.name).join(', ') || '—'}</span></div>
 								<div className="summary-row">Kind<span className="summary-row-value">{order.kind}</span></div>
+								{order.reference ? (
+									<div className="summary-row">Reference
+										<span className="summary-row-value">{order.reference}</span></div>
+								) : null}
 								<div className="summary-row">Saved vs retail
 									<span className="summary-row-value tabular-figures summary-row-value-saving">
 										{kr(order.saved)} ({percent(order.savedPercent)})</span></div>
+								{order.note ? (
+									<>
+										<div className="card-divider card-divider-tight" />
+										<span className="field-help">{order.note}</span>
+									</>
+								) : null}
 							</CardBody>
 						</Card>
 
 						<Card aria-label="Attachments">
 							<CardHeader title={`Attachments · ${order.attachments.length}`}>
-								<button type="button" className="button button-pill">ADD FILE</button>
+								<button type="button" className="button button-pill"
+									onClick={() => filePicker.current?.click()}>ADD FILE</button>
 							</CardHeader>
 							<CardDivider />
 							<CardBody variant="card-body-tight">
+								{/* The picker is a real one. The phantom source keeps the name, the size and
+								    the kind; the bytes are the one thing it has no business pretending to hold. */}
+								<input ref={filePicker} type="file" accept="image/*,.pdf" className="field-file-input"
+									aria-hidden="true" tabIndex={-1}
+									onChange={e => { attach(e.target.files?.[0]); e.target.value = '' }} />
 								{order.attachments.length ? order.attachments.map(file => (
-									<ItemRow key={file.id} thumb={file.kind === 'pdf' ? 'document' : 'photo'}
-										title={file.name} meta={file.meta}>
-										<span className="row-inline row-inline-nowrap" style={{ gap: 4, marginLeft: 'auto' }}>
-											<IconButton icon="chevronRight" label={`Open ${file.name}`} />
-											<IconButton icon="trash" label={`Delete ${file.name}`} />
-										</span>
-									</ItemRow>
-								)) : <p className="field-help">Nothing attached to this order yet.</p>}
+									<div key={file.id}>
+										<ItemRow thumb={file.kind === 'pdf' ? 'document' : 'photo'}
+											title={file.name} meta={file.meta}>
+											<span className="row-inline row-inline-nowrap" style={{ gap: 4, marginLeft: 'auto' }}>
+												<IconButton icon={openFile === file.id ? 'chevronDown' : 'chevronRight'}
+													label={`${openFile === file.id ? 'Close' : 'Open'} ${file.name}`}
+													aria-expanded={openFile === file.id}
+													onClick={() => setOpenFile(openFile === file.id ? null : file.id)} />
+												<IconButton icon="trash" label={`Delete ${file.name}`}
+													onClick={() => detach(file)} />
+											</span>
+										</ItemRow>
+										{openFile === file.id ? (
+											<div style={{ padding: '0 4px 10px' }}>
+												<DocumentPreview kind={file.kind} />
+												<span className="field-help">{file.name} · {file.meta}</span>
+											</div>
+										) : null}
+									</div>
+								)) : <p className="field-help">Nothing attached yet. ADD FILE puts a receipt here.</p>}
 							</CardBody>
 						</Card>
 

@@ -4,6 +4,7 @@ import Orders from './pages/Orders.jsx'
 import AllOrders from './pages/AllOrders.jsx'
 import OrderDetail from './pages/OrderDetail.jsx'
 import { NewOrderDetails, NewOrderItems, NewOrderLayout } from './pages/NewOrder.jsx'
+import Settings from './pages/Settings.jsx'
 import { ScanReading, ScanReview, ScanUpload } from './pages/Scan.jsx'
 import Vendors from './pages/Vendors.jsx'
 import Categories from './pages/Categories.jsx'
@@ -44,8 +45,20 @@ export const routes = [
 					{ index: true, element: <NewOrderDetails />, handle: { title: 'New order', navKey: 'orders' } },
 					{ path: 'items', element: <NewOrderItems />, handle: { title: 'New order', navKey: 'orders' } }
 				] },
-				{ path: ':id', element: <OrderDetail />,
-					handle: { title: 'Order details', navKey: 'orders', back: { to: '/orders', label: 'orders' } } }
+				{ path: ':id', children: [
+					{ index: true, element: <OrderDetail />,
+						handle: { title: 'Order details', navKey: 'orders', back: { to: '/orders', label: 'orders' } } },
+					/* Editing an order is the New order flow with the order loaded into it, rather
+					   than a second form that would drift from the first. Both steps are here, so
+					   the item list is editable on an existing order too. */
+					{ path: 'edit', element: <NewOrderLayout mode="edit" />,
+						handle: { title: 'Edit order', navKey: 'orders' }, children: [
+						{ index: true, element: <NewOrderDetails mode="edit" />,
+							handle: { title: 'Edit order', navKey: 'orders' } },
+						{ path: 'items', element: <NewOrderItems mode="edit" />,
+							handle: { title: 'Edit order', navKey: 'orders' } }
+					] }
+				] }
 			] },
 
 			{ path: 'scan', handle: { title: 'Scan receipt', navKey: 'orders' }, children: [
@@ -61,6 +74,8 @@ export const routes = [
 			{ path: 'categories', element: <Categories />,
 				handle: { title: 'Categories', navKey: 'categories', tabs: VIEW_TABS('Manage') } },
 			{ path: 'stats', element: <Stats />, handle: { title: 'Statistics', navKey: 'stats' } },
+			{ path: 'settings', element: <Settings />,
+				handle: { title: 'Order settings', navKey: 'orders', back: { to: '/orders', label: 'orders' } } },
 
 			{ path: '*', element: <Home />, handle: { title: 'Home', navKey: 'home' } }
 		]

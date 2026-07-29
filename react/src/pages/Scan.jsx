@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -11,13 +11,15 @@ import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, Form, FormActions, Segmented, TextInput
+	DateInput, Field, FieldPair, FieldShell, FieldUnit, Form, FormActions, FormStatus,
+	Segmented, TextInput
 } from '../components/Form.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
-	getHomeContent, getOrders, getOrdersOverview, getRecentScans, getScanDocuments, getScanDraft, spendKinds
+	createOrder, getHomeContent, getOrders, getOrdersOverview, getRecentScans, getScanDocuments,
+	getScanDraft, spendKinds
 } from '../api/client.js'
-import { kr } from '../api/format.js'
+import { AMOUNT_PATTERN, WHOLE_NUMBER_PATTERN, amount, kr, parseAmount } from '../api/format.js'
 
 /* Scan, in three steps.
 
@@ -150,33 +152,94 @@ export function ScanReview() {
 	const key = useDocumentKey()
 	const state = useApi(getScanDraft, [key])
 	const navigate = useNavigate()
-	const [status, setStatus] = useState('Delivered')
 	const [showAll, setShowAll] = useState(false)
+	const [saving, setSaving] = useState(false)
+	const [message, setMessage] = useState({ message: '', good: true })
+	/* The draft the review is editing. It starts as what the reader returned and is what SAVE
+	   ORDER writes -- so the fields on this page are the order, rather than a picture of one.
+	   `null` until the API answers, and the body below only renders once it has. */
+	const [draft, setDraft] = useState(null)
+	const [editingLine, setEditingLine] = useState(null)
+	const [sourceOpen, setSourceOpen] = useState(false)
+
+	/* The draft is seeded in an effect rather than during render: setting state while
+	   rendering is how a component ends up re-entering its own render, and React says so.
+	   `doc` in the dependency list is what re-seeds it when a different document is chosen. */
+	useEffect(() => {
+		if (!state.data) return
+		setDraft({
+			vendor: state.data.vendor, date: state.data.date, status: state.data.status,
+			kind: state.data.kind, shipping: amount(state.data.shipping),
+			lines: state.data.lines.map(l => ({ ...l, quantity: l.quantity ?? 1, price: l.price ?? l.amount })),
+			remainder: state.data.remainder
+		})
+		setEditingLine(null)
+	}, [state.data])
+
+	const patch = p => setDraft(d => ({ ...(d ?? {}), ...p }))
+
+	const saveLine = (id, values) => {
+		patch({ lines: (draft.lines).map(l => (l.id === id
+			? { ...l, title: values.title, quantity: values.quantity, price: values.price,
+				uncertain: false, meta: undefined, amount: undefined }
+			: l)) })
+		setEditingLine(null)
+		setMessage({ message: `${values.title} corrected.`, good: true })
+	}
 
 	const save = () => {
-		invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
-		navigate('/orders')
+		setSaving(true)
+		createOrder({
+			vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
+			categories: [], shipping: draft.shipping,
+			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price }))
+		})
+			.then(order => {
+				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
+				navigate('/orders/' + order.id)
+			})
+			.catch(() => { setSaving(false); setMessage({ message: 'That did not save. Try again.', good: false }) })
 	}
 
 	return (
 		<Page>
 			<Stepper steps={SCAN_STEPS(2)} />
-			<Async state={state} label="Loading the draft">{draft => (
+			<Async state={state} label="Loading the draft">{answer => {
+				/* One render can land between the answer arriving and the effect above seeding the
+				   draft from it, so the wait is stated rather than the page half-drawn. */
+				const d = draft
+				if (!d) return <p className="field-help">Opening the draft…</p>
+				const linesTotal = d.lines.reduce((sum, l) => sum + l.price * l.quantity, 0)
+					+ (d.remainder?.total ?? 0)
+				const shipping = d.shipping && AMOUNT_PATTERN.test(d.shipping) ? parseAmount(d.shipping) : 0
+				return (
 				<div className="order-list-grid">
 					<div className="order-list-column">
 						<Card aria-label="Review the draft">
 							<CardBody variant="card-body-page">
 								<div className="card-headline">Review the draft</div>
 								<p className="card-lead">Every value is editable. Nothing is stored until you save.</p>
-								<Note tone="positive" title="Total matches." style={{ marginBottom: 16 }}>
-									{draft.reconciled}
-								</Note>
+								{/* The verdict is about the numbers on screen, so it is recomputed from them:
+								    correct a line and the note either still says the total matches or stops
+								    saying it. A fixed "Total matches." over edited figures is the app
+								    asserting something it has not checked. */}
+								{Math.abs(linesTotal + shipping - answer.total) < 0.005 ? (
+									<Note tone="positive" title="Total matches." style={{ marginBottom: 16 }}>
+										{answer.reconciled}
+									</Note>
+								) : (
+									<Note tone="warning" title="Total no longer matches." style={{ marginBottom: 16 }}>
+										The lines now add up to {kr(linesTotal + shipping)}, against the document total
+										of {kr(answer.total)}. Saving keeps what is on screen.
+									</Note>
+								)}
 								<Form>
+									<FormStatus message={message.message} good={message.good} />
 									<Field label="Vendor">
 										<FieldShell>
-											<TextInput defaultValue={draft.vendor} placeholder="Search vendors…"
-												aria-label="Vendor" aria-required="true" />
-											{draft.vendorMatched
+											<TextInput value={d.vendor} onChange={v => patch({ vendor: v })}
+												placeholder="Search vendors…" aria-label="Vendor" aria-required="true" />
+											{answer.vendorMatched && d.vendor === answer.vendor
 												? <StatusChip style={{ height: 24, fontSize: 10.5 }}>matched</StatusChip>
 												: null}
 										</FieldShell>
@@ -184,12 +247,12 @@ export function ScanReview() {
 
 									<FieldPair>
 										<Field label="Date">
-											<DateInput label="Order date" value={draft.date} onChange={() => {}}
-												aria-required="true" />
+											<DateInput label="Order date" value={d.date}
+												onChange={v => patch({ date: v })} aria-required="true" />
 										</Field>
 										<Field label="Status" group>
 											<Segmented options={['Ordered', 'Delivered', 'Returned']}
-												value={status} onChange={setStatus} label="Status" />
+												value={d.status} onChange={v => patch({ status: v })} label="Status" />
 										</Field>
 									</FieldPair>
 
@@ -197,60 +260,67 @@ export function ScanReview() {
 										<Field label="Shipping fee"
 											help="Not on the receipt; add it if the order was delivered.">
 											<FieldShell>
-												<TextInput inputMode="decimal" defaultValue="0,00" aria-label="Shipping fee" />
+												<TextInput inputMode="decimal" value={d.shipping}
+													onChange={v => patch({ shipping: v })} aria-label="Shipping fee" />
 												<FieldUnit>kr.</FieldUnit>
 											</FieldShell>
 										</Field>
 										<Field label="Kind" help="Only expenses count towards your totals.">
-											<Combobox label="Kind" value={draft.kind} onChange={() => {}} required
+											<Combobox label="Kind" value={d.kind} onChange={v => patch({ kind: v })} required
 												groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
 										</Field>
 									</FieldPair>
 
 									<div>
 										<div className="space-between space-between-tight">
-											<span className="section-label">Lines read · {draft.linesRead}</span>
-											<span className="field-help">tap a line to correct it</span>
+											<span className="section-label">Lines read · {answer.linesRead}</span>
+											<span className="field-help">the pencil corrects a line</span>
 										</div>
 										<InsetPanel>
-											{draft.lines.map(line => (
-												<ItemRow key={line.id}
-													icon={line.uncertain ? 'alert' : 'check'}
-													iconTone={line.uncertain ? { background: '#F6ECD9', color: '#84651E' } : undefined}
-													title={line.title}
-													meta={line.meta ?? `${line.quantity} × ${kr(line.price)}`}
-													amount={kr(line.amount ?? line.price * line.quantity)}>
-													<IconButton icon="pencil" label={`Edit ${line.title}`} />
-												</ItemRow>
+											{d.lines.map(line => (
+												editingLine === line.id ? (
+													<LineEditor key={line.id} line={line}
+														onSave={values => saveLine(line.id, values)}
+														onCancel={() => setEditingLine(null)} />
+												) : (
+													<ItemRow key={line.id}
+														icon={line.uncertain ? 'alert' : 'check'}
+														iconTone={line.uncertain ? { background: '#F6ECD9', color: '#84651E' } : undefined}
+														title={line.title}
+														meta={line.meta ?? `${line.quantity} × ${kr(line.price)}`}
+														amount={kr(line.price * line.quantity)}>
+														<IconButton icon="pencil" label={`Edit ${line.title}`}
+															onClick={() => setEditingLine(line.id)} />
+													</ItemRow>
+												)
 											))}
 											{/* The remainder is a count and a total, not a row that pretends to be a
 											    line. Opening it is the honest action for it, so SHOW ALL is a button. */}
-											{!showAll && draft.remainder.count ? (
+											{d.remainder?.count ? (
 												<ItemRow icon="dots"
 													iconTone={{ background: '#EFF3EE', color: 'var(--text-muted)' }}
-													title={`${draft.remainder.count} more lines`}
-													meta={`${kr(draft.remainder.total)} together`}>
-													<ButtonLink style={{ marginLeft: 'auto' }}
-														onClick={() => setShowAll(true)}>SHOW ALL</ButtonLink>
+													title={`${d.remainder.count} more lines`}
+													meta={showAll
+														? 'Kept as read; the document stays attached to the order.'
+														: `${kr(d.remainder.total)} together`}>
+													{showAll ? null : (
+														<ButtonLink style={{ marginLeft: 'auto' }}
+															onClick={() => setShowAll(true)}>SHOW ALL</ButtonLink>
+													)}
 												</ItemRow>
-											) : null}
-											{showAll ? (
-												<ItemRow icon="dots"
-													iconTone={{ background: '#EFF3EE', color: 'var(--text-muted)' }}
-													title={`${draft.remainder.count} more lines`}
-													meta="The full receipt is attached to the order when you save." />
 											) : null}
 										</InsetPanel>
 									</div>
 
-									<SummaryRow label="Lines subtotal" value={kr(draft.subtotal)} />
-									<SummaryRow label="Shipping" value={kr(draft.shipping)} />
+									<SummaryRow label="Lines subtotal" value={kr(linesTotal)} />
+									<SummaryRow label="Shipping" value={kr(shipping)} />
 									<div className="card-divider" style={{ margin: '2px 0 0' }} />
-									<SummaryTotal value={kr(draft.total)} />
+									<SummaryTotal value={kr(linesTotal + shipping)} />
 
 									<FormActions split>
 										<Button variant="ghost" to="/scan">DISCARD</Button>
-										<Button variant="caps" onClick={save}>SAVE ORDER</Button>
+										<Button variant="caps" onClick={save} disabled={saving}>
+											{saving ? 'SAVING…' : 'SAVE ORDER'}</Button>
 									</FormActions>
 								</Form>
 							</CardBody>
@@ -260,14 +330,21 @@ export function ScanReview() {
 					<div className="order-list-column">
 						<Card aria-label="Source document">
 							<CardHeader title="Source">
-								<button type="button" className="button button-pill">OPEN</button>
+								{/* The preview under this button is a thumbnail; OPEN is what makes it big
+								    enough to read from. It says which state it is in, and it says CLOSE when
+								    it would close -- a toggle labelled the same in both states is a control
+								    that tells you nothing about what pressing it does. */}
+								<button type="button" className="button button-pill"
+									aria-expanded={sourceOpen} aria-controls="scan-source-preview"
+									onClick={() => setSourceOpen(o => !o)}>{sourceOpen ? 'CLOSE' : 'OPEN'}</button>
 							</CardHeader>
 							<CardDivider />
 							<CardBody>
-								<DocumentPreview kind={draft.file.kind} />
+								<DocumentPreview kind={answer.file.kind} id="scan-source-preview"
+									style={sourceOpen ? { height: 520 } : undefined} />
 								<div className="space-between document-name-row" style={{ marginTop: 10 }}>
-									<span className="document-name">{draft.file.name}</span>
-									<span className="field-help">{draft.file.meta}</span>
+									<span className="document-name">{answer.file.name}</span>
+									<span className="field-help">{answer.file.meta}</span>
 								</div>
 								<span className="field-help">Saved as an attachment on the order when you save.</span>
 							</CardBody>
@@ -278,11 +355,11 @@ export function ScanReview() {
 							<CardDivider />
 							<CardBody>
 								<Note tone="warning" title="Check before saving." style={{ marginBottom: 10 }}>
-									You already have a {draft.vendor} order within 14 days of this date.
+									You already have a {answer.vendor} order within 14 days of this date.
 								</Note>
-								<ItemRow thumb="receipt" to={`/orders/${draft.duplicate.orderId}`}
-									title={draft.duplicate.title} meta={draft.duplicate.meta}
-									amount={kr(draft.duplicate.total)} />
+								<ItemRow thumb="receipt" to={`/orders/${answer.duplicate.orderId}`}
+									title={answer.duplicate.title} meta={answer.duplicate.meta}
+									amount={kr(answer.duplicate.total)} />
 							</CardBody>
 						</Card>
 
@@ -291,7 +368,7 @@ export function ScanReview() {
 							<CardDivider />
 							<CardBody>
 								<InsetPanel>
-									{draft.checks.map(check => (
+									{answer.checks.map(check => (
 										<ItemRow key={check.id}
 											icon={check.warning ? 'alert' : 'check'}
 											iconTone={check.warning ? { background: '#F6ECD9', color: '#84651E' } : undefined}
@@ -301,8 +378,65 @@ export function ScanReview() {
 							</CardBody>
 						</Card>
 					</div>
-				</div>
-			)}</Async>
+					</div>
+				)
+			}}</Async>
 		</Page>
+	)
+}
+
+/** A line of the receipt, opened for correction. Three fields, the same grammar the rest of
+    the app uses for money, and no save until they parse. */
+function LineEditor({ line, onSave, onCancel }) {
+	const [title, setTitle] = useState(line.title)
+	const [quantity, setQuantity] = useState(String(line.quantity))
+	const [price, setPrice] = useState(amount(line.price))
+	const [error, setError] = useState('')
+
+	const submit = () => {
+		if (!title.trim()) { setError('Describe the line.'); return }
+		if (!WHOLE_NUMBER_PATTERN.test(quantity) || Number(quantity) < 1) {
+			setError('Whole pieces only, such as 2.'); return
+		}
+		if (!AMOUNT_PATTERN.test(price)) { setError('Amounts take a comma, such as 24,95.'); return }
+		setError('')
+		onSave({ title: title.trim(), quantity: Number(quantity), price: parseAmount(price) })
+	}
+
+	const keys = e => {
+		if (e.key === 'Enter') { e.preventDefault(); submit() }
+		else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onCancel() }
+	}
+
+	return (
+		<div className="filter-section" style={{ margin: '4px 0' }}>
+			<Field label="Line" error={error} errorId={`line-${line.id}-error`}>
+				<FieldShell>
+					<TextInput id={`line-${line.id}`} value={title} onChange={setTitle} autoFocus
+						aria-label="Line description" invalid={Boolean(error)}
+						describedBy={`line-${line.id}-error`} onKeyDown={keys} />
+				</FieldShell>
+			</Field>
+			<FieldPair>
+				<Field label="Quantity">
+					<FieldShell>
+						<TextInput inputMode="numeric" value={quantity} onChange={setQuantity}
+							aria-label="Quantity" onKeyDown={keys} />
+						<FieldUnit>pcs</FieldUnit>
+					</FieldShell>
+				</Field>
+				<Field label="Price">
+					<FieldShell>
+						<TextInput inputMode="decimal" value={price} onChange={setPrice}
+							aria-label="Price" onKeyDown={keys} />
+						<FieldUnit>kr.</FieldUnit>
+					</FieldShell>
+				</Field>
+			</FieldPair>
+			<FormActions>
+				<Button variant="caps compact" icon="check" onClick={submit}>SAVE LINE</Button>
+				<Button variant="ghost compact" onClick={onCancel}>CANCEL</Button>
+			</FormActions>
+		</div>
 	)
 }

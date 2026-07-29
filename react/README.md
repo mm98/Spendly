@@ -1,8 +1,12 @@
 # Spendly, in React
 
 The prototype one directory up is a single HTML file with no build, no dependencies and no
-network. This is the same product as a React application: every page, every control, and a
-phantom API standing where a real backend goes.
+network. This is the same product as a React application: every page, every control wired,
+and a phantom API standing where a real backend goes.
+
+**Nothing here is a picture of a control.** Every button, tab, switch, chip, combobox and
+pager does what it says: creates, edits, deletes, filters, sorts, pages, saves. Where the
+prototype draws something inert, this either does the thing or does not draw it.
 
 ```bash
 npm install
@@ -21,10 +25,28 @@ everywhere it is shown, which is the thing hand-written markup could not promise
 src/
   api/          the phantom data source: seed.js, client.js, useApi.js, format.js
   components/   the design system as components -- one file per family
-  pages/        twelve pages, one per route
+  pages/        ten page modules over fifteen routes
   styles/       spendly.css, the prototype's stylesheet, unmodified
   routes.jsx    the routes, and the four things the shell reads off each one
 ```
+
+### The pages
+
+| Route | What it is |
+| --- | --- |
+| `/` | Home: the month, the hero chart, and the cards the user chose |
+| `/orders` | Orders overview: the month against the one before, latest orders, suggestions |
+| `/orders/all` | All orders: search, filters, sort and a pager, all in the URL |
+| `/orders/new`, `/orders/new/items` | New order, in two steps that share one draft |
+| `/orders/:id` | One order: status, items, attachments, edit, delete |
+| `/orders/:id/edit`, `/orders/:id/edit/items` | The same two-step form, with the order loaded into it |
+| `/scan` | Scan: four ways in, each naming the document it hands the flow |
+| `/scan/reading` | Reading the document that was chosen |
+| `/scan/review` | The draft, editable line by line, saved as a real order |
+| `/vendors` | Vendors: create, favourite, delete, search, sort |
+| `/categories` | Categories, and a Manage tab that renames, budgets and deletes |
+| `/stats` | Statistics, with a pager over three months |
+| `/settings` | Order settings — what ORDER SETTINGS opens |
 
 ### The stylesheet is the prototype's, untouched
 
@@ -72,6 +94,19 @@ reads through it and none of them reach into `seed.js`.
   "Nothing here." rather than rendering an empty frame that looks like an answer.
 
 Swapping in `fetch()` touches this one file.
+
+**Everything writes through it.** `createOrder`, `updateOrder`, `deleteOrder`,
+`addAttachment`, `removeAttachment`, `createVendor`, `updateVendor`, `deleteVendor`,
+`createCategory`, `updateCategory`, `deleteCategory`, `saveSettings`, `saveDashboardCards`,
+`resetStoredData` — 34 endpoints in all, and every one of them is called from a page. Deletes that would orphan a record are refused with
+a reason: a vendor with orders on it and a category on an order both come back 409, and the
+message names how many are in the way.
+
+What gets stored is the *difference* from the seed — what this browser added, removed or
+changed — rather than a copy of every record. A stored copy freezes the demo data at the
+version it was first read at, and a fix to the seed would never reach anyone who had opened
+the app once. That also fixed a real bug: storing only *added* orders meant an edit to a
+seeded one was written, rendered, and gone on the next reload.
 
 `useApi` is the only read path. It caches by endpoint and arguments, so walking back to a
 page paints from what is known instead of flashing a skeleton at a value that has not
@@ -123,6 +158,19 @@ unit is always one CSS pixel and stroke widths hold. In React that means the wid
 and the path data is computed during render, so a re-render never leaves a path drawn for a
 width the element no longer has.
 
+### The command palette
+
+The top bar prints `CTRL K`, and a key cap is a promise. Ctrl+K (Cmd+K) opens the palette from
+anywhere and puts the caret in it; Up and Down walk the results, Enter opens the highlighted
+one, Escape closes it and hands focus back to whatever had it.
+
+It searches orders, vendors, categories, item lines and notes, and it lists the commands the
+app can run — so it reaches every page and every create flow from the keyboard. The results
+come from the API on each keystroke, aborted when the next one lands.
+
+The prototype ships four results for the word "bil" written into the markup, which is right
+for that one word and wrong for every other. This is an index.
+
 ### Routing
 
 Twelve routes under one shell. Each carries a `handle` naming four things: its title, which
@@ -136,11 +184,32 @@ reachable and unnamed, because the router is what names it.
 Back-button labels name the destination, not the origin: "Back to scan receipt" on the two
 scan steps, "Back to orders" on an order.
 
+**State the app can be linked to lives in the URL**, not in component state: which month
+Statistics is showing, and every filter, sort and page on All orders. That is what makes a
+link from the palette, a chart legend row, a category tile or a vendor card arrive already
+filtered — and it caught a real defect. Reading the query string once with a `useState`
+initialiser looked correct and was not: going from `/orders/all` to `/orders/all?vendor=bilka`
+changes the URL without remounting the component, so the initialiser never runs again and the
+filter silently does not apply.
+
 **Hash routing**, for the reason the prototype is one file: a built copy has to open from
 anywhere — a static host with no rewrite rule, a `file://` URL, a folder someone unzipped —
 and a path router needs the server to send every URL to `index.html`. The prototype answered
 `#detail`; this answers `#/orders/o-303`, which is the same promise with a real address
 behind it.
+
+### What the settings actually change
+
+A settings page whose switches change nothing is the decorative-control rule with more surface
+area, so each one is read somewhere and the page says where:
+
+- **Default kind** and **default status** — what step 1 of New order opens with.
+- **Rows per page** — how many orders All orders shows before the pager.
+- **Sort orders by** — what All orders opens sorted by.
+- **Show the scan card on Home** — the same switch LATER on the card itself writes, so
+  dismissing it there and turning it back on here are one setting seen twice.
+- **Ask before deleting an order** — whether the delete button on an order confirms first.
+- **Clear stored data** — forgets everything this browser holds and puts the demo data back.
 
 ### The scan flow carries the document
 
@@ -157,49 +226,79 @@ Chromium 141.0.7390.37 under Playwright 1.56.1, at 1440x900 and on an `iPhone 13
 profile at `deviceScaleFactor: 2`. Gecko and WebKit are not installed here and were not
 checked.
 
-- **Every route renders, at both widths.** 12 routes x 2 widths: correct page title, correct
-  sub-tabs, correct rail highlight, no console errors, no page errors, no horizontal
-  overflow, and every chart measured non-zero.
-- **65 interaction assertions pass.** Both forms' validation, including the messages, the
-  focus, the status line and the panel a hidden rejection lives behind; ADD ITEM and the
-  totals it moves; Enter adds and Escape clears; saving through the API and surviving a
-  reload; the filter chips against the count above the list; the range chips and the series
-  tabs both driving one chart; the dashboard's reorder, remove, cancel and persistence; all
-  four scan entries against the file each one names; the sub-tabs, one navigating and one
-  switching in place; and a tap on a real coarse-pointer profile, where the
-  `@media (pointer: coarse)` block is live and a narrow window would not have matched it.
-- **axe, every rule enabled, 41 states.** 21 states at two widths, including the open
-  combobox, both rejected forms, the editing dashboard and both alternate views.
-  0 violations of everything except `color-contrast-enhanced`. AA contrast is clean:
-  0 violations against 1,595 passing elements across 22 states. The 867 AAA findings are the
-  prototype's palette, which `../README.md` documents as an AA-level system — `--green` is
-  2.93:1 on white by design.
+- **Every route renders, at both widths.** Correct page title, correct sub-tabs, correct rail
+  highlight, no console errors, no page errors, no horizontal overflow, every chart measured
+  non-zero.
+- **No control is drawn without a handler or a destination.** A source sweep over every
+  `<button>`, `Button`, `IconButton`, `ButtonLink`, `Segmented`, `Switch` and `Combobox` in
+  `src/` returns zero that carry neither `onClick`, `onChange`, `onSelect`, `onRemove` nor
+  `to`. Disabled ones are honest: PREVIOUS and NEXT at the ends of the pager, and the
+  period arrows at the ends of the month list.
+- **145 interaction assertions pass**, in two harnesses. The first (65) covers the ported
+  behaviour: both forms' validation and focus, the totals, saving and reloading, the filter
+  chips, the two controls driving one chart, the dashboard, the four scan entries, the
+  sub-tabs, and a tap on a real coarse-pointer profile. The second (80) drives everything
+  that used to be inert:
+
+  - Ctrl+K opens the palette and focuses it; typing searches orders, vendors, item lines and
+    commands; Up and Down move `aria-activedescendant`; Enter opens the highlighted result;
+    Escape closes it.
+  - A setting saved on `/settings` changes All orders — page size, sort — and the pager turns
+    pages, disables itself at the ends, and states the range.
+  - Sorting re-orders through the API and lands in the URL; a `?vendor=` link arrives filtered
+    with the chip drawn and the rows really that vendor.
+  - Vendors: create, star into favourites, unstar, delete — and a vendor with orders on it is
+    refused with the reason.
+  - Categories: create, rename, set a budget, delete — and a category on orders is refused
+    with the count.
+  - Statistics pages back through June and May, the figures move with it, the month is in the
+    URL, and browser Back walks the pager.
+  - An order's status writes through and survives a reload; ADD FILE attaches the file it was
+    given and the header counts it; OPEN shows it, delete removes it; Edit loads the order
+    into the form, a line edit replaces rather than appends, and the edit sticks; Delete asks
+    first, CANCEL leaves it, DELETE removes it and the order is really gone.
+  - The scan review corrects a line, recomputes its own verdict rather than asserting one, and
+    saves a real order carrying the correction.
+  - LATER on Home writes the same setting the Settings switch does, and it survives a reload.
+
+- **axe, every rule enabled, 70 states.** 35 states at two widths, including the open palette
+  with results, both rejected forms, the editing dashboard, the delete confirmation, the
+  category editor, the open line editor and both alternate views. 0 violations of everything
+  except `color-contrast-enhanced`. AA contrast is clean: **0 violations against 2,138 passing
+  elements** across 32 states. The AAA findings are the prototype's palette, which
+  `../README.md` documents as an AA-level system — `--green` is 2.93:1 on white by design.
 - **Pixels.** This container reproduces all three committed shots in `../docs/` from the
   prototype at 0 differing pixels, so it is a valid baseline. Against it, this app's phone
-  render is **0 of 1,035,840** — identical. Home differs by 32,769 of 5,184,000 (0.6%),
-  which is the donut drawn from the data. All orders differs by 593,685 (11.4%), which is
-  the filters being real: the prototype's shot has three chips and three rows because they
-  are typed into the markup, and this page opens unfiltered with everything that matches.
+  render is **0 of 1,035,840** — identical.
 
-Three defects were found by these runs and fixed rather than reported: `aria-describedby`
-pointing at a message element with no id, a field re-checking against the value from before
-the keystroke (so a message cleared one character late), and `aria-expanded` on a
-`role="search"` input, which is not an allowed attribute there and is simply ignored.
+Six defects were found by these runs and fixed rather than reported:
+
+1. `aria-describedby` pointing at a message element with no id.
+2. A field re-checking against the value from before the keystroke, so a message cleared one
+   character late.
+3. `aria-expanded` on a `role="search"` input, where it is not an allowed attribute.
+4. Escape not closing the command palette: it is `input[type=search]`, and Chromium's own
+   Escape clears the field, which fires `change`, which reopened the panel a beat after the
+   handler closed it. The handler read correctly throughout.
+5. Filters read from the query string with a `useState` initialiser — correct on first load
+   and silently dead for every in-app link, because changing the query string does not
+   remount the component.
+6. Edits to *seeded* orders never persisting, because only added orders were being stored.
+   Marking an order delivered worked, rendered, and was gone on the next reload.
 
 ## What this port does not do
 
 - No tests are committed. The harnesses above were written and run against this build; they
   live outside the repository.
 - Gecko and WebKit were not checked. Anything touching a native form control is
-  engine-shaped by default, and this app has four date fields and four search inputs.
-- **Some controls are still drawn and inert**, and they are in tension with `../README.md`
-  §13, "No decorative controls at all". ADD VENDOR, ADD (category), ADD FILE, OPEN,
-  HOW IT WORKS, ASK SPENDLY, SEE THE ANSWER, ORDER SETTINGS, the SEE ALL pill on Vendors,
-  and the edit and delete buttons on an order all carry a handler-free click. Every one of
-  them is the prototype's, carried across unchanged: each would need either a screen this
-  app does not have, or a removal, and both are product decisions rather than porting ones.
-  Naming them here is the alternative to quietly inventing behaviour for them. The controls
-  that *do* act — every form, filter, tab, switch, chip and card control listed under "What
-  was measured" — were wired and asserted rather than assumed.
-  The disabled ones are honest: PREVIOUS and NEXT under a single page of results, and the
-  next-period arrow on Statistics, say so in `disabled` because there is nowhere to go.
+  engine-shaped by default, and this app has date fields, search inputs and a file picker.
+  Defect 4 above is exactly that shape, and Blink found it — the other two engines may hold
+  another.
+- Attachments keep a name, a size and a kind. The bytes are the one thing a phantom source
+  has no business pretending to hold, so OPEN shows the document placeholder rather than a
+  render of a file that does not exist.
+- Item photos are the same: the field records the filename you chose and shows it on the item
+  row. It does not display the image.
+- Drag-to-reorder is not implemented; reordering is done with the arrow buttons on each row,
+  which is the accessible half of it and the half a keyboard can reach. The copy says
+  "use the arrows to reorder" rather than promising a drag that is not there.

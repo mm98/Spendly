@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -10,7 +10,7 @@ import { Icon } from '../components/Icon.jsx'
 import { DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, Segmented } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories, getOrders, getVendors, spendKinds } from '../api/client.js'
+import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
 import { dayMonth, parseAmount } from '../api/format.js'
 
 /* All orders: the search, the filters, and what they leave.
@@ -27,22 +27,76 @@ import { dayMonth, parseAmount } from '../api/format.js'
 const EMPTY = { vendorId: '', vendorName: '', categoryId: '', categoryName: '', kind: '',
 	status: 'Any', from: '', to: '', minAmount: '', maxAmount: '' }
 
+/* The query string is where the filters live, not component state.
+
+   Every link into this page speaks it -- the palette, a chart legend row, a category tile, a
+   vendor card, the answer to the question of the day -- and reading it once on mount is not
+   enough: arriving here from /orders/all at /orders/all?vendor=bilka changes the URL without
+   remounting the component, so a `useState` initialiser never runs again and the filter
+   silently does not apply. Deriving from the URL instead means the link, the chips, the
+   Back button and the list cannot disagree, and a filtered list is a URL you can send. */
+const filtersFromParams = params => ({
+	...EMPTY,
+	vendorId: params.get('vendor') ?? '',
+	categoryId: params.get('category') ?? '',
+	kind: params.get('kind') ?? '',
+	from: params.get('from') ?? '',
+	to: params.get('to') ?? '',
+	minAmount: params.get('min') ?? '',
+	maxAmount: params.get('max') ?? '',
+	status: params.get('status') ?? 'Any'
+})
+
+const paramsFromFilters = (filters, query, sort, page) => {
+	const out = {}
+	if (query) out.q = query
+	if (filters.vendorId) out.vendor = filters.vendorId
+	if (filters.categoryId) out.category = filters.categoryId
+	if (filters.kind) out.kind = filters.kind
+	if (filters.from) out.from = filters.from
+	if (filters.to) out.to = filters.to
+	if (filters.minAmount) out.min = filters.minAmount
+	if (filters.maxAmount) out.max = filters.maxAmount
+	if (filters.status !== 'Any') out.status = filters.status
+	if (sort) out.sort = sort
+	if (page > 1) out.page = String(page)
+	return out
+}
+
 export default function AllOrders() {
-	const [params] = useSearchParams()
-	const [query, setQuery] = useState(params.get('q') ?? '')
-	const [filters, setFilters] = useState(() => ({
-		...EMPTY,
-		categoryId: params.get('category') ?? '',
-		status: params.get('status') ?? 'Any'
-	}))
+	const [params, setParams] = useSearchParams()
+	const filters = useMemo(() => filtersFromParams(params), [params])
+	const query = params.get('q') ?? ''
+	const page = Number(params.get('page') ?? 1)
+	const urlSort = params.get('sort')
+
 	const [draft, setDraft] = useState(filters)
+	/* Open on arrival, as the prototype has it: the filters are the point of this page, and a
+	   panel that starts closed hides the controls a link may have just set. */
 	const [panelOpen, setPanelOpen] = useState(true)
 	const [message, setMessage] = useState('')
 	const searchField = useRef(null)
 	const chipRow = useRef(null)
 
+	/* The panel's own copy follows the URL, so a link that arrives with a filter on it opens
+	   the panel showing that filter rather than the last one typed into it. */
+	useEffect(() => setDraft(filters), [filters])
+
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
+	const settings = useApi(getSettings)
+	/* The sort is the URL's when the URL has one, and the user's stored default otherwise. */
+	const activeSort = urlSort ?? settings.data?.sort ?? 'date-desc'
+	const pageSize = settings.data?.pageSize ?? 10
+
+	/* Writing a filter is writing the URL. Any change but the page resets to page one --
+	   staying on page 4 of a result set that now has two is how a filter reports "no orders"
+	   that it actually matched. */
+	const write = (next, nextQuery = query, nextSort = urlSort, nextPage = 1) =>
+		setParams(paramsFromFilters(next, nextQuery, nextSort, nextPage), { replace: true })
+	const setQuery = q => write(filters, q, urlSort, 1)
+	const setPage = p => write(filters, query, urlSort, p)
+	const refilter = next => write(next, query, urlSort, 1)
 
 	const request = useMemo(() => ({
 		query,
@@ -53,8 +107,11 @@ export default function AllOrders() {
 		from: filters.from,
 		to: filters.to,
 		minAmount: filters.minAmount ? parseAmount(filters.minAmount) : null,
-		maxAmount: filters.maxAmount ? parseAmount(filters.maxAmount) : null
-	}), [query, filters])
+		maxAmount: filters.maxAmount ? parseAmount(filters.maxAmount) : null,
+		sort: activeSort,
+		page,
+		pageSize
+	}), [query, filters, activeSort, page, pageSize])
 
 	const results = useApi(getOrders, [request])
 
@@ -80,19 +137,17 @@ export default function AllOrders() {
 
 	const removeChip = useCallback((chip, index) => {
 		const rest = chips.length - 1
-		setFilters(prev => ({ ...prev, ...chip.clear }))
-		setDraft(prev => ({ ...prev, ...chip.clear }))
+		refilter({ ...filters, ...chip.clear })
 		setMessage(chip.label + ' removed. ' + countSentence(rest))
 		queueMicrotask(() => {
 			const buttons = [...(chipRow.current?.querySelectorAll('[data-chip]') ?? [])]
 			const next = buttons[index] || buttons[index - 1]
 			;(next || searchField.current || document.getElementById('page-title'))?.focus()
 		})
-	}, [chips.length])
+	}, [chips, filters])
 
 	const clearAll = () => {
-		setFilters(EMPTY)
-		setDraft(EMPTY)
+		write(EMPTY, '', urlSort, 1)
 		setMessage('All filters cleared.')
 		queueMicrotask(() => (searchField.current || document.getElementById('page-title'))?.focus())
 	}
@@ -114,8 +169,16 @@ export default function AllOrders() {
 							<Icon name="filters" />FILTERS
 							<Icon name="chevronDown" className="icon chevron-icon" style={{ color: 'var(--text-muted)' }} />
 						</button>
-						<div className="chip" style={{ height: 38, flex: 'none' }}>
-							Sort: Date, newest<Icon name="chevronDown" />
+						{/* The prototype draws this as a chip with a chevron and no handler -- a control
+						    by every visual cue and inert. It is the app's one dropdown pattern now, and
+						    it re-sorts through the API rather than reordering the page's own array,
+						    because the page only holds the rows for the page you are on. */}
+						<div style={{ flex: 'none', minWidth: 190 }}>
+							<Combobox label="Sort orders"
+								value={sorts.find(s => s.id === activeSort)?.label ?? ''}
+								onChange={() => {}}
+								onSelect={o => write(filters, query, o.id, 1)}
+								groups={[{ heading: 'Sort by', options: sorts.map(s => ({ id: s.id, label: s.label })) }]} />
 						</div>
 					</div>
 
@@ -187,7 +250,7 @@ export default function AllOrders() {
 								onChange={status => setDraft({ ...draft, status })} label="Status" />
 						</Field>
 						<div className="form-actions">
-							<Button variant="caps compact" onClick={() => setFilters(draft)}>APPLY FILTERS</Button>
+							<Button variant="caps compact" onClick={() => refilter(draft)}>APPLY FILTERS</Button>
 							<Button variant="ghost compact" onClick={clearAll}>CLEAR</Button>
 						</div>
 					</FilterSection>
@@ -210,11 +273,23 @@ export default function AllOrders() {
 								<ButtonLink onClick={clearAll}>CLEAR ALL</ButtonLink>
 							</EmptyState>
 						)}
+						{/* A real pager. It was two disabled buttons and a fixed "Showing 1 to 3 of 3";
+						    the numbers are the API's now, and the buttons are disabled only at the ends,
+						    which is the one honest reason to disable a control. README 13. */}
 						<div className="space-between" style={{ marginTop: 12 }}>
-							<span className="field-help">Showing 1 to {data.orders.length} of {data.matched}</span>
+							<span className="field-help">
+								{data.matched
+									? `Showing ${data.from} to ${data.to} of ${data.matched}`
+									: 'Nothing to show'}
+								{data.pages > 1 ? ` · page ${data.page} of ${data.pages}` : ''}
+							</span>
 							<span className="row-inline" style={{ gap: 8 }}>
-								<Button variant="ghost" icon="chevronLeft" disabled style={{ opacity: 0.45 }}>PREVIOUS</Button>
-								<Button variant="ghost" iconAfter="chevronRight" disabled style={{ opacity: 0.45 }}>NEXT</Button>
+								<Button variant="ghost" icon="chevronLeft" disabled={data.page <= 1}
+									style={data.page <= 1 ? { opacity: 0.45 } : undefined}
+									onClick={() => setPage(Math.max(1, data.page - 1))}>PREVIOUS</Button>
+								<Button variant="ghost" iconAfter="chevronRight" disabled={data.page >= data.pages}
+									style={data.page >= data.pages ? { opacity: 0.45 } : undefined}
+									onClick={() => setPage(data.page + 1)}>NEXT</Button>
 							</span>
 						</div>
 					</CardBody>

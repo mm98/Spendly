@@ -113,8 +113,8 @@ export const ProgressRing = ({ done, total }) => (
 /** The placeholder for an uploaded document. The glyph is the file's own kind, because a
     PDF invoice drawn with a photo glyph is the screen telling the user it read something
     else. README 11. */
-export const DocumentPreview = ({ kind = 'image', style }) => (
-	<div className={`document-preview document-preview-${kind}`} style={style} aria-hidden="true">
+export const DocumentPreview = ({ kind = 'image', style, ...rest }) => (
+	<div className={`document-preview document-preview-${kind}`} style={style} aria-hidden="true" {...rest}>
 		<Icon name={kind === 'pdf' ? 'document' : 'photo'}
 			className={`document-preview-glyph document-preview-glyph-${kind}`} />
 	</div>

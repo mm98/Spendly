@@ -64,51 +64,123 @@ function Sidebar({ navKey }) {
 	)
 }
 
-/* ---- the global finder ----
-   A search field that opens a panel of results. It answers from the API rather than from
-   markup, so an empty query shows nothing and a query with no answer says so -- a panel of
-   invented results would be the app claiming an index it has not got. */
+/* ---- the command palette ----
+
+   The top bar prints CTRL K, and a key cap is a promise: Ctrl+K (Cmd+K on a Mac) opens this
+   from anywhere and puts the caret in it, Escape closes it and hands focus back to whatever
+   had it, Up and Down walk the results and Enter opens the one that is highlighted.
+
+   It searches orders, vendors, categories, item lines and notes, and it lists the commands
+   the app can run -- so it is the one control that reaches every page and every create flow.
+   The results come from the API on each keystroke, aborted when the next one lands, which is
+   why a slow answer cannot overwrite a fast one typed after it.
+
+   aria-activedescendant is how a combobox says which option is current without moving focus
+   out of the input. The listbox owns the ids; the input points at one of them. */
 function GlobalFinder() {
-	const [query, setQuery] = useState('bil')
+	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
 	const [groups, setGroups] = useState([])
+	const [at, setAt] = useState(0)
 	const wrapper = useRef(null)
+	const input = useRef(null)
+	const returnFocusTo = useRef(null)
 	const navigate = useNavigate()
 	const panelId = 'global-finder-panel'
+
+	/* One flat list behind the grouped rendering, because the arrow keys walk results and not
+	   headings. Index into this is what aria-activedescendant names. */
+	const flat = useMemo(() => groups.flatMap(g => g.options), [groups])
+	const current = flat[Math.min(at, flat.length - 1)]
 
 	useEffect(() => {
 		if (!open) return
 		const controller = new AbortController()
 		search(query, controller.signal)
-			.then(r => setGroups(r.groups))
+			.then(r => { setGroups(r.groups); setAt(0) })
 			.catch(e => { if (e.name !== 'AbortError') setGroups([]) })
 		return () => controller.abort()
 	}, [query, open])
 
+	const close = useCallback(() => {
+		setOpen(false)
+		/* Focus goes back where it came from. A palette that closes onto the body drops the
+		   keyboard user at the top of the document. */
+		const back = returnFocusTo.current
+		returnFocusTo.current = null
+		queueMicrotask(() => (back ?? input.current)?.focus?.())
+	}, [])
+
+	const go = useCallback(to => {
+		setOpen(false)
+		returnFocusTo.current = null
+		navigate(to)
+	}, [navigate])
+
+	/* The shortcut. Bound on the document because a palette you have to click into first is
+	   not a shortcut, and preventDefault because Ctrl+K is the browser's own in some builds. */
+	useEffect(() => {
+		const onKey = e => {
+			if (!((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) return
+			e.preventDefault()
+			/* The stylesheet hides this whole control below 1100px, so on a phone the shortcut
+			   cannot open it -- focusing a display:none input puts focus on the body. There the
+			   honest answer is the page that does the same job with room to do it. */
+			if (!input.current?.offsetParent) { navigate('/orders/all'); return }
+			returnFocusTo.current = document.activeElement
+			setOpen(true)
+			queueMicrotask(() => { input.current?.focus(); input.current?.select() })
+		}
+		document.addEventListener('keydown', onKey)
+		return () => document.removeEventListener('keydown', onKey)
+	}, [navigate])
+
 	useEffect(() => {
 		if (!open) return
-		const close = e => { if (!wrapper.current?.contains(e.target)) setOpen(false) }
-		document.addEventListener('click', close)
-		return () => document.removeEventListener('click', close)
+		const onDocumentClick = e => { if (!wrapper.current?.contains(e.target)) setOpen(false) }
+		document.addEventListener('click', onDocumentClick)
+		return () => document.removeEventListener('click', onDocumentClick)
 	}, [open])
 
-	const go = to => { setOpen(false); navigate(to) }
+	const optionId = i => `${panelId}-option-${i}`
 
 	return (
 		<div className={['global-finder', open && 'is-open'].filter(Boolean).join(' ')} ref={wrapper}>
 			<div className="field-shell">
 				<Icon name="search" />
-				{/* aria-expanded is only allowed on a handful of roles, and `search` is not one of
-				    them -- axe calls that critical, and the attribute is simply ignored. The
-				    control is a combobox, so it says so, the same as every other one here. */}
-				<input type="search" value={query} placeholder="Search orders, vendors, notes…"
+				{/* aria-expanded is only allowed on a handful of roles and `search` is not one of
+				    them -- axe calls that critical, and the attribute is simply ignored. This is a
+				    combobox, so it says so, the same as every other one in the app. */}
+				<input ref={input} type="search" value={query}
+					placeholder="Search orders, vendors, notes…"
 					role="combobox" aria-autocomplete="list" aria-controls={panelId}
 					aria-label="Search everything" aria-expanded={open}
+					aria-activedescendant={open && current ? optionId(flat.indexOf(current)) : undefined}
 					onChange={e => { setQuery(e.target.value); setOpen(true) }}
 					onClick={() => setOpen(true)}
 					onKeyDown={e => {
-						if (e.key === 'Escape') setOpen(false)
-						else if (e.key === 'Enter') go('/orders/all?q=' + encodeURIComponent(query))
+						if (e.key === 'Escape') {
+							/* preventDefault, because this is input[type=search] and Chromium's own
+							   Escape clears the field -- which fires change, which is what reopens the
+							   panel a beat after this closed it. The palette stayed open on Escape for
+							   exactly that reason, and the keydown handler looked correct throughout. */
+							e.preventDefault()
+							close()
+							return
+						}
+						if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+							e.preventDefault()
+							if (!open) { setOpen(true); return }
+							if (!flat.length) return
+							setAt(i => (i + (e.key === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length)
+							return
+						}
+						if (e.key !== 'Enter') return
+						e.preventDefault()
+						/* Enter opens what is highlighted; with nothing highlighted it does what the
+						   foot of the panel says it does, which is search all orders for the text. */
+						if (current) go(current.to)
+						else go('/orders/all?q=' + encodeURIComponent(query))
 					}} />
 				<span className="key-cap key-cap-push">CTRL K</span>
 			</div>
@@ -116,29 +188,35 @@ function GlobalFinder() {
 				{groups.map(group => (
 					<div className="combobox-group" key={group.heading}>
 						<div className="combobox-group-heading">{group.heading}</div>
-						{group.options.map((option, i) => (
-							<div key={option.id} role="option"
-								aria-selected={i === 0 && group === groups[0] ? true : undefined}
-								className={['combobox-option', i === 0 && group === groups[0] && 'combobox-option-highlighted']
-									.filter(Boolean).join(' ')}
-								onClick={() => go(option.to)}>
-								{option.before}<mark>{option.mark}</mark>{option.rest}
-								<span className="combobox-option-meta">{option.meta}</span>
-							</div>
-						))}
+						{group.options.map(option => {
+							const i = flat.indexOf(option)
+							const on = option === current
+							return (
+								<div key={option.id} id={optionId(i)} role="option" aria-selected={on}
+									className={['combobox-option', on && 'combobox-option-highlighted']
+										.filter(Boolean).join(' ')}
+									onMouseEnter={() => setAt(i)}
+									onClick={e => { e.preventDefault(); e.stopPropagation(); go(option.to) }}>
+									{option.before}{option.mark ? <mark>{option.mark}</mark> : null}{option.rest}
+									<span className="combobox-option-meta">{option.meta}</span>
+								</div>
+							)
+						})}
 					</div>
 				))}
-				{groups.length ? (
-					<div className="combobox-action" onClick={() => go('/orders/all?q=' + encodeURIComponent(query))}>
+				{query.trim() && !flat.length ? (
+					<div className="combobox-group">
+						<div className="combobox-group-heading">Nothing found</div>
+						<div className="combobox-option">No order, vendor, category or note matches "{query}".</div>
+					</div>
+				) : null}
+				{query.trim() ? (
+					<div className="combobox-action"
+						onClick={e => { e.preventDefault(); e.stopPropagation(); go('/orders/all?q=' + encodeURIComponent(query)) }}>
 						SEARCH ALL ORDERS FOR "{query.toUpperCase()}"
 						<span className="combobox-option-meta" style={{ fontWeight: 500 }}>Enter</span>
 					</div>
-				) : (
-					<div className="combobox-group">
-						<div className="combobox-group-heading">Nothing found</div>
-						<div className="combobox-option">No orders, vendors or notes match "{query}".</div>
-					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	)

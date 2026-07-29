@@ -2,15 +2,24 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { Chart, ChartAxis, ChartRuler } from '../components/Chart.jsx'
-import { Donut, DonutBox } from '../components/Viz.jsx'
+import { Donut, DonutBox, Meter } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { TagChip } from '../components/Chip.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
-import { getOrdersOverview } from '../api/client.js'
-import { dayMonth, kr, krRound } from '../api/format.js'
+import { getAnswer, getOrdersOverview } from '../api/client.js'
+import { dayMonth, kr, krRound, percent } from '../api/format.js'
 import { useState } from 'react'
+import { Note } from '../components/Card.jsx'
+
+/** How much of the month's total budget has been spent. Categories with no budget set are
+    left out of both sides, so an unbudgeted category cannot drag the figure down. */
+const budgetUsed = categories => {
+	const budgeted = categories.filter(c => c.budget > 0)
+	const allowed = budgeted.reduce((sum, c) => sum + c.budget, 0)
+	return allowed ? (budgeted.reduce((sum, c) => sum + c.spend, 0) / allowed) * 100 : 0
+}
 
 /* Orders, overview.
 
@@ -20,7 +29,14 @@ import { useState } from 'react'
 
 export default function Orders() {
 	const state = useApi(getOrdersOverview)
+	const answer = useApi(getAnswer)
 	const [breakdown, setBreakdown] = useState('Expenses')
+	/* HOW IT WORKS and ASK SPENDLY both open something. A button that explains and a button
+	   that answers are the two shapes a decorative control most often takes, because neither
+	   has an obvious destination -- so each one owns a disclosure here, with aria-expanded
+	   saying which state it is in. README 13. */
+	const [explaining, setExplaining] = useState(false)
+	const [answering, setAnswering] = useState(false)
 
 	return (
 		<Page>
@@ -66,10 +82,10 @@ export default function Orders() {
 								<CardHeader title="Latest orders" />
 								<CardDivider />
 								<CardBody variant="entry-list card-body-tight">
-									{data.latest.map((order, i) => (
+									{data.latest.map(order => (
 										<EntryRow key={order.id} glyph="receipt" name={order.vendor.name}
 											meta={dayMonth(order.date)} amount={'+' + kr(order.saved)}
-											to={i === 0 ? `/orders/${order.id}` : undefined} />
+											to={`/orders/${order.id}`} />
 									))}
 									<Button variant="block" to="/orders/all">SEE ALL</Button>
 								</CardBody>
@@ -90,9 +106,21 @@ export default function Orders() {
 
 						<Card aria-label="For you">
 							<CardHeader title="For you">
-								<button type="button" className="button button-pill">HOW IT WORKS</button>
+								<button type="button" className="button button-pill"
+									aria-expanded={explaining} aria-controls="for-you-explainer"
+									onClick={() => setExplaining(o => !o)}>HOW IT WORKS</button>
 							</CardHeader>
 							<CardDivider />
+							{explaining ? (
+								<div className="card-body" id="for-you-explainer">
+									<Note tone="positive" title="Where these come from.">
+										Spendly reads the orders you have already saved: vendor names it could not
+										match, orders still marked Ordered after ten days, and categories that moved
+										a lot this month. Nothing is sent anywhere — the check runs on your own data,
+										in this browser.
+									</Note>
+								</div>
+							) : null}
 							<CardBody variant="promo-row">
 								{data.promos.map(promo => (
 									<div className="promo" key={promo.id}>
@@ -121,8 +149,20 @@ export default function Orders() {
 							<CardHeader title="Question of the day" />
 							<CardDivider />
 							<CardBody>
-								<div className="card-headline card-headline-question">{data.question.long}</div>
-								<Button variant="block" icon="sparkles" style={{ marginTop: 0 }}>ASK SPENDLY</Button>
+								<div className="card-headline card-headline-question">
+									{answer.data?.question ?? data.question.long}</div>
+								{answering && answer.data ? (
+									<>
+										<Note tone="positive" title={answer.data.answer}>{answer.data.detail}</Note>
+										<Button variant="block" iconAfter="chevronRight"
+											to={`/orders/all?category=${answer.data.categoryId}&from=2026-06-01&to=2026-06-30`}>
+											SEE THOSE ORDERS</Button>
+									</>
+								) : (
+									<Button variant="block" icon="sparkles" style={{ marginTop: 0 }}
+										aria-expanded={answering} onClick={() => setAnswering(true)}
+										disabled={!answer.data}>ASK SPENDLY</Button>
+								)}
 							</CardBody>
 						</Card>
 
@@ -134,20 +174,55 @@ export default function Orders() {
 									<Segmented options={['Expenses', 'Budget']} value={breakdown}
 										onChange={setBreakdown} label="Category breakdown basis" />
 								</div>
-								<DonutBox>
-									<Donut segments={data.categories.map(c => ({ share: c.share, colour: c.colour }))}
-										value={krRound(data.period.spent)} label="Spent this month"
-										ariaLabel={`Category split of ${krRound(data.period.spent)} this month`} />
-								</DonutBox>
-								<div className="category-rows">
-									{data.categories.map(c =>
-										<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`} />)}
-								</div>
+								{/* Two views, and the toggle really switches them. Expenses is each category's
+								    share of the month; Budget is the same categories against what they were
+								    allowed, which is a different question and gets a different ring. The
+								    prototype draws this control and changes nothing with it -- the
+								    decorative-control rule wearing the shape of a tab. README 13. */}
+								{breakdown === 'Expenses' ? (
+									<>
+										<DonutBox>
+											<Donut segments={data.categories.map(c => ({ share: c.share, colour: c.colour }))}
+												value={krRound(data.period.spent)} label="Spent this month"
+												ariaLabel={`Category split of ${krRound(data.period.spent)} this month`} />
+										</DonutBox>
+										<div className="category-rows">
+											{data.categories.map(c =>
+												<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`} />)}
+										</div>
+									</>
+								) : (
+									<>
+										<DonutBox>
+											<Donut segments={[
+												{ share: Math.min(100, budgetUsed(data.categories)), colour: 'var(--green)' },
+												{ share: Math.max(0, 100 - budgetUsed(data.categories)), colour: '#E7EAE5' }
+											]}
+												value={percent(budgetUsed(data.categories), 0)} label="of budget used"
+												ariaLabel={`${percent(budgetUsed(data.categories), 0)} of this month's budget used`} />
+										</DonutBox>
+										<div className="category-rows">
+											{data.categories.map(c => (
+												<div key={c.id}>
+													<CategoryRow category={c} to={`/orders/all?category=${c.id}`}
+														meta={c.budget
+															? `${krRound(c.spend)} of ${krRound(c.budget)}`
+															: 'No budget set'} />
+													{c.budget ? (
+														<Meter fill={Math.min(100, (c.spend / c.budget) * 100)}
+															style={{ margin: '0 12px 8px' }}
+															ariaLabel={`${c.name}: ${krRound(c.spend)} of ${krRound(c.budget)}`} />
+													) : null}
+												</div>
+											))}
+										</div>
+									</>
+								)}
 								<Button variant="block" to="/orders/all">SEE ALL</Button>
 							</CardBody>
 						</Card>
 
-						<Button variant="block" icon="settings" style={{ marginTop: 0 }}>ORDER SETTINGS</Button>
+						<Button variant="block" icon="settings" style={{ marginTop: 0 }} to="/settings">ORDER SETTINGS</Button>
 					</div>
 				</div>
 			)}</Async>

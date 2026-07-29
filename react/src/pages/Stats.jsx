@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
@@ -19,22 +20,32 @@ import { kr, krRound } from '../api/format.js'
    so the header stood at 57.94 and 93.88 against every other header's 44.67. README 10. */
 
 export default function Stats() {
-	const state = useApi(getStats)
+	/* Which month is on screen lives in the URL, so a link to a month is a link to a month --
+	   and the browser's own Back walks the pager. */
+	const [params, setParams] = useSearchParams()
+	const periodId = params.get('period') ?? '2026-07'
+	const state = useApi(getStats, [periodId])
 	const [range, setRange] = useState('1M')
+	const goTo = id => setParams(id === '2026-07' ? {} : { period: id })
 
 	return (
 		<Page variant="page-grid">
-			<Async state={state} label="Loading your statistics">{({ period, categories }) => (
+			<Async state={state} label="Loading your statistics">{({ period, categories, newer, older }) => (
 				<>
 					<div className="space-between" style={{ flexWrap: 'wrap', gap: 12, padding: '2px 2px 0' }}>
 						<div className="row-inline">
-							<IconButton icon="chevronLeft" label="Previous period" />
+							{/* A real pager over the months the source holds. Each arrow is disabled only at
+							    its own end, which is the one honest reason to disable a control -- the
+							    prototype disabled the right-hand one permanently and left the left-hand one
+							    live and inert. README 13. */}
+							<IconButton icon="chevronLeft" label={older ? 'Previous period' : 'No earlier period'}
+								disabled={!older} style={older ? undefined : { opacity: 0.45 }}
+								onClick={() => older && goTo(older)} />
 							<span className="panel-heading" style={{ fontSize: 16, letterSpacing: '-.01em' }}>
 								{period.label}</span>
-							{/* Disabled because there is no next period: July is where the data ends, and a
-							    control that looks live and goes nowhere is the defect this app keeps
-							    finding. README 13. */}
-							<IconButton icon="chevronRight" label="Next period" disabled style={{ opacity: 0.45 }} />
+							<IconButton icon="chevronRight" label={newer ? 'Next period' : 'No later period'}
+								disabled={!newer} style={newer ? undefined : { opacity: 0.45 }}
+								onClick={() => newer && goTo(newer)} />
 						</div>
 						<div className="row-inline">
 							<span className="figure-large tabular-figures">{kr(period.spent)}</span>
@@ -109,10 +120,16 @@ export default function Stats() {
 									value={krRound(period.spent)} label={period.label}
 									ariaLabel={`Category split of ${krRound(period.spent)} in ${period.label}`} />
 								<div className="chart-legend" style={{ flex: 1, minWidth: 170 }}>
-									{period.statsLegend.map(entry => (
-										<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
-											amount={krRound(entry.amount)} to="/orders/all" />
-									))}
+									{period.statsLegend.map(entry => {
+										/* The row names a category, so the link filters by it. A legend row that
+										   opens an unfiltered list is a link that does not go where it says. */
+										const category = categories.find(c => c.name === entry.name)
+										return (
+											<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
+												amount={krRound(entry.amount)}
+												to={category ? `/orders/all?category=${category.id}` : '/orders/all'} />
+										)
+									})}
 								</div>
 							</CardBody>
 						</Card>

@@ -1,0 +1,194 @@
+import { useCallback, useEffect, useState } from 'react'
+import { Page } from '../components/Shell.jsx'
+import { Async } from '../components/Async.jsx'
+import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
+import { Button } from '../components/Button.jsx'
+import { Combobox } from '../components/Combobox.jsx'
+import {
+	Field, FieldPair, FilterSection, Form, FormActions, FormStatus, Segmented, Switch
+} from '../components/Form.jsx'
+import { invalidate, useApi } from '../api/useApi.js'
+import {
+	getHomeContent, getOrderDraft, getOrders, getSettings, resetStoredData, saveSettings, sorts, spendKinds
+} from '../api/client.js'
+
+/* Order settings.
+
+   The prototype draws an ORDER SETTINGS button at the foot of the Orders rail and it opens
+   nothing. This is what it opens, and every switch on it is read somewhere: a settings page
+   whose controls change nothing is the decorative-control rule one screen up, with more
+   surface area. README 13.
+
+   Each row below names where its value is used, because that is the fact a reader cannot
+   check from the control itself.
+
+   Saving is immediate. A settings page with a SAVE button has two states -- what is on
+   screen and what is stored -- and the gap between them is a bug waiting for someone to
+   navigate away. The status line says what happened; the caches that hold a stale copy of
+   the answer are dropped in the same breath. */
+
+const PAGE_SIZES = ['5', '10', '25', '50']
+
+export default function Settings() {
+	const state = useApi(getSettings)
+	const [status, setStatus] = useState({ message: '', good: true })
+	const [confirming, setConfirming] = useState(false)
+
+	/* The endpoints that bake a setting into their answer. Anything cached from before the
+	   change is wrong the moment it is saved, so it goes rather than being left to expire. */
+	const refresh = useCallback(() => {
+		invalidate(getSettings); invalidate(getOrderDraft); invalidate(getOrders); invalidate(getHomeContent)
+	}, [])
+
+	const set = useCallback((patch, said) => {
+		saveSettings(patch)
+			.then(() => { refresh(); setStatus({ message: said, good: true }) })
+			.catch(() => setStatus({ message: 'That did not save.', good: false }))
+	}, [refresh])
+
+	return (
+		<Page>
+			<Async state={state} label="Loading your settings">{settings => (
+				<SettingsBody settings={settings} set={set} status={status} setStatus={setStatus}
+					confirming={confirming} setConfirming={setConfirming} refresh={refresh}
+					reload={state.refresh} />
+			)}</Async>
+		</Page>
+	)
+}
+
+function SettingsBody({ settings, set, status, setStatus, confirming, setConfirming, refresh, reload }) {
+	/* The controls are driven from the stored value, so what is on screen is what is saved --
+	   there is no local copy to drift. `local` exists only to keep a control responsive while
+	   the phantom API is answering. */
+	const [local, setLocal] = useState(settings)
+	useEffect(() => setLocal(settings), [settings])
+
+	const change = (patch, said) => { setLocal(l => ({ ...l, ...patch })); set(patch, said) }
+
+	const clear = () => {
+		resetStoredData()
+			.then(() => {
+				refresh()
+				reload()
+				setConfirming(false)
+				setStatus({ message: 'Everything stored in this browser was cleared.', good: true })
+			})
+			.catch(() => setStatus({ message: 'That did not clear.', good: false }))
+	}
+
+	return (
+		<div className="order-list-grid">
+			<div className="order-list-column">
+				<Card aria-label="Order settings">
+					<CardBody variant="card-body-page">
+						<div className="card-headline">Order settings</div>
+						<p className="card-lead">What a new order starts as, and how your lists behave.</p>
+						<Form>
+							<FormStatus message={status.message} good={status.good} />
+
+							<FilterSection>
+								<span className="panel-heading">New orders</span>
+								<FieldPair>
+									<Field label="Kind" help="What the Kind field on step 1 opens with.">
+										<Combobox label="Default kind" value={local.defaultKind}
+											onChange={v => change({ defaultKind: v }, 'Default kind saved.')}
+											onSelect={o => change({ defaultKind: o.label }, 'Default kind saved.')}
+											groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
+									</Field>
+									<Field label="Status" group help="Which segment is selected on a new order.">
+										<Segmented options={['Ordered', 'Delivered', 'Returned']}
+											value={local.defaultStatus}
+											onChange={v => change({ defaultStatus: v }, 'Default status saved.')}
+											label="Default status" />
+									</Field>
+								</FieldPair>
+							</FilterSection>
+
+							<FilterSection>
+								<span className="panel-heading">Lists</span>
+								<Field label="Rows per page" group
+									help="How many orders All orders shows before the pager.">
+									<Segmented options={PAGE_SIZES} value={String(local.pageSize)}
+										onChange={v => change({ pageSize: Number(v) }, 'Page size saved.')}
+										label="Rows per page" />
+								</Field>
+								<Field label="Sort orders by" help="What All orders opens sorted by.">
+									<Combobox label="Default sort"
+										value={sorts.find(s => s.id === local.sort)?.label ?? ''}
+										onChange={() => {}}
+										onSelect={o => change({ sort: o.id }, 'Default sort saved.')}
+										groups={[{ heading: 'Sort', options: sorts.map(s => ({ id: s.id, label: s.label })) }]} />
+								</Field>
+							</FilterSection>
+
+							<FilterSection>
+								<span className="panel-heading">On screen</span>
+								<div className="space-between">
+									<span className="field-help" style={{ maxWidth: '32ch' }}>
+										Show the scan card on Home. LATER on the card itself turns this off too.
+									</span>
+									<Switch checked={local.showScanCard} label="Show the scan card on Home"
+										onChange={v => change({ showScanCard: v },
+											v ? 'The scan card is back on Home.' : 'The scan card is off.')} />
+								</div>
+								<div className="space-between">
+									<span className="field-help" style={{ maxWidth: '32ch' }}>
+										Ask before deleting an order. With this off, the delete button on an order
+										acts straight away.
+									</span>
+									<Switch checked={local.confirmDelete} label="Ask before deleting an order"
+										onChange={v => change({ confirmDelete: v },
+											v ? 'Deleting will ask first.' : 'Deleting will not ask.')} />
+								</div>
+							</FilterSection>
+						</Form>
+					</CardBody>
+				</Card>
+			</div>
+
+			<div className="order-list-column">
+				<Card aria-label="Stored data">
+					<CardHeader title="Stored in this browser" />
+					<CardDivider />
+					<CardBody>
+						<p className="card-lead" style={{ marginTop: 0 }}>
+							Orders you save, vendors and categories you add, your dashboard and these
+							settings are kept in this browser. Nothing leaves it.
+						</p>
+						{confirming ? (
+							<>
+								<p className="field-help" style={{ color: 'var(--text-negative)', fontWeight: 600 }}>
+									This removes everything you have added or changed and puts the demo data back.
+								</p>
+								<FormActions>
+									<Button variant="caps compact" onClick={clear}>YES, CLEAR IT</Button>
+									<Button variant="ghost compact" onClick={() => setConfirming(false)}>CANCEL</Button>
+								</FormActions>
+							</>
+						) : (
+							<Button variant="block" icon="trash" style={{ marginTop: 8 }}
+								onClick={() => setConfirming(true)}>CLEAR STORED DATA</Button>
+						)}
+					</CardBody>
+				</Card>
+
+				<Card aria-label="About the data">
+					<CardHeader title="Where the numbers come from" />
+					<CardDivider />
+					<CardBody>
+						<p className="card-lead" style={{ marginTop: 0 }}>
+							Every figure in Spendly is served by a phantom API: an in-browser data source
+							with the shape a real backend would have. It answers asynchronously, it can
+							fail, and what you change through it persists.
+						</p>
+						<span className="field-help">
+							Totals are derived from their lines rather than stored beside them, so a total
+							and its items cannot disagree.
+						</span>
+					</CardBody>
+				</Card>
+			</div>
+		</div>
+	)
+}

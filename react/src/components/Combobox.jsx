@@ -80,8 +80,23 @@ export function Combobox({
 					onChange={e => { onChange?.(e.target.value); setOpen(true) }}
 					onClick={() => setOpen(true)}
 					onKeyDown={e => {
-						if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); setOpen(true) }
-						else if (e.key === 'Escape') setOpen(false)
+						if (e.key === 'Escape') { setOpen(false); return }
+						if (e.key !== 'ArrowDown' && e.key !== 'Enter') return
+						e.preventDefault()
+						/* Enter runs the action at the foot of the list -- CREATE VENDOR "…", ADD
+						   CATEGORY "…" -- but only when what was typed matches nothing already there.
+						   Typing the name of something that exists and pressing Enter should pick it,
+						   not make a second one. */
+						const typed = String(value ?? '').trim()
+						if (e.key === 'Enter' && action && typed) {
+							const match = groups.flatMap(g => g.options)
+								.find(o => o.label.toLowerCase() === typed.toLowerCase())
+							if (match) { choose(e, match); return }
+							action.onSelect?.(typed)
+							setOpen(false)
+							return
+						}
+						setOpen(true)
 					}} />
 				<Icon name="chevronDown" className="icon chevron-icon" />
 			</div>

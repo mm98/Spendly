@@ -9,8 +9,8 @@ import { DashboardCards } from '../components/DashboardCards.jsx'
 import { AiCard, AiCardMark } from '../components/AiCard.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { SavingChip } from '../components/Chip.jsx'
-import { useApi } from '../api/useApi.js'
-import { getDashboardCards, getHomeContent } from '../api/client.js'
+import { invalidate, useApi } from '../api/useApi.js'
+import { getDashboardCards, getHomeContent, getSettings, saveSettings } from '../api/client.js'
 import { dayMonth, kr, krRound, percent } from '../api/format.js'
 
 /* Home.
@@ -26,7 +26,7 @@ const HERO_SERIES = [
 	{ key: 'saved', label: 'Saved' }
 ]
 
-function Hero({ period }) {
+function Hero({ period, categories }) {
 	const [range, setRange] = useState('1M')
 	const [series, setSeries] = useState('orders')
 	const refs = useMemo(() => [], [])
@@ -76,10 +76,17 @@ function Hero({ period }) {
 				</div>
 				<SplitBar segments={[{ width: 8, colour: 'var(--green)' }, { width: 92, colour: 'var(--teal)' }]} />
 				<div className="chart-legend">
-					{period.heroLegend.map(entry => (
-						<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
-							amount={krRound(entry.amount)} to="/orders/all" />
-					))}
+					{period.heroLegend.map(entry => {
+						/* The row names a category, so the link filters by it. "Everything else" is a
+						   fold rather than a category, and it opens the unfiltered list -- which is
+						   what it stands for. */
+						const category = categories.find(c => c.name === entry.name)
+						return (
+							<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
+								amount={krRound(entry.amount)}
+								to={category ? `/orders/all?category=${category.id}` : '/orders/all'} />
+						)
+					})}
 				</div>
 			</CardBody>
 		</Card>
@@ -121,7 +128,8 @@ function dashboardCard(key, data) {
 								ariaLabel={`Category split of ${krRound(period.spent)} this month`} />
 						</DonutBox>
 						<div className="category-rows">
-							{categories.slice(0, 3).map(c => <CategoryRow key={c.id} category={c} />)}
+							{categories.slice(0, 3).map(c =>
+								<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`} />)}
 						</div>
 					</CardBody>
 				</>
@@ -137,7 +145,8 @@ function dashboardCard(key, data) {
 						<div className="entry-list">
 							{vendors.map(v => (
 								<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
-									amount={krRound(v.spend)} sub={`saved ${krRound(v.saved)}`} />
+									amount={krRound(v.spend)} sub={`saved ${krRound(v.saved)}`}
+									to={`/orders/all?vendor=${v.id}`} />
 							))}
 						</div>
 					</CardBody>
@@ -151,7 +160,8 @@ function dashboardCard(key, data) {
 					<CardBody>
 						<div className="category-rows">
 							{favouriteCategories.map(c =>
-								<CategoryRow key={c.id} category={c} meta={`saved ${krRound(c.saved)}`} />)}
+								<CategoryRow key={c.id} category={c} meta={`saved ${krRound(c.saved)}`}
+									to={`/orders/all?category=${c.id}`} />)}
 						</div>
 					</CardBody>
 				</>
@@ -202,14 +212,22 @@ function dashboardCard(key, data) {
 export default function Home() {
 	const content = useApi(getHomeContent)
 	const cards = useApi(getDashboardCards)
-	const [aiCardShown, setAiCardShown] = useState(true)
+
+	/* LATER is a preference, not a state that lives until the next reload. It writes the same
+	   setting the Settings page toggles, so dismissing the card here and turning it back on
+	   there are the same switch seen twice, rather than two that disagree. */
+	const dismissScanCard = () => {
+		saveSettings({ showScanCard: false })
+			.then(() => { invalidate(getSettings); invalidate(getHomeContent); content.refresh() })
+		document.getElementById('page-title')?.focus()
+	}
 
 	return (
 		<Page variant="content-grid">
 			<Async state={content} label="Loading your month">{data => (
 				<>
 					<div className="content-column-main">
-						<Hero period={data.period} />
+						<Hero period={data.period} categories={data.categories} />
 
 						<Async state={cards} label="Loading your cards">{({ all, on }) => (
 							<DashboardCards all={all} initial={on} render={key => dashboardCard(key, data)} />
@@ -217,7 +235,7 @@ export default function Home() {
 					</div>
 
 					<div className="content-column-side">
-						{aiCardShown ? (
+						{data.showScanCard ? (
 							<AiCard
 								header={{
 									to: '/scan', title: 'Get receipts read for you',
@@ -228,9 +246,7 @@ export default function Home() {
 								body="A PDF, photo or screenshot becomes a draft order. You review every value before it is saved.">
 								<Button variant="invert" to="/scan">SCAN A RECEIPT</Button>
 								{/* The card held the focus, so dismissing it hands focus to the heading. */}
-								<ButtonLink className="button-link-invert"
-									onClick={() => { setAiCardShown(false); document.getElementById('page-title')?.focus() }}>
-									LATER</ButtonLink>
+								<ButtonLink className="button-link-invert" onClick={dismissScanCard}>LATER</ButtonLink>
 								<AiCardMark />
 							</AiCard>
 						) : null}
@@ -257,7 +273,7 @@ export default function Home() {
 									{data.latest.map(order => (
 										<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
 											meta={`${dayMonth(order.date)} · ${kr(order.total)}`}
-											amount={'+' + kr(order.saved)} />
+											amount={'+' + kr(order.saved)} to={`/orders/${order.id}`} />
 									))}
 								</div>
 							</CardBody>

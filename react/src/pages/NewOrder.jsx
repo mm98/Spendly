@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { Outlet, useNavigate, useOutletContext } from 'react-router-dom'
+import { Outlet, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Stepper } from '../components/Stepper.jsx'
@@ -16,10 +16,11 @@ import {
 } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createOrder, getHomeContent, getOrderDraft, getOrders, getOrdersOverview, getVendors, spendKinds
+	createOrder, createVendor, getCategories, getHomeContent, getOrderAsDraft, getOrderDraft,
+	getOrders, getOrdersOverview, getVendors, getVendorsOverview, spendKinds, updateOrder
 } from '../api/client.js'
 import { invalidate } from '../api/useApi.js'
-import { AMOUNT_PATTERN, WHOLE_NUMBER_PATTERN, kr, parseAmount, percent, shortDate, today } from '../api/format.js'
+import { AMOUNT_PATTERN, WHOLE_NUMBER_PATTERN, amount, kr, parseAmount, percent, shortDate, today } from '../api/format.js'
 
 /* New order, in two steps that share one draft.
 
@@ -37,16 +38,22 @@ const STEPS = (at) => [
 	{ label: 'Add the items', icon: 'document', on: at === 1 }
 ]
 
-export function NewOrderLayout() {
-	const seed = useApi(getOrderDraft)
+export function NewOrderLayout({ mode = 'create' }) {
+	const { id } = useParams()
+	/* One layout for both flows: a new order starts from the seeded draft and the defaults the
+	   user set, and an edit starts from the order itself. Two forms would drift; this way the
+	   second step, the summary rail and every validation rule are literally the same code. */
+	const seed = useApi(mode === 'edit' ? getOrderAsDraft : getOrderDraft, mode === 'edit' ? [id] : [])
 	const [draft, setDraft] = useState(null)
 	const value = draft ?? seed.data
 
 	const update = useCallback(patch =>
 		setDraft(prev => ({ ...(prev ?? seed.data), ...patch })), [seed.data])
 
+	if (seed.error) return <Page><Card><CardBody><p className="field-help">
+		That order could not be loaded. {seed.error.message}</p></CardBody></Card></Page>
 	if (!value) return <Page><p className="field-help">Loading the form…</p></Page>
-	return <Outlet context={{ draft: value, update }} />
+	return <Outlet context={{ draft: value, update, mode, id }} />
 }
 
 /* ---- step 1 ---- */
@@ -68,11 +75,13 @@ const ORDER_FIELDS = [
 ]
 
 export function NewOrderDetails() {
-	const { draft, update } = useOutletContext()
+	const { draft, update, mode, id } = useOutletContext()
 	const navigate = useNavigate()
 	const vendors = useApi(getVendors)
+	const categories = useApi(getCategories)
 	const [more, setMore] = useState(true)
 	const [status, setStatus] = useState({ message: '', good: true })
+	const base = mode === 'edit' ? `/orders/${id}/edit` : '/orders/new'
 
 	const values = useMemo(() => ({
 		'order-vendor': draft.vendor,
@@ -83,16 +92,40 @@ export function NewOrderDetails() {
 
 	const { check, recheck, propsFor } = useFieldErrors(ORDER_FIELDS, values)
 
+
 	const set = (name, key) => v => { update({ [key]: v }); recheck(name, v) }
+
+	/* CREATE VENDOR "…" is the foot of the vendor list, and it creates the vendor rather than
+	   only typing its name into the field: a row labelled with a verb that does not do the
+	   verb is the decorative-control rule inside a dropdown. README 13. */
+	const addVendor = name => {
+		const clean = String(name).trim()
+		if (!clean) return
+		createVendor(clean)
+			.then(vendor => {
+				invalidate(getVendors); invalidate(getVendorsOverview)
+				vendors.refresh()
+				update({ vendor: vendor.name })
+				recheck('order-vendor', vendor.name)
+				setStatus({ message: `${vendor.name} added to your vendors.`, good: true })
+			})
+			.catch(e => setStatus({ message: e.message, good: false }))
+	}
 
 	const next = () => {
 		const failed = check()
-		if (!failed.length) { setStatus({ message: '', good: true }); navigate('/orders/new/items'); return }
+		if (!failed.length) { setStatus({ message: '', good: true }); navigate(base + '/items'); return }
 		/* Shipping fee lives inside the More-details disclosure, so a rejection there can sit
 		   behind a closed panel -- a message nobody can open is the same as no message. */
 		if (failed.some(f => f.name === 'order-shipping')) setMore(true)
 		setStatus({ message: 'Cannot continue — ' + needFixing(failed), good: false })
 		focusField(failed[0].name)
+	}
+
+	const [categoryQuery, setCategoryQuery] = useState('')
+	const addCategory = name => {
+		const clean = String(name).trim()
+		if (clean && !draft.categories.includes(clean)) update({ categories: [...draft.categories, clean] })
 	}
 
 	const vendorField = propsFor('order-vendor')
@@ -127,7 +160,7 @@ export function NewOrderDetails() {
 												.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders` })) }
 										]}
 										action={{ icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
-											onSelect: name => update({ vendor: name }) }} />
+											onSelect: addVendor }} />
 								</Field>
 
 								<FieldPair>
@@ -150,23 +183,25 @@ export function NewOrderDetails() {
 								</FieldPair>
 
 								<FieldPair variant="field-pair-stack-early">
-									<Field label="Categories">
-										<FieldShell style={{ height: 'auto', minHeight: 48, padding: '8px 10px', flexWrap: 'wrap' }}>
+									<Field label="Categories" group
+										help="Pick from your categories, or type one and press Enter.">
+										<div className="row-inline" style={{ gap: 6, flexWrap: 'wrap' }}>
 											{draft.categories.map(name => (
 												<Chip key={name} label={`Remove category ${name}`}
 													onRemove={() => update({ categories: draft.categories.filter(c => c !== name) })}>
 													{name}</Chip>
 											))}
-											<input type="text" placeholder="Add category…" aria-label="Add category"
-												style={{ flex: '1 1 120px' }}
-												onKeyDown={e => {
-													if (e.key !== 'Enter' || !e.target.value.trim()) return
-													e.preventDefault()
-													const name = e.target.value.trim()
-													if (!draft.categories.includes(name)) update({ categories: [...draft.categories, name] })
-													e.target.value = ''
-												}} />
-										</FieldShell>
+										</div>
+										<Combobox label="Add category" placeholder="Add category…"
+											value={categoryQuery} onChange={setCategoryQuery}
+											onSelect={o => { addCategory(o.label); setCategoryQuery('') }}
+											groups={[{ heading: 'Your categories', options: (categories.data ?? [])
+												.filter(c => !draft.categories.includes(c.name))
+												.map(c => ({ id: c.id, label: c.name, meta: `${c.share}% of expenses` })) }]}
+											action={categoryQuery.trim()
+												? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
+													onSelect: name => { addCategory(name); setCategoryQuery('') } }
+												: undefined} />
 									</Field>
 									<Field label="Kind" error={kindField.error} errorId={kindField.errorId}
 										help="Only expenses count towards your totals.">
@@ -215,7 +250,7 @@ export function NewOrderDetails() {
 								</FilterSection>
 
 								<FormActions split>
-									<Button variant="ghost" to="/orders">CANCEL</Button>
+									<Button variant="ghost" to={mode === 'edit' ? `/orders/${id}` : '/orders'}>CANCEL</Button>
 									<Button variant="caps" onClick={next}>NEXT STEP</Button>
 								</FormActions>
 							</Form>
@@ -304,12 +339,17 @@ const ITEM_FIELDS = [
 const BLANK_ITEM = { 'item-description': '', 'item-quantity': '', 'item-price': '', 'item-retail': '' }
 
 export function NewOrderItems() {
-	const { draft, update } = useOutletContext()
+	const { draft, update, mode, id } = useOutletContext()
 	const navigate = useNavigate()
 	const [form, setForm] = useState(BLANK_ITEM)
 	const [status, setStatus] = useState({ message: '', good: true })
 	const [saving, setSaving] = useState(false)
+	/* Which line the form is editing, or null when it is adding. One form does both, because
+	   a separate edit form is a second copy of four validation rules. */
+	const [editingId, setEditingId] = useState(null)
+	const [photo, setPhoto] = useState(null)
 	const nextId = useRef(0)
+	const base = mode === 'edit' ? `/orders/${id}/edit` : '/orders/new'
 
 	const { check, recheck, clear, propsFor } = useFieldErrors(ITEM_FIELDS, form)
 	const itemDescription = propsFor('item-description')
@@ -321,9 +361,44 @@ export function NewOrderItems() {
 
 	const clearForm = useCallback(() => {
 		setForm(BLANK_ITEM)
+		setEditingId(null)
+		setPhoto(null)
 		clear()
 		focusField('item-description')
 	}, [clear])
+
+	/* Editing loads the line into the same four fields. The button below then says SAVE
+	   CHANGES rather than ADD ITEM, because a button that adds and a button that replaces are
+	   two different promises and only one of them is true at a time. */
+	const editItem = item => {
+		setEditingId(item.id)
+		setPhoto(item.photo ?? null)
+		setForm({
+			'item-description': item.title,
+			'item-quantity': String(item.quantity),
+			'item-price': amount(item.price),
+			'item-retail': item.retail != null ? amount(item.retail) : ''
+		})
+		clear()
+		setStatus({ message: `Editing ${item.title}.`, good: true })
+		focusField('item-description')
+	}
+
+	const moveItem = (from, step) => {
+		const to = from + step
+		if (to < 0 || to >= draft.items.length) return
+		const items = [...draft.items]
+		const [moved] = items.splice(from, 1)
+		items.splice(to, 0, moved)
+		update({ items })
+		setStatus({ message: `${moved.title} moved to position ${to + 1} of ${items.length}.`, good: true })
+	}
+
+	const removeItem = item => {
+		update({ items: draft.items.filter(i => i.id !== item.id) })
+		if (editingId === item.id) clearForm()
+		setStatus({ message: `${item.title} removed.`, good: true })
+	}
 
 	const submit = () => {
 		const failed = check()
@@ -333,26 +408,40 @@ export function NewOrderItems() {
 			return
 		}
 		const item = {
-			id: 'new-' + (nextId.current++),
+			id: editingId ?? 'new-' + (nextId.current++),
 			title: form['item-description'].trim(),
 			quantity: Number(form['item-quantity']),
 			price: parseAmount(form['item-price']),
-			retail: form['item-retail'] ? parseAmount(form['item-retail']) : undefined
+			retail: form['item-retail'] ? parseAmount(form['item-retail']) : undefined,
+			photo: photo ?? undefined
 		}
-		const items = [...draft.items, item]
+		const items = editingId
+			? draft.items.map(i => (i.id === editingId ? item : i))
+			: [...draft.items, item]
+		const was = editingId
 		update({ items })
 		clearForm()
 		const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		setStatus({ message: `${item.title} added. Items · ${items.length}, ${kr(total)}`, good: true })
+		setStatus({
+			message: `${item.title} ${was ? 'updated' : 'added'}. Items · ${items.length}, ${kr(total)}`,
+			good: true
+		})
 	}
 
 	const save = () => {
+		if (!draft.items.length) {
+			setStatus({ message: 'An order needs at least one item.', good: false })
+			focusField('item-description')
+			return
+		}
 		setSaving(true)
-		createOrder(draft)
+		const written = mode === 'edit' ? updateOrder(id, draft) : createOrder(draft)
+		written
 			.then(order => {
 				/* The list, the dashboard and the overview all count orders, so all three are
 				   dropped from the cache rather than left showing the count from before. */
 				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
+				invalidate(getOrderAsDraft)
 				navigate('/orders/' + order.id)
 			})
 			.catch(() => { setSaving(false); setStatus({ message: 'That did not save. Try again.', good: false }) })
@@ -424,49 +513,77 @@ export function NewOrderItems() {
 												<FieldUnit>kr.</FieldUnit>
 											</FieldShell>
 										</Field>
+										{/* The field keeps its height whether or not a file has been chosen, and the
+										    name is the file's own rather than a fixed one -- a picker that reports the
+										    same filename for every file is telling the user it read something else.
+										    The clear button removes it, and it is outside the label so the click
+										    is not forwarded straight back into the picker. */}
 										<Field label="Photo"
-											help="Uploaded state keeps the field height; the photo shows large on the item row below, not in the form.">
-											<FieldShell as="label">
-												<span className="field-thumb" aria-hidden="true"><Icon name="photo" /></span>
-												<input type="file" accept="image/*" aria-label="Product photo" className="field-file-input" />
-												<span className="field-file-name">shampoo-500ml.jpg</span>
-												<IconButton variant="clear" icon="close" label="Remove photo" />
+											help="Optional. The photo shows on the item row below, not in the form.">
+											<FieldShell>
+												<label className="row-inline" style={{ gap: 9, flex: 1, minWidth: 0, cursor: 'pointer' }}>
+													<span className="field-thumb" aria-hidden="true"><Icon name="photo" /></span>
+													<input type="file" accept="image/*" aria-label="Product photo"
+														className="field-file-input"
+														onChange={e => setPhoto(e.target.files?.[0]?.name ?? null)} />
+													<span className="field-file-name">{photo ?? 'Choose a photo…'}</span>
+												</label>
+												{photo ? <IconButton variant="clear" icon="close" label="Remove photo"
+													onClick={() => setPhoto(null)} /> : null}
 											</FieldShell>
 										</Field>
 									</FieldPair>
 
 									<FormActions>
-										<Button variant="caps compact" icon="plus" onClick={submit}>ADD ITEM</Button>
+										<Button variant="caps compact" icon={editingId ? 'check' : 'plus'} onClick={submit}>
+											{editingId ? 'SAVE CHANGES' : 'ADD ITEM'}</Button>
+										{editingId
+											? <Button variant="ghost compact" onClick={() => {
+												clearForm(); setStatus({ message: '', good: true })
+											}}>CANCEL EDIT</Button>
+											: null}
 										<span className="field-help" style={{ alignSelf: 'center' }}>
-											Enter adds and keeps the form; Escape clears it.</span>
+											Enter {editingId ? 'saves' : 'adds'} and keeps the form; Escape clears it.</span>
 									</FormActions>
 								</FilterSection>
 
 								<div>
 									<div className="space-between space-between-tight">
 										<span className="section-label">Items · {draft.items.length}</span>
-										<span className="field-help">drag to reorder</span>
+										<span className="field-help">use the arrows to reorder</span>
 									</div>
 									<InsetPanel>
-										{draft.items.map(item => (
-											<ItemRow key={item.id} grip icon="cube" title={item.title}
+										{draft.items.map((item, i) => (
+											<ItemRow key={item.id} grip={draft.items.length > 1} icon="cube" title={item.title}
 												meta={`${item.quantity} × ${kr(item.price)}`
-													+ (item.retail ? ` · retail ${kr(item.retail)}` : '')}
+													+ (item.retail ? ` · retail ${kr(item.retail)}` : '')
+													+ (item.photo ? ` · ${item.photo}` : '')}
 												amount={kr(item.price * item.quantity)}>
 												<span className="row-inline" style={{ gap: 2 }}>
-													<IconButton icon="pencil" label={`Edit ${item.title}`} />
+													{/* Reordering is button-driven as well as draggable: a keyboard has to be
+													    able to do it, and a drag handle alone would shut one out. */}
+													<IconButton icon="chevronLeft" label={`Move ${item.title} earlier`}
+														disabled={i === 0} onClick={() => moveItem(i, -1)} />
+													<IconButton icon="chevronRight" label={`Move ${item.title} later`}
+														disabled={i === draft.items.length - 1} onClick={() => moveItem(i, 1)} />
+													<IconButton icon="pencil" label={`Edit ${item.title}`}
+														onClick={() => editItem(item)} />
 													<IconButton icon="trash" label={`Delete ${item.title}`}
-														onClick={() => update({ items: draft.items.filter(i => i.id !== item.id) })} />
+														onClick={() => removeItem(item)} />
 												</span>
 											</ItemRow>
 										))}
+										{draft.items.length === 0
+											? <p className="field-help" style={{ padding: '10px 12px' }}>
+												No items yet. Add the first one above.</p>
+											: null}
 									</InsetPanel>
 								</div>
 
 								<FormActions split>
-									<Button variant="ghost" icon="chevronLeft" to="/orders/new">BACK</Button>
+									<Button variant="ghost" icon="chevronLeft" to={base}>BACK</Button>
 									<Button variant="caps" onClick={save} disabled={saving}>
-										{saving ? 'SAVING…' : 'SAVE ORDER'}</Button>
+										{saving ? 'SAVING…' : mode === 'edit' ? 'SAVE CHANGES' : 'SAVE ORDER'}</Button>
 								</FormActions>
 							</Form>
 						</CardBody>
@@ -480,10 +597,12 @@ export function NewOrderItems() {
 						<CardDivider />
 						<CardBody>
 							<InsetPanel>
-								<ItemRow icon="reorder" title="Drag to reorder"
+								<ItemRow icon="reorder" title="Arrows reorder"
 									meta="The order here is the order on the receipt." />
+								<ItemRow icon="pencil" title="Edit in place"
+									meta="A line loads back into the form above." />
 								<ItemRow icon="undo" title="Escape cancels"
-									meta="An inline edit rolls back untouched." />
+									meta="It empties the form and drops the edit." />
 							</InsetPanel>
 						</CardBody>
 					</Card>

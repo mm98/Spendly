@@ -23,13 +23,18 @@ export const vendors = [
 ]
 
 /* `icon` names an entry in the icon set; `colour` is the token the swatch and the tile
-   both read, so a category cannot be one colour in the donut and another in the list. */
+   both read, so a category cannot be one colour in the donut and another in the list.
+
+   `budget` is the month's allowance. It is what the Expenses/Budget toggle switches between
+   -- the prototype draws that control and changes nothing with it, which is the same defect
+   as a button with no handler wearing a different shape. A budget of 0 means none is set,
+   and the Budget view says so rather than reporting 0% of nothing. README 13. */
 export const categories = [
-	{ id: 'groceries',  name: 'Groceries',       icon: 'cart',    colour: 'var(--icon-red)',     spend: 18420, share: 38, saved: 1240 },
-	{ id: 'electronics',name: 'Electronics',     icon: 'plug',    colour: 'var(--icon-yellow)',  spend: 12940, share: 27, saved: 980 },
-	{ id: 'household',  name: 'Household',       icon: 'home',    colour: 'var(--icon-purple)',  spend: 6110,  share: 13, saved: 310 },
-	{ id: 'homeoffice', name: 'Home office',     icon: 'display', colour: 'var(--donut-blue)',   spend: 4880,  share: 10, saved: 505 },
-	{ id: 'other',      name: 'Everything else', icon: 'tag',     colour: '#45524C',             spend: 5550,  share: 12, saved: 71 }
+	{ id: 'groceries',  name: 'Groceries',       icon: 'cart',    colour: 'var(--icon-red)',     spend: 18420, share: 38, saved: 1240, budget: 17000 },
+	{ id: 'electronics',name: 'Electronics',     icon: 'plug',    colour: 'var(--icon-yellow)',  spend: 12940, share: 27, saved: 980,  budget: 14000 },
+	{ id: 'household',  name: 'Household',       icon: 'home',    colour: 'var(--icon-purple)',  spend: 6110,  share: 13, saved: 310,  budget: 6000 },
+	{ id: 'homeoffice', name: 'Home office',     icon: 'display', colour: 'var(--donut-blue)',   spend: 4880,  share: 10, saved: 505,  budget: 8000 },
+	{ id: 'other',      name: 'Everything else', icon: 'tag',     colour: '#45524C',             spend: 5550,  share: 12, saved: 71,   budget: 0 }
 ]
 
 export const orders = [
@@ -101,11 +106,80 @@ export const orders = [
 			{ id: 'i-20', title: 'Løbesko, str. 43', quantity: 1, price: 799 }
 		],
 		attachments: []
+	},
+	/* June and May, so the period pager, the date filter and the second page of results are
+	   exercised by real records rather than by an empty state. Same shape as the July ones. */
+	{
+		id: 'o-296', vendorId: 'fotex', date: '2026-07-12', status: 'Delivered', kind: 'Expense',
+		categoryIds: ['groceries'], shipping: 0, items: [
+			{ id: 'i-21', title: 'Frugtkasse, blandet', quantity: 1, price: 149, retail: 179 },
+			{ id: 'i-22', title: 'Rødvin, 6 flasker',   quantity: 1, price: 449, retail: 534 }
+		],
+		attachments: []
+	},
+	{
+		id: 'o-295', vendorId: 'jysk', date: '2026-07-07', status: 'Ordered', kind: 'Expense',
+		categoryIds: ['household'], shipping: 79, items: [
+			{ id: 'i-23', title: 'Skrivebordsstol', quantity: 1, price: 1299, retail: 1499 }
+		],
+		attachments: []
+	},
+	{
+		id: 'o-294', vendorId: 'proshop', date: '2026-07-03', status: 'Delivered', kind: 'Work',
+		categoryIds: ['homeoffice'], shipping: 0, items: [
+			{ id: 'i-24', title: 'Mekanisk tastatur', quantity: 1, price: 899, retail: 1099 },
+			{ id: 'i-25', title: 'Skærmarm',          quantity: 1, price: 549, retail: 649 }
+		],
+		attachments: []
+	},
+	{
+		id: 'o-293', vendorId: 'matas', date: '2026-06-27', status: 'Delivered', kind: 'Gift',
+		categoryIds: ['other'], shipping: 0, items: [
+			{ id: 'i-26', title: 'Gavesæt, duft', quantity: 2, price: 249, retail: 299 }
+		],
+		attachments: []
+	},
+	{
+		id: 'o-292', vendorId: 'bilka', date: '2026-06-21', status: 'Delivered', kind: 'Expense',
+		categoryIds: ['groceries'], shipping: 0, saved: 71.5, savedPercent: 7.2,
+		itemCountOverride: 19, totalOverride: 921.15, items: [
+			{ id: 'i-27', title: 'Grovboller, 6 stk.', quantity: 2, price: 19.95 },
+			{ id: 'i-28', title: 'Hakket oksekød',     quantity: 3, price: 42.95 }
+		],
+		attachments: []
+	},
+	{
+		id: 'o-291', vendorId: 'elgiganten', date: '2026-06-14', status: 'Delivered', kind: 'Expense',
+		categoryIds: ['electronics'], shipping: 0, items: [
+			{ id: 'i-29', title: 'Robotstøvsuger', quantity: 1, price: 2499, retail: 2999 }
+		],
+		attachments: []
+	},
+	{
+		id: 'o-290', vendorId: 'zalando', date: '2026-06-08', status: 'Delivered', kind: 'Expense',
+		categoryIds: ['other'], shipping: 0, items: [
+			{ id: 'i-30', title: 'Regnjakke', quantity: 1, price: 699, retail: 899 },
+			{ id: 'i-31', title: 'Uldsokker, 3-pak', quantity: 2, price: 129, retail: 149 }
+		],
+		attachments: []
+	},
+	{
+		id: 'o-289', vendorId: 'fotex', date: '2026-05-30', status: 'Delivered', kind: 'Expense',
+		categoryIds: ['groceries', 'household'], shipping: 0, saved: 48.2, savedPercent: 6.1,
+		itemCountOverride: 14, totalOverride: 742.35, items: [
+			{ id: 'i-32', title: 'Vaskemiddel, 2 l', quantity: 1, price: 64.95 },
+			{ id: 'i-33', title: 'Kartofler, 2 kg',  quantity: 2, price: 24.95 }
+		],
+		attachments: []
 	}
 ]
 
 /* The month the prototype holds. Every "this month" figure on every page reads from here,
-   so July cannot be 24.418,57 on Home and something else on Statistics. */
+   so July cannot be 24.418,57 on Home and something else on Statistics.
+
+   Two more months sit under it in `periods`. They exist because Statistics has a pager, and
+   a pager with one place to stand is a control that draws two arrows and moves nothing --
+   the defect this app keeps finding. README 13. */
 export const period = {
 	id: '2026-07',
 	label: 'July 2026',
@@ -266,24 +340,141 @@ export const questionOfTheDay = {
 	short: 'What did Groceries cost in June?'
 }
 
-/* What the global finder answers with. A live index over orders, vendors and notes is
-   more than a phantom source needs to promise, so the one query the prototype shows is
-   the one this returns -- and client.js says so by only matching that prefix. */
-export const finderResults = {
-	bil: {
-		groups: [
-			{ heading: 'Orders', options: [
-				{ id: 'f-1', mark: 'Bil', rest: 'ka · 18 July', meta: '1.187,25 kr.', to: '/orders/o-301' },
-				{ id: 'f-2', mark: 'Bil', rest: 'ka · 9 July',  meta: '894,40 kr.',   to: '/orders/o-299' }
-			] },
-			{ heading: 'Vendors', options: [
-				{ id: 'f-3', mark: 'Bil', rest: 'ka', meta: '96 orders · 41.882 kr.', to: '/vendors' }
-			] },
-			{ heading: 'Notes', options: [
-				{ id: 'f-4', before: '"…reservedele til ', mark: 'bil', rest: 'en"', meta: 'Silvan · 2 July', to: '/orders/o-298' }
-			] }
-		]
-	}
+export const onboarding = { done: 1, total: 3 }
+
+/* June and May, in the same shape July is in. Shorter series are fine -- the chart maps
+   whatever it is given onto the element's pixel box. */
+const june = {
+	id: '2026-06', label: 'June 2026', shortLabel: 'June', previousLabel: 'May',
+	spent: 20680, saved: 1897, savedPercent: 8.4, retail: 22577,
+	orderCount: 19, averageOrder: 1088, shipping: 413, shippingShare: 2.0,
+	daysIn: 30, projected: 20680, previousTotal: 18420,
+	deltaLabel: '12% up vs May',
+	callout: 'A steady month. The Elgiganten robot vacuum on the 14th was the biggest single order.',
+	weekendShare: 29, busiestDay: 'Saturday', busiestDaySpend: 4980,
+	series: {
+		orders: [78, 84, 72, 90, 66, 80, 74, 88, 62, 76, 84, 70, 92, 58, 72, 80, 66, 86, 74, 60, 82, 68, 78, 64, 88, 70, 76, 62, 84, 72],
+		saved: [104, 110, 98, 116, 92, 106, 100, 114, 88, 102, 110, 96, 118, 84, 98, 106, 92, 112, 100, 86, 108, 94, 104, 90, 114, 96, 102, 88, 110, 98],
+		cumulative: [92, 74, 60, 44, 30, 20, 12],
+		savingsGrowth: [80, 66, 46, 26, 14],
+		monthCurrent: [220, 190, 158, 126, 92, 66, 40, 22],
+		monthPrevious: [214, 196, 176, 154, 136, 120, 106],
+		statsCurrent: [182, 179, 176, 172, 169, 164, 160, 157, 150, 146, 141, 138, 134, 131, 124, 118, 112, 108, 103, 98, 94, 90, 82, 74, 68, 62, 58, 52, 44, 36],
+		statsPrevious: [188, 186, 184, 180, 177, 174, 172, 168, 165, 163, 161, 156, 150, 145, 143, 140, 137, 132, 128, 122, 117, 112, 107, 102, 98, 96, 94, 92, 90, 88]
+	},
+	weekdays: [
+		{ day: 'Mon', home: 44, stats: 38 }, { day: 'Tue', home: 38, stats: 32 },
+		{ day: 'Wed', home: 52, stats: 44 }, { day: 'Thu', home: 40, stats: 34 },
+		{ day: 'Fri', home: 46, stats: 40 }, { day: 'Sat', home: 78, stats: 66, peak: true },
+		{ day: 'Sun', home: 58, stats: 48 }
+	],
+	months: [
+		{ label: 'Jan', height: 52 }, { label: 'Feb', height: 48 }, { label: 'Mar', height: 69 },
+		{ label: 'Apr', height: 43 }, { label: 'May', height: 82 }, { label: 'Jun', height: 100, current: true }
+	],
+	kpis: [
+		{ label: 'Orders', value: '19', delta: '6% up vs May', trend: 'up', tone: 'neutral', note: 'May: 18 orders' },
+		{ label: 'Average order', value: '1.088 kr.', delta: '6% up vs May', trend: 'up', tone: 'neutral', note: 'May: 1.023 kr.' },
+		{ label: 'Saved vs retail', value: '1.897 kr.', delta: '3% down vs May', trend: 'down', tone: 'neutral', note: '8% under retail prices' },
+		{ label: 'Shipping', value: '413 kr.', delta: '9% up vs May', trend: 'up', tone: 'neutral', note: '2,0% of spend' }
+	],
+	heroLegend: [
+		{ name: 'Groceries', amount: 15180, colour: 'var(--green)' },
+		{ name: 'Electronics', amount: 3420, colour: 'var(--teal)' },
+		{ name: 'Everything else', amount: 2080, colour: '#45524C' }
+	],
+	statsLegend: [
+		{ name: 'Groceries', amount: 15180, colour: 'var(--donut-blue)' },
+		{ name: 'Electronics', amount: 3420, colour: 'var(--green)' },
+		{ name: 'Household', amount: 1420, colour: 'var(--donut-yellow)' },
+		{ name: 'Everything else', amount: 660, colour: 'var(--donut-purple)' }
+	],
+	returnsNote: 'One return in June: Jysk lampe, refunded 349,00 kr. on the 19th.'
 }
 
-export const onboarding = { done: 1, total: 3 }
+const may = {
+	id: '2026-05', label: 'May 2026', shortLabel: 'May', previousLabel: 'April',
+	spent: 18420, saved: 1954, savedPercent: 9.6, retail: 20374,
+	orderCount: 18, averageOrder: 1023, shipping: 379, shippingShare: 2.1,
+	daysIn: 31, projected: 18420, previousTotal: 15960,
+	deltaLabel: '15% up vs April',
+	callout: 'Spring cleaning: five of the eighteen orders were Household.',
+	weekendShare: 41, busiestDay: 'Sunday', busiestDaySpend: 5240,
+	series: {
+		orders: [70, 76, 64, 82, 60, 74, 68, 80, 58, 70, 78, 66, 84, 54, 68, 74, 62, 80, 70, 56, 76, 64, 72, 60, 82, 66, 70, 58, 78, 66, 72],
+		saved: [96, 102, 90, 108, 86, 98, 92, 106, 82, 96, 102, 88, 110, 78, 92, 98, 86, 104, 94, 80, 100, 88, 96, 84, 106, 90, 94, 82, 102, 90, 96],
+		cumulative: [94, 78, 64, 48, 34, 22, 14],
+		savingsGrowth: [82, 68, 50, 28, 16],
+		monthCurrent: [222, 194, 164, 134, 100, 72, 46, 26],
+		monthPrevious: [218, 200, 182, 160, 142, 126, 112],
+		statsCurrent: [184, 181, 178, 175, 171, 167, 163, 160, 154, 150, 146, 142, 139, 136, 130, 124, 118, 114, 109, 104, 100, 96, 89, 82, 76, 70, 66, 60, 52, 44, 38],
+		statsPrevious: [190, 188, 186, 183, 180, 177, 175, 172, 169, 167, 165, 160, 155, 150, 148, 145, 142, 138, 134, 128, 123, 118, 113, 108, 104, 102, 100, 98, 96, 94, 92]
+	},
+	weekdays: [
+		{ day: 'Mon', home: 36, stats: 30 }, { day: 'Tue', home: 42, stats: 36 },
+		{ day: 'Wed', home: 48, stats: 40 }, { day: 'Thu', home: 34, stats: 28 },
+		{ day: 'Fri', home: 50, stats: 42 }, { day: 'Sat', home: 62, stats: 52 },
+		{ day: 'Sun', home: 74, stats: 62, peak: true }
+	],
+	months: [
+		{ label: 'Dec', height: 74 }, { label: 'Jan', height: 52 }, { label: 'Feb', height: 48 },
+		{ label: 'Mar', height: 69 }, { label: 'Apr', height: 43 }, { label: 'May', height: 100, current: true }
+	],
+	kpis: [
+		{ label: 'Orders', value: '18', delta: '5% down vs April', trend: 'down', tone: 'good', note: 'April: 19 orders' },
+		{ label: 'Average order', value: '1.023 kr.', delta: '21% up vs April', trend: 'up', tone: 'neutral', note: 'April: 840 kr.' },
+		{ label: 'Saved vs retail', value: '1.954 kr.', delta: '18% up vs April', trend: 'up', tone: 'good', note: '10% under retail prices' },
+		{ label: 'Shipping', value: '379 kr.', delta: '4% down vs April', trend: 'down', tone: 'good', note: '2,1% of spend' }
+	],
+	heroLegend: [
+		{ name: 'Household', amount: 8240, colour: 'var(--green)' },
+		{ name: 'Groceries', amount: 7180, colour: 'var(--teal)' },
+		{ name: 'Everything else', amount: 3000, colour: '#45524C' }
+	],
+	statsLegend: [
+		{ name: 'Household', amount: 8240, colour: 'var(--donut-blue)' },
+		{ name: 'Groceries', amount: 7180, colour: 'var(--green)' },
+		{ name: 'Electronics', amount: 1900, colour: 'var(--donut-yellow)' },
+		{ name: 'Everything else', amount: 1100, colour: 'var(--donut-purple)' }
+	],
+	returnsNote: 'No returns in May.'
+}
+
+/* Newest first, which is the order the pager walks. */
+export const periods = [period, june, may]
+
+/* The question of the day, and the answer it promises. A button labelled ASK SPENDLY that
+   opens nothing is the decorative-control rule with an AI badge on it, so the answer is a
+   record here and the button reveals it. `categoryId` and `periodId` are what make the
+   answer checkable: the orders behind it are one click away. README 13. */
+export const answers = [
+	{
+		id: 'groceries-june',
+		question: 'What did Groceries cost me in June?',
+		short: 'What did Groceries cost in June?',
+		answer: '15.180 kr., across 11 of June\'s 19 orders.',
+		detail: 'That is 3.240 kr. less than July so far, and 73% of everything you spent in June.',
+		categoryId: 'groceries',
+		periodId: '2026-06'
+	}
+]
+
+/* The defaults every setting starts at. Each one is read somewhere -- a settings page whose
+   switches change nothing is the same defect as a button that does nothing, one screen up. */
+export const defaultSettings = {
+	defaultKind: 'Expense',
+	defaultStatus: 'Delivered',
+	pageSize: 10,
+	sort: 'date-desc',
+	showScanCard: true,
+	confirmDelete: true
+}
+
+/* How the All orders list can be ordered. The label is what the control prints. */
+export const sorts = [
+	{ id: 'date-desc', label: 'Date, newest' },
+	{ id: 'date-asc', label: 'Date, oldest' },
+	{ id: 'amount-desc', label: 'Amount, highest' },
+	{ id: 'amount-asc', label: 'Amount, lowest' },
+	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
+]
