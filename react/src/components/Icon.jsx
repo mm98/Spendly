@@ -55,8 +55,12 @@ export const ICONS = {
 /** The 24x24 line icon used everywhere. `title` makes it a labelled image; without one it
     is decorative and hidden from the accessibility tree, which is right for a glyph sitting
     beside its own text. */
-export const Icon = memo(function Icon({ name, className = 'icon', title, ...rest }) {
-	const d = ICONS[name]
+export const Icon = memo(function Icon({ name, path, className = 'icon', title, ...rest }) {
+	/* `path` is the glyph itself rather than a name for one. A category may be given any of
+	   Tabler's 5,129 outline icons, and the record stores the path it chose -- so drawing it
+	   costs nothing but the string already on the record, and no page has to load the
+	   catalogue in order to render a list. See api/tabler.js. */
+	const d = path ?? ICONS[name]
 	if (!d) throw new Error('No icon named ' + name)   // a typo fails here rather than drawing nothing
 	return (
 		<svg className={className || undefined} viewBox="0 0 24 24" role={title ? 'img' : undefined}

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, ICONS } from './Icon.jsx'
 import { FieldShell } from './Form.jsx'
 import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
@@ -25,11 +25,14 @@ import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
    Whatever is chosen, the glyph or the initials on top of it are inked from it -- see
    ../api/colour.js. An open picker without that is a tile whose contents can vanish.
 
-   The icons on offer are the app's own set -- the 39 glyphs in Icon.jsx, which are Tabler
-   outline paths carried over from the prototype. Offering the whole Tabler library means
-   taking the dependency and shipping several thousand paths for a picker; this offers what
-   the app can actually draw, and every one of them is a glyph already verified against the
-   design system's stroke and size. */
+   The icons on offer are the whole Tabler outline set -- 5,129 of them, generated into
+   api/tabler.js from the package at build time. The 39 in Icon.jsx are the ones the interface
+   itself draws; they are not the limit on what a category may be.
+
+   Two things keep that affordable. The catalogue is imported on demand, when the picker first
+   renders, so it lands in its own chunk and costs nothing on first paint. And what a chosen
+   icon needs in order to be *drawn* -- the path string -- is stored on the record with it, so
+   the lists, the rings and the rows never load the catalogue at all. */
 
 /** The palette a category or a vendor can be. Tokens where the system has one, so a category
     coloured "red" is the same red as the one in the donut. */
@@ -110,20 +113,45 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
 	)
 }
 
-/** A searchable grid of every glyph the app can draw. */
+/** A searchable grid of every Tabler outline icon.
+
+    `onChange` hands back the name and the path together, because the record stores both: the
+    name is what the summary line reads back and what a future search matches, the path is what
+    every row that draws the category needs. Handing back a name alone would mean every page
+    loading the catalogue to look it up. */
 export function IconPicker({ value, onChange, label = 'Icon' }) {
 	const [query, setQuery] = useState('')
+	const [all, setAll] = useState(null)
+
+	/* Imported here rather than at the top of the module: this is 5,129 paths, and it belongs
+	   in the chunk that opens with the picker instead of the one that paints the app. */
+	useEffect(() => {
+		let live = true
+		import('../api/tabler.js').then(m => { if (live) setAll(m.TABLER) })
+		return () => { live = false }
+	}, [])
+
+	const catalogue = all ?? ICONS
+
 	const names = useMemo(() => {
 		const needle = query.trim().toLowerCase()
-		const all = Object.keys(ICONS).sort()
-		return needle ? all.filter(n => n.toLowerCase().includes(needle)) : all
-	}, [query])
+		const keys = Object.keys(catalogue)
+		if (!needle) {
+			/* Unsearched, the grid shows the app's own 39 -- a scroller holding five thousand
+			   tiles is a wall, not a choice, and these are the glyphs the interface already
+			   speaks in. The search reaches the rest. */
+			return Object.keys(ICONS).sort()
+		}
+		return keys.filter(n => n.toLowerCase().includes(needle)).sort().slice(0, 240)
+	}, [query, catalogue])
+
+	const total = Object.keys(catalogue).length
 
 	return (
 		<div style={{ display: 'grid', gap: 8 }}>
 			<FieldShell style={{ height: 38 }}>
 				<Icon name="search" />
-				<input type="search" value={query} placeholder="Search icons…"
+				<input type="search" value={query} placeholder={`Search ${total.toLocaleString('da-DK')} icons…`}
 					aria-label="Search icons" onChange={e => setQuery(e.target.value)} />
 			</FieldShell>
 			<div role="radiogroup" aria-label={label}
@@ -136,14 +164,14 @@ export function IconPicker({ value, onChange, label = 'Icon' }) {
 					return (
 						<button key={name} type="button" className="icon-button"
 							role="radio" aria-checked={on} aria-label={name}
-							onClick={() => onChange(name)}
+							onClick={() => onChange(name, catalogue[name])}
 							style={{
 								width: '100%', height: 34,
 								background: on ? 'var(--bg-dark)' : 'var(--bg-card)',
 								color: on ? '#fff' : 'var(--text-body)',
 								borderColor: on ? 'var(--bg-dark)' : 'var(--border-control)'
 							}}>
-							<Icon name={name} />
+							<Icon name={name} path={catalogue[name]} />
 						</button>
 					)
 				})}
@@ -151,15 +179,25 @@ export function IconPicker({ value, onChange, label = 'Icon' }) {
 					? <p className="field-help" style={{ gridColumn: '1 / -1' }}>No icon matches "{query}".</p>
 					: null}
 			</div>
+			{/* What the grid is showing, since it is a window on to five thousand and not the
+			    whole set: a count that says "39 of 5.129" is the difference between a short list
+			    and a broken one. */}
+			<span className="field-help">
+				{query.trim()
+					? `${names.length}${names.length === 240 ? '+' : ''} of ${total.toLocaleString('da-DK')} icons match.`
+					: all
+						? `The ${names.length} the app itself uses. Search all ${total.toLocaleString('da-DK')}.`
+						: `The ${names.length} the app itself uses. Loading the rest…`}
+			</span>
 		</div>
 	)
 }
 
 /** What the choice will look like, at the size it is used at. */
-export const CategoryPreview = ({ icon, colour, name }) => (
+export const CategoryPreview = ({ icon, iconPath, colour, name }) => (
 	<div className="data-row category-row" style={{ pointerEvents: 'none' }}>
 		<span className="category-icon" style={{ background: colour, color: inkOn(colour) }}>
-			<Icon name={icon} /></span>
+			<Icon name={icon} path={iconPath} /></span>
 		<div>
 			<div className="category-row-title">{name || 'Your category'}</div>
 			<div className="category-row-meta">how it will look in the list</div>

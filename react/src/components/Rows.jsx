@@ -57,7 +57,7 @@ export function CategoryRow({ category, meta, to }) {
 		<Row to={to} family="category-row">
 			<span className="category-icon"
 				style={{ background: category.colour, color: inkOn(category.colour) }}>
-				<Icon name={category.icon} /></span>
+				<Icon name={category.icon} path={category.iconPath} /></span>
 			<div>
 				<div className="category-row-title">{category.name}</div>
 				<div className="category-row-meta">{meta ?? `${category.share}% of expenses`}</div>

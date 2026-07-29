@@ -239,11 +239,25 @@ A category's glyph and colour, and a vendor's colour, used to be assigned — ne
 palette, or a hash of the name — which is a value you can see, cannot explain and could not
 change. Both are now picked, previewed at the size they are used at, and persisted.
 
-The icon picker offers **the app's own set: the 39 Tabler outline glyphs in `Icon.jsx`**, with
-a search over them. That is a deliberate limit rather than the whole Tabler library, which
-would mean taking the dependency and shipping several thousand paths for a picker; every glyph
-on offer here is one already verified against the design system's stroke and size. Say the
-word and the full set can go in.
+The icon picker offers **the whole Tabler outline set — 5,129 icons**. `src/api/tabler.js` is
+generated from the `@tabler/icons` package by `npm run icons:sync`, the same way the stylesheet
+is generated from the prototype, and `npm run icons:check` fails if it has drifted. Every icon
+is flattened to one stroke path; the transparent 24×24 bounds path every Tabler file opens with
+is dropped, and so are the 77 filled paths a handful of outline icons carry, since everything
+here draws with one stroke and no fill.
+
+Two things keep 5,129 icons affordable, and both are measured:
+
+- **The catalogue is loaded on demand.** `IconPicker` imports it inside an effect, so Rollup
+  gives it a chunk of its own: `index.js` is 376.05 kB (116.89 kB gzipped) with or without it,
+  and `tabler.js` is 919.62 kB (213.70 kB gzipped), fetched the first time a picker opens.
+- **A record stores the path, not just the name.** A category saved with `ti-carrot` keeps the
+  path string beside the name, so the rows, the rings and the donut draw it from the record.
+  Nothing outside the picker imports the catalogue — otherwise every list would pull 900 kB to
+  find out what to draw. The app's own 39 store no path at all; `Icon.jsx` knows those by name.
+
+Unsearched, the grid shows those 39 — a scroller holding five thousand tiles is a wall, not a
+choice — and the line under it says how many the search is matching out of how many there are.
 
 Neither picker draws anything new: the swatches and the icon grid are `.icon-button`, and the
 search is the same `.field-shell` as every other search in the app.

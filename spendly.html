@@ -1536,16 +1536,18 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 										<button type="button" role="tab" aria-selected="false">Returned</button>
 									</div></div>
 							</div>
-							<div class="field-pair field-pair-stack-early">
-								<label class="field"><span>Categories</span>
-									<div class="field-shell" style="height:auto;min-height:48px;padding:8px 10px;flex-wrap:wrap">
-										<span class="chip">Household<svg class="icon" viewBox="0 0 24 24"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span><span class="chip">Groceries<svg class="icon" viewBox="0 0 24 24"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span>
-										<input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Add category…" aria-label="Add category" style="flex:1 1 120px"></div></label>
-								<label class="field"><span>Kind</span>
-									<div class="field-shell"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Expense" placeholder="Expense" aria-label="Kind" aria-required="true" id="order-kind"><svg class="icon chevron-icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div>
-									<span class="field-error" id="order-kind-error" hidden></span>
-									<span class="field-help">Only expenses count towards your totals.</span></label>
-							</div>
+							<!-- Categories and Kind each hold a row. They shared one, breaking to a line each at
+							     900px, and a field that grows is a bad neighbour: every chip added to Categories
+							     makes it taller while Kind stays a single 48px row beside it, so the two labels
+							     line up and nothing under them does. S9. -->
+							<label class="field"><span>Categories</span>
+								<div class="field-shell" style="height:auto;min-height:48px;padding:8px 10px;flex-wrap:wrap">
+									<span class="chip">Household<svg class="icon" viewBox="0 0 24 24"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span><span class="chip">Groceries<svg class="icon" viewBox="0 0 24 24"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span>
+									<input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Add category…" aria-label="Add category" style="flex:1 1 120px"></div></label>
+							<label class="field"><span>Kind</span>
+								<div class="field-shell"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Expense" placeholder="Expense" aria-label="Kind" aria-required="true" id="order-kind"><svg class="icon chevron-icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div>
+								<span class="field-error" id="order-kind-error" hidden></span>
+								<span class="field-help">Only expenses count towards your totals.</span></label>
 							<div class="filter-section">
 								<div class="space-between"><span class="panel-heading">More details?</span><button type="button" class="switch" role="switch" aria-checked="true" aria-controls="more-details-panel" aria-label="More details"></button></div>
 								<div class="filter-section-body" id="more-details-panel">

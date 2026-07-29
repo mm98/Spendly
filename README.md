@@ -528,10 +528,14 @@ place the accent is spent on chrome. **The wordmark is "Spendly" — never "Sple
 - **A range stays on one line; a row of names breaks.** Two fields side by side are not all the same
   kind of pair. **From/To and Min/Max are one control each** — an end is read against the other end,
   so they hold their pairing down to the smallest phone (`.field-pair-keep`, past the ≤700 collapse that
-  would otherwise split them). **Category and Kind are two independent values** that happen to share a
-  row, and they carry names, so that row breaks to one field per line at ≤900 (`.field-pair-stack-early`) — the
+  would otherwise split them). **Category and Kind are two independent values** that carry names,
+  so a row holding both breaks to one field per line at ≤900 (`.field-pair-stack-early`) — the
   phone layout starts at 700, so from 701 to 900 the sidebar is still standing and a name is down to
-  165px, with a phone in landscape (844px) inside that band. **Vendor holds a row by itself at every
+  165px, with a phone in landscape (844px) inside that band. That is the filter panel, where both
+  are one-line comboboxes. **On the create form they do not share a row at any width**, because
+  Categories is a field that *grows*: every chip added to it makes it taller while Kind stays a
+  single 48px row beside it, so the two labels line up and nothing under them does. A field whose
+  height is data has no business in a pair. **Vendor holds a row by itself at every
   width**, because it carries the longest strings in the panel — `Silvan · Materialer`, and whatever a
   user creates — and a pair gave it half the room at exactly the widths where it had least. At 390px:
   names get the full 294px, each range column gets 139px, and the values fit it — a date wants 163px

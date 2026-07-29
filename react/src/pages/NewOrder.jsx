@@ -176,38 +176,42 @@ export function NewOrderDetails() {
 				</Field>
 			</FieldPair>
 
-			<FieldPair variant="field-pair-stack-early">
-				<Field label="Categories"
-					help="Pick from your categories, or type one and press Enter.">
-					<Combobox label="Add category" placeholder="Add category…"
-						chips={draft.categories.map(name => (
-							<Chip key={name} label={`Remove category ${name}`}
-								onRemove={() => update({ categories: draft.categories.filter(c => c !== name) })}>
-								{name}</Chip>
-						))}
-						value={categoryQuery} onChange={setCategoryQuery}
-						onSelect={o => { addCategory(o.label); setCategoryQuery('') }}
-						groups={[{ heading: 'Your categories', options: (categories.data ?? [])
-							.filter(c => !draft.categories.includes(c.name))
-							.map(c => ({ id: c.id, label: c.name, meta: `${c.share}% of expenses` })) }]}
-						action={categoryQuery.trim()
-							? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
-								onSelect: name => { addCategory(name); setCategoryQuery('') } }
-							: undefined} />
-				</Field>
-				<Field label="Kind" error={kindField.error} errorId={kindField.errorId}
-					help="Only expenses count towards your totals.">
-					<Combobox id="order-kind" label="Kind" required placeholder="Expense"
-						value={draft.kind}
-						invalid={kindField.invalid} describedBy={kindField.describedBy}
-						onChange={set('order-kind', 'kind')}
-						/* Kind is typed, and an option is one click from the same value, so the
-						   canonical spelling is restored on selection rather than a lowercase
-						   "expense" being rejected or stored. */
-						onSelect={o => { update({ kind: o.label }); recheck('order-kind', o.label) }}
-						groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
-				</Field>
-			</FieldPair>
+			{/* Categories and Kind each hold a row. They shared one, breaking to a line each
+			    at 900px, and a field that grows is a bad neighbour: every chip added to
+			    Categories made it taller while Kind stayed a single 48px row beside it, so the
+			    two labels lined up and nothing under them did. Vendor already holds a row for a
+			    related reason -- what a field pairs with is a question about the field, not
+			    about the width. README 9. */}
+			<Field label="Categories"
+				help="Pick from your categories, or type one and press Enter.">
+				<Combobox label="Add category" placeholder="Add category…"
+					chips={draft.categories.map(name => (
+						<Chip key={name} label={`Remove category ${name}`}
+							onRemove={() => update({ categories: draft.categories.filter(c => c !== name) })}>
+							{name}</Chip>
+					))}
+					value={categoryQuery} onChange={setCategoryQuery}
+					onSelect={o => { addCategory(o.label); setCategoryQuery('') }}
+					groups={[{ heading: 'Your categories', options: (categories.data ?? [])
+						.filter(c => !draft.categories.includes(c.name))
+						.map(c => ({ id: c.id, label: c.name, meta: `${c.share}% of expenses` })) }]}
+					action={categoryQuery.trim()
+						? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
+							onSelect: name => { addCategory(name); setCategoryQuery('') } }
+						: undefined} />
+			</Field>
+			<Field label="Kind" error={kindField.error} errorId={kindField.errorId}
+				help="Only expenses count towards your totals.">
+				<Combobox id="order-kind" label="Kind" required placeholder="Expense"
+					value={draft.kind}
+					invalid={kindField.invalid} describedBy={kindField.describedBy}
+					onChange={set('order-kind', 'kind')}
+					/* Kind is typed, and an option is one click from the same value, so the
+					   canonical spelling is restored on selection rather than a lowercase
+					   "expense" being rejected or stored. */
+					onSelect={o => { update({ kind: o.label }); recheck('order-kind', o.label) }}
+					groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
+			</Field>
 
 			<FilterSection>
 				<div className="space-between">

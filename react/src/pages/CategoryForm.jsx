@@ -4,6 +4,7 @@ import { Card, CardBody } from '../components/Card.jsx'
 import { SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { CategoryPreview, ColourPicker, IconPicker } from '../components/Pickers.jsx'
+import { ICONS } from '../components/Icon.jsx'
 import {
 	Field, FieldShell, FieldUnit, TextInput, focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
@@ -27,7 +28,7 @@ import { resolveColour } from '../api/colour.js'
    Create and edit are one component, because they differ by which record they start from and
    by nothing else. A second one for the other is the near-miss the uniformity rule is about. */
 
-const BLANK = { name: '', icon: 'tag', colour: 'var(--icon-red)', budget: '' }
+const BLANK = { name: '', icon: 'tag', iconPath: undefined, colour: 'var(--icon-red)', budget: '' }
 
 export default function CategoryForm({ mode = 'create' }) {
 	const { id } = useParams()
@@ -54,6 +55,7 @@ function CategoryFields({ mode, category }) {
 		setValues({
 			name: category.name,
 			icon: category.icon,
+			iconPath: category.iconPath,
 			colour: category.colour,
 			budget: category.budget ? amountRound(category.budget) : ''
 		})
@@ -104,7 +106,15 @@ function CategoryFields({ mode, category }) {
 		}
 		setStatus({ message: '', good: true })
 		setSaving(true)
-		const patch = { name: values.name.trim(), icon: values.icon, colour: values.colour, budget }
+		/* The path travels with the name. A category may be any of Tabler's 5,129 outline icons,
+		   and a record that stored only the name would make every list load the catalogue to
+		   find out what to draw. `iconPath` is null for the app's own 39, which Icon.jsx knows
+		   by name -- null rather than undefined, so saving an app glyph over a Tabler one really
+		   clears it. */
+		const patch = {
+			name: values.name.trim(), icon: values.icon, iconPath: values.iconPath ?? null,
+			colour: values.colour, budget
+		}
 		const written = mode === 'edit'
 			? updateCategory(category.id, patch)
 			: createCategory(patch.name, patch)
@@ -181,7 +191,10 @@ function CategoryFields({ mode, category }) {
 			</Field>
 
 			<Field label="Icon" group help="Every glyph the app draws; the search narrows them.">
-				<IconPicker value={values.icon} onChange={icon => setValues(v => ({ ...v, icon }))}
+				<IconPicker value={values.icon}
+					onChange={(icon, iconPath) => setValues(v => ({
+						...v, icon, iconPath: ICONS[icon] ? undefined : iconPath
+					}))}
 					label="Category icon" />
 			</Field>
 		</FormPage>
@@ -197,7 +210,8 @@ function CategorySummary({ values, budget, category }) {
 				<div className="card-subheading">Category summary</div>
 				<span className="section-label">How it will look</span>
 				<div className="category-rows" style={{ marginBottom: 4 }}>
-					<CategoryPreview icon={values.icon} colour={values.colour} name={values.name} />
+					<CategoryPreview icon={values.icon} iconPath={values.iconPath}
+						colour={values.colour} name={values.name} />
 				</div>
 				<div className="summary-row">Name
 					<span className="summary-row-value">{values.name || '—'}</span></div>
