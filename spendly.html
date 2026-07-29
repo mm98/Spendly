@@ -811,11 +811,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    .filter-section's grid, so the gap between the pair and the Note is restated
    here -- a plain div would have stacked them with nothing between. S9. */
 .filter-section-body { display:grid; gap:14px; }
-/* An author display beats the UA's [hidden] rule wherever that rule is not
-   !important, so a grid container hidden by the attribute can stay on screen.
-   Chromium here does mark it !important -- this holds the case for the engines
-   that do not, and for the ones nobody could launch. S13. */
-.filter-section-body[hidden] { display:none; }
 /* Off state. The switch drew the on state and nothing else, so flipping
    aria-checked left an identical green pill: a control that reports its state to
    a screen reader and not to the eye. #838C84 is 3.47:1 on the white card, which

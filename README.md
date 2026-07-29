@@ -902,18 +902,24 @@ instance below shipped because a shape was copied from the reference without ask
   the knob pinned to `right:3px` with no `[aria-checked="false"]` rule anywhere, so wiring it alone
   would have reported the change to a screen reader and not to the eye. The track greys and the knob
   moves to `left:3px`; `#838C84` is 3.47:1 against the white card, which is what keeps the white knob
-  visible on it ([§18](#18-accessibility) -- 1.4.11 is about the states of a control, not only its
+  visible on it. Verified in all three engines -- Blink 141.0.7390.37, Gecko 142.0.1, WebKit 26.0 --
+  at 1440 and 390: click, Space and Enter each flip the state, track and knob move together, and the
+  button holds 44x26 in both states, so the control does not resize on toggle ([§18](#18-accessibility) -- 1.4.11 is about the states of a control, not only its
   text). Neither half is optional and neither is visible in a still. It starts on, as the form did.
   The *on* track is the one figure left standing: `var(--green)` is 2.93:1 on the white card, just
   under the same 3:1. It is untouched here because moving it moves the brand green everywhere it
   fills, which is a palette decision and not a fix to a dead switch -- recorded so the next reader
   finds it deliberate rather than missed.
-- **`hidden` is how a panel collapses, and an author `display` can outrank it.** The UA rule is
-  `[hidden] { display:none }`, and an author rule beats the user agent whatever the specificity --
-  so `.filter-section-body { display:grid }`, which the panel needs for its 14px gap, is exactly the
-  shape that keeps a hidden element on screen. Current Chromium marks the UA rule `!important` and
-  the collapse works; that is a browser's choice and not a guarantee, so the panel restates
-  `display:none` under `[hidden]` rather than resting on it.
+- **`hidden` collapses a panel even when the author sets `display` -- and it is worth writing down,
+  because the shape looks exactly like a bug.** An author rule beats the user agent whatever the
+  specificity, so `.filter-section-body { display:grid }`, which the panel needs for its 14px gap,
+  reads as precisely what would keep a hidden element on screen. It does not, because the UA rule is
+  `display:none !important` and that is the standard rather than one vendor's choice: measured
+  `none` in Blink 141.0.7390.37, Gecko 142.0.1 and WebKit 26.0, on the panel and on the unguarded
+  `.filter-section` that FILTERS has always relied on. A defensive `[hidden] { display:none }` was
+  written here on the assumption that the `!important` was Chromium's own, and deleted when three
+  engines disagreed -- it restated a value every engine already computed. Do not add one, and do not
+  read the existing panels as unprotected.
 - **No decorative controls at all.** The kebab was a `<span aria-hidden="true">` with no handler and
   no intended action, inherited from the reference's card menu; it invites a click that does nothing.
   Deleted. The hero `[+]` went too: it duplicated the top bar's NEW ORDER and existed only because

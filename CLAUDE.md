@@ -23,34 +23,31 @@ shows. Opening the HTML in a browser is the whole toolchain.
 Re-checking these each session is the waste this heading exists to stop. They are facts about the
 box, not about any change.
 
-- **Chromium is installed and is the engine.** `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`,
-  **141.0.7390.37**, under the globally installed Playwright 1.56.1
-  (`/opt/node22/lib/node_modules/playwright`). Nothing needs installing; `playwright install` is
-  never the fix. Launch it and measure.
+- **All three engines are installed.** Blink **141.0.7390.37**, Gecko **142.0.1** and WebKit **26.0**,
+  under the globally installed Playwright 1.56.1 (`/opt/node22/lib/node_modules/playwright`), in
+  `/opt/pw-browsers` -- export `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers` or the launchers look
+  elsewhere and report the binary as missing. Launch all three and measure.
+- **A session that finds only Chromium is a session whose environment lost the cache.** The other two
+  arrive from the environment's setup script; if they are absent, `playwright install --with-deps
+  firefox webkit` fetches them, and it is the one time `playwright install` is the right move.
+  WebKit needs system libraries the base image does not ship -- it downloads happily and then fails
+  to launch on `libenchant-2`, `libsecret-1`, `libwayland-server`, `libmanette-0.2`, `libGLESv2` and
+  `libx264`. `playwright install-deps webkit` pulls them from the Ubuntu archives. The download and
+  the dependencies are two separate failures and only the first reports itself clearly.
 - **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
   screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
   case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
   to confirm it before trusting a diff. Confirmed on 2026-07-29: 0 of 5,184,000 on `home.png` and
   `all-orders.png`, 0 of 1,035,840 on `phone.png`.
-- **Firefox and WebKit are not here and cannot be fetched.** `playwright install firefox webkit`
-  fails with a bare `Download failure, code=1`, which says nothing about why. The reason is egress
-  policy: the agent proxy answers **403 to CONNECT** for `cdn.playwright.dev:443` and
-  `playwright.download.prss.microsoft.com:443`. Confirm it in one command rather than inferring it
-  from the failure -- `curl -sS "$HTTPS_PROXY/__agentproxy/status"` lists `recentRelayFailures` with
-  the host and the reason, and `/root/.ccr/README.md` says a 403 is reported, never retried or routed
-  around. The host being up is not the question, and neither is whether it loads from a laptop: the 403
-  is raised by this container's gateway before anything reaches the CDN, and the allowlist is per
-  environment. Lifting it is an environment change and not a code one -- the two hosts have to be
-  allowed by the session's network policy, after which the install works normally. Every other route
-  is shut too, so do not go hunting for one: `archive.mozilla.org`, `download.mozilla.org`,
-  `ftp.mozilla.org` and `deb.debian.org` are all 403, and Playwright cannot drive a stock Firefox
-  anyway -- it needs its own patched build. `github.com`, `objects.githubusercontent.com` and
-  `registry.npmjs.org` *are* reachable, and pulling browser builds through them would be routing
-  around an egress denial the proxy README forbids routing around. Not a workaround to reach for. No system browser exists
-  outside the Playwright bundle either -- no `firefox`, `firefox-esr`, `epiphany` or
-  `google-chrome` on `PATH`. Do not go looking for them and do not retry the download. Anything engine-shaped therefore ships on Blink
-  evidence and is reported that way -- "verified in Blink; Gecko and WebKit unverified, no binary
-  available" -- never as though three engines agreed.
+- **If a browser download 403s, it is egress policy and not the CDN.** `playwright install` fails
+  with a bare `Download failure, code=1`, which names no host and no cause; guessing one from it is
+  guessing. `curl -sS "$HTTPS_PROXY/__agentproxy/status"` lists `recentRelayFailures` with the host
+  and the reason, and `/root/.ccr/README.md` says a 403 is reported, never retried or routed around.
+  `cdn.playwright.dev` and `playwright.download.prss.microsoft.com` were denied that way until the
+  environment's network policy was widened to allow them; the host being up, or loading from a
+  laptop, was never the question, because the 403 is raised by this container's gateway before
+  anything reaches the CDN and the allowlist is per environment. Report a denial rather than hunting
+  a route around it.
 - **The phone shot is `devices['iPhone 13']` with `deviceScaleFactor` overridden to 2** -- 390x664 at
   dSF2, so the committed file is 780x1328. A bare 390x844 viewport at dSF3 renders 1170x2532 and the
   comparison dies on a size mismatch, which reads as a layout change and is not one.
@@ -64,21 +61,17 @@ box, not about any change.
 
 ### When a page can be rendered
 
-**Check what is installed before writing the probe, not after it fails.** The three-engine harness in
-this section is what a reader writes first, and it costs two dead runs and an install attempt to
-learn that two of the three launchers throw. One `ls /opt/pw-browsers` up front is the whole check.
-The same habit covers the failure itself: `Download failure, code=1` names no host and no cause, and
-guessing one from it -- "the CDN is blocked" -- happened to be right here and was still a guess. The
-proxy records the real answer, so ask it.
+**Check what is installed before writing the probe, not after it fails.** One `ls /opt/pw-browsers`
+costs a second; discovering from a half-finished run that a launcher throws costs the run. The same
+habit covers the failure itself -- `Download failure, code=1` names no host and no cause, and
+guessing one from it happened to be right once and was still a guess. The proxy records the real
+answer, so ask it.
 
 The README's standard is the floor: render the prototype, screenshot it at desktop and 390px, and say
 what was measured rather than that it looks right. Three axes it does not name have each shipped a
 bug, so they are part of the standard now.
 
-**One engine is not coverage** -- and on this box one engine is all there is, so read the environment
-note above before acting on this paragraph. It is the rule that sends each new session hunting for a
-Gecko binary that is not there and cannot be downloaded; the hunt is the waste, not the standard.
-Blink is the easiest thing to render and the least representative.
+**One engine is not coverage.** Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
 button no selector can reach, so ours landed on top of it — and every screenshot taken in Chromium
 showed a single correct glyph. Anything touching a native form control, a shadow-DOM pseudo-element,
