@@ -1056,7 +1056,7 @@ earlier "shrink the floating layer" approach.
 
 ## 17. iOS and WebKit
 
-Two WebKit-only bugs, each with a wrong-looking obvious fix. Neither is worth re-litigating.
+Three WebKit-only bugs, each with a wrong-looking obvious fix. None is worth re-litigating.
 
 ### Zoom on focus
 
@@ -1079,6 +1079,20 @@ iOS zooms the page whenever a focused control computes under 16px, and every fie
 - The textarea is scaled in both axes rather than one — it is a block with a real height, not a single
   line centred in a fixed row — so it gets a top-left origin and an inflated height instead.
 - Coarse pointers only. Desktop has no such behaviour and keeps the untransformed, sharper text.
+
+### Search fields
+
+- A search field with a value drew a native dark circled `×` in Safari — a browser-drawn icon, which
+  [§8](#8-icons) does not allow whatever it looks like, and the same rule that takes each engine's
+  calendar off the date fields. All four search fields carried it: the global finder, and the
+  toolbars on All orders, Vendors and Categories.
+- **`appearance:none` does not remove it; `display:none` does.** The pseudo-element is
+  `::-webkit-search-cancel-button` and the fix everyone reaches for is `-webkit-appearance:none`,
+  which is a real fix — in Blink. Safari keeps drawing the button. `display:none` removes it in both,
+  so it is one declaration rather than two, and Gecko has no such pseudo-element and drops the rule
+  as invalid, which is the same nothing it did before.
+- The prefix is not a promise about which engine obeys the declaration — see the note in
+  `CLAUDE.md`, which is where that lesson lives.
 
 ### Date fields
 

@@ -690,7 +690,12 @@ svg.chart { width:100%; display:block; }
 .field-shell > input, .field-shell > textarea { flex:1; min-width:0; width:100%; font:inherit; font-size:inherit; letter-spacing:inherit; color:inherit; background:none; border:0; padding:0; margin:0; outline:none; text-overflow:ellipsis; }
 .field-shell > input::placeholder, .field-shell > textarea::placeholder { color:var(--text-muted); opacity:1; }
 .field-shell > textarea { resize:none; height:60px; line-height:1.45; }
-.field-shell > input[type="search"]::-webkit-search-cancel-button { -webkit-appearance:none; appearance:none; }
+/* display, not appearance -- the prefix names the engine that invented the pseudo-element,
+   not the engine that obeys a declaration on it. `appearance:none` removes the cancel button
+   in Blink and Safari keeps drawing it, so all four search fields carried a native dark
+   circled x as soon as they held a value. That is a browser-drawn icon, which S8 does not
+   allow whatever it looks like. S17. */
+.field-shell > input[type="search"]::-webkit-search-cancel-button { display:none; }
 /* The file input is presented by the shell: the chosen name renders as text.
    Scoped to beat the generic `.field-shell > input` above, which is one type
    selector heavier than a lone class -- unscoped, its width:100% won, and an
