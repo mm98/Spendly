@@ -82,9 +82,8 @@ Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
 button no selector can reach, so ours landed on top of it — and every screenshot taken in Chromium
 showed a single correct glyph. Anything touching a native form control, a shadow-DOM pseudo-element,
-a `-webkit-`/`-moz-` prefix or the platform's own chrome is engine-shaped by default. Check Chromium
-before calling it fixed -- it is the only engine on this box, so a Gecko-only or WebKit-only defect
-of exactly the kind described above will not be caught here at all. Say so rather than implying it.
+a `-webkit-`/`-moz-` prefix or the platform's own chrome is engine-shaped by default: check Gecko and
+WebKit before calling it fixed.
 
 **One state is not coverage.** A screenshot captures one state of one control. The segmented control
 changed width when the selection moved, because the active segment was bolder and the track is
