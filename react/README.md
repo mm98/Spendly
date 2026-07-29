@@ -165,6 +165,22 @@ Events rather than HTML5 drag-and-drop, because `dragstart` never fires from a f
 moves with the arrow keys when focused, with Home and End for the ends. Every move is
 announced through the page's own status line.
 
+**A drag has to show what is moving and where it will land.** The first cut showed neither:
+the row was dimmed to 55% and left in the list, so the thing under the finger was the faintest
+thing on screen and its landing slot was indistinguishable from the rows shuffling around it.
+Now the row lifts — out of the flow, following the pointer, on a card with a shadow under it,
+pinned to the width *and height* it had, because a grid item that leaves its track collapses to
+its content and would arrive smaller than the hole it came from. In the space it left, a dashed
+green box opens at exactly that size and travels through the list as the pointer crosses each
+row.
+
+The moves and the release are heard on the window, not through `setPointerCapture`. Capture is
+the tidier-looking answer and it does not survive this: lifting the row re-renders it and the
+browser fires `lostpointercapture` immediately — measured, right after `pointerdown`, before a
+single move — so the drag ended on a `pointerup` that never reached the handle and the row
+stayed stuck to the cursor. The listeners are bound in the same tick as the press rather than
+from an effect, so a move arriving in that tick is not missed.
+
 The item list and the dashboard's cards use the same hook, and it measures which way the list
 runs rather than being told: rows that overlap vertically are side by side, so the comparison
 is on x; otherwise it is on y.
@@ -295,7 +311,7 @@ checked.
   prototype at 0 differing pixels, so it is a valid baseline. Against it, this app's phone
   render is **0 of 1,035,840** — identical.
 
-Ten defects were found by these runs and fixed rather than reported:
+Twelve defects were found by these runs and fixed rather than reported:
 
 1. `aria-describedby` pointing at a message element with no id.
 2. A field re-checking against the value from before the keystroke, so a message cleared one
@@ -320,6 +336,11 @@ Ten defects were found by these runs and fixed rather than reported:
    sat in and the list stayed at half width. A column that is not there is not rendered.
 10. Two live regions on the dashboard, announcing over each other. The reorder hook now hands
     its message to whatever status line the host already has.
+11. `setPointerCapture` dropped on the first re-render of the row it was set on, so a drag
+    could be started and moved but never finished — the row stuck to the cursor. Window
+    listeners, bound at `pointerdown`.
+12. The lifted card measuring 335px in the air against the 439px hole it came out of, because
+    leaving a grid track stops a card being stretched by it.
 
 ## What this port does not do
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { Card, CardBody, CardDivider, CardHeader, SectionHeader, SectionLabel } from './Card.jsx'
 import { IconButton } from './Button.jsx'
 import { useReorder } from './Reorder.jsx'
@@ -133,7 +133,9 @@ export function DashboardCards({ all, initial, render }) {
 			<div className={['dashboard-cards', editing && 'is-editing'].filter(Boolean).join(' ')}
 				ref={node => { container.current = node; reorder.listProps.ref.current = node }}>
 				{on.map((key, i) => (
-					<section className="card" key={key} data-card={key} aria-label={meta(key).name}
+					<Fragment key={key}>
+					{editing ? reorder.placeholder({ id: key }) : null}
+					<section className="card" data-card={key} aria-label={meta(key).name}
 						{...(editing ? reorder.rowProps({ id: key }) : {})}>
 						{editing ? (
 							<ReorderBar name={meta(key).name} index={i} count={on.length}
@@ -142,6 +144,7 @@ export function DashboardCards({ all, initial, render }) {
 						) : null}
 						{render(key)}
 					</section>
+					</Fragment>
 				))}
 			</div>
 			{on.length === 0

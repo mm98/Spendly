@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from './Icon.jsx'
 
 /* Reordering a list, by pointer and by keyboard, through one control.
@@ -13,13 +13,30 @@ import { Icon } from './Icon.jsx'
 
    Pointer Events rather than HTML5 drag-and-drop: `dragstart` never fires from a touch, so a
    DnD implementation is a drag that works on a laptop and silently does nothing on the phone
-   the layout goes to such lengths for. `setPointerCapture` keeps the moves coming to the
-   handle even when the pointer leaves it, and `touch-action: none` on the handle is what
-   stops the browser scrolling the page instead -- without it the first move gesture is a
-   scroll and the drag never starts.
+   the layout goes to such lengths for. `touch-action: none` on the handle is what stops the
+   browser scrolling instead -- without it the first move gesture is a scroll and the drag
+   never starts.
 
-   The list reorders live under the pointer rather than showing a drop indicator: the row
-   under your finger is where the item will land, which needs no second thing to read.
+   The moves and the release are listened for on the window, not through
+   `setPointerCapture` on the handle. Capture is the tidier-looking answer and it does not
+   survive this: lifting the row re-renders it, and the browser fires `lostpointercapture`
+   the moment it does -- measured, right after `pointerdown`, before a single move. The drag
+   then ran on events that were still arriving and ended on a `pointerup` that never reached
+   the handle, so the row stayed stuck to the cursor. The window hears all of it regardless of
+   what React does to the tree underneath.
+
+   What a drag has to show is *what* is moving and *where it will land*. The first version
+   showed neither well: the row was dimmed to 55% and left in the list, so the thing under the
+   finger was the faintest thing on screen and the slot it would drop into was indistinguishable
+   from the rows shuffling around it.
+
+   So the row lifts. While it is held it leaves the flow, follows the pointer, and carries a
+   card background and a real shadow -- it is the one thing on screen that is raised. In the
+   space it came from, a dashed box opens at exactly its size, and that box moves through the
+   list as the pointer crosses each row: it is the landing slot, shown rather than implied.
+
+   The list still reorders live behind the box, so letting go changes nothing that was not
+   already on screen -- the box is where the row already is.
 
    The keyboard half is not a lesser path. The handle is a real <button>, so it is in the tab
    order; Up and Down move the item, Home and End take it to the ends, and every move is
@@ -28,6 +45,9 @@ import { Icon } from './Icon.jsx'
 export function useReorder({ items, onReorder, describe, onAnnounce }) {
 	const listRef = useRef(null)
 	const [draggingId, setDraggingId] = useState(null)
+	/* Where the lifted row is drawn. State rather than a ref, because this is the one thing
+	   in the drag that has to re-render on every move. */
+	const [held, setHeld] = useState(null)
 	const [message, setMessage] = useState('')
 	const drag = useRef(null)
 
@@ -53,7 +73,11 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 	   vertically are side by side, so the comparison is on x; otherwise it is on y. Hard-coding
 	   y would make the dashboard drag jump to the last card on the first move. */
 	const indexAt = (clientX, clientY) => {
-		const rows = [...(listRef.current?.querySelectorAll('[data-reorder-row]') ?? [])]
+		/* The held row is out of the flow and pinned to the pointer, so measuring it would be
+		   measuring the cursor. The dashed box stands in its place and is measured instead --
+		   it sits at the held row's index, so the arithmetic below is unchanged. */
+		const rows = [...(listRef.current?.querySelectorAll(
+			'[data-reorder-row]:not([data-reorder-held]), [data-reorder-slot]') ?? [])]
 		if (rows.length < 2) return 0
 		const boxes = rows.map(r => r.getBoundingClientRect())
 		const horizontal = boxes[1].top < boxes[0].bottom - 1
@@ -65,30 +89,65 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 		return boxes.length - 1
 	}
 
+	/* `move` and `announce` are rebuilt on every render; the listeners below are bound once per
+	   drag. Reading them through a ref is what keeps a drag that started three renders ago
+	   working against the current list rather than the one it began with. */
+	const latest = useRef(null)
+	latest.current = { move, announce }
+
 	const onPointerDown = (e, index, item) => {
 		// Secondary buttons open menus and start selections; only a primary press is a drag.
 		if (e.button != null && e.button !== 0) return
+		const row = e.currentTarget.closest('[data-reorder-row]')
+		if (!row) return
 		e.preventDefault()
-		e.currentTarget.setPointerCapture(e.pointerId)
-		drag.current = { pointerId: e.pointerId, index, item }
+
+		/* The listeners go on now, in the same tick as the press -- not in an effect keyed on
+		   the dragging state. An effect runs after the render that state schedules, so a move
+		   arriving in the same tick as the press lands before anything is listening. A finger
+		   is unlikely to be that quick; a synthetic one is, and so is a fast flick. */
+		const onMove = event => {
+			if (!drag.current || event.pointerId !== drag.current.pointerId) return
+			if (event.cancelable) event.preventDefault()
+			setHeld(h => (h ? { ...h, x: event.clientX, y: event.clientY } : h))
+			const to = indexAt(event.clientX, event.clientY)
+			if (to === drag.current.index) return
+			if (latest.current.move(drag.current.index, to)) drag.current.index = to
+		}
+
+		const onUp = event => {
+			if (!drag.current || event.pointerId !== drag.current.pointerId) return
+			const { item: held_, index: at, stop } = drag.current
+			drag.current = null
+			stop()
+			setDraggingId(null)
+			setHeld(null)
+			latest.current.announce(held_, at)
+		}
+
+		const stop = () => {
+			window.removeEventListener('pointermove', onMove)
+			window.removeEventListener('pointerup', onUp)
+			window.removeEventListener('pointercancel', onUp)
+		}
+		window.addEventListener('pointermove', onMove, { passive: false })
+		window.addEventListener('pointerup', onUp)
+		window.addEventListener('pointercancel', onUp)
+
+		/* The row is lifted from where it is, not from under the cursor: the grab offset is
+		   kept so the row does not jump to centre itself on the pointer the moment it moves. */
+		const box = row.getBoundingClientRect()
+		drag.current = {
+			pointerId: e.pointerId, index, item, stop,
+			offsetX: e.clientX - box.left, offsetY: e.clientY - box.top,
+			width: box.width, height: box.height
+		}
 		setDraggingId(item.id)
+		setHeld({ x: e.clientX, y: e.clientY, ...drag.current })
 	}
 
-	const onPointerMove = e => {
-		if (!drag.current || e.pointerId !== drag.current.pointerId) return
-		const to = indexAt(e.clientX, e.clientY)
-		if (to === drag.current.index) return
-		if (move(drag.current.index, to)) drag.current.index = to
-	}
-
-	const onPointerUp = e => {
-		if (!drag.current || e.pointerId !== drag.current.pointerId) return
-		const { item, index } = drag.current
-		drag.current = null
-		setDraggingId(null)
-		e.currentTarget.releasePointerCapture?.(e.pointerId)
-		announce(item, index)
-	}
+	/* A component that goes away mid-drag takes its listeners with it. */
+	useEffect(() => () => drag.current?.stop?.(), [])
 
 	const onKeyDown = (e, index, item) => {
 		/* Both axes move it, so the same handle works whichever way the list is laid out and
@@ -108,14 +167,66 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 			listRef.current?.querySelector(`[data-reorder-handle="${item.id}"]`)?.focus())
 	}
 
-	/** Goes on the element that wraps the rows, so the drag can find them. */
-	const listProps = { ref: listRef }
+	/** Goes on the element that wraps the rows, so the drag can find them. While a row is held
+	    the list stops selecting text, which is what a pointer dragged across a list otherwise
+	    does. */
+	const listProps = {
+		ref: listRef,
+		style: held ? { userSelect: 'none', cursor: 'grabbing' } : undefined
+	}
 
-	/** Goes on each row: marks it as a target and dims it while it is the one being dragged. */
-	const rowProps = item => ({
-		'data-reorder-row': item.id,
-		style: draggingId === item.id ? { opacity: 0.55 } : undefined
-	})
+	/** Goes on each row. The held one leaves the flow and follows the pointer, raised on a card
+	    with a shadow under it -- it is the thing being moved, so it is the thing that looks
+	    picked up. */
+	const rowProps = item => {
+		if (draggingId !== item.id || !held) return { 'data-reorder-row': item.id }
+		return {
+			'data-reorder-row': item.id,
+			'data-reorder-held': '',
+			style: {
+				position: 'fixed',
+				left: Math.round(held.x - held.offsetX),
+				top: Math.round(held.y - held.offsetY),
+				/* Both are pinned, not just the width. A grid item that leaves the flow stops
+				   being stretched by its track and collapses to its content -- the dashboard's
+				   cards measured 439px in the row and 335px in the air, so the thing being
+				   dragged was visibly smaller than the hole it came out of. */
+				width: Math.round(held.width),
+				height: Math.round(held.height),
+				margin: 0,
+				zIndex: 60,
+				background: 'var(--bg-card)',
+				borderRadius: 12,
+				boxShadow: '0 18px 38px rgb(11 26 18 / .22)',
+				cursor: 'grabbing'
+			}
+		}
+	}
+
+	/** The dashed box the row will drop into, at exactly the size it left behind. Rendered by
+	    the host beside each row; it is null for every row but the held one. */
+	const placeholder = item => (draggingId === item.id && held ? (
+		<div data-reorder-slot="" aria-hidden="true"
+			style={{
+				height: Math.round(held.height),
+				width: horizontalList() ? Math.round(held.width) : undefined,
+				border: '2px dashed var(--green)',
+				borderRadius: 12,
+				background: 'rgb(20 172 114 / .06)',
+				boxSizing: 'border-box'
+			}} />
+	) : null)
+
+	/* Which way this list runs, for the placeholder's own sizing. The rows answer it, so a
+	   list that is a column on a phone and a row on a desktop needs telling twice as often as
+	   it needs asking. */
+	const horizontalList = () => {
+		const rows = [...(listRef.current?.querySelectorAll('[data-reorder-row]') ?? [])]
+		if (rows.length < 2) return false
+		const a = rows[0].getBoundingClientRect()
+		const b = rows[1].getBoundingClientRect()
+		return b.top < a.bottom - 1
+	}
 
 	/** The handle itself.
 
@@ -135,9 +246,6 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 				touchAction: 'none', cursor: draggingId === item.id ? 'grabbing' : 'grab'
 			}}
 			onPointerDown={e => onPointerDown(e, index, item)}
-			onPointerMove={onPointerMove}
-			onPointerUp={onPointerUp}
-			onPointerCancel={onPointerUp}
 			onKeyDown={e => onKeyDown(e, index, item)}>
 			<Icon name="grip" />
 		</button>
@@ -148,5 +256,5 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 		? null
 		: <p className="screenreader-only" role="status" aria-live="polite">{message}</p>
 
-	return { listProps, rowProps, handle, liveRegion, draggingId }
+	return { listProps, rowProps, placeholder, handle, liveRegion, draggingId }
 }

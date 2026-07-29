@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { Outlet, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
@@ -564,7 +564,12 @@ export function NewOrderItems() {
 									</div>
 									<InsetPanel {...reorder.listProps}>
 										{draft.items.map((item, i) => (
-											<ItemRow key={item.id} icon="cube" title={item.title}
+											/* The dashed box goes where the row came from; the row itself is lifted
+											   out of the flow and follows the pointer. Both are rendered here so the
+											   box sits at the row's own index and the list keeps its height. */
+											<Fragment key={item.id}>
+											{reorder.placeholder(item)}
+											<ItemRow icon="cube" title={item.title}
 												handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
 												meta={`${item.quantity} × ${kr(item.price)}`
 													+ (item.retail ? ` · retail ${kr(item.retail)}` : '')
@@ -578,6 +583,7 @@ export function NewOrderItems() {
 														onClick={() => removeItem(item)} />
 												</span>
 											</ItemRow>
+											</Fragment>
 										))}
 										{draft.items.length === 0
 											? <p className="field-help" style={{ padding: '10px 12px' }}>
