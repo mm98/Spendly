@@ -30,12 +30,16 @@ box, not about any change.
 - **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
   screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
   case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
-  to confirm it before trusting a diff.
+  to confirm it before trusting a diff. Confirmed on 2026-07-29: 0 of 5,184,000 on `home.png` and
+  `all-orders.png`, 0 of 1,035,840 on `phone.png`.
 - **Firefox and WebKit are not here and cannot be fetched.** `playwright install firefox webkit`
   fails with `Download failure, code=1`: the Playwright CDN is blocked by the network policy. Do not
   go looking for them and do not retry the download. Anything engine-shaped therefore ships on Blink
   evidence and is reported that way -- "verified in Blink; Gecko and WebKit unverified, no binary
   available" -- never as though three engines agreed.
+- **The phone shot is `devices['iPhone 13']` with `deviceScaleFactor` overridden to 2** -- 390x664 at
+  dSF2, so the committed file is 780x1328. A bare 390x844 viewport at dSF3 renders 1170x2532 and the
+  comparison dies on a size mismatch, which reads as a layout change and is not one.
 - **No PNG library is installed.** Do not import one from inside the Playwright bundle; the path
   moves between versions and the import fails. Read the committed shot as base64 in node, hand both
   images to a `<canvas>` in the page and diff `getImageData` there -- the browser is already open
@@ -57,8 +61,9 @@ Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
 button no selector can reach, so ours landed on top of it — and every screenshot taken in Chromium
 showed a single correct glyph. Anything touching a native form control, a shadow-DOM pseudo-element,
-a `-webkit-`/`-moz-` prefix or the platform's own chrome is engine-shaped by default: check Gecko and
-WebKit before calling it fixed.
+a `-webkit-`/`-moz-` prefix or the platform's own chrome is engine-shaped by default. Check Chromium
+before calling it fixed -- it is the only engine on this box, so a Gecko-only or WebKit-only defect
+of exactly the kind described above will not be caught here at all. Say so rather than implying it.
 
 **One state is not coverage.** A screenshot captures one state of one control. The segmented control
 changed width when the selection moved, because the active segment was bolder and the track is

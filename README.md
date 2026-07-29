@@ -898,7 +898,7 @@ instance below shipped because a shape was copied from the reference without ask
   can fail, because the only wrong frame is the one *after* a click and every shot is of the resting
   state. Two halves were missing and either alone still lies. The handler is one: the switch carries
   `aria-controls` naming the panel, the panel is `hidden` when off, and the section goes 271.7px to
-  56px on the click. The **off state in the CSS is the other** -- the track was `var(--green)` and
+  56px on the click at 1440, 361.5px to 56px at 390. The **off state in the CSS is the other** -- the track was `var(--green)` and
   the knob pinned to `right:3px` with no `[aria-checked="false"]` rule anywhere, so wiring it alone
   would have reported the change to a screen reader and not to the eye. The track greys and the knob
   moves to `left:3px`; `#838C84` is 3.47:1 against the white card, which is what keeps the white knob
