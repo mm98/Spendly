@@ -1504,9 +1504,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="card-headline">Order details</div>
 						<p class="card-lead">Where you bought, when, and how it arrived.</p>
 						<div class="form form-wide">
+							<p class="form-status" role="status" id="order-live-region"></p>
 							<label class="field"><span>Vendor</span>
 								<div class="combobox">
-									<div class="field-shell"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="text" role="combobox" aria-expanded="false" aria-controls="vendor-panel" aria-autocomplete="list" value="Matas" placeholder="Search vendors…" aria-label="Vendor" aria-required="true"><svg class="icon chevron-icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div>
+									<div class="field-shell"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="text" role="combobox" aria-expanded="false" aria-controls="vendor-panel" aria-autocomplete="list" value="Matas" placeholder="Search vendors…" aria-label="Vendor" aria-required="true" id="order-vendor"><svg class="icon chevron-icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div>
 									<div class="combobox-panel" id="vendor-panel" role="listbox" aria-label="Vendors">
 										<div class="combobox-group"><div class="combobox-group-heading">Favourites</div>
 											<div class="combobox-option"><span class="combobox-option-star"><svg class="icon" viewBox="0 0 24 24"><path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z"></path></svg></span><mark>Mat</mark>as<span class="combobox-option-meta">29 orders</span></div>
@@ -1519,9 +1520,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 										<div class="combobox-action"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5l0 14 M5 12l14 0"></path></svg>CREATE VENDOR "MAT"</div>
 									</div>
 								</div>
+								<span class="field-error" id="order-vendor-error" hidden></span>
 								<span class="field-help">Every dropdown is this combobox: type to search, grouped results, create from the foot.</span></label>
 							<div class="field-pair">
-								<label class="field"><span>Date</span><div class="field-shell field-shell-date"><input type="date" value="2026-07-25" aria-label="Order date" aria-required="true"><span class="field-date-trail"><span class="field-unit">today</span><svg class="icon" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div></label>
+								<label class="field"><span>Date</span><div class="field-shell field-shell-date"><input type="date" value="2026-07-25" aria-label="Order date" aria-required="true" id="order-date"><span class="field-date-trail"><span class="field-unit">today</span><svg class="icon" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M16 3v4 M8 3v4 M4 11h16"></path></svg></span></div>
+									<span class="field-error" id="order-date-error" hidden></span></label>
 								<div class="field"><span>Status</span>
 									<div class="segmented segmented-compact" role="tablist">
 										<button type="button" role="tab" aria-selected="false">Ordered</button>
@@ -1535,14 +1538,16 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 										<span class="chip">Household<svg class="icon" viewBox="0 0 24 24"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span><span class="chip">Groceries<svg class="icon" viewBox="0 0 24 24"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></span>
 										<input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Add category…" aria-label="Add category" style="flex:1 1 120px"></div></label>
 								<label class="field"><span>Kind</span>
-									<div class="field-shell"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Expense" placeholder="Expense" aria-label="Kind" aria-required="true"><svg class="icon chevron-icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div>
+									<div class="field-shell"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Expense" placeholder="Expense" aria-label="Kind" aria-required="true" id="order-kind"><svg class="icon chevron-icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div>
+									<span class="field-error" id="order-kind-error" hidden></span>
 									<span class="field-help">Only expenses count towards your totals.</span></label>
 							</div>
 							<div class="filter-section">
 								<div class="space-between"><span class="panel-heading">More details?</span><button type="button" class="switch" role="switch" aria-checked="true" aria-controls="more-details-panel" aria-label="More details"></button></div>
 								<div class="filter-section-body" id="more-details-panel">
 									<div class="field-pair">
-										<label class="field"><span>Shipping fee</span><div class="field-shell"><input type="text" inputmode="decimal" placeholder="0,00" aria-label="Shipping fee"><span class="field-unit">kr.</span></div></label>
+										<label class="field"><span>Shipping fee</span><div class="field-shell"><input type="text" inputmode="decimal" placeholder="0,00" aria-label="Shipping fee" id="order-shipping"><span class="field-unit">kr.</span></div>
+											<span class="field-error" id="order-shipping-error" hidden></span></label>
 										<label class="field"><span>Order reference</span><div class="field-shell"><input type="text" placeholder="Optional" aria-label="Note"></div></label>
 									</div>
 									<label class="field"><span>Note</span><div class="field-shell field-shell-area"><textarea placeholder="Anything worth remembering about this purchase." aria-label="Note"></textarea></div></label>
@@ -2268,8 +2273,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	if (newOrderButton) newOrderButton.addEventListener('click', () => show('create'));
 	const globalFinder = document.getElementById('global-finder');
 	if (globalFinder) { globalFinder.addEventListener('click', e => { globalFinder.classList.toggle('is-open'); e.stopPropagation(); }); document.addEventListener('click', () => globalFinder.classList.remove('is-open')); }
-	const toStep2 = document.getElementById('to-step-2');
-	if (toStep2) toStep2.addEventListener('click', () => show('create2'));
 	const toStep1 = document.getElementById('to-step-1');
 	if (toStep1) toStep1.addEventListener('click', () => show('create'));
 	document.querySelectorAll('[data-go]').forEach(el => {
@@ -2383,8 +2386,8 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   is ours (README 9). The grammar is Danish -- 1.187,25 -- so a dot groups
 	   thousands and never separates decimals, which makes 89.95 a typo to name
 	   rather than a number to guess at. */
-	const ITEM_AMOUNT = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/;
-	const ITEM_QUANTITY = /^\d+$/;
+	const AMOUNT = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/;
+	const WHOLE_NUMBER = /^\d+$/;
 	const parseAmount = v => Number(v.replace(/\./g, '').replace(',', '.'));
 	const formatAmount = n => {
 		const [whole, decimals] = n.toFixed(2).split('.');
@@ -2398,15 +2401,146 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			!v ? 'Describe the item.' : v.length > 120 ? '120 characters at most.' : '' },
 		{ id: 'item-quantity', label: 'Quantity', check: v =>
 			!v ? 'How many did you buy?'
-			: !ITEM_QUANTITY.test(v) ? 'Whole pieces only, such as 2.'
+			: !WHOLE_NUMBER.test(v) ? 'Whole pieces only, such as 2.'
 			: Number(v) < 1 ? 'At least 1 pc.'
 			: Number(v) > 9999 ? '9.999 pcs at most.' : '' },
 		{ id: 'item-price', label: 'Price paid', check: v =>
 			!v ? 'What did you pay?'
-			: !ITEM_AMOUNT.test(v) ? 'Amounts take a comma, such as 89,95.' : '' },
+			: !AMOUNT.test(v) ? 'Amounts take a comma, such as 89,95.' : '' },
 		{ id: 'item-retail', label: 'Retail price', check: v =>
-			!v || ITEM_AMOUNT.test(v) ? '' : 'Amounts take a comma, such as 104,95.' }
+			!v || AMOUNT.test(v) ? '' : 'Amounts take a comma, such as 104,95.' }
 	];
+
+	/* Two forms reject values -- the order form on step 1 and the item form on step 2
+	   -- and a rejection has to look identical on both: the message under its field,
+	   the red edge on the shell, aria-invalid and aria-describedby on the input, one
+	   sentence in the form's own status line. That marking is written once, here, and
+	   each form below owns nothing but its own rules. A second copy of it is the
+	   near-miss the uniformity rule is about: the two would agree until the day one of
+	   them was fixed. README 9. */
+	const setFieldError = (input, message) => {
+		const box = document.getElementById(input.id + '-error');
+		box.textContent = message;
+		box.hidden = !message;
+		if (message) { input.setAttribute('aria-invalid', 'true'); input.setAttribute('aria-describedby', box.id); }
+		/* aria-describedby is set with the message and removed with it: it points at a
+		   hidden span the rest of the time, and a description that is not there is
+		   announced by no engine and audited as a dangling reference by some. */
+		else { input.removeAttribute('aria-invalid'); input.removeAttribute('aria-describedby'); }
+	};
+
+	/* Marks every field and hands back only the ones that failed, so a caller cannot
+	   check a field without marking it or mark one without checking it. */
+	const checkFields = fields => fields.map(f => {
+		const input = document.getElementById(f.id);
+		const message = f.check(input.value.trim(), input);
+		setFieldError(input, message);
+		return { input, message, label: f.label };
+	}).filter(f => f.message);
+
+	const checkOneField = (fields, input) => {
+		const field = fields.find(f => f.id === input.id);
+		const message = field.check(input.value.trim(), input);
+		setFieldError(input, message);
+		return message;
+	};
+
+	/* "Quantity and Price paid need fixing", "Vendor, Date and Kind need fixing" --
+	   the status line names the fields rather than repeating the messages already
+	   sitting under them, because on a phone the field that focus jumps to can be
+	   behind the keyboard and this line is the one thing the user can be sure of. */
+	const needFixing = failed => {
+		const names = failed.map(f => f.label);
+		const list = names.length < 2 ? names[0]
+			: names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+		return list + (names.length > 1 ? ' need' : ' needs') + ' fixing.';
+	};
+
+	/* role="status" is on the element, so writing to it announces and shows in one
+	   move -- there is no second, hidden copy to keep in step. */
+	const statusLine = id => {
+		const el = document.getElementById(id);
+		return (message, good) => {
+			el.textContent = message;
+			el.classList.toggle('form-status-negative', !good);
+			/* A verdict off screen is the defect this line exists to fix, so it is not
+			   left to a fixed position to be lucky: under the button it sits where an
+			   iOS keyboard lands, above the fields it is above the fold whenever the
+			   tap had to scroll down to reach the button -- measured at 59px below and
+			   at -70px in WebKit respectively. `nearest` is a no-op when it is already
+			   in view, so nothing jumps in the common case. */
+			if (message) el.scrollIntoView({ block: 'nearest' });
+		};
+	};
+
+	/* ---- New order, step 1: the order itself ----
+	   Step 2 checked its four fields and NEXT STEP walked straight past the three the
+	   order needs, so an order could reach the item form with no vendor, no date and a
+	   Kind that is not one of the kinds. Required here is Vendor, Date and Kind -- the
+	   set README 9 names, and the set that carries aria-required in the markup, so the
+	   two can still be compared with a grep. Status cannot be empty (a segmented
+	   control always has a selection) and Categories is optional, which is why neither
+	   appears below. */
+	const SPEND_KINDS = ['Expense', 'Gift', 'Sold', 'Work', 'Other'];
+	/* Today, in the input's own YYYY-MM-DD, built from the local clock rather than
+	   toISOString() on its own -- that is UTC, and it dates an evening purchase in
+	   Copenhagen to tomorrow for two hours every night. */
+	const today = () => {
+		const now = new Date();
+		return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+	};
+	const ORDER_FIELDS = [
+		{ id: 'order-vendor', label: 'Vendor', check: v =>
+			!v ? 'Who did you buy from?' : v.length > 80 ? '80 characters at most.' : '' },
+		/* An empty type=date is '' and so is a half-typed one -- the engine refuses to
+		   hand over 25.07.20 -- so "required" catches a malformed date as well. */
+		{ id: 'order-date', label: 'Date', check: v =>
+			!v ? 'When was the order placed?'
+			: v > today() ? 'An order cannot be dated in the future.' : '' },
+		{ id: 'order-kind', label: 'Kind', check: v =>
+			!v ? 'Pick a kind.'
+			: SPEND_KINDS.some(k => k.toLowerCase() === v.toLowerCase()) ? ''
+			: 'Kind is one of: ' + SPEND_KINDS.join(', ') + '.' },
+		{ id: 'order-shipping', label: 'Shipping fee', check: v =>
+			!v || AMOUNT.test(v) ? '' : 'Amounts take a comma, such as 49,00.' }
+	];
+	const nextStep = document.getElementById('to-step-2');
+	if (nextStep && document.getElementById('order-vendor')) {
+		const setOrderStatus = statusLine('order-live-region');
+		const orderInputs = ORDER_FIELDS.map(f => document.getElementById(f.id));
+
+		nextStep.addEventListener('click', () => {
+			const failed = checkFields(ORDER_FIELDS);
+			if (!failed.length) { setOrderStatus('', true); show('create2'); return; }
+			/* Shipping fee lives inside the More-details disclosure, so a rejection
+			   there can be behind a closed panel -- a message nobody can open is the
+			   same as no message. Whatever failed gets opened before it is announced. */
+			failed.forEach(f => {
+				const panel = f.input.closest('[hidden]');
+				if (!panel) return;
+				const toggle = document.querySelector('.switch[aria-controls="' + panel.id + '"]');
+				if (toggle) { toggle.setAttribute('aria-checked', 'true'); panel.hidden = false; }
+			});
+			setOrderStatus('Cannot continue — ' + needFixing(failed), false);
+			failed[0].input.focus();
+		});
+
+		/* Same timing as step 2: nothing is checked before it is answered, and a field
+		   already marked re-checks on every keystroke so the message clears as it is
+		   fixed rather than at the next attempt. */
+		orderInputs.forEach(input => input.addEventListener('input', () => {
+			if (input.getAttribute('aria-invalid') === 'true') checkOneField(ORDER_FIELDS, input);
+		}));
+		/* Kind is typed, and a combobox option is only a click away from the same
+		   value, so the canonical spelling is restored on the way out rather than a
+		   lowercase "expense" being rejected or stored. */
+		const kind = document.getElementById('order-kind');
+		kind.addEventListener('change', () => {
+			const match = SPEND_KINDS.find(k => k.toLowerCase() === kind.value.trim().toLowerCase());
+			if (match) kind.value = match;
+		});
+	}
+
 	const itemList = document.getElementById('item-list');
 	const addItem = document.getElementById('add-item');
 	if (itemList && addItem) {
@@ -2423,39 +2557,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		const summarySaving = document.getElementById('order-summary-saving');
 		const summaryAnchor = summarySaving && summarySaving.parentElement.querySelector('.summary-total');
 
-		/* role="status" is on the element, so writing to it announces and shows in one
-		   move -- there is no second, hidden copy to keep in step. */
-		const status = document.getElementById('item-live-region');
-		const setStatus = (message, good) => {
-			status.textContent = message;
-			status.classList.toggle('form-status-negative', !good);
-			/* A verdict off screen is the defect this line exists to fix, so it is not
-			   left to a fixed position to be lucky: under the button it sits where an
-			   iOS keyboard lands, above the fields it is above the fold whenever the
-			   tap had to scroll down to reach the button -- measured at 59px below and
-			   at -70px in WebKit respectively. `nearest` is a no-op when it is already
-			   in view, so nothing jumps in the common case. */
-			if (message) status.scrollIntoView({ block: 'nearest' });
-		};
-
-		const setFieldError = (input, message) => {
-			const box = document.getElementById(input.id + '-error');
-			box.textContent = message;
-			box.hidden = !message;
-			if (message) { input.setAttribute('aria-invalid', 'true'); input.setAttribute('aria-describedby', box.id); }
-			/* aria-describedby is set with the message and removed with it: it points
-			   at a hidden span the rest of the time, and a description that is not
-			   there is announced by no engine and audited as a dangling reference by
-			   some. */
-			else { input.removeAttribute('aria-invalid'); input.removeAttribute('aria-describedby'); }
-		};
-
-		const checkField = input => {
-			const field = ITEM_FIELDS.find(f => f.id === input.id);
-			const message = field.check(input.value.trim());
-			setFieldError(input, message);
-			return message;
-		};
+		const setStatus = statusLine('item-live-region');
 
 		/* The totals are read back off the rows, not carried in a variable beside
 		   them: the two rows on the page at load are the same kind of record as one
@@ -2494,16 +2596,9 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		}
 
 		function submitItem() {
-			const failed = ITEM_FIELDS.map((f, i) => ({ message: checkField(inputs[i]), input: inputs[i] }))
-				.filter(f => f.message);
+			const failed = checkFields(ITEM_FIELDS);
 			if (failed.length) {
-				/* The status line names the fields rather than repeating their messages:
-				   the messages are already under the fields, and on a phone the field
-				   focus jumps to can sit behind the keyboard, so the one line the user
-				   can definitely see has to say which fields to go back to. */
-				const names = failed.map(f => ITEM_FIELDS.find(x => x.id === f.input.id).label);
-				setStatus('Not added — ' + names.join(' and ') + (names.length > 1 ? ' need' : ' needs')
-					+ ' fixing.', false);
+				setStatus('Not added — ' + needFixing(failed), false);
 				failed[0].input.focus();
 				return;
 			}
@@ -2539,7 +2634,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		   field the user has not finished typing into prints "How many did you buy?"
 		   over a field they are halfway through answering. */
 		inputs.forEach(input => input.addEventListener('input', () => {
-			if (input.getAttribute('aria-invalid') === 'true') checkField(input);
+			if (input.getAttribute('aria-invalid') === 'true') checkOneField(ITEM_FIELDS, input);
 		}));
 		/* The help text beside the button promises both of these. */
 		if (itemForm) itemForm.addEventListener('keydown', e => {
