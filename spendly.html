@@ -98,6 +98,12 @@
 	   stay legible, so that value is the token. --green keeps the fills and the one
 	   mark on the dark card, where a darker green would disappear. S2, S18. */
 	--text-positive:#0E7A52;
+	/* The rejected-value red: message text and the edge of the field it belongs to.
+	   6.54:1 on the white card and 5.91:1 on the inset panel, so the message reads
+	   at 12px where --icon-red (#C43F2A, 5.13:1 on white) is a fill colour picked
+	   for 17px glyphs. One token paints both the glyphs and the edge, because an
+	   error edge is 1.4.11's 3:1 boundary and this clears it either way. S20. */
+	--text-negative:#B3261E;
 	--teal:#07625E;
 	/* The July and June series. Both were written out in the markup and the light one
 	   had drifted from its token -- #B9BFF0 on screen against #A5B4FC here -- so the
@@ -601,6 +607,12 @@ svg.chart { width:100%; display:block; }
 .field { display:grid; gap:7px; align-content:start; min-width:0; }
 .field > span { font-size:13px; font-weight:600; color:var(--text); }
 .field > span.field-help { font-size:12px; font-weight:500; color:var(--text-muted); }
+/* The rejection message, under the field it rejects. Same specificity trap as
+   .field-help one line up: `.field > span` is the label, so a message left at
+   `.field-error` inherits label colour and prints the error in black. The text
+   is what carries the meaning -- the red edge and the red type are both colour,
+   and colour alone is not a message (1.4.1). README 9. */
+.field > span.field-error { font-size:12px; font-weight:600; color:var(--text-negative); }
 .field-thumb { width:32px; height:32px; border-radius:8px; background:#F0F2EF; display:grid; place-items:center; color:#7C867E; flex:none; }
 .field-thumb svg.icon { width:17px; height:17px; }
 .kpi-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
@@ -762,6 +774,12 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    Blink and Gecko already left-align, so nothing changes off WebKit. */
 .field-shell > input::-webkit-date-and-time-value { text-align:left; }
 .field-shell:focus-within { border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
+/* A rejected field wears the rejection while it is focused too -- the user is
+   standing in the field being told about, so the focus edge is the one that has
+   to give way. Both selectors compute 0,2,0 (:has adds nothing, its argument
+   does), so this only wins by sitting after it: moving it up hands every invalid
+   focused field the plain black edge back. README 9. */
+.field-shell:has([aria-invalid="true"]) { border-color:var(--text-negative); box-shadow:0 0 0 1px var(--text-negative); }
 .field-shell.field-shell-placeholder { color:var(--text-muted); }
 /* The one exception: a textarea is meant to wrap. */
 .field-shell-area { height:88px; align-items:flex-start; padding-top:13px; white-space:normal; overflow:auto; }
@@ -1575,31 +1593,36 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="form form-wide">
 							<div class="filter-section">
 								<label class="field"><span>Description</span>
-									<div class="field-shell"><input type="text" value="Shampoo, 500 ml" aria-label="Description"></div></label>
+									<div class="field-shell"><input type="text" value="Shampoo, 500 ml" aria-label="Description" aria-required="true" id="item-description"></div>
+									<span class="field-error" id="item-description-error" hidden></span></label>
 								<div class="field-pair">
-									<label class="field"><span>Quantity</span><div class="field-shell"><input type="text" inputmode="numeric" value="2" aria-label="Quantity"><span class="field-unit">pcs</span></div></label>
-									<label class="field"><span>Price paid</span><div class="field-shell"><input type="text" inputmode="decimal" value="89,95" aria-label="Price paid"><span class="field-unit">kr.</span></div></label>
+									<label class="field"><span>Quantity</span><div class="field-shell"><input type="text" inputmode="numeric" value="2" aria-label="Quantity" aria-required="true" id="item-quantity"><span class="field-unit">pcs</span></div>
+										<span class="field-error" id="item-quantity-error" hidden></span></label>
+									<label class="field"><span>Price paid</span><div class="field-shell"><input type="text" inputmode="decimal" value="89,95" aria-label="Price paid" aria-required="true" id="item-price"><span class="field-unit">kr.</span></div>
+										<span class="field-error" id="item-price-error" hidden></span></label>
 								</div>
 								<div class="field-pair">
-									<label class="field"><span>Retail price</span><div class="field-shell"><input type="text" inputmode="decimal" placeholder="104,95" aria-label="Retail price"><span class="field-unit">kr.</span></div>
+									<label class="field"><span>Retail price</span><div class="field-shell"><input type="text" inputmode="decimal" placeholder="104,95" aria-label="Retail price" id="item-retail"><span class="field-unit">kr.</span></div>
+										<span class="field-error" id="item-retail-error" hidden></span>
 										<span class="field-help">Optional. Powers the saved-vs-retail figures.</span></label>
 									<label class="field"><span>Photo</span>
 										<label class="field-shell"><span class="field-thumb" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M15 8h.01 M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5 M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"></path></svg></span><input type="file" accept="image/*" aria-label="Product photo" class="field-file-input"><span class="field-file-name">shampoo-500ml.jpg</span><button type="button" class="icon-button icon-button-clear" aria-label="Remove photo"><svg class="icon" viewBox="0 0 24 24"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button></label><span class="field-help">Uploaded state keeps the field height; the photo shows large on the item row below, not in the form.</span></label>
 								</div>
 								<div class="form-actions">
-									<button type="button" class="button button-caps button-compact"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5l0 14 M5 12l14 0"></path></svg>ADD ITEM</button>
+									<button type="button" class="button button-caps button-compact" id="add-item"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5l0 14 M5 12l14 0"></path></svg>ADD ITEM</button>
 									<span class="field-help" style="align-self:center">Enter adds and keeps the form; Escape clears it.</span>
 								</div>
+								<p class="screenreader-only" role="status" id="item-live-region"></p>
 							</div>
 							<div>
-								<div class="space-between space-between-tight"><span class="section-label">Items · 2</span>
+								<div class="space-between space-between-tight"><span class="section-label" id="item-count">Items · 2</span>
 									<span class="field-help">drag to reorder</span></div>
-								<div class="inset-panel">
-									<div class="data-row item-row"><span class="item-row-grip"><svg class="icon" viewBox="0 0 24 24"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
+								<div class="inset-panel" id="item-list">
+									<div class="data-row item-row" data-quantity="2" data-price="89,95" data-retail="104,95"><span class="item-row-grip"><svg class="icon" viewBox="0 0 24 24"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
 										<div><div class="item-row-title">Shampoo, 500 ml</div><div class="item-row-meta">2 × 89,95 kr. · retail 104,95 kr.</div></div>
 										<span class="amount tabular-figures">179,90 kr.</span>
 										<span class="row-inline" style="gap:2px"><button type="button" class="icon-button icon-button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
-									<div class="data-row item-row"><span class="item-row-grip"><svg class="icon" viewBox="0 0 24 24"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
+									<div class="data-row item-row" data-quantity="3" data-price="22,95" data-retail="26,95"><span class="item-row-grip"><svg class="icon" viewBox="0 0 24 24"><path d="M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg></span><span class="item-row-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5 M12 12l8 -4.5 M12 12l0 9 M12 12l-8 -4.5 M16 5.25l-8 4.5"></path></svg></span>
 										<div><div class="item-row-title">Tandpasta</div><div class="item-row-meta">3 × 22,95 kr. · retail 26,95 kr.</div></div>
 										<span class="amount tabular-figures">68,85 kr.</span>
 										<span class="row-inline" style="gap:2px"><button type="button" class="icon-button icon-button-arrow" aria-label="Edit"><svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button><button type="button" class="icon-button icon-button-arrow" aria-label="Delete"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg></button></span></div>
@@ -1622,11 +1645,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="summary-row">Date<span class="summary-row-value">25.07.2026</span></div>
 						<div class="summary-row">Status<span class="summary-row-value">Delivered</span></div>
 						<span class="section-label" style="display:block;margin-top:10px">Items</span>
-						<div class="summary-row">Shampoo, 500 ml × 2<span class="summary-row-value tabular-figures">179,90 kr.</span></div>
-						<div class="summary-row">Tandpasta × 3<span class="summary-row-value tabular-figures">68,85 kr.</span></div>
+						<div class="summary-row summary-row-item">Shampoo, 500 ml × 2<span class="summary-row-value tabular-figures">179,90 kr.</span></div>
+						<div class="summary-row summary-row-item">Tandpasta × 3<span class="summary-row-value tabular-figures">68,85 kr.</span></div>
 						<div class="card-divider card-divider-tight"></div>
-						<div class="summary-total">Total est.<span class="summary-total-value summary-total-value-estimate tabular-figures">248,75 kr.</span></div>
-						<span class="field-help" style="color:var(--text-positive);font-weight:600">saved 42,00 kr. vs retail (14,4%)</span>
+						<div class="summary-total">Total est.<span class="summary-total-value summary-total-value-estimate tabular-figures" id="order-summary-total">248,75 kr.</span></div>
+						<span class="field-help" id="order-summary-saving" style="color:var(--text-positive);font-weight:600">saved 42,00 kr. vs retail (14,4%)</span>
 					</div>
 				</section>
 				<section class="card" aria-label="Tips">
@@ -2334,6 +2357,163 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			const open = filterToggle.getAttribute('aria-expanded') !== 'true';
 			filterToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
 			filterPanel.hidden = !open;
+		});
+	}
+
+
+	/* ---- New order, step 2: adding an item ----
+	   ADD ITEM was drawn complete and wired to nothing, so every value typed into
+	   the four fields above it went nowhere and no value was ever wrong. Wiring the
+	   button is what makes the validation mean anything, and the validation is what
+	   makes the button safe to wire: three of the four fields are required and two
+	   of them are numbers.
+
+	   Nothing on this form is input[type=number] and nothing should be: Danish
+	   decimals use a comma, which type=number rejects, so `value` comes back empty
+	   and min/max/step never run. inputmode gets the numeric keyboard; the parsing
+	   is ours (README 9). The grammar is Danish -- 1.187,25 -- so a dot groups
+	   thousands and never separates decimals, which makes 89.95 a typo to name
+	   rather than a number to guess at. */
+	const ITEM_AMOUNT = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/;
+	const ITEM_QUANTITY = /^\d+$/;
+	const parseAmount = v => Number(v.replace(/\./g, '').replace(',', '.'));
+	const formatAmount = n => {
+		const [whole, decimals] = n.toFixed(2).split('.');
+		return whole.replace(/\B(?=(\d{3})+$)/g, '.') + ',' + decimals;
+	};
+	/* One rule per field, each returning the message or '' -- so the same list
+	   drives the marking, the focus and what gets announced, and a field cannot be
+	   checked in one place and not another. */
+	const ITEM_FIELDS = [
+		{ id: 'item-description', label: 'Description', check: v =>
+			!v ? 'Describe the item.' : v.length > 120 ? '120 characters at most.' : '' },
+		{ id: 'item-quantity', label: 'Quantity', check: v =>
+			!v ? 'How many did you buy?'
+			: !ITEM_QUANTITY.test(v) ? 'Whole pieces only, such as 2.'
+			: Number(v) < 1 ? 'At least 1 pc.'
+			: Number(v) > 9999 ? '9.999 pcs at most.' : '' },
+		{ id: 'item-price', label: 'Price paid', check: v =>
+			!v ? 'What did you pay?'
+			: !ITEM_AMOUNT.test(v) ? 'Amounts take a comma, such as 89,95.' : '' },
+		{ id: 'item-retail', label: 'Retail price', check: v =>
+			!v || ITEM_AMOUNT.test(v) ? '' : 'Amounts take a comma, such as 104,95.' }
+	];
+	const itemList = document.getElementById('item-list');
+	const addItem = document.getElementById('add-item');
+	if (itemList && addItem) {
+		const itemCount = document.getElementById('item-count');
+		const itemForm = addItem.closest('.filter-section');
+		const inputs = ITEM_FIELDS.map(f => document.getElementById(f.id));
+		const [description, quantity, price, retail] = inputs;
+		/* The row is cloned from the one already on the page rather than written out
+		   here: the grip, the cube glyph and the two icon buttons are markup, and a
+		   second copy of them in a template string is the drift the uniformity rule
+		   is about. Cloned once at load, before anything can be added. */
+		const rowTemplate = itemList.querySelector('.item-row').cloneNode(true);
+		const summaryTotal = document.getElementById('order-summary-total');
+		const summarySaving = document.getElementById('order-summary-saving');
+		const summaryAnchor = summarySaving && summarySaving.parentElement.querySelector('.summary-total');
+
+		const setFieldError = (input, message) => {
+			const box = document.getElementById(input.id + '-error');
+			box.textContent = message;
+			box.hidden = !message;
+			if (message) { input.setAttribute('aria-invalid', 'true'); input.setAttribute('aria-describedby', box.id); }
+			/* aria-describedby is set with the message and removed with it: it points
+			   at a hidden span the rest of the time, and a description that is not
+			   there is announced by no engine and audited as a dangling reference by
+			   some. */
+			else { input.removeAttribute('aria-invalid'); input.removeAttribute('aria-describedby'); }
+		};
+
+		const checkField = input => {
+			const field = ITEM_FIELDS.find(f => f.id === input.id);
+			const message = field.check(input.value.trim());
+			setFieldError(input, message);
+			return message;
+		};
+
+		/* The totals are read back off the rows, not carried in a variable beside
+		   them: the two rows on the page at load are the same kind of record as one
+		   added at runtime, so there is one source and no seeding step to forget. */
+		function refreshItems() {
+			const rows = [...itemList.querySelectorAll('.item-row')];
+			if (itemCount) itemCount.textContent = 'Items · ' + rows.length;
+			if (!summaryTotal || !summaryAnchor) return;
+			let total = 0, retailTotal = 0;
+			summaryAnchor.parentElement.querySelectorAll('.summary-row-item').forEach(r => r.remove());
+			rows.forEach(row => {
+				const count = Number(row.dataset.quantity);
+				const paid = parseAmount(row.dataset.price) * count;
+				total += paid;
+				/* A line with no retail price contributes its own price to the retail
+				   side. Leaving it out instead shrinks the denominator and inflates
+				   the percentage, so an order of one discounted line and nine
+				   full-price ones would report the discount as the whole order's. */
+				retailTotal += row.dataset.retail ? parseAmount(row.dataset.retail) * count : paid;
+				const summaryRow = document.createElement('div');
+				summaryRow.className = 'summary-row summary-row-item';
+				summaryRow.textContent = row.querySelector('.item-row-title').textContent + ' × ' + count;
+				const value = document.createElement('span');
+				value.className = 'summary-row-value tabular-figures';
+				value.textContent = formatAmount(paid) + ' kr.';
+				summaryRow.append(value);
+				summaryAnchor.parentElement.insertBefore(summaryRow, summaryAnchor.previousElementSibling);
+			});
+			summaryTotal.textContent = formatAmount(total) + ' kr.';
+			const saved = retailTotal - total;
+			if (summarySaving) {
+				summarySaving.hidden = saved <= 0;
+				if (saved > 0) summarySaving.textContent = 'saved ' + formatAmount(saved) + ' kr. vs retail ('
+					+ (saved / retailTotal * 100).toFixed(1).replace('.', ',') + '%)';
+			}
+		}
+
+		function submitItem() {
+			const failed = ITEM_FIELDS.map((f, i) => ({ message: checkField(inputs[i]), input: inputs[i] }))
+				.filter(f => f.message);
+			if (failed.length) {
+				/* The message is announced as well as printed: the field it belongs to
+				   may be off screen on a phone, and the focus lands on the first one,
+				   which is the only one a screen reader would otherwise reach. */
+				say('item-live-region', 'Item not added. ' + failed.map(f => f.message).join(' '));
+				failed[0].input.focus();
+				return;
+			}
+			const row = rowTemplate.cloneNode(true);
+			const paid = price.value.trim();
+			const asked = retail.value.trim();
+			row.dataset.quantity = quantity.value.trim();
+			row.dataset.price = paid;
+			if (asked) row.dataset.retail = asked; else delete row.dataset.retail;
+			row.querySelector('.item-row-title').textContent = description.value.trim();
+			row.querySelector('.item-row-meta').textContent = quantity.value.trim() + ' × ' + paid + ' kr.'
+				+ (asked ? ' · retail ' + asked + ' kr.' : '');
+			row.querySelector('.amount').textContent =
+				formatAmount(parseAmount(paid) * Number(quantity.value.trim())) + ' kr.';
+			itemList.append(row);
+			clearItemForm();
+			refreshItems();
+			say('item-live-region', row.querySelector('.item-row-title').textContent + ' added. ' + itemCount.textContent + '.');
+		}
+
+		function clearItemForm() {
+			inputs.forEach(input => { input.value = ''; setFieldError(input, ''); });
+			description.focus();
+		}
+
+		addItem.addEventListener('click', submitItem);
+		/* Re-checked on every keystroke only once it has been rejected: checking a
+		   field the user has not finished typing into prints "How many did you buy?"
+		   over a field they are halfway through answering. */
+		inputs.forEach(input => input.addEventListener('input', () => {
+			if (input.getAttribute('aria-invalid') === 'true') checkField(input);
+		}));
+		/* The help text beside the button promises both of these. */
+		if (itemForm) itemForm.addEventListener('keydown', e => {
+			if (!inputs.includes(e.target)) return;
+			if (e.key === 'Enter') { e.preventDefault(); submitItem(); }
+			else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); clearItemForm(); }
 		});
 	}
 

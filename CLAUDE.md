@@ -18,6 +18,30 @@ shows. Opening the HTML in a browser is the whole toolchain.
 
 ## Verification
 
+### Verification is one pass at the end, not a gate on every edit
+
+> [!IMPORTANT]
+> Nothing below runs while the work is in progress. The harness runs, the pixel diffs, the element
+> walks and the `docs/` baseline check are **one pass, run when the change is finished and a pull
+> request is about to be opened** -- or whenever the user asks for them sooner.
+
+This section used to read as a standing bar with no place in the session named, so it got paid for
+continuously: validating one form spent about as long on measurement as on the edit, interleaved
+with it, on a change nobody had yet asked to have proved. The measurements below are good
+measurements -- that is why they are still written down -- but they answer *is this change sound*,
+which is a question the finished change can answer once. Asking it after every edit buys the same
+answer several times.
+
+So the shape of a session is: build the change, then verify it, then open the pull request. The PR
+is the trigger, and since a PR is only ever opened on an explicit request, so is the run. Between
+those two points, say plainly what has and has not been checked -- "not rendered yet" is a complete
+report mid-work, and it is the honest one.
+
+Two things need no trigger, because neither costs a browser: **never claim what was not run**
+([Reporting](#reporting)), and read the file you are changing before changing it.
+
+Everything from here down is how to run that pass well.
+
 ### The environment, settled -- do not re-derive it
 
 Re-checking these each session is the waste this heading exists to stop. They are facts about the
@@ -77,9 +101,9 @@ box, not about any change.
 names no host and no cause; guessing one from it happened to be right once and was still a guess.
 `curl -sS "$HTTPS_PROXY/__agentproxy/status"` records what was actually refused and why.
 
-The README's standard is the floor: render the prototype, screenshot it at desktop and 390px, and say
-what was measured rather than that it looks right. Three axes it does not name have each shipped a
-bug, so they are part of the standard now.
+When that pass runs, the README's standard is its floor: render the prototype, screenshot it at
+desktop and 390px, and say what was measured rather than that it looks right. Three axes it does not
+name have each shipped a bug, so a requested run covers them too.
 
 **One engine is not coverage.** Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
@@ -259,8 +283,10 @@ states, byte-identical between engines, 0 differences run-to-run.
 
 ## Measuring
 
-Measure in the DOM. Eyes do not catch 2px, and 2px is the size of a real defect here — the toggle
-moved 300px to 298px and dragged the search field with it.
+When there is measuring to do, measure in the DOM. Eyes do not catch 2px, and 2px is the size of a
+real defect here — the toggle moved 300px to 298px and dragged the search field with it. This is
+about *how* to measure; *when* is the pass before the pull request, per the note opening
+[Verification](#verification-is-one-pass-at-the-end-not-a-gate-on-every-edit).
 
 Drive a headless browser, read geometry back, and assert on numbers:
 
@@ -285,8 +311,10 @@ Chromium at 1440x900 for the two desktop ones, an iPhone 13 descriptor for the p
 
 The phone shot needs that descriptor rather than a 390px window. `pointer: coarse` is what the iOS
 rules key off, and a plain narrow viewport does not match it — the shot would show a layout no phone
-renders. Regenerate whatever a change moves: a stale screenshot is a wrong claim about the product,
-and it is the one claim a reader believes without checking.
+renders. A stale screenshot is a wrong claim about the product, and it is the one claim a reader
+believes without checking — so a change that moves one of these three is regenerated in the same
+pass that verifies it, and never before: a shot regenerated mid-work is a shot that has to be
+regenerated again when the next edit lands.
 
 **`docs/` is not a baseline unless your machine reproduces it.** The tab conversion was accepted on 0
 differing pixels against these shots; the same comparison run in a container came back 83,630 of
@@ -370,14 +398,17 @@ that renders plausibly is not a rule that matched what you aimed at.
   only spaces at the start of a line are the ones holding a comment's continuation under the text it
   hangs from — `<!-- ` is five columns and `/* ` is three, and a tab there would only line up at one
   tab width. Never mix the two in the same run: tabs first, then any alignment.
-- **Reformatting must prove it changed nothing.** Re-render and diff the pixels against `docs/` — the
-  tab conversion was accepted on 0 differing pixels of 5,184,000, not on inspection. Expanding the
-  leading tabs back should reproduce the previous file byte for byte; if it does not, the diff is
-  hiding an edit.
+- **Reformatting keeps its pixel diff, and half of it is free.** The tab conversion was accepted on
+  0 differing pixels of 5,184,000 rather than on inspection, and a whitespace-only change is exactly
+  the shape where "it obviously changed nothing" is a guess. Expanding the leading tabs back should
+  reproduce the previous file byte for byte -- that half needs no browser, so run it as you go. The
+  pixel diff goes in the pass at the end.
 
 ## Reporting
 
 - Never claim what was not run. "Tests pass" means they were executed; "fixed in Firefox" means
-  Firefox rendered it.
+  Firefox rendered it. Mid-work that will usually mean "not rendered yet", which is a fact about
+  where the change is, not an apology; the pass before the pull request is what turns it into a
+  number.
 - Lead with what was measured, then what changed. Numbers before adjectives.
 - Flag the part you could not close, in the same breath as the part you did.

@@ -169,11 +169,13 @@ Sampled from the reference sheets, declared once in `:root`.
 | icon squares | `#C43F2A` `#E9C517` `#8B5CF6` `#1FA8E0` | 36–44px rounded-square category icons |
 | avatar fills | `#235553` `#877364` `#4F5BD5` `#0E7A52` `#AD620D` `#8453F5` `#177DA7` | 36px vendor initials, white 10px/700 on top |
 | warm (caution) | text `#84651E`, tint `#F6ECD9` | duplicate warnings, unfavourable deltas, uncertain lines |
+| `--text-negative` | `#B3261E` | a rejected value: the message under the field and the field's own edge |
 | track | `#E7EAE5` | meters, progress backgrounds |
 | `--bg-bar-track` | `#E2ECE9` | unfilled weekday bars |
 
 **Semantics**: green = favourable (savings up, cost metrics down); warm amber = caution or
-unfavourable (spend above the previous period); neutral ink for counts.
+unfavourable (spend above the previous period); red = a value the form will not take, which is a
+different thing from caution and never shares its colour; neutral ink for counts.
 
 > [!IMPORTANT]
 > Color is never the only carrier. Always icon **plus** words — "21% up vs June".
@@ -615,6 +617,49 @@ labels are all `white-space: nowrap` with `text-overflow: ellipsis`. The single 
 thumbnails and category chips are fixed tokens, excluded from shrinking. A wrapping placeholder also
 knocks the control off its geometry tier: that is how the search field grew to two lines and stood
 taller than the FILTERS and Sort controls sharing its row.
+
+### Rejecting a value
+
+> [!WARNING]
+> No field here validates itself. `type="number"` is not available, so every check is written.
+
+New order step 2 took anything. ADD ITEM was drawn complete and bound to nothing, so a blank
+description, `2,5` pieces and a price of `gratis` were all accepted in the sense that nothing
+happened to any of them -- the honest-affordances defect ([§13](#13-honest-affordances)) with a
+second floor under it, since a form that never rejects a value is also a form that never took one.
+
+- **The grammar is Danish and it is ours to enforce.** Amounts are `type="text"` for the reason above,
+  which also means no `min`, no `max`, no `step` and no `:invalid` -- the browser contributes nothing
+  but the keyboard. Quantity is `^\d+$`, 1 to 9.999 pcs. An amount is
+  `^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$`: a dot groups thousands, a comma separates decimals, two
+  decimals at most. `89.95` is therefore not a number to round off but a typo to name -- *Amounts take
+  a comma, such as 89,95.*
+- **Required on the item form is Description, Quantity and Price paid.** Retail price is optional and
+  still parsed: optional is not unchecked, and `gratis` is as wrong there as it is in Price paid. The
+  three carry `aria-required` like every required field here -- note that this is a third set, an
+  item's, so the grep that compares the *order's* required fields across the two doors is a grep of
+  step 1 and the scan review, not of every `aria-required` in the file.
+- **A rejection is a sentence, an edge and an announcement.** `.field-error` under the field carries
+  the words at 12px in `--text-negative` (6.54:1 on the card); the shell's border and 1px ring go the
+  same red through `:has([aria-invalid="true"])`; the input takes `aria-invalid` and an
+  `aria-describedby` pointing at the message, both removed the moment it clears. Colour is never the
+  carrier -- the sentence is. Focus lands on the first rejected field and the messages are read into a
+  live region, because on a phone the field being talked about may be off screen.
+- **The rejected edge outranks the focus edge.** Both selectors compute 0,2,0, so the tie is decided
+  by source order and `:has([aria-invalid="true"])` has to sit after `:focus-within` -- the user is
+  standing in the field being complained about, and that is exactly when the complaint has to stay
+  visible.
+- **Nothing is checked before it is answered; everything is re-checked once it is rejected.** The
+  first pass is on submit. After that a field re-checks on every keystroke, but only while it is
+  already marked, so nobody is told *How many did you buy?* over an answer they are two characters
+  into.
+- **The button does what its label says.** ADD ITEM appends the row, the count, the summary row, the
+  total and the savings line; Enter adds and keeps the form, Escape clears it, which is what the help
+  text beside the button had promised for as long as neither did anything. The totals are read back
+  off the rows themselves rather than kept in a parallel figure, so the rows already on the page and a
+  row added at runtime are one kind of record. **A line with no retail price contributes its own price
+  to the retail side** -- dropping it from the denominator instead reports one discounted line among
+  ten as the whole order's discount.
 
 ## 10. Cards
 
