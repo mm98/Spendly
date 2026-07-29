@@ -5,13 +5,14 @@ import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview } from '../components/Viz.jsx'
+import { DropZone, HiddenFileInput, describeFile } from '../components/FileInput.jsx'
 import { AiCard } from '../components/AiCard.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { FormStatus, Segmented } from '../components/Form.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	addAttachment, deleteOrder, getHomeContent, getOrder, getOrderAsDraft, getOrders,
+	addAttachments, deleteOrder, getHomeContent, getOrder, getOrderAsDraft, getOrders,
 	getOrdersOverview, getSettings, removeAttachment, updateOrder
 } from '../api/client.js'
 import { kr, longDate, percent, shortDate } from '../api/format.js'
@@ -61,10 +62,19 @@ export default function OrderDetail() {
 			.catch(() => setStatus({ message: 'That did not delete.', good: false }))
 	}
 
-	const attach = file => {
-		if (!file) return
-		addAttachment(id, file)
-			.then(() => { invalidateOrder(); state.refresh(); setStatus({ message: `${file.name} attached.`, good: true }) })
+	const attach = files => {
+		const list = files.map(describeFile)
+		addAttachments(id, list)
+			.then(({ added, skipped }) => {
+				invalidateOrder(); state.refresh()
+				const said = added.length
+					? `${added.length} file${added.length === 1 ? '' : 's'} attached: ${added.map(a => a.name).join(', ')}.`
+					: ''
+				const also = skipped.length
+					? `${skipped.join(', ')} ${skipped.length === 1 ? 'is' : 'are'} already attached.`
+					: ''
+				setStatus({ message: [said, also].filter(Boolean).join(' '), good: added.length > 0 })
+			})
 			.catch(() => setStatus({ message: 'That did not attach.', good: false }))
 	}
 
@@ -193,15 +203,21 @@ export default function OrderDetail() {
 						<Card aria-label="Attachments">
 							<CardHeader title={`Attachments · ${order.attachments.length}`}>
 								<button type="button" className="button button-pill"
-									onClick={() => filePicker.current?.click()}>ADD FILE</button>
+									onClick={() => filePicker.current?.click()}>ADD FILES</button>
 							</CardHeader>
 							<CardDivider />
-							<CardBody variant="card-body-tight">
-								{/* The picker is a real one. The phantom source keeps the name, the size and
-								    the kind; the bytes are the one thing it has no business pretending to hold. */}
-								<input ref={filePicker} type="file" accept="image/*,.pdf" className="field-file-input"
-									aria-hidden="true" tabIndex={-1}
-									onChange={e => { attach(e.target.files?.[0]); e.target.value = '' }} />
+							{/* Dropping a stack of receipts on a card is how anyone with a scanner works, so
+							    the card takes a drop and takes several at once. The header button opens the
+							    same picker for anyone not dragging. */}
+							<CardBody variant="card-body-tight"
+								onDragOver={e => e.preventDefault()}
+								onDrop={e => {
+									e.preventDefault()
+									const files = [...(e.dataTransfer?.files ?? [])]
+									if (files.length) attach(files)
+								}}>
+								<HiddenFileInput ref={filePicker} multiple accept="image/*,.pdf"
+									label="Add attachments" onFiles={attach} />
 								{order.attachments.length ? order.attachments.map(file => (
 									<div key={file.id}>
 										<ItemRow thumb={file.kind === 'pdf' ? 'document' : 'photo'}
@@ -222,7 +238,11 @@ export default function OrderDetail() {
 											</div>
 										) : null}
 									</div>
-								)) : <p className="field-help">Nothing attached yet. ADD FILE puts a receipt here.</p>}
+								)) : (
+									<DropZone icon="photo" accept="image/*,.pdf" label="Add attachments"
+										hint="Drop receipts here — as many as you like — or choose them."
+										action="CHOOSE FILES" onFiles={attach} />
+								)}
 							</CardBody>
 						</Card>
 

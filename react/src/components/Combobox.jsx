@@ -30,7 +30,7 @@ function Marked({ text, query }) {
 
 export function Combobox({
 	value, onChange, onSelect, groups = [], action, placeholder, label, required,
-	leadingIcon, id, invalid, describedBy, children
+	leadingIcon, id, invalid, describedBy, children, chips
 }) {
 	const [open, setOpen] = useState(false)
 	const wrapper = useRef(null)
@@ -67,11 +67,22 @@ export function Combobox({
 		input.current?.focus()
 	}, [onChange, onSelect])
 
+	/* Chips ride inside the shell, not above it.
+
+	   A field whose values sit in a stack over the input is a field whose input starts lower
+	   than the one beside it, and the pair stops lining up the moment one of them has a value.
+	   The prototype puts them in the same box for that reason: the shell grows downwards from
+	   a shared top edge, so both fields still start on the same line. README 9. */
+	const wrapping = Boolean(chips)
+
 	return (
 		<div className={join('combobox', open && 'is-open')} ref={wrapper}>
-			<div className="field-shell">
+			<div className="field-shell"
+				style={wrapping ? { height: 'auto', minHeight: 48, padding: '8px 10px', flexWrap: 'wrap' } : undefined}>
 				{leadingIcon ? <Icon name={leadingIcon} /> : null}
+				{chips}
 				<input ref={input} type="text" id={id} role="combobox"
+					style={wrapping ? { flex: '1 1 120px' } : undefined}
 					aria-expanded={open} aria-controls={panelId} aria-autocomplete="list"
 					aria-label={label} aria-required={required || undefined}
 					aria-invalid={invalid ? 'true' : undefined}

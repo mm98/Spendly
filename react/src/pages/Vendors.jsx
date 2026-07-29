@@ -42,6 +42,14 @@ export default function Vendors() {
 
 	const refresh = () => { invalidate(getVendors); invalidate(getVendorsOverview); state.refresh() }
 
+	/* Closing the form puts focus back on the button that opened it, which is where it came
+	   from -- a disclosure that closes onto the body drops a keyboard user at the top. */
+	const cancelAdd = () => {
+		setAdding(false)
+		setName('')
+		queueMicrotask(() => document.querySelector('.hero button')?.focus())
+	}
+
 	const add = () => {
 		if (!name.trim()) {
 			setStatus({ message: 'A vendor needs a name.', good: false })
@@ -52,6 +60,7 @@ export default function Vendors() {
 				refresh()
 				setName(''); setAdding(false)
 				setStatus({ message: `${vendor.name} added.`, good: true })
+				queueMicrotask(() => document.querySelector('.hero button')?.focus())
 			})
 			.catch(e => setStatus({ message: e.message, good: false }))
 	}
@@ -81,27 +90,43 @@ export default function Vendors() {
 			<div className="hero hero-panel">
 				<h2>Every shop you buy from, in one place.</h2>
 				<p>Vendors collect their orders, totals and savings automatically. Favourites stay on top.</p>
-				{adding ? (
-					<div className="form" style={{ maxWidth: 420, width: '100%' }}>
-						<Field label="Vendor name">
-							<FieldShell>
-								<TextInput id="new-vendor" value={name} onChange={setName}
-									placeholder="Silvan" aria-label="Vendor name" autoFocus
-									onKeyDown={e => {
-										if (e.key === 'Enter') { e.preventDefault(); add() }
-										else if (e.key === 'Escape') { setAdding(false); setName('') }
-									}} />
-							</FieldShell>
-						</Field>
-						<FormActions>
-							<Button variant="caps compact" onClick={add}>ADD VENDOR</Button>
-							<Button variant="ghost compact" onClick={() => { setAdding(false); setName('') }}>CANCEL</Button>
-						</FormActions>
-					</div>
-				) : (
-					<Button variant="caps" onClick={() => setAdding(true)}>ADD VENDOR</Button>
-				)}
+				{/* The hero holds one call to action at the hero size, and nothing else. The form
+				    it opens is in the card below: `.hero .button.button-caps` is 48px, and any
+				    second button standing beside it is either 48px too or a mismatched pair --
+				    which is what a 32px CANCEL next to it was. The stylesheet says so in its own
+				    words a few rules up: two buttons that belong together share one spec, rather
+				    than each call site inventing a height. README 6. */}
+				<Button variant="caps" aria-expanded={adding} aria-controls="add-vendor"
+					onClick={() => {
+						setAdding(true)
+						queueMicrotask(() => document.getElementById('new-vendor')?.focus())
+					}}>ADD VENDOR</Button>
 			</div>
+
+			{adding ? (
+				<Card id="add-vendor" aria-label="Add a vendor">
+					<CardHeader title="Add a vendor" />
+					<CardDivider />
+					<CardBody>
+						<div className="form form-wide">
+							<Field label="Vendor name" help="It joins your list straight away, with no orders on it yet.">
+								<FieldShell>
+									<TextInput id="new-vendor" value={name} onChange={setName}
+										placeholder="Silvan" aria-label="Vendor name"
+										onKeyDown={e => {
+											if (e.key === 'Enter') { e.preventDefault(); add() }
+											else if (e.key === 'Escape') cancelAdd()
+										}} />
+								</FieldShell>
+							</Field>
+							<FormActions>
+								<Button variant="caps compact" onClick={add}>ADD VENDOR</Button>
+								<Button variant="ghost compact" onClick={cancelAdd}>CANCEL</Button>
+							</FormActions>
+						</div>
+					</CardBody>
+				</Card>
+			) : null}
 
 			<FormStatus message={status.message} good={status.good} />
 
@@ -179,19 +204,26 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, onRemo
 
 			<div className="scroll-row" data-view-only="overview" tabIndex={0} role="region" aria-label="All vendors">
 				{listed.map(vendor => (
+					/* The way into the vendor is the card header, which is where every other card
+					   in this app puts it: the label on the left, the chevron on the right, the
+					   whole band a link. A chevron in a row of icon buttons at the foot was a
+					   third layout for something the system already has one of -- and it mixed
+					   navigation in with two actions that are not navigation. README 10. */
 					<Card key={vendor.id}>
+						<CardHeader title={vendor.name} to={`/orders/all?vendor=${vendor.id}`}
+							label={`${vendor.name}, open their orders`} />
+						<CardDivider />
 						<CardBody>
 							<div className="entry-list">
-								<EntryRow avatar={vendor} name={vendor.name}
-									meta={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}`} />
+								<EntryRow avatar={vendor}
+									name={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}`}
+									meta={`saved ${krRound(vendor.saved)}`} />
 							</div>
 							<div className="figure-card tabular-figures">{krRound(vendor.spend)}</div>
-							<span className="card-caption">saved {krRound(vendor.saved)}</span>
+							<span className="card-caption">all time</span>
 							<div className="row-inline" style={{ gap: 4, marginTop: 10 }}>
 								<IconButton icon="star" label={`Add ${vendor.name} to favourites`}
 									onClick={() => onFavourite(vendor)} />
-								<IconButton icon="chevronRight" label={`View ${vendor.name} orders`}
-									to={`/orders/all?vendor=${vendor.id}`} />
 								<IconButton icon="trash" label={`Delete ${vendor.name}`}
 									onClick={() => onRemove(vendor)} />
 							</div>

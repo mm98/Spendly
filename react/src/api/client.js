@@ -52,7 +52,11 @@ const store = {
 	categories: copy(seed.categories),
 	period: copy(seed.period),
 	periods: copy(seed.periods),
-	settings: { ...copy(seed.defaultSettings), ...read('settings', {}) }
+	settings: { ...copy(seed.defaultSettings), ...read('settings', {}) },
+	/* Documents dropped on the scan page this session. Not persisted: a file the browser no
+	   longer holds is not a document, and remembering its name across a reload would be the
+	   app claiming to have something it does not. */
+	uploads: {}
 }
 
 /* Vendors and categories the user made, and the seeded ones they edited or removed, outlive
@@ -246,22 +250,39 @@ export async function deleteOrder(id, signal) {
 	return { id }
 }
 
-/** Attachments. The phantom source keeps the file's name, size and kind -- the bytes are the
-    one thing a prototype has no business pretending to hold. */
-export async function addAttachment(orderId, file, signal) {
+/* Attachments. The phantom source keeps each file's name, size and kind -- the bytes are the
+   one thing a prototype has no business pretending to hold. */
+
+const fileSize = bytes => {
+	const kb = Math.max(1, Math.round((bytes ?? 0) / 1024))
+	return kb > 1024 ? (kb / 1024).toFixed(1).replace('.', ',') + ' MB' : kb + ' KB'
+}
+
+/** Takes however many files were dropped or chosen. One at a time was the shape that made a
+    card offering to hold receipts accept exactly one per trip through the picker. */
+export async function addAttachments(orderId, files, signal) {
 	await wait(signal)
 	const order = store.orders.find(o => o.id === orderId)
 	if (!order) { const e = new Error('No order ' + orderId); e.status = 404; throw e }
-	const kb = Math.max(1, Math.round((file.size ?? 0) / 1024))
-	const attachment = {
-		id: 'a-' + Date.now().toString(36),
-		name: file.name,
-		kind: /\.pdf$/i.test(file.name) ? 'pdf' : 'image',
-		meta: `Added today · ${kb > 1024 ? (kb / 1024).toFixed(1).replace('.', ',') + ' MB' : kb + ' KB'}`
+	const list = Array.isArray(files) ? files : [files]
+	const seen = new Set(order.attachments.map(a => a.name.toLowerCase()))
+	const added = []
+	const skipped = []
+	for (const [n, file] of list.entries()) {
+		/* The same receipt attached twice is a duplicate the user did not mean, and the two
+		   rows are indistinguishable afterwards. Refused by name, and the caller is told. */
+		if (seen.has(file.name.toLowerCase())) { skipped.push(file.name); continue }
+		seen.add(file.name.toLowerCase())
+		added.push({
+			id: 'a-' + Date.now().toString(36) + '-' + n,
+			name: file.name,
+			kind: file.kind ?? (/\.pdf$/i.test(file.name) ? 'pdf' : 'image'),
+			meta: `Added today · ${fileSize(file.size)}`
+		})
 	}
-	order.attachments = [...order.attachments, attachment]
+	order.attachments = [...order.attachments, ...added]
 	persistOrders()
-	return decorate(order)
+	return { order: decorate(order), added, skipped }
 }
 
 export async function removeAttachment(orderId, attachmentId, signal) {
@@ -428,7 +449,24 @@ export async function getAnswer(signal) {
 
 export async function getScanDocuments(signal) {
 	await wait(signal)
-	return copy(seed.scanDocuments)
+	return { ...copy(seed.scanDocuments), ...copy(store.uploads) }
+}
+
+/** Takes a file the user actually dropped on the scan page and hands back the key the two
+    steps after it read. The prototype's hero says "Drop a receipt here" and answers a click
+    with one of four canned documents; this way a dropped file is the document those steps
+    name, with its own size and its own format. What the reader finds inside is still the one
+    Bilka purchase -- that part is demo data and says so. README 11. */
+export async function putScanDocument(file, signal) {
+	await wait(signal)
+	const key = 'upload-' + Date.now().toString(36)
+	const kind = file.kind ?? (/\.pdf$/i.test(file.name) ? 'pdf' : 'image')
+	store.uploads[key] = {
+		kind,
+		name: file.name,
+		meta: `${kind === 'pdf' ? 'PDF' : (file.name.split('.').pop() ?? 'FILE').toUpperCase()} · ${fileSize(file.size)}`
+	}
+	return { key, ...store.uploads[key] }
 }
 
 export async function getRecentScans(signal) {
@@ -439,7 +477,7 @@ export async function getRecentScans(signal) {
 /** What the reader hands back once it has finished with the chosen document. */
 export async function getScanDraft(documentKey, signal) {
 	await wait(signal)
-	const file = seed.scanDocuments[documentKey] || seed.scanDocuments.photo
+	const file = seed.scanDocuments[documentKey] || store.uploads[documentKey] || seed.scanDocuments.photo
 	return { ...copy(seed.scanDraft), file: { ...file, key: documentKey } }
 }
 

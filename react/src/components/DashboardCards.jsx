@@ -1,31 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Card, CardBody, CardDivider, CardHeader, SectionHeader, SectionLabel } from './Card.jsx'
 import { IconButton } from './Button.jsx'
+import { useReorder } from './Reorder.jsx'
 import { Icon } from './Icon.jsx'
 import { saveDashboardCards } from '../api/client.js'
 
 /* Which cards sit on the dashboard, and in what order, is the user's choice, so it persists.
 
-   Reordering is button-driven rather than drag-only: a keyboard has to be able to do it, and
-   a drag handle alone would shut one out. Every move announces where the card landed, and
-   focus is put back deliberately after each one -- the DOM moves out from under the button
-   that was focused, and a control that vanishes mid-interaction drops focus to the body.
+   Reordering is the grip, dragged or driven from the keyboard -- the same control the item
+   list uses, because there is one way to reorder things in this app and not two. A drag
+   handle that only answers a pointer would shut a keyboard out, and a pair of arrow buttons
+   beside a grip that does nothing is three controls for one job. See Reorder.jsx.
+
+   Every move announces where the card landed, and focus is put back deliberately after each
+   one -- the DOM moves out from under the control that was pressed, and one that vanishes
+   mid-interaction drops focus to the body.
 
    Cancel restores the snapshot taken when editing began, so the discard is real rather than
    a word on a button. README 13. */
 
-const PLACE = { left: 'Move %s earlier', right: 'Move %s later', rm: 'Remove %s' }
-
-function ReorderBar({ name, index, count, onAct }) {
+function ReorderBar({ name, index, count, handle, onRemove }) {
 	return (
 		<div className="card-reorder-bar">
 			<span className="card-reorder-position">{index + 1} of {count}</span>
-			<IconButton variant="reorder" icon="chevronLeft" label={PLACE.left.replace('%s', name)}
-				disabled={index === 0} onClick={() => onAct('left')} data-act="left" />
-			<IconButton variant="reorder" icon="chevronRight" label={PLACE.right.replace('%s', name)}
-				disabled={index === count - 1} onClick={() => onAct('right')} data-act="right" />
-			<IconButton variant="reorder icon-button-reorder-remove" icon="close" label={PLACE.rm.replace('%s', name)}
-				onClick={() => onAct('rm')} data-act="rm" />
+			{count > 1 ? handle : null}
+			<IconButton variant="reorder icon-button-reorder-remove" icon="close" label={`Remove ${name}`}
+				onClick={onRemove} data-act="rm" />
 		</div>
 	)
 }
@@ -41,48 +41,49 @@ export function DashboardCards({ all, initial, render }) {
 
 	const meta = key => all.find(c => c.key === key)
 
-	/* Focus goes to the same control on the card that just moved, or to the next best thing
-	   on it, or to DONE. Never nowhere. */
-	const refocus = useCallback((key, act) => {
+	/* Focus goes back onto the card that just changed, or to DONE. Never nowhere: the DOM
+	   moves out from under the button that was pressed, and a control that vanishes
+	   mid-interaction drops focus to the body. */
+	const refocus = useCallback(key => {
 		queueMicrotask(() => {
 			const card = container.current?.querySelector(`[data-card="${key}"]`)
-			const wanted = card?.querySelector(`[data-act="${act}"]:not(:disabled)`)
-			const fallback = card?.querySelector('[data-act]:not(:disabled)')
-			;(wanted || fallback || doneButton.current)?.focus()
+			;(card?.querySelector('[data-act]:not(:disabled)') || doneButton.current)?.focus()
 		})
 	}, [])
 
-	const act = (key, action) => {
-		setOn(prev => {
-			const i = prev.indexOf(key)
+	/* Reordering is the grip, the same as every other list in the app -- dragged with a
+	   pointer, moved with the arrow keys, announced either way. The chevron pair this replaces
+	   was the app's other place where a direction control stood in for a drag. See
+	   Reorder.jsx. */
+	const reorder = useReorder({
+		items: on.map(key => ({ id: key, name: meta(key).name })),
+		describe: card => card.name,
+		onAnnounce: setMessage,
+		onReorder: (from, to) => setOn(prev => {
 			const next = [...prev]
-			if (action === 'rm') {
-				next.splice(i, 1)
-				setMessage(`${meta(key).name} removed. You can add it back below.`)
-				queueMicrotask(() =>
-					(container.current?.parentElement?.querySelector(`[data-add="${key}"]`) || doneButton.current)?.focus())
-				return next
-			}
-			const to = action === 'left' ? i - 1 : i + 1
-			if (to < 0 || to >= next.length) return prev
-			next.splice(i, 1)
-			next.splice(to, 0, key)
-			setMessage(`${meta(key).name} moved to position ${to + 1} of ${next.length}.`)
-			refocus(key, action)
+			const [moved] = next.splice(from, 1)
+			next.splice(to, 0, moved)
 			return next
 		})
+	})
+
+	const drop = key => {
+		setOn(prev => prev.filter(k => k !== key))
+		setMessage(`${meta(key).name} removed. You can add it back below.`)
+		queueMicrotask(() =>
+			(container.current?.parentElement?.querySelector(`[data-add="${key}"]`) || doneButton.current)?.focus())
 	}
 
 	const add = key => {
 		setOn(prev => [...prev, key])
 		setMessage(`${meta(key).name} added at position ${on.length + 1}.`)
-		refocus(key, 'rm')
+		refocus(key)
 	}
 
 	const start = () => {
 		snapshot.current = on
 		setEditing(true)
-		setMessage('Editing your cards. Use the arrows to reorder.')
+		setMessage('Editing your cards. Drag a grip to reorder, or move it with the arrow keys.')
 		queueMicrotask(() => doneButton.current?.focus())
 	}
 
@@ -129,11 +130,16 @@ export function DashboardCards({ all, initial, render }) {
 			</SectionHeader>
 			<p className="screenreader-only" role="status" aria-live="polite">{message}</p>
 
-			<div className={['dashboard-cards', editing && 'is-editing'].filter(Boolean).join(' ')} ref={container}>
+			<div className={['dashboard-cards', editing && 'is-editing'].filter(Boolean).join(' ')}
+				ref={node => { container.current = node; reorder.listProps.ref.current = node }}>
 				{on.map((key, i) => (
-					<section className="card" key={key} data-card={key} aria-label={meta(key).name}>
-						{editing ? <ReorderBar name={meta(key).name} index={i} count={on.length}
-							onAct={action => act(key, action)} /> : null}
+					<section className="card" key={key} data-card={key} aria-label={meta(key).name}
+						{...(editing ? reorder.rowProps({ id: key }) : {})}>
+						{editing ? (
+							<ReorderBar name={meta(key).name} index={i} count={on.length}
+								handle={reorder.handle({ id: key, name: meta(key).name }, i)}
+								onRemove={() => drop(key)} />
+						) : null}
 						{render(key)}
 					</section>
 				))}

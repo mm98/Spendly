@@ -158,6 +158,21 @@ unit is always one CSS pixel and stroke widths hold. In React that means the wid
 and the path data is computed during render, so a re-render never leaves a path drawn for a
 width the element no longer has.
 
+### Reordering
+
+One control does it: the grip. It drags with a pointer — mouse and touch, through Pointer
+Events rather than HTML5 drag-and-drop, because `dragstart` never fires from a finger — and it
+moves with the arrow keys when focused, with Home and End for the ends. Every move is
+announced through the page's own status line.
+
+The item list and the dashboard's cards use the same hook, and it measures which way the list
+runs rather than being told: rows that overlap vertically are side by side, so the comparison
+is on x; otherwise it is on y.
+
+There are no move-earlier / move-later buttons anywhere. A pair of chevrons beside a grip is
+three controls for one job, two of them pointing sideways in a list that runs down the page —
+and the grip already carried `cursor:grab`, which is a promise the prototype did not keep.
+
 ### The command palette
 
 The top bar prints `CTRL K`, and a key cap is a promise. Ctrl+K (Cmd+K) opens the palette from
@@ -261,6 +276,15 @@ checked.
     saves a real order carrying the correction.
   - LATER on Home writes the same setting the Settings switch does, and it survives a reload.
 
+- **21 file and reorder assertions pass** in two more harnesses. No native file control is
+  visible on any page that has one; three files attach in a single go, each keeping its own
+  name, size and format glyph; a duplicate is refused by name; a real `drop` on the card
+  attaches; the scan page starts from a dropped or chosen file and both steps after it name
+  that file with its real size. Reordering: dragging the grip moves a row and nothing is lost
+  or duplicated, a touch drag does the same, the arrow keys move it, Home and End take it to
+  the ends, focus stays on the grip, the move is announced once, the order survives the save,
+  and the dashboard's cards drag on the horizontal axis.
+
 - **axe, every rule enabled, 70 states.** 35 states at two widths, including the open palette
   with results, both rejected forms, the editing dashboard, the delete confirmation, the
   category editor, the open line editor and both alternate views. 0 violations of everything
@@ -271,7 +295,7 @@ checked.
   prototype at 0 differing pixels, so it is a valid baseline. Against it, this app's phone
   render is **0 of 1,035,840** — identical.
 
-Six defects were found by these runs and fixed rather than reported:
+Ten defects were found by these runs and fixed rather than reported:
 
 1. `aria-describedby` pointing at a message element with no id.
 2. A field re-checking against the value from before the keystroke, so a message cleared one
@@ -285,6 +309,17 @@ Six defects were found by these runs and fixed rather than reported:
    remount the component.
 6. Edits to *seeded* orders never persisting, because only added orders were being stored.
    Marking an order delivered worked, rendered, and was gone on the next reload.
+7. The reorder list's ref spread onto a plain function component, where React takes `ref` out
+   of the props before the component ever sees it. Nothing rendered wrongly; the drag measured
+   an empty list, found one row and moved nothing.
+8. `.field-shell > .field-file-input` is a *child* combinator, and it is the rule that hides a
+   file input. Two file inputs sat one level deeper than that, so the browser drew
+   "Browse… No file selected" in the middle of the page. The hiding is carried by the element
+   itself now.
+9. `.two-column` is a grid, so hiding the rail on the Categories Manage tab left the track it
+   sat in and the list stayed at half width. A column that is not there is not rendered.
+10. Two live regions on the dashboard, announcing over each other. The reorder hook now hands
+    its message to whatever status line the host already has.
 
 ## What this port does not do
 
@@ -294,11 +329,10 @@ Six defects were found by these runs and fixed rather than reported:
   engine-shaped by default, and this app has date fields, search inputs and a file picker.
   Defect 4 above is exactly that shape, and Blink found it — the other two engines may hold
   another.
-- Attachments keep a name, a size and a kind. The bytes are the one thing a phantom source
-  has no business pretending to hold, so OPEN shows the document placeholder rather than a
-  render of a file that does not exist.
-- Item photos are the same: the field records the filename you chose and shows it on the item
-  row. It does not display the image.
-- Drag-to-reorder is not implemented; reordering is done with the arrow buttons on each row,
-  which is the accessible half of it and the half a keyboard can reach. The copy says
-  "use the arrows to reorder" rather than promising a drag that is not there.
+- Attachments and item photos keep a name, a size and a kind. The bytes are the one thing a
+  phantom source has no business pretending to hold, so OPEN shows the document placeholder
+  rather than a render of a file that does not exist. Everything else about the file is real:
+  its own name, its own size, and the glyph for its own format.
+- A receipt dropped on the scan page is the document the two steps after it name, with its
+  real size and format. What the reader finds *inside* it is still the one Bilka purchase --
+  that part is demo data and the page says so.

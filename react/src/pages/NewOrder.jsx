@@ -9,6 +9,7 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
+import { useReorder } from '../components/Reorder.jsx'
 import {
 	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, FilterSectionBody,
 	Form, FormActions, FormStatus, Segmented, Switch, TextArea, TextInput,
@@ -183,16 +184,14 @@ export function NewOrderDetails() {
 								</FieldPair>
 
 								<FieldPair variant="field-pair-stack-early">
-									<Field label="Categories" group
+									<Field label="Categories"
 										help="Pick from your categories, or type one and press Enter.">
-										<div className="row-inline" style={{ gap: 6, flexWrap: 'wrap' }}>
-											{draft.categories.map(name => (
+										<Combobox label="Add category" placeholder="Add category…"
+											chips={draft.categories.map(name => (
 												<Chip key={name} label={`Remove category ${name}`}
 													onRemove={() => update({ categories: draft.categories.filter(c => c !== name) })}>
 													{name}</Chip>
 											))}
-										</div>
-										<Combobox label="Add category" placeholder="Add category…"
 											value={categoryQuery} onChange={setCategoryQuery}
 											onSelect={o => { addCategory(o.label); setCategoryQuery('') }}
 											groups={[{ heading: 'Your categories', options: (categories.data ?? [])
@@ -384,15 +383,21 @@ export function NewOrderItems() {
 		focusField('item-description')
 	}
 
-	const moveItem = (from, step) => {
-		const to = from + step
-		if (to < 0 || to >= draft.items.length) return
-		const items = [...draft.items]
-		const [moved] = items.splice(from, 1)
-		items.splice(to, 0, moved)
-		update({ items })
-		setStatus({ message: `${moved.title} moved to position ${to + 1} of ${items.length}.`, good: true })
-	}
+	/* Reordering is one control: the grip. It drags with a pointer and moves with the arrow
+	   keys, and it announces where the line landed. The chevron pair that used to do this sat
+	   beside a grip that did nothing -- three controls on every row for one job, two of them
+	   pointing sideways in a list that runs down the page. See Reorder.jsx. */
+	const reorder = useReorder({
+		items: draft.items,
+		describe: item => item.title,
+		onAnnounce: message => setStatus({ message, good: true }),
+		onReorder: (from, to) => {
+			const items = [...draft.items]
+			const [moved] = items.splice(from, 1)
+			items.splice(to, 0, moved)
+			update({ items })
+		}
+	})
 
 	const removeItem = item => {
 		update({ items: draft.items.filter(i => i.id !== item.id) })
@@ -513,23 +518,28 @@ export function NewOrderItems() {
 												<FieldUnit>kr.</FieldUnit>
 											</FieldShell>
 										</Field>
-										{/* The field keeps its height whether or not a file has been chosen, and the
-										    name is the file's own rather than a fixed one -- a picker that reports the
-										    same filename for every file is telling the user it read something else.
-										    The clear button removes it, and it is outside the label so the click
-										    is not forwarded straight back into the picker. */}
+										{/* The whole shell is the label and the input is its direct child, which is
+										    the prototype's own markup and not an accident: the rule that hides the
+										    input is `.field-shell > .field-file-input`, a child combinator. Wrapping
+										    the input one level deeper -- in an inner label, say -- leaves the rule
+										    unmatched and the browser draws "Browse… No file selected" in the middle
+										    of the form. It did.
+
+										    The name is the file's own rather than a fixed one: a picker that reports
+										    the same filename whatever you choose is telling you it read something
+										    else. The field keeps its height either way. */}
 										<Field label="Photo"
 											help="Optional. The photo shows on the item row below, not in the form.">
-											<FieldShell>
-												<label className="row-inline" style={{ gap: 9, flex: 1, minWidth: 0, cursor: 'pointer' }}>
-													<span className="field-thumb" aria-hidden="true"><Icon name="photo" /></span>
-													<input type="file" accept="image/*" aria-label="Product photo"
-														className="field-file-input"
-														onChange={e => setPhoto(e.target.files?.[0]?.name ?? null)} />
-													<span className="field-file-name">{photo ?? 'Choose a photo…'}</span>
-												</label>
-												{photo ? <IconButton variant="clear" icon="close" label="Remove photo"
-													onClick={() => setPhoto(null)} /> : null}
+											<FieldShell as="label">
+												<span className="field-thumb" aria-hidden="true"><Icon name="photo" /></span>
+												<input type="file" accept="image/*" aria-label="Product photo"
+													className="field-file-input"
+													onChange={e => setPhoto(e.target.files?.[0]?.name ?? null)} />
+												<span className="field-file-name">{photo ?? 'Choose a photo…'}</span>
+												{photo ? (
+													<IconButton variant="clear" icon="close" label="Remove photo"
+														onClick={e => { e.preventDefault(); setPhoto(null) }} />
+												) : null}
 											</FieldShell>
 										</Field>
 									</FieldPair>
@@ -550,22 +560,18 @@ export function NewOrderItems() {
 								<div>
 									<div className="space-between space-between-tight">
 										<span className="section-label">Items · {draft.items.length}</span>
-										<span className="field-help">use the arrows to reorder</span>
+										<span className="field-help">drag the grip to reorder</span>
 									</div>
-									<InsetPanel>
+									<InsetPanel {...reorder.listProps}>
 										{draft.items.map((item, i) => (
-											<ItemRow key={item.id} grip={draft.items.length > 1} icon="cube" title={item.title}
+											<ItemRow key={item.id} icon="cube" title={item.title}
+												handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
 												meta={`${item.quantity} × ${kr(item.price)}`
 													+ (item.retail ? ` · retail ${kr(item.retail)}` : '')
 													+ (item.photo ? ` · ${item.photo}` : '')}
-												amount={kr(item.price * item.quantity)}>
+												amount={kr(item.price * item.quantity)}
+												{...reorder.rowProps(item)}>
 												<span className="row-inline" style={{ gap: 2 }}>
-													{/* Reordering is button-driven as well as draggable: a keyboard has to be
-													    able to do it, and a drag handle alone would shut one out. */}
-													<IconButton icon="chevronLeft" label={`Move ${item.title} earlier`}
-														disabled={i === 0} onClick={() => moveItem(i, -1)} />
-													<IconButton icon="chevronRight" label={`Move ${item.title} later`}
-														disabled={i === draft.items.length - 1} onClick={() => moveItem(i, 1)} />
 													<IconButton icon="pencil" label={`Edit ${item.title}`}
 														onClick={() => editItem(item)} />
 													<IconButton icon="trash" label={`Delete ${item.title}`}
@@ -597,8 +603,8 @@ export function NewOrderItems() {
 						<CardDivider />
 						<CardBody>
 							<InsetPanel>
-								<ItemRow icon="reorder" title="Arrows reorder"
-									meta="The order here is the order on the receipt." />
+								<ItemRow icon="reorder" title="Drag to reorder"
+									meta="Or focus the grip and use the arrow keys." />
 								<ItemRow icon="pencil" title="Edit in place"
 									meta="A line loads back into the form above." />
 								<ItemRow icon="undo" title="Escape cancels"

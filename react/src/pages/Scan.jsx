@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -6,6 +6,7 @@ import { Card, CardBody, CardDivider, CardHeader, Note } from '../components/Car
 import { Stepper } from '../components/Stepper.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview, ProgressBar } from '../components/Viz.jsx'
+import { HiddenFileInput, describeFile } from '../components/FileInput.jsx'
 import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
@@ -17,7 +18,7 @@ import {
 import { useApi, invalidate } from '../api/useApi.js'
 import {
 	createOrder, getHomeContent, getOrders, getOrdersOverview, getRecentScans, getScanDocuments,
-	getScanDraft, spendKinds
+	getScanDraft, putScanDocument, spendKinds
 } from '../api/client.js'
 import { AMOUNT_PATTERN, WHOLE_NUMBER_PATTERN, amount, kr, parseAmount } from '../api/format.js'
 
@@ -57,17 +58,41 @@ const useDocumentKey = () => useSearchParams()[0].get('doc') ?? 'photo'
 export function ScanUpload() {
 	const recent = useApi(getRecentScans)
 	const navigate = useNavigate()
+	const picker = useRef(null)
+	const [over, setOver] = useState(false)
 	const go = key => navigate('/scan/reading?doc=' + key)
+
+	/* The hero says "Drop a receipt here, or click to choose a file" and now it does both. A
+	   dropped file is the document the next two steps name, with its own format and its own
+	   size; what the reader finds inside is still the one Bilka purchase, which is demo data
+	   and is described as such. A prompt bar that says drop and answers only a click is the
+	   decorative-control rule wearing a different sense. README 11 and 13. */
+	const upload = files => {
+		const file = files[0]
+		if (!file) return
+		putScanDocument(describeFile(file)).then(({ key }) => go(key))
+	}
 
 	return (
 		<Page>
 			<div className="hero hero-column">
 				<h2>Receipts read at your fingertips.</h2>
 				<p>Drop a PDF, photo or screenshot. The AI drafts the order; you review every value before it is saved.</p>
-				<div className="ai-prompt-bar">
+				<div className="ai-prompt-bar"
+					onDragOver={e => { e.preventDefault(); setOver(true) }}
+					onDragEnter={e => { e.preventDefault(); setOver(true) }}
+					onDragLeave={() => setOver(false)}
+					onDrop={e => {
+						e.preventDefault(); setOver(false)
+						upload([...(e.dataTransfer?.files ?? [])])
+					}}
+					onClick={() => picker.current?.click()}
+					style={{ cursor: 'pointer', ...(over ? { outline: '2px dashed var(--green)', outlineOffset: 3 } : {}) }}>
 					<span aria-hidden="true"><Icon name="receipt" style={{ color: 'var(--text-faint)' }} /></span>
 					<span className="field-shell-placeholder">Drop a receipt here, or click to choose a file…</span>
-					<IconButton variant="send" icon="upload" label="Scan" onClick={() => go('photo')} />
+					<HiddenFileInput ref={picker} accept="image/*,.pdf" label="Choose a receipt" onFiles={upload} />
+					<IconButton variant="send" icon="upload" label="Choose a receipt to scan"
+						onClick={e => { e.stopPropagation(); picker.current?.click() }} />
 				</div>
 				<div className="ai-suggestion-row">
 					{ENTRIES.map(entry => (

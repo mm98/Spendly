@@ -152,8 +152,13 @@ function CategoriesBody({ data, query, sort, manage, adding, setAdding, name, se
 
 	const spent = data.categories.reduce((sum, c) => sum + c.spend, 0)
 
+	/* Manage drops the rail rather than hiding it. `[data-view-only]` is the stylesheet's own
+	   mechanism and it is the right one for content inside a column -- but this rail *is* a
+	   column, and `.two-column` is a grid: hiding the child leaves the track it sat in, so the
+	   list stayed at half width with nothing beside it. A column that is not there is not
+	   rendered. */
 	return (
-		<div className="two-column">
+		<div className={manage ? 'page-grid' : 'two-column'}>
 			<Card aria-label="Categories">
 				<CardHeader title={manage ? 'Manage categories' : 'Categories'}>
 					<Button variant="pill" icon="plus" onClick={() => setAdding(true)}>ADD</Button>
@@ -220,7 +225,8 @@ function CategoriesBody({ data, query, sort, manage, adding, setAdding, name, se
 				</CardBody>
 			</Card>
 
-			<div className="page-grid" data-view-only="overview">
+			{manage ? null : (
+			<div className="page-grid">
 				<QuestionCard label="Question of the day" title={answer?.short ?? data.question.short}>
 					{answering && answer ? (
 						<>
@@ -268,6 +274,7 @@ function CategoriesBody({ data, query, sort, manage, adding, setAdding, name, se
 					</CardBody>
 				</Card>
 			</div>
+			)}
 		</div>
 	)
 }

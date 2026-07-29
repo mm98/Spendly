@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from './Icon.jsx'
 import { kr, krRound } from '../api/format.js'
@@ -61,10 +62,13 @@ export function CategoryRow({ category, meta, to }) {
 
 /** A line on an order, a line read off a receipt, or a fact in an inset panel.
     `tone` recolours the leading tile where the line is a warning rather than a value. */
-export function ItemRow({ icon, iconTone, thumb, grip, title, meta, amount, to, children }) {
+export function ItemRow({ icon, iconTone, thumb, handle, title, meta, amount, to, children, ...rest }) {
 	return (
-		<Row to={to} family="item-row">
-			{grip ? <span className="item-row-grip"><Icon name="grip" /></span> : null}
+		<Row to={to} family="item-row" {...rest}>
+			{/* The handle is passed in rather than drawn here: a grip is only honest when
+			    something behind it can actually move the row, so the row does not get to draw
+			    one on its own. See Reorder.jsx. */}
+			{handle}
 			{icon ? <span className="item-row-icon" style={iconTone}><Icon name={icon} /></span> : null}
 			{thumb ? <span className="document-thumb" style={{ fontSize: 0 }} aria-hidden="true"><Icon name={thumb} /></span> : null}
 			<div>
@@ -122,5 +126,13 @@ export const SummaryTotal = ({ label = 'Total', value, estimate }) => (
 	</div>
 )
 
-/** A panel of rows with the recessed background -- item lists, read lines, fact lists. */
-export const InsetPanel = ({ children, ...rest }) => <div className="inset-panel" {...rest}>{children}</div>
+/** A panel of rows with the recessed background -- item lists, read lines, fact lists.
+
+    It forwards its ref, because a reorderable list has to be able to measure its own rows.
+    A ref spread onto a plain function component is silently dropped -- React takes `ref` out
+    of the props before the component ever sees it -- so the drag measured an empty list,
+    found one row, and moved nothing. Nothing rendered wrongly; the drag just did not work.
+    See Reorder.jsx. */
+export const InsetPanel = forwardRef(function InsetPanel({ children, ...rest }, ref) {
+	return <div className="inset-panel" ref={ref} {...rest}>{children}</div>
+})
