@@ -12,9 +12,9 @@
 
 export const vendors = [
 	{ id: 'proshop',    name: 'Proshop',    initials: 'PR', colour: '#235553', orders: 34, spend: 48210, saved: 6940, favourite: true,
-		lead: 'Your biggest vendor: 48.210 kr. across 34 orders.', latest: { date: '2026-07-24', items: 4, total: 612 } },
+		lead: 'Your biggest vendor: 48.210 kr. across 34 orders.' },
 	{ id: 'bilka',      name: 'Bilka',      initials: 'BI', colour: '#877364', orders: 96, spend: 41882, saved: 3210, favourite: true,
-		lead: 'Your most frequent vendor: 96 orders, 41.882 kr.', latest: { date: '2026-07-18', items: 23, total: 146.1 } },
+		lead: 'Your most frequent vendor: 96 orders, 41.882 kr.' },
 	{ id: 'fotex',      name: 'Føtex',      initials: 'FØ', colour: '#877364', orders: 71, spend: 28140, saved: 1905 },
 	{ id: 'elgiganten', name: 'Elgiganten', initials: 'EL', colour: '#177DA7', orders: 18, spend: 26499, saved: 4120 },
 	{ id: 'matas',      name: 'Matas',      initials: 'MA', colour: '#AD620D', orders: 29, spend: 11640, saved: 1480 },

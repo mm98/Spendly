@@ -554,7 +554,20 @@ export async function getOrdersOverview(signal) {
 
 export async function getVendorsOverview(signal) {
 	await wait(signal)
-	const all = copy(store.vendors)
+	/* The latest order is read off the orders, not stored beside them. Two of the seven vendors
+	   carried a stored one and the other five carried none, so a card claiming 29 orders and
+	   1.480 kr. saved drew "Latest order -- None": a vendor cannot have saved you money on
+	   orders it has not got. It is the same rule the totals follow -- derive it, and the two
+	   cannot disagree -- and it keeps up on its own when an order is saved or deleted. */
+	const latestOf = id => {
+		const order = store.orders
+			.filter(o => o.vendorId === id)
+			.sort(byDateDescending)[0]
+		if (!order) return null
+		const full = decorate(order)
+		return { date: full.date, items: full.itemCount, total: full.total }
+	}
+	const all = copy(store.vendors).map(v => ({ ...v, latest: latestOf(v.id) }))
 	return { favourites: all.filter(v => v.favourite), rest: all.filter(v => !v.favourite) }
 }
 
