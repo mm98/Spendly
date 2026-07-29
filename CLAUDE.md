@@ -18,6 +18,28 @@ shows. Opening the HTML in a browser is the whole toolchain.
 
 ## Verification
 
+### The environment, settled -- do not re-derive it
+
+Re-checking these each session is the waste this heading exists to stop. They are facts about the
+box, not about any change.
+
+- **No browser runs at all, by instruction.** Do not launch Chromium, Firefox or WebKit; do not try
+  to fetch them. Only Chromium ships here and the Playwright CDN is blocked by the network policy,
+  so the search costs minutes and returns nothing.
+- **So the rest of this section cannot be executed.** The walk, the pixel diff, the axe sweep, the
+  settle-and-freeze loop and the state-by-state geometry reads all need a rendered page. What is
+  left is reading the code and reasoning about the cascade. That is weaker, and it may never be
+  written up as though it were one of them: **"reasoned from the source; not rendered"** is the
+  report, in the same breath as the change.
+- **Contrast still gets a number.** The sRGB relative-luminance formula is arithmetic and needs no
+  DOM -- run it in plain node. Settled here: `--green` #14AC72 is **2.93:1** on white and
+  `#838C84` is **3.47:1**.
+- **Match counts still get a number.** `grep -o 'pattern' file | wc -l`, never `grep -c`.
+- Every measured figure quoted below and in the README came from runs made before this instruction.
+  They stay because they are true of the file as it stood; a later change does not inherit them.
+
+### When a page can be rendered
+
 The README's standard is the floor: render the prototype, screenshot it at desktop and 390px, and say
 what was measured rather than that it looks right. Three axes it does not name have each shipped a
 bug, so they are part of the standard now.
@@ -52,6 +74,15 @@ labels and a screenshot has none about whether a button is wired, so neither def
 measurement nobody thought to write. Where a control enumerates something that happens in sequence,
 read it left to right and check the sequence is true; where it names an action, fire it and assert
 the state it promises actually moved.
+
+**Firing a control is not enough if only one of its states was ever drawn.** The rule above says to
+fire a control and assert the state it promises moved, and that is still where the "More details?"
+switch was caught -- but the assertion it passes matters. The switch had no handler *and* no
+`[aria-checked="false"]` rule, so a probe that flips the attribute and reads the attribute back would
+have gone green on a control that renders identically in both states: green track, knob hard right,
+44x26 either way. Read the computed style and the geometry the state is supposed to move -- track
+colour `rgb(20,172,114)` to `rgb(131,140,132)`, knob `right:3px` to `left:3px`, the section 271.7px
+to 56px. An ARIA attribute is a claim about the pixels, and only the pixels can settle it.
 
 **Three screens are not the file.** `docs/` holds three states of thirteen pages, so a change that
 touches everything needs a wider net than a re-render. Renaming every class broke the sidebar icons
