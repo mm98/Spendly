@@ -29,6 +29,23 @@ showed a single correct glyph. Anything touching a native form control, a shadow
 a `-webkit-`/`-moz-` prefix or the platform's own chrome is engine-shaped by default: check Gecko and
 WebKit before calling it fixed.
 
+**A vendor prefix names the engine that invented the feature, not one that obeys you.** That rule was
+written and then not run for two years, and the thing it would have caught was hiding inside its own
+evidence: `::-webkit-search-cancel-button` carries the prefix, so the rule sitting on it read as the
+WebKit fix and got counted as coverage nobody had. `-webkit-appearance:none` removes that button in
+Blink and Safari goes on drawing it; `display:none` removes it in both. All four search fields shipped
+a native circled `×`. Reading a `-webkit-` selector as "handled in WebKit" is the inference to
+distrust — the prefix says who shipped the pseudo-element first, and nothing whatever about which
+engines honour the property you set on it. Launch the engine.
+
+**A shot cannot document a state it does not hold.** That defect needed a search field with a value
+in it, and all three committed shots have empty ones with the finder closed, so `docs/` renders it
+identically before and after the fix — 0 of 11,403,840 pixels, on a machine that reproduces those
+files exactly. The pixel diff was not weak evidence here, it was evidence about a different question,
+and a clean one would have been read as "nothing changed" by anyone who did not first ask whether the
+shot contains the control in the state that breaks. Before trusting a shot to clear a control, put the
+control in the state under test and check the shot actually holds it.
+
 **One state is not coverage.** A screenshot captures one state of one control. The segmented control
 changed width when the selection moved, because the active segment was bolder and the track is
 `width:max-content` — visible in any engine, invisible in any single screenshot. Exercise every state
@@ -132,6 +149,15 @@ false all-clear is the one that ships. The walk costs four minutes; a wrong answ
 **Say which of these you actually ran.** An engine that could not be launched is an engine that was
 not checked, and the honest report is "verified in Blink, Gecko unverified — no binary available",
 not silence. Never let a reader infer coverage that does not exist.
+
+"No binary available" is a fact with a short shelf life, though, and it was wrong here: Gecko and
+WebKit both install and run in this container. `npx playwright install firefox webkit` fetches them,
+WebKit additionally needs `npx playwright install-deps webkit` — without it, it fails at launch on
+about thirty missing shared libraries and no amount of re-running the harness will say why. Firefox
+takes no `isMobile` or `userAgent` in a context descriptor, so a coarse-pointer run has to omit both
+rather than pass the device profile whole. All three then drive identically: 51,292 element records
+per engine across 28 states, byte-identical between engines, 0 differences run-to-run. Check before
+reporting an engine as unavailable — that sentence is only honest on the day it is true.
 
 ## Measuring
 
