@@ -1,16 +1,39 @@
+import { lazy } from 'react'
 import { AppShell } from './components/Shell.jsx'
-import Home from './pages/Home.jsx'
-import Orders from './pages/Orders.jsx'
-import AllOrders from './pages/AllOrders.jsx'
-import OrderDetail from './pages/OrderDetail.jsx'
-import { NewOrderDetails, NewOrderItems, NewOrderLayout } from './pages/NewOrder.jsx'
-import Settings from './pages/Settings.jsx'
-import CategoryForm from './pages/CategoryForm.jsx'
-import VendorForm from './pages/VendorForm.jsx'
-import { ScanReading, ScanReview, ScanUpload } from './pages/Scan.jsx'
-import Vendors from './pages/Vendors.jsx'
-import Categories from './pages/Categories.jsx'
-import Stats from './pages/Stats.jsx'
+
+/* Every page is loaded when it is first opened, not when the app is.
+
+   Ten page modules held one chunk between them, so opening Home downloaded the scan flow, both
+   forms, the statistics pager and every page's charts. They are `lazy` here rather than
+   imported: the bundler gives each module a chunk, the shell has one Suspense boundary for the
+   lot (see components/Shell.jsx), and a page arrives when it is navigated to.
+
+   `handle` stays right here, static, and that is the point rather than an oversight -- the
+   title, the rail item, the back button and the sub-tabs are known before a page's chunk is
+   requested, so the shell is never drawn nameless while one is in flight. A page that named
+   itself from inside its own module would put those four back where the prototype had them.
+
+   A module with more than one page in it (NewOrder, Scan) is named once per export and still
+   fetched once: they resolve to the same chunk. */
+
+const page = (load, name = 'default') => lazy(() => load().then(m => ({ default: m[name] })))
+
+const Home = page(() => import('./pages/Home.jsx'))
+const Orders = page(() => import('./pages/Orders.jsx'))
+const AllOrders = page(() => import('./pages/AllOrders.jsx'))
+const OrderDetail = page(() => import('./pages/OrderDetail.jsx'))
+const NewOrderLayout = page(() => import('./pages/NewOrder.jsx'), 'NewOrderLayout')
+const NewOrderDetails = page(() => import('./pages/NewOrder.jsx'), 'NewOrderDetails')
+const NewOrderItems = page(() => import('./pages/NewOrder.jsx'), 'NewOrderItems')
+const Settings = page(() => import('./pages/Settings.jsx'))
+const CategoryForm = page(() => import('./pages/CategoryForm.jsx'))
+const VendorForm = page(() => import('./pages/VendorForm.jsx'))
+const ScanUpload = page(() => import('./pages/Scan.jsx'), 'ScanUpload')
+const ScanReading = page(() => import('./pages/Scan.jsx'), 'ScanReading')
+const ScanReview = page(() => import('./pages/Scan.jsx'), 'ScanReview')
+const Vendors = page(() => import('./pages/Vendors.jsx'))
+const Categories = page(() => import('./pages/Categories.jsx'))
+const Stats = page(() => import('./pages/Stats.jsx'))
 
 /* The routes, and the four things the shell reads off each one.
 
