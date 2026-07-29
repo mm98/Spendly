@@ -182,9 +182,12 @@ export function NewOrderDetails() {
 			    two labels lined up and nothing under them did. Vendor already holds a row for a
 			    related reason -- what a field pairs with is a question about the field, not
 			    about the width. README 9. */}
-			<Field label="Categories"
+			{/* htmlFor, because the chips below are labelable and come first -- without it this
+			    label pointed at the first chip's remove button and a tap on the chevron
+			    deleted a category instead of opening the list. See components/Form.jsx. */}
+			<Field label="Categories" htmlFor="order-categories"
 				help="Pick from your categories, or type one and press Enter.">
-				<Combobox label="Add category" placeholder="Add category…"
+				<Combobox id="order-categories" label="Add category" placeholder="Add category…"
 					chips={draft.categories.map(name => (
 						<Chip key={name} label={`Remove category ${name}`}
 							onRemove={() => update({ categories: draft.categories.filter(c => c !== name) })}>

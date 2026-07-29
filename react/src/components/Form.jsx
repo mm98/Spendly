@@ -19,11 +19,17 @@ const join = (...parts) => parts.filter(Boolean).join(' ')
 
 /** A labelled field: its label, its control, its error and its help text, in that order.
     Rendered as a <label> when it wraps exactly one control, and as a <div> when it wraps a
-    group -- a label around a segmented control labels nothing and confuses every engine. */
-export function Field({ label, error, errorId, help, group, children, className, ...rest }) {
+    group -- a label around a segmented control labels nothing and confuses every engine.
+
+    `htmlFor` stops being optional the moment anything labelable sits *before* the field's own
+    control. A <label> with no `for` labels its first labelable descendant, and the chips in
+    the categories field are real buttons -- so the label pointed at "Remove category
+    Household", and every tap inside the field that was not itself a control fired it. Two
+    categories in, going back for a third took one away. See ../pages/NewOrder.jsx. */
+export function Field({ label, error, errorId, help, group, htmlFor, children, className, ...rest }) {
 	const Tag = group ? 'div' : 'label'
 	return (
-		<Tag className={join('field', className)} {...rest}>
+		<Tag className={join('field', className)} htmlFor={group ? undefined : htmlFor} {...rest}>
 			<span>{label}</span>
 			{children}
 			{/* The id is what the control's aria-describedby points at, so it is not optional
