@@ -818,6 +818,15 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	}
 }
 .field-help { font-size:12px; color:var(--text-muted); }
+/* What the form just did, said where the button is. The item form announced every
+   add into a .screenreader-only live region and nothing else, so on a phone -- where
+   the list, the count and the summary are all below the fold -- a successful add and
+   a dead button drew the same screen, and the only visible sign was the form going
+   blank, which reads as losing the input rather than banking it. Empty until
+   something happens, so it costs no row in the grid at rest. README 9, S21. */
+.form-status { margin:0; font-size:12px; font-weight:600; color:var(--text-positive); }
+.form-status:empty { display:none; }
+.form-status.form-status-negative { color:var(--text-negative); }
 .form-actions { display:flex; gap:10px; margin-top:6px; }
 .form-actions.form-actions-split { justify-content:space-between; }
 .stepper { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
@@ -1592,6 +1601,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<p class="card-lead">Line by line, with the price you paid and what it would have cost at retail.</p>
 						<div class="form form-wide">
 							<div class="filter-section">
+								<p class="form-status" role="status" id="item-live-region"></p>
 								<label class="field"><span>Description</span>
 									<div class="field-shell"><input type="text" value="Shampoo, 500 ml" aria-label="Description" aria-required="true" id="item-description"></div>
 									<span class="field-error" id="item-description-error" hidden></span></label>
@@ -1612,7 +1622,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 									<button type="button" class="button button-caps button-compact" id="add-item"><svg class="icon" viewBox="0 0 24 24"><path d="M12 5l0 14 M5 12l14 0"></path></svg>ADD ITEM</button>
 									<span class="field-help" style="align-self:center">Enter adds and keeps the form; Escape clears it.</span>
 								</div>
-								<p class="screenreader-only" role="status" id="item-live-region"></p>
 							</div>
 							<div>
 								<div class="space-between space-between-tight"><span class="section-label" id="item-count">Items · 2</span>
@@ -2414,6 +2423,21 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		const summarySaving = document.getElementById('order-summary-saving');
 		const summaryAnchor = summarySaving && summarySaving.parentElement.querySelector('.summary-total');
 
+		/* role="status" is on the element, so writing to it announces and shows in one
+		   move -- there is no second, hidden copy to keep in step. */
+		const status = document.getElementById('item-live-region');
+		const setStatus = (message, good) => {
+			status.textContent = message;
+			status.classList.toggle('form-status-negative', !good);
+			/* A verdict off screen is the defect this line exists to fix, so it is not
+			   left to a fixed position to be lucky: under the button it sits where an
+			   iOS keyboard lands, above the fields it is above the fold whenever the
+			   tap had to scroll down to reach the button -- measured at 59px below and
+			   at -70px in WebKit respectively. `nearest` is a no-op when it is already
+			   in view, so nothing jumps in the common case. */
+			if (message) status.scrollIntoView({ block: 'nearest' });
+		};
+
 		const setFieldError = (input, message) => {
 			const box = document.getElementById(input.id + '-error');
 			box.textContent = message;
@@ -2473,10 +2497,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			const failed = ITEM_FIELDS.map((f, i) => ({ message: checkField(inputs[i]), input: inputs[i] }))
 				.filter(f => f.message);
 			if (failed.length) {
-				/* The message is announced as well as printed: the field it belongs to
-				   may be off screen on a phone, and the focus lands on the first one,
-				   which is the only one a screen reader would otherwise reach. */
-				say('item-live-region', 'Item not added. ' + failed.map(f => f.message).join(' '));
+				/* The status line names the fields rather than repeating their messages:
+				   the messages are already under the fields, and on a phone the field
+				   focus jumps to can sit behind the keyboard, so the one line the user
+				   can definitely see has to say which fields to go back to. */
+				const names = failed.map(f => ITEM_FIELDS.find(x => x.id === f.input.id).label);
+				setStatus('Not added — ' + names.join(' and ') + (names.length > 1 ? ' need' : ' needs')
+					+ ' fixing.', false);
 				failed[0].input.focus();
 				return;
 			}
@@ -2494,13 +2521,18 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			itemList.append(row);
 			clearItemForm();
 			refreshItems();
-			say('item-live-region', row.querySelector('.item-row-title').textContent + ' added. ' + itemCount.textContent + '.');
+			setStatus(row.querySelector('.item-row-title').textContent + ' added. '
+				+ itemCount.textContent + ', ' + summaryTotal.textContent, true);
 		}
 
 		function clearItemForm() {
 			inputs.forEach(input => { input.value = ''; setFieldError(input, ''); });
 			description.focus();
 		}
+
+		/* Escape empties the form, so the verdict on the last attempt goes with it --
+		   a red "Not added" line hanging over four blank fields describes nothing. */
+		function clearItemFormAndStatus() { clearItemForm(); setStatus('', true); }
 
 		addItem.addEventListener('click', submitItem);
 		/* Re-checked on every keystroke only once it has been rejected: checking a
@@ -2513,7 +2545,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		if (itemForm) itemForm.addEventListener('keydown', e => {
 			if (!inputs.includes(e.target)) return;
 			if (e.key === 'Enter') { e.preventDefault(); submitItem(); }
-			else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); clearItemForm(); }
+			else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); clearItemFormAndStatus(); }
 		});
 	}
 
