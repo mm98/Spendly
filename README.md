@@ -751,6 +751,28 @@ on the receipt. The cost of getting it wrong is specific to this screen. A work-
 from a receipt would have taken the default, landed in the month's spend, and stayed there until
 someone went looking for it.
 
+**The source card shows the file that was dropped, not a receipt.** The scan hero offers "a PDF,
+photo or screenshot" and the four entry buttons name three of them, but Reading and Review were
+fixed to `kvittering-bilka.jpg` and drew one receipt glyph whichever was chosen — a PDF invoice
+reached the review screen described as a 2,1 MB photo. Each entry carries one document instead:
+`photo` (JPEG), `screenshot` (PNG), `invoice` and `confirmation` (PDF, with a page count, which is
+the one fact only a PDF has). Both steps render it — `.document-preview` takes `ti-photo` or
+`ti-file-text` from its variant, the filename fills the Reading headline and the source card's name,
+and the size line leads with the format. **The format is the file's, the glyph follows it**, which is
+the split the attachments list already keeps: `ti-file-text` for `faktura-303.pdf`, `ti-photo` for an
+item photo, `ti-receipt` left to mean a receipt as a thing rather than a file. The draft below does
+not change with the wrapper, and should not: the same Bilka purchase can arrive as a phone photo, an
+emailed PDF or a screenshot of an order email. Both glyphs ship in the markup with the variant
+choosing between them, so the state is reachable with no script.
+
+**A filename is data, so it is as long as it is.** `ordrebekraeftelse-bilka.pdf` wrapped the source
+card's name row at 390px and took the card from 328.39px to 359.78px — the card changed height with
+the file that was dropped. The name is one line with an ellipsis and the size keeps its width. That
+needs a class of its own: `.space-between` wraps below 700 ([§16](#16-the-phone-layout)), so a
+wrapping row shrinks nothing and `min-width:0` on the name has no effect there; `.document-name-row`
+outranks the phone rule by class count rather than by source order. All four documents then measure
+one card — 366×328.39 in Blink, 366×308.12 in Gecko, 366×307.67 in WebKit at 390px.
+
 **A page hero is one component with two framings.** `.hero` holds the type — 30px/600 heading,
 14px sentence at a 52ch measure, 48px caps action — and the variant holds the frame: `.hero-panel`
 is the tinted, left-aligned block, `.hero-column` is the centred 760px column. They were two
