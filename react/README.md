@@ -248,6 +248,12 @@ word and the full set can go in.
 Neither picker draws anything new: the swatches and the icon grid are `.icon-button`, and the
 search is the same `.field-shell` as every other search in the app.
 
+The Vendors page has one card now, in two sizes: the spotlight pair and the all-vendors strip
+said the same things in two arrangements, one reaching the vendor's orders through a full-width
+VIEW ORDERS at its foot and the other through its header band. The header is the way in on both,
+and the star and the pencil sit at the foot of both — a linked header may not hold a button,
+since an action inside a link is two things to activate in one box.
+
 Both pickers live on the record's own page, because there is one way to write a record here.
 They were inline editors on the list pages first — a bordered section opening inside a card
 body inside a card, and on Vendors inside a horizontal scroller as well. That is a second way

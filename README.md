@@ -861,14 +861,25 @@ it outside [§3](#3-typography) on both counts, and its sentence ran the full 74
 characters, well past a readable measure. Unifying moved that one page and nothing else.
 
 **Vendors** — hero panel (`.hero.hero-panel`: warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
-(caps header, sentence, inner panel rows, full-width VIEW ORDERS), full-width search with
+(linked caps header, sentence, inner panel rows), full-width search with
 Spend/Name/Orders/Saved segmented, horizontal all-vendors card row.
+
+**One vendor card, in two sizes.** The spotlight card and the all-vendors card said the same
+things in two arrangements: one reached the vendor's orders through a full-width VIEW ORDERS at
+its foot, the other through its header band. The header is the way in on both now — label left,
+chevron right, the whole band a link, which is what [§10](#10-cards) already says every card
+does — and the foot is where the buttons live. A second control for one destination is not a
+second affordance, it is a second thing to keep in step.
 
 **A header chip has to say something the card does not.** The spotlight header carried
 `Favourite · saved 6.940 kr.` above a panel whose first row is *Saved vs retail · 6.940 kr.*, and
 beside a star that is the favourite state and toggles it — three controls and a label in one
 band, for two facts, one of them printed twice. The chip went. The `Save · 4.52% APY` pattern in
 [§10](#10-cards) is the case that stays: it carries a figure that appears nowhere else on its card.
+
+**A linked header holds no buttons.** Once the band is a link, a button inside it is two things
+to activate in one box and no engine agrees about which one a click means. That is the other
+half of why the star and the pencil sit at the foot of the card rather than in its header.
 
 **A horizontal scroller reserves a lane for its scrollbar.** `.scroll-row` had `padding-bottom:4px`,
 which is not a scrollbar — a classic 15px bar is then drawn hard against the cards' bottom border

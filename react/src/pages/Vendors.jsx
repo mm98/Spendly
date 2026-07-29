@@ -91,20 +91,20 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, setVie
 			<div className="spotlight-pair">
 				{data.favourites.map(vendor => (
 					<Card key={vendor.id}>
-						{/* The header is not a link on this card, because it carries controls: a button
-						    inside a link is two things to activate in one box, and no engine agrees
-						    about which one a click means.
+						{/* One vendor card, in two sizes. The header is the way into the vendor's
+						    orders -- label left, chevron right, the whole band a link, which is where
+						    every card in this app puts its destination and what the all-vendors card
+						    below already did. A full-width VIEW ORDERS at the foot was a second
+						    control for that one destination.
 
-						    It carried a "Favourite · saved 6.940 kr." chip as well, and said nothing
-						    the card did not already say twice: the star beside it is the favourite
-						    state and toggles it, and the saved figure is a row in the panel below.
-						    Three controls and a label in one band, for two facts. */}
-						<CardHeader title={vendor.name}>
-							<IconButton icon="star" label={`Remove ${vendor.name} from favourites`}
-								onClick={() => onFavourite(vendor)} />
-							<IconButton icon="pencil" label={`Edit ${vendor.name}`}
-								to={`/vendors/${vendor.id}/edit`} />
-						</CardHeader>
+						    So the header carries no buttons: an action inside a link is two things to
+						    activate in one box, and no engine agrees about which one a click means.
+						    The star and the pencil go at the foot, in the row the all-vendors card
+						    already had. It also held a "Favourite · saved 6.940 kr." chip that said
+						    nothing the card did not say twice -- the star is the favourite state, and
+						    the saved figure is the first row of the panel below. README 10. */}
+						<CardHeader title={vendor.name} to={`/orders/all?vendor=${vendor.id}`}
+							label={`${vendor.name}, open their orders`} />
 						<CardDivider />
 						<CardBody>
 							<div className="lead-sentence">
@@ -118,7 +118,12 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, setVie
 										amount={krRound(vendor.latest.total)} />
 								) : null}
 							</InsetPanel>
-							<Button variant="ghost" to={`/orders/all?vendor=${vendor.id}`}>VIEW ORDERS</Button>
+							<div className="row-inline" style={{ gap: 4, marginTop: 10 }}>
+								<IconButton icon="star" label={`Remove ${vendor.name} from favourites`}
+									onClick={() => onFavourite(vendor)} />
+								<IconButton icon="pencil" label={`Edit ${vendor.name}`}
+									to={`/vendors/${vendor.id}/edit`} />
+							</div>
 						</CardBody>
 					</Card>
 				))}
