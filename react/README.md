@@ -189,6 +189,40 @@ There are no move-earlier / move-later buttons anywhere. A pair of chevrons besi
 three controls for one job, two of them pointing sideways in a list that runs down the page —
 and the grip already carried `cursor:grab`, which is a promise the prototype did not keep.
 
+### Toasts, and the one thing that is not a toast
+
+Everything the app says back after an action — saved, added, removed, moved, refused — goes to
+one layer, top right, under the top bar. Before that each page printed its result wherever
+there happened to be room: a file removed from the attachments card was reported beside the
+vendor name a column away, and a reordered line was announced at the top of a form nobody was
+looking at. Feedback nobody sees is feedback that was not given.
+
+The layer is a single `role="status"` region, polite so it waits for a pause; a toast clears
+itself after five seconds, can be dismissed, stacks newest first and is capped at four. It is
+offset below the top bar by measurement rather than by a guessed constant — pinned to the
+viewport's top edge it covered the search field and *took its clicks*, since the toasts
+themselves accept pointer events even though the layer does not.
+
+A form's verdict on its own fields is not a toast. "Cannot continue — Vendor and Date need
+fixing." has to stay on screen while the form is still wrong, it names the fields to go and
+fix, and it belongs beside them. Those stay where they are. Adding a line is a toast; failing
+to add one is not.
+
+### Choosing how things look
+
+A category's glyph and colour, and a vendor's colour, used to be assigned — next in the
+palette, or a hash of the name — which is a value you can see, cannot explain and could not
+change. Both are now picked, previewed at the size they are used at, and persisted.
+
+The icon picker offers **the app's own set: the 39 Tabler outline glyphs in `Icon.jsx`**, with
+a search over them. That is a deliberate limit rather than the whole Tabler library, which
+would mean taking the dependency and shipping several thousand paths for a picker; every glyph
+on offer here is one already verified against the design system's stroke and size. Say the
+word and the full set can go in.
+
+Neither picker draws anything new: the swatches and the icon grid are `.icon-button`, and the
+search is the same `.field-shell` as every other search in the app.
+
 ### The command palette
 
 The top bar prints `CTRL K`, and a key cap is a promise. Ctrl+K (Cmd+K) opens the palette from
@@ -292,6 +326,16 @@ checked.
     saves a real order carrying the correction.
   - LATER on Home writes the same setting the Settings switch does, and it survives a reload.
 
+- **24 toast assertions**: position in the upper right and clear of the top bar, fixed and
+  above the page, one region for the whole app, polite, the layer never swallowing a click,
+  dismissable, self-clearing after five seconds, stacking newest first and capped — plus the
+  line it does not cross, with a form verdict staying on the form and its own field message
+  intact, and the phone case where it must fit inside the gutter without pushing the page
+  sideways.
+- **18 picker assertions**: no invented bars under the rows, every glyph offered and the search
+  narrowing them, the choice marked, previewed, saved, reflected in the list and surviving a
+  reload, for a new category and a new vendor as well as an edited one.
+
 - **21 file and reorder assertions pass** in two more harnesses. No native file control is
   visible on any page that has one; three files attach in a single go, each keeping its own
   name, size and format glyph; a duplicate is refused by name; a real `drop` on the card
@@ -311,7 +355,7 @@ checked.
   prototype at 0 differing pixels, so it is a valid baseline. Against it, this app's phone
   render is **0 of 1,035,840** — identical.
 
-Twelve defects were found by these runs and fixed rather than reported:
+Fourteen defects were found by these runs and fixed rather than reported:
 
 1. `aria-describedby` pointing at a message element with no id.
 2. A field re-checking against the value from before the keystroke, so a message cleared one
@@ -341,6 +385,11 @@ Twelve defects were found by these runs and fixed rather than reported:
     listeners, bound at `pointerdown`.
 12. The lifted card measuring 335px in the air against the 439px hole it came out of, because
     leaving a grid track stops a card being stretched by it.
+13. The toast layer pinned to the viewport's top edge, covering the search field and the two
+    top-bar buttons — and taking their clicks, not merely sitting on them.
+14. A stale `{message}` left behind when the dashboard's own live region became a toast. It
+    built cleanly and threw on render; the route walk is what caught it, because it watches
+    for page errors rather than only for missing elements.
 
 ## What this port does not do
 

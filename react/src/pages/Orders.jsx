@@ -2,7 +2,7 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { Chart, ChartAxis, ChartRuler } from '../components/Chart.jsx'
-import { Donut, DonutBox, Meter } from '../components/Viz.jsx'
+import { Donut, DonutBox } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { TagChip } from '../components/Chip.jsx'
@@ -201,19 +201,15 @@ export default function Orders() {
 												value={percent(budgetUsed(data.categories), 0)} label="of budget used"
 												ariaLabel={`${percent(budgetUsed(data.categories), 0)} of this month's budget used`} />
 										</DonutBox>
+										{/* The same rows as the Expenses view, saying a different thing in the
+										    meta line. A progress bar under each one would be a layout this app
+										    does not use anywhere else. README 10. */}
 										<div className="category-rows">
 											{data.categories.map(c => (
-												<div key={c.id}>
-													<CategoryRow category={c} to={`/orders/all?category=${c.id}`}
-														meta={c.budget
-															? `${krRound(c.spend)} of ${krRound(c.budget)}`
-															: 'No budget set'} />
-													{c.budget ? (
-														<Meter fill={Math.min(100, (c.spend / c.budget) * 100)}
-															style={{ margin: '0 12px 8px' }}
-															ariaLabel={`${c.name}: ${krRound(c.spend)} of ${krRound(c.budget)}`} />
-													) : null}
-												</div>
+												<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`}
+													meta={c.budget
+														? `${krRound(c.spend)} of ${krRound(c.budget)} budget`
+														: 'No budget set'} />
 											))}
 										</div>
 									</>

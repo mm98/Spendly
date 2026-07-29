@@ -9,6 +9,7 @@ import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, Segmented } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
+import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
 import { dayMonth, parseAmount } from '../api/format.js'
@@ -74,7 +75,7 @@ export default function AllOrders() {
 	/* Open on arrival, as the prototype has it: the filters are the point of this page, and a
 	   panel that starts closed hides the controls a link may have just set. */
 	const [panelOpen, setPanelOpen] = useState(true)
-	const [message, setMessage] = useState('')
+	const toast = useToast()
 	const searchField = useRef(null)
 	const chipRow = useRef(null)
 
@@ -138,7 +139,7 @@ export default function AllOrders() {
 	const removeChip = useCallback((chip, index) => {
 		const rest = chips.length - 1
 		refilter({ ...filters, ...chip.clear })
-		setMessage(chip.label + ' removed. ' + countSentence(rest))
+		toast(chip.label + ' removed. ' + countSentence(rest))
 		queueMicrotask(() => {
 			const buttons = [...(chipRow.current?.querySelectorAll('[data-chip]') ?? [])]
 			const next = buttons[index] || buttons[index - 1]
@@ -148,7 +149,7 @@ export default function AllOrders() {
 
 	const clearAll = () => {
 		write(EMPTY, '', urlSort, 1)
-		setMessage('All filters cleared.')
+		toast('All filters cleared.')
 		queueMicrotask(() => (searchField.current || document.getElementById('page-title'))?.focus())
 	}
 
@@ -192,7 +193,6 @@ export default function AllOrders() {
 							<ButtonLink className="button-link" style={{ marginLeft: 6 }} onClick={clearAll}>CLEAR ALL</ButtonLink>
 						</div>
 					) : null}
-					<p className="screenreader-only" role="status">{message}</p>
 
 					<FilterSection id="filter-panel" hidden={!panelOpen}>
 						{/* Every dropdown in the app is the one combobox: type to search, grouped

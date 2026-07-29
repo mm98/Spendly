@@ -6,7 +6,9 @@ import { EntryRow, InsetPanel, ItemRow } from '../components/Rows.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Field, FieldShell, FormActions, FormStatus, Segmented, TextInput } from '../components/Form.jsx'
+import { Field, FieldShell, FormActions, Segmented, TextInput } from '../components/Form.jsx'
+import { useToast } from '../components/Toast.jsx'
+import { ColourPicker, VENDOR_COLOURS } from '../components/Pickers.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	createVendor, deleteVendor, getVendors, getVendorsOverview, updateVendor
@@ -37,7 +39,13 @@ export default function Vendors() {
 	const [sort, setSort] = useState('Spend')
 	const [adding, setAdding] = useState(false)
 	const [name, setName] = useState('')
-	const [status, setStatus] = useState({ message: '', good: true })
+	/* Results go to the toast layer. The one thing that stays on the page is the form's verdict
+	   on the name it was given, because that is a field to go back and fix rather than something
+	   that happened. */
+	const toast = useToast()
+	const [nameError, setNameError] = useState('')
+	const [newColour, setNewColour] = useState(VENDOR_COLOURS[0].id)
+	const [editing, setEditing] = useState(null)
 	const { setView } = useView()
 
 	const refresh = () => { invalidate(getVendors); invalidate(getVendorsOverview); state.refresh() }
@@ -47,42 +55,49 @@ export default function Vendors() {
 	const cancelAdd = () => {
 		setAdding(false)
 		setName('')
+		setNameError('')
 		queueMicrotask(() => document.querySelector('.hero button')?.focus())
 	}
 
 	const add = () => {
 		if (!name.trim()) {
-			setStatus({ message: 'A vendor needs a name.', good: false })
+			setNameError('A vendor needs a name.')
 			return
 		}
-		createVendor(name)
+		setNameError('')
+		createVendor(name, { colour: newColour })
 			.then(vendor => {
 				refresh()
 				setName(''); setAdding(false)
-				setStatus({ message: `${vendor.name} added.`, good: true })
+				toast(`${vendor.name} added.`)
 				queueMicrotask(() => document.querySelector('.hero button')?.focus())
 			})
-			.catch(e => setStatus({ message: e.message, good: false }))
+			.catch(e => toast(e.message, 'negative'))
+	}
+
+	/* A vendor's colour is the tile its initials sit on, and it used to be a hash of its name --
+	   visible, unexplainable and unchangeable. This is where it is chosen. */
+	const saveVendor = (vendor, patch) => {
+		updateVendor(vendor.id, patch)
+			.then(saved => { refresh(); setEditing(null); toast(`${saved.name} saved.`) })
+			.catch(e => toast(e.message, 'negative'))
 	}
 
 	const toggleFavourite = vendor => {
 		updateVendor(vendor.id, { favourite: !vendor.favourite })
 			.then(() => {
 				refresh()
-				setStatus({
-					message: `${vendor.name} ${vendor.favourite ? 'removed from' : 'added to'} favourites.`,
-					good: true
-				})
+				toast(`${vendor.name} ${vendor.favourite ? 'removed from' : 'added to'} favourites.`)
 			})
-			.catch(e => setStatus({ message: e.message, good: false }))
+			.catch(e => toast(e.message, 'negative'))
 	}
 
 	const remove = vendor => {
 		deleteVendor(vendor.id)
-			.then(() => { refresh(); setStatus({ message: `${vendor.name} removed.`, good: true }) })
+			.then(() => { refresh(); toast(`${vendor.name} removed.`) })
 			/* A vendor with orders on it cannot go: the orders would point at nothing. The API
 			   says so with a 409 and the message names the reason rather than failing silently. */
-			.catch(e => setStatus({ message: e.message, good: false }))
+			.catch(e => toast(e.message, 'negative'))
 	}
 
 	return (
@@ -109,16 +124,26 @@ export default function Vendors() {
 					<CardDivider />
 					<CardBody>
 						<div className="form form-wide">
-							<Field label="Vendor name" help="It joins your list straight away, with no orders on it yet.">
+							<Field label="Vendor name" error={nameError} errorId="new-vendor-error"
+								help="It joins your list straight away, with no orders on it yet.">
 								<FieldShell>
-									<TextInput id="new-vendor" value={name} onChange={setName}
+									<TextInput id="new-vendor" value={name} onChange={v => { setName(v); setNameError('') }}
 										placeholder="Silvan" aria-label="Vendor name"
+										invalid={Boolean(nameError)} describedBy="new-vendor-error"
 										onKeyDown={e => {
 											if (e.key === 'Enter') { e.preventDefault(); add() }
 											else if (e.key === 'Escape') cancelAdd()
 										}} />
 								</FieldShell>
 							</Field>
+							<Field label="Colour" group help="The tile the initials sit on.">
+								<ColourPicker value={newColour} onChange={setNewColour}
+									colours={VENDOR_COLOURS} label="Vendor colour" />
+							</Field>
+							<div className="entry-list">
+								<EntryRow avatar={{ colour: newColour, initials: (name || 'NY').slice(0, 2).toUpperCase() }}
+									name={name || 'Your vendor'} meta="how it will look in the list" />
+							</div>
 							<FormActions>
 								<Button variant="caps compact" onClick={add}>ADD VENDOR</Button>
 								<Button variant="ghost compact" onClick={cancelAdd}>CANCEL</Button>
@@ -128,17 +153,57 @@ export default function Vendors() {
 				</Card>
 			) : null}
 
-			<FormStatus message={status.message} good={status.good} />
-
 			<Async state={state} label="Loading your vendors">{data => (
 				<VendorsBody data={data} query={query} setQuery={setQuery} sort={sort} setSort={setSort}
-					onFavourite={toggleFavourite} onRemove={remove} setView={setView} />
+					onFavourite={toggleFavourite} onRemove={remove} setView={setView}
+					editing={editing} setEditing={setEditing} onSaveVendor={saveVendor} />
 			)}</Async>
 		</Page>
 	)
 }
 
-function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, onRemove, setView }) {
+/** A vendor opened for editing: its name and the colour of its tile. */
+function VendorEditor({ vendor, onSave, onCancel }) {
+	const [name, setName] = useState(vendor.name)
+	const [colour, setColour] = useState(vendor.colour)
+	const [error, setError] = useState('')
+
+	const submit = () => {
+		if (!name.trim()) { setError('A vendor needs a name.'); return }
+		onSave(vendor, { name: name.trim(), colour, initials: name.trim().slice(0, 2).toUpperCase() })
+	}
+
+	return (
+		<div className="filter-section">
+			<Field label="Name" error={error} errorId={`vendor-${vendor.id}-error`}>
+				<FieldShell>
+					<TextInput id={`vendor-${vendor.id}`} value={name} autoFocus
+						onChange={v => { setName(v); setError('') }} aria-label="Vendor name"
+						invalid={Boolean(error)} describedBy={`vendor-${vendor.id}-error`}
+						onKeyDown={e => {
+							if (e.key === 'Enter') { e.preventDefault(); submit() }
+							else if (e.key === 'Escape') onCancel()
+						}} />
+				</FieldShell>
+			</Field>
+			<Field label="Colour" group>
+				<ColourPicker value={colour} onChange={setColour} colours={VENDOR_COLOURS}
+					label="Vendor colour" />
+			</Field>
+			<div className="entry-list">
+				<EntryRow avatar={{ colour, initials: name.slice(0, 2).toUpperCase() }}
+					name={name || vendor.name} meta="how it will look in the list" />
+			</div>
+			<FormActions>
+				<Button variant="caps compact" icon="check" onClick={submit}>SAVE</Button>
+				<Button variant="ghost compact" onClick={onCancel}>CANCEL</Button>
+			</FormActions>
+		</div>
+	)
+}
+
+function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, onRemove, setView,
+	editing, setEditing, onSaveVendor }) {
 	const listed = useMemo(() => {
 		const needle = query.trim().toLowerCase()
 		return data.rest
@@ -214,19 +279,28 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, onRemo
 							label={`${vendor.name}, open their orders`} />
 						<CardDivider />
 						<CardBody>
-							<div className="entry-list">
-								<EntryRow avatar={vendor}
-									name={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}`}
-									meta={`saved ${krRound(vendor.saved)}`} />
-							</div>
-							<div className="figure-card tabular-figures">{krRound(vendor.spend)}</div>
-							<span className="card-caption">all time</span>
-							<div className="row-inline" style={{ gap: 4, marginTop: 10 }}>
-								<IconButton icon="star" label={`Add ${vendor.name} to favourites`}
-									onClick={() => onFavourite(vendor)} />
-								<IconButton icon="trash" label={`Delete ${vendor.name}`}
-									onClick={() => onRemove(vendor)} />
-							</div>
+							{editing?.id === vendor.id ? (
+								<VendorEditor vendor={vendor} onSave={onSaveVendor}
+									onCancel={() => setEditing(null)} />
+							) : (
+								<>
+									<div className="entry-list">
+										<EntryRow avatar={vendor}
+											name={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}`}
+											meta={`saved ${krRound(vendor.saved)}`} />
+									</div>
+									<div className="figure-card tabular-figures">{krRound(vendor.spend)}</div>
+									<span className="card-caption">all time</span>
+									<div className="row-inline" style={{ gap: 4, marginTop: 10 }}>
+										<IconButton icon="star" label={`Add ${vendor.name} to favourites`}
+											onClick={() => onFavourite(vendor)} />
+										<IconButton icon="pencil" label={`Edit ${vendor.name}`}
+											onClick={() => setEditing(vendor)} />
+										<IconButton icon="trash" label={`Delete ${vendor.name}`}
+											onClick={() => onRemove(vendor)} />
+									</div>
+								</>
+							)}
 						</CardBody>
 					</Card>
 				))}

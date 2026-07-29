@@ -9,7 +9,8 @@ import { DropZone, HiddenFileInput, describeFile } from '../components/FileInput
 import { AiCard } from '../components/AiCard.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
-import { FormStatus, Segmented } from '../components/Form.jsx'
+import { Segmented } from '../components/Form.jsx'
+import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	addAttachments, deleteOrder, getHomeContent, getOrder, getOrderAsDraft, getOrders,
@@ -34,7 +35,10 @@ export default function OrderDetail() {
 	const state = useApi(getOrder, [id])
 	const settings = useApi(getSettings)
 	const navigate = useNavigate()
-	const [status, setStatus] = useState({ message: '', good: true })
+	/* Everything this page reports is the result of an action -- marked, attached, removed --
+	   so all of it goes to the toast layer. Nothing here is a form verdict about fields the
+	   user has to go back and fix, which is the one kind of message that stays on the page. */
+	const toast = useToast()
 	const [confirming, setConfirming] = useState(false)
 	const [openFile, setOpenFile] = useState(null)
 	const filePicker = useRef(null)
@@ -52,14 +56,14 @@ export default function OrderDetail() {
 			shipping: order.shipping ? String(order.shipping).replace('.', ',') : '',
 			reference: order.reference, note: order.note, items: order.items
 		})
-			.then(() => { invalidateOrder(); state.refresh(); setStatus({ message: `Marked ${next.toLowerCase()}.`, good: true }) })
-			.catch(() => setStatus({ message: 'That did not save.', good: false }))
+			.then(() => { invalidateOrder(); state.refresh(); toast(`Marked ${next.toLowerCase()}.`) })
+			.catch(() => toast('That did not save.', 'negative'))
 	}
 
 	const remove = () => {
 		deleteOrder(id)
 			.then(() => { invalidateOrder(); navigate('/orders/all') })
-			.catch(() => setStatus({ message: 'That did not delete.', good: false }))
+			.catch(() => toast('That did not delete.', 'negative'))
 	}
 
 	const attach = files => {
@@ -73,9 +77,9 @@ export default function OrderDetail() {
 				const also = skipped.length
 					? `${skipped.join(', ')} ${skipped.length === 1 ? 'is' : 'are'} already attached.`
 					: ''
-				setStatus({ message: [said, also].filter(Boolean).join(' '), good: added.length > 0 })
+				toast([said, also].filter(Boolean).join(' '), added.length ? 'positive' : 'negative')
 			})
-			.catch(() => setStatus({ message: 'That did not attach.', good: false }))
+			.catch(() => toast('That did not attach.', 'negative'))
 	}
 
 	const detach = file => {
@@ -83,9 +87,9 @@ export default function OrderDetail() {
 			.then(() => {
 				invalidateOrder(); state.refresh()
 				if (openFile === file.id) setOpenFile(null)
-				setStatus({ message: `${file.name} removed.`, good: true })
+				toast(`${file.name} removed.`)
 			})
-			.catch(() => setStatus({ message: 'That did not remove.', good: false }))
+			.catch(() => toast('That did not remove.', 'negative'))
 	}
 
 	return (
@@ -108,8 +112,6 @@ export default function OrderDetail() {
 											onClick={() => (settings.data?.confirmDelete === false ? remove() : setConfirming(true))} />
 									</div>
 								</div>
-
-								<FormStatus message={status.message} good={status.good} />
 
 								{confirming ? (
 									<div className="note note-warning" style={{ marginTop: 12 }}>

@@ -15,6 +15,7 @@ import {
 	Form, FormActions, FormStatus, Segmented, Switch, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
+import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createOrder, createVendor, getCategories, getHomeContent, getOrderAsDraft, getOrderDraft,
@@ -80,6 +81,7 @@ export function NewOrderDetails() {
 	const navigate = useNavigate()
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
+	const toast = useToast()
 	const [more, setMore] = useState(true)
 	const [status, setStatus] = useState({ message: '', good: true })
 	const base = mode === 'edit' ? `/orders/${id}/edit` : '/orders/new'
@@ -108,9 +110,9 @@ export function NewOrderDetails() {
 				vendors.refresh()
 				update({ vendor: vendor.name })
 				recheck('order-vendor', vendor.name)
-				setStatus({ message: `${vendor.name} added to your vendors.`, good: true })
+				toast(`${vendor.name} added to your vendors.`)
 			})
-			.catch(e => setStatus({ message: e.message, good: false }))
+			.catch(e => toast(e.message, 'negative'))
 	}
 
 	const next = () => {
@@ -347,6 +349,7 @@ export function NewOrderItems() {
 	   a separate edit form is a second copy of four validation rules. */
 	const [editingId, setEditingId] = useState(null)
 	const [photo, setPhoto] = useState(null)
+	const toast = useToast()
 	const nextId = useRef(0)
 	const base = mode === 'edit' ? `/orders/${id}/edit` : '/orders/new'
 
@@ -379,7 +382,7 @@ export function NewOrderItems() {
 			'item-retail': item.retail != null ? amount(item.retail) : ''
 		})
 		clear()
-		setStatus({ message: `Editing ${item.title}.`, good: true })
+		toast(`Editing ${item.title}. The form above holds it.`)
 		focusField('item-description')
 	}
 
@@ -390,7 +393,7 @@ export function NewOrderItems() {
 	const reorder = useReorder({
 		items: draft.items,
 		describe: item => item.title,
-		onAnnounce: message => setStatus({ message, good: true }),
+		onAnnounce: toast,
 		onReorder: (from, to) => {
 			const items = [...draft.items]
 			const [moved] = items.splice(from, 1)
@@ -402,7 +405,7 @@ export function NewOrderItems() {
 	const removeItem = item => {
 		update({ items: draft.items.filter(i => i.id !== item.id) })
 		if (editingId === item.id) clearForm()
-		setStatus({ message: `${item.title} removed.`, good: true })
+		toast(`${item.title} removed.`)
 	}
 
 	const submit = () => {
@@ -427,10 +430,7 @@ export function NewOrderItems() {
 		update({ items })
 		clearForm()
 		const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		setStatus({
-			message: `${item.title} ${was ? 'updated' : 'added'}. Items · ${items.length}, ${kr(total)}`,
-			good: true
-		})
+		toast(`${item.title} ${was ? 'updated' : 'added'}. Items · ${items.length}, ${kr(total)}`)
 	}
 
 	const save = () => {
@@ -449,7 +449,7 @@ export function NewOrderItems() {
 				invalidate(getOrderAsDraft)
 				navigate('/orders/' + order.id)
 			})
-			.catch(() => { setSaving(false); setStatus({ message: 'That did not save. Try again.', good: false }) })
+			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
 	}
 
 	return (

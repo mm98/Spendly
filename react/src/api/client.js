@@ -296,7 +296,7 @@ export async function removeAttachment(orderId, attachmentId, signal) {
 
 /* ---- vendors ---- */
 
-export async function createVendor(name, signal) {
+export async function createVendor(name, look = {}, signal) {
 	await wait(signal)
 	const clean = String(name).trim()
 	if (!clean) { const e = new Error('A vendor needs a name.'); e.status = 400; throw e }
@@ -306,9 +306,10 @@ export async function createVendor(name, signal) {
 		id: 'v-' + clean.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36),
 		name: clean,
 		initials: clean.slice(0, 2).toUpperCase(),
-		/* Picked from the palette by the name, so the same vendor is the same colour on every
-		   render rather than a different one each time the list is drawn. */
-		colour: ['#235553', '#877364', '#177DA7', '#AD620D', '#8453F5', '#4F5BD5'][
+		/* The caller's colour where it gave one. Failing that, picked from the palette by the
+		   name, so the same vendor is at least the same colour on every render rather than a
+		   different one each time the list is drawn. */
+		colour: look.colour ?? ['#235553', '#877364', '#177DA7', '#AD620D', '#8453F5', '#4F5BD5'][
 			[...clean].reduce((n, c) => n + c.charCodeAt(0), 0) % 6],
 		orders: 0, spend: 0, saved: 0, favourite: false
 	}
@@ -340,7 +341,7 @@ export async function deleteVendor(id, signal) {
 
 /* ---- categories ---- */
 
-export async function createCategory(name, signal) {
+export async function createCategory(name, look = {}, signal) {
 	await wait(signal)
 	const clean = String(name).trim()
 	if (!clean) { const e = new Error('A category needs a name.'); e.status = 400; throw e }
@@ -349,14 +350,15 @@ export async function createCategory(name, signal) {
 		e.status = 409
 		throw e
 	}
-	const palette = ['var(--icon-red)', 'var(--icon-yellow)', 'var(--icon-purple)',
-		'var(--donut-blue)', 'var(--donut-orange)', 'var(--green)']
+	/* The glyph and the colour are the caller's. They used to be assigned from a palette by
+	   position and a tag glyph regardless of what the category was for -- a value the user can
+	   see, cannot explain and could not change. */
 	const category = {
 		id: 'c-' + clean.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36),
 		name: clean,
-		icon: 'tag',
-		colour: palette[store.categories.length % palette.length],
-		spend: 0, share: 0, saved: 0
+		icon: look.icon ?? 'tag',
+		colour: look.colour ?? 'var(--icon-red)',
+		spend: 0, share: 0, saved: 0, budget: 0
 	}
 	store.categories = [...store.categories, category]
 	persistList('categories', store.categories, seed.categories)

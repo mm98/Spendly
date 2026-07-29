@@ -134,12 +134,23 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 		window.addEventListener('pointerup', onUp)
 		window.addEventListener('pointercancel', onUp)
 
-		/* The row is lifted from where it is, not from under the cursor: the grab offset is
-		   kept so the row does not jump to centre itself on the pointer the moment it moves. */
+		/* Where the pointer holds the thing it has picked up.
+
+		   The grip is a corner of what it moves, and a card is not a corner-sized object: held
+		   by the exact point it was grabbed, a 373x439 card hangs down and to the left of the
+		   cursor and reads as a page that has come loose rather than as a card being carried.
+
+		   So the pointer takes the middle of the container along every axis the list can move
+		   it in, and keeps the grab point on the axis it cannot. A card in a row is held at its
+		   centre. A row in a column is held at its vertical middle and stays where it is
+		   horizontally -- centring that too would swing a panel-wide row half its own width to
+		   the left of the list it belongs to. */
 		const box = row.getBoundingClientRect()
+		const across = horizontalList()
 		drag.current = {
 			pointerId: e.pointerId, index, item, stop,
-			offsetX: e.clientX - box.left, offsetY: e.clientY - box.top,
+			offsetX: across ? box.width / 2 : e.clientX - box.left,
+			offsetY: box.height / 2,
 			width: box.width, height: box.height
 		}
 		setDraggingId(item.id)

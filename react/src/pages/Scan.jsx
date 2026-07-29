@@ -12,9 +12,9 @@ import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, Form, FormActions, FormStatus,
-	Segmented, TextInput
+	DateInput, Field, FieldPair, FieldShell, FieldUnit, Form, FormActions, Segmented, TextInput
 } from '../components/Form.jsx'
+import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
 	createOrder, getHomeContent, getOrders, getOrdersOverview, getRecentScans, getScanDocuments,
@@ -179,7 +179,7 @@ export function ScanReview() {
 	const navigate = useNavigate()
 	const [showAll, setShowAll] = useState(false)
 	const [saving, setSaving] = useState(false)
-	const [message, setMessage] = useState({ message: '', good: true })
+	const toast = useToast()
 	/* The draft the review is editing. It starts as what the reader returned and is what SAVE
 	   ORDER writes -- so the fields on this page are the order, rather than a picture of one.
 	   `null` until the API answers, and the body below only renders once it has. */
@@ -209,7 +209,7 @@ export function ScanReview() {
 				uncertain: false, meta: undefined, amount: undefined }
 			: l)) })
 		setEditingLine(null)
-		setMessage({ message: `${values.title} corrected.`, good: true })
+		toast(`${values.title} corrected.`)
 	}
 
 	const save = () => {
@@ -223,7 +223,7 @@ export function ScanReview() {
 				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
 				navigate('/orders/' + order.id)
 			})
-			.catch(() => { setSaving(false); setMessage({ message: 'That did not save. Try again.', good: false }) })
+			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
 	}
 
 	return (
@@ -259,7 +259,6 @@ export function ScanReview() {
 									</Note>
 								)}
 								<Form>
-									<FormStatus message={message.message} good={message.good} />
 									<Field label="Vendor">
 										<FieldShell>
 											<TextInput value={d.vendor} onChange={v => patch({ vendor: v })}

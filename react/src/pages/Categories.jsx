@@ -4,11 +4,13 @@ import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, Note, QuestionCard } from '../components/Card.jsx'
 import { CategoryRow } from '../components/Rows.jsx'
 import { Donut, Meter } from '../components/Viz.jsx'
+import { CATEGORY_COLOURS, CategoryPreview, ColourPicker, IconPicker } from '../components/Pickers.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import {
-	Field, FieldShell, FieldUnit, FormActions, FormStatus, Segmented, TextInput
+	Field, FieldShell, FieldUnit, FormActions, Segmented, TextInput
 } from '../components/Form.jsx'
+import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	createCategory, deleteCategory, getCategories, getCategoriesOverview, getAnswer, updateCategory
@@ -34,38 +36,44 @@ export default function Categories() {
 	const answer = useApi(getAnswer)
 	const [query, setQuery] = useState('')
 	const [sort, setSort] = useState('Spend')
-	const [status, setStatus] = useState({ message: '', good: true })
+	/* Results go to the toast layer; the row editor keeps its own field errors, which are a
+	   thing to fix rather than a thing that happened. */
+	const toast = useToast()
+	const [nameError, setNameError] = useState('')
 	const [adding, setAdding] = useState(false)
 	const [name, setName] = useState('')
 	const [editing, setEditing] = useState(null)
 	const [answering, setAnswering] = useState(false)
+	const [newIcon, setNewIcon] = useState('tag')
+	const [newColour, setNewColour] = useState(CATEGORY_COLOURS[0].id)
 	const { view } = useView()
 
 	const refresh = () => { invalidate(getCategories); invalidate(getCategoriesOverview); state.refresh() }
 
-	const add = () => {
-		if (!name.trim()) { setStatus({ message: 'A category needs a name.', good: false }); return }
-		createCategory(name)
+	const add = (icon, colour) => {
+		if (!name.trim()) { setNameError('A category needs a name.'); return }
+		setNameError('')
+		createCategory(name, { icon, colour })
 			.then(category => {
 				refresh(); setName(''); setAdding(false)
-				setStatus({ message: `${category.name} added.`, good: true })
+				toast(`${category.name} added.`)
 			})
-			.catch(e => setStatus({ message: e.message, good: false }))
+			.catch(e => toast(e.message, 'negative'))
 	}
 
 	const save = patch => {
 		updateCategory(editing.id, patch)
 			.then(category => {
 				refresh(); setEditing(null)
-				setStatus({ message: `${category.name} saved.`, good: true })
+				toast(`${category.name} saved.`)
 			})
-			.catch(e => setStatus({ message: e.message, good: false }))
+			.catch(e => toast(e.message, 'negative'))
 	}
 
 	const remove = category => {
 		deleteCategory(category.id)
-			.then(() => { refresh(); setStatus({ message: `${category.name} removed.`, good: true }) })
-			.catch(e => setStatus({ message: e.message, good: false }))
+			.then(() => { refresh(); toast(`${category.name} removed.`) })
+			.catch(e => toast(e.message, 'negative'))
 	}
 
 	return (
@@ -80,10 +88,10 @@ export default function Categories() {
 					label="Sort categories" tablist={false} />
 			</div>
 
-			<FormStatus message={status.message} good={status.good} />
-
 			<Async state={state} label="Loading your categories">{data => (
 				<CategoriesBody data={data} query={query} sort={sort} manage={view === 'manage'}
+					nameError={nameError}
+					newIcon={newIcon} setNewIcon={setNewIcon} newColour={newColour} setNewColour={setNewColour}
 					adding={adding} setAdding={setAdding} name={name} setName={setName} add={add}
 					editing={editing} setEditing={setEditing} save={save} remove={remove}
 					answer={answer.data} answering={answering} setAnswering={setAnswering} />
@@ -97,6 +105,8 @@ export default function Categories() {
 function EditRow({ category, onSave, onCancel }) {
 	const [name, setName] = useState(category.name)
 	const [budget, setBudget] = useState(category.budget ? String(category.budget) : '')
+	const [icon, setIcon] = useState(category.icon)
+	const [colour, setColour] = useState(category.colour)
 	const [error, setError] = useState('')
 
 	const submit = () => {
@@ -106,7 +116,7 @@ function EditRow({ category, onSave, onCancel }) {
 			return
 		}
 		setError('')
-		onSave({ name: name.trim(), budget: budget ? parseAmount(budget) : 0 })
+		onSave({ name: name.trim(), icon, colour, budget: budget ? parseAmount(budget) : 0 })
 	}
 
 	return (
@@ -133,6 +143,13 @@ function EditRow({ category, onSave, onCancel }) {
 					<FieldUnit>kr.</FieldUnit>
 				</FieldShell>
 			</Field>
+			<Field label="Colour" group>
+				<ColourPicker value={colour} onChange={setColour} label="Category colour" />
+			</Field>
+			<Field label="Icon" group help="Every glyph the app draws; the search narrows them.">
+				<IconPicker value={icon} onChange={setIcon} label="Category icon" />
+			</Field>
+			<CategoryPreview icon={icon} colour={colour} name={name} />
 			<FormActions>
 				<Button variant="caps compact" icon="check" onClick={submit}>SAVE</Button>
 				<Button variant="ghost compact" onClick={onCancel}>CANCEL</Button>
@@ -141,7 +158,8 @@ function EditRow({ category, onSave, onCancel }) {
 	)
 }
 
-function CategoriesBody({ data, query, sort, manage, adding, setAdding, name, setName, add,
+function CategoriesBody({ data, query, sort, manage, nameError, adding, setAdding, name, setName, add,
+	newIcon, setNewIcon, newColour, setNewColour,
 	editing, setEditing, save, remove, answer, answering, setAnswering }) {
 	const listed = useMemo(() => {
 		const needle = query.trim().toLowerCase()
@@ -167,18 +185,26 @@ function CategoriesBody({ data, query, sort, manage, adding, setAdding, name, se
 				<CardBody>
 					{adding ? (
 						<div className="filter-section" style={{ marginBottom: 12 }}>
-							<Field label="New category">
+							<Field label="New category" error={nameError} errorId="new-category-error">
 								<FieldShell>
 									<TextInput id="new-category" value={name} onChange={setName}
+										invalid={Boolean(nameError)} describedBy="new-category-error"
 										placeholder="Transport" aria-label="New category name" autoFocus
 										onKeyDown={e => {
-											if (e.key === 'Enter') { e.preventDefault(); add() }
+											if (e.key === 'Enter') { e.preventDefault(); add(newIcon, newColour) }
 											else if (e.key === 'Escape') { setAdding(false); setName('') }
 										}} />
 								</FieldShell>
 							</Field>
+							<Field label="Colour" group>
+								<ColourPicker value={newColour} onChange={setNewColour} label="New category colour" />
+							</Field>
+							<Field label="Icon" group help="Every glyph the app draws; the search narrows them.">
+								<IconPicker value={newIcon} onChange={setNewIcon} label="New category icon" />
+							</Field>
+							<CategoryPreview icon={newIcon} colour={newColour} name={name} />
 							<FormActions>
-								<Button variant="caps compact" onClick={add}>ADD CATEGORY</Button>
+								<Button variant="caps compact" onClick={() => add(newIcon, newColour)}>ADD CATEGORY</Button>
 								<Button variant="ghost compact"
 									onClick={() => { setAdding(false); setName('') }}>CANCEL</Button>
 							</FormActions>
@@ -191,28 +217,27 @@ function CategoriesBody({ data, query, sort, manage, adding, setAdding, name, se
 								<EditRow key={category.id} category={category}
 									onSave={save} onCancel={() => setEditing(null)} />
 							) : (
-								<div key={category.id}>
-									<div className="row-inline" style={{ gap: 4 }}>
-										<div style={{ flex: 1, minWidth: 0 }}>
-											<CategoryRow category={category}
-												to={manage ? undefined : `/orders/all?category=${category.id}`}
-												meta={manage && category.budget
-													? `${krRound(category.spend)} of ${krRound(category.budget)}`
-													: undefined} />
-										</div>
-										{manage ? (
-											<>
-												<IconButton icon="pencil" label={`Edit ${category.name}`}
-													onClick={() => setEditing(category)} />
-												<IconButton icon="trash" label={`Delete ${category.name}`}
-													onClick={() => remove(category)} />
-											</>
-										) : null}
+								/* One row per category, the row the system already has. A progress bar
+								   drawn under each one was a layout this app does not otherwise use --
+								   the budget is a fact about the row, so it goes in the row's own meta
+								   line where every other fact about a category goes. README 10. */
+								<div className="row-inline" key={category.id} style={{ gap: 4 }}>
+									<div style={{ flex: 1, minWidth: 0 }}>
+										<CategoryRow category={category}
+											to={manage ? undefined : `/orders/all?category=${category.id}`}
+											meta={manage
+												? (category.budget
+													? `${krRound(category.spend)} of ${krRound(category.budget)} budget`
+													: 'No budget set')
+												: undefined} />
 									</div>
-									{manage && category.budget ? (
-										<Meter fill={Math.min(100, (category.spend / category.budget) * 100)}
-											style={{ margin: '0 12px 8px' }}
-											ariaLabel={`${category.name}: ${krRound(category.spend)} of ${krRound(category.budget)}`} />
+									{manage ? (
+										<>
+											<IconButton icon="pencil" label={`Edit ${category.name}`}
+												onClick={() => setEditing(category)} />
+											<IconButton icon="trash" label={`Delete ${category.name}`}
+												onClick={() => remove(category)} />
+										</>
 									) : null}
 								</div>
 							)

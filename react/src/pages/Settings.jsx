@@ -5,8 +5,9 @@ import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import {
-	Field, FieldPair, FilterSection, Form, FormActions, FormStatus, Segmented, Switch
+	Field, FieldPair, FilterSection, Form, FormActions, Segmented, Switch
 } from '../components/Form.jsx'
+import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	getHomeContent, getOrderDraft, getOrders, getSettings, resetStoredData, saveSettings, sorts, spendKinds
@@ -31,7 +32,7 @@ const PAGE_SIZES = ['5', '10', '25', '50']
 
 export default function Settings() {
 	const state = useApi(getSettings)
-	const [status, setStatus] = useState({ message: '', good: true })
+	const toast = useToast()
 	const [confirming, setConfirming] = useState(false)
 
 	/* The endpoints that bake a setting into their answer. Anything cached from before the
@@ -42,14 +43,14 @@ export default function Settings() {
 
 	const set = useCallback((patch, said) => {
 		saveSettings(patch)
-			.then(() => { refresh(); setStatus({ message: said, good: true }) })
-			.catch(() => setStatus({ message: 'That did not save.', good: false }))
-	}, [refresh])
+			.then(() => { refresh(); toast(said) })
+			.catch(() => toast('That did not save.', 'negative'))
+	}, [refresh, toast])
 
 	return (
 		<Page>
 			<Async state={state} label="Loading your settings">{settings => (
-				<SettingsBody settings={settings} set={set} status={status} setStatus={setStatus}
+				<SettingsBody settings={settings} set={set} toast={toast}
 					confirming={confirming} setConfirming={setConfirming} refresh={refresh}
 					reload={state.refresh} />
 			)}</Async>
@@ -57,7 +58,7 @@ export default function Settings() {
 	)
 }
 
-function SettingsBody({ settings, set, status, setStatus, confirming, setConfirming, refresh, reload }) {
+function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh, reload }) {
 	/* The controls are driven from the stored value, so what is on screen is what is saved --
 	   there is no local copy to drift. `local` exists only to keep a control responsive while
 	   the phantom API is answering. */
@@ -72,9 +73,9 @@ function SettingsBody({ settings, set, status, setStatus, confirming, setConfirm
 				refresh()
 				reload()
 				setConfirming(false)
-				setStatus({ message: 'Everything stored in this browser was cleared.', good: true })
+				toast('Everything stored in this browser was cleared.')
 			})
-			.catch(() => setStatus({ message: 'That did not clear.', good: false }))
+			.catch(() => toast('That did not clear.', 'negative'))
 	}
 
 	return (
@@ -85,8 +86,6 @@ function SettingsBody({ settings, set, status, setStatus, confirming, setConfirm
 						<div className="card-headline">Order settings</div>
 						<p className="card-lead">What a new order starts as, and how your lists behave.</p>
 						<Form>
-							<FormStatus message={status.message} good={status.good} />
-
 							<FilterSection>
 								<span className="panel-heading">New orders</span>
 								<FieldPair>

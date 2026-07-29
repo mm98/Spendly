@@ -3,6 +3,7 @@ import { Card, CardBody, CardDivider, CardHeader, SectionHeader, SectionLabel } 
 import { IconButton } from './Button.jsx'
 import { useReorder } from './Reorder.jsx'
 import { Icon } from './Icon.jsx'
+import { useToast } from './Toast.jsx'
 import { saveDashboardCards } from '../api/client.js'
 
 /* Which cards sit on the dashboard, and in what order, is the user's choice, so it persists.
@@ -31,9 +32,9 @@ function ReorderBar({ name, index, count, handle, onRemove }) {
 }
 
 export function DashboardCards({ all, initial, render }) {
+	const toast = useToast()
 	const [on, setOn] = useState(initial)
 	const [editing, setEditing] = useState(false)
-	const [message, setMessage] = useState('')
 	const snapshot = useRef(initial)
 	const editButton = useRef(null)
 	const doneButton = useRef(null)
@@ -58,7 +59,7 @@ export function DashboardCards({ all, initial, render }) {
 	const reorder = useReorder({
 		items: on.map(key => ({ id: key, name: meta(key).name })),
 		describe: card => card.name,
-		onAnnounce: setMessage,
+		onAnnounce: toast,
 		onReorder: (from, to) => setOn(prev => {
 			const next = [...prev]
 			const [moved] = next.splice(from, 1)
@@ -69,35 +70,35 @@ export function DashboardCards({ all, initial, render }) {
 
 	const drop = key => {
 		setOn(prev => prev.filter(k => k !== key))
-		setMessage(`${meta(key).name} removed. You can add it back below.`)
+		toast(`${meta(key).name} removed. You can add it back below.`)
 		queueMicrotask(() =>
 			(container.current?.parentElement?.querySelector(`[data-add="${key}"]`) || doneButton.current)?.focus())
 	}
 
 	const add = key => {
 		setOn(prev => [...prev, key])
-		setMessage(`${meta(key).name} added at position ${on.length + 1}.`)
+		toast(`${meta(key).name} added at position ${on.length + 1}.`)
 		refocus(key)
 	}
 
 	const start = () => {
 		snapshot.current = on
 		setEditing(true)
-		setMessage('Editing your cards. Drag a grip to reorder, or move it with the arrow keys.')
+		toast('Editing your cards. Drag a grip to reorder, or move it with the arrow keys.')
 		queueMicrotask(() => doneButton.current?.focus())
 	}
 
 	const done = () => {
 		saveDashboardCards(on).catch(() => { /* storage refused: the choice holds for this session */ })
 		setEditing(false)
-		setMessage('Your cards were saved.')
+		toast('Your cards were saved.')
 		queueMicrotask(() => editButton.current?.focus())
 	}
 
 	const cancel = useCallback(() => {
 		setOn(snapshot.current)
 		setEditing(false)
-		setMessage('Changes discarded.')
+		toast('Changes discarded.')
 		queueMicrotask(() => editButton.current?.focus())
 	}, [])
 
@@ -128,7 +129,6 @@ export function DashboardCards({ all, initial, render }) {
 					)}
 				</span>
 			</SectionHeader>
-			<p className="screenreader-only" role="status" aria-live="polite">{message}</p>
 
 			<div className={['dashboard-cards', editing && 'is-editing'].filter(Boolean).join(' ')}
 				ref={node => { container.current = node; reorder.listProps.ref.current = node }}>

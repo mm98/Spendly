@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { Icon } from './Icon.jsx'
 import { Button } from './Button.jsx'
+import { ToastProvider } from './Toast.jsx'
 import { search } from '../api/client.js'
 
 /* The shell every page sits in: the rail, the top bar, the sub-tab band, and the sheet.
@@ -283,8 +284,12 @@ export function AppShell() {
 
 	const value = useMemo(() => ({ view, setView, focusTitle }), [view, focusTitle])
 
+	/* The toast layer wraps the shell rather than sitting inside a page, because what it reports
+	   outlives the page that caused it -- saving an order navigates away from the form that
+	   saved it, and the confirmation has to survive the move. */
 	return (
 		<ViewContext.Provider value={value}>
+		<ToastProvider>
 			<div className="app-shell">
 				<Sidebar navKey={handle.navKey} />
 				<div className="main-panel">
@@ -320,6 +325,7 @@ export function AppShell() {
 					</main>
 				</div>
 			</div>
+		</ToastProvider>
 		</ViewContext.Provider>
 	)
 }
