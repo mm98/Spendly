@@ -266,6 +266,22 @@ then found 566 moved rectangles on `scan3` — a page the single-page check neve
 only samples where you are looking will tell you that you are finished, and the fix that follows a
 false all-clear is the one that ships. The walk costs four minutes; a wrong answer costs the change.
 
+**A defect that reproduces nowhere may be a defect in a different build.** "Doesn't work on mobile"
+cost two rounds of hypotheses -- keypad locale, lost taps, label nesting, hit-testing under the iOS
+stylesheet -- and every instrument said the code was fine, because it was. The reporter's phone was
+serving a cached copy of the file from before the change: the two symptoms, a button that did nothing
+and empty fields that passed, are exactly what the *previous* build does, and neither is a plausible
+pair of new bugs. Before hunting an unreproducible report, establish which build is in front of the
+reporter -- one question about a string only the new file contains settles it, and it is cheaper than
+any of the four theories it replaces.
+
+**A narrow viewport is not a phone, in a harness any more than in a screenshot.** The cross-engine run
+that cleared this change used a plain 390px window, so `pointer: coarse` never matched and the whole
+`@media (pointer: coarse)` block -- the 16px-and-scale-back rule on every field -- was inert. It
+reported three engines agreeing about a layout no phone renders. The screenshot section already says
+the shot needs `devices['iPhone 13']`; the same is true of anything driving the page, and `tap()`
+rather than `click()`, or the hit-testing under those transforms is never exercised at all.
+
 **Say which of these you actually ran.** An engine that could not be launched is an engine that was
 not checked, and the honest report is "verified in Blink, Gecko unverified — no binary available",
 not silence. Never let a reader infer coverage that does not exist.

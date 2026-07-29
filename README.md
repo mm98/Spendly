@@ -653,6 +653,33 @@ second floor under it, since a form that never rejects a value is also a form th
   first pass is on submit. After that a field re-checks on every keystroke, but only while it is
   already marked, so nobody is told *How many did you buy?* over an answer they are two characters
   into.
+- **Step 1 rejects on NEXT STEP, and it is the same apparatus.** Required is **Vendor, Date and
+  Kind** — the set above, and the set carrying `aria-required`, so the two can still be compared with
+  a grep. Status needs no check (a segmented control always has a selection) and Categories is
+  optional, which is why neither has a rule. Kind is typed rather than picked here, so it is checked
+  against the enum — *Kind is one of: Expense, Gift, Sold, Work, Other* — and the canonical spelling
+  is restored on the way out, so `expense` is normalised rather than rejected or stored. Date is
+  checked for being **in the future**, which an order cannot be; an empty `type="date"` and a
+  half-typed one both read as `''`, so *required* catches a malformed date as well. Shipping fee is
+  optional and still parsed, on the same Danish grammar as the item amounts. The marking, the status
+  line and the re-check timing are the *same functions* both forms call — a second copy of them would
+  agree until the day one was fixed.
+- **A message inside a closed disclosure is not a message.** Shipping fee lives in the "More
+  details?" panel, so a rejection there can land behind a shut panel with the button reporting a
+  failure the user cannot see. Whatever failed is opened — `aria-checked` back to `true`, the panel
+  unhidden — before the verdict is announced. Any field put inside a disclosure inherits this
+  obligation.
+- **A verdict nobody can see is not a verdict.** Every outcome of the item form is stated in one
+  line in the form itself -- *Shampoo, 500 ml added. Items · 3, 428,65 kr.* in `--text-positive`, or
+  *Not added — Quantity and Price paid need fixing.* in `--text-negative`, naming the fields rather
+  than repeating their messages. It was `role="status"` and `.screenreader-only` at first, which
+  announced the add to VoiceOver and showed nobody anything: on a phone the item row, the count and
+  the summary are all below the fold, so a successful add and a dead button drew the same screen and
+  the only visible sign was the form going blank -- which reads as losing the input, not banking it.
+  The line is empty at rest (`:empty { display:none }`, so it costs no row) and **scrolls itself into
+  view** rather than trusting a fixed position: under the button it measured 59px below it, where an
+  iOS keyboard lands, and above the fields it sat at -70px whenever the tap had to scroll down to
+  reach the button. A message that has to be scrolled to is the defect again, one layer up.
 - **The button does what its label says.** ADD ITEM appends the row, the count, the summary row, the
   total and the savings line; Enter adds and keeps the form, Escape clears it, which is what the help
   text beside the button had promised for as long as neither did anything. The totals are read back
