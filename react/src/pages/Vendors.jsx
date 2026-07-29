@@ -4,7 +4,6 @@ import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, SectionHeader, SectionLabel } from '../components/Card.jsx'
 import { EntryRow, InsetPanel, ItemRow } from '../components/Rows.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
-import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { FieldShell, Segmented } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -94,9 +93,13 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, setVie
 					<Card key={vendor.id}>
 						{/* The header is not a link on this card, because it carries controls: a button
 						    inside a link is two things to activate in one box, and no engine agrees
-						    about which one a click means. */}
+						    about which one a click means.
+
+						    It carried a "Favourite · saved 6.940 kr." chip as well, and said nothing
+						    the card did not already say twice: the star beside it is the favourite
+						    state and toggles it, and the saved figure is a row in the panel below.
+						    Three controls and a label in one band, for two facts. */}
 						<CardHeader title={vendor.name}>
-							<Chip icon="star">Favourite · saved {krRound(vendor.saved)}</Chip>
 							<IconButton icon="star" label={`Remove ${vendor.name} from favourites`}
 								onClick={() => onFavourite(vendor)} />
 							<IconButton icon="pencil" label={`Edit ${vendor.name}`}

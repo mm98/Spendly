@@ -911,7 +911,11 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 /* Placed after the variants on purpose: it weighs the same as they do, so it only
    wins by sitting later in the file. Moving it up silently restores the 38px tier. */
 .button.button-compact { height:32px; padding:0 13px; font-size:10.5px; border-radius:var(--radius-compact); }
-.scroll-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(210px,1fr); gap:14px; overflow-x:auto; padding-bottom:4px; }
+/* padding-bottom is the band the horizontal scrollbar sits in, not decoration -- at 4px a
+   classic 15px bar is drawn hard against the cards' bottom border and reads as covering
+   them. It is the same 14px as the gap between the cards, so the bar gets a lane of its
+   own. S11. */
+.scroll-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(210px,1fr); gap:14px; overflow-x:auto; padding-bottom:14px; }
 .spend-gauge-row { display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
 .spend-gauge { width:170px; height:170px; border-radius:50%; position:relative; flex:none;
 	background:conic-gradient(var(--donut-blue) 0 46%, var(--bg-card) 46% 48%, var(--green) 48% 69%, var(--bg-card) 69% 71%, var(--donut-yellow) 71% 84%, var(--bg-card) 84% 86%, var(--donut-purple) 86% 98%, var(--bg-card) 98% 100%); }
@@ -1946,7 +1950,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 			</div>
 			<div class="section-header" data-view-only="overview"><span class="section-label">Favourites</span><button type="button" class="button button-pill">SEE ALL</button></div>
 			<div class="spotlight-pair">
-				<section class="card"><div class="card-header"><span class="section-label">Proshop</span><span class="chip"><svg class="icon" viewBox="0 0 24 24"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245"></path></svg>Favourite · saved 6.940 kr.</span></div>
+				<section class="card"><div class="card-header"><span class="section-label">Proshop</span></div>
 					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="lead-sentence">Your biggest vendor: 48.210 kr. across 34 orders.</div>
@@ -1956,7 +1960,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						</div>
 						<button type="button" class="button button-ghost">VIEW ORDERS</button>
 					</div></section>
-				<section class="card"><div class="card-header"><span class="section-label">Bilka</span><span class="chip"><svg class="icon" viewBox="0 0 24 24"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245"></path></svg>Favourite · saved 3.210 kr.</span></div>
+				<section class="card"><div class="card-header"><span class="section-label">Bilka</span></div>
 					<div class="card-divider"></div>
 					<div class="card-body">
 						<div class="lead-sentence">Your most frequent vendor: 96 orders, 41.882 kr.</div>

@@ -861,8 +861,20 @@ it outside [§3](#3-typography) on both counts, and its sentence ran the full 74
 characters, well past a readable measure. Unifying moved that one page and nothing else.
 
 **Vendors** — hero panel (`.hero.hero-panel`: warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
-(caps header and chip, sentence, inner panel rows, full-width VIEW ORDERS), full-width search with
+(caps header, sentence, inner panel rows, full-width VIEW ORDERS), full-width search with
 Spend/Name/Orders/Saved segmented, horizontal all-vendors card row.
+
+**A header chip has to say something the card does not.** The spotlight header carried
+`Favourite · saved 6.940 kr.` above a panel whose first row is *Saved vs retail · 6.940 kr.*, and
+beside a star that is the favourite state and toggles it — three controls and a label in one
+band, for two facts, one of them printed twice. The chip went. The `Save · 4.52% APY` pattern in
+[§10](#10-cards) is the case that stays: it carries a figure that appears nowhere else on its card.
+
+**A horizontal scroller reserves a lane for its scrollbar.** `.scroll-row` had `padding-bottom:4px`,
+which is not a scrollbar — a classic 15px bar is then drawn hard against the cards' bottom border
+and reads as lying on top of them. It is the same `14px` as the gap between the cards, so the bar
+gets a band of its own rather than a new number. Overlay scrollbars (macOS, and headless Chromium,
+which is why no harness here can see this one) hide the defect completely.
 
 **Categories** — full-width search with Spend/Name/Orders segmented, icon-square list rows with
 percentage of expenses and amounts, question card, breakdown donut.
