@@ -112,11 +112,15 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, setVie
 							<InsetPanel>
 								<ItemRow icon="discount" title="Saved vs retail" meta={`${vendor.name} · all time`}
 									amount={krRound(vendor.saved)} />
-								{vendor.latest ? (
-									<ItemRow icon="receipt" title="Latest order"
-										meta={`${dayMonth(vendor.latest.date)} · ${vendor.latest.items} items`}
-										amount={krRound(vendor.latest.total)} />
-								) : null}
+								{/* The row is always drawn. Dropping it for a vendor with no orders yet left
+								    two cards side by side at different heights, with the shorter one's
+								    buttons floating in the gap -- and it said nothing about why. A fact
+								    that is not there is still a fact. */}
+								<ItemRow icon="receipt" title="Latest order"
+									meta={vendor.latest
+										? `${dayMonth(vendor.latest.date)} · ${vendor.latest.items} items`
+										: 'None · all time'}
+									amount={krRound(vendor.latest?.total ?? 0)} />
 							</InsetPanel>
 							<div className="row-inline" style={{ gap: 4, marginTop: 10 }}>
 								<IconButton icon="star" label={`Remove ${vendor.name} from favourites`}
