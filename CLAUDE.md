@@ -23,20 +23,26 @@ shows. Opening the HTML in a browser is the whole toolchain.
 Re-checking these each session is the waste this heading exists to stop. They are facts about the
 box, not about any change.
 
-- **No browser runs at all, by instruction.** Do not launch Chromium, Firefox or WebKit; do not try
-  to fetch them. Only Chromium ships here and the Playwright CDN is blocked by the network policy,
-  so the search costs minutes and returns nothing.
-- **So the rest of this section cannot be executed.** The walk, the pixel diff, the axe sweep, the
-  settle-and-freeze loop and the state-by-state geometry reads all need a rendered page. What is
-  left is reading the code and reasoning about the cascade. That is weaker, and it may never be
-  written up as though it were one of them: **"reasoned from the source; not rendered"** is the
-  report, in the same breath as the change.
-- **Contrast still gets a number.** The sRGB relative-luminance formula is arithmetic and needs no
-  DOM -- run it in plain node. Settled here: `--green` #14AC72 is **2.93:1** on white and
-  `#838C84` is **3.47:1**.
-- **Match counts still get a number.** `grep -o 'pattern' file | wc -l`, never `grep -c`.
-- Every measured figure quoted below and in the README came from runs made before this instruction.
-  They stay because they are true of the file as it stood; a later change does not inherit them.
+- **Chromium is installed and is the engine.** `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`,
+  **141.0.7390.37**, under the globally installed Playwright 1.56.1
+  (`/opt/node22/lib/node_modules/playwright`). Nothing needs installing; `playwright install` is
+  never the fix. Launch it and measure.
+- **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
+  screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
+  case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
+  to confirm it before trusting a diff.
+- **Firefox and WebKit are not here and cannot be fetched.** `playwright install firefox webkit`
+  fails with `Download failure, code=1`: the Playwright CDN is blocked by the network policy. Do not
+  go looking for them and do not retry the download. Anything engine-shaped therefore ships on Blink
+  evidence and is reported that way -- "verified in Blink; Gecko and WebKit unverified, no binary
+  available" -- never as though three engines agreed.
+- **No PNG library is installed.** Do not import one from inside the Playwright bundle; the path
+  moves between versions and the import fails. Read the committed shot as base64 in node, hand both
+  images to a `<canvas>` in the page and diff `getImageData` there -- the browser is already open
+  and it decodes PNG for free.
+- **Contrast needs no DOM.** The sRGB relative-luminance formula is arithmetic -- run it in plain
+  node. Settled: `--green` #14AC72 is **2.93:1** on white, `#838C84` is **3.47:1**.
+- **Match counts:** `grep -o 'pattern' file | wc -l`, never `grep -c`.
 
 ### When a page can be rendered
 
@@ -44,7 +50,10 @@ The README's standard is the floor: render the prototype, screenshot it at deskt
 what was measured rather than that it looks right. Three axes it does not name have each shipped a
 bug, so they are part of the standard now.
 
-**One engine is not coverage.** Blink is the easiest thing to render and the least representative.
+**One engine is not coverage** -- and on this box one engine is all there is, so read the environment
+note above before acting on this paragraph. It is the rule that sends each new session hunting for a
+Gecko binary that is not there and cannot be downloaded; the hunt is the waste, not the standard.
+Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
 button no selector can reach, so ours landed on top of it — and every screenshot taken in Chromium
 showed a single correct glyph. Anything touching a native form control, a shadow-DOM pseudo-element,
