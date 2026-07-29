@@ -33,8 +33,15 @@ box, not about any change.
   to confirm it before trusting a diff. Confirmed on 2026-07-29: 0 of 5,184,000 on `home.png` and
   `all-orders.png`, 0 of 1,035,840 on `phone.png`.
 - **Firefox and WebKit are not here and cannot be fetched.** `playwright install firefox webkit`
-  fails with `Download failure, code=1`: the Playwright CDN is blocked by the network policy. Do not
-  go looking for them and do not retry the download. Anything engine-shaped therefore ships on Blink
+  fails with a bare `Download failure, code=1`, which says nothing about why. The reason is egress
+  policy: the agent proxy answers **403 to CONNECT** for `cdn.playwright.dev:443` and
+  `playwright.download.prss.microsoft.com:443`. Confirm it in one command rather than inferring it
+  from the failure -- `curl -sS "$HTTPS_PROXY/__agentproxy/status"` lists `recentRelayFailures` with
+  the host and the reason, and `/root/.ccr/README.md` says a 403 is reported, never retried or routed
+  around. Lifting it is an environment change and not a code one: the two hosts have to be allowed by
+  the session's network policy, after which the install works normally. No system browser exists
+  outside the Playwright bundle either -- no `firefox`, `firefox-esr`, `epiphany` or
+  `google-chrome` on `PATH`. Do not go looking for them and do not retry the download. Anything engine-shaped therefore ships on Blink
   evidence and is reported that way -- "verified in Blink; Gecko and WebKit unverified, no binary
   available" -- never as though three engines agreed.
 - **The phone shot is `devices['iPhone 13']` with `deviceScaleFactor` overridden to 2** -- 390x664 at
@@ -49,6 +56,13 @@ box, not about any change.
 - **Match counts:** `grep -o 'pattern' file | wc -l`, never `grep -c`.
 
 ### When a page can be rendered
+
+**Check what is installed before writing the probe, not after it fails.** The three-engine harness in
+this section is what a reader writes first, and it costs two dead runs and an install attempt to
+learn that two of the three launchers throw. One `ls /opt/pw-browsers` up front is the whole check.
+The same habit covers the failure itself: `Download failure, code=1` names no host and no cause, and
+guessing one from it -- "the CDN is blocked" -- happened to be right here and was still a guess. The
+proxy records the real answer, so ask it.
 
 The README's standard is the floor: render the prototype, screenshot it at desktop and 390px, and say
 what was measured rather than that it looks right. Three axes it does not name have each shipped a
