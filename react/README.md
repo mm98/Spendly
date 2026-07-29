@@ -457,7 +457,7 @@ checked.
   prototype at 0 differing pixels, so it is a valid baseline. Against it, this app's phone
   render is **0 of 1,035,840** — identical.
 
-Fifteen defects were found by these runs and fixed rather than reported:
+Sixteen defects were found by these runs and fixed rather than reported:
 
 1. `aria-describedby` pointing at a message element with no id.
 2. A field re-checking against the value from before the keystroke, so a message cleared one
@@ -497,6 +497,13 @@ Fifteen defects were found by these runs and fixed rather than reported:
     assigns the whole patch. It surfaced only once the catalogue was sharded and the check
     stopped being "does a glyph appear" and became "does the list draw the chosen path without
     fetching a shard", which is a question the record has to answer on its own.
+16. The Categories field deleting a category when you went back for another one. `Field`
+    renders as `<label>`, and a `<label>` with no `for` labels its *first labelable
+    descendant* — which, the moment the field holds a chip, is that chip's remove button and
+    not the combobox. Every tap inside the field that was not itself a control fired it: the
+    chevron did not open the list, it deleted a category. Reported from a phone, reproduced on
+    an `iPhone 13` profile, fixed with an explicit `htmlFor`. All 35 `label.field` elements
+    across eight form routes now point at their own input, select or textarea.
 
 ## What this port does not do
 
