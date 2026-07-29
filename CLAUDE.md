@@ -18,6 +18,28 @@ shows. Opening the HTML in a browser is the whole toolchain.
 
 ## Verification
 
+### Verification is asked for, never assumed
+
+> [!IMPORTANT]
+> None of what follows runs by default. A change ships when it is written; the harness runs, the
+> pixel diffs, the element walks and the `docs/` baseline check happen **when the user asks for
+> them**, and not otherwise.
+
+This section used to read as a standing bar, and the cost of that was invisible from inside it:
+validating one form took a quarter of an hour of harness work on top of the edit, on a change nobody
+had asked to have proved. The measurements below are good measurements -- that is why they are still
+written down -- but which of them is worth a session is the user's call to make, not one this file
+gets to make in advance.
+
+So the default is: make the change, and say plainly what was and was not checked. "Not rendered"
+is a complete and acceptable report. Offer the run rather than spending it -- one line naming the
+check and what it would settle, so the choice is in front of the user instead of behind them.
+
+Two things still hold with no request needed, because neither costs a browser: **never claim what
+was not run** ([Reporting](#reporting)), and read the file you are changing before changing it.
+
+Everything from here down is how to run a check well **once it has been asked for**.
+
 ### The environment, settled -- do not re-derive it
 
 Re-checking these each session is the waste this heading exists to stop. They are facts about the
@@ -77,9 +99,9 @@ box, not about any change.
 names no host and no cause; guessing one from it happened to be right once and was still a guess.
 `curl -sS "$HTTPS_PROXY/__agentproxy/status"` records what was actually refused and why.
 
-The README's standard is the floor: render the prototype, screenshot it at desktop and 390px, and say
-what was measured rather than that it looks right. Three axes it does not name have each shipped a
-bug, so they are part of the standard now.
+When a run is asked for, the README's standard is its floor: render the prototype, screenshot it at
+desktop and 390px, and say what was measured rather than that it looks right. Three axes it does not
+name have each shipped a bug, so a requested run covers them too.
 
 **One engine is not coverage.** Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
@@ -259,8 +281,10 @@ states, byte-identical between engines, 0 differences run-to-run.
 
 ## Measuring
 
-Measure in the DOM. Eyes do not catch 2px, and 2px is the size of a real defect here — the toggle
-moved 300px to 298px and dragged the search field with it.
+When there is measuring to do, measure in the DOM. Eyes do not catch 2px, and 2px is the size of a
+real defect here — the toggle moved 300px to 298px and dragged the search field with it. This is
+about *how* to measure; whether to measure at all is the request, per the note opening
+[Verification](#verification-is-asked-for-never-assumed).
 
 Drive a headless browser, read geometry back, and assert on numbers:
 
@@ -285,8 +309,10 @@ Chromium at 1440x900 for the two desktop ones, an iPhone 13 descriptor for the p
 
 The phone shot needs that descriptor rather than a 390px window. `pointer: coarse` is what the iOS
 rules key off, and a plain narrow viewport does not match it — the shot would show a layout no phone
-renders. Regenerate whatever a change moves: a stale screenshot is a wrong claim about the product,
-and it is the one claim a reader believes without checking.
+renders. A stale screenshot is a wrong claim about the product, and it is the one claim a reader
+believes without checking — so when a change moves one of these three, **say so and offer to
+regenerate it**. Regenerating unasked is a render run like any other, and it is the user's minute to
+spend.
 
 **`docs/` is not a baseline unless your machine reproduces it.** The tab conversion was accepted on 0
 differing pixels against these shots; the same comparison run in a container came back 83,630 of
@@ -370,14 +396,18 @@ that renders plausibly is not a rule that matched what you aimed at.
   only spaces at the start of a line are the ones holding a comment's continuation under the text it
   hangs from — `<!-- ` is five columns and `/* ` is three, and a tab there would only line up at one
   tab width. Never mix the two in the same run: tabs first, then any alignment.
-- **Reformatting must prove it changed nothing.** Re-render and diff the pixels against `docs/` — the
-  tab conversion was accepted on 0 differing pixels of 5,184,000, not on inspection. Expanding the
-  leading tabs back should reproduce the previous file byte for byte; if it does not, the diff is
-  hiding an edit.
+- **Reformatting is the one place to volunteer a check.** Not to run it -- to name it. The tab
+  conversion was accepted on 0 differing pixels of 5,184,000 rather than on inspection, and a
+  whitespace-only change is exactly the shape where "it obviously changed nothing" is a guess. The
+  free half of it needs no browser: expanding the leading tabs back should reproduce the previous
+  file byte for byte, and if it does not, the diff is hiding an edit. Do that, then offer the pixel
+  diff.
 
 ## Reporting
 
 - Never claim what was not run. "Tests pass" means they were executed; "fixed in Firefox" means
-  Firefox rendered it.
+  Firefox rendered it. With verification on request, most reports will say a check was not run --
+  that is the honest state of a change nobody asked to have proved, and it reads as a fact, not an
+  apology.
 - Lead with what was measured, then what changed. Numbers before adjectives.
 - Flag the part you could not close, in the same breath as the part you did.
