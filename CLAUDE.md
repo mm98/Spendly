@@ -23,32 +23,29 @@ shows. Opening the HTML in a browser is the whole toolchain.
 Re-checking these each session is the waste this heading exists to stop. They are facts about the
 box, not about any change.
 
-- **All three engines are installed, every session. Just launch them.** Blink **141.0.7390.37**,
-  Gecko **142.0.1** and WebKit **26.0**, under the globally installed Playwright 1.56.1
-  (`/opt/node22/lib/node_modules/playwright`). The environment's setup script installs them with
-  their system libraries before the session starts and the environment cache keeps them, so their
-  presence is a given, not a thing to confirm. `PLAYWRIGHT_BROWSERS_PATH` is already set to
-  `/opt/pw-browsers`, so `chromium`, `firefox` and `webkit` resolve with no configuration. Do not
-  `ls` the directory first, do not probe a launcher in a try/catch before the real run, and never
-  run `playwright install` -- each of those spends a step per session re-confirming something
-  settled.
-- **That guarantee is `.claude/setup.sh`, and it is only as good as its last run.** The script writes
-  `/opt/pw-browsers/SETUP_STATUS.txt` naming the version each engine reported at launch; if a session
-  starts with the setup script removed or failing, that file is the one place that says so. It aborts
-  the session with exit 1 when an engine cannot launch, precisely so a miss cannot pass as presence --
-  read the status file rather than the directory listing when you have reason to doubt.
-- **`--with-deps` is one command that fails as two.** It installs system dependencies *first* and
-  aborts the whole run if apt is unhappy, so two unrelated third-party PPAs in the base image
-  (deadsnakes, ondrej/php) 403ing through the proxy cost the session all three browsers -- none of
-  which had been downloaded yet. apt exits 100 for any unreachable repo, however irrelevant. Split it:
-  `install` the browsers, then `install-deps`, so an apt problem still leaves the engines on disk and
-  the launch check, not apt's exit code, decides whether they are usable. The script quarantines
-  whatever host apt actually names in `E: Failed to fetch` rather than hardcoding the two.
-- **A diagnostic that runs under `set -u` must guard the variable it diagnoses with.** The old script's
-  failure branch read `${HTTPS_PROXY}` to ask the proxy what was refused; the init-script environment
-  does not always carry it, so the branch died with `HTTPS_PROXY: unbound variable` and printed nothing
-  at the exact moment it existed to print something. `${HTTPS_PROXY:-${https_proxy:-}}` -- both
-  spellings, both defaulted.
+- **Chromium is the default engine and the only one installed. Do not reach for the other two
+  unless asked.** `/opt/pw-browsers` holds `chromium`, `chromium_headless_shell` and `ffmpeg`, and
+  nothing else, under the globally installed Playwright 1.56.1
+  (`/opt/node22/lib/node_modules/playwright`). `PLAYWRIGHT_BROWSERS_PATH` is already set to
+  `/opt/pw-browsers`, so `chromium` resolves with no configuration; `firefox` and `webkit` do not
+  resolve and launching either fails. Verify in Blink by default. Gecko and WebKit are an explicit
+  request, not a standing part of the standard -- when one is asked for, install it first
+  (`npx playwright install firefox`, or `webkit` plus `npx playwright install-deps webkit`).
+  Everything below about engine-shaped defects still holds; it is the reason to ask for the other
+  two when a change touches a native control. The honest report on a default run is "verified in
+  Blink, Gecko and WebKit unverified", never silence.
+- **There is no session setup script, and nothing needs one.** Chromium is baked into the base image,
+  so it is present at boot with no install to wait for. The `.claude/setup.sh` that used to fetch and
+  launch-check all three engines is gone with the cross-engine default -- it spent about a minute of
+  every cold session downloading Gecko and WebKit for a run that no longer happens by default, and it
+  aborted the session with exit 1 when either failed. `/opt/pw-browsers/SETUP_STATUS.txt` was its
+  output and no longer exists; do not look for it, and do not read its absence as a failed install.
+- **When an on-request install is needed, `--with-deps` is one command that fails as two.** It
+  installs system dependencies *first* and aborts the whole run if apt is unhappy, so two unrelated
+  third-party PPAs in the base image (deadsnakes, ondrej/php) 403ing through the proxy once cost the
+  session every browser -- none of which had been downloaded yet. apt exits 100 for any unreachable
+  repo, however irrelevant. Split it: `install` the engine, then `install-deps`, so an apt problem
+  still leaves it on disk and a launch, not apt's exit code, decides whether it is usable.
 - **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
   screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
   case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
@@ -88,8 +85,10 @@ bug, so they are part of the standard now.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
 button no selector can reach, so ours landed on top of it — and every screenshot taken in Chromium
 showed a single correct glyph. Anything touching a native form control, a shadow-DOM pseudo-element,
-a `-webkit-`/`-moz-` prefix or the platform's own chrome is engine-shaped by default: check Gecko and
-WebKit before calling it fixed.
+a `-webkit-`/`-moz-` prefix or the platform's own chrome is engine-shaped by default. Chromium is
+still the default and only installed engine; a change of that shape is not something to check in
+Gecko and WebKit unasked, it is something to *say* is unverified there and offer to check, so the
+call to spend a cross-engine run stays the user's.
 
 **A vendor prefix names the engine that invented the feature, not one that obeys you.** That rule was
 written and then not run for two years, and the thing it would have caught was hiding inside its own
@@ -98,7 +97,8 @@ WebKit fix and got counted as coverage nobody had. `-webkit-appearance:none` rem
 Blink and Safari goes on drawing it; `display:none` removes it in both. All four search fields shipped
 a native circled `×`. Reading a `-webkit-` selector as "handled in WebKit" is the inference to
 distrust — the prefix says who shipped the pseudo-element first, and nothing whatever about which
-engines honour the property you set on it. Launch the engine.
+engines honour the property you set on it. Only launching the engine settles it -- so where that
+reading is the whole of the evidence, say so and ask for the run rather than counting the prefix.
 
 **A shot cannot document a state it does not hold.** That defect needed a search field with a value
 in it, and all three committed shots have empty ones with the finder closed, so `docs/` renders it
@@ -246,14 +246,16 @@ false all-clear is the one that ships. The walk costs four minutes; a wrong answ
 not checked, and the honest report is "verified in Blink, Gecko unverified — no binary available",
 not silence. Never let a reader infer coverage that does not exist.
 
-"No binary available" is a fact with a short shelf life, though, and it was wrong here: Gecko and
-WebKit both install and run in this container. `npx playwright install firefox webkit` fetches them,
-WebKit additionally needs `npx playwright install-deps webkit` — without it, it fails at launch on
-about thirty missing shared libraries and no amount of re-running the harness will say why. Firefox
-takes no `isMobile` or `userAgent` in a context descriptor, so a coarse-pointer run has to omit both
-rather than pass the device profile whole. All three then drive identically: 51,292 element records
-per engine across 28 states, byte-identical between engines, 0 differences run-to-run. Check before
-reporting an engine as unavailable — that sentence is only honest on the day it is true.
+A default run is a Blink run, so that sentence is the normal ending rather than an apology — Gecko
+and WebKit are not installed and are not part of the standard unless asked for.
+
+When they *are* asked for, they do install and run in this container, and the details cost a session
+each to find. `npx playwright install firefox webkit` fetches them; WebKit additionally needs
+`npx playwright install-deps webkit` — without it, it fails at launch on about thirty missing shared
+libraries and no amount of re-running the harness will say why. Firefox takes no `isMobile` or
+`userAgent` in a context descriptor, so a coarse-pointer run has to omit both rather than pass the
+device profile whole. All three then drive identically: 51,292 element records per engine across 28
+states, byte-identical between engines, 0 differences run-to-run.
 
 ## Measuring
 
