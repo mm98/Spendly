@@ -14,13 +14,13 @@
 		"icons:check": "node scripts/sync-icons.mjs --check"
 	},
 	"dependencies": {
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
-		"react-router-dom": "^6.26.2"
+		"react": "^19.2.8",
+		"react-dom": "^19.2.8",
+		"react-router-dom": "^7.18.2"
 	},
 	"devDependencies": {
 		"@tabler/icons": "^3.46.0",
-		"@vitejs/plugin-react": "^4.3.1",
-		"vite": "^5.4.8"
+		"@vitejs/plugin-react": "^6.0.4",
+		"vite": "^8.1.5"
 	}
 }

@@ -7,6 +7,17 @@ import { Card, CardBody, EmptyState } from './Card.jsx'
    says it is a wait, and the failure says what failed. aria-busy is on the region rather
    than a spinner somewhere else, because it is this content that is not ready. */
 
+/** The wait, on its own. A page whose chunk has not arrived and a card whose data has not
+    arrived are the same wait to the reader, so they are the same card -- see Shell.jsx, which
+    hangs this off the route boundary. */
+export const Waiting = ({ label = 'Loading' }) => (
+	<Card aria-busy="true" aria-label={label}>
+		<CardBody variant="card-body-centered">
+			<p className="field-help">{label}…</p>
+		</CardBody>
+	</Card>
+)
+
 export function Async({ state, children, label = 'Loading' }) {
 	if (state.error) {
 		return (
@@ -19,15 +30,7 @@ export function Async({ state, children, label = 'Loading' }) {
 			</Card>
 		)
 	}
-	if (state.data === undefined) {
-		return (
-			<Card aria-busy="true" aria-label={label}>
-				<CardBody variant="card-body-centered">
-					<p className="field-help">{label}…</p>
-				</CardBody>
-			</Card>
-		)
-	}
+	if (state.data === undefined) return <Waiting label={label} />
 	/* Data is present. A refetch in the background keeps the last good render on screen
 	   rather than collapsing the layout, and says so on the region for anything listening. */
 	return <div aria-busy={state.loading || undefined} style={{ display: 'contents' }}>{children(state.data)}</div>

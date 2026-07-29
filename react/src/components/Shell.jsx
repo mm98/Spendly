@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { Icon } from './Icon.jsx'
 import { Button } from './Button.jsx'
+import { Waiting } from './Async.jsx'
 import { ToastProvider } from './Toast.jsx'
 import { search } from '../api/client.js'
 
@@ -319,8 +320,16 @@ export function AppShell() {
 					    pages sat in no landmark at all -- 108 of them by axe's count. S1, S18. */}
 					<main>
 						<SubTabs tabs={handle.tabs} view={view} setView={setView} />
+						{/* One boundary for every route, because every page is its own chunk --
+						    see routes.jsx. It sits inside <main> and below the sub-tab band so
+						    the title, the rail highlight and the tabs are already right while
+						    the page is still arriving: those come off the route's `handle`,
+						    which is static, and a page that announced itself only once its
+						    JavaScript landed would be the unnamed-page defect again. */}
 						<div className="content-sheet"><div className="content-sheet-inner"><div id="pages">
-							<Outlet />
+							<Suspense fallback={<Waiting label="Loading this page" />}>
+								<Outlet />
+							</Suspense>
 						</div></div></div>
 					</main>
 				</div>

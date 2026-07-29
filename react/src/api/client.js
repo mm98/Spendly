@@ -372,6 +372,13 @@ export async function createCategory(name, look = {}, signal) {
 		id: 'c-' + clean.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36),
 		name: clean,
 		icon: look.icon ?? 'tag',
+		/* The path travels with the name, and this endpoint used to drop it: the record was
+		   built field by field and `iconPath` was not one of the fields, so a category created
+		   with any of Tabler's 5,129 glyphs was stored under its name alone. Editing one wrote
+		   it, because updateCategory assigns the whole patch -- so the defect was only ever in
+		   half the flow, and the half that looked right on screen, since the picker draws its
+		   own preview from the form. Null for the app's own 39, which Icon.jsx knows by name. */
+		iconPath: look.iconPath ?? null,
 		colour: look.colour ?? 'var(--icon-red)',
 		spend: 0, share: 0, saved: 0, budget: Number(look.budget) || 0
 	}

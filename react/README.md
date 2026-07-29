@@ -24,8 +24,9 @@ everywhere it is shown, which is the thing hand-written markup could not promise
 ```
 src/
   api/          the phantom data source: seed.js, client.js, useApi.js, format.js
+  api/tabler/   the generated icon catalogue: names, and twelve shards of paths
   components/   the design system as components -- one file per family
-  pages/        ten page modules over fifteen routes
+  pages/        ten page modules over fifteen routes, each its own chunk
   styles/       spendly.css, the prototype's stylesheet, unmodified
   routes.jsx    the routes, and the four things the shell reads off each one
 ```
@@ -239,22 +240,37 @@ A category's glyph and colour, and a vendor's colour, used to be assigned — ne
 palette, or a hash of the name — which is a value you can see, cannot explain and could not
 change. Both are now picked, previewed at the size they are used at, and persisted.
 
-The icon picker offers **the whole Tabler outline set — 5,129 icons**. `src/api/tabler.js` is
+The icon picker offers **the whole Tabler outline set — 5,129 icons**. `src/api/tabler/` is
 generated from the `@tabler/icons` package by `npm run icons:sync`, the same way the stylesheet
-is generated from the prototype, and `npm run icons:check` fails if it has drifted. Every icon
-is flattened to one stroke path; the transparent 24×24 bounds path every Tabler file opens with
-is dropped, and so are the 77 filled paths a handful of outline icons carry, since everything
-here draws with one stroke and no fill.
+is generated from the prototype, and `npm run icons:check` fails if it has drifted — including
+if a shard it no longer writes is still sitting there. Every icon is flattened to one stroke
+path; the transparent 24×24 bounds path every Tabler file opens with is dropped, and so are the
+77 filled paths a handful of outline icons carry, since everything here draws with one stroke
+and no fill.
 
-Two things keep 5,129 icons affordable, and both are measured:
+Three things keep 5,129 icons affordable, and all three are measured:
 
-- **The catalogue is loaded on demand.** `IconPicker` imports it inside an effect, so Rollup
-  gives it a chunk of its own: `index.js` is 376.05 kB (116.89 kB gzipped) with or without it,
-  and `tabler.js` is 919.62 kB (213.70 kB gzipped), fetched the first time a picker opens.
-- **A record stores the path, not just the name.** A category saved with `ti-carrot` keeps the
-  path string beside the name, so the rows, the rings and the donut draw it from the record.
-  Nothing outside the picker imports the catalogue — otherwise every list would pull 900 kB to
-  find out what to draw. The app's own 39 store no path at all; `Icon.jsx` knows those by name.
+- **The catalogue is loaded on demand.** `IconPicker` imports it inside an effect, so it is
+  never in the chunk that paints the app.
+- **Its names and its paths are separate downloads.** The names are what a search reads and it
+  has to read all of them, so they come as one 68.59 kB chunk (19.25 kB gzipped) when a picker
+  first opens. The paths are what a tile draws, and this grid never draws more than 240 tiles,
+  so they are cut into twelve shards along the same sorted order — 45.23 to 81.14 kB each
+  (11.13 to 26.06 kB gzipped) — and a shard is fetched only when something in it is about to
+  be drawn. An icon's shard is its position in the name list divided by 440, so no index has
+  to be shipped to find it. Measured: searching `carrot` draws 2 tiles and pulls **1 shard of
+  12**; `brand-git` draws 4 and pulls 1 more.
+- **A record stores the path, not just the name.** A category saved with `carrot` keeps the
+  path string beside the name, so the rows, the rings and the donut draw it from the record —
+  measured at **0 shards** fetched by the categories list, before and after a reload. The app's
+  own 39 store no path at all; `Icon.jsx` knows those by name.
+
+That last one had a hole in it, and the split is what found it. `createCategory` built its
+record field by field and `iconPath` was not one of the fields, so a category *created* with a
+Tabler glyph was stored under its name alone; editing one wrote the path, because
+`updateCategory` assigns the whole patch. Nothing on screen could fail — the picker draws its
+preview from the form, not from the record — and the list the record does reach is on a tab the
+route walk never opened.
 
 Unsearched, the grid shows those 39 — a scroller holding five thousand tiles is a wall, not a
 choice — and the line under it says how many the search is matching out of how many there are.
@@ -292,6 +308,7 @@ for that one word and wrong for every other. This is an index.
 
 Twelve routes under one shell. Each carries a `handle` naming four things: its title, which
 rail item it belongs to, whether it has a back button and where that goes, and its sub-tabs.
+The page behind it is `lazy`, the `handle` is not — see "What the build ships".
 
 The prototype keeps those four in four places, and the note in `../CLAUDE.md` about it is why
 this file is shaped this way: a harness that only toggled the page class rendered eleven of
@@ -337,6 +354,37 @@ one document was the only document. Here the entry names the document, the URL c
 (`/scan/reading?doc=invoice`), and both steps after it render what was picked, including a
 page count that belongs to the PDFs and to nothing else.
 
+## What the build ships
+
+Vite 8.1.5 (Rolldown), `@vitejs/plugin-react` 6.0.4, React 19.2.8, `react-router-dom` 7.18.2.
+The build used to end on Rolldown's own warning — *some chunks are larger than 500 kB after
+minification* — and it was right twice over: the icon catalogue was one 919.61 kB chunk, and
+the app was one 455.89 kB chunk that held every page whether or not you opened it.
+
+Nothing here raises `chunkSizeWarningLimit`. Three changes moved the bytes instead, and the
+first paint is what they are judged on:
+
+| | before | after |
+| --- | --- | --- |
+| first paint | 3 files, 528.67 kB (170.67 kB gzipped) | **13 files, 434.67 kB (149.02 kB gzipped)** |
+| first picker open | 919.61 kB (217.99 kB gzipped) | **68.59 kB (19.25 kB gzipped)**, plus a shard per search |
+| largest chunk | 919.61 kB | **278.23 kB** |
+
+- **Every page is its own chunk.** They were `import`ed at the top of `routes.jsx`, so opening
+  Home downloaded the scan flow, both forms, the statistics pager and every page's charts.
+  They are `lazy` now, behind one Suspense boundary in the shell. The `handle` stays static in
+  `routes.jsx`, which is the point rather than an oversight: the title, the rail item, the back
+  button and the sub-tabs are known before a page's chunk is requested, so the shell is never
+  drawn nameless while one is in flight.
+- **React, the DOM renderer and the router are a `vendor` group.** They are the half of the
+  entry chunk this repository never edits; split out, an edit to a page leaves them cached.
+- **The catalogue is names plus twelve shards of paths**, above — and its path data is written
+  the way an SVG parser reads it. A minus sign is its own separator, so `2 -2` and `2-2` are
+  the same two numbers, and dropping that space took 32,874 bytes out of the set. That it takes
+  nothing else out is checked rather than argued: both forms of all 5,129 icons stroked into a
+  canvas at 4× and compared, **0 icons differing across 189,075,456 channel values**, with 0 of
+  them drawing nothing (which would have made the comparison vacuous).
+
 ## What was measured
 
 Chromium 141.0.7390.37 under Playwright 1.56.1, at 1440x900 and on an `iPhone 13` device
@@ -345,7 +393,9 @@ checked.
 
 - **Every route renders, at both widths.** Correct page title, correct sub-tabs, correct rail
   highlight, no console errors, no page errors, no horizontal overflow, every chart measured
-  non-zero.
+  non-zero. Re-run against the split build: **18 routes at 1440 and on an iPhone 13 profile, 0
+  console or page errors**, no page rendering empty, and the title and sub-tabs already right
+  on arrival rather than after the page's chunk landed.
 - **No control is drawn without a handler or a destination.** A source sweep over every
   `<button>`, `Button`, `IconButton`, `ButtonLink`, `Segmented`, `Switch` and `Combobox` in
   `src/` returns zero that carry neither `onClick`, `onChange`, `onSelect`, `onRemove` nor
@@ -407,7 +457,7 @@ checked.
   prototype at 0 differing pixels, so it is a valid baseline. Against it, this app's phone
   render is **0 of 1,035,840** — identical.
 
-Fourteen defects were found by these runs and fixed rather than reported:
+Fifteen defects were found by these runs and fixed rather than reported:
 
 1. `aria-describedby` pointing at a message element with no id.
 2. A field re-checking against the value from before the keystroke, so a message cleared one
@@ -442,6 +492,11 @@ Fourteen defects were found by these runs and fixed rather than reported:
 14. A stale `{message}` left behind when the dashboard's own live region became a toast. It
     built cleanly and threw on render; the route walk is what caught it, because it watches
     for page errors rather than only for missing elements.
+15. `createCategory` dropping `iconPath`, so a category *created* with any of the 5,129 was
+    stored under its name alone — while editing one kept the path, because `updateCategory`
+    assigns the whole patch. It surfaced only once the catalogue was sharded and the check
+    stopped being "does a glyph appear" and became "does the list draw the chosen path without
+    fetching a shard", which is a question the record has to answer on its own.
 
 ## What this port does not do
 
