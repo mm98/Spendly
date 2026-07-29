@@ -107,6 +107,14 @@ have gone green on a control that renders identically in both states: green trac
 colour `rgb(20,172,114)` to `rgb(131,140,132)`, knob `right:3px` to `left:3px`, the section 271.7px
 to 56px. An ARIA attribute is a claim about the pixels, and only the pixels can settle it.
 
+**Copy that enumerates inputs is a list of states to render.** The scan hero says the app takes "a
+PDF, photo or screenshot" and four entry buttons name the formats one by one -- and all four landed
+on a review screen reading `kvittering-bilka.jpg`, 2,1 MB, drawn with a receipt glyph. Nothing could
+catch it: one document was the only document, so every screenshot, every walk and all three engines
+agreed with each other about the wrong thing. Where the product's own words enumerate what it
+accepts, drive each one through and read back what the screen then says about it -- the same move as
+firing a control and asserting the state it promises, one level up, on the content.
+
 **Three screens are not the file.** `docs/` holds three states of thirteen pages, so a change that
 touches everything needs a wider net than a re-render. Renaming every class broke the sidebar icons
 to 114px unstyled — that one happened to sit on `docs/home.png`, which was luck: the same break on
