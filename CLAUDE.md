@@ -1,7 +1,7 @@
 # Working in this repo
 
 Spendly is one prototype and its documentation. `spendly.html` is the entire prototype — every route,
-markup, CSS, JS and four Poppins weights as woff2 data URIs, with no build, no dependencies and no
+markup, CSS, JS and three Poppins weights as woff2 data URIs, with no build, no dependencies and no
 network. `README.md` is the design system it proves, and `docs/` holds the screenshots that document
 shows. Opening the HTML in a browser is the whole toolchain.
 
@@ -90,6 +90,23 @@ files exactly. The pixel diff was not weak evidence here, it was evidence about 
 and a clean one would have been read as "nothing changed" by anyone who did not first ask whether the
 shot contains the control in the state that breaks. Before trusting a shot to clear a control, put the
 control in the state under test and check the shot actually holds it.
+
+**Payload has no selector, so no instrument here points at it.** A `@font-face` nothing uses renders
+nothing, so the pixel diff is silent; it is not an element, so the walk never records it; it is not a
+rule, so a match count never counts it. The unused Poppins 400 face survived every one of them and was
+found only by asking the font system which faces it had actually pulled — `[...document.fonts]` had it
+`unloaded` in Blink and Gecko, which is the engine saying outright that nothing requested it. Ask that
+question of any embedded asset: the file's whole cost is bytes, and the instruments here all measure
+rendering. Not `document.fonts.check()`, though — with the face removed it answers `true` for weight
+400, because it tests whether text can be rendered, not whether the face you named exists. A probe
+that cannot fail is not evidence.
+
+**Then prove the removal in pixels, not in the walk.** Deleting a face cannot move a rect and cannot
+change a computed `font-weight` — the cascade still says 400 and only the face behind it changes — so
+the element walk returns 0 differences whether the face was dead or load-bearing, and that 0 means
+nothing. Full-page shots of every state are the instrument that can fail: 28 states, 0 differing
+pixels of 129,081,480 in Blink, 128,930,760 in Gecko and 128,411,280 in WebKit. Match the instrument
+to what the change can actually move, or the clean result is just the wrong question answered twice.
 
 **One state is not coverage.** A screenshot captures one state of one control. The segmented control
 changed width when the selection moved, because the active segment was bolder and the track is

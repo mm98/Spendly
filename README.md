@@ -8,7 +8,7 @@ below is a rule the prototype already implements and the port has to hold to —
 
 | File | What it is |
 | --- | --- |
-| [`spendly.html`](spendly.html) | The whole prototype. Every route, clickable, self-contained: markup, CSS, JS and four Poppins weights embedded as woff2 data URIs. |
+| [`spendly.html`](spendly.html) | The whole prototype. Every route, clickable, self-contained: markup, CSS, JS and three Poppins weights embedded as woff2 data URIs. |
 | `README.md` | This document. The system, rule by rule. |
 | `CLAUDE.md` | How to work in here — verifying, measuring, what may be claimed. |
 | `docs/` | The screenshots below. Rendered from the prototype, never hand-edited. |
@@ -212,9 +212,17 @@ away when the sheet went white. Delete it or use it, but do not reintroduce a ti
 
 ## 3. Typography
 
-- **Poppins**, weights 400/500/600/700, self-hosted — latin subset woff2, ~8KB per weight, includes
-  æøå. The prototype embeds all four as data URIs so it stays one file.
+- **Poppins**, weights 500/600/700, self-hosted — latin subset woff2, ~8KB per weight, includes
+  æøå. The prototype embeds all three as data URIs so it stays one file.
 - Base is **500 (Medium) at 14px**; 400 reads too light against the sheets. 16px at ≥2200.
+- **There is no 400 face, and declaring `font-weight:400` will not produce one.** It shipped as a
+  fourth face for as long as the file existed and nothing ever rendered it — no rule asked for 400,
+  and across 14 states at both breakpoints in all three engines no element, `::before`, `::after`,
+  `::placeholder` or `::marker` computed it. That is 10,808 bytes of base64 for a weight the design
+  had already rejected in the line above. It is gone, and the trap it leaves is quiet: with no 400
+  face the matcher answers with the nearest one it has, so `font-weight:400` renders at 500 and looks
+  right while being the wrong weight — `document.fonts.check('400 14px Poppins')` returns `true` for
+  the same reason. Wanting 400 means embedding the face again, not declaring the weight.
 - Headings and leads: 600, `letter-spacing: -0.01em` to `-0.02em`. Lead sentence style is 16px/600
   ("Your biggest vendor: …"). In a card these are `.card-headline` (19px), `.card-subheading` (17px)
   and `.card-lead` under them; all seven headings were unclassed `<div>`s carrying the spec inline,
