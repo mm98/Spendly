@@ -32,6 +32,23 @@ box, not about any change.
   `ls` the directory first, do not probe a launcher in a try/catch before the real run, and never
   run `playwright install` -- each of those spends a step per session re-confirming something
   settled.
+- **That guarantee is `.claude/setup.sh`, and it is only as good as its last run.** The script writes
+  `/opt/pw-browsers/SETUP_STATUS.txt` naming the version each engine reported at launch; if a session
+  starts with the setup script removed or failing, that file is the one place that says so. It aborts
+  the session with exit 1 when an engine cannot launch, precisely so a miss cannot pass as presence --
+  read the status file rather than the directory listing when you have reason to doubt.
+- **`--with-deps` is one command that fails as two.** It installs system dependencies *first* and
+  aborts the whole run if apt is unhappy, so two unrelated third-party PPAs in the base image
+  (deadsnakes, ondrej/php) 403ing through the proxy cost the session all three browsers -- none of
+  which had been downloaded yet. apt exits 100 for any unreachable repo, however irrelevant. Split it:
+  `install` the browsers, then `install-deps`, so an apt problem still leaves the engines on disk and
+  the launch check, not apt's exit code, decides whether they are usable. The script quarantines
+  whatever host apt actually names in `E: Failed to fetch` rather than hardcoding the two.
+- **A diagnostic that runs under `set -u` must guard the variable it diagnoses with.** The old script's
+  failure branch read `${HTTPS_PROXY}` to ask the proxy what was refused; the init-script environment
+  does not always carry it, so the branch died with `HTTPS_PROXY: unbound variable` and printed nothing
+  at the exact moment it existed to print something. `${HTTPS_PROXY:-${https_proxy:-}}` -- both
+  spellings, both defaulted.
 - **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
   screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
   case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
