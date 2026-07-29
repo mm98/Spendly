@@ -18,6 +18,51 @@ shows. Opening the HTML in a browser is the whole toolchain.
 
 ## Verification
 
+### The environment, settled -- do not re-derive it
+
+Re-checking these each session is the waste this heading exists to stop. They are facts about the
+box, not about any change.
+
+- **All three engines are installed, every session. Just launch them.** Blink **141.0.7390.37**,
+  Gecko **142.0.1** and WebKit **26.0**, under the globally installed Playwright 1.56.1
+  (`/opt/node22/lib/node_modules/playwright`). The environment's setup script installs them with
+  their system libraries before the session starts and the environment cache keeps them, so their
+  presence is a given, not a thing to confirm. `PLAYWRIGHT_BROWSERS_PATH` is already set to
+  `/opt/pw-browsers`, so `chromium`, `firefox` and `webkit` resolve with no configuration. Do not
+  `ls` the directory first, do not probe a launcher in a try/catch before the real run, and never
+  run `playwright install` -- each of those spends a step per session re-confirming something
+  settled.
+- **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
+  screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
+  case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
+  to confirm it before trusting a diff. Confirmed on 2026-07-29: 0 of 5,184,000 on `home.png` and
+  `all-orders.png`, 0 of 1,035,840 on `phone.png`.
+- **If a browser download 403s, it is egress policy and not the CDN.** `playwright install` fails
+  with a bare `Download failure, code=1`, which names no host and no cause; guessing one from it is
+  guessing. `curl -sS "$HTTPS_PROXY/__agentproxy/status"` lists `recentRelayFailures` with the host
+  and the reason, and `/root/.ccr/README.md` says a 403 is reported, never retried or routed around.
+  `cdn.playwright.dev` and `playwright.download.prss.microsoft.com` were denied that way until the
+  environment's network policy was widened to allow them; the host being up, or loading from a
+  laptop, was never the question, because the 403 is raised by this container's gateway before
+  anything reaches the CDN and the allowlist is per environment. Report a denial rather than hunting
+  a route around it.
+- **The phone shot is `devices['iPhone 13']` with `deviceScaleFactor` overridden to 2** -- 390x664 at
+  dSF2, so the committed file is 780x1328. A bare 390x844 viewport at dSF3 renders 1170x2532 and the
+  comparison dies on a size mismatch, which reads as a layout change and is not one.
+- **No PNG library is installed.** Do not import one from inside the Playwright bundle; the path
+  moves between versions and the import fails. Read the committed shot as base64 in node, hand both
+  images to a `<canvas>` in the page and diff `getImageData` there -- the browser is already open
+  and it decodes PNG for free.
+- **Contrast needs no DOM.** The sRGB relative-luminance formula is arithmetic -- run it in plain
+  node. Settled: `--green` #14AC72 is **2.93:1** on white, `#838C84` is **3.47:1**.
+- **Match counts:** `grep -o 'pattern' file | wc -l`, never `grep -c`.
+
+### When a page can be rendered
+
+**When a fetch fails, ask the proxy rather than reading the failure.** `Download failure, code=1`
+names no host and no cause; guessing one from it happened to be right once and was still a guess.
+`curl -sS "$HTTPS_PROXY/__agentproxy/status"` records what was actually refused and why.
+
 The README's standard is the floor: render the prototype, screenshot it at desktop and 390px, and say
 what was measured rather than that it looks right. Three axes it does not name have each shipped a
 bug, so they are part of the standard now.
@@ -52,6 +97,15 @@ labels and a screenshot has none about whether a button is wired, so neither def
 measurement nobody thought to write. Where a control enumerates something that happens in sequence,
 read it left to right and check the sequence is true; where it names an action, fire it and assert
 the state it promises actually moved.
+
+**Firing a control is not enough if only one of its states was ever drawn.** The rule above says to
+fire a control and assert the state it promises moved, and that is still where the "More details?"
+switch was caught -- but the assertion it passes matters. The switch had no handler *and* no
+`[aria-checked="false"]` rule, so a probe that flips the attribute and reads the attribute back would
+have gone green on a control that renders identically in both states: green track, knob hard right,
+44x26 either way. Read the computed style and the geometry the state is supposed to move -- track
+colour `rgb(20,172,114)` to `rgb(131,140,132)`, knob `right:3px` to `left:3px`, the section 271.7px
+to 56px. An ARIA attribute is a claim about the pixels, and only the pixels can settle it.
 
 **Three screens are not the file.** `docs/` holds three states of thirteen pages, so a change that
 touches everything needs a wider net than a re-render. Renaming every class broke the sidebar icons
