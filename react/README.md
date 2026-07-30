@@ -86,6 +86,33 @@ Two consequences worth knowing:
   `.toolbar-sort` instead, which is why `Combobox` takes a `className`: the element that *is*
   the control carries the slot's name rather than sitting inside a div that does.
 
+### The icons are the prototype's mark, generated
+
+`public/` holds the browser and platform icons, and none of them was drawn here. They are built
+from the `.brand-mark` rules in `../spendly.html` — the glyph, the box, the radius, the stroke
+and both gradient stops. Same argument as the stylesheet: a second drawing of the mark is a copy
+that drifts.
+
+```bash
+npm run icons:brand          # rebuild public/, and the inline link the prototype carries
+npm run icons:brand:check    # fail if any of it has drifted from the mark
+```
+
+| | |
+| --- | --- |
+| `favicon.svg` | the mark, scalable |
+| `favicon.ico` | 16/32/48 |
+| `apple-touch-icon.png` | 180×180, bled to the edges: iOS rounds it itself |
+| `android-chrome-192/512.png` | `purpose: any` |
+| `android-chrome-maskable-512.png` | `purpose: maskable`, bled, for a launcher that crops |
+| `site.webmanifest` | relative `start_url` and icon paths, like `base: './'` |
+
+**The gradient** is `linear-gradient(135deg, #14AC72 0%, #0A7F56 100%)`. It darkens and never
+lightens: white on `--green` is 2.93:1, under the 3:1 a stroke-drawn glyph needs, so a stop
+lighter than #14AC72 takes the glyph further under it and #0A7F56 lifts it to 5.02:1. 135deg is
+the angle that needs no restating — on a square it runs corner to corner, which is exactly an
+SVG `linearGradient` from `0,0` to `1,1`, so the CSS and the icon files cannot disagree about it.
+
 ### The phantom API
 
 `src/api/client.js` is the whole surface a real backend would have to implement. Every page

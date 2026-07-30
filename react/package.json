@@ -12,7 +12,9 @@
 		"css:sync": "node scripts/sync-css.mjs",
 		"css:check": "node scripts/sync-css.mjs --check",
 		"icons:sync": "node scripts/sync-icons.mjs",
-		"icons:check": "node scripts/sync-icons.mjs --check"
+		"icons:check": "node scripts/sync-icons.mjs --check",
+		"icons:brand": "node scripts/brand-icons.mjs",
+		"icons:brand:check": "node scripts/brand-icons.mjs --check"
 	},
 	"dependencies": {
 		"react": "^19.2.8",
