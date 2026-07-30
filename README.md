@@ -51,8 +51,15 @@ there.
 - **Verification standard**: every rule here was settled by rendering the prototype and comparing
   screenshots against the reference sheets, then re-rendering at 390px and on desktop after each
   change. Hold to the same standard: screenshot before claiming a match, and say what was measured.
-- **Where a rule cost a bug, the bug is written down with it.** That is the argument for the rule and
-  the reason not to quietly undo it.
+- **This document is rules, not case histories.** Where a rule cost a bug, the bug and its numbers go
+  in [`docs/defects.md`](docs/defects.md) and the rule links to them — that is the argument for the
+  rule and the reason not to quietly undo it, and it is not the spec. A reader who needs to know what
+  the UI must do should not have to read a defect report to find it. Older entries are still inline
+  here; they move as the sections around them are touched.
+- **The design system names no implementation.** It describes what the UI must do, in markup, CSS and
+  behaviour. Which framework, router or bundler renders it is a decision downstream of this document
+  and may change — the port's own choices, its build and its measurements live with the port
+  ([`react/README.md`](react/README.md) today).
 - **Before adding a variant, count.** Grep for the pattern and match the tally, not the one neighbour
   you happened to be looking at.
 
@@ -723,14 +730,10 @@ second floor under it, since a form that never rejects a value is also a form th
   — spacing only — and green amounts right.
 - SEE ALL is the 44px full-width outline button at the card foot. Underlined caps links
   (`.button-link`) appear only inside empty states.
-- **A tinted note and the action under it are 12px apart, and the gap belongs to the note.**
-  `.note + .button { margin-top: 12px }`. The question card's answered state — the green answer, then
-  SEE THOSE ORDERS — drew the button **flush against the note, 0px measured**, while the same pair one
-  card over stood correctly at 12: `.button.button-block` declares a 12px top margin of its own and
-  `.button.button-ghost` declares none, so the spacing depended on which variant the answer happened
-  to be followed by. Spacing between two blocks is not a property of one of them. Set from the note,
-  the pair is 12px whichever button follows it, and the block variant's own margin computes to the
-  same 12 rather than to 24.
+- **A tinted note and the action under it are 12px apart, and the gap belongs to the note**
+  (`.note + .button`). Spacing between two blocks is not a property of one of them: set on the button,
+  it becomes whatever that variant happens to declare, and the outline and full-width variants do not
+  agree. [Defect log](docs/defects.md#10-cards--a-note-and-the-action-under-it).
 - Empty states: loop glyph, one sentence, underlined caps action.
 - Exactly **one dark card per screen** — the AI/contextual slot.
 - A card header that navigates gets the chevron **and** the standard `.card-divider` hairline. The tally
@@ -1026,25 +1029,20 @@ instance below shipped because a shape was copied from the reference without ask
   border, an icon and no handler — the decorative-control rule again, in its hardest form to spot,
   because this document already said the button toggled the panel and the screenshot showed both. The
   button carries `aria-expanded`, `aria-controls` names the panel, and the panel is `hidden` when
-  collapsed. **It starts collapsed.** It started open on the argument that a link arriving with a
-  filter set would otherwise land on a panel hiding it — but the chip row states every filter that is
-  on, so the closed panel hides no state, and the open one puts 8 fields and a segmented control
-  between the search field and the orders they filtered. A disclosure whose default is open is a
-  panel with a button on it. **The label is the
+  collapsed. **It starts collapsed** — a disclosure whose default is open is a panel with a button on
+  it, and open this one puts 8 fields and a segmented control between the search field and the orders
+  they filtered. **The label is the
   same string in both states** — the chevron rotates instead. "HIDE FILTERS" is wider than "FILTERS",
   and the search beside it is `flex:1` in a `nowrap` row, so a changing label would move the search on
   every click: the segmented control's rule ([§9](#9-forms-and-fields)) arriving from the button side.
-- **A filter panel shows the filter its list is under.** Every link into All orders speaks the query
-  string — a category tile, a vendor card, a chart legend row, the answer to the question of the day —
-  and what it carries is ids: `?category=c-groceries`. So the chips read *Category: Groceries*, the
-  results line read 11 match of 23, and the panel's own Vendor and Category comboboxes read **Any
-  vendor** and **Any category**, because a combobox displays a name and the URL holds none. Two
-  controls describing one filter with one of them saying it is off — and the field is the one a user
-  edits, so the next APPLY was liable to be made from what the panel claimed rather than from what the
-  list was. Both fields resolve their id through the same lookup the chips use, so a chip and a field
-  cannot name one filter differently; every other filter (kind, from/to, min/max, status) is its own
-  value in the query string and needs none. This is the half that has to be true before the panel is
-  allowed to start closed, since opening it is how you check what a link set.
+- **A filter panel shows the filter its list is under.** A list can be arrived at already filtered —
+  from a category tile, a vendor card, a chart legend row, the answer to the question of the day — and
+  when it is, the panel's own fields state those filters, not *Any vendor* over a list that is one
+  vendor's. The chips and the fields name one filter the same way, because a field is the control a
+  user edits from and a panel describing a filter it is not showing sends the next APPLY out with the
+  wrong values. This is what has to be true before a panel is allowed to start closed: opening it is
+  how you check what a link set.
+  [Defect log](docs/defects.md#13-honest-affordances--filters-starts-closed-and-the-panel-shows-the-filter).
 - **A switch that reveals a panel is a disclosure wearing a different shape, and owes the same
   wiring.** "More details?" carried `role="switch" aria-checked="true"`, sat above the optional
   fields it names, and toggled nothing -- the decorative-control rule in the one form no screenshot

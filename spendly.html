@@ -1907,10 +1907,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 							<label class="field"><span>Max amount</span><div class="field-shell"><input type="text" inputmode="decimal" placeholder="Any" aria-label="Maximum amount"><span class="field-unit">kr.</span></div></label>
 						</div>
 						<div class="field"><span>Status</span>
+							<!-- Delivered, because a chip above says the list is filtered to it. A panel
+							     that reads Any over a filtered list is the defect this page's own chips
+							     made visible: the field is what the next APPLY is built from. S13. -->
 							<div class="segmented segmented-compact" role="tablist">
-								<button type="button" class="is-on" role="tab" aria-selected="true">Any</button>
+								<button type="button" role="tab" aria-selected="false">Any</button>
 								<button type="button" role="tab" aria-selected="false">Ordered</button>
-								<button type="button" role="tab" aria-selected="false">Delivered</button>
+								<button type="button" class="is-on" role="tab" aria-selected="true">Delivered</button>
 								<button type="button" role="tab" aria-selected="false">Returned</button>
 							</div></div>
 						<div class="form-actions">
