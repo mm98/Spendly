@@ -1,16 +1,14 @@
 <!doctype html>
-<!-- The doctype is load-bearing. Without it the page parses in quirks mode, which moved 243
-     elements off their standards-mode geometry and ran the phone layout 60px short. See
-     ../README.md section 1, Document skeleton. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<!-- Keep charset the first thing in head. A browser stops sniffing for it after 1024 bytes,
-     and the app's own text is Danish throughout -- with no declaration the encoding is a
-     guess, and this file decoded as windows-1252 renders "Spent A- July 2026". Nothing may
-     be inserted above this line. -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spendly</title>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#ffffff">
 </head>
 <body>
 <div id="root"></div>
