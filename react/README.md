@@ -27,7 +27,7 @@ src/
   api/tabler/   the generated icon catalogue: names, and twelve shards of paths
   components/   the design system as components -- one file per family
   pages/        ten page modules over fifteen routes, each its own chunk
-  styles/       spendly.css, the prototype's stylesheet, unmodified
+  styles/       spendly.css, the design system's stylesheet -- the source the prototype copies
   routes.jsx    the routes, and the four things the shell reads off each one
 ```
 
@@ -53,22 +53,22 @@ src/
 
 ### The stylesheet is the prototype's, untouched
 
-`src/styles/spendly.css` is lifted verbatim out of `spendly.html` — the same rules, the same
-comments, the same three Poppins faces as woff2 data URIs. It is the design system the README
-one directory up specifies, and this port had no business rewriting it. Nothing here adds a
-rule, which is why the phone render of this app is pixel-identical to the prototype's
-(0 differing pixels of 1,035,840 — see "What was measured").
+`src/styles/spendly.css` is the design system the README one directory up specifies — the same
+rules, the same comments, the same three Poppins faces as woff2 data URIs. It started as a
+verbatim lift out of `spendly.html` and is the original now: the app is where the system is
+built, and the prototype's `<style>` block is the copy that follows it.
 
-It is a *copy*, though, and a copy is the near-miss the uniformity rule is about: the two
-agree until the day one of them is fixed. So it is not maintained by hand.
+A copy is the near-miss the uniformity rule is about — the two agree until the day one of them
+is fixed — so it is not maintained by hand.
 
 ```bash
 npm run css:check    # fails if the two have drifted
-npm run css:sync     # re-extracts it from the <style> block in ../spendly.html
+npm run css:sync     # writes this file into the <style> block in ../spendly.html
 ```
 
-A fix to the design system belongs in `spendly.html`, and `css:sync` brings it here.
-`css:check` is what catches the reverse — an edit made here that the prototype never got.
+A fix to the design system belongs here, and `css:sync` carries it to the prototype.
+`css:check` is what catches the reverse — an edit typed into the HTML that the next sync
+would silently delete.
 
 Two consequences worth knowing:
 
@@ -460,7 +460,7 @@ The stylesheet is the one blocking request in the document and stays blocking on
 carries the three Poppins faces as data URIs, **31,493 of its 71,911 bytes, 43.8%**, so making it
 async would trade a flash of unstyled text for bytes that are needed before the first paint anyway.
 Moving those faces to files would drop the base64 third and let them load in parallel; it would also
-mean the stylesheet here is no longer the prototype's `<style>` block byte for byte, which is what
+mean this file is no longer what the prototype's `<style>` block holds byte for byte, which is what
 `npm run css:check` exists to guarantee. Not a build setting — a decision about the constraint, and
 it has not been taken.
 
@@ -496,10 +496,14 @@ checked.
   9.3 / 12 / 12 between its four children — the ghost button's `margin-top` computes to 12px where
   it was **0** — and the same note-plus-button pair on Orders, where the button is the block
   variant with a 12px margin of its own, still measures 12 rather than 24.
-- **The three committed screenshots still hold: 0 differing pixels of 11,403,840.** `home.png` and
-  `phone.png` are untouched by either change, and `all-orders.png` is the state the page now
-  reaches by clicking FILTERS, at **0 of 5,184,000** — so the shot documents the panel opened
-  rather than a default that no longer exists, and no image needed regenerating.
+- **The committed screenshots, and the one the bottom bar moved.** `home.png` and `all-orders.png`
+  cannot move with a rule inside `@media (max-width:700px)`: at 701 and 1440 the bar, the sheet's
+  bottom padding and the tab-bar custom property are identical either side of it. `all-orders.png`
+  is still the state the page reaches by clicking FILTERS, measured at **0 of 5,184,000** the last
+  time that state was driven in full. `phone.png` does hold the bar, so it moved with it — **35,026
+  differing pixels of 1,035,840, every one in rows 1168–1312**, the bar's own band — and the file
+  committed now is this app's render, which reproduced the previous one at **0 of 1,035,840** with
+  the change reverted.
 - **Nothing embedded is dead weight.** `[...document.fonts]` reports all three Poppins faces
   `loaded` — 500, 600 and 700 — so the 43.8% of the stylesheet that is base64 is font the app
   really draws with. A pass over the 252 class selectors in the stylesheet finds **14 that appear

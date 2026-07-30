@@ -158,3 +158,56 @@ Gecko and WebKit are not installed in this container and were not checked. The p
 longer depends on an engine's intrinsic-width arithmetic — a flex-basis of 0 is what removes it from
 the question — but the sort control's resting width off the phone is still that number, and 298px is
 Blink's.
+
+## Chrome — the bottom bar sat in the corner of a rounded screen, and the sheet ran under it
+
+Reported from an iPhone: the bottom bar is too slim and too close to the bottom of the screen. The
+reason is the shape of the screen. From the iPhone 15 on it is a rounded rectangle of roughly 55pt
+radius, and the bar's five destinations run the full width — so the two on the ends, Home and
+Statistics, are the ones the corner has already curved in under. The bar left **10px** under the row,
+which puts the last label **5.2px** clear of the arc at the right corner and the first **10.9px** clear
+at the left. Nothing was clipped. It read as a strip pinned to the edge because that is what it was.
+
+The bar is 80px now, against 67.8px, with 20px under the row and 12px in from the sides. The extra
+height is padding: the item keeps the 48px entry tier, so this is the same control sitting further up.
+
+**The second half of it was a number written twice.** The bar adds the home-indicator inset to its own
+bottom padding, so the bar grows on a device that has one — 67.8px to **101.8px** — while the sheet's
+bottom padding, which is what keeps the last card from scrolling under the bar, was the constant
+**76px**. On Home and Vendors, the two pages whose content ends near the fold, the sheet finished
+**12px and 11.3px underneath the bar**. Both numbers now come from one value: the bar's height is
+declared once and the sheet clears it by one 12px phone gutter.
+
+Measured in Blink 141.0.7390.37, `devices['iPhone 13']` at `deviceScaleFactor: 2`, driving the app
+rather than a static render — the descriptor rather than a 390px window, since `pointer: coarse` is
+what the rules key off. Clearance is read at the end of the scroll on each of the five destinations,
+which is the only place the sheet meets the bar:
+
+| | before | after |
+| --- | --- | --- |
+| bar height | 67.8px | 80px |
+| bar padding | 8 / 10 / 10 / 10 | 10 / 12 / 20 / 12 |
+| row above the bottom edge | 16.8px | 26.9px |
+| clear of the 55pt corner arc, left end | 10.9px | 21.8px |
+| clear of the 55pt corner arc, right end | 5.2px | 16.5px |
+| sheet's bottom padding | 76px, a constant | 92px, the bar plus one gutter |
+| sheet clears the bar (Home / Vendors) | 22 / 22.6px | 25.7 / 26.4px |
+| with a 34px home indicator | **-12 / -11.3px** | 25.7 / 26.4px |
+| with a 34px home indicator, bar | 101.8px | 114px |
+| horizontal overflow, 320–700px | 0 | 0 |
+
+No engine here reports a safe-area inset — `env(safe-area-inset-*)` computes to 0 in Blink, Gecko and
+WebKit on a desktop machine, device descriptor or not — so the whole inset half of this defect is
+invisible to every instrument in this repo unless the value is forced. That is why each inset is now
+named: overriding the variable is what renders the branch, and the two rows of the table above that
+carry a 34px indicator are that override, not a phone.
+
+Not fixed, and measured: at **320px** the widest label, *Categories* at 59px, is **1.4px** wider than
+its column, against 0.6px before — the two extra pixels of side padding. The labels are centred and
+the columns are 2px apart, so the bleed is 0.7px a side into that gap; nothing collides and nothing
+clips. Below 375px the five-across bar is at its limit, and buying the last pixel back means a
+narrower phone arrangement, which is a new layout and needs its own argument.
+
+Gecko and WebKit are not installed in this container and were not checked. The change is padding on a
+flex row and a custom property in a `calc()`, neither of which is engine-shaped — but that is an
+argument, not a render.

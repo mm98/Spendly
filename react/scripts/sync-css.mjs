@@ -1,45 +1,48 @@
 #!/usr/bin/env node
-/* Keeps src/styles/spendly.css identical to the <style> block in ../spendly.html.
+/* Writes src/styles/spendly.css into the <style> block of ../spendly.html.
 
-   The stylesheet here is a copy, and a copy is exactly the near-miss the uniformity rule is
-   about: the two agree until the day one of them is fixed, and nothing renders the
-   disagreement. So the copy is not maintained by hand. `npm run css:sync` re-extracts it and
-   `npm run css:check` fails if the two have drifted, which is the half that can catch a fix
-   landing in one file and not the other.
+   The direction used to be the other way round, because the prototype was where the design
+   system was built and this was the port. The app is the source now, so the stylesheet here
+   is the original and the prototype's <style> block is the copy that follows it.
 
-   Extraction is by the two <style> markers rather than by line number: the prototype grows,
-   and a hard-coded range would go on succeeding while quietly taking the wrong lines. */
+   A copy is exactly the near-miss the uniformity rule is about: the two agree until the day
+   one of them is fixed, and nothing renders the disagreement. So the copy is not maintained
+   by hand. `npm run css:sync` rewrites it and `npm run css:check` fails if the two have
+   drifted, which is the half that catches a fix landing in one file and not the other.
+
+   The block is found by its two <style> markers rather than by line number: the prototype
+   grows, and a hard-coded range would go on succeeding while quietly taking the wrong lines. */
 
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
-const SOURCE = path.join(here, '..', '..', 'spendly.html')
-const TARGET = path.join(here, '..', 'src', 'styles', 'spendly.css')
+const SOURCE = path.join(here, '..', 'src', 'styles', 'spendly.css')
+const TARGET = path.join(here, '..', '..', 'spendly.html')
 
-const html = fs.readFileSync(SOURCE, 'utf8')
+const css = fs.readFileSync(SOURCE, 'utf8')
+const html = fs.readFileSync(TARGET, 'utf8')
 const open = html.indexOf('<style>')
 const close = html.indexOf('</style>', open)
 if (open < 0 || close < 0) {
-	console.error('No <style> block in ' + SOURCE)
+	console.error('No <style> block in ' + TARGET)
 	process.exit(1)
 }
-const css = html.slice(open + '<style>'.length, close).replace(/^\n/, '')
+const current = html.slice(open + '<style>'.length, close).replace(/^\n/, '')
 
 const check = process.argv.includes('--check')
-const current = fs.existsSync(TARGET) ? fs.readFileSync(TARGET, 'utf8') : null
 
 if (current === css) {
-	console.log(`spendly.css matches the prototype (${css.split('\n').length} lines)`)
+	console.log(`the prototype matches spendly.css (${css.split('\n').length} lines)`)
 	process.exit(0)
 }
 
 if (check) {
-	console.error('spendly.css has drifted from the <style> block in ../spendly.html.')
-	console.error('Run `npm run css:sync` -- and check that the change belongs in both files.')
+	console.error("the <style> block in ../spendly.html has drifted from src/styles/spendly.css.")
+	console.error('Run `npm run css:sync` -- the app is the source, the prototype follows it.')
 	process.exit(1)
 }
 
-fs.writeFileSync(TARGET, css)
-console.log(`spendly.css rewritten from the prototype (${css.split('\n').length} lines)`)
+fs.writeFileSync(TARGET, html.slice(0, open + '<style>'.length) + '\n' + css + html.slice(close))
+console.log(`the prototype rewritten from spendly.css (${css.split('\n').length} lines)`)
