@@ -18,6 +18,30 @@ With a system:
 - Speed: new screens don't re-solve old problems
 - Confidence: the system catches drift before it ships
 
+## How this system was made
+
+The system did not arrive first; the product did. The system was extracted from it by audit — taking inventory of every control the UI had, category by category, and counting.
+
+The inventory is what made the case. Four buttons restated the same block of styles in full and had drifted apart doing it: three gaps, three radii, four font sizes for one control. Four date fields existed and three carried the calendar glyph — the fourth kept a bare native icon nobody had looked at. Five row families each declared their own `display`, `gap` and `padding` for one arrangement. The donut's shares were baked into the stylesheet beside a list computed from different numbers, and nothing rendered could disagree. Nineteen distinct `gap` values were in use, of which six carried the layout and thirteen were drift.
+
+Every one of those counts turned into a rule, and the loop is still the method:
+
+1. **Audit** — count the instances of a pattern before touching one. The tally decides the scope.
+2. **Extract** — the shared thing becomes an element or a component; survivors keep only their differences.
+3. **Document** — the rule lands here in general terms; the defect and its numbers land in [`docs/defects.md`](docs/defects.md), keyed to the section they defend.
+
+That third file is the audit, kept running. A rule in this document that looks arbitrary has its history there.
+
+## Contents
+
+The system is layered: an element is defined before the component that uses it, a component before the view that composes it, a view before the pattern that repeats across several. Read down for depth.
+
+- **[Foundations](#foundations)** — Color · Elevation and shape · Typography · Sizing · Spacing · Grids and breakpoints
+- **[Components](#components)** — Buttons · Fields and forms · Stepper · Cards · Data rows · Notes · Empty states · Chips · Combobox · Segmented control · Switch · Charts · Meters and progress · Chrome · Icons
+- **[Views](#views)** — Home · Orders overview · All orders · Order detail · Create and edit · Scan flow · Vendors · Categories · Statistics · Settings
+- **[Patterns](#patterns)** — Filtering · Creation flow · Search · Progressive disclosure · Form validation · Feedback · Deletion · Pagination · Data persistence · Loading and errors · Honest affordances · Accessibility · iOS and WebKit · Responsive layout
+- **[Conventions](#conventions)** — Naming in the markup · Language and formats · Documentation
+
 ---
 
 ## Foundations
@@ -91,6 +115,26 @@ One family — Poppins — in exactly three weights: 500, 600, 700.
 
 **Headline sizes are owned by a class, not by each site.** `.figure-large` is 22px/700 — the class exists because the size was once inline per site, and one site drifted to 24px against three at 22px. A size class that does not set a size is a defect wearing a fix.
 
+### Sizing
+
+Control heights come in tiers, and a control joins a tier rather than picking a height:
+
+| Tier | Height | Who lives there |
+|------|--------|-----------------|
+| Chrome | 32px | Top-bar actions, pill buttons, compact buttons, square icon buttons, field thumbs |
+| Standard | 38px | The base button, the toolbar's search field, the global finder |
+| Entry | 48px | Every field in a form, a segmented control used *as* a field, the hero's entry buttons |
+
+44px sits between the last two for exactly one thing: a card's full-width block action. It is not a tier — nothing else may claim it.
+
+**Radius follows the tier**: 32px and 38px controls take `--radius-compact` (10px); the 48px entry tier takes `--radius-page` (12px). A control that picks its own radius breaks the pairing that makes the tiers read as families.
+
+**Icons follow the tier too** — 15px in the standard tier, 14px in the chrome tier — never the call site.
+
+**Why tiers:** a height chosen per control is a height that drifts per page. Four buttons once had four heights for the same job. With tiers, "how big is this control" is answered by asking what kind of control it is, and a new size has to argue for a new *kind*.
+
+**Touch:** under a coarse pointer, entry fields render their text at 16px and scale it back to the design size — the size iOS demands before it stops zooming the page on focus — and segments keep a 38px minimum on the phone. Targets grow by tier, not per control.
+
 ### Spacing
 
 Spacing builds rhythm and hierarchy. The system uses a tight palette of intentional gaps:
@@ -134,6 +178,24 @@ The shell is a two-column grid: a fixed 236px sidebar and a fluid content sheet.
 ## Components
 
 Components are functional pieces of the interface. Each one is built from foundations and exists in multiple states.
+
+### Every state is a rule, or it is a hope
+
+A component has as many states as the stylesheet gives it, and no more — a state nobody wrote renders as the resting state, whatever the truth is. What the system defines:
+
+| Component | States it has |
+|-----------|---------------|
+| Field shell | `:focus-within` — dark edge and 1px ring. `:has([aria-invalid="true"])` — red edge, and it outranks focus, so a focused broken field still reads broken |
+| Combobox | `.is-open` on the wrapper: panel shown, field edge darkened, chevron rotated 180° |
+| Data row, card header | `[data-go]:hover` — the tint, keyed on the attribute that navigates, never on the row's class |
+| Segmented, sub-tabs, range tabs, month columns, stepper, sidebar nav | `.is-on` — one selection mechanism for every group of one-of-many |
+| Switch | `[aria-checked="false"]` — grey track, knob left. Both states are written, because the on state was once the only one |
+| Disclosure button | `[aria-expanded="true"]` rotates the chevron; the label never changes |
+| Anything focusable | `:focus-visible` — 2px `--teal`, 2px offset, one rule for the whole document |
+
+**An ARIA attribute is a claim about the pixels, and only the pixels settle it.** Each state attribute above has a stylesheet rule that draws it. A switch whose `aria-checked` flips while both states render identically passes every attribute check and still lies to everyone who looks at it.
+
+**Buttons have no hover, active or disabled rule — a documented gap, not a decision.** See [Buttons](#buttons).
 
 ### Buttons
 
@@ -252,6 +314,14 @@ A note is a tinted callout. It has a tone (positive, warning) and optional title
 
 **Why separate tones:** Color alone doesn't work for colorblind users. The tone is usually the semantic meaning anyway (success, warning).
 
+### Empty states
+
+What a list shows when it holds nothing: a 42px icon tile, then one sentence, centered, capped at 30ch.
+
+**An empty state is an answer, not an absence.** A filtered list with no matches says so under the very filters that caused it — the chips stay, because removing them is how the user gets out. A record that does not exist gets "Nothing here." rather than an empty frame that looks like a slow one.
+
+**The sentence says what would fill it** ("No orders match these filters", not "No data") — the difference between a dead end and a next step.
+
 ### Chips
 
 A chip is a small label, usually removable. Used for filters, tags, and selections.
@@ -308,6 +378,35 @@ One is always selected. Clicking a different one switches which is selected. All
 
 **One selection mechanism.** `.is-on` marks the selected item here, in the range tabs, the sub-tabs, the month columns and the sidebar nav — one class for every one-of-many group, so a harness (or a reader) checks selection the same way everywhere.
 
+### Switch
+
+The on/off control: 44×26, a round knob on a pill track.
+
+**Both states are drawn, and they differ in three ways at once:** on is the green track with the knob right; off (`[aria-checked="false"]`) is the grey track with the knob left. Track color *and* knob side *and* — where the switch discloses something — the disclosed content itself. Redundancy is the point: this switch once had only its on state written, so it rendered green-and-right whatever the truth was, and no attribute check could see it.
+
+**A switch is a statement, not a request.** Flipping it takes effect immediately — no save button. A switch that needs APPLY is a checkbox wearing the wrong costume.
+
+**Every switch names what reads it.** A settings page of switches that change nothing is the decorative-control defect with more surface area — so each one's label says what it controls, and somewhere in the product that thing observably changes.
+
+### Stepper
+
+The two-step form's header: one cell per step, each with an icon tile, a progress bar and a label.
+
+**States:** the current step is `.is-on` (green bar, full-weight label); a completed step is done (green tile, green bar); a future step is muted. Three states, all written.
+
+**The stepper is a map, not a control.** It shows where you are; moving between steps is the form's CONTINUE and BACK, which run the validation the jump would skip. A stepper you can click is a promise that arbitrary order is fine, and here it is not.
+
+### Meters and progress
+
+Small quantitative graphics, each with one job:
+
+- **Meter** (10px bar): how much of a budget is used. The fill is `--green`; a 2.5px marker in `--text` shows a reference point (the comparable figure last month). The marker is why it is a meter and not a progress bar — it states *against what*.
+- **Progress bar** (6px): completion of a process, no marker.
+- **Progress ring**: the same, radial, where the number it wraps is the subject.
+- **Month columns**: a column per month at fixed 150px scale-height, the current month `.is-on`.
+
+**None of these carry text.** The figure they illustrate stands beside them as real text in tabular figures — a number inside a graphic is a number a screen reader loses and a walk cannot compare.
+
 ### Charts
 
 The app draws a line chart, a donut, weekday bars, meters and progress rings. Three rules hold them together:
@@ -348,47 +447,45 @@ Views are screens. They're composed from foundations and components.
 
 ### Home
 
-The landing screen. Shows:
-- A month selector
-- A hero section (what the app does)
-- Editable cards showing summaries (total, spending by category)
-- A dashboard grid where users pick which cards appear
+The landing screen, top to bottom: the month being viewed, the hero chart, then a card grid the user owns.
 
-**Why cards are editable:** The dashboard is personal. Everyone sees the same thing on Orders, but Home shows what the user chose to see.
+**The dashboard is personal.** Which cards appear, and in what order, is the user's choice: an edit mode exposes a grip per card, cards drag (or move by arrow key, Home and End for the ends), and the arrangement persists. Everyone sees the same Orders page; Home shows what this user chose to see.
+
+**A drag shows what is moving and where it lands.** The lifted card leaves the flow at the size it had, follows the pointer on a shadow, and a dashed slot of exactly that size travels through the grid. A dimmed card shuffled in place is a drag where the most important thing on screen is the faintest.
+
+**The scan promo card can say LATER** — and LATER writes the same setting the Settings switch writes, so dismissing it here and re-enabling it there are one setting seen twice, not two flags that drift.
 
 ### Orders Overview
 
-Summary of the current month's orders vs. the previous month. Shows:
-- Month-over-month comparison (total, count, average)
-- Suggested vendors (based on history)
-- Latest orders
-- Sub-tabs for different views
+The month in review: this month against the one before, side by side with the same structure in both columns — same rows, same order, so the eye compares without re-reading. Then the latest orders, suggestions drawn from history, and the question of the day.
 
-**Comparison card design:** Side by side, same structure. Makes the comparison obvious.
+**The question card** asks something the data can answer ("Did you order more than last month?"), shows the answer in the note tones, and offers one action — SEE THOSE ORDERS — which is a link into All Orders carrying the filters that prove the answer. The card is a door, not a widget.
 
 ### All Orders
 
-A searchable, sortable, filterable list of all orders. Every filter lives in the URL:
+The working list. Top to bottom: sub-tabs (Ordered / Delivered / Returned — the status filter in one tap), the toolbar (search field, FILTERS disclosure, the sort chip), the chip row with the match count over it, the rows, and the pager.
+
+Every piece of that state lives in the URL:
 
 ```
 #/orders/all?category=groceries&vendor=bilka&from=2024-01-01
 ```
 
-Arriving at that URL shows a filtered list. The chips reflect the URL. The filter panel reflects the URL.
+Arriving at that URL shows a filtered list. The chips reflect the URL, the panel's fields reflect the URL, the count reflects the rows.
 
-**The rule:** A filtered list is a place, not a mode. You can link to it, bookmark it, send it. Closing the filter panel doesn't clear the filters—they stay in the URL.
+**A filtered list is a place, not a mode.** It can be linked to, bookmarked, sent — and it *is* linked to: category tiles, vendor cards, chart legend rows and the question of the day all land here carrying filters. Closing the filter panel doesn't clear the filters; they stay in the URL.
+
+**Two controls describing one filter may never disagree** — the sub-tab and the panel's status control are the same filter in two places, and so are a chip and its combobox.
 
 ### Order Detail
 
-One order's full record. Shows:
-- Header with status and meta (date, total)
-- Items (editable)
-- Attachments (add, remove, view)
-- Actions (edit, delete)
+One order's full record. The header band holds the identity and the actions: status, date, total, edit — and the trash, which follows the [deletion policy](#deletion). Below it: the line items with what each cost and saved, then the attachments card — add a file, open one, remove one, with the header counting them.
 
-**Why edit is a separate page:** The form is complex. It has validation. That complexity doesn't belong on the detail page.
+**Everything shown is derived from the record.** The subtotal is the lines added up; the saving is retail minus paid. A stored total beside stored lines is two claims that can disagree while both look right.
 
-### Create/Edit Form
+**Why edit is a separate page:** the form has validation, a draft, and two steps. That complexity doesn't belong on the reading view — the detail page shows, the form page changes.
+
+### Create and Edit
 
 Two-step flow for creating or editing an order:
 1. **Step 1**: Basic info (date, vendor, category, kind)
@@ -411,9 +508,29 @@ Entry point for creating orders from receipts:
 
 **Review runs the same rules as the form.** Scan and create are two doors to one saved order, so a value required at one door is required at the other, refused in the same words. The two had once parted company: the review checked nothing, and a receipt with a blank vendor line saved an order with no vendor — through a flow whose twin asks "Who did you buy from?" about that field.
 
-### Vendors, Categories, Statistics
+### Vendors
 
-Each has its own view pattern (list with actions, detail page, form).
+Favourites in the spotlight, every vendor below — **one card, in two sizes**. The pair and the strip once said the same things in two arrangements, one entering through a full-width VIEW ORDERS and the other through its header; now the header band is the way in on both, and the star (favourite) and pencil (edit) sit at the foot of both.
+
+**A linked header may not hold a button.** An action inside a link is two things to activate in one box — the star lives in the card foot, outside the link.
+
+### Categories
+
+Each category is a tile — its glyph, its color, its month's total and budget meter — and the tile is a door: it opens All Orders filtered to that category. A Manage tab lists the same categories as rows whose job is editing; a row opens the record's own form page.
+
+**Glyph and color are chosen, not assigned.** A generated color is a value the user can see, cannot explain, and could not change. Both are picked on the category's form page, previewed at the size they are used at, and stored on the record — so every surface that draws the category draws it from the record.
+
+### Statistics
+
+The month in numbers: a four-across KPI row (each tile a figure, its delta and its trend arrow — trend and tone are separate, because spending *less* is a good *down*), then the charts, then the month pager.
+
+**The month is in the URL**, so a month can be linked, and the browser's Back walks the pager. The period arrows disable honestly at the ends of the data.
+
+### Settings
+
+Every control here names what reads it, and the page proves it: default kind and status (what the order form opens with), rows per page and sort (what All Orders obeys), the scan card switch (the same setting Home's LATER writes), ask-before-deleting (what the trash reads), and clear stored data (back to the shipped state, said before it does it).
+
+**A settings page whose switches change nothing is the decorative-control defect with more surface area.** A setting exists here only if something observably reads it.
 
 ---
 
@@ -437,6 +554,26 @@ Patterns are common behaviors and flows.
 - Sub-tabs (Ordered / Delivered) are filters too. They must agree with the panel's status control.
 - Opening the filter panel shows the current state, not defaults.
 
+### Creation Flow
+
+**Two doors, one saved order.** Records can be created by form or by scan, and the doors converge: a value required at one is required at the other, refused in the same words, because both run the same rules. The two once parted company — the scan review checked nothing, and a receipt with a blank vendor line saved an order with no vendor, through a flow whose twin asks "Who did you buy from?" about that field.
+
+**A flow holds a draft.** Moving between steps, or leaving to look something up, loses nothing. The draft is not the record; SAVE is the moment it becomes one.
+
+**Creation lands you on what you made.** Saving opens the record (or the list positioned at it), because the proof that it worked is the thing itself, not a message about it.
+
+**Every create flow is reachable the same way:** ADD opens `/<records>/new`, a row or a pencil opens `/<records>/:id/edit`, and the search palette offers all the creates. One route shape, learned once.
+
+### Search
+
+Two surfaces, one promise: typed text finds things.
+
+**The global finder** sits in the top bar and prints its shortcut on a key cap — and a key cap is a promise: the shortcut must open and focus the search from anywhere, or the cap is a decoration lying about the keyboard.
+
+**The palette contract:** results update per keystroke; Up and Down walk them; Enter opens the highlighted one; Escape closes and hands focus back to what had it. It searches the data (orders, vendors, categories, item lines, notes) *and* the commands (every page, every create flow) — so the keyboard reaches everything.
+
+**It is an index, not a script.** A search that ships four hardcoded results for one demo word is right for that word and wrong for every other. If search is drawn, it searches.
+
 ### Progressive Disclosure
 
 Complex features are hidden until needed: the filter panel behind FILTERS, extra detail behind a switch, an item editor behind its line. Users see what they need now, not everything at once.
@@ -459,6 +596,36 @@ When a form rejects a value:
 **Why this way:** the message is beside the field (context), the status line gives the scope in one place, and the marking is written *once* — every form that rejects values uses the same one, because two copies agree until the day one is fixed.
 
 **A verdict is not a toast.** Saved / added / removed goes to the transient feedback layer; "cannot continue" stays on the form, beside the fields it names, until they are fixed.
+
+### Feedback
+
+Everything the app says back after an action — saved, added, removed, moved, refused — goes to **one layer**: top right, under the top bar, a single polite status region. A toast clears itself after five seconds, can be dismissed, stacks newest first, and is capped so the stack cannot wallpaper the screen. The layer never swallows a click meant for what is under it.
+
+Before the one layer existed, each page printed its result wherever there was room — a removed file was reported a column away from the file, a reorder was announced at the top of a form nobody was looking at. **Feedback nobody sees is feedback that was not given.**
+
+**The line it does not cross:** a form's verdict on its own fields is not a toast. "Cannot continue — Vendor and Date need fixing" stays on the form, beside the fields it names, until they are fixed. Adding a line is a toast; failing to add one is not.
+
+### Deletion
+
+One policy, everywhere:
+
+- **Delete lives on the record's own page** — the order's header band, the form's footer — not on list rows, where a miss-tap on a crowded phone row is a record gone.
+- **Ask-before-deleting is one setting, read by every delete.** It once was read by one screen and ignored by two others — a destructive action that asks on one screen and not another is not a setting, it is a coin toss.
+- **A refusal names the reason and the count.** A vendor with orders on it, a category still on orders — both are refused with how many things are in the way, because "cannot delete" without a why is a dead end and with one is a to-do list.
+
+### Pagination
+
+Long lists page; they do not scroll forever. Continuous scrolling buries the footer, breaks "how many are there?", and makes a position unshareable — and this is a ledger, where *how many match* is half the answer.
+
+**The pager states the range** ("1–25 of 112"), disables PREVIOUS and NEXT honestly at the ends, and keeps the page in the URL with the rest of the list state. Page size and default sort are settings, read from the same place every list reads them.
+
+### Loading and Errors
+
+**Data arrives late, and the design owns that.** Every read has latency, so every reading surface has a loading state — a surface designed against instant data is a surface with no loading state, and that is the half that breaks first.
+
+- **Known data stays up during a refetch.** Walking back to a page paints what is known rather than flashing a skeleton at values that have not changed, and the layout does not collapse under the user while newer data lands.
+- **A slow answer may not overwrite a fast one** that arrived after it — reads are cancellable, and a stale response is dropped, not drawn.
+- **An error is an answer.** A failed read says so; a missing record says "Nothing here." An empty frame that looks like a slow frame is a lie with a spinner.
 
 ### Data Persistence
 
@@ -513,14 +680,43 @@ The phone layout is 700px and narrower. Below that:
 
 ---
 
-## Implementation Notes
+## Conventions
 
-This system is framework-agnostic on purpose. These sections live in separate documentation:
+How the system is written down — in markup, in copy, and in these documents.
 
-- **docs/porting.md**: How to build this system in React, Vue, or any framework. Port-specific details (component props, build setup, deployment).
-- **docs/defects.md**: The bugs each rule cost and the measurements that settled them. Evidence, not speculation.
+### Naming in the Markup
 
-A port's README documents the port. This README documents the system.
+The class names are the system's public vocabulary, and they follow one grammar:
+
+- **Family prefix, then part**: `card`, `card-header`, `card-body`, `card-divider`. A part's name says whose part it is.
+- **Base plus variant, never variant alone**: `button button-pill`, `note note-warning`. The base owns the shape; the variant owns only its difference. A variant written alone is a control that silently lost its shape.
+- **One state vocabulary**: `.is-on` for every selection, `aria-expanded` for every disclosure, `aria-checked` for every switch, `aria-invalid` for every rejection. State is never a bespoke class per component — a harness, a stylesheet and a reader all check it the same way everywhere.
+- **Attributes are API**: `data-go` names where an element navigates, and it is what the styling and the hover treatment key off — so "looks like it navigates" and "navigates" cannot come apart.
+- **A new selector is a claim about how many elements it matches.** Read the count back and require the number you meant: a rule that renders plausibly is not a rule that matched what you aimed at. Three of thirty rules once reached further than intended, and only the count said so.
+
+### Language and Formats
+
+The copy is English; the number grammar is Danish. Neither is negotiable per screen.
+
+- **Money**: a dot groups thousands, a comma separates decimals — `1.187,25 kr.` It is written in exactly two shapes: with the øre (`24.418,57 kr.`) where the figure is a total someone could reconcile against a receipt, and rounded (`18.420 kr.`) where it is a summary. Choosing the shape is choosing a claim about precision, not a formatting nit.
+- **Percent** uses the comma too: `12,6%`.
+- **Dates** read day-first: `18 July`.
+- **Inputs speak the same grammar they display.** An amount field accepts `1.187,25`, gets the numeric keyboard, and treats `89.95` as a typo to name rather than a number to guess at — which is why no money field is a native number input; those reject the comma outright.
+- **Button labels are caps**, and they name the action: SEE THOSE ORDERS, ADD FILE, CLEAR ALL. One voice for every action in the product.
+- **Field labels are questions where a question is clearer**: "Who did you buy from?" beats "Vendor" on a form a person fills once.
+- **Back buttons name the destination**, not the direction: "Back to orders", never just "Back".
+- **A rejection names the fields**: "Cannot continue — Vendor and Date need fixing."
+- **Copy that enumerates is a contract**: if the words say "a PDF, photo or screenshot", each named case works ([Scan Flow](#scan-flow)).
+
+### Documentation
+
+Three documents, one job each — because a rule stated in two places is obeyed in one:
+
+- **This file** holds the rules, in general terms, with the reasoning beside each. It names no framework, no build tool, no storage API: those are decisions downstream of the system, and the system outlives them.
+- **[`docs/defects.md`](docs/defects.md)** holds the evidence — the defect a rule cost, the numbers that settled it, the instrument that measured it. Entries are keyed to the section they defend, by name, never to a date. It is not a changelog.
+- **[`docs/porting.md`](docs/porting.md)** holds what an implementation has to build and the traps that belong to targets rather than to the design. A port's own README documents that port.
+
+**How a change lands:** the rule goes here, in the section that owns it; the bug and its numbers go to the defect log; anything implementation-shaped goes to the porting notes. A fix that teaches nothing writes nothing.
 
 ---
 

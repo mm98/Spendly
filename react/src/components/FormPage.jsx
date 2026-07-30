@@ -82,7 +82,7 @@ export const RecordWait = ({ state, label, steps }) => (
    not on another is not a setting, it is a coin toss.
 
    It is a hook rather than a component because the button and the question do not always sit
-   together: on an order the trash is up in the header band beside the pencil (README: Create/Edit Form) and
+   together: on an order the trash is up in the header band beside the pencil (README: Create and Edit) and
    the note belongs under it, in the body. `useReorder` splits the same way for the same
    reason. */
 
@@ -109,7 +109,7 @@ export function useDelete({ what, detail, onDelete, icon = 'trash', variant = 'b
 			<Button variant={variant} icon={icon} {...asks}>
 				{label ?? `DELETE ${what.toUpperCase()}`}</Button>
 		),
-		/* The same control as a glyph, for the order header band, where README: Create/Edit Form puts edit and
+		/* The same control as a glyph, for the order header band, where README: Create and Edit puts edit and
 		   delete side by side. Same handler, same setting, same question underneath. */
 		iconButton: <IconButton icon={icon} label={label ?? `Delete ${what}`} {...asks} />,
 		note: confirming ? (

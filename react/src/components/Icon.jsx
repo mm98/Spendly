@@ -8,7 +8,7 @@ import { memo } from 'react'
    count a fact you can read off this object, and <Icon name> the only way to draw one.
 
    Stroke, join and cap live in the .icon rule in the stylesheet, so this element carries
-   the geometry and nothing else. See ../../../README.md section 4. */
+   the geometry and nothing else. See README: Icons. */
 
 export const ICONS = {
 	receipt: "M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2",

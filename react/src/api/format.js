@@ -5,7 +5,7 @@
    the figure is a total the user could reconcile against a receipt, and rounded to whole
    kroner (18.420 kr.) where it is a summary. Both are below, because a component that
    picks the wrong one is a wrong claim about precision, not a formatting nit. See
-   ../../README.md section 9. */
+   README: Language and Formats. */
 
 const groups = whole => whole.replace(/\B(?=(\d{3})+$)/g, '.')
 
