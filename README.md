@@ -1,1616 +1,533 @@
-# Spendly
+# Spendly: A Design System
 
-> A personal ledger. Orders, receipts, vendors and categories for one person, with a receipt scanner
-> that drafts the order for you. Danish formats throughout.
+A unified language for building consistent, scalable expense tracking interfaces. This document defines what the product looks like and why—not how to build it.
 
-This repository is the **design system** for Spendly and the prototype that proves it. Everything
-below is a rule the prototype already implements and the port has to hold to — not a moodboard.
+## What is this?
 
-| File | What it is |
-| --- | --- |
-| [`spendly.html`](spendly.html) | The whole prototype. Every route, clickable, self-contained: markup, CSS, JS and three Poppins weights embedded as woff2 data URIs. |
-| `README.md` | This document. The system, rule by rule. |
-| `CLAUDE.md` | How to work in here — verifying, measuring, what may be claimed. |
-| `docs/` | The screenshots below. Rendered from the prototype, never hand-edited. |
+A design system is a shared language. It prevents the chaos that happens when designs scale: mismatched buttons, contradictory layouts, forgotten decisions, duplicated effort. Spendly's system defines the foundations (color, typography, spacing), the components (buttons, forms, cards), and the patterns (how filters work, how data flows, how users create things). 
 
-## Screens
+**Everything here is framework-agnostic.** It names no React, no Vue, no Web Components. Those are implementation decisions that change. The design system outlives them.
 
-**Home** — the spent-this-month hero, the personalised card row, one dark card per screen. The white
-layer floats on the gray shell; the sidebar sits directly on it.
+## The problem it solves
 
-![Spendly's home screen at 1440px: sidebar, floating white layer, spend hero with chart and category split, and the Your cards row](docs/home.png)
+Without a system, four button styles ship in four places. A field that rejects values draws error messages three different ways. A total that appears in ten places lives in ten files, and three of them disagree. Decisions get repeated, duplicated, and forgotten.
 
-**All orders** — the search surface, with FILTERS opened for the shot: the panel is collapsed on
-arrival ([§13](#13-honest-affordances)), and opened it shows both control tiers at once — 38px
-toolbar controls in the top row, 48px entry fields in the panel below them.
-
-![Spendly's all-orders screen: search field, FILTERS and sort controls, removable filter chips, a filter panel with a full-width vendor combobox, category and kind comboboxes, date and amount fields and a segmented status control, then the first result row with its status chip](docs/all-orders.png)
-
-**Phone, 390px** — flat white and edge to edge on one 12px gutter. The paper is square, the cards on
-it keep their radius, the labels shorten to SCAN and NEW, and the sidebar has become five equal tabs.
-
-<img src="docs/phone.png" alt="Spendly's home screen on a phone: shortened SCAN and NEW buttons, a full-width card on white, and a tinted bottom tab bar with five labelled destinations" width="320">
-
-## Quick start
-
-```bash
-git clone https://github.com/mm98/spendly.git
-cd spendly
-open spendly.html          # macOS · use `xdg-open` on Linux, `start` on Windows
-```
-
-No build, no dependencies, no network. Resize to 390px to see the phone layout, or open it on a
-phone — the mobile rules in [§16](#16-the-phone-layout) and [§17](#17-ios-and-webkit) only show up
-there.
-
-## Ground rules
-
-- **Reference**: "AI-Powered Personal Finance Dashboard" (Savexa) by Tamim Al Arafat for Tenso UI UX
-  Agency — [dribbble.com/shots/27234630](https://dribbble.com/shots/27234630). The layout language
-  follows the reference; all content, structure and components are Spendly's own.
-- **Verification standard**: every rule here was settled by rendering the prototype and comparing
-  screenshots against the reference sheets, then re-rendering at 390px and on desktop after each
-  change. Hold to the same standard: screenshot before claiming a match, and say what was measured.
-- **This document is rules, not case histories.** Where a rule cost a bug, the bug and its numbers go
-  in [`docs/defects.md`](docs/defects.md) and the rule links to them — that is the argument for the
-  rule and the reason not to quietly undo it, and it is not the spec. A reader who needs to know what
-  the UI must do should not have to read a defect report to find it. Older entries are still inline
-  here; they move as the sections around them are touched.
-- **The design system names no implementation.** It describes what the UI must do, in markup, CSS and
-  behaviour. Which framework, router or bundler renders it is a decision downstream of this document
-  and may change — the port's own choices, its build and its measurements live with the port
-  ([`react/README.md`](react/README.md) today).
-- **Before adding a variant, count.** Grep for the pattern and match the tally, not the one neighbour
-  you happened to be looking at.
-
-## Contents
-
-| | |
-| --- | --- |
-| [1. Shell and layout](#1-shell-and-layout) | [11. Page patterns](#11-page-patterns) |
-| [2. Color](#2-color) | [12. Chrome](#12-chrome) |
-| [3. Typography](#3-typography) | [13. Honest affordances](#13-honest-affordances) |
-| [4. Elevation and shape](#4-elevation-and-shape) | [14. Charts](#14-charts) |
-| [5. Control geometry](#5-control-geometry) | [15. Responsive containment](#15-responsive-containment) |
-| [6. Buttons](#6-buttons) | [16. The phone layout](#16-the-phone-layout) |
-| [7. Comboboxes](#7-comboboxes) | [17. iOS and WebKit](#17-ios-and-webkit) |
-| [8. Icons](#8-icons) | [18. Accessibility](#18-accessibility) |
-| [9. Forms and fields](#9-forms-and-fields) | [19. Names in the markup](#19-names-in-the-markup) |
-| [10. Cards](#10-cards) | [20. Notes for the port](#20-notes-for-the-port) |
+With a system:
+- One source of truth: decisions are written once
+- Consistency: every implementation follows the same rules
+- Speed: new screens don't re-solve old problems
+- Confidence: the system catches drift before it ships
 
 ---
 
-## 1. Shell and layout
-
-- The app background is gray-green `#EFF1EF`. The sidebar sits directly on it, with no panel of its
-  own.
-- The whole main area — top bar, sub-tabs, content — is a **white floating layer**, left-rounded
-  (`border-radius: 26px 0 0 26px`), ~12px top and bottom inset, flush right. It reads as a layer on
-  top of the gray.
-- The top bar lives inside the white layer: page title left, global finder and actions right,
-  hairline underneath.
-- Sub-tabs render in a white band under the top bar, **inside the same container as the content**, so
-  their edges can never drift apart.
-- **No content max-width. Full-bleed at every screen size, including 4K.** Explicit decision; do not
-  reintroduce caps. Wide-screen alignment comes from shared edges, not from synced max-widths.
-- Grid wrappers always declare `grid-template-columns: minmax(0,1fr)`. Never rely on an implicit
-  track — it sizes to its widest child's min-content and overflows.
-
-### Breakpoints
-
-| Width | What changes |
-| --- | --- |
-| **≤700** | The phone layout ([§16](#16-the-phone-layout)) |
-| **≤900** | Card rows go to two columns; twin cards and KPI rows stack |
-| **≤1180** | Two-column page grids collapse to one, rail below main; the promo row starts scrolling |
-| **≥2200** | Scales up rather than centring: 16px base text, 250px sidebar, wider content ratio |
-
-### Document skeleton
-
-> [!IMPORTANT]
-> The document must be a whole HTML document: `<!doctype html>`, `<html lang="en">`, `<head>` and
-> `<body>`, with `<meta charset="utf-8">` as the first thing in `<head>`. The file is saved as UTF-8
-> **with** a byte-order mark.
-
-`spendly.html` had none of that. It opened on the viewport tag and ended on `</script>`; a browser
-synthesises the missing elements either way, so the prototype rendered and two defects rode along
-unseen for as long as the file existed.
-
-- **No doctype is quirks mode.** `document.compatMode` read `BackCompat`. Against the same file with
-  a doctype prepended, 243 elements sat on different geometry and the phone layout ran 60px short.
-  Every engine keeps its own quirks list, so a correct render in Blink says nothing about the other
-  two — standards mode is the only mode all three agree on.
-- **No declared encoding is a guess.** Opened from disk, Chromium sniffed UTF-8 and got away with it.
-  Served as plain `text/html`, the same bytes decoded as windows-1252 and drew `Spent Â· July 2026`.
-  99 characters in the file are non-ASCII — 68 `·`, the `…` in placeholders, `×`, `→`, `—`, and the
-  æøå the Poppins subset in [§3](#3-typography) exists to carry.
-
-Keep charset first in `<head>`: a browser stops looking for it after 1024 bytes, and the embedded
-fonts underneath it are ~40KB, so anything inserted above it pushes it out of range. The BOM and the
-meta tag are both there on purpose, because neither covers the other's failure. A server sending the
-wrong `charset` header outranks the meta tag and only the BOM survives it; a pipeline that strips the
-BOM leaves only the meta tag. Together the file decoded as UTF-8 from `file://`, over `text/html`
-with no charset, and over `text/html; charset=windows-1252` — zero mojibake in all four cases.
-
-`lang="en"` is the interface language. The money is Danish (`1.187,25 kr.`) and so are the vendor
-names, but nothing on screen is written in Danish.
-
-### Viewport
-
-> [!IMPORTANT]
-> The document must declare `<meta name="viewport" content="width=device-width, initial-scale=1">`.
-> Without it a browser lays the page out at its ~980px fallback and scales the result down, so none
-> of the breakpoints above ever match and device emulation shows a shrunken desktop.
-
-This bit the standalone prototype: the mobile CSS was all present and correct, and one missing line
-made it unreachable. `spendly.html` declares the tag and re-injects it from script if it is missing,
-so a shell that strips it cannot silently take the mobile layout down.
-
-**Never add `maximum-scale=1` or `user-scalable=no`.** It blocks pinch-zoom and fails WCAG 2.2 AA
-(1.4.4 Resize Text) — and it does not do the job it gets added for, see [§17](#17-ios-and-webkit).
-
-## 2. Color
-
-Sampled from the reference sheets, declared once in `:root`.
-
-| Token | Value | Use |
-| --- | --- | --- |
-| `--bg-app` | `#EFF1EF` | gray shell, sidebar ground (desktop only, see [§16](#16-the-phone-layout)) |
-| `--bg-nav-active` | `#E4E7E2` + 1px lift | active nav pill; darker than the ground, never white |
-| `--bg-card` | `#FFFFFF` | all cards, on the white layer |
-| `--border-card` | `#E9ECE8` | 1px border, every card |
-| `--border-divider` | `#EDEFEA` | dividers inside a card: between rows, under a header |
-| `--bg-row-hover` | `#F6F7F4` | the pointer on a row or card header that navigates — never a divider |
-| `--text` | `#0B0F0D` | headings, numbers |
-| `--text-strong` | `#0B0F0D` | the active edge of a field — `:focus-within`, open combobox |
-| `--text-body` | `#3A423D` | body copy, sidebar items |
-| `--text-muted` | `#636D64` | help text, meta, axis labels — the faintest tier that carries words |
-| `--text-faint` | `#9AA39D` | marks, never text — resting chevrons, the drag grip, dashed edges |
-| `--green` | `#14AC72` | fills: progress bars, meters, weekday bars, swatches, the brand mark |
-| `--text-positive` | `#0E7A52` | the same green as type: savings figures, favourable deltas |
-| `--bg-positive` | `#DFF3EA` | positive notes, status chip, match highlight |
-| `--teal` | `#07625E` | split-bar dominant segment, focus ring |
-| `--bg-dark` / `--bg-dark-lift` | `#0B1A12` → `#12241A` | the one dark card per screen, dark buttons; `-lift` is the gradient's lit end |
-| `--text-on-dark` | `#ADB8AF` | body text on dark |
-| `--blue` / `--blue-light` | `#4F5BD5` / `#B9BFF0` | the July and June comparison series |
-| donut set | `#1FA8E0` `#14AC72` `#E8C51B` `#8B5CF6` `#D34F2E` `#F09A38` | category ring segments, with gaps |
-| icon squares | `#C43F2A` `#E9C517` `#8B5CF6` `#1FA8E0` | 36–44px rounded-square category icons |
-| avatar fills | `#235553` `#877364` `#4F5BD5` `#0E7A52` `#AD620D` `#8453F5` `#177DA7` | 36px vendor initials, white 10px/700 on top |
-| warm (caution) | text `#84651E`, tint `#F6ECD9` | duplicate warnings, unfavourable deltas, uncertain lines |
-| `--text-negative` | `#B3261E` | a rejected value: the message under the field and the field's own edge |
-| track | `#E7EAE5` | meters, progress backgrounds |
-| `--bg-bar-track` | `#E2ECE9` | unfilled weekday bars |
-
-**Semantics**: green = favourable (savings up, cost metrics down); warm amber = caution or
-unfavourable (spend above the previous period); red = a value the form will not take, which is a
-different thing from caution and never shares its colour; neutral ink for counts.
-
-> [!IMPORTANT]
-> Color is never the only carrier. Always icon **plus** words — "21% up vs June".
-
-### A value that paints glyphs is measured against every surface it lands on
-
-Nine of these values were sampled for how they look and never checked against the ink-on-paper they
-actually make. Across the whole file — 14 pages at two breakpoints — 170 runs of text sat under the
-4.5:1 the section below claims as the floor. What each one taught:
-
-- **A tier that cannot be read is not a tier.** `--text-faint` was documented as "the faintest
-  readable tier" at 2.59:1 on a card and 2.28:1 on the shell, and the two runs of real text it
-  painted — chart axis labels and the sidebar footer — were the two it could least afford. There is
-  no room for a third readable grey: any value that clears 4.5:1 lands on top of `--text-muted`. So
-  the tier keeps its value and loses the job. It paints marks now — resting chevrons, the drag grip,
-  the dashed empty-state edge, all `aria-hidden` or decorative — and text moves up to `--text-muted`.
-- **"Holds 4.5:1 on white" is a claim about one background.** `--text-muted` did hold it on white,
-  at 4.72:1, and this file has five other surfaces. On the inset panel it was 4.27:1 across 44
-  elements and on the vendors hero panel 4.04:1. Tune the token against the darkest surface it can
-  land on — `#EDEEE7` — not the one it happens to sit on in the screenshot you took.
-- **Green as ink and green as fill are two colours.** `#14AC72` is right for a progress bar and
-  reads 2.93:1 as type. Eight rules printed savings figures in it; three chips that sit on a tint had
-  already been hand-written `#0E7A52` to stay legible, which is the whole argument, made once and not
-  generalised. That value is `--text-positive` now. `--green` keeps the fills.
-- **A chart hue under white type is a text background.** Four of the seven `.entry-avatar` fills were
-  borrowed from the donut set, which is picked to separate ring segments against each other. White
-  10px/700 initials on `#F09A38` are 2.24:1. The avatar palette is its own row above, and every value
-  in it clears 4.5:1 against white.
-
-Screenshots cannot fail this: every one of the 170 rendered exactly as designed. Read the pair back
-from the DOM — `getComputedStyle` on the glyph, the first non-transparent fill above it — and assert
-the ratio, at every breakpoint, on every page.
-
-`--canvas` (`#F3F5F3`) is still declared and no longer used anywhere: the inset tinted canvas went
-away when the sheet went white. Delete it or use it, but do not reintroduce a tint under the cards.
-
-## 3. Typography
-
-- **Poppins**, weights 500/600/700, self-hosted — latin subset woff2, ~8KB per weight, includes
-  æøå. The prototype embeds all three as data URIs so it stays one file.
-- Base is **500 (Medium) at 14px**; 400 reads too light against the sheets. 16px at ≥2200.
-- **There is no 400 face, and declaring `font-weight:400` will not produce one.** It shipped as a
-  fourth face for as long as the file existed and nothing ever rendered it — no rule asked for 400,
-  and across 14 states at both breakpoints in all three engines no element, `::before`, `::after`,
-  `::placeholder` or `::marker` computed it. That is 10,808 bytes of base64 for a weight the design
-  had already rejected in the line above. It is gone, and the trap it leaves is quiet: with no 400
-  face the matcher answers with the nearest one it has, so `font-weight:400` renders at 500 and looks
-  right while being the wrong weight — `document.fonts.check('400 14px Poppins')` returns `true` for
-  the same reason. Wanting 400 means embedding the face again, not declaring the weight.
-- Headings and leads: 600, `letter-spacing: -0.01em` to `-0.02em`. Lead sentence style is 16px/600
-  ("Your biggest vendor: …"). In a card these are `.card-headline` (19px), `.card-subheading` (17px)
-  and `.card-lead` under them; all seven headings were unclassed `<div>`s carrying the spec inline,
-  which is how two drifted to 17px against the other five and the lead's bottom margin to 16px
-  against 18px.
-- Big numbers: 700, `-0.02em`, always `font-variant-numeric: tabular-nums`. The weight and tracking
-  ride on the size class (`.figure-headline`, `.figure-card`, `.figure-large`); the tabular figures ride on `.tabular-figures`
-  alongside it, so a headline figure carries both. **A class with no rule behind it is worse than no
-  class**: `.figure-large` was applied at four sites and defined at none, so the Orders and Statistics
-  headline figures quietly rendered at the body's 500 with proportional figures for as long as they
-  existed. Nothing looked broken — they simply were not the number this section describes. Grep for
-  the selector, not just the class attribute. **A size class sets its size**: after that fix
-  `.figure-large` still carried only weight and tracking, with the size left inline "per site", and
-  one site promptly drifted to 24px against three at 22px. It is 22px in the rule now.
-  `.figure-card` is 21px, or 17px in a `.scroll-row`, where the vendor cards ride.
-- Caps micro-labels — card headers, KPI labels: 11–11.5px, `letter-spacing: .08em`, uppercase, 600.
-- Danish formats everywhere: `1.187,25 kr.`, dates `18.07.2026` or `24 July 2026`.
-
-## 4. Elevation and shape
-
-**Flat surfaces carry a border, never a shadow.** Shadows are reserved for the things that genuinely
-float:
-
-1. the white main layer on the gray shell,
-2. open combobox and finder panels,
-3. the active sidebar pill (1px lift).
-
-On a phone the main layer stops floating — it goes edge to edge and drops its shadow — so only the
-latter two carry one there.
-
-Cards are white, `1px solid #E9ECE8`, radius 15px. The dark card matches the card radius and takes no
-shadow. Floating panels use radius 14px and a real shadow.
-
-**No pills, no circles.** Everything rectangular is a rounded rect: buttons 10–12px, chips 8–10px,
-cards 15px, the scan prompt bar 16px. Circles are allowed only for genuinely round data marks — donut
-and progress rings, legend dots, vendor initial badges, the toggle knob.
-
-## 5. Control geometry
-
-Two tiers, and nothing between them.
-
-| Tier | Height | Radius | Where |
-| --- | --- | --- | --- |
-| **Toolbar** | 38px | 10px | top-bar finder, list search inputs, FILTERS, sort combobox chips, toolbar segmented sorts |
-| **Form entry** | 48px | 12px | all entry fields, comboboxes in forms, date fields, segmented controls in forms (textarea 88px) |
-
-Adjacent controls in one row share one tier.
-
-**Form controls keep the same height in every state.** The photo field is 48px empty ("Add a product
-photo…") and 48px filled — 32px thumbnail, filename, rounded-rect remove button. Variable-size
-content such as photos and long values renders in list rows and panels, never inside the form grid.
-
-### One data row
-
-A tile, one or two lines of text, a right-hand column, sometimes a chevron. Every list of records is
-that row, and it is one spec — **`.category-row` is the template**:
-
-| | |
-| --- | --- |
-| **Row** | `padding: 10px 0`, `gap: 12px`, `align-items: center` |
-| **Tile** | 36×36, `var(--radius-compact)`, 17px glyph |
-| **Type** | title 13px/600 · meta 11px `--text-muted` · right-hand figure 13px/600 |
-| **Leading** | inherited unitless `1.45`, resolving against each line's own size — 18.85 + 15.95 = 34.8px of pair |
-
-**The row is `.data-row`, and it is an identifier with six variants.** `.chart-legend-row`,
-`.card-tray-row`, `.category-row`, `.entry-list-row`, `.item-row` and `.order-row` are written beside
-it and name only what that list holds; the `-row` suffix is what marks them as its family. Before the
-identifier existed the six families *were* the spec, six copies of it, and they had drifted to gaps
-of 10, 12 and 13, paddings of 10, 11 and 12, tiles of 36, 40 and 44, and one list's text pair
-standing 5.8px taller than the rest.
-
-> [!IMPORTANT]
-> **The identifier is not only for the box — it is what every rule about "a row" keys on.** A shared
-> value written as a list of family names is a list that has to be extended by hand, and it will not
-> be. The hover tint was three such names and covered three of the five families that had navigating
-> rows, so the All-orders results and the duplicate-order row took the pointer and the chevron and
-> then lit nothing: **4 of 21 navigating rows promised a destination and answered with no tint**, for
-> as long as both existed. It is `.data-row[data-go]:hover` now — one rule, keyed on the identifier
-> and on the attribute that makes a row navigate, so a row that learns to navigate lights up because
-> it is a row, not because someone remembered to add it. **Do not add a family name to a rule that
-> could key on `.data-row`.**
-
-**What a row still owns is what it holds, not how it is spaced.** These are variants, not drift:
-
-- **the colour of the right-hand figure** — `--text` on most, `--text-positive` where the figure is a saving
-- **a round avatar in place of a tile** — `.entry-avatar` is initials on a fill, 36×36 at `border-radius:50%`
-- **one line where another has two**, and a swatch where another has a tile — the donut key is a
-  chart legend, so it keeps an 11px swatch and a single label
-- **a hairline between rows** — `.category-row`, `.chart-legend-row` and `.card-tray-row` carry
-  `border-top` and clear it on the first row; the two list families inside a card body do not
-
-> [!NOTE]
-> **The hairline is the one row value still split three-two, and it is undecided rather than
-> settled.** *Category breakdown* rules between its rows and *Latest orders* does not, which is
-> visible the moment the two cards sit on one screen. It was left alone when the rest of the spec
-> was unified because a divider is a different kind of decision from a gap: it adds ink to ~40 rows
-> that currently have none, and the argument for it — a list of records reads as a list — runs
-> against the argument that a card body with four rows and a divider under its header is already
-> ruled enough. Whichever way it goes, it goes for all five families at once. Do not settle it one
-> card at a time.
-
-**A bare text node is not a part, and takes the row's font-size instead of the spec's.** The donut
-key's label was the one label in the file with no element around it, so it read at the 12.5px the row
-declared for itself while every other list title read 13/600 — invisible to any rule keyed on a title
-class, because there was no title. It is `.chart-legend-row-title` now ([§19](#19-names-in-the-markup)).
-
-**The meta line ellipses; the title wraps.** `.item-row-meta` is `white-space: nowrap; overflow: hidden;
-text-overflow: ellipsis` — the pattern [§9](#9-forms-and-fields) sets for control text, applied to the one
-part of a row that is a remark rather than a name. Left to wrap it took a second line on 12 of the 28
-metas the file renders, at one width or another and at 390 as readily as at 1440: the Logitech line on
-*Order details* stood **95.56px against the 80.84px of the three rows beside it**, a step big enough to
-read as a hole in the list rather than as more text. The title keeps `overflow-wrap: anywhere` — it names
-the thing the row is about, so it may not be cut. **The cost is stated, not hidden:** truncation removes
-up to 18 characters, and on *New order* it takes the `retail 104,95 kr.` half of a two-part meta at 701px.
-A meta that must be read in full is a meta that belongs on the row's title or in a panel, not a reason to
-let one row grow taller than its neighbours.
-
-> [!WARNING]
-> **An ellipsis needs a container that is allowed to be narrower than its text**, and `min-width: 0` on
-> the wrapper is only half of that. Under `nowrap` the meta's min-content becomes the whole string, so
-> `.inset-panel` — a single-column grid, sized by the implicit `auto` track — grew to fit it: the
-> *Totals reconciled* row on *Review scan* measured **327px of min-content (36 tile + 12 gap + 279 of
-> text) inside a 322.41px panel**, overhung it by 4.59px and drew no ellipsis at all, because the box it
-> would have been cut to never got smaller than the text. `grid-template-columns: minmax(0,1fr)` per
-> [§15](#15-responsive-containment) is what makes the truncation possible; the nowrap alone only moves
-> the overflow somewhere harder to see.
-
-**A `line-height` in `em` on a wrapper is a length, and a length does not re-resolve.** `.entry-text`
-was pinned at `1.45em`, computed once against its own inherited 14px — 20.3px — and handed to both a
-13px name and an 11px meta, so the pair stood 40.6px against every other list's 34.8px. That 5.8px was
-the whole of "Latest orders is spaced differently from Category breakdown". The value was inherited
-from a `<br>` layout removed in S19; keeping it kept that layout's leading. Let the unitless `1.45`
-fall through.
-
-`.order-row` is the one variant that redraws the box: it is the page's own table, so it takes a fixed
-column grid instead of a flex run, `padding: 12px 0` to carry its denser 13.5/11.5 scale, and stacks
-to `grid-template-areas` on a phone ([§15](#15-responsive-containment)). It is still a `.data-row` —
-it lights up on hover, it carries a chevron where it navigates, and it does **not** restate `gap: 12px`
-or `align-items: center`, which it already agreed with. A variant restating a value it copies is the
-near-miss the identifier exists to stop; a variant is only its differences.
-
-**Count before you match**, and match the tally rather than the neighbour you happened to open
-([ground rules](#ground-rules)).
-
-## 6. Buttons
-
-Two sizes carry almost everything. The prototype drifted to 12 distinct button geometries;
-consolidating took it to 8, and most of the drift was inline `style=` overrides on a shared class
-rather than real tiers — `.icon-button.icon-button-arrow` rendered at 30px in 8 places and 34px in 6, from one inline
-override.
-
-> [!WARNING]
-> Never set a button's height or radius inline.
-
-| Tier | Spec | Used for |
-| --- | --- | --- |
-| **Compact** | 32px / r10 | top bar SCAN RECEIPT and NEW ORDER, section pills (`.button.button-pill`), compact actions (`.button.button-caps.button-compact`, `.button.button-ghost.button-compact`), icon buttons (`.icon-button.icon-button-arrow`), card personalisation |
-| **Page** | 38px / r12 | `.button.button-caps` dark and `.button.button-ghost` outline — SAVE ORDER, CANCEL, NEXT STEP, FILTERS |
-| **Hero** | 48px | `.hero` CTAs only, on the page tier's radius |
-| **Card foot** | 44px full-width | `.button.button-block`, the SEE ALL row. The one documented exception |
-| **Key cap** | 22px / r7 | `.key-cap` shortcut hints (CTRL K) |
-
-The compact tier is one size at both breakpoints and passes WCAG 2.5.8 AA (24px floor) with room.
-**No circular buttons anywhere.**
-
-> [!IMPORTANT]
-> **A control that looks like a button is a `<button type="button">`.** Never a styled `<span>`.
-
-`.button.button-block` shipped as 5 buttons and 4 spans, `.button-link` as 6 spans and none, and the split cost two
-different defects at once. The spans were mouse-only — no focus, no Enter, and at 17px tall the
-`.button-link` ones were under WCAG 2.5.8's 24px floor as well. And because `.button.button-block` never declared
-`font:inherit`, the five real buttons rendered in the UA's Arial while their span twins rendered in
-Poppins, on the same screen, for a year.
-
-- **A button needs the type reset a span never did**: `font:inherit; background:none; border:0;
-  padding:0` before the rule's own font-size and weight. Missing `font:inherit` is invisible until
-  something else on the page uses the same class.
-- **Every `<button>` carries an explicit `type="button"`.** All 87 do. Without it the default is
-  `submit`, which is inert here only because this prototype has no `<form>` — inside a Blazor
-  `EditForm` the same markup posts the form.
-- **A converted control must gain the action it was pretending to have.** A dead span is mouse-only;
-  a dead button is mouse-only *and* in the tab order, announced as a control that does nothing. So
-  each one dismisses, clears, removes or navigates — and because each removes the element focus was
-  on, each hands focus somewhere deliberate and announces once through the surface's live region.
-- Every control mixing icon and text is a flex container (`align-items:center; gap`) — never
-  baseline-aligned icons, never per-icon margins.
-- Flow footers: CANCEL/BACK outline left, primary dark right (`justify-content: space-between`).
-- **Button labels are ALWAYS caps.** All 32 of them are, so a title-case label is never acceptable,
-  and two buttons side by side share one type spec — size, weight, tracking — rather than each
-  carrying its own inline style. SCAN RECEIPT shipped title-case against 32 caps neighbours purely
-  because nobody counted.
-- Where a label shortens responsively, put the droppable words in a `<span class="wide-only">`
-  **inside** the label span, never as a second flex child: `.button` has `gap:8px`, so a bare text node
-  plus a span renders as two flex items with a gap between the words. Keep the full wording in
-  `aria-label`; the visible text stays a substring of it, which is what WCAG 2.5.3 Label in Name
-  requires.
-
-## 7. Comboboxes
-
-**No native selects, ever.** Every dropdown is the same searchable combobox.
-
-- **Closed until asked for.** The field shows the current value and opens on click, Enter or Down. It
-  closes on outside click, Escape (focus returns to the field), choosing an option, or navigating
-  away. The chevron rotates 180° while open.
-- **Field**: search icon, current or typed text, Tabler `chevron-down` right-aligned.
-- **Panel**: white, r14, floating shadow, optgroups with caps headers (FAVOURITES / ALL VENDORS),
-  options with light-green `mark` match-highlighting and right-aligned meta (counts, amounts).
-- **Foot action**: `＋ CREATE VENDOR "…"` — create from search.
-- **Keyboard**: type to filter, arrows move, Enter selects, Escape closes. Exposed as
-  `role="listbox"` / `aria-selected`; options are deliberately not focusable, per the listbox pattern.
-- ARIA 1.2 puts `role="combobox"` and `aria-expanded` **on the input**, not on a wrapper div. Space
-  types a space; only Down and Enter open the list.
-
-The **global finder** is this component in the top bar (38px tier, CTRL K): grouped cross-entity
-results — Orders, Vendors, Notes and item text — plus a foot action into the filtered All-orders
-view. Hidden on phones, where per-page search covers it.
-
-**The command palette is not a dropdown.** It is anchored to the finder's left edge but takes its own
-width (`width: max(100%, 560px)`) rather than inheriting the field's.
-
-## 8. Icons
-
-**Tabler only. No emoji, ever, and no typographic stand-ins.** Icons come from the Tabler sprite
-(v3.44.0) at stroke-width 2. Three things are banned outright:
-
-1. **Emoji as UI** — 🧾 📄 📷 📦 ✅ 👀 🏷️ and friends. They render differently per platform and break
-   the visual system.
-2. **Typographic glyphs used as icons** — `⋮ › ‹ ✓ ✦ ★ ＋ × ⚙ ⟳ ≡ ◎ ⇅ ⎋ ! … %` are icons wearing a
-   text costume. Each has a real Tabler equivalent: `dots-vertical`, `chevron-right`, `chevron-left`,
-   `check`, `sparkles`, `star`, `plus`, `x`, `settings`, `search`, `bolt`, `sparkles`, `arrows-sort`,
-   `arrow-back-up`, `alert-triangle`, `dots`, `percentage`.
-3. **Hand-drawn path data** — if a `d=` attribute was not copied from Tabler, it does not ship.
-   Approximations drift off-grid and read as sloppy next to the real ones.
-
-What stays as text: `×` as a multiplication sign in prices ("2 × 89,95 kr."), `·` as a separator, `…`
-in truncated placeholder copy. That is typography, not iconography.
-
-**Sizes** run 12–20px by context: nav 19, form and toolbar buttons 14–15, chevrons 15, decorative
-panel marks 34–46 at stroke-width 1.6. **A list-row tile is 17**, thumbnail or not — the tile is the
-row spec's ([§5](#5-control-geometry)), so a glyph sitting in one takes the tile's size and not its
-own component's. `.item-row-icon` at 16 in a 40px tile and `.document-thumb` at 20 in a 44px one were
-two components' worth of tile geometry inside one row.
-
-> [!WARNING]
-> **Never set an icon's size in the markup.**
-
-**The container sets the size.** `svg.icon` is 18px and each container overrides it once —
-`.chevron svg.icon`, `.item-row-icon svg.icon`, `.button svg.icon`. 141 icons carried the size as an
-inline `width`/`height` pair instead, and the values drifted in exactly the way a shared class exists
-to prevent: `.icon-button-arrow` drew its glyph at 14px in 8 places, 15px in 4 and 16px in 3 — the
-defect [§6](#6-buttons) already records for that button's own geometry, one element further in.
-`.document-thumb` held 20px in 4 places and 18px in 2 for the same slot, and the two top-bar buttons
-sat side by side at 14px and 15px against §6's rule that adjacent buttons share one spec. A size
-written into the markup cannot be reached by a media query, by a theme, or by the next edit to the
-class, which is the whole reason it must not live there. Thirteen of the 141 set `width:18px;height:18px`,
-which is what the base already computes.
-
-Never icon-only navigation: every nav icon has a visible label at every width.
-
-**Brand mark**: `ti-receipt`, white stroke on a green `#14AC72` tile, 34px / radius 10, beside the
-wordmark at 22px / 700. The green tile was chosen over dark and bare-stroke treatments; it is the one
-place the accent is spent on chrome. **The wordmark is "Spendly" — never "Splendy".**
-
-**Icons the port's sprite still needs**, all present in Tabler v3.44.0: `chevron-down`,
-`dots-vertical`, `dots`, `arrows-sort`, `arrow-back-up`, `arrow-up`, `bolt`, `sparkles`, `settings`,
-`camera`, `device-desktop`, `basket`, `plug`, `filter-2`, `percentage`.
-
-## 9. Forms and fields
-
-- Two-step order creation — **Order details → Add the items** — with the stepper card on top: icon
-  tile, green progress bar, label; completed steps become green check tiles.
-- Labels above fields, help text under, actions split left/right at the footer. One equal 16px gap
-  horizontally and vertically; row fields top-aligned in `1fr 1fr` columns that collapse to one at
-  ≤700.
-- Unit suffix chips inside inputs (`kr.`, `pcs`), fixed width, excluded from shrinking.
-- Enums are segmented controls — Status: Ordered / Delivered / Returned, plus "Any" in filters: one
-  shared bordered container, dark active segment. **Inside a form a segmented control is an entry
-  field, not a chip group.** It fills its column, stands 48px tall like the inputs beside it, and its
-  segments flex to equal widths. The intrinsic-width 38px version belongs to toolbars, never to a
-  form.
-- **Segments run in the order the thing happens, not the order they were typed.** Status shipped as
-  Delivered / Ordered / Returned in all three of its controls, which reads left to right as a claim
-  that an order is delivered before it is placed. The lifecycle is the sort key — Ordered → Delivered
-  → Returned — and it is the same in the create form, the scan review and the filter panel. A segment
-  that stands outside the sequence rather than in it, filters' **Any**, leads; it is the default, not
-  a stage. Which segment is *selected* is a separate decision from where it sits: both forms still
-  open on Delivered, because most orders are entered after they arrive.
-- **An enum earns a segmented control by being short and sequential; otherwise it is a combobox.**
-  Kind — Expense / Gift / Sold / Work / Other, which records whether an order was your money at all —
-  is an enum and is not segmented. Its values name ways an order reached Spendly, not stages an order
-  passes through, so the sequence rule above has nothing to put in order, and six segments in a 48px
-  row are unreadable at every width the form gets. It uses the same combobox as Vendor and Category,
-  and carries its consequence in help text under the field, since "Kind" alone does not say what the
-  field decides. Status stays segmented: three values, one lifecycle.
-- **Selecting a segment may not change its text metrics.** The track is `width:max-content`, so a
-  heavier active label widens the whole control, and every control sharing its row — the toolbar
-  search is `flex:1` — resizes to absorb the difference; because the labels are not equal-width the
-  jump differs per segment (300px on Spend, 298 on Name). The dark pill already carries the
-  selection, so it carries it alone: weight on top of it bought a 1–2px shift on every click, at any
-  number of segments. Nothing about this is per-control — it is why no toggle reserves widths.
-- **A range stays on one line; a row of names breaks.** Two fields side by side are not all the same
-  kind of pair. **From/To and Min/Max are one control each** — an end is read against the other end,
-  so they hold their pairing down to the smallest phone (`.field-pair-keep`, past the ≤700 collapse that
-  would otherwise split them). **Category and Kind are two independent values** that carry names,
-  so a row holding both breaks to one field per line at ≤900 (`.field-pair-stack-early`) — the
-  phone layout starts at 700, so from 701 to 900 the sidebar is still standing and a name is down to
-  165px, with a phone in landscape (844px) inside that band. That is the filter panel, where both
-  are one-line comboboxes. **On the create form they do not share a row at any width**, because
-  Categories is a field that *grows*: every chip added to it makes it taller while Kind stays a
-  single 48px row beside it, so the two labels line up and nothing under them does. A field whose
-  height is data has no business in a pair. **Vendor holds a row by itself at every
-  width**, because it carries the longest strings in the panel — `Silvan · Materialer`, and whatever a
-  user creates — and a pair gave it half the room at exactly the widths where it had least. At 390px:
-  names get the full 294px, each range column gets 139px, and the values fit it — a date wants 163px
-  of text room and has it, an amount 81. Panel height 597px against the 687 it would take with the
-  roles reversed; the fifth field is what the extra 88px bought, not a worse arrangement of the same
-  four. **Which way a row splits is a question about what the fields mean, not about their width.**
-  This holds for every range, not just these two: a from/to or a min/max pair added anywhere gets
-  `.field-pair-keep` on the row. The tally today is two — All orders' dates and amounts — and both carry it;
-  count before adding a third. Ports without these class names still owe the behaviour: a range does
-  not break apart on a phone.
-- Help text under a field is muted 12px. Watch the specificity trap: `.field > span` styles the
-  label, so a `.field-help` span in the same field inherits label weight and colour unless it is
-  overridden at equal or higher specificity.
-- Multi-select as chips inside the field — categories, removable ×.
-- Toggle-revealed optional sections ("More details?": green switch, right-aligned).
-- A live **summary card** in the rail mirrors the form: key/value rows, a green "Total est." that
-  builds as items are added, savings line.
-- **Scan review**: every extracted value editable *including shipping*; VAT reconciliation note (the
-  document total incl. 25% moms anchors the draft); matched-vendor chip; per-line checkmarks with
-  uncertain lines flagged warm; duplicate warning linking to the existing order.
-- **The receipt prefills the form; it does not decide which fields the form has.** The field set
-  belongs to the order — everything it needs before it can be saved — and the scan fills in whatever
-  it can read of that set. Vendor, date and lines arrive read from the document; Status, Shipping fee
-  and Kind arrive as defaults the reviewer confirms or corrects, which is why the card says *every
-  value is editable, nothing is stored until you save*. Which is which gets marked rather than
-  assumed — the matched chip, the per-line checkmarks, the `Guessed:` line under an uncertain read —
-  and that marking is what lets one form hold both kinds of value honestly. Asking instead whether a
-  receipt could supply a value is how a field goes missing from the review, and a field missing from
-  the review is one that takes its default forever, since the scan flow saves orders without the
-  create form ever opening.
-- **Create and scan are two doors to one saved order, so the review carries every field the order
-  requires.** A required value stays required whichever door it came through, and the receipt may not
-  carry it; the review is the last screen before save, so it is where the rest gets supplied.
-  **Required: Vendor, Date, Kind, and at least one item.** Shipping fee is optional and zero by
-  default; Categories is optional, which is why the review does not carry it and why the two forms
-  differing there is not a drift. The required fields carry `aria-required` in both forms, so the
-  sets can be compared with a grep instead of by eye — the check Kind failed when it was missing from
-  the review.
-- **Required and defaulted are not opposites.** Required means the field may not be saved empty;
-  the default is what it holds before anyone touches it. Kind is both: required, and opening on
-  **Expense**. Status is the same pattern one row up, opening on Delivered. **Where a default decides
-  a total, it must be the value that counts.** An order wrongly counted as spend is visible — it sits
-  in a figure the user recognises and can go find. An order wrongly excluded is invisible, and
-  nothing on any screen says a number is missing something. So the safe default is the conservative
-  one, and Kind's is `Expense`; the values that quietly remove money from the totals are never
-  reached by leaving a field alone.
-
-### Fields are real form controls
-
-> [!WARNING]
-> Never fake an input with a `<div>` and a `<span>`.
-
-The prototype had 24 fake fields and zero real ones, and every field-level bug traced back to it: the
-search "placeholder" wrapped to two lines and pushed the control off its geometry tier; date fields
-showed a chevron and could not open a picker; nothing had a mobile keyboard, an accessible name, or
-native truncation.
-
-`.field-shell` is the **shell** — border, radius, tier height, flex row. Inside it sits a real control that
-carries no chrome of its own:
-
-```css
-.field-shell > input, .field-shell > textarea {
-  flex: 1; min-width: 0; font: inherit; color: inherit;
-  background: none; border: 0; padding: 0; outline: none; text-overflow: ellipsis;
-}
-.field-shell:focus-within { border-color: var(--ink-strong); box-shadow: 0 0 0 1px var(--ink-strong); }
+## Foundations
+
+These are the building blocks. Nothing here is a control. Everything here is what controls are made of.
+
+### Color
+
+Every color is a named token. A hex value written directly into a rule is a decision nobody can find later.
+
+**Text, in four steps.** Text gets lighter as it gets less important, and the steps are fixed:
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--text` / `--text-strong` | #0B0F0D | Headings, figures, controls |
+| `--text-body` | #3A423D | Sentences and descriptions |
+| `--text-muted` | #636D64 | Metadata, captions |
+| `--text-faint` | #9AA39D | Placeholders, disabled-looking text |
+
+**Surfaces.** The app canvas is `--bg-app` #EFF1EF; cards float on it as `--bg-card` white. `--bg-row-hover` #F6F7F4 is the tint a navigable row shows under the pointer. `--bg-dark` #0B1A12 and `--bg-dark-lift` #12241A are the dark hero surfaces, with `--text-on-dark` #ADB8AF for their text.
+
+**Borders, in three weights:** `--border-card` #E9ECE8 around surfaces, `--border-divider` #EDEFEA inside them, `--border-control` #E2E4DF on fields — each slightly different because a hairline inside a card must be quieter than the card's own edge.
+
+**Semantics, one job each:**
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--green` | #14AC72 | Positive accents: savings, the answered state, meters |
+| `--text-positive` | #0E7A52 | Positive *text* — darker than `--green` so it reads at small sizes |
+| `--text-negative` | #B3261E | Rejections and negative deltas |
+| `--teal` | #07625E | Focus rings, keyboard navigation — nothing else |
+| `--blue` | #4F5BD5 | The AI/assistant accent |
+
+Green is never an action color and blue is never a success state. When one color means two things, changing it for one job silently changes the other.
+
+**Data viz has its own palette** (`--donut-*`, `--icon-*`: blue, red, yellow, purple, orange) because chart segments need to differ from *each other*, not to carry meaning — a donut slice is not "positive" or "negative".
+
+**Contrast is AA, by design.** `--green` on white is 2.93:1 — fine for a 3px meter, not for text, which is why `--text-positive` exists. Measured values live in [`docs/defects.md`](docs/defects.md).
+
+### Elevation and shape
+
+One shadow: `--shadow`, two soft layers. Everything that floats — cards, the combobox panel — uses it. A second shadow is a second opinion about how high things float.
+
+Three radii, named for what they wrap, not for their pixel count:
+
+| Token | Value | Wraps |
+|-------|-------|-------|
+| `--radius-compact` | 10px | 32px-tier controls |
+| `--radius-page` | 12px | The content sheet, panels |
+| `--radius-card` | 15px | Cards |
+
+### Typography
+
+One family — Poppins — in exactly three weights: 500, 600, 700.
+
+**The base is 14px / 500 / 1.45.** Everything inherits from it; a component states type only where it differs.
+
+| Role | Spec |
+|------|------|
+| Body | 14px / 500 |
+| Section labels | 11.5px / 600, uppercase, .08em letter-spacing |
+| Dense metadata | 11–13px / 500 |
+| Headline figures | 22px / 700, tight letter-spacing |
+| Hero headings | 26–30px / 600–700 |
+
+**Why 500 as the body weight, not 400:** 400 reads too light against these tinted sheets. No rule asks for 400, so the 400 face is not embedded at all — a face nothing requests is pure payload.
+
+**Why weights, not more colors, for hierarchy:** a bolder label beside a muted value gives two axes of hierarchy (weight and color) from one family, and both survive grayscale.
+
+**Numbers are tabular.** Any column of figures uses `font-variant-numeric: tabular-nums` (`.tabular-figures`) so amounts align digit-for-digit. A total that jitters as it changes is a total set in proportional figures.
+
+**Headline sizes are owned by a class, not by each site.** `.figure-large` is 22px/700 — the class exists because the size was once inline per site, and one site drifted to 24px against three at 22px. A size class that does not set a size is a defect wearing a fix.
+
+### Spacing
+
+Spacing builds rhythm and hierarchy. The system uses a tight palette of intentional gaps:
+
+| Value | Usage |
+|-------|-------|
+| 7px | Label to field |
+| 12px | Within a row, between small elements |
+| 14px | Inside panels, between sections |
+| 16px | Form grid, between fields at equal weight |
+| 18px | Between cards, top-level spacing |
+| 20px | Card gutter, row hover bleed |
+
+**Why these numbers:** They're the load-bearing values. Change one of these and the whole layout moves. Everything else is either derived from these or is a one-off constraint.
+
+**The test:** Grep the stylesheet. Count how many places use each value. The top six are the ones that carry the layout.
+
+### Grids and Breakpoints
+
+The shell is a two-column grid: a fixed 236px sidebar and a fluid content sheet. Pages lay their cards on an 18px-gap grid inside it.
+
+**Width breakpoints, from wide to narrow:**
+
+| Breakpoint | What changes |
+|------------|--------------|
+| ≥2200px | The content rail stops growing |
+| ≤1180px | Card grids drop to one column |
+| ≤900px | Two-column page layouts stack |
+| ≤700px | The phone layout: sidebar gone, bottom nav, one 12px gutter |
+
+**Each breakpoint answers one question** — "when does this arrangement stop fitting?" — so they are not a scale, and a new layout must justify a new number rather than reuse one because it is nearby.
+
+**Two breakpoints are not widths:**
+- `pointer: coarse` is what makes a phone a phone. Touch targets grow and fields render at 16px (then scale back) so iOS does not zoom the page on focus. A narrow desktop window is *not* the phone layout.
+- `prefers-reduced-motion: reduce` stops the animations for users who asked for that.
+
+---
+
+## Components
+
+Components are functional pieces of the interface. Each one is built from foundations and exists in multiple states.
+
+### Buttons
+
+A control that acts in place is a `<button>`. A control that goes somewhere is a `<a>` with `data-go` to identify the destination. That's not pedantry: a link opens in new tabs, a button doesn't. A link fires click on Enter, a button doesn't. They're not the same.
+
+**One base, then variants.** `.button` owns the shape every button shares: 38px tall, 12.5px/600 caps label, compact radius, a 1px edge (transparent until a variant colors it). Four buttons once restated that block in full and drifted apart doing it — three gaps, three radii and four font sizes for one control — which is why the shape lives in the base now.
+
+A variant is never written alone. It is always `class="button button-primary"`, because the variant owns only its *difference*:
+
+| Variant | Difference |
+|---------|-----------|
+| `button-primary` | Dark surface, white label — the one main action on a surface |
+| `button-outline` | White surface, visible edge — the alternative beside a primary |
+| `button-ghost` | No fill at all — low emphasis, the quiet second choice |
+| `button-pill` | The 32px tier: top bar and section actions share this one size |
+| `button-block` | Full width, 44px — a card's one big action |
+| `button-caps` | The hero's 48px entry buttons |
+| `button-link` | Underlined text action (SEE ALL, CLEAR ALL) — no box at all |
+
+**Every button label is caps.** One voice for actions, everywhere.
+
+**A button's icon follows the button's tier, not the call site** — 15px in the 38px tier, 14px in the 32px tier. An icon sized where the button is used is a size that drifts per page.
+
+**States:** the stylesheet defines no hover, active or disabled rule for buttons — a real gap, documented rather than papered over. Where an implementation must show *disabled* (a pager at its last page), it does so honestly and locally until the system settles a rule for all tiers at once.
+
+### Fields and Forms
+
+A field is a label, an input, an error message and help text, in that order.
+
+```
+Label
+[━━ input ━━]
+error message or help text
 ```
 
-- Every input declares an explicit `type`, and every one has an `aria-label`.
-- **Amounts are `type="text"` with `inputmode="decimal"`, deliberately.** Danish decimals use a
-  comma, which `type="number"` rejects; `inputmode` gets the numeric keyboard without the parsing.
-  Quantities use `inputmode="numeric"`.
-- Dates are `type="date"` — the OS picker is the point. The calendar glyph and the click that opens it
-  are ours on every engine, though: see [§17](#17-ios-and-webkit).
-- The photo field is `<label class="field-shell">` wrapping `<input type="file" accept="image/*">`, with
-  the chosen filename rendered as text.
-- Combobox fields are typeable inputs, per [§7](#7-comboboxes).
-- `:focus-within` on the shell replaces any hand-managed focus class.
+**Field shell** (`.field-shell`): The bordered box the input sits in. It can carry:
+- Leading icon (a glyph, read-only)
+- Trailing icon (a button or glyph)
+- Unit (text like "kr" for currency)
+- Chips (tags that sit inside the border with the input)
 
-**Control text never wraps.** `.field-shell`, `.combobox-option`, `.combobox-action`, `.chip` and segmented-control
-labels are all `white-space: nowrap` with `text-overflow: ellipsis`. The single exception is `.field-shell-area`
-(textarea), which must wrap. **Only the value column gives way** — units, key caps, status chips,
-thumbnails and category chips are fixed tokens, excluded from shrinking. A wrapping placeholder also
-knocks the control off its geometry tier: that is how the search field grew to two lines and stood
-taller than the FILTERS and Sort controls sharing its row.
+**Field types:**
+- **Text** (`.field`): Plain text input
+- **Date** (`.field-shell-date`): Date picker with a calendar glyph
+- **Combobox** (`.combobox`): Searchable dropdown
+- **Textarea**: Multi-line text
 
-### Rejecting a value
+**Field pairs** (`.field-pair`): Two fields side by side on desktop, stacked on phone. Used for ranges (from/to) and paired choices (first name / last name).
 
-> [!WARNING]
-> No field here validates itself. `type="number"` is not available, so every check is written.
+**Validation:**
+When a field rejects a value:
+1. The shell gets a red border
+2. The input gets `aria-invalid="true"`
+3. An error message appears below, with an id
+4. The input gets `aria-describedby` pointing at that message
+5. The form itself states the problem in one sentence
 
-New order step 2 took anything. ADD ITEM was drawn complete and bound to nothing, so a blank
-description, `2,5` pieces and a price of `gratis` were all accepted in the sense that nothing
-happened to any of them -- the honest-affordances defect ([§13](#13-honest-affordances)) with a
-second floor under it, since a form that never rejects a value is also a form that never took one.
+This marking is written once. Every form that rejects values uses the same pattern.
 
-- **The grammar is Danish and it is ours to enforce.** Amounts are `type="text"` for the reason above,
-  which also means no `min`, no `max`, no `step` and no `:invalid` -- the browser contributes nothing
-  but the keyboard. Quantity is `^\d+$`, 1 to 9.999 pcs. An amount is
-  `^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$`: a dot groups thousands, a comma separates decimals, two
-  decimals at most. `89.95` is therefore not a number to round off but a typo to name -- *Amounts take
-  a comma, such as 89,95.*
-- **Required on the item form is Description, Quantity and Price paid.** Retail price is optional and
-  still parsed: optional is not unchecked, and `gratis` is as wrong there as it is in Price paid. The
-  three carry `aria-required` like every required field here -- note that this is a third set, an
-  item's, so the grep that compares the *order's* required fields across the two doors is a grep of
-  step 1 and the scan review, not of every `aria-required` in the file.
-- **A rejection is a sentence, an edge and an announcement.** `.field-error` under the field carries
-  the words at 12px in `--text-negative` (6.54:1 on the card); the shell's border and 1px ring go the
-  same red through `:has([aria-invalid="true"])`; the input takes `aria-invalid` and an
-  `aria-describedby` pointing at the message, both removed the moment it clears. Colour is never the
-  carrier -- the sentence is. Focus lands on the first rejected field and the messages are read into a
-  live region, because on a phone the field being talked about may be off screen.
-- **The rejected edge outranks the focus edge.** Both selectors compute 0,2,0, so the tie is decided
-  by source order and `:has([aria-invalid="true"])` has to sit after `:focus-within` -- the user is
-  standing in the field being complained about, and that is exactly when the complaint has to stay
-  visible.
-- **Nothing is checked before it is answered; everything is re-checked once it is rejected.** The
-  first pass is on submit. After that a field re-checks on every keystroke, but only while it is
-  already marked, so nobody is told *How many did you buy?* over an answer they are two characters
-  into.
-- **Step 1 rejects on NEXT STEP, and it is the same apparatus.** Required is **Vendor, Date and
-  Kind** — the set above, and the set carrying `aria-required`, so the two can still be compared with
-  a grep. Status needs no check (a segmented control always has a selection) and Categories is
-  optional, which is why neither has a rule. Kind is typed rather than picked here, so it is checked
-  against the enum — *Kind is one of: Expense, Gift, Sold, Work, Other* — and the canonical spelling
-  is restored on the way out, so `expense` is normalised rather than rejected or stored. Date is
-  checked for being **in the future**, which an order cannot be; an empty `type="date"` and a
-  half-typed one both read as `''`, so *required* catches a malformed date as well. Shipping fee is
-  optional and still parsed, on the same Danish grammar as the item amounts. The marking, the status
-  line and the re-check timing are the *same functions* both forms call — a second copy of them would
-  agree until the day one was fixed.
-- **A message inside a closed disclosure is not a message.** Shipping fee lives in the "More
-  details?" panel, so a rejection there can land behind a shut panel with the button reporting a
-  failure the user cannot see. Whatever failed is opened — `aria-checked` back to `true`, the panel
-  unhidden — before the verdict is announced. Any field put inside a disclosure inherits this
-  obligation.
-- **A verdict nobody can see is not a verdict.** Every outcome of the item form is stated in one
-  line in the form itself -- *Shampoo, 500 ml added. Items · 3, 428,65 kr.* in `--text-positive`, or
-  *Not added — Quantity and Price paid need fixing.* in `--text-negative`, naming the fields rather
-  than repeating their messages. It was `role="status"` and `.screenreader-only` at first, which
-  announced the add to VoiceOver and showed nobody anything: on a phone the item row, the count and
-  the summary are all below the fold, so a successful add and a dead button drew the same screen and
-  the only visible sign was the form going blank -- which reads as losing the input, not banking it.
-  The line is empty at rest (`:empty { display:none }`, so it costs no row) and **scrolls itself into
-  view** rather than trusting a fixed position: under the button it measured 59px below it, where an
-  iOS keyboard lands, and above the fields it sat at -70px whenever the tap had to scroll down to
-  reach the button. A message that has to be scrolled to is the defect again, one layer up.
-- **The button does what its label says.** ADD ITEM appends the row, the count, the summary row, the
-  total and the savings line; Enter adds and keeps the form, Escape clears it, which is what the help
-  text beside the button had promised for as long as neither did anything. The totals are read back
-  off the rows themselves rather than kept in a parallel figure, so the rows already on the page and a
-  row added at runtime are one kind of record. **A line with no retail price contributes its own price
-  to the retail side** -- dropping it from the denominator instead reports one discounted line among
-  ten as the whole order's discount.
+### Cards
 
-## 10. Cards
+A card is a section with optional header, content, and divider.
 
-- Header: caps label left; optionally a bordered context chip (the `Save · 4.52% APY` pattern) or an
-  EDIT-style pill (32px/r10) right. Hairline below the header.
-- **The label sets the band's height; the thing on the right does not.** `.card-header` is
-  `height: calc(28px + 11.5px * 1.45)` — its padding plus the label's line box — and every control it
-  can hold is shorter than that, so each one centres inside the band instead of stretching it. Left
-  in flow to size the header, one component drew **six heights**, decided entirely by what sat on the
-  right: a 32px pill made four headers 60, 30px range tabs made one 57.94, a 28px chip made two 56, a
-  17px caption made five 45.39, and the twenty carrying a label alone stood at 44.67. Nothing about
-  *Categories* wants to be 15px taller than *Spending rhythm* next to it; it was taller because it
-  has an ADD button. **All 32 headers are 44.67 at both breakpoints, with no exception.** It is
-  stated as a `height` and not a `min-height` because the defect is a header growing, never one
-  shrinking.
-  - **A control that will not fit the band does not belong in the band.** The range tabs were the one
-    right-hand item taller than 44.67 — five buttons wrapping to two rows and 66px at 390, beside a
-    label that wrapped with them, for a header 93.88 tall. They moved to the **card body**, which is
-    where the hero card's identical control already sat; the `style="margin:0"` pinning them into the
-    header was the tell that they were fighting it. Two placements for one control is what let one
-    header keep a different height. Prefer moving the control to carving an exception into the rule —
-    an exception is a second spec with a `:not()` in front of it.
-  - `.section-header` has the same defect and takes the opposite fix: its own band is 24.67 and the
-    32px pill two of the three carry does **not** fit inside it, so shrinking to the label would hang
-    the button 3.7px out of the band at both ends. These level up to the control (`min-height: 40px`)
-    rather than down to the label. Which way a band resolves depends on whether its tallest control
-    fits inside it — check that before copying either rule.
-- Inner gray panels: `#F2F4F1`, r12, rows with 40px rounded-square icons, **no dividers between rows**
-  — spacing only — and green amounts right.
-- SEE ALL is the 44px full-width outline button at the card foot. Underlined caps links
-  (`.button-link`) appear only inside empty states.
-- **A tinted note and the action under it are 12px apart, and the gap belongs to the note**
-  (`.note + .button`). Spacing between two blocks is not a property of one of them: set on the button,
-  it becomes whatever that variant happens to declare, and the outline and full-width variants do not
-  agree. [Defect log](docs/defects.md#10-cards--a-note-and-the-action-under-it).
-- Empty states: loop glyph, one sentence, underlined caps action.
-- Exactly **one dark card per screen** — the AI/contextual slot.
-- A card header that navigates gets the chevron **and** the standard `.card-divider` hairline. The tally
-  was 35 headers with the hairline against 4 without, and the 4 were the chart cards.
-- **The body's `14px` top padding is the default for a reason: do not tighten it under a hairline.**
-  The two spend cards overrode `.card-body` to `padding-top: 2px`, which left the first line of text
-  4.5px below the rule on Orders / Overview and 10px on the Home hero, against an 18–24px band on
-  every other card in the file. It does not read as tight spacing, it reads as the text colliding
-  with the border. Measure from the hairline's bottom edge to the top of the first glyph's em box,
-  not to the element box — a big number hides 5–6px of half-leading inside its line box and a
-  12px label hides 2px, so equal padding on the two looks nothing alike.
-- **Padding is set by which kind of body it is, never per card.** Five variants lived inline across
-  20 card bodies, and the eight list cards that tighten the top under a header disagreed at 6px, 4px
-  and 10px for one job — the rule above is about not tightening too far, not about doing it three
-  ways. Two are reachable by structure (`.card-steps .card-body`, and the summary card as
-  `.card-body:has(> .card-subheading)`); the rest are named: `.card-body-page` for a flow page's main
-  card, `.card-body-tight` for a list under a header, `.card-body-centered`, `.card-body-filters`.
-  Check what a new selector matches before trusting it — `:has(> .card-headline)` looked like the
-  fourth structural case and matched four bodies where only three wanted the padding.
+**Card header** (`.card-header`): 
+- Has a title (required)
+- Can be linked (optional, but needs an `aria-label` if so)
+- Gets a chevron when linked
+- Announces as: "{title}, open {destination}"
 
-### Dashboard personalisation
+**Card body** (`.card-body`):
+- 14px top padding inside
+- 20px side padding
+- Never gets a padding-top override, ever. That's how two cards got 2px overrides and put their content at four different distances from the hairline.
 
-The home dashboard's second row is a set the user picks and orders.
+**Card divider** (`.card-divider`):
+- 1px line between header and body
+- Inherits text color, so it's darker where text is darker
 
-> [!NOTE]
-> It is **not** called Favourites. That word already means the `IsFavorite` star on a Vendor or
-> Category record, and reusing it for pinned widgets collides with a concept the app already ships.
-> The section is "Your cards".
+**Card types:**
+- **Data card**: Static information (orders, vendor details)
+- **Question card** (`.card-question`): Asks something, has an answer and a call-to-action
+- **KPI card** (`.card-kpi`): Number, label, delta (statistic tiles on Statistics page)
 
-- **Catalogue of six, three on by default**: Spending rhythm, Category breakdown, Top vendors *(on)*;
-  Favourite categories, Saved vs retail, Monthly pace *(available)*. Every one is backed by data that
-  already exists, so nothing here needs a new query.
-- **Favourite categories must stay in the catalogue.** The live app renders a favourite-categories
-  shortcut row on Home today (`CategoryService.GetFavoritesAsync`); dropping it from the redesign
-  would orphan a working feature.
-- EDIT swaps the section actions to DONE (dark, confirm-first) + CANCEL, dashes the card borders, and
-  prepends a per-card toolbar: position readout ("2 of 3"), move earlier, move later, remove. A tray
-  card below lists what can be added.
-- **Reordering is button-driven, never drag-only.** A drag handle alone excludes keyboard and switch
-  users; [§18](#18-accessibility) requires a button or menu equivalent, so start there rather than
-  bolting one on.
-- Ends are `disabled`, not hidden, so the control set does not reflow as cards move. When the button
-  that just moved a card becomes disabled at position 1, focus falls to the sibling direction button
-  rather than to `<body>`.
-- One polite live region announces every change — "Top vendors moved to position 1 of 3", "Monthly
-  pace added at position 3".
-- CANCEL restores the snapshot taken on entering edit mode; Escape does the same. Nothing persists
-  until DONE.
-- Empty is a real state: removing every card shows a dashed placeholder, not a bare heading.
-- The affordance is a dashed border, deliberately not an animation, because the
-  [§18](#18-accessibility) reduced-motion reset would strip it.
-- **Read unknown card keys defensively.** The stored list outlives any given catalogue, so filter it
-  against the cards that actually exist before applying it, or a renamed card wipes the dashboard.
-  The prototype persists to `localStorage['spendly.cards']` and tolerates storage being refused; the
-  port stores it server-side ([§20](#20-notes-for-the-port)).
+**A note and the action under it stand 12px apart, set from the note** (`.note + .button`). Set from the button, the gap depends on which variant happens to follow — one variant carries its own margin and another carries none, which is how the same pair once measured 12px on one page and 0 on another. ([`docs/defects.md`](docs/defects.md))
 
-> [!CAUTION]
-> **Cost us a bug.** Any class that sets a `display` value outranks the UA's `[hidden] {display:none}`
-> rule, so `.button.button-pill` / `.button.button-caps` kept rendering while hidden and EDIT, DONE and CANCEL all showed
-> at once. Ship a global `[hidden] { display: none !important; }`.
+### Data Rows
 
-## 11. Page patterns
+A row displays one record in a list. It is either:
+- Read-only (static text), or
+- Navigable (the whole row is a link to the record, carrying `data-go`)
 
-Routes in the prototype: `home`, `orders` (Overview), `orders2` (All orders), `detail`, `create` →
-`create2`, `scan` → `scan2` → `scan3`, `vendors`, `categories`, `stats`.
+Editing never happens in the row — a record is edited on its own form page, one way, everywhere.
 
-**Range chips** — one control, one set, on both pages that carry a chart: **1W · 1M · 3M · YTD ·
-ALL**, buttons in a `role="group"`, active one bordered and `aria-pressed="true"`. No 1D: a ledger of
-orders has nothing to say about a single day. They re-plot the chart they sit in — 1W slices the last
-seven days, 1M is the month the prototype holds, and the three longer ranges bucket that month into
-the point count they would carry. Where a chart also has a series switcher, the switcher owns *which*
-series and the range owns *how much*, so neither resets the other.
+**Row anatomy:**
+- Left: glyph or avatar
+- Center: one or more text fields (title, subtitle, metadata)
+- Right: optional action (chevron to navigate, delete button, etc.)
 
-**Home** — spent-this-month hero (big number, savings line, range chips with a bordered active state,
-chart with floating callout, Orders/Saved half-underline tabs, category split bar and expandable
-legend), dark AI scan card, latest orders, saved-vs-retail, then the personalised card row. Title is
-"Home", no greeting.
+All gaps are 12px. If that's wrong for a row type, it needs its own CSS rule.
 
-**Orders / Overview** — comparison chart card (current period solid, previous period in a lighter
-tint of the same hue, dashed guide, halo marker, ruler ticks, a `.chart-series-key` naming both periods), twin LATEST
-cards, FOR YOU promo row (tag pills;
-horizontal scroll ≤1180, stacks ≤700), rail with returns, question of the day, category breakdown
-(Expenses | Budget segmented plus donut), ORDER SETTINGS.
+**Hover state:** On desktop with a pointer, rows that navigate show a tint (`[data-go]:hover`). On phone with touch, no hover. The tint bleeds 10px into the card gutter on each side.
 
-**Orders / All orders** — the search surface: 38px finder input (vendor, note, item text), FILTERS
-disclosing the inline panel it opens and collapses, **collapsed on arrival** (a full-width vendor combobox, then category and
-kind comboboxes, from/to, min/max with `kr.` units, status segmented led by Any, APPLY 32px +
-CLEAR), active filters as removable ×
-chips plus CLEAR ALL, sort combobox chip, results line "N match · filtered from total", rows with
-status chips and saved amounts, PREVIOUS/NEXT. Sub-tabs double as one-tap status filters.
+**Why `data-go`?** It's what every clickable row carries. It names the destination. So styling is simple: `a[data-go] { color: inherit; text-decoration: none; }`. One rule, every linked row looks like a row, not a link.
 
-**Order detail** — back arrow in the **top bar**, never floating in a card. **No internal ids shown.**
-Header card (vendor, date and count, category chips, status chip, edit/delete); items with photos and
-**paid prices only** — retail never displays on details; totals with the order-level green saved
-line; rail with details facts (status, date, vendor, categories, **kind**, saved vs retail),
-attachments (ADD FILE, open/delete) and the contextual dark scan card. **Every summary that shows
-Categories shows Kind** — this rail and the create summary — so a total with a hole in it can be
-explained from the order that made it.
+### Notes
 
-**Scan flow** — three steps, Upload → Reading → Review, with the stepper. Reading is a full-width card
-sharing the stepper's edges, with a centred column inside: document preview, filename headline, help
-line, an **indeterminate progress bar** (a 38% segment sliding on a 420px track, `aria-busy` on the
-card, no percentage claimed because a scan has none) and the review link. No spinner — the moving bar
-carries the busy state on its own. Review as in [§9](#9-forms-and-fields), with the draft fields
-paired two to a row under a full-width vendor: **Date and Status on the first line, Shipping fee and
-Kind on the second** — the same shape as the create form, so the two teach one layout rather than
-two. Kind was left off this form once, on the grounds that a receipt cannot say whose money paid for
-the order — which is the wrong question, per [§9](#9-forms-and-fields): neither can it say the order
-arrived, and Status is here, and Shipping fee is here with help text saying outright that it is not
-on the receipt. The cost of getting it wrong is specific to this screen. A work-bought order scanned
-from a receipt would have taken the default, landed in the month's spend, and stayed there until
-someone went looking for it.
+A note is a tinted callout. It has a tone (positive, warning) and optional title.
 
-**The source card shows the file that was dropped, not a receipt.** The scan hero offers "a PDF,
-photo or screenshot" and the four entry buttons name three of them, but Reading and Review were
-fixed to `kvittering-bilka.jpg` and drew one receipt glyph whichever was chosen — a PDF invoice
-reached the review screen described as a 2,1 MB photo. Each entry carries one document instead:
-`photo` (JPEG), `screenshot` (PNG), `invoice` and `confirmation` (PDF, with a page count, which is
-the one fact only a PDF has). Both steps render it — `.document-preview` takes `ti-photo` or
-`ti-file-text` from its variant, the filename fills the Reading headline and the source card's name,
-and the size line leads with the format. **The format is the file's, the glyph follows it**, which is
-the split the attachments list already keeps: `ti-file-text` for `faktura-303.pdf`, `ti-photo` for an
-item photo, `ti-receipt` left to mean a receipt as a thing rather than a file. The draft below does
-not change with the wrapper, and should not: the same Bilka purchase can arrive as a phone photo, an
-emailed PDF or a screenshot of an order email. Both glyphs ship in the markup with the variant
-choosing between them, so the state is reachable with no script.
-
-**A filename is data, so it is as long as it is.** `ordrebekraeftelse-bilka.pdf` wrapped the source
-card's name row at 390px and took the card from 328.39px to 359.78px — the card changed height with
-the file that was dropped. The name is one line with an ellipsis and the size keeps its width. That
-needs a class of its own: `.space-between` wraps below 700 ([§16](#16-the-phone-layout)), so a
-wrapping row shrinks nothing and `min-width:0` on the name has no effect there; `.document-name-row`
-outranks the phone rule by class count rather than by source order. All four documents then measure
-one card — 366×328.39 in Blink, 366×308.12 in Gecko, 366×307.67 in WebKit at 390px.
-
-**A page hero is one component with two framings.** `.hero` holds the type — 30px/600 heading,
-14px sentence at a 52ch measure, 48px caps action — and the variant holds the frame: `.hero-panel`
-is the tinted, left-aligned block, `.hero-column` is the centred 760px column. They were two
-unrelated classes and drifted: the scan page's heading was 26px/700 and its sentence 13px, which put
-it outside [§3](#3-typography) on both counts, and its sentence ran the full 740px — about 95
-characters, well past a readable measure. Unifying moved that one page and nothing else.
-
-**Vendors** — hero panel (`.hero.hero-panel`: warm tint `#EDEEE7`, big sentence, dark caps CTA), favourite spotlight cards
-(linked caps header, sentence, inner panel rows), full-width search with
-Spend/Name/Orders/Saved segmented, horizontal all-vendors card row.
-
-**One vendor card, in two sizes.** The spotlight card and the all-vendors card said the same
-things in two arrangements: one reached the vendor's orders through a full-width VIEW ORDERS at
-its foot, the other through its header band. The header is the way in on both now — label left,
-chevron right, the whole band a link, which is what [§10](#10-cards) already says every card
-does — and the foot is where the buttons live. A second control for one destination is not a
-second affordance, it is a second thing to keep in step.
-
-**A header chip has to say something the card does not.** The spotlight header carried
-`Favourite · saved 6.940 kr.` above a panel whose first row is *Saved vs retail · 6.940 kr.*, and
-beside a star that is the favourite state and toggles it — three controls and a label in one
-band, for two facts, one of them printed twice. The chip went. The `Save · 4.52% APY` pattern in
-[§10](#10-cards) is the case that stays: it carries a figure that appears nowhere else on its card.
-
-**A linked header holds no buttons.** Once the band is a link, a button inside it is two things
-to activate in one box and no engine agrees about which one a click means. That is the other
-half of why the star and the pencil sit at the foot of the card rather than in its header.
-
-**A horizontal scroller reserves a lane for its scrollbar.** `.scroll-row` had `padding-bottom:4px`,
-which is not a scrollbar — a classic 15px bar is then drawn hard against the cards' bottom border
-and reads as lying on top of them. It is the same `14px` as the gap between the cards, so the bar
-gets a band of its own rather than a new number. Overlay scrollbars (macOS, and headless Chromium,
-which is why no harness here can see this one) hide the defect completely.
-
-**Categories** — full-width search with Spend/Name/Orders segmented, icon-square list rows with
-percentage of expenses and amounts, question card, breakdown donut.
-
-**Statistics**, with every current metric kept — a period pager (‹ July 2026 ›) and a headline with
-delta chip, plus the same five range chips as Home on the comparison card; four KPI cards each with
-an explicit previous-period delta (trend icon, "x% up/down vs June", previous value); race chart;
-**Pace** (projection, meter with fill and previous-period-end marker, plus note); **Weekly rhythm**
-(weekend share, busiest day, 7 mini columns); breakdown ring with gaps; month columns; returns note.
-
-## 12. Chrome
-
-A personal, single-user system: **no avatar, no help "?", no bell, no greeting, no visible internal
-ids.** Top bar = title + global finder + SCAN RECEIPT (dark) + NEW ORDER (outline).
-
-That rule reaches inside the lists too, and it took a while to notice there: every row of Orders'
-*Latest orders* carried a pair of overlapping 15px circles beside its figure, `aria-hidden`, in no
-other list, explained nowhere. Overlapping faces mean *these people are on this*, which is a real
-affordance in the shared-finances app the layout language comes from and is nothing at all here —
-there is no second party to show. They were the only ornament in the file with no referent, and they
-were reading as data: the leftmost circle even took a per-row colour. Deleted. **An element that
-encodes nothing is worse than one that decorates, because a colour that varies by row invites a
-reader to work out what it varies with.**
-
-**Both creation paths stay on the phone.** Scanning is the fast path, but typing an order is the one
-you need when there is no receipt to scan, so it must never become the desktop-only option. The
-prototype hid NEW ORDER below 700px and left the app scan-only on the device where orders are most
-often added. On mobile the labels shorten to SCAN and NEW so the pair still fits one row, with the
-full wording kept in the accessible name.
-
-`.global-finder` carries the `margin-left:auto` that pushes the actions right and is hidden on mobile, so
-`.topbar .topbar-actions` has to take that job over or the buttons sit against the title.
-
-The sidebar foot is the wordmark line alone — `Spendly · personal ledger`. **No legal, privacy or
-terms links**: there is no second party here to disclose anything to. Hidden entirely on mobile.
-
-## 13. Honest affordances
-
-The most common defect found in this design was chrome that looks interactive and is not. Every
-instance below shipped because a shape was copied from the reference without asking what it would do.
-
-- **A chevron means "this goes somewhere".** It appears only on something that navigates, and
-  anything that navigates carries one. Audit both directions: the prototype had 12 chevrons, all
-  dead, and after wiring them 9 rows were clickable with no chevron at all. Both directions failed
-  again later, in one list each, which is why the audit is a script and not a read-through: All
-  orders drew three identical rows where only the first was an `<a>`, so two chevrons pointed at
-  nothing and `.order-row`'s own `cursor:pointer` put a hand on them; the scan review's duplicate
-  row was the reverse, a link with no chevron at all. Walk every row and card header, read
-  `[data-go]`, the chevron and the computed `cursor`, and require the three to agree — 98 rows and
-  headers, 26 navigating, 26 chevrons, and no hand on anything inert.
-- **The hand comes from `[data-go]`, never from a row class.** `.order-row { cursor:pointer }` drew
-  one over the two rows that went nowhere: a class cannot know whether the element it styles
-  navigates, and the attribute that decides already carries the rule.
-- **Chevron direction carries meaning** — right = navigate away, down = expand in place. Do not mix
-  them; the Home legend used down-chevrons on rows that navigate.
-- **A chevron takes its 26px out of the row it sits in, so a list where only some rows navigate must
-  reserve the slot on all of them.** The glyph is 15px and the row's gap is 11px, and both come out
-  of the right-hand run: Orders' *Latest orders* holds four rows, one of them a link, and that row
-  ended its figure at 576.78 while the other three ended at 602.78 — the money column stepping in by
-  26px on the only row a pointer ever lights up. The rows that do not navigate hold the slot open
-  (`::after { content:''; width:15px }`) instead of filling it with a chevron, which would buy the
-  column back with a promise the row does not keep. The all-orders list never had the defect and
-  shows the other way to get it right: its chevron sits in a grid track, and a track is reserved for
-  every row whether that row fills it or not. Only reserve where a list actually mixes the two —
-  keyed on `.entry-list:has(.chevron)`, the rule reaches 3 rows of the file's 15 and leaves the 11 in
-  lists where nothing navigates at full width.
-- **Date fields carry the calendar icon, never a chevron.** A chevron promises a list; a date field
-  opens the OS picker. The icon is ours on every engine and the browser's own is taken off the field
-  ([§17](#17-ios-and-webkit)) — so the glyph is what opens the picker, on click or Alt+Down.
-- **Anything clickable is the element for the job, not a div wearing its role.** Twenty-six rows, card
-  headers and the brand were `<div role="link" tabindex="0">` with a hand-written Enter handler, against
-  five real `<a>` in the whole file — a link rebuilt three attributes and nine lines at a time, and
-  rebuilt only as far as someone remembered. They are `<a href="#">` now and the handler is one
-  `preventDefault` (the href is `#`, so without it every row click appends a fragment and jumps to the
-  top). Enter comes from the platform, Space still scrolls because that is what a link does, and
-  middle-click, ⌘-click, the context menu and open-in-new-tab arrive with it — none of which a `role`
-  can provide. `a[data-go]` carries `color:inherit; text-decoration:none`, keyed on the attribute
-  rather than a class because eight different components navigate this way, and on `a` specifically so
-  the `<button data-go>` elements keep their own colours.
-- **A hover tint gets its own token, not the divider's.** One token drew both, and a value chosen to
-  read as a 1px line edge-on is too heavy spread across a whole row: it announced a selection where
-  the pointer only meant "this goes somewhere". `--bg-row-hover` is `#F6F7F4`, half the contrast against
-  `--bg-card` — 9/8/11 off white against `--border-divider`'s 18/16/21. The card header that navigates takes the
-  same token, since it is the same affordance one band up; two tints for one meaning would be the
-  drift the token exists to stop. The rule under a lit header no longer vanishes into it — it reads
-  as the bottom edge of the lit band, which is why that rule still goes full-bleed on hover
-  ([§10](#10-cards)): the two lines a pixel apart were the defect, not the colour match.
-- **A tight top belongs to the container, not to the row.** A row's own padding is the box its hover
-  tint paints, so padding trimmed off a row to close a gap is padding the lit band loses on one side
-  and keeps on the other. `.entry-list-row` was `padding:7px 0` when this was found and is the row
-  spec's `10px 0` now ([§5](#5-control-geometry)); the first row's top 7px was zeroed
-  to sit it under the card divider: the glyph in Orders' *Latest orders* then sat 3.30px below the
-  band's top edge and 10.30px above its bottom, and the amount 11.23 and 18.23 — a band 7px heavier
-  at the foot of the one row in the file that lights up. Take it off the container instead, where
-  nothing draws a background: the body gives up its own 6px, the text lands within a pixel of where
-  it was, and glyph and amount come back to 10.30/10.30 and 18.23/18.23. The two other hoverable row
-  families never had it — `.chart-legend-row` and `.category-row` clear the first row's `border-top`
-  and leave its padding alone, which is the same idea one property over. Audit this by walking every
-  element a `:hover` rule paints and comparing `padding-top` to `padding-bottom`; count the border
-  only where it is transparent, since an opaque one paints over the tint it would otherwise offset.
-- **A header that lights up is a band too.** `.card-header` was `16px 20px 12px` — more air above the
-  label than between it and the divider under it, which is defensible spacing right up until the five
-  headers that navigate paint it: the label's ink measured 20px below the lit band's top edge and 16px
-  above its bottom. Even padding, `14px 20px`, keeps the same 28px total, so no header changes height
-  and nothing reflows — the label rises 2px and the block is even around it. Spacing tuned for a
-  resting state is a claim about a lit one wherever a hover rule paints a background.
-- **A row's hover tint bleeds 10px past the body gutter; the row's content does not.** The card body's
-  20px padding is right for text and too tight for a highlight -- the tint stopped hard against the
-  first glyph and the chevron at both ends. The header above already lights up edge to edge, so this
-  is the same affordance for a row that sits inside the padding. Ten is half the gutter and leaves
-  11px of card either side; the full 20 reaches the card's inner border and reads as the row escaping
-  the card. Draw it with two offset `box-shadow`s, not a wider box and not a positioned pseudo-element.
-  A wider box drags every divider out with it, since the divider between rows is the row's own
-  `border-top`. A pseudo-element needs `position:relative` on the row to hang off, and that alone
-  dropped these rows from subpixel to grayscale text antialiasing -- 5,726 pixels of `docs/home.png`
-  changed, every one a glyph edge, for a highlight that was not even on screen. The shadow form
-  changes nothing until `:hover`: 0 differing fields across 110,560 elements.
-- **A `role="tab"` is a promise.** Tabs are `<button>`, carry roving `tabindex` (selected 0, rest -1),
-  respond to Left/Right, and keep `aria-selected` in sync. Twelve `<span role="tab">` elements
-  announced as tabs while being inert. This holds for the inline segmented controls (`.segmented.segmented-compact`)
-  and the hero's Orders/Saved pair as much as for the page sub-tabs.
-- **A tab must change what is on screen.** Tabs that could not — Delivered, Returned, Reports, and the
-  statistics period tabs that duplicated that page's own pager — were deleted, not left as decoration.
-- **A disclosure button owns its panel.** All orders' FILTERS stood above the filter panel with a
-  border, an icon and no handler — the decorative-control rule again, in its hardest form to spot,
-  because this document already said the button toggled the panel and the screenshot showed both. The
-  button carries `aria-expanded`, `aria-controls` names the panel, and the panel is `hidden` when
-  collapsed. **It starts collapsed** — a disclosure whose default is open is a panel with a button on
-  it, and open this one puts 8 fields and a segmented control between the search field and the orders
-  they filtered. **The label is the
-  same string in both states** — the chevron rotates instead. "HIDE FILTERS" is wider than "FILTERS",
-  and the search beside it is `flex:1` in a `nowrap` row, so a changing label would move the search on
-  every click: the segmented control's rule ([§9](#9-forms-and-fields)) arriving from the button side.
-- **A filter panel shows the filter its list is under.** A list can be arrived at already filtered —
-  from a category tile, a vendor card, a chart legend row, the answer to the question of the day — and
-  when it is, the panel's own fields state those filters, not *Any vendor* over a list that is one
-  vendor's. The chips and the fields name one filter the same way, because a field is the control a
-  user edits from and a panel describing a filter it is not showing sends the next APPLY out with the
-  wrong values. This is what has to be true before a panel is allowed to start closed: opening it is
-  how you check what a link set.
-  [Defect log](docs/defects.md#13-honest-affordances--filters-starts-closed-and-the-panel-shows-the-filter).
-- **A switch that reveals a panel is a disclosure wearing a different shape, and owes the same
-  wiring.** "More details?" carried `role="switch" aria-checked="true"`, sat above the optional
-  fields it names, and toggled nothing -- the decorative-control rule in the one form no screenshot
-  can fail, because the only wrong frame is the one *after* a click and every shot is of the resting
-  state. Two halves were missing and either alone still lies. The handler is one: the switch carries
-  `aria-controls` naming the panel, the panel is `hidden` when off, and the section goes 271.7px to
-  56px on the click at 1440, 361.5px to 56px at 390. The **off state in the CSS is the other** -- the track was `var(--green)` and
-  the knob pinned to `right:3px` with no `[aria-checked="false"]` rule anywhere, so wiring it alone
-  would have reported the change to a screen reader and not to the eye. The track greys and the knob
-  moves to `left:3px`; `#838C84` is 3.47:1 against the white card, which is what keeps the white knob
-  visible on it. Verified in Blink 141.0.7390.37 at 1440 and 390 -- Gecko and WebKit unverified:
-  click, Space and Enter each flip the state, track and knob move together, and the
-  button holds 44x26 in both states, so the control does not resize on toggle ([§18](#18-accessibility) -- 1.4.11 is about the states of a control, not only its
-  text). Neither half is optional and neither is visible in a still. It starts on, as the form did.
-  The *on* track is the one figure left standing: `var(--green)` is 2.93:1 on the white card, just
-  under the same 3:1. It is untouched here because moving it moves the brand green everywhere it
-  fills, which is a palette decision and not a fix to a dead switch -- recorded so the next reader
-  finds it deliberate rather than missed.
-- **`hidden` collapses a panel even when the author sets `display` -- and it is worth writing down,
-  because the shape looks exactly like a bug.** An author rule beats the user agent whatever the
-  specificity, so `.filter-section-body { display:grid }`, which the panel needs for its 14px gap,
-  reads as precisely what would keep a hidden element on screen. It does not, because the UA rule is
-  `display:none !important` in the HTML standard's own rendering section rather than one vendor's
-  choice: measured `none` in Blink 141.0.7390.37, on the panel and on the unguarded
-  `.filter-section` that FILTERS has always relied on. A defensive `[hidden] { display:none }` was
-  written here on the assumption that the `!important` was Chromium's own, and deleted once the
-  spec was read -- it restated a value the UA stylesheet already computes. Do not add one, and do
-  not read the existing panels as unprotected.
-- **No decorative controls at all.** The kebab was a `<span aria-hidden="true">` with no handler and
-  no intended action, inherited from the reference's card menu; it invites a click that does nothing.
-  Deleted. The hero `[+]` went too: it duplicated the top bar's NEW ORDER and existed only because
-  that button was hidden on mobile.
-
-> [!WARNING]
-> **Changing an element's tag re-sorts every `*-of-type` selector around it.** `.order-row:last-of-type`
-> means "the last row in the list" and counts tags instead. The pager `div` under the rows was the last
-> `div`, so the rule matched nothing and all three rows kept a trailing hairline nobody had noticed in
-> a screenshot that shows it. Making the first row an `<a>` then left it the only element of its type,
-> so the dead rule woke on the wrong row and stripped the border from the top of the list — 190 moved
-> rectangles, from one 1px line. Neither state is what the rule says. Write `:not(:has(~ .order-row))`,
-> which counts the same thing the name does.
-
-## 14. Charts
-
-> [!WARNING]
-> Never scale a fixed `viewBox` to fit. Both `preserveAspectRatio="none"` and
-> `width:100% + aspect-ratio` zoom the whole drawing: the stroke thickens, marker circles turn into
-> ellipses, and with `none` the curve's slope changes with window width, which misreads the data.
-
-Instead, hold the height fixed and remap the viewBox onto the element's real pixel box on every
-resize — `viewBox="0 0 <measuredWidth> <fixedHeight>"` — so one user unit is always one CSS pixel.
-Stroke widths and markers then stay constant in screen pixels, and only the horizontal spacing of the
-data changes.
-
-- Keep the series as data (`data-series`) and regenerate the path rather than hand-authoring bezier
-  control points: the numbers stay legible and re-plot at any width. Baselines (`data-baseline`) and
-  markers (`data-marker`) are placed from data too.
-- A `ResizeObserver` handles charts on hidden pages, which measure zero wide until shown — nothing has
-  to be redrawn by hand on navigation.
-
-### Comparison charts
-
-- **The comparison period is always the one immediately before — never a picker.** Orders / Overview
-  shipped a "Compare with: June ▾" chip that implied a choice the app does not have; a control that
-  can only ever hold one value is a lie about the interface (§13). State the period instead: the
-  Statistics card does it in the header (`Overview · July against June`), Orders / Overview does it
-  in the series key.
-- **A key names every plotted line or it is not a key.** Orders / Overview drew two series and
-  labelled one of them, leaving the reader to guess that the pale line was June — the chip that
-  actually said "June" sat on the far side of the card, styled as a control rather than as a legend.
-  `.chart-series-key` is the pattern: one 9px swatch per series in that series' own stroke colour, 12px
-  `--text-body` label, `flex-wrap` so it stacks rather than overflows at 390px.
-- Do not repeat the card header in the body. Under a header reading `SPENT · JULY 2026`, an
-  "Expenses" caption above the number says nothing the header has not already said, and it cost the
-  number its leading.
-
-## 15. Responsive containment
-
-**Audit clipped content, not document overflow.** `document.scrollWidth - clientWidth` was 0 on every
-page while the Orders filter panel was 76px wider than its card and simply cut off: a card clips its
-own children without the document ever overflowing, so the controls become unreachable with no
-scrollbar to reveal them. Measure `el.scrollWidth - el.clientWidth` on every element instead,
-excluding the deliberate scrollers (`.scroll-row`, `.promo-row`).
-
-**Then measure document overflow too -- it is a second check, not a superseded one.** The hidden file
-input on New order step 2 set `width:1px` and lost to `.field-shell > input { width:100% }`, which is
-one type selector heavier than a lone class; an absolutely positioned box whose ancestors are all
-static resolves that against the viewport. It was 1440px wide, invisible, and hung 657px off the
-right of the page, scrolling the document into blank space at every width from 390 up. The element
-audit above cannot see it -- nothing clips a box that no ancestor contains, so every
-`el.scrollWidth - el.clientWidth` reads 0 while the document grows. Assert
-`documentElement.scrollWidth === clientWidth` on every page as well; it was the only page of twelve
-that failed, and it failed at all five widths.
-
-The cause is almost always the same — **flex and grid children default to `min-width:auto`**, so a
-long placeholder, a `white-space:nowrap` price or a fixed-width chip refuses to shrink and bursts the
-container. Rules that follow:
-
-- Give every layout container in a form panel `min-width:0`: `.filter-section`, `.field`, `.field-shell`, and
-  `.filter-section > *`, `.field-pair > *`, `.row-inline > *`, `.card-body > *`.
-- A single-column grid's implicit column is `auto`, which sizes to its widest item's min-content and
-  can exceed the container. Use `grid-template-columns: minmax(0,1fr)`. `.inset-panel` had gone
-  without it because nothing inside had a min-content worth the name; giving `.item-row-meta` its
-  ellipsis ([§5](#5-control-geometry)) turned one row's min-content into 327px of unbreakable string
-  and the panel's track went with it, 4.59px past a 322.41px content box. **The rule is not "grids
-  that overflow today" — it is every single-column grid**, since what a track sizes to is decided by
-  content that has not been written yet.
-- **Only the text column may shrink.** Icon tiles, nowrap prices and drag handles are fixed
-  affordances; blanket `min-width:0` on row children clipped prices by 29px and squeezed a 15px drag
-  handle to 6px. Target the description (`.item-row > span:has(b)`) and give the rest `flex:none`.
-- Rows with fixed columns that cannot fit a phone stack instead — `.order-row` becomes two rows via
-  `grid-template-areas`.
-- **Row content sits flush with the card's content box.** Every row type uses `padding: Npx 0` — one
-  `10px 0` across the five that share the row spec ([§5](#5-control-geometry)); `.order-row`
-  alone had `12px 6px` and sat 6px inside the header and footer above and below it. Likewise a
-  trailing chevron column is `auto`, not a fixed 26px around a 15px glyph, or the row stops short of
-  the card edge.
-
-## 16. The phone layout
-
-Everything here is scoped to `≤700px`. It was settled after the desktop system and supersedes the
-earlier "shrink the floating layer" approach.
-
-- **The content area is flat white and edge to edge.** The canvas tint exists to frame the floating
-  white sheet against the sidebar; a phone has no sidebar, so all the tint produced was an 8px border
-  around the content — decoration paid for in width the dense rows actually need. `body` goes white
-  and `.main-panel` drops its margin, radius and shadow.
-- **Square corners stop at the paper.** The sheet and the main panel are the page's own edge and have
-  nothing to be rounded against once they run full width, so they square off. **Cards keep their 15px
-  radius** and controls keep theirs — they are objects on the paper, not the paper. "No round corners
-  on mobile" was a rule about the layer, never about everything inside it.
-- **One gutter for the whole phone layout: 12px.** Top bar, sub-tab strip and sheet all use it, so
-  header, sub-tabs and cards share a left edge. The sheet's inset is split across a margin and a
-  padding, which is exactly how a mismatch hides — `10 + 12` reads as intentional at a glance without
-  ever totalling the gutter the rest of the layout uses. Keep it stated as `0 + 12` so the number
-  stays legible.
-- **The sidebar becomes a fixed bottom tab bar**: all five destinations as equal columns
-  (`repeat(5, minmax(0,1fr))`), icon over label, labels always visible, ~48px targets,
-  `env(safe-area-inset-bottom)` respected, and `.main-panel` padded to clear it.
-- **The tab bar keeps the `#EFF1EF` tint** plus a top hairline. That tint is the one thing separating
-  the bar from content scrolling under it; making it white cost that separation and had to be bought
-  back with a shadow and a pill that were never asked for. On tint the active tab reads from its bare
-  1px lift, no fill — which is how it was designed.
-- **Layout shifts**: `.order-row` stacks to two rows; `.item-row` wraps with the description keeping a 64%
-  basis — **that basis is a wrap threshold, not a proportion, so give it margin.** At 60% it decided
-  where a row broke by about 1%: the description's basis came to 175.2px of a 292px row against the
-  178px left once the tile, the figure and two gaps were taken out, so trimming 6px off the tile
-  ([§5](#5-control-geometry)) flipped the row onto one line, squeezed the description to 178px,
-  wrapped a meta and left a trailing edit button alone on the next line under the tile. The usable
-  window is 61–63.6% across the card widths in this file; 64% sits clear of the low edge and past the
-  high one deliberately, since the row it wraps there was the only one of four in its list still
-  sitting on a single line. A basis that close to its threshold is a wrap decided by whatever the
-  fixed columns last measured; `.field-pair` and `.order-list-grid` go single-column — except the filter panel's From/To and Min/Max rows,
-  which stay side by side ([§9](#9-forms-and-fields)); card rows go single-column; the hero callout is
-  hidden; the global finder is hidden and `.topbar .topbar-actions` takes over the right-alignment; sub-tabs
-  scroll horizontally without a visible scrollbar.
-- **A wrapping segmented control takes its height from the buttons** (`min-height:38px`), not from the
-  container. `.field .segmented button` zeroes vertical padding and outranks `.segmented.segmented-compact button` on
-  source order alone, so with `height:auto` and no padding the control collapsed to text height — a
-  ~26px strip under 48px inputs. At 38px the buttons put an unwrapped control back at 48px, matching
-  the fields above it.
-
-## 17. iOS and WebKit
-
-Three WebKit-only bugs, each with a wrong-looking obvious fix. None is worth re-litigating.
-
-### Zoom on focus
-
-iOS zooms the page whenever a focused control computes under 16px, and every field here is 12.5 or
-13.5px.
-
-- Raising the sizes is the usual fix and the one thing this must not do — the sizes are the design.
-- **Clamping the viewport does not work.** Safari has ignored `maximum-scale` and `user-scalable`
-  since iOS 10, deliberately, so that a reader can always zoom. A clamp is dead weight that would
-  also fail WCAG 1.4.4 if it were ever honoured.
-- The computed font size is the only lever Safari reads, and it reads the *computed* one — a transform
-  is a paint operation and does not touch it. So under `@media (pointer: coarse)` each control
-  computes at 16px and is scaled straight back to the size it already was: `.84375` for the 13.5px
-  form fields, `.78125` for the 12.5px toolbar and global search. Nothing looks bigger, which is the
-  whole point.
-- `transform-origin: left center` pins the left edge so text starts exactly where it did, and a
-  negative `margin-right` hands the layout box back the width the scale took off it. Overshoot is
-  bounded by whatever trailing chip shares the row — about `0.156 ×` its width, ~4px worst case — and
-  `.field-shell` clips, so it stays inside the field.
-- The textarea is scaled in both axes rather than one — it is a block with a real height, not a single
-  line centred in a fixed row — so it gets a top-left origin and an inflated height instead.
-- Coarse pointers only. Desktop has no such behaviour and keeps the untransformed, sharper text.
-
-### Search fields
-
-- A search field with a value drew a native dark circled `×` in Safari — a browser-drawn icon, which
-  [§8](#8-icons) does not allow whatever it looks like, and the same rule that takes each engine's
-  calendar off the date fields. All four search fields carried it: the global finder, and the
-  toolbars on All orders, Vendors and Categories.
-- **`appearance:none` does not remove it; `display:none` does.** The pseudo-element is
-  `::-webkit-search-cancel-button` and the fix everyone reaches for is `-webkit-appearance:none`,
-  which is a real fix — in Blink. Safari keeps drawing the button. `display:none` removes it in both,
-  so it is one declaration rather than two, and Gecko has no such pseudo-element and drops the rule
-  as invalid, which is the same nothing it did before.
-- The prefix is not a promise about which engine obeys the declaration — see the note in
-  `CLAUDE.md`, which is where that lesson lives.
-
-### Date fields
-
-- iOS 15+ renders the value into `::-webkit-date-and-time-value`, which defaults to `width:100%` and
-  `text-align:center`, and `text-align` on the input does not reach it. Ours is `flex:1` so it spans
-  the row, which is what left the date stranded mid-field while every neighbouring value sat left.
-  Overriding the pseudo-element is the documented fix (Apple DTS,
-  [developer.apple.com/forums/thread/691305](https://developer.apple.com/forums/thread/691305)).
-  **Not scoped to `[type=date]`** — time, month and datetime-local behave the same way, and the
-  pseudo-element does not exist on other input types, so the rule is inert there. Blink and Gecko
-  already left-align.
-- iOS never renders `::-webkit-calendar-picker-indicator`, so date fields were the only ones on a
-  phone with an empty trailing slot. **The glyph is ours on every platform** — and it is the only one
-  the field may show. A browser-drawn calendar is a native icon, which [§8](#8-icons) does not allow
-  whatever it looks like, so each engine's own affordance comes off the field:
-  - Blink and WebKit expose theirs, so it goes outright:
-    `::-webkit-calendar-picker-indicator { display:none }`, unscoped for the same reason as the value
-    pseudo-element above.
-  - **Gecko exposes nothing.** Firefox draws a picker button inside the input and no selector reaches
-    it ([bugzilla 1830890](https://bugzilla.mozilla.org/show_bug.cgi?id=1830890), open), which is why
-    desktop Firefox showed two calendars on every date field — its button and ours, near enough on top
-    of each other to read as one smeared glyph. Since it cannot be hidden it is moved: the input runs
-    `calc(100% + 56px)`, past the shell's right edge, and the button rides out with it into overflow
-    `.field-shell` already clips. Only the button moves — the value sits at the left, the trail is out of
-    flow.
-- **The trail is what leaves flow, never the input.** An out-of-flow input would stop spanning the
-  field, and the field being the input is what makes the whole of it the tap target on iOS.
-- **Everything trailing rides in `.field-date-trail`**, so the one date field carrying a unit chip lays out like
-  the others instead of opting out: chip first, glyph last, which keeps the affordance where it sits
-  on every other date field.
-- **The picker opens from the glyph**, through `showPicker()`, on every engine — no native affordance
-  is left to click, and the field behaves the same everywhere instead of once per engine. Where
-  `showPicker()` is missing (iOS before 16) nothing is bound at all: the trail stays inert inside
-  `.field`, the label forwards the tap to the input, and iOS opens the picker off the input the way
-  it always has. Binding a dead listener would take that away by swallowing the tap. Alt+Down does the
-  same from the keyboard, so the glyph is not a mouse-only control ([§13](#13-honest-affordances)) —
-  and typing the date into the segments never needed the picker at all.
-
-## 18. Accessibility
-
-- WCAG 2.2 AA floor; every text colour tuned against the darkest surface it lands on, not against
-  white ([§2](#2-color)). Verified as 0 axe violations across 14 pages × 2 breakpoints, and
-  Lighthouse accessibility 100 on both the mobile and desktop presets.
-- Deltas and statuses are words plus icons, never colour alone.
-- **One `<main>`, and it holds the page.** The sheet under the top bar was a bare `<div>`, so the
-  document had no main landmark and every card, heading and row on twelve pages — 108 elements —
-  sat in no landmark at all. `<main>` wraps the sub-tab band and the content sheet together: the
-  band selects within the page, so it belongs inside rather than beside. The sidebar `<nav>` and the
-  `<header>` are the landmarks either side of it.
-- **A label must contain the words on screen**, or nobody can say the control's name to activate it.
-  Three failed, and two of them failed on whitespace rather than wording: `<span>SCAN<span
-  class="wide-only"> RECEIPT</span></span>` puts the space *inside* the hidden span, so a consumer
-  that concatenates per element reads "SCANRECEIPT" — the space belongs in the outer run. The AI
-  card header ran two lines together the same way and then named only the second one. The orders
-  card header dropped the `·` its heading prints. Keep the pattern `<its own words>, open
-  <destination>`, and keep the words byte-for-byte.
-- **A scroll container with nothing focusable inside it is pointer-only.** The vendor strip on the
-  phone scrolled five cards past the right edge and no key reached them; it carries `tabindex="0"`
-  with `role="region"` and the heading it sits under. `role="group"` is not enough — a focusable
-  element needs a widget role or a landmark one.
-- Comboboxes: listbox semantics, roving focus, Escape restores focus to the field.
-- Panels and detail regions: focus moves to the heading on open, returns to the trigger on close.
-- Live regions polite and single per surface — filter counts, period changes, card reordering.
-- **The back arrow names where it goes**, and goes there. Its label was a fixed "Back to orders"
-  while the two scan steps return to the scan page, so it announced the wrong destination on two of
-  the three pages that carry it; it is `Back to ' + TITLES[target]` now. It was also inert for as
-  long as it existed — the click handler is bound by a load-time `[data-go]` sweep and the button's
-  target is assigned per page afterwards, so it drew, focused and announced correctly while
-  navigating nowhere.
-- Focus is always visible: `:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }`.
-- Touch targets ≥44px effective on mobile nav; drag actions always have a button or menu equivalent;
-  Escape cancels inline edits.
-- Pinch-zoom is never blocked ([§1](#1-shell-and-layout), [§17](#17-ios-and-webkit)).
-
-> [!IMPORTANT]
-> Progress indicators never freeze under `prefers-reduced-motion`. The blanket `* { animation: none }`
-> reset is wrong — it turns a busy state into what looks like a hung app. Exclude busy indicators from
-> the reset and slow them instead: `.progress-bar.progress-bar-indeterminate i` runs 1.5s normally, 2.6s linear under reduced
-> motion.
-
-## 19. Names in the markup
-
-Two systems name things here — classes name components, ids name single elements — and both are
-kebab-case whole words, so an element is not spelled two ways in one attribute pair.
-
-### Class names
-
-A class names a component. Its variants are written next to it, never instead of it:
-
-```html
-<button class="button button-caps button-compact">SAVE ORDER</button>
-<section class="card card-kpi">
-<button type="button" class="icon-button icon-button-arrow">
+```
+[✓ Saved] Orders added to your list.
 ```
 
-Three kinds of name, and the shape of the name tells you which one you are looking at:
+**Tones:**
+- **Positive** (green): Success, confirmation, good news
+- **Warning** (amber/orange): Caution, attention needed
 
-| Kind | Form | Written | Examples |
-| --- | --- | --- | --- |
-| **Identifier** | whole words | alone, or followed by its variants | `.button`, `.card`, `.field-shell` |
-| **Variant** | `identifier-variant` | only ever beside its identifier | `.button-caps`, `.card-kpi`, `.chip-status-warning` |
-| **Part** | `identifier-part` | alone; styled only inside its identifier | `.card-header`, `.order-row-total` |
+**Why separate tones:** Color alone doesn't work for colorblind users. The tone is usually the semantic meaning anyway (success, warning).
 
-- **The identifier carries the shape, the variant carries only its difference.** `.button` holds the
-  box, the 1px edge and the type a `<button>` does not inherit; `.button-caps` holds seven
-  declarations, all of them differences. Four buttons used to restate that box in full and had
-  drifted apart doing it — three gaps, three radii, four font sizes and two border treatments for
-  what is one control.
-- **A variant written alone is a bug.** It has no shape of its own by construction, so it renders as
-  bare text rather than approximately right. That is deliberate: the failure is visible.
-- **A base is only worth having when the variants share more than they override.** The four chips
-  share two declarations and differ on eight, so they stay four components. Forcing a base there
-  would make four different badges look like one family, which is a worse lie than the duplication.
-  The row components used to fail the same test and now pass it, so they have a base: `.data-row`,
-  with the six `-row` families written beside it ([§5](#5-control-geometry)). Five share the box
-  outright; `.order-row` redraws it and still shares the gap, the alignment, the hover, the chevron
-  and the chevron's meaning. Re-run the test when a family is edited, in both directions.
-- **The test is about declarations, but the payoff is about rules that have not been written yet.**
-  Counting only shared declarations undersold `.data-row`: the box was four of them, which is close
-  enough to the chips' two that it reads as a toss-up. What settled it is that *every rule keyed on
-  "a row" gets one home* — the hover tint, the pointer, the chevron slot — and each of those was
-  otherwise a list of family names that one family was always missing from. A base earns its place
-  on the rules it prevents from drifting, not only on the declarations it collects today.
-- **A part carries its identifier in its name, not just in its selector.** `.entry-list-row`, never
-  `.entry-list .row` -- the tally is 103 parts written bare against 47 scoped. A generic child name
-  cannot be grepped: `class="row"` was 22 elements across two unrelated components that disagreed on
-  gap, padding, border and font size, so moving one between them restyled it and no selector said
-  which was which. Scoping also hides a part that has outlived its parent. `.account-row .amount` and
-  `.account-row .chevron` matched nothing on any page for as long as that row had been a checklist,
-  and neither end reports it -- nothing about `.account-row` says a child rule points at it, and
-  nothing about `.amount` says one of its six parents is gone. Whichever way the port scopes CSS, it
-  scopes by file and not by ancestor, so the ancestor buys nothing there either.
-- **A colour token is named for the surface it paints.** That is the one thing its value cannot tell
-  you, so the name carries it: `--text-*` is glyphs, `--bg-*` is a fill, `--border-*` is an edge.
-  Nothing writes "color" — a token is one. Before this, `--hair` said a line was thin and never what
-  it divided, and sat two lines from `--border-hairline`: two names reading as synonyms for greys
-  three shades apart. They are `--border-divider`, `--border-card` and `--border-control` now, and
-  which edge each draws is in the name. 247 references moved and not a pixel did.
-- **The named hues are the deliberate exception.** `--green` is text on a positive delta and fill on
-  a progress bar — 7 uses against 12 — so a surface prefix would be wrong half the time. `--green`,
-  `--teal`, the blues, the donut set and the icon set stay named for the hue, because that is what
-  they are: a palette, not a role.
-- **`<b>` and `<i>` are not "bold span" and "small span".** 196 of them carried this file's type: row
-  titles, meta lines, and 41 empty boxes drawing a bar fill, a swatch or a gauge marker, where `<i>`
-  computed `font-style:italic` on an element holding no text at all. They are `<span>` with part
-  names now — `.item-row-title`, `.category-row-meta`, `.chart-bar-fill`, `.meter-marker`. The one
-  that stayed semantic went the other way: the note lead-ins ("Total matches.") are `<strong>`, which
-  is what they always meant. Two things have to be measured before a tag can go:
-  - **The UA's bold is often load-bearing.** `.promo b`, `.card-kpi b`, `.empty-note b` and two
-    one-offs with no rule at all rendered 700 only because they were `<b>`. Grep each rule for
-    `font-weight` before converting; where it is absent the tag was the declaration.
-  - **A `<span>` lands in every rule keyed on a bare `span`.** `.card-kpi span` was sizing the label,
-    the value *and* the delta together; `.item-row > span:has(b)` stopped matching at all, and the
-    description column lost `min-width:0`, stopped shrinking and unwrapped a line on a page no
-    screenshot covers. Do **not** rename the bare-tag rule to get it out of the way — that strips its
-    styling from everything else it was feeding, which is how one fix became 566 moved rectangles.
-    Scope the new part to outrank it (`.card-kpi .card-kpi-value` is (0,2,0) against (0,1,1)) and
-    answer every property it sets: size, tracking, case, colour, weight.
+### Chips
 
-- **`<br>` is not a layout tool.** 15 of them stacked a vendor's name over its meta line inside a bare
-  `<span>` — a line break doing a box's job, so the two lines could not be spaced, styled apart or
-  reordered, and the pair had no element to name. They are `.entry-text` wrappers holding `.entry-name`
-  and `.entry-meta` as `<div>`s now. Removing one has a trap under it:
-  - **A line that becomes its own block re-resolves the leading.** `line-height` is the unitless `1.45`
-    from `body`, and a ratio resolves against the element's *own* font-size. Both lines had been struck
-    from the wrapper's 14px strut at 20.3px each; as blocks they compute 18.1px and 14.5px, which drops
-    the pair from 40.6px to 32.6px and lifts every row holding one by 8px. The wrapper states the
-    leading as a length instead — `1.45em`, computed once to 20.3px — so the children inherit the
-    value rather than the ratio.
-  - **The box survives, the baseline does not.** The strut now comes from each line's own font, so the
-    glyphs settle 0.35px and 1.35px higher inside boxes that did not move: 2,470 pixels of
-    `docs/home.png` and nothing else in the file, across 51,432 element records at both breakpoints.
-    Expect the converted elements' own rects to change regardless — an inline box's rect is its font's
-    content area, a block's is its line box — and check that nothing *around* them did.
+A chip is a small label, usually removable. Used for filters, tags, and selections.
 
-- **A block is a `<div>`. Never a `<span>` told to be one.** 186 of them carried a class declaring
-  `display:block` — row titles, meta lines, and the textless boxes drawing a bar fill, a swatch or a
-  gauge marker. It is the same defect as the `<br>` above with the tag reversed: the element says
-  inline and the box is not, and the stylesheet has to correct the markup on every render. This is
-  also why `<b>` and `<i>` could not simply have been kept and styled — they are phrasing content too,
-  so the block ones would have needed the same correction. Three things the sweep turned up:
-  - **The set is bigger than the rules match.** 137 elements matched a rule; 51 more had to come with
-    them, because a `<div>` may not sit inside a `<span>` — the parser breaks it up. Take the closure
-    over span ancestors before counting, or half the conversion produces invalid markup.
-  - **Two of them cannot be divs at all.** `.compare-tabs-value` sits inside a `<button>`, whose
-    content model is phrasing content only. They stay spans, and that is the rule's one exception:
-    where a block-styled span is inside a button, the button is the thing to change, not the span.
-  - **Every bare-tag rule keyed on `span` is a tripwire.** Five stopped matching what they had fed:
-    `.chart-series-key span` and `.combobox-group > span` went to zero, `.item-row > span:has(…)` to
-    zero across both its copies, and `.weekday-bars span` and `.month-columns span` quietly halved.
-    The first three name their parts now (`.chart-series-key-row`, `.combobox-group-heading`, and a
-    `> div:has()`); the last two were always meant for their labels and now match only those. Read the
-    match count of every rule naming a bare tag before and after, not just the ones you edited.
-
-  - **Markup the script builds is markup too.** `.card-tray-row-title` and `.card-tray-row-meta`
-    matched nothing in the file and were built as spans by JS, so a walk over the static DOM said the
-    rules were dead while they were the only thing stacking those rows. The tray only fills once a
-    card has been removed, which no page walk reaches. Drive the state before believing a zero.
-
-  Once they were divs the `display:block` came off — 18 declarations, and 0 differences of 25,548
-  element records at both breakpoints, which is what makes it safe rather than plausible. Four rules
-  keep it and must: `.compare-tabs .compare-tabs-value` is the span-in-a-button above, `svg.chart`
-  is an `<svg>` and those are inline, and `.combobox.is-open > .combobox-panel` and
-  `.global-finder.is-open .combobox-panel` are state toggles overriding a `display:none`. A
-  declaration that reveals something is not a redundant one.
-
-- **A rule that matches nothing is not always a dead rule, and the difference is a state.** Counting
-  every selector across all 14 pages, both breakpoints and the states only JS reaches — edit mode,
-  the open finder, an open combobox — left 17 matching nothing. Only 12 were really dead and are
-  gone: `.avatar`, `.empty-note` and its two parts, the four `.stat-figures` rules, the two media
-  copies, `.topbar-title-wave`, `.icon-button-large`, `.delta-bad` and `.field-shell-area > span`.
-  Of the rest, `.card-tray-empty` is written by the script when nothing has been removed yet, and
-  `:focus-visible` matches whatever holds focus — neither can be counted by `querySelectorAll`. Two
-  are worth knowing about and are deliberately still there, because the bug is the selector and not
-  the rule: `.account-row:first-child` never fires, since all three account rows have a heading
-  above them, and `.field-shell.field-shell-placeholder` wants both classes on one element where the
-  markup only ever carries the second.
-- **No abbreviations, and no shorthand.** A name that has to be decoded gets a seventh variant
-  bolted onto it by someone who did not decode it. The stylesheet had reached `.iic`, `.sic`,
-  `.olcol`, `.dk-hl`, `.forr`, `.om`/`.ot`/`.ov` and the single letters `.c`/`.d`/`.n`/`.t`/`.v`.
-- **Never number a variant, and that includes tokens.** Six classes existed and the digit meant three
-  different things: `.frow2` was *two columns*, `.empty2`/`.ring2`/`.hero2`/`.lab2` were *the other
-  one*, and `.chip2` was a second chip whose first had never existed. A number records the moment
-  someone needed another one; it never records what makes it different. The token block had the same
-  three — `--ink-2`, `--muted-2`, `--dark-2` — which could only be told from their unnumbered
-  neighbours by reading their hex. They are `--text-body`, `--text-faint` and `--bg-dark-lift`.
-- **Hiding is the `hidden` attribute — never a class, never an inline style.** A `.hidden` class
-  would be a second mechanism for a job the platform already does, and it says nothing to a screen
-  reader. `[hidden] { display: none !important }` carries the `!important` because any class that
-  sets a display value outranks the UA rule, which is most of them — `.icon-button` is
-  `inline-grid`, so the back button rendered straight through `hidden` until the reset was added.
-- **A wrapper is named for the slot it fills, not for what a page happens to put in it.** `.page-bar`
-  is the band under the top bar, sharing the sheet's gutters so its contents line up with the cards
-  below ([§1](#1-shell-and-layout)); sub-tabs are merely what every page currently puts there.
-  Naming it `.subtab-bar` made a container sound like a contract.
-- **Shared values are tokens, not classes.** `--radius-compact`, `--radius-page`, `--radius-card`,
-  `--border-hairline`. A utility class would put the value in the markup, and there is no single
-  radius to name `.rounded` anyway — 22 distinct values across 89 declarations, the commonest
-  covering 19% of them. `--radius-card` already proved the point: four surfaces shared it and one
-  wrote `15px` out by hand, so the token only ever moved three of them.
-- **A component gets a base rule, not only context-scoped ones.** This is where inline styles come
-  from — not carelessness, but a class the stylesheet cannot see. `.section-label` was reached only as
-  `.card-header .section-label` and `.section-header .section-label`, and `.card-caption` by nothing at
-  all, so every instance outside a blessed container had no rule that could touch it and carried the
-  full spec in the markup: 39 section labels took 11.5px from CSS while the 5 that sat elsewhere were
-  hand-written at 11px, in the one micro-label spec [§3](#3-typography) pins to 11–11.5px. The copy in
-  the markup always drifts from the rule it duplicates, because nothing makes them agree. Write the
-  base rule first and let the container override it.
-- **A default that most of its uses override is the wrong default.** `.item-row .amount` painted every
-  amount green and 13 of its 17 uses set it back to `--text` inline. Green belonged to the vendor
-  spotlight panel alone — four figures — so the rule now states the common case and
-  `.spotlight-pair .item-row .amount` states the exception. Count which side is the majority before
-  deciding which one gets the inline override; here it had been backwards for as long as the rule existed.
-- **Structure that repeats is a selector, not an attribute.** Six summary rows ended their run with an
-  inline `border-bottom:0` and five list rows opened theirs with `padding-top:0`. The runs end three
-  different ways — at the end of the card body, at a `.card-divider` before the total, and at a
-  `.section-label` starting the next group — so `:last-child` catches only four of the six;
-  `:not(:has(+ .summary-row))` catches all six and says what the rule actually means.
-
-> [!WARNING]
-> **Folding a variant onto a base changes what wins.** A variant is two classes where it used to be
-> one, so every context rule that tuned it — `.toolbar`, `.hero-panel`, and the compact size modifier
-> — went from losing on specificity to tying, and a tie is decided by source order. Nothing errors:
-> the control keeps rendering, at the wrong tier.
-
-> [!WARNING]
-> **A rule that cannot fire looks exactly like one that works.** `.subtab-bar:empty { display:none }`
-> could never match: the tablist element is always in the markup, so the wrapper is never empty. What
-> actually hid the band was the tab builder reaching up to `subtabs.parentElement.style` — JS styling
-> an element it does not own, one wrapper away from hiding the wrong one, and an inline
-> `display:none` in the served DOM for its trouble. It is `:not(:has(button))` now, in CSS, where it
-> can be read. Grep for a selector's *match*, not just its presence.
-
-> [!WARNING]
-> **Renaming an identifier orphans its parts.** `.kpi span` and `.question-card .question-card-label`
-> kept matching a class the markup no longer carried. Grep the old identifier as a *prefix and as an
-> ancestor* before calling a rename done — 661 rect differences on the categories page were the only
-> thing that said so.
-
-### Ids
-
-An id names one element. Same alphabet as a class — kebab-case, whole words:
-
-```html
-<button type="button" id="back-button" class="icon-button icon-button-arrow">
-<div id="dashboard-cards" class="dashboard-cards">
+```
+[Vendor: Bilka ×]  [Status: Delivered ×]
 ```
 
-- **Kebab-case, never camelCase.** 19 of the 28 ids were camelCase — `backBtn`, `cardsEdit`,
-  `saveOrder` — sitting on the same elements as kebab-case classes, so the markup carried two
-  spelling systems at once and neither told you which to expect on the next attribute.
-- **No abbreviations, exactly as for a class.** `ptitle`, `gfind`, `favs`, `bl` and `gr` all had to
-  be decoded before they could be used; they are `page-title`, `global-finder`, `dashboard-cards`,
-  `home-spend-gradient` and `home-savings-gradient`.
-- **Never number an id**, for the reason a variant is never numbered. `gr` and `gr2` were one
-  gradient drawn on two pages; the digit recorded that a second was wanted and never which page
-  wanted it. Naming the page says both: `home-savings-gradient` and `stats-spend-gradient`.
-- **Where the element is a component, its id is its class.** `.dashboard-cards` carries
-  `id="dashboard-cards"`. The two namespaces are separate and may agree, and agreeing leaves one
-  name to remember instead of two to reconcile.
-- **The script's handle mirrors the id in camelCase.** Kebab is not legal in a JS identifier, so
-  this is the one place the two systems differ in shape — but never in words:
-  `const dashboardCards = document.getElementById('dashboard-cards')`. `editBtn` standing for
-  `id="dashboard-cards-edit"` is the drift this rule exists to stop.
+**Chip types:**
+- **Filter chip** (`.chip`): Shows an active filter. Clicking × removes the filter.
+- **Status chip** (`.chip-status`): Shows the status of something. Not removable.
+- **Tag chip** (`.chip-tag`): Labels for the record. Removable.
+- **Saving chip** (`.chip-saving`): How much is saved on a purchase.
 
-> [!WARNING]
-> **Most references to an id are not selectors.** A rename has to reach `aria-controls`,
-> `data-dismiss`, `url(#…)` inside a `fill` or `stroke`, and any helper taking an id as a string —
-> `say('filter-live-region', …)` passes one as an argument, where no grep for `getElementById` finds
-> it. Grep the id itself, and check the rendered result: a stale `url(#…)` still parses, still
-> renders, and silently drops the fill.
+**The rule:** The chips are the filters, not a picture of them. Removing a chip removes that filter. If a chip sits on the page but removing it does nothing, that's a lie about the interface.
 
-**For the port**: this is the component boundary. An identifier is a `.razor` component, its variants
-are that component's parameters, and its parts are the markup inside it. Scoped `.razor.css` makes the
-identifier prefix on a part redundant — keep it anyway while the prototype is the reference, or the
-two stop matching. Ids do not survive the port as-is: a `.razor` component rendered twice would emit
-the id twice, so anything the script reaches by id becomes an `@ref` or a parameter.
+### Combobox
 
-## 20. Notes for the port
+A searchable dropdown for picking one thing from a list.
 
-- **Shell first**: `MainLayout.razor` plus tokens in `earnify.css`. Keep the single `--theme` master
-  derivation and map [§2](#2-color) onto it; independent masters for green and warm, as danger is
-  today. `earnify.min.css` is what ships — run `dotnet build` after edits, since the dev server locks
-  `bin\`.
-- **Fonts**: self-host Poppins woff2 in `wwwroot/fonts`, latin subset incl. æøå.
-- **Sub-tabs must share the content container** — one constraint, nothing drifts.
-- **The global finder needs a small cross-entity endpoint**: orders by vendor, note and item text,
-  plus vendors and categories.
-- **Drop `maximum-scale=1` from `Components/App.razor`** ([§1](#1-shell-and-layout),
-  [§17](#17-ios-and-webkit)). Keep `viewport-fit=cover`, which the mobile tab bar depends on for
-  `env(safe-area-inset-bottom)`.
-- **`App.razor` owns the document skeleton** ([§1](#1-shell-and-layout)): doctype, `lang`, and
-  `<meta charset="utf-8">` first in `<head>`. Kestrel sends `charset=utf-8` so the prototype's BOM
-  stops being the thing holding the encoding up — the meta tag still has to be there, because a
-  static export or a CDN in front of it need not be so careful.
-- **Dashboard card choice needs somewhere to live.** There are six DbSets and none of them is
-  settings. For one user the cheapest honest option is a key/value preference table (`Key` PK string,
-  `Value` JSON string) holding a single row — `dashboard.cards` =
-  `["rhythm","breakdown","vendors"]`: one migration, and the next preference (default statistics
-  period, page size) costs nothing more. A `DashboardCard(CardKey, SortOrder, IsVisible)` table is
-  more relational but only ever serves this one feature. Do not reach for `localStorage`: on Blazor
-  Server that means JS interop for something the server already has a database for, and the choice
-  would not follow the user between devices.
-- **`Order.Status` is two fields, not one.** It shipped as `None/Expense/Gift/Sold/Work/Other`, which
-  is not a status: no member can follow another, and `None = 0` is a stage no order is ever in. Those
-  values answer whether the order was the user's money at all — `Work` means work bought it and it
-  cost them nothing — and their only consumer is a yes/no. Split them. `OrderStatus { Ordered = 1,
-  Delivered = 2, Returned = 3 }` is the lifecycle, numbered in that order because [§9](#9-forms-and-fields)
-  makes the sequence the sort key, with no `None` and no `Any` — `Any` is a filter sentinel, null on
-  the query object, never an enum member. `SpendKind` keeps the old integers so not a row migrates.
-  **Rename that column, never redefine it in place**: reusing `Status` for the lifecycle silently
-  reinterprets every existing row — `Expense` reads back as `Ordered`, `Sold` as `Returned`, `Work`
-  and `Other` fall outside the enum — and nothing anywhere errors. **`None = 0` is not a state a new
-  order can reach**: Kind is required on both forms and both open on `Expense`
-  ([§9](#9-forms-and-fields)), so nothing writes it. It marks rows that predate the requirement, and
-  what the predicate does with it is a decision about history, not about new orders — which is worth
-  knowing before anyone treats a wall of zeroes as deliberate classification.
-- **Whether an order counts as spend is derived, and one expression owns it.** Two inputs, not one: a
-  returned order is refunded, so it stops counting the moment its status changes, and a stored flag
-  would have to be rewritten by every path that touches status — the first one that forgets leaves a
-  refund in the month's spend. The same expression gates **both** families of total: the spend
-  figures and saved-vs-retail. A work-bought order carries real paid and retail prices, so leaving it
-  in the saved total claims a discount that was never the user's. Write it as an
-  `Expression<Func<Order, bool>>`, not a `[NotMapped]` property — EF cannot translate a property into
-  SQL, and every headline on the overview sums through it. **Port the existing predicate verbatim
-  before changing what it means**, in its own commit: `Gift` and `Sold` are recorded but their spend
-  treatment was never written down, and if the enum and the rule move together a shifted total has
-  two possible causes.
-- **Follow CLAUDE.md's uniformity discipline** — before adding any variant, grep for the pattern and
-  match the tally, not a single neighbour.
+```
+[Bilka ▼] ─── closed
+  • Bilka
+  • Netto
+  • Rema 1000
+  • Føtex
+```
+
+**Anatomy:**
+- Input: shows the selected value, lets you type to search
+- Chevron: says it expands; rotates 180° while open
+- Panel: the options, floated on the card shadow
+- Selected: current value marked in the list
+
+**States:** `.is-open` on the wrapper is the one open state — panel shown, field edge darkened, chevron rotated. Closed, the field shows the selected *name*.
+
+**A combobox displays a name, never an id.** Links arrive carrying ids (`vendor=bilka`); the field resolves the id through the same lookup the chips use before showing anything. Two controls describing one filter may not disagree — the field is the one a user edits, so what it claims is what the next APPLY is made from.
+
+### Segmented Control
+
+A group of tabs where only one can be on. Used for status filters (Ordered / Delivered / Returned), time ranges (Today / Week / Month), view types.
+
+```
+[Ordered] [Delivered] [Returned]
+```
+
+One is always selected. Clicking a different one switches which is selected. All choices are visible—this is not a dropdown.
+
+**Why not a dropdown:** Every choice is one tap. With a dropdown, three choices means tap, wait for menu, tap again. With segmented, it's one tap.
+
+**Selection is a fill, not a weight.** The selected segment gets the dark surface and white text (`.is-on`); its weight stays 500 like its neighbours. A bolder selected label is wider than its resting self, and on a `width:max-content` track the whole control changes width every time the selection moves.
+
+**If the control enumerates a sequence, the order must be true.** Ordered / Delivered / Returned reads left to right in the order it happens. This control once read Delivered / Ordered / Returned in all three places it appears — pixel-perfect in every engine, and wrong.
+
+**One selection mechanism.** `.is-on` marks the selected item here, in the range tabs, the sub-tabs, the month columns and the sidebar nav — one class for every one-of-many group, so a harness (or a reader) checks selection the same way everywhere.
+
+### Charts
+
+The app draws a line chart, a donut, weekday bars, meters and progress rings. Three rules hold them together:
+
+**One user unit is one CSS pixel.** The line chart's viewBox is remapped 1:1 onto the element's pixel box on every resize, so stroke widths hold and text in the chart is never scaled. A chart whose viewBox is a guess renders its 1px grid line at 1.3px on one screen and 0.8px on another.
+
+**A chart is drawn from the records the list beside it is drawn from.** The donut's shares and its legend must come from one source. A ring with shares baked into the stylesheet next to a list with its own numbers cannot fail visibly — a ring has no opinion about the list beside it — and the two once disagreed exactly that way.
+
+**Chart colors are the data-viz palette** (`--donut-*`), which exists so segments differ from each other. Semantic colors stay out of charts: a slice is not "positive".
+
+**Legends are rows.** A chart legend row is the data-row pattern at chart scale — glyph (swatch), label, value — and a legend row that filters the list navigates like any other row, with `data-go`.
+
+### Chrome
+
+The frame around the pages: sidebar, top bar, bottom nav on the phone.
+
+**Sidebar** (236px, desktop only): brand, then navigation. The active item is `.is-on`, the same selection mechanism as every one-of-many group. Icons sit at fixed width so labels align.
+
+**Top bar:** the global search field, and the app-wide actions at 32px (`button-pill` tier). The search prints its shortcut on a key cap — and a key cap is a promise: the shortcut must actually open and focus the search from anywhere.
+
+**Bottom nav** (phone only): the sidebar's destinations as a thumb-reachable bar. Same `.is-on`, same icons, one nav defined per layout — never two navs both rendered and one hidden by luck.
+
+### Icons
+
+The system uses 39 glyphs across the entire app, every one stroke-drawn in the same style and named for its meaning. When a new page needs an icon, it reaches for one of these before inventing a fortieth — a glyph that exists twice in slightly different paths is the drift the uniformity rule exists to stop.
+
+**Sizes are set by the component that carries the icon**, not by the call site: a button's icon follows the button's tier (15px in the 38px tier, 14px in the 32px tier), a row's glyph follows the row family. Sizes run 12–20px; each one belongs to a component's spec.
+
+**Icon buttons** (`.icon-button`) are the square control carrying nothing but a glyph — so the accessible label is mandatory, because there is no text to read.
+
+**The rule:** Use an icon when the meaning is universal (trash = delete, search = find). Never use one alone when the meaning is private to this app — label it.
+
+---
+
+## Views
+
+Views are screens. They're composed from foundations and components.
+
+### Home
+
+The landing screen. Shows:
+- A month selector
+- A hero section (what the app does)
+- Editable cards showing summaries (total, spending by category)
+- A dashboard grid where users pick which cards appear
+
+**Why cards are editable:** The dashboard is personal. Everyone sees the same thing on Orders, but Home shows what the user chose to see.
+
+### Orders Overview
+
+Summary of the current month's orders vs. the previous month. Shows:
+- Month-over-month comparison (total, count, average)
+- Suggested vendors (based on history)
+- Latest orders
+- Sub-tabs for different views
+
+**Comparison card design:** Side by side, same structure. Makes the comparison obvious.
+
+### All Orders
+
+A searchable, sortable, filterable list of all orders. Every filter lives in the URL:
+
+```
+#/orders/all?category=groceries&vendor=bilka&from=2024-01-01
+```
+
+Arriving at that URL shows a filtered list. The chips reflect the URL. The filter panel reflects the URL.
+
+**The rule:** A filtered list is a place, not a mode. You can link to it, bookmark it, send it. Closing the filter panel doesn't clear the filters—they stay in the URL.
+
+### Order Detail
+
+One order's full record. Shows:
+- Header with status and meta (date, total)
+- Items (editable)
+- Attachments (add, remove, view)
+- Actions (edit, delete)
+
+**Why edit is a separate page:** The form is complex. It has validation. That complexity doesn't belong on the detail page.
+
+### Create/Edit Form
+
+Two-step flow for creating or editing an order:
+1. **Step 1**: Basic info (date, vendor, category, kind)
+2. **Step 2**: Items (add, remove, edit quantity and notes)
+
+Same form for create and edit. Editing loads the order in. The two steps share one draft — leaving and coming back loses nothing.
+
+**Validation:** Each step validates on its own attempt to continue. A rejected step marks its fields (see [Form Validation](#form-validation)) and states the verdict in its own status line: "Cannot continue — Vendor and Date need fixing." The verdict stays on screen while the form is still wrong, because it names the fields to go and fix.
+
+### Scan Flow
+
+Entry point for creating orders from receipts:
+1. **Entry**: the hero says the app takes "a PDF, photo or screenshot", and four entry buttons name the formats one by one
+2. **Reading**: shows the document the user chose
+3. **Review**: the extracted lines, editable one by one, saved as a real order
+
+**Why separate:** Reading shows the actual document. Review shows the extracted data. The user sees both and can correct misreads.
+
+**The copy is a contract.** When the product's own words enumerate what it accepts, each entry must carry its own document through — name, size, format glyph, and a page count that belongs to PDFs and nothing else. All four entries once landed on the same `kvittering-bilka.jpg`, and no screenshot could catch it, because one document was the only document.
+
+**Review runs the same rules as the form.** Scan and create are two doors to one saved order, so a value required at one door is required at the other, refused in the same words. The two had once parted company: the review checked nothing, and a receipt with a blank vendor line saved an order with no vendor — through a flow whose twin asks "Who did you buy from?" about that field.
+
+### Vendors, Categories, Statistics
+
+Each has its own view pattern (list with actions, detail page, form).
+
+---
+
+## Patterns
+
+Patterns are common behaviors and flows.
+
+### Filtering
+
+**How filters work:**
+1. Click FILTERS to open the panel (collapsed by default)
+2. Set filters using comboboxes, date fields, segmented controls
+3. Click APPLY (or auto-apply on each change)
+4. Chips appear showing active filters
+5. Click × on a chip to remove that filter
+6. URL updates with all filter state
+
+**The rules:**
+- Filters are in the URL, always. Bookmarking works.
+- Chips show the filters, not a picture of them. Remove a chip, the list updates.
+- Sub-tabs (Ordered / Delivered) are filters too. They must agree with the panel's status control.
+- Opening the filter panel shows the current state, not defaults.
+
+### Progressive Disclosure
+
+Complex features are hidden until needed: the filter panel behind FILTERS, extra detail behind a switch, an item editor behind its line. Users see what they need now, not everything at once.
+
+**The mechanics are fixed:**
+- The disclosure button states its state: `aria-expanded` flips, and the chevron rotates with it. The label never changes — the arrow is what says open or closed.
+- What is closed is `hidden` — actually absent, not visually parked. A panel that is merely transparent still traps focus and still reads to a screen reader.
+- Both states must exist in the stylesheet. The "more details" switch once had a green track and a right-hand knob in *both* states, because nobody wrote the off state — a control with one drawn state renders that state whatever the truth is.
+
+**Closing a disclosure changes what is visible, never what is true.** Collapsing the filter panel does not clear the filters; the chips and the URL still hold them.
+
+### Form Validation
+
+When a form rejects a value:
+1. The field's shell gets the red edge — and it outranks focus, so a focused invalid field still reads invalid
+2. The message appears under its own field, with an id the control's `aria-describedby` points at
+3. The form's own status line names every rejected field in one sentence: "Vendor and Date need fixing"
+4. The description is set with the message and removed with it — a dangling `aria-describedby` points at nothing
+
+**Why this way:** the message is beside the field (context), the status line gives the scope in one place, and the marking is written *once* — every form that rejects values uses the same one, because two copies agree until the day one is fixed.
+
+**A verdict is not a toast.** Saved / added / removed goes to the transient feedback layer; "cannot continue" stays on the form, beside the fields it names, until they are fixed.
+
+### Data Persistence
+
+What the user changes persists. Refresh the page, the changes are still there. A "clear stored data" action resets everything to the shipped state, and it says so before it does.
+
+**The rule:** What is stored is the *difference* from the shipped data — an edited record stores which fields changed; a new record is stored whole. A stored *copy* of everything freezes the demo data at the version first seen, so a later fix to the shipped data never reaches anyone who opened the app once.
+
+**Storage being refused is not an error worth surfacing.** The choice still holds for the session; it just does not survive the next one.
+
+### Honest Affordances
+
+A control is a promise. Everything drawn as interactive must do the thing it depicts — this is the pattern most of this system's defects trace back to.
+
+- **A button that does nothing is not drawn.** FILTERS was once rendered complete and toggled nothing. If the behavior isn't built yet, the control isn't either.
+- **A control names its action, and the action must be true.** A grip with `cursor:grab` promises dragging; if rows can't be dragged, the grip lies.
+- **Hover states are earned.** Only elements that navigate get the row tint — it's keyed on `data-go`, the attribute that actually navigates, not on the row's class. A tint on an inert row invites a click that does nothing.
+- **Disabled is shown, not hidden.** A pager at its last page shows NEXT disabled rather than removing it — the control exists, it just can't act right now, and the difference is information.
+- **Copy is a promise too.** If the words enumerate what the product accepts, every named case must work (see [Scan Flow](#scan-flow)).
+
+### Accessibility
+
+The system targets WCAG AA, and the pieces are structural, not sprinkled on:
+
+- **One focus rule for the document:** `:focus-visible` draws 2px `--teal` with 2px offset on anything focusable. No control invents its own.
+- **Landmarks:** every element lands inside one — content in `<main>`, navigation in `<nav>` — because "outside any landmark" is invisible to nobody except the people using the landmarks.
+- **Labels are real:** an icon-only control carries an accessible name; a linked card header announces "{title}, open {destination}"; a `<label>` points at its own control explicitly the moment anything labelable sits between them.
+- **State is in attributes and in pixels:** `aria-expanded`, `aria-checked`, `aria-invalid` — and each attribute has a stylesheet rule that draws it, because an ARIA attribute is a claim about the pixels, and only the pixels settle it.
+- **Reduced motion is honored** via `prefers-reduced-motion`.
+- **Contrast:** AA against the palette above. Decorative uses (a 3px meter in `--green`) may sit below text thresholds; text never does — that is what the darker `--text-positive` exists for.
+
+### Responsive Layout
+
+The phone layout is 700px and narrower. Below that:
+- The sidebar is gone; navigation moves to a bottom bar
+- Card grids and column layouts become one column
+- Field pairs stack instead of sitting side by side
+- The page runs on a single 12px gutter
+
+**Touch is not width.** The coarse-pointer rules (bigger targets, 16px field text) key off `pointer: coarse`, not off the viewport — a narrowed desktop window is not a phone, and a phone in landscape still is one.
+
+**The test:** every page renders at 390px with no horizontal overflow — `scrollWidth` equals `clientWidth` on the document element.
+
+---
+
+## Implementation Notes
+
+This system is framework-agnostic on purpose. These sections live in separate documentation:
+
+- **docs/porting.md**: How to build this system in React, Vue, or any framework. Port-specific details (component props, build setup, deployment).
+- **docs/defects.md**: The bugs each rule cost and the measurements that settled them. Evidence, not speculation.
+
+A port's README documents the port. This README documents the system.
+
+---
+
+## Ground Rules
+
+**One source of truth:** If a decision lives in two places, they'll disagree eventually. Decisions live here. Implementation lives in the code.
+
+**No hand-waving:** "It looks right" is not evidence. Measurements decide. Element walks. Pixel diffs. Interaction assertions.
+
+**Honest affordances:** If a control can't do something, don't draw it as if it can. A button that doesn't work is a button that shouldn't be drawn yet.
+
+**Uniformity:** When something repeats, count how many times. If three things do it one way and one does it another, change the one, not the three. Never add a new way.
+
+**Elements before components before views:** An element is defined before the component that uses it. A component before the view that shows it. Reading top to bottom is reading in dependency order.
+
+---
+
+## This system evolves
+
+Design systems are living things. They grow with the product. When something doesn't work, it gets fixed. When a new pattern emerges, it gets documented.
+
+The hardest part is getting started. The payoff comes when the third new screen takes a day instead of a week because everything is already solved.

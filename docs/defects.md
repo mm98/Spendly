@@ -20,13 +20,12 @@ Anything true of one port and not of the product belongs in that port's own READ
 release, and one entry may be edited by a later fix that sharpens the same rule. Nothing here records
 that work happened; it records what is true and how that was established.
 
-Older detail still sits inline in `README.md`, written before this file existed. It moves here when
-the section it is in is next touched, rather than in one sweep — a rule rewritten while nobody is
-looking at it is a rule nobody re-verified.
+Entries are keyed to the README section they defend by name — Cards, Filtering — since the design
+system is organized by named sections (Foundations, Components, Views, Patterns), not numbers.
 
 ---
 
-## §10 Cards — a note and the action under it
+## Cards — a note and the action under it
 
 The question card's answered state — the green answer, then SEE THOSE ORDERS — drew the button **flush
 against the note, 0px measured**. `.button.button-block` declares a 12px top margin of its own and
@@ -44,7 +43,7 @@ Orders is 12. The rule matches no element in the prototype's own markup — its 
 by field rows — so none of the three committed screenshots moved: **0 differing pixels of
 11,403,840**.
 
-## §13 Honest affordances — FILTERS starts closed, and the panel shows the filter
+## Filtering — FILTERS starts closed, and the panel shows the filter
 
 Two halves of one defect, and the first could not land before the second was true.
 
