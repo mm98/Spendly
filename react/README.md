@@ -162,13 +162,17 @@ verdict line, summary rail and split footer. Measured: one `.card-body-page` per
 Deleting is the same story one level down. An order asked before it deleted, a category and a
 vendor went the moment the trash was clicked, and only the order read the setting that says
 whether to ask -- a destructive action that asks on one screen and not another is not a
-setting, it is a coin toss. `useDelete` is that question written once; it is a hook rather than
-a component because the button and the note do not always sit together (on an order the trash
-is up in the header band, per README: Order Detail). `useRowDelete` is the same question for a
-row -- a line item on the order form, an attachment on the order page. Those two trashes acted
-straight away while every record delete asked, which is the coin toss again one level down; one
-hook call serves the whole list (hooks cannot sit in a loop), the state is which row is asking,
-and each open note gets its own id so two lists on one page cannot cross their `aria-controls`.
+setting, it is a coin toss. The asking is a modal `<dialog>` (README: Deletion) -- the inline
+warm note this replaced was a form unfolding into the flow, the pattern the category and
+vendor editors were already walked away from. `showModal()` traps focus, Escape declines,
+CANCEL takes the initial focus so the key the dialog opens under is the safe answer, and
+closing hands focus back to the trash that opened it. `useDelete` is that question written
+once for a record; a hook rather than a component because the trigger renders apart from its
+page (on an order the trash is up in the header band, per README: Order Detail).
+`useRowDelete` is the same question for a row -- a line item on the order form, an attachment
+on the order page, both of which acted straight away while every record delete asked. One
+hook call serves the whole list (hooks cannot sit in a loop), and the state is the row that
+is asking, from which the one open dialog is built.
 
 **`Form.jsx`** owns what a rejection looks like: the message under its field, the red edge on
 the shell, `aria-invalid` and `aria-describedby` on the control, and one sentence in the

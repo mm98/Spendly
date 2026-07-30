@@ -611,6 +611,7 @@ One policy, everywhere:
 
 - **Delete lives on the record's own page** — the order's header band, the form's footer — not on list rows, where a miss-tap on a crowded phone row is a record gone.
 - **Ask-before-deleting is one setting, read by every delete** — records and their parts alike: the order, the category, the vendor, a line item, an attachment. A destructive action that asks on one screen and not another is not a setting, it is a coin toss.
+- **Asking is a modal dialog.** The question interrupts above the page — the record named, DELETE and CANCEL, cancel holding focus, Escape declining — never a confirmation unfolded inline into the layout.
 - **A refusal names the reason and the count.** A vendor with orders on it, a category still on orders — both are refused with how many things are in the way, because "cannot delete" without a why is a dead end and with one is a to-do list.
 
 ### Pagination

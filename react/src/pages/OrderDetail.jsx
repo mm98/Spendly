@@ -129,7 +129,7 @@ export default function OrderDetail() {
 									</div>
 								</div>
 
-								{del.note}
+								{del.dialog}
 
 								<div className="row-inline" style={{ gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
 									{order.categories.map(c => <Chip key={c.id}>{c.name}</Chip>)}
@@ -239,7 +239,6 @@ export default function OrderDetail() {
 												{fileDel.iconButton(file)}
 											</span>
 										</ItemRow>
-										{fileDel.note(file)}
 										{openFile === file.id ? (
 											<div style={{ padding: '0 4px 10px' }}>
 												<DocumentPreview kind={file.kind} />
@@ -252,6 +251,7 @@ export default function OrderDetail() {
 										hint="Drop receipts here — as many as you like — or choose them."
 										action="CHOOSE FILES" onFiles={attach} />
 								)}
+								{fileDel.dialog}
 							</CardBody>
 						</Card>
 

@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Page } from './Shell.jsx'
 import { Async } from './Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader, Note } from './Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader } from './Card.jsx'
 import { Stepper } from './Stepper.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Form, FormActions, FormStatus } from './Form.jsx'
@@ -74,17 +74,49 @@ export const RecordWait = ({ state, label, steps }) => (
 	</Page>
 )
 
-/* ---- deleting a record ----
+/* ---- deleting ----
 
-   Three screens delete something and they did it three ways: an order asked first in a warm
-   note, a category and a vendor went the moment the trash was clicked, and only the order
-   read the setting that says whether to ask. A destructive action that asks on one screen and
-   not on another is not a setting, it is a coin toss.
+   Every delete asks the same way: a modal dialog with the question, DELETE and CANCEL, and
+   nothing else -- README: Deletion. Inline confirmation, a note unfolding under the trash,
+   is a form in the flow and this design system does not do inline forms. The native
+   <dialog> is the no-dependency modal: showModal() traps focus, Escape cancels, and closing
+   hands focus back to the trash that opened it. */
 
-   It is a hook rather than a component because the button and the question do not always sit
-   together: on an order the trash is up in the header band beside the pencil (README: Create and Edit) and
-   the note belongs under it, in the body. `useReorder` splits the same way for the same
-   reason. */
+function ConfirmDialog({ what, detail, onConfirm, onCancel }) {
+	const ref = useRef(null)
+	const cancelRef = useRef(null)
+	useEffect(() => {
+		/* showModal() would hand focus to the first focusable -- DELETE -- so the safe answer
+		   takes it instead: the key the dialog opens under may not be the destructive one. The
+		   dialog leaves by unmounting rather than close(), which skips the element's own focus
+		   restore, so the opener is put back by hand; if the row it sat on was just deleted,
+		   focusing a detached element is a no-op and focus stays where the page put it. */
+		const opener = document.activeElement
+		ref.current?.showModal()
+		cancelRef.current?.focus()
+		return () => opener?.focus?.()
+	}, [])
+	return (
+		<dialog className="confirm-dialog" ref={ref} aria-label={`Delete this ${what}?`}
+			onCancel={onCancel}
+			onClick={e => { if (e.target === ref.current) onCancel() }}>
+			<div className="confirm-dialog-card">
+				<strong>Delete this {what}?</strong>
+				<p>{detail}</p>
+				<div className="form-actions" style={{ marginTop: 12 }}>
+					<Button variant="caps compact" onClick={onConfirm}>DELETE</Button>
+					<Button ref={cancelRef} variant="ghost compact" onClick={onCancel}>CANCEL</Button>
+				</div>
+			</div>
+		</dialog>
+	)
+}
+
+/* `useDelete` is that question asked of a record. A hook rather than a component because the
+   trigger renders apart from the rest of its page: on an order the trash is up in the header
+   band beside the pencil (README: Create and Edit). One hook, one setting, so a destructive
+   action cannot ask on one screen and not on another -- that is not a setting, it is a coin
+   toss. */
 
 export function useDelete({ what, detail, onDelete, icon = 'trash', variant = 'block', label }) {
 	const settings = useApi(getSettings)
@@ -97,11 +129,7 @@ export function useDelete({ what, detail, onDelete, icon = 'trash', variant = 'b
 		else setConfirming(true)
 	}
 
-	const asks = {
-		onClick: ask,
-		'aria-expanded': confirming,
-		'aria-controls': confirming ? 'delete-confirm' : undefined
-	}
+	const asks = { onClick: ask, 'aria-haspopup': 'dialog' }
 
 	return {
 		confirming,
@@ -112,24 +140,18 @@ export function useDelete({ what, detail, onDelete, icon = 'trash', variant = 'b
 		/* The same control as a glyph, for the order header band, where README: Create and Edit puts edit and
 		   delete side by side. Same handler, same setting, same question underneath. */
 		iconButton: <IconButton icon={icon} label={label ?? `Delete ${what}`} {...asks} />,
-		note: confirming ? (
-			<Note tone="warning" id="delete-confirm" style={{ marginTop: 12 }}
-				title={`Delete this ${what}?`}>
-				{detail} This cannot be undone.
-				<div className="form-actions" style={{ marginTop: 10 }}>
-					<Button variant="caps compact" onClick={onDelete}>DELETE</Button>
-					<Button variant="ghost compact" onClick={() => setConfirming(false)}>CANCEL</Button>
-				</div>
-			</Note>
+		dialog: confirming ? (
+			<ConfirmDialog what={what} detail={`${detail} This cannot be undone.`}
+				onConfirm={() => { setConfirming(false); onDelete() }}
+				onCancel={() => setConfirming(false)} />
 		) : null
 	}
 }
 
 /** The same question, asked of a row -- a line item, an attachment. Hooks cannot sit in a
-    loop, so one call serves the whole list and the state is which row is asking; each open
-    note carries an id of its own, because the order page can hold this and the record's own
-    note at once and `aria-controls` has to point at the right one. Reads the same setting as
-    the record deletes -- README: Deletion says every delete, and a trash on a row is one. */
+    loop, so one call serves the whole list and the state is which row is asking; only one
+    dialog can be open, so the hook returns one, built from that row. Reads the same setting
+    as the record deletes -- README: Deletion says every delete, and a trash on a row is one. */
 export function useRowDelete({ what, label, detail, onDelete, icon = 'trash' }) {
 	const settings = useApi(getSettings)
 	const [confirming, setConfirming] = useState(null)
@@ -137,26 +159,18 @@ export function useRowDelete({ what, label, detail, onDelete, icon = 'trash' }) 
 	const ask = item => {
 		/* Read live, not baked in at mount -- same reason as useDelete above. */
 		if (settings.data?.confirmDelete === false) onDelete(item)
-		else setConfirming(item.id)
+		else setConfirming(item)
 	}
-	const noteId = item => `delete-confirm-${what}-${item.id}`
 
 	return {
 		iconButton: item => (
 			<IconButton icon={icon} label={label(item)} onClick={() => ask(item)}
-				aria-expanded={confirming === item.id}
-				aria-controls={confirming === item.id ? noteId(item) : undefined} />
+				aria-haspopup="dialog" />
 		),
-		note: item => confirming === item.id ? (
-			<Note tone="warning" id={noteId(item)} style={{ margin: '6px 0 10px' }}
-				title={`Delete this ${what}?`}>
-				{detail(item)}
-				<div className="form-actions" style={{ marginTop: 10 }}>
-					<Button variant="caps compact"
-						onClick={() => { setConfirming(null); onDelete(item) }}>DELETE</Button>
-					<Button variant="ghost compact" onClick={() => setConfirming(null)}>CANCEL</Button>
-				</div>
-			</Note>
+		dialog: confirming ? (
+			<ConfirmDialog what={what} detail={detail(confirming)}
+				onConfirm={() => { const it = confirming; setConfirming(null); onDelete(it) }}
+				onCancel={() => setConfirming(null)} />
 		) : null
 	}
 }
@@ -171,7 +185,7 @@ export function DeleteCard({ what, children, del }) {
 			<CardBody>
 				<p className="card-lead" style={{ marginTop: 0 }}>{children}</p>
 				{del.button}
-				{del.note}
+				{del.dialog}
 			</CardBody>
 		</Card>
 	)

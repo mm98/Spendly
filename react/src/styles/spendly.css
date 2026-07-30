@@ -651,6 +651,15 @@ svg.chart { width:100%; display:block; }
    pair one card over stood at 12 only because the button there happened to be the block
    variant. README: Cards. */
 .note + .button { margin-top:12px; }
+/* Delete confirmation is a modal <dialog>, never a note in the flow -- README: Deletion.
+   showModal() owns focus, Escape and the focus return; these rules own only the look. The
+   zeroed border and padding are load-bearing: the element's UA frame would draw a second
+   box around the card. Exercised by the port; the prototype's delete controls are static. */
+.confirm-dialog { border:0; padding:0; background:transparent; width:min(400px, calc(100vw - 48px)); }
+.confirm-dialog::backdrop { background:rgb(11 26 18 / .38); }
+.confirm-dialog-card { background:var(--bg-card); border-radius:var(--radius-card); padding:18px 20px; font-size:13px; color:var(--text); box-shadow:0 14px 44px rgb(11 26 18 / .22); }
+.confirm-dialog-card strong { display:block; margin-bottom:4px; }
+.confirm-dialog-card p { margin:0; color:var(--text-body); line-height:1.5; }
 .progress-bar { height:6px; border-radius:3px; background:#E7EAE5; overflow:hidden; }
 .progress-bar-fill { height:100%; width:72%; background:var(--green); border-radius:3px; }
 .progress-bar.progress-bar-indeterminate .progress-bar-fill { width:38%; animation:pslide 1.5s ease-in-out infinite; }
