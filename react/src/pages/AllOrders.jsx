@@ -48,6 +48,12 @@ const filtersFromParams = params => ({
 	status: params.get('status') ?? 'Any'
 })
 
+/* The name behind an id the URL is holding, for the chips and for the panel's two comboboxes --
+   one helper, so the two cannot name the same filter differently. Empty id, empty string; a list
+   that has not arrived yet gives the id back, which is what both of them showed before the names
+   landed and is better than a chip reading "Vendor: ". */
+const nameOf = (list, id) => list?.find(x => x.id === id)?.name ?? id
+
 const paramsFromFilters = (filters, query, sort, page) => {
 	const out = {}
 	if (query) out.q = query
@@ -72,20 +78,36 @@ export default function AllOrders() {
 	const urlSort = params.get('sort')
 
 	const [draft, setDraft] = useState(filters)
-	/* Open on arrival, as the prototype has it: the filters are the point of this page, and a
-	   panel that starts closed hides the controls a link may have just set. */
-	const [panelOpen, setPanelOpen] = useState(true)
+	/* Closed on arrival. It used to open, on the reasoning that a link could arrive carrying a
+	   filter the closed panel would hide -- but the chip row above names every filter that is
+	   on, and the draft below now shows the vendor and category the URL set rather than an empty
+	   field, so opening the panel confirms that state instead of revealing it. Open, it is 8
+	   fields and a segmented control standing between the search and the orders it filtered. */
+	const [panelOpen, setPanelOpen] = useState(false)
 	const toast = useToast()
 	const searchField = useRef(null)
 	const chipRow = useRef(null)
 
-	/* The panel's own copy follows the URL, so a link that arrives with a filter on it opens
-	   the panel showing that filter rather than the last one typed into it. */
-	useEffect(() => setDraft(filters), [filters])
-
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
 	const settings = useApi(getSettings)
+
+	/* The panel's own copy follows the URL, so a link that arrives with a filter on it opens the
+	   panel showing that filter rather than the last one typed into it.
+
+	   Vendor and category need translating on the way in, which is the half that was missing: the
+	   URL carries `?category=groceries` and the comboboxes display names, so every link that
+	   filters this list -- a category tile, a vendor card, a chart legend row, the answer to the
+	   question of the day -- left those two fields reading "Any vendor" and "Any category" over a
+	   list that was filtered by both. The panel was describing a filter it was not showing. Both
+	   names come from the lists, which arrive after the first render, so this re-runs when they
+	   land; every other filter is its own value in the URL and needs no lookup. */
+	useEffect(() => setDraft({
+		...filters,
+		vendorName: nameOf(vendors.data, filters.vendorId),
+		categoryName: nameOf(categories.data, filters.categoryId)
+	}), [filters, vendors.data, categories.data])
+
 	/* The sort is the URL's when the URL has one, and the user's stored default otherwise. */
 	const activeSort = urlSort ?? settings.data?.sort ?? 'date-desc'
 	const pageSize = settings.data?.pageSize ?? 10
@@ -115,8 +137,6 @@ export default function AllOrders() {
 	}), [query, filters, activeSort, page, pageSize])
 
 	const results = useApi(getOrders, [request])
-
-	const nameOf = (list, id) => list?.find(x => x.id === id)?.name ?? id
 
 	/* One chip per filter that is actually on. Deriving them rather than listing them is what
 	   keeps the row and the query from disagreeing. */

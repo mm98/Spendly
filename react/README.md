@@ -385,6 +385,42 @@ first paint is what they are judged on:
   canvas at 4× and compared, **0 icons differing across 189,075,456 channel values**, with 0 of
   them drawing nothing (which would have made the comparison vacuous).
 
+### Minified, then actually compressed
+
+Vite strips the comments and collapses the whitespace: **0 `/*` left in any JS chunk and 0 in the
+stylesheet**, which goes out as one 71,911-byte line from 114,109 bytes of source. It does not touch
+the HTML, so the entry document shipped its two source tripwires — the doctype and charset notes,
+519 of its 1,060 bytes — to every visitor. A `transformIndexHtml` in `vite.config.js` removes them
+from the built copy only, leaving `<!--[if` alone so nothing eats a conditional comment: **1,060
+bytes to 522**.
+
+Minifying is not compressing, and the `gzip: 32.39 kB` in the build log is a number Vite computes
+and discards — nothing in `dist/` was compressed. `scripts/precompress.mjs` runs as `postbuild` and
+writes `.gz` and `.br` beside every text asset, skipping any file that does not shrink, since a
+variant larger than the original is one a server will still prefer. Brotli at quality 11 is far too
+slow to run per request, which is the whole reason to run it once at build:
+
+| | identity | gzip | brotli |
+| --- | --- | --- | --- |
+| whole `dist/`, 43 files | 1,377.82 kB | 387.76 kB (71.9% off) | **341.03 kB (75.2% off)** |
+| first paint, 5 files | 403.3 kB | — | **121.5 kB** |
+
+Serving them is the host's half: nginx wants `gzip_static`/`brotli_static`, Caddy `precompressed
+br gzip`. A host that compresses on the fly ignores the variants and loses nothing, which is why
+they are written unconditionally. The originals stay — content negotiation needs the identity
+encoding to exist.
+
+Loading is already asynchronous where it can be. The entry is `<script type="module">`, which
+defers by definition; the runtime and `vendor` chunks are `modulepreload`ed so they are in flight
+during parse rather than discovered after it; every page and every icon shard is fetched on demand.
+The stylesheet is the one blocking request in the document and stays blocking on purpose — it
+carries the three Poppins faces as data URIs, **31,493 of its 71,911 bytes, 43.8%**, so making it
+async would trade a flash of unstyled text for bytes that are needed before the first paint anyway.
+Moving those faces to files would drop the base64 third and let them load in parallel; it would also
+mean the stylesheet here is no longer the prototype's `<style>` block byte for byte, which is what
+`npm run css:check` exists to guarantee. Not a build setting — a decision about the constraint, and
+it has not been taken.
+
 ## What was measured
 
 Chromium 141.0.7390.37 under Playwright 1.56.1, at 1440x900 and on an `iPhone 13` device
@@ -396,6 +432,27 @@ checked.
   non-zero. Re-run against the split build: **18 routes at 1440 and on an iPhone 13 profile, 0
   console or page errors**, no page rendering empty, and the title and sub-tabs already right
   on arrival rather than after the page's chunk landed.
+- **The filter panel arrives collapsed, and opens showing what the link set.** At
+  `#/orders/all?category=groceries&vendor=bilka`, FILTERS reads `aria-expanded="false"`, the panel
+  is `hidden` and computes `display: none`, and the chip row still states both filters — *Vendor:
+  Bilka*, *Category: Groceries* — over `Orders · 4 match`. One click and the panel is `display:
+  grid` with **Vendor `Bilka` and Category `Groceries` in the fields**, which read empty before,
+  while Kind, From, To and Status show the nothing the URL actually holds. No console or page
+  errors on either state.
+- **The question card's answered pair is 12px apart, both ways round.** `.card-question` measures
+  9.3 / 12 / 12 between its four children — the ghost button's `margin-top` computes to 12px where
+  it was **0** — and the same note-plus-button pair on Orders, where the button is the block
+  variant with a 12px margin of its own, still measures 12 rather than 24.
+- **The three committed screenshots still hold: 0 differing pixels of 11,403,840.** `home.png` and
+  `phone.png` are untouched by either change, and `all-orders.png` is the state the page now
+  reaches by clicking FILTERS, at **0 of 5,184,000** — so the shot documents the panel opened
+  rather than a default that no longer exists, and no image needed regenerating.
+- **Nothing embedded is dead weight.** `[...document.fonts]` reports all three Poppins faces
+  `loaded` — 500, 600 and 700 — so the 43.8% of the stylesheet that is base64 is font the app
+  really draws with. A pass over the 252 class selectors in the stylesheet finds **14 that appear
+  in no source file, and all 14 are composed at runtime** (`'button-' + variant`,
+  `'note-' + tone`, `'icon-button-' + variant`, the `document-preview-*` kinds, `delta-*`,
+  `chip-status-warning`) — there is no unused-CSS tail to strip from `dist/`.
 - **No control is drawn without a handler or a destination.** A source sweep over every
   `<button>`, `Button`, `IconButton`, `ButtonLink`, `Segmented`, `Switch` and `Combobox` in
   `src/` returns zero that carry neither `onClick`, `onChange`, `onSelect`, `onRemove` nor

@@ -2,19 +2,29 @@
 
 Spendly is one prototype and its documentation. `spendly.html` is the entire prototype — every route,
 markup, CSS, JS and three Poppins weights as woff2 data URIs, with no build, no dependencies and no
-network. `README.md` is the design system it proves, and `docs/` holds the screenshots that document
-shows. Opening the HTML in a browser is the whole toolchain.
+network. `README.md` is the design system it proves; `docs/` holds the screenshots that document shows
+and the defect log its rules link to. Opening the HTML in a browser is the whole toolchain.
 
 ## Division of labour
 
-- **`README.md` holds rules about the product** — what the UI must do, numbered by section, written to
-  survive the port to Blazor. If a developer who never opens this file would need it, it is a README
-  rule.
+Four documents, one job each. Putting a paragraph in the wrong one is how the same rule ends up
+stated twice and obeyed once.
+
+- **`README.md` is the design system** — what the UI must do, in general terms, numbered by section.
+  Rules, not case histories: a reader who needs to know what a control must do should not have to
+  read a defect report to find it. It names **no implementation** — not a framework, a router or a
+  bundler. Those are decisions downstream of it and they change; the design system outlives them.
+- **`docs/defects.md` is the evidence** — the defect a rule cost, the numbers that settled it, the
+  instrument and the engine. A README rule that looks arbitrary without its history links here. This
+  is not a changelog: entries are keyed to the section they defend, never to a date.
+- **A port's own README is the port's own business** — its framework, its build, its chunking, its
+  measurements. `react/README.md` today; something else tomorrow. Nothing in it is a rule about the
+  product.
 - **This file holds rules about the work** — how to verify, what counts as done, what may be claimed.
   Nothing here describes the UI.
-- **A fix usually teaches both.** The rule goes to the README, with the bug that bought it, per that
-  document's ground rule. How the bug got past us comes here. Do not copy the design system into this
-  file; do not copy working procedure into that one.
+- **A fix usually teaches three of them.** The rule goes to the README in general terms, the bug and
+  its numbers to `docs/defects.md`, and how the bug got past us comes here. Do not copy the design
+  system into this file; do not copy working procedure into that one; do not narrate a fix in either.
 
 ## Verification
 

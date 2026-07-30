@@ -661,6 +661,13 @@ svg.chart { width:100%; display:block; }
 .note.note-warning { background:#F6ECD9; }
 .note-positive strong { color:var(--text-positive); }
 .note-warning strong { color:#84651E; }
+/* A verdict and the action it leads to are two blocks, not one control. The gap sits on the
+   pair rather than on whichever button turns up: .button-block declares its own 12px top
+   margin and .button-ghost declares none, so the question card's answered state drew SEE
+   THOSE ORDERS flush against the note it answers -- 0px measured -- while the identical
+   pair one card over stood at 12 only because the button there happened to be the block
+   variant. S10. */
+.note + .button { margin-top:12px; }
 .progress-bar { height:6px; border-radius:3px; background:#E7EAE5; overflow:hidden; }
 .progress-bar-fill { height:100%; width:72%; background:var(--green); border-radius:3px; }
 .progress-bar.progress-bar-indeterminate .progress-bar-fill { width:38%; animation:pslide 1.5s ease-in-out infinite; }
@@ -1872,7 +1879,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 				<div class="card-body card-body-filters">
 					<div class="row-inline toolbar">
 						<div class="field-shell"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg><input type="search" placeholder="Search vendor, note or item text…" aria-label="Search orders"></div>
-						<button type="button" class="button button-ghost" style="flex:none" data-filters-toggle aria-expanded="true" aria-controls="filter-panel"><svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS<svg class="icon chevron-icon" viewBox="0 0 24 24" style="color:var(--text-muted)"><path d="M6 9l6 6l6 -6"></path></svg></button>
+						<button type="button" class="button button-ghost" style="flex:none" data-filters-toggle aria-expanded="false" aria-controls="filter-panel"><svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16 M6 12h12 M9 18h6"></path></svg>FILTERS<svg class="icon chevron-icon" viewBox="0 0 24 24" style="color:var(--text-muted)"><path d="M6 9l6 6l6 -6"></path></svg></button>
 						<div class="chip" style="height:38px;flex:none">Sort: Date, newest<svg class="icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div>
 					</div>
 					<div class="row-inline" style="gap:6px">
@@ -1882,7 +1889,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<button type="button" class="button-link" style="margin-left:6px" data-clear-filters>CLEAR ALL</button>
 					</div>
 					<p class="screenreader-only" role="status" id="filter-live-region"></p>
-					<div class="filter-section" id="filter-panel">
+					<!-- Collapsed on arrival. The chip row above names every filter that is on, so a
+					     closed panel hides no state -- open, it is 8 fields and a segmented control
+					     between the search field and the orders it filtered. S13. -->
+					<div class="filter-section" id="filter-panel" hidden>
 						<label class="field"><span>Vendor</span><div class="field-shell"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Bilka" placeholder="Any vendor" aria-label="Vendor"><svg class="icon chevron-icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
 						<div class="field-pair field-pair-stack-early">
 							<label class="field"><span>Category</span><div class="field-shell"><input type="text" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Any category" aria-label="Category"><svg class="icon chevron-icon" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"></path></svg></div></label>
@@ -1897,10 +1907,13 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 							<label class="field"><span>Max amount</span><div class="field-shell"><input type="text" inputmode="decimal" placeholder="Any" aria-label="Maximum amount"><span class="field-unit">kr.</span></div></label>
 						</div>
 						<div class="field"><span>Status</span>
+							<!-- Delivered, because a chip above says the list is filtered to it. A panel
+							     that reads Any over a filtered list is the defect this page's own chips
+							     made visible: the field is what the next APPLY is built from. S13. -->
 							<div class="segmented segmented-compact" role="tablist">
-								<button type="button" class="is-on" role="tab" aria-selected="true">Any</button>
+								<button type="button" role="tab" aria-selected="false">Any</button>
 								<button type="button" role="tab" aria-selected="false">Ordered</button>
-								<button type="button" role="tab" aria-selected="false">Delivered</button>
+								<button type="button" class="is-on" role="tab" aria-selected="true">Delivered</button>
 								<button type="button" role="tab" aria-selected="false">Returned</button>
 							</div></div>
 						<div class="form-actions">
