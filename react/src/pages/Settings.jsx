@@ -133,8 +133,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								</div>
 								<div className="space-between">
 									<span className="field-help" style={{ maxWidth: '32ch' }}>
-										Ask before deleting an order, a category or a vendor. With this off, the
-										delete button acts straight away.
+										Ask before deleting anything — an order, a category, a vendor, a line
+										item, an attachment. With this off, the trash acts straight away.
 									</span>
 									<Switch checked={local.confirmDelete} label="Ask before deleting anything"
 										onChange={v => change({ confirmDelete: v },

@@ -164,7 +164,11 @@ vendor went the moment the trash was clicked, and only the order read the settin
 whether to ask -- a destructive action that asks on one screen and not another is not a
 setting, it is a coin toss. `useDelete` is that question written once; it is a hook rather than
 a component because the button and the note do not always sit together (on an order the trash
-is up in the header band, per README: Order Detail).
+is up in the header band, per README: Order Detail). `useRowDelete` is the same question for a
+row -- a line item on the order form, an attachment on the order page. Those two trashes acted
+straight away while every record delete asked, which is the coin toss again one level down; one
+hook call serves the whole list (hooks cannot sit in a loop), the state is which row is asking,
+and each open note gets its own id so two lists on one page cannot cross their `aria-controls`.
 
 **`Form.jsx`** owns what a rejection looks like: the message under its field, the red edge on
 the shell, `aria-invalid` and `aria-describedby` on the control, and one sentence in the
@@ -342,7 +346,8 @@ area, so each one is read somewhere and the page says where:
 - **Sort orders by** — what All orders opens sorted by.
 - **Show the scan card on Home** — the same switch LATER on the card itself writes, so
   dismissing it there and turning it back on here are one setting seen twice.
-- **Ask before deleting an order** — whether the delete button on an order confirms first.
+- **Ask before deleting anything** — whether a delete confirms first, on a record or a row:
+  order, category, vendor, line item, attachment.
 - **Clear stored data** — forgets everything this browser holds and puts the demo data back.
 
 ### The scan flow carries the document
