@@ -7,6 +7,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
+		"postbuild": "node scripts/precompress.mjs",
 		"preview": "vite preview",
 		"css:sync": "node scripts/sync-css.mjs",
 		"css:check": "node scripts/sync-css.mjs --check",

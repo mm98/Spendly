@@ -20,7 +20,8 @@ layer floats on the gray shell; the sidebar sits directly on it.
 
 ![Spendly's home screen at 1440px: sidebar, floating white layer, spend hero with chart and category split, and the Your cards row](docs/home.png)
 
-**All orders** — the search surface, with the filter panel open. Both control tiers are visible: 38px
+**All orders** — the search surface, with FILTERS opened for the shot: the panel is collapsed on
+arrival ([§13](#13-honest-affordances)), and opened it shows both control tiers at once — 38px
 toolbar controls in the top row, 48px entry fields in the panel below them.
 
 ![Spendly's all-orders screen: search field, FILTERS and sort controls, removable filter chips, a filter panel with a full-width vendor combobox, category and kind comboboxes, date and amount fields and a segmented status control, then the first result row with its status chip](docs/all-orders.png)
@@ -722,6 +723,14 @@ second floor under it, since a form that never rejects a value is also a form th
   — spacing only — and green amounts right.
 - SEE ALL is the 44px full-width outline button at the card foot. Underlined caps links
   (`.button-link`) appear only inside empty states.
+- **A tinted note and the action under it are 12px apart, and the gap belongs to the note.**
+  `.note + .button { margin-top: 12px }`. The question card's answered state — the green answer, then
+  SEE THOSE ORDERS — drew the button **flush against the note, 0px measured**, while the same pair one
+  card over stood correctly at 12: `.button.button-block` declares a 12px top margin of its own and
+  `.button.button-ghost` declares none, so the spacing depended on which variant the answer happened
+  to be followed by. Spacing between two blocks is not a property of one of them. Set from the note,
+  the pair is 12px whichever button follows it, and the block variant's own margin computes to the
+  same 12 rather than to 24.
 - Empty states: loop glyph, one sentence, underlined caps action.
 - Exactly **one dark card per screen** — the AI/contextual slot.
 - A card header that navigates gets the chevron **and** the standard `.card-divider` hairline. The tally
@@ -807,7 +816,7 @@ horizontal scroll ≤1180, stacks ≤700), rail with returns, question of the da
 (Expenses | Budget segmented plus donut), ORDER SETTINGS.
 
 **Orders / All orders** — the search surface: 38px finder input (vendor, note, item text), FILTERS
-disclosing the inline panel it opens and collapses (a full-width vendor combobox, then category and
+disclosing the inline panel it opens and collapses, **collapsed on arrival** (a full-width vendor combobox, then category and
 kind comboboxes, from/to, min/max with `kr.` units, status segmented led by Any, APPLY 32px +
 CLEAR), active filters as removable ×
 chips plus CLEAR ALL, sort combobox chip, results line "N match · filtered from total", rows with
@@ -1017,10 +1026,25 @@ instance below shipped because a shape was copied from the reference without ask
   border, an icon and no handler — the decorative-control rule again, in its hardest form to spot,
   because this document already said the button toggled the panel and the screenshot showed both. The
   button carries `aria-expanded`, `aria-controls` names the panel, and the panel is `hidden` when
-  collapsed; it starts open, so the page still shows both control tiers on load. **The label is the
+  collapsed. **It starts collapsed.** It started open on the argument that a link arriving with a
+  filter set would otherwise land on a panel hiding it — but the chip row states every filter that is
+  on, so the closed panel hides no state, and the open one puts 8 fields and a segmented control
+  between the search field and the orders they filtered. A disclosure whose default is open is a
+  panel with a button on it. **The label is the
   same string in both states** — the chevron rotates instead. "HIDE FILTERS" is wider than "FILTERS",
   and the search beside it is `flex:1` in a `nowrap` row, so a changing label would move the search on
   every click: the segmented control's rule ([§9](#9-forms-and-fields)) arriving from the button side.
+- **A filter panel shows the filter its list is under.** Every link into All orders speaks the query
+  string — a category tile, a vendor card, a chart legend row, the answer to the question of the day —
+  and what it carries is ids: `?category=c-groceries`. So the chips read *Category: Groceries*, the
+  results line read 11 match of 23, and the panel's own Vendor and Category comboboxes read **Any
+  vendor** and **Any category**, because a combobox displays a name and the URL holds none. Two
+  controls describing one filter with one of them saying it is off — and the field is the one a user
+  edits, so the next APPLY was liable to be made from what the panel claimed rather than from what the
+  list was. Both fields resolve their id through the same lookup the chips use, so a chip and a field
+  cannot name one filter differently; every other filter (kind, from/to, min/max, status) is its own
+  value in the query string and needs none. This is the half that has to be true before the panel is
+  allowed to start closed, since opening it is how you check what a link set.
 - **A switch that reveals a panel is a disclosure wearing a different shape, and owes the same
   wiring.** "More details?" carried `role="switch" aria-checked="true"`, sat above the optional
   fields it names, and toggled nothing -- the decorative-control rule in the one form no screenshot

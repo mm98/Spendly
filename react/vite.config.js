@@ -4,9 +4,22 @@ import react from '@vitejs/plugin-react'
 // base is relative so a build can be opened from any path -- the prototype it ports
 // opens from a file:// URL, and a dist that only works when served from / would be a
 // step down from that.
+/* The comments in index.html are tripwires for whoever edits index.html, and nobody edits the
+   built copy. Vite minifies the JS and the CSS -- 0 comments left in either, measured -- and
+   leaves the HTML exactly as written, which shipped the doctype and charset notes to every
+   visitor: 519 of the entry document's 1,060 bytes. They stay in the source, where they work.
+   Conditional comments are not touched, since a stripper that eats `<!--[if` breaks the one
+   kind of comment a browser reads. */
+const stripHtmlComments = () => ({
+	name: 'strip-html-comments',
+	enforce: 'post',
+	apply: 'build',
+	transformIndexHtml: html => html.replace(/<!--(?!\[if)[\s\S]*?-->\n?/g, '')
+})
+
 export default defineConfig({
 	base: './',
-	plugins: [react()],
+	plugins: [react(), stripHtmlComments()],
 	server: { port: 5173 },
 	build: {
 		rolldownOptions: {

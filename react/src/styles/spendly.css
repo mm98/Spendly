@@ -644,6 +644,13 @@ svg.chart { width:100%; display:block; }
 .note.note-warning { background:#F6ECD9; }
 .note-positive strong { color:var(--text-positive); }
 .note-warning strong { color:#84651E; }
+/* A verdict and the action it leads to are two blocks, not one control. The gap sits on the
+   pair rather than on whichever button turns up: .button-block declares its own 12px top
+   margin and .button-ghost declares none, so the question card's answered state drew SEE
+   THOSE ORDERS flush against the note it answers -- 0px measured -- while the identical
+   pair one card over stood at 12 only because the button there happened to be the block
+   variant. S10. */
+.note + .button { margin-top:12px; }
 .progress-bar { height:6px; border-radius:3px; background:#E7EAE5; overflow:hidden; }
 .progress-bar-fill { height:100%; width:72%; background:var(--green); border-radius:3px; }
 .progress-bar.progress-bar-indeterminate .progress-bar-fill { width:38%; animation:pslide 1.5s ease-in-out infinite; }
