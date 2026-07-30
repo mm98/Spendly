@@ -11,7 +11,7 @@ import { Icon } from './Icon.jsx'
    There is a line this does not cross. A toast is for what *happened*: saved, added, removed,
    moved, refused. A form's verdict on its own fields -- "Cannot continue — Vendor and Date need
    fixing." -- is not that. It has to stay on screen while the form is still wrong, it names the
-   fields you must go and fix, and it belongs next to them. Those stay where they are. README 9.
+   fields you must go and fix, and it belongs next to them. Those stay where they are. README: Fields and Forms.
 
    Announcement is by one region. `role="status"` with `aria-live="polite"` waits for a pause
    rather than cutting in, which is right for a result you did not have to act on.

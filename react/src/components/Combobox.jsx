@@ -72,7 +72,7 @@ export function Combobox({
 	   A field whose values sit in a stack over the input is a field whose input starts lower
 	   than the one beside it, and the pair stops lining up the moment one of them has a value.
 	   The prototype puts them in the same box for that reason: the shell grows downwards from
-	   a shared top edge, so both fields still start on the same line. README 9. */
+	   a shared top edge, so both fields still start on the same line. README: Combobox. */
 	const wrapping = Boolean(chips)
 
 	return (

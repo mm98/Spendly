@@ -25,7 +25,7 @@ const budgetUsed = categories => {
 
    The comparison period is fixed to the one before, so the key names both plotted lines
    instead of offering a choice the app does not have -- a legend that looks like a control
-   and is not is the same defect as a control that looks live and does nothing. README 13. */
+   and is not is the same defect as a control that looks live and does nothing. README: Honest Affordances. */
 
 export default function Orders() {
 	const state = useApi(getOrdersOverview)
@@ -34,7 +34,7 @@ export default function Orders() {
 	/* HOW IT WORKS and ASK SPENDLY both open something. A button that explains and a button
 	   that answers are the two shapes a decorative control most often takes, because neither
 	   has an obvious destination -- so each one owns a disclosure here, with aria-expanded
-	   saying which state it is in. README 13. */
+	   saying which state it is in. README: Honest Affordances. */
 	const [explaining, setExplaining] = useState(false)
 	const [answering, setAnswering] = useState(false)
 
@@ -48,7 +48,7 @@ export default function Orders() {
 								label={`Spent · ${data.period.label}, open Statistics`} />
 							<CardDivider />
 							{/* No padding-top override here either -- the 2px this card carried put the
-							    first line 4.5px under the hairline, the tightest in the file. README 10. */}
+							    first line 4.5px under the hairline, the tightest in the file. README: Cards. */}
 							<CardBody>
 								<div className="figure-large tabular-figures">{kr(data.period.spent)}</div>
 								<div className="chart-series-key">
@@ -178,7 +178,7 @@ export default function Orders() {
 								    share of the month; Budget is the same categories against what they were
 								    allowed, which is a different question and gets a different ring. The
 								    prototype draws this control and changes nothing with it -- the
-								    decorative-control rule wearing the shape of a tab. README 13. */}
+								    decorative-control rule wearing the shape of a tab. README: Honest Affordances. */}
 								{breakdown === 'Expenses' ? (
 									<>
 										<DonutBox>
@@ -203,7 +203,7 @@ export default function Orders() {
 										</DonutBox>
 										{/* The same rows as the Expenses view, saying a different thing in the
 										    meta line. A progress bar under each one would be a layout this app
-										    does not use anywhere else. README 10. */}
+										    does not use anywhere else. README: Cards. */}
 										<div className="category-rows">
 											{data.categories.map(c => (
 												<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`}

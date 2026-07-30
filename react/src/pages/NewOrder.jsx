@@ -34,7 +34,7 @@ import { amount, kr, parseAmount, percent, shortDate, today } from '../api/forma
    Both steps reject values, and both reject them the same way -- the marking is in Form.jsx
    and each step owns nothing but its own rules. Step 2 checked its four fields while NEXT
    STEP walked straight past the three the order needs, so an order could reach the item form
-   with no vendor, no date and a Kind that is not one of the kinds. README 9.
+   with no vendor, no date and a Kind that is not one of the kinds. README: Fields and Forms.
 
    Neither step arranges its own page. Both hand their fields to FormPage, which is the one
    card, headline, verdict line, rail and split footer every form in the app is drawn in. */
@@ -87,7 +87,7 @@ export function NewOrderDetails() {
 
 	/* CREATE VENDOR "…" is the foot of the vendor list, and it creates the vendor rather than
 	   only typing its name into the field: a row labelled with a verb that does not do the
-	   verb is the decorative-control rule inside a dropdown. README 13. */
+	   verb is the decorative-control rule inside a dropdown. README: Honest Affordances. */
 	const addVendor = name => {
 		const clean = String(name).trim()
 		if (!clean) return
@@ -170,7 +170,7 @@ export function NewOrderDetails() {
 					    and only then can it be returned. This control once read Delivered /
 					    Ordered / Returned in all three places it appears -- pixel-perfect in
 					    every engine, and saying an order was delivered before it was placed.
-					    Geometry has no opinion about the order of labels. README 13. */}
+					    Geometry has no opinion about the order of labels. README: Honest Affordances. */}
 					<Segmented options={['Ordered', 'Delivered', 'Returned']} value={draft.status}
 						onChange={v => update({ status: v })} label="Status" />
 				</Field>
@@ -181,7 +181,7 @@ export function NewOrderDetails() {
 			    Categories made it taller while Kind stayed a single 48px row beside it, so the
 			    two labels lined up and nothing under them did. Vendor already holds a row for a
 			    related reason -- what a field pairs with is a question about the field, not
-			    about the width. README 9. */}
+			    about the width. README: Fields and Forms. */}
 			{/* htmlFor, because the chips below are labelable and come first -- without it this
 			    label pointed at the first chip's remove button and a tap on the chevron
 			    deleted a category instead of opening the list. See components/Form.jsx. */}

@@ -45,7 +45,7 @@ const Stats = page(() => import('./pages/Stats.jsx'))
 
    `back.label` is the destination, not the origin. It was a fixed "Back to orders" while two
    of the three pages it appears on go back to Scan receipt, so it announced the wrong place
-   two times out of three. S18. */
+   two times out of three. README: Accessibility. */
 
 const ORDER_TABS = at => [
 	{ label: 'Overview', to: '/orders', on: at === 'overview' },

@@ -19,7 +19,7 @@ import { dayMonth, kr, krRound, percent } from '../api/format.js'
    card whose chart is driven by two controls at once -- the Orders/Saved tabs choose which
    series, the range chips choose how much of it -- so the tab hands over the full series and
    lets the range re-apply. Letting each write the chart directly is how one of them silently
-   stops working: whichever was clicked last wins. README 6. */
+   stops working: whichever was clicked last wins. README: Buttons. */
 
 const HERO_SERIES = [
 	{ key: 'orders', label: 'Orders' },
@@ -40,7 +40,7 @@ function Hero({ period, categories }) {
 			<CardDivider />
 			{/* No padding-top override. 2px here put the big number 10px under the hairline
 			    against an 18-24px band everywhere else, and a number that close to the rule
-			    reads as a drawing error. README 10. */}
+			    reads as a drawing error. README: Cards. */}
 			<CardBody>
 				<div>
 					<div className="figure-headline tabular-figures">{kr(period.spent)}</div>

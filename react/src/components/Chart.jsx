@@ -6,7 +6,7 @@ import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState 
    user unit is always one CSS pixel. Stroke widths hold, marker circles stay circular, and
    only the horizontal spacing of the data changes. Scaling a fixed viewBox instead
    (preserveAspectRatio, or width plus aspect-ratio) zooms the whole drawing, which thickens
-   the line and turns the circles into ellipses. README 6.
+   the line and turns the circles into ellipses. README: Buttons.
 
    In React that means the width has to be state: the path data is computed from it during
    render rather than written onto the DOM afterwards, so a re-render never leaves a path
@@ -129,7 +129,7 @@ export const ChartRuler = () => <div className="chart-ruler" aria-hidden="true" 
    1W slices the month the prototype holds and 1M is that month; 3M, YTD and ALL are longer
    than anything here, so they bucket the same month into the number of points they would
    carry. Demo data, like every figure in this app, and the one honest alternative to a
-   control that draws five states and changes nothing. README 6 and 13. */
+   control that draws five states and changes nothing. README: Buttons, Honest Affordances. */
 
 const RANGE_BUCKETS = { '3M': 13, YTD: 12, ALL: 6 }
 

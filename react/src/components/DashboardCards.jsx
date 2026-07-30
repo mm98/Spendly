@@ -18,7 +18,7 @@ import { saveDashboardCards } from '../api/client.js'
    mid-interaction drops focus to the body.
 
    Cancel restores the snapshot taken when editing began, so the discard is real rather than
-   a word on a button. README 13. */
+   a word on a button. README: Honest Affordances. */
 
 function ReorderBar({ name, index, count, handle, onRemove }) {
 	return (

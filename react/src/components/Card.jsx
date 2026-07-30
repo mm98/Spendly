@@ -6,11 +6,11 @@ import { Icon } from './Icon.jsx'
    The header takes `to` when the whole band opens something, and then it needs a label of
    its own: every card header in the app announces "<its own words>, open <destination>",
    so speech recognition can act on what is printed. A header that names only its sub-line
-   leaves no spoken phrase that activates the link. S18.
+   leaves no spoken phrase that activates the link. README: Accessibility.
 
    No padding-top override on the body, ever. Two cards carried a 2px one and put the first
    line 4.5px under the hairline against a 14-24px band everywhere else, which reads as a
-   rendering fault rather than as a choice. README 10. */
+   rendering fault rather than as a choice. README: Cards. */
 
 const join = (...parts) => parts.filter(Boolean).join(' ')
 

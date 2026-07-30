@@ -8,7 +8,7 @@ import { Icon } from './Icon.jsx'
    list of categories that reads 38, 27, 13, 10, 12. Nothing rendered could fail: a ring has
    no opinion about the list beside it. Here the ring is built from the same records the list
    is, so the two cannot disagree; the stylesheet keeps its default for anything that does
-   not pass segments. README 6. */
+   not pass segments. README: Buttons. */
 
 const conic = (segments, gap = 0) => {
 	let at = 0
@@ -112,7 +112,7 @@ export const ProgressRing = ({ done, total }) => (
 
 /** The placeholder for an uploaded document. The glyph is the file's own kind, because a
     PDF invoice drawn with a photo glyph is the screen telling the user it read something
-    else. README 11. */
+    else. README: Views. */
 export const DocumentPreview = ({ kind = 'image', style, ...rest }) => (
 	<div className={`document-preview document-preview-${kind}`} style={style} aria-hidden="true" {...rest}>
 		<Icon name={kind === 'pdf' ? 'document' : 'photo'}

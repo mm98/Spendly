@@ -18,7 +18,7 @@ import {
    The prototype draws an ORDER SETTINGS button at the foot of the Orders rail and it opens
    nothing. This is what it opens, and every switch on it is read somewhere: a settings page
    whose controls change nothing is the decorative-control rule one screen up, with more
-   surface area. README 13.
+   surface area. README: Honest Affordances.
 
    Each row below names where its value is used, because that is the fact a reader cannot
    check from the control itself.

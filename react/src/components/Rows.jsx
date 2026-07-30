@@ -9,7 +9,7 @@ import { inkOn } from '../api/colour.js'
    They all share `.data-row` -- one grouped rule owns the display, alignment, gap and
    padding, and each family below declares only its differences. A row family that sets
    those four again is a fifth near-miss with better intentions, and the cascade hides it
-   wherever the two happen to agree. README 5.
+   wherever the two happen to agree. README: Data Rows.
 
    `to` is what makes a row a link. Where it is absent the row is a <div> and announces
    nothing about being actionable, which is the honest rendering of a row that does not go

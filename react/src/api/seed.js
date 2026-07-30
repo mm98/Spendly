@@ -28,7 +28,7 @@ export const vendors = [
    `budget` is the month's allowance. It is what the Expenses/Budget toggle switches between
    -- the prototype draws that control and changes nothing with it, which is the same defect
    as a button with no handler wearing a different shape. A budget of 0 means none is set,
-   and the Budget view says so rather than reporting 0% of nothing. README 13. */
+   and the Budget view says so rather than reporting 0% of nothing. README: Honest Affordances. */
 export const categories = [
 	{ id: 'groceries',  name: 'Groceries',       icon: 'cart',    colour: 'var(--icon-red)',     spend: 18420, share: 38, saved: 1240, budget: 17000 },
 	{ id: 'electronics',name: 'Electronics',     icon: 'plug',    colour: 'var(--icon-yellow)',  spend: 12940, share: 27, saved: 980,  budget: 14000 },
@@ -179,7 +179,7 @@ export const orders = [
 
    Two more months sit under it in `periods`. They exist because Statistics has a pager, and
    a pager with one place to stand is a control that draws two arrows and moves nothing --
-   the defect this app keeps finding. README 13. */
+   the defect this app keeps finding. README: Honest Affordances. */
 export const period = {
 	id: '2026-07',
 	label: 'July 2026',
@@ -263,7 +263,7 @@ export const dashboardCards = [
 /* The scan page offers four ways in and the hero says "a PDF, photo or screenshot", so
    the two steps after it render the document that was chosen rather than a fixed photo:
    the format is the file's, and a page count belongs to the PDFs and to nothing else.
-   The draft below it is the same Bilka purchase in every case. README 11. */
+   The draft below it is the same Bilka purchase in every case. README: Scan Flow. */
 export const scanDocuments = {
 	photo:        { kind: 'image', name: 'kvittering-bilka.jpg',        meta: 'JPEG · 2,1 MB' },
 	screenshot:   { kind: 'image', name: 'ordrebekraeftelse-bilka.png', meta: 'PNG · 480 KB' },
@@ -446,7 +446,7 @@ export const periods = [period, june, may]
 /* The question of the day, and the answer it promises. A button labelled ASK SPENDLY that
    opens nothing is the decorative-control rule with an AI badge on it, so the answer is a
    record here and the button reveals it. `categoryId` and `periodId` are what make the
-   answer checkable: the orders behind it are one click away. README 13. */
+   answer checkable: the orders behind it are one click away. README: Honest Affordances. */
 export const answers = [
 	{
 		id: 'groceries-june',

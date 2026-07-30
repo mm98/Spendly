@@ -228,7 +228,7 @@ function GlobalFinder() {
    A real tablist: buttons, roving tabindex, arrow keys, and a selection that changes what is
    on screen. Every tab does something -- it either goes to another page or switches the view
    within this one. Anything that could do neither was removed rather than left as chrome
-   that looks live and is not. README 13. */
+   that looks live and is not. README: Honest Affordances. */
 function SubTabs({ tabs, view, setView }) {
 	const navigate = useNavigate()
 	const refs = useRef([])
@@ -317,7 +317,7 @@ export function AppShell() {
 					{/* The one <main> per document. Everything below the top bar is the page: the
 					    sub-tab band selects within it, so it is inside rather than beside. Without
 					    it the sheet was a bare <div> and every card, heading and row on twelve
-					    pages sat in no landmark at all -- 108 of them by axe's count. S1, S18. */}
+					    pages sat in no landmark at all -- 108 of them by axe's count. README: Accessibility. */}
 					<main>
 						<SubTabs tabs={handle.tabs} view={view} setView={setView} />
 						{/* One boundary for every route, because every page is its own chunk --

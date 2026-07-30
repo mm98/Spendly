@@ -5,7 +5,7 @@ import { Icon } from './Icon.jsx'
    `Chip` is a value the user put there and can take away -- a category on an order, a
    filter on a list -- so when it is removable it is a real <button> with the action it
    promises. A chip that draws a cross and removes nothing is worse as a button than it was
-   as a span: focusable, and still inert. README 13.
+   as a span: focusable, and still inert. README: Honest Affordances.
 
    `StatusChip` states where an order is, `SavingChip` states a number against retail, and
    `TagChip` labels a promo. None of the three is interactive. */

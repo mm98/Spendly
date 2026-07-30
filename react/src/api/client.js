@@ -487,7 +487,7 @@ export async function getScanDocuments(signal) {
     steps after it read. The prototype's hero says "Drop a receipt here" and answers a click
     with one of four canned documents; this way a dropped file is the document those steps
     name, with its own size and its own format. What the reader finds inside is still the one
-    Bilka purchase -- that part is demo data and says so. README 11. */
+    Bilka purchase -- that part is demo data and says so. README: Scan Flow. */
 export async function putScanDocument(file, signal) {
 	await wait(signal)
 	const key = 'upload-' + Date.now().toString(36)

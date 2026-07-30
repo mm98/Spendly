@@ -17,13 +17,13 @@ import { getSettings } from '../api/client.js'
    invented their own rail. A design system is what stops that, so the arrangement is written
    once here and every screen passes its fields in.
 
-   The shape is the one README 9 specifies and the order form already drew: card headline, lead
+   The shape is the one README: Fields and Forms specifies and the order form already drew: card headline, lead
    sentence, the form's own verdict line, the fields, and the actions split left/right at the
    foot. The rail beside it carries the live summary that mirrors the form.
 
    `status` is the form's verdict on its own fields and stays on the page -- it names what the
    user has to go back and fix, so it may not be a toast that leaves after five seconds. What
-   *happened* -- saved, added, removed -- is a toast. README 9, and Toast.jsx. */
+   *happened* -- saved, added, removed -- is a toast. README: Fields and Forms, and Toast.jsx. */
 
 export function FormPage({
 	title, lead, label, steps, notice, status, rail, cancel, submit, children
@@ -43,7 +43,7 @@ export function FormPage({
 								{children}
 								{/* Both buttons at the same height, because they are one pair: the
 								    stylesheet gives `.button-caps` 48px and `.button-compact` 32, and a
-								    call site that mixes them draws a footer that looks broken. README 6. */}
+								    call site that mixes them draws a footer that looks broken. README: Buttons. */}
 								<FormActions split>
 									<Button variant="ghost" icon={cancel?.icon} to={cancel?.to} onClick={cancel?.onClick}>
 										{cancel?.label ?? 'CANCEL'}</Button>
@@ -82,7 +82,7 @@ export const RecordWait = ({ state, label, steps }) => (
    not on another is not a setting, it is a coin toss.
 
    It is a hook rather than a component because the button and the question do not always sit
-   together: on an order the trash is up in the header band beside the pencil (README 11) and
+   together: on an order the trash is up in the header band beside the pencil (README: Create/Edit Form) and
    the note belongs under it, in the body. `useReorder` splits the same way for the same
    reason. */
 
@@ -109,7 +109,7 @@ export function useDelete({ what, detail, onDelete, icon = 'trash', variant = 'b
 			<Button variant={variant} icon={icon} {...asks}>
 				{label ?? `DELETE ${what.toUpperCase()}`}</Button>
 		),
-		/* The same control as a glyph, for the order header band, where README 11 puts edit and
+		/* The same control as a glyph, for the order header band, where README: Create/Edit Form puts edit and
 		   delete side by side. Same handler, same setting, same question underneath. */
 		iconButton: <IconButton icon={icon} label={label ?? `Delete ${what}`} {...asks} />,
 		note: confirming ? (

@@ -17,7 +17,7 @@ import { kr, krRound } from '../api/format.js'
    The range chips sit in the card body, where the hero card's identical control sits, rather
    than in the header. In the header they were the one right-hand item taller than the band --
    five buttons wrapping to two rows and 66px at 390, beside a label that wrapped with them --
-   so the header stood at 57.94 and 93.88 against every other header's 44.67. README 10. */
+   so the header stood at 57.94 and 93.88 against every other header's 44.67. README: Cards. */
 
 export default function Stats() {
 	/* Which month is on screen lives in the URL, so a link to a month is a link to a month --
@@ -37,7 +37,7 @@ export default function Stats() {
 							{/* A real pager over the months the source holds. Each arrow is disabled only at
 							    its own end, which is the one honest reason to disable a control -- the
 							    prototype disabled the right-hand one permanently and left the left-hand one
-							    live and inert. README 13. */}
+							    live and inert. README: Honest Affordances. */}
 							<IconButton icon="chevronLeft" label={older ? 'Previous period' : 'No earlier period'}
 								disabled={!older} style={older ? undefined : { opacity: 0.45 }}
 								onClick={() => older && goTo(older)} />

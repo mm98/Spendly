@@ -18,7 +18,7 @@ import { krRound, percent } from '../api/format.js'
    difference: the same read-only list, with two cards taken away. Here the two views send a
    row to two different places -- the orders behind it, or the category itself -- so the tab
    does something in both positions, which is the bar every tab in this app has to clear.
-   README 13.
+   README: Honest Affordances.
 
    Nothing is created or edited on this page. A category is a record, and a record is written
    on its own page through the one form component the app has, the same as an order and a
@@ -89,7 +89,7 @@ function CategoriesBody({ data, query, sort, manage, answer, answering, setAnswe
 							   buttons hanging off the end was a second layout for going somewhere.
 							   The budget is a fact about the row, so it goes in the row's own meta line
 							   where every other fact about a category goes; a progress bar under each
-							   one was a layout this app does not otherwise use. README 10. */
+							   one was a layout this app does not otherwise use. README: Cards. */
 							<CategoryRow key={category.id} category={category}
 								to={manage ? `/categories/${category.id}/edit` : `/orders/all?category=${category.id}`}
 								meta={manage

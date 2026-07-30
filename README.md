@@ -127,6 +127,8 @@ The shell is a two-column grid: a fixed 236px sidebar and a fluid content sheet.
 - `pointer: coarse` is what makes a phone a phone. Touch targets grow and fields render at 16px (then scale back) so iOS does not zoom the page on focus. A narrow desktop window is *not* the phone layout.
 - `prefers-reduced-motion: reduce` stops the animations for users who asked for that.
 
+**The document itself has rules.** The doctype is load-bearing — without it the page parses in quirks mode, which once moved 243 elements off their standards-mode geometry. The charset declaration comes first in `<head>`, before any sizable block: a browser stops sniffing for the encoding after 1024 bytes, and an undeclared encoding renders every non-ASCII character wrong.
+
 ---
 
 ## Components
@@ -486,6 +488,16 @@ The system targets WCAG AA, and the pieces are structural, not sprinkled on:
 - **State is in attributes and in pixels:** `aria-expanded`, `aria-checked`, `aria-invalid` — and each attribute has a stylesheet rule that draws it, because an ARIA attribute is a claim about the pixels, and only the pixels settle it.
 - **Reduced motion is honored** via `prefers-reduced-motion`.
 - **Contrast:** AA against the palette above. Decorative uses (a 3px meter in `--green`) may sit below text thresholds; text never does — that is what the darker `--text-positive` exists for.
+
+### iOS and WebKit
+
+The one platform whose own chrome the system has to work around. These are not styling choices; each is a workaround for something an engine draws or does uninvited:
+
+- **Native decoration is suppressed everywhere it appears.** Search fields get a circled × from the engine; date fields get a picker button. Both are browser-drawn icons the icon rule does not allow — and suppressing them is engine-shaped: a `-webkit-` prefix names the engine that *invented* the pseudo-element, not one that obeys the property you set on it. What removes a control in one engine can leave it drawn in another; only launching the engine settles it.
+- **Field text is 16px under a coarse pointer, then visually scaled back.** iOS zooms the page on focus of any field below 16px; the scale-back keeps the design's size without the zoom.
+- **Openers must be real.** The date glyph opens the native picker where the platform can (`showPicker`), and binds nothing where it can't — a dead listener swallows the tap the label forwards to the input.
+
+A change touching a native form control is engine-shaped by default: verified in one engine means unverified in the others, and the report says which.
 
 ### Responsive Layout
 

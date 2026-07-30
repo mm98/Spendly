@@ -32,7 +32,7 @@ export const percent = (n, decimals = 1) =>
    Nothing here is input[type=number] and nothing should be: type=number rejects the comma,
    so `value` comes back empty and min/max/step never run. inputmode gets the numeric
    keyboard; the parsing is ours. A dot groups thousands and never separates decimals,
-   which makes 89.95 a typo to name rather than a number to guess at. README 9. */
+   which makes 89.95 a typo to name rather than a number to guess at. README: Fields and Forms. */
 export const AMOUNT_PATTERN = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
 export const WHOLE_NUMBER_PATTERN = /^\d+$/
 export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',', '.'))

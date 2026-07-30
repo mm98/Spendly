@@ -7,7 +7,7 @@ import { ProgressRing } from './Viz.jsx'
    Its header labels itself "<its own words>, open <destination>", the same as every other
    card header, so speech recognition can act on what is printed. The version that shipped
    named the sub-line and dropped the title the eye reads first, which left no spoken phrase
-   that activates the link. S18.
+   that activates the link. README: Accessibility.
 
    The mark in the corner is decoration: it is the brand glyph at low contrast, and reading
    it out adds a "receipt" to the end of the card for no one's benefit. */
@@ -30,7 +30,7 @@ export function AiCard({ header, headline, body, children, ...rest }) {
 					    sentence contains it. Naming from the content makes the visible text part
 					    of the name by construction, which is what the rule is asking for, and it
 					    keeps the header speakable: every card header in the app announces
-					    "<its own words>, open <destination>". S18. */}
+					    "<its own words>, open <destination>". README: Accessibility. */}
 					<span className="screenreader-only">, open {header.destination}</span>
 					<span className="chevron" aria-hidden="true"><Icon name="chevronRight" /></span>
 				</Link>
