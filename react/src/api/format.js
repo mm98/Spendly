@@ -5,7 +5,7 @@
    the figure is a total the user could reconcile against a receipt, and rounded to whole
    kroner (18.420 kr.) where it is a summary. Both are below, because a component that
    picks the wrong one is a wrong claim about precision, not a formatting nit. See
-   ../../README.md section 9. */
+   README: Language and Formats. */
 
 const groups = whole => whole.replace(/\B(?=(\d{3})+$)/g, '.')
 
@@ -32,7 +32,7 @@ export const percent = (n, decimals = 1) =>
    Nothing here is input[type=number] and nothing should be: type=number rejects the comma,
    so `value` comes back empty and min/max/step never run. inputmode gets the numeric
    keyboard; the parsing is ours. A dot groups thousands and never separates decimals,
-   which makes 89.95 a typo to name rather than a number to guess at. README 9. */
+   which makes 89.95 a typo to name rather than a number to guess at. README: Fields and Forms. */
 export const AMOUNT_PATTERN = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
 export const WHOLE_NUMBER_PATTERN = /^\d+$/
 export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',', '.'))

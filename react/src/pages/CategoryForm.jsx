@@ -161,7 +161,7 @@ function CategoryFields({ mode, category }) {
 
 			{/* A name holds a row by itself, like the vendor field on an order: it carries the
 			    longest string on the form and a pair would give it half the room at exactly the
-			    width where it has least. README 9. */}
+			    width where it has least. README: Fields and Forms. */}
 			<Field label="Name" error={nameField.error} errorId={nameField.errorId}>
 				<FieldShell>
 					<TextInput id="category-name" value={values.name} autoFocus

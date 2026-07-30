@@ -9,7 +9,7 @@ import { Icon } from './Icon.jsx'
    sentence in the form's own status line. That marking is written once, in `Field` and
    `useFieldErrors` below, and each form owns nothing but its own rules. A second copy of it
    is the near-miss the uniformity rule is about: the two would agree until the day one of
-   them was fixed. README 9.
+   them was fixed. README: Fields and Forms.
 
    aria-describedby is set with the message and removed with it. Left in place it points at
    a hidden span, which is announced by no engine and audited as a dangling reference by
@@ -66,7 +66,7 @@ export function TextInput({ value, onChange, invalid, describedBy, ...rest }) {
 
    No native affordance survives the stylesheet, so the glyph opens the picker itself. Where
    showPicker() is missing (iOS < 16) nothing is bound at all -- a dead listener would
-   swallow the tap the label forwards to the input. Alt+Down keeps it off the mouse. S13, S17. */
+   swallow the tap the label forwards to the input. Alt+Down keeps it off the mouse. README: Honest Affordances, iOS and WebKit. */
 export function DateInput({ value, onChange, invalid, describedBy, trail, label, ...rest }) {
 	const ref = useRef(null)
 
@@ -115,7 +115,7 @@ export const TextArea = ({ value, onChange, ...rest }) => (
    Read the options left to right before shipping one. The status control read Delivered /
    Ordered / Returned in all three places it appeared, pixel-perfect in every engine, and
    said an order was delivered before it was placed. Geometry has no opinion about the order
-   of labels. README 13. */
+   of labels. README: Honest Affordances. */
 export function Segmented({ options, value, onChange, label, compact = true, tablist = true }) {
 	const refs = useRef([])
 	const index = Math.max(0, options.indexOf(value))
@@ -154,7 +154,7 @@ export function Segmented({ options, value, onChange, label, compact = true, tab
    Both states have to be visible, not just announced: without an [aria-checked="false"]
    rule the track stays green and the knob stays right, so a probe that flips the attribute
    and reads it back goes green on a control that renders identically either way. The
-   stylesheet carries that rule; this component carries the attribute it reads. S13. */
+   stylesheet carries that rule; this component carries the attribute it reads. README: Honest Affordances. */
 export function Switch({ checked, onChange, label, controls }) {
 	return (
 		<button type="button" className="switch" role="switch" aria-checked={checked}

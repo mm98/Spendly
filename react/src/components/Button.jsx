@@ -7,7 +7,7 @@ import { Icon } from './Icon.jsx'
    pass `to` and you get the first, pass `onClick` and you get the second. That is not
    pedantry about elements: an <a href> fires click on Enter itself and leaves Space to
    scroll the page, which is what the prototype's rows used to hand-roll and get wrong, and
-   only a link offers open-in-new-tab. README 13.
+   only a link offers open-in-new-tab. README: Honest Affordances.
 
    `data-go` rides along on every link because the stylesheet keys the row treatment off it
    (`a[data-go] { color:inherit; text-decoration:none }`), and it still says what it said in

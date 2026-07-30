@@ -164,7 +164,7 @@ vendor went the moment the trash was clicked, and only the order read the settin
 whether to ask -- a destructive action that asks on one screen and not another is not a
 setting, it is a coin toss. `useDelete` is that question written once; it is a hook rather than
 a component because the button and the note do not always sit together (on an order the trash
-is up in the header band, per README 11).
+is up in the header band, per README: Order Detail).
 
 **`Form.jsx`** owns what a rejection looks like: the message under its field, the red edge on
 the shell, `aria-invalid` and `aria-describedby` on the control, and one sentence in the

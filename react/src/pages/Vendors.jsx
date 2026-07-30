@@ -29,7 +29,7 @@ import { dayMonth, krRound } from '../api/format.js'
 
    The horizontal strip carries tabindex="0" and a region role: cards that hold nothing
    focusable are unreachable without a pointer, and five vendors scrolled past the right edge
-   at 390px with no way to tab to them. S18. */
+   at 390px with no way to tab to them. README: Accessibility. */
 
 const SORTS = { Spend: (a, b) => b.spend - a.spend, Name: (a, b) => a.name.localeCompare(b.name),
 	Orders: (a, b) => b.orders - a.orders, Saved: (a, b) => b.saved - a.saved }
@@ -59,7 +59,7 @@ export default function Vendors() {
 				{/* The hero holds one call to action at the hero size, and nothing else. It opens the
 				    page that writes a vendor rather than a panel below it: `.hero .button.button-caps`
 				    is 48px, and any second button standing beside it is either 48px too or a
-				    mismatched pair -- which is what a 32px CANCEL next to it was. README 6. */}
+				    mismatched pair -- which is what a 32px CANCEL next to it was. README: Buttons. */}
 				<Button variant="caps" to="/vendors/new">ADD VENDOR</Button>
 			</div>
 
@@ -102,7 +102,7 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, setVie
 						    The star and the pencil go at the foot, in the row the all-vendors card
 						    already had. It also held a "Favourite · saved 6.940 kr." chip that said
 						    nothing the card did not say twice -- the star is the favourite state, and
-						    the saved figure is the first row of the panel below. README 10. */}
+						    the saved figure is the first row of the panel below. README: Cards. */}
 						<CardHeader title={vendor.name} to={`/orders/all?vendor=${vendor.id}`}
 							label={`${vendor.name}, open their orders`} />
 						<CardDivider />
@@ -159,7 +159,7 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, setVie
 					   card in this app puts it: the label on the left, the chevron on the right, the
 					   whole band a link. A chevron in a row of icon buttons at the foot was a third
 					   layout for something the system already has one of -- and it mixed navigation
-					   in with two actions that are not navigation. README 10. */
+					   in with two actions that are not navigation. README: Cards. */
 					<Card key={vendor.id}>
 						<CardHeader title={vendor.name} to={`/orders/all?vendor=${vendor.id}`}
 							label={`${vendor.name}, open their orders`} />

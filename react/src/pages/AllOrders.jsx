@@ -20,7 +20,7 @@ import { dayMonth, parseAmount } from '../api/format.js'
    one changed the list not at all, because the list was markup -- here a chip is the only
    place a filter is stored, so a chip that is gone is a filter that is off and the count
    above the list moves. Each removal leaves focus somewhere deliberate, since it removes the
-   element focus was on, and announces once. README 13 and 18.
+   element focus was on, and announces once. README: Honest Affordances, Accessibility.
 
    FILTERS owns the panel below it: aria-expanded is the state, and there is no live-region
    message for it, because a disclosure announces itself. */
@@ -217,7 +217,7 @@ export default function AllOrders() {
 					<FilterSection id="filter-panel" hidden={!panelOpen}>
 						{/* Every dropdown in the app is the one combobox: type to search, grouped
 						    results, create from the foot. A native <select> here would be a second
-						    dropdown pattern and a hole in the design system. README 9. */}
+						    dropdown pattern and a hole in the design system. README: Fields and Forms. */}
 						<Field label="Vendor">
 							<Combobox label="Vendor" placeholder="Any vendor"
 								value={draft.vendorName ?? ''}
@@ -295,7 +295,7 @@ export default function AllOrders() {
 						)}
 						{/* A real pager. It was two disabled buttons and a fixed "Showing 1 to 3 of 3";
 						    the numbers are the API's now, and the buttons are disabled only at the ends,
-						    which is the one honest reason to disable a control. README 13. */}
+						    which is the one honest reason to disable a control. README: Honest Affordances. */}
 						<div className="space-between" style={{ marginTop: 12 }}>
 							<span className="field-help">
 								{data.matched

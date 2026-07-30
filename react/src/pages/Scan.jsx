@@ -36,7 +36,7 @@ import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
    So the choice travels: the entry names the document, the URL carries it, and both steps
    after it render what was actually picked. The format is the file's, which is why a page
    count belongs to the PDFs and to nothing else. The draft underneath is the same Bilka
-   purchase in every case -- that part really is one document. README 11. */
+   purchase in every case -- that part really is one document. README: Scan Flow. */
 
 const SCAN_STEPS = at => [
 	{ label: 'Upload', icon: 'upload', done: at > 0, on: at === 0 },
@@ -69,7 +69,7 @@ export function ScanUpload() {
 	   dropped file is the document the next two steps name, with its own format and its own
 	   size; what the reader finds inside is still the one Bilka purchase, which is demo data
 	   and is described as such. A prompt bar that says drop and answers only a click is the
-	   decorative-control rule wearing a different sense. README 11 and 13. */
+	   decorative-control rule wearing a different sense. README: Scan Flow, Honest Affordances. */
 	const upload = files => {
 		const file = files[0]
 		if (!file) return
@@ -206,7 +206,7 @@ function ScanReviewForm({ answer }) {
 	/* The same four rules step 1 checks, from the same module. This screen used to check
 	   nothing at all: a receipt whose vendor line came back blank saved an order with no
 	   vendor on it, through a form whose twin says "Who did you buy from?" about that field.
-	   Create and scan are two doors to one saved order. README 9. */
+	   Create and scan are two doors to one saved order. README: Fields and Forms. */
 	const values = useMemo(() => ({
 		'order-vendor': draft.vendor, 'order-date': draft.date,
 		'order-kind': draft.kind, 'order-shipping': draft.shipping

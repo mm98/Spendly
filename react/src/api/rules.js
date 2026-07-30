@@ -8,7 +8,7 @@ import { spendKinds } from './client.js'
    they had already parted company: the scan review checked nothing at all, so a receipt whose
    vendor line came back blank saved an order with no vendor on it, and the create form said
    "Who did you buy from?" about the same field. Rules that live at the call site agree until
-   the day one of them is fixed. README 9.
+   the day one of them is fixed. README: Fields and Forms.
 
    Each rule takes the trimmed value and returns the message or ''. The marking, the focus and
    the announcement are Form.jsx's -- see useFieldErrors. */

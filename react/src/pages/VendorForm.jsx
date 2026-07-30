@@ -145,7 +145,7 @@ function VendorFields({ mode, vendor }) {
 			{/* A boolean is the green switch in a bordered section, right-aligned, which is what
 			    the system draws for one everywhere else it has one -- the order form's More
 			    details and every row on Settings. A button carrying aria-pressed would be a
-			    second control for a job this one already has. README 9. */}
+			    second control for a job this one already has. README: Fields and Forms. */}
 			<FilterSection>
 				<div className="space-between">
 					<span className="field-help" style={{ maxWidth: '32ch' }}>
