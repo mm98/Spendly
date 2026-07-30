@@ -477,6 +477,8 @@ Arriving at that URL shows a filtered list. The chips reflect the URL, the panel
 
 **Two controls describing one filter may never disagree** — the sub-tab and the panel's status control are the same filter in two places, and so are a chip and its combobox.
 
+**On a phone the toolbar is two rows, not three.** The search field takes the first row; FILTERS and the sort control are one group and share the second, the sort taking whatever the disclosure leaves. They shape the same list, so they read as a pair — and a row each pushes the first order further down the page for nothing. See `docs/defects.md`, *Responsive Layout*.
+
 ### Order Detail
 
 One order's full record. The header band holds the identity and the actions: status, date, total, edit — and the trash, which follows the [deletion policy](#deletion). Below it: the line items with what each cost and saved, then the attachments card — add a file, open one, remove one (that trash follows the same [deletion policy](#deletion)), with the header counting them.
@@ -677,7 +679,9 @@ The phone layout is 700px and narrower. Below that:
 
 **Touch is not width.** The coarse-pointer rules (bigger targets, 16px field text) key off `pointer: coarse`, not off the viewport — a narrowed desktop window is not a phone, and a phone in landscape still is one.
 
-**The test:** every page renders at 390px with no horizontal overflow — `scrollWidth` equals `clientWidth` on the document element.
+**A control in a row is sized by the row, not by its own content.** An input's intrinsic width belongs to the engine, and it is the wrong number in any case: it is what one field wants, decided without reference to what shares the line. So a control on a toolbar states the width it takes, gives it back under pressure, and never refuses to shrink. A control that refuses hangs off the end of the row, and hides there — see below.
+
+**The test:** every page renders at 390px with no horizontal overflow — `scrollWidth` equals `clientWidth` on the document element — **and no element extends past the box that holds it**. The second half is not implied by the first: the main panel clips, so a control hanging 38px off a card leaves the document exactly as wide as it was and the overflow test reads clean. Compare each element's right edge against its container's, not just the document's. See `docs/defects.md`, *Responsive Layout*.
 
 ---
 

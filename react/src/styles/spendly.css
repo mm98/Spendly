@@ -576,8 +576,24 @@ svg.chart { width:100%; display:block; }
 .row-inline { display:flex; align-items:center; gap:10px; }
 .toolbar { flex-wrap:nowrap; gap:10px; }
 .toolbar .field-shell { flex:1; height:38px; border-radius:var(--radius-compact); font-size:12.5px; padding:0 13px; }
-.toolbar .button.button-ghost { border-radius:var(--radius-compact); }
+/* The FILTERS disclosure. flex:none because its label is the whole of it: shrink it and the
+   word compresses, and it is the control the sort slot beside it measures its share against.
+   The one ghost button any toolbar carries -- counted, not assumed. */
+.toolbar .button.button-ghost { flex:none; border-radius:var(--radius-compact); }
 .toolbar .chip { border-radius:var(--radius-compact); }
+/* The sort control's slot in a toolbar -- a chip here, a real combobox in an app, so the
+   geometry is stated once for the slot rather than twice for what fills it. 38px is the
+   standard tier the search field and the FILTERS button already sit on -- README: Sizing.
+   flex:0 1 auto, never flex:none: a combobox is sized by its input's intrinsic width, which
+   belongs to the engine and not to us -- 298px on a fine pointer and 366px once the
+   coarse-pointer rule computes the text at 16px. Refusing to shrink, that hung 38px off a
+   328px phone row, and from 780 down to 701 it crushed the search field to a 28px stub of
+   padding and still overhung by up to 95px. .main-panel clips, so scrollWidth never grew and
+   the phone overflow test read clean through all of it. README: Responsive Layout. */
+.toolbar > .toolbar-sort { flex:0 1 auto; height:38px; }
+/* The chevron rides the slot's right edge, the same as it does inside a field shell. The
+   slot stretches on a phone, and a chevron stranded mid-row reads as punctuation. */
+.toolbar > .toolbar-sort > svg.icon { margin-left:auto; }
 .global-finder { position:relative; margin-left:auto; flex:1; max-width:430px; }
 .global-finder > .field-shell { cursor:pointer; height:38px; border-radius:var(--radius-compact); font-size:12.5px; padding:0 13px; }
 .global-finder .combobox-panel { display:none; right:auto; width:max(100%, 560px); max-width:calc(100vw - 72px); }
@@ -1017,6 +1033,12 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   its row on desktop wrap under it rather than shrinking below their tier. */
 	.toolbar { flex-wrap:wrap; }
 	.toolbar .field-shell { flex:1 1 100%; min-width:0; }
+	/* FILTERS and the sort are one group: both shape the list, and a row each spent three
+	   rows on what fits in two -- 134px of toolbar above the first order, against 86px.
+	   The sort takes what the disclosure leaves, which needs flex-basis 0 rather than its
+	   own content: the content width is what decided the line break, so the slot went to a
+	   third row and hung off the end of it. README: All Orders. */
+	.toolbar > .toolbar-sort { flex:1 1 0; }
 	/* The item row carries an icon, a drag handle, a nowrap price and two action
 	   buttons. On a phone those fixed widths leave the description nothing, so the
 	   row wraps and the description keeps a majority basis. */

@@ -184,7 +184,7 @@ export default function AllOrders() {
 								placeholder="Search vendor, note or item text…" aria-label="Search orders"
 								onChange={e => setQuery(e.target.value)} />
 						</FieldShell>
-						<button type="button" className="button button-ghost" style={{ flex: 'none' }}
+						<button type="button" className="button button-ghost"
 							data-filters-toggle aria-expanded={panelOpen} aria-controls="filter-panel"
 							onClick={() => setPanelOpen(open => !open)}>
 							<Icon name="filters" />FILTERS
@@ -193,14 +193,17 @@ export default function AllOrders() {
 						{/* The prototype draws this as a chip with a chevron and no handler -- a control
 						    by every visual cue and inert. It is the app's one dropdown pattern now, and
 						    it re-sorts through the API rather than reordering the page's own array,
-						    because the page only holds the rows for the page you are on. */}
-						<div style={{ flex: 'none', minWidth: 190 }}>
-							<Combobox label="Sort orders"
-								value={sorts.find(s => s.id === activeSort)?.label ?? ''}
-								onChange={() => {}}
-								onSelect={o => write(filters, query, o.id, 1)}
-								groups={[{ heading: 'Sort by', options: sorts.map(s => ({ id: s.id, label: s.label })) }]} />
-						</div>
+						    because the page only holds the rows for the page you are on.
+
+						    .toolbar-sort is the slot, and the stylesheet owns its width. It stood in a
+						    wrapper div with flex:none and min-width:190px, which is an inline style
+						    beating any rule the phone layout could write: three toolbar rows on a phone,
+						    and 38px of the control hanging off the card. README: Responsive Layout. */}
+						<Combobox className="toolbar-sort" label="Sort orders"
+							value={sorts.find(s => s.id === activeSort)?.label ?? ''}
+							onChange={() => {}}
+							onSelect={o => write(filters, query, o.id, 1)}
+							groups={[{ heading: 'Sort by', options: sorts.map(s => ({ id: s.id, label: s.label })) }]} />
 					</div>
 
 					{chips.length ? (

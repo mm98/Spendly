@@ -84,7 +84,11 @@ box, not about any change.
   screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
   case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
   to confirm it before trusting a diff. Confirmed on 2026-07-29: 0 of 5,184,000 on `home.png` and
-  `all-orders.png`, 0 of 1,035,840 on `phone.png`.
+  `all-orders.png`, 0 of 1,035,840 on `phone.png`. **`all-orders.png` is the FILTERS panel showing**,
+  which is no longer the state the page loads in -- render it closed and the confirmation run comes
+  back 484,879 of 5,184,000 on a file nobody has touched, which reads exactly like the rasterisation
+  case it is not. A floor measured in the wrong state is not a floor; drive each shot into the state
+  it holds (`docs/defects.md` says which) before believing the number, in either direction.
 - **If a browser download 403s, it is egress policy and not the CDN.** `playwright install` fails
   with a bare `Download failure, code=1`, which names no host and no cause; guessing one from it is
   guessing. `curl -sS "$HTTPS_PROXY/__agentproxy/status"` lists `recentRelayFailures` with the host
@@ -291,6 +295,30 @@ that cleared this change used a plain 390px window, so `pointer: coarse` never m
 reported three engines agreeing about a layout no phone renders. The screenshot section already says
 the shot needs `devices['iPhone 13']`; the same is true of anything driving the page, and `tap()`
 rather than `click()`, or the hit-testing under those transforms is never exercised at all.
+
+**An inert stand-in has the geometry of a stand-in.** The prototype draws the sort control as a chip
+with a chevron and no handler; where the same design system runs a real one, it is a combobox. The chip
+is 157px and the combobox asks for 366px on a phone, so the phone toolbar the prototype renders is two
+rows and the one the stylesheet actually produces is three, with 38px of control hanging off the card.
+Every instrument here reads the prototype, so every instrument agreed with the narrower thing. Where a
+control is drawn rather than built, its width, its height and its wrapping are a placeholder's -- so a
+layout rule the stand-in satisfies is a rule that has not been tested. Render whatever runs the real
+control, or say the layout is verified on the stand-in only.
+
+**A test whose failure is clipped is not a test.** The phone check is `scrollWidth` against
+`clientWidth`, and it read 0 the whole time that control hung off its card, because `.main-panel` sets
+`overflow:hidden` and a clipped overhang never widens the document. The measurement was correct and the
+question was wrong: it asks whether the *document* overflows, and the defect was an element overflowing
+its *container*. Compare `el.getBoundingClientRect().right` against the parent's, per element -- and
+when a check passes, ask what would have to be true for it to fail, because a check that cannot fail
+costs the same as one that can and buys nothing.
+
+**An inline style in a port outranks every rule the shared stylesheet can write.** The width that
+overhung was `style="flex:none;min-width:190px"` on a wrapper div, and the phone rule that would have
+fixed it could not: a class loses to an attribute whatever the media query says. It is the same
+near-miss as a duplicated declaration, one level up -- the stylesheet and the element agree until the
+day the stylesheet is fixed. When a layout value has a name in the design system, put it on the
+element as that name and delete the inline copy; `grep -o 'style="[^"]*flex' | wc -l` finds the rest.
 
 **Say which of these you actually ran.** An engine that could not be launched is an engine that was
 not checked, and the honest report is "verified in Blink, Gecko unverified — no binary available",
