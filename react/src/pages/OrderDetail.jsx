@@ -6,7 +6,7 @@ import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview } from '../components/Viz.jsx'
 import { DropZone, HiddenFileInput, describeFile } from '../components/FileInput.jsx'
-import { useDelete } from '../components/FormPage.jsx'
+import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { AiCard } from '../components/AiCard.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
@@ -98,6 +98,16 @@ export default function OrderDetail() {
 			})
 			.catch(() => toast('That did not remove.', 'negative'))
 	}
+
+	/* The row's trash asks the same way the header band's does -- one setting, every delete
+	   (README: Deletion). Removing an attachment persists at once, so it earns the note as
+	   much as the record does. */
+	const fileDel = useRowDelete({
+		what: 'attachment',
+		label: file => `Delete ${file.name}`,
+		detail: file => `${file.name}, ${file.meta}. This cannot be undone.`,
+		onDelete: detach
+	})
 
 	return (
 		<Page>
@@ -226,10 +236,10 @@ export default function OrderDetail() {
 													label={`${openFile === file.id ? 'Close' : 'Open'} ${file.name}`}
 													aria-expanded={openFile === file.id}
 													onClick={() => setOpenFile(openFile === file.id ? null : file.id)} />
-												<IconButton icon="trash" label={`Delete ${file.name}`}
-													onClick={() => detach(file)} />
+												{fileDel.iconButton(file)}
 											</span>
 										</ItemRow>
+										{fileDel.note(file)}
 										{openFile === file.id ? (
 											<div style={{ padding: '0 4px 10px' }}>
 												<DocumentPreview kind={file.kind} />

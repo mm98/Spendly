@@ -479,7 +479,7 @@ Arriving at that URL shows a filtered list. The chips reflect the URL, the panel
 
 ### Order Detail
 
-One order's full record. The header band holds the identity and the actions: status, date, total, edit — and the trash, which follows the [deletion policy](#deletion). Below it: the line items with what each cost and saved, then the attachments card — add a file, open one, remove one, with the header counting them.
+One order's full record. The header band holds the identity and the actions: status, date, total, edit — and the trash, which follows the [deletion policy](#deletion). Below it: the line items with what each cost and saved, then the attachments card — add a file, open one, remove one (that trash follows the same [deletion policy](#deletion)), with the header counting them.
 
 **Everything shown is derived from the record.** The subtotal is the lines added up; the saving is retail minus paid. A stored total beside stored lines is two claims that can disagree while both look right.
 
@@ -528,7 +528,7 @@ The month in numbers: a four-across KPI row (each tile a figure, its delta and i
 
 ### Settings
 
-Every control here names what reads it, and the page proves it: default kind and status (what the order form opens with), rows per page and sort (what All Orders obeys), the scan card switch (the same setting Home's LATER writes), ask-before-deleting (what the trash reads), and clear stored data (back to the shipped state, said before it does it).
+Every control here names what reads it, and the page proves it: default kind and status (what the order form opens with), rows per page and sort (what All Orders obeys), the scan card switch (the same setting Home's LATER writes), ask-before-deleting (what every trash reads), and clear stored data (back to the shipped state, said before it does it).
 
 **A settings page whose switches change nothing is the decorative-control defect with more surface area.** A setting exists here only if something observably reads it.
 
@@ -610,7 +610,7 @@ Before the one layer existed, each page printed its result wherever there was ro
 One policy, everywhere:
 
 - **Delete lives on the record's own page** — the order's header band, the form's footer — not on list rows, where a miss-tap on a crowded phone row is a record gone.
-- **Ask-before-deleting is one setting, read by every delete.** It once was read by one screen and ignored by two others — a destructive action that asks on one screen and not another is not a setting, it is a coin toss.
+- **Ask-before-deleting is one setting, read by every delete** — records and their parts alike: the order, the category, the vendor, a line item, an attachment. A destructive action that asks on one screen and not another is not a setting, it is a coin toss.
 - **A refusal names the reason and the count.** A vendor with orders on it, a category still on orders — both are refused with how many things are in the way, because "cannot delete" without a why is a dead end and with one is a to-do list.
 
 ### Pagination

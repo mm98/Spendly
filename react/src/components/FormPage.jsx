@@ -125,6 +125,42 @@ export function useDelete({ what, detail, onDelete, icon = 'trash', variant = 'b
 	}
 }
 
+/** The same question, asked of a row -- a line item, an attachment. Hooks cannot sit in a
+    loop, so one call serves the whole list and the state is which row is asking; each open
+    note carries an id of its own, because the order page can hold this and the record's own
+    note at once and `aria-controls` has to point at the right one. Reads the same setting as
+    the record deletes -- README: Deletion says every delete, and a trash on a row is one. */
+export function useRowDelete({ what, label, detail, onDelete, icon = 'trash' }) {
+	const settings = useApi(getSettings)
+	const [confirming, setConfirming] = useState(null)
+
+	const ask = item => {
+		/* Read live, not baked in at mount -- same reason as useDelete above. */
+		if (settings.data?.confirmDelete === false) onDelete(item)
+		else setConfirming(item.id)
+	}
+	const noteId = item => `delete-confirm-${what}-${item.id}`
+
+	return {
+		iconButton: item => (
+			<IconButton icon={icon} label={label(item)} onClick={() => ask(item)}
+				aria-expanded={confirming === item.id}
+				aria-controls={confirming === item.id ? noteId(item) : undefined} />
+		),
+		note: item => confirming === item.id ? (
+			<Note tone="warning" id={noteId(item)} style={{ margin: '6px 0 10px' }}
+				title={`Delete this ${what}?`}>
+				{detail(item)}
+				<div className="form-actions" style={{ marginTop: 10 }}>
+					<Button variant="caps compact"
+						onClick={() => { setConfirming(null); onDelete(item) }}>DELETE</Button>
+					<Button variant="ghost compact" onClick={() => setConfirming(null)}>CANCEL</Button>
+				</div>
+			</Note>
+		) : null
+	}
+}
+
 /** The delete control in the rail of an edit form, where a record has no page of its own to
     put it on. One card, so the two forms cannot each invent a place for it. */
 export function DeleteCard({ what, children, del }) {

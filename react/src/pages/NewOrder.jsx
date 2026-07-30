@@ -2,7 +2,7 @@ import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { Outlet, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
-import { FormPage } from '../components/FormPage.jsx'
+import { FormPage, useRowDelete } from '../components/FormPage.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { AiCard, AiCardMark } from '../components/AiCard.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
@@ -372,6 +372,16 @@ export function NewOrderItems() {
 		toast(`${item.title} removed.`)
 	}
 
+	/* The trash on a row reads the same ask-before-deleting setting as the record deletes --
+	   README: Deletion, one setting read by every delete. `removeItem` stays the plain
+	   action; the hook owns the asking. */
+	const itemDel = useRowDelete({
+		what: 'item',
+		label: item => `Delete ${item.title}`,
+		detail: item => `${item.title}, ${item.quantity} × ${kr(item.price)}.`,
+		onDelete: removeItem
+	})
+
 	const submit = () => {
 		const failed = check()
 		if (failed.length) {
@@ -560,10 +570,10 @@ export function NewOrderItems() {
 							<span className="row-inline" style={{ gap: 2 }}>
 								<IconButton icon="pencil" label={`Edit ${item.title}`}
 									onClick={() => editItem(item)} />
-								<IconButton icon="trash" label={`Delete ${item.title}`}
-									onClick={() => removeItem(item)} />
+								{itemDel.iconButton(item)}
 							</span>
 						</ItemRow>
+						{itemDel.note(item)}
 						</Fragment>
 					))}
 					{draft.items.length === 0
