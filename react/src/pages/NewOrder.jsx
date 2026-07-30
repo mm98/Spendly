@@ -573,7 +573,6 @@ export function NewOrderItems() {
 								{itemDel.iconButton(item)}
 							</span>
 						</ItemRow>
-						{itemDel.note(item)}
 						</Fragment>
 					))}
 					{draft.items.length === 0
@@ -581,6 +580,7 @@ export function NewOrderItems() {
 							No items yet. Add the first one above.</p>
 						: null}
 				</InsetPanel>
+				{itemDel.dialog}
 			</div>
 		</FormPage>
 	)
