@@ -30,7 +30,7 @@ function Marked({ text, query }) {
 
 export function Combobox({
 	value, onChange, onSelect, groups = [], action, placeholder, label, required,
-	leadingIcon, id, invalid, describedBy, children, chips
+	leadingIcon, id, invalid, describedBy, children, chips, className
 }) {
 	const [open, setOpen] = useState(false)
 	const wrapper = useRef(null)
@@ -75,8 +75,11 @@ export function Combobox({
 	   a shared top edge, so both fields still start on the same line. README: Combobox. */
 	const wrapping = Boolean(chips)
 
+	/* className is the caller's slot, not a second skin: a combobox standing in a layout the
+	   design system has a name for -- the toolbar's sort control -- wears that name itself
+	   rather than sitting in a wrapper div holding an inline width. */
 	return (
-		<div className={join('combobox', open && 'is-open')} ref={wrapper}>
+		<div className={join('combobox', open && 'is-open', className)} ref={wrapper}>
 			<div className="field-shell"
 				style={wrapping ? { height: 'auto', minHeight: 48, padding: '8px 10px', flexWrap: 'wrap' } : undefined}>
 				{leadingIcon ? <Icon name={leadingIcon} /> : null}

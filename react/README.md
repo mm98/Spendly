@@ -78,6 +78,13 @@ Two consequences worth knowing:
 - A page's root is `<div class="page is-on">` even though only one page is ever mounted.
   `.page.is-on` is the grid that lays a page out, and Vendors and Categories switch what is
   on screen through `[data-view]` on that same element.
+- A layout value the design system has a name for is carried as that name, never as an inline
+  `style`. An attribute outranks any rule, so a component holding its own width is a component
+  no media query can move: the sort control on All orders sat in a wrapper div with
+  `flex:none; min-width:190px`, and the phone rule that pairs it with FILTERS could not reach
+  past it — three toolbar rows on a phone with 38px of the control off the card. It wears
+  `.toolbar-sort` instead, which is why `Combobox` takes a `className`: the element that *is*
+  the control carries the slot's name rather than sitting inside a div that does.
 
 ### The phantom API
 
@@ -448,6 +455,16 @@ checked.
   grid` with **Vendor `Bilka` and Category `Groceries` in the fields**, which read empty before,
   while Kind, From, To and Status show the nothing the URL actually holds. No console or page
   errors on either state.
+- **All orders' toolbar is two rows on a phone, and the sort control is inside the card.** On an
+  `iPhone 13` profile the toolbar measures **86px** where it was 134, the search field taking the
+  first row and FILTERS plus the sort sharing the second at 127.7 and **190.3px**, 10px apart.
+  The sort was **366px** in a 328px row before — an input's intrinsic width, inflated by the
+  coarse-pointer 16px rule — which put it on a third row and hung **38px** of it off the card,
+  clipped by `.main-panel` so `scrollWidth` never noticed. It now measures 0 past its container
+  at 320, 360 and 390, and 0 at 701 and 760 where refusing to shrink used to overhang by 94.7 and
+  35.7px. This app and the prototype render that toolbar identically. Tapped, the control still
+  opens a 190.3 x 244 panel with all five options unclipped, and choosing one writes `?sort=` to
+  the URL. Every corner and centre of all three controls hit-tests to itself.
 - **The question card's answered pair is 12px apart, both ways round.** `.card-question` measures
   9.3 / 12 / 12 between its four children — the ghost button's `margin-top` computes to 12px where
   it was **0** — and the same note-plus-button pair on Orders, where the button is the block
