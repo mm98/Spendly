@@ -14,12 +14,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spendly</title>
 
-<!-- The tab icon is inline because the file is one file -- no dependency, no build, no network,
-     so there is nothing a <link href> could point at. It is generated from the .brand-mark rule
-     below by react/scripts/brand-icons.mjs and is not edited here: a data URI copied by hand is
-     a copy nothing renders the staleness of. It is 0.6KB and it is the whole set -- the home
-     screen and install icons are 90KB of raster that a file:// page has no way to spend, and
-     they live in the port, which can be installed. README: Chrome. -->
+<!-- The tab icon is inline because the file is one file -- there is nothing a <link href> could
+     point at. Generated from the .brand-mark rule below by react/scripts/brand-icons.mjs, not
+     edited here. The home-screen and install sizes live in the port, which can be installed. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32'%3E%3Cdefs%3E%3ClinearGradient id='mark' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2314AC72'/%3E%3Cstop offset='1' stop-color='%230A7F56'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9.4118' fill='url(%23mark)'/%3E%3Cg transform='translate(6.5882 6.5882) scale(0.7843)' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2'/%3E%3C/g%3E%3C/svg%3E">
 
 <style>
@@ -172,13 +169,10 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .sidebar { background:var(--bg-sidebar); padding:28px 18px; display:flex; flex-direction:column; gap:36px; position:sticky; top:0; height:100vh; }
 .sidebar .sidebar-nav a.is-on { box-shadow:0 1px 2px rgb(11 26 18 / .06); }
 .brand { display:flex; align-items:center; gap:11px; padding:0 10px; }
-/* The mark's gradient darkens and never lightens. White on --green is 2.93:1, already under
-   the 3:1 a stroke-drawn glyph needs, so a stop above #14AC72 takes the one graphic the brand
-   owns further under it; #0A7F56 reads 5.02:1, and 1.71:1 across the stops. That dark stop is
-   a fill, not the --text-positive ink (#0E7A52) it sits beside -- the palette keeps those two
-   apart on purpose. 135deg on a square runs corner to corner, which is exactly an SVG
-   gradient's 0,0 to 1,1: react/public carries these same two stops, so a change here means
-   `npm run icons:brand`. README: Color, Chrome. */
+/* The gradient darkens and never lightens: white on --green is 2.93:1, under the 3:1 a
+   stroke-drawn glyph needs, so a stop above #14AC72 takes the glyph further under it and
+   #0A7F56 lifts it to 5.02:1. 135deg on a square runs corner to corner, which is an SVG
+   gradient's 0,0 to 1,1 -- the icons carry these same stops. README: Color. */
 .brand-mark { width:34px; height:34px; border-radius:var(--radius-compact); background:linear-gradient(135deg,#14AC72 0%,#0A7F56 100%); display:grid; place-items:center; flex:none; }
 .brand-mark svg { width:20px; height:20px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .brand-name { font-size:22px; font-weight:700; letter-spacing:-.01em; color:var(--text); }

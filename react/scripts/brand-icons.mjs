@@ -372,12 +372,9 @@ await browser.close()
 const patched = /<link rel="icon"/.test(html)
 	? html.replace(/<link rel="icon" href="[^"]*">/, () => `<link rel="icon" href="${INLINE_SVG}">`)
 	: html.replace(/<title>Spendly<\/title>\n/, m => m + `
-<!-- The tab icon is inline because the file is one file -- no dependency, no build, no network,
-     so there is nothing a <link href> could point at. It is generated from the .brand-mark rule
-     below by react/scripts/brand-icons.mjs and is not edited here: a data URI copied by hand is
-     a copy nothing renders the staleness of. It is 0.6KB and it is the whole set -- the home
-     screen and install icons are 90KB of raster that a file:// page has no way to spend, and
-     they live in the port, which can be installed. README: Chrome. -->
+<!-- The tab icon is inline because the file is one file -- there is nothing a <link href> could
+     point at. Generated from the .brand-mark rule below by react/scripts/brand-icons.mjs, not
+     edited here. The home-screen and install sizes live in the port, which can be installed. -->
 <link rel="icon" href="${INLINE_SVG}">
 `)
 

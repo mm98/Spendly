@@ -89,38 +89,29 @@ Two consequences worth knowing:
 ### The icons are the prototype's mark, generated
 
 `public/` holds the browser and platform icons, and none of them was drawn here. They are built
-from the `.brand-mark` rules in `../spendly.html` — the glyph path, the 34px box, the 10px
-radius, the 20px glyph, the stroke width, both gradient stops — plus `--bg-app` and `.topbar`
-for the manifest's two colours. Same argument as the stylesheet: an icon that restates the mark
-by hand is a copy, and this is the worst place to keep one, because the two never render side by
-side for anyone to notice they disagree.
+from the `.brand-mark` rules in `../spendly.html` — the glyph, the box, the radius, the stroke
+and both gradient stops. Same argument as the stylesheet: a second drawing of the mark is a copy
+that drifts.
 
 ```bash
-npm run icons:brand          # rebuild public/, and the one inline link the prototype carries
+npm run icons:brand          # rebuild public/, and the inline link the prototype carries
 npm run icons:brand:check    # fail if any of it has drifted from the mark
 ```
 
 | | |
 | --- | --- |
-| `favicon.svg` 0.6 kB | the mark, scalable — what a modern browser takes |
-| `favicon.ico` 14.7 kB | 16/32/48, BMP-encoded, for the consumers that are not modern |
-| `apple-touch-icon.png` 6.4 kB | 180×180, bled to the edges: iOS rounds it itself |
-| `android-chrome-192/512.png` 9.5 / 42.0 kB | `purpose: any` — rendered as given, corners and all |
-| `android-chrome-maskable-512.png` 33.5 kB | `purpose: maskable`, bled, for a launcher that crops |
-| `site.webmanifest` 0.5 kB | relative `start_url` and icon paths, like `base: './'` |
+| `favicon.svg` | the mark, scalable |
+| `favicon.ico` | 16/32/48 |
+| `apple-touch-icon.png` | 180×180, bled to the edges: iOS rounds it itself |
+| `android-chrome-192/512.png` | `purpose: any` |
+| `android-chrome-maskable-512.png` | `purpose: maskable`, bled, for a launcher that crops |
+| `site.webmanifest` | relative `start_url` and icon paths, like `base: './'` |
 
-Two things are worth knowing about how they are made. **The PNGs are not the browser's PNGs**:
-Chromium writes one filter per scanline and deflates at its own default, which is the worst case
-for a gradient, so the raw RGBA is re-encoded here with the filter chosen per row and deflate at
-level 9 — 90.4 kB to 42.0 on the 512, 16.8 to 9.5 on the 192, for the same pixels. And **the
-`.ico` is assembled here too**, from pixels read out of a canvas, because no PNG library is
-installed and none is wanted.
-
-What `--check` can see is narrower than what it builds, and the script says so where it is
-defined: the SVG, the manifest and the prototype's inline link are text derived from those
-numbers, so they are compared byte for byte; the rasters are checked for dimensions only,
-because PNG bytes vary with the Chromium build that drew them and a check that fails on a
-version bump is a check that gets switched off.
+**The gradient** is `linear-gradient(135deg, #14AC72 0%, #0A7F56 100%)`. It darkens and never
+lightens: white on `--green` is 2.93:1, under the 3:1 a stroke-drawn glyph needs, so a stop
+lighter than #14AC72 takes the glyph further under it and #0A7F56 lifts it to 5.02:1. 135deg is
+the angle that needs no restating — on a square it runs corner to corner, which is exactly an
+SVG `linearGradient` from `0,0` to `1,1`, so the CSS and the icon files cannot disagree about it.
 
 ### The phantom API
 
@@ -509,26 +500,6 @@ checked.
   `phone.png` are untouched by either change, and `all-orders.png` is the state the page now
   reaches by clicking FILTERS, at **0 of 5,184,000** — so the shot documents the panel opened
   rather than a default that no longer exists, and no image needed regenerating.
-- **The brand gradient moved the mark and nothing else.** Against the previous file rendered in
-  the same container, `home.png` and `all-orders.png` each report **3,981 differing pixels of
-  5,184,000**, and the bounding box of every one of them is `56,56` to `123,123` — which is
-  `.brand-mark`'s own rect at `deviceScaleFactor: 2`, 68×68, to the pixel. `phone.png` is **0 of
-  1,035,840**, since the sidebar brand is not drawn at that width. The floor was measured before
-  trusting either number: the unchanged file reproduces all three committed shots at **0 of
-  11,403,840** here, so these are the change rather than a rasterisation disagreement. The two
-  desktop shots were regenerated in this container, in the states they hold — `all-orders.png`
-  with the *All orders* sub-tab selected and the FILTERS panel opened by clicking it.
-- **Every icon the document declares actually resolves.** The built `dist/` served from
-  `/deployed/under/a/subpath/` — not root, to exercise `base: './'` — returns **200 for all four
-  declared links** and for **all three manifest icons** resolved against the manifest's own URL,
-  with `start_url` landing back on the app root. All seven files decode in the browser at their
-  stated sizes, the hand-assembled `.ico` included. The drift check was made to fail before it
-  was believed: one hex digit changed in the gradient and `icons:brand:check` exits 1 naming
-  `favicon.svg` and the prototype's inline link.
-- **The gradient darkens, and the numbers are why.** White on `--green` #14AC72 is **2.93:1**,
-  under the 3:1 a stroke-drawn glyph needs; the dark stop #0A7F56 is **5.02:1**, and the two
-  stops are **1.71:1** apart. Computed in plain node — the sRGB relative-luminance formula is
-  arithmetic and needs no DOM.
 - **Nothing embedded is dead weight.** `[...document.fonts]` reports all three Poppins faces
   `loaded` — 500, 600 and 700 — so the 43.8% of the stylesheet that is base64 is font the app
   really draws with. A pass over the 252 class selectors in the stylesheet finds **14 that appear

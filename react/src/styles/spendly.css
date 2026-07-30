@@ -147,13 +147,10 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .sidebar { background:var(--bg-sidebar); padding:28px 18px; display:flex; flex-direction:column; gap:36px; position:sticky; top:0; height:100vh; }
 .sidebar .sidebar-nav a.is-on { box-shadow:0 1px 2px rgb(11 26 18 / .06); }
 .brand { display:flex; align-items:center; gap:11px; padding:0 10px; }
-/* The mark's gradient darkens and never lightens. White on --green is 2.93:1, already under
-   the 3:1 a stroke-drawn glyph needs, so a stop above #14AC72 takes the one graphic the brand
-   owns further under it; #0A7F56 reads 5.02:1, and 1.71:1 across the stops. That dark stop is
-   a fill, not the --text-positive ink (#0E7A52) it sits beside -- the palette keeps those two
-   apart on purpose. 135deg on a square runs corner to corner, which is exactly an SVG
-   gradient's 0,0 to 1,1: react/public carries these same two stops, so a change here means
-   `npm run icons:brand`. README: Color, Chrome. */
+/* The gradient darkens and never lightens: white on --green is 2.93:1, under the 3:1 a
+   stroke-drawn glyph needs, so a stop above #14AC72 takes the glyph further under it and
+   #0A7F56 lifts it to 5.02:1. 135deg on a square runs corner to corner, which is an SVG
+   gradient's 0,0 to 1,1 -- the icons carry these same stops. README: Color. */
 .brand-mark { width:34px; height:34px; border-radius:var(--radius-compact); background:linear-gradient(135deg,#14AC72 0%,#0A7F56 100%); display:grid; place-items:center; flex:none; }
 .brand-mark svg { width:20px; height:20px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .brand-name { font-size:22px; font-weight:700; letter-spacing:-.01em; color:var(--text); }
