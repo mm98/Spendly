@@ -1008,7 +1008,20 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   which is what still separates it from the content scrolling under it. */
 	body { background:#fff; }
 	.main-panel { margin:0; border-radius:0; box-shadow:none; }
-	.sidebar { position:fixed; inset:auto 0 0 0; height:auto; z-index:30; flex-direction:row; align-items:center; padding:8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); gap:0; border-top:1px solid var(--border-divider); background:var(--bg-app); }
+	/* 80px, where this was 68px with 10px of air under the icons. A phone screen from the
+	   iPhone 15 on is a rounded rectangle, and the two outer items -- Home and Statistics --
+	   are the ones sitting in that arc: the closer the row is to the bottom edge, the further
+	   the corner has already curved in under them. The row sits 20px up off the edge now and
+	   12px in from the sides, so the outer items clear the curve rather than tracing it. The
+	   extra height is padding: the item keeps the 48px entry tier, because a nav item is not
+	   a new kind of control. --tabbar-height is one value because the sheet's bottom padding
+	   has to clear the bar, and a second copy of the number drifts from it. The three safe
+	   insets are the strips iOS reserves -- the home indicator below, the notch's side in
+	   landscape -- named rather than written inline because env() is 0 in every engine that
+	   runs here, and overriding the variables is the only way to render the other branch.
+	   README: Chrome, Responsive Layout. */
+	:root { --safe-bottom:env(safe-area-inset-bottom, 0px); --safe-left:env(safe-area-inset-left, 0px); --safe-right:env(safe-area-inset-right, 0px); --tabbar-height:calc(80px + var(--safe-bottom)); }
+	.sidebar { position:fixed; inset:auto 0 0 0; height:auto; min-height:var(--tabbar-height); z-index:30; flex-direction:row; align-items:center; padding:10px calc(12px + var(--safe-right)) calc(20px + var(--safe-bottom)) calc(12px + var(--safe-left)); gap:0; border-top:1px solid var(--border-divider); background:var(--bg-app); }
 	.sidebar .brand, .sidebar .sidebar-footer { display:none; }
 	/* Five equal columns, icon over label, labels always visible. The explicit track
 	   is what makes them equal -- an implicit column flow sizes each one to its own
@@ -1016,7 +1029,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	.sidebar-nav { grid-auto-flow:row; grid-template-columns:repeat(5,minmax(0,1fr)); width:100%; gap:2px; }
 	.sidebar-nav a { flex-direction:column; gap:4px; min-height:48px; padding:6px 2px; font-size:9.5px; border-radius:var(--radius-page); justify-content:center; }
 	.sidebar-nav a.is-on { background:transparent; color:var(--text); }
-	.main-panel { padding-bottom:76px; }
+	.main-panel { padding-bottom:calc(var(--tabbar-height) + 12px); }
 	.topbar { flex-wrap:wrap; padding:12px; }
 	.topbar h1 { font-size:16px; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but

@@ -24,8 +24,8 @@ screenshot are the parts a port has to get right:
   with one confirmation policy — a destructive action that asks on one screen and not another is
   not a setting, it is a coin toss.
 - **The stylesheet is the system's, not the port's.** A port that rewrites the CSS forks the design
-  system. Generate or copy it from the source of truth, and check the two have not drifted rather
-  than promising they have not.
+  system. Generate or copy it from wherever the system is currently built, and check the two have
+  not drifted rather than promising they have not.
 
 ## Names at the component boundary
 
@@ -35,7 +35,14 @@ than inventing a parallel one, so a reader can follow one name from the spec thr
 into the implementation. The attribute contracts travel too: `data-go` on anything that navigates,
 `aria-expanded` on every disclosure, `aria-invalid` plus `aria-describedby` on every rejected field.
 
-## The current port
+## Where the system is built
 
-`react/` is the current test port; [`react/README.md`](../react/README.md) documents its framework,
-build, chunking and measurements. Nothing in it is a rule about the product.
+`react/` is not a test port any more — it is the application, and the design system is built there.
+[`react/README.md`](../react/README.md) documents its framework, build, chunking and measurements;
+nothing in it is a rule about the product. `spendly.html` is the prototype the system was drawn in
+and now follows it: its `<style>` block is written from `react/src/styles/spendly.css` by
+`npm run css:sync`, and `npm run css:check` fails when the two have drifted.
+
+That inverts one thing above and nothing else. The stylesheet still travels rather than being
+rewritten, and it still travels in one direction — from where the system is built to every copy of
+it. What changed is which file that is.

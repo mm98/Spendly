@@ -429,6 +429,10 @@ The frame around the pages: sidebar, top bar, bottom nav on the phone.
 
 **Bottom nav** (phone only): the sidebar's destinations as a thumb-reachable bar. Same `.is-on`, same icons, one nav defined per layout — never two navs both rendered and one hidden by luck.
 
+**The bar is 80px, and the row sits 20px up off the bottom edge** — plus whatever the platform reserves below it for a home indicator, which the bar adds to its own padding rather than leaving to the page. A phone screen is a rounded rectangle, so the outermost destinations are the ones the corner curves in under: the nearer the row sits to the edge, the more of the first and last item is inside that arc. The height is padding. The item keeps the 48px entry tier, because a nav item is not a new kind of control ([the numbers](docs/defects.md#chrome--the-bottom-bar-sat-in-the-corner-of-a-rounded-screen-and-the-sheet-ran-under-it)).
+
+**The sheet's bottom padding is the bar's height, not a number that resembles it.** The bar floats over the content, so what the page below has to clear is whatever the bar measures — including the platform inset the bar just added to itself. Written as its own constant it agrees with the bar until the day one of them moves, and the disagreement shows only on the last card of a page.
+
 ### Icons
 
 The system uses 39 glyphs across the entire app, every one stroke-drawn in the same style and named for its meaning. When a new page needs an icon, it reaches for one of these before inventing a fortieth — a glyph that exists twice in slightly different paths is the drift the uniformity rule exists to stop.
@@ -678,6 +682,8 @@ The phone layout is 700px and narrower. Below that:
 - The page runs on a single 12px gutter
 
 **Touch is not width.** The coarse-pointer rules (bigger targets, 16px field text) key off `pointer: coarse`, not off the viewport — a narrowed desktop window is not a phone, and a phone in landscape still is one.
+
+**The screen is not a rectangle, and its corners and reserved strips are the platform's to declare.** Anything the app pins to an edge reads the platform's safe-area insets and adds them to its own padding — the home indicator below, the notch's side in landscape. Two things follow. Each inset is named once, so the rule that consumes it can be driven to a value in a harness: no desktop engine reports one, so a layout written directly against the platform's own query has a branch that never renders where it is verified. And an inset added to a floating element is added to whatever has to clear it, or the page below ends up under the element by exactly the inset.
 
 **A control in a row is sized by the row, not by its own content.** An input's intrinsic width belongs to the engine, and it is the wrong number in any case: it is what one field wants, decided without reference to what shares the line. So a control on a toolbar states the width it takes, gives it back under pressure, and never refuses to shrink. A control that refuses hangs off the end of the row, and hides there — see below.
 

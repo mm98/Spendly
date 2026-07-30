@@ -1,9 +1,18 @@
 # Working in this repo
 
-Spendly is one prototype and its documentation. `spendly.html` is the entire prototype — every route,
-markup, CSS, JS and three Poppins weights as woff2 data URIs, with no build, no dependencies and no
-network. `README.md` is the design system it proves; `docs/` holds the screenshots that document shows
-and the defect log its rules link to. Opening the HTML in a browser is the whole toolchain.
+Spendly is an application and its documentation. **`react/` is the source.** The app is what runs,
+what a change is made in and what a claim is measured against: `npm install && npm run dev` in that
+directory, and the pages are real ones with the controls wired.
+
+`spendly.html` is the prototype the design system was drawn in, and it is a copy now. Its `<style>`
+block is written from `react/src/styles/spendly.css` by `npm run css:sync`, and `npm run css:check`
+fails when the two have drifted — so a rule typed into the HTML is a rule the next sync deletes. Edit
+the app; sync afterwards. The prototype is still worth rendering for what it is good at — one file,
+no build, every page in the DOM at once — but it draws some controls where the app builds them, and
+where the two disagree the app is right by definition.
+
+`README.md` is the design system the app implements; `docs/` holds the screenshots that document shows
+and the defect log its rules link to.
 
 ## Division of labour
 
@@ -17,9 +26,9 @@ stated twice and obeyed once.
 - **`docs/defects.md` is the evidence** — the defect a rule cost, the numbers that settled it, the
   instrument and the engine. A README rule that looks arbitrary without its history links here. This
   is not a changelog: entries are keyed to the section they defend, never to a date.
-- **A port's own README is the port's own business** — its framework, its build, its chunking, its
-  measurements. `react/README.md` today; something else tomorrow. Nothing in it is a rule about the
-  product.
+- **The app's own README is the app's own business** — its framework, its build, its chunking, its
+  measurements. `react/README.md` today; something else tomorrow, since the design system outlives
+  whatever renders it. Nothing in it is a rule about the product.
 - **This file holds rules about the work** — how to verify, what counts as done, what may be claimed.
   Nothing here describes the UI.
 - **A fix usually teaches three of them.** The rule goes to the README in general terms, the bug and
@@ -84,10 +93,13 @@ box, not about any change.
   screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
   case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
   to confirm it before trusting a diff. Confirmed on 2026-07-29: 0 of 5,184,000 on `home.png` and
-  `all-orders.png`, 0 of 1,035,840 on `phone.png`. **`all-orders.png` is the FILTERS panel showing**,
-  which is no longer the state the page loads in -- render it closed and the confirmation run comes
-  back 484,879 of 5,184,000 on a file nobody has touched, which reads exactly like the rasterisation
-  case it is not. A floor measured in the wrong state is not a floor; drive each shot into the state
+  `all-orders.png`, 0 of 1,035,840 on `phone.png`. **`all-orders.png` holds three pieces of state at
+  once**, and each one has to be driven: the FILTERS panel is open, which is no longer the state the
+  page loads in; the list is filtered to July 2026, Delivered and Vendor: Bilka, 3 of 142 matching;
+  and the global finder has `bil` typed into it. Render it closed and the confirmation run comes back
+  484,879 of 5,184,000 on a file nobody has touched, which reads exactly like the rasterisation case
+  it is not -- and a run that opens the panel but leaves the list and the finder alone comes back
+  611,948, which reads the same way and is the same mistake two thirds fixed. A floor measured in the wrong state is not a floor; drive each shot into the state
   it holds (`docs/defects.md` says which) before believing the number, in either direction.
 - **If a browser download 403s, it is egress policy and not the CDN.** `playwright install` fails
   with a bare `Download failure, code=1`, which names no host and no cause; guessing one from it is
@@ -115,9 +127,14 @@ box, not about any change.
 names no host and no cause; guessing one from it happened to be right once and was still a guess.
 `curl -sS "$HTTPS_PROXY/__agentproxy/status"` records what was actually refused and why.
 
-When that pass runs, the README's standard is its floor: render the prototype, screenshot it at
-desktop and 390px, and say what was measured rather than that it looks right. Three axes it does not
-name have each shipped a bug, so a requested run covers them too.
+When that pass runs, the README's standard is its floor: render the app, screenshot it at desktop and
+390px, and say what was measured rather than that it looks right. Three axes it does not name have
+each shipped a bug, so a requested run covers them too.
+
+**Render the app, not the copy.** `npm run dev` in `react/` and drive `http://localhost:5173/`; the
+routes are real routes, so a harness navigates by clicking what a user clicks and reads the title back
+on arrival. The prototype renders the same stylesheet over drawn stand-ins -- useful for a CSS
+question, wrong for anything a control actually does. Where the two disagree, the app is the product.
 
 **One engine is not coverage.** Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
@@ -296,6 +313,16 @@ reported three engines agreeing about a layout no phone renders. The screenshot 
 the shot needs `devices['iPhone 13']`; the same is true of anything driving the page, and `tap()`
 rather than `click()`, or the hit-testing under those transforms is never exercised at all.
 
+**No engine here has a safe area, so a rule written on `env()` has a branch that never renders.**
+`env(safe-area-inset-bottom)` computes to 0 in Blink on this box, device descriptor or not -- the
+insets belong to the phone, and nothing in a container reports one. The bottom bar adds the home
+indicator to its own padding while the sheet below it cleared a constant 76px, so on any phone that
+has an indicator the sheet finished 12px *under* the bar -- and every instrument here agreed the two
+fitted, because every one of them measured at inset 0. Name each inset in a custom property
+(`--safe-bottom`) instead of writing `env()` at the site that uses it: a variable can be overridden
+from the harness, and forcing it to 34px is what renders the branch the phone renders. A value only
+the device supplies is a value the harness has to be able to supply too.
+
 **An inert stand-in has the geometry of a stand-in.** The prototype draws the sort control as a chip
 with a chevron and no handler; where the same design system runs a real one, it is a combobox. The chip
 is 157px and the combobox asks for 366px on a phone, so the phone toolbar the prototype renders is two
@@ -359,9 +386,20 @@ evidence.
 
 ## Screenshots in the README
 
-The shots in `docs/` are rendered from the prototype and never cropped by hand or touched up:
+The shots in `docs/` are rendered from the running app and never cropped by hand or touched up:
 Chromium at 1440x900 for the two desktop ones, an iPhone 13 descriptor for the phone one, all at
 `deviceScaleFactor: 2` and driven by the same harness used for measuring.
+
+**Only one of the three has been re-rendered from the app so far, and the other two numbers are not
+a floor.** The app reproduces `phone.png` exactly -- 0 differing pixels of 1,035,840 with the change
+under test reverted -- which is what made it safe to regenerate that file from the app. The desktop
+pair was not reproduced in that pass: 55,595 of 5,184,000 against `home.png` and 611,948 against
+`all-orders.png`, both identical to the pixel with the change reverted, so none of it is the change
+and none of it is text rasterisation either. `all-orders.png` holds a state the harness has to drive
+it into and that one did not -- see the bullet above for what the state actually is. `home.png`
+differs in the donut, the bar chart and the figures that follow today's date: a settle loop watching
+bounding rects does not catch a path that redraws inside a box that never moves, and the shot was
+taken on another day. Drive the state and freeze the drawing before treating either as a baseline.
 
 The phone shot needs that descriptor rather than a 390px window. `pointer: coarse` is what the iOS
 rules key off, and a plain narrow viewport does not match it — the shot would show a layout no phone
