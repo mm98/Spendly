@@ -42,7 +42,8 @@ stated twice and obeyed once.
 > [!IMPORTANT]
 > Nothing below runs while the work is in progress. The harness runs, the pixel diffs, the element
 > walks and the `docs/` baseline check are **one pass, run when the change is finished and a pull
-> request is about to be opened** -- or whenever the user asks for them sooner.
+> request is about to be opened** -- or whenever the user asks for them sooner. Committing and
+> pushing is not that trigger; the request for a pull request is.
 
 This section used to read as a standing bar with no place in the session named, so it got paid for
 continuously: validating one form spent about as long on measurement as on the edit, interleaved
@@ -55,6 +56,24 @@ So the shape of a session is: build the change, then verify it, then open the pu
 is the trigger, and since a PR is only ever opened on an explicit request, so is the run. Between
 those two points, say plainly what has and has not been checked -- "not rendered yet" is a complete
 report mid-work, and it is the honest one.
+
+**The default is the change, the smallest check that could fail, and a one-line report.** For "hide
+this element" that is one page load and three assertions, about fifteen seconds -- not a harness. The
+last time this rule was ignored, a 180-line general instrument was written to answer *is it hidden at
+rest*, re-ran five times on its own bugs, and turned a three-declaration change into twenty minutes.
+The standard was not what was expensive; the instrument was. Size the probe to the claim, and treat
+anything past about two minutes -- pixel floors, element walks, `docs/` regeneration, cross-engine
+runs, a stale screenshot -- as something to propose in one sentence and wait on, never to spend first
+and report afterwards.
+
+**Two seconds is the Playwright timeout.** `page.setDefaultTimeout(2000)` and
+`setDefaultNavigationTimeout(2000)` at the top of anything that drives a browser: nothing in this app
+renders slower than that, so the 30-second defaults buy nothing and hide everything. A
+`waitForSelector` on the element the change had just hidden sat there for the full 30, and an
+intercepted hover retried for another 30 -- a minute of silence bought by two harness bugs, which
+reads as "the run is slow" and is not. A wrong probe should fail in two seconds and say so. If a cold
+dev server needs longer for the first navigation, warm it with one request rather than raising the
+number.
 
 Two things need no trigger, because neither costs a browser: **never claim what was not run**
 ([Reporting](#reporting)), and read the file you are changing before changing it.
