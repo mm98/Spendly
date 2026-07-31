@@ -39,10 +39,10 @@ into the implementation. The attribute contracts travel too: `data-go` on anythi
 
 `react/` is not a test port any more — it is the application, and the design system is built there.
 [`react/README.md`](../react/README.md) documents its framework, build, chunking and measurements;
-nothing in it is a rule about the product. `spendly.html` is the prototype the system was drawn in
-and now follows it: its `<style>` block is written from `react/src/styles/spendly.css` by
-`npm run css:sync`, and `npm run css:check` fails when the two have drifted.
+nothing in it is a rule about the product. `spendly.html` is the prototype the system was drawn in;
+it is no longer synced or verified against `react/src/styles/app.css` and is kept only as a frozen,
+historical artifact — a fix lands in the app and does not need to be carried anywhere else.
 
-That inverts one thing above and nothing else. The stylesheet still travels rather than being
-rewritten, and it still travels in one direction — from where the system is built to every copy of
-it. What changed is which file that is.
+That is the second inversion, not the first. The stylesheet used to travel from wherever the system
+was built to every copy of it — first prototype to port, then app back to prototype. It no longer
+travels at all: `react/` is the one place the system is built and the one file a reader checks.

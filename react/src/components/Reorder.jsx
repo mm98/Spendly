@@ -244,10 +244,10 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 	    The stylesheet's `.item-row-grip` was written for a <span>, so it sets a colour and a
 	    cursor and nothing else. This is a <button> -- it has to be, to be focusable and to
 	    announce itself -- so the UA's border, background, padding and font are reset here
-	    rather than in spendly.css: that file is the prototype's and is synced from it, and a
-	    rule added on this side only would drift from the file it is copied out of. The
-	    `touch-action` is not cosmetic: without it the first move gesture scrolls the page and
-	    the drag never starts. */
+	    rather than in app.css, since no other element needs this reset and a rule for one
+	    button is not a rule the shared stylesheet should carry. The `touch-action` is not
+	    cosmetic: without it the first move gesture scrolls the page and the drag never
+	    starts. */
 	const handle = (item, index) => (
 		<button type="button" className="item-row-grip" data-reorder-handle={item.id}
 			aria-label={`Reorder ${describe(item)}, ${index + 1} of ${items.length}. Drag, or use the arrow keys.`}
