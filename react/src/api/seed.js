@@ -1,14 +1,4 @@
-/* The phantom data source.
 
-   Every figure the prototype prints is here as a number or a record, so the pages read
-   from one place instead of carrying their own copy in markup. The values are the
-   prototype's own -- demo data, like every figure in that file -- and the point of moving
-   them here is that a change to a total now changes it everywhere it is shown, which is
-   the thing thirteen pages of hand-written markup could not promise.
-
-   Nothing in this module talks to a network. client.js wraps it in the shape a real API
-   would have (async, latency, errors, mutation), so the pages are written against that
-   shape and swapping in fetch() later touches client.js and nothing else. */
 
 export const vendors = [
 	{ id: 'proshop',    name: 'Proshop',    initials: 'PR', colour: '#235553', orders: 34, spend: 48210, saved: 6940, favourite: true,
@@ -22,13 +12,6 @@ export const vendors = [
 	{ id: 'jysk',       name: 'Jysk',       initials: 'JY', colour: '#235553', orders: 11, spend: 7415,  saved: 380 }
 ]
 
-/* `icon` names an entry in the icon set; `colour` is the token the swatch and the tile
-   both read, so a category cannot be one colour in the donut and another in the list.
-
-   `budget` is the month's allowance. It is what the Expenses/Budget toggle switches between
-   -- the prototype draws that control and changes nothing with it, which is the same defect
-   as a button with no handler wearing a different shape. A budget of 0 means none is set,
-   and the Budget view says so rather than reporting 0% of nothing. README: Honest Affordances. */
 export const categories = [
 	{ id: 'groceries',  name: 'Groceries',       icon: 'cart',    colour: 'var(--icon-red)',     spend: 18420, share: 38, saved: 1240, budget: 17000 },
 	{ id: 'electronics',name: 'Electronics',     icon: 'plug',    colour: 'var(--icon-yellow)',  spend: 12940, share: 27, saved: 980,  budget: 14000 },
@@ -107,8 +90,6 @@ export const orders = [
 		],
 		attachments: []
 	},
-	/* June and May, so the period pager, the date filter and the second page of results are
-	   exercised by real records rather than by an empty state. Same shape as the July ones. */
 	{
 		id: 'o-296', vendorId: 'fotex', date: '2026-07-12', status: 'Delivered', kind: 'Expense',
 		categoryIds: ['groceries'], shipping: 0, items: [
@@ -174,12 +155,6 @@ export const orders = [
 	}
 ]
 
-/* The month the prototype holds. Every "this month" figure on every page reads from here,
-   so July cannot be 24.418,57 on Home and something else on Statistics.
-
-   Two more months sit under it in `periods`. They exist because Statistics has a pager, and
-   a pager with one place to stand is a control that draws two arrows and moves nothing --
-   the defect this app keeps finding. README: Honest Affordances. */
 export const period = {
 	id: '2026-07',
 	label: 'July 2026',
@@ -201,9 +176,6 @@ export const period = {
 	weekendShare: 34,
 	busiestDay: 'Sunday',
 	busiestDaySpend: 6410,
-	/* Daily spend through July, and the savings that shadow it. The chart module maps one
-	   user unit onto one CSS pixel, so these are y-coordinates rather than kroner -- the
-	   same demo series the prototype plots. */
 	series: {
 		orders: [96, 92, 98, 78, 90, 84, 96, 70, 84, 76, 92, 88, 96, 60, 74, 66, 88, 80, 72, 94, 84, 52, 26, 60, 84, 92, 68, 44, 62, 34, 56, 48, 58, 50, 54],
 		saved:  [118, 120, 116, 110, 119, 114, 121, 104, 117, 112, 120, 118, 122, 98, 113, 106, 119, 115, 109, 121, 116, 92, 74, 108, 118, 121, 110, 88, 105, 80, 102, 96, 107, 99, 103],
@@ -214,7 +186,6 @@ export const period = {
 		statsCurrent: [180, 178, 175, 173, 168, 165, 161, 159, 152, 148, 143, 140, 137, 135, 127, 121, 114, 111, 106, 100, 97, 93, 84, 71, 63, 59, 56, 50, 39, 32, 20],
 		statsPrevious: [186, 184, 183, 178, 175, 172, 170, 167, 164, 162, 160, 155, 148, 143, 141, 139, 136, 130, 126, 119, 114, 109, 104, 99, 94, 93, 92, 91, 88, 86]
 	},
-	/* Bar heights in px, as authored. Wednesday and Sunday carry the highlight. */
 	weekdays: [
 		{ day: 'Mon', home: 40, stats: 34 },
 		{ day: 'Tue', home: 56, stats: 46 },
@@ -234,7 +205,6 @@ export const period = {
 		{ label: 'Saved vs retail',value: '2.106 kr.', delta: '11% up vs June',  trend: 'up',   tone: 'good',    note: '9% under retail prices' },
 		{ label: 'Shipping',       value: '388 kr.',   delta: '6% down vs June', trend: 'down', tone: 'good',    note: '1,6% of spend' }
 	],
-	/* The hero legend folds the long tail into one row, so it is not the category list. */
 	heroLegend: [
 		{ name: 'Groceries',       amount: 18420, colour: 'var(--green)' },
 		{ name: 'Electronics',     amount: 12940, colour: 'var(--teal)' },
@@ -249,8 +219,6 @@ export const period = {
 	returnsNote: 'No open returns. Zalando was returned on 5 July and refunded in full: 799,00 kr.'
 }
 
-/* Which cards the dashboard can hold. `on` is the shipped default; the user's own order
-   is stored by client.js and wins over it. */
 export const dashboardCards = [
 	{ key: 'rhythm',    name: 'Spending rhythm',      desc: 'Average order, and which weekday you spend on', on: true },
 	{ key: 'breakdown', name: 'Category breakdown',   desc: "Where this month's spend went, by category",    on: true },
@@ -260,10 +228,6 @@ export const dashboardCards = [
 	{ key: 'pace',      name: 'Monthly pace',         desc: 'Where July lands if the rest of the month looks like the start' }
 ]
 
-/* The scan page offers four ways in and the hero says "a PDF, photo or screenshot", so
-   the two steps after it render the document that was chosen rather than a fixed photo:
-   the format is the file's, and a page count belongs to the PDFs and to nothing else.
-   The draft below it is the same Bilka purchase in every case. README: Scan Flow. */
 export const scanDocuments = {
 	photo:        { kind: 'image', name: 'kvittering-bilka.jpg',        meta: 'JPEG · 2,1 MB' },
 	screenshot:   { kind: 'image', name: 'ordrebekraeftelse-bilka.png', meta: 'PNG · 480 KB' },
@@ -276,8 +240,6 @@ export const recentScans = [
 	{ id: 's-2', name: 'faktura-303.pdf',      meta: '24 July · 4 items found',  total: 4298,    orderId: 'o-303' }
 ]
 
-/* What the reader hands back for the chosen document: the draft order, the lines it read,
-   what it checked, and the order it thinks might be a duplicate. */
 export const scanDraft = {
 	vendor: 'Bilka',
 	vendorMatched: true,
@@ -305,8 +267,6 @@ export const scanDraft = {
 	duplicate: { orderId: 'o-299', title: 'Bilka · 16 July', meta: '23 items · could be a second trip', total: 894.4 }
 }
 
-/* The draft the New order flow opens on. A prototype with an empty form on step 1 cannot
-   show what a filled one looks like, and this is the purchase step 2 then itemises. */
 export const orderDraft = {
 	vendor: 'Matas',
 	date: '2026-07-25',
@@ -322,8 +282,6 @@ export const orderDraft = {
 	]
 }
 
-/* The kinds an order can be. The New order form checks against this list rather than
-   against a copy of it, so a kind can be added in one place. */
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
 
 export const promos = [
@@ -342,8 +300,6 @@ export const questionOfTheDay = {
 
 export const onboarding = { done: 1, total: 3 }
 
-/* June and May, in the same shape July is in. Shorter series are fine -- the chart maps
-   whatever it is given onto the element's pixel box. */
 const june = {
 	id: '2026-06', label: 'June 2026', shortLabel: 'June', previousLabel: 'May',
 	spent: 20680, saved: 1897, savedPercent: 8.4, retail: 22577,
@@ -440,13 +396,8 @@ const may = {
 	returnsNote: 'No returns in May.'
 }
 
-/* Newest first, which is the order the pager walks. */
 export const periods = [period, june, may]
 
-/* The question of the day, and the answer it promises. A button labelled ASK SPENDLY that
-   opens nothing is the decorative-control rule with an AI badge on it, so the answer is a
-   record here and the button reveals it. `categoryId` and `periodId` are what make the
-   answer checkable: the orders behind it are one click away. README: Honest Affordances. */
 export const answers = [
 	{
 		id: 'groceries-june',
@@ -459,8 +410,6 @@ export const answers = [
 	}
 ]
 
-/* The defaults every setting starts at. Each one is read somewhere -- a settings page whose
-   switches change nothing is the same defect as a button that does nothing, one screen up. */
 export const defaultSettings = {
 	defaultKind: 'Expense',
 	defaultStatus: 'Delivered',
@@ -470,7 +419,6 @@ export const defaultSettings = {
 	confirmDelete: true
 }
 
-/* How the All orders list can be ordered. The label is what the control prints. */
 export const sorts = [
 	{ id: 'date-desc', label: 'Date, newest' },
 	{ id: 'date-asc', label: 'Date, oldest' },

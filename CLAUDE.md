@@ -525,13 +525,21 @@ that renders plausibly is not a rule that matched what you aimed at.
 
 - **The single file is a constraint, not an accident.** No dependency, no build step, no network
   request, no external asset. A fix that needs any of those is the wrong fix.
-- **A comment is a tripwire, not documentation.** The README holds the argument; the comment exists
-  because nobody greps a spec before deleting what looks like a magic number, and this file is full of
-  values that look like mistakes — `calc(100% + 56px)`, `min-height:38px`, the iOS rule that computes
-  16px and scales it back. State the constraint, what breaks without it, and the section that explains
-  it. Three or four lines. Re-arguing the case inline gives one rule two homes and they drift; a
-  restatement of the CSS is noise either way.
-- **Match the surrounding idiom** — naming, comment voice, `--` for dashes inside CSS comments, the
+- **Comments do not live in the generated half.** `npm run css:sync` writes this file's `<style>`
+  block verbatim from `react/src/styles/spendly.css`, so a comment typed here dies at the next sync
+  exactly as a rule does. That source carries none either: `*.css` and `*.js` under `react/` are kept
+  clear, and a value that needs an argument gets it in `README.md`, under the section that owns it.
+  `*.jsx` is React code and may be commented; the `*.mjs` build scripts keep theirs, because what
+  they explain is the build and not the design system. The markup and the `<script>` in this file are
+  hand-maintained and keep their own.
+- **A rule filed under the wrong file is a rule nobody applies.** What stood here was a tripwire rule
+  — state the constraint beside the magic number, because nobody greps a spec before deleting one —
+  and it was written when this file *was* the source. The React port moved the stylesheet to `react/`
+  and left the rule behind, so it went on describing 132 CSS comments it no longer governed, under a
+  heading naming the copy. `css:sync` hid the drift by keeping that copy looking obedient. Nothing
+  renders a heading either: when a file stops being the source, move the rules that named it in the
+  same pass.
+- **Match the surrounding idiom** — naming, comment voice, `--` for dashes inside comments, the
   house habit of stating the defect before the rule.
 - **Tabs indent, spaces align.** One tab per level of nesting, in markup, CSS and script alike. The
   only spaces at the start of a line are the ones holding a comment's continuation under the text it
