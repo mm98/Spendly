@@ -11,7 +11,13 @@
    drifted, which is the half that catches a fix landing in one file and not the other.
 
    The block is found by its two <style> markers rather than by line number: the prototype
-   grows, and a hard-coded range would go on succeeding while quietly taking the wrong lines. */
+   grows, and a hard-coded range would go on succeeding while quietly taking the wrong lines.
+
+   One exception: @font-face. The app serves the three Poppins faces as static files under
+   public/fonts/ so they load in parallel instead of inline as 43.8% of a blocking stylesheet.
+   spendly.html's own rule is no external asset in the single file, and a same-origin file is
+   still external to it, so the prototype keeps the faces embedded as base64. prototype-fonts.css
+   holds those three lines verbatim; every other line syncs byte-for-byte as before. */
 
 import fs from 'fs'
 import path from 'path'
@@ -20,9 +26,26 @@ import { fileURLToPath } from 'url'
 const here = path.dirname(fileURLToPath(import.meta.url))
 const SOURCE = path.join(here, '..', 'src', 'styles', 'spendly.css')
 const TARGET = path.join(here, '..', '..', 'spendly.html')
+const PROTOTYPE_FONTS = path.join(here, 'prototype-fonts.css')
 
-const css = fs.readFileSync(SOURCE, 'utf8')
+const appCss = fs.readFileSync(SOURCE, 'utf8')
+const prototypeFontLines = fs.readFileSync(PROTOTYPE_FONTS, 'utf8').replace(/\n$/, '').split('\n')
 const html = fs.readFileSync(TARGET, 'utf8')
+
+let fontLineIndex = 0
+const css = appCss
+	.split('\n')
+	.map(line => {
+		if (!line.startsWith('@font-face')) return line
+		if (fontLineIndex >= prototypeFontLines.length) {
+			throw new Error(`more @font-face lines in ${SOURCE} than in ${PROTOTYPE_FONTS}`)
+		}
+		return prototypeFontLines[fontLineIndex++]
+	})
+	.join('\n')
+if (fontLineIndex !== prototypeFontLines.length) {
+	throw new Error(`${PROTOTYPE_FONTS} has ${prototypeFontLines.length} lines, ${SOURCE} has ${fontLineIndex} @font-face lines -- they must match 1:1`)
+}
 const open = html.indexOf('<style>')
 const close = html.indexOf('</style>', open)
 if (open < 0 || close < 0) {
