@@ -4,11 +4,7 @@
    no element, pseudo-element or placeholder computed it in any engine. Note the trap this
    leaves: a `font-weight:400` added later does not fall back to a light face, it renders
    as this 500 one, because the matcher picks the nearest weight it has. Wanting 400 means
-   adding the 400 file, not just declaring the weight. README: Typography.
-   The prototype (spendly.html) keeps these three faces as base64 data URIs -- its own rule
-   is no external asset, and a same-origin file is still external to that single file. See
-   scripts/prototype-fonts.css and scripts/sync-css.mjs for the exception this carves out
-   of the otherwise byte-for-byte css:sync. */
+   adding the 400 file, not just declaring the weight. README: Typography. */
 @font-face { font-family:'Poppins'; font-style:normal; font-weight:500; font-display:swap; src:url(/fonts/poppins-500.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
 @font-face { font-family:'Poppins'; font-style:normal; font-weight:600; font-display:swap; src:url(/fonts/poppins-600.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
 @font-face { font-family:'Poppins'; font-style:normal; font-weight:700; font-display:swap; src:url(/fonts/poppins-700.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
