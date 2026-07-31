@@ -16,6 +16,16 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const cache = new Map()
 
+/* A Map with no ceiling is one entry per endpoint-and-arguments combination for the life of
+   the tab -- All orders alone reaches one per distinct filter, sort and page reachable through
+   the URL. Oldest evicted first once the cache passes this many entries: a Map's iteration
+   order is insertion order for keys that were never deleted and reinserted, so `.keys().next()`
+   is always the entry that has gone longest without a fresh fetch. A re-fetch after eviction
+   costs one round trip, the same one a first visit already pays. */
+const MAX_ENTRIES = 200
+
+const evict = () => { while (cache.size > MAX_ENTRIES) cache.delete(cache.keys().next().value) }
+
 const keyOf = (fn, args) => (fn.name || 'anonymous') + ':' + JSON.stringify(args)
 
 export function useApi(fn, args = [], { enabled = true } = {}) {
@@ -47,6 +57,7 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 			.then(data => {
 				if (!live) return
 				cache.set(key, data)
+				evict()
 				setState({ data, error: null, loading: false })
 			})
 			.catch(error => {
