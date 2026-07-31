@@ -27,7 +27,7 @@ src/
   api/tabler/   the generated icon catalogue: names, and twelve shards of paths
   components/   the design system as components -- one file per family
   pages/        ten page modules over fifteen routes, each its own chunk
-  styles/       spendly.css, the design system's stylesheet -- the source the prototype copies
+  styles/       app.css, the design system's stylesheet -- see "The stylesheet" below
   routes.jsx    the routes, and the four things the shell reads off each one
 ```
 
@@ -51,24 +51,13 @@ src/
 | `/stats` | Statistics, with a pager over three months |
 | `/settings` | Order settings — what ORDER SETTINGS opens |
 
-### The stylesheet is the prototype's, untouched
+### The stylesheet
 
-`src/styles/spendly.css` is the design system the README one directory up specifies — the same
-rules, the same comments, the same three Poppins faces as woff2 data URIs. It started as a
-verbatim lift out of `spendly.html` and is the original now: the app is where the system is
-built, and the prototype's `<style>` block is the copy that follows it.
-
-A copy is the near-miss the uniformity rule is about — the two agree until the day one of them
-is fixed — so it is not maintained by hand.
-
-```bash
-npm run css:check    # fails if the two have drifted
-npm run css:sync     # writes this file into the <style> block in ../spendly.html
-```
-
-A fix to the design system belongs here, and `css:sync` carries it to the prototype.
-`css:check` is what catches the reverse — an edit typed into the HTML that the next sync
-would silently delete.
+`src/styles/app.css` is the design system the README one directory up specifies — the same
+rules, the same comments. It started as a verbatim lift out of `spendly.html`, the prototype the
+system was first drawn in, and is the original now: this is the one place the system is built.
+`spendly.html` is not synced or checked against it any more and is kept only as a frozen,
+historical artifact — a fix lands here and does not need to be carried anywhere else.
 
 Two consequences worth knowing:
 
@@ -86,15 +75,15 @@ Two consequences worth knowing:
   `.toolbar-sort` instead, which is why `Combobox` takes a `className`: the element that *is*
   the control carries the slot's name rather than sitting inside a div that does.
 
-### The icons are the prototype's mark, generated
+### The icons are the sidebar's mark, generated
 
 `public/` holds the browser and platform icons, and none of them was drawn here. They are built
-from the `.brand-mark` rules in `../spendly.html` — the glyph, the box, the radius, the stroke
-and both gradient stops. Same argument as the stylesheet: a second drawing of the mark is a copy
-that drifts.
+from the `.brand-mark` rules in `styles/app.css`, the icon name `Shell.jsx` draws inside it, and
+that icon's path in `Icon.jsx` — the glyph, the box, the radius, the stroke and both gradient
+stops. Same argument as the stylesheet: a second drawing of the mark is a copy that drifts.
 
 ```bash
-npm run icons:brand          # rebuild public/, and the inline link the prototype carries
+npm run icons:brand          # rebuild public/
 npm run icons:brand:check    # fail if any of it has drifted from the mark
 ```
 
@@ -283,12 +272,11 @@ palette, or a hash of the name — which is a value you can see, cannot explain 
 change. Both are now picked, previewed at the size they are used at, and persisted.
 
 The icon picker offers **the whole Tabler outline set — 5,129 icons**. `src/api/tabler/` is
-generated from the `@tabler/icons` package by `npm run icons:sync`, the same way the stylesheet
-is generated from the prototype, and `npm run icons:check` fails if it has drifted — including
-if a shard it no longer writes is still sitting there. Every icon is flattened to one stroke
-path; the transparent 24×24 bounds path every Tabler file opens with is dropped, and so are the
-77 filled paths a handful of outline icons carry, since everything here draws with one stroke
-and no fill.
+generated from the `@tabler/icons` package by `npm run icons:sync`, and `npm run icons:check`
+fails if it has drifted — including if a shard it no longer writes is still sitting there. Every
+icon is flattened to one stroke path; the transparent 24×24 bounds path every Tabler file opens
+with is dropped, and so are the 77 filled paths a handful of outline icons carry, since
+everything here draws with one stroke and no fill.
 
 Three things keep 5,129 icons affordable, and all three are measured:
 
@@ -314,8 +302,11 @@ Tabler glyph was stored under its name alone; editing one wrote the path, becaus
 preview from the form, not from the record — and the list the record does reach is on a tab the
 route walk never opened.
 
-Unsearched, the grid shows those 39 — a scroller holding five thousand tiles is a wall, not a
-choice — and the line under it says how many the search is matching out of how many there are.
+Unsearched, the grid shows whatever a category already carries — real choices, not the app's own
+39 UI glyphs, which are chrome and no help in naming one — resolved straight from each record with
+no shard fetched. A scroller holding five thousand tiles is a wall, not a choice, so the search is
+what reaches the rest, and the line under the grid says how many it is matching out of how many
+there are.
 
 Neither picker draws anything new: the swatches and the icon grid are `.icon-button`, and the
 search is the same `.field-shell` as every other search in the app.
@@ -431,7 +422,7 @@ first paint is what they are judged on:
 ### Minified, then actually compressed
 
 Vite strips the comments and collapses the whitespace: **0 `/*` left in any JS chunk and 0 in the
-stylesheet**, which goes out as one 71,911-byte line from 114,109 bytes of source. It does not touch
+stylesheet**, which goes out as one 41,530-byte line from 88,890 bytes of source. It does not touch
 the HTML, so the entry document shipped its two source tripwires — the doctype and charset notes,
 519 of its 1,060 bytes — to every visitor. A `transformIndexHtml` in `vite.config.js` removes them
 from the built copy only, leaving `<!--[if` alone so nothing eats a conditional comment: **1,060
@@ -445,8 +436,8 @@ slow to run per request, which is the whole reason to run it once at build:
 
 | | identity | gzip | brotli |
 | --- | --- | --- | --- |
-| whole `dist/`, 43 files | 1,377.82 kB | 387.76 kB (71.9% off) | **341.03 kB (75.2% off)** |
-| first paint, 5 files | 403.3 kB | — | **121.5 kB** |
+| whole `dist/`, 44 files | 1,350.35 kB | 365.65 kB (72.9% off) | **319.15 kB (76.4% off)** |
+| first paint, 5 files | 373.88 kB | — | **98.78 kB** |
 
 Serving them is the host's half: nginx wants `gzip_static`/`brotli_static`, Caddy `precompressed
 br gzip`. A host that compresses on the fly ignores the variants and loses nothing, which is why
@@ -456,13 +447,12 @@ encoding to exist.
 Loading is already asynchronous where it can be. The entry is `<script type="module">`, which
 defers by definition; the runtime and `vendor` chunks are `modulepreload`ed so they are in flight
 during parse rather than discovered after it; every page and every icon shard is fetched on demand.
-The stylesheet is the one blocking request in the document and stays blocking on purpose — it
-carries the three Poppins faces as data URIs, **31,493 of its 71,911 bytes, 43.8%**, so making it
-async would trade a flash of unstyled text for bytes that are needed before the first paint anyway.
-Moving those faces to files would drop the base64 third and let them load in parallel; it would also
-mean this file is no longer what the prototype's `<style>` block holds byte for byte, which is what
-`npm run css:check` exists to guarantee. Not a build setting — a decision about the constraint, and
-it has not been taken.
+The stylesheet is the one blocking request in the document, and used to carry the three Poppins
+faces as data URIs — 31,493 of what was then 71,911 bytes, 43.8%, re-downloaded whenever any other
+rule in the file changed. They are static files under `public/fonts/` now, decoded from those same
+bytes rather than re-fetched, so they load in parallel with everything else instead of inflating
+the one request that blocks first paint: **41,530 bytes minified, down from 71,911**. `font-display:
+swap` (unchanged) still means text paints in the fallback face rather than waiting on them.
 
 ## What was measured
 
@@ -504,8 +494,8 @@ checked.
   differing pixels of 1,035,840, every one in rows 1168–1312**, the bar's own band — and the file
   committed now is this app's render, which reproduced the previous one at **0 of 1,035,840** with
   the change reverted.
-- **Nothing embedded is dead weight.** `[...document.fonts]` reports all three Poppins faces
-  `loaded` — 500, 600 and 700 — so the 43.8% of the stylesheet that is base64 is font the app
+- **Nothing served is dead weight.** `[...document.fonts]` reports all three Poppins faces
+  `loaded` — 500, 600 and 700 — so all three static files under `public/fonts/` are font the app
   really draws with. A pass over the 252 class selectors in the stylesheet finds **14 that appear
   in no source file, and all 14 are composed at runtime** (`'button-' + variant`,
   `'note-' + tone`, `'icon-button-' + variant`, the `document-preview-*` kinds, `delta-*`,
