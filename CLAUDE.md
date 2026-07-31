@@ -551,3 +551,19 @@ that renders plausibly is not a rule that matched what you aimed at.
   number.
 - Lead with what was measured, then what changed. Numbers before adjectives.
 - Flag the part you could not close, in the same breath as the part you did.
+- **The pull request is where the session ends. Never offer to watch it.** No standing question about
+  following CI, autofixing a red check or answering review comments -- it has been asked many times
+  across the 162 commits in this repository and declined every one of them, so it is not a choice being
+  offered, it is a turn spent asking and a turn spent refusing. If watching is ever wanted it will be
+  asked for in those words, and then the PR is subscribed to and driven until it merges. Unasked, the
+  report ends at what changed, what was measured and what was left open.
+- **A follow-up asked for after the pull request merged is a new branch, or it is a commit into
+  nothing.** The branch a session pushes to is a PR branch, and a merged PR is finished -- it cannot
+  track new work, so anything pushed to that branch afterwards sits outside the default branch
+  forever while the report says it landed. That is exactly how a rule written, committed and pushed
+  in good faith stayed out of `main` until someone asked where it was. So the first move on any push
+  that follows a "done" is `git fetch origin main` and one question -- is this branch's history
+  already in it? If it is, restart the branch from `main` (`git checkout -B <branch> origin/main`,
+  rebasing any unmerged commit onto the new base rather than dropping it), force-with-lease, and say
+  in the report that the work needs a new pull request, because the merged one will never carry it.
+  A push is not a delivery.
