@@ -1,24 +1,24 @@
 #!/usr/bin/env node
-/* Builds the brand icon set in public/ from the mark in ../spendly.html.
+/* Builds the brand icon set in public/ from the mark the sidebar itself draws.
 
    The sidebar mark is the only drawing this brand has, and icon files that restate its path,
    its geometry and its two gradient stops by hand are copies of the kind the uniformity rule
    is about: they agree until the day one of them is fixed, and nothing renders the
    disagreement. So they are not maintained by hand. Everything below is derived from the
-   prototype's `.brand-mark` rules and markup -- glyph, radius, glyph fraction, stroke width,
-   both stops -- and from `--bg-app` and `.topbar` for the manifest's two colours.
+   app's own `.brand-mark` rules in styles/app.css, the icon name components/Shell.jsx draws
+   inside it, that icon's path in components/Icon.jsx -- glyph, radius, glyph fraction, stroke
+   width, both stops -- and from `--bg-app` and `.topbar` for the manifest's two colours.
 
-   `npm run icons:brand`        rewrites public/, and the one inline <link> the prototype
-                                carries, since a single file cannot reference a file.
+   `npm run icons:brand`        rewrites public/.
    `npm run icons:brand:check`  re-derives and fails on drift. Needs no browser.
 
-   What --check can and cannot see: favicon.svg, site.webmanifest and the prototype's inline
-   icon are text built from those numbers, so they are compared byte for byte and a brand
-   change that did not reach here fails. The rasters are not re-drawn -- PNG bytes vary with
-   the Chromium build that drew them, and a check that fails on a version bump is a check that
-   gets switched off -- so they are verified for dimensions only, on the argument that they
-   come off the same SVG that just passed. A change to the *glyph* that somehow left the SVG
-   identical is the hole; there isn't one.
+   What --check can and cannot see: favicon.svg and site.webmanifest are text built from those
+   numbers, so they are compared byte for byte and a brand change that did not reach here
+   fails. The rasters are not re-drawn -- PNG bytes vary with the Chromium build that drew
+   them, and a check that fails on a version bump is a check that gets switched off -- so they
+   are verified for dimensions only, on the argument that they come off the same SVG that just
+   passed. A change to the *glyph* that somehow left the SVG identical is the hole; there
+   isn't one.
 
    Rasterising needs Playwright (`npx playwright install chromium`), the instrument the repo
    already measures with. Nothing in the build depends on this script: icons change when the
@@ -31,26 +31,31 @@ import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
-const SOURCE = path.join(here, '..', '..', 'spendly.html')
+const CSS_SOURCE = path.join(here, '..', 'src', 'styles', 'app.css')
+const SHELL_SOURCE = path.join(here, '..', 'src', 'components', 'Shell.jsx')
+const ICON_SOURCE = path.join(here, '..', 'src', 'components', 'Icon.jsx')
 const OUT = path.join(here, '..', 'public')
 const check = process.argv.includes('--check')
 
-/* ---------------- the mark, read out of the prototype ---------------- */
+/* ---------------- the mark, read out of the app itself ---------------- */
 
-const html = fs.readFileSync(SOURCE, 'utf8')
+const css = fs.readFileSync(CSS_SOURCE, 'utf8')
+const shell = fs.readFileSync(SHELL_SOURCE, 'utf8')
+const iconSrc = fs.readFileSync(ICON_SOURCE, 'utf8')
 
 /* Read, never retype. Every one of these throws rather than falling back on a default: a
    default here is how the icons would go on building, plausibly, off a rule that no longer
    says what they assume. */
-const need = (re, what, subject = html) => {
+const need = (re, what, subject = css) => {
 	const m = subject.match(re)
-	if (!m) throw new Error(`brand-icons: could not read ${what} out of spendly.html -- the rule it comes from moved or was renamed`)
+	if (!m) throw new Error(`brand-icons: could not read ${what} -- the rule it comes from moved or was renamed`)
 	return m
 }
 
 const markRule = need(/\n\.brand-mark \{([^}]*)\}/, '.brand-mark')[1]
 const glyphRule = need(/\n\.brand-mark svg \{([^}]*)\}/, '.brand-mark svg')[1]
-const markup = need(/class="brand-mark"[^>]*><svg viewBox="0 0 (\d+) \d+"><path d="([^"]+)"/, 'the brand glyph')
+const glyphName = need(/brand-mark"[^>]*>\s*<Icon name="([^"]+)"/, 'the brand glyph name', shell)[1]
+const glyphPath = need(new RegExp(`\\b${glyphName}:\\s*"([^"]+)"`), `the '${glyphName}' path in Icon.jsx`, iconSrc)[1]
 
 const MARK = {
 	size: +need(/width:(\d+)px/, '.brand-mark width', markRule)[1],
@@ -58,8 +63,8 @@ const MARK = {
 	glyph: +need(/width:(\d+)px/, '.brand-mark svg width', glyphRule)[1],
 	stroke: +need(/stroke-width:([\d.]+)/, 'the glyph stroke width', glyphRule)[1],
 	ink: need(/stroke:(#[0-9a-fA-F]{3,6})/, 'the glyph colour', glyphRule)[1],
-	box: +markup[1],
-	path: markup[2],
+	box: 24, // every glyph in Icon.jsx is drawn in a 24x24 viewBox -- see Icon.jsx's <svg>
+	path: glyphPath,
 	stops: need(/background:linear-gradient\(135deg,(#[0-9A-Fa-f]{6}) 0%,(#[0-9A-Fa-f]{6}) 100%\)/, 'the brand gradient', markRule).slice(1, 3),
 }
 
@@ -126,13 +131,6 @@ const MANIFEST = JSON.stringify({
 	start_url: '.',
 	scope: '.',
 }, null, '\t') + '\n'
-
-/* The prototype cannot reference a file, so its icon is the same drawing inline. Single
-   quotes and a four-character escape set keep it legible in the source; `#` is the one that
-   is not optional, since unescaped it starts a fragment and the gradient silently loses both
-   stops. */
-const INLINE_SVG = 'data:image/svg+xml,' + ROUNDED.replace(/\n\t*/g, '').replace(/"/g, "'")
-	.replace(/[%#<>]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase())
 
 /* ---------------- .ico, assembled here ---------------- */
 
@@ -278,13 +276,10 @@ if (check) {
 	const cmp = (file, want) => {
 		const at = path.join(OUT, file)
 		if (!fs.existsSync(at)) return fail.push(`${file} is missing`)
-		if (fs.readFileSync(at, 'utf8') !== want) fail.push(`${file} has drifted from the mark in spendly.html`)
+		if (fs.readFileSync(at, 'utf8') !== want) fail.push(`${file} has drifted from the mark`)
 	}
 	cmp('favicon.svg', ROUNDED)
 	cmp('site.webmanifest', MANIFEST)
-
-	if (!html.includes(`href="${INLINE_SVG}"`))
-		fail.push('spendly.html: the inline rel=icon data URI has drifted from its own .brand-mark rule')
 
 	const meta = fs.readFileSync(path.join(here, '..', 'index.html'), 'utf8')
 		.match(/<meta name="theme-color" content="([^"]*)">/)
@@ -306,7 +301,7 @@ if (check) {
 		console.error('\nrun `npm run icons:brand` to rebuild them')
 		process.exit(1)
 	}
-	console.log('brand icons match the mark in spendly.html')
+	console.log('brand icons match the mark')
 	process.exit(0)
 }
 
@@ -349,7 +344,7 @@ const write = (file, data) => {
 	console.log(`  ${file.padEnd(35)} ${(fs.statSync(path.join(OUT, file)).size / 1024).toFixed(1)} KB`)
 }
 
-console.log(`brand icons, from the ${MARK.size}px mark in spendly.html (${MARK.stops.join(' -> ')})`)
+console.log(`brand icons, from the ${MARK.size}px mark (${MARK.stops.join(' -> ')})`)
 
 write('favicon.svg', ROUNDED)
 write('site.webmanifest', MANIFEST)
@@ -364,21 +359,3 @@ write('android-chrome-512x512.png', encodePng(await render(ROUNDED, 512), 512))
 write('android-chrome-maskable-512x512.png', encodePng(await render(FULL, 512), 512))
 
 await browser.close()
-
-/* And the prototype's tab icon, written rather than printed for someone to paste: a hand-copied
-   data URI is a copy in the worst place to have one, since nothing renders the difference
-   between it and the mark it came from. Only this one -- the installable sizes are all payload
-   a single file opened from disk would carry and never spend. */
-const patched = /<link rel="icon"/.test(html)
-	? html.replace(/<link rel="icon" href="[^"]*">/, () => `<link rel="icon" href="${INLINE_SVG}">`)
-	: html.replace(/<title>Spendly<\/title>\n/, m => m + `
-<!-- The tab icon is inline because the file is one file -- there is nothing a <link href> could
-     point at. Generated from the .brand-mark rule below by react/scripts/brand-icons.mjs, not
-     edited here. The home-screen and install sizes live in the port, which can be installed. -->
-<link rel="icon" href="${INLINE_SVG}">
-`)
-
-if (patched !== html) {
-	fs.writeFileSync(SOURCE, patched)
-	console.log(`  ${'../spendly.html'.padEnd(35)} inline tab icon rewritten`)
-}

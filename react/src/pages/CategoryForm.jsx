@@ -78,6 +78,14 @@ function CategoryFields({ mode, category }) {
 		]
 	}, [all.data, category?.id])
 
+	/* One entry per icon a category already carries, first occurrence wins -- what the picker
+	   suggests before a search is real choices another category made, not the app's own 39. */
+	const usedIcons = useMemo(() => {
+		const seen = new Map()
+		for (const c of all.data ?? []) if (!seen.has(c.icon)) seen.set(c.icon, c.iconPath ?? null)
+		return [...seen].map(([name, path]) => ({ name, path }))
+	}, [all.data])
+
 	const formValues = useMemo(() => ({
 		'category-name': values.name, 'category-budget': values.budget
 	}), [values])
@@ -190,8 +198,8 @@ function CategoryFields({ mode, category }) {
 					label="Category colour" />
 			</Field>
 
-			<Field label="Icon" group help="Every glyph the app draws; the search narrows them.">
-				<IconPicker value={values.icon}
+			<Field label="Icon" group help="Icons already used by a category, or search all 5,129.">
+				<IconPicker value={values.icon} usedIcons={usedIcons}
 					onChange={(icon, iconPath) => setValues(v => ({
 						...v, icon, iconPath: ICONS[icon] ? undefined : iconPath
 					}))}

@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createHashRouter } from 'react-router-dom'
 import { routes } from './routes.jsx'
-import './styles/spendly.css'
+import './styles/app.css'
 
 /* Hash routing, for the same reason the prototype is one file: a built copy of this app has
    to open from anywhere -- a static host with no rewrite rule, a file:// URL, a folder

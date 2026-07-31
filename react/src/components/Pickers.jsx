@@ -26,8 +26,10 @@ import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
    ../api/colour.js. An open picker without that is a tile whose contents can vanish.
 
    The icons on offer are the whole Tabler outline set -- 5,129 of them, generated into
-   api/tabler/ from the package at build time. The 39 in Icon.jsx are the ones the interface
-   itself draws; they are not the limit on what a category may be.
+   api/tabler/ from the package at build time. The 39 in Icon.jsx are chrome -- a chevron, a
+   trash can, the glyphs the interface itself draws -- and no help in naming a category, so the
+   grid does not suggest them. What it suggests instead, before a search, is whatever icon a
+   category already carries: real choices another category made, not the app's own furniture.
 
    Three things keep that affordable. The catalogue is imported on demand, when the picker
    first renders, so it costs nothing on first paint. Its names and its paths are separate
@@ -35,16 +37,12 @@ import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
    shows more than 240 tiles, so pulling all 800 kB of path data to fill it was paying for
    5,128 glyphs to render one. And what a chosen icon needs in order to be *drawn* -- the path
    string -- is stored on the record with it, so the lists, the rings and the rows never load
-   a shard at all. See api/tabler.js. */
+   a shard at all, and neither does the picker's own default view. See api/tabler.js. */
 
 /** The most tiles the grid will draw for one search. A scroller holding five thousand of them
     is a wall, not a choice -- and it is also the number that decides how many shards a
     keystroke can pull. */
 const LIMIT = 240
-
-/** The app's own glyphs, in the order the unsearched grid lists them. Icon.jsx draws these by
-    name, so they cost no shard at all. */
-const BUILT_IN = Object.keys(ICONS).sort()
 
 /** The palette a category or a vendor can be. Tokens where the system has one, so a category
     coloured "red" is the same red as the one in the donut. */
@@ -130,8 +128,12 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
     `onChange` hands back the name and the path together, because the record stores both: the
     name is what the summary line reads back and what a future search matches, the path is what
     every row that draws the category needs. Handing back a name alone would mean every page
-    loading the catalogue to look it up. */
-export function IconPicker({ value, onChange, label = 'Icon' }) {
+    loading the catalogue to look it up.
+
+    `usedIcons` is the caller's own records -- one `{name, path}` per icon a category already
+    carries, deduplicated -- and is what the grid shows before a search. `path` travels with
+    each one already, so the default view draws without fetching a single shard. */
+export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) {
 	const [query, setQuery] = useState('')
 	const [catalogue, setCatalogue] = useState(null)
 	const [paths, setPaths] = useState({})
@@ -144,12 +146,14 @@ export function IconPicker({ value, onChange, label = 'Icon' }) {
 		return () => { live = false }
 	}, [])
 
+	const usedByName = useMemo(() => new Map(usedIcons.map(u => [u.name, u.path ?? null])), [usedIcons])
+
 	/* The names the grid will draw, and the shards their paths are in. NAMES is sorted and
 	   lower-case by construction -- they are the package's own file names -- so this walks in
 	   display order and stops at the cap, rather than filtering the set and sorting after. */
 	const hits = useMemo(() => {
 		const needle = query.trim().toLowerCase()
-		if (!needle) return { names: BUILT_IN, shards: [], capped: false }
+		if (!needle) return { names: [...usedByName.keys()], shards: [], capped: false }
 		if (!catalogue) return { names: [], shards: [], capped: false }
 
 		const names = []
@@ -160,7 +164,7 @@ export function IconPicker({ value, onChange, label = 'Icon' }) {
 			shards.add(catalogue.shardOf(i))
 		}
 		return { names, shards: [...shards], capped: names.length === LIMIT }
-	}, [query, catalogue])
+	}, [query, catalogue, usedByName])
 
 	/* Fetch the path data for what is about to be drawn, and nothing else. A shard already on
 	   hand resolves from cache and merges to the same object, so a held-down key does not
@@ -181,14 +185,15 @@ export function IconPicker({ value, onChange, label = 'Icon' }) {
 	}, [catalogue, hits])
 
 	const names = hits.names
-	const total = catalogue ? catalogue.NAMES.length : BUILT_IN.length
-	const waiting = names.some(name => !paths[name] && !ICONS[name])
+	const total = catalogue ? catalogue.NAMES.length : null
+	const waiting = names.some(name => !paths[name] && !usedByName.has(name) && !ICONS[name])
 
 	return (
 		<div style={{ display: 'grid', gap: 8 }}>
 			<FieldShell style={{ height: 38 }}>
 				<Icon name="search" />
-				<input type="search" value={query} placeholder={`Search ${total.toLocaleString('da-DK')} icons…`}
+				<input type="search" value={query}
+					placeholder={total ? `Search ${total.toLocaleString('da-DK')} icons…` : 'Search icons…'}
 					aria-label="Search icons" onChange={e => setQuery(e.target.value)} />
 			</FieldShell>
 			<div role="radiogroup" aria-label={label} aria-busy={waiting || undefined}
@@ -198,16 +203,16 @@ export function IconPicker({ value, onChange, label = 'Icon' }) {
 				}}>
 				{names.map(name => {
 					const on = name === value
-					/* The app's own 39 are drawn from Icon.jsx and handed back without a path,
-					   since Icon.jsx knows them by name; everything else is drawn from, and
+					/* A used icon's path travels with the record that already carries it, so the
+					   default grid resolves without a shard; a searched one is drawn from, and
 					   stored as, the string its shard carried. A tile whose shard is still in
 					   flight holds its size and refuses the click -- an icon that cannot be
 					   seen is not a choice that can be made. */
-					const d = paths[name] ?? ICONS[name]
+					const d = paths[name] ?? usedByName.get(name) ?? ICONS[name]
 					return (
 						<button key={name} type="button" className="icon-button"
 							role="radio" aria-checked={on} aria-label={name} disabled={!d}
-							onClick={() => onChange(name, paths[name])}
+							onClick={() => onChange(name, d)}
 							style={{
 								width: '100%', height: 34,
 								background: on ? 'var(--bg-dark)' : 'var(--bg-card)',
@@ -221,18 +226,22 @@ export function IconPicker({ value, onChange, label = 'Icon' }) {
 					)
 				})}
 				{names.length === 0
-					? <p className="field-help" style={{ gridColumn: '1 / -1' }}>No icon matches "{query}".</p>
+					? <p className="field-help" style={{ gridColumn: '1 / -1' }}>
+						{query.trim() ? `No icon matches "${query}".` : 'No category has an icon yet -- search to pick one.'}
+					</p>
 					: null}
 			</div>
 			{/* What the grid is showing, since it is a window on to five thousand and not the
-			    whole set: a count that says "39 of 5.129" is the difference between a short list
+			    whole set: a count that says "6 of 5,129" is the difference between a short list
 			    and a broken one. */}
 			<span className="field-help">
 				{query.trim()
-					? `${names.length}${hits.capped ? '+' : ''} of ${total.toLocaleString('da-DK')} icons match.`
-					: catalogue
-						? `The ${names.length} the app itself uses. Search all ${total.toLocaleString('da-DK')}.`
-						: `The ${names.length} the app itself uses. Loading the rest…`}
+					? `${names.length}${hits.capped ? '+' : ''} of ${(total ?? 0).toLocaleString('da-DK')} icons match.`
+					: names.length === 0
+						? null
+						: total
+							? `${names.length} already used by a category. Search all ${total.toLocaleString('da-DK')}.`
+							: `${names.length} already used by a category. Loading the rest…`}
 			</span>
 		</div>
 	)
