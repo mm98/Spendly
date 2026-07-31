@@ -551,3 +551,9 @@ that renders plausibly is not a rule that matched what you aimed at.
   number.
 - Lead with what was measured, then what changed. Numbers before adjectives.
 - Flag the part you could not close, in the same breath as the part you did.
+- **The pull request is where the session ends. Never offer to watch it.** No standing question about
+  following CI, autofixing a red check or answering review comments -- it has been asked many times
+  across the 162 commits in this repository and declined every one of them, so it is not a choice being
+  offered, it is a turn spent asking and a turn spent refusing. If watching is ever wanted it will be
+  asked for in those words, and then the PR is subscribed to and driven until it merges. Unasked, the
+  report ends at what changed, what was measured and what was left open.
