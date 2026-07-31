@@ -4,12 +4,10 @@ Spendly is an application and its documentation. **`react/` is the source.** The
 what a change is made in and what a claim is measured against: `npm install && npm run dev` in that
 directory, and the pages are real ones with the controls wired.
 
-`spendly.html` is the prototype the design system was drawn in, and it is a copy now. Its `<style>`
-block is written from `react/src/styles/spendly.css` by `npm run css:sync`, and `npm run css:check`
-fails when the two have drifted — so a rule typed into the HTML is a rule the next sync deletes. Edit
-the app; sync afterwards. The prototype is still worth rendering for what it is good at — one file,
-no build, every page in the DOM at once — but it draws some controls where the app builds them, and
-where the two disagree the app is right by definition.
+`spendly.html` is the prototype the design system was first drawn in. It is no longer synced or
+checked against `react/src/styles/app.css`, and no fix needs to reach it — it stays in the repo only
+as a frozen, historical artifact, not a document this file has rules about. Where anything below
+still mentions it, that is history: react/ is the one place the system is built.
 
 `README.md` is the design system the app implements; `docs/` holds the screenshots that document shows
 and the defect log its rules link to.
@@ -109,17 +107,16 @@ box, not about any change.
   repo, however irrelevant. Split it: `install` the engine, then `install-deps`, so an apt problem
   still leaves it on disk and a launch, not apt's exit code, decides whether it is usable.
 - **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
-  screenshot section names as rendering `docs/` at 0 of 5,184,000, so this container is the good
-  case rather than the text-rasterisation case -- still run the unchanged file against `docs/` once
-  to confirm it before trusting a diff. Confirmed on 2026-07-29: 0 of 5,184,000 on `home.png` and
-  `all-orders.png`, 0 of 1,035,840 on `phone.png`. **`all-orders.png` holds three pieces of state at
-  once**, and each one has to be driven: the FILTERS panel is open, which is no longer the state the
-  page loads in; the list is filtered to July 2026, Delivered and Vendor: Bilka, 3 of 142 matching;
-  and the global finder has `bil` typed into it. Render it closed and the confirmation run comes back
-  484,879 of 5,184,000 on a file nobody has touched, which reads exactly like the rasterisation case
-  it is not -- and a run that opens the panel but leaves the list and the finder alone comes back
-  611,948, which reads the same way and is the same mistake two thirds fixed. A floor measured in the wrong state is not a floor; drive each shot into the state
-  it holds (`docs/defects.md` says which) before believing the number, in either direction.
+  screenshot section names as rendering `docs/` at 0 of 5,184,000 from the app, so this container is
+  the good case rather than the text-rasterisation case -- still run the unchanged app against
+  `docs/` once to confirm it before trusting a diff. Confirmed on 2026-07-31, rendering the app: 0 of
+  5,184,000 on `home.png` and `all-orders.png`, 0 of 1,035,840 on `phone.png`, each reproduced twice
+  in a row. **`all-orders.png` holds three pieces of state at once**, and each one has to be driven:
+  the FILTERS panel is open, which is no longer the state the page loads in; the list is filtered to
+  `?vendor=bilka&status=Delivered&from=2026-07-01&to=2026-07-31`, 3 matching; and the global finder
+  (`input[aria-label="Search everything"]`) has `bil` typed into it, open. Render it closed or drop
+  any one of the three and the comparison reads like a rasterisation-floor mismatch and is not one --
+  drive each shot into the state it holds before believing the number, in either direction.
 - **If a browser download 403s, it is egress policy and not the CDN.** `playwright install` fails
   with a bare `Download failure, code=1`, which names no host and no cause; guessing one from it is
   guessing. `curl -sS "$HTTPS_PROXY/__agentproxy/status"` lists `recentRelayFailures` with the host
@@ -427,26 +424,14 @@ The shots in `docs/` are rendered from the running app and never cropped by hand
 Chromium at 1440x900 for the two desktop ones, an iPhone 13 descriptor for the phone one, all at
 `deviceScaleFactor: 2` and driven by the same harness used for measuring.
 
-**Only one of the three has been re-rendered from the app so far, and the other two numbers are not
-a floor.** The app reproduces `phone.png` exactly -- 0 differing pixels of 1,035,840 with the change
-under test reverted -- which is what made it safe to regenerate that file from the app. The desktop
-pair was not reproduced in that pass: 55,595 of 5,184,000 against `home.png` and 611,948 against
-`all-orders.png`, both identical to the pixel with the change reverted, so none of it is the change
-and none of it is text rasterisation either. `all-orders.png` holds a state the harness has to drive
-it into and that one did not -- see the bullet above for what the state actually is. `home.png`
-differs in the donut, the bar chart and the figures that follow today's date: a settle loop watching
-bounding rects does not catch a path that redraws inside a box that never moves, and the shot was
-taken on another day. Drive the state and freeze the drawing before treating either as a baseline.
-
-**That 55,595 is the app, and the prototype is what those two desktop shots were rendered from.** The
-two numbers this file carries for `home.png` -- 0 in the environment bullet, 55,595 here -- are both
-right and are about different files: rendering the *prototype* at 1440x900 dSF2 reproduces the
-committed `home.png` at **0 of 5,184,000**, and rendering the app reproduces it at 55,595. So the
-55,595 is not drift, a stale day or a rasteriser; it is the app and the prototype drawing the same
-page slightly differently, in the donut, the bar chart and the figures that follow the date. Until the
-desktop pair is re-rendered from the app -- which is a change of its own, and a 55,595-pixel one --
-regenerate those two from the prototype, so the committed file moves by the edit and nothing else, and
-name which file you rendered from. `phone.png` is the app's, and stays the app's.
+**All three are the app's now.** `phone.png` was regenerated from the app first; `home.png` and
+`all-orders.png` used to be rendered from the prototype instead -- 55,595 of 5,184,000 against the
+app for `home.png`, 440,582 for `all-orders.png` once the app was actually driven into the state the
+file holds (see the environment bullet above), neither number the change under test, both the app
+and the prototype drawing the same pages slightly differently. Both were re-rendered from the app on
+2026-07-31, reproduced twice in a row at 0 differing pixels, and `spendly.html` is no longer a
+baseline for either: react/ is the one place the system is built, so a shot is the app's render or
+it is out of date, with nothing left to reconcile against a second file.
 
 The phone shot needs that descriptor rather than a 390px window. `pointer: coarse` is what the iOS
 rules key off, and a plain narrow viewport does not match it — the shot would show a layout no phone
@@ -478,7 +463,7 @@ Before adding a variant, grep for the pattern and match the tally, not the one n
 `README` states this as a principle; in practice it means counting first —
 
 ```bash
-grep -c 'the-pattern' spendly.html    # then match the majority, or change all of them
+grep -c 'the-pattern' react/src/styles/app.css    # then match the majority, or change all of them
 ```
 
 Four date fields existed and only three carried the glyph, which is exactly how the fourth kept a bare
@@ -521,27 +506,14 @@ nothing but the walk's style fields could have caught it. Read the match count b
 (`document.querySelectorAll(sel).length`) and require the number you meant, before and after. A rule
 that renders plausibly is not a rule that matched what you aimed at.
 
-## Changing spendly.html
+## spendly.html is frozen
 
-- **The single file is a constraint, not an accident.** No dependency, no build step, no network
-  request, no external asset. A fix that needs any of those is the wrong fix.
-- **A comment is a tripwire, not documentation.** The README holds the argument; the comment exists
-  because nobody greps a spec before deleting what looks like a magic number, and this file is full of
-  values that look like mistakes — `calc(100% + 56px)`, `min-height:38px`, the iOS rule that computes
-  16px and scales it back. State the constraint, what breaks without it, and the section that explains
-  it. Three or four lines. Re-arguing the case inline gives one rule two homes and they drift; a
-  restatement of the CSS is noise either way.
-- **Match the surrounding idiom** — naming, comment voice, `--` for dashes inside CSS comments, the
-  house habit of stating the defect before the rule.
-- **Tabs indent, spaces align.** One tab per level of nesting, in markup, CSS and script alike. The
-  only spaces at the start of a line are the ones holding a comment's continuation under the text it
-  hangs from — `<!-- ` is five columns and `/* ` is three, and a tab there would only line up at one
-  tab width. Never mix the two in the same run: tabs first, then any alignment.
-- **Reformatting keeps its pixel diff, and half of it is free.** The tab conversion was accepted on
-  0 differing pixels of 5,184,000 rather than on inspection, and a whitespace-only change is exactly
-  the shape where "it obviously changed nothing" is a guess. Expanding the leading tabs back should
-  reproduce the previous file byte for byte -- that half needs no browser, so run it as you go. The
-  pixel diff goes in the pass at the end.
+It no longer gets edited: react/ is the one place the design system is built, and there is no sync
+step left to carry a fix anywhere else. The constraints this section used to state — one file, no
+dependency, no build step, no network request, no external asset, tabs indenting and spaces only
+aligning a comment's continuation — were about editing it directly, which nothing does now. They
+are git history (`git log -- spendly.html`) if the file is ever un-frozen; they are not rules to
+follow in the meantime, since following them would mean editing a file this repo has decided not to.
 
 ## Reporting
 
