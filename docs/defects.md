@@ -211,3 +211,78 @@ narrower phone arrangement, which is a new layout and needs its own argument.
 Gecko and WebKit are not installed in this container and were not checked. The change is padding on a
 flex row and a custom property in a `calc()`, neither of which is engine-shaped — but that is an
 argument, not a render.
+
+## Charts — the callout was drawn permanently, across the line it annotates
+
+The hero chart's callout — *Quiet week so far. Biggest day was the 23rd: 4.298,00 kr. at Proshop.* —
+had no resting state. It was drawn at all times, **264x53 at (660, 299)**, over the middle third of a
+130px line that starts at y 283. It is shaped like a tooltip, it carries a tooltip's shadow, and it
+sat on the data with no way to put it away.
+
+It is a tooltip now: `visibility:hidden` at rest, `visibility:visible` while `.chart-wrap` is hovered
+or holds focus. The bubble lives inside the wrapper, so walking the pointer off the line and onto the
+bubble keeps it up rather than dismissing it under the pointer.
+
+**visibility, not display, and the phone rule is the reason.** The callout is off under a coarse
+pointer (`display:none` at `max-width:700px`), and a reveal written on `display` would have specificity
+(0,2,0) against that rule's (0,1,0) — it would have won inside the media query and handed the callout
+back to any touch browser that fakes a hover on tap. Measured under `devices['iPhone 13']`: after a tap
+on the chart the callout computes `visibility: visible` and `display: none`. The emulated hover is
+real; it is the property it lands on that makes it harmless.
+
+**The chart pays for being the trigger.** It takes `tabindex="0"` — the **37th** tab stop on Home, and
+1 of the 3 charts on the page; the two rail charts are untouched — and carries the sentence as
+`aria-describedby`, since a bubble that is not drawn is out of the accessibility tree and would take
+its content with it.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, at 1440x900 `deviceScaleFactor: 2`, driving
+the app at `localhost:5173` and the prototype as a file, each state entered rather than simulated —
+the pointer aimed at a point on the line the bubble does not cover, then walked onto the bubble:
+
+| state | app | prototype |
+| --- | --- | --- |
+| at rest | `hidden` | `hidden` |
+| pointer on the chart | `visible` | `visible` |
+| pointer on the bubble itself | `visible` | `visible` |
+| pointer away | `hidden` | `hidden` |
+| chart focused | `visible` | `visible` |
+| focus lost | `hidden` | `hidden` |
+
+The bubble's box is `[660, 299, 264, 53]` in every one of those states, in both files — the reveal
+moves no geometry, which is what says the two are one mechanism rather than two that agree today.
+
+Read from the engine's own accessibility tree over CDP, not inferred from the attribute being present:
+the chart is `role=image`, name *Daily spend through July*, description *Quiet week so far…* — **in
+both states**. The callout node itself is `role=tooltip` and in the tree while shown, and `ignored`
+while hidden, so nothing reads a bubble nobody asked for as page content.
+
+Selector match counts on Home: `.chart-wrap` 1, `.chart-callout` 1, tabbable charts 1 of 3. On Orders,
+Vendors, Categories and Statistics — each reached by clicking the sidebar and reading the page title
+back — `.chart-callout` 0 and tabbable charts 0.
+
+In pixels, before against after on one machine: **87,131 differing of 5,184,000**, bounded by
+(631, 283)–(952, 395) in CSS pixels — the bubble and the spread of its shadow, and nothing else on the
+page. Identical to the pixel in both files: the app's diff box and the prototype's are the same box and
+the same count. The changed app **hovered** against the unchanged app at rest is **0 of 5,184,000** —
+asked for, the tooltip draws exactly what used to be drawn permanently, so this change removes nothing
+but the permanence. On the phone, **0 of 1,035,840** against `docs/phone.png`: the callout was already
+off there.
+
+`docs/home.png` was regenerated, in this container, from the prototype. It is the one committed shot
+that holds the callout, and this container reproduces the pre-change file at **0 of 5,184,000**, so the
+regeneration carries the 87,131-pixel edit and nothing else — confirmed by diffing the new file against
+the old. (The app renders the same page at 55,595 of 5,184,000 against that shot, in the donut, the bar
+chart and the figures that follow today's date, so the app is not what these desktop shots are rendered
+from. 55,595 + 87,131 = 142,726, which is what the changed app scores against the old file: the change
+accounts for the whole of the difference and none of the drift.) `docs/phone.png` and
+`docs/all-orders.png` hold no callout and were not touched.
+
+Gecko and WebKit are not installed in this container and were not checked. Two things here are worth a
+run if one is ever spent: `tabindex` on an `<svg>` is the kind of thing engines have disagreed about,
+and `:focus-within` on that wrapper is only as good as the focus it observes.
+
+**Not fixed, and deliberate:** Escape does not dismiss the tooltip while the pointer rests on the
+chart. Moving the pointer off it does, and the keyboard's own dismissal is Tab. Closing that gap means
+state and a document-level key listener in both files, duplicated, for a bubble that a 1px pointer move
+already puts away — the shared stylesheet is what keeps the app and the prototype honest with each
+other here, and it cannot hold an Escape key.

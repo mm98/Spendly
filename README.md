@@ -409,7 +409,7 @@ Small quantitative graphics, each with one job:
 
 ### Charts
 
-The app draws a line chart, a donut, weekday bars, meters and progress rings. Three rules hold them together:
+The app draws a line chart, a donut, weekday bars, meters and progress rings. Five rules hold them together:
 
 **One user unit is one CSS pixel.** The line chart's viewBox is remapped 1:1 onto the element's pixel box on every resize, so stroke widths hold and text in the chart is never scaled. A chart whose viewBox is a guess renders its 1px grid line at 1.3px on one screen and 0.8px on another.
 
@@ -418,6 +418,8 @@ The app draws a line chart, a donut, weekday bars, meters and progress rings. Th
 **Chart colors are the data-viz palette** (`--donut-*`), which exists so segments differ from each other. Semantic colors stay out of charts: a slice is not "positive".
 
 **Legends are rows.** A chart legend row is the data-row pattern at chart scale — glyph (swatch), label, value — and a legend row that filters the list navigates like any other row, with `data-go`.
+
+**A callout is a tooltip, so it is asked for.** The sentence that annotates a chart appears while the chart is hovered or focused, and the resting page does not draw it. Left up permanently it is not a tooltip at all — it is a label lying across the middle of the data it describes, and the reader cannot put it away. The chart is what the callout is about, so the chart is the trigger, and being the trigger costs it two things: a tab stop, because a tooltip only a pointer can ask for is one the keyboard never reaches, and the sentence as its own accessible description, because a bubble that is not drawn is out of the accessibility tree and takes its content with it. Under a coarse pointer there is nothing to ask with, so the callout is off entirely rather than left to whether the browser fakes a hover on tap ([the numbers](docs/defects.md#charts--the-callout-was-drawn-permanently-across-the-line-it-annotates)).
 
 ### Chrome
 
