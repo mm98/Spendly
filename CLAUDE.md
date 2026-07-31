@@ -42,7 +42,8 @@ stated twice and obeyed once.
 > [!IMPORTANT]
 > Nothing below runs while the work is in progress. The harness runs, the pixel diffs, the element
 > walks and the `docs/` baseline check are **one pass, run when the change is finished and a pull
-> request is about to be opened** -- or whenever the user asks for them sooner.
+> request is about to be opened** -- or whenever the user asks for them sooner. Committing and
+> pushing is not that trigger; the request for a pull request is.
 
 This section used to read as a standing bar with no place in the session named, so it got paid for
 continuously: validating one form spent about as long on measurement as on the edit, interleaved
@@ -55,6 +56,24 @@ So the shape of a session is: build the change, then verify it, then open the pu
 is the trigger, and since a PR is only ever opened on an explicit request, so is the run. Between
 those two points, say plainly what has and has not been checked -- "not rendered yet" is a complete
 report mid-work, and it is the honest one.
+
+**The default is the change, the smallest check that could fail, and a one-line report.** For "hide
+this element" that is one page load and three assertions, about fifteen seconds -- not a harness. The
+last time this rule was ignored, a 180-line general instrument was written to answer *is it hidden at
+rest*, re-ran five times on its own bugs, and turned a three-declaration change into twenty minutes.
+The standard was not what was expensive; the instrument was. Size the probe to the claim, and treat
+anything past about two minutes -- pixel floors, element walks, `docs/` regeneration, cross-engine
+runs, a stale screenshot -- as something to propose in one sentence and wait on, never to spend first
+and report afterwards.
+
+**Two seconds is the Playwright timeout.** `page.setDefaultTimeout(2000)` and
+`setDefaultNavigationTimeout(2000)` at the top of anything that drives a browser: nothing in this app
+renders slower than that, so the 30-second defaults buy nothing and hide everything. A
+`waitForSelector` on the element the change had just hidden sat there for the full 30, and an
+intercepted hover retried for another 30 -- a minute of silence bought by two harness bugs, which
+reads as "the run is slow" and is not. A wrong probe should fail in two seconds and say so. If a cold
+dev server needs longer for the first navigation, warm it with one request rather than raising the
+number.
 
 Two things need no trigger, because neither costs a browser: **never claim what was not run**
 ([Reporting](#reporting)), and read the file you are changing before changing it.
@@ -276,6 +295,24 @@ unchanged file twice and require zero differences first; a diff with a floor of 
 that the floor is all it found. Waiting for drawn geometry to stop changing across three frames took
 it to 0 of 92,916.
 
+**Quiet is not the same as resting: a probe leaves the page where it left it.** A tab-order walk on
+Home presses Tab 37 times, and every press scrolls; the screenshot taken after it came back
+**1,158,555 differing of 5,184,000** against `docs/home.png` on a file whose change could not move
+more than a 264x53 box. Two runs of it agreed at **0** with each other, which is the trap -- the
+harness was perfectly quiet and perfectly wrong, because both runs were scrolled by the same amount.
+The same thing one page over, quieter: a probe that focuses an element leaves the document's one
+`:focus-visible` ring behind it, and that was **7,256 pixels of 1,035,840** on a phone shot of a
+change that does not render on phones. Put the pointer, the focus and every scroll offset back where
+a fresh load has them before rendering anything, and read run-to-run agreement as evidence about the
+harness only -- never about which state it is holding.
+
+**A hover probe has to aim at a point the thing it reveals does not cover.** `page.hover(selector)`
+aims at the element's centre, and a tooltip over the middle of a chart is exactly what then sits
+there -- so the call fails its actionability check with *intercepts pointer events*, which reads as a
+broken selector and is the tooltip working. Aim at a point on the target the revealed element leaves
+alone, then walk onto the revealed element deliberately: it stays up under the pointer, or it is a
+bubble that vanishes when you reach for it.
+
 **Drive the app the way the app drives itself.** The router shows a page by toggling `.is-on`, and
 `.page:not(.is-on)` is `display:none !important`, so a harness that hid pages with the `hidden`
 attribute instead rendered nothing and cheerfully recorded 75,348 measurements of it. Read how the
@@ -400,6 +437,16 @@ it into and that one did not -- see the bullet above for what the state actually
 differs in the donut, the bar chart and the figures that follow today's date: a settle loop watching
 bounding rects does not catch a path that redraws inside a box that never moves, and the shot was
 taken on another day. Drive the state and freeze the drawing before treating either as a baseline.
+
+**That 55,595 is the app, and the prototype is what those two desktop shots were rendered from.** The
+two numbers this file carries for `home.png` -- 0 in the environment bullet, 55,595 here -- are both
+right and are about different files: rendering the *prototype* at 1440x900 dSF2 reproduces the
+committed `home.png` at **0 of 5,184,000**, and rendering the app reproduces it at 55,595. So the
+55,595 is not drift, a stale day or a rasteriser; it is the app and the prototype drawing the same
+page slightly differently, in the donut, the bar chart and the figures that follow the date. Until the
+desktop pair is re-rendered from the app -- which is a change of its own, and a 55,595-pixel one --
+regenerate those two from the prototype, so the committed file moves by the edit and nothing else, and
+name which file you rendered from. `phone.png` is the app's, and stays the app's.
 
 The phone shot needs that descriptor rather than a 390px window. `pointer: coarse` is what the iOS
 rules key off, and a plain narrow viewport does not match it — the shot would show a layout no phone

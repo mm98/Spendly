@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
@@ -30,6 +30,7 @@ function Hero({ period, categories }) {
 	const [range, setRange] = useState('1M')
 	const [series, setSeries] = useState('orders')
 	const refs = useMemo(() => [], [])
+	const calloutId = useId()
 
 	const points = useMemo(() => ranged(period.series[series], range), [period.series, series, range])
 	const heroValue = key => key === 'orders' ? String(period.orderCount) : kr(period.saved)
@@ -49,10 +50,16 @@ function Hero({ period, categories }) {
 					</div>
 				</div>
 				<RangeTabs value={range} onChange={setRange} />
+				{/* The callout is a tooltip, drawn on hover or focus by the stylesheet. Both halves of
+				    that are the chart's to carry: it takes the tab stop, because a tooltip only a pointer
+				    can ask for is one the keyboard never sees, and it keeps the sentence as its own
+				    description, because the resting state is visibility:hidden and a hidden node is out
+				    of the accessibility tree unless something references it. README: Charts. */}
 				<div className="chart-wrap">
 					<Chart height={130} pad={0} label="Daily spend through July"
+						tabIndex={0} aria-describedby={calloutId}
 						series={[{ points, kind: 'line', stroke: '#3A423D', strokeWidth: 1.6 }]} />
-					<div className="chart-callout">{period.callout}</div>
+					<div className="chart-callout" id={calloutId} role="tooltip">{period.callout}</div>
 				</div>
 				<div className="compare-tabs" role="tablist" aria-label="Hero chart series">
 					{HERO_SERIES.map((tab, i) => (

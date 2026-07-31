@@ -375,8 +375,15 @@ a[data-go] { color:inherit; text-decoration:none; }
 .range-tabs button { font:inherit; background:none; border:0; font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.02em; cursor:pointer; padding:6px 2px; }
 .range-tabs button.is-on { color:var(--text); border:1px solid #D9DED8; border-radius:9px; padding:6px 11px; background:var(--bg-card); }
 .chart-wrap { position:relative; margin-top:8px; }
-.chart-callout { position:absolute; left:34%; top:26%; background:var(--bg-card); border-radius:var(--radius-page); box-shadow:0 2px 6px rgb(11 26 18 / .06), 0 14px 34px rgb(11 26 18 / .12); padding:10px 14px; font-size:11px; color:var(--text-body); max-width:264px; line-height:1.5; }
+/* The callout is a tooltip: it is asked for by hovering or focusing the chart, and it is not
+   drawn at rest. Parked there permanently it is not a tooltip at all -- it is a label lying
+   across the middle of the line it annotates, hiding the data it is describing.
+   visibility, not display: the phone rule turns the callout off outright, and a `display`
+   reveal at (0,2,0) would out-specify that rule and hand the callout back to any touch
+   browser that emulates hover. README: Charts. */
+.chart-callout { position:absolute; left:34%; top:26%; background:var(--bg-card); border-radius:var(--radius-page); box-shadow:0 2px 6px rgb(11 26 18 / .06), 0 14px 34px rgb(11 26 18 / .12); padding:10px 14px; font-size:11px; color:var(--text-body); max-width:264px; line-height:1.5; visibility:hidden; }
 .chart-callout { border-radius:16px; }
+.chart-wrap:hover .chart-callout, .chart-wrap:focus-within .chart-callout { visibility:visible; }
 .compare-tabs { display:flex; margin-top:6px; box-shadow:inset 0 -1px 0 var(--border-divider); }
 .compare-tabs button { flex:1; font:inherit; background:none; border:0; text-align:center; padding:10px 4px 12px; cursor:pointer; border-bottom:2px solid transparent; }
 .compare-tabs .compare-tabs-value { display:block; font-size:13px; font-weight:600; color:var(--text); }
@@ -1113,6 +1120,9 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	.page-bar { padding:6px 12px 2px; overflow-x:auto; scrollbar-width:none; }
 	.segmented { flex-wrap:nowrap; }
 	.dashboard-cards { grid-template-columns:1fr; }
+	/* No hover under a coarse pointer, so there is no way to ask for the tooltip and no
+	   room to put it -- off outright, rather than left to whether the browser emulates a
+	   hover on tap. display beats the reveal rule's visibility whatever specificity says. */
 	.chart-callout { display:none; }
 	.figure-headline { font-size:23px; }
 	.range-tabs { flex-wrap:wrap; gap:8px 12px; }
@@ -1210,9 +1220,14 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 						<div class="range-tabs" role="group" aria-label="Range">
 							<button type="button" data-range="1W" aria-pressed="false">1W</button><button type="button" data-range="1M" class="is-on" aria-pressed="true">1M</button><button type="button" data-range="3M" aria-pressed="false">3M</button><button type="button" data-range="YTD" aria-pressed="false">YTD</button><button type="button" data-range="ALL" aria-pressed="false">ALL</button>
 						</div>
+						<!-- The callout is a tooltip: hover or focus the chart and the stylesheet draws it, and
+						     at rest it is not drawn at all. Both halves of that are the chart's to carry -- the tab
+						     stop, because a tooltip only a pointer can ask for is one the keyboard never sees, and
+						     the description, because the resting state is visibility:hidden and a hidden node is out
+						     of the accessibility tree unless something references it. See README: Charts. -->
 						<div class="chart-wrap">
-							<svg class="chart" data-h="130" data-pad="0" style="height:130px" role="img" aria-label="Daily spend through July"><path id="hero-series" data-series="96,92,98,78,90,84,96,70,84,76,92,88,96,60,74,66,88,80,72,94,84,52,26,60,84,92,68,44,62,34,56,48,58,50,54" data-kind="line" fill="none" stroke="#3A423D" stroke-width="1.6"></path></svg>
-							<div class="chart-callout">Quiet week so far. Biggest day was the 23rd: 4.298,00 kr. at Proshop.</div>
+							<svg class="chart" data-h="130" data-pad="0" style="height:130px" role="img" aria-label="Daily spend through July" tabindex="0" aria-describedby="hero-callout"><path id="hero-series" data-series="96,92,98,78,90,84,96,70,84,76,92,88,96,60,74,66,88,80,72,94,84,52,26,60,84,92,68,44,62,34,56,48,58,50,54" data-kind="line" fill="none" stroke="#3A423D" stroke-width="1.6"></path></svg>
+							<div class="chart-callout" id="hero-callout" role="tooltip">Quiet week so far. Biggest day was the 23rd: 4.298,00 kr. at Proshop.</div>
 						</div>
 						<div class="compare-tabs" role="tablist" aria-label="Hero chart series">
 							<button type="button" role="tab" aria-selected="true" class="is-on" data-series-for="hero" data-series-values="96,92,98,78,90,84,96,70,84,76,92,88,96,60,74,66,88,80,72,94,84,52,26,60,84,92,68,44,62,34,56,48,58,50,54"><span class="compare-tabs-value">Orders</span><span class="compare-tabs-label tabular-figures">23</span></button>
