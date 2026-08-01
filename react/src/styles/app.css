@@ -731,6 +731,7 @@ svg.chart { width:100%; display:block; }
 .combobox-option { display:flex; align-items:center; padding:10px 12px; border-radius:var(--radius-compact); font-size:13.5px; color:var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .combobox-option:hover { background:#F5F7F4; }
 .combobox-option.combobox-option-highlighted { background:#F1F3EE; }
+.combobox-option.combobox-option-selected { background:#DFF0E6; font-weight:600; }
 .combobox-option mark { background:#DFF0E6; color:inherit; padding:0 1px; border-radius:3px; font-weight:600; }
 .combobox-option .combobox-option-meta { margin-left:auto; padding-left:14px; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }
 .combobox-option .combobox-option-star { color:var(--donut-yellow); display:inline-flex; align-items:center; margin-right:9px; }
