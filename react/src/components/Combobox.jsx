@@ -28,6 +28,15 @@ function Marked({ text, query }) {
 	)
 }
 
+/* The value is the selected option's own label whenever nothing is being typed over it --
+   true of every non-searchable list (Sort by has no typing at all) and of a searchable one
+   at rest. That case reads as "this is the selected row", not "this is what was typed", so
+   it gets the row's own sticky highlight rather than a <mark> wrapped around the letters. */
+const isSelected = (label, query) => {
+	const needle = query.trim()
+	return Boolean(needle) && label.toLowerCase() === needle.toLowerCase()
+}
+
 export function Combobox({
 	value, onChange, onSelect, groups = [], action, placeholder, label, required,
 	leadingIcon, id, invalid, describedBy, children, chips, className
@@ -118,16 +127,20 @@ export function Combobox({
 				{groups.map(group => (
 					<div className="combobox-group" key={group.heading}>
 						<div className="combobox-group-heading">{group.heading}</div>
-						{group.options.map((option, i) => (
-							<div key={option.id ?? option.label}
-								className={join('combobox-option', option.highlighted && 'combobox-option-highlighted')}
-								role="option" aria-selected={option.highlighted ? true : undefined}
-								onClick={e => choose(e, option)}>
-								{option.star ? <span className="combobox-option-star"><Icon name="starFilled" /></span> : null}
-								<Marked text={option.label} query={value ?? ''} />
-								{option.meta ? <span className="combobox-option-meta">{option.meta}</span> : null}
-							</div>
-						))}
+						{group.options.map((option, i) => {
+							const selected = isSelected(option.label, value ?? '')
+							return (
+								<div key={option.id ?? option.label}
+									className={join('combobox-option', option.highlighted && 'combobox-option-highlighted',
+										selected && 'combobox-option-selected')}
+									role="option" aria-selected={option.highlighted || selected ? true : undefined}
+									onClick={e => choose(e, option)}>
+									{option.star ? <span className="combobox-option-star"><Icon name="starFilled" /></span> : null}
+									{selected ? option.label : <Marked text={option.label} query={value ?? ''} />}
+									{option.meta ? <span className="combobox-option-meta">{option.meta}</span> : null}
+								</div>
+							)
+						})}
 					</div>
 				))}
 				{children}
