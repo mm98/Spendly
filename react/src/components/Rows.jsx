@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Icon } from './Icon.jsx'
 import { kr, krRound } from '../api/format.js'
 import { inkOn } from '../api/colour.js'

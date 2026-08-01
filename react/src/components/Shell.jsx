@@ -1,5 +1,5 @@
 import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Icon } from './Icon.jsx'
 import { Button } from './Button.jsx'
 import { Waiting } from './Async.jsx'
