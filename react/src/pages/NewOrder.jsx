@@ -46,15 +46,22 @@ const STEPS = (at) => [
 
 export function NewOrderLayout({ mode = 'create' }) {
 	const { id } = useParams()
+	const [searchParams] = useSearchParams()
 	/* One layout for both flows: a new order starts from the seeded draft and the defaults the
 	   user set, and an edit starts from the order itself. Two forms would drift; this way the
 	   second step, the summary rail and every validation rule are literally the same code. */
 	const seed = useApi(mode === 'edit' ? getOrderAsDraft : getOrderDraft, mode === 'edit' ? [id] : [])
+	/* The command palette's "Create order with {vendor}" arrives as ?vendor=, and the promise
+	   it made was the vendor already filled in -- not another field to type. Folded into the
+	   seed itself, so it survives exactly as long as the rest of the draft does. */
+	const vendorParam = mode === 'create' ? searchParams.get('vendor') : null
+	const seedData = useMemo(() => (seed.data && vendorParam ? { ...seed.data, vendor: vendorParam } : seed.data),
+		[seed.data, vendorParam])
 	const [draft, setDraft] = useState(null)
-	const value = draft ?? seed.data
+	const value = draft ?? seedData
 
 	const update = useCallback(patch =>
-		setDraft(prev => ({ ...(prev ?? seed.data), ...patch })), [seed.data])
+		setDraft(prev => ({ ...(prev ?? seedData), ...patch })), [seedData])
 
 	if (seed.error) return <Page><Card><CardBody><p className="field-help">
 		That order could not be loaded. {seed.error.message}</p></CardBody></Card></Page>

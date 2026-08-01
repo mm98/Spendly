@@ -638,8 +638,9 @@ export async function search(query, signal) {
 		.map(o => ({ id: o.id, ...highlight(`${o.vendor.name} · ${dayMonth(o.date)}`, needle),
 			meta: krLabel(o.total), to: `/orders/${o.id}` })))
 
-	take('Vendors', store.vendors
-		.filter(v => v.name.toLowerCase().includes(needle)).slice(0, 3)
+	const vendorMatches = store.vendors.filter(v => v.name.toLowerCase().includes(needle)).slice(0, 3)
+
+	take('Vendors', vendorMatches
 		.map(v => ({ id: v.id, ...highlight(v.name, needle),
 			meta: `${v.orders} orders · ${krLabel(v.spend, 0)}`, to: `/orders/all?vendor=${v.id}` })))
 
@@ -667,9 +668,19 @@ export async function search(query, signal) {
 		.map(o => ({ id: o.id + '-note', ...highlight(`"${o.note}"`, needle),
 			meta: `${o.vendor?.name} · ${dayMonth(o.date)}`, to: `/orders/${o.id}` })))
 
-	take('Commands', COMMANDS
-		.filter(c => c.label.toLowerCase().includes(needle) || c.keywords.includes(needle)).slice(0, 4)
-		.map(c => ({ id: c.id, ...highlight(c.label, needle), meta: c.meta, to: c.to })))
+	/* A vendor match is also a reason to buy from them again, so each one earns a command of
+	   its own -- not just a link to their past orders. Ahead of the static list, since it is
+	   the one command the search term itself picked out. */
+	const vendorCreateOptions = vendorMatches.map(v => ({ id: 'cmd-new-order-' + v.id,
+		...highlight(`Create order with ${v.name}`, needle), meta: 'Create',
+		to: `/orders/new?vendor=${encodeURIComponent(v.name)}` }))
+
+	const staticCommandOptions = COMMANDS
+		.filter(c => c.label.toLowerCase().includes(needle) || c.keywords.includes(needle))
+		.slice(0, Math.max(0, 4 - vendorCreateOptions.length))
+		.map(c => ({ id: c.id, ...highlight(c.label, needle), meta: c.meta, to: c.to }))
+
+	take('Commands', [...vendorCreateOptions, ...staticCommandOptions])
 
 	return { query, groups }
 }
