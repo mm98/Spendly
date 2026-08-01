@@ -733,6 +733,14 @@ svg.chart { width:100%; display:block; }
 .combobox-option.combobox-option-highlighted { background:#F1F3EE; }
 .combobox-option.combobox-option-selected { background:#DFF0E6; font-weight:600; }
 .combobox-option mark { background:#DFF0E6; color:inherit; padding:0 1px; border-radius:3px; font-weight:600; }
+/* The space either side of a matched word renders at 0 width here -- text-overflow:ellipsis
+   collapses whitespace at an inline box's edge even on a line that never truncates -- so the
+   space in the source string is real but invisible. Rebuilding it as margin, on the finder's
+   own mark only and only on the side where the source string actually holds a space, matches
+   a plain inter-word gap (measured 4px at this font-size) without touching Combobox.jsx's
+   mid-word highlight, which has no adjacent space to restore. */
+.global-finder mark.mark-lead { margin-left:4px; }
+.global-finder mark.mark-trail { margin-right:4px; }
 .combobox-option .combobox-option-meta { margin-left:auto; padding-left:14px; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }
 .combobox-option .combobox-option-star { color:var(--donut-yellow); display:inline-flex; align-items:center; margin-right:9px; }
 /* A star that reads as filled is filled. Both instances set fill and stroke

@@ -199,7 +199,14 @@ function GlobalFinder() {
 										.filter(Boolean).join(' ')}
 									onMouseEnter={() => setAt(i)}
 									onClick={e => { e.preventDefault(); e.stopPropagation(); go(option.to) }}>
-									{option.before}{option.mark ? <mark>{option.mark}</mark> : null}{option.rest}
+									{option.before}
+									{option.mark ? (
+										<mark className={[/\s$/.test(option.before) && 'mark-lead',
+											/^\s/.test(option.rest) && 'mark-trail'].filter(Boolean).join(' ')}>
+											{option.mark}
+										</mark>
+									) : null}
+									{option.rest}
 									<span className="combobox-option-meta">{option.meta}</span>
 								</div>
 							)
