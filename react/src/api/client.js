@@ -464,7 +464,7 @@ export async function saveDashboardCards(keys, signal) {
 
    The range chips and the pager are one control over one timeline: the chips choose how wide
    the window is, the arrows step by that width. They used to disagree -- the arrows walked
-   `periods` a month at a time whatever the chips said, so 1W drew a week and paged a month --
+   `periods` a month at a time whatever the chips said, so a week drew a week and paged a month --
    and a pager that steps something other than what is on screen is the decorative-control
    defect with arithmetic in it. README: Statistics, Pagination.
 
@@ -537,9 +537,11 @@ const runningTotal = (from, length) => {
 	return days.slice(from, from + length).map(day => (sum += day.spend))
 }
 
-/* What the arrows call their own step. ALL has no unit and no step -- it is the whole of the
-   records, so it is the one window whose arrows are disabled at both ends at once. */
-const UNITS = { '1W': 'week', '1M': 'month', '3M': 'quarter', YTD: 'year' }
+/* What the arrows call their own step, which is the width's own name: the chips are calendar
+   units, so `week` pages a week and the arrow says so with no table in between. `all` has no
+   unit and no step -- it is the whole of the records, so it is the one window whose arrows are
+   disabled at both ends at once. */
+const unitOf = range => (range === 'all' ? 'range' : range)
 const dayNumber = date => Number(date.slice(8))
 
 /* Weeks are ISO weeks: Monday to Sunday, numbered so that week 1 is the one holding 4 January.
@@ -570,9 +572,9 @@ const weekKey = iso => {
 }
 
 /* The other three units the pager steps in. Every one of them is a calendar unit rather than a
-   duration: 3M is the quarter it lands in, not the ninety days before it, and YTD is the year,
-   with the current one running only as far as the records do. A control that offers a unit and
-   pages something else is the same defect one level in. */
+   duration: the quarter is the one the window lands in, not the ninety days before it, and the
+   year is the year, with the current one running only as far as the records do. A control that
+   offers a unit and pages something else is the same defect one level in. */
 const quarterOf = iso => Math.floor((Number(iso.slice(5, 7)) - 1) / 3) + 1
 const quarterKey = iso => iso.slice(0, 4) + '-Q' + quarterOf(iso)
 const monthKey = iso => iso.slice(0, 7)
@@ -594,30 +596,35 @@ const spanText = (from, to) => from.slice(0, 7) === to.slice(0, 7)
 	? dayNumber(from) + '–' + dayMonth(to)
 	: dayMonth(from) + ' – ' + dayMonth(to)
 
-/* Four names per window, because they are read in four places.
+/* Three names per window, because they are read in three places.
 
-   `label` is what the pager draws: a calendar unit, short enough for the band -- W30, 2026 ·
-   July 2026 · Q2, 2026 · 2026. `spoken` is what it announces where the drawn one is an
-   abbreviation, since "W30, 2026" is a letter, a number and a year and nothing in it says week.
+   `label` is what the pager draws and what the heading over the tiles is made of, and it says
+   its unit in the calendar's own words -- Week 30, 2026 · July 2026 · Quarter 2, 2026 · 2026.
+   It used to be abbreviated to W30 and Q2 to keep it short enough for the band, with a second
+   unabbreviated string carried beside it for screen readers, because "W30, 2026" is a letter, a
+   number and a year and nothing in it says week. Two strings for one window is a thing to keep
+   in step, and the drawn one was the one that could not be read: writing the unit out costs
+   about 30px in a band that has room for it and leaves one name to keep true.
+
    `short` is the days the window actually covers, printed over the chart that plots them --
    which is what a unit name does not tell you, and what the clipped windows at either end of
    the records need said. `ref` is how anything comparing itself against this window names it. */
 const labelsFor = (range, first, last, periodId) => {
 	const year = first.date.slice(0, 4)
 	const span = spanText(first.date, last.date)
-	if (range === '1W') {
+	if (range === 'week') {
 		const at = isoWeek(first.date)
-		return { label: 'W' + at.week + ', ' + at.year, spoken: 'Week ' + at.week + ', ' + at.year, short: span, ref: span }
+		return { label: 'Week ' + at.week + ', ' + at.year, short: span, ref: span }
 	}
-	if (range === '1M') {
+	if (range === 'month') {
 		const month = monthOf(periodId)
 		return { label: month.label, short: month.shortLabel, ref: month.shortLabel }
 	}
-	if (range === '3M') {
+	if (range === 'quarter') {
 		const q = quarterOf(first.date)
-		return { label: 'Q' + q + ', ' + year, spoken: 'Quarter ' + q + ', ' + year, short: span, ref: 'Q' + q }
+		return { label: 'Quarter ' + q + ', ' + year, short: span, ref: 'Quarter ' + q }
 	}
-	if (range === 'YTD') return { label: year, short: span, ref: year }
+	if (range === 'year') return { label: year, short: span, ref: year }
 	return { label: 'All time', short: 'all time', ref: null }
 }
 
@@ -645,16 +652,16 @@ const monthUnder = within => {
 	return [...tally].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? 1 : -1))[0][0]
 }
 
-const KEYS = { '1W': weekKey, '1M': monthKey, '3M': quarterKey, YTD: yearKey }
+const KEYS = { week: weekKey, month: monthKey, quarter: quarterKey, year: yearKey }
 
 const windowAt = (range, from, length) => {
 	const within = days.slice(from, from + length)
 	const first = within[0], last = within[within.length - 1]
-	const periodId = range === '1W' ? monthUnder(within) : last.periodId
-	const { label, spoken, short, ref } = labelsFor(range, first, last, periodId)
+	const periodId = range === 'week' ? monthUnder(within) : last.periodId
+	const { label, short, ref } = labelsFor(range, first, last, periodId)
 	return {
 		id: KEYS[range] ? KEYS[range](first.date) : range,
-		range, unit: UNITS[range] ?? 'range', periodId, ref,
+		range, unit: unitOf(range), periodId, ref,
 		/* The day this window stands on when the width changes under it: the newest one that
 		   belongs to the month the window is filed under. Its own last day would do for every
 		   window that sits inside a month, and would walk a reader off the month the cards are
@@ -662,7 +669,7 @@ const windowAt = (range, from, length) => {
 		   is in July and you get July, which is the month the page was already about. */
 		anchor: from + within.findLastIndex(day => day.periodId === periodId),
 		from: first.date, to: last.date, start: from, length,
-		label, spoken: spoken ?? null, shortLabel: short, axis: axisFor(from, length)
+		label, shortLabel: short, axis: axisFor(from, length)
 	}
 }
 
@@ -671,7 +678,7 @@ const windowAt = (range, from, length) => {
    to the days the store has -- week 18 is the three days of May it starts with, Q3 is July on
    its own, 2026 is three months of it. A clipped window is a fact about where the records stop
    rather than a different kind of window: it says which days it holds, and it is compared like
-   any other or not at all. ALL is the one window that is not a calendar unit. */
+   any other or not at all. `all` is the one window that is not a calendar unit. */
 const built = {}
 const windowsOf = range => (built[range] ??= (() => {
 	const keyOf = KEYS[range]
@@ -694,7 +701,7 @@ const windowsOf = range => (built[range] ??= (() => {
    the calendar rather than about the spending. Months, quarters and years differ in length by
    nature, and "vs June" is what the record itself says. */
 const previousOf = chosen => {
-	if (chosen.range === '1W') {
+	if (chosen.range === 'week') {
 		if (chosen.start < chosen.length) return null
 		const start = chosen.start - chosen.length
 		return { start, length: chosen.length, label: spanText(days[start].date, days[start + chosen.length - 1].date) }
@@ -762,7 +769,7 @@ const kpisFor = (now, was, wasLabel) => KPIS.map(kpi => {
 const anchorDay = windowId => {
 	const exact = days.findIndex(d => d.date === windowId)
 	if (exact >= 0) return exact
-	const named = ranges.flatMap(windowsOf).find(w => w.id === windowId)
+	const named = ranges.flatMap(r => windowsOf(r.key)).find(w => w.id === windowId)
 	return named ? named.anchor : days.length - 1
 }
 
@@ -771,7 +778,7 @@ const anchorDay = windowId => {
     rather than being worked out again in the page. */
 export async function getStats(range, windowId, signal) {
 	await wait(signal)
-	const width = seed.ranges.includes(range) ? range : '1M'
+	const width = seed.ranges.some(r => r.key === range) ? range : 'month'
 	const list = windowsOf(width)
 	const anchor = anchorDay(windowId)
 	const at = Math.max(0, list.findIndex(w => anchor >= w.start && anchor < w.start + w.length))
@@ -786,9 +793,9 @@ export async function getStats(range, windowId, signal) {
 	   record and not a curve, so it can be compared against and cannot be drawn. */
 	const now = totalsOver(start, length)
 	const was = previous ? totalsOver(previous.start, previous.length) : null
-	const previousTotal = was ? was.spent : (current.range === '1M' ? period.previousTotal : null)
+	const previousTotal = was ? was.spent : (current.range === 'month' ? period.previousTotal : null)
 	const previousLabel = previous ? previous.label
-		: (current.range === '1M' ? period.previousLabel : null)
+		: (current.range === 'month' ? period.previousLabel : null)
 	const delta = deltaOf(now.spent, previousTotal, previousLabel)
 
 	return {
@@ -800,13 +807,13 @@ export async function getStats(range, windowId, signal) {
 			/* April is a total in May's record and not a curve, so the oldest month can be
 			   compared against and cannot be broken into tiles: there, and only there, the
 			   month's own authored row is the only one there is. */
-			kpis: !was && current.range === '1M' ? copy(period.kpis) : kpisFor(now, was, previousLabel),
+			kpis: !was && current.range === 'month' ? copy(period.kpis) : kpisFor(now, was, previousLabel),
 			series: {
 				current: runningTotal(start, length),
 				previous: previous ? runningTotal(previous.start, previous.length) : null
 			}
 		},
-		defaultId: windowsOf('1M')[0].id,
+		defaultId: windowsOf('month')[0].id,
 		at,
 		count: list.length,
 		newer: at > 0 ? list[at - 1].id : null,

@@ -306,16 +306,16 @@ three spans.
 
 ### The window is the unit now
 
-Every width is a **calendar unit** now, and the pager steps it: **14 windows at 1W**, **3 at 1M**, **2
-at 3M** (the quarters Q3 and Q2), **1 at YTD** (the year 2026) and **1 at ALL**. A width that was a
+Every width is a **calendar unit** now, and the pager steps it: **14 windows at Week**, **3 at
+Month**, **2 at Quarter** (Q3 and Q2), **1 at Year** (the year 2026) and **1 at All**. A width that was a
 count of days back from today had nothing to page to and nothing to be called — 3M, YTD and ALL all
-landed on the same 92 days and differed only in how coarsely they were drawn. Paging left from *W30*
-reaches *W29* and keeps going into June, which no month pager could reach; paging left from *Q3* reaches
+landed on the same 92 days and differed only in how coarsely they were drawn. Paging left from *Week 30*
+reaches *Week 29* and keeps going into June, which no month pager could reach; paging left from *Q3* reaches
 *Q2*. The arrows name their own step: *Previous week*, *No later month*, *Previous quarter*, *No earlier
 year*.
 
-A unit is drawn as its own name and the days it covers are printed over the chart: **W30, 2026** ·
-**July 2026** · **Q2, 2026** · **2026** · **All time**, above *Overview · 20–26 July*, *· July*, *· 1
+A unit is drawn as its own name and the days it covers are printed over the chart: **Week 30, 2026** ·
+**July 2026** · **Quarter 2, 2026** · **2026** · **All time**, above *Overview · 20–26 July*, *· July*, *· 1
 May – 30 June*, *· 1 May – 31 July*, *· all time*. The unit alone cannot say that, and two of the five
 windows in this store are clipped by where the records stop: **Q3 is July on its own** and **2026 is
 three months of it**.
@@ -336,15 +336,16 @@ exception because a week can be clipped to a few days and the window before it i
 days against seven** is a delta about the calendar rather than about the spending. So week 19, whole,
 with only three days behind it in the store, carries no comparison at all.
 
-**W30, 2026 is a letter, a number and a year, and nothing in it says week**, so the unabbreviated name
-is what the heading announces while the drawn one stays short enough for the band: `Week 30, 2026` read
-back, *W30, 2026* drawn. Same for the quarters — `Quarter 2, 2026` against *Q2, 2026*. *July 2026* and
-*2026* are drawn as they are spoken and carry no second copy.
+**W30, 2026 is a letter, a number and a year, and nothing in it says week**, so at this point the
+unabbreviated name was what the heading announced while the drawn one stayed short enough for the band:
+`Week 30, 2026` read back, *W30, 2026* drawn, and the same for the quarters. That pair is gone — the
+unit is written out in the one drawn name now, and the numbers are under [the chips named
+durations](#statistics--the-chips-named-durations-and-the-windows-were-calendar-units).
 
 **Changing the width never walks the reader off the month the cards were showing.** Each window stands
 on the newest day belonging to the month it is filed under, and that day is what the new width resolves
-against: asserted over all **21** windows, 1M from any of them lands on the month that window's own
-cards named. Driven in the browser: from a week of June, 3M is **Q2** — the quarter June is in — not the
+against: asserted over all **21** windows, Month from any of them lands on the month that window's own
+cards named. Driven in the browser: from a week of June, Quarter is **Q2** — the quarter June is in — not the
 quarter the page opened on.
 
 The figures follow the window because they are derived from one series rather than authored beside it.
@@ -366,7 +367,7 @@ the split the KPI tiles already make between trend and tone.
 **The four tiles follow the window too**, because all four are derivable from the same days: the
 month's order count spread over its days by what each day cost (whole orders, largest remainder, so the
 days land on the month's own count), and saved and shipping in proportion. That is what lets the
-heading over them name the window — **W30, 2026 IN NUMBERS**, **Q2, 2026 IN NUMBERS** — instead of a
+heading over them name the window — **WEEK 30, 2026 IN NUMBERS**, **QUARTER 2, 2026 IN NUMBERS** — instead of a
 month the window may be one week of. Deriving them loses nothing: **all 8 tiles of July and June come
 back exactly as authored**, values, delta sentences, trend arrows, tones and notes — *23* · *1.062 kr.*
 · *2.106 kr.* · *388 kr.*, *21% up vs June*, *2% down vs June*, *June: 1.088 kr.*, *1,6% of spend*. May
@@ -409,14 +410,127 @@ Statistics, so the two states above were read out of the DOM rather than compare
 
 Gecko and WebKit are not installed in this container and were not checked.
 
-**Not fixed, and deliberate:** *Q3, 2026* reads **38% down vs Q2**, and the quarter has barely started —
+**Not fixed, and deliberate:** *Quarter 3, 2026* reads **38% down vs Quarter 2**, and the quarter has barely started —
 July is all of Q3 the records hold, against two months of Q2. The comparison is the right one (a quarter
 against the quarter before it) and the figure is honest about what it compares, since the card names the
 days on both sides; what it cannot say is that one of them is a third full. The month view has a Pace
 card for exactly that and the quarter view has none. Give the store a fuller year and the same code
 reads correctly with nothing to change — this is where the records stop, not what the rule says.
 
-**YTD and ALL still cover the same 92 days**, because 2026 is all the store holds. They are told apart
-by what they are called and by the resolution they are drawn at (12 points against 6), and YTD pages
-years while ALL is one window by definition. A fourth month, or a day in 2025, separates them with no
+**Year and All still cover the same 92 days**, because 2026 is all the store holds. They are told apart
+by what they are called and by the resolution they are drawn at (12 points against 6), and Year pages
+years while All is one window by definition. A fourth month, or a day in 2025, separates them with no
 code to change.
+
+---
+
+## Statistics — the chips named durations and the windows were calendar units
+
+The five widths were called **1W, 1M, 3M, YTD, ALL**, and by the time the pager was fixed the windows
+behind them had stopped being durations at all: each one is the calendar unit the window lands in.
+Two of the five names were then arithmetically false about their own control, and one was false about
+every store it could ever be pointed at.
+
+**3M drew 31 days.** The quarter a window lands in is Q3 here, and Q3 is July on its own, because the
+records stop at 31 July — a chip claiming three months over **one month of days**. It is not a
+clipping artefact either: nothing about `3M` is true of a quarter, which is 90, 91 or 92 days
+depending on which one it is.
+
+**YTD paged back to whole years.** Year-to-date is a window with one end fixed to today, and the arrow
+beside it steps to the year before, where *to date* names nothing. The current year runs as far as the
+records do, which is what made the name look right in the one place it was ever read.
+
+**1W and 1M were right by coincidence** — a week is 7 days and a month is 1 month, so the duration and
+the unit agree, which is exactly what makes the scheme hard to distrust.
+
+The window's own heading had the mirror of this: **W30, 2026** drawn in the band, `Week 30, 2026`
+carried beside it in a `.screenreader-only` span, because a letter, a number and a year says nothing
+about weeks. Two strings for one window, of which the drawn one — the one nobody could read as a week
+— was the one on screen. `Q2, 2026` the same. The heading over the summary tiles is made of that
+label, so it read **W30, 2026 IN NUMBERS**.
+
+And the URL carried the codes: `?range=3M`, a link whose width had to be decoded against a calendar
+before anyone could say which window it opened.
+
+### What it is now
+
+Each width is called what it is, in the chip, in the arrow, in the heading and in the URL: **Week ·
+Month · Quarter · Year · All**, drawing **Week 31, 2026** · **July 2026** · **Quarter 3, 2026** ·
+**2026** · **All time** and linked as `?range=week`, `?range=quarter`, `?range=year`, `?range=all`.
+Month is the default and stays out of the URL, as it was. The tiles' heading follows the window it is
+made from — **WEEK 31, 2026 IN NUMBERS** — and the arrows name the step: *Previous week*, *Previous
+quarter*, *No earlier year*.
+
+The drawn label is now the announced one, so the second string is gone: no `.screenreader-only` copy
+beside the heading, and nothing to keep in step. It costs width and the band had it — the longest name
+the pager can draw, *Quarter 3, 2026*, is **128.6px**, in a band of **212.6px** whose right edge is at
+**226.6** against a container edge at **378** on a phone.
+
+**A chip shows the window that is drawn, not the width that was asked for.** `?range=3M` is a name this
+app no longer has: the API falls back to the month, and the chip row used to answer that by selecting
+nothing at all — the URL's claim drawn over the API's answer. The selected chip is read off the window
+the API returned, so that link opens **July 2026** with **Month** lit, and the first click writes a
+width that exists.
+
+### Measured
+
+Chromium **141.0.7390.37** under Playwright **1.56.1**, driving the app at `localhost:5173`, every state
+entered by clicking what a user clicks — `page.tap` under the phone profile — and read back from the
+DOM. **80 assertions pass, 0 fail**, at 1440x900 and again under `devices['iPhone 13']`: the five chip
+labels, each chip pressed after its own click, five distinct hero lines on Home for five chips, and on
+Statistics the window each chip draws, its URL, the tiles' heading against that window's name, and both
+arrows naming that unit. Paging at Week walks **Week 31 → 30 → 29 → 28** and lands at
+`?range=week&period=2026-W28`. `?range=week&period=2026-W26` opens **Week 26, 2026** with Week lit;
+`?range=3M` opens **July 2026** with Month lit.
+
+The chips are the control this change could have wrapped, and they do not: the five sit on **one row**
+at both widths, spanning **267.1px** at 1440 and **259.1px** on the phone inside a 324px box, the row's
+height equal to the tallest chip in it (**29.9px**) in every state. Nothing overflows its container —
+`right` against the nearest ancestor that has a box, per element, since `.main-panel` clips and the
+document's own `scrollWidth` cannot report an overhang — and the document does not scroll sideways
+(390/390, 1440/1440).
+
+The first version of that overhang probe compared against `el.parentElement` whatever it was, and the
+page grid's `display:contents` wrapper measures 0x0 at the origin: it reported the summary row as
+**1416px past** its container in every state of every viewport, which reads as a layout collapse and
+was a probe measuring against a box that does not exist. A wait that was a fixed 120ms had the same
+shape of error in the other direction — the phantom API takes **90–260ms**, so five chips in a row all
+read back "July 2026" and passed nothing. The waits are the assertions now.
+
+`docs/home.png` and `docs/phone.png` both hold the hero's chip row, and both moved: **5,663 differing of
+5,184,000** and **5,755 of 1,035,840** — the width of the change and nothing else. The floor was
+measured first, on the unchanged app in this container: **0** against each committed shot, reproduced
+twice. Both were re-rendered here and reproduce at **0**, twice. `docs/all-orders.png` holds no part of
+either page and was not touched.
+
+### All three engines
+
+Gecko and WebKit were installed for this (`playwright install firefox webkit`, then `install-deps
+webkit` as its own command) and the run was repeated in each: **Chromium 141.0.7390.37**, **Firefox
+142.0.1**, **WebKit 26.0**, all under Playwright 1.56.1, at 1440x900 and again under a phone profile.
+**94 assertions pass in every engine, 0 fail — 282 in all.** The phone profile matched `pointer:
+coarse` in all three, including Firefox, which takes the viewport, `deviceScaleFactor` and `hasTouch`
+but no `isMobile` and no `userAgent`.
+
+The risk this change carried was text metrics, since the chips are ordinary buttons with no native
+control, no shadow-DOM pseudo-element and no vendor prefix under them — and the engines do disagree
+about width, by about 6%: the five chips span **267.1px** in Blink, **250.9** in Gecko and **251.1** in
+WebKit at 1440, and **259.1 / 242.9 / 243.1** on the phone, inside the same **324px** box. One row in
+every engine at both widths, so the narrowest margin any of them leaves is **64.9px**. The longest
+pager label, *Quarter 3, 2026*, is **128.6px** in Blink and **121.8 / 121.9** in the other two.
+
+The window counts `react/README.md` states were walked to both ends rather than read off the API, in
+each engine and both viewports: **14** windows at Week (oldest *Week 18, 2026*), **3** at Month (*May
+2026*), **2** at Quarter (*Quarter 2, 2026*), **1** at Year and **1** at All. Browser Back walks the
+pager in all three — forward *Week 31 → 30 → 29*, Back to *Week 30* then *Week 31*.
+
+**Open, and not this change's: WebKit 26.0 crashes its renderer on a reload after Back.** One
+`goBack()` over a history entry the app itself pushed, then a reload, kills the page — *Page crashed*,
+**3 of 3 runs**. The `goto` between them is irrelevant, and either half alone is harmless: Back then
+`goto` without a reload is fine (0 of 2), and reload without a Back is fine (0 of 2). It is not this
+change — the build **before the rename crashes 3 of 3 the same way** — and it is not the harness's
+sequence being exotic, since the identical sequence in the identical run passes in Blink and Gecko.
+Statistics is the only page that reaches it: it is the one place the app pushes a history entry, which
+is what makes Back walk the pager, where All Orders writes its filters with `replace`. Not fixed here.
+The assertions above put link-opening on a fresh page, which is what opening a link is, so the crash
+does not stand in for a failure of the thing under test.
