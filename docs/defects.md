@@ -286,3 +286,76 @@ chart. Moving the pointer off it does, and the keyboard's own dismissal is Tab. 
 state and a document-level key listener in both files, duplicated, for a bubble that a 1px pointer move
 already puts away — the shared stylesheet is what keeps the app and the prototype honest with each
 other here, and it cannot hold an Escape key.
+
+---
+
+## Statistics — the range chips drew a week and the pager went on stepping months
+
+The page offered five widths — 1W, 1M, 3M, YTD, ALL — and one step. Whichever chip was on, the arrows
+walked the same three month records: **3 stops, always**, so selecting 1W drew seven days and then paged
+a month past them. Neither control was broken on its own. The chips changed the chart every time; the
+arrows moved the month every time; they disagreed only about what "the period on screen" was, and
+nothing that renders one control at a time could see it.
+
+Underneath, only the chart moved at all. Everything else on the page was the month's whatever the chips
+said, and unlabelled: with 1W selected the heading said one thing and **24.418,57 kr.**, 23 orders,
+34% on weekends and a projection for July sat under it as if they were the week's. And the three long
+chips did not reach past one month either — 3M, YTD and ALL bucketed **the one month already on
+screen** (31 days on July) into 13, 12 and 6 points, which is a resolution control wearing the names of
+three spans.
+
+### The window is the unit now
+
+The chips choose a width and the pager steps by it: **15 windows at 1W** (each month chunked from the
+1st, so a week belongs to one month and what is left of a month is a short window that says so — 29–31
+July is 3 days), **3 at 1M**, and **1 each at 3M, YTD and ALL**, which is every day the store holds and
+both arrows disabled at once. Paging left from *1–7 July* reaches *29–30 June*, which no month pager
+could reach. The arrows name their own step: *Previous week*, *No later month*, *No earlier range*.
+
+The figures follow the window because they are derived from one series rather than authored beside it.
+A month's cumulative curve and its total are the only records the store keeps, so a day's spend is the
+step that curve takes down from the day before, scaled so the steps sum to the month's own total. Then
+the days of July sum to **24.418,57** exactly — the same figure Home prints — the five weeks of July sum
+to it too, and the total above any chart is where that chart's line ends. The deltas fall out of the
+same arithmetic and land on the strings that were authored by hand: **18% up vs June**, **12% up vs
+May**, **15% up vs April**, each derived, each identical to the text it replaced.
+
+Two things the derivation changed on sight. The dashed comparison line was authored per month, and it
+disagreed with the store's own totals: June was drawn ending at **86** on July's chart against July's
+**20**, from a start both shared at **180** — which reads as June being **58%** of July, when the two
+totals the same page prints make it **85%**. Derived, both lines are
+on one scale and the gap the chip claims is the gap the eye sees. And a delta can now point down —
+*50% down vs 24–30 June* on the first week of July — so the chip drops the amber for those, which is
+the split the KPI tiles already make between trend and tone.
+
+What cannot follow the window says which month it is about instead of sitting silent: the KPI row took
+a heading — **JULY 2026 IN NUMBERS** — and the rhythm card reads *of July's spend lands on weekends*.
+The pace, the split and the returns already named the month and were left alone.
+
+### Measured
+
+Chromium **141.0.7390.37** under Playwright **1.56.1**, driving the app at `localhost:5173`, every state
+entered by clicking what a user clicks and the state read back rather than assumed. **32 assertions
+pass**, at 1440x900 and again under `devices['iPhone 13']`. A second pass over the data layer walks all
+five widths end to end — **15, 3, 1, 1, 1 windows**, no pager looping, every list walked to both ends —
+and checks each window's running total against the figure printed above it.
+
+The header band is what a longer title could have broken, and did not: at 390 every `.card-header` on
+the page is **44.67px**, the one band tall, in the 1W state as well as the 1M one. Nothing overflows its
+card (`right` against the parent's `right`, per element, since `.main-panel` clips and the document's
+own `scrollWidth` cannot report an overhang), and the document does not scroll sideways. No console or
+page errors in either viewport.
+
+`docs/home.png` is the shot this change could have moved, since the hero's chart label now follows both
+of its controls. Re-rendered from the app in this container it comes back at **0 differing of
+5,184,000** — the label is an accessible name and moves no pixels. `docs/all-orders.png` and
+`docs/phone.png` hold no part of Statistics and were not touched. There is no committed shot of
+Statistics, so the two states above were read out of the DOM rather than compared against a file.
+
+Gecko and WebKit are not installed in this container and were not checked.
+
+**Not fixed, and deliberate:** 3M, YTD and ALL all land on the same 92 days, because 92 days is
+everything the store holds. They are told apart by what they are called — *May – July 2026*, *2026 so
+far*, *All time* — and by the resolution they are drawn at (13, 12 and 6 points), not by their span.
+Three chips that cover the same days are honest here only because each label answers its own question;
+give the store a fourth month and 3M stops covering all of it, with no code to change.

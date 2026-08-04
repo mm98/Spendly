@@ -48,7 +48,7 @@ src/
 | `/vendors/new`, `/vendors/:id/edit` | A vendor, on the same form page an order uses |
 | `/categories` | Categories, and a Manage tab whose rows open the record |
 | `/categories/new`, `/categories/:id/edit` | A category: name, budget, colour, glyph, delete |
-| `/stats` | Statistics, with a pager over three months |
+| `/stats` | Statistics, with a pager over windows of the three months |
 | `/settings` | Order settings — what ORDER SETTINGS opens |
 
 ### The stylesheet
@@ -351,8 +351,8 @@ reachable and unnamed, because the router is what names it.
 Back-button labels name the destination, not the origin: "Back to scan receipt" on the two
 scan steps, "Back to orders" on an order.
 
-**State the app can be linked to lives in the URL**, not in component state: which month
-Statistics is showing, and every filter, sort and page on All orders. That is what makes a
+**State the app can be linked to lives in the URL**, not in component state: how wide the
+Statistics window is and where it sits, and every filter, sort and page on All orders. That is what makes a
 link from the palette, a chart legend row, a category tile or a vendor card arrive already
 filtered — and it caught a real defect. Reading the query string once with a `useState`
 initialiser looked correct and was not: going from `/orders/all` to `/orders/all?vendor=bilka`
@@ -504,7 +504,7 @@ checked.
   `<button>`, `Button`, `IconButton`, `ButtonLink`, `Segmented`, `Switch` and `Combobox` in
   `src/` returns zero that carry neither `onClick`, `onChange`, `onSelect`, `onRemove` nor
   `to`. Disabled ones are honest: PREVIOUS and NEXT at the ends of the pager, and the
-  period arrows at the ends of the month list.
+  period arrows at the ends of whatever the range chips set the pager's step to.
 - **145 interaction assertions pass**, in two harnesses. The first (65) covers the ported
   behaviour: both forms' validation and focus, the totals, saving and reloading, the filter
   chips, the two controls driving one chart, the dashboard, the four scan entries, the
@@ -522,8 +522,10 @@ checked.
     refused with the reason.
   - Categories: create, rename, set a budget, delete — and a category on orders is refused
     with the count.
-  - Statistics pages back through June and May, the figures move with it, the month is in the
-    URL, and browser Back walks the pager.
+  - Statistics pages back through June and May, the figures move with it, the window is in
+    the URL, and browser Back walks the pager. The pager steps whatever the range chips are
+    set to: **15 windows at 1W, 3 at 1M, 1 each at 3M, YTD and ALL**, and the arrows name the
+    step they take.
   - An order's status writes through and survives a reload; ADD FILE attaches the file it was
     given and the header counts it; OPEN shows it, delete removes it; Edit loads the order
     into the form, a line edit replaces rather than appends, and the edit sticks; Delete asks

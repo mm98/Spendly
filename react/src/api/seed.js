@@ -174,6 +174,12 @@ export const orders = [
 	}
 ]
 
+/* The widths a statistics window comes in. The chips offer these and the pager steps by
+   whichever one is chosen, so the list is data rather than a copy inside a component: two
+   copies is how a width gets offered that nothing can page. 3M, YTD and ALL are all longer
+   than the three months below, so each of them is one window over the whole of it. */
+export const ranges = ['1W', '1M', '3M', 'YTD', 'ALL']
+
 /* The month the prototype holds. Every "this month" figure on every page reads from here,
    so July cannot be 24.418,57 on Home and something else on Statistics.
 
@@ -203,7 +209,15 @@ export const period = {
 	busiestDaySpend: 6410,
 	/* Daily spend through July, and the savings that shadow it. The chart module maps one
 	   user unit onto one CSS pixel, so these are y-coordinates rather than kroner -- the
-	   same demo series the prototype plots. */
+	   same demo series the prototype plots.
+
+	   `statsCurrent` is the one exception, and it is why it has no `statsPrevious` beside it
+	   any more. Statistics reads it as the shape of the month's cumulative spend and scales
+	   it by `spent` above, so a window narrower than a month knows what a day cost and every
+	   window inside July still sums to July. The dashed comparison line used to be June drawn
+	   on July's chart and authored by hand; it is now the window before this one, derived the
+	   same way from the same numbers -- which is what puts both lines on one scale and gives
+	   a week something to be compared against. */
 	series: {
 		orders: [96, 92, 98, 78, 90, 84, 96, 70, 84, 76, 92, 88, 96, 60, 74, 66, 88, 80, 72, 94, 84, 52, 26, 60, 84, 92, 68, 44, 62, 34, 56, 48, 58, 50, 54],
 		saved:  [118, 120, 116, 110, 119, 114, 121, 104, 117, 112, 120, 118, 122, 98, 113, 106, 119, 115, 109, 121, 116, 92, 74, 108, 118, 121, 110, 88, 105, 80, 102, 96, 107, 99, 103],
@@ -211,8 +225,7 @@ export const period = {
 		savingsGrowth: [84, 70, 48, 22, 12],
 		monthCurrent: [226, 196, 160, 128, 88, 60, 36, 16],
 		monthPrevious: [216, 198, 178, 156, 138, 122, 108],
-		statsCurrent: [180, 178, 175, 173, 168, 165, 161, 159, 152, 148, 143, 140, 137, 135, 127, 121, 114, 111, 106, 100, 97, 93, 84, 71, 63, 59, 56, 50, 39, 32, 20],
-		statsPrevious: [186, 184, 183, 178, 175, 172, 170, 167, 164, 162, 160, 155, 148, 143, 141, 139, 136, 130, 126, 119, 114, 109, 104, 99, 94, 93, 92, 91, 88, 86]
+		statsCurrent: [180, 178, 175, 173, 168, 165, 161, 159, 152, 148, 143, 140, 137, 135, 127, 121, 114, 111, 106, 100, 97, 93, 84, 71, 63, 59, 56, 50, 39, 32, 20]
 	},
 	/* Bar heights in px, as authored. Wednesday and Sunday carry the highlight. */
 	weekdays: [
@@ -359,8 +372,7 @@ const june = {
 		savingsGrowth: [80, 66, 46, 26, 14],
 		monthCurrent: [220, 190, 158, 126, 92, 66, 40, 22],
 		monthPrevious: [214, 196, 176, 154, 136, 120, 106],
-		statsCurrent: [182, 179, 176, 172, 169, 164, 160, 157, 150, 146, 141, 138, 134, 131, 124, 118, 112, 108, 103, 98, 94, 90, 82, 74, 68, 62, 58, 52, 44, 36],
-		statsPrevious: [188, 186, 184, 180, 177, 174, 172, 168, 165, 163, 161, 156, 150, 145, 143, 140, 137, 132, 128, 122, 117, 112, 107, 102, 98, 96, 94, 92, 90, 88]
+		statsCurrent: [182, 179, 176, 172, 169, 164, 160, 157, 150, 146, 141, 138, 134, 131, 124, 118, 112, 108, 103, 98, 94, 90, 82, 74, 68, 62, 58, 52, 44, 36]
 	},
 	weekdays: [
 		{ day: 'Mon', home: 44, stats: 38 }, { day: 'Tue', home: 38, stats: 32 },
@@ -407,8 +419,7 @@ const may = {
 		savingsGrowth: [82, 68, 50, 28, 16],
 		monthCurrent: [222, 194, 164, 134, 100, 72, 46, 26],
 		monthPrevious: [218, 200, 182, 160, 142, 126, 112],
-		statsCurrent: [184, 181, 178, 175, 171, 167, 163, 160, 154, 150, 146, 142, 139, 136, 130, 124, 118, 114, 109, 104, 100, 96, 89, 82, 76, 70, 66, 60, 52, 44, 38],
-		statsPrevious: [190, 188, 186, 183, 180, 177, 175, 172, 169, 167, 165, 160, 155, 150, 148, 145, 142, 138, 134, 128, 123, 118, 113, 108, 104, 102, 100, 98, 96, 94, 92]
+		statsCurrent: [184, 181, 178, 175, 171, 167, 163, 160, 154, 150, 146, 142, 139, 136, 130, 124, 118, 114, 109, 104, 100, 96, 89, 82, 76, 70, 66, 60, 52, 44, 38]
 	},
 	weekdays: [
 		{ day: 'Mon', home: 36, stats: 30 }, { day: 'Tue', home: 42, stats: 36 },

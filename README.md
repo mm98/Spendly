@@ -530,9 +530,15 @@ Each category is a tile — its glyph, its color, its month's total and budget m
 
 ### Statistics
 
-The month in numbers: a four-across KPI row (each tile a figure, its delta and its trend arrow — trend and tone are separate, because spending *less* is a good *down*), then the charts, then the month pager.
+A stretch of time in numbers: a four-across KPI row (each tile a figure, its delta and its trend arrow — trend and tone are separate, because spending *less* is a good *down*), then the charts, then the pager.
 
-**The month is in the URL**, so a month can be linked, and the browser's Back walks the pager. The period arrows disable honestly at the ends of the data.
+**The range control and the pager are one control.** The range chooses how wide the window is; the pager steps by that width. Pick a week and the arrows move a week; pick a month and they move a month; pick a span longer than the records go and there is one place to stand, with both arrows disabled. A pager whose step is fixed while the range moves is paging something the page is not showing, and it says "previous" about a stretch of time nothing on screen names ([the numbers](docs/defects.md#statistics--the-range-chips-drew-a-week-and-the-pager-went-on-stepping-months)). The arrows name the step they take, and each disables only at its own end of the data.
+
+**The window is in the URL** — how wide it is and where it sits — so a week can be linked as a week, and the browser's Back walks the pager. A link to a month is still a link to that month.
+
+**Every figure says which stretch of time it covers.** What the window covers — its total, its comparison, its chart, the scale under the chart — moves with it. What the records cannot break down that far stays as wide as they go and *names that span*, in its own heading rather than in the page's: a month's order count sitting unlabelled under a seven-day heading is a wrong number, not a missing one.
+
+**The total and the line under it are one series.** The figure printed above a chart is where that chart's line ends, derived from the same numbers, so a window's total and the picture of it cannot drift apart — and a comparison line is drawn on the same scale as the line it is compared with.
 
 ### Settings
 

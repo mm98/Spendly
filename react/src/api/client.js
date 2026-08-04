@@ -136,6 +136,10 @@ const SORTERS = {
 
 export const sorts = seed.sorts
 
+/** The widths a statistics window comes in. The chips render this list and the pager steps by
+    whichever one is on, so both read the same array. */
+export const ranges = seed.ranges
+
 /* ---- endpoints ---- */
 
 export async function getVendors(signal) {
@@ -456,19 +460,197 @@ export async function saveDashboardCards(keys, signal) {
 	return { on: [...keys] }
 }
 
-/** Statistics reads the same period Home does; the extra shape is the page's, not the data's. */
-/** Statistics, for one month. The pager walks `periods`, so `at` and `count` come back with
-    the data rather than being worked out again in the page. */
-export async function getStats(periodId, signal) {
-	await wait(signal)
-	const at = Math.max(0, store.periods.findIndex(p => p.id === periodId))
+/* ---- the statistics window ----
+
+   The range chips and the pager are one control over one timeline: the chips choose how wide
+   the window is, the arrows step by that width. They used to disagree -- the arrows walked
+   `periods` a month at a time whatever the chips said, so 1W drew a week and paged a month --
+   and a pager that steps something other than what is on screen is the decorative-control
+   defect with arithmetic in it. README: Statistics, Pagination.
+
+   A window narrower than a month has to know what a day cost, and the month records carry a
+   total and a cumulative curve with nothing in between. So a day's spend is the step that
+   month's curve takes down from the day before it, scaled so the steps sum to the month's own
+   `spent`: the days of July sum to July, no window inside it can disagree with it, and July is
+   24.418,57 kr. here and on Home. The first day has no day before it and takes the second
+   day's step -- the one guess in this file, and it is one day wide. */
+
+const dayCount = period => period.series.statsCurrent.length
+
+const dailySpend = period => {
+	const curve = period.series.statsCurrent
+	const steps = curve.map((y, i) => (i ? curve[i - 1] - y : curve[0] - curve[1]))
+	const drop = steps.reduce((sum, step) => sum + step, 0)
+	return steps.map(step => (period.spent * step) / drop)
+}
+
+/** Every day the store holds, oldest first, each one knowing the month it belongs to. */
+const days = [...store.periods].reverse().flatMap(period =>
+	dailySpend(period).map((spend, i) => ({
+		date: period.id + '-' + String(i + 1).padStart(2, '0'),
+		periodId: period.id,
+		spend
+	})))
+
+const monthOf = periodId => store.periods.find(p => p.id === periodId)
+const firstDayOf = periodId => days.findIndex(d => d.periodId === periodId)
+const spentOver = (from, length) =>
+	days.slice(from, from + length).reduce((sum, day) => sum + day.spend, 0)
+
+/** The running total in kroner, which is the line the chart draws and the figure printed above
+    it -- one series, so the number and the line it sits over cannot disagree. */
+const runningTotal = (from, length) => {
+	let sum = 0
+	return days.slice(from, from + length).map(day => (sum += day.spend))
+}
+
+const WEEK = 7
+const UNITS = { '1W': 'week', '1M': 'month' }
+const dayNumber = date => Number(date.slice(8))
+
+/* The date the window labels print. Duplicated from format.js on purpose, the same way krLabel
+   at the foot of this file is: that module is the app's, and an API that hands back
+   half-formatted strings would be handing the page a rendering decision it cannot undo. What a
+   window is called is the API's own sentence -- the page prints it and does not compose it. */
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+	'July', 'August', 'September', 'October', 'November', 'December']
+const dayMonth = iso => {
+	const [, m, d] = iso.split('-')
+	return Number(d) + ' ' + MONTHS[Number(m) - 1]
+}
+
+/** "1–7 July", and "24 June – 7 July" for a window that spans two of them. */
+const spanText = (from, to) => from.slice(0, 7) === to.slice(0, 7)
+	? dayNumber(from) + '–' + dayMonth(to)
+	: dayMonth(from) + ' – ' + dayMonth(to)
+
+/* What the window is called in the pager, and in the sentence the chart is described by. YTD
+   and ALL name the question their chip asks rather than the span they land on: the store holds
+   three months, so both of them -- and 3M -- cover the same days, and saying "May – July" three
+   times would hide which one is selected. */
+const labelsFor = (range, first, last) => {
+	const year = last.date.slice(0, 4)
+	if (range === '1W') return { label: spanText(first.date, last.date) + ' ' + year, short: spanText(first.date, last.date) }
+	if (range === '1M') return { label: monthOf(last.periodId).label, short: monthOf(last.periodId).shortLabel }
+	if (range === 'YTD') return { label: year + ' so far', short: year + ' so far' }
+	if (range === 'ALL') return { label: 'All time', short: 'all time' }
+	const span = monthOf(first.periodId).shortLabel + ' – ' + monthOf(last.periodId).shortLabel
+	return { label: span + ' ' + year, short: span }
+}
+
+/* The scale under the chart is the window's own. Left at the month's 01/08/15/22/29 it printed
+   the wrong days under every week and month names under none of the long ones. */
+const axisFor = (range, from, length) => {
+	const within = days.slice(from, from + length)
+	if (range === '1M') return ['01', '08', '15', '22', '29'].filter(d => Number(d) <= length)
+	if (range === '1W') return within.map(day => day.date.slice(8))
+	return [...new Set(within.map(day => monthOf(day.periodId).shortLabel.slice(0, 3)))]
+}
+
+const windowAt = (range, from, length) => {
+	const first = days[from], last = days[from + length - 1]
+	const { label, short } = labelsFor(range, first, last)
 	return {
-		period: copy(store.periods[at]),
+		id: range === '1W' ? first.date : range === '1M' ? last.periodId : range,
+		range, unit: UNITS[range] ?? 'range', periodId: last.periodId,
+		from: first.date, to: last.date, start: from, length,
+		label, shortLabel: short, axis: axisFor(range, from, length)
+	}
+}
+
+/* Every window a range offers, newest first, which is the order the pager walks. 1W chunks each
+   month from the 1st, so a week belongs to exactly one month and the month-shaped cards beside
+   the chart are about a month the window is inside; what is left of a month is a short window
+   that says so rather than a week borrowed from the next one. */
+const windowsOf = range => {
+	if (range === '1W') return store.periods.flatMap(period => {
+		const start = firstDayOf(period.id), n = dayCount(period)
+		const chunks = []
+		for (let i = 0; i < n; i += WEEK) chunks.push(windowAt('1W', start + i, Math.min(WEEK, n - i)))
+		return chunks.reverse()
+	})
+	if (range === '1M') return store.periods.map(p => windowAt('1M', firstDayOf(p.id), dayCount(p)))
+	return [windowAt(range, 0, days.length)]
+}
+
+/* What a window is measured against: the month before a month, the same number of days before a
+   week. A month against the thirty-one days before it would be a month against most of another
+   one, and the delta would stop agreeing with the month's own. */
+const previousOf = chosen => {
+	if (chosen.range === '1M') {
+		const at = store.periods.findIndex(p => p.id === chosen.periodId)
+		const before = store.periods[at + 1]
+		return before
+			? { start: firstDayOf(before.id), length: dayCount(before), label: before.shortLabel }
+			: null
+	}
+	if (chosen.range === '1W' && chosen.start >= chosen.length) {
+		const start = chosen.start - chosen.length
+		return { start, length: chosen.length, label: spanText(days[start].date, days[start + chosen.length - 1].date) }
+	}
+	return null
+}
+
+/* Which way it went comes back beside the sentence, because spending less is a good down --
+   the same split the KPI tiles make between trend and tone. Every authored delta in the store
+   was an up, so the chip could be amber and never be wrong about it; a pager that steps a week
+   reaches windows that cost less than the one before them. */
+const deltaOf = (spent, previousTotal, previousLabel) => {
+	if (!previousTotal || !previousLabel) return { label: null, up: null }
+	const pct = Math.round((spent / previousTotal - 1) * 100)
+	return { label: Math.abs(pct) + '% ' + (pct < 0 ? 'down' : 'up') + ' vs ' + previousLabel, up: pct >= 0 }
+}
+
+/** Which day the URL is pointing at: a date is itself, a month is its last day, and anything
+    else -- a span key, an empty parameter, a typo -- is the newest day there is. */
+const anchorDay = windowId => {
+	const exact = days.findIndex(d => d.date === windowId)
+	if (exact >= 0) return exact
+	const month = monthOf(windowId)
+	return month ? firstDayOf(month.id) + dayCount(month) - 1 : days.length - 1
+}
+
+/** Statistics, for one window of the timeline. `range` is the width the chips chose and the
+    step the arrows take; `windowId` says where. `at` and `count` come back with the data
+    rather than being worked out again in the page. */
+export async function getStats(range, windowId, signal) {
+	await wait(signal)
+	const width = seed.ranges.includes(range) ? range : '1M'
+	const list = windowsOf(width)
+	const anchor = anchorDay(windowId)
+	const at = Math.max(0, list.findIndex(w => anchor >= w.start && anchor < w.start + w.length))
+	const { start, length, ...current } = list[at]
+	const period = monthOf(current.periodId)
+	const previous = previousOf(list[at])
+
+	/* The delta is derived from the two totals rather than stored beside them -- a month
+	   carrying "18% up vs June" and a spend that disagrees with it are two claims, and both
+	   look right on their own. Where the store has nothing before the window, and the window
+	   is a month, the month's own figure is the only one there is: April is a total in May's
+	   record and not a curve, so it can be compared against and cannot be drawn. */
+	const spent = spentOver(start, length)
+	const previousTotal = previous ? spentOver(previous.start, previous.length)
+		: (current.range === '1M' ? period.previousTotal : null)
+	const previousLabel = previous ? previous.label
+		: (current.range === '1M' ? period.previousLabel : null)
+	const delta = deltaOf(spent, previousTotal, previousLabel)
+
+	return {
+		period: copy(period),
 		categories: copy(store.categories),
+		window: {
+			...current, days: length, spent, previousLabel, previousTotal,
+			deltaLabel: delta.label, deltaUp: delta.up,
+			series: {
+				current: runningTotal(start, length),
+				previous: previous ? runningTotal(previous.start, previous.length) : null
+			}
+		},
+		defaultId: windowsOf('1M')[0].id,
 		at,
-		count: store.periods.length,
-		newer: at > 0 ? store.periods[at - 1].id : null,
-		older: at < store.periods.length - 1 ? store.periods[at + 1].id : null
+		count: list.length,
+		newer: at > 0 ? list[at - 1].id : null,
+		older: at < list.length - 1 ? list[at + 1].id : null
 	}
 }
 
@@ -685,20 +867,14 @@ export async function search(query, signal) {
 	return { query, groups }
 }
 
-/* Two formatters the search results need. They are duplicated from format.js on purpose:
-   that module is the app's, and an API that hands back half-formatted strings would be
-   handing the page a rendering decision it cannot undo. These build the label the result
-   line prints, which is the API's own sentence. */
+/* The amount the search results print. Duplicated from format.js on purpose, the same way
+   dayMonth above is: that module is the app's, and an API that hands back half-formatted
+   strings would be handing the page a rendering decision it cannot undo. This builds the
+   label the result line prints, which is the API's own sentence. */
 const krLabel = (n, decimals = 2) => {
 	const fixed = Math.abs(n).toFixed(decimals)
 	const [whole, rest] = fixed.split('.')
 	return whole.replace(/\B(?=(\d{3})+$)/g, '.') + (rest ? ',' + rest : '') + ' kr.'
-}
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
-	'July', 'August', 'September', 'October', 'November', 'December']
-const dayMonth = iso => {
-	const [, m, d] = iso.split('-')
-	return Number(d) + ' ' + MONTHS[Number(m) - 1]
 }
 
 export const spendKinds = seed.spendKinds
