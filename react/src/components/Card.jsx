@@ -44,16 +44,23 @@ export const SectionLabel = ({ children, ...rest }) => <span className="section-
 export const SectionHeader = ({ children, ...rest }) => <div className="section-header" {...rest}>{children}</div>
 
 /** Statistics' four-across summary tiles. `trend` picks the arrow, `tone` picks the colour,
-    and they are separate because spending less is a good down and earning less is not. */
+    and they are separate because spending less is a good down and earning less is not.
+
+    The delta and the note are drawn only when there is one. A tile for the oldest stretch of
+    time the records hold has nothing before it to be up or down against, and an arrow with no
+    sentence after it is a claim about a comparison that was never made. */
 export function KpiCard({ label, value, delta, trend = 'up', tone = 'neutral', note }) {
 	return (
 		<div className="card card-kpi">
 			<span>{label}</span>
 			<span className="card-kpi-value tabular-figures">{value}</span>
-			<span className={join('delta', 'delta-' + tone)}>
-				<Icon name={trend === 'down' ? 'trendDown' : 'trendUp'} />{delta}
-			</span>
-			<span className="card-kpi-label">{note}</span>
+			{delta ? (
+				<span className={join('delta', 'delta-' + tone)}>
+					{trend === 'level' ? null : <Icon name={trend === 'down' ? 'trendDown' : 'trendUp'} />}
+					{delta}
+				</span>
+			) : null}
+			{note ? <span className="card-kpi-label">{note}</span> : null}
 		</div>
 	)
 }

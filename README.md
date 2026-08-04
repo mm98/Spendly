@@ -530,7 +530,7 @@ Each category is a tile — its glyph, its color, its month's total and budget m
 
 ### Statistics
 
-A stretch of time in numbers: a four-across KPI row (each tile a figure, its delta and its trend arrow — trend and tone are separate, because spending *less* is a good *down*), then the charts, then the pager.
+A stretch of time in numbers: a four-across summary row (each tile a figure, its delta and its trend arrow — trend and tone are separate, because spending *less* is a good *down*), then the charts, then the pager.
 
 **The range control and the pager are one control.** The range chooses how wide the window is; the pager steps by that width. Pick a week and the arrows move a week; pick a quarter and they move a quarter. A pager whose step is fixed while the range moves is paging something the page is not showing, and it says "previous" about a stretch of time nothing on screen names ([the numbers](docs/defects.md#statistics--the-range-chips-drew-a-week-and-the-pager-went-on-stepping-months)). The arrows name the step they take — *previous quarter*, *no later year* — and each disables only at its own end of the data.
 
@@ -542,7 +542,9 @@ A stretch of time in numbers: a four-across KPI row (each tile a figure, its del
 
 **The window is in the URL** — how wide it is and where it sits — so a week can be linked as a week, and the browser's Back walks the pager. A link to a month is still a link to that month.
 
-**Every figure says which stretch of time it covers.** What the window covers — its total, its comparison, its chart, the scale under the chart — moves with it. What the records cannot break down that far stays as wide as they go and *names that span*, in its own heading rather than in the page's: a month's order count sitting unlabelled under a seven-day heading is a wrong number, not a missing one.
+**Every figure says which stretch of time it covers.** What the window covers moves with it: its total, its comparison, its chart, the scale under the chart, and the summary tiles — every one of them derived from the same days, so the heading over the tiles names the window. What the records cannot break down that far stays as wide as they go and names that span *in its own heading*, never borrowing the page's: a month's order count sitting under a seven-day heading is a wrong number, not a missing one, and a month's weekly rhythm is not a week's at all.
+
+**Nothing is a direction.** A figure that has not moved says it is *level with* what it is measured against, and draws no arrow: 0% up under a rising arrow is a claim about a change that did not happen, and a window narrow enough to count whole orders lands there often. A figure with nothing before it draws no delta at all — an arrow over a comparison that was never made is worse than a blank.
 
 **The total and the line under it are one series.** The figure printed above a chart is where that chart's line ends, derived from the same numbers, so a window's total and the picture of it cannot drift apart — and a comparison line is drawn on the same scale as the line it is compared with.
 

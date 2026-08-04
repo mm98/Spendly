@@ -483,16 +483,52 @@ const dailySpend = period => {
 }
 
 /** Every day the store holds, oldest first, each one knowing the month it belongs to. */
-const days = [...store.periods].reverse().flatMap(period =>
-	dailySpend(period).map((spend, i) => ({
+/* The rest of a month's totals ride on the same days, split by what each day cost, so a window
+   narrower than a month has a row of tiles of its own instead of the month's sitting under its
+   heading -- and the days of July still add up to July's 23 orders, 2.106 kr. saved and 388 kr.
+   of shipping. Orders are whole ones: a day cannot have 0.7 of an order, so the fractions are
+   handed out by largest remainder and the count lands exactly on the month's own. */
+const wholeShares = (shares, total) => {
+	const exact = shares.map(share => share * total)
+	const whole = exact.map(Math.floor)
+	const short = total - whole.reduce((sum, n) => sum + n, 0)
+	const byRemainder = exact.map((v, i) => [v - whole[i], i]).sort((a, b) => b[0] - a[0])
+	for (let i = 0; i < short; i++) whole[byRemainder[i][1]]++
+	return whole
+}
+
+const days = [...store.periods].reverse().flatMap(period => {
+	const spend = dailySpend(period)
+	const shares = spend.map(kroner => kroner / period.spent)
+	const orders = wholeShares(shares, period.orderCount)
+	return spend.map((kroner, i) => ({
 		date: period.id + '-' + String(i + 1).padStart(2, '0'),
 		periodId: period.id,
-		spend
-	})))
+		spend: kroner,
+		orders: orders[i],
+		saved: period.saved * shares[i],
+		shipping: period.shipping * shares[i],
+		savedPercent: period.savedPercent
+	}))
+})
 
 const monthOf = periodId => store.periods.find(p => p.id === periodId)
-const spentOver = (from, length) =>
-	days.slice(from, from + length).reduce((sum, day) => sum + day.spend, 0)
+
+/** Everything the figures on the page state, for a stretch of days. */
+const totalsOver = (from, length) => {
+	const within = days.slice(from, from + length)
+	const sum = key => within.reduce((total, day) => total + day[key], 0)
+	const spent = sum('spend'), orders = sum('orders'), shipping = sum('shipping')
+	return {
+		spent, orders, shipping, saved: sum('saved'),
+		average: orders ? spent / orders : 0,
+		/* Weighted by spend rather than worked out from `saved`: the months author this figure
+		   and it does not reconcile with their own saved-against-retail, so a window blends what
+		   the months claim rather than contradicting the same number printed on Home. */
+		savedPercent: spent ? within.reduce((t, day) => t + day.spend * day.savedPercent, 0) / spent : 0,
+		shippingShare: spent ? (shipping / spent) * 100 : 0
+	}
+}
 
 /** The running total in kroner, which is the line the chart draws and the figure printed above
     it -- one series, so the number and the line it sits over cannot disagree. */
@@ -671,12 +707,53 @@ const previousOf = chosen => {
 /* Which way it went comes back beside the sentence, because spending less is a good down --
    the same split the KPI tiles make between trend and tone. Every authored delta in the store
    was an up, so the chip could be amber and never be wrong about it; a pager that steps a week
-   reaches windows that cost less than the one before them. */
-const deltaOf = (spent, previousTotal, previousLabel) => {
-	if (!previousTotal || !previousLabel) return { label: null, up: null }
-	const pct = Math.round((spent / previousTotal - 1) * 100)
-	return { label: Math.abs(pct) + '% ' + (pct < 0 ? 'down' : 'up') + ' vs ' + previousLabel, up: pct >= 0 }
+   reaches windows that cost less than the one before them.
+
+   Nothing is the third direction, and it is not "0% up": four orders against four orders reads
+   as a rise of nothing with an arrow over it, and the arrow is the part that lies. A window
+   narrow enough to hold whole orders lands there often. */
+const deltaOf = (now, before, beforeLabel) => {
+	if (!before || !beforeLabel) return { label: null, direction: null }
+	const pct = Math.round((now / before - 1) * 100)
+	if (pct === 0) return { label: 'level with ' + beforeLabel, direction: 'level' }
+	return { label: Math.abs(pct) + '% ' + (pct < 0 ? 'down' : 'up') + ' vs ' + beforeLabel,
+		direction: pct < 0 ? 'down' : 'up' }
 }
+
+/* The four tiles, for whatever the window is, and which way is good news for each: spending
+   less is a good down, and saving more is the one of the four where up is the good direction.
+   Trend and tone are separate for exactly that reason. README: Statistics.
+
+   Derived from the same days the figure above the chart is, which is what lets the heading over
+   them name the window: a month's authored row comes back out of this unchanged -- 23 orders,
+   1.062 kr., 2.106 kr., 388 kr., and all four of its delta sentences -- so nothing was lost by
+   deriving them, and a week has a row that is the week's. */
+const KPIS = [
+	{ label: 'Orders', goodUp: false, of: t => t.orders,
+		value: t => String(t.orders),
+		note: (t, was, label) => (was ? `${label}: ${was.orders} orders` : null) },
+	{ label: 'Average order', goodUp: false, of: t => t.average,
+		value: t => krLabel(t.average, 0),
+		note: (t, was, label) => (was?.orders ? `${label}: ${krLabel(was.average, 0)}` : null) },
+	{ label: 'Saved vs retail', goodUp: true, of: t => t.saved,
+		value: t => krLabel(t.saved, 0),
+		note: t => `${Math.round(t.savedPercent)}% under retail prices` },
+	{ label: 'Shipping', goodUp: false, of: t => t.shipping,
+		value: t => krLabel(t.shipping, 0),
+		note: t => t.shippingShare.toFixed(1).replace('.', ',') + '% of spend' }
+]
+
+const kpisFor = (now, was, wasLabel) => KPIS.map(kpi => {
+	const delta = was ? deltaOf(kpi.of(now), kpi.of(was), wasLabel) : { label: null, direction: null }
+	return {
+		label: kpi.label,
+		value: kpi.value(now),
+		delta: delta.label,
+		trend: delta.direction ?? 'up',
+		tone: delta.direction === (kpi.goodUp ? 'up' : 'down') ? 'good' : 'neutral',
+		note: kpi.note(now, was, wasLabel)
+	}
+})
 
 /** Which day the URL is pointing at: a date is itself, a week or a month is its last day, and
     anything else -- a span key, an empty parameter, a typo -- is the newest day there is. It is
@@ -707,19 +784,23 @@ export async function getStats(range, windowId, signal) {
 	   look right on their own. Where the store has nothing before the window, and the window
 	   is a month, the month's own figure is the only one there is: April is a total in May's
 	   record and not a curve, so it can be compared against and cannot be drawn. */
-	const spent = spentOver(start, length)
-	const previousTotal = previous ? spentOver(previous.start, previous.length)
-		: (current.range === '1M' ? period.previousTotal : null)
+	const now = totalsOver(start, length)
+	const was = previous ? totalsOver(previous.start, previous.length) : null
+	const previousTotal = was ? was.spent : (current.range === '1M' ? period.previousTotal : null)
 	const previousLabel = previous ? previous.label
 		: (current.range === '1M' ? period.previousLabel : null)
-	const delta = deltaOf(spent, previousTotal, previousLabel)
+	const delta = deltaOf(now.spent, previousTotal, previousLabel)
 
 	return {
 		period: copy(period),
 		categories: copy(store.categories),
 		window: {
-			...current, days: length, spent, previousLabel, previousTotal,
-			deltaLabel: delta.label, deltaUp: delta.up,
+			...current, days: length, spent: now.spent, previousLabel, previousTotal,
+			deltaLabel: delta.label, deltaUp: delta.direction === 'up',
+			/* April is a total in May's record and not a curve, so the oldest month can be
+			   compared against and cannot be broken into tiles: there, and only there, the
+			   month's own authored row is the only one there is. */
+			kpis: !was && current.range === '1M' ? copy(period.kpis) : kpisFor(now, was, previousLabel),
 			series: {
 				current: runningTotal(start, length),
 				previous: previous ? runningTotal(previous.start, previous.length) : null

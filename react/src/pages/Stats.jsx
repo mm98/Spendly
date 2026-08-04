@@ -16,9 +16,11 @@ import { kr, krRound } from '../api/format.js'
    The range chips and the pager are one control. The chips choose how wide the window is and
    the arrows step by that width, so 1W pages a week and 1M pages a month -- they used to
    disagree, and a pager that steps something other than what is drawn is a pager for a page
-   nobody is looking at. What the window cannot answer stays the month's and says which month
-   it is: the KPI row, the pace, the rhythm, the split and the returns are a month wide because
-   that is the finest the records go, and each of them names it. README: Statistics.
+   nobody is looking at. The header, the tiles and the chart are all the window's, derived from
+   the same days. What the records cannot cut that fine stays the month's and says which month
+   in its own heading -- the pace, the rhythm, the split and the returns -- because a pace is a
+   month's by definition, a weekly rhythm needs more than one of each weekday, and the other two
+   are written per month. README: Statistics.
 
    The chips sit in the card body, where the hero card's identical control sits, rather than in
    the header. In the header they were the one right-hand item taller than the band -- five
@@ -93,14 +95,15 @@ export default function Stats() {
 							</div>
 						</div>
 
-						{/* The tiles are the month's, whatever width is on screen above them, so they
-						    say which month. Left unlabelled they read as the window's, and 23 orders
-						    under a seven-day heading is a wrong number rather than a missing one. */}
+						{/* The tiles are the window's -- every one of the four is derived from the
+						    same days the figure above is -- so the heading names the window rather
+						    than a month it may only be part of. 23 orders under a seven-day heading
+						    is a wrong number rather than a missing one. */}
 						<SectionHeader>
-							<SectionLabel>{period.label} in numbers</SectionLabel>
+							<SectionLabel>{view.label} in numbers</SectionLabel>
 						</SectionHeader>
 						<div className="kpi-row">
-							{period.kpis.map(kpi => <KpiCard key={kpi.label} {...kpi} />)}
+							{view.kpis.map(kpi => <KpiCard key={kpi.label} {...kpi} />)}
 						</div>
 
 						<Card aria-label="Overview">
@@ -128,8 +131,12 @@ export default function Stats() {
 						</Card>
 
 						<div className="two-column">
+							{/* Four cards the records cannot cut finer than a month: a pace is a month's,
+							    a weekly rhythm needs more than one of each weekday, and the split and the
+							    returns are written per month. Each says which month in its own heading,
+							    rather than borrowing the one over the tiles -- that one now moves. */}
 							<Card aria-label="Pace">
-								<CardHeader title="Pace">
+								<CardHeader title={`Pace · ${period.shortLabel}`}>
 									<span className="field-help">{period.daysIn} days in</span>
 								</CardHeader>
 								<CardDivider />
@@ -147,14 +154,14 @@ export default function Stats() {
 							</Card>
 
 							<Card aria-label="Weekly rhythm">
-								<CardHeader title="Weekly rhythm">
+								<CardHeader title={`Weekly rhythm · ${period.shortLabel}`}>
 									<span className="field-help">busiest day: {period.busiestDay}</span>
 								</CardHeader>
 								<CardDivider />
 								<CardBody>
 									<div className="figure-large tabular-figures">{period.weekendShare}%{' '}
 										<span style={{ fontWeight: 500, fontSize: 14, color: 'var(--text-muted)' }}>
-											of {period.shortLabel}'s spend lands on weekends</span></div>
+											of spend lands on weekends</span></div>
 									<WeekdayBars days={period.weekdays} field="stats" style={{ height: 86 }} />
 								</CardBody>
 							</Card>
@@ -162,7 +169,7 @@ export default function Stats() {
 
 						<div className="two-column">
 							<Card aria-label="Where it went">
-								<CardHeader title="Where it went" />
+								<CardHeader title={`Where it went · ${period.shortLabel}`} />
 								<CardDivider />
 								<CardBody variant="spend-gauge-row">
 									<SpendGauge segments={period.statsLegend.map((entry, i) =>

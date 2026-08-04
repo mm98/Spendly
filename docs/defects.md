@@ -363,21 +363,40 @@ on one scale and the gap the chip claims is the gap the eye sees. And a delta ca
 *50% down vs 24–30 June* on the first week of July — so the chip drops the amber for those, which is
 the split the KPI tiles already make between trend and tone.
 
-What cannot follow the window says which month it is about instead of sitting silent: the KPI row took
-a heading — **JULY 2026 IN NUMBERS** — and the rhythm card reads *of July's spend lands on weekends*.
-The pace, the split and the returns already named the month and were left alone.
+**The four tiles follow the window too**, because all four are derivable from the same days: the
+month's order count spread over its days by what each day cost (whole orders, largest remainder, so the
+days land on the month's own count), and saved and shipping in proportion. That is what lets the
+heading over them name the window — **W30, 2026 IN NUMBERS**, **Q2, 2026 IN NUMBERS** — instead of a
+month the window may be one week of. Deriving them loses nothing: **all 8 tiles of July and June come
+back exactly as authored**, values, delta sentences, trend arrows, tones and notes — *23* · *1.062 kr.*
+· *2.106 kr.* · *388 kr.*, *21% up vs June*, *2% down vs June*, *June: 1.088 kr.*, *1,6% of spend*. May
+is the exception and keeps its authored row, since April is a total in its record and not a curve.
+
+Two readings the derivation surfaced, both of which the authored data could never produce. **Nothing is
+a direction**: four orders against four orders read *0% up* under a rising arrow, which is a claim about
+a change that did not happen, so it reads **level with 6–12 July** and draws no arrow. And a window with
+nothing before it — Q2, the year, all time, the oldest week — draws **no delta at all** rather than an
+arrow over a comparison that was never made; the two tiles whose notes are about the window itself keep
+theirs (*9% under retail prices*, *2,0% of spend*).
+
+What cannot follow the window says which month it is about, in its own heading rather than borrowing the
+one over the tiles: **PACE · JULY**, **WEEKLY RHYTHM · JULY**, **WHERE IT WENT · JULY**, **RETURNS ·
+JULY**. A pace is a month's by definition, a weekly rhythm needs more than one of each weekday, and the
+split and the returns are written per month.
 
 ### Measured
 
 Chromium **141.0.7390.37** under Playwright **1.56.1**, driving the app at `localhost:5173`, every state
-entered by clicking what a user clicks and the state read back rather than assumed. **56 assertions
+entered by clicking what a user clicks and the state read back rather than assumed. **63 assertions
 pass**, at 1440x900 and again under `devices['iPhone 13']`. A second pass over the data layer — **81
 assertions** — walks all five widths end to end, **14, 3, 2, 1, 1 windows**, no pager looping, every
-list walked to both ends, and checks each window's running total against the figure printed above it.
+list walked to both ends, and checks each window's running total against the figure printed above it. A
+third — **17 assertions** — reads the tiles: July's and June's against the rows the months author, field
+by field, and the 14 weeks' order counts summing to the **60** the three months hold.
 
-The header band is what a longer title could have broken, and did not: at 390 every `.card-header` on
-the page is **44.67px**, the one band tall, measured on the longest title the page can produce —
-*Overview · 29 June – 5 July*, the week that spans two months. Nothing overflows its
+The header band is what the longer titles could have broken, and did not: at 390 every `.card-header`
+on the page is **44.67px**, the one band tall, with the month suffixes on and measured on the longest
+title the page can produce — *Overview · 29 June – 5 July*, the week that spans two months. Nothing overflows its
 card (`right` against the parent's `right`, per element, since `.main-panel` clips and the document's
 own `scrollWidth` cannot report an overhang), and the document does not scroll sideways. No console or
 page errors in either viewport.

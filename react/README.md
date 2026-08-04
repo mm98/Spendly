@@ -526,7 +526,9 @@ checked.
     the URL, and browser Back walks the pager. The pager steps whatever the range chips are
     set to, and every width is a calendar unit: **14 windows at 1W** (ISO weeks, so 12 whole
     ones and 2 clipped where the records stop), **3 at 1M**, **2 at 3M** (Q3 and Q2), **1 at
-    YTD** (2026) and **1 at ALL** — and the arrows name the step they take.
+    YTD** (2026) and **1 at ALL** — and the arrows name the step they take. The four summary
+    tiles are the window's, derived from the same days as the figure above the chart, and
+    reproduce the rows July and June author field for field.
   - An order's status writes through and survives a reload; ADD FILE attaches the file it was
     given and the header counts it; OPEN shows it, delete removes it; Edit loads the order
     into the form, a line edit replaces rather than appends, and the edit sticks; Delete asks
