@@ -503,8 +503,34 @@ measured first, on the unchanged app in this container: **0** against each commi
 twice. Both were re-rendered here and reproduce at **0**, twice. `docs/all-orders.png` holds no part of
 either page and was not touched.
 
-Gecko and WebKit are not installed in this container and were not checked. The chips are ordinary
-buttons with no native control, no shadow-DOM pseudo-element and no vendor prefix under them, so the
-engine-shaped risk here is text metrics — a wider glyph advance would eat into the **64.9px** between
-the chips' 259.1px and the 324px box holding them on the phone, which is the margin the one-row result
-rests on.
+### All three engines
+
+Gecko and WebKit were installed for this (`playwright install firefox webkit`, then `install-deps
+webkit` as its own command) and the run was repeated in each: **Chromium 141.0.7390.37**, **Firefox
+142.0.1**, **WebKit 26.0**, all under Playwright 1.56.1, at 1440x900 and again under a phone profile.
+**94 assertions pass in every engine, 0 fail — 282 in all.** The phone profile matched `pointer:
+coarse` in all three, including Firefox, which takes the viewport, `deviceScaleFactor` and `hasTouch`
+but no `isMobile` and no `userAgent`.
+
+The risk this change carried was text metrics, since the chips are ordinary buttons with no native
+control, no shadow-DOM pseudo-element and no vendor prefix under them — and the engines do disagree
+about width, by about 6%: the five chips span **267.1px** in Blink, **250.9** in Gecko and **251.1** in
+WebKit at 1440, and **259.1 / 242.9 / 243.1** on the phone, inside the same **324px** box. One row in
+every engine at both widths, so the narrowest margin any of them leaves is **64.9px**. The longest
+pager label, *Quarter 3, 2026*, is **128.6px** in Blink and **121.8 / 121.9** in the other two.
+
+The window counts `react/README.md` states were walked to both ends rather than read off the API, in
+each engine and both viewports: **14** windows at Week (oldest *Week 18, 2026*), **3** at Month (*May
+2026*), **2** at Quarter (*Quarter 2, 2026*), **1** at Year and **1** at All. Browser Back walks the
+pager in all three — forward *Week 31 → 30 → 29*, Back to *Week 30* then *Week 31*.
+
+**Open, and not this change's: WebKit 26.0 crashes its renderer on a reload after Back.** One
+`goBack()` over a history entry the app itself pushed, then a reload, kills the page — *Page crashed*,
+**3 of 3 runs**. The `goto` between them is irrelevant, and either half alone is harmless: Back then
+`goto` without a reload is fine (0 of 2), and reload without a Back is fine (0 of 2). It is not this
+change — the build **before the rename crashes 3 of 3 the same way** — and it is not the harness's
+sequence being exotic, since the identical sequence in the identical run passes in Blink and Gecko.
+Statistics is the only page that reaches it: it is the one place the app pushes a history entry, which
+is what makes Back walk the pager, where All Orders writes its filters with `replace`. Not fixed here.
+The assertions above put link-opening on a fresh page, which is what opening a link is, so the crash
+does not stand in for a failure of the thing under test.
