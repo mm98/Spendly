@@ -530,9 +530,23 @@ Each category is a tile — its glyph, its color, its month's total and budget m
 
 ### Statistics
 
-The month in numbers: a four-across KPI row (each tile a figure, its delta and its trend arrow — trend and tone are separate, because spending *less* is a good *down*), then the charts, then the month pager.
+A stretch of time in numbers: a four-across summary row (each tile a figure, its delta and its trend arrow — trend and tone are separate, because spending *less* is a good *down*), then the charts, then the pager.
 
-**The month is in the URL**, so a month can be linked, and the browser's Back walks the pager. The period arrows disable honestly at the ends of the data.
+**The range control and the pager are one control.** The range chooses how wide the window is; the pager steps by that width. Pick a week and the arrows move a week; pick a quarter and they move a quarter. A pager whose step is fixed while the range moves is paging something the page is not showing, and it says "previous" about a stretch of time nothing on screen names ([the numbers](docs/defects.md#statistics--the-range-chips-drew-a-week-and-the-pager-went-on-stepping-months)). The arrows name the step they take — *previous quarter*, *no later year* — and each disables only at its own end of the data.
+
+**Every width is a calendar unit, and it is named as one.** Week, month, quarter, year, and everything there is: *W30, 2026* · *July 2026* · *Q2, 2026* · *2026* · *All time*. Not a count of days back from today — a window ninety days wide has no name, cannot be linked as one thing, and cannot be paged to the one before it. A week is an ISO week (Monday to Sunday, week 1 the one holding 4 January), so a week that runs across the end of a month runs across it, because weeks do. Where the records stop mid-unit the window holds the days that exist and says which they are.
+
+**A unit says what it is, the window says which days.** The pager names the unit; the card over the chart names the days it actually covers — *Overview · 1 May – 30 June* under *Q2, 2026* — because a unit name does not tell you where the records begin and end inside it, and a clipped window would otherwise claim a whole quarter.
+
+**A label too short to explain itself is spoken in full.** *W30, 2026* is a letter, a number and a year, and nothing in it says week — so the accessible name is the unabbreviated one while the drawn label stays short enough for the band.
+
+**The window is in the URL** — how wide it is and where it sits — so a week can be linked as a week, and the browser's Back walks the pager. A link to a month is still a link to that month.
+
+**Every figure says which stretch of time it covers.** What the window covers moves with it: its total, its comparison, its chart, the scale under the chart, and the summary tiles — every one of them derived from the same days, so the heading over the tiles names the window. What the records cannot break down that far stays as wide as they go and names that span *in its own heading*, never borrowing the page's: a month's order count sitting under a seven-day heading is a wrong number, not a missing one, and a month's weekly rhythm is not a week's at all.
+
+**Nothing is a direction.** A figure that has not moved says it is *level with* what it is measured against, and draws no arrow: 0% up under a rising arrow is a claim about a change that did not happen, and a window narrow enough to count whole orders lands there often. A figure with nothing before it draws no delta at all — an arrow over a comparison that was never made is worse than a blank.
+
+**The total and the line under it are one series.** The figure printed above a chart is where that chart's line ends, derived from the same numbers, so a window's total and the picture of it cannot drift apart — and a comparison line is drawn on the same scale as the line it is compared with.
 
 ### Settings
 

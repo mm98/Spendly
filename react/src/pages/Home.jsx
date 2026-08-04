@@ -10,7 +10,7 @@ import { AiCard, AiCardMark } from '../components/AiCard.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { SavingChip } from '../components/Chip.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
-import { getDashboardCards, getHomeContent, getSettings, saveSettings } from '../api/client.js'
+import { getDashboardCards, getHomeContent, getSettings, ranges, saveSettings } from '../api/client.js'
 import { dayMonth, kr, krRound, percent } from '../api/format.js'
 
 /* Home.
@@ -25,6 +25,19 @@ const HERO_SERIES = [
 	{ key: 'orders', label: 'Orders' },
 	{ key: 'saved', label: 'Saved' }
 ]
+
+/* The chart's own sentence follows both controls above it. Fixed at "daily spend through July"
+   it named a series the tabs change and a span the chips change, so a screen reader heard
+   "spend" over a line of order counts, and "through July" over seven days of it -- the same
+   defect the pager had on Statistics, one level down: a label describing a state the controls
+   have moved on from. Home has one month and no pager, so the month is the one part that holds
+   still; the chips slice that month rather than move a window. */
+const heroLabel = (key, range, period) => {
+	const what = HERO_SERIES.find(tab => tab.key === key).label
+	if (range === '1W') return `${what} per day, the last seven days of ${period.shortLabel}`
+	if (range === '1M') return `${what} per day, all of ${period.shortLabel}`
+	return `${what} across ${period.shortLabel}, bucketed for ${range}`
+}
 
 function Hero({ period, categories }) {
 	const [range, setRange] = useState('1M')
@@ -49,14 +62,14 @@ function Hero({ period, categories }) {
 						saved {kr(period.saved)} vs retail ({percent(period.savedPercent)})
 					</div>
 				</div>
-				<RangeTabs value={range} onChange={setRange} />
+				<RangeTabs options={ranges} value={range} onChange={setRange} />
 				{/* The callout is a tooltip, drawn on hover or focus by the stylesheet. Both halves of
 				    that are the chart's to carry: it takes the tab stop, because a tooltip only a pointer
 				    can ask for is one the keyboard never sees, and it keeps the sentence as its own
 				    description, because the resting state is visibility:hidden and a hidden node is out
 				    of the accessibility tree unless something references it. README: Charts. */}
 				<div className="chart-wrap">
-					<Chart height={130} pad={0} label="Daily spend through July"
+					<Chart height={130} pad={0} label={heroLabel(series, range, period)}
 						tabIndex={0} aria-describedby={calloutId}
 						series={[{ points, kind: 'line', stroke: '#3A423D', strokeWidth: 1.6 }]} />
 					<div className="chart-callout" id={calloutId} role="tooltip">{period.callout}</div>

@@ -126,16 +126,15 @@ export const ChartAxis = ({ labels = ['01', '08', '15', '22', '29'] }) => (
 export const ChartRuler = () => <div className="chart-ruler" aria-hidden="true" />
 
 /* ---- ranges ----
-   1W slices the month the prototype holds and 1M is that month; 3M, YTD and ALL are longer
-   than anything here, so they bucket the same month into the number of points they would
-   carry. Demo data, like every figure in this app, and the one honest alternative to a
-   control that draws five states and changes nothing. README: Buttons, Honest Affordances. */
+   How many points a range is drawn with once it is wider than a chart can plot day by day.
+   Statistics reads these against a window of the timeline; Home's hero has one month and no
+   pager, so there `ranged` slices and buckets that month. README: Buttons. */
 
-const RANGE_BUCKETS = { '3M': 13, YTD: 12, ALL: 6 }
+export const RANGE_POINTS = { '3M': 13, YTD: 12, ALL: 6 }
 
 export function ranged(full, key) {
 	if (key === '1W') return full.slice(-7)          // inside the month: the last seven days
-	const n = RANGE_BUCKETS[key]
+	const n = RANGE_POINTS[key]
 	if (!n) return full                              // 1M, and anything unrecognised
 	const out = []
 	for (let i = 0; i < n; i++) {
@@ -147,15 +146,29 @@ export function ranged(full, key) {
 	return out
 }
 
-export const RANGES = ['1W', '1M', '3M', 'YTD', 'ALL']
+/** Thins a running total down to `n` points by keeping the last value in each bucket. Averaging
+    one is not one: the mean of a rising series sits below where it actually reached, so a
+    three-month window would end short of the total printed above it. */
+export function sampled(values, n) {
+	if (!n || values.length <= n) return values
+	return Array.from({ length: n }, (_, i) =>
+		values[Math.min(values.length - 1, Math.ceil((i + 1) * values.length / n) - 1)])
+}
 
-/** Five buttons that change the chart above them. aria-pressed is the state, because these
-    choose how much of one series to plot rather than which of several to show -- that is a
-    group of toggles, not a tablist. */
-export function RangeTabs({ value, onChange }) {
+/** Kroner onto the chart's pixel box, since one user unit is one CSS pixel and a series has to
+    arrive in pixels. `max` is shared by every series in the chart, or two lines drawn each to
+    its own scale say the smaller one is the bigger. */
+export const plotted = (values, max, top = 180, bottom = 20) =>
+	values.map(v => top - (top - bottom) * (max ? v / max : 0))
+
+/** The range buttons. aria-pressed is the state, because these choose how much of one series to
+    plot rather than which of several to show -- that is a group of toggles, not a tablist. The
+    list of ranges is passed in rather than held here: on Statistics the same list is what the
+    pager steps by, and a second copy is how a width gets offered that nothing can page. */
+export function RangeTabs({ options, value, onChange }) {
 	return (
 		<div className="range-tabs" role="group" aria-label="Range">
-			{RANGES.map(key => (
+			{options.map(key => (
 				<button key={key} type="button" className={key === value ? 'is-on' : undefined}
 					aria-pressed={key === value} onClick={() => onChange(key)}>{key}</button>
 			))}

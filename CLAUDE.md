@@ -229,6 +229,17 @@ have gone green on a control that renders identically in both states: green trac
 colour `rgb(20,172,114)` to `rgb(131,140,132)`, knob `right:3px` to `left:3px`, the section 271.7px
 to 56px. An ARIA attribute is a claim about the pixels, and only the pixels can settle it.
 
+**Two controls that are each right on their own can still disagree with each other.** Both controls
+on Statistics passed the rule above for as long as they existed: the range chips changed the chart on
+every click, and the period arrows moved the period on every click. They meant different periods --
+the chips drew seven days and the arrows stepped a month past them -- and no probe that ends at "the
+control I fired did its own job" can see that, because the defect is in the sentence the two make
+together and only one of them is ever under the pointer. Where two controls describe one thing, fire
+one and then read what the *other* now says about it: set the width, then read the pager's label and
+its step; page the pager, then read the width. Labels count as the other control -- the hero chart's
+name was fixed at "Daily spend through July" while the tabs beside it chose the series and the chips
+chose the span, so it announced neither, and a screen reader heard "spend" over a line of order counts.
+
 **Copy that enumerates inputs is a list of states to render.** The scan hero says the app takes "a
 PDF, photo or screenshot" and four entry buttons name the formats one by one -- and all four landed
 on a review screen reading `kvittering-bilka.jpg`, 2,1 MB, drawn with a receipt glyph. Nothing could
