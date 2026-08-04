@@ -14,7 +14,7 @@ import { kr, krRound } from '../api/format.js'
 /* Statistics.
 
    The range chips and the pager are one control. The chips choose how wide the window is and
-   the arrows step by that width, so 1W pages a week and 1M pages a month -- they used to
+   the arrows step by that width, so Week pages a week and Month pages a month -- they used to
    disagree, and a pager that steps something other than what is drawn is a pager for a page
    nobody is looking at. The header, the tiles and the chart are all the window's, derived from
    the same days. What the records cannot cut that fine stays the month's and says which month
@@ -34,13 +34,13 @@ export default function Stats() {
 	   at a time. `period` is still a month id where the window is a month, so every link that
 	   was ever shared to a month still opens that month. */
 	const [params, setParams] = useSearchParams()
-	const range = params.get('range') ?? '1M'
+	const range = params.get('range') ?? 'month'
 	const periodId = params.get('period') ?? ''
 	const state = useApi(getStats, [range, periodId])
 	const defaultId = state.data?.defaultId
 
 	const show = (width, id) => setParams({
-		...(width === '1M' ? {} : { range: width }),
+		...(width === 'month' ? {} : { range: width }),
 		...(id && id !== defaultId ? { period: id } : {})
 	})
 
@@ -67,21 +67,18 @@ export default function Stats() {
 								<IconButton icon="chevronLeft"
 									label={older ? `Previous ${view.unit}` : `No earlier ${view.unit}`}
 									disabled={!older} style={older ? undefined : { opacity: 0.45 }}
-									onClick={() => older && show(range, older)} />
-								{/* Two of the units are drawn abbreviated -- W30, 2026 and Q2, 2026 -- so
-								    those are announced in full instead. The days the window covers are on
-								    the card below, over the chart that plots them. */}
+									onClick={() => older && show(view.range, older)} />
+								{/* One name, drawn and announced. Two of the units used to be abbreviated
+								    here -- W30, 2026 and Q2, 2026 -- with the unabbreviated string carried
+								    beside them for screen readers, which is a label a reader could not
+								    read and a second copy to keep in step. They are written out now. The
+								    days the window covers are on the card below, over the chart. */}
 								<span className="panel-heading" style={{ fontSize: 16, letterSpacing: '-.01em' }}>
-									{view.spoken ? (
-										<>
-											<span aria-hidden="true">{view.label}</span>
-											<span className="screenreader-only">{view.spoken}</span>
-										</>
-									) : view.label}</span>
+									{view.label}</span>
 								<IconButton icon="chevronRight"
 									label={newer ? `Next ${view.unit}` : `No later ${view.unit}`}
 									disabled={!newer} style={newer ? undefined : { opacity: 0.45 }}
-									onClick={() => newer && show(range, newer)} />
+									onClick={() => newer && show(view.range, newer)} />
 							</div>
 							<div className="row-inline">
 								<span className="figure-large tabular-figures">{kr(view.spent)}</span>
@@ -114,7 +111,13 @@ export default function Stats() {
 							</CardHeader>
 							<CardDivider />
 							<CardBody variant="card-body-tight">
-								<RangeTabs options={ranges} value={range} onChange={key => show(key, periodId)} />
+								{/* Selected is whichever width the window on screen actually is, not
+								    whatever the URL asked for -- a link carrying a width this app no
+								    longer has, `?range=3M` from before these were named after their
+								    units, is served as the month it falls back to, and a chip row with
+								    nothing selected over a month of data is the URL's claim drawn over
+								    the API's. The first click writes a name that exists. */}
+								<RangeTabs options={ranges} value={view.range} onChange={key => show(key, periodId)} />
 								<Chart height={210} pad={10}
 									label={`Cumulative spend across ${view.shortLabel}${compare ? `, ${view.previousLabel} dashed behind it` : ''}`}
 									gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 0, y2: 1, stops: [

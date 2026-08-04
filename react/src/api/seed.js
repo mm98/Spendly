@@ -177,11 +177,25 @@ export const orders = [
 /* The widths a statistics window comes in. The chips offer these and the pager steps by
    whichever one is chosen, so the list is data rather than a copy inside a component: two
    copies is how a width gets offered that nothing can page. Each one is a calendar unit --
-   1W an ISO week, 3M the quarter, YTD the year -- rather than a count of days back from
-   today, so the pager lands on Q2 and 2026 rather than on a ninety-day slice with no name.
-   The three months below are the tail of Q2 and the start of Q3, so those two windows and
-   the one year are as much as ALL can be cut into here. */
-export const ranges = ['1W', '1M', '3M', 'YTD', 'ALL']
+   an ISO week, a month, the quarter, the year -- rather than a count of days back from
+   today, so the pager lands on Quarter 2 and 2026 rather than on a ninety-day slice with no
+   name. The three months below are the tail of Q2 and the start of Q3, so those two windows
+   and the one year are as much as `all` can be cut into here.
+
+   So each one is called what it is. The names were the prototype's durations -- 1W, 1M, 3M,
+   YTD -- and only two of the four were even arithmetically true: 3M draws the quarter it
+   lands in, which here is Q3, July on its own, one month of days under a chip claiming
+   three, and YTD pages back to whole past years, which is not to any date. A width names a
+   calendar unit or it describes a window this app does not have. The key is what the URL
+   carries and the label is what the chip draws, so `?range=quarter` says which window it
+   opens without a legend. */
+export const ranges = [
+	{ key: 'week', label: 'Week' },
+	{ key: 'month', label: 'Month' },
+	{ key: 'quarter', label: 'Quarter' },
+	{ key: 'year', label: 'Year' },
+	{ key: 'all', label: 'All' }
+]
 
 /* The month the prototype holds. Every "this month" figure on every page reads from here,
    so July cannot be 24.418,57 on Home and something else on Statistics.

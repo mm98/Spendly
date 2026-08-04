@@ -2,7 +2,7 @@ import { useId, useMemo, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
-import { Chart, ChartAxis, RangeTabs, ranged } from '../components/Chart.jsx'
+import { Chart, ChartAxis, RANGE_POINTS, RangeTabs, ranged } from '../components/Chart.jsx'
 import { Donut, DonutBox, Meter, SplitBar, WeekdayBars } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow, LegendRow } from '../components/Rows.jsx'
 import { DashboardCards } from '../components/DashboardCards.jsx'
@@ -34,13 +34,16 @@ const HERO_SERIES = [
    still; the chips slice that month rather than move a window. */
 const heroLabel = (key, range, period) => {
 	const what = HERO_SERIES.find(tab => tab.key === key).label
-	if (range === '1W') return `${what} per day, the last seven days of ${period.shortLabel}`
-	if (range === '1M') return `${what} per day, all of ${period.shortLabel}`
-	return `${what} across ${period.shortLabel}, bucketed for ${range}`
+	if (range === 'week') return `${what} per day, the last seven days of ${period.shortLabel}`
+	if (range === 'month') return `${what} per day, all of ${period.shortLabel}`
+	/* The three wider chips have nothing wider to reach for here -- Home holds one month --
+	   so they bucket that month, and the sentence says how coarsely rather than naming a
+	   quarter this card does not have. "Bucketed for 3M" claimed one outright. */
+	return `${what} across ${period.shortLabel}, bucketed into ${RANGE_POINTS[range]} points`
 }
 
 function Hero({ period, categories }) {
-	const [range, setRange] = useState('1M')
+	const [range, setRange] = useState('month')
 	const [series, setSeries] = useState('orders')
 	const refs = useMemo(() => [], [])
 	const calloutId = useId()

@@ -130,12 +130,12 @@ export const ChartRuler = () => <div className="chart-ruler" aria-hidden="true" 
    Statistics reads these against a window of the timeline; Home's hero has one month and no
    pager, so there `ranged` slices and buckets that month. README: Buttons. */
 
-export const RANGE_POINTS = { '3M': 13, YTD: 12, ALL: 6 }
+export const RANGE_POINTS = { quarter: 13, year: 12, all: 6 }
 
 export function ranged(full, key) {
-	if (key === '1W') return full.slice(-7)          // inside the month: the last seven days
+	if (key === 'week') return full.slice(-7)        // inside the month: the last seven days
 	const n = RANGE_POINTS[key]
-	if (!n) return full                              // 1M, and anything unrecognised
+	if (!n) return full                              // month, and anything unrecognised
 	const out = []
 	for (let i = 0; i < n; i++) {
 		const a = Math.floor(i * full.length / n)
@@ -164,13 +164,16 @@ export const plotted = (values, max, top = 180, bottom = 20) =>
 /** The range buttons. aria-pressed is the state, because these choose how much of one series to
     plot rather than which of several to show -- that is a group of toggles, not a tablist. The
     list of ranges is passed in rather than held here: on Statistics the same list is what the
-    pager steps by, and a second copy is how a width gets offered that nothing can page. */
+    pager steps by, and a second copy is how a width gets offered that nothing can page.
+
+    Each option carries its own label rather than the button drawing its key, so the key can be
+    what a URL wants and the label what a reader wants without the two drifting apart. */
 export function RangeTabs({ options, value, onChange }) {
 	return (
 		<div className="range-tabs" role="group" aria-label="Range">
-			{options.map(key => (
+			{options.map(({ key, label }) => (
 				<button key={key} type="button" className={key === value ? 'is-on' : undefined}
-					aria-pressed={key === value} onClick={() => onChange(key)}>{key}</button>
+					aria-pressed={key === value} onClick={() => onChange(key)}>{label}</button>
 			))}
 		</div>
 	)
