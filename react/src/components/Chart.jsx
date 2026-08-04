@@ -127,21 +127,25 @@ export const ChartRuler = () => <div className="chart-ruler" aria-hidden="true" 
 
 /* ---- ranges ----
    How many points a range is drawn with once it is wider than a chart can plot day by day.
-   Statistics reads these against a window of the timeline; Home's hero has one month and no
-   pager, so there `ranged` slices and buckets that month. README: Buttons. */
+   Both pages read these against a window of the same timeline: Statistics samples a running
+   total down to them, Home's hero averages a day-by-day series into them. README: Buttons. */
 
 export const RANGE_POINTS = { quarter: 13, year: 12, all: 6 }
 
-export function ranged(full, key) {
-	if (key === 'week') return full.slice(-7)        // inside the month: the last seven days
-	const n = RANGE_POINTS[key]
-	if (!n) return full                              // month, and anything unrecognised
+/** Averages a day-by-day series down to `n` buckets. Not a running total -- use `sampled` for
+    one, for the reason written on it.
+
+    Nothing is rounded on the way out. These are order counts and kroner on their way into
+    `plotted`, and a month of days where most hold one order rounds to a row of 1s and draws a
+    flat line: the rounding was for the pixel coordinates this used to be handed. */
+export function bucketed(values, n) {
+	if (!n || values.length <= n) return values
 	const out = []
 	for (let i = 0; i < n; i++) {
-		const a = Math.floor(i * full.length / n)
-		const b = Math.max(a + 1, Math.floor((i + 1) * full.length / n))
-		const part = full.slice(a, b)
-		out.push(Math.round(part.reduce((sum, v) => sum + v, 0) / part.length))
+		const a = Math.floor(i * values.length / n)
+		const b = Math.max(a + 1, Math.floor((i + 1) * values.length / n))
+		const part = values.slice(a, b)
+		out.push(part.reduce((sum, v) => sum + v, 0) / part.length)
 	}
 	return out
 }

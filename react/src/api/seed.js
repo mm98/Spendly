@@ -220,13 +220,11 @@ export const period = {
 	projected: 30300,
 	previousTotal: 20680,
 	deltaLabel: '18% up vs June',
-	callout: 'Quiet week so far. Biggest day was the 23rd: 4.298,00 kr. at Proshop.',
 	weekendShare: 34,
 	busiestDay: 'Sunday',
 	busiestDaySpend: 6410,
-	/* Daily spend through July, and the savings that shadow it. The chart module maps one
-	   user unit onto one CSS pixel, so these are y-coordinates rather than kroner -- the
-	   same demo series the prototype plots.
+	/* Chart shapes. The chart module maps one user unit onto one CSS pixel, so these are
+	   y-coordinates rather than kroner -- the same demo series the prototype plots.
 
 	   `statsCurrent` is the one exception, and it is why it has no `statsPrevious` beside it
 	   any more. Statistics reads it as the shape of the month's cumulative spend and scales
@@ -234,10 +232,10 @@ export const period = {
 	   window inside July still sums to July. The dashed comparison line used to be June drawn
 	   on July's chart and authored by hand; it is now the window before this one, derived the
 	   same way from the same numbers -- which is what puts both lines on one scale and gives
-	   a week something to be compared against. */
+	   a week something to be compared against. Home's hero reads those same days now, so the
+	   two authored pixel series it used to plot -- orders and saved, one month long whichever
+	   width was chosen -- are gone with it. */
 	series: {
-		orders: [96, 92, 98, 78, 90, 84, 96, 70, 84, 76, 92, 88, 96, 60, 74, 66, 88, 80, 72, 94, 84, 52, 26, 60, 84, 92, 68, 44, 62, 34, 56, 48, 58, 50, 54],
-		saved:  [118, 120, 116, 110, 119, 114, 121, 104, 117, 112, 120, 118, 122, 98, 113, 106, 119, 115, 109, 121, 116, 92, 74, 108, 118, 121, 110, 88, 105, 80, 102, 96, 107, 99, 103],
 		cumulative: [96, 78, 58, 46, 32, 18, 8],
 		savingsGrowth: [84, 70, 48, 22, 12],
 		monthCurrent: [226, 196, 160, 128, 88, 60, 36, 16],
@@ -380,11 +378,8 @@ const june = {
 	orderCount: 19, averageOrder: 1088, shipping: 413, shippingShare: 2.0,
 	daysIn: 30, projected: 20680, previousTotal: 18420,
 	deltaLabel: '12% up vs May',
-	callout: 'A steady month. The Elgiganten robot vacuum on the 14th was the biggest single order.',
 	weekendShare: 29, busiestDay: 'Saturday', busiestDaySpend: 4980,
 	series: {
-		orders: [78, 84, 72, 90, 66, 80, 74, 88, 62, 76, 84, 70, 92, 58, 72, 80, 66, 86, 74, 60, 82, 68, 78, 64, 88, 70, 76, 62, 84, 72],
-		saved: [104, 110, 98, 116, 92, 106, 100, 114, 88, 102, 110, 96, 118, 84, 98, 106, 92, 112, 100, 86, 108, 94, 104, 90, 114, 96, 102, 88, 110, 98],
 		cumulative: [92, 74, 60, 44, 30, 20, 12],
 		savingsGrowth: [80, 66, 46, 26, 14],
 		monthCurrent: [220, 190, 158, 126, 92, 66, 40, 22],
@@ -427,11 +422,8 @@ const may = {
 	orderCount: 18, averageOrder: 1023, shipping: 379, shippingShare: 2.1,
 	daysIn: 31, projected: 18420, previousTotal: 15960,
 	deltaLabel: '15% up vs April',
-	callout: 'Spring cleaning: five of the eighteen orders were Household.',
 	weekendShare: 41, busiestDay: 'Sunday', busiestDaySpend: 5240,
 	series: {
-		orders: [70, 76, 64, 82, 60, 74, 68, 80, 58, 70, 78, 66, 84, 54, 68, 74, 62, 80, 70, 56, 76, 64, 72, 60, 82, 66, 70, 58, 78, 66, 72],
-		saved: [96, 102, 90, 108, 86, 98, 92, 106, 82, 96, 102, 88, 110, 78, 92, 98, 86, 104, 94, 80, 100, 88, 96, 84, 106, 90, 94, 82, 102, 90, 96],
 		cumulative: [94, 78, 64, 48, 34, 22, 14],
 		savingsGrowth: [82, 68, 50, 28, 16],
 		monthCurrent: [222, 194, 164, 134, 100, 72, 46, 26],

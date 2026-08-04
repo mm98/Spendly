@@ -534,3 +534,95 @@ Statistics is the only page that reaches it: it is the one place the app pushes 
 is what makes Back walk the pager, where All Orders writes its filters with `replace`. Not fixed here.
 The assertions above put link-opening on a fresh page, which is what opening a link is, so the crash
 does not stand in for a failure of the thing under test.
+
+---
+
+## Home — the hero card said "Spent this month" under every width there was
+
+The card carried a range control offering **Week · Month · Quarter · Year · All**, and a heading that
+read **SPENT THIS MONTH** for all five. Under the heading, **24.418,57 kr.**, *saved 2.106,00 kr. vs
+retail (9,4%)*, **Orders 23** and **Saved 2.106,00 kr.** — July's, every one of them, whichever chip was
+lit. Pressing *All* on a store holding **three months** changed the total by **0 kr.**
+
+Only the chart moved, and it did not move to a different window either: *Week* took the last seven
+values of the one authored month, *Month* drew it whole, and *Quarter*, *Year* and *All* bucketed **that
+same month** into 13, 12 and 6 points. Five names for one month at five resolutions — the resolution
+control [Statistics' own chips were already caught being](#statistics--the-range-chips-drew-a-week-and-the-pager-went-on-stepping-months),
+one view over.
+
+The chart's own accessible name was the part that had been fixed. It followed both controls honestly
+(*Orders per day, all of July* · *Orders across July, bucketed into 6 points*) and it was the only thing
+in the card that did, which is what made the defect quiet: the label the rule named had been made true,
+and the heading, the total, the saving and both tab figures — five more claims about the same window,
+all of them printed larger — had never been read back against the control at all. A card can be wrong in
+five places and pass a probe pointed at the sixth.
+
+### The window is real now
+
+The chips fetch a window of the same timeline Statistics pages, so Home has the widths it offers:
+**Week 31, 2026** (the clipped *27–31 July*) · **July 2026** · **Quarter 3, 2026** · **2026** · **All
+time**, drawn at **5, 31, 13, 12 and 6** points. Everything in the band is that window's and moves with
+it — the totals go **5.878,54 → 24.418,57 → 24.418,57 → 63.518,57 → 63.518,57 kr.**, the order counts
+**6 → 23 → 23 → 60 → 60**, the savings **507,00 → 2.106,00 → 2.106,00 → 5.957,00 → 5.957,00 kr.** at
+**9,4% / 9,4% / 9,4% / 9,1% / 9,1%** under retail. *Quarter* matching *Month* and *Year* matching *All*
+is where the records stop, not the control failing: **Q3 is July on its own** and **2026 is the three
+months the store holds**. They are told apart by their names and by the resolution they are drawn at.
+
+The two series behind the tabs are the window's own days now — **orders a day** and **kroner saved a
+day**, summed into the figure printed on the tab above them, so the line and its number are one series
+the way a running total and its figure are on Statistics. The two authored pixel series they replaced —
+`orders` and `saved`, in each of the three months, one month long whichever width was chosen — are gone
+from the store with the six arrays that held them, and so is the
+authored callout: *"Quiet week so far. Biggest day was the 23rd: 4.298,00 kr. at Proshop."* was a
+sentence about a day the derived days disagree with — July's biggest is **24 July at 1.959,51 kr.** —
+sitting still while the chips moved the chart under it. It reads off the window now, so *Week* says
+**31 July: 1.808,78 kr.** and the three wide ones say the 24th.
+
+The category split under the chart is **written per month**, which is as fine as the records cut, so it
+keeps the month and says so over its own rows — *Where it went · July* — rather than borrowing a heading
+that now moves. `.list-heading` was scoped to `.entry-list` and had to become a base spec to reach it,
+which is the same near-miss the file already documents for `.section-label` and `.card-caption`: outside
+the one blessed container the heading would have arrived at the UA's 16px.
+
+### Measured
+
+Chromium **141.0.7390.37** under Playwright **1.56.1**, driving the app at `localhost:5173`, every state
+entered by clicking what a user clicks — `page.tap` under the phone profile — and read back from the
+DOM. **206 assertions pass, 0 fail**, at 1440x900 and again under `devices['iPhone 13']`: per width, the
+heading, the card's accessible name, which chip is lit and that exactly one is, the header's link
+target, the plotted point count, the total, both tab figures, the saving line, the chart's name, the
+callout's shape, the legend's own heading and its computed spec against the entry list's.
+
+**The distinctness is counted per field, not per state**, and that is the assertion to be careful with,
+because a tuple of all four fields is one the old card passes: its chart did move — five names and
+**7, 35, 13, 12, 6** points — so five states read as one string are five distinct strings, over a
+heading and a total that are frozen. Field by field across the five widths, the old card's heading
+takes **1** distinct value, its total **1**, its saving **1**, its order count **1**. The card that
+replaced it takes **5, 5, 5** for the heading, the chart's name and the point count, and **3, 3, 3, 3**
+for the total, the saving line, the order count and the saved figure — three rather than five because
+Q3 is July and 2026 is all of it, which is where the records stop and not a chip failing.
+
+Two of the old chart's numbers were their own small untruths, on the way past: the authored series held
+**35 values for a 31-day July**, so *Month* plotted 35 points at a day each, and *Week* took the last
+seven of those 35 — a stretch that is not the last seven days of anything.
+
+Both of the card's controls were fired against each other rather than each on its own: switching the
+series tab moves the chart's name and leaves the heading and the total **unchanged**, which is the shape
+of the defect one level down. And the card's header link was followed for each width — it lands on
+`?range=week`, `#/stats`, `?range=quarter`, `?range=year`, `?range=all`, with Statistics' pager, its lit
+chip and its tiles' heading naming the same window, and **the same total printed on both pages**.
+
+The longer headings are what the fixed-height header band could have broken, and did not. The band
+states a height, so a wrapped title would overflow it rather than grow it — the band's own number cannot
+report the risk, and was measured beside the title's: **44.67px** band and a **16.67px** title in every
+state at both widths, the longest being *Spent · Quarter 3, 2026* at **170.17px** wide. Nothing in the
+card overhangs its parent (`right` against the parent's, per element, since `.main-panel` clips and the
+document's own `scrollWidth` cannot report an overhang) and neither viewport scrolls sideways. Ten
+routes were loaded with the console listened to, after three fields left the store: **no console or page
+errors**, and no chart path drawn without a `d`.
+
+**Not rendered:** `docs/home.png` and `docs/phone.png` both hold this card, and both are stale — the
+heading, the chart's line and the new legend heading all move. Neither was regenerated here, and the
+pixel floor against the committed files was not measured. Gecko and WebKit are not installed in this
+container and were not checked; the change is ordinary text and SVG with no native control, no
+shadow-DOM pseudo-element and no vendor prefix under it.
