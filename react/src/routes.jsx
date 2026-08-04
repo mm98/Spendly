@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import { AppShell } from './components/Shell.jsx'
-import { RouteError } from './components/Async.jsx'
+import { RouteError } from './components/RouteError.jsx'
 
 /* Every page is loaded when it is first opened, not when the app is.
 
