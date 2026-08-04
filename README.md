@@ -453,7 +453,11 @@ Views are screens. They're composed from foundations and components.
 
 ### Home
 
-The landing screen, top to bottom: the month being viewed, the hero chart, then a card grid the user owns.
+The landing screen, top to bottom: the stretch of time being viewed, the hero chart, then a card grid the user owns.
+
+**The hero card is one window, and it is named at the top of itself.** The range control chooses how wide — the same five widths under the same names [Statistics](#statistics) offers, so *All* means all of the records here too — and everything inside the card is that window's: the heading, the total, what it saved against retail, the order count on the tab and the line under both. A width that cannot move the figure below it is not a width the card has, it is a resolution control wearing a span's name; a heading fixed at *Spent this month* while five widths pass under it is the [label describing a state its control has moved on from](#charts), one level up from the chart ([the numbers](docs/defects.md#home--the-hero-card-said-spent-this-month-under-every-width-there-was)). What the records only hold per month — the category split under the chart — names that month in its own heading rather than borrowing the card's, exactly as the month-wide cards on Statistics do.
+
+**A card that names a window links to that window.** The hero's header opens Statistics on the window the card is showing, under the name the chip carries, so arriving there is a continuation rather than a fresh question — and the total printed on the two pages is the same number, because it is derived from the same days.
 
 **The dashboard is personal.** Which cards appear, and in what order, is the user's choice: an edit mode exposes a grip per card, cards drag (or move by arrow key, Home and End for the ends), and the arrangement persists. Everyone sees the same Orders page; Home shows what this user chose to see.
 

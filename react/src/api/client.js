@@ -884,6 +884,37 @@ export async function getOrderAsDraft(id, signal) {
 	}
 }
 
+/** Home's hero card, for one width of the timeline.
+
+    Home has no pager, so the window is always the newest one the chosen width offers -- the
+    week July ends in, July, Quarter 3, 2026, or the whole of the records -- and everything the
+    card states comes back with it: the total, what it saved, the orders behind it, the days
+    themselves and the biggest of them. Derived from the same days Statistics reads, so the two
+    pages cannot disagree about a window they both name.
+
+    The chips used to reslice one authored month here: Quarter, Year and All drew July at a
+    coarser resolution, under a heading that read "Spent this month" and a total that was July's
+    whichever chip was pressed. A width that cannot change the figure under it is a width the
+    card does not have. README: Home. */
+export async function getHomeHero(range, signal) {
+	await wait(signal)
+	const width = seed.ranges.some(r => r.key === range) ? range : 'month'
+	const { start, length, label, shortLabel } = windowsOf(width)[0]
+	const within = days.slice(start, start + length)
+	const totals = totalsOver(start, length)
+	const peak = within.reduce((most, day) => (day.spend > most.spend ? day : most))
+	return {
+		range: width, label, shortLabel,
+		spent: totals.spent, saved: totals.saved, savedPercent: totals.savedPercent,
+		orderCount: totals.orders,
+		/* Day by day rather than cumulative, because the tabs beside the chart name a count and
+		   a saving: each tab's figure is its own series summed, so the line and the number over
+		   it are one series the way the running total and its figure are on Statistics. */
+		series: { orders: within.map(day => day.orders), saved: within.map(day => day.saved) },
+		peak: { date: peak.date, spend: peak.spend }
+	}
+}
+
 export async function getHomeContent(signal) {
 	await wait(signal)
 	return {

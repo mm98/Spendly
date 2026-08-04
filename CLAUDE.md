@@ -240,6 +240,22 @@ its step; page the pager, then read the width. Labels count as the other control
 name was fixed at "Daily spend through July" while the tabs beside it chose the series and the chips
 chose the span, so it announced neither, and a screen reader heard "spend" over a line of order counts.
 
+**Fixing the label a rule names is not fixing the rule.** That chart label was made to follow both of
+its controls, and the fix stopped at the string the paragraph above happens to quote. One line up, the
+card's own heading went on reading "Spent this month" under all five widths, over a total, a saving and
+two tab figures that were July's under all five too -- six claims about which stretch of time the card
+was showing, of which the one that got fixed was the smallest, the only unrendered one, and the only
+one anybody had written a probe for. It passed. So when a control changes what a card is *about*,
+enumerate every place in that card that says what it is about -- heading, accessible name, headline
+figure, delta line, tab value, caption, tooltip -- and read all of them back in every state.
+
+Count the distinct values **per field**, not per state. Rolling those fields into one tuple per state
+and requiring N distinct tuples is the check that feels rigorous and is not: the broken card's chart
+did move, five names and 7, 35, 13, 12 and 6 points, so all five tuples differ and the run goes green
+over a heading and a total that never changed. Field by field, the same five states give the heading
+one value, the total one, the saving one and the order count one, and each of those is a failure with
+a name on it. One moving field is all a tuple needs to hide five frozen ones.
+
 **Copy that enumerates inputs is a list of states to render.** The scan hero says the app takes "a
 PDF, photo or screenshot" and four entry buttons name the formats one by one -- and all four landed
 on a review screen reading `kvittering-bilka.jpg`, 2,1 MB, drawn with a receipt glyph. Nothing could
