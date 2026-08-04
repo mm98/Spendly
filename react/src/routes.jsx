@@ -1,5 +1,6 @@
 import { lazy } from 'react'
 import { AppShell } from './components/Shell.jsx'
+import { RouteError } from './components/Async.jsx'
 
 /* Every page is loaded when it is first opened, not when the app is.
 
@@ -60,6 +61,7 @@ const VIEW_TABS = second => [
 export const routes = [
 	{
 		element: <AppShell />,
+		errorElement: <RouteError />,
 		children: [
 			{ index: true, element: <Home />, handle: { title: 'Home', navKey: 'home' } },
 
