@@ -524,8 +524,8 @@ checked.
     with the count.
   - Statistics pages back through June and May, the figures move with it, the window is in
     the URL, and browser Back walks the pager. The pager steps whatever the range chips are
-    set to: **15 windows at 1W, 3 at 1M, 1 each at 3M, YTD and ALL**, and the arrows name the
-    step they take.
+    set to: **14 windows at 1W** (ISO weeks, so 12 whole ones and 2 clipped where the records
+    stop), **3 at 1M**, **1 each at 3M, YTD and ALL** — and the arrows name the step they take.
   - An order's status writes through and survives a reload; ADD FILE attaches the file it was
     given and the header counts it; OPEN shows it, delete removes it; Edit loads the order
     into the form, a line edit replaces rather than appends, and the edit sticks; Delete asks

@@ -534,6 +534,10 @@ A stretch of time in numbers: a four-across KPI row (each tile a figure, its del
 
 **The range control and the pager are one control.** The range chooses how wide the window is; the pager steps by that width. Pick a week and the arrows move a week; pick a month and they move a month; pick a span longer than the records go and there is one place to stand, with both arrows disabled. A pager whose step is fixed while the range moves is paging something the page is not showing, and it says "previous" about a stretch of time nothing on screen names ([the numbers](docs/defects.md#statistics--the-range-chips-drew-a-week-and-the-pager-went-on-stepping-months)). The arrows name the step they take, and each disables only at its own end of the data.
 
+**A week is an ISO week** — Monday to Sunday, numbered so that week 1 holds 4 January — and it is named by that number and its year: *18, 2026*. A week that runs across the end of a month runs across it, because weeks do; chunking each month into sevens from its own 1st is easier and names a stretch of time no calendar agrees with. Where the records stop mid-week the window holds the days that exist and says which they are.
+
+**A label too short to explain itself is spoken in full.** *18, 2026* is a number and a year, and nothing in it says week — so the word is in the accessible name without being drawn, and the days the window covers are printed beside the chart that plots them. The pager's own arrows name their step, which is the other half of it.
+
 **The window is in the URL** — how wide it is and where it sits — so a week can be linked as a week, and the browser's Back walks the pager. A link to a month is still a link to that month.
 
 **Every figure says which stretch of time it covers.** What the window covers — its total, its comparison, its chart, the scale under the chart — moves with it. What the records cannot break down that far stays as wide as they go and *names that span*, in its own heading rather than in the page's: a month's order count sitting unlabelled under a seven-day heading is a wrong number, not a missing one.

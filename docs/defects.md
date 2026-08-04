@@ -306,11 +306,33 @@ three spans.
 
 ### The window is the unit now
 
-The chips choose a width and the pager steps by it: **15 windows at 1W** (each month chunked from the
-1st, so a week belongs to one month and what is left of a month is a short window that says so — 29–31
-July is 3 days), **3 at 1M**, and **1 each at 3M, YTD and ALL**, which is every day the store holds and
-both arrows disabled at once. Paging left from *1–7 July* reaches *29–30 June*, which no month pager
-could reach. The arrows name their own step: *Previous week*, *No later month*, *No earlier range*.
+The chips choose a width and the pager steps by it: **14 windows at 1W**, **3 at 1M**, and **1 each at
+3M, YTD and ALL** — every day the store holds, with both arrows disabled at once. Paging left from
+*20–26 July* reaches *13–19 July*, and keeps going into June, which no month pager could reach. The
+arrows name their own step: *Previous week*, *No later month*, *No earlier range*.
+
+The weeks are **ISO weeks**: Monday to Sunday, numbered so that week 1 holds 4 January, and labelled by
+that number and its year — **18, 2026**. Chunking each month into sevens from its own 1st was the first
+version of this and it named a stretch of time no calendar agrees with: the store starts on **Friday 1
+May**, which is the tail of week 18 and the head of nothing. **12 of the 14** windows are whole weeks,
+each running Monday to Sunday — asserted on the weekday of both ends, not on the arithmetic that
+produced them — and the two clipped ones are where the records stop: week 18 holds *1–3 May*, week 31
+holds *27–31 July*. One week, 27, spans two months (*29 June – 5 July*), and the cards beside it read
+the month most of its days fall in, which for a whole week is the month holding its Thursday — the rule
+ISO itself uses to place a week in a year.
+
+**A window compares against the same number of days before it, or against nothing.** Week 19 is a whole
+week with only three days behind it in the store, so it carries no comparison rather than a seven-day
+window measured against a three-day one.
+
+**18, 2026 is a number and a year, and nothing in it says week**, so the word is in the accessible name
+and not in the pixels: `Week 18, 2026` read back off the heading, *18, 2026* drawn. The days are on the
+card below it — *Overview · 29 June – 5 July* — and the arrows say *Previous week*.
+
+**Changing the width never walks the reader off the month the cards were showing.** Each window stands
+on the newest day belonging to the month it is filed under, and that day is what the new width resolves
+against: asserted over all **17** windows, 1M from any of them lands on the month that window's own
+cards named.
 
 The figures follow the window because they are derived from one series rather than authored beside it.
 A month's cumulative curve and its total are the only records the store keeps, so a day's spend is the
@@ -335,13 +357,14 @@ The pace, the split and the returns already named the month and were left alone.
 ### Measured
 
 Chromium **141.0.7390.37** under Playwright **1.56.1**, driving the app at `localhost:5173`, every state
-entered by clicking what a user clicks and the state read back rather than assumed. **32 assertions
-pass**, at 1440x900 and again under `devices['iPhone 13']`. A second pass over the data layer walks all
-five widths end to end — **15, 3, 1, 1, 1 windows**, no pager looping, every list walked to both ends —
-and checks each window's running total against the figure printed above it.
+entered by clicking what a user clicks and the state read back rather than assumed. **37 assertions
+pass**, at 1440x900 and again under `devices['iPhone 13']`. A second pass over the data layer — **63
+assertions** — walks all five widths end to end, **14, 3, 1, 1, 1 windows**, no pager looping, every
+list walked to both ends, and checks each window's running total against the figure printed above it.
 
 The header band is what a longer title could have broken, and did not: at 390 every `.card-header` on
-the page is **44.67px**, the one band tall, in the 1W state as well as the 1M one. Nothing overflows its
+the page is **44.67px**, the one band tall, measured on the longest title the page can produce —
+*Overview · 29 June – 5 July*, the week that spans two months. Nothing overflows its
 card (`right` against the parent's `right`, per element, since `.main-panel` clips and the document's
 own `scrollWidth` cannot report an overhang), and the document does not scroll sideways. No console or
 page errors in either viewport.
