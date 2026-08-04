@@ -66,15 +66,16 @@ export default function Stats() {
 									label={older ? `Previous ${view.unit}` : `No earlier ${view.unit}`}
 									disabled={!older} style={older ? undefined : { opacity: 0.45 }}
 									onClick={() => older && show(range, older)} />
-								{/* A week is printed as its ISO number and year -- "18, 2026" -- which is
-								    a number and a year and says nothing about being a week, so the word
-								    is spoken and not drawn. The days it covers are on the card below,
-								    over the chart that plots them. */}
+								{/* Two of the units are drawn abbreviated -- W30, 2026 and Q2, 2026 -- so
+								    those are announced in full instead. The days the window covers are on
+								    the card below, over the chart that plots them. */}
 								<span className="panel-heading" style={{ fontSize: 16, letterSpacing: '-.01em' }}>
-									{view.labelPrefix
-										? <span className="screenreader-only">{view.labelPrefix} </span>
-										: null}
-									{view.label}</span>
+									{view.spoken ? (
+										<>
+											<span aria-hidden="true">{view.label}</span>
+											<span className="screenreader-only">{view.spoken}</span>
+										</>
+									) : view.label}</span>
 								<IconButton icon="chevronRight"
 									label={newer ? `Next ${view.unit}` : `No later ${view.unit}`}
 									disabled={!newer} style={newer ? undefined : { opacity: 0.45 }}

@@ -176,8 +176,11 @@ export const orders = [
 
 /* The widths a statistics window comes in. The chips offer these and the pager steps by
    whichever one is chosen, so the list is data rather than a copy inside a component: two
-   copies is how a width gets offered that nothing can page. 3M, YTD and ALL are all longer
-   than the three months below, so each of them is one window over the whole of it. */
+   copies is how a width gets offered that nothing can page. Each one is a calendar unit --
+   1W an ISO week, 3M the quarter, YTD the year -- rather than a count of days back from
+   today, so the pager lands on Q2 and 2026 rather than on a ninety-day slice with no name.
+   The three months below are the tail of Q2 and the start of Q3, so those two windows and
+   the one year are as much as ALL can be cut into here. */
 export const ranges = ['1W', '1M', '3M', 'YTD', 'ALL']
 
 /* The month the prototype holds. Every "this month" figure on every page reads from here,

@@ -475,8 +475,6 @@ export async function saveDashboardCards(keys, signal) {
    24.418,57 kr. here and on Home. The first day has no day before it and takes the second
    day's step -- the one guess in this file, and it is one day wide. */
 
-const dayCount = period => period.series.statsCurrent.length
-
 const dailySpend = period => {
 	const curve = period.series.statsCurrent
 	const steps = curve.map((y, i) => (i ? curve[i - 1] - y : curve[0] - curve[1]))
@@ -493,7 +491,6 @@ const days = [...store.periods].reverse().flatMap(period =>
 	})))
 
 const monthOf = periodId => store.periods.find(p => p.id === periodId)
-const firstDayOf = periodId => days.findIndex(d => d.periodId === periodId)
 const spentOver = (from, length) =>
 	days.slice(from, from + length).reduce((sum, day) => sum + day.spend, 0)
 
@@ -504,7 +501,9 @@ const runningTotal = (from, length) => {
 	return days.slice(from, from + length).map(day => (sum += day.spend))
 }
 
-const UNITS = { '1W': 'week', '1M': 'month' }
+/* What the arrows call their own step. ALL has no unit and no step -- it is the whole of the
+   records, so it is the one window whose arrows are disabled at both ends at once. */
+const UNITS = { '1W': 'week', '1M': 'month', '3M': 'quarter', YTD: 'year' }
 const dayNumber = date => Number(date.slice(8))
 
 /* Weeks are ISO weeks: Monday to Sunday, numbered so that week 1 is the one holding 4 January.
@@ -534,6 +533,15 @@ const weekKey = iso => {
 	return year + '-W' + String(week).padStart(2, '0')
 }
 
+/* The other three units the pager steps in. Every one of them is a calendar unit rather than a
+   duration: 3M is the quarter it lands in, not the ninety days before it, and YTD is the year,
+   with the current one running only as far as the records do. A control that offers a unit and
+   pages something else is the same defect one level in. */
+const quarterOf = iso => Math.floor((Number(iso.slice(5, 7)) - 1) / 3) + 1
+const quarterKey = iso => iso.slice(0, 4) + '-Q' + quarterOf(iso)
+const monthKey = iso => iso.slice(0, 7)
+const yearKey = iso => iso.slice(0, 4)
+
 /* The date the window labels print. Duplicated from format.js on purpose, the same way krLabel
    at the foot of this file is: that module is the app's, and an API that hands back
    half-formatted strings would be handing the page a rendering decision it cannot undo. What a
@@ -550,56 +558,67 @@ const spanText = (from, to) => from.slice(0, 7) === to.slice(0, 7)
 	? dayNumber(from) + '–' + dayMonth(to)
 	: dayMonth(from) + ' – ' + dayMonth(to)
 
-/* What the window is called in the pager, and in the sentence the chart is described by. A week
-   is its ISO number and year, which is short enough for the pager band and is the name the rest
-   of a working week already goes by; the days it covers are the short label, so the card over
-   the chart says which they are. `prefix` is spoken and not drawn -- "18, 2026" on its own is a
-   number and a year, and nothing in it says week.
+/* Four names per window, because they are read in four places.
 
-   YTD and ALL name the question their chip asks rather than the span they land on: the store
-   holds three months, so both of them -- and 3M -- cover the same days, and saying "May – July"
-   three times would hide which one is selected. */
+   `label` is what the pager draws: a calendar unit, short enough for the band -- W30, 2026 ·
+   July 2026 · Q2, 2026 · 2026. `spoken` is what it announces where the drawn one is an
+   abbreviation, since "W30, 2026" is a letter, a number and a year and nothing in it says week.
+   `short` is the days the window actually covers, printed over the chart that plots them --
+   which is what a unit name does not tell you, and what the clipped windows at either end of
+   the records need said. `ref` is how anything comparing itself against this window names it. */
 const labelsFor = (range, first, last, periodId) => {
-	const year = last.date.slice(0, 4)
+	const year = first.date.slice(0, 4)
 	const span = spanText(first.date, last.date)
 	if (range === '1W') {
 		const at = isoWeek(first.date)
-		return { label: at.week + ', ' + at.year, short: span, prefix: 'Week' }
+		return { label: 'W' + at.week + ', ' + at.year, spoken: 'Week ' + at.week + ', ' + at.year, short: span, ref: span }
 	}
-	if (range === '1M') return { label: monthOf(periodId).label, short: monthOf(periodId).shortLabel }
-	if (range === 'YTD') return { label: year + ' so far', short: year + ' so far' }
-	if (range === 'ALL') return { label: 'All time', short: 'all time' }
-	const months = monthOf(first.periodId).shortLabel + ' – ' + monthOf(last.periodId).shortLabel
-	return { label: months + ' ' + year, short: months }
+	if (range === '1M') {
+		const month = monthOf(periodId)
+		return { label: month.label, short: month.shortLabel, ref: month.shortLabel }
+	}
+	if (range === '3M') {
+		const q = quarterOf(first.date)
+		return { label: 'Q' + q + ', ' + year, spoken: 'Quarter ' + q + ', ' + year, short: span, ref: 'Q' + q }
+	}
+	if (range === 'YTD') return { label: year, short: span, ref: year }
+	return { label: 'All time', short: 'all time', ref: null }
 }
 
-/* The scale under the chart is the window's own. Left at the month's 01/08/15/22/29 it printed
-   the wrong days under every week and month names under none of the long ones. */
-const axisFor = (range, from, length) => {
+/* The scale under the chart is the window's own, and it is keyed on the days rather than on the
+   chip: a quarter that has only started is one month of days and wants the marks a month wants.
+   Left at the month's fixed 01/08/15/22/29 it printed the wrong days under every week and month
+   names under none of the long ones. */
+const axisFor = (from, length) => {
 	const within = days.slice(from, from + length)
-	if (range === '1M') return ['01', '08', '15', '22', '29'].filter(d => Number(d) <= length)
-	if (range === '1W') return within.map(day => day.date.slice(8))
+	const first = within[0], last = within[within.length - 1]
+	if (length <= 14) return within.map(day => day.date.slice(8))
+	if (first.periodId === last.periodId && dayNumber(first.date) === 1)
+		return ['01', '08', '15', '22', '29'].filter(d => Number(d) <= length)
 	return [...new Set(within.map(day => monthOf(day.periodId).shortLabel.slice(0, 3)))]
 }
 
-/* Which month the cards beside the chart are about, now that a week can straddle two: the one
-   most of the window's days fall in, the later month taking a tie. For a whole ISO week that is
-   the month holding its Thursday -- the rule ISO itself uses to place a week in a year -- and
-   for the clipped weeks at either end of the store it is the month that is actually there. */
+/* Which month the cards beside the chart are about. A window wider than a week takes the month
+   it ends in, which is the month a reader paging into it has just arrived at. A week takes the
+   month most of its days fall in, because a week straddles two: for a whole one that is the
+   month holding its Thursday, the rule ISO itself uses to place a week in a year, and for the
+   clipped ones at either end of the store it is the month that is actually there. */
 const monthUnder = within => {
 	const tally = new Map()
 	for (const day of within) tally.set(day.periodId, (tally.get(day.periodId) ?? 0) + 1)
 	return [...tally].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? 1 : -1))[0][0]
 }
 
+const KEYS = { '1W': weekKey, '1M': monthKey, '3M': quarterKey, YTD: yearKey }
+
 const windowAt = (range, from, length) => {
 	const within = days.slice(from, from + length)
 	const first = within[0], last = within[within.length - 1]
-	const periodId = monthUnder(within)
-	const { label, short, prefix } = labelsFor(range, first, last, periodId)
+	const periodId = range === '1W' ? monthUnder(within) : last.periodId
+	const { label, spoken, short, ref } = labelsFor(range, first, last, periodId)
 	return {
-		id: range === '1W' ? weekKey(first.date) : range === '1M' ? periodId : range,
-		range, unit: UNITS[range] ?? 'range', periodId,
+		id: KEYS[range] ? KEYS[range](first.date) : range,
+		range, unit: UNITS[range] ?? 'range', periodId, ref,
 		/* The day this window stands on when the width changes under it: the newest one that
 		   belongs to the month the window is filed under. Its own last day would do for every
 		   window that sits inside a month, and would walk a reader off the month the cards are
@@ -607,49 +626,46 @@ const windowAt = (range, from, length) => {
 		   is in July and you get July, which is the month the page was already about. */
 		anchor: from + within.findLastIndex(day => day.periodId === periodId),
 		from: first.date, to: last.date, start: from, length,
-		label, labelPrefix: prefix ?? null, shortLabel: short, axis: axisFor(range, from, length)
+		label, spoken: spoken ?? null, shortLabel: short, axis: axisFor(from, length)
 	}
 }
 
-/* Every window a range offers, newest first, which is the order the pager walks. The weeks are
-   the timeline grouped by ISO week, so the first and the last are clipped to the days the store
-   has -- week 18 is the three days of May the store starts with. A clipped window is a fact
-   about where the records stop, not a different kind of window: it says which days it holds and
-   is compared against the same number of days before it, or against nothing when they are not
-   all there. */
+/* Every window a range offers, newest first, which is the order the pager walks: the timeline
+   cut into runs of days sharing a calendar key. The first and last run of any unit are clipped
+   to the days the store has -- week 18 is the three days of May it starts with, Q3 is July on
+   its own, 2026 is three months of it. A clipped window is a fact about where the records stop
+   rather than a different kind of window: it says which days it holds, and it is compared like
+   any other or not at all. ALL is the one window that is not a calendar unit. */
 const built = {}
 const windowsOf = range => (built[range] ??= (() => {
-	if (range === '1W') {
-		const out = []
-		for (let i = 0; i < days.length;) {
-			const key = weekKey(days[i].date)
-			let n = 1
-			while (i + n < days.length && weekKey(days[i + n].date) === key) n++
-			out.push(windowAt('1W', i, n))
-			i += n
-		}
-		return out.reverse()
+	const keyOf = KEYS[range]
+	if (!keyOf) return [windowAt(range, 0, days.length)]
+	const out = []
+	for (let i = 0; i < days.length;) {
+		const key = keyOf(days[i].date)
+		let n = 1
+		while (i + n < days.length && keyOf(days[i + n].date) === key) n++
+		out.push(windowAt(range, i, n))
+		i += n
 	}
-	if (range === '1M') return store.periods.map(p => windowAt('1M', firstDayOf(p.id), dayCount(p)))
-	return [windowAt(range, 0, days.length)]
+	return out.reverse()
 })())
 
-/* What a window is measured against: the month before a month, the same number of days before a
-   week. A month against the thirty-one days before it would be a month against most of another
-   one, and the delta would stop agreeing with the month's own. */
+/* What a window is measured against: the calendar unit before it -- the month before a month,
+   the quarter before a quarter -- and for a week, the same number of days immediately before it.
+   The week is the exception because a week can be clipped to a few days at either end of the
+   records, and the window before it is a whole one: five days against seven is a delta about
+   the calendar rather than about the spending. Months, quarters and years differ in length by
+   nature, and "vs June" is what the record itself says. */
 const previousOf = chosen => {
-	if (chosen.range === '1M') {
-		const at = store.periods.findIndex(p => p.id === chosen.periodId)
-		const before = store.periods[at + 1]
-		return before
-			? { start: firstDayOf(before.id), length: dayCount(before), label: before.shortLabel }
-			: null
-	}
-	if (chosen.range === '1W' && chosen.start >= chosen.length) {
+	if (chosen.range === '1W') {
+		if (chosen.start < chosen.length) return null
 		const start = chosen.start - chosen.length
 		return { start, length: chosen.length, label: spanText(days[start].date, days[start + chosen.length - 1].date) }
 	}
-	return null
+	const list = windowsOf(chosen.range)
+	const before = list[list.findIndex(w => w.id === chosen.id) + 1]
+	return before ? { start: before.start, length: before.length, label: before.ref } : null
 }
 
 /* Which way it went comes back beside the sentence, because spending less is a good down --

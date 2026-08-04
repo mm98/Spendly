@@ -48,7 +48,7 @@ src/
 | `/vendors/new`, `/vendors/:id/edit` | A vendor, on the same form page an order uses |
 | `/categories` | Categories, and a Manage tab whose rows open the record |
 | `/categories/new`, `/categories/:id/edit` | A category: name, budget, colour, glyph, delete |
-| `/stats` | Statistics, with a pager over windows of the three months |
+| `/stats` | Statistics, with a pager over weeks, months, quarters and years |
 | `/settings` | Order settings — what ORDER SETTINGS opens |
 
 ### The stylesheet
@@ -524,8 +524,9 @@ checked.
     with the count.
   - Statistics pages back through June and May, the figures move with it, the window is in
     the URL, and browser Back walks the pager. The pager steps whatever the range chips are
-    set to: **14 windows at 1W** (ISO weeks, so 12 whole ones and 2 clipped where the records
-    stop), **3 at 1M**, **1 each at 3M, YTD and ALL** — and the arrows name the step they take.
+    set to, and every width is a calendar unit: **14 windows at 1W** (ISO weeks, so 12 whole
+    ones and 2 clipped where the records stop), **3 at 1M**, **2 at 3M** (Q3 and Q2), **1 at
+    YTD** (2026) and **1 at ALL** — and the arrows name the step they take.
   - An order's status writes through and survives a reload; ADD FILE attaches the file it was
     given and the header counts it; OPEN shows it, delete removes it; Edit loads the order
     into the form, a line edit replaces rather than appends, and the edit sticks; Delete asks

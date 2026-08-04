@@ -306,33 +306,46 @@ three spans.
 
 ### The window is the unit now
 
-The chips choose a width and the pager steps by it: **14 windows at 1W**, **3 at 1M**, and **1 each at
-3M, YTD and ALL** — every day the store holds, with both arrows disabled at once. Paging left from
-*20–26 July* reaches *13–19 July*, and keeps going into June, which no month pager could reach. The
-arrows name their own step: *Previous week*, *No later month*, *No earlier range*.
+Every width is a **calendar unit** now, and the pager steps it: **14 windows at 1W**, **3 at 1M**, **2
+at 3M** (the quarters Q3 and Q2), **1 at YTD** (the year 2026) and **1 at ALL**. A width that was a
+count of days back from today had nothing to page to and nothing to be called — 3M, YTD and ALL all
+landed on the same 92 days and differed only in how coarsely they were drawn. Paging left from *W30*
+reaches *W29* and keeps going into June, which no month pager could reach; paging left from *Q3* reaches
+*Q2*. The arrows name their own step: *Previous week*, *No later month*, *Previous quarter*, *No earlier
+year*.
 
-The weeks are **ISO weeks**: Monday to Sunday, numbered so that week 1 holds 4 January, and labelled by
-that number and its year — **18, 2026**. Chunking each month into sevens from its own 1st was the first
-version of this and it named a stretch of time no calendar agrees with: the store starts on **Friday 1
-May**, which is the tail of week 18 and the head of nothing. **12 of the 14** windows are whole weeks,
-each running Monday to Sunday — asserted on the weekday of both ends, not on the arithmetic that
-produced them — and the two clipped ones are where the records stop: week 18 holds *1–3 May*, week 31
-holds *27–31 July*. One week, 27, spans two months (*29 June – 5 July*), and the cards beside it read
-the month most of its days fall in, which for a whole week is the month holding its Thursday — the rule
-ISO itself uses to place a week in a year.
+A unit is drawn as its own name and the days it covers are printed over the chart: **W30, 2026** ·
+**July 2026** · **Q2, 2026** · **2026** · **All time**, above *Overview · 20–26 July*, *· July*, *· 1
+May – 30 June*, *· 1 May – 31 July*, *· all time*. The unit alone cannot say that, and two of the five
+windows in this store are clipped by where the records stop: **Q3 is July on its own** and **2026 is
+three months of it**.
 
-**A window compares against the same number of days before it, or against nothing.** Week 19 is a whole
-week with only three days behind it in the store, so it carries no comparison rather than a seven-day
-window measured against a three-day one.
+The weeks are **ISO weeks**: Monday to Sunday, numbered so that week 1 holds 4 January. Chunking each
+month into sevens from its own 1st was the first version of this and it named a stretch of time no
+calendar agrees with: the store starts on **Friday 1 May**, which is the tail of week 18 and the head of
+nothing. **12 of the 14** windows are whole weeks, each running Monday to Sunday — asserted on the
+weekday of both ends, not on the arithmetic that produced them — and the two clipped ones are where the
+records stop: week 18 holds *1–3 May*, week 31 holds *27–31 July*. One week, 27, spans two months (*29
+June – 5 July*), and the cards beside it read the month most of its days fall in, which for a whole week
+is the month holding its Thursday — the rule ISO itself uses to place a week in a year. Every wider
+window takes the month it ends in, which is the month a reader paging into it has just arrived at.
 
-**18, 2026 is a number and a year, and nothing in it says week**, so the word is in the accessible name
-and not in the pixels: `Week 18, 2026` read back off the heading, *18, 2026* drawn. The days are on the
-card below it — *Overview · 29 June – 5 July* — and the arrows say *Previous week*.
+**A window is measured against the calendar unit before it** — July against June, Q3 against Q2 — except
+a week, which is measured against the same number of days immediately before it. The week is the
+exception because a week can be clipped to a few days and the window before it is a whole one: **five
+days against seven** is a delta about the calendar rather than about the spending. So week 19, whole,
+with only three days behind it in the store, carries no comparison at all.
+
+**W30, 2026 is a letter, a number and a year, and nothing in it says week**, so the unabbreviated name
+is what the heading announces while the drawn one stays short enough for the band: `Week 30, 2026` read
+back, *W30, 2026* drawn. Same for the quarters — `Quarter 2, 2026` against *Q2, 2026*. *July 2026* and
+*2026* are drawn as they are spoken and carry no second copy.
 
 **Changing the width never walks the reader off the month the cards were showing.** Each window stands
 on the newest day belonging to the month it is filed under, and that day is what the new width resolves
-against: asserted over all **17** windows, 1M from any of them lands on the month that window's own
-cards named.
+against: asserted over all **21** windows, 1M from any of them lands on the month that window's own
+cards named. Driven in the browser: from a week of June, 3M is **Q2** — the quarter June is in — not the
+quarter the page opened on.
 
 The figures follow the window because they are derived from one series rather than authored beside it.
 A month's cumulative curve and its total are the only records the store keeps, so a day's spend is the
@@ -357,9 +370,9 @@ The pace, the split and the returns already named the month and were left alone.
 ### Measured
 
 Chromium **141.0.7390.37** under Playwright **1.56.1**, driving the app at `localhost:5173`, every state
-entered by clicking what a user clicks and the state read back rather than assumed. **37 assertions
-pass**, at 1440x900 and again under `devices['iPhone 13']`. A second pass over the data layer — **63
-assertions** — walks all five widths end to end, **14, 3, 1, 1, 1 windows**, no pager looping, every
+entered by clicking what a user clicks and the state read back rather than assumed. **56 assertions
+pass**, at 1440x900 and again under `devices['iPhone 13']`. A second pass over the data layer — **81
+assertions** — walks all five widths end to end, **14, 3, 2, 1, 1 windows**, no pager looping, every
 list walked to both ends, and checks each window's running total against the figure printed above it.
 
 The header band is what a longer title could have broken, and did not: at 390 every `.card-header` on
@@ -377,8 +390,14 @@ Statistics, so the two states above were read out of the DOM rather than compare
 
 Gecko and WebKit are not installed in this container and were not checked.
 
-**Not fixed, and deliberate:** 3M, YTD and ALL all land on the same 92 days, because 92 days is
-everything the store holds. They are told apart by what they are called — *May – July 2026*, *2026 so
-far*, *All time* — and by the resolution they are drawn at (13, 12 and 6 points), not by their span.
-Three chips that cover the same days are honest here only because each label answers its own question;
-give the store a fourth month and 3M stops covering all of it, with no code to change.
+**Not fixed, and deliberate:** *Q3, 2026* reads **38% down vs Q2**, and the quarter has barely started —
+July is all of Q3 the records hold, against two months of Q2. The comparison is the right one (a quarter
+against the quarter before it) and the figure is honest about what it compares, since the card names the
+days on both sides; what it cannot say is that one of them is a third full. The month view has a Pace
+card for exactly that and the quarter view has none. Give the store a fuller year and the same code
+reads correctly with nothing to change — this is where the records stop, not what the rule says.
+
+**YTD and ALL still cover the same 92 days**, because 2026 is all the store holds. They are told apart
+by what they are called and by the resolution they are drawn at (12 points against 6), and YTD pages
+years while ALL is one window by definition. A fourth month, or a day in 2025, separates them with no
+code to change.
