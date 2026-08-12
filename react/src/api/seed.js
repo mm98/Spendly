@@ -189,12 +189,17 @@ export const orders = [
    calendar unit or it describes a window this app does not have. The key is what the URL
    carries and the label is what the chip draws, so `?range=quarter` says which window it
    opens without a legend. */
+/* The widths, and the two-letter forms the phone draws where the five of them share a row with
+   the pager. `short` is the same word shortened, not a second name for a different thing: a chip
+   reading 3M or YTD names a duration, which is the one thing this control cannot deliver -- WK
+   is Week with three letters taken off it. Only one of the two is ever rendered, so whichever a
+   reader sees is the one a screen reader says. */
 export const ranges = [
-	{ key: 'week', label: 'Week' },
-	{ key: 'month', label: 'Month' },
-	{ key: 'quarter', label: 'Quarter' },
-	{ key: 'year', label: 'Year' },
-	{ key: 'all', label: 'All' }
+	{ key: 'week', label: 'Week', short: 'WK' },
+	{ key: 'month', label: 'Month', short: 'MO' },
+	{ key: 'quarter', label: 'Quarter', short: 'QT' },
+	{ key: 'year', label: 'Year', short: 'YR' },
+	{ key: 'all', label: 'All', short: 'ALL' }
 ]
 
 /* The month the prototype holds. Every "this month" figure on every page reads from here,

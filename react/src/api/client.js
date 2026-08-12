@@ -596,7 +596,7 @@ const spanText = (from, to) => from.slice(0, 7) === to.slice(0, 7)
 	? dayNumber(from) + '–' + dayMonth(to)
 	: dayMonth(from) + ' – ' + dayMonth(to)
 
-/* Four names per window, because they are read in four places.
+/* Five names per window, because they are read in five places.
 
    `label` is what the pager draws and what the heading over the tiles is made of, and it says
    its unit in the calendar's own words -- Week 30, 2026 · July 2026 · Quarter 2, 2026 · 2026.
@@ -610,30 +610,40 @@ const spanText = (from, to) => from.slice(0, 7) === to.slice(0, 7)
    which is what a unit name does not tell you, and what the clipped windows at either end of
    the records need said. `ref` is how anything comparing itself against this window names it.
 
-   `tick` is the fourth, and it is the only abbreviated one: the label under a column in a
-   bar chart, where six of them share the width of half a card. It is not a second name for
-   the window the way the abbreviated `label` was -- nothing announces a tick as the window's
-   name, and the heading over the columns says which unit they are, so "Q3" is decoded one
-   line up rather than against the calendar. */
+   `tick` is the label under a column in a bar chart, where six of them share the width of half
+   a card. It is not a second name for the window the way the abbreviated `label` was -- nothing
+   announces a tick as the window's name, and the heading over the columns says which unit they
+   are, so "Q3" is decoded one line up rather than against the calendar.
+
+   `abbr` is `label` for a band too narrow to hold it -- W31 2026, Jul 2026, Q3 2026. It is the
+   one thing this file said was settled and is not: a name that has to be decoded is a name
+   nobody checks, which is why the pager writes its unit out. On a 390px phone the row that
+   holds the two arrows, this name and the five widths has about 96px for it, and "Quarter 3,
+   2026" is 128.6px, so the choice there is between the short name and a second row. What made
+   the short name a defect before was that it was drawn while a *different* string was announced;
+   here the two are one -- the stylesheet renders exactly one of them at any width, and
+   `display:none` is not announced either. README: Statistics. */
 const labelsFor = (range, first, last, periodId) => {
 	const year = first.date.slice(0, 4)
 	const span = spanText(first.date, last.date)
 	if (range === 'week') {
 		const at = isoWeek(first.date)
 		return { label: 'Week ' + at.week + ', ' + at.year, short: span, ref: span,
-			tick: dayNumber(first.date) + ' ' + MONTHS[Number(first.date.slice(5, 7)) - 1].slice(0, 3) }
+			tick: dayNumber(first.date) + ' ' + MONTHS[Number(first.date.slice(5, 7)) - 1].slice(0, 3),
+			abbr: 'W' + at.week + ' ' + at.year }
 	}
 	if (range === 'month') {
 		const month = monthOf(periodId)
 		return { label: month.label, short: month.shortLabel, ref: month.shortLabel,
-			tick: month.shortLabel.slice(0, 3) }
+			tick: month.shortLabel.slice(0, 3), abbr: month.shortLabel.slice(0, 3) + ' ' + year }
 	}
 	if (range === 'quarter') {
 		const q = quarterOf(first.date)
-		return { label: 'Quarter ' + q + ', ' + year, short: span, ref: 'Quarter ' + q, tick: 'Q' + q }
+		return { label: 'Quarter ' + q + ', ' + year, short: span, ref: 'Quarter ' + q, tick: 'Q' + q,
+			abbr: 'Q' + q + ' ' + year }
 	}
-	if (range === 'year') return { label: year, short: span, ref: year, tick: year }
-	return { label: 'All time', short: 'all time', ref: null, tick: 'All time' }
+	if (range === 'year') return { label: year, short: span, ref: year, tick: year, abbr: year }
+	return { label: 'All time', short: 'all time', ref: null, tick: 'All time', abbr: 'All time' }
 }
 
 /* The scale under the chart is the window's own, and it is keyed on the days rather than on the
@@ -666,10 +676,10 @@ const windowAt = (range, from, length) => {
 	const within = days.slice(from, from + length)
 	const first = within[0], last = within[within.length - 1]
 	const periodId = range === 'week' ? monthUnder(within) : last.periodId
-	const { label, short, ref, tick } = labelsFor(range, first, last, periodId)
+	const { label, short, ref, tick, abbr } = labelsFor(range, first, last, periodId)
 	return {
 		id: KEYS[range] ? KEYS[range](first.date) : range,
-		range, unit: unitOf(range), periodId, ref, tick,
+		range, unit: unitOf(range), periodId, ref, tick, abbr,
 		/* The day this window stands on when the width changes under it: the newest one that
 		   belongs to the month the window is filed under. Its own last day would do for every
 		   window that sits inside a month, and would walk a reader off the month the cards are
