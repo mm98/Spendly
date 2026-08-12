@@ -621,9 +621,10 @@ document's own `scrollWidth` cannot report an overhang) and neither viewport scr
 routes were loaded with the console listened to, after three fields left the store: **no console or page
 errors**, and no chart path drawn without a `d`.
 
-**Not rendered:** `docs/home.png` and `docs/phone.png` both hold this card, and both are stale — the
-heading, the chart's line and the new legend heading all move. Neither was regenerated here, and the
-pixel floor against the committed files was not measured. Gecko and WebKit are not installed in this
+**Not rendered here:** `docs/home.png` and `docs/phone.png` both hold this card, and this change left
+both stale — the heading, the chart's line and the new legend heading all move. They were regenerated
+later, with `all-orders.png` beside them; the numbers are in
+[Documentation](#documentation--three-committed-screenshots-had-drifted-from-the-app). Gecko and WebKit are not installed in this
 container and were not checked; the change is ordinary text and SVG with no native control, no
 shadow-DOM pseudo-element and no vendor prefix under it.
 
@@ -755,3 +756,40 @@ already records, and it is not this change: the pages this change can move are t
 **Not rendered:** Gecko and WebKit are not installed in this container and were not checked. The change
 is text, CSS box geometry and SVG, with no native control, no shadow-DOM pseudo-element and no vendor
 prefix under it.
+
+---
+
+## Documentation — three committed screenshots had drifted from the app
+
+All three files in `docs/` were renders of an older app. Nothing announced it: a screenshot cannot fail
+a test, and the two changes that moved them each said so in their own entry and left the regeneration
+for later, which is a note nobody reads at the moment it matters.
+
+Rendered from the app on the build these files were made on — Chromium **141.0.7390.37** under
+Playwright **1.56.1**, the pair that reproduces them exactly, so a regeneration here carries the app's
+drift and not a different machine's text rasterisation:
+
+| file | differing | of | what had moved |
+| --- | --- | --- | --- |
+| `home.png` | **226,194** | 5,184,000 | the hero card's heading, its chart and the legend heading under it |
+| `phone.png` | **41,303** | 1,035,840 | the same card, at `devices['iPhone 13']` |
+| `all-orders.png` | **319,255** | 5,184,000 | the finder's **COMMANDS** group — *Create order with Bilka* |
+
+The third was the one that had to be proved rather than assumed. A shot that holds three pieces of state
+at once — the FILTERS panel open, the list filtered to `?vendor=bilka&status=Delivered&from=2026-07-01&to=2026-07-31`,
+and `bil` typed into the global finder — reads as a difference whenever the harness drives any one of
+them wrong, and an earlier careless run had reported **734,958** for exactly that reason. Cropping the
+differing box out of both files settled it: the orders, the vendor row and the *SEARCH ALL ORDERS FOR
+"BIL"* footer are identical and in the same order, with one group inserted above the footer in the app
+and absent from the file. The state was right and the app had gained a command.
+
+Each file was rendered twice through the same harness and required to agree with itself at **0
+differing pixels** before being written — animations frozen, geometry settled across three frames, the
+scroll offset and focus put back where a fresh load has them, and the pointer parked off-canvas, since
+a probe that leaves any of those behind produces two runs that agree with each other and disagree with
+the file. `phone.png` is `devices['iPhone 13']` with `deviceScaleFactor` overridden to 2 at a 390x664
+viewport, which is the 780x1328 the committed file is; a bare 390x844 window renders 1170x2532 and dies
+on a size mismatch that reads as a layout change and is not one.
+
+**Not rendered:** Gecko and WebKit are not installed in this container. These files are Blink renders,
+as they have always been.
