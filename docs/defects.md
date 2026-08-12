@@ -626,3 +626,111 @@ heading, the chart's line and the new legend heading all move. Neither was regen
 pixel floor against the committed files was not measured. Gecko and WebKit are not installed in this
 container and were not checked; the change is ordinary text and SVG with no native control, no
 shadow-DOM pseudo-element and no vendor prefix under it.
+
+---
+
+## Statistics — the picker moved the tiles and the chart, and five cards went on reading July
+
+The page had a width picker and a pager over one timeline, and everything above the fold obeyed them:
+the window's name, the four tiles and their heading, the chart and the scale under it. Below the fold,
+five cards did not. **Pace · July**, **Weekly rhythm · July**, **Where it went · July**, **Last six
+months** and **Returns · July** came off the month record whatever the picker said, so pressing *Week*
+left a page describing two different stretches of time at once — and the frozen half was the larger
+one, five cards against four tiles.
+
+Field by field across the five widths, on the page as it stood: the pace card's heading **1** distinct
+value, its figure **1** (*30.300 kr.*), the rhythm's heading **1**, its figure **1** (*34% of spend
+lands on weekends*), the split's heading **1**, its four rows **1**, the columns' heading **1**, their
+labels **1** (*Feb,Mar,Apr,May,Jun,Jul*), the returns heading **1** and its note **1** — ten fields, one
+value each, under a tiles heading that took **5**. That is the shape to check for: one moving field is
+all a tuple needs to hide ten frozen ones.
+
+Three of the frozen values were untrue on their own terms, not merely stale:
+
+- **The pace card said *25 days in* over a July the store holds 31 days of**, and projected *30.300 kr.*
+  from them — a projection for a month whose records are complete, printed as though it were still
+  being written.
+- **The category split printed the all-time category totals under a heading naming July.** *Groceries
+  18.420 · Electronics 12.940 · Household 6.110 · Everything else 5.550* sums to **43.020 kr.** beside a
+  card total of **24.418,57 kr.**, and the ring next to those rows was drawn from a *different* set of
+  numbers again — the global shares 38/27/13/10 — so the picture and the list beside it had no way to
+  disagree visibly, and did.
+- **The columns card drew six months of which three do not exist.** *Feb, Mar, Apr* are authored bar
+  heights in a store that holds **May, June and July**, under the sentence *July is the highest so far*,
+  which was authored too and stayed true only by luck.
+
+The picker itself sat in the Overview card's body, a scroll away from the arrows that step by what it
+chooses, and its buttons were **27.94px** high resting and **29.94px** selected against the paging
+buttons' **32x32** — one control drawn as two, in two heights, one of which changed with the selection.
+
+### Every card is the window's now
+
+The same ten fields take **5, 5, 5, 3, 5, 3, 3, 3, 5, 5** distinct values across *Week · Month ·
+Quarter · Year · All*. Where a field reads **3** rather than **5** the records are what stopped, not the
+control: **Q3 is July on its own** and **2026 is the three months the store holds**, so those windows
+carry the same days as *Month* and *All* and the same numbers with them — they are told apart by their
+names, their day counts and their pace.
+
+Paging inside a width moves the same cards: one step back from July to June takes the pace figure
+**24.419 → 20.680 kr.**, the weekend share **22% → 23%**, the split's first row **10.455 → 15.180 kr.**,
+the marked column **Jul → Jun**, and the returns note from *One return in July: Zalando on 5 July,
+refunded in full: 799,00 kr.* to *No returns in June.* Of the eighteen fields read, four hold across the
+two months, and each is a fact about the pair rather than a card that failed to move: the same width is
+lit, the axis is a whole month's **01/08/15/22/29** either way, and the meter is full on both because
+both months are complete.
+
+What a month authors and a day does not — which categories a purchase fell into — is split across that
+month's days by what each day cost, which is how the totals already carry `saved` and `shipping`. So the
+split is the window's and the ring is drawn from the rows beside it: July's four rows now read **10.455
+· 7.345 · 3.468 · 3.150 kr.**, which is **24.418,57 kr.**, the figure above the chart. The returns note
+is derived from the orders themselves, so it is true of a stretch nobody authored a sentence for — and
+of an order returned today.
+
+Two things a derived card can reach that an authored one could not, and both are drawn: a window with
+**no weekend in it** (*27–31 July* is Monday to Friday) reports **0%** and draws the Saturday and Sunday
+tracks empty rather than absent, at a 3px floor; and a window with **nothing before it** — *All time*,
+and the oldest week in the store — draws no marker on the pace meter and prints no sentence about one,
+where the card previously assumed a previous month always existed.
+
+### The two halves are one control
+
+The picker sits in the pager band, immediately right of the arrows. Every button in it is **32x32**
+resting *and* selected — the same box `.icon-button-arrow` draws — and the row's geometry is byte-stable
+across the five states: *Week 60.89 · Month 67.11 · Quarter 77.55 · Year 54.89 · All 40.67*, at the same
+x in all five, because the selected button changes fill and not padding. The band is **34px** on one row
+at 1440 and **119.89px** on two at `devices['iPhone 13']`, where the five widths still share one row and
+nothing overhangs its parent. Every card header on the page is still **44.67px**, the height
+[measured against the longest title the page can produce](#statistics--the-range-chips-drew-a-week-and-the-pager-went-on-stepping-months)
+— and the height this picker broke, at 57.94 and 93.88, the last time it was put inside a card header
+instead of beside the arrows. A page band is not a card header: it is the pager's own row and it
+already wraps. Taking the picker in cost the band **0px** at 1440 — 34px before and after, with the
+Overview card still starting at **340.7** — and **42px** at 390, where it takes a row of its own; the
+page is shorter either way, **1426 → 1362** and **2364 → 2343**, because the picker left the card body
+it used to sit in.
+
+The name between the arrows holds **213px** — *Quarter 2, 2026* is the longest the pager can reach at
+**128.61px**, plus two 32px buttons and two 10px gaps. Without it the picker slid **87px** sideways
+between *Year* and *Quarter*, which puts a different width under the pointer that has just clicked one.
+The first attempt at holding it computed to `min-width:0`: `.row-inline > *` is set to that deliberately,
+later in the stylesheet and at equal specificity, so the rule now sits beside the one it has to beat.
+
+### Measured
+
+Chromium **141.0.7390.37** under Playwright **1.56.1**, driving the app at `localhost:5173`, every state
+entered by clicking what a user clicks and read back from the DOM. **No console or page errors** in any
+state. The URL carries both halves and the browser's Back walks them: `#/stats` → `#/stats?range=week` →
+`#/stats?range=week&period=2026-W30`, and Back returns through the same three windows with the pace card
+following each one; exactly **one** width is `aria-pressed` in every state; a link carrying a width the
+product no longer has, `?range=3M`, opens July with *Month* lit.
+
+`docs/` was not regenerated and did not need to be. This branch and `main` were rendered through the
+same harness on the same machine: **0 differing pixels of 5,184,000** on Home, **0 of 1,035,840** on the
+phone shot and **0 of 5,184,000** on All Orders, against **896,858 of 5,184,000** on Statistics, which is
+the change. Against the committed files the same renders differ by **226,194**, **41,303** and **734,958**
+— that gap is the staleness [the entry above](#home--the-hero-card-said-spent-this-month-under-every-width-there-was)
+already records, and it is not this change: the pages this change can move are the ones that came back at
+0 against `main`.
+
+**Not rendered:** Gecko and WebKit are not installed in this container and were not checked. The change
+is text, CSS box geometry and SVG, with no native control, no shadow-DOM pseudo-element and no vendor
+prefix under it.

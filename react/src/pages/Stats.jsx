@@ -13,19 +13,24 @@ import { kr, krRound } from '../api/format.js'
 
 /* Statistics.
 
-   The range chips and the pager are one control. The chips choose how wide the window is and
-   the arrows step by that width, so Week pages a week and Month pages a month -- they used to
-   disagree, and a pager that steps something other than what is drawn is a pager for a page
-   nobody is looking at. The header, the tiles and the chart are all the window's, derived from
-   the same days. What the records cannot cut that fine stays the month's and says which month
-   in its own heading -- the pace, the rhythm, the split and the returns -- because a pace is a
-   month's by definition, a weekly rhythm needs more than one of each weekday, and the other two
-   are written per month. README: Statistics.
+   The width picker and the pager are one control, so they are drawn as one: the two arrows,
+   the window's name and the five widths in a single band, every button the same 32px box. The
+   picker chooses how wide the window is and the arrows step by that width, so Week pages a
+   week and Month pages a month -- they used to disagree, and a pager that steps something
+   other than what is drawn is a pager for a page nobody is looking at. README: Statistics.
 
-   The chips sit in the card body, where the hero card's identical control sits, rather than in
-   the header. In the header they were the one right-hand item taller than the band -- five
-   buttons wrapping to two rows and 66px at 390, beside a label that wrapped with them -- so the
-   header stood at 57.94 and 93.88 against every other header's 44.67. README: Cards. */
+   Every card on the page is that window's. The pace, the weekly rhythm, the category split,
+   the columns and the returns note used to come off the month record whatever the picker said,
+   so choosing a week moved the tiles and the chart and left five cards reading July -- a page
+   with one control and two answers to it. The charts are the same charts; the days under them
+   are the window's. What a month authors and a day does not is split across that month's days
+   by what each day cost, the same way the tiles already are.
+
+   The picker was in the Overview card's header once, where it was the one right-hand item
+   taller than the band -- five buttons wrapping to two rows and 66px at 390 -- so the header
+   stood at 57.94 and 93.88 against every other header's 44.67. The page band is not a card
+   header: it is the pager's own row, it already wraps, and the buttons in it are the size of
+   the buttons beside them. README: Cards. */
 
 export default function Stats() {
 	/* Which window is on screen lives in the URL, so a link to a week is a link to a week --
@@ -46,7 +51,7 @@ export default function Stats() {
 
 	return (
 		<Page variant="page-grid">
-			<Async state={state} label="Loading your statistics">{({ period, categories, window: view, newer, older }) => {
+			<Async state={state} label="Loading your statistics">{({ categories, window: view, newer, older }) => {
 				/* One scale for both lines, and the running total the figure above the chart
 				   states is the line itself -- a chart drawn from other numbers than the ones
 				   printed beside it cannot fail visibly. README: Charts. */
@@ -58,27 +63,44 @@ export default function Stats() {
 					<>
 						<div className="space-between" style={{ flexWrap: 'wrap', gap: 12, padding: '2px 2px 0' }}>
 							<div className="row-inline">
-								{/* A real pager over the windows the chosen width offers. Each arrow is
-								    disabled only at its own end, which is the one honest reason to disable
-								    a control -- the prototype disabled the right-hand one permanently and
-								    left the left-hand one live and inert. It names its own step, because
-								    "previous period" over a week that pages a week says less than the
-								    control does. README: Honest Affordances. */}
-								<IconButton icon="chevronLeft"
-									label={older ? `Previous ${view.unit}` : `No earlier ${view.unit}`}
-									disabled={!older} style={older ? undefined : { opacity: 0.45 }}
-									onClick={() => older && show(view.range, older)} />
-								{/* One name, drawn and announced. Two of the units used to be abbreviated
-								    here -- W30, 2026 and Q2, 2026 -- with the unabbreviated string carried
-								    beside them for screen readers, which is a label a reader could not
-								    read and a second copy to keep in step. They are written out now. The
-								    days the window covers are on the card below, over the chart. */}
-								<span className="panel-heading" style={{ fontSize: 16, letterSpacing: '-.01em' }}>
-									{view.label}</span>
-								<IconButton icon="chevronRight"
-									label={newer ? `Next ${view.unit}` : `No later ${view.unit}`}
-									disabled={!newer} style={newer ? undefined : { opacity: 0.45 }}
-									onClick={() => newer && show(view.range, newer)} />
+								{/* The arrows and the name they step hold a width, so the picker beside
+								    them does not slide when the name changes length: Year to Quarter is
+								    2026 to Quarter 3, 2026, and that moved every width button 87px --
+								    a different width under the pointer that had just clicked one. The
+								    number it holds is in the stylesheet, on `.stats-window`. */}
+								<div className="row-inline stats-window">
+									{/* A real pager over the windows the chosen width offers. Each arrow is
+									    disabled only at its own end, which is the one honest reason to disable
+									    a control -- the prototype disabled the right-hand one permanently and
+									    left the left-hand one live and inert. It names its own step, because
+									    "previous period" over a week that pages a week says less than the
+									    control does. README: Honest Affordances. */}
+									<IconButton icon="chevronLeft"
+										label={older ? `Previous ${view.unit}` : `No earlier ${view.unit}`}
+										disabled={!older} style={older ? undefined : { opacity: 0.45 }}
+										onClick={() => older && show(view.range, older)} />
+									{/* One name, drawn and announced. Two of the units used to be abbreviated
+									    here -- W30, 2026 and Q2, 2026 -- with the unabbreviated string carried
+									    beside them for screen readers, which is a label a reader could not
+									    read and a second copy to keep in step. They are written out now. The
+									    days the window covers are on the card below, over the chart. */}
+									<span className="panel-heading" style={{ fontSize: 16, letterSpacing: '-.01em' }}>
+										{view.label}</span>
+									<IconButton icon="chevronRight"
+										label={newer ? `Next ${view.unit}` : `No later ${view.unit}`}
+										disabled={!newer} style={newer ? undefined : { opacity: 0.45 }}
+										onClick={() => newer && show(view.range, newer)} />
+								</div>
+								{/* The widths, beside the arrows that step them, in the same box the
+								    arrows are drawn in. Selected is whichever width the window on
+								    screen actually is, not whatever the URL asked for -- a link
+								    carrying a width this app no longer has, `?range=3M` from before
+								    these were named after their units, is served as the month it falls
+								    back to, and a picker with nothing selected over a month of data is
+								    the URL's claim drawn over the API's. The first click writes a name
+								    that exists. */}
+								<RangeTabs variant="pager" options={ranges} value={view.range}
+									onChange={key => show(key, periodId)} />
 							</div>
 							<div className="row-inline">
 								<span className="figure-large tabular-figures">{kr(view.spent)}</span>
@@ -111,13 +133,6 @@ export default function Stats() {
 							</CardHeader>
 							<CardDivider />
 							<CardBody variant="card-body-tight">
-								{/* Selected is whichever width the window on screen actually is, not
-								    whatever the URL asked for -- a link carrying a width this app no
-								    longer has, `?range=3M` from before these were named after their
-								    units, is served as the month it falls back to, and a chip row with
-								    nothing selected over a month of data is the URL's claim drawn over
-								    the API's. The first click writes a name that exists. */}
-								<RangeTabs options={ranges} value={view.range} onChange={key => show(key, periodId)} />
 								<Chart height={210} pad={10}
 									label={`Cumulative spend across ${view.shortLabel}${compare ? `, ${view.previousLabel} dashed behind it` : ''}`}
 									gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
@@ -134,83 +149,110 @@ export default function Stats() {
 						</Card>
 
 						<div className="two-column">
-							{/* Four cards the records cannot cut finer than a month: a pace is a month's,
-							    a weekly rhythm needs more than one of each weekday, and the split and the
-							    returns are written per month. Each says which month in its own heading,
-							    rather than borrowing the one over the tiles -- that one now moves. */}
+							{/* The four cards under the chart, every one of them the window's. Each says
+							    which stretch it is about in its own heading, rather than borrowing the
+							    one over the tiles, because a card that names nothing is a card a reader
+							    has to scroll up to date. */}
 							<Card aria-label="Pace">
-								<CardHeader title={`Pace · ${period.shortLabel}`}>
-									<span className="field-help">{period.daysIn} days in</span>
+								<CardHeader title={`Pace · ${view.shortLabel}`}>
+									<span className="field-help">{view.pace.daysIn} days in</span>
 								</CardHeader>
 								<CardDivider />
 								<CardBody>
-									<div className="figure-large tabular-figures">{krRound(period.projected)}</div>
+									<div className="figure-large tabular-figures">{krRound(view.pace.projected)}</div>
+									{/* A projection only where there is something left to project: the newest
+									    window is the one still being written, and everywhere else this figure
+									    is the total itself and says so. */}
 									<span className="field-help">
-										projected for {period.shortLabel} · {kr(period.spent)} spent so far</span>
+										{view.pace.running
+											? `projected for ${view.label} · ${kr(view.spent)} spent so far`
+											: `total for ${view.label} · ${view.pace.daysIn} days of records`}</span>
 									<Meter style={{ marginTop: 14 }}
-										fill={Math.round(period.spent / period.projected * 100)}
-										marker={Math.round(period.previousTotal / period.projected * 100)}
-										ariaLabel={`Spent ${krRound(period.spent)} of a projected ${krRound(period.projected)}; the marker is where ${period.previousLabel} ended`} />
-									<span className="field-help" style={{ marginTop: 8, display: 'block' }}>
-										The marker is where {period.previousLabel} ended: {krRound(period.previousTotal)}.</span>
+										fill={Math.round(view.spent / view.pace.projected * 100)}
+										/* The marker is a position on this window's track, so a previous
+										   window that spent more than this one is projected to sits at the
+										   end of it -- the figure it stands for is printed under the meter,
+										   where it can exceed the track without falling off it. */
+										marker={view.previousTotal != null
+											? Math.min(100, Math.round(view.previousTotal / view.pace.projected * 100))
+											: undefined}
+										ariaLabel={`Spent ${krRound(view.spent)} of ${view.pace.running ? 'a projected ' : ''}${krRound(view.pace.projected)}`
+											+ (view.previousTotal != null ? `; the marker is where ${view.previousLabel} ended` : '')} />
+									{/* No full stop after the amount: krRound ends in "kr." and this line has been
+									    closing a second one on top of it -- "20.680 kr..". */}
+									{view.previousTotal != null
+										? <span className="field-help" style={{ marginTop: 8, display: 'block' }}>
+											The marker is where {view.previousLabel} ended: {krRound(view.previousTotal)}</span>
+										: null}
 								</CardBody>
 							</Card>
 
 							<Card aria-label="Weekly rhythm">
-								<CardHeader title={`Weekly rhythm · ${period.shortLabel}`}>
-									<span className="field-help">busiest day: {period.busiestDay}</span>
+								<CardHeader title={`Weekly rhythm · ${view.shortLabel}`}>
+									<span className="field-help">busiest day: {view.rhythm.busiestDay}</span>
 								</CardHeader>
 								<CardDivider />
 								<CardBody>
-									<div className="figure-large tabular-figures">{period.weekendShare}%{' '}
+									<div className="figure-large tabular-figures">{view.rhythm.weekendShare}%{' '}
 										<span style={{ fontWeight: 500, fontSize: 14, color: 'var(--text-muted)' }}>
 											of spend lands on weekends</span></div>
-									<WeekdayBars days={period.weekdays} field="stats" style={{ height: 86 }} />
+									<WeekdayBars days={view.rhythm.weekdays} field="stats" style={{ height: 86 }} />
 								</CardBody>
 							</Card>
 						</div>
 
 						<div className="two-column">
 							<Card aria-label="Where it went">
-								<CardHeader title={`Where it went · ${period.shortLabel}`} />
+								<CardHeader title={`Where it went · ${view.shortLabel}`} />
 								<CardDivider />
 								<CardBody variant="spend-gauge-row">
-									<SpendGauge segments={period.statsLegend.map((entry, i) =>
-										({ share: categories[i]?.share ?? 25, colour: entry.colour }))}
-										value={krRound(period.spent)} label={period.label}
-										ariaLabel={`Category split of ${krRound(period.spent)} in ${period.label}`} />
+									{/* The ring and the rows are one list of numbers: the segments are the
+									    shares the amounts beside them make, so a ring drawn from all-time
+									    category totals over a month's legend cannot happen again. */}
+									<SpendGauge segments={view.split.map(entry =>
+										({ share: entry.share, colour: entry.colour }))}
+										value={krRound(view.spent)} label={view.tick}
+										ariaLabel={`Category split of ${krRound(view.spent)} in ${view.label}`} />
 									<div className="chart-legend" style={{ flex: 1, minWidth: 170 }}>
-										{period.statsLegend.map(entry => {
-											/* The row names a category, so the link filters by it. A legend row that
-											   opens an unfiltered list is a link that does not go where it says. */
+										{view.split.map(entry => {
+											/* The row names a category and states the window's amount for it, so
+											   the link carries both: an unfiltered list, or the category across
+											   all time, is a link that does not go where the row says. */
 											const category = categories.find(c => c.name === entry.name)
 											return (
 												<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
 													amount={krRound(entry.amount)}
-													to={category ? `/orders/all?category=${category.id}` : '/orders/all'} />
+													to={'/orders/all?' + (category ? `category=${category.id}&` : '')
+														+ `from=${view.from}&to=${view.to}`} />
 											)
 										})}
 									</div>
 								</CardBody>
 							</Card>
 
-							<Card aria-label="Last six months">
-								<CardHeader title="Last six months">
-									<span className="field-help">{period.shortLabel} is the highest so far</span>
+							{/* Six of whatever the picker chose, the one on screen marked -- Week draws six
+							    weeks here, not six months. All time and a single year have no second window
+							    of their own width to stand beside, so both fall back to the months inside
+							    the window, which is what this card has always drawn. */}
+							<Card aria-label={view.recent.title}>
+								<CardHeader title={view.recent.title}>
+									{view.recent.note ? <span className="field-help">{view.recent.note}</span> : null}
 								</CardHeader>
 								<CardDivider />
 								<CardBody>
-									<MonthColumns months={period.months} />
+									<MonthColumns months={view.recent.columns} />
 								</CardBody>
 							</Card>
 						</div>
 
 						<Card aria-label="Returns">
-							<CardHeader title={`Returns · ${period.shortLabel}`} />
+							<CardHeader title={`Returns · ${view.shortLabel}`} />
 							<CardDivider />
 							<CardBody>
 								<EmptyState icon={null} style={{ padding: '14px 12px' }}>
-									<p>{period.returnsNote}</p>
+									<p>{view.returnsNote}</p>
+									{/* The note is the window's; the history behind it is all of them, which
+									    is what the label says and where the link goes. */}
 									<ButtonLink to="/orders/all?status=Returned">SEE RETURN HISTORY</ButtonLink>
 								</EmptyState>
 							</CardBody>

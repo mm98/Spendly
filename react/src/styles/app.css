@@ -352,6 +352,15 @@ a[data-go] { color:inherit; text-decoration:none; }
 .range-tabs { display:flex; gap:14px; align-items:center; margin-top:14px; }
 .range-tabs button { font:inherit; background:none; border:0; font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.02em; cursor:pointer; padding:6px 2px; }
 .range-tabs button.is-on { color:var(--text); border:1px solid #D9DED8; border-radius:9px; padding:6px 11px; background:var(--bg-card); }
+/* The same control in Statistics' pager band, where it stands next to the two arrows that step
+   it: every button is the 32px box .icon-button-arrow is, with that button's border and radius,
+   so the row of arrows and widths reads as one control rather than two of different heights.
+   Selection is the fill and nothing else -- the weight is 600 either way, because a bolder
+   selected label is wider than its resting self and the whole row would shift under it every
+   time the selection moved. README: Segmented Control, Statistics. */
+.range-tabs.range-tabs-pager { gap:6px; margin-top:0; }
+.range-tabs-pager button { height:32px; padding:0 12px; border:1px solid var(--border-control); border-radius:var(--radius-compact); background:var(--bg-card); }
+.range-tabs-pager button.is-on { padding:0 12px; border-radius:var(--radius-compact); border-color:var(--bg-dark); background:var(--bg-dark); color:#fff; }
 .chart-wrap { position:relative; margin-top:8px; }
 /* The callout is a tooltip: it is asked for by hovering or focusing the chart, and it is not
    drawn at rest. Parked there permanently it is not a tooltip at all -- it is a label lying
@@ -426,7 +435,11 @@ svg.chart { width:100%; display:block; }
 .weekday-bars { display:flex; align-items:flex-end; gap:8px; height:112px; margin-top:14px; }
 .weekday-bars > div { flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-end; height:100%; }
 .weekday-bars .chart-bar { align-self:stretch; }
-.weekday-bars .chart-bar { width:100%; border-radius:var(--radius-compact); background:var(--bg-bar-track); position:relative; overflow:hidden; }
+/* The track is the control's furniture and the height is the data, so a weekday the window
+   spent nothing on still draws one: these bars are the chosen window's now, and a Monday-to-
+   Friday window really does hold 0 on Saturday. Without the floor that day renders as a bare
+   label under nothing, which reads as a broken bar rather than an empty one. */
+.weekday-bars .chart-bar { width:100%; min-height:3px; border-radius:var(--radius-compact); background:var(--bg-bar-track); position:relative; overflow:hidden; }
 .weekday-bars .chart-bar-fill { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact); }
 .weekday-bars span { font-size:11px; color:var(--text-muted); font-weight:500; }
 .chart-legend-inline { display:flex; align-items:center; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-divider); font-size:11.5px; color:var(--text-body); }
@@ -898,6 +911,17 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    container in the filter panel has to be allowed to shrink. */
 .filter-section { border:1px solid var(--border-card); border-radius:14px; padding:14px 16px; display:grid; gap:14px; min-width:0; }
 .filter-section > *, .filter-section-body > *, .field-pair > *, .row-inline > * { min-width:0; }
+/* The one row-inline child that holds a width instead of shrinking to fit, written here beside
+   the rule it has to beat rather than up with the rest of the Statistics band -- the general
+   rule is later in the file and wins on order at equal specificity, which is how the first
+   attempt at this computed to min-width:0 and moved nothing.
+
+   It is the pager's two arrows and the window name between them, held wide enough for the
+   longest name they can reach: "Quarter 2, 2026" measures 128.61px, plus two 32px buttons and
+   the row's two 10px gaps, so 212.61px. Held, because the width picker sits directly after it
+   -- and without this, choosing Quarter after Year moved every width button 87px sideways and
+   put a different width under the pointer that had just clicked one. README: Statistics. */
+.row-inline > .stats-window { min-width:213px; }
 /* The disclosure's label is the same string in both states and the chevron turns
    instead. The toolbar is nowrap around a flex:1 search field, so a wider "HIDE
    FILTERS" would move the search on every click -- the shift that keeps weight
