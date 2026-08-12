@@ -181,9 +181,22 @@ export function RangeTabs({ options, value, onChange, variant = '' }) {
 	return (
 		<div className={['range-tabs', variant && 'range-tabs-' + variant].filter(Boolean).join(' ')}
 			role="group" aria-label="Range">
-			{options.map(({ key, label }) => (
+			{/* Both forms of the name are in the markup and exactly one of them is ever rendered
+			    -- the stylesheet swaps them by width, and `display:none` is not announced either,
+			    so the button is drawn and read under one string at any size. An `aria-label`
+			    carrying the long word beside a short drawn one would be the W30 defect again:
+			    two strings for one control, of which the readable one is the one nobody can read.
+			    README: Statistics. */}
+			{options.map(({ key, label, short }) => (
 				<button key={key} type="button" className={key === value ? 'is-on' : undefined}
-					aria-pressed={key === value} onClick={() => onChange(key)}>{label}</button>
+					aria-pressed={key === value} onClick={() => onChange(key)}>
+					{short
+						? <>
+							<span className="pager-wide">{label}</span>
+							<span className="pager-narrow">{short}</span>
+						</>
+						: label}
+				</button>
 			))}
 		</div>
 	)

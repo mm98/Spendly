@@ -79,13 +79,18 @@ export default function Stats() {
 										label={older ? `Previous ${view.unit}` : `No earlier ${view.unit}`}
 										disabled={!older} style={older ? undefined : { opacity: 0.45 }}
 										onClick={() => older && show(view.range, older)} />
-									{/* One name, drawn and announced. Two of the units used to be abbreviated
-									    here -- W30, 2026 and Q2, 2026 -- with the unabbreviated string carried
-									    beside them for screen readers, which is a label a reader could not
-									    read and a second copy to keep in step. They are written out now. The
-									    days the window covers are on the card below, over the chart. */}
+									{/* One name at any width, drawn and announced. Both forms are in the markup
+									    and the stylesheet renders exactly one -- the unit written out wherever
+									    the band has room for it, and W31 2026 on a phone, where the row it
+									    shares with the arrows and the five widths has about 96px for a name
+									    that wants 128.6. What made the short form a defect before was the
+									    long one being announced *beside* it, which is a label a reader could
+									    not read and a second copy to keep in step; `display:none` is not
+									    announced, so there is one string here either way. The days the window
+									    covers are on the card below, over the chart. */}
 									<span className="panel-heading" style={{ fontSize: 16, letterSpacing: '-.01em' }}>
-										{view.label}</span>
+										<span className="pager-wide">{view.label}</span>
+										<span className="pager-narrow">{view.abbr}</span></span>
 									<IconButton icon="chevronRight"
 										label={newer ? `Next ${view.unit}` : `No later ${view.unit}`}
 										disabled={!newer} style={newer ? undefined : { opacity: 0.45 }}

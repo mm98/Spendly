@@ -714,6 +714,27 @@ between *Year* and *Quarter*, which puts a different width under the pointer tha
 The first attempt at holding it computed to `min-width:0`: `.row-inline > *` is set to that deliberately,
 later in the stylesheet and at equal specificity, so the rule now sits beside the one it has to beat.
 
+### At 390 the row costs more than the words
+
+The band would not hold on one row at phone width: two 32px arrows, a window name and five widths in
+about **350px** of panel leaves the name roughly **96px**, and *Quarter 3, 2026* is **128.6px** written
+out. With the widths abbreviated to two letters and nothing else changed, three of the five fitted —
+*July 2026* at **79.6px**, *2026* at **41.4** and *All time* at **63.7** — and *Week 31, 2026*
+(**113.9**) and *Quarter 3, 2026* wrapped to a second row.
+
+So the phone gives up the written-out name as well: **WK MO QT YR ALL** beside **W31 2026 · Jul 2026 ·
+Q3 2026**, the name at 14px, the 213px hold released, and all five widths on **one row** — the pager
+band ending at 350.38–360.22px of a 390px viewport in every one of them. That is the abbreviation
+[the rule above](#statistics--the-chips-named-durations-and-the-windows-were-calendar-units) exists to
+prevent, and it is allowed here on one condition: both forms are in the markup and the stylesheet
+renders exactly one, so nothing is announced that is not drawn. The accessibility tree at 390 reads
+`group "Range"` over `button "WK" [pressed]`, `"MO"`, `"QT"`, `"YR"`, `"ALL"`, with the window name
+`W31 2026`; at 1440 the same nodes read `"Week" [pressed]`, `"Month"`, `"Quarter"`, `"Year"`, `"All"`
+and `Week 31, 2026`. One string per control per width — the W30 defect was two.
+
+Desktop is untouched by all of it: the full words, the buttons at the same five widths, and the picker
+still starting at **x=485** in all five states.
+
 ### Measured
 
 Chromium **141.0.7390.37** under Playwright **1.56.1**, driving the app at `localhost:5173`, every state

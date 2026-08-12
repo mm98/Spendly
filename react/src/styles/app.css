@@ -361,6 +361,12 @@ a[data-go] { color:inherit; text-decoration:none; }
 .range-tabs.range-tabs-pager { gap:6px; margin-top:0; }
 .range-tabs-pager button { height:32px; padding:0 12px; border:1px solid var(--border-control); border-radius:var(--radius-compact); background:var(--bg-card); }
 .range-tabs-pager button.is-on { padding:0 12px; border-radius:var(--radius-compact); border-color:var(--bg-dark); background:var(--bg-dark); color:#fff; }
+/* The pager band's two forms of a name -- the window's, and each width button's. The long one is
+   what shows everywhere; the phone rule swaps which of the pair is rendered, and since only one
+   of them is ever in the render tree, the string a reader sees is the string a screen reader
+   says. The pair is scoped to this band on purpose: Home's hero carries the same width buttons
+   in a card with room to wrap them, so it keeps the words. README: Statistics. */
+.pager-narrow { display:none; }
 .chart-wrap { position:relative; margin-top:8px; }
 /* The callout is a tooltip: it is asked for by hovering or focusing the chart, and it is not
    drawn at rest. Parked there permanently it is not a tooltip at all -- it is a label lying
@@ -1141,6 +1147,19 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	.chart-callout { display:none; }
 	.figure-headline { font-size:23px; }
 	.range-tabs { flex-wrap:wrap; gap:8px 12px; }
+	/* The whole band on one row at 390: two 32px arrows, the window's name and five widths, in
+	   about 350px of panel. Every part of it gives something up -- the widths are drawn two
+	   letters wide (WK MO QT YR ALL), the window's name takes its short form (W31 2026), the
+	   name's own size drops to 14px, and the desktop hold on .stats-window is released, since
+	   213px of it plus the buttons is the second row this rule exists to remove. Written out,
+	   Quarter 3, 2026 is 128.6px against the ~96px the row can spare it. */
+	.stats-window .pager-wide, .range-tabs-pager .pager-wide { display:none; }
+	.stats-window .pager-narrow, .range-tabs-pager .pager-narrow { display:inline; }
+	.range-tabs.range-tabs-pager { gap:4px; }
+	.range-tabs-pager button, .range-tabs-pager button.is-on { padding:0 7px; }
+	.row-inline > .stats-window { min-width:0; gap:6px; }
+	.space-between > .row-inline { gap:6px; }
+	.stats-window .panel-heading { font-size:14px; }
 }
 /* Reduced motion calms the interface but must never freeze a busy indicator:
    a stopped spinner reads as a hung app. Progress keeps moving, just slower. */
