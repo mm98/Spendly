@@ -1,14 +1,22 @@
 name: Pages
 
-# Run by hand, from Actions -> Pages -> Run workflow. Nothing here fires on a push, a release
-# or a schedule: publishing puts the app on the open web at the Pages URL, so it happens when
-# someone decides it happens, and the run log says who pressed it and on what.
+# Every merge into main publishes. A pull request that lands is the decision to ship it, and a
+# site that only updates when somebody remembers to press a button is a site that goes quietly
+# stale against the branch it claims to be.
 #
-# One thing has to be true outside this file before it can work: the repository's Pages source
-# must be set to GitHub Actions rather than a branch (Settings -> Pages), which is what lets a
-# workflow deploy at all -- deploy-pages fails against a branch source. Pages on a private
-# repository is a paid feature besides, which this repository is not affected by.
+# The four checks run again here rather than being taken on trust from the pull request: what
+# gets deployed is the merge result, and no branch was ever tested on that commit.
+#
+# The manual trigger stays for what a push cannot do -- publishing some other branch to look at
+# it, and rolling back by running an older tag or commit.
+#
+# One thing has to be true outside this file before any of it works: the repository's Pages
+# source must be set to GitHub Actions rather than a branch (Settings -> Pages), which is what
+# lets a workflow deploy at all -- deploy-pages fails against a branch source. Pages on a
+# private repository is a paid feature besides, which this repository is not affected by.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       ref:
@@ -34,9 +42,12 @@ jobs:
       run:
         working-directory: react
     steps:
+      # The chosen ref when a person picked one, and the commit that was pushed otherwise --
+      # `inputs` is empty on a push, and an empty ref would silently mean "the default branch",
+      # which is only the same thing by luck.
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ inputs.ref || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -71,4 +82,4 @@ jobs:
     steps:
       - id: deploy
         uses: actions/deploy-pages@v4
-      - run: echo "Published ${{ inputs.ref }} to ${{ steps.deploy.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+      - run: echo "Published ${{ inputs.ref || github.ref_name }} (${{ github.sha }}) to ${{ steps.deploy.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
