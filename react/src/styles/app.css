@@ -1160,6 +1160,16 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	.row-inline > .stats-window { min-width:0; gap:6px; }
 	.space-between > .row-inline { gap:6px; }
 	.stats-window .panel-heading { font-size:14px; }
+	/* The band's two halves at either end of their row: the arrows and the name they step on the
+	   left, the widths they step by on the right, with the slack between them rather than after
+	   them. The row takes the full width to do it, which is what puts the total and its chip on
+	   a line of their own underneath, starting at the same left edge as the arrows.
+
+	   Anchoring the widths to the right edge is also what holds them still: their labels are two
+	   letters whichever is selected, so a right-aligned row of them lands every button on the
+	   same x in all five states -- the desktop band buys that with a 213px hold on the name, and
+	   here the edge does it for nothing. */
+	.space-between > .row-inline:first-child { flex:1 0 100%; justify-content:space-between; }
 }
 /* Reduced motion calms the interface but must never freeze a busy indicator:
    a stopped spinner reads as a hung app. Progress keeps moving, just slower. */
