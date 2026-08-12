@@ -596,7 +596,7 @@ const spanText = (from, to) => from.slice(0, 7) === to.slice(0, 7)
 	? dayNumber(from) + '–' + dayMonth(to)
 	: dayMonth(from) + ' – ' + dayMonth(to)
 
-/* Three names per window, because they are read in three places.
+/* Four names per window, because they are read in four places.
 
    `label` is what the pager draws and what the heading over the tiles is made of, and it says
    its unit in the calendar's own words -- Week 30, 2026 · July 2026 · Quarter 2, 2026 · 2026.
@@ -608,24 +608,32 @@ const spanText = (from, to) => from.slice(0, 7) === to.slice(0, 7)
 
    `short` is the days the window actually covers, printed over the chart that plots them --
    which is what a unit name does not tell you, and what the clipped windows at either end of
-   the records need said. `ref` is how anything comparing itself against this window names it. */
+   the records need said. `ref` is how anything comparing itself against this window names it.
+
+   `tick` is the fourth, and it is the only abbreviated one: the label under a column in a
+   bar chart, where six of them share the width of half a card. It is not a second name for
+   the window the way the abbreviated `label` was -- nothing announces a tick as the window's
+   name, and the heading over the columns says which unit they are, so "Q3" is decoded one
+   line up rather than against the calendar. */
 const labelsFor = (range, first, last, periodId) => {
 	const year = first.date.slice(0, 4)
 	const span = spanText(first.date, last.date)
 	if (range === 'week') {
 		const at = isoWeek(first.date)
-		return { label: 'Week ' + at.week + ', ' + at.year, short: span, ref: span }
+		return { label: 'Week ' + at.week + ', ' + at.year, short: span, ref: span,
+			tick: dayNumber(first.date) + ' ' + MONTHS[Number(first.date.slice(5, 7)) - 1].slice(0, 3) }
 	}
 	if (range === 'month') {
 		const month = monthOf(periodId)
-		return { label: month.label, short: month.shortLabel, ref: month.shortLabel }
+		return { label: month.label, short: month.shortLabel, ref: month.shortLabel,
+			tick: month.shortLabel.slice(0, 3) }
 	}
 	if (range === 'quarter') {
 		const q = quarterOf(first.date)
-		return { label: 'Quarter ' + q + ', ' + year, short: span, ref: 'Quarter ' + q }
+		return { label: 'Quarter ' + q + ', ' + year, short: span, ref: 'Quarter ' + q, tick: 'Q' + q }
 	}
-	if (range === 'year') return { label: year, short: span, ref: year }
-	return { label: 'All time', short: 'all time', ref: null }
+	if (range === 'year') return { label: year, short: span, ref: year, tick: year }
+	return { label: 'All time', short: 'all time', ref: null, tick: 'All time' }
 }
 
 /* The scale under the chart is the window's own, and it is keyed on the days rather than on the
@@ -658,10 +666,10 @@ const windowAt = (range, from, length) => {
 	const within = days.slice(from, from + length)
 	const first = within[0], last = within[within.length - 1]
 	const periodId = range === 'week' ? monthUnder(within) : last.periodId
-	const { label, short, ref } = labelsFor(range, first, last, periodId)
+	const { label, short, ref, tick } = labelsFor(range, first, last, periodId)
 	return {
 		id: KEYS[range] ? KEYS[range](first.date) : range,
-		range, unit: unitOf(range), periodId, ref,
+		range, unit: unitOf(range), periodId, ref, tick,
 		/* The day this window stands on when the width changes under it: the newest one that
 		   belongs to the month the window is filed under. Its own last day would do for every
 		   window that sits inside a month, and would walk a reader off the month the cards are
@@ -762,6 +770,158 @@ const kpisFor = (now, was, wasLabel) => KPIS.map(kpi => {
 	}
 })
 
+/* ---- the four cards beside the chart ----
+
+   Every one of them used to be the month's, whatever the picker said: the pace, the weekly
+   rhythm, the category split, the columns and the returns note came straight off the month
+   record, so choosing a week changed the tiles and the chart above them and left five cards
+   reading July. They are the window's now, derived from the same days everything else on the
+   page is -- the charts are unchanged, it is the source under them that moved. README:
+   Statistics.
+
+   What a month authors and a day does not -- which categories a purchase fell into -- is
+   split across that month's days by what each day cost, the same way `saved` and `shipping`
+   already are. So a window inside July carries July's proportions scaled to its own spend,
+   and the four amounts add up to the total printed above the chart instead of to the
+   all-time category totals the month legend actually holds. */
+
+const WEEKDAY_TICKS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const weekdayOf = iso => {
+	const [y, m, d] = iso.split('-').map(Number)
+	return mondayFirst(Date.UTC(y, m - 1, d))
+}
+
+/** The seven bars, the weekend share and the busiest day, for a stretch of days. Heights are
+    px, the way the bars are authored: the busiest weekday is the 70px a month record draws
+    and every other bar is its share of that one. A window narrower than a week leaves the
+    weekdays it does not hold at 0, which is what a Monday-to-Friday window actually spent on
+    a Saturday. */
+const rhythmOver = (from, length) => {
+	const spend = WEEKDAY_TICKS.map(() => 0)
+	for (const day of days.slice(from, from + length)) spend[weekdayOf(day.date)] += day.spend
+	const total = spend.reduce((sum, v) => sum + v, 0)
+	const most = Math.max(...spend)
+	return {
+		weekdays: WEEKDAY_TICKS.map((day, i) => ({
+			day,
+			stats: most ? Math.round((spend[i] / most) * 70) : 0,
+			peak: most > 0 && spend[i] === most
+		})),
+		weekendShare: total ? Math.round(((spend[5] + spend[6]) / total) * 100) : 0,
+		busiestDay: WEEKDAY_NAMES[spend.indexOf(most)]
+	}
+}
+
+/* The stats palette, biggest slice first. The month records author their legends in that
+   order already, so a window inside one month comes back wearing the colours it wears today
+   -- and a window spanning two months cannot end up with one category in two colours. */
+const SPLIT_COLOURS = ['var(--donut-blue)', 'var(--green)', 'var(--donut-yellow)', 'var(--donut-purple)', '#45524C']
+
+/** Where a window's spend went, by category: every day's spend split by the proportions its
+    own month authors, summed, and ranked. The ring and the rows are drawn from this one list,
+    so the two cannot disagree the way a ring built from all-time shares and a list built from
+    a month's legend could. */
+const splitOver = (from, length) => {
+	const tally = new Map()
+	for (const day of days.slice(from, from + length)) {
+		const legend = monthOf(day.periodId).statsLegend
+		const whole = legend.reduce((sum, entry) => sum + entry.amount, 0)
+		for (const entry of legend)
+			tally.set(entry.name, (tally.get(entry.name) ?? 0) + day.spend * (entry.amount / whole))
+	}
+	const total = [...tally.values()].reduce((sum, amount) => sum + amount, 0)
+	return [...tally].sort((a, b) => b[1] - a[1]).map(([name, amount], i) => ({
+		name, amount,
+		share: total ? (amount / total) * 100 : 0,
+		colour: SPLIT_COLOURS[Math.min(i, SPLIT_COLOURS.length - 1)]
+	}))
+}
+
+const daysInMonth = (year, month) => new Date(Date.UTC(year, month, 0)).getUTCDate()
+
+/** How long the calendar unit a window names actually is, which is not how many days of it
+    the records hold: July is 31 either way, Quarter 3 is 92 of which the store has 31. */
+const unitLength = chosen => {
+	const [year, month] = chosen.from.split('-').map(Number)
+	if (chosen.range === 'week') return 7
+	if (chosen.range === 'month') return daysInMonth(year, month)
+	if (chosen.range === 'quarter') {
+		const first = (quarterOf(chosen.from) - 1) * 3 + 1
+		return daysInMonth(year, first) + daysInMonth(year, first + 1) + daysInMonth(year, first + 2)
+	}
+	if (chosen.range === 'year') return daysInMonth(year, 2) === 29 ? 366 : 365
+	return chosen.length
+}
+
+/** Where the window lands if the rest of it looks like the start.
+
+    Only the newest window is still being written, and it is the only one this projects: an
+    older window clipped by the edge of the records -- week 18 is the three days of May the
+    store opens on, the tail of a week that ended before it -- is missing days that already
+    happened, so scaling its three days up to seven would be a claim about a past the records
+    do not have. Everywhere else the projection is the total, and the note says so. */
+const paceOf = (chosen, spent, at) => {
+	const unitDays = unitLength(chosen)
+	const running = at === 0 && chosen.length < unitDays
+	return {
+		daysIn: chosen.length, unitDays, running,
+		projected: running ? (spent / chosen.length) * unitDays : spent
+	}
+}
+
+const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six']
+const countWord = n => COUNT_WORDS[n] ?? String(n)
+const sentenceCase = text => text[0].toUpperCase() + text.slice(1)
+
+/** The last six windows of whatever width the picker chose, oldest first, the chosen one
+    marked -- so Week pages six weeks under the columns as well as one week above them.
+
+    A width with only one window has nothing to compare against: All time is the whole of the
+    records and 2026 is the only year in them, so both fall back to the months inside the
+    window, which is what this card has always drawn. */
+const columnsFor = (chosen, at) => {
+	const own = windowsOf(chosen.range)
+	const byMonth = own.length < 2
+	const list = byMonth ? windowsOf('month') : own
+	const last = chosen.start + chosen.length - 1
+	const index = byMonth ? list.findIndex(w => last >= w.start && last < w.start + w.length) : at
+	const shown = list.slice(index, index + 6).reverse()
+	const totals = shown.map(w => totalsOver(w.start, w.length).spent)
+	const most = Math.max(...totals)
+	const top = shown[totals.indexOf(most)]
+	const unit = byMonth ? 'month' : chosen.range
+	return {
+		title: `Last ${countWord(shown.length)} ${unit}${shown.length === 1 ? '' : 's'}`,
+		note: shown.length > 1 ? `${top.ref ?? top.tick} is the highest` : null,
+		columns: shown.map((w, i) => ({
+			label: w.tick,
+			height: most ? Math.round((totals[i] / most) * 100) : 0,
+			current: byMonth ? w.id === chosen.periodId : w.id === chosen.id
+		}))
+	}
+}
+
+/** What came back, in the window's own days. Derived from the orders themselves rather than
+    authored per month, so the sentence is true of whatever stretch is on screen -- and of an
+    order the user returns today, which no authored note could know about. */
+const returnsIn = (chosen, spanName) => {
+	const returned = store.orders
+		.filter(o => o.status === 'Returned' && o.date >= chosen.from && o.date <= chosen.to)
+		.sort(byDateDescending)
+	if (!returned.length) return `No returns in ${spanName}.`
+	const listed = returned.map(order => {
+		const { vendor, total } = decorate(order)
+		return `${vendor?.name ?? 'An unnamed vendor'} on ${dayMonth(order.date)}`
+			+ `${order.refunded ? ', refunded in full' : ''}: ${krLabel(total)}`
+	})
+	/* No full stop after the last amount: krLabel ends in "kr." and a sentence closed on top
+	   of it reads "799,00 kr..", which is how the note under the pace meter has been printing
+	   its own figure. */
+	return `${sentenceCase(countWord(returned.length))} return${returned.length === 1 ? '' : 's'}`
+		+ ` in ${spanName}: ${listed.join('; ')}`
+}
+
 /** Which day the URL is pointing at: a date is itself, a week or a month is its last day, and
     anything else -- a span key, an empty parameter, a typo -- is the newest day there is. It is
     a day rather than a window because it is what survives a change of width: switching the
@@ -798,12 +958,20 @@ export async function getStats(range, windowId, signal) {
 		: (current.range === 'month' ? period.previousLabel : null)
 	const delta = deltaOf(now.spent, previousTotal, previousLabel)
 
+	/* What the cards call the window in a sentence. All time is the one window whose short
+	   label is not a noun phrase -- "No returns in all time" -- so it names the records. */
+	const spanName = current.range === 'all' ? 'the records' : current.shortLabel
+
 	return {
-		period: copy(period),
 		categories: copy(store.categories),
 		window: {
 			...current, days: length, spent: now.spent, previousLabel, previousTotal,
-			deltaLabel: delta.label, deltaUp: delta.direction === 'up',
+			deltaLabel: delta.label, deltaUp: delta.direction === 'up', spanName,
+			pace: paceOf(list[at], now.spent, at),
+			rhythm: rhythmOver(start, length),
+			split: splitOver(start, length),
+			recent: columnsFor(list[at], at),
+			returnsNote: returnsIn(list[at], spanName),
 			/* April is a total in May's record and not a curve, so the oldest month can be
 			   compared against and cannot be broken into tiles: there, and only there, the
 			   month's own authored row is the only one there is. */

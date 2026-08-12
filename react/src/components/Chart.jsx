@@ -171,10 +171,16 @@ export const plotted = (values, max, top = 180, bottom = 20) =>
     pager steps by, and a second copy is how a width gets offered that nothing can page.
 
     Each option carries its own label rather than the button drawing its key, so the key can be
-    what a URL wants and the label what a reader wants without the two drifting apart. */
-export function RangeTabs({ options, value, onChange }) {
+    what a URL wants and the label what a reader wants without the two drifting apart.
+
+    `variant="pager"` is the same control in Statistics' pager band, where it stands beside the
+    two arrows that step it and takes their geometry rather than the hero card's. One component
+    either way: a second copy of five buttons is a second place for a width to be offered that
+    nothing can page. */
+export function RangeTabs({ options, value, onChange, variant = '' }) {
 	return (
-		<div className="range-tabs" role="group" aria-label="Range">
+		<div className={['range-tabs', variant && 'range-tabs-' + variant].filter(Boolean).join(' ')}
+			role="group" aria-label="Range">
 			{options.map(({ key, label }) => (
 				<button key={key} type="button" className={key === value ? 'is-on' : undefined}
 					aria-pressed={key === value} onClick={() => onChange(key)}>{label}</button>
