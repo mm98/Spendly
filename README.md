@@ -2,6 +2,8 @@
 
 A unified language for building consistent, scalable expense tracking interfaces. This document defines what the product looks like and why—not how to build it.
 
+**[Live demo →](https://mm98.github.io/Spendly/)** — the app itself, not the prototype.
+
 ## What is this?
 
 A design system is a shared language. It prevents the chaos that happens when designs scale: mismatched buttons, contradictory layouts, forgotten decisions, duplicated effort. Spendly's system defines the foundations (color, typography, spacing), the components (buttons, forms, cards), and the patterns (how filters work, how data flows, how users create things). 
