@@ -786,6 +786,15 @@ svg.chart { width:100%; display:block; }
    keyboard while still looking like the rest of the system. */
 .field-shell > input, .field-shell > textarea { flex:1; min-width:0; width:100%; font:inherit; font-size:inherit; letter-spacing:inherit; color:inherit; background:none; border:0; padding:0; margin:0; outline:none; text-overflow:ellipsis; }
 .field-shell > input::placeholder, .field-shell > textarea::placeholder { color:var(--text-muted); opacity:1; }
+/* Categories wraps its chips and its input in the shell's own row (README: Combobox),
+   but the chevron does not wrap with them -- it is pinned outside that flow entirely,
+   so a full line of chips can never push it onto a line of its own the way it once did.
+   The 33px of right padding is the chevron's own 14px, the 10px it is pinned at, and the
+   9px gap the rest of the row uses -- room the input (flex-basis 0 in Combobox.jsx, so
+   it competes for whatever's left rather than reserving any of its own) would otherwise
+   run its overflow straight through. */
+.field-shell-chips { flex-wrap:wrap; padding:8px 43px 8px 10px; position:relative; }
+.field-shell-chips > .chevron-icon { position:absolute; top:0; bottom:0; right:10px; margin:auto 0; }
 /* overflow is set rather than left to the UA sheet: Blink and WebKit default a textarea to
    auto and Gecko computes visible, so the three engines disagreed on a property the walk
    compares. Nothing rendered differently -- a textarea scrolls its own content whatever this
@@ -866,6 +875,14 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		font-size:16px; transform:scale(.84375); transform-origin:left center;
 		margin-right:-18.518%;
 	}
+	/* The negative margin above hands the layout box back to a trailing flex sibling
+	   sharing the same row -- there isn't one here, the chevron is pinned outside the
+	   wrapping flow entirely (see .field-shell-chips above), so the -18.518% instead
+	   ate into the padding-right reserved for it and the scaled-up input overlapped
+	   the chevron on any coarse pointer, invisibly on desktop where this whole block
+	   is inert. Zeroing it here leaves the anti-zoom 16px and the scale-back, just
+	   without a reclaim nothing downstream is waiting to receive. */
+	.field-shell-chips > input { margin-right:0; }
 	.toolbar .field-shell > input, .global-finder > .field-shell > input {
 		font-size:16px; transform:scale(.78125); transform-origin:left center;
 		margin-right:-28%;

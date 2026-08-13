@@ -84,43 +84,56 @@ export function Combobox({
 	   a shared top edge, so both fields still start on the same line. README: Combobox. */
 	const wrapping = Boolean(chips)
 
+	const inputEl = (
+		<input ref={input} type="text" id={id} role="combobox"
+			aria-expanded={open} aria-controls={panelId} aria-autocomplete="list"
+			aria-label={label} aria-required={required || undefined}
+			aria-invalid={invalid ? 'true' : undefined}
+			aria-describedby={invalid ? describedBy : undefined}
+			value={value} placeholder={placeholder}
+			onChange={e => { onChange?.(e.target.value); setOpen(true) }}
+			onClick={() => setOpen(true)}
+			onKeyDown={e => {
+				if (e.key === 'Escape') { setOpen(false); return }
+				if (e.key !== 'ArrowDown' && e.key !== 'Enter') return
+				e.preventDefault()
+				/* Enter runs the action at the foot of the list -- CREATE VENDOR "…", ADD
+				   CATEGORY "…" -- but only when what was typed matches nothing already there.
+				   Typing the name of something that exists and pressing Enter should pick it,
+				   not make a second one. */
+				const typed = String(value ?? '').trim()
+				if (e.key === 'Enter' && action && typed) {
+					const match = groups.flatMap(g => g.options)
+						.find(o => o.label.toLowerCase() === typed.toLowerCase())
+					if (match) { choose(e, match); return }
+					action.onSelect?.(typed)
+					setOpen(false)
+					return
+				}
+				setOpen(true)
+			}} />
+	)
+
 	/* className is the caller's slot, not a second skin: a combobox standing in a layout the
 	   design system has a name for -- the toolbar's sort control -- wears that name itself
 	   rather than sitting in a wrapper div holding an inline width. */
 	return (
 		<div className={join('combobox', open && 'is-open', className)} ref={wrapper}>
-			<div className="field-shell"
-				style={wrapping ? { height: 'auto', minHeight: 48, padding: '8px 10px', flexWrap: 'wrap' } : undefined}>
+			<div className={join('field-shell', wrapping && 'field-shell-chips')}
+				style={wrapping ? { height: 'auto', minHeight: 48 } : undefined}>
 				{leadingIcon ? <Icon name={leadingIcon} /> : null}
 				{chips}
-				<input ref={input} type="text" id={id} role="combobox"
-					style={wrapping ? { flex: '1 1 120px' } : undefined}
-					aria-expanded={open} aria-controls={panelId} aria-autocomplete="list"
-					aria-label={label} aria-required={required || undefined}
-					aria-invalid={invalid ? 'true' : undefined}
-					aria-describedby={invalid ? describedBy : undefined}
-					value={value} placeholder={placeholder}
-					onChange={e => { onChange?.(e.target.value); setOpen(true) }}
-					onClick={() => setOpen(true)}
-					onKeyDown={e => {
-						if (e.key === 'Escape') { setOpen(false); return }
-						if (e.key !== 'ArrowDown' && e.key !== 'Enter') return
-						e.preventDefault()
-						/* Enter runs the action at the foot of the list -- CREATE VENDOR "…", ADD
-						   CATEGORY "…" -- but only when what was typed matches nothing already there.
-						   Typing the name of something that exists and pressing Enter should pick it,
-						   not make a second one. */
-						const typed = String(value ?? '').trim()
-						if (e.key === 'Enter' && action && typed) {
-							const match = groups.flatMap(g => g.options)
-								.find(o => o.label.toLowerCase() === typed.toLowerCase())
-							if (match) { choose(e, match); return }
-							action.onSelect?.(typed)
-							setOpen(false)
-							return
-						}
-						setOpen(true)
-					}} />
+				{inputEl}
+				{/* The chevron used to wrap with the chips and the input, so a full line of
+				    chips left it no room and dropped it to a line of its own -- with the input,
+				    left to reserve a flex-basis of its own, overflowing the shell's right edge
+				    uncut instead of shrinking into whatever room that left behind. Taking the
+				    chevron out of the wrapping flow entirely (field-shell-chips in app.css pins
+				    it, absolute, to the shell's corner, and reserves its width in the shell's own
+				    right padding) means chips+input are the only thing that wraps, and the input
+				    -- flex-basis 0, so it competes for room rather than reserving any of its own
+				    -- shrinks into whatever's left on the line, truncating the typed text with an
+				    ellipsis, instead of pushing the chevron anywhere. README: Combobox. */}
 				<Icon name="chevronDown" className="icon chevron-icon" />
 			</div>
 			<div className="combobox-panel" id={panelId} role="listbox" aria-label={label}>
