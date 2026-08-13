@@ -109,6 +109,10 @@
 	--radius-compact:10px;
 	--radius-page:12px;
 	--radius-card:15px;
+	/* The floating phone tab bar's own tier: at 64px tall, --radius-card's 15px
+	   reads barely rounded against it, and a 999px capsule pulls the curve in far
+	   enough to crowd the outer icons' labels. */
+	--radius-float:24px;
 	--shadow:0 1px 2px rgb(11 26 18 / .04), 0 10px 28px rgb(11 26 18 / .07);
 	color-scheme: light;
 }
@@ -1032,32 +1036,55 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   A phone has no sidebar, so all it produced in the content area was an 8px
 	   border around the sheet — decoration paid for in width the dense rows below
 	   actually need (see .order-row and .item-row, which already wrap to fit). The content
-	   area goes flat white and edge to edge; the tab bar below keeps the tint,
-	   which is what still separates it from the content scrolling under it. */
+	   area goes flat white and edge to edge; the tab bar now floats clear of it on its
+	   own shadow and border rather than a tint, having no shared edge left to tint against. */
 	body { background:#fff; }
 	.main-panel { margin:0; border-radius:0; box-shadow:none; }
-	/* 80px, where this was 68px with 10px of air under the icons. A phone screen from the
-	   iPhone 15 on is a rounded rectangle, and the two outer items -- Home and Statistics --
-	   are the ones sitting in that arc: the closer the row is to the bottom edge, the further
-	   the corner has already curved in under them. The row sits 20px up off the edge now and
-	   12px in from the sides, so the outer items clear the curve rather than tracing it. The
-	   extra height is padding: the item keeps the 48px entry tier, because a nav item is not
-	   a new kind of control. --tabbar-height is one value because the sheet's bottom padding
-	   has to clear the bar, and a second copy of the number drifts from it. The three safe
-	   insets are the strips iOS reserves -- the home indicator below, the notch's side in
-	   landscape -- named rather than written inline because env() is 0 in every engine that
-	   runs here, and overriding the variables is the only way to render the other branch.
-	   README: Chrome, Responsive Layout. */
-	:root { --safe-bottom:env(safe-area-inset-bottom, 0px); --safe-left:env(safe-area-inset-left, 0px); --safe-right:env(safe-area-inset-right, 0px); --tabbar-height:calc(80px + var(--safe-bottom)); }
-	.sidebar { position:fixed; inset:auto 0 0 0; height:auto; min-height:var(--tabbar-height); z-index:30; flex-direction:row; align-items:center; padding:10px calc(12px + var(--safe-right)) calc(20px + var(--safe-bottom)) calc(12px + var(--safe-left)); gap:0; border-top:1px solid var(--border-divider); background:var(--bg-app); }
+	/* The bar used to fill to the screen edge and push its row up with padding alone,
+	   which left the panel's own colour reaching the corner it was trying to clear —
+	   a flat fill behind the home indicator, on a strip of screen the platform draws
+	   rounded. Floating the panel itself, inset on every side, clears the corner by
+	   leaving it uncovered rather than by padding a fill away from it, and the safe
+	   area no longer has to fit inside the bar's own padding: --tabbar-gap is the
+	   margin around the panel, on all four sides, and only the bottom one gains the
+	   inset. The three insets are the strips iOS reserves -- the home indicator below,
+	   the notch's side in landscape -- named rather than written inline because env()
+	   is 0 in every engine that runs here, and overriding the variables is the only
+	   way to render the other branch. --tabbar-height is the panel's own height, kept
+	   as a token because .main-panel's bottom padding has to clear it and a second
+	   copy of the number drifts from it. README: Chrome, Responsive Layout. */
+	:root {
+		--safe-bottom:env(safe-area-inset-bottom, 0px);
+		--safe-left:env(safe-area-inset-left, 0px);
+		--safe-right:env(safe-area-inset-right, 0px);
+		--tabbar-gap:16px;
+		--tabbar-height:64px;
+	}
+	.sidebar {
+		position:fixed;
+		inset:auto calc(var(--tabbar-gap) + var(--safe-right)) calc(var(--tabbar-gap) + var(--safe-bottom)) calc(var(--tabbar-gap) + var(--safe-left));
+		height:auto; z-index:30; flex-direction:row; align-items:center;
+		padding:8px 10px; gap:0; border:none;
+		border-radius:var(--radius-float);
+		background:var(--bg-card);
+		box-shadow:var(--shadow);
+	}
 	.sidebar .brand, .sidebar .sidebar-footer { display:none; }
 	/* Five equal columns, icon over label, labels always visible. The explicit track
 	   is what makes them equal -- an implicit column flow sizes each one to its own
 	   label, so "Categories" would take more of the bar than "Home". */
 	.sidebar-nav { grid-auto-flow:row; grid-template-columns:repeat(5,minmax(0,1fr)); width:100%; gap:2px; }
-	.sidebar-nav a { flex-direction:column; gap:4px; min-height:48px; padding:6px 2px; font-size:9.5px; border-radius:var(--radius-page); justify-content:center; }
-	.sidebar-nav a.is-on { background:var(--bg-nav-active); color:var(--text); }
-	.main-panel { padding-bottom:calc(var(--tabbar-height) + 12px); }
+	.sidebar-nav a { flex-direction:column; gap:4px; min-height:48px; padding:6px 2px; font-size:9.5px; border-radius:var(--radius-page); justify-content:center; color:var(--text-muted); }
+	/* A filled pill was the desktop rail's way of marking the current page, and it
+	   reads muddy floating on its own already-defined panel — a box inside a box.
+	   Tinting the icon and label instead is the mark this panel can carry without one:
+	   --text-positive is the token already tuned to read as green ink at this size. */
+	.sidebar-nav a.is-on { background:transparent; color:var(--text-positive); }
+	/* Same specificity as the desktop pill's shadow (.sidebar .sidebar-nav a.is-on) so
+	   this actually beats it -- an untinted box-shadow with no fill under it rendered
+	   as a stray rectangle behind the active icon. */
+	.sidebar .sidebar-nav a.is-on { box-shadow:none; }
+	.main-panel { padding-bottom:calc(var(--tabbar-height) + var(--tabbar-gap) + var(--safe-bottom) + 12px); }
 	.topbar { flex-wrap:wrap; padding:12px; }
 	.topbar h1 { font-size:16px; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but
