@@ -1060,7 +1060,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 		--safe-left:env(safe-area-inset-left, 0px);
 		--safe-right:env(safe-area-inset-right, 0px);
 		--tabbar-gap:16px;
-		--tabbar-gap-bottom:6px;
+		--tabbar-gap-bottom:3px;
 		--tabbar-height:64px;
 	}
 	.sidebar {
