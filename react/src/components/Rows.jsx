@@ -94,10 +94,16 @@ export function ItemRow({ icon, iconTone, thumb, handle, title, meta, amount, to
 export function OrderRow({ order, to }) {
 	return (
 		<Row to={to} family="order-row">
-			<div>
-				<div className="order-row-vendor">{order.vendor?.name}</div>
-				<div className="order-row-meta">
-					{order.dateLabel} · {order.itemCount} items · {order.categories.map(c => c.name).join(', ')}
+			<div className="order-row-identity">
+				{order.vendor ? (
+					<span className="entry-avatar"
+						style={{ background: order.vendor.colour, color: inkOn(order.vendor.colour) }}>{order.vendor.initials}</span>
+				) : null}
+				<div className="order-row-identity-text">
+					<div className="order-row-vendor">{order.vendor?.name}</div>
+					<div className="order-row-meta">
+						{order.dateLabel} · {order.itemCount} items · {order.categories.map(c => c.name).join(', ')}
+					</div>
 				</div>
 			</div>
 			<span className="chip-status">{order.status}</span>

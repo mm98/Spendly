@@ -83,7 +83,7 @@ export default function Orders() {
 								<CardDivider />
 								<CardBody variant="entry-list card-body-tight">
 									{data.latest.map(order => (
-										<EntryRow key={order.id} glyph="receipt" name={order.vendor.name}
+										<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
 											meta={dayMonth(order.date)} amount={'+' + kr(order.saved)}
 											to={`/orders/${order.id}`} />
 									))}
