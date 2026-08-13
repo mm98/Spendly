@@ -1056,7 +1056,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   label, so "Categories" would take more of the bar than "Home". */
 	.sidebar-nav { grid-auto-flow:row; grid-template-columns:repeat(5,minmax(0,1fr)); width:100%; gap:2px; }
 	.sidebar-nav a { flex-direction:column; gap:4px; min-height:48px; padding:6px 2px; font-size:9.5px; border-radius:var(--radius-page); justify-content:center; }
-	.sidebar-nav a.is-on { background:transparent; color:var(--text); }
+	.sidebar-nav a.is-on { background:var(--bg-nav-active); color:var(--text); }
 	.main-panel { padding-bottom:calc(var(--tabbar-height) + 12px); }
 	.topbar { flex-wrap:wrap; padding:12px; }
 	.topbar h1 { font-size:16px; }
