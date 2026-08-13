@@ -823,10 +823,12 @@ const rhythmOver = (from, length) => {
 	}
 }
 
-/* The stats palette, biggest slice first. The month records author their legends in that
-   order already, so a window inside one month comes back wearing the colours it wears today
-   -- and a window spanning two months cannot end up with one category in two colours. */
-const SPLIT_COLOURS = ['var(--donut-blue)', 'var(--green)', 'var(--donut-yellow)', 'var(--donut-purple)', '#45524C']
+/* Falls back for a legend entry with no live category behind it -- a renamed or deleted one --
+   so the ring still has a colour to draw. Anything with a category record uses that category's
+   own colour instead: Statistics is the one place this used to be assigned by rank, so the same
+   category could carry a different colour here than on Orders or Home, and a different colour
+   month to month as its rank moved. README: Statistics. */
+const FALLBACK_SPLIT_COLOURS = ['var(--donut-blue)', 'var(--green)', 'var(--donut-yellow)', 'var(--donut-purple)', '#45524C']
 
 /** Where a window's spend went, by category: every day's spend split by the proportions its
     own month authors, summed, and ranked. The ring and the rows are drawn from this one list,
@@ -844,7 +846,8 @@ const splitOver = (from, length) => {
 	return [...tally].sort((a, b) => b[1] - a[1]).map(([name, amount], i) => ({
 		name, amount,
 		share: total ? (amount / total) * 100 : 0,
-		colour: SPLIT_COLOURS[Math.min(i, SPLIT_COLOURS.length - 1)]
+		colour: store.categories.find(c => c.name === name)?.colour
+			?? FALLBACK_SPLIT_COLOURS[Math.min(i, FALLBACK_SPLIT_COLOURS.length - 1)]
 	}))
 }
 
