@@ -290,7 +290,8 @@ a[data-go] { color:inherit; text-decoration:none; }
    36, 40 and 44, and a text pair 5.8px taller on .entry-list-row than on the rest.
    Write the shared thing here, not a sixth near-miss beside five survivors. What a row
    still owns is what it holds, not how it is spaced -- the colour of the right-hand
-   figure, a round avatar in place of a tile, one line where another has two. README: Data Rows. */
+   figure, an avatar's initials in place of a tile's glyph, one line where another has
+   two. README: Data Rows. */
 .data-row { display:flex; align-items:center; gap:12px; padding:10px 0; }
 /* A row's highlight bleeds 10px past the body's 20px gutter at both ends, so the
    tint clears the first glyph and the chevron instead of stopping against them.
@@ -512,7 +513,7 @@ svg.chart { width:100%; display:block; }
    swatch -- these initials are white at 10px/700, so every value has to clear 4.5:1
    against white. Four of the seven were the donut's chart hues, which are picked to
    separate ring segments and reached 2.24:1 under type. README: Color, Accessibility. */
-.entry-list .entry-avatar, .order-row-identity .entry-avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
+.entry-list .entry-avatar, .order-row-identity .entry-avatar { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
 /* No line-height here. Pinning the wrapper at 1.45em computed one length off its own
    inherited 14px -- 20.3px -- and handed it to both lines, so a 13px name and an 11px
    meta were struck on the same 20.3px leading and the pair stood 40.6px tall. Every
