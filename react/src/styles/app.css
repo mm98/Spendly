@@ -1046,23 +1046,26 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   rounded. Floating the panel itself, inset on every side, clears the corner by
 	   leaving it uncovered rather than by padding a fill away from it, and the safe
 	   area no longer has to fit inside the bar's own padding: --tabbar-gap is the
-	   margin around the panel, on all four sides, and only the bottom one gains the
-	   inset. The three insets are the strips iOS reserves -- the home indicator below,
-	   the notch's side in landscape -- named rather than written inline because env()
-	   is 0 in every engine that runs here, and overriding the variables is the only
-	   way to render the other branch. --tabbar-height is the panel's own height, kept
-	   as a token because .main-panel's bottom padding has to clear it and a second
-	   copy of the number drifts from it. README: Chrome, Responsive Layout. */
+	   margin around the panel on the left and right, and --tabbar-gap-bottom is the
+	   same margin underneath -- smaller, because the safe-area inset it stacks with
+	   already does most of the work of clearing the corner and the home indicator.
+	   The three insets are the strips iOS reserves -- the home indicator below, the
+	   notch's side in landscape -- named rather than written inline because env() is
+	   0 in every engine that runs here, and overriding the variables is the only way
+	   to render the other branch. --tabbar-height is the panel's own height, kept as
+	   a token because .main-panel's bottom padding has to clear it and a second copy
+	   of the number drifts from it. README: Chrome, Responsive Layout. */
 	:root {
 		--safe-bottom:env(safe-area-inset-bottom, 0px);
 		--safe-left:env(safe-area-inset-left, 0px);
 		--safe-right:env(safe-area-inset-right, 0px);
 		--tabbar-gap:16px;
+		--tabbar-gap-bottom:6px;
 		--tabbar-height:64px;
 	}
 	.sidebar {
 		position:fixed;
-		inset:auto calc(var(--tabbar-gap) + var(--safe-right)) calc(var(--tabbar-gap) + var(--safe-bottom)) calc(var(--tabbar-gap) + var(--safe-left));
+		inset:auto calc(var(--tabbar-gap) + var(--safe-right)) calc(var(--tabbar-gap-bottom) + var(--safe-bottom)) calc(var(--tabbar-gap) + var(--safe-left));
 		height:auto; z-index:30; flex-direction:row; align-items:center;
 		padding:8px 10px; gap:0; border:none;
 		border-radius:var(--radius-float);
@@ -1084,7 +1087,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   this actually beats it -- an untinted box-shadow with no fill under it rendered
 	   as a stray rectangle behind the active icon. */
 	.sidebar .sidebar-nav a.is-on { box-shadow:none; }
-	.main-panel { padding-bottom:calc(var(--tabbar-height) + var(--tabbar-gap) + var(--safe-bottom) + 12px); }
+	.main-panel { padding-bottom:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px); }
 	.topbar { flex-wrap:wrap; padding:12px; }
 	.topbar h1 { font-size:16px; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but
