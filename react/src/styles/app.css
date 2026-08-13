@@ -512,7 +512,7 @@ svg.chart { width:100%; display:block; }
    swatch -- these initials are white at 10px/700, so every value has to clear 4.5:1
    against white. Four of the seven were the donut's chart hues, which are picked to
    separate ring segments and reached 2.24:1 under type. README: Color, Accessibility. */
-.entry-list .entry-avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
+.entry-list .entry-avatar, .order-row-identity .entry-avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
 /* No line-height here. Pinning the wrapper at 1.45em computed one length off its own
    inherited 14px -- 20.3px -- and handed it to both lines, so a 13px name and an 11px
    meta were struck on the same 20.3px leading and the pair stood 40.6px tall. Every
@@ -678,6 +678,8 @@ svg.chart { width:100%; display:block; }
    they are the identifier's and they already agreed, and a value restated beside the one
    it copies is the near-miss the identifier exists to stop. README: Data Rows. */
 .order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; padding:12px 0; border-bottom:1px solid var(--border-divider); }
+.order-row .order-row-identity { display:flex; align-items:center; gap:12px; min-width:0; }
+.order-row .order-row-identity-text { min-width:0; }
 /* The list's outer edge carries no divider, the same way .category-row clears its
    first border-top. Written as "no .order-row after me" because :last-of-type
    counts by tag: the pager div below the rows was the last div, so the rule
