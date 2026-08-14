@@ -32,10 +32,11 @@ export default function Login() {
 			<Card className="auth-card" aria-label="Sign in">
 				<CardBody>
 					<div className="auth-heading">
-						<span className="auth-mark" aria-hidden="true"><Icon name="receipt" /></span>
-						<div className="card-subheading">Spendly</div>
-						<h1>Sign in</h1>
-						<p className="auth-tagline">Welcome back — your ledger's just where you left it.</p>
+						<span className="brand-mark" aria-hidden="true"><Icon name="receipt" /></span>
+						<div>
+							<h1>Sign in</h1>
+							<p className="auth-tagline">Welcome back — your ledger's just where you left it.</p>
+						</div>
 					</div>
 					<form className="form" onSubmit={submit}>
 						<Field label="Email">

@@ -166,30 +166,21 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .sidebar .sidebar-footer { margin-top:auto; padding:0 10px; font-size:11.5px; color:var(--text-muted); display:grid; gap:6px; }
 
 /* Sign-in and sign-up. Outside the shell, so there is no sidebar to carry the brand mark --
-   the page draws its own, at a size that reads on an otherwise empty screen rather than the
-   34px the sidebar rail sizes it for. Same gradient stops as .brand-mark, same reasoning:
-   README: Color.
+   the same mark the sidebar draws (same gradient), beside the heading rather than above it,
+   left-aligned like every other card header in the app rather than centred.
 
    The page background stays plain --bg-app rather than a lighter gradient behind the card --
    a lighter stop there sits close enough to white that .card's own --border-card hairline
    nearly disappears against it, which is the one thing the shadow below is added to prevent,
-   not to paper over.
-
-   .auth-heading reuses .card-body-centered's own gap (14px, grid, justify-items:center) rather
-   than a second set of spacing numbers for the same "icon over centered text" shape -- and sets
-   the card body's padding explicitly, rather than by way of .card-body:has(> .card-subheading),
-   which needs .card-subheading as a *direct* child and stopped matching the moment it was
-   wrapped in this div: the card silently fell back to the unrelated default padding. */
+   not to paper over. */
 .auth-page { display:grid; place-items:center; min-height:100vh; padding:24px; background:var(--bg-app); }
 .auth-card { width:100%; max-width:380px; box-shadow:var(--shadow); }
-.auth-card .card-body { padding:32px 28px 28px; }
-.auth-mark { width:52px; height:52px; border-radius:var(--radius-card);
-	background:linear-gradient(135deg,#14AC72 0%,#0A7F56 100%); display:grid; place-items:center; }
-.auth-mark svg { width:28px; height:28px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-.auth-heading { display:grid; justify-items:center; gap:14px; text-align:center; margin-bottom:24px; }
-.auth-heading .card-subheading { margin:0; }
-.auth-heading h1 { font-size:22px; margin:0; }
-.auth-tagline { color:var(--text-muted); font-size:14px; margin:0; }
+.auth-card .card-body { padding:28px; }
+.auth-heading { display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+.auth-heading .brand-mark { width:72px; height:72px; flex:none; }
+.auth-heading .brand-mark svg { width:38px; height:38px; }
+.auth-heading h1 { font-size:19px; line-height:1.2; margin:0; }
+.auth-tagline { color:var(--text-faint); font-size:12px; line-height:1.35; margin:3px 0 0; }
 
 /* topbar */
 .main-panel { min-width:0; display:flex; flex-direction:column; background:#fff; border-radius:26px 0 0 26px; margin:12px 0; overflow:hidden; box-shadow:0 2px 14px rgb(11 26 18 / .05); }

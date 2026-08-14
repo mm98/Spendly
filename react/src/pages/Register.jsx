@@ -33,10 +33,11 @@ export default function Register() {
 			<Card className="auth-card" aria-label="Create an account">
 				<CardBody>
 					<div className="auth-heading">
-						<span className="auth-mark" aria-hidden="true"><Icon name="receipt" /></span>
-						<div className="card-subheading">Spendly</div>
-						<h1>Create an account</h1>
-						<p className="auth-tagline">Every receipt, order and saving in one place.</p>
+						<span className="brand-mark" aria-hidden="true"><Icon name="receipt" /></span>
+						<div>
+							<h1>Create an account</h1>
+							<p className="auth-tagline">Every receipt, order and saving in one place.</p>
+						</div>
 					</div>
 					<form className="form" onSubmit={submit}>
 						<Field label="Email">
