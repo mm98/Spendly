@@ -339,8 +339,14 @@ export default function Home() {
 											gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
 												{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
 											baselines={[{ y: 92, stroke: '#E4E7E2', dash: '3 4' }]}
+											/* A month with a single order is a flat line that jumps straight to its
+											   total and back to flat -- the sharpest turn this curve draws -- and the
+											   spline's control points overshoot past the line on a turn that sharp,
+											   by about as much again as the jump itself. 6px of inset left nothing to
+											   absorb that: the overshoot ran past the box edge and was cut off by the
+											   SVG's own clipping, on both ends. 17px is enough room for it. */
 											series={[{ points: plotted(data.period.series.cumulative,
-												Math.max(...data.period.series.cumulative), 104, 6), kind: 'curve',
+												Math.max(...data.period.series.cumulative), 93, 17), kind: 'curve',
 												stroke: 'gradient:spend', strokeWidth: 2.4 }]}
 											markers={[{ index: 1, series: 0, r: 4.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 2 }]} />
 										<ChartAxis />
@@ -380,11 +386,14 @@ export default function Home() {
 											gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
 												{ offset: 0, color: '#14AC72', opacity: 0.22 },
 												{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
+											/* Same overshoot as the Orders card's chart, same fix: the area's own
+											   fill still runs to the box's bottom edge (that is what draws it as
+											   filled rather than just a line), only the top needs the room. */
 											series={[
 												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 90, 4), kind: 'area', fill: 'gradient:savings' },
+													Math.max(...data.period.series.savingsGrowth), 90, 17), kind: 'area', fill: 'gradient:savings' },
 												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 90, 4), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
+													Math.max(...data.period.series.savingsGrowth), 90, 17), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
 											]} />
 										<ChartAxis labels={['10', '15', '20', '25', '30']} />
 									</>

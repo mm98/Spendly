@@ -68,9 +68,14 @@ export default function Orders() {
 								<Chart height={250} pad={10} style={{ marginTop: 8 }}
 									label={`${data.period.shortLabel} against ${data.period.previousLabel}, day by day`}
 									baselines={[{ y: 128, stroke: '#D9DDD8', dash: '5 5' }]}
+									/* 17px of inset, not 10 -- a day of no spend beside a day of a lot of it is
+									   this chart's sharpest turn, and the spline's control points overshoot a
+									   turn that sharp by about as much again as the jump. 10px left the
+									   overshoot nowhere to go but past the box edge, where the SVG's own
+									   clipping cut it off. README: Home. */
 									series={[
-										{ points: plotted(data.period.series.monthPrevious, chartMax, 240, 10), kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
-										{ points: plotted(data.period.series.monthCurrent, chartMax, 240, 10), kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
+										{ points: plotted(data.period.series.monthPrevious, chartMax, 233, 17), kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
+										{ points: plotted(data.period.series.monthCurrent, chartMax, 233, 17), kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
 									]}
 									markers={[
 										{ index: 3, series: 1, r: 13, fill: '#4F5BD5', opacity: 0.14 },
