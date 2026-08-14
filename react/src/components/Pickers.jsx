@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Icon, ICONS } from './Icon.jsx'
 import { FieldShell } from './Form.jsx'
 import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
@@ -78,7 +78,6 @@ export const VENDOR_COLOURS = [
     state, because each one is a toggle in a set of toggles rather than a tab: nothing changes
     view when you press it. */
 export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, label }) {
-	const native = useRef(null)
 	const chosen = colours.some(c => c.id === value)
 	const hex = resolveColour(value)
 
@@ -98,25 +97,31 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
 					style={swatch(colour.id === value, colour.id)} />
 			))}
 
-			{/* Anything else. The button is the swatch the system draws; the input behind it is
-			    the one the platform draws, opened by a click on the button. */}
-			<button type="button" className="icon-button"
-				aria-label={chosen ? 'Pick another colour' : `Custom colour ${hex}`}
-				aria-pressed={!chosen}
-				onClick={() => native.current?.click()}
-				style={{
+			{/* Anything else. The swatch below is drawn to look like the row's other buttons; the
+			    real control is the platform's own input, stacked on top of it at the same size
+			    so a tap lands on the input directly rather than on a stand-in that proxies the
+			    open with a JS .click() -- a synthetic click reaching a fully hidden input never
+			    carried a trusted touch activation on to it, and iOS Safari's colour sheet does
+			    not open for that. Kept invisible rather than styled, same as before: stripping
+			    the native chrome needs a -webkit-appearance hack and two vendor-prefixed
+			    pseudo-elements per engine, and letting the platform draw its own dialog needs no
+			    such bet. */}
+			<span style={{ position: 'relative', display: 'inline-block', width: 30, height: 30 }}>
+				<span aria-hidden="true" className="icon-button" style={{
 					...swatch(!chosen, chosen ? 'var(--bg-card)' : value),
-					color: chosen ? 'var(--text-body)' : inkOn(value)
+					color: chosen ? 'var(--text-body)' : inkOn(value),
+					pointerEvents: 'none'
 				}}>
-				<Icon name={chosen ? 'plus' : 'pencil'} />
-			</button>
-			<input ref={native} type="color" value={hex} aria-label={`${label}, custom`}
-				onChange={e => onChange(e.target.value)}
-				tabIndex={-1} aria-hidden="true"
-				style={{
-					position: 'absolute', width: 1, height: 1, border: 0, padding: 0,
-					opacity: 0, pointerEvents: 'none', overflow: 'hidden', clip: 'rect(0 0 0 0)'
-				}} />
+					<Icon name={chosen ? 'plus' : 'pencil'} />
+				</span>
+				<input type="color" value={hex}
+					aria-label={chosen ? 'Pick another colour' : `Custom colour ${hex}`}
+					onChange={e => onChange(e.target.value)}
+					style={{
+						position: 'absolute', inset: 0, width: '100%', height: '100%',
+						border: 0, padding: 0, margin: 0, opacity: 0, cursor: 'pointer'
+					}} />
+			</span>
 
 			{/* What the choice is worth, since a colour can be picked that its own contents cannot
 			    survive. The ink flips automatically; this says which way and by how much. */}
