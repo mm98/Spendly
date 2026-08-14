@@ -74,15 +74,28 @@ CREATE TABLE order_items (
 	note TEXT
 );
 
+-- A file that belongs to exactly one thing: the order as a whole (its receipt) or one of its
+-- own items (a photo, or eventually a PDF, of that particular product) -- never both, never
+-- neither. Both owners want the same storage shape -- bytes, kind, a thumbnail -- so one table
+-- holds both rather than growing a second copy of it on order_items; which row owns a given
+-- attachment is just whichever of the two FKs below is not null.
 CREATE TABLE attachments (
 	id TEXT PRIMARY KEY,
-	order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+	order_id TEXT REFERENCES orders(id) ON DELETE CASCADE,
+	order_item_id TEXT REFERENCES order_items(id) ON DELETE CASCADE,
 	name TEXT NOT NULL,
 	kind TEXT NOT NULL CHECK (kind IN ('pdf','image')),
 	meta TEXT NOT NULL,
 	content_type TEXT,
 	size INTEGER,
-	data BLOB               -- the real file bytes: a real backend can hold what the phantom store couldn't
+	data BLOB,               -- the real file bytes: a real backend can hold what the phantom store couldn't
+	-- Uploaded images are resized on the way in (see lib/images.js: 1600px display, 200px
+	-- thumbnail) rather than stored at whatever resolution a phone camera produced. The thumbnail
+	-- is its own small BLOB, served from its own endpoint, so a list of attachments never has to
+	-- pull the (still much larger) display image just to draw an icon-sized preview.
+	thumbnail BLOB,
+	thumbnail_content_type TEXT,
+	CHECK ((order_id IS NULL) != (order_item_id IS NULL))
 );
 
 CREATE TABLE settings (
@@ -115,6 +128,8 @@ CREATE TABLE scan_uploads (
 	kind TEXT,
 	content_type TEXT,
 	data BLOB,
+	thumbnail BLOB,
+	thumbnail_content_type TEXT,
 	created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
@@ -151,3 +166,4 @@ CREATE INDEX idx_vendors_user ON vendors(user_id);
 CREATE INDEX idx_categories_user ON categories(user_id);
 CREATE INDEX idx_scan_uploads_user ON scan_uploads(user_id);
 CREATE INDEX idx_attachments_order ON attachments(order_id);
+CREATE INDEX idx_attachments_item ON attachments(order_item_id);

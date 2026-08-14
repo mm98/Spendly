@@ -15,7 +15,8 @@ import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	addAttachments, attachmentThumbnailUrl, deleteOrder, getHomeContent, getHomeHero, getOrder,
-	getOrderAsDraft, getOrders, getOrdersOverview, getStats, removeAttachment, updateOrder
+	getOrderAsDraft, getOrders, getOrdersOverview, getStats, itemAttachmentThumbnailUrl,
+	removeAttachment, updateOrder
 } from '../api/client.js'
 import { kr, longDate, percent, shortDate } from '../api/format.js'
 
@@ -154,13 +155,19 @@ export default function OrderDetail() {
 							</CardHeader>
 							<CardDivider />
 							<CardBody variant="card-body-tight">
-								{order.items.map(item => (
-									<ItemRow key={item.id} thumb="photo" title={item.title}
+								{order.items.map(item => {
+									const photo = item.attachments?.[0]
+									return (
+									<ItemRow key={item.id}
+										icon={photo ? undefined : 'cube'} thumb={photo ? 'photo' : undefined}
+										thumbSrc={photo?.hasThumbnail ? itemAttachmentThumbnailUrl(order.id, item.id, photo.id) : undefined}
+										title={item.title}
 										meta={`${item.quantity} × ${kr(item.price)}`
 											+ (item.retail ? ` · retail ${kr(item.retail)}` : '')
 											+ (item.note ? ` · ${item.note}` : '')}
 										amount={kr(item.price * item.quantity)} />
-								))}
+									)
+								})}
 								{/* A receipt with more lines than are listed says so rather than letting the
 								    count above and the rows below quietly disagree. */}
 								{order.itemCount > order.items.length ? (

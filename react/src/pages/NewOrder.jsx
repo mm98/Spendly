@@ -18,9 +18,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createOrder, createVendor, getCategories, getHomeContent, getHomeHero, getOrderAsDraft,
-	getOrderDraft, getOrders, getOrdersOverview, getStats, getVendors, getVendorsOverview,
-	spendKinds, updateOrder
+	addItemAttachments, createOrder, createVendor, getCategories, getHomeContent, getHomeHero,
+	getOrderAsDraft, getOrderDraft, getOrders, getOrdersOverview, getStats, getVendors,
+	getVendorsOverview, itemAttachmentThumbnailUrl, spendKinds, updateOrder
 } from '../api/client.js'
 import { invalidate } from '../api/useApi.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
@@ -321,6 +321,12 @@ export function NewOrderItems() {
 	   a separate edit form is a second copy of four validation rules. */
 	const [editingId, setEditingId] = useState(null)
 	const [photo, setPhoto] = useState(null)
+	/* A photo is picked against an item that, mid-wizard, may not have a real id yet -- see
+	   save() below, which is what actually uploads these once the order (and so the item) has
+	   been written. Keyed by the item's own id (temporary or real), never sent as part of the
+	   draft's own JSON -- draft.items travels to createOrder/updateOrder as-is, and a File
+	   object serializes to "{}" the moment it touches JSON.stringify. */
+	const [pendingPhotos, setPendingPhotos] = useState({})
 	const toast = useToast()
 	const nextId = useRef(0)
 	const base = mode === 'edit' ? `/orders/${id}/edit` : '/orders/new'
@@ -346,7 +352,7 @@ export function NewOrderItems() {
 	   two different promises and only one of them is true at a time. */
 	const editItem = item => {
 		setEditingId(item.id)
-		setPhoto(item.photo ?? null)
+		setPhoto(pendingPhotos[item.id]?.file ?? null)
 		setForm({
 			'item-description': item.title,
 			'item-quantity': String(item.quantity),
@@ -376,6 +382,12 @@ export function NewOrderItems() {
 
 	const removeItem = item => {
 		update({ items: draft.items.filter(i => i.id !== item.id) })
+		setPendingPhotos(prev => {
+			if (!prev[item.id]) return prev
+			URL.revokeObjectURL(prev[item.id].url)
+			const { [item.id]: removed, ...rest } = prev
+			return rest
+		})
 		if (editingId === item.id) clearForm()
 		toast(`${item.title} removed.`)
 	}
@@ -402,8 +414,13 @@ export function NewOrderItems() {
 			title: form['item-description'].trim(),
 			quantity: Number(form['item-quantity']),
 			price: parseAmount(form['item-price']),
-			retail: form['item-retail'] ? parseAmount(form['item-retail']) : undefined,
-			photo: photo ?? undefined
+			retail: form['item-retail'] ? parseAmount(form['item-retail']) : undefined
+		}
+		if (photo) {
+			setPendingPhotos(prev => {
+				if (prev[item.id]) URL.revokeObjectURL(prev[item.id].url)
+				return { ...prev, [item.id]: { file: photo, url: URL.createObjectURL(photo) } }
+			})
 		}
 		const items = editingId
 			? draft.items.map(i => (i.id === editingId ? item : i))
@@ -424,12 +441,29 @@ export function NewOrderItems() {
 		setSaving(true)
 		const written = mode === 'edit' ? updateOrder(id, draft) : createOrder(draft)
 		written
-			.then(order => {
+			.then(async order => {
 				/* The list, the dashboard, the overview, Statistics and the Home hero chart all
 				   count or aggregate orders, so all five are dropped from the cache rather than
 				   left showing figures from before. */
 				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
 				invalidate(getOrderAsDraft); invalidate(getStats); invalidate(getHomeHero)
+
+				/* A photo was picked against a draft item that may not have had a real id yet --
+				   this is the first point one exists to attach it to. Both create and this edit's
+				   own upsert (see api/src/routes/orders.js) write items in the submitted order
+				   and read them back the same way, so draft.items[i]'s pending photo belongs to
+				   order.items[i], position for position. */
+				const uploads = draft.items
+					.map((item, i) => [pendingPhotos[item.id], order.items[i]])
+					.filter(([pending, saved]) => pending && saved)
+					.map(([pending, saved]) => addItemAttachments(order.id, saved.id, [pending.file]))
+				if (uploads.length) {
+					await Promise.allSettled(uploads).then(results => {
+						if (results.some(r => r.status === 'rejected'))
+							toast('Order saved, but a photo did not attach.', 'negative')
+					})
+				}
+
 				navigate('/orders/' + order.id)
 			})
 			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
@@ -534,8 +568,8 @@ export function NewOrderItems() {
 							<span className="field-thumb" aria-hidden="true"><Icon name="photo" /></span>
 							<input type="file" accept="image/*" aria-label="Product photo"
 								className="field-file-input"
-								onChange={e => setPhoto(e.target.files?.[0]?.name ?? null)} />
-							<span className="field-file-name">{photo ?? 'Choose a photo…'}</span>
+								onChange={e => setPhoto(e.target.files?.[0] ?? null)} />
+							<span className="field-file-name">{photo?.name ?? 'Choose a photo…'}</span>
 							{photo ? (
 								<IconButton variant="clear" icon="close" label="Remove photo"
 									onClick={e => { e.preventDefault(); setPhoto(null) }} />
@@ -563,17 +597,30 @@ export function NewOrderItems() {
 					<span className="field-help">drag the grip to reorder</span>
 				</div>
 				<InsetPanel {...reorder.listProps}>
-					{draft.items.map((item, i) => (
+					{draft.items.map((item, i) => {
+						/* A photo not yet uploaded (picked this session, see submit() above)
+						   previews from its own local object URL; one already saved (only
+						   possible in edit mode -- getOrderAsDraft carries each item's real
+						   attachments) previews from the server the same way an order-level
+						   attachment already does. At most one of the two exists for a given
+						   item at a time. */
+						const pending = pendingPhotos[item.id]
+						const existing = item.attachments?.[0]
+						const hasPhoto = Boolean(pending || existing)
+						const thumbSrc = pending ? pending.url
+							: existing?.hasThumbnail ? itemAttachmentThumbnailUrl(id, item.id, existing.id)
+							: undefined
+						return (
 						/* The dashed box goes where the row came from; the row itself is lifted out
 						   of the flow and follows the pointer. Both are rendered here so the box
 						   sits at the row's own index and the list keeps its height. */
 						<Fragment key={item.id}>
 						{reorder.placeholder(item)}
-						<ItemRow icon="cube" title={item.title}
+						<ItemRow icon={hasPhoto ? undefined : 'cube'} thumb={hasPhoto ? 'photo' : undefined} thumbSrc={thumbSrc}
+							title={item.title}
 							handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
 							meta={`${item.quantity} × ${kr(item.price)}`
-								+ (item.retail ? ` · retail ${kr(item.retail)}` : '')
-								+ (item.photo ? ` · ${item.photo}` : '')}
+								+ (item.retail ? ` · retail ${kr(item.retail)}` : '')}
 							amount={kr(item.price * item.quantity)}
 							{...reorder.rowProps(item)}>
 							<span className="row-inline" style={{ gap: 2 }}>
@@ -583,7 +630,8 @@ export function NewOrderItems() {
 							</span>
 						</ItemRow>
 						</Fragment>
-					))}
+						)
+					})}
 					{draft.items.length === 0
 						? <p className="field-help" style={{ padding: '10px 12px' }}>
 							No items yet. Add the first one above.</p>

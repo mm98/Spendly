@@ -12,6 +12,11 @@ const selectItems = db.prepare('SELECT id, title, quantity, price, retail, note 
 const selectAttachments = db.prepare(`
 	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail FROM attachments WHERE order_id = ?
 `)
+const selectItemAttachments = db.prepare(`
+	SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail
+	FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id
+	WHERE oi.order_id = ?
+`)
 const selectCategories = db.prepare(`
 	SELECT c.id, c.name, c.colour, c.icon FROM categories c
 	JOIN order_categories oc ON oc.category_id = c.id
@@ -19,20 +24,21 @@ const selectCategories = db.prepare(`
 `)
 const selectVendor = db.prepare('SELECT id, name, initials, colour FROM vendors WHERE id = ?')
 
-const mapItem = i => ({
-	id: i.id, title: i.title, quantity: i.quantity, price: i.price,
-	...(i.retail != null ? { retail: i.retail } : {}),
-	...(i.note ? { note: i.note } : {})
-})
-
 // hasThumbnail tells the client whether GET .../thumbnail will 404 (a PDF, or an image sharp
 // couldn't decode) — never the bytes themselves, so an order's JSON stays small.
 const mapAttachment = a => ({ id: a.id, name: a.name, kind: a.kind, meta: a.meta, hasThumbnail: Boolean(a.has_thumbnail) })
 
+const mapItem = (i, itemAttachments) => ({
+	id: i.id, title: i.title, quantity: i.quantity, price: i.price,
+	...(i.retail != null ? { retail: i.retail } : {}),
+	...(i.note ? { note: i.note } : {}),
+	attachments: (itemAttachments?.get(i.id) ?? []).map(mapAttachment)
+})
+
 /** Turns one order_totals row plus its already-fetched child rows into the shape the frontend
     expects from client.js. Pure — callers decide how the child rows were fetched (one order at
     a time, or batched for a whole page, see decorateOrderRows below). */
-export function decorateOrder(totals, { items, attachments, categories, vendor }) {
+export function decorateOrder(totals, { items, attachments, itemAttachments, categories, vendor }) {
 	return {
 		id: totals.id,
 		vendorId: totals.vendor_id,
@@ -44,7 +50,7 @@ export function decorateOrder(totals, { items, attachments, categories, vendor }
 		note: totals.note,
 		reference: totals.reference,
 		refunded: Boolean(totals.refunded),
-		items: items.map(mapItem),
+		items: items.map(i => mapItem(i, itemAttachments)),
 		attachments: attachments.map(mapAttachment),
 		vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,
 		categories,
@@ -57,7 +63,7 @@ export function decorateOrder(totals, { items, attachments, categories, vendor }
 }
 
 /** One order, fully decorated. Scoped to the owning user so an id from another account can
-    never be read. Returns null if missing. Five small indexed queries — fine for a single
+    never be read. Returns null if missing. Six small indexed queries — fine for a single
     record; decorateOrderRows below is the batched version a list of many orders should use
     instead of calling this in a loop. */
 export function getDecoratedOrder(userId, id) {
@@ -66,6 +72,7 @@ export function getDecoratedOrder(userId, id) {
 	return decorateOrder(totals, {
 		items: selectItems.all(id),
 		attachments: selectAttachments.all(id),
+		itemAttachments: groupBy(selectItemAttachments.all(id), 'order_item_id'),
 		categories: selectCategories.all(id),
 		vendor: selectVendor.get(totals.vendor_id)
 	})
@@ -78,6 +85,11 @@ const selectItemsFor = db.prepare(`
 const selectAttachmentsFor = db.prepare(`
 	SELECT id, order_id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail
 	FROM attachments WHERE order_id IN (SELECT value FROM json_each(?))
+`)
+const selectItemAttachmentsFor = db.prepare(`
+	SELECT oi.order_id, a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail
+	FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id
+	WHERE oi.order_id IN (SELECT value FROM json_each(?))
 `)
 const selectCategoriesFor = db.prepare(`
 	SELECT oc.order_id, c.id, c.name, c.colour, c.icon FROM categories c
@@ -105,12 +117,14 @@ export function decorateOrderRows(totalsRows) {
 
 	const itemsByOrder = groupBy(selectItemsFor.all(ids), 'order_id')
 	const attachmentsByOrder = groupBy(selectAttachmentsFor.all(ids), 'order_id')
+	const itemAttachmentsByOrder = groupBy(selectItemAttachmentsFor.all(ids), 'order_id')
 	const categoriesByOrder = groupBy(selectCategoriesFor.all(ids), 'order_id')
 	const vendorById = new Map(selectVendorsFor.all(vendorIds).map(v => [v.id, v]))
 
 	return totalsRows.map(totals => decorateOrder(totals, {
 		items: (itemsByOrder.get(totals.id) ?? []).map(({ order_id, ...i }) => i),
 		attachments: (attachmentsByOrder.get(totals.id) ?? []).map(mapAttachment),
+		itemAttachments: groupBy(itemAttachmentsByOrder.get(totals.id) ?? [], 'order_item_id'),
 		categories: (categoriesByOrder.get(totals.id) ?? []).map(({ order_id, ...c }) => c),
 		vendor: vendorById.get(totals.vendor_id)
 	}))

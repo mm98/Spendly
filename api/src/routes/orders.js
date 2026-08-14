@@ -17,22 +17,32 @@ const notFound = id => Object.assign(new Error('No order ' + id), { status: 404 
 /* ---- statements, prepared once at module load rather than per request ---- */
 
 const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
+const selectItemExists = db.prepare('SELECT id FROM order_items WHERE id = ? AND order_id = ?')
 const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM settings WHERE user_id = ?')
 const countAllOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
 const deleteOrder = db.prepare('DELETE FROM orders WHERE id = ? AND user_id = ?')
 const deleteOrderCategories = db.prepare('DELETE FROM order_categories WHERE order_id = ?')
-const deleteOrderItems = db.prepare('DELETE FROM order_items WHERE order_id = ?')
 const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date, status, kind, shipping, note, reference, refunded)
 	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, @note, @reference, @refunded)`)
+const updateOrderRow = db.prepare(`UPDATE orders SET vendor_id=@vendorId, date=@date, status=@status, kind=@kind,
+	shipping=@shipping, note=@note, reference=@reference, refunded=@refunded WHERE id=@id AND user_id=@userId`)
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
+const selectItemIds = db.prepare('SELECT id FROM order_items WHERE order_id = ?')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, @note)`)
-const insertAttachment = db.prepare(`INSERT INTO attachments (id, order_id, name, kind, meta, content_type, size, data, thumbnail, thumbnail_content_type)
-	VALUES (@id, @orderId, @name, @kind, @meta, @contentType, @size, @data, @thumbnail, @thumbnailContentType)`)
+const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, title=@title, quantity=@quantity,
+	price=@price, retail=@retail, note=@note WHERE id=@id AND order_id=@orderId`)
+const deleteOrderItem = db.prepare('DELETE FROM order_items WHERE id = ? AND order_id = ?')
+const insertAttachment = db.prepare(`INSERT INTO attachments (id, order_id, order_item_id, name, kind, meta, content_type, size, data, thumbnail, thumbnail_content_type)
+	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @thumbnail, @thumbnailContentType)`)
 const selectExistingAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_id = ?')
+const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_item_id = ?')
 const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
+const deleteItemAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectAttachment = db.prepare('SELECT name, content_type, data FROM attachments WHERE id = ? AND order_id = ?')
+const selectItemAttachment = db.prepare('SELECT name, content_type, data FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
+const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectLatestOrders = db.prepare(
 	`SELECT ${orderTotalsSelectList()} FROM order_totals WHERE user_id = @userId ORDER BY date DESC, id DESC LIMIT @count`
 )
@@ -178,20 +188,50 @@ router.post('/', (req, res) => {
 	res.status(201).json(getDecoratedOrder(req.user.id, id))
 })
 
+/** Update: the order row itself is UPDATEd in place rather than deleted and reinserted with the
+    same id -- attachments.order_id (like order_items.order_id) is ON DELETE CASCADE, so deleting
+    the row a save is meant to be editing quietly took every receipt on it with it, whether or not
+    the edit touched attachments at all. Items are matched against what's already in the database
+    by id: one already there is updated in place, keeping its id (and with it, anything keyed to
+    that id -- an item's own attachment); a line added during this edit is inserted fresh, same as
+    create; a line dropped from the submitted set is deleted. Categories stay delete-and-reinsert
+    -- nothing else references an order_categories row, so there is no id for that shortcut to
+    orphan anything against. */
+const updateOrderRows = db.transaction((userId, id, draft) => {
+	const vendorId = findOrCreateVendor(userId, draft.vendor)
+	const categoryIds = (draft.categories ?? []).map(name => findOrCreateCategory(userId, name))
+
+	updateOrderRow.run({
+		id, userId, vendorId, date: toEpoch(draft.date),
+		status: draft.status || 'Delivered', kind: draft.kind || 'Expense',
+		shipping: Number(draft.shipping) || 0, note: draft.note || '', reference: draft.reference || '',
+		refunded: draft.refunded ? 1 : 0
+	})
+
+	deleteOrderCategories.run(id)
+	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)
+
+	const existingItemIds = new Set(selectItemIds.all(id).map(r => r.id))
+	const keptItemIds = new Set()
+	draft.items.forEach((item, position) => {
+		const row = {
+			id: existingItemIds.has(item.id) ? item.id : newId('i'), orderId: id, position,
+			title: String(item.title).trim(), quantity: Number(item.quantity), price: Number(item.price),
+			retail: item.retail != null && item.retail !== '' ? Number(item.retail) : null,
+			note: item.note || null
+		}
+		if (existingItemIds.has(item.id)) { keptItemIds.add(item.id); updateOrderItem.run(row) }
+		else insertOrderItem.run(row)
+	})
+	for (const existingId of existingItemIds) if (!keptItemIds.has(existingId)) deleteOrderItem.run(existingId, id)
+})
+
 router.put('/:id', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	const draft = req.body ?? {}
 	assertValidOrderDraft(draft)
 
-	/* The edit replaces the order's own categories and items wholesale — an edit that retyped
-	   the lines makes the lines the truth again. Attachments are untouched: they're edited
-	   through their own endpoints below, not through this form, and share the same order id. */
-	db.transaction(() => {
-		deleteOrderCategories.run(req.params.id)
-		deleteOrderItems.run(req.params.id)
-		deleteOrder.run(req.params.id, req.user.id)
-		insertOrderRows(req.user.id, req.params.id, draft)
-	})()
+	updateOrderRows(req.user.id, req.params.id, draft)
 
 	res.json(getDecoratedOrder(req.user.id, req.params.id))
 })
@@ -202,20 +242,20 @@ router.delete('/:id', (req, res) => {
 	res.json({ id: req.params.id })
 })
 
-/* ---- attachments ---- */
+/* ---- attachments ----
+   An attachment belongs to the order as a whole (its receipt) or to one of its own items (a
+   photo, or a PDF, of that particular product) -- never both. saveAttachments below is the one
+   place a file becomes a stored row either way; the routes just decide which owner column it
+   gets and which existing names it's deduped against. */
 
 const fileSizeLabel = bytes => {
 	const kb = Math.max(1, Math.round((bytes ?? 0) / 1024))
 	return kb > 1024 ? (kb / 1024).toFixed(1).replace('.', ',') + ' MB' : kb + ' KB'
 }
 
-router.post('/:id/attachments', upload.array('files'), async (req, res) => {
-	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
-	const orderId = req.params.id
-
-	const existingNames = new Set(selectExistingAttachmentNames.all(orderId).map(r => r.n))
+async function saveAttachments(files, owner, existingNames) {
 	const added = [], skipped = []
-	for (const file of req.files ?? []) {
+	for (const file of files ?? []) {
 		if (existingNames.has(file.originalname.toLowerCase())) { skipped.push(file.originalname); continue }
 		existingNames.add(file.originalname.toLowerCase())
 		const kind = file.mimetype === 'application/pdf' || /\.pdf$/i.test(file.originalname) ? 'pdf' : 'image'
@@ -223,7 +263,8 @@ router.post('/:id/attachments', upload.array('files'), async (req, res) => {
 		// uploaded, with a rendered-first-page thumbnail added where that succeeds (lib/images.js).
 		const processed = await processAttachment(kind, file.buffer, file.mimetype)
 		const attachment = {
-			id: newId('a'), orderId, name: file.originalname, kind,
+			id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
+			name: file.originalname, kind,
 			meta: `Added today · ${fileSizeLabel(processed.size)}`,
 			contentType: processed.contentType ?? file.mimetype, size: processed.size, data: processed.data,
 			thumbnail: processed.thumbnail, thumbnailContentType: processed.thumbnailContentType
@@ -231,6 +272,14 @@ router.post('/:id/attachments', upload.array('files'), async (req, res) => {
 		insertAttachment.run(attachment)
 		added.push({ id: attachment.id, name: attachment.name, kind: attachment.kind, meta: attachment.meta })
 	}
+	return { added, skipped }
+}
+
+router.post('/:id/attachments', upload.array('files'), async (req, res) => {
+	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
+	const orderId = req.params.id
+	const existingNames = new Set(selectExistingAttachmentNames.all(orderId).map(r => r.n))
+	const { added, skipped } = await saveAttachments(req.files, { orderId }, existingNames)
 	res.status(201).json({ order: getDecoratedOrder(req.user.id, orderId), added, skipped })
 })
 
@@ -255,6 +304,48 @@ router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
 	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
 	res.set('Content-Type', attachment.thumbnail_content_type || 'image/jpeg')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // a thumbnail's bytes never change once made
+	res.send(attachment.thumbnail)
+})
+
+/* ---- item attachments ----
+   The same shape as the order's own attachments above, one level down: a photo (or a PDF) of a
+   single line item rather than the whole receipt. Nested under the order in the URL because an
+   item id alone doesn't say which user's data it belongs to -- the order lookup is what proves
+   ownership before the item lookup even runs. */
+
+router.post('/:id/items/:itemId/attachments', upload.array('files'), async (req, res) => {
+	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
+	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
+	const itemId = req.params.itemId
+	const existingNames = new Set(selectExistingItemAttachmentNames.all(itemId).map(r => r.n))
+	const { added, skipped } = await saveAttachments(req.files, { orderItemId: itemId }, existingNames)
+	res.status(201).json({ order: getDecoratedOrder(req.user.id, req.params.id), added, skipped })
+})
+
+router.delete('/:id/items/:itemId/attachments/:attachmentId', (req, res) => {
+	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
+	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
+	deleteItemAttachment.run(req.params.attachmentId, req.params.itemId)
+	res.json(getDecoratedOrder(req.user.id, req.params.id))
+})
+
+router.get('/:id/items/:itemId/attachments/:attachmentId/file', (req, res) => {
+	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
+	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
+	const attachment = selectItemAttachment.get(req.params.attachmentId, req.params.itemId)
+	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
+	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
+	res.set('Content-Disposition', `inline; filename="${attachment.name.replace(/"/g, '')}"`)
+	res.send(attachment.data)
+})
+
+router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) => {
+	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
+	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
+	const attachment = selectItemAttachmentThumbnail.get(req.params.attachmentId, req.params.itemId)
+	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
+	res.set('Content-Type', attachment.thumbnail_content_type || 'image/jpeg')
+	res.set('Cache-Control', 'private, max-age=31536000, immutable')
 	res.send(attachment.thumbnail)
 })
 
@@ -292,7 +383,7 @@ router.post('/import', async (req, res) => {
 				insertOrderRows(req.user.id, id, draft)
 				for (const a of attachments) {
 					insertAttachment.run({
-						id: newId('a'), orderId: id, name: a.name, kind: a.kind,
+						id: newId('a'), orderId: id, orderItemId: null, name: a.name, kind: a.kind,
 						meta: `Imported · ${fileSizeLabel(a.size)}`,
 						contentType: a.contentType, size: a.size, data: a.data,
 						thumbnail: a.thumbnail, thumbnailContentType: a.thumbnailContentType

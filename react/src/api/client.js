@@ -126,7 +126,14 @@ const toApiDraft = draft => ({
 	vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
 	categories: draft.categories ?? [], shipping: draft.shipping ? parseAmount(draft.shipping) : 0,
 	reference: draft.reference ?? '', note: draft.note ?? '',
+	/* A saved order's own item id travels through -- PUT matches a submitted item against what's
+	   already in the database by id, updating it in place rather than deleting and recreating it
+	   under a fresh one, so anything keyed to that id (an item's own attachment) survives an edit
+	   that never touched that line. A draft item with no real id yet (still local to this
+	   session, or a brand-new line) has none to send -- the server treats that the same as
+	   before, a fresh row with a fresh id of its own. */
 	items: (draft.items ?? []).map(i => ({
+		...(i.id ? { id: i.id } : {}),
 		title: i.title, quantity: i.quantity, price: i.price,
 		retail: i.retail ?? null, note: i.note ?? ''
 	}))
@@ -170,6 +177,25 @@ export async function removeAttachment(orderId, attachmentId, signal) {
     call site) so the URL shape lives in one place. */
 export const attachmentThumbnailUrl = (orderId, attachmentId) => `/api/orders/${orderId}/attachments/${attachmentId}/thumbnail`
 export const attachmentFileUrl = (orderId, attachmentId) => `/api/orders/${orderId}/attachments/${attachmentId}/file`
+
+/** The same as addAttachments/removeAttachment above, one level down: a photo (or a PDF) of a
+    single line item rather than the whole receipt. The item has to already exist server-side —
+    NewOrder.jsx uploads these after the order (and so the item) is saved, not while the item is
+    still a client-side draft with no id of its own yet. */
+export async function addItemAttachments(orderId, itemId, files, signal) {
+	const form = new FormData()
+	for (const file of files) form.append('files', file)
+	return request(`/api/orders/${orderId}/items/${itemId}/attachments`, { method: 'POST', form, signal })
+}
+
+export async function removeItemAttachment(orderId, itemId, attachmentId, signal) {
+	return request(`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}`, { method: 'DELETE', signal })
+}
+
+export const itemAttachmentThumbnailUrl = (orderId, itemId, attachmentId) =>
+	`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}/thumbnail`
+export const itemAttachmentFileUrl = (orderId, itemId, attachmentId) =>
+	`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}/file`
 
 /** Bulk-imports whole orders (vendor, categories, items, attachment images) from another
     expense-tracking system in one call. Not wired to any page yet — this is the entry point
