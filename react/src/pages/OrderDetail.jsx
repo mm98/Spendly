@@ -14,7 +14,7 @@ import { Segmented } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	addAttachments, attachmentThumbnailUrl, deleteOrder, getHomeContent, getHomeHero, getOrder,
+	addAttachments, attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, getHomeContent, getHomeHero, getOrder,
 	getOrderAsDraft, getOrders, getOrdersOverview, getStats, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
 	removeAttachment, updateOrder
 } from '../api/client.js'
@@ -257,6 +257,15 @@ export default function OrderDetail() {
 												<DocumentPreview kind={file.kind}
 													src={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined} />
 												<span className="field-help">{file.name} · {file.meta}</span>
+												{/* The preview above is a raster -- a rendered first page for a PDF,
+												    stretched no larger than the box lets it. Reading the document
+												    means the real file, not that render: a plain link, not the
+												    Link-based Button, since /api/... is a real file the browser
+												    opens with its own viewer, not a route this app has. README:
+												    Honest Affordances. */}
+												<a className="button button-pill" style={{ marginTop: 8 }}
+													href={attachmentFileUrl(order.id, file.id)}
+													target="_blank" rel="noopener noreferrer">OPEN FULL FILE</a>
 											</div>
 										) : null}
 									</div>

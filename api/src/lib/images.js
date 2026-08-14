@@ -16,7 +16,12 @@ mupdf.setLog(() => {})
 
 const DISPLAY_MAX = 1600
 const THUMBNAIL_MAX = 200
-const PDF_RENDER_LONG_EDGE = 480   // rendered once, then downscaled by sharp same as a photo would be
+// A PDF has no separate "display" bytes the way an image does -- the /file download is always
+// the original PDF, so its one raster (the "thumbnail" column) is the only preview that will
+// ever exist for it, at any size. Rendered at DISPLAY_MAX rather than THUMBNAIL_MAX so the
+// expanded attachment preview -- a wide panel, not a row icon -- has more than 200px stretched
+// across it to show.
+const PDF_RENDER_LONG_EDGE = DISPLAY_MAX
 
 /** Resizes to fit within max x max (never upscales), auto-orients from EXIF (a sideways phone
     photo would otherwise stay sideways), and re-encodes as JPEG — which also strips EXIF, so a
@@ -45,12 +50,14 @@ export async function processImage(buffer) {
 	}
 }
 
-/** A thumbnail for a PDF's first page, or null if it couldn't be rendered (encrypted, corrupt,
-    zero pages) — the caller falls back to the plain document icon exactly the way it already
-    does for an image sharp couldn't decode. The PDF's own bytes are never touched; only a
-    raster of page one is generated, resized down through the same JPEG pipeline as a photo's
-    thumbnail. mupdf's WASM objects hold native heap outside JS's GC, so each is explicitly
-    destroyed rather than left for the finalizer to get to eventually. */
+/** A DISPLAY_MAX-sized raster of a PDF's first page, or null if it couldn't be rendered
+    (encrypted, corrupt, zero pages) — the caller falls back to the plain document icon exactly
+    the way it already does for an image sharp couldn't decode. The PDF's own bytes are never
+    touched; only a raster of page one is generated, resized down through the same JPEG pipeline
+    a photo's own copies go through (see the PDF_RENDER_LONG_EDGE note above for why this reuses
+    the display size, not the thumbnail size, despite the column it's still stored in). mupdf's
+    WASM objects hold native heap outside JS's GC, so each is explicitly destroyed rather than
+    left for the finalizer to get to eventually. */
 export async function processPdfThumbnail(buffer) {
 	let doc, page, pixmap
 	try {
@@ -61,7 +68,7 @@ export async function processPdfThumbnail(buffer) {
 		const scale = PDF_RENDER_LONG_EDGE / Math.max(x1 - x0, y1 - y0, 1)
 		pixmap = page.toPixmap(mupdf.Matrix.scale(scale, scale), mupdf.ColorSpace.DeviceRGB, false, false)
 		const png = Buffer.from(pixmap.asPNG())
-		const thumbnail = await resizeTo(png, THUMBNAIL_MAX)
+		const thumbnail = await resizeTo(png, DISPLAY_MAX)
 		return { thumbnail, thumbnailContentType: 'image/jpeg' }
 	} catch {
 		return null

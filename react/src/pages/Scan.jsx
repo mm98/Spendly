@@ -314,10 +314,22 @@ function ScanReviewForm({ answer }) {
 							{/* The preview under this button is a thumbnail; OPEN is what makes it big
 							    enough to read from. It says which state it is in, and it says CLOSE when
 							    it would close -- a toggle labelled the same in both states is a control
-							    that tells you nothing about what pressing it does. */}
-							<button type="button" className="button button-pill"
-								aria-expanded={sourceOpen} aria-controls="scan-source-preview"
-								onClick={() => setSourceOpen(o => !o)}>{sourceOpen ? 'CLOSE' : 'OPEN'}</button>
+							    that tells you nothing about what pressing it does.
+
+							    A PDF's toggle swapped this same <img> to the raw PDF's own bytes, which
+							    no browser decodes as an image -- ImageOrIcon's onError fallback silently
+							    replaced the thumbnail with a bare document glyph, the opposite of "big
+							    enough to read from". A real link, opened in a new tab, hands it to the
+							    browser's own PDF viewer instead; an image has no such problem; the swap
+							    already showed its own real bytes correctly. */}
+							{answer.file.kind === 'pdf' ? (
+								<a className="button button-pill" href={scanFileUrl(answer.documentKey)}
+									target="_blank" rel="noopener noreferrer">OPEN</a>
+							) : (
+								<button type="button" className="button button-pill"
+									aria-expanded={sourceOpen} aria-controls="scan-source-preview"
+									onClick={() => setSourceOpen(o => !o)}>{sourceOpen ? 'CLOSE' : 'OPEN'}</button>
+							)}
 						</CardHeader>
 						<CardDivider />
 						<CardBody>
