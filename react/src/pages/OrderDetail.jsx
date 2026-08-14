@@ -14,8 +14,8 @@ import { Segmented } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	addAttachments, deleteOrder, getHomeContent, getOrder, getOrderAsDraft, getOrders,
-	getOrdersOverview, removeAttachment, updateOrder
+	addAttachments, attachmentThumbnailUrl, deleteOrder, getHomeContent, getOrder, getOrderAsDraft,
+	getOrders, getOrdersOverview, removeAttachment, updateOrder
 } from '../api/client.js'
 import { kr, longDate, percent, shortDate } from '../api/format.js'
 
@@ -229,6 +229,7 @@ export default function OrderDetail() {
 								{order.attachments.length ? order.attachments.map(file => (
 									<div key={file.id}>
 										<ItemRow thumb={file.kind === 'pdf' ? 'document' : 'photo'}
+											thumbSrc={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined}
 											title={file.name} meta={file.meta}>
 											<span className="row-inline row-inline-nowrap" style={{ gap: 4, marginLeft: 'auto' }}>
 												<IconButton icon={openFile === file.id ? 'chevronDown' : 'chevronRight'}
@@ -240,7 +241,8 @@ export default function OrderDetail() {
 										</ItemRow>
 										{openFile === file.id ? (
 											<div style={{ padding: '0 4px 10px' }}>
-												<DocumentPreview kind={file.kind} />
+												<DocumentPreview kind={file.kind}
+													src={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined} />
 												<span className="field-help">{file.name} · {file.meta}</span>
 											</div>
 										) : null}

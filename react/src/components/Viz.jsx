@@ -1,4 +1,4 @@
-import { Icon } from './Icon.jsx'
+import { Icon, ImageOrIcon } from './Icon.jsx'
 
 /* The small visualisations that are drawn in CSS rather than in SVG: the donut, the gauge,
    the meter, the bar rows and the two progress indicators.
@@ -110,12 +110,14 @@ export const ProgressRing = ({ done, total }) => (
 	</span>
 )
 
-/** The placeholder for an uploaded document. The glyph is the file's own kind, because a
-    PDF invoice drawn with a photo glyph is the screen telling the user it read something
-    else. README: Views. */
-export const DocumentPreview = ({ kind = 'image', style, ...rest }) => (
+/** The preview for an uploaded document. `src`, when given, is a real thumbnail or display
+    image (the backend generates both — see api/src/lib/images.js); without one, or if it fails
+    to load, this falls back to the glyph for the file's own kind, because a PDF invoice drawn
+    with a photo glyph is the screen telling the user it read something else. README: Views. */
+export const DocumentPreview = ({ kind = 'image', src, style, ...rest }) => (
 	<div className={`document-preview document-preview-${kind}`} style={style} aria-hidden="true" {...rest}>
-		<Icon name={kind === 'pdf' ? 'document' : 'photo'}
-			className={`document-preview-glyph document-preview-glyph-${kind}`} />
+		<ImageOrIcon src={src} icon={kind === 'pdf' ? 'document' : 'photo'}
+			className={`document-preview-glyph document-preview-glyph-${kind}`}
+			imgClassName="document-preview-photo" />
 	</div>
 )

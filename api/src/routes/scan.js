@@ -98,6 +98,15 @@ router.get('/documents/:key/thumbnail', (req, res) => {
 	res.send(upload.thumbnail)
 })
 
+/** The full (1600px) display image — for a bigger preview than the 200px thumbnail is worth
+    rendering, e.g. the review screen's own "OPEN" state. */
+router.get('/documents/:key/file', (req, res) => {
+	const upload = selectUpload.get(req.params.key, req.user.id)
+	if (!upload || !upload.data) return res.status(404).json({ error: 'No file stored for that document.' })
+	res.set('Content-Type', upload.content_type || 'application/octet-stream')
+	res.send(upload.data)
+})
+
 /** Recently completed scans — the account's own orders that carry an attachment, newest first.
     Real history, not the phantom store's two hardcoded rows. */
 router.get('/recent', (req, res) => {

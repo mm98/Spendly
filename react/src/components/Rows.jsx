@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 import { Link } from 'react-router'
-import { Icon } from './Icon.jsx'
+import { Icon, ImageOrIcon } from './Icon.jsx'
 import { kr, krRound } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
@@ -70,7 +70,7 @@ export function CategoryRow({ category, meta, to }) {
 
 /** A line on an order, a line read off a receipt, or a fact in an inset panel.
     `tone` recolours the leading tile where the line is a warning rather than a value. */
-export function ItemRow({ icon, iconTone, thumb, handle, title, meta, amount, to, children, ...rest }) {
+export function ItemRow({ icon, iconTone, thumb, thumbSrc, handle, title, meta, amount, to, children, ...rest }) {
 	return (
 		<Row to={to} family="item-row" {...rest}>
 			{/* The handle is passed in rather than drawn here: a grip is only honest when
@@ -78,7 +78,14 @@ export function ItemRow({ icon, iconTone, thumb, handle, title, meta, amount, to
 			    one on its own. See Reorder.jsx. */}
 			{handle}
 			{icon ? <span className="item-row-icon" style={iconTone}><Icon name={icon} /></span> : null}
-			{thumb ? <span className="document-thumb" style={{ fontSize: 0 }} aria-hidden="true"><Icon name={thumb} /></span> : null}
+			{/* thumbSrc is a real preview (a thumbnail the backend generated) for the icon named
+			    by thumb to fall back to — most callers pass thumb alone and never had bytes to
+			    preview in the first place. */}
+			{thumb ? (
+				<span className="document-thumb" style={{ fontSize: 0 }} aria-hidden="true">
+					<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
+				</span>
+			) : null}
 			<div>
 				<div className="item-row-title">{title}</div>
 				{meta ? <div className="item-row-meta">{meta}</div> : null}

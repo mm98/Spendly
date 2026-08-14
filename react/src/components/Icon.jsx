@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 
 /* Every glyph in the app, in one registry.
 
@@ -72,3 +72,14 @@ export const Icon = memo(function Icon({ name, path, className = 'icon', title, 
 })
 
 export default Icon
+
+/** A real preview image where one exists, the same named icon everywhere else draws otherwise.
+    Falls back to the icon with no request at all when `src` is empty, and falls back again if
+    the image fails to load (a thumbnail that hasn't finished generating, a network hiccup) —
+    every place that shows a receipt preview alongside an icon fallback uses this one component
+    rather than each inventing its own <img>-with-onError. */
+export function ImageOrIcon({ src, icon, alt = '', className, imgClassName }) {
+	const [failed, setFailed] = useState(false)
+	if (src && !failed) return <img src={src} alt={alt} className={imgClassName} onError={() => setFailed(true)} />
+	return <Icon name={icon} className={className} />
+}

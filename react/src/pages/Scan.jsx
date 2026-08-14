@@ -20,7 +20,7 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
 	attachScanDocument, createOrder, getHomeContent, getOrders, getOrdersOverview, getRecentScans,
-	getScanDraft, putScanDocument, spendKinds
+	getScanDraft, putScanDocument, scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
@@ -160,7 +160,8 @@ export function ScanReading() {
 				return (
 					<Card aria-label="Reading the document" aria-busy="true">
 						<CardBody variant="card-body-centered">
-							<DocumentPreview kind={file.kind} style={{ width: 120, height: 150 }} />
+							<DocumentPreview kind={file.kind} style={{ width: 120, height: 150 }}
+								src={file.hasThumbnail ? scanThumbnailUrl(key) : undefined} />
 							<div>
 								<div className="card-headline">Reading {file.name}</div>
 								<span className="field-help">
@@ -318,7 +319,10 @@ function ScanReviewForm({ answer }) {
 						<CardDivider />
 						<CardBody>
 							<DocumentPreview kind={answer.file.kind} id="scan-source-preview"
-								style={sourceOpen ? { height: 520 } : undefined} />
+								style={sourceOpen ? { height: 520 } : undefined}
+								src={answer.file.hasThumbnail
+									? (sourceOpen ? scanFileUrl(answer.documentKey) : scanThumbnailUrl(answer.documentKey))
+									: undefined} />
 							<div className="space-between document-name-row" style={{ marginTop: 10 }}>
 								<span className="document-name">{answer.file.name}</span>
 								<span className="field-help">{answer.file.meta}</span>

@@ -164,6 +164,13 @@ export async function removeAttachment(orderId, attachmentId, signal) {
 	return request(`/api/orders/${orderId}/attachments/${attachmentId}`, { method: 'DELETE', signal })
 }
 
+/** `<img src>` reads these directly rather than going through fetch() — the browser sends the
+    session cookie on a same-origin image request the same way it does on any other, so there's
+    nothing useApi.js needs to do here. Kept as functions (not inline template strings at every
+    call site) so the URL shape lives in one place. */
+export const attachmentThumbnailUrl = (orderId, attachmentId) => `/api/orders/${orderId}/attachments/${attachmentId}/thumbnail`
+export const attachmentFileUrl = (orderId, attachmentId) => `/api/orders/${orderId}/attachments/${attachmentId}/file`
+
 /** Bulk-imports whole orders (vendor, categories, items, attachment images) from another
     expense-tracking system in one call. Not wired to any page yet — this is the entry point
     for that migration, called directly (a script, a one-off import screen) rather than through
@@ -301,6 +308,9 @@ export async function getScanDraft(documentKey, signal) {
 export async function attachScanDocument(documentKey, orderId, signal) {
 	return request(`/api/scan/documents/${documentKey}/attach/${orderId}`, { method: 'POST', signal })
 }
+
+export const scanThumbnailUrl = documentKey => `/api/scan/documents/${documentKey}/thumbnail`
+export const scanFileUrl = documentKey => `/api/scan/documents/${documentKey}/file`
 
 /* ---- command palette ----
    The server's /api/search matches vendors, categories and orders (by vendor name, note or an
