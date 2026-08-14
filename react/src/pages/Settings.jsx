@@ -128,7 +128,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 							<FilterSection>
 								<span className="panel-heading">On screen</span>
 								<div className="space-between">
-									<span className="field-help" style={{ maxWidth: '32ch' }}>
+									<span className="field-help" style={{ paddingRight: 20 }}>
 										Show the scan card on Home. LATER on the card itself turns this off too.
 									</span>
 									<Switch checked={local.showScanCard} label="Show the scan card on Home"
@@ -136,7 +136,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 											v ? 'The scan card is back on Home.' : 'The scan card is off.')} />
 								</div>
 								<div className="space-between">
-									<span className="field-help" style={{ maxWidth: '32ch' }}>
+									<span className="field-help" style={{ paddingRight: 20 }}>
 										Ask before deleting anything — an order, a category, a vendor, a line
 										item, an attachment. With this off, the trash acts straight away.
 									</span>
@@ -187,21 +187,6 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 							<Button variant="block" icon="trash" style={{ marginTop: 8 }}
 								onClick={() => setConfirming(true)}>CLEAR STORED DATA</Button>
 						)}
-					</CardBody>
-				</Card>
-
-				<Card aria-label="About the data">
-					<CardHeader title="Where the numbers come from" />
-					<CardDivider />
-					<CardBody>
-						<p className="card-lead" style={{ marginTop: 0 }}>
-							Every figure in Spendly is served by a real API over a SQLite database. It
-							answers asynchronously, it can fail, and what you change through it persists.
-						</p>
-						<span className="field-help">
-							Totals are derived from their lines rather than stored beside them, so a total
-							and its items cannot disagree.
-						</span>
 					</CardBody>
 				</Card>
 			</div>

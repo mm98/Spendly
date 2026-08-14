@@ -148,7 +148,7 @@ function VendorFields({ mode, vendor }) {
 			    second control for a job this one already has. README: Fields and Forms. */}
 			<FilterSection>
 				<div className="space-between">
-					<span className="field-help" style={{ maxWidth: '32ch' }}>
+					<span className="field-help" style={{ paddingRight: 20 }}>
 						Favourites are spotlighted at the top of the Vendors page, and lead the vendor
 						list on a new order.
 					</span>
