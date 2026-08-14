@@ -61,10 +61,15 @@ export function windowBounds(userId, range, id) {
 		const y = Number(id)
 		return { from: Date.UTC(y, 0, 1) / 1000, to: Date.UTC(y + 1, 0, 1) / 1000, label: String(y), shortLabel: String(y) }
 	}
-	// 'all': the user's whole order history through today
+	// 'all': the user's whole order history through today, at least a week wide. Every other
+	// range has a fixed calendar width regardless of how little data is in it, which is what
+	// lets one order sit amid real zero-days and draw as a spike -- 'all' is the only one sized
+	// off the data itself, so an account whose first order was placed today collapsed it to a
+	// single day. A single day-level point has no "before" to rise from, so the line drew flat
+	// across the whole card instead of the spike every other range shows for the same order.
 	const earliest = earliestOrderDate.get(userId).d
 	const to = Math.floor(Date.now() / 1000 / DAY) * DAY + DAY
-	const from = earliest != null ? Math.min(earliest, to - DAY) : to - DAY
+	const from = Math.min(earliest ?? to - DAY, to - 7 * DAY)
 	return { from, to, label: 'All time', shortLabel: 'all time' }
 }
 
