@@ -15,10 +15,15 @@ import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState 
    hidden page measuring zero. */
 
 const buildPath = (points, width, height, pad, kind) => {
-	const n = points.length
+	let n = points.length
 	if (!n) return ''
 	const xAt = i => pad + (width - pad * 2) * (n > 1 ? i / (n - 1) : 0)
-	const pts = points.map((y, i) => [xAt(i), y])
+	let pts = points.map((y, i) => [xAt(i), y])
+	/* A single point has nowhere to draw a line to -- 'M' with no command after it paints
+	   nothing, indistinguishable from an empty series. A window this young (an "all time"
+	   range whose only order was placed today) still has a value to show, so stretch that one
+	   point across the full width instead of leaving the chart blank. */
+	if (n === 1) { pts = [[pad, pts[0][1]], [width - pad, pts[0][1]]]; n = 2 }
 
 	if (kind === 'line') return 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1]).join(' L')
 
