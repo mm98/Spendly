@@ -126,11 +126,10 @@ export default function Orders() {
 							<CardDivider />
 							{explaining ? (
 								<div className="card-body" id="for-you-explainer">
-									<Note tone="positive" title="Where these come from.">
-										Spendly reads the orders you have already saved: vendor names it could not
-										match, orders still marked Ordered after ten days, and categories that moved
-										a lot this month. Nothing is sent anywhere — the check runs on your own data,
-										in this browser.
+									<Note tone="positive" title="What these are.">
+										General tips on using Spendly, not suggestions read from your own orders --
+										the vendor-matching and stale-order checks this card once described were
+										never wired up. Nothing here looks at your data.
 									</Note>
 								</div>
 							) : null}
