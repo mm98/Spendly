@@ -26,7 +26,7 @@ import { getSettings } from '../api/client.js'
    *happened* -- saved, added, removed -- is a toast. README: Fields and Forms, and Toast.jsx. */
 
 export function FormPage({
-	title, lead, label, steps, notice, status, rail, cancel, submit, children
+	title, lead, label, steps, notice, status, rail, cancel, secondary, submit, children
 }) {
 	return (
 		<Page>
@@ -43,12 +43,23 @@ export function FormPage({
 								{children}
 								{/* Both buttons at the same height, because they are one pair: the
 								    stylesheet gives `.button-caps` 48px and `.button-compact` 32, and a
-								    call site that mixes them draws a footer that looks broken. README: Buttons. */}
+								    call site that mixes them draws a footer that looks broken. README: Buttons.
+								    `secondary`, when a step offers one, is a second promise distinct from
+								    submit's -- not a smaller version of it -- so it takes the same `ghost`
+								    variant as cancel rather than `compact`, and sits grouped with submit on
+								    the split's right side: cancel is the only action that leaves the form
+								    without keeping anything. */}
 								<FormActions split>
 									<Button variant="ghost" icon={cancel?.icon} to={cancel?.to} onClick={cancel?.onClick}>
 										{cancel?.label ?? 'CANCEL'}</Button>
-									<Button variant="caps" onClick={submit.onClick} disabled={submit.disabled}>
-										{submit.label}</Button>
+									<div className="row-inline row-inline-nowrap" style={{ gap: 10 }}>
+										{secondary ? (
+											<Button variant="ghost" onClick={secondary.onClick} disabled={secondary.disabled}>
+												{secondary.label}</Button>
+										) : null}
+										<Button variant="caps" onClick={submit.onClick} disabled={submit.disabled}>
+											{submit.label}</Button>
+									</div>
 								</FormActions>
 							</Form>
 						</CardBody>

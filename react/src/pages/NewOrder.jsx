@@ -80,6 +80,7 @@ export function NewOrderDetails() {
 	const toast = useToast()
 	const [more, setMore] = useState(true)
 	const [status, setStatus] = useState({ message: '', good: true })
+	const [saving, setSaving] = useState(false)
 	const base = mode === 'edit' ? `/orders/${id}/edit` : '/orders/new'
 
 	const values = useMemo(() => ({
@@ -120,6 +121,31 @@ export function NewOrderDetails() {
 		focusField(failed[0].name)
 	}
 
+	/* Editing an order that already has its items is the one case this step can save on its
+	   own: draft.items came in from getOrderAsDraft and nothing here has touched them, so
+	   writing the draft back is a real save, not a partial one missing its lines. Creating
+	   never gets this button -- a brand-new draft has no items yet, and updateOrder here would
+	   either save an empty order or silently need the same items-required check step 2 already
+	   owns, which is one rule kept in one place rather than copied into a second form. */
+	const saveOnly = () => {
+		const failed = check()
+		if (failed.length) {
+			if (failed.some(f => f.name === 'order-shipping')) setMore(true)
+			setStatus({ message: 'Cannot save — ' + needFixing(failed), good: false })
+			focusField(failed[0].name)
+			return
+		}
+		setStatus({ message: '', good: true })
+		setSaving(true)
+		updateOrder(id, draft)
+			.then(() => {
+				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
+				invalidate(getOrderAsDraft); invalidate(getStats); invalidate(getHomeHero)
+				navigate(`/orders/${id}`)
+			})
+			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
+	}
+
 	const [categoryQuery, setCategoryQuery] = useState('')
 	const addCategory = name => {
 		const clean = String(name).trim()
@@ -136,7 +162,10 @@ export function NewOrderDetails() {
 			title="Order details" lead="Where you bought, when, and how it arrived."
 			steps={STEPS(0)} status={status}
 			cancel={{ to: mode === 'edit' ? `/orders/${id}` : '/orders' }}
-			submit={{ label: 'NEXT STEP', onClick: next }}
+			secondary={mode === 'edit'
+				? { label: saving ? 'SAVING…' : 'SAVE', onClick: saveOnly, disabled: saving }
+				: undefined}
+			submit={{ label: 'NEXT STEP', onClick: next, disabled: saving }}
 			rail={
 				<>
 					<OrderSummary draft={draft} estimate />
