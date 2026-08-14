@@ -44,6 +44,7 @@ const OrderDetail = page(() => import('./pages/OrderDetail.jsx'))
 const NewOrderLayout = page(() => import('./pages/NewOrder.jsx'), 'NewOrderLayout')
 const NewOrderDetails = page(() => import('./pages/NewOrder.jsx'), 'NewOrderDetails')
 const NewOrderItems = page(() => import('./pages/NewOrder.jsx'), 'NewOrderItems')
+const EditOrder = page(() => import('./pages/EditOrder.jsx'))
 const Settings = page(() => import('./pages/Settings.jsx'))
 const CategoryForm = page(() => import('./pages/CategoryForm.jsx'))
 const VendorForm = page(() => import('./pages/VendorForm.jsx'))
@@ -96,16 +97,15 @@ export const routes = [
 				{ path: ':id', children: [
 					{ index: true, element: <OrderDetail />,
 						handle: { title: 'Order details', navKey: 'orders', back: { to: '/orders', label: 'orders' } } },
-					/* Editing an order is the New order flow with the order loaded into it, rather
-					   than a second form that would drift from the first. Both steps are here, so
-					   the item list is editable on an existing order too. */
-					{ path: 'edit', element: <NewOrderLayout mode="edit" />,
-						handle: { title: 'Edit order', navKey: 'orders' }, children: [
-						{ index: true, element: <NewOrderDetails mode="edit" />,
-							handle: { title: 'Edit order', navKey: 'orders' } },
-						{ path: 'items', element: <NewOrderItems mode="edit" />,
-							handle: { title: 'Edit order', navKey: 'orders' } }
-					] }
+					/* New order stays a two-step wizard: a brand-new draft has no items yet, so
+					   step 1 gathers the facts the item form needs and step 2 is the only place
+					   they can be added. An edit starts from an order that already has both --
+					   forcing it through the same two pages meant "Add the items" printed over
+					   lines being edited, not added, and nothing could be saved without walking
+					   through a step that touched nothing. EditOrder is its own page: one form,
+					   one save, for details and items together. See EditOrder.jsx. */
+					{ path: 'edit', element: <EditOrder />,
+						handle: { title: 'Edit order', navKey: 'orders', back: { to: '/orders', label: 'orders' } } }
 				] }
 			] },
 

@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
-import { Outlet, useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router'
+import { Outlet, useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { FormPage, useRowDelete } from '../components/FormPage.jsx'
@@ -19,8 +19,8 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	addItemAttachments, createOrder, createVendor, getCategories, getHomeContent, getHomeHero,
-	getOrderAsDraft, getOrderDraft, getOrders, getOrdersOverview, getStats, getVendors,
-	getVendorsOverview, itemAttachmentThumbnailUrl, spendKinds, updateOrder
+	getOrderDraft, getOrders, getOrdersOverview, getStats, getVendors,
+	getVendorsOverview, spendKinds
 } from '../api/client.js'
 import { invalidate } from '../api/useApi.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
@@ -38,24 +38,29 @@ import { amount, kr, parseAmount, percent, shortDate, today } from '../api/forma
    with no vendor, no date and a Kind that is not one of the kinds. README: Fields and Forms.
 
    Neither step arranges its own page. Both hand their fields to FormPage, which is the one
-   card, headline, verdict line, rail and split footer every form in the app is drawn in. */
+   card, headline, verdict line, rail and split footer every form in the app is drawn in.
+
+   This is create-only. A brand-new draft has no items, so step 1 exists to gather what an item
+   form needs before there is one to add anything to, and step 2 is the only place a first item
+   can go -- two real steps, in a real order. Editing an existing order has both halves already
+   and does not walk through this: it is its own page, saving details and items in one call. See
+   EditOrder.jsx, and the note on the edit route in routes.jsx. Sharing this wizard's code with
+   an edit was tried and it was the wrong call -- an edit could not save a category without
+   detouring through an item form that had nothing to add, and "Add the items" printed over
+   lines already on the order every time it was read. */
 
 const STEPS = (at) => [
 	{ label: 'Order details', icon: 'receipt', done: at > 0, on: at === 0 },
 	{ label: 'Add the items', icon: 'document', on: at === 1 }
 ]
 
-export function NewOrderLayout({ mode = 'create' }) {
-	const { id } = useParams()
+export function NewOrderLayout() {
 	const [searchParams] = useSearchParams()
-	/* One layout for both flows: a new order starts from the seeded draft and the defaults the
-	   user set, and an edit starts from the order itself. Two forms would drift; this way the
-	   second step, the summary rail and every validation rule are literally the same code. */
-	const seed = useApi(mode === 'edit' ? getOrderAsDraft : getOrderDraft, mode === 'edit' ? [id] : [])
+	const seed = useApi(getOrderDraft)
 	/* The command palette's "Create order with {vendor}" arrives as ?vendor=, and the promise
 	   it made was the vendor already filled in -- not another field to type. Folded into the
 	   seed itself, so it survives exactly as long as the rest of the draft does. */
-	const vendorParam = mode === 'create' ? searchParams.get('vendor') : null
+	const vendorParam = searchParams.get('vendor')
 	const seedData = useMemo(() => (seed.data && vendorParam ? { ...seed.data, vendor: vendorParam } : seed.data),
 		[seed.data, vendorParam])
 	const [draft, setDraft] = useState(null)
@@ -67,21 +72,19 @@ export function NewOrderLayout({ mode = 'create' }) {
 	if (seed.error) return <Page><Card><CardBody><p className="field-help">
 		That order could not be loaded. {seed.error.message}</p></CardBody></Card></Page>
 	if (!value) return <Page><p className="field-help">Loading the form…</p></Page>
-	return <Outlet context={{ draft: value, update, mode, id }} />
+	return <Outlet context={{ draft: value, update }} />
 }
 
 /* ---- step 1 ---- */
 
 export function NewOrderDetails() {
-	const { draft, update, mode, id } = useOutletContext()
+	const { draft, update } = useOutletContext()
 	const navigate = useNavigate()
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
 	const toast = useToast()
 	const [more, setMore] = useState(true)
 	const [status, setStatus] = useState({ message: '', good: true })
-	const [saving, setSaving] = useState(false)
-	const base = mode === 'edit' ? `/orders/${id}/edit` : '/orders/new'
 
 	const values = useMemo(() => ({
 		'order-vendor': draft.vendor,
@@ -113,37 +116,12 @@ export function NewOrderDetails() {
 
 	const next = () => {
 		const failed = check()
-		if (!failed.length) { setStatus({ message: '', good: true }); navigate(base + '/items'); return }
+		if (!failed.length) { setStatus({ message: '', good: true }); navigate('/orders/new/items'); return }
 		/* Shipping fee lives inside the More-details disclosure, so a rejection there can sit
 		   behind a closed panel -- a message nobody can open is the same as no message. */
 		if (failed.some(f => f.name === 'order-shipping')) setMore(true)
 		setStatus({ message: 'Cannot continue — ' + needFixing(failed), good: false })
 		focusField(failed[0].name)
-	}
-
-	/* Editing an order that already has its items is the one case this step can save on its
-	   own: draft.items came in from getOrderAsDraft and nothing here has touched them, so
-	   writing the draft back is a real save, not a partial one missing its lines. Creating
-	   never gets this button -- a brand-new draft has no items yet, and updateOrder here would
-	   either save an empty order or silently need the same items-required check step 2 already
-	   owns, which is one rule kept in one place rather than copied into a second form. */
-	const saveOnly = () => {
-		const failed = check()
-		if (failed.length) {
-			if (failed.some(f => f.name === 'order-shipping')) setMore(true)
-			setStatus({ message: 'Cannot save — ' + needFixing(failed), good: false })
-			focusField(failed[0].name)
-			return
-		}
-		setStatus({ message: '', good: true })
-		setSaving(true)
-		updateOrder(id, draft)
-			.then(() => {
-				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
-				invalidate(getOrderAsDraft); invalidate(getStats); invalidate(getHomeHero)
-				navigate(`/orders/${id}`)
-			})
-			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
 	}
 
 	const [categoryQuery, setCategoryQuery] = useState('')
@@ -161,11 +139,8 @@ export function NewOrderDetails() {
 		<FormPage
 			title="Order details" lead="Where you bought, when, and how it arrived."
 			steps={STEPS(0)} status={status}
-			cancel={{ to: mode === 'edit' ? `/orders/${id}` : '/orders' }}
-			secondary={mode === 'edit'
-				? { label: saving ? 'SAVING…' : 'SAVE', onClick: saveOnly, disabled: saving }
-				: undefined}
-			submit={{ label: 'NEXT STEP', onClick: next, disabled: saving }}
+			cancel={{ to: '/orders' }}
+			submit={{ label: 'NEXT STEP', onClick: next }}
 			rail={
 				<>
 					<OrderSummary draft={draft} estimate />
@@ -289,7 +264,10 @@ export function NewOrderDetails() {
 }
 
 /* The rail on both steps. It reads the draft, so it is a view of the order rather than a
-   second statement of it -- the two cannot drift. */
+   second statement of it -- the two cannot drift. `estimate` is right on both of this
+   wizard's steps: nothing has been saved yet, so the total is a preview of what saving would
+   produce, not a fact about a real order yet. EditOrder.jsx's own rail drops it, because there
+   the order and its items already exist. */
 function OrderSummary({ draft, estimate, showItems }) {
 	const total = draft.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 		+ (draft.shipping ? parseAmount(draft.shipping) : 0)
@@ -341,7 +319,7 @@ function OrderSummary({ draft, estimate, showItems }) {
 const BLANK_ITEM = { 'item-description': '', 'item-quantity': '', 'item-price': '', 'item-retail': '' }
 
 export function NewOrderItems() {
-	const { draft, update, mode, id } = useOutletContext()
+	const { draft, update } = useOutletContext()
 	const navigate = useNavigate()
 	const [form, setForm] = useState(BLANK_ITEM)
 	const [status, setStatus] = useState({ message: '', good: true })
@@ -353,12 +331,11 @@ export function NewOrderItems() {
 	/* A photo is picked against an item that, mid-wizard, may not have a real id yet -- see
 	   save() below, which is what actually uploads these once the order (and so the item) has
 	   been written. Keyed by the item's own id (temporary or real), never sent as part of the
-	   draft's own JSON -- draft.items travels to createOrder/updateOrder as-is, and a File
-	   object serializes to "{}" the moment it touches JSON.stringify. */
+	   draft's own JSON -- draft.items travels to createOrder as-is, and a File object
+	   serializes to "{}" the moment it touches JSON.stringify. */
 	const [pendingPhotos, setPendingPhotos] = useState({})
 	const toast = useToast()
 	const nextId = useRef(0)
-	const base = mode === 'edit' ? `/orders/${id}/edit` : '/orders/new'
 
 	const { check, recheck, clear, propsFor } = useFieldErrors(ITEM_FIELDS, form)
 	const itemDescription = propsFor('item-description')
@@ -468,20 +445,18 @@ export function NewOrderItems() {
 			return
 		}
 		setSaving(true)
-		const written = mode === 'edit' ? updateOrder(id, draft) : createOrder(draft)
-		written
+		createOrder(draft)
 			.then(async order => {
 				/* The list, the dashboard, the overview, Statistics and the Home hero chart all
 				   count or aggregate orders, so all five are dropped from the cache rather than
 				   left showing figures from before. */
 				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
-				invalidate(getOrderAsDraft); invalidate(getStats); invalidate(getHomeHero)
+				invalidate(getStats); invalidate(getHomeHero)
 
-				/* A photo was picked against a draft item that may not have had a real id yet --
-				   this is the first point one exists to attach it to. Both create and this edit's
-				   own upsert (see api/src/routes/orders.js) write items in the submitted order
-				   and read them back the same way, so draft.items[i]'s pending photo belongs to
-				   order.items[i], position for position. */
+				/* A photo was picked against a draft item that did not have a real id yet -- this
+				   is the first point one exists to attach it to. createOrder writes items in the
+				   submitted order and reads them back the same way, so draft.items[i]'s pending
+				   photo belongs to order.items[i], position for position. */
 				const uploads = draft.items
 					.map((item, i) => [pendingPhotos[item.id], order.items[i]])
 					.filter(([pending, saved]) => pending && saved)
@@ -503,11 +478,8 @@ export function NewOrderItems() {
 			title="Add the items"
 			lead="Line by line, with the price you paid and what it would have cost at retail."
 			steps={STEPS(1)} status={status}
-			cancel={{ to: base, label: 'BACK', icon: 'chevronLeft' }}
-			submit={{
-				label: saving ? 'SAVING…' : mode === 'edit' ? 'SAVE CHANGES' : 'SAVE ORDER',
-				onClick: save, disabled: saving
-			}}
+			cancel={{ to: '/orders/new', label: 'BACK', icon: 'chevronLeft' }}
+			submit={{ label: saving ? 'SAVING…' : 'SAVE ORDER', onClick: save, disabled: saving }}
 			rail={
 				<>
 					<OrderSummary draft={draft} estimate showItems />
@@ -627,25 +599,18 @@ export function NewOrderItems() {
 				</div>
 				<InsetPanel {...reorder.listProps}>
 					{draft.items.map((item, i) => {
-						/* A photo not yet uploaded (picked this session, see submit() above)
-						   previews from its own local object URL; one already saved (only
-						   possible in edit mode -- getOrderAsDraft carries each item's real
-						   attachments) previews from the server the same way an order-level
-						   attachment already does. At most one of the two exists for a given
-						   item at a time. */
+						/* A photo not yet uploaded (picked this session, see submit() above) is the
+						   only kind step 2 of a brand-new order ever holds -- there is no server
+						   copy yet for anything on this list to already have. */
 						const pending = pendingPhotos[item.id]
-						const existing = item.attachments?.[0]
-						const hasPhoto = Boolean(pending || existing)
-						const thumbSrc = pending ? pending.url
-							: existing?.hasThumbnail ? itemAttachmentThumbnailUrl(id, item.id, existing.id)
-							: undefined
+						const thumbSrc = pending?.url
 						return (
 						/* The dashed box goes where the row came from; the row itself is lifted out
 						   of the flow and follows the pointer. Both are rendered here so the box
 						   sits at the row's own index and the list keeps its height. */
 						<Fragment key={item.id}>
 						{reorder.placeholder(item)}
-						<ItemRow icon={hasPhoto ? undefined : 'cube'} thumb={hasPhoto ? 'photo' : undefined} thumbSrc={thumbSrc}
+						<ItemRow icon={pending ? undefined : 'cube'} thumb={pending ? 'photo' : undefined} thumbSrc={thumbSrc}
 							title={item.title}
 							handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
 							meta={`${item.quantity} × ${kr(item.price)}`

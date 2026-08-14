@@ -188,7 +188,7 @@ export default function OrderDetail() {
 										saved {kr(order.saved)} vs retail ({percent(order.savedPercent)})
 									</span>
 								) : null}
-								<Button variant="block" icon="pencil" to={`/orders/${id}/edit/items`}>EDIT ITEMS</Button>
+								<Button variant="block" icon="pencil" to={`/orders/${id}/edit`}>EDIT ORDER</Button>
 							</CardBody>
 						</Card>
 					</div>
