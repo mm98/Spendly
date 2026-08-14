@@ -155,7 +155,7 @@ export default function Orders() {
 									<>
 										<Note tone="positive" title={answer.data.answer}>{answer.data.detail}</Note>
 										<Button variant="block" iconAfter="chevronRight"
-											to={`/orders/all?category=${answer.data.categoryId}&from=2026-06-01&to=2026-06-30`}>
+											to={`/orders/all?category=${answer.data.categoryId}&from=${answer.data.from}&to=${answer.data.to}`}>
 											SEE THOSE ORDERS</Button>
 									</>
 								) : (

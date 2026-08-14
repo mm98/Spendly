@@ -7,7 +7,7 @@ import { Stepper } from '../components/Stepper.jsx'
 import { FormPage, RecordWait } from '../components/FormPage.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview, ProgressBar } from '../components/Viz.jsx'
-import { HiddenFileInput, describeFile } from '../components/FileInput.jsx'
+import { HiddenFileInput } from '../components/FileInput.jsx'
 import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
@@ -19,7 +19,7 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
-	createOrder, getHomeContent, getOrders, getOrdersOverview, getRecentScans, getScanDocuments,
+	attachScanDocument, createOrder, getHomeContent, getOrders, getOrdersOverview, getRecentScans,
 	getScanDraft, putScanDocument, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
@@ -73,7 +73,7 @@ export function ScanUpload() {
 	const upload = files => {
 		const file = files[0]
 		if (!file) return
-		putScanDocument(describeFile(file)).then(({ key }) => go(key))
+		putScanDocument(file).then(({ key }) => go(key))
 	}
 
 	return (
@@ -148,13 +148,15 @@ export function ScanUpload() {
 
 export function ScanReading() {
 	const key = useDocumentKey()
-	const documents = useApi(getScanDocuments)
+	// Same fetch ScanReview makes for the same key — useApi caches it, so this doesn't cost a
+	// second round trip once step 3 opens.
+	const draft = useApi(getScanDraft, [key])
 
 	return (
 		<Page>
 			<Stepper steps={SCAN_STEPS(1)} />
-			<Async state={documents} label="Loading the document">{docs => {
-				const file = docs[key] ?? docs.photo
+			<Async state={draft} label="Loading the document">{answer => {
+				const file = answer.file
 				return (
 					<Card aria-label="Reading the document" aria-busy="true">
 						<CardBody variant="card-body-centered">
@@ -201,7 +203,24 @@ function ScanReviewForm({ answer }) {
 		remainder: answer.remainder
 	}))
 	const [editingLine, setEditingLine] = useState(null)
+	const [newLineId, setNewLineId] = useState(null)
 	const [sourceOpen, setSourceOpen] = useState(false)
+
+	/* There is no OCR behind this review yet (see api/scan/draft/:key on the server) — a
+	   freshly uploaded document reads back with no lines at all, and the only way this form
+	   could edit a line was to already have one. ADD LINE opens a blank one the same editor
+	   below already knows how to save; cancelling a line that was never saved removes it again
+	   rather than leaving an empty row behind. */
+	const addLine = () => {
+		const id = 'l-new-' + crypto.randomUUID()
+		patch({ lines: [...draft.lines, { id, title: '', quantity: 1, price: 0 }] })
+		setNewLineId(id)
+		setEditingLine(id)
+	}
+	const cancelLine = id => {
+		if (id === newLineId) { patch({ lines: draft.lines.filter(l => l.id !== id) }); setNewLineId(null) }
+		setEditingLine(null)
+	}
 
 	/* The same four rules step 1 checks, from the same module. This screen used to check
 	   nothing at all: a receipt whose vendor line came back blank saved an order with no
@@ -225,8 +244,10 @@ function ScanReviewForm({ answer }) {
 			? { ...l, title: values.title, quantity: values.quantity, price: values.price,
 				uncertain: false, meta: undefined, amount: undefined }
 			: l)) })
+		const wasNew = id === newLineId
+		if (wasNew) setNewLineId(null)
 		setEditingLine(null)
-		toast(`${values.title} corrected.`)
+		toast(wasNew ? `${values.title} added.` : `${values.title} corrected.`)
 	}
 
 	const linesTotal = draft.lines.reduce((sum, l) => sum + l.price * l.quantity, 0)
@@ -252,6 +273,7 @@ function ScanReviewForm({ answer }) {
 			categories: [], shipping: draft.shipping,
 			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price }))
 		})
+			.then(order => attachScanDocument(answer.documentKey, order.id).then(() => order).catch(() => order))
 			.then(order => {
 				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
 				navigate('/orders/' + order.id)
@@ -305,33 +327,37 @@ function ScanReviewForm({ answer }) {
 						</CardBody>
 					</Card>
 
-					<Card aria-label="Possible duplicate">
-						<CardHeader title="Possible duplicate" />
-						<CardDivider />
-						<CardBody>
-							<Note tone="warning" title="Check before saving." style={{ marginBottom: 10 }}>
-								You already have a {answer.vendor} order within 14 days of this date.
-							</Note>
-							<ItemRow thumb="receipt" to={`/orders/${answer.duplicate.orderId}`}
-								title={answer.duplicate.title} meta={answer.duplicate.meta}
-								amount={kr(answer.duplicate.total)} />
-						</CardBody>
-					</Card>
+					{answer.duplicate ? (
+						<Card aria-label="Possible duplicate">
+							<CardHeader title="Possible duplicate" />
+							<CardDivider />
+							<CardBody>
+								<Note tone="warning" title="Check before saving." style={{ marginBottom: 10 }}>
+									You already have a {answer.vendor} order within 14 days of this date.
+								</Note>
+								<ItemRow thumb="receipt" to={`/orders/${answer.duplicate.orderId}`}
+									title={answer.duplicate.title} meta={answer.duplicate.meta}
+									amount={kr(answer.duplicate.total)} />
+							</CardBody>
+						</Card>
+					) : null}
 
-					<Card aria-label="What was checked">
-						<CardHeader title="What was checked" />
-						<CardDivider />
-						<CardBody>
-							<InsetPanel>
-								{answer.checks.map(check => (
-									<ItemRow key={check.id}
-										icon={check.warning ? 'alert' : 'check'}
-										iconTone={check.warning ? { background: '#F6ECD9', color: '#84651E' } : undefined}
-										title={check.title} meta={check.meta} />
-								))}
-							</InsetPanel>
-						</CardBody>
-					</Card>
+					{answer.checks.length ? (
+						<Card aria-label="What was checked">
+							<CardHeader title="What was checked" />
+							<CardDivider />
+							<CardBody>
+								<InsetPanel>
+									{answer.checks.map(check => (
+										<ItemRow key={check.id}
+											icon={check.warning ? 'alert' : 'check'}
+											iconTone={check.warning ? { background: '#F6ECD9', color: '#84651E' } : undefined}
+											title={check.title} meta={check.meta} />
+									))}
+								</InsetPanel>
+							</CardBody>
+						</Card>
+					) : null}
 				</>
 			}>
 
@@ -381,14 +407,14 @@ function ScanReviewForm({ answer }) {
 			<div>
 				<div className="space-between space-between-tight">
 					<span className="section-label">Lines read · {answer.linesRead}</span>
-					<span className="field-help">the pencil corrects a line</span>
+					<span className="field-help">the pencil corrects a line · ADD LINE for one that wasn't read</span>
 				</div>
 				<InsetPanel>
 					{draft.lines.map(line => (
 						editingLine === line.id ? (
 							<LineEditor key={line.id} line={line}
 								onSave={values => saveLine(line.id, values)}
-								onCancel={() => setEditingLine(null)} />
+								onCancel={() => cancelLine(line.id)} />
 						) : (
 							<ItemRow key={line.id}
 								icon={line.uncertain ? 'alert' : 'check'}
@@ -417,6 +443,10 @@ function ScanReviewForm({ answer }) {
 						</ItemRow>
 					) : null}
 				</InsetPanel>
+				{editingLine === null ? (
+					<Button variant="ghost compact" icon="plus" style={{ marginTop: 10 }}
+						onClick={addLine}>ADD LINE</Button>
+				) : null}
 			</div>
 
 			<SummaryRow label="Lines subtotal" value={kr(linesTotal)} />

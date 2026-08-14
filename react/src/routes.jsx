@@ -1,6 +1,24 @@
 import { lazy } from 'react'
+import { redirect } from 'react-router'
 import { AppShell } from './components/Shell.jsx'
 import { RouteError } from './components/RouteError.jsx'
+import { getCurrentUser } from './api/client.js'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+
+/* Every route under the app shell requires a signed-in session — checked once per navigation
+   by this loader, rather than by every page guessing at whether its own data will 401. A
+   session-less visitor is sent to /login before the shell (sidebar, rail, command palette)
+   ever mounts, so none of that chrome has to handle "no user" as a state of its own. */
+const requireAuth = async () => {
+	try {
+		await getCurrentUser()
+		return null
+	} catch (e) {
+		if (e.status === 401) throw redirect('/login')
+		throw e
+	}
+}
 
 /* Every page is loaded when it is first opened, not when the app is.
 
@@ -59,9 +77,12 @@ const VIEW_TABS = second => [
 ]
 
 export const routes = [
+	{ path: 'login', element: <Login /> },
+	{ path: 'register', element: <Register /> },
 	{
 		element: <AppShell />,
 		errorElement: <RouteError />,
+		loader: requireAuth,
 		children: [
 			{ index: true, element: <Home />, handle: { title: 'Home', navKey: 'home' } },
 

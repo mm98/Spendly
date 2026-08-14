@@ -65,10 +65,3 @@ export function DropZone({ onFiles, multiple = true, accept, label, hint, action
 		</div>
 	)
 }
-
-/** Turns a File into the record the phantom API stores: what it is, and how big. */
-export const describeFile = file => ({
-	name: file.name,
-	size: file.size ?? 0,
-	kind: /\.pdf$/i.test(file.name) ? 'pdf' : 'image'
-})

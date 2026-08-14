@@ -20,7 +20,12 @@ const stripHtmlComments = () => ({
 export default defineConfig({
 	base: './',
 	plugins: [react(), stripHtmlComments()],
-	server: { port: 5173 },
+	server: {
+		port: 5173,
+		// Same-origin from the browser's point of view, so the session cookie the API sets is a
+		// first-party cookie rather than a cross-site one a browser might refuse.
+		proxy: { '/api': { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', changeOrigin: true } }
+	},
 	build: {
 		rolldownOptions: {
 			output: {

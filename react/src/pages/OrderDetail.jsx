@@ -5,7 +5,7 @@ import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview } from '../components/Viz.jsx'
-import { DropZone, HiddenFileInput, describeFile } from '../components/FileInput.jsx'
+import { DropZone, HiddenFileInput } from '../components/FileInput.jsx'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { AiCard } from '../components/AiCard.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
@@ -74,8 +74,7 @@ export default function OrderDetail() {
 	})
 
 	const attach = files => {
-		const list = files.map(describeFile)
-		addAttachments(id, list)
+		addAttachments(id, files)
 			.then(({ added, skipped }) => {
 				invalidateOrder(); state.refresh()
 				const said = added.length

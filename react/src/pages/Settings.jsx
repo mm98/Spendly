@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
@@ -10,7 +11,8 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	getHomeContent, getOrderDraft, getOrders, getSettings, resetStoredData, saveSettings, sorts, spendKinds
+	getHomeContent, getOrderDraft, getOrders, getSettings, logout, resetStoredData, saveSettings,
+	sorts, spendKinds
 } from '../api/client.js'
 
 /* Order settings.
@@ -59,6 +61,8 @@ export default function Settings() {
 }
 
 function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh, reload }) {
+	const navigate = useNavigate()
+	const signOut = () => logout().then(() => navigate('/login', { replace: true }))
 	/* The controls are driven from the stored value, so what is on screen is what is saved --
 	   there is no local copy to drift. `local` exists only to keep a control responsive while
 	   the phantom API is answering. */
@@ -147,13 +151,27 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 			</div>
 
 			<div className="order-list-column">
+				<Card aria-label="Account">
+					<CardHeader title="Account" />
+					<CardDivider />
+					<CardBody>
+						<p className="card-lead" style={{ marginTop: 0 }}>
+							Sign out on this device. Your orders, vendors, categories and settings stay on
+							the account — signing back in returns you to them.
+						</p>
+						<Button variant="block" style={{ marginTop: 8 }} onClick={signOut}>
+							SIGN OUT
+						</Button>
+					</CardBody>
+				</Card>
+
 				<Card aria-label="Stored data">
-					<CardHeader title="Stored in this browser" />
+					<CardHeader title="Your data" />
 					<CardDivider />
 					<CardBody>
 						<p className="card-lead" style={{ marginTop: 0 }}>
 							Orders you save, vendors and categories you add, your dashboard and these
-							settings are kept in this browser. Nothing leaves it.
+							settings belong to this account.
 						</p>
 						{confirming ? (
 							<>
@@ -177,9 +195,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					<CardDivider />
 					<CardBody>
 						<p className="card-lead" style={{ marginTop: 0 }}>
-							Every figure in Spendly is served by a phantom API: an in-browser data source
-							with the shape a real backend would have. It answers asynchronously, it can
-							fail, and what you change through it persists.
+							Every figure in Spendly is served by a real API over a SQLite database. It
+							answers asynchronously, it can fail, and what you change through it persists.
 						</p>
 						<span className="field-help">
 							Totals are derived from their lines rather than stored beside them, so a total
