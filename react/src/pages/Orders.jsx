@@ -65,14 +65,17 @@ export default function Orders() {
 										{data.period.previousLabel}
 									</div>
 								</div>
-								<Chart height={250} pad={10} style={{ marginTop: 8 }}
+								<Chart height={250} style={{ marginTop: 8 }}
 									label={`${data.period.shortLabel} against ${data.period.previousLabel}, day by day`}
 									baselines={[{ y: 128, stroke: '#D9DDD8', dash: '5 5' }]}
-									/* 17px of inset, not 10 -- a day of no spend beside a day of a lot of it is
-									   this chart's sharpest turn, and the spline's control points overshoot a
-									   turn that sharp by about as much again as the jump. 10px left the
-									   overshoot nowhere to go but past the box edge, where the SVG's own
-									   clipping cut it off. README: Home. */
+									/* 17px of vertical inset (plotted()'s 3rd/4th args, not a chart-level
+									   pad) -- a day of no spend beside a day of a lot of it is this chart's
+									   sharpest turn, and the spline's control points overshoot a turn that
+									   sharp by about as much again as the jump. 10px left the overshoot
+									   nowhere to go but past the box's top/bottom edge, where the SVG's own
+									   clipping cut it off. Horizontally the line still runs edge to edge --
+									   the marker below is what keeps its own circle off the side edges,
+									   not an inset on the line. README: Home. */
 									series={[
 										{ points: plotted(data.period.series.monthPrevious, chartMax, 233, 17), kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
 										{ points: plotted(data.period.series.monthCurrent, chartMax, 233, 17), kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }

@@ -99,7 +99,7 @@ function Hero({ month, categories }) {
 						    description, because the resting state is visibility:hidden and a hidden node is out
 						    of the accessibility tree unless something references it. README: Charts. */}
 						<div className="chart-wrap">
-							<Chart height={HERO_HEIGHT} pad={0} label={heroLabel(series, view)}
+							<Chart height={HERO_HEIGHT} label={heroLabel(series, view)}
 								tabIndex={0} aria-describedby={calloutId}
 								series={[{ points, kind: 'line', stroke: '#3A423D', strokeWidth: 1.6 }]} />
 							{/* Read off the window's own days. The authored sentence named July's 23rd and a
@@ -343,7 +343,7 @@ export default function Home() {
 											<div className="chart-caption-label">Spent this month</div>
 											<span className="chart-caption-value tabular-figures">{kr(data.period.spent)}</span>
 										</div>
-										<Chart height={110} pad={6} style={{ marginTop: 6 }}
+										<Chart height={110} style={{ marginTop: 6 }}
 											label={`Cumulative spend through ${data.period.shortLabel}`}
 											gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
 												{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
@@ -396,7 +396,7 @@ export default function Home() {
 											</div>
 											<SavingChip>{percent(data.period.savedPercent)}</SavingChip>
 										</div>
-										<Chart height={90} pad={0} style={{ marginTop: 8 }}
+										<Chart height={90} style={{ marginTop: 8 }}
 											label={`Savings growth through ${data.period.shortLabel}`}
 											gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
 												{ offset: 0, color: '#14AC72', opacity: 0.22 },

@@ -14,16 +14,23 @@ import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState 
    measures nothing at all, which is simpler than the prototype's problem of a chart on a
    hidden page measuring zero. */
 
-const buildPath = (points, width, height, pad, kind) => {
+/* The line/curve/area always run edge to edge -- x=0 to x=width -- rather than inset by some
+   guessed-at padding. The one thing that ever needed room was a marker circle landing exactly on
+   the first or last point and getting half clipped by the SVG's own boundary, and that is now the
+   marker's own problem to solve (see the clamp on cx below): most markers sit mid-series and never
+   need the room, so a whole chart being inset on both edges to protect one circle that usually
+   isn't even there was the wrong place to pay for it. A card heading, a ruler, an axis tick, and
+   the plotted line above them all now share the same left and right edge. README: Charts. */
+const buildPath = (points, width, height, kind) => {
 	let n = points.length
 	if (!n) return ''
-	const xAt = i => pad + (width - pad * 2) * (n > 1 ? i / (n - 1) : 0)
+	const xAt = i => width * (n > 1 ? i / (n - 1) : 0)
 	let pts = points.map((y, i) => [xAt(i), y])
 	/* A single point has nowhere to draw a line to -- 'M' with no command after it paints
 	   nothing, indistinguishable from an empty series. A window this young (an "all time"
 	   range whose only order was placed today) still has a value to show, so stretch that one
 	   point across the full width instead of leaving the chart blank. */
-	if (n === 1) { pts = [[pad, pts[0][1]], [width - pad, pts[0][1]]]; n = 2 }
+	if (n === 1) { pts = [[0, pts[0][1]], [width, pts[0][1]]]; n = 2 }
 
 	if (kind === 'line') return 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1]).join(' L')
 
@@ -87,7 +94,7 @@ function useMeasuredWidth() {
  *            instance, because two charts on a page with the same defs id is a real defect
  *            and an invisible one -- the second silently borrows the first's colours.
  */
-export const Chart = memo(function Chart({ height, pad = 0, label, series = [],
+export const Chart = memo(function Chart({ height, label, series = [],
 	baselines = [], markers = [], gradients = [], style, ...rest }) {
 	const [ref, width] = useMeasuredWidth()
 	const uid = useId().replace(/:/g, '')
@@ -113,7 +120,7 @@ export const Chart = memo(function Chart({ height, pad = 0, label, series = [],
 				<line key={i} x1={0} x2={width} y1={b.y} y2={b.y} stroke={b.stroke} strokeDasharray={b.dash} />)}
 
 			{series.map((s, i) => (
-				<path key={i} d={buildPath(s.points, width, height, pad, s.kind)}
+				<path key={i} d={buildPath(s.points, width, height, s.kind)}
 					fill={paint(s.fill) ?? 'none'} stroke={paint(s.stroke) ?? 'none'}
 					strokeWidth={s.strokeWidth} strokeDasharray={s.dash} />
 			))}
@@ -125,7 +132,13 @@ export const Chart = memo(function Chart({ height, pad = 0, label, series = [],
 				   an index past the end writes cx/cy="undefined" and drops the marker. */
 				const n = host.points.length
 				const at = Math.min(m.index, n - 1)
-				const cx = pad + (width - pad * 2) * (n > 1 ? at / (n - 1) : 0)
+				const rawCx = width * (n > 1 ? at / (n - 1) : 0)
+				// Clamped into [r, width - r] rather than the path being inset for it: a marker
+				// on the first or last point would otherwise have its own circle cut in half by
+				// the SVG's edge, and that's the only case this ever needs to move it at all --
+				// every other index already lands inside those bounds untouched.
+				const r = m.r ?? 0
+				const cx = Math.max(r, Math.min(width - r, rawCx))
 				return <circle key={i} cx={cx.toFixed(1)} cy={host.points[at]} r={m.r}
 					fill={m.fill} stroke={m.stroke} strokeWidth={m.strokeWidth} opacity={m.opacity} />
 			})}
