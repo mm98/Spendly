@@ -137,8 +137,14 @@ router.get('/', (req, res) => {
 		SELECT COUNT(*) c FROM order_totals ot JOIN vendors v ON v.id = ot.vendor_id WHERE ${whereSql}
 	`).get(params).c
 
-	const size = Number(q.pageSize) || Number(q.limit) || matched || 1
-	const pages = Math.max(1, Math.ceil(matched / Math.max(1, size)))
+	// LIMIT/OFFSET go straight into the query below, so this is the one place a caller-chosen
+	// pageSize has to be made safe before it reaches SQL: SQLite treats any negative LIMIT as
+	// "no limit at all" (not an error, and not clamped to 1 the way this code used to assume),
+	// so `pageSize=-3` silently returned every matched row while the page/pages fields in the
+	// response still claimed a 3-row page -- the metadata and the data disagreed.
+	const requestedSize = Number(q.pageSize) || Number(q.limit) || matched || 1
+	const size = Number.isFinite(requestedSize) ? Math.max(1, Math.floor(requestedSize)) : Math.max(1, matched)
+	const pages = Math.max(1, Math.ceil(matched / size))
 	const at = Math.min(Math.max(1, Number(q.page) || 1), pages)
 
 	const totalsRows = db.prepare(`
@@ -177,12 +183,19 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 		refunded: draft.refunded ? 1 : 0
 	})
 	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)
-	draft.items.forEach((item, position) => insertOrderItem.run({
-		id: newId('i'), orderId: id, position, title: String(item.title).trim(),
-		quantity: Number(item.quantity), price: Number(item.price),
-		retail: item.retail != null && item.retail !== '' ? Number(item.retail) : null,
-		note: item.note || null
-	}))
+	// Returned in draft order so a caller that also has per-item attachments to insert (import)
+	// can match them back up to the row each one landed in -- create/update never read this
+	// return value, since neither ever carries item attachments through the draft itself.
+	return draft.items.map((item, position) => {
+		const itemId = newId('i')
+		insertOrderItem.run({
+			id: itemId, orderId: id, position, title: String(item.title).trim(),
+			quantity: Number(item.quantity), price: Number(item.price),
+			retail: item.retail != null && item.retail !== '' ? Number(item.retail) : null,
+			note: item.note || null
+		})
+		return itemId
+	})
 })
 
 router.post('/', (req, res) => {
@@ -360,7 +373,32 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) 
    each order is its own transaction so one malformed row doesn't sink the batch. Attachment
    images travel as base64 in the JSON body (see app.js for the raised body-size limit on this
    route) — the exporter is another program, not a browser form, so one JSON array is simpler
-   for it to produce than a multipart request naming which files belong to which order. */
+   for it to produce than a multipart request naming which files belong to which order. An item
+   can carry its own `attachments` array the same shape as the order's -- a product photo, not
+   the receipt -- landing on `order_item_id` instead, same as a manual upload through
+   POST /:id/items/:itemId/attachments would. */
+
+/** Resized outside the transaction: better-sqlite3's db.transaction() is synchronous and can't
+    await sharp's promise-based resize. Shared by the order-level and each item-level list, since
+    an import attachment is processed identically regardless of which row it ends up owned by. */
+async function processImportAttachments(list) {
+	const out = []
+	for (const a of list ?? []) {
+		if (!a?.data) continue
+		const buffer = Buffer.from(a.data, 'base64')
+		const kind = a.contentType === 'application/pdf' ? 'pdf' : 'image'
+		const processed = await processAttachment(kind, buffer, a.contentType || 'application/octet-stream')
+		out.push({ name: a.filename || 'attachment', kind, ...processed })
+	}
+	return out
+}
+
+const insertImportedAttachment = (a, owner) => insertAttachment.run({
+	id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
+	name: a.name, kind: a.kind, meta: `Imported · ${fileSizeLabel(a.size)}`,
+	contentType: a.contentType, size: a.size, data: a.data,
+	thumbnail: a.thumbnail, thumbnailContentType: a.thumbnailContentType
+})
 
 router.post('/import', async (req, res) => {
 	const orders = Array.isArray(req.body?.orders) ? req.body.orders : []
@@ -372,28 +410,17 @@ router.post('/import', async (req, res) => {
 			const errors = validateOrderDraft(draft)
 			if (Object.keys(errors).length) throw new Error(Object.values(errors)[0])
 
-			// Resized before the transaction: better-sqlite3's db.transaction() is synchronous
-			// and can't await sharp's promise-based resize.
-			const attachments = []
-			for (const a of draft.attachments ?? []) {
-				if (!a?.data) continue
-				const buffer = Buffer.from(a.data, 'base64')
-				const kind = a.contentType === 'application/pdf' ? 'pdf' : 'image'
-				const processed = await processAttachment(kind, buffer, a.contentType || 'application/octet-stream')
-				attachments.push({ name: a.filename || 'attachment', kind, ...processed })
-			}
+			const attachments = await processImportAttachments(draft.attachments)
+			const itemAttachments = []
+			for (const item of draft.items) itemAttachments.push(await processImportAttachments(item.attachments))
 
 			const id = newId('o')
 			db.transaction(() => {
-				insertOrderRows(req.user.id, id, draft)
-				for (const a of attachments) {
-					insertAttachment.run({
-						id: newId('a'), orderId: id, orderItemId: null, name: a.name, kind: a.kind,
-						meta: `Imported · ${fileSizeLabel(a.size)}`,
-						contentType: a.contentType, size: a.size, data: a.data,
-						thumbnail: a.thumbnail, thumbnailContentType: a.thumbnailContentType
-					})
-				}
+				const itemIds = insertOrderRows(req.user.id, id, draft)
+				for (const a of attachments) insertImportedAttachment(a, { orderId: id })
+				itemIds.forEach((itemId, position) => {
+					for (const a of itemAttachments[position]) insertImportedAttachment(a, { orderItemId: itemId })
+				})
 			})()
 			imported.push(getDecoratedOrder(req.user.id, id))
 		} catch (e) {
