@@ -77,9 +77,13 @@ export default function Orders() {
 										{ points: plotted(data.period.series.monthPrevious, chartMax, 233, 17), kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
 										{ points: plotted(data.period.series.monthCurrent, chartMax, 233, 17), kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
 									]}
+									/* Same fix as Home's Orders card: monthCurrent is that same running
+									   total (both read w.series.current), and a marker fixed at index 3
+									   landed on the flat lead-in for any account whose first order came
+									   later than the 3rd. daysIn - 1 is where the line actually is today. */
 									markers={[
-										{ index: 3, series: 1, r: 13, fill: '#4F5BD5', opacity: 0.14 },
-										{ index: 3, series: 1, r: 5.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 3 }
+										{ index: data.period.daysIn - 1, series: 1, r: 13, fill: '#4F5BD5', opacity: 0.14 },
+										{ index: data.period.daysIn - 1, series: 1, r: 5.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 3 }
 									]} />
 								<ChartRuler />
 								<ChartAxis />
