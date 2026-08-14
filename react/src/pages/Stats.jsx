@@ -138,7 +138,12 @@ export default function Stats() {
 							</CardHeader>
 							<CardDivider />
 							<CardBody variant="card-body-tight">
-								<Chart height={210} pad={10}
+								{/* No markers on this chart and no sharp single-point turn to overshoot
+								    (see Home's and Orders' own charts for where that inset is load-bearing)
+								    -- pad={10} here was buying nothing but a 10px gap between the green
+								    fill and the card's edges that every other edge-to-edge element (the
+								    ruler, the axis ticks, the heading above) doesn't have. README: Charts. */}
+								<Chart height={210} pad={0}
 									label={`Cumulative spend across ${view.shortLabel}${compare ? `, ${view.previousLabel} dashed behind it` : ''}`}
 									gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
 										{ offset: 0, color: '#14AC72', opacity: 0.2 },
