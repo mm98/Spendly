@@ -128,7 +128,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 							<FilterSection>
 								<span className="panel-heading">On screen</span>
 								<div className="space-between">
-									<span className="field-help" style={{ paddingRight: 20 }}>
+									<span className="field-help toggle-help">
 										Show the scan card on Home. LATER on the card itself turns this off too.
 									</span>
 									<Switch checked={local.showScanCard} label="Show the scan card on Home"
@@ -136,7 +136,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 											v ? 'The scan card is back on Home.' : 'The scan card is off.')} />
 								</div>
 								<div className="space-between">
-									<span className="field-help" style={{ paddingRight: 20 }}>
+									<span className="field-help toggle-help">
 										Ask before deleting anything — an order, a category, a vendor, a line
 										item, an attachment. With this off, the trash acts straight away.
 									</span>

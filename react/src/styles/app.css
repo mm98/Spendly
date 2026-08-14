@@ -142,6 +142,12 @@ body {
 .row-inline.row-inline-nowrap { flex-wrap:nowrap; }
 .key-cap-push { margin-left:auto; }
 .space-between-tight { margin-bottom:4px; }
+/* The gap before a Switch at the end of a .space-between row -- .space-between's own 14px
+   gap left the last wrapped line of text running up against the toggle. Only below
+   700px .space-between itself switches to flex-wrap:wrap and the Switch drops to a line
+   of its own (see the phone rule further down), so this padding would sit on the right of
+   text with nothing beside it there; zeroed at that width rather than left to look stray. */
+.toggle-help { padding-right:20px; }
 svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
 /* ---------------- shell ---------------- */
@@ -1154,6 +1160,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	.order-row > .order-row-chevron { grid-area:c; }
 	.row-inline { flex-wrap:wrap; }
 	.space-between { flex-wrap:wrap; }
+	.toggle-help { padding-right:0; }
 	/* Wrapping needs height:auto, but the buttons have no vertical padding to fall
 	   back on -- .field .segmented button zeroes it, and it outranks .segmented.segmented-compact
 	   button only by source order, both being two classes and an element. So the
