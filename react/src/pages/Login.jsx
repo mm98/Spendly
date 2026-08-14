@@ -31,13 +31,13 @@ export default function Login() {
 		<div className="auth-page">
 			<Card className="auth-card" aria-label="Sign in">
 				<CardBody>
-					<span className="auth-mark" aria-hidden="true"><Icon name="receipt" /></span>
 					<div className="auth-heading">
+						<span className="auth-mark" aria-hidden="true"><Icon name="receipt" /></span>
 						<div className="card-subheading">Spendly</div>
 						<h1>Sign in</h1>
 						<p className="auth-tagline">Welcome back — your ledger's just where you left it.</p>
 					</div>
-					<form onSubmit={submit}>
+					<form className="form" onSubmit={submit}>
 						<Field label="Email">
 							<FieldShell>
 								<TextInput id="login-email" type="email" value={email} autoFocus

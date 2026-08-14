@@ -32,13 +32,13 @@ export default function Register() {
 		<div className="auth-page">
 			<Card className="auth-card" aria-label="Create an account">
 				<CardBody>
-					<span className="auth-mark" aria-hidden="true"><Icon name="receipt" /></span>
 					<div className="auth-heading">
+						<span className="auth-mark" aria-hidden="true"><Icon name="receipt" /></span>
 						<div className="card-subheading">Spendly</div>
 						<h1>Create an account</h1>
 						<p className="auth-tagline">Every receipt, order and saving in one place.</p>
 					</div>
-					<form onSubmit={submit}>
+					<form className="form" onSubmit={submit}>
 						<Field label="Email">
 							<FieldShell>
 								<TextInput id="register-email" type="email" value={email} autoFocus

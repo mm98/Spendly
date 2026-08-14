@@ -173,15 +173,23 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    The page background stays plain --bg-app rather than a lighter gradient behind the card --
    a lighter stop there sits close enough to white that .card's own --border-card hairline
    nearly disappears against it, which is the one thing the shadow below is added to prevent,
-   not to paper over. */
+   not to paper over.
+
+   .auth-heading reuses .card-body-centered's own gap (14px, grid, justify-items:center) rather
+   than a second set of spacing numbers for the same "icon over centered text" shape -- and sets
+   the card body's padding explicitly, rather than by way of .card-body:has(> .card-subheading),
+   which needs .card-subheading as a *direct* child and stopped matching the moment it was
+   wrapped in this div: the card silently fell back to the unrelated default padding. */
 .auth-page { display:grid; place-items:center; min-height:100vh; padding:24px; background:var(--bg-app); }
 .auth-card { width:100%; max-width:380px; box-shadow:var(--shadow); }
-.auth-mark { width:52px; height:52px; border-radius:var(--radius-card); margin:0 auto 16px;
+.auth-card .card-body { padding:32px 28px 28px; }
+.auth-mark { width:52px; height:52px; border-radius:var(--radius-card);
 	background:linear-gradient(135deg,#14AC72 0%,#0A7F56 100%); display:grid; place-items:center; }
 .auth-mark svg { width:28px; height:28px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-.auth-heading { text-align:center; margin-bottom:22px; }
-.auth-heading h1 { font-size:22px; margin:2px 0 0; }
-.auth-tagline { color:var(--text-muted); font-size:14px; margin:4px 0 0; }
+.auth-heading { display:grid; justify-items:center; gap:14px; text-align:center; margin-bottom:24px; }
+.auth-heading .card-subheading { margin:0; }
+.auth-heading h1 { font-size:22px; margin:0; }
+.auth-tagline { color:var(--text-muted); font-size:14px; margin:0; }
 
 /* topbar */
 .main-panel { min-width:0; display:flex; flex-direction:column; background:#fff; border-radius:26px 0 0 26px; margin:12px 0; overflow:hidden; box-shadow:0 2px 14px rgb(11 26 18 / .05); }
