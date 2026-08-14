@@ -1,4 +1,6 @@
+import { useEffect, useRef } from 'react'
 import { Icon, ImageOrIcon } from './Icon.jsx'
+import { IconButton } from './Button.jsx'
 
 /* The small visualisations that are drawn in CSS rather than in SVG: the donut, the gauge,
    the meter, the bar rows and the two progress indicators.
@@ -127,3 +129,25 @@ export const DocumentPreview = ({ kind = 'image', src, style, ...rest }) => (
 			imgClassName="document-preview-photo" />
 	</div>
 )
+
+/** The full-size view behind a thumbnail's click. A native <dialog> rather than a fixed box:
+    it sizes to its image, and the image's own max-width/max-height are the viewport's, so the
+    picture never asks for more room than the window already has -- it grows up to that ceiling
+    and no further, never past it. showModal() traps focus and wires Escape for free; a click on
+    the backdrop closes it the same way ConfirmDialog's does (FormPage.jsx). */
+export function ImageLightbox({ src, alt, onClose }) {
+	const ref = useRef(null)
+	useEffect(() => {
+		const opener = document.activeElement
+		ref.current?.showModal()
+		return () => opener?.focus?.()
+	}, [])
+	return (
+		<dialog className="image-lightbox" ref={ref} aria-label={alt || 'Photo'}
+			onCancel={onClose}
+			onClick={e => { if (e.target === ref.current) onClose() }}>
+			<IconButton icon="close" label="Close" className="image-lightbox-close" onClick={onClose} />
+			<img src={src} alt={alt || ''} className="image-lightbox-img" />
+		</dialog>
+	)
+}

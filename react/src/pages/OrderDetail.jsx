@@ -4,7 +4,7 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
-import { DocumentPreview } from '../components/Viz.jsx'
+import { DocumentPreview, ImageLightbox } from '../components/Viz.jsx'
 import { DropZone, HiddenFileInput } from '../components/FileInput.jsx'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { AiCard } from '../components/AiCard.jsx'
@@ -15,7 +15,7 @@ import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	addAttachments, attachmentThumbnailUrl, deleteOrder, getHomeContent, getHomeHero, getOrder,
-	getOrderAsDraft, getOrders, getOrdersOverview, getStats, itemAttachmentThumbnailUrl,
+	getOrderAsDraft, getOrders, getOrdersOverview, getStats, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
 	removeAttachment, updateOrder
 } from '../api/client.js'
 import { kr, longDate, percent, shortDate } from '../api/format.js'
@@ -41,6 +41,7 @@ export default function OrderDetail() {
 	   user has to go back and fix, which is the one kind of message that stays on the page. */
 	const toast = useToast()
 	const [openFile, setOpenFile] = useState(null)
+	const [openPhoto, setOpenPhoto] = useState(null)
 	const filePicker = useRef(null)
 
 	/* Anything that counts orders, or shows this one, is stale the moment it is written --
@@ -115,6 +116,7 @@ export default function OrderDetail() {
 	return (
 		<Page>
 			<Async state={state} label="Loading the order">{order => (
+				<>
 				<div className="order-list-grid">
 					<div className="order-list-column">
 						<Card aria-label="Order">
@@ -161,6 +163,7 @@ export default function OrderDetail() {
 									<ItemRow key={item.id}
 										icon={photo ? undefined : 'cube'} thumb={photo ? 'photo' : undefined}
 										thumbSrc={photo?.hasThumbnail ? itemAttachmentThumbnailUrl(order.id, item.id, photo.id) : undefined}
+										onThumbClick={photo ? () => setOpenPhoto({ item, photo }) : undefined}
 										title={item.title}
 										meta={`${item.quantity} × ${kr(item.price)}`
 											+ (item.retail ? ` · retail ${kr(item.retail)}` : '')
@@ -272,6 +275,14 @@ export default function OrderDetail() {
 						</AiCard>
 					</div>
 				</div>
+
+				{openPhoto ? (
+					<ImageLightbox
+						src={itemAttachmentFileUrl(order.id, openPhoto.item.id, openPhoto.photo.id)}
+						alt={`${openPhoto.item.title} photo`}
+						onClose={() => setOpenPhoto(null)} />
+				) : null}
+				</>
 			)}</Async>
 		</Page>
 	)

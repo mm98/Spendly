@@ -23,12 +23,22 @@ const buildPath = (points, width, height, pad, kind) => {
 	if (kind === 'line') return 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1]).join(' L')
 
 	/* A Catmull-Rom style tangent at each point, expressed as a cubic. The endpoints
-	   duplicate their neighbour so the curve starts and ends flat rather than overshooting. */
+	   duplicate their neighbour so the curve starts and ends flat rather than overshooting.
+
+	   A sharp turn between them still overshoots -- a month with one order is a flat line
+	   that jumps straight to its total and back, and the two control points below can land
+	   well past the data they're tangent to. Padding a call site's top/bottom inset by a
+	   guess at "enough" is a bet on how sharp its own data gets, and a second order the same
+	   month can make a sharper turn than the one the guess was measured against. A cubic
+	   Bézier is provably confined to the convex hull of its four control points, so clamping
+	   only the two computed here to [0, height] -- the anchors are already inside it, being
+	   plotted() output -- confines the whole segment there too, for any series at all. */
+	const clampY = y => Math.max(0, Math.min(height, y))
 	let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1]
 	for (let i = 0; i < pts.length - 1; i++) {
 		const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2
-		d += ' C' + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + ' ' + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)
-			+ ' ' + (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + ' ' + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)
+		d += ' C' + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + ' ' + clampY(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)
+			+ ' ' + (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + ' ' + clampY(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)
 			+ ' ' + p2[0].toFixed(1) + ' ' + p2[1]
 	}
 	if (kind === 'area') {

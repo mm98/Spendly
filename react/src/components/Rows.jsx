@@ -70,7 +70,7 @@ export function CategoryRow({ category, meta, to }) {
 
 /** A line on an order, a line read off a receipt, or a fact in an inset panel.
     `tone` recolours the leading tile where the line is a warning rather than a value. */
-export function ItemRow({ icon, iconTone, thumb, thumbSrc, handle, title, meta, amount, to, children, ...rest }) {
+export function ItemRow({ icon, iconTone, thumb, thumbSrc, onThumbClick, handle, title, meta, amount, to, children, ...rest }) {
 	return (
 		<Row to={to} family="item-row" {...rest}>
 			{/* The handle is passed in rather than drawn here: a grip is only honest when
@@ -80,11 +80,20 @@ export function ItemRow({ icon, iconTone, thumb, thumbSrc, handle, title, meta, 
 			{icon ? <span className="item-row-icon" style={iconTone}><Icon name={icon} /></span> : null}
 			{/* thumbSrc is a real preview (a thumbnail the backend generated) for the icon named
 			    by thumb to fall back to — most callers pass thumb alone and never had bytes to
-			    preview in the first place. */}
+			    preview in the first place. onThumbClick makes the thumb itself a button that
+			    opens the full image, rather than the whole row -- the row's own title and amount
+			    are not "open this photo", only the photo is. */}
 			{thumb ? (
-				<span className="document-thumb" style={{ fontSize: 0 }} aria-hidden="true">
-					<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
-				</span>
+				onThumbClick ? (
+					<button type="button" className="document-thumb document-thumb-button" style={{ fontSize: 0 }}
+						onClick={onThumbClick} aria-label={`View photo${title ? ` for ${title}` : ''}`}>
+						<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
+					</button>
+				) : (
+					<span className="document-thumb" style={{ fontSize: 0 }} aria-hidden="true">
+						<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
+					</span>
+				)
 			) : null}
 			<div>
 				<div className="item-row-title">{title}</div>
