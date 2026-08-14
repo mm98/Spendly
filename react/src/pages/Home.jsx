@@ -272,8 +272,15 @@ function dashboardCard(key, data) {
 						<span className="card-caption">
 							projected for {period.shortLabel} · {period.daysIn} days in</span>
 						<Meter style={{ marginTop: 16 }}
-							fill={Math.round(period.spent / period.projected * 100)}
-							marker={Math.round(period.previousTotal / period.projected * 100)}
+							/* projected is 0 exactly when spent is -- nothing bought yet this month --
+							   and 0/0 is NaN, an invalid CSS width the browser drops silently rather
+							   than rejecting: no fill at all instead of an honest 0%. Same reasoning
+							   as Statistics' own Pace meter. The marker gets the same guard, plus the
+							   Math.min(100, ...) clamp Statistics' version already has -- a previous
+							   month that outspent this one's whole projection put the marker past the
+							   track's right edge with nothing to stop it. */
+							fill={period.projected ? Math.round(period.spent / period.projected * 100) : 0}
+							marker={period.projected ? Math.min(100, Math.round(period.previousTotal / period.projected * 100)) : 0}
 							ariaLabel={`Spent ${krRound(period.spent)} of a projected ${krRound(period.projected)}; the marker is where ${period.previousLabel} ended`} />
 						<div className="chart-legend-inline">
 							<span className="chart-swatch" /><span>{period.previousLabel} ended at</span>

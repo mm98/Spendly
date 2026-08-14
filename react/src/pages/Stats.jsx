@@ -173,7 +173,11 @@ export default function Stats() {
 											? `projected for ${view.label} · ${kr(view.spent)} spent so far`
 											: `total for ${view.label} · ${view.pace.daysIn} days of records`}</span>
 									<Meter style={{ marginTop: 14 }}
-										fill={Math.round(view.spent / view.pace.projected * 100)}
+										/* projected is 0 exactly when spent is -- nothing bought yet this
+										   window -- and 0/0 is NaN, an invalid CSS width the browser drops
+										   silently rather than rejecting: no fill at all instead of an
+										   honest 0%. Spent nothing of a projected nothing is 0% spent. */
+										fill={view.pace.projected ? Math.round(view.spent / view.pace.projected * 100) : 0}
 										/* The marker is a position on this window's track, so a previous
 										   window that spent more than this one is projected to sits at the
 										   end of it -- the figure it stands for is printed under the meter,

@@ -12,15 +12,20 @@ import { IconButton } from './Button.jsx'
    is, so the two cannot disagree; the stylesheet keeps its default for anything that does
    not pass segments. README: Buttons. */
 
+/* A gap is a separator between two segments -- with only one, the "gap after the last segment"
+   wraps around the circle and lands between that segment and itself, which read as a category
+   that is 100% of the spend somehow not filling its own ring. Applying it only when there is
+   something on both sides of it is what a separator means. */
 const conic = (segments, gap = 0) => {
 	let at = 0
 	const total = segments.reduce((sum, s) => sum + s.share, 0) || 100
+	const effectiveGap = segments.length > 1 ? gap : 0
 	const stops = segments.flatMap(s => {
 		const from = at
 		at += (s.share / total) * 100
-		const to = Math.max(from, at - gap)
+		const to = Math.max(from, at - effectiveGap)
 		const parts = [`${s.colour} ${from.toFixed(2)}% ${to.toFixed(2)}%`]
-		if (gap) parts.push(`var(--bg-card) ${to.toFixed(2)}% ${at.toFixed(2)}%`)
+		if (effectiveGap) parts.push(`var(--bg-card) ${to.toFixed(2)}% ${at.toFixed(2)}%`)
 		return parts
 	})
 	return `conic-gradient(${stops.join(', ')})`
