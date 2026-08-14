@@ -103,12 +103,18 @@ export const ProgressBar = ({ indeterminate = true, value, label, style }) => (
 	</div>
 )
 
-/** The onboarding dial on the dark card: "1/3" inside a ring drawn to that fraction. */
-export const ProgressRing = ({ done, total }) => (
-	<span className="progress-ring">
-		<span className="progress-ring-value">{done}/{total}</span>
-	</span>
-)
+/** The onboarding dial on the dark card: "1/3" inside a ring drawn to that fraction -- the
+    fill is computed from done/total, not a fixed share, so a ring reading "0/3" or "2/3"
+    isn't stuck showing the same third the CSS default used to draw regardless. */
+export const ProgressRing = ({ done, total }) => {
+	const pct = total ? (done / total) * 100 : 0
+	return (
+		<span className="progress-ring"
+			style={{ background: `conic-gradient(var(--green) 0 ${pct}%, rgb(255 255 255 / .22) ${pct}% 100%)` }}>
+			<span className="progress-ring-value">{done}/{total}</span>
+		</span>
+	)
+}
 
 /** The preview for an uploaded document. `src`, when given, is a real thumbnail or display
     image (the backend generates both — see api/src/lib/images.js); without one, or if it fails

@@ -329,7 +329,7 @@ export default function Home() {
 									<span className="chart-caption-value tabular-figures">{kr(data.period.spent)}</span>
 								</div>
 								<Chart height={110} pad={6} style={{ marginTop: 6 }}
-									label="Cumulative spend through July"
+									label={`Cumulative spend through ${data.period.shortLabel}`}
 									gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
 										{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
 									baselines={[{ y: 92, stroke: '#E4E7E2', dash: '3 4' }]}
@@ -359,7 +359,8 @@ export default function Home() {
 									</div>
 									<SavingChip>{percent(data.period.savedPercent)}</SavingChip>
 								</div>
-								<Chart height={90} pad={0} style={{ marginTop: 8 }} label="Savings growth through July"
+								<Chart height={90} pad={0} style={{ marginTop: 8 }}
+									label={`Savings growth through ${data.period.shortLabel}`}
 									gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
 										{ offset: 0, color: '#14AC72', opacity: 0.22 },
 										{ offset: 1, color: '#14AC72', opacity: 0 }] }]}

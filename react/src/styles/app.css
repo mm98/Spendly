@@ -504,8 +504,12 @@ svg.chart { width:100%; display:block; }
 
 /* dark AI card */
 .ai-card-header { display:flex; align-items:center; gap:12px; }
+/* No baked-in 33% here either -- ProgressRing always computes and sets its own fill from
+   done/total, so a fixed default would only ever be the fallback for a fraction not yet
+   known, and rgb(255 255 255 / .22) (the ring's own "remaining" colour) reads as that
+   better than a stale third would. */
 .progress-ring { width:40px; height:40px; border-radius:50%; flex:none; position:relative;
-	background:conic-gradient(var(--green) 0 33%, rgb(255 255 255 / .22) 33% 100%); }
+	background:rgb(255 255 255 / .22); }
 .progress-ring::before { content:""; position:absolute; inset:4px; border-radius:50%; background:var(--bg-dark); }
 .progress-ring-value { position:absolute; inset:0; display:grid; place-items:center; font-size:10px; font-weight:600; z-index:1; }
 .ai-card-title-text { font-size:13.5px; font-weight:700; }

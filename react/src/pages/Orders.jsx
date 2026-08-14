@@ -42,7 +42,7 @@ export default function Orders() {
 			<Async state={state} label="Loading your orders">{data => (
 				<div className="order-list-grid">
 					<div className="order-list-column">
-						<Card aria-label="Spent over July">
+						<Card aria-label={`Spent · ${data.period.label}`}>
 							<CardHeader title={`Spent · ${data.period.label}`} to="/stats"
 								label={`Spent · ${data.period.label}, open Statistics`} />
 							<CardDivider />

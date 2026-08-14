@@ -36,8 +36,9 @@ import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
 
    So the choice travels: the entry names the document, the URL carries it, and both steps
    after it render what was actually picked. The format is the file's, which is why a page
-   count belongs to the PDFs and to nothing else. The draft underneath is the same Bilka
-   purchase in every case -- that part really is one document. README: Scan Flow. */
+   count belongs to the PDFs and to nothing else. There is no OCR behind any of it -- the
+   draft underneath is the same honest blank in every case, today's date and the account's
+   own defaults, nothing read from the file. README: Scan Flow. */
 
 const SCAN_STEPS = at => [
 	{ label: 'Upload', icon: 'upload', done: at > 0, on: at === 0 },
@@ -68,9 +69,9 @@ export function ScanUpload() {
 
 	/* The hero says "Drop a receipt here, or click to choose a file" and now it does both. A
 	   dropped file is the document the next two steps name, with its own format and its own
-	   size; what the reader finds inside is still the one Bilka purchase, which is demo data
-	   and is described as such. A prompt bar that says drop and answers only a click is the
-	   decorative-control rule wearing a different sense. README: Scan Flow, Honest Affordances. */
+	   size; what the reader finds inside is an honest blank draft, since nothing here reads
+	   the file. A prompt bar that says drop and answers only a click is the decorative-control
+	   rule wearing a different sense. README: Scan Flow, Honest Affordances. */
 	const upload = files => {
 		const file = files[0]
 		if (!file) return
