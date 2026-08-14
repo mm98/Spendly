@@ -1,7 +1,7 @@
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Chart, ChartAxis, ChartRuler } from '../components/Chart.jsx'
+import { Chart, ChartAxis, ChartRuler, plotted } from '../components/Chart.jsx'
 import { Donut, DonutBox } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
@@ -39,7 +39,12 @@ export default function Orders() {
 
 	return (
 		<Page>
-			<Async state={state} label="Loading your orders">{data => (
+			<Async state={state} label="Loading your orders">{data => {
+				/* One scale for both lines, shared rather than each drawn to its own peak --
+				   the smaller one would otherwise read as though it reached as high as the
+				   larger. README: Buttons. */
+				const chartMax = Math.max(...data.period.series.monthCurrent, ...data.period.series.monthPrevious)
+				return (
 				<div className="order-list-grid">
 					<div className="order-list-column">
 						<Card aria-label={`Spent · ${data.period.label}`}>
@@ -64,8 +69,8 @@ export default function Orders() {
 									label={`${data.period.shortLabel} against ${data.period.previousLabel}, day by day`}
 									baselines={[{ y: 128, stroke: '#D9DDD8', dash: '5 5' }]}
 									series={[
-										{ points: data.period.series.monthPrevious, kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
-										{ points: data.period.series.monthCurrent, kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
+										{ points: plotted(data.period.series.monthPrevious, chartMax, 240, 10), kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
+										{ points: plotted(data.period.series.monthCurrent, chartMax, 240, 10), kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
 									]}
 									markers={[
 										{ index: 3, series: 1, r: 13, fill: '#4F5BD5', opacity: 0.14 },
@@ -220,7 +225,8 @@ export default function Orders() {
 						<Button variant="block" icon="settings" style={{ marginTop: 0 }} to="/settings">ORDER SETTINGS</Button>
 					</div>
 				</div>
-			)}</Async>
+				)
+			}}</Async>
 		</Page>
 	)
 }

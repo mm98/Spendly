@@ -333,7 +333,8 @@ export default function Home() {
 									gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
 										{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
 									baselines={[{ y: 92, stroke: '#E4E7E2', dash: '3 4' }]}
-									series={[{ points: data.period.series.cumulative, kind: 'curve',
+									series={[{ points: plotted(data.period.series.cumulative,
+										Math.max(...data.period.series.cumulative), 104, 6), kind: 'curve',
 										stroke: 'gradient:spend', strokeWidth: 2.4 }]}
 									markers={[{ index: 1, series: 0, r: 4.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 2 }]} />
 								<ChartAxis />
@@ -365,8 +366,10 @@ export default function Home() {
 										{ offset: 0, color: '#14AC72', opacity: 0.22 },
 										{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
 									series={[
-										{ points: data.period.series.savingsGrowth, kind: 'area', fill: 'gradient:savings' },
-										{ points: data.period.series.savingsGrowth, kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
+										{ points: plotted(data.period.series.savingsGrowth,
+											Math.max(...data.period.series.savingsGrowth), 90, 4), kind: 'area', fill: 'gradient:savings' },
+										{ points: plotted(data.period.series.savingsGrowth,
+											Math.max(...data.period.series.savingsGrowth), 90, 4), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
 									]} />
 								<ChartAxis labels={['10', '15', '20', '25', '30']} />
 							</CardBody>
