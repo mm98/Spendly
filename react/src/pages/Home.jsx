@@ -324,28 +324,41 @@ export default function Home() {
 							<CardHeader title="Orders" to="/orders" label="Orders, open Orders" />
 							<CardDivider />
 							<CardBody>
-								<div className="chart-caption">
-									<div className="chart-caption-label">Spent this month</div>
-									<span className="chart-caption-value tabular-figures">{kr(data.period.spent)}</span>
-								</div>
-								<Chart height={110} pad={6} style={{ marginTop: 6 }}
-									label={`Cumulative spend through ${data.period.shortLabel}`}
-									gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
-										{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
-									baselines={[{ y: 92, stroke: '#E4E7E2', dash: '3 4' }]}
-									series={[{ points: plotted(data.period.series.cumulative,
-										Math.max(...data.period.series.cumulative), 104, 6), kind: 'curve',
-										stroke: 'gradient:spend', strokeWidth: 2.4 }]}
-									markers={[{ index: 1, series: 0, r: 4.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 2 }]} />
-								<ChartAxis />
-								<div className="entry-list">
-									<div className="list-heading">Latest orders</div>
-									{data.latest.map(order => (
-										<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-											meta={`${dayMonth(order.date)} · ${kr(order.total)}`}
-											amount={'+' + kr(order.saved)} to={`/orders/${order.id}`} />
-									))}
-								</div>
+								{/* A chart is a claim about data points; a flat line at zero with a lone
+								    marker on it makes that claim about an account with no orders at all.
+								    The same absence dashboard-card('vendors') already guards against,
+								    one card over. */}
+								{data.latest.length ? (
+									<>
+										<div className="chart-caption">
+											<div className="chart-caption-label">Spent this month</div>
+											<span className="chart-caption-value tabular-figures">{kr(data.period.spent)}</span>
+										</div>
+										<Chart height={110} pad={6} style={{ marginTop: 6 }}
+											label={`Cumulative spend through ${data.period.shortLabel}`}
+											gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
+												{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
+											baselines={[{ y: 92, stroke: '#E4E7E2', dash: '3 4' }]}
+											series={[{ points: plotted(data.period.series.cumulative,
+												Math.max(...data.period.series.cumulative), 104, 6), kind: 'curve',
+												stroke: 'gradient:spend', strokeWidth: 2.4 }]}
+											markers={[{ index: 1, series: 0, r: 4.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 2 }]} />
+										<ChartAxis />
+										<div className="entry-list">
+											<div className="list-heading">Latest orders</div>
+											{data.latest.map(order => (
+												<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
+													meta={`${dayMonth(order.date)} · ${kr(order.total)}`}
+													amount={'+' + kr(order.saved)} to={`/orders/${order.id}`} />
+											))}
+										</div>
+									</>
+								) : (
+									<EmptyState>
+										<p>No orders yet. Add one and your spending shows up here.</p>
+										<ButtonLink to="/orders/new">ADD AN ORDER</ButtonLink>
+									</EmptyState>
+								)}
 							</CardBody>
 						</Card>
 
@@ -353,25 +366,33 @@ export default function Home() {
 							<CardHeader title="Saved vs retail" to="/stats" label="Saved vs retail, open Statistics" />
 							<CardDivider />
 							<CardBody>
-								<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-									<div className="chart-caption">
-										<div className="chart-caption-label">Total saved</div>
-										<span className="chart-caption-value tabular-figures">{kr(data.period.saved)}</span>
-									</div>
-									<SavingChip>{percent(data.period.savedPercent)}</SavingChip>
-								</div>
-								<Chart height={90} pad={0} style={{ marginTop: 8 }}
-									label={`Savings growth through ${data.period.shortLabel}`}
-									gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
-										{ offset: 0, color: '#14AC72', opacity: 0.22 },
-										{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
-									series={[
-										{ points: plotted(data.period.series.savingsGrowth,
-											Math.max(...data.period.series.savingsGrowth), 90, 4), kind: 'area', fill: 'gradient:savings' },
-										{ points: plotted(data.period.series.savingsGrowth,
-											Math.max(...data.period.series.savingsGrowth), 90, 4), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
-									]} />
-								<ChartAxis labels={['10', '15', '20', '25', '30']} />
+								{data.latest.length ? (
+									<>
+										<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+											<div className="chart-caption">
+												<div className="chart-caption-label">Total saved</div>
+												<span className="chart-caption-value tabular-figures">{kr(data.period.saved)}</span>
+											</div>
+											<SavingChip>{percent(data.period.savedPercent)}</SavingChip>
+										</div>
+										<Chart height={90} pad={0} style={{ marginTop: 8 }}
+											label={`Savings growth through ${data.period.shortLabel}`}
+											gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
+												{ offset: 0, color: '#14AC72', opacity: 0.22 },
+												{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
+											series={[
+												{ points: plotted(data.period.series.savingsGrowth,
+													Math.max(...data.period.series.savingsGrowth), 90, 4), kind: 'area', fill: 'gradient:savings' },
+												{ points: plotted(data.period.series.savingsGrowth,
+													Math.max(...data.period.series.savingsGrowth), 90, 4), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
+											]} />
+										<ChartAxis labels={['10', '15', '20', '25', '30']} />
+									</>
+								) : (
+									<EmptyState>
+										<p>Nothing saved yet. Buying below retail is what fills this in.</p>
+									</EmptyState>
+								)}
 							</CardBody>
 						</Card>
 					</div>
