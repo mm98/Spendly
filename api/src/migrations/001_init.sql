@@ -35,6 +35,7 @@ CREATE TABLE categories (
 	icon_path TEXT,
 	colour TEXT NOT NULL,
 	budget REAL NOT NULL DEFAULT 0,
+	favourite INTEGER NOT NULL DEFAULT 0,
 	UNIQUE (user_id, name)
 );
 

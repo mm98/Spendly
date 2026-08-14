@@ -329,10 +329,12 @@ export async function getHomeContent(signal) {
 		period: periodFromWindow(window),
 		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, 3),
 		categories: monthCategories,
-		// No category ever carries a real "favourite" flag in this schema — nothing in the
-		// category form can set one — so this card has nothing to show rather than a stand-in
-		// that would claim a preference nobody expressed.
-		favouriteCategories: [],
+		// All-time, from the raw list rather than monthCategories -- that one's filtered to
+		// spend > 0 this month, and a favourite is a standing preference, not an activity
+		// filter: a category starred last week with nothing bought from it yet this month
+		// should still show up here, the same way a starred vendor with no orders yet still
+		// leads the Vendors page's own Favourites section.
+		favouriteCategories: categories.filter(c => c.favourite).sort((a, b) => b.spend - a.spend),
 		onboarding: content.onboarding,
 		showScanCard: settings.showScanCard,
 		latest

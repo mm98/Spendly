@@ -5,21 +5,21 @@ import { categoryStats } from '../lib/aggregate.js'
 
 export const router = Router()
 
-const CATEGORY_COLUMNS = 'id, name, icon, icon_path, colour, budget'
+const CATEGORY_COLUMNS = 'id, name, icon, icon_path, colour, budget, favourite'
 const selectAll = db.prepare(`SELECT ${CATEGORY_COLUMNS} FROM categories WHERE user_id = ? ORDER BY name`)
 const selectOne = db.prepare(`SELECT ${CATEGORY_COLUMNS} FROM categories WHERE id = ? AND user_id = ?`)
 const selectByNameExists = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
-const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon_path, colour, budget)
-	VALUES (@id, @userId, @name, @icon, @iconPath, @colour, @budget)`)
+const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon_path, colour, budget, favourite)
+	VALUES (@id, @userId, @name, @icon, @iconPath, @colour, @budget, @favourite)`)
 const countOrders = db.prepare('SELECT COUNT(*) c FROM order_categories oc JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = ? AND o.user_id = ?')
 const deleteOne = db.prepare('DELETE FROM categories WHERE id = ? AND user_id = ?')
-const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget WHERE id=@id AND user_id=@userId')
+const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, favourite=@favourite WHERE id=@id AND user_id=@userId')
 
 const withStats = (category, stats) => {
 	const s = stats.get(category.id) ?? { spend: 0, share: 0, saved: 0 }
 	return {
 		id: category.id, name: category.name, icon: category.icon, iconPath: category.icon_path,
-		colour: category.colour, budget: category.budget,
+		colour: category.colour, budget: category.budget, favourite: Boolean(category.favourite),
 		spend: s.spend, share: s.share, saved: s.saved
 	}
 }
@@ -54,7 +54,8 @@ router.post('/', (req, res) => {
 	const category = {
 		id: newId('c'), userId: req.user.id, name,
 		icon: look.icon ?? 'tag', iconPath: look.iconPath ?? null,
-		colour: look.colour ?? '#C43F2A', budget: nonNegative(Number(look.budget))
+		colour: look.colour ?? '#C43F2A', budget: nonNegative(Number(look.budget)),
+		favourite: look.favourite ? 1 : 0
 	}
 	insert.run(category)
 	res.status(201).json(withStats(category, new Map()))
@@ -79,7 +80,8 @@ router.patch('/:id', (req, res) => {
 		icon: patch.icon ?? category.icon,
 		iconPath: patch.iconPath !== undefined ? patch.iconPath : category.icon_path,
 		colour: patch.colour ?? category.colour,
-		budget: patch.budget != null ? nonNegative(Number(patch.budget)) : category.budget
+		budget: patch.budget != null ? nonNegative(Number(patch.budget)) : category.budget,
+		favourite: patch.favourite != null ? (patch.favourite ? 1 : 0) : category.favourite
 	}
 	update.run({ ...next, id: category.id, userId: req.user.id })
 	res.json(withStats(selectOne.get(category.id, req.user.id), categoryStats(req.user.id)))

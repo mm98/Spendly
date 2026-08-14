@@ -233,14 +233,20 @@ function dashboardCard(key, data) {
 		case 'favcats':
 			return (
 				<>
-					<CardHeader title="Favourite categories" />
+					<CardHeader title="Favourite categories" to="/categories" label="Favourite categories, open Categories" />
 					<CardDivider />
 					<CardBody>
-						<div className="category-rows">
-							{favouriteCategories.map(c =>
-								<CategoryRow key={c.id} category={c} meta={`saved ${krRound(c.saved)}`}
-									to={`/orders/all?category=${c.id}`} />)}
-						</div>
+						{favouriteCategories.length ? (
+							<div className="category-rows">
+								{favouriteCategories.map(c =>
+									<CategoryRow key={c.id} category={c} meta={`saved ${krRound(c.saved)}`}
+										to={`/orders/all?category=${c.id}`} />)}
+							</div>
+						) : (
+							<EmptyState>
+								<p>No favourites yet. Star a category on its edit page and it lands here.</p>
+							</EmptyState>
+						)}
 					</CardBody>
 				</>
 			)
