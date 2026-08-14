@@ -14,8 +14,8 @@ import { Segmented } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	addAttachments, attachmentThumbnailUrl, deleteOrder, getHomeContent, getOrder, getOrderAsDraft,
-	getOrders, getOrdersOverview, removeAttachment, updateOrder
+	addAttachments, attachmentThumbnailUrl, deleteOrder, getHomeContent, getHomeHero, getOrder,
+	getOrderAsDraft, getOrders, getOrdersOverview, getStats, removeAttachment, updateOrder
 } from '../api/client.js'
 import { kr, longDate, percent, shortDate } from '../api/format.js'
 
@@ -42,10 +42,13 @@ export default function OrderDetail() {
 	const [openFile, setOpenFile] = useState(null)
 	const filePicker = useRef(null)
 
-	/* Anything that counts orders, or shows this one, is stale the moment it is written. */
+	/* Anything that counts orders, or shows this one, is stale the moment it is written --
+	   Statistics and the Home hero chart both aggregate over order rows and neither has any
+	   other trigger to refetch. */
 	const invalidateOrder = () => {
 		invalidate(getOrder); invalidate(getOrders); invalidate(getHomeContent)
 		invalidate(getOrdersOverview); invalidate(getOrderAsDraft)
+		invalidate(getStats); invalidate(getHomeHero)
 	}
 
 	const setOrderStatus = (order, next) => {

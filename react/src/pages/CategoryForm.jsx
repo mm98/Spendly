@@ -12,7 +12,7 @@ import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	createCategory, deleteCategory, getCategories, getCategoriesOverview, getCategory,
-	getHomeContent, getOrdersOverview, updateCategory
+	getHomeContent, getHomeHero, getOrdersOverview, getStats, updateCategory
 } from '../api/client.js'
 import { AMOUNT_PATTERN, amountRound, krRound, parseAmount } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
@@ -99,10 +99,12 @@ function CategoryFields({ mode, category }) {
 	const budget = values.budget && AMOUNT_PATTERN.test(values.budget) ? parseAmount(values.budget) : 0
 
 	/* Every figure that counts categories is stale the moment one is written, so all of them
-	   go rather than being left to expire. */
+	   go rather than being left to expire -- Statistics' category split is one of them, since
+	   a renamed or recoloured category changes what its own segment reads. */
 	const refresh = () => {
 		invalidate(getCategories); invalidate(getCategoriesOverview); invalidate(getCategory)
 		invalidate(getHomeContent); invalidate(getOrdersOverview)
+		invalidate(getStats); invalidate(getHomeHero)
 	}
 
 	const save = () => {

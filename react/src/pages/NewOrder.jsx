@@ -18,8 +18,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createOrder, createVendor, getCategories, getHomeContent, getOrderAsDraft, getOrderDraft,
-	getOrders, getOrdersOverview, getVendors, getVendorsOverview, spendKinds, updateOrder
+	createOrder, createVendor, getCategories, getHomeContent, getHomeHero, getOrderAsDraft,
+	getOrderDraft, getOrders, getOrdersOverview, getStats, getVendors, getVendorsOverview,
+	spendKinds, updateOrder
 } from '../api/client.js'
 import { invalidate } from '../api/useApi.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
@@ -424,10 +425,11 @@ export function NewOrderItems() {
 		const written = mode === 'edit' ? updateOrder(id, draft) : createOrder(draft)
 		written
 			.then(order => {
-				/* The list, the dashboard and the overview all count orders, so all three are
-				   dropped from the cache rather than left showing the count from before. */
+				/* The list, the dashboard, the overview, Statistics and the Home hero chart all
+				   count or aggregate orders, so all five are dropped from the cache rather than
+				   left showing figures from before. */
 				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
-				invalidate(getOrderAsDraft)
+				invalidate(getOrderAsDraft); invalidate(getStats); invalidate(getHomeHero)
 				navigate('/orders/' + order.id)
 			})
 			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })

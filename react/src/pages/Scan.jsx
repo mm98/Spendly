@@ -19,8 +19,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
-	attachScanDocument, createOrder, getHomeContent, getOrders, getOrdersOverview, getRecentScans,
-	getScanDraft, putScanDocument, scanFileUrl, scanThumbnailUrl, spendKinds
+	attachScanDocument, createOrder, getHomeContent, getHomeHero, getOrders, getOrdersOverview,
+	getRecentScans, getScanDraft, getStats, putScanDocument, scanFileUrl, scanThumbnailUrl,
+	spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
@@ -277,6 +278,7 @@ function ScanReviewForm({ answer }) {
 			.then(order => attachScanDocument(answer.documentKey, order.id).then(() => order).catch(() => order))
 			.then(order => {
 				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
+				invalidate(getStats); invalidate(getHomeHero)
 				navigate('/orders/' + order.id)
 			})
 			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
