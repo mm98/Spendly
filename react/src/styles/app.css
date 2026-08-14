@@ -482,8 +482,12 @@ svg.chart { width:100%; display:block; }
 
 /* donut */
 .donut-box { display:grid; justify-items:center; padding-top:6px; }
-.donut { width:132px; height:132px; border-radius:50%; position:relative;
-	background:conic-gradient(var(--donut-red) 0 13%, var(--donut-yellow) 13% 27%, var(--donut-purple) 27% 33%, var(--donut-orange) 33% 43%, var(--donut-blue) 43% 100%); }
+/* No baked-in conic-gradient here: the prototype's own ring drew fixed shares -- 13%, 14%,
+   6%, 10%, 57% -- beside a category list that read different numbers, which is exactly the
+   "nothing rendered could fail" defect the comment atop Viz.jsx is about. Real segments are
+   set inline in JS; an account with no spend to split gets a flat neutral ring, not
+   someone else's category split rendered as its own. */
+.donut { width:132px; height:132px; border-radius:50%; position:relative; background:var(--border-card); }
 .donut::before { content:""; position:absolute; inset:17px; background:var(--bg-card); border-radius:50%; }
 .donut .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:1px; z-index:1; text-align:center; }
 .donut .ring-centre-value { font-size:16.5px; font-weight:700; letter-spacing:-.01em; }
@@ -1035,8 +1039,8 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    own. README: Views. */
 .scroll-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(210px,1fr); gap:14px; overflow-x:auto; padding-bottom:14px; }
 .spend-gauge-row { display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
-.spend-gauge { width:170px; height:170px; border-radius:50%; position:relative; flex:none;
-	background:conic-gradient(var(--donut-blue) 0 46%, var(--bg-card) 46% 48%, var(--green) 48% 69%, var(--bg-card) 69% 71%, var(--donut-yellow) 71% 84%, var(--bg-card) 84% 86%, var(--donut-purple) 86% 98%, var(--bg-card) 98% 100%); }
+/* Same reasoning as .donut -- no baked-in split rendered when there's nothing to show. */
+.spend-gauge { width:170px; height:170px; border-radius:50%; position:relative; flex:none; background:var(--border-card); }
 .spend-gauge::before { content:""; position:absolute; inset:22px; background:var(--bg-card); border-radius:50%; }
 .spend-gauge .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:2px; z-index:1; text-align:center; }
 .spend-gauge .ring-centre-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }

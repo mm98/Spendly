@@ -34,7 +34,7 @@ const RingCentre = ({ value, label }) => (
 /** The 132px ring on Home, Orders and Categories. */
 export const Donut = ({ segments, value, label, ariaLabel }) => (
 	<div className="donut" role="img" aria-label={ariaLabel}
-		style={segments ? { background: conic(segments) } : undefined}>
+		style={segments?.length ? { background: conic(segments) } : undefined}>
 		<RingCentre value={value} label={label} />
 	</div>
 )
@@ -45,7 +45,7 @@ export const DonutBox = ({ children, className }) =>
 /** Statistics' larger ring, which separates its segments with a hairline of the card colour. */
 export const SpendGauge = ({ segments, value, label, ariaLabel }) => (
 	<div className="spend-gauge" role="img" aria-label={ariaLabel}
-		style={segments ? { background: conic(segments, 2) } : undefined}>
+		style={segments?.length ? { background: conic(segments, 2) } : undefined}>
 		<RingCentre value={value} label={label} />
 	</div>
 )
