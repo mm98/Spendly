@@ -57,7 +57,7 @@ export default function Register() {
 							</p>
 						) : null}
 						<FormActions>
-							<Button type="submit" disabled={saving}>{saving ? 'CREATING…' : 'CREATE ACCOUNT'}</Button>
+							<Button variant="primary" type="submit" disabled={saving}>{saving ? 'CREATING…' : 'CREATE ACCOUNT'}</Button>
 						</FormActions>
 					</form>
 					<p className="field-help" style={{ marginTop: 14 }}>

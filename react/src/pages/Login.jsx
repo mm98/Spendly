@@ -56,7 +56,7 @@ export default function Login() {
 							</p>
 						) : null}
 						<FormActions>
-							<Button type="submit" disabled={saving}>{saving ? 'SIGNING IN…' : 'SIGN IN'}</Button>
+							<Button variant="primary" type="submit" disabled={saving}>{saving ? 'SIGNING IN…' : 'SIGN IN'}</Button>
 						</FormActions>
 					</form>
 					<p className="field-help" style={{ marginTop: 14 }}>

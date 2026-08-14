@@ -168,9 +168,13 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 /* Sign-in and sign-up. Outside the shell, so there is no sidebar to carry the brand mark --
    the page draws its own, at a size that reads on an otherwise empty screen rather than the
    34px the sidebar rail sizes it for. Same gradient stops as .brand-mark, same reasoning:
-   README: Color. */
-.auth-page { display:grid; place-items:center; min-height:100vh; padding:24px;
-	background:radial-gradient(120% 100% at 50% -10%, #E4F3EC 0%, var(--bg-app) 55%); }
+   README: Color.
+
+   The page background stays plain --bg-app rather than a lighter gradient behind the card --
+   a lighter stop there sits close enough to white that .card's own --border-card hairline
+   nearly disappears against it, which is the one thing the shadow below is added to prevent,
+   not to paper over. */
+.auth-page { display:grid; place-items:center; min-height:100vh; padding:24px; background:var(--bg-app); }
 .auth-card { width:100%; max-width:380px; box-shadow:var(--shadow); }
 .auth-mark { width:52px; height:52px; border-radius:var(--radius-card); margin:0 auto 16px;
 	background:linear-gradient(135deg,#14AC72 0%,#0A7F56 100%); display:grid; place-items:center; }
