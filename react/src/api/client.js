@@ -215,8 +215,19 @@ export async function getOrdersOverview(signal) {
 		getCategories(signal),
 		request('/api/home', { signal })
 	])
+	/* The ring reads "Spent this month," so its segments and the rows under it have to be
+	   this month's spend too — categories carries all-time totals (categories with old orders
+	   and none this month would otherwise fill a ring a 0 kr. centre says is empty). window.split
+	   is the same month-scoped breakdown Home's hero legend reads; icon/budget still come from
+	   categories since split doesn't carry either. */
+	const monthById = new Map(window.split.map(s => [s.id, s]))
+	const monthCategories = categories
+		.map(c => ({ ...c, spend: monthById.get(c.id)?.amount ?? 0, share: monthById.get(c.id)?.share ?? 0 }))
+		.filter(c => c.spend > 0)
+		.sort((a, b) => b.spend - a.spend)
+		.slice(0, 4)
 	return {
-		latest, period: periodFromWindow(window), categories: categories.slice(0, 4),
+		latest, period: periodFromWindow(window), categories: monthCategories,
 		promos: home.promos, question: home.questionOfTheDay
 	}
 }
@@ -273,10 +284,19 @@ export async function getHomeContent(signal) {
 		getSettings(signal),
 		request('/api/orders/overview' + qs({ count: 3 }), { signal })
 	])
+	/* "The categories are written per month" below, and the ring right above them reads
+	   "Spent this month" -- so both need this month's spend, not categories' all-time totals.
+	   window.split is the same month-scoped breakdown the hero legend reads its own entries
+	   from; icon/budget still come from categories since split carries neither. */
+	const monthById = new Map(window.split.map(s => [s.id, s]))
+	const monthCategories = categories
+		.map(c => ({ ...c, spend: monthById.get(c.id)?.amount ?? 0, share: monthById.get(c.id)?.share ?? 0 }))
+		.filter(c => c.spend > 0)
+		.sort((a, b) => b.spend - a.spend)
 	return {
 		period: periodFromWindow(window),
 		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, 3),
-		categories,
+		categories: monthCategories,
 		// No category ever carries a real "favourite" flag in this schema — nothing in the
 		// category form can set one — so this card has nothing to show rather than a stand-in
 		// that would claim a preference nobody expressed.

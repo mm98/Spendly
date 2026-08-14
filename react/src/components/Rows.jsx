@@ -1,7 +1,7 @@
 import { forwardRef } from 'react'
 import { Link } from 'react-router'
 import { Icon, ImageOrIcon } from './Icon.jsx'
-import { kr, krRound } from '../api/format.js'
+import { kr, krRound, percent } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
 /* Every list row in the app.
@@ -60,7 +60,7 @@ export function CategoryRow({ category, meta, to }) {
 				<Icon name={category.icon} path={category.iconPath} /></span>
 			<div>
 				<div className="category-row-title">{category.name}</div>
-				<div className="category-row-meta">{meta ?? `${category.share}% of expenses`}</div>
+				<div className="category-row-meta">{meta ?? `${percent(category.share)} of expenses`}</div>
 			</div>
 			<span className="amount tabular-figures">{krRound(category.spend)}</span>
 			{to ? <Chevron /> : null}

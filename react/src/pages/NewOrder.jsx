@@ -205,7 +205,7 @@ export function NewOrderDetails() {
 					onSelect={o => { addCategory(o.label); setCategoryQuery('') }}
 					groups={[{ heading: 'Your categories', options: (categories.data ?? [])
 						.filter(c => !draft.categories.includes(c.name))
-						.map(c => ({ id: c.id, label: c.name, meta: `${c.share}% of expenses` })) }]}
+						.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }]}
 					action={categoryQuery.trim()
 						? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
 							onSelect: name => { addCategory(name); setCategoryQuery('') } }

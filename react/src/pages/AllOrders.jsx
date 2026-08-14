@@ -12,7 +12,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
-import { dayMonth, parseAmount } from '../api/format.js'
+import { dayMonth, parseAmount, percent } from '../api/format.js'
 
 /* All orders: the search, the filters, and what they leave.
 
@@ -236,7 +236,7 @@ export default function AllOrders() {
 									onChange={v => setDraft({ ...draft, categoryName: v, categoryId: '' })}
 									onSelect={o => setDraft({ ...draft, categoryName: o.label, categoryId: o.id })}
 									groups={[{ heading: 'All categories', options: (categories.data ?? []).map(c =>
-										({ id: c.id, label: c.name, meta: `${c.share}% of expenses` })) }]} />
+										({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }]} />
 							</Field>
 							<Field label="Kind">
 								<Combobox label="Kind" placeholder="Any kind" value={draft.kind ?? ''}
