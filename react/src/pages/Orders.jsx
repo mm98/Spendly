@@ -198,9 +198,13 @@ export default function Orders() {
 												value={krRound(data.period.spent)} label="Spent this month"
 												ariaLabel={`Category split of ${krRound(data.period.spent)} this month`} />
 										</DonutBox>
+										{/* "Without category" carries no real id -- the orders list has no filter
+										    for it yet, so linking it the same way as a real category would ask
+										    for one that matches nothing. README: Home. */}
 										<div className="category-rows">
 											{data.categories.map(c =>
-												<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`} />)}
+												<CategoryRow key={c.id} category={c}
+													to={c.id === 'none' ? '/orders/all' : `/orders/all?category=${c.id}`} />)}
 										</div>
 									</>
 								) : (
@@ -218,7 +222,8 @@ export default function Orders() {
 										    does not use anywhere else. README: Cards. */}
 										<div className="category-rows">
 											{data.categories.map(c => (
-												<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`}
+												<CategoryRow key={c.id} category={c}
+													to={c.id === 'none' ? '/orders/all' : `/orders/all?category=${c.id}`}
 													meta={c.budget
 														? `${krRound(c.spend)} of ${krRound(c.budget)} budget`
 														: 'No budget set'} />

@@ -193,8 +193,13 @@ function dashboardCard(key, data) {
 								ariaLabel={`Category split of ${krRound(period.spent)} this month`} />
 						</DonutBox>
 						<div className="category-rows">
+							{/* "Without category" carries no real category id -- the orders list has no
+								filter for it yet, so the id it does carry would ask for a category
+								that matches nothing and read as an empty list. Same fallback the hero
+								legend and Statistics' own version of this row already use. */}
 							{categories.slice(0, 3).map(c =>
-								<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`} />)}
+								<CategoryRow key={c.id} category={c}
+									to={c.id === 'none' ? '/orders/all' : `/orders/all?category=${c.id}`} />)}
 						</div>
 					</CardBody>
 				</>

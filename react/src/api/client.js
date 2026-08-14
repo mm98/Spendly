@@ -223,6 +223,21 @@ export async function getOrderAsDraft(id, signal) {
    two pages were written against the phantom store's hand-authored per-month record, and this
    is what keeps them working against a real, computed window instead: same field names, real
    numbers underneath. */
+/** Real categories, left-joined against this month's window.split, plus the "Without category"
+    row split carries for whatever's left over -- that row names no real category, so it cannot
+    come from mapping the categories list the way every other one here does. Both callers below
+    need this join; each one reading its own copy is how the ring end up with a row a category's
+    own list never had a way to grow. */
+const monthCategoriesFrom = (categories, split) => {
+	const byId = new Map(split.map(s => [s.id, s]))
+	const none = split.find(s => s.id == null)
+	const named = categories.map(c => ({ ...c, spend: byId.get(c.id)?.amount ?? 0, share: byId.get(c.id)?.share ?? 0 }))
+	const rows = none
+		? [...named, { id: 'none', name: none.name, icon: 'tag', colour: none.colour, spend: none.amount, share: none.share }]
+		: named
+	return rows.filter(c => c.spend > 0).sort((a, b) => b.spend - a.spend)
+}
+
 const periodFromWindow = w => ({
 	label: w.label, shortLabel: w.shortLabel, previousLabel: w.previousLabel,
 	spent: w.spent, saved: w.saved, savedPercent: w.savedPercent, retail: w.retail,
@@ -246,12 +261,7 @@ export async function getOrdersOverview(signal) {
 	   and none this month would otherwise fill a ring a 0 kr. centre says is empty). window.split
 	   is the same month-scoped breakdown Home's hero legend reads; icon/budget still come from
 	   categories since split doesn't carry either. */
-	const monthById = new Map(window.split.map(s => [s.id, s]))
-	const monthCategories = categories
-		.map(c => ({ ...c, spend: monthById.get(c.id)?.amount ?? 0, share: monthById.get(c.id)?.share ?? 0 }))
-		.filter(c => c.spend > 0)
-		.sort((a, b) => b.spend - a.spend)
-		.slice(0, 4)
+	const monthCategories = monthCategoriesFrom(categories, window.split).slice(0, 4)
 	return {
 		latest, period: periodFromWindow(window), categories: monthCategories,
 		promos: home.promos, question: home.questionOfTheDay
@@ -314,11 +324,7 @@ export async function getHomeContent(signal) {
 	   "Spent this month" -- so both need this month's spend, not categories' all-time totals.
 	   window.split is the same month-scoped breakdown the hero legend reads its own entries
 	   from; icon/budget still come from categories since split carries neither. */
-	const monthById = new Map(window.split.map(s => [s.id, s]))
-	const monthCategories = categories
-		.map(c => ({ ...c, spend: monthById.get(c.id)?.amount ?? 0, share: monthById.get(c.id)?.share ?? 0 }))
-		.filter(c => c.spend > 0)
-		.sort((a, b) => b.spend - a.spend)
+	const monthCategories = monthCategoriesFrom(categories, window.split)
 	return {
 		period: periodFromWindow(window),
 		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, 3),

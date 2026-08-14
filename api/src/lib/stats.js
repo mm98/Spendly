@@ -157,13 +157,28 @@ const selectSplit = db.prepare(`
 	ORDER BY spend DESC
 `)
 
-function splitOver(userId, from, to) {
+/** `trueTotal` is the window's real spend (every order, categorised or not) -- passed in
+    rather than summed from `rows` here, because an order with no category at all never joins
+    into `rows` to begin with. Sharing against the categorised sum instead of the true total is
+    exactly how a category read "50% of expenses" while a same-sized uncategorised order sat
+    beside it counting for nothing: the two numbers agreed with each other and disagreed with
+    the window. The remainder becomes its own "Without category" row rather than vanishing --
+    the ring and the list beside it are drawn from the one list, so nothing here can silently
+    add up to less than the total both claim to break down. */
+function splitOver(userId, from, to, trueTotal) {
 	const rows = selectSplit.all({ userId, from, to })
-	const total = rows.reduce((s, r) => s + r.spend, 0)
-	return rows.map((r, i) => ({
+	const categorised = rows.reduce((s, r) => s + r.spend, 0)
+	const total = trueTotal ?? categorised
+	const split = rows.map((r, i) => ({
 		id: r.id, name: r.name, amount: r.spend, share: total ? (r.spend / total) * 100 : 0,
 		colour: r.colour ?? FALLBACK_SPLIT_COLOURS[Math.min(i, FALLBACK_SPLIT_COLOURS.length - 1)]
 	}))
+	const uncategorised = total - categorised
+	if (uncategorised > 0.005) {
+		split.push({ id: null, name: 'Without category', amount: uncategorised,
+			share: total ? (uncategorised / total) * 100 : 0, colour: 'var(--text-faint)' })
+	}
+	return split.sort((a, b) => b.amount - a.amount)
 }
 
 const selectDailyTotals = db.prepare(`
@@ -353,7 +368,7 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 			previousTotal: was?.spent ?? null, previousLabel: previousBounds?.shortLabel ?? null,
 			pace: paceFor(width, bounds.from, bounds.to, now.spent),
 			rhythm: rhythmOver(userId, bounds.from, bounds.to),
-			split: splitOver(userId, bounds.from, bounds.to),
+			split: splitOver(userId, bounds.from, bounds.to, now.spent),
 			recent: summary ? null : recentColumns(userId, width, id),
 			returnsNote: summary ? null : returnsIn(userId, bounds.from, bounds.to, spanName),
 			kpis: kpisFor(now, was, previousBounds?.shortLabel),
