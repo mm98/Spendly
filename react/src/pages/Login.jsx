@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router'
 import { Card, CardBody } from '../components/Card.jsx'
 import { Field, FieldShell, TextInput, FormActions } from '../components/Form.jsx'
 import { Button } from '../components/Button.jsx'
+import { Icon } from '../components/Icon.jsx'
 import { login } from '../api/client.js'
 
 /* Sign-in. Outside the app shell on purpose — the sidebar, the rail and the command palette are
@@ -27,11 +28,15 @@ export default function Login() {
 	}
 
 	return (
-		<div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: 24 }}>
-			<Card style={{ width: '100%', maxWidth: 380 }} aria-label="Sign in">
+		<div className="auth-page">
+			<Card className="auth-card" aria-label="Sign in">
 				<CardBody>
-					<div className="card-subheading">Spendly</div>
-					<h1 style={{ fontSize: 22, margin: '4px 0 18px' }}>Sign in</h1>
+					<span className="auth-mark" aria-hidden="true"><Icon name="receipt" /></span>
+					<div className="auth-heading">
+						<div className="card-subheading">Spendly</div>
+						<h1>Sign in</h1>
+						<p className="auth-tagline">Welcome back — your ledger's just where you left it.</p>
+					</div>
 					<form onSubmit={submit}>
 						<Field label="Email">
 							<FieldShell>
