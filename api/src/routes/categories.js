@@ -47,7 +47,7 @@ router.post('/', (req, res) => {
 	const category = {
 		id: newId('c'), userId: req.user.id, name,
 		icon: look.icon ?? 'tag', iconPath: look.iconPath ?? null,
-		colour: look.colour ?? 'var(--icon-red)', budget: Number(look.budget) || 0
+		colour: look.colour ?? '#C43F2A', budget: Number(look.budget) || 0
 	}
 	insert.run(category)
 	res.status(201).json(withStats(category, new Map()))

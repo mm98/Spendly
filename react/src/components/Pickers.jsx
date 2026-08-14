@@ -44,16 +44,20 @@ import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
     keystroke can pull. */
 const LIMIT = 240
 
-/** The palette a category or a vendor can be. Tokens where the system has one, so a category
-    coloured "red" is the same red as the one in the donut. */
+/** The palette a category or a vendor can be -- the same hex the system's own tokens resolve
+    to (a category coloured "red" is the same red as the one in the donut), copied here rather
+    than passed as `var(--icon-red)` and the like. A stored `var(...)` reference needs a browser
+    with this app's own stylesheet loaded to mean anything -- resolveColour()
+    (../api/colour.js) exists only to paper over that at read time -- where a plain hex, the
+    form VENDOR_COLOURS below already used, is a value on its own. */
 export const CATEGORY_COLOURS = [
-	{ id: 'var(--icon-red)', label: 'Red' },
-	{ id: 'var(--icon-yellow)', label: 'Yellow' },
-	{ id: 'var(--icon-purple)', label: 'Purple' },
-	{ id: 'var(--donut-blue)', label: 'Blue' },
-	{ id: 'var(--donut-orange)', label: 'Orange' },
-	{ id: 'var(--green)', label: 'Green' },
-	{ id: 'var(--teal)', label: 'Teal' },
+	{ id: '#C43F2A', label: 'Red' },
+	{ id: '#E9C517', label: 'Yellow' },
+	{ id: '#8B5CF6', label: 'Purple' },
+	{ id: '#1FA8E0', label: 'Blue' },
+	{ id: '#F09A38', label: 'Orange' },
+	{ id: '#14AC72', label: 'Green' },
+	{ id: '#07625E', label: 'Teal' },
 	{ id: '#45524C', label: 'Slate' }
 ]
 

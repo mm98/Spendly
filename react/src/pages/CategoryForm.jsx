@@ -28,7 +28,7 @@ import { resolveColour } from '../api/colour.js'
    Create and edit are one component, because they differ by which record they start from and
    by nothing else. A second one for the other is the near-miss the uniformity rule is about. */
 
-const BLANK = { name: '', icon: 'tag', iconPath: undefined, colour: 'var(--icon-red)', budget: '' }
+const BLANK = { name: '', icon: 'tag', iconPath: undefined, colour: '#C43F2A', budget: '' }
 
 export default function CategoryForm({ mode = 'create' }) {
 	const { id } = useParams()
