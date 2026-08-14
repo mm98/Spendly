@@ -9,7 +9,7 @@
 		"start": "node src/server.js"
 	},
 	"dependencies": {
-		"better-sqlite3": "12.4.1",
+		"better-sqlite3": "^13.0.3",
 		"express": "5.1.0",
 		"multer": "^2.2.0",
 		"mupdf": "^1.28.0",
