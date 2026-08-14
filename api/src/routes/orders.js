@@ -7,6 +7,7 @@ import { getDecoratedOrder, decorateOrderRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
+import { processImage } from '../lib/images.js'
 
 export const router = Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } })
@@ -26,11 +27,12 @@ const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, @note)`)
-const insertAttachment = db.prepare(`INSERT INTO attachments (id, order_id, name, kind, meta, content_type, size, data)
-	VALUES (@id, @orderId, @name, @kind, @meta, @contentType, @size, @data)`)
+const insertAttachment = db.prepare(`INSERT INTO attachments (id, order_id, name, kind, meta, content_type, size, data, thumbnail, thumbnail_content_type)
+	VALUES (@id, @orderId, @name, @kind, @meta, @contentType, @size, @data, @thumbnail, @thumbnailContentType)`)
 const selectExistingAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_id = ?')
 const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
 const selectAttachment = db.prepare('SELECT name, content_type, data FROM attachments WHERE id = ? AND order_id = ?')
+const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
 const selectLatestOrders = db.prepare(
 	`SELECT ${orderTotalsSelectList()} FROM order_totals WHERE user_id = @userId ORDER BY date DESC, id DESC LIMIT @count`
 )
@@ -207,7 +209,7 @@ const fileSizeLabel = bytes => {
 	return kb > 1024 ? (kb / 1024).toFixed(1).replace('.', ',') + ' MB' : kb + ' KB'
 }
 
-router.post('/:id/attachments', upload.array('files'), (req, res) => {
+router.post('/:id/attachments', upload.array('files'), async (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	const orderId = req.params.id
 
@@ -217,9 +219,16 @@ router.post('/:id/attachments', upload.array('files'), (req, res) => {
 		if (existingNames.has(file.originalname.toLowerCase())) { skipped.push(file.originalname); continue }
 		existingNames.add(file.originalname.toLowerCase())
 		const kind = file.mimetype === 'application/pdf' || /\.pdf$/i.test(file.originalname) ? 'pdf' : 'image'
+		// Images are resized to a display copy and a thumbnail before storing (lib/images.js);
+		// a PDF has neither concept and is kept exactly as uploaded.
+		const processed = kind === 'image'
+			? await processImage(file.buffer)
+			: { data: file.buffer, contentType: file.mimetype, size: file.size, thumbnail: null, thumbnailContentType: null }
 		const attachment = {
 			id: newId('a'), orderId, name: file.originalname, kind,
-			meta: `Added today · ${fileSizeLabel(file.size)}`, contentType: file.mimetype, size: file.size, data: file.buffer
+			meta: `Added today · ${fileSizeLabel(processed.size)}`,
+			contentType: processed.contentType ?? file.mimetype, size: processed.size, data: processed.data,
+			thumbnail: processed.thumbnail, thumbnailContentType: processed.thumbnailContentType
 		}
 		insertAttachment.run(attachment)
 		added.push({ id: attachment.id, name: attachment.name, kind: attachment.kind, meta: attachment.meta })
@@ -242,6 +251,15 @@ router.get('/:id/attachments/:attachmentId/file', (req, res) => {
 	res.send(attachment.data)
 })
 
+router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
+	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
+	const attachment = selectAttachmentThumbnail.get(req.params.attachmentId, req.params.id)
+	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
+	res.set('Content-Type', attachment.thumbnail_content_type || 'image/jpeg')
+	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // a thumbnail's bytes never change once made
+	res.send(attachment.thumbnail)
+})
+
 /* ---- bulk import ----
    One program handing Spendly a whole expense history in one call: vendor and category names
    are resolved the same lookup-or-create way a manual order does (lib/findOrCreate.js), and
@@ -250,27 +268,38 @@ router.get('/:id/attachments/:attachmentId/file', (req, res) => {
    route) — the exporter is another program, not a browser form, so one JSON array is simpler
    for it to produce than a multipart request naming which files belong to which order. */
 
-router.post('/import', (req, res) => {
+router.post('/import', async (req, res) => {
 	const orders = Array.isArray(req.body?.orders) ? req.body.orders : []
 	if (!orders.length) return res.status(400).json({ error: 'Provide a non-empty "orders" array.' })
 
 	const imported = [], failed = []
-	orders.forEach((draft, index) => {
+	for (const [index, draft] of orders.entries()) {
 		try {
 			const errors = validateOrderDraft(draft)
 			if (Object.keys(errors).length) throw new Error(Object.values(errors)[0])
 
+			// Resized before the transaction: better-sqlite3's db.transaction() is synchronous
+			// and can't await sharp's promise-based resize.
+			const attachments = []
+			for (const a of draft.attachments ?? []) {
+				if (!a?.data) continue
+				const buffer = Buffer.from(a.data, 'base64')
+				const kind = a.contentType === 'application/pdf' ? 'pdf' : 'image'
+				const processed = kind === 'image'
+					? await processImage(buffer)
+					: { data: buffer, contentType: a.contentType || 'application/octet-stream', size: buffer.length, thumbnail: null, thumbnailContentType: null }
+				attachments.push({ name: a.filename || 'attachment', kind, ...processed })
+			}
+
 			const id = newId('o')
 			db.transaction(() => {
 				insertOrderRows(req.user.id, id, draft)
-				for (const a of draft.attachments ?? []) {
-					if (!a?.data) continue
-					const buffer = Buffer.from(a.data, 'base64')
+				for (const a of attachments) {
 					insertAttachment.run({
-						id: newId('a'), orderId: id, name: a.filename || 'attachment',
-						kind: a.contentType === 'application/pdf' ? 'pdf' : 'image',
-						meta: `Imported · ${fileSizeLabel(buffer.length)}`,
-						contentType: a.contentType || 'application/octet-stream', size: buffer.length, data: buffer
+						id: newId('a'), orderId: id, name: a.name, kind: a.kind,
+						meta: `Imported · ${fileSizeLabel(a.size)}`,
+						contentType: a.contentType, size: a.size, data: a.data,
+						thumbnail: a.thumbnail, thumbnailContentType: a.thumbnailContentType
 					})
 				}
 			})()
@@ -278,7 +307,7 @@ router.post('/import', (req, res) => {
 		} catch (e) {
 			failed.push({ index, error: e.message })
 		}
-	})
+	}
 
 	res.status(failed.length && !imported.length ? 400 : 200).json({ imported: imported.length, orders: imported, failed })
 })

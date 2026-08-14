@@ -9,7 +9,9 @@ import { orderTotalsSelectList } from './orderColumns.js'
 
 const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()} FROM order_totals WHERE id = ? AND user_id = ?`)
 const selectItems = db.prepare('SELECT id, title, quantity, price, retail, note FROM order_items WHERE order_id = ? ORDER BY position')
-const selectAttachments = db.prepare('SELECT id, name, kind, meta FROM attachments WHERE order_id = ?')
+const selectAttachments = db.prepare(`
+	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail FROM attachments WHERE order_id = ?
+`)
 const selectCategories = db.prepare(`
 	SELECT c.id, c.name, c.colour, c.icon FROM categories c
 	JOIN order_categories oc ON oc.category_id = c.id
@@ -22,6 +24,10 @@ const mapItem = i => ({
 	...(i.retail != null ? { retail: i.retail } : {}),
 	...(i.note ? { note: i.note } : {})
 })
+
+// hasThumbnail tells the client whether GET .../thumbnail will 404 (a PDF, or an image sharp
+// couldn't decode) — never the bytes themselves, so an order's JSON stays small.
+const mapAttachment = a => ({ id: a.id, name: a.name, kind: a.kind, meta: a.meta, hasThumbnail: Boolean(a.has_thumbnail) })
 
 /** Turns one order_totals row plus its already-fetched child rows into the shape the frontend
     expects from client.js. Pure — callers decide how the child rows were fetched (one order at
@@ -39,7 +45,7 @@ export function decorateOrder(totals, { items, attachments, categories, vendor }
 		reference: totals.reference,
 		refunded: Boolean(totals.refunded),
 		items: items.map(mapItem),
-		attachments,
+		attachments: attachments.map(mapAttachment),
 		vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,
 		categories,
 		itemCount: totals.item_count,
@@ -69,7 +75,10 @@ const selectItemsFor = db.prepare(`
 	SELECT order_id, id, title, quantity, price, retail, note FROM order_items
 	WHERE order_id IN (SELECT value FROM json_each(?)) ORDER BY order_id, position
 `)
-const selectAttachmentsFor = db.prepare(`SELECT id, order_id, name, kind, meta FROM attachments WHERE order_id IN (SELECT value FROM json_each(?))`)
+const selectAttachmentsFor = db.prepare(`
+	SELECT id, order_id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail
+	FROM attachments WHERE order_id IN (SELECT value FROM json_each(?))
+`)
 const selectCategoriesFor = db.prepare(`
 	SELECT oc.order_id, c.id, c.name, c.colour, c.icon FROM categories c
 	JOIN order_categories oc ON oc.category_id = c.id
@@ -101,7 +110,7 @@ export function decorateOrderRows(totalsRows) {
 
 	return totalsRows.map(totals => decorateOrder(totals, {
 		items: (itemsByOrder.get(totals.id) ?? []).map(({ order_id, ...i }) => i),
-		attachments: (attachmentsByOrder.get(totals.id) ?? []).map(({ order_id, ...a }) => a),
+		attachments: (attachmentsByOrder.get(totals.id) ?? []).map(mapAttachment),
 		categories: (categoriesByOrder.get(totals.id) ?? []).map(({ order_id, ...c }) => c),
 		vendor: vendorById.get(totals.vendor_id)
 	}))
