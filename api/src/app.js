@@ -1,4 +1,7 @@
 import express from 'express'
+import { existsSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { router as authRouter } from './routes/auth.js'
 import { router as vendorsRouter } from './routes/vendors.js'
 import { router as categoriesRouter } from './routes/categories.js'
@@ -60,6 +63,17 @@ app.use('/api/stats', requireAuth, statsRouter)
 app.use('/api/home', requireAuth, homeRouter)
 app.use('/api/scan', requireAuth, scanRouter)
 app.use('/api/search', requireAuth, searchRouter)
+
+/* react/'s own dev server (Vite) serves the app locally, proxying /api to this process --
+   nothing here needs to serve HTML in that mode, and CLIENT_DIST simply won't exist. A
+   deploy that builds react/dist first (see render.yaml) is the one case this matters: same
+   process, same origin, so the session cookie set by /api/auth is a first-party cookie
+   rather than a cross-site one a browser might refuse. The app is a hash router (main.jsx),
+   so every client-side route lives after '#' and never reaches the server -- express.static's
+   own default of serving index.html for '/' is the only fallback this needs, not a wildcard
+   route for arbitrary paths the way a browser-history router would. */
+const CLIENT_DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'react', 'dist')
+if (existsSync(CLIENT_DIST)) app.use(express.static(CLIENT_DIST))
 
 /* Central error handler. A route error.status (400/404/409) is trusted verbatim; anything else
    is a bug, logged and reported as a plain 500 rather than leaking a stack to the client. */

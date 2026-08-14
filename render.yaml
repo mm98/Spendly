@@ -1,0 +1,19 @@
+# A temporary preview deploy for this branch -- one Node process serving both the API and
+# the built React app (see api/src/app.js), so there's no cross-origin cookie configuration
+# to get right. SQLite lives on the service's own ephemeral disk: no Render Disk resource is
+# attached, so the database resets on every redeploy or restart, which is the right default
+# for a throwaway preview rather than something meant to hold real data.
+#
+# To use: on render.com, "New +" -> "Blueprint", point it at this repo and this branch --
+# Render reads this file and creates the service below with no further configuration needed.
+services:
+  - type: web
+    name: spendly-preview
+    runtime: node
+    plan: free
+    branch: claude/spendly-api-sqlite-nrrzu5
+    buildCommand: npm --prefix api ci && npm --prefix react ci && npm --prefix react run build
+    startCommand: npm --prefix api start
+    envVars:
+      - key: NODE_ENV
+        value: production
