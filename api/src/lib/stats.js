@@ -161,7 +161,7 @@ function splitOver(userId, from, to) {
 	const rows = selectSplit.all({ userId, from, to })
 	const total = rows.reduce((s, r) => s + r.spend, 0)
 	return rows.map((r, i) => ({
-		name: r.name, amount: r.spend, share: total ? (r.spend / total) * 100 : 0,
+		id: r.id, name: r.name, amount: r.spend, share: total ? (r.spend / total) * 100 : 0,
 		colour: r.colour ?? FALLBACK_SPLIT_COLOURS[Math.min(i, FALLBACK_SPLIT_COLOURS.length - 1)]
 	}))
 }
@@ -268,8 +268,57 @@ function paceFor(range, from, to, spent) {
 	return { running: true, daysIn, unitDays, projected: unitDays ? (spent / daysIn) * unitDays : spent }
 }
 
-/** Full statistics for one window. */
-export function getStats(userId, range, windowId) {
+const MONTH_ABBR = MONTH_NAMES.map(m => m.slice(0, 3))
+
+/** What the pager's arrows call their own step — a calendar unit, or "range" for `all`, which
+    has no unit and pages nowhere. */
+const unitOf = range => (range === 'all' ? 'range' : range)
+
+/** The short form (no year) used as a compact caption — the SpendGauge's centre label, and
+    the tick under a bar-chart column elsewhere. */
+function tickFor(range, id) {
+	if (range === 'week') return 'W' + Number(/-W(\d{2})$/.exec(id)[1])
+	if (range === 'month') return MONTH_ABBR[Number(id.slice(5, 7)) - 1]
+	if (range === 'quarter') return 'Q' + id.slice(6)
+	if (range === 'year') return id
+	return 'All'
+}
+
+/** The short form with its year — what the pager band falls back to when it's too narrow for
+    the full label ("Week 31, 2026" -> "W31 2026"). */
+function abbrFor(range, id) {
+	if (range === 'week') { const [, y, w] = /^(\d{4})-W(\d{2})$/.exec(id); return `W${Number(w)} ${y}` }
+	if (range === 'month') return `${MONTH_ABBR[Number(id.slice(5, 7)) - 1]} ${id.slice(0, 4)}`
+	if (range === 'quarter') return `Q${id.slice(6)} ${id.slice(0, 4)}`
+	if (range === 'year') return id
+	return 'All time'
+}
+
+/** The x-axis marks under the main chart — day-of-month for a window narrow enough to show
+    every day, the month's own 01/08/15/22/29 for a whole month, and the months it spans for
+    anything wider. */
+function axisFor(range, from, to) {
+	const days = Math.round((to - from) / DAY)
+	if (days <= 14) {
+		const marks = []
+		for (let d = from; d < to; d += DAY) marks.push(pad(new Date(d * 1000).getUTCDate()))
+		return marks
+	}
+	if (range === 'month') return ['01', '08', '15', '22', '29'].filter(d => Number(d) <= days)
+	const months = []
+	for (let d = from; d < to; d += DAY) {
+		const abbr = MONTH_ABBR[new Date(d * 1000).getUTCMonth()]
+		if (months.at(-1) !== abbr) months.push(abbr)
+	}
+	return months
+}
+
+/** Full statistics for one window. `summary` skips the two sub-computations only the
+    Statistics page itself reads (`recent`: up to 6 *extra* full aggregate queries, one per
+    prior window, for a bar chart nothing else renders; `returnsNote`: one more query for a
+    sentence nothing else prints) — callers building a lighter "period" summary (Home, Orders
+    overview) pass this rather than paying for a chart they throw away. */
+export function getStats(userId, range, windowId, { summary = false } = {}) {
 	const width = ['week', 'month', 'quarter', 'year', 'all'].includes(range) ? range : 'month'
 	const id = windowId && windowBounds(userId, width, windowId) ? windowId : currentWindowId(width)
 	const bounds = windowBounds(userId, width, id)
@@ -294,6 +343,8 @@ export function getStats(userId, range, windowId) {
 		window: {
 			id, range: width, from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
 			label: bounds.label, shortLabel: bounds.shortLabel, spanName,
+			unit: unitOf(width), tick: tickFor(width, id), abbr: abbrFor(width, id),
+			axis: axisFor(width, bounds.from, bounds.to),
 			spent: now.spent, deltaLabel, deltaUp: deltaPct != null && deltaPct > 0,
 			// Raw totals, not just the formatted kpis/deltaLabel strings above — a caller
 			// composing its own presentation (Home's dashboard cards) needs the numbers.
@@ -303,8 +354,8 @@ export function getStats(userId, range, windowId) {
 			pace: paceFor(width, bounds.from, bounds.to, now.spent),
 			rhythm: rhythmOver(userId, bounds.from, bounds.to),
 			split: splitOver(userId, bounds.from, bounds.to),
-			recent: recentColumns(userId, width, id),
-			returnsNote: returnsIn(userId, bounds.from, bounds.to, spanName),
+			recent: summary ? null : recentColumns(userId, width, id),
+			returnsNote: summary ? null : returnsIn(userId, bounds.from, bounds.to, spanName),
 			kpis: kpisFor(now, was, previousBounds?.shortLabel),
 			series: {
 				current: seriesOver(userId, bounds.from, bounds.to),

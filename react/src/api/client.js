@@ -109,11 +109,11 @@ export async function deleteCategory(id, signal) {
 }
 
 export async function getCategoriesOverview(signal) {
-	const [{ top }, question] = await Promise.all([
+	const [{ top }, home] = await Promise.all([
 		request('/api/categories/overview', { signal }),
-		getAnswer(signal)
+		request('/api/home', { signal })
 	])
-	return { categories: top, question: question ?? { short: 'Ask Spendly about your spending.' } }
+	return { categories: top, question: home.questionOfTheDay }
 }
 
 /* ---- orders ----
@@ -211,15 +211,13 @@ const periodFromWindow = w => ({
 export async function getOrdersOverview(signal) {
 	const [{ latest }, { window }, categories, home] = await Promise.all([
 		request('/api/orders/overview' + qs({ count: 4 }), { signal }),
-		getStats('month', undefined, signal),
+		getStatsSummary('month', undefined, signal),
 		getCategories(signal),
 		request('/api/home', { signal })
 	])
-	const q = home.questionOfTheDay
 	return {
 		latest, period: periodFromWindow(window), categories: categories.slice(0, 4),
-		promos: home.promos,
-		question: q ? { long: q.question, short: q.short } : { long: 'Ask Spendly about your spending.', short: 'Ask Spendly' }
+		promos: home.promos, question: home.questionOfTheDay
 	}
 }
 
@@ -251,18 +249,29 @@ export async function getStats(range, windowId, signal) {
 	return request('/api/stats' + qs({ range, windowId }), { signal })
 }
 
+/** The lighter form getOrdersOverview/getHomeContent build their "period" summary from —
+    everything periodFromWindow reads, minus the two sub-computations only the Statistics page
+    itself needs (`recent`: up to 6 *extra* aggregate queries for a bar chart; `returnsNote`: one
+    more query for a sentence) that were making Home and Orders overview pay for a chart they
+    throw away. Not exported: nothing calls this through useApi directly. */
+const getStatsSummary = (range, windowId, signal) =>
+	request('/api/stats' + qs({ range, windowId, summary: 1 }), { signal })
+
 export async function getHomeHero(range, signal) {
 	return request('/api/home/hero' + qs({ range }), { signal })
 }
 
 export async function getHomeContent(signal) {
-	const [content, { window }, vendors, categories, settings, overview] = await Promise.all([
+	// Fetched directly rather than through getOrdersOverview, which independently re-fetches
+	// stats/categories/home for its own callers — going through it here paid for that work
+	// twice on every Home load.
+	const [content, { window }, vendors, categories, settings, { latest }] = await Promise.all([
 		request('/api/home', { signal }),
-		getStats('month', undefined, signal),
+		getStatsSummary('month', undefined, signal),
 		getVendors(signal),
 		getCategories(signal),
 		getSettings(signal),
-		getOrdersOverview(signal)
+		request('/api/orders/overview' + qs({ count: 3 }), { signal })
 	])
 	return {
 		period: periodFromWindow(window),
@@ -274,13 +283,8 @@ export async function getHomeContent(signal) {
 		favouriteCategories: [],
 		onboarding: content.onboarding,
 		showScanCard: settings.showScanCard,
-		latest: overview.latest
+		latest
 	}
-}
-
-export async function getAnswer(signal) {
-	const content = await request('/api/home', { signal })
-	return content.questionOfTheDay
 }
 
 /* ---- scan ---- */

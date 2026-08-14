@@ -51,7 +51,7 @@ export default function Stats() {
 
 	return (
 		<Page variant="page-grid">
-			<Async state={state} label="Loading your statistics">{({ categories, window: view, newer, older }) => {
+			<Async state={state} label="Loading your statistics">{({ window: view, newer, older }) => {
 				/* One scale for both lines, and the running total the figure above the chart
 				   states is the line itself -- a chart drawn from other numbers than the ones
 				   printed beside it cannot fail visibly. README: Charts. */
@@ -219,18 +219,15 @@ export default function Stats() {
 										value={krRound(view.spent)} label={view.tick}
 										ariaLabel={`Category split of ${krRound(view.spent)} in ${view.label}`} />
 									<div className="chart-legend" style={{ flex: 1, minWidth: 170 }}>
-										{view.split.map(entry => {
+										{view.split.map(entry => (
 											/* The row names a category and states the window's amount for it, so
 											   the link carries both: an unfiltered list, or the category across
 											   all time, is a link that does not go where the row says. */
-											const category = categories.find(c => c.name === entry.name)
-											return (
-												<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
-													amount={krRound(entry.amount)}
-													to={'/orders/all?' + (category ? `category=${category.id}&` : '')
-														+ `from=${view.from}&to=${view.to}`} />
-											)
-										})}
+											<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
+												amount={krRound(entry.amount)}
+												to={'/orders/all?' + (entry.id ? `category=${entry.id}&` : '')
+													+ `from=${view.from}&to=${view.to}`} />
+										))}
 									</div>
 								</CardBody>
 							</Card>

@@ -8,7 +8,7 @@ import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { FieldShell, Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
-import { getAnswer, getCategoriesOverview } from '../api/client.js'
+import { getCategoriesOverview } from '../api/client.js'
 import { krRound, percent } from '../api/format.js'
 
 /* Categories.
@@ -33,7 +33,6 @@ const SORTS = { Spend: (a, b) => b.spend - a.spend, Name: (a, b) => a.name.local
 
 export default function Categories() {
 	const state = useApi(getCategoriesOverview)
-	const answer = useApi(getAnswer)
 	const [query, setQuery] = useState('')
 	const [sort, setSort] = useState('Spend')
 	const [answering, setAnswering] = useState(false)
@@ -53,13 +52,14 @@ export default function Categories() {
 
 			<Async state={state} label="Loading your categories">{data => (
 				<CategoriesBody data={data} query={query} sort={sort} manage={view === 'manage'}
-					answer={answer.data} answering={answering} setAnswering={setAnswering} />
+					answering={answering} setAnswering={setAnswering} />
 			)}</Async>
 		</Page>
 	)
 }
 
-function CategoriesBody({ data, query, sort, manage, answer, answering, setAnswering }) {
+function CategoriesBody({ data, query, sort, manage, answering, setAnswering }) {
+	const answer = data.question
 	const listed = useMemo(() => {
 		const needle = query.trim().toLowerCase()
 		return data.categories
@@ -111,12 +111,12 @@ function CategoriesBody({ data, query, sort, manage, answer, answering, setAnswe
 
 			{manage ? null : (
 			<div className="page-grid">
-				<QuestionCard label="Question of the day" title={answer?.short ?? data.question.short}>
+				<QuestionCard label="Question of the day" title={answer?.short ?? 'Ask Spendly about your spending.'}>
 					{answering && answer ? (
 						<>
 							<Note tone="positive" title={answer.answer}>{answer.detail}</Note>
 							<Button variant="ghost" iconAfter="chevronRight"
-								to={`/orders/all?category=${answer.categoryId}&from=2026-06-01&to=2026-06-30`}>
+								to={`/orders/all?category=${answer.categoryId}&from=${answer.from}&to=${answer.to}`}>
 								SEE THOSE ORDERS</Button>
 						</>
 					) : (
@@ -126,11 +126,11 @@ function CategoriesBody({ data, query, sort, manage, answer, answering, setAnswe
 				</QuestionCard>
 
 				<Card aria-label="Breakdown">
-					<CardHeader title={`Breakdown · ${data.question.periodLabel ?? 'July'}`} />
+					<CardHeader title="Breakdown · all time" />
 					<CardDivider />
 					<CardBody className="donut-box">
 						<Donut segments={data.categories.map(c => ({ share: c.share, colour: c.colour }))}
-							value={krRound(spent)} label="Spent this month"
+							value={krRound(spent)} label="Spent, all time"
 							ariaLabel={`Category split of ${krRound(spent)}`} />
 					</CardBody>
 				</Card>

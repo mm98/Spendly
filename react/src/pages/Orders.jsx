@@ -8,7 +8,7 @@ import { Button, ButtonLink } from '../components/Button.jsx'
 import { TagChip } from '../components/Chip.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
-import { getAnswer, getOrdersOverview } from '../api/client.js'
+import { getOrdersOverview } from '../api/client.js'
 import { dayMonth, kr, krRound, percent } from '../api/format.js'
 import { useState } from 'react'
 import { Note } from '../components/Card.jsx'
@@ -29,7 +29,6 @@ const budgetUsed = categories => {
 
 export default function Orders() {
 	const state = useApi(getOrdersOverview)
-	const answer = useApi(getAnswer)
 	const [breakdown, setBreakdown] = useState('Expenses')
 	/* HOW IT WORKS and ASK SPENDLY both open something. A button that explains and a button
 	   that answers are the two shapes a decorative control most often takes, because neither
@@ -150,18 +149,18 @@ export default function Orders() {
 							<CardDivider />
 							<CardBody>
 								<div className="card-headline card-headline-question">
-									{answer.data?.question ?? data.question.long}</div>
-								{answering && answer.data ? (
+									{data.question?.question ?? 'Ask Spendly about your spending.'}</div>
+								{answering && data.question ? (
 									<>
-										<Note tone="positive" title={answer.data.answer}>{answer.data.detail}</Note>
+										<Note tone="positive" title={data.question.answer}>{data.question.detail}</Note>
 										<Button variant="block" iconAfter="chevronRight"
-											to={`/orders/all?category=${answer.data.categoryId}&from=${answer.data.from}&to=${answer.data.to}`}>
+											to={`/orders/all?category=${data.question.categoryId}&from=${data.question.from}&to=${data.question.to}`}>
 											SEE THOSE ORDERS</Button>
 									</>
 								) : (
 									<Button variant="block" icon="sparkles" style={{ marginTop: 0 }}
 										aria-expanded={answering} onClick={() => setAnswering(true)}
-										disabled={!answer.data}>ASK SPENDLY</Button>
+										disabled={!data.question}>ASK SPENDLY</Button>
 								)}
 							</CardBody>
 						</Card>
