@@ -29,12 +29,16 @@ export function Button({ variant = '', to, icon, iconAfter, children, className,
 		: <button type="button" className={classes} {...rest}>{content}</button>
 }
 
-/** A square control carrying nothing but a glyph, so the label has to be given. */
-export function IconButton({ variant = 'arrow', icon, label, to, className, ...rest }) {
+/** A square control carrying nothing but a glyph, so the label has to be given. `href` is the
+    third case the file comment above doesn't name: a real URL outside this app's own routes
+    (an API file download), so it takes a plain `<a>` rather than the router's `Link` -- same
+    reasoning as `to`, one rung further out, and it's what lets a caller pass `download` through
+    `...rest` and get a real save-this-file button instead of a navigation. */
+export function IconButton({ variant = 'arrow', icon, label, to, href, className, ...rest }) {
 	const classes = join('icon-button', variant && 'icon-button-' + variant, className)
-	return to
-		? <Link className={classes} to={to} data-go={to} aria-label={label} {...rest}><Icon name={icon} /></Link>
-		: <button type="button" className={classes} aria-label={label} {...rest}><Icon name={icon} /></button>
+	if (to) return <Link className={classes} to={to} data-go={to} aria-label={label} {...rest}><Icon name={icon} /></Link>
+	if (href) return <a className={classes} href={href} aria-label={label} {...rest}><Icon name={icon} /></a>
+	return <button type="button" className={classes} aria-label={label} {...rest}><Icon name={icon} /></button>
 }
 
 /** The underlined text action -- SEE ALL, SCAN A RECEIPT, CLEAR ALL. */

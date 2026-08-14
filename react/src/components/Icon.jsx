@@ -49,7 +49,8 @@ export const ICONS = {
 	upload: "M12 5l0 14 M18 11l-6 -6 M6 11l6 -6",
 	camera: "M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2 M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0",
 	eye: "M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6",
-	trendDown: "M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0"
+	trendDown: "M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0",
+	download: "M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2 M7 11l5 5l5 -5 M12 4l0 12"
 }
 
 /** The 24x24 line icon used everywhere. `title` makes it a labelled image; without one it

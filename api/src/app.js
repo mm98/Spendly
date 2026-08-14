@@ -22,6 +22,27 @@ const smallJson = express.json()
 const importJson = express.json({ limit: '50mb' })
 app.use((req, res, next) => (req.path === '/api/orders/import' ? importJson : smallJson)(req, res, next))
 
+// Debug request log, off unless asked for (node src/server.js --debug, or DEBUG=1) -- one line
+// as a request arrives (with its JSON body, if it has one -- after the parser above so req.body
+// is already the parsed object, not the raw stream) and one line when the response finishes, so
+// a request and its outcome read as a pair in the terminal rather than status codes arriving in
+// whatever order handlers happen to finish in. Password is the one field worth hiding -- both
+// auth routes carry it in plain text, and a debug log is still a log a terminal keeps scrollback
+// of. Registered only when on, rather than checked every request, so a normal run pays nothing.
+if (process.argv.includes('--debug') || process.env.DEBUG) {
+	const REDACT_KEYS = ['password']
+	const redacted = body => JSON.stringify(body, (key, value) => REDACT_KEYS.includes(key) ? '***' : value)
+	app.use((req, res, next) => {
+		const start = Date.now()
+		const body = req.is('application/json') && req.body && Object.keys(req.body).length ? ' ' + redacted(req.body) : ''
+		console.log(`--> ${req.method} ${req.originalUrl}${body}`)
+		res.on('finish', () => {
+			console.log(`<-- ${req.method} ${req.originalUrl} ${res.statusCode} (${Date.now() - start}ms)`)
+		})
+		next()
+	})
+}
+
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 
 app.use('/api/auth', authRouter)

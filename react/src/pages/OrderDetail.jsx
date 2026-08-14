@@ -249,6 +249,14 @@ export default function OrderDetail() {
 													label={`${openFile === file.id ? 'Close' : 'Open'} ${file.name}`}
 													aria-expanded={openFile === file.id}
 													onClick={() => setOpenFile(openFile === file.id ? null : file.id)} />
+												{/* The row's own action, not one more click past an expand -- the
+												    preview below is still a raster (page one, for a PDF), so the
+												    real file needs its own control rather than living inside the
+												    state that shows the raster. `download` is what turns the file
+												    endpoint into a save rather than a navigation. README: Honest
+												    Affordances. */}
+												<IconButton icon="download" label={`Download ${file.name}`}
+													href={attachmentFileUrl(order.id, file.id)} download={file.name} />
 												{fileDel.iconButton(file)}
 											</span>
 										</ItemRow>
@@ -257,15 +265,6 @@ export default function OrderDetail() {
 												<DocumentPreview kind={file.kind}
 													src={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined} />
 												<span className="field-help">{file.name} · {file.meta}</span>
-												{/* The preview above is a raster -- a rendered first page for a PDF,
-												    stretched no larger than the box lets it. Reading the document
-												    means the real file, not that render: a plain link, not the
-												    Link-based Button, since /api/... is a real file the browser
-												    opens with its own viewer, not a route this app has. README:
-												    Honest Affordances. */}
-												<a className="button button-pill" style={{ marginTop: 8 }}
-													href={attachmentFileUrl(order.id, file.id)}
-													target="_blank" rel="noopener noreferrer">OPEN FULL FILE</a>
 											</div>
 										) : null}
 									</div>
