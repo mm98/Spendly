@@ -6,7 +6,9 @@ import { getDecoratedOrder } from '../lib/decorate.js'
 import { processAttachment } from '../lib/images.js'
 
 export const router = Router()
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } })
+// See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
+// multipart filenames as latin1 unless told otherwise, and browsers never say otherwise.
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const fileSizeLabel = bytes => {
 	const kb = Math.max(1, Math.round((bytes ?? 0) / 1024))

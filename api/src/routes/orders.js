@@ -10,7 +10,12 @@ import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { processAttachment } from '../lib/images.js'
 
 export const router = Router()
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } })
+// defParamCharset: busboy (multer's parser) decodes every multipart header as latin1 by
+// default, so a filename typed with a non-ASCII character crosses the wire as UTF-8 bytes and
+// comes back mojibake ("rengÃ¸ringsplaner.pdf" for "rengøringsplaner.pdf") -- browsers never
+// send the RFC 5987 encoding that would tell busboy otherwise. Declaring the charset here
+// decodes it correctly at the source, for every field this instance parses.
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const notFound = id => Object.assign(new Error('No order ' + id), { status: 404 })
 
