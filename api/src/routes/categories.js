@@ -37,6 +37,13 @@ router.get('/overview', (req, res) => {
 	res.json({ top, total: selectAll.all(req.user.id).length })
 })
 
+// The client's own budget field rejects a leading "-" (AMOUNT_PATTERN has no sign in it at
+// all), so a negative budget only ever reached this table by calling the API directly -- but it
+// did reach it, and "budget: -500" survives to render as "100 kr of -500 kr budget" on the row
+// and an inverted share in the against-budget meter. Same non-negative rule, checked again here
+// rather than trusted from the form that happens to enforce it today.
+const nonNegative = n => (Number.isFinite(n) && n >= 0 ? n : 0)
+
 router.post('/', (req, res) => {
 	const name = String(req.body?.name ?? '').trim()
 	if (!name) return res.status(400).json({ error: 'A category needs a name.' })
@@ -47,7 +54,7 @@ router.post('/', (req, res) => {
 	const category = {
 		id: newId('c'), userId: req.user.id, name,
 		icon: look.icon ?? 'tag', iconPath: look.iconPath ?? null,
-		colour: look.colour ?? '#C43F2A', budget: Number(look.budget) || 0
+		colour: look.colour ?? '#C43F2A', budget: nonNegative(Number(look.budget))
 	}
 	insert.run(category)
 	res.status(201).json(withStats(category, new Map()))
@@ -72,7 +79,7 @@ router.patch('/:id', (req, res) => {
 		icon: patch.icon ?? category.icon,
 		iconPath: patch.iconPath !== undefined ? patch.iconPath : category.icon_path,
 		colour: patch.colour ?? category.colour,
-		budget: patch.budget != null ? Number(patch.budget) || 0 : category.budget
+		budget: patch.budget != null ? nonNegative(Number(patch.budget)) : category.budget
 	}
 	update.run({ ...next, id: category.id, userId: req.user.id })
 	res.json(withStats(selectOne.get(category.id, req.user.id), categoryStats(req.user.id)))
