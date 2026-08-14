@@ -358,6 +358,14 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 	const newerId = shiftWindowId(width, id, 1)
 	const newerBounds = newerId ? windowBounds(userId, width, newerId) : null
 	const hasNewer = newerBounds && newerBounds.from <= Math.floor(Date.now() / 1000)
+	// The forward arrow already stops at "no later window than today" -- the back arrow had no
+	// matching floor, so it stepped calendar units back forever with nothing behind them, past
+	// whatever order history actually exists. Stop it once the window it would land on ends
+	// before the earliest order was ever placed (a user with no orders at all has nowhere to
+	// page back to either).
+	const earliest = earliestOrderDate.get(userId).d
+	const olderBounds = olderId ? windowBounds(userId, width, olderId) : null
+	const hasOlder = olderBounds && earliest != null && olderBounds.to > earliest
 
 	return {
 		window: {
@@ -384,7 +392,7 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 			}
 		},
 		defaultId: currentWindowId(width),
-		older: olderId,
+		older: hasOlder ? olderId : null,
 		newer: hasNewer ? newerId : null
 	}
 }
