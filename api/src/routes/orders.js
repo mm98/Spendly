@@ -7,7 +7,7 @@ import { getDecoratedOrder, decorateOrderRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
-import { processImage } from '../lib/images.js'
+import { processAttachment } from '../lib/images.js'
 
 export const router = Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } })
@@ -219,11 +219,9 @@ router.post('/:id/attachments', upload.array('files'), async (req, res) => {
 		if (existingNames.has(file.originalname.toLowerCase())) { skipped.push(file.originalname); continue }
 		existingNames.add(file.originalname.toLowerCase())
 		const kind = file.mimetype === 'application/pdf' || /\.pdf$/i.test(file.originalname) ? 'pdf' : 'image'
-		// Images are resized to a display copy and a thumbnail before storing (lib/images.js);
-		// a PDF has neither concept and is kept exactly as uploaded.
-		const processed = kind === 'image'
-			? await processImage(file.buffer)
-			: { data: file.buffer, contentType: file.mimetype, size: file.size, thumbnail: null, thumbnailContentType: null }
+		// Images get a display copy and a thumbnail; a PDF's own bytes are kept exactly as
+		// uploaded, with a rendered-first-page thumbnail added where that succeeds (lib/images.js).
+		const processed = await processAttachment(kind, file.buffer, file.mimetype)
 		const attachment = {
 			id: newId('a'), orderId, name: file.originalname, kind,
 			meta: `Added today · ${fileSizeLabel(processed.size)}`,
@@ -285,9 +283,7 @@ router.post('/import', async (req, res) => {
 				if (!a?.data) continue
 				const buffer = Buffer.from(a.data, 'base64')
 				const kind = a.contentType === 'application/pdf' ? 'pdf' : 'image'
-				const processed = kind === 'image'
-					? await processImage(buffer)
-					: { data: buffer, contentType: a.contentType || 'application/octet-stream', size: buffer.length, thumbnail: null, thumbnailContentType: null }
+				const processed = await processAttachment(kind, buffer, a.contentType || 'application/octet-stream')
 				attachments.push({ name: a.filename || 'attachment', kind, ...processed })
 			}
 

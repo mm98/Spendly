@@ -3,7 +3,7 @@ import multer from 'multer'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { getDecoratedOrder } from '../lib/decorate.js'
-import { processImage } from '../lib/images.js'
+import { processAttachment } from '../lib/images.js'
 
 export const router = Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } })
@@ -24,16 +24,14 @@ const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_ty
 const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
 
 /** A dropped receipt, kept until review turns it into an order. There is no OCR behind this —
-    see getDraft below — so nothing here reads the file's contents beyond resizing it
-    (lib/images.js: a 1600px display copy and a 200px thumbnail, same as a direct order
-    attachment upload). */
+    see getDraft below — so nothing here reads the file's contents beyond resizing it (an image
+    gets a display copy and a thumbnail; a PDF's bytes are kept as-is with a rendered-first-page
+    thumbnail — lib/images.js — same processing a direct order attachment upload gets). */
 router.post('/documents', upload.single('file'), async (req, res) => {
 	const file = req.file
 	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
 	const kind = file.mimetype === 'application/pdf' || /\.pdf$/i.test(file.originalname) ? 'pdf' : 'image'
-	const processed = kind === 'image'
-		? await processImage(file.buffer)
-		: { data: file.buffer, contentType: file.mimetype, size: file.size, thumbnail: null, thumbnailContentType: null }
+	const processed = await processAttachment(kind, file.buffer, file.mimetype)
 	const id = newId('su')
 	insertUpload.run({
 		id, userId: req.user.id, name: file.originalname, size: processed.size, kind,
