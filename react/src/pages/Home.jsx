@@ -348,7 +348,13 @@ export default function Home() {
 											series={[{ points: plotted(data.period.series.cumulative,
 												Math.max(...data.period.series.cumulative), 93, 17), kind: 'curve',
 												stroke: 'gradient:spend', strokeWidth: 2.4 }]}
-											markers={[{ index: 1, series: 0, r: 4.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 2 }]} />
+											/* Where the running total actually is today, on a series that runs
+											   one point past it for every day the month has left -- a marker
+											   fixed at index 1 sat on the flat lead-in for any account whose
+											   first order landed later than the 2nd, a claim about a day the
+											   curve has nothing to say about. daysIn is the same count Statistics'
+											   own pace reads its "N days of records" from. */
+											markers={[{ index: data.period.daysIn - 1, series: 0, r: 4.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 2 }]} />
 										<ChartAxis />
 										<div className="entry-list">
 											<div className="list-heading">Latest orders</div>
@@ -386,14 +392,22 @@ export default function Home() {
 											gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
 												{ offset: 0, color: '#14AC72', opacity: 0.22 },
 												{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
-											/* Same overshoot as the Orders card's chart, same fix: the area's own
-											   fill still runs to the box's bottom edge (that is what draws it as
-											   filled rather than just a line), only the top needs the room. */
+											baselines={[{ y: 87, stroke: '#E4E7E2', dash: '3 4' }]}
+											/* The zero line sat flush with the box's own bottom edge (top === height),
+											   so the flat lead-in most accounts draw before their first order was a
+											   path running exactly along y=height -- half the curve's 2.2px stroke has
+											   nowhere to paint but past that edge, and the SVG clips it same as any
+											   overshoot would be. Orders' card fixed this the same way, with more room
+											   than a stroke needs, because its curve alone can overshoot on a sharp
+											   turn; the area here has no stroke to protect against overshoot, only the
+											   1.1px a 2.2px line paints either side of where it sits, so 3px of
+											   daylight is what the flat run needs, not 17. The area's own close still
+											   runs to height regardless of top. README: Home. */
 											series={[
 												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 90, 17), kind: 'area', fill: 'gradient:savings' },
+													Math.max(...data.period.series.savingsGrowth), 87, 17), kind: 'area', fill: 'gradient:savings' },
 												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 90, 17), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
+													Math.max(...data.period.series.savingsGrowth), 87, 17), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
 											]} />
 										<ChartAxis labels={['10', '15', '20', '25', '30']} />
 									</>
