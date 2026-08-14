@@ -176,7 +176,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						{confirming ? (
 							<>
 								<p className="field-help" style={{ color: 'var(--text-negative)', fontWeight: 600 }}>
-									This removes everything you have added or changed and puts the demo data back.
+									This removes every order, vendor and category you have added — permanently,
+									and there is no demo data to fall back to. The ledger goes back to empty.
 								</p>
 								<FormActions>
 									<Button variant="caps compact" onClick={clear}>YES, CLEAR IT</Button>

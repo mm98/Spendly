@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { Chart, ChartAxis, RANGE_POINTS, RangeTabs, bucketed, plotted } from '../components/Chart.jsx'
 import { Donut, DonutBox, Meter, SplitBar, WeekdayBars } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow, LegendRow } from '../components/Rows.jsx'
@@ -201,15 +201,23 @@ function dashboardCard(key, data) {
 					<CardHeader title="Top vendors" to="/vendors" label="Top vendors, open Vendors" />
 					<CardDivider />
 					<CardBody>
-						<div className="figure-card tabular-figures">{krRound(vendors[0].spend)}</div>
-						<span className="card-caption">{vendors[0].name} · all time</span>
-						<div className="entry-list">
-							{vendors.map(v => (
-								<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
-									amount={krRound(v.spend)} sub={`saved ${krRound(v.saved)}`}
-									to={`/orders/all?vendor=${v.id}`} />
-							))}
-						</div>
+						{vendors.length ? (
+							<>
+								<div className="figure-card tabular-figures">{krRound(vendors[0].spend)}</div>
+								<span className="card-caption">{vendors[0].name} · all time</span>
+								<div className="entry-list">
+									{vendors.map(v => (
+										<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
+											amount={krRound(v.spend)} sub={`saved ${krRound(v.saved)}`}
+											to={`/orders/all?vendor=${v.id}`} />
+									))}
+								</div>
+							</>
+						) : (
+							<EmptyState>
+								<p>No vendors yet. Add an order and its vendor lands here.</p>
+							</EmptyState>
+						)}
 					</CardBody>
 				</>
 			)

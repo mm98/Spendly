@@ -6,8 +6,11 @@ import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { register } from '../api/client.js'
 
-/** Sign-up. Seeds the same demo dataset the app has always shipped with (api/src/seed.js), so a
-    fresh account opens on a populated app rather than an empty one. */
+/** Sign-up. A new account starts genuinely empty -- no vendor, no category, no order until
+    the person who owns it adds one. It used to seed a demo dataset so a fresh account opened
+    on a populated app; that read as someone else's real orders staring back at a new user,
+    which is the one impression a personal-finance app can least afford to give. See
+    api/src/seed.js. */
 export default function Register() {
 	const navigate = useNavigate()
 	const [email, setEmail] = useState('')

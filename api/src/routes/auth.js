@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { hashPassword, verifyPassword, createSession, destroySession, requireAuth } from '../lib/auth.js'
-import { seedDemoData } from '../seed.js'
+import { seedAccountDefaults } from '../seed.js'
 
 export const router = Router()
 
@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
 	const passwordHash = await hashPassword(password)
 	db.transaction(() => {
 		insertUser.run(id, email, passwordHash)
-		seedDemoData(db, id)
+		seedAccountDefaults(db, id)
 	})()
 
 	createSession(res, id)
