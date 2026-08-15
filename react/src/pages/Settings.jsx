@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
-import { Button } from '../components/Button.jsx'
+import { Button, IconButton } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import {
 	Field, FieldPair, FilterSection, Form, FormActions, Segmented, Switch
@@ -32,6 +32,51 @@ import {
    the answer are dropped in the same breath. */
 
 const PAGE_SIZES = ['5', '10', '25', '50']
+
+/* The import card's reference block. Every JSON fragment is JSON.stringify's own output over
+   a real example value -- a hand-formatted block with annotation columns drifted out of
+   alignment immediately -- and the colour is a small tokenizer over that output: keys strong,
+   strings green, numbers blue, punctuation muted. The rules the annotations used to carry sit
+   in the list under the block instead. */
+const IMPORT_EXAMPLE = {
+	orders: [{
+		vendor: 'Bilka', date: '2026-07-18', kind: 'Expense', status: 'Delivered',
+		categories: ['Groceries'], shipping: 0, reference: 'A-10419', note: '',
+		items: [{
+			title: 'Rugbrød', quantity: 1, price: 24.95, retail: 32.00, note: '',
+			attachments: [{ filename: 'brod.jpg', contentType: 'image/jpeg', data: '<base64>' }]
+		}],
+		attachments: [{ filename: 'receipt.pdf', contentType: 'application/pdf', data: '<base64>' }]
+	}]
+}
+
+const tokenizeJson = (text, prefix) => {
+	const pattern = /("(?:[^"\\]|\\.)*")(\s*:)?|-?\d+(?:\.\d+)?|[{}[\],]/g
+	const out = []
+	let last = 0, n = 0, m
+	while ((m = pattern.exec(text))) {
+		if (m.index > last) out.push(text.slice(last, m.index))
+		const key = `${prefix}-${n++}`
+		if (m[1] != null) out.push(<span key={key} className={m[2] ? 'tok-key' : 'tok-str'}>{m[1]}</span>, m[2] ?? '')
+		else if (/^[{}[\],]$/.test(m[0])) out.push(<span key={key} className="tok-pun">{m[0]}</span>)
+		else out.push(<span key={key} className="tok-num">{m[0]}</span>)
+		last = m.index + m[0].length
+	}
+	out.push(text.slice(last))
+	return out
+}
+
+const IMPORT_RECIPE = [
+	<span key="login" className="tok-req">POST /api/auth/login</span>, '\n',
+	...tokenizeJson(JSON.stringify({ email: '…', password: '…' }), 'login'), '\n',
+	<span key="login-note" className="tok-note">{'→ sets the spendly_session cookie;\n  the response body returns the same token'}</span>, '\n\n',
+	<span key="import" className="tok-req">POST /api/orders/import</span>, '\n',
+	<span key="import-note" className="tok-note">Cookie, or Authorization: Bearer &lt;token&gt;</span>, '\n',
+	...tokenizeJson(JSON.stringify(IMPORT_EXAMPLE, null, 2), 'body'), '\n\n',
+	<span key="ok" className="tok-note">→ 200 </span>,
+	...tokenizeJson(JSON.stringify({ imported: 1, orders: ['…'], failed: [{ index: 3, error: '…' }] }), 'resp'), '\n',
+	<span key="bad" className="tok-note">{'  '}400 when the array is empty or every order failed</span>
+]
 
 export default function Settings() {
 	const state = useApi(getSettings)
@@ -76,6 +121,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 	   the phantom API is answering. */
 	const [local, setLocal] = useState(settings)
 	useEffect(() => setLocal(settings), [settings])
+	const [importOpen, setImportOpen] = useState(false)
 
 	const change = (patch, said) => { setLocal(l => ({ ...l, ...patch })); set(patch, said) }
 
@@ -274,63 +320,53 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					</CardBody>
 				</Card>
 
-				{/* Documentation, not a control -- the one thing on this page that is. The import
-				    endpoint is for a program (a script, an exporter), not a form, so what a
-				    program needs is written where its owner will look for it: the address, the
-				    shape, and the rules the server actually enforces. The example mirrors
-				    validateOrderDraft and the import route; change those and change this. */}
+				{/* Documentation, not a control -- the one thing on this page that is, which is why
+				    it is also the one card that opens closed: reference material for the day a
+				    script gets written, not a screenful to scroll past on every visit. The example
+				    mirrors validateOrderDraft and the import route; change those and change this.
+				    Every JSON fragment is JSON.stringify's own output, coloured by a
+				    ten-line tokenizer -- hand-aligned annotation columns drifted immediately. */}
 				<Card aria-label="Import orders">
-					<CardHeader title="Import from another system" />
-					<CardDivider />
-					<CardBody>
-						<p className="card-lead card-lead-flush">
-							Bring orders in from another expense tracker — vendors, categories, line
-							items and receipt files — with a script of your own: sign in for a session
-							cookie, then post the orders as JSON.
-						</p>
-						<pre className="import-schema tabular-figures" aria-label="Import request shape">{`POST /api/auth/login
-{ "email": "…", "password": "…" }
-→ keep the spendly_session cookie it sets
-
-POST /api/orders/import       with that cookie
-{ "orders": [{
-    "vendor": "Bilka",            required, ≤ 80 chars
-    "date": "2026-07-18",         required, YYYY-MM-DD, not future
-    "kind": "Expense",            required: Expense · Gift ·
-                                  Sold · Work · Other
-    "status": "Delivered",        optional: Ordered · Delivered ·
-                                  Returned (default Delivered)
-    "categories": ["Groceries"],  optional, names
-    "shipping": 0,                optional, ≥ 0
-    "reference": "A-10419",       optional
-    "note": "",                   optional
-    "items": [{                   required, at least one
-      "title": "Rugbrød",         required, ≤ 120 chars
-      "quantity": 1,              whole number, 1–9999
-      "price": 24.95,             required, ≥ 0
-      "retail": 32.00,            optional, ≥ 0
-      "note": "",                 optional
-      "attachments": [{           optional, the item's photo
-        "filename": "brod.jpg",
-        "contentType": "image/jpeg",
-        "data": "<base64>" }]
-    }],
-    "attachments": [{             optional, the receipt itself
-      "filename": "receipt.pdf",
-      "contentType": "application/pdf",
-      "data": "<base64>" }]
-}] }
-
-→ 200 { "imported": 1, "orders": [...],
-        "failed": [{ "index": 3, "error": "…" }] }
-  400 when the array is empty or every order failed`}</pre>
-						<span className="field-help">
-							Vendors and categories are matched by name, case-insensitively, and created
-							when new. Each order imports in its own transaction, so one bad row fails
-							alone — the response names each failure by its index. Batch large exports:
-							the request body is capped at 50&nbsp;MB, and base64 grows files by a third.
-						</span>
-					</CardBody>
+					<CardHeader title="Import from another system">
+						<IconButton icon="chevronDown" className="import-toggle"
+							label={importOpen ? 'Hide the import reference' : 'Show the import reference'}
+							aria-expanded={importOpen} aria-controls="import-reference"
+							onClick={() => setImportOpen(open => !open)} />
+					</CardHeader>
+					{importOpen ? (
+						<>
+							<CardDivider />
+							<CardBody id="import-reference">
+								<p className="card-lead card-lead-flush">
+									Bring orders in from another expense tracker — vendors, categories, line
+									items and receipt files — with a script of your own: sign in once, then
+									post the orders as JSON with either credential below.
+								</p>
+								<pre className="import-schema" aria-label="Import request shape">{IMPORT_RECIPE}</pre>
+								<ul className="import-rules">
+									<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
+										least one item with <code>title</code>, <code>quantity</code> and{' '}
+										<code>price</code>. Everything else is optional.</li>
+									<li><code>vendor</code> ≤ 80 characters · <code>title</code> ≤ 120 ·{' '}
+										<code>quantity</code> a whole number 1–9999 · every amount ≥ 0.</li>
+									<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
+									<li><code>kind</code>: Expense, Gift, Sold, Work or Other ·{' '}
+										<code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
+									<li>Attachments carry base64 bytes: on the order for the receipt, on an item
+										for its photo.</li>
+								</ul>
+								<span className="field-help">
+									Either credential works on every endpoint: the <code>spendly_session</code>{' '}
+									cookie the sign-in sets, or the same token from the sign-in response as an{' '}
+									<code>Authorization: Bearer</code> header. Vendors and categories are matched
+									by name, case-insensitively, and created when new. Each order imports in its
+									own transaction, so one bad row fails alone — the response names each failure
+									by its index. Batch large exports: the request body is capped at
+									50&nbsp;MB, and base64 grows files by a third.
+								</span>
+							</CardBody>
+						</>
+					) : null}
 				</Card>
 			</div>
 		</div>

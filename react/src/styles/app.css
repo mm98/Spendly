@@ -1457,8 +1457,17 @@ label.field-shell { cursor:pointer; }
 
 /* The import card's request shape on Settings: reference material for a program's owner, so
    it reads like source -- monospace, inset, scrolling inside its own box rather than ever
-   widening the card (README: Responsive Layout). */
-.import-schema { margin:0 0 10px; padding:12px 14px; background:#F2F4F1; border-radius:var(--radius-page); font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; line-height:1.6; color:var(--text-body); overflow-x:auto; }
+   widening the card (README: Responsive Layout). Token colours are the app's own. */
+.import-schema { margin:0 0 12px; padding:12px 14px; background:#F2F4F1; border-radius:var(--radius-page); font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; line-height:1.6; color:var(--text-body); overflow-x:auto; }
+.tok-key { color:var(--text); font-weight:600; }
+.tok-str { color:var(--text-positive); }
+.tok-num { color:var(--blue); }
+.tok-pun { color:var(--text-muted); }
+.tok-req { color:var(--text); font-weight:700; }
+.tok-note { color:var(--text-muted); }
+.import-rules { margin:0 0 12px; padding-left:16px; display:grid; gap:5px; font-size:12px; color:var(--text-muted); }
+.import-rules code, .card-body .field-help code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; color:var(--text-body); background:#F2F4F1; padding:1px 4px; border-radius:4px; }
+.import-toggle[aria-expanded="true"] svg.icon { transform:rotate(180deg); }
 
 /* Vendor overview's per-card actions. */
 .entity-actions { margin-top:10px; }

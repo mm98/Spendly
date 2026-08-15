@@ -31,10 +31,23 @@ export function createSession(res, userId) {
 	const expiresAt = nowEpoch() + SESSION_TTL_SECONDS
 	db.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)').run(id, userId, expiresAt)
 	setCookie(res, SESSION_COOKIE, id, { maxAgeSeconds: SESSION_TTL_SECONDS })
+	// Returned so login and register can hand the same token back in the body: a script uses
+	// it as `Authorization: Bearer <token>` instead of parsing Set-Cookie. One token, two
+	// carriers, one session row either way.
+	return id
+}
+
+/** The one place a session token is read from a request: an explicit Authorization header
+    wins, the browser's cookie is the default. Both carry the same server-side session id, so
+    everything below them -- lookup, expiry, logout -- is identical for either. */
+function sessionToken(req) {
+	const bearer = req.headers.authorization
+	if (bearer?.startsWith('Bearer ')) return bearer.slice(7).trim()
+	return readCookie(req, SESSION_COOKIE)
 }
 
 export function destroySession(req, res) {
-	const token = readCookie(req, SESSION_COOKIE)
+	const token = sessionToken(req)
 	if (token) db.prepare('DELETE FROM sessions WHERE id = ?').run(token)
 	clearCookie(res, SESSION_COOKIE)
 }
@@ -45,10 +58,11 @@ const selectSessionUser = db.prepare(`
 	WHERE s.id = ? AND s.expires_at > ?
 `)
 
-/** Loads req.user from the session cookie, or responds 401. Every data route sits behind this
-    — a route never trusts a userId from the request body or params, only from here. */
+/** Loads req.user from the session token — Authorization: Bearer or the session cookie — or
+    responds 401. Every data route sits behind this: a route never trusts a userId from the
+    request body or params, only from here. */
 export function requireAuth(req, res, next) {
-	const token = readCookie(req, SESSION_COOKIE)
+	const token = sessionToken(req)
 	const user = token ? selectSessionUser.get(token, nowEpoch()) : null
 	if (!user) return res.status(401).json({ error: 'Not signed in.' })
 	req.user = user

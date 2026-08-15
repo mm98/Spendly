@@ -25,8 +25,8 @@ router.post('/register', async (req, res) => {
 		seedAccountDefaults(db, id)
 	})()
 
-	createSession(res, id)
-	res.status(201).json({ id, email })
+	const token = createSession(res, id)
+	res.status(201).json({ id, email, token })
 })
 
 router.post('/login', async (req, res) => {
@@ -36,8 +36,8 @@ router.post('/login', async (req, res) => {
 	if (!user || !(await verifyPassword(password, user.password_hash)))
 		return res.status(401).json({ error: 'Wrong email or password.' })
 
-	createSession(res, user.id)
-	res.json({ id: user.id, email: user.email })
+	const token = createSession(res, user.id)
+	res.json({ id: user.id, email: user.email, token })
 })
 
 router.post('/logout', (req, res) => {
