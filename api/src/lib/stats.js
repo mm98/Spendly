@@ -467,12 +467,17 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 	}
 }
 
-/** Home's hero: always the newest window of the chosen width (no pager). Day-level (not
+/** Home's hero: the current month, no pager and no width. Day-level (not
     cumulative) order counts and saved amounts, one point per day of the window, for the
     Orders/Saved tab toggle — the client buckets these down to a handful of columns
     (bucketsFor in Chart.jsx) once a window is too wide to draw a point per day. */
-export function getHomeHero(userId, range) {
-	const width = ['week', 'month', 'quarter', 'year', 'all'].includes(range) ? range : 'month'
+export function getHomeHero(userId) {
+	/* The current month, and only that. It took a width and offered five, because Home's hero
+	   carried Statistics' range chips -- two screens where a window is chosen, of which one has
+	   a pager, a comparison, four tiles and a returns card to go with it and the other has a
+	   card. The chips are gone from Home, so the parameter behind them goes too rather than
+	   sitting here answering a question nothing asks. */
+	const width = 'month'
 	const id = currentWindowId(width)
 	const bounds = windowBounds(userId, width, id)
 	const now = totalsOver(userId, bounds.from, bounds.to)
@@ -480,7 +485,12 @@ export function getHomeHero(userId, range) {
 	const peak = days.reduce((most, day) => (day.spend > most.spend ? day : most), days[0] ?? { date: bounds.from, spend: 0 })
 
 	return {
-		range: width, label: bounds.label, shortLabel: bounds.shortLabel,
+		label: bounds.label, shortLabel: bounds.shortLabel,
+		/* The window's own dates, inclusive, the same pair getStats answers. The card names a
+		   stretch of time and its legend rows open the orders behind each slice, so the rows
+		   need the stretch: without it a row under "Where it went · Aug" opened every order in
+		   that category since the account was made. */
+		from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
 		// No orderCount: it was the figure on the hero's Orders tab, and both went with the
 		// change that put spend on the chart instead of a count.
 		spent: now.spent, saved: now.saved, savedPercent: now.savedPercent,

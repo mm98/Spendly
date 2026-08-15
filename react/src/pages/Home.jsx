@@ -1,8 +1,8 @@
-import { useId, useState } from 'react'
+import { useId } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Chart, ChartScale, RangeTabs, bucketed, bucketsFor, plotted } from '../components/Chart.jsx'
+import { Chart, ChartScale, plotted } from '../components/Chart.jsx'
 import { Donut, DonutBox, Meter, WeekdayBars, foldForRing, useListBudget } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow, LegendRow } from '../components/Rows.jsx'
 import { DashboardCards } from '../components/DashboardCards.jsx'
@@ -10,16 +10,17 @@ import { AiCard, AiCardMark } from '../components/AiCard.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { SavingChip } from '../components/Chip.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
-import { getDashboardCards, getHomeContent, getHomeHero, getSettings, ranges, saveSettings } from '../api/client.js'
+import { getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn, saveSettings } from '../api/client.js'
 import { dayMonth, kr, krRound, percent } from '../api/format.js'
 
 /* Home.
 
-   Two columns: the window being viewed, then the cards the user chose, then the rail. The hero
-   is the one card whose chart is driven by two controls at once -- the Orders/Saved tabs choose
-   which series, the range chips choose how wide a window it is drawn over -- so the chips fetch
-   the window and the tab picks a series out of it. Letting each write the chart directly is how
-   one of them silently stops working: whichever was clicked last wins. README: Buttons. */
+   Two columns: this month, then the cards the user chose, then the rail. The hero is the current
+   month and nothing else -- it carried five range chips, which is Statistics' control, on a
+   screen whose whole job is "where am I this month". Two places to choose a window is two places
+   to be looking at a different one, and only one of them has a pager, a comparison, tiles and a
+   returns card to go with it. The header still opens Statistics, which is where a different
+   stretch of time is chosen. README: Home, Statistics. */
 
 /* The chart's box, and how far inside it a series is drawn. `plotted` puts a zero at the first
    number and the window's peak at the second, so the 12px is an equal inset top and bottom
@@ -27,29 +28,16 @@ import { dayMonth, kr, krRound, percent } from '../api/format.js'
 const HERO_HEIGHT = 130
 const HERO_INSET = 12
 
-/* The header opens Statistics on the window the card is showing, under the name the chip
-   carries. Month is Statistics' own default and writes no parameter, which is what its pager
-   does with the same width. README: Statistics. */
-const statsHref = range => (range === 'month' ? '/stats' : `/stats?range=${range}`)
-
-/* The chart's own sentence follows the chips above it. Fixed at "daily spend through July" it
-   named a series the tabs used to change and a span the chips still change, so a screen reader
-   heard "spend" over a line of order counts, and "through July" over seven days of it -- the
-   same defect the pager had on Statistics, one level down: a label describing a state the
-   controls have moved on from. It names both lines now, because both are drawn. The window
-   says which days it covers; how coarsely they are drawn is the chart's own business, so it is
-   the part the sentence adds. */
-const heroLabel = (view, points) => (points === view.series.spend.length
-	? `Spent and saved per day, ${view.shortLabel}`
-	: `Spent and saved across ${view.shortLabel}, bucketed into ${points} points`)
+/* The chart's own sentence. It was fixed at "daily spend through July" once, naming a series the
+   tabs above it changed and a span the chips changed -- a label describing a state its controls
+   had moved on from. Both are gone and the sentence still names both lines and the month, because
+   what it describes should not depend on there being a control to keep it honest. */
+const heroLabel = view => `Spent and saved per day, ${view.shortLabel}`
 
 function Hero({ month, categories }) {
-	const [range, setRange] = useState('month')
 	const calloutId = useId()
-	/* The chips choose a window, not a slice of a fixed one, so pressing one is a read. The last
-	   good window stays on screen while the next is in flight -- see Async -- rather than the
-	   card collapsing under the pointer. */
-	const state = useApi(getHomeHero, [range])
+	// This month, always. Statistics is where another one is chosen.
+	const state = useApi(getHomeHero)
 
 	return (
 		<Async state={state} label="Loading your spending">{view => {
@@ -63,9 +51,11 @@ function Hero({ month, categories }) {
 			   draws every wide window squashed into the bottom of the box -- and scaling each
 			   line to its own peak would draw the smaller one as tall as the larger, which is
 			   the defect the Orders overview chart already carries a note about. */
-			const buckets = bucketsFor(view.range, view.axis, view.series.spend.length)
-			const spend = bucketed(view.series.spend, buckets)
-			const saved = bucketed(view.series.saved, buckets)
+			/* No bucketing. It existed for the wide windows the chips used to offer -- a year
+			   drawn as 365 points under 12 marks -- and a month is at most 31 days against a
+			   scale that fits 31 marks, so every point is its own day and the axis names it. */
+			const spend = view.series.spend
+			const saved = view.series.saved
 			const ceiling = Math.max(...spend, ...saved)
 			const line = values => plotted(values, ceiling, HERO_HEIGHT - HERO_INSET, HERO_INSET)
 
@@ -75,7 +65,10 @@ function Hero({ month, categories }) {
 					    month" under every one of the five chips, over a figure that was July's under all
 					    five too -- a heading and a total that a control above them could not move.
 					    README: Home. */}
-					<CardHeader title={`Spent · ${view.label}`} to={statsHref(view.range)}
+					{/* Statistics opens on its own default, which is this same month -- so arriving
+					    there is a continuation, and every other stretch of time is chosen once you
+					    are on the page that has a pager for it. README: Home. */}
+					<CardHeader title={`Spent · ${view.label}`} to="/stats"
 						label={`Spent, ${view.label}, open Statistics`} />
 					<CardDivider />
 					{/* No padding-top override. 2px here put the big number 10px under the hairline
@@ -88,18 +81,13 @@ function Hero({ month, categories }) {
 								saved {kr(view.saved)} vs retail ({percent(view.savedPercent)})
 							</div>
 						</div>
-						{/* Selected is the width that is drawn, not the one last clicked -- the same rule
-						    the chips on Statistics follow. For the moment a read is in flight the figures
-						    above are still the old window's, and a chip lit for the new one would be the
-						    mismatch this card was fixed for, held for 200ms. */}
-						<RangeTabs options={ranges} value={view.range} onChange={setRange} />
 						{/* The callout is a tooltip, drawn on hover or focus by the stylesheet. Both halves of
 						    that are the chart's to carry: it takes the tab stop, because a tooltip only a pointer
 						    can ask for is one the keyboard never sees, and it keeps the sentence as its own
 						    description, because the resting state is visibility:hidden and a hidden node is out
 						    of the accessibility tree unless something references it. README: Charts. */}
 						<div className="chart-wrap">
-							<Chart height={HERO_HEIGHT} label={heroLabel(view, spend.length)}
+							<Chart height={HERO_HEIGHT} label={heroLabel(view)}
 								tabIndex={0} aria-describedby={calloutId}
 								/* The one chart here that was drawn 'line' -- straight segments with a corner at
 								   every point, beside three curves on the same page. The curve was the riskier
@@ -126,7 +114,7 @@ function Hero({ month, categories }) {
 						    under a year. Every other chart in the app carries an axis and this
 						    one carried none, so its peaks sat at no date a reader could name.
 						    README: Charts. */}
-						<ChartScale marks={view.axis} span={view.series.spend.length} buckets={buckets} />
+						<ChartScale marks={view.axis} span={view.series.spend.length} />
 						{/* The categories are written per month, which is as fine as the records cut, so the
 						    legend says which month in its own heading rather than borrowing the card's --
 						    the same rule the month-wide cards on Statistics follow under a window that
@@ -141,7 +129,12 @@ function Hero({ month, categories }) {
 								return (
 									<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
 										amount={krRound(entry.amount)}
-										to={category ? `/orders/all?category=${category.id}` : '/orders/all'} />
+										/* The month the heading names, carried into the list. The row was a
+										   link to every order in that category since the account was made,
+										   under a card headed "Where it went · Aug" -- a list whose total
+										   contradicts the figure that was clicked. The fold row has no
+										   category to filter by and still has the month. */
+										to={ordersIn({ category: category?.id, from: month.from, to: month.to })} />
 								)
 							})}
 						</div>
@@ -184,7 +177,11 @@ function BreakdownCard({ period, categories, rows }) {
 				<div className="category-rows" ref={listRef}>
 					{shown.map(c =>
 						<CategoryRow key={c.id ?? 'more'} category={c}
-							to={c.id && c.id !== 'none' ? `/orders/all?category=${c.id}` : '/orders/all'} />)}
+							/* Same month, same reason: the ring in this card reads "Spent this month"
+							   in its middle. "Without category" and the fold carry the month without a
+							   category, since the list has no filter for either. */
+							to={ordersIn({ category: c.id && c.id !== 'none' ? c.id : undefined,
+								from: period.from, to: period.to })} />)}
 				</div>
 			</CardBody>
 		</>

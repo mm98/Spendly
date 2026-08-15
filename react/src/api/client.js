@@ -266,6 +266,8 @@ const monthCategoriesFrom = (categories, split) => {
 
 const periodFromWindow = w => ({
 	label: w.label, shortLabel: w.shortLabel, previousLabel: w.previousLabel,
+	// The window's own dates, for the links out of it -- see ordersIn below.
+	from: w.from, to: w.to,
 	/* The window's own marks. Every chart drawn from this object used to carry a hardcoded
 	   01/08/15/22/29 instead -- five dates that are no unit of anything, printed unchanged under
 	   a February that has 28. The window knows its own bounds; nothing else does. */
@@ -357,9 +359,27 @@ export async function getStats(range, windowId, signal) {
 const getStatsSummary = (range, windowId, signal) =>
 	request('/api/stats' + qs({ range, windowId, summary: 1 }), { signal })
 
-export async function getHomeHero(range, signal) {
-	return request('/api/home/hero' + qs({ range }), { signal })
+/** This month's spend and saving, day by day, for Home's hero. No range: the hero is the
+    current month and Statistics is where another stretch of time is chosen. */
+export async function getHomeHero(signal) {
+	return request('/api/home/hero', { signal })
 }
+
+/** A link into All orders, filtered the way the card it is leaving says it is filtered.
+
+    A card that names a stretch of time is a claim about which orders it is counting, and a row
+    inside it that opens "the orders behind this slice" has to open *those* orders. Four of them
+    did not: the hero legend under "Where it went · Aug", the category rows under two rings
+    reading "Spent this month", and the row for whatever has no category. Each opened every
+    order in that category since the account was made — a list whose total contradicts the
+    figure the reader clicked, under filters that do not mention the month.
+
+    Built here rather than at each call site so the four cannot drift, and because a filter
+    dropped from one of them is invisible: the destination is a real, working, filtered list
+    either way, just of the wrong thing. `from`/`to` are omitted when the card has no window to
+    pass on — an all-time ring, a vendor's whole history — rather than being faked. */
+export const ordersIn = ({ category, vendor, from, to } = {}) =>
+	'/orders/all' + qs({ category, vendor, from, to })
 
 /** How many entries a card fills with, where it has entries to fill.
 

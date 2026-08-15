@@ -1294,3 +1294,62 @@ ten orders. 0 page errors at either width.
 
 Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
 **Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Home — every row into the orders list dropped the window it came from
+
+Under a card headed *Where it went · Aug*, the row reading **Clothing 5.152 kr.** opened
+`/orders/all?category=…` — every Clothing order the account has ever held, no dates, a list whose
+total contradicts the figure that was clicked and whose filter chips do not mention August. The
+same on the two category rings reading *Spent this month*, on Home and on Orders overview, and on
+the rows for whatever has no category.
+
+Nothing about it looks broken. The destination is a real, filtered, working list; it is a list of
+the wrong thing, and the only way to see that is to add up what it holds. So the check is the
+figure rather than the query string: each row's own amount against the total of the orders its link
+actually selects. Measured at 1440x900 and under `devices['iPhone 13']`, every link on Home and
+Orders overview that opens the orders list — **21 and 8 links, both widths, every one exact**:
+
+| card | row | dated | row figure | list total |
+|---|---|---|---|---|
+| Where it went · Aug | Everything else | yes | 7.169 | 7.169 |
+| Where it went · Aug | Household | yes | 560 | 560 |
+| Category breakdown | Health | yes | 3.171 | 3.171 |
+| Top vendors | Zalando | no | 49.673 | 49.673 |
+| Top vendors | Netto | no | 26.546 | 26.546 |
+
+The undated ones are undated on purpose and check out the same way: Top vendors is an all-time
+figure under an all-time caption, SEE RETURN HISTORY is the whole history by name. A card with no
+window to pass on passes none.
+
+The link is built in one place now rather than composed at each of the four call sites, because a
+filter dropped from one of them is invisible: it still navigates, still filters, still looks right.
+
+### The probe that failed everything
+
+The first run reported a mismatch on every row, including rows that were correct. It forwarded the
+page's own query string to the API — and the list page's parameters are not the API's (`category`
+against `categoryId`, `vendor` against `vendorId`), so the filter was silently dropped and every row
+was compared against the same whole-month total. It also compared links to a *single order* against
+a list total, which cannot agree. A probe that fails everything is as useless as one that passes
+everything, and it took longer to disbelieve than a probe that had simply said nothing.
+
+## Home — the hero offered five windows on the screen that answers one question
+
+The hero card carried the same five widths Statistics offers — Week, Month, Quarter, Year, All — so
+the app had two screens where a stretch of time is chosen and only one of them with a pager, a
+comparison against the window before, four summary tiles and a returns card to go with the choice.
+Home answers *where am I this month*; the chips are gone and the card is the current month, with the
+header opening Statistics, which is the page built for the rest.
+
+The range went out of the API with them: `GET /api/home/hero` took a width, validated it against
+five names and returned which one it had used, all to serve a control that no longer exists. It
+takes no parameters now and its response carries no `range`. The bucketing on the client went too —
+it existed to draw a year as twelve points under twelve marks, and a month is at most 31 days
+against a scale that fits 31, so every point is its own day. Measured after: one request,
+`/api/home/hero` with no query string, heading *Spent · August 2026*, **0 range chips** at 1440x900
+and under `devices['iPhone 13']`, 0 page errors.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.

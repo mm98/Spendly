@@ -5,7 +5,7 @@ import { getHomeHero } from '../lib/stats.js'
 export const router = Router()
 
 router.get('/hero', (req, res) => {
-	res.json(getHomeHero(req.user.id, req.query.range))
+	res.json(getHomeHero(req.user.id))
 })
 
 const countFavouriteVendors = db.prepare('SELECT COUNT(*) c FROM vendors WHERE user_id = ? AND favourite = 1')
