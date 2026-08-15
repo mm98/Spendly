@@ -79,7 +79,9 @@ const ScanUpload = page(() => import('./pages/Scan.jsx'), 'ScanUpload')
 const ScanReading = page(() => import('./pages/Scan.jsx'), 'ScanReading')
 const ScanReview = page(() => import('./pages/Scan.jsx'), 'ScanReview')
 const Vendors = page(() => import('./pages/Vendors.jsx'))
+const AllVendors = page(() => import('./pages/AllVendors.jsx'))
 const Categories = page(() => import('./pages/Categories.jsx'))
+const AllCategories = page(() => import('./pages/AllCategories.jsx'))
 const Stats = page(() => import('./pages/Stats.jsx'))
 
 /* The routes, and the four things the shell reads off each one.
@@ -99,9 +101,18 @@ const ORDER_TABS = at => [
 	{ label: 'All orders', to: '/orders/all', on: at === 'all' }
 ]
 
-const VIEW_TABS = second => [
-	{ label: 'Overview', view: 'overview' },
-	{ label: second, view: second.toLowerCase() }
+/* Vendors and Categories tab the way Orders does: to another URL, not to a view held in Shell
+   state. A view-state tab cannot be linked to, cannot be opened in a new tab and does not
+   survive a reload -- and both pages now have a real second page behind the tab rather than
+   the same list pointing somewhere else. */
+const VENDOR_TABS = at => [
+	{ label: 'Overview', to: '/vendors', on: at === 'overview' },
+	{ label: 'All vendors', to: '/vendors/all', on: at === 'all' }
+]
+
+const CATEGORY_TABS = at => [
+	{ label: 'Overview', to: '/categories', on: at === 'overview' },
+	{ label: 'All categories', to: '/categories/all', on: at === 'all' }
 ]
 
 export const routes = [
@@ -157,7 +168,9 @@ export const routes = [
 			   about as wide as their own labels. */
 			{ path: 'vendors', children: [
 				{ index: true, element: <Vendors />,
-					handle: { title: 'Vendors', navKey: 'vendors', tabs: VIEW_TABS('Favourites') } },
+					handle: { title: 'Vendors', navKey: 'vendors', tabs: VENDOR_TABS('overview') } },
+				{ path: 'all', element: <AllVendors />,
+					handle: { title: 'Vendors', navKey: 'vendors', tabs: VENDOR_TABS('all') } },
 				{ path: 'new', element: <VendorForm mode="create" />,
 					handle: { title: 'New vendor', navKey: 'vendors', back: { to: '/vendors', label: 'vendors' } } },
 				{ path: ':id/edit', element: <VendorForm mode="edit" />,
@@ -165,7 +178,9 @@ export const routes = [
 			] },
 			{ path: 'categories', children: [
 				{ index: true, element: <Categories />,
-					handle: { title: 'Categories', navKey: 'categories', tabs: VIEW_TABS('Manage') } },
+					handle: { title: 'Categories', navKey: 'categories', tabs: CATEGORY_TABS('overview') } },
+				{ path: 'all', element: <AllCategories />,
+					handle: { title: 'Categories', navKey: 'categories', tabs: CATEGORY_TABS('all') } },
 				{ path: 'new', element: <CategoryForm mode="create" />,
 					handle: { title: 'New category', navKey: 'categories', back: { to: '/categories', label: 'categories' } } },
 				{ path: ':id/edit', element: <CategoryForm mode="edit" />,

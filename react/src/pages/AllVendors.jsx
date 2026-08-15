@@ -1,0 +1,95 @@
+import { useState } from 'react'
+import { Page } from '../components/Shell.jsx'
+import { Async } from '../components/Async.jsx'
+import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
+import { EntityRow } from '../components/Rows.jsx'
+import { Button } from '../components/Button.jsx'
+import { Icon } from '../components/Icon.jsx'
+import { FieldShell, Segmented } from '../components/Form.jsx'
+import { useApi } from '../api/useApi.js'
+import { getVendors } from '../api/client.js'
+import { inkOn } from '../api/colour.js'
+import { dayMonth, krRound } from '../api/format.js'
+
+/* All vendors.
+
+   The list half of the same split All orders has: Overview is what the numbers say, this tab
+   is the records themselves. It used to be a grid of cards on the overview page -- one card
+   per vendor, each with its own header, inset panel and pair of buttons -- which is a lot of
+   chrome to say "Bilka, 34 orders" and does not scan at all past a dozen of them. A list of
+   rows does, which is why the orders list has always been one.
+
+   This page is for keeping the record right, so the row opens the vendor. Its orders are a
+   real thing to want and a different destination, so they are the second link at the end of
+   the row rather than a second meaning for the first -- a vendor page whose rows opened the
+   orders list would be the orders list with extra steps.
+
+   Every vendor is here, favourites included. They are pinned on Overview as well, and a record
+   being somewhere else is not a reason to leave it out of the one list that searches and
+   sorts. */
+
+const SORTS = {
+	Spend: (a, b) => b.spend - a.spend,
+	Name: (a, b) => a.name.localeCompare(b.name),
+	Orders: (a, b) => b.orders - a.orders,
+	Saved: (a, b) => b.saved - a.saved
+}
+
+export default function AllVendors() {
+	const state = useApi(getVendors)
+	const [query, setQuery] = useState('')
+	const [sort, setSort] = useState('Spend')
+
+	return (
+		<Page>
+			<div className="row-inline toolbar">
+				<FieldShell>
+					<Icon name="search" />
+					<input type="search" value={query} placeholder="Search vendor name…"
+						aria-label="Search vendors" onChange={e => setQuery(e.target.value)} />
+				</FieldShell>
+				<Segmented options={Object.keys(SORTS)} value={sort} onChange={setSort}
+					label="Sort vendors" tablist={false} />
+			</div>
+
+			<Async state={state} label="Loading your vendors">{vendors => {
+				const needle = query.trim().toLowerCase()
+				const listed = vendors
+					.filter(v => !needle || v.name.toLowerCase().includes(needle))
+					.sort(SORTS[sort])
+
+				return (
+					<Card aria-label="All vendors">
+						{/* The count says how many are on screen, and how many there are when a search
+						    is holding some back -- "12" and "3 of 12" are different facts and the
+						    second one is the one a filtered list owes the reader. */}
+						<CardHeader title={`Vendors · ${listed.length}${listed.length === vendors.length ? '' : ` of ${vendors.length}`}`}>
+							<Button variant="pill" icon="plus" to="/vendors/new">ADD</Button>
+						</CardHeader>
+						<CardDivider />
+						<CardBody>
+							{listed.map(vendor => (
+								<EntityRow key={vendor.id}
+									mark={<span className="entry-avatar"
+										style={{ background: vendor.colour, color: inkOn(vendor.colour) }}>{vendor.initials}</span>}
+									name={vendor.name}
+									meta={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}` +
+										(vendor.latest ? ` · latest ${dayMonth(vendor.latest.date)}` : ' · none yet')}
+									amount={krRound(vendor.spend)}
+									sub={vendor.saved > 0 ? `saved ${krRound(vendor.saved)}` : undefined}
+									editTo={`/vendors/${vendor.id}/edit`}
+									ordersTo={`/orders/all?vendor=${vendor.id}`}
+									ordersLabel={`Orders from ${vendor.name}`} />
+							))}
+							{listed.length === 0 ? (
+								<p className="field-help">
+									{query ? `No vendor matches "${query}".` : 'No vendors yet. One is created with your first order.'}
+								</p>
+							) : null}
+						</CardBody>
+					</Card>
+				)
+			}}</Async>
+		</Page>
+	)
+}
