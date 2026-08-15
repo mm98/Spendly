@@ -8,7 +8,6 @@ import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview, ImageLightbox } from '../components/Viz.jsx'
 import { DropZone, HiddenFileInput } from '../components/FileInput.jsx'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
-import { AiCard } from '../components/AiCard.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -260,11 +259,6 @@ export default function OrderDetail() {
 								{fileDel.dialog}
 							</CardBody>
 						</Card>
-
-						<AiCard headline="Another receipt from this trip?"
-							body="Scan it and Spendly checks it against this order for duplicates.">
-							<Button variant="invert" to="/scan">SCAN A RECEIPT</Button>
-						</AiCard>
 					</div>
 				</div>
 
