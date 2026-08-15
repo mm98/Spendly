@@ -1264,3 +1264,33 @@ the ORDER SETTINGS button gone from Orders. 0 page errors at both widths.
 
 The route lost its back arrow and its sidebar key with the move: there is no one page it came from
 to send the reader back to, and it belongs under no rail item.
+
+---
+
+## Home — a card with no neighbour was still paying for one
+
+The entry count less what a card drew above its list keeps a card level with the card beside it.
+A card with nothing beside it was paying the same toll for a neighbour it did not have — the Orders
+card on Home sits on a grid row of its own at 1440 and drew **6 rows of a setting of 10**, four
+entries given up to leave room for nothing. On a phone the grid is one column and every card was
+doing it: the whole dashboard, cut to make space for cards that were stacked above and below rather
+than beside.
+
+Whether a card has a neighbour is read from the layout, not passed in — it is a fact about the grid
+at this width, and a card told once would go on believing it at every other. Measured at 1440x900
+and under `devices['iPhone 13']`, setting on 10:
+
+| card | 1440 | beside it at 1440 | phone |
+|---|---|---|---|
+| Category breakdown | 6 (all it has) | Spending rhythm, Top vendors | 6 (all it has) |
+| Top vendors | 9 | Spending rhythm, Category breakdown | **10** |
+| Orders | **10** | — | **10** |
+| Latest orders (Orders overview) | 10 | Returns, Category breakdown | 10 |
+| Returns (Orders overview) | 4 (all August has) | Latest orders, Category breakdown | 4 |
+
+Every card closes within 1px of its own content except the two whose lists ran out — the breakdown
+at 73px, six categories against room for seven, and Returns at 323px, four returns beside a list of
+ten orders. 0 page errors at either width.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.

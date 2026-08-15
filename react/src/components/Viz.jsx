@@ -36,7 +36,8 @@ const RING_GAP = 0.6
    not close. README: Charts. */
 export const RING_LEGEND_MAX = 5
 
-/* How many rows a card's list has room for, measured by the list itself.
+/* How many rows a card's list has room for, measured by the list itself -- and only where the
+   card has a neighbour to stay level with.
 
    A card's entry count is one number for the whole app, and cards share grid rows -- so a card
    that spends 138px on a donut before its first row and then draws the same number of rows as
@@ -72,6 +73,26 @@ export function useListBudget(rows) {
 		const list = ref.current
 		const body = list?.closest('.card-body')
 		if (!list || !body) return
+		/* The deduction only exists to keep a card level with the card beside it, so a card with
+		   nothing beside it does not pay it. Standing alone, a shorter card is not a hole in a
+		   row -- it is just a card, and cutting its list to leave room for a neighbour it does
+		   not have costs entries and buys nothing. This is the phone case for every card on
+		   Home, where the grid is one column and each card is on its own.
+
+		   Read from the layout rather than from a prop, for the same reason the deduction itself
+		   is measured: whether a card has a neighbour is a fact about the grid at this width, and
+		   a card told once at build time would go on believing it at every other width. */
+		const card = body.closest('.card')
+		const box = card?.getBoundingClientRect()
+		const beside = card && [...document.querySelectorAll('.card')].some(other => {
+			if (other === card || card.contains(other) || other.contains(card)) return false
+			const r = other.getBoundingClientRect()
+			if (!r.height) return false
+			const sharesRow = r.top < box.bottom - 1 && r.bottom > box.top + 1
+			const sideBySide = r.right <= box.left + 1 || r.left >= box.right - 1
+			return sharesRow && sideBySide
+		})
+		if (!beside) return setBudget(rows)
 		/* A row, not the first child: an entry list opens with its own heading, so measuring
 		   `firstElementChild` measures a 15px label and divides the graphic above by that --
 		   the budget then comes out near zero and the card draws one row whatever the setting
