@@ -215,7 +215,8 @@ function seriesOver(userId, from, to, key = 'spend') {
 }
 
 const selectReturned = db.prepare(`
-	SELECT ot.date, ot.total, ot.refunded, v.name AS vendorName
+	SELECT ot.id, ot.date, ot.total, ot.refunded,
+		v.name AS vendorName, v.initials AS vendorInitials, v.colour AS vendorColour
 	FROM order_totals ot JOIN vendors v ON v.id = ot.vendor_id
 	WHERE ot.user_id = @userId AND ot.status = 'Returned' AND ot.date >= @from AND ot.date < @to
 	ORDER BY ot.date DESC
@@ -225,12 +226,33 @@ const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six']
 const countWord = n => COUNT_WORDS[n] ?? String(n)
 const krLabel = n => Math.round(n).toLocaleString('da-DK') + ' kr.'
 
-function returnsIn(userId, from, to, spanLabel) {
-	const returned = selectReturned.all({ userId, from, to })
-	if (!returned.length) return `No returns in ${spanLabel}.`
-	const listed = returned.map(r => `${r.vendorName} on ${fromEpoch(r.date)}${r.refunded ? ', refunded in full' : ''}: ${krLabel(r.total)}`)
-	const word = countWord(returned.length)
-	return `${word[0].toUpperCase()}${word.slice(1)} return${returned.length === 1 ? '' : 's'} in ${spanLabel}: ${listed.join('; ')}`
+/* The returns in a window, as records rather than as a sentence about records.
+
+   This used to answer one string: every return rendered into prose and joined with semicolons,
+   which reads for one return and turns into a CSV line dropped into a paragraph at four --
+   "Four returns in Aug: Proshop on 2026-08-09: 1.510 kr.; Power on 2026-08-07: 669 kr.; ...".
+   Two things were wrong with it beyond the run-on. Dates arrived as raw ISO, where every other
+   list in this app writes "9 August". And a list of vendors with amounts is the data-row shape
+   the design system already has, drawn every other place it appears -- composing it into prose
+   here meant the one card that lists orders could not be scanned, sorted by eye, or clicked
+   through to the order it names.
+
+   A window can hold a lot of them -- a year held 40, which as one sentence was a wall of text
+   and as 40 rows would be a wall of rows. The card is a summary with the full list one click
+   behind it, so it carries the newest few and says how many there are; paging inside it would
+   be a second orders list, with its own state, sitting next to the real one.
+   README: Data rows. */
+const RETURNS_SHOWN = 5
+
+function returnsIn(userId, from, to) {
+	const all = selectReturned.all({ userId, from, to })
+	return {
+		total: all.length,
+		items: all.slice(0, RETURNS_SHOWN).map(r => ({
+			id: r.id, date: fromEpoch(r.date), total: r.total, refunded: Boolean(r.refunded),
+			vendor: { name: r.vendorName, initials: r.vendorInitials, colour: r.vendorColour }
+		}))
+	}
 }
 
 const KPI_DEFS = [
@@ -394,7 +416,7 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 			rhythm: rhythmOver(userId, bounds.from, bounds.to),
 			split: splitOver(userId, bounds.from, bounds.to, now.spent),
 			recent: summary ? null : recentColumns(userId, width, id),
-			returnsNote: summary ? null : returnsIn(userId, bounds.from, bounds.to, spanName),
+			returns: summary ? null : returnsIn(userId, bounds.from, bounds.to),
 			kpis: kpisFor(now, was, previousBounds?.shortLabel),
 			series: {
 				current: seriesOver(userId, bounds.from, bounds.to),

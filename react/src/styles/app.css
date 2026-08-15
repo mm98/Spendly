@@ -1061,7 +1061,10 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    them. It is the same 14px as the gap between the cards, so the bar gets a lane of its
    own. README: Views. */
 .scroll-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(210px,1fr); gap:14px; overflow-x:auto; padding-bottom:14px; }
-.spend-gauge-row { display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
+/* A ring beside the rows that name its segments. Was .spend-gauge-row, which named the one
+   ring that happened to use it first -- Categories' Breakdown ring needs the same arrangement
+   and has no gauge on the page, so the class is named for the arrangement instead. */
+.ring-row { display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
 /* Same reasoning as .donut -- no baked-in split rendered when there's nothing to show. */
 .spend-gauge { width:170px; height:170px; border-radius:50%; position:relative; flex:none; background:var(--border-card); }
 .spend-gauge::before { content:""; position:absolute; inset:22px; background:var(--bg-card); border-radius:50%; }

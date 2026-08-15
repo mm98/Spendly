@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Page, useView } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, Note, QuestionCard } from '../components/Card.jsx'
-import { CategoryRow } from '../components/Rows.jsx'
+import { CategoryRow, LegendRow } from '../components/Rows.jsx'
 import { Donut, Meter } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -128,10 +128,21 @@ function CategoriesBody({ data, query, sort, manage, answering, setAnswering }) 
 				<Card aria-label="Breakdown">
 					<CardHeader title="Breakdown · all time" />
 					<CardDivider />
-					<CardBody className="donut-box">
+					{/* The ring had no legend at all, so six colours stood for six categories and
+					    named none of them -- the reader could see that something was 23% and had
+					    no way to find out what. The rows are the same array the ring is drawn
+					    from, which is the rule the donut's shares and its legend already had to
+					    obey, and each one links to the orders behind its slice. README: Charts. */}
+					<CardBody variant="ring-row">
 						<Donut segments={data.categories.map(c => ({ share: c.share, colour: c.colour }))}
 							value={krRound(spent)} label="Spent, all time"
 							ariaLabel={`Category split of ${krRound(spent)}`} />
+						<div className="chart-legend" style={{ flex: 1, minWidth: 170 }}>
+							{data.categories.map(c => (
+								<LegendRow key={c.id} colour={c.colour} title={c.name}
+									amount={krRound(c.spend)} to={`/orders/all?category=${c.id}`} />
+							))}
+						</div>
 					</CardBody>
 				</Card>
 

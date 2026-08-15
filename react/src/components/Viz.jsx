@@ -22,10 +22,18 @@ const conic = (segments, gap = 0) => {
 	const effectiveGap = segments.length > 1 ? gap : 0
 	const stops = segments.flatMap(s => {
 		const from = at
-		at += (s.share / total) * 100
-		const to = Math.max(from, at - effectiveGap)
+		const width = (s.share / total) * 100
+		at += width
+		/* The separator is carved out of the segment's own arc, so a gap set as a share of the
+		   whole circle costs every segment the same number of degrees no matter how little it
+		   owns. At the 2% this was, the smallest category on a real month drew 4.46° of colour
+		   with a 7.2° gap beside it -- the separator was wider than the thing it separated, and
+		   a category read as a sliver of a rounding error. Capped at a third of the arc it is
+		   cut from, so a small share stays a share. README: Charts. */
+		const own = Math.min(effectiveGap, width / 3)
+		const to = Math.max(from, at - own)
 		const parts = [`${s.colour} ${from.toFixed(2)}% ${to.toFixed(2)}%`]
-		if (effectiveGap) parts.push(`var(--bg-card) ${to.toFixed(2)}% ${at.toFixed(2)}%`)
+		if (own) parts.push(`var(--bg-card) ${to.toFixed(2)}% ${at.toFixed(2)}%`)
 		return parts
 	})
 	return `conic-gradient(${stops.join(', ')})`
@@ -49,10 +57,12 @@ export const Donut = ({ segments, value, label, ariaLabel }) => (
 export const DonutBox = ({ children, className }) =>
 	<div className={['donut-box', className].filter(Boolean).join(' ')}>{children}</div>
 
-/** Statistics' larger ring, which separates its segments with a hairline of the card colour. */
+/** Statistics' larger ring, which separates its segments with a hairline of the card colour.
+    0.6% is 2.16° -- about 3px of arc on the 170px ring, which is a hairline. It was 2%, which
+    is 7.2° and 10.7px, and put 43° of the 360 into white space. */
 export const SpendGauge = ({ segments, value, label, ariaLabel }) => (
 	<div className="spend-gauge" role="img" aria-label={ariaLabel}
-		style={segments?.length ? { background: conic(segments, 2) } : undefined}>
+		style={segments?.length ? { background: conic(segments, 0.6) } : undefined}>
 		<RingCentre value={value} label={label} />
 	</div>
 )

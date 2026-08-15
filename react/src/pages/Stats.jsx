@@ -4,12 +4,12 @@ import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
 import { Chart, ChartAxis, ChartRuler, RangeTabs, RANGE_POINTS, plotted, sampled } from '../components/Chart.jsx'
 import { Meter, MonthColumns, SpendGauge, WeekdayBars } from '../components/Viz.jsx'
-import { LegendRow } from '../components/Rows.jsx'
+import { EntryRow, LegendRow } from '../components/Rows.jsx'
 import { ButtonLink, IconButton } from '../components/Button.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { useApi } from '../api/useApi.js'
 import { getStats, ranges } from '../api/client.js'
-import { kr, krRound } from '../api/format.js'
+import { dayMonth, kr, krRound } from '../api/format.js'
 
 /* Statistics.
 
@@ -214,7 +214,7 @@ export default function Stats() {
 							<Card aria-label="Where it went">
 								<CardHeader title={`Where it went · ${view.shortLabel}`} />
 								<CardDivider />
-								<CardBody variant="spend-gauge-row">
+								<CardBody variant="ring-row">
 									{/* The ring and the rows are one list of numbers: the segments are the
 									    shares the amounts beside them make, so a ring drawn from all-time
 									    category totals over a month's legend cannot happen again. */}
@@ -255,12 +255,37 @@ export default function Stats() {
 							<CardHeader title={`Returns · ${view.shortLabel}`} />
 							<CardDivider />
 							<CardBody>
-								<EmptyState icon={null} style={{ padding: '14px 12px' }}>
-									<p>{view.returnsNote}</p>
-									{/* The note is the window's; the history behind it is all of them, which
-									    is what the label says and where the link goes. */}
-									<ButtonLink to="/orders/all?status=Returned">SEE RETURN HISTORY</ButtonLink>
-								</EmptyState>
+								{/* Returns are orders, so they are drawn the way every other list of orders
+								    on this app is drawn: one row each, vendor avatar, date and amount, and
+								    a link to the order itself. They used to be composed into a single
+								    sentence and joined with semicolons, which reads at one return and is a
+								    CSV line in a paragraph at four -- and which no reader could click.
+								    README: Data rows. */}
+								{view.returns?.items?.length ? (
+									<>
+										<div className="entry-list">
+											{view.returns.items.map(r => (
+												<EntryRow key={r.id} avatar={r.vendor} name={r.vendor.name}
+													meta={`${dayMonth(r.date)}${r.refunded ? ' · refunded in full' : ''}`}
+													amount={krRound(r.total)} to={`/orders/${r.id}`} />
+											))}
+										</div>
+										{/* Said only when some are missing: "5 of 5" on a card showing all
+										    five is a count that answers a question nobody asked. */}
+										{view.returns.total > view.returns.items.length ? (
+											<span className="field-help" style={{ display: 'block', marginTop: 10 }}>
+												The {view.returns.items.length} most recent of {view.returns.total} in {view.shortLabel}.
+											</span>
+										) : null}
+									</>
+								) : (
+									<EmptyState icon={null} style={{ padding: '14px 12px' }}>
+										<p>No returns in {view.shortLabel}.</p>
+									</EmptyState>
+								)}
+								{/* The rows are the window's; the history behind them is all of them, which
+								    is what the label says and where the link goes. */}
+								<ButtonLink to="/orders/all?status=Returned">SEE RETURN HISTORY</ButtonLink>
 							</CardBody>
 						</Card>
 					</>
