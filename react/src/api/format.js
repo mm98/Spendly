@@ -62,3 +62,11 @@ export const today = () => {
 	const now = new Date()
 	return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
 }
+
+/* The copy separator, written once (README: Language and Formats). Every meta line, card
+   title and toast joins its facts with this -- through the <Sep /> component in JSX text,
+   or this constant inside a template string -- so changing the character is one edit here
+   (and a migration for stored attachment metas, which bake it in at write time: see
+   api/src/migrations/006 and 007). The API builds its metas from its own copy of this
+   constant in api/src/lib/copy.js; the two state the same character or one of them is wrong. */
+export const sep = ' • '

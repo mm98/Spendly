@@ -9,6 +9,7 @@ import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { processAttachment } from '../lib/images.js'
+import { sep, fileSizeLabel } from '../lib/copy.js'
 
 export const router = Router()
 // defParamCharset: busboy (multer's parser) decodes every multipart header as latin1 by
@@ -259,11 +260,6 @@ router.delete('/:id', (req, res) => {
    place a file becomes a stored row either way; the routes just decide which owner column it
    gets and which existing names it's deduped against. */
 
-const fileSizeLabel = bytes => {
-	const kb = Math.max(1, Math.round((bytes ?? 0) / 1024))
-	return kb > 1024 ? (kb / 1024).toFixed(1).replace('.', ',') + ' MB' : kb + ' KB'
-}
-
 async function saveAttachments(files, owner, existingNames) {
 	const added = [], skipped = []
 	for (const file of files ?? []) {
@@ -276,7 +272,7 @@ async function saveAttachments(files, owner, existingNames) {
 		const attachment = {
 			id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
 			name: file.originalname, kind,
-			meta: `Added today | ${fileSizeLabel(processed.size)}`,
+			meta: `Added today${sep}${fileSizeLabel(processed.size)}`,
 			contentType: processed.contentType ?? file.mimetype, size: processed.size, data: processed.data,
 			thumbnail: processed.thumbnail, thumbnailContentType: processed.thumbnailContentType
 		}
@@ -388,7 +384,7 @@ async function processImportAttachments(list) {
 
 const insertImportedAttachment = (a, owner) => insertAttachment.run({
 	id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
-	name: a.name, kind: a.kind, meta: `Imported | ${fileSizeLabel(a.size)}`,
+	name: a.name, kind: a.kind, meta: `Imported${sep}${fileSizeLabel(a.size)}`,
 	contentType: a.contentType, size: a.size, data: a.data,
 	thumbnail: a.thumbnail, thumbnailContentType: a.thumbnailContentType
 })

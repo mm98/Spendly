@@ -6,7 +6,7 @@ import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategoriesOverview } from '../api/client.js'
-import { krRound, percent } from '../api/format.js'
+import { krRound, percent, sep } from '../api/format.js'
 
 /* Categories, overview.
 
@@ -64,7 +64,7 @@ export default function Categories() {
 						</div>
 
 						<Card aria-label="Breakdown">
-							<CardHeader title="Breakdown | all time" to="/categories/all"
+							<CardHeader title={`Breakdown${sep}all time`} to="/categories/all"
 								label="Breakdown, open all categories" />
 							<CardDivider />
 							{/* The ring and the rows beside it are drawn from one array, which is the rule

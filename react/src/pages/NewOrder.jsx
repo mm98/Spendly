@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
+import { Sep } from '../components/Sep.jsx'
 import { Outlet, useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
@@ -24,7 +25,7 @@ import {
 } from '../api/client.js'
 import { invalidate } from '../api/useApi.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, kr, parseAmount, percent, shortDate, today } from '../api/format.js'
+import { amount, kr, parseAmount, percent, shortDate, today, sep } from '../api/format.js'
 
 /* New order, in two steps that share one draft.
 
@@ -435,7 +436,7 @@ export function NewOrderItems() {
 		update({ items })
 		clearForm()
 		const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		toast(`${item.title} ${was ? 'updated' : 'added'}. Items | ${items.length}, ${kr(total)}`)
+		toast(`${item.title} ${was ? 'updated' : 'added'}. Items${sep}${items.length}, ${kr(total)}`)
 	}
 
 	const save = () => {
@@ -594,7 +595,7 @@ export function NewOrderItems() {
 
 			<div>
 				<div className="space-between space-between-tight">
-					<span className="section-label">Items | {draft.items.length}</span>
+					<span className="section-label">Items<Sep />{draft.items.length}</span>
 					<span className="field-help">drag the grip to reorder</span>
 				</div>
 				<InsetPanel {...reorder.listProps}>
@@ -614,7 +615,7 @@ export function NewOrderItems() {
 							title={item.title}
 							handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
 							meta={`${item.quantity} × ${kr(item.price)}`
-								+ (item.retail ? ` | retail ${kr(item.retail)}` : '')}
+								+ (item.retail ? `${sep}retail ${kr(item.retail)}` : '')}
 							amount={kr(item.price * item.quantity)}
 							{...reorder.rowProps(item)}>
 							<span className="row-inline row-actions">

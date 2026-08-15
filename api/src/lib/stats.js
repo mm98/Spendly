@@ -504,7 +504,7 @@ export function getHomeHero(userId) {
 		todayIndex: todayIn(bounds.from, bounds.to),
 		/* The window's own dates, inclusive, the same pair getStats answers. The card names a
 		   stretch of time and its legend rows open the orders behind each slice, so the rows
-		   need the stretch: without it a row under "Where it went | Aug" opened every order in
+		   need the stretch: without it a row under "Where it went • Aug" opened every order in
 		   that category since the account was made. */
 		from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
 		// No orderCount: it was the figure on the hero's Orders tab, and both went with the

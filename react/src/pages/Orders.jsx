@@ -9,7 +9,7 @@ import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import { getOrdersOverview, ordersIn } from '../api/client.js'
-import { dayMonth, kr, krRound, percent } from '../api/format.js'
+import { dayMonth, kr, krRound, percent, sep } from '../api/format.js'
 import { useState } from 'react'
 
 /** How much of the month's total budget has been spent. Categories with no budget set are
@@ -40,9 +40,9 @@ export default function Orders() {
 				return (
 				<div className="order-list-grid">
 					<div className="order-list-column">
-						<Card aria-label={`Spent | ${data.period.label}`}>
-							<CardHeader title={`Spent | ${data.period.label}`} to="/stats"
-								label={`Spent | ${data.period.label}, open Statistics`} />
+						<Card aria-label={`Spent${sep}${data.period.label}`}>
+							<CardHeader title={`Spent${sep}${data.period.label}`} to="/stats"
+								label={`Spent${sep}${data.period.label}, open Statistics`} />
 							<CardDivider />
 							{/* No padding-top override here either -- the 2px this card carried put the
 							    first line 4.5px under the hairline, the tightest in the file. README: Cards. */}
@@ -117,7 +117,7 @@ export default function Orders() {
 							    orders list it was not a list of. Scanning is reached from the top bar
 							    on every page, from Home, from an order and from the create form, so
 							    nothing was the only way in. README: Empty states. */}
-							<ReturnsCard title={`Returns | ${data.period.label}`}
+							<ReturnsCard title={`Returns${sep}${data.period.label}`}
 								span={data.period.shortLabel} returns={data.period.returns} />
 						</div>
 

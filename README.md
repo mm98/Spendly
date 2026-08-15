@@ -38,11 +38,11 @@ That third file is the audit, kept running. A rule in this document that looks a
 
 The system is layered: an element is defined before the component that uses it, a component before the view that composes it, a view before the pattern that repeats across several. Read down for depth.
 
-- **[Foundations](#foundations)** — Color | Elevation and shape | Typography | Sizing | Spacing | Grids and breakpoints
-- **[Components](#components)** — Buttons | Fields and forms | Stepper | Cards | Data rows | Notes | Empty states | Chips | Combobox | Segmented control | Switch | Charts | Meters and progress | Chrome | Icons
-- **[Views](#views)** — Home | Orders overview | All orders | Order detail | Create and edit | Scan flow | Vendors | Categories | Statistics | Settings
-- **[Patterns](#patterns)** — Filtering | Creation flow | Search | Progressive disclosure | Form validation | Feedback | Deletion | Pagination | Data persistence | Loading and errors | Honest affordances | Accessibility | iOS and WebKit | Responsive layout
-- **[Conventions](#conventions)** — Naming in the markup | Language and formats | Documentation
+- **[Foundations](#foundations)** — Color • Elevation and shape • Typography • Sizing • Spacing • Grids and breakpoints
+- **[Components](#components)** — Buttons • Fields and forms • Stepper • Cards • Data rows • Notes • Empty states • Chips • Combobox • Segmented control • Switch • Charts • Meters and progress • Chrome • Icons
+- **[Views](#views)** — Home • Orders overview • All orders • Order detail • Create and edit • Scan flow • Vendors • Categories • Statistics • Settings
+- **[Patterns](#patterns)** — Filtering • Creation flow • Search • Progressive disclosure • Form validation • Feedback • Deletion • Pagination • Data persistence • Loading and errors • Honest affordances • Accessibility • iOS and WebKit • Responsive layout
+- **[Conventions](#conventions)** — Naming in the markup • Language and formats • Documentation
 
 ---
 
@@ -328,7 +328,7 @@ What a list shows when it holds nothing: a 42px icon tile, then one sentence, ce
 
 **An empty state is an answer, not an absence.** A filtered list with no matches says so under the very filters that caused it — the chips stay, because removing them is how the user gets out. A record that does not exist gets "Nothing here." rather than an empty frame that looks like a slow one.
 
-**The sentence says what would fill it** ("No orders match these filters", not "No data") — the difference between a dead end and a next step. It names the span it is empty *of*, too: "No returns in Aug." over a card headed *Returns | Aug*, so the reader is not left asking which stretch of time was searched.
+**The sentence says what would fill it** ("No orders match these filters", not "No data") — the difference between a dead end and a next step. It names the span it is empty *of*, too: "No returns in Aug." over a card headed *Returns • Aug*, so the reader is not left asking which stretch of time was searched.
 
 **An empty state has to be able to fill.** A card that shows the same sentence whatever the records hold is not answering — it is a picture of an answer, and on the day the list really is empty it is indistinguishable from a working one. *Returns this month* said "No open returns found" over a month holding four returns, and would have said it over a month holding four hundred. ([`docs/defects.md`](docs/defects.md#returns--one-card-said-four-and-the-other-said-none))
 
@@ -486,7 +486,7 @@ Whatever a card names, the rule the widths were removed *from* still holds: a fi
 
 **A card that names a window links to that window.** The hero's header opens Statistics on the month the card is showing — Statistics' own default, so arriving there is a continuation rather than a fresh question — and the total printed on the two pages is the same number, because it is derived from the same days.
 
-**A row that opens a list opens the list its own card is describing.** A card naming a stretch of time is a claim about which orders it counted, so a row inside it that opens "the orders behind this slice" carries that stretch: a category row under *Where it went | Aug* opens August's orders in that category, not every one since the account was made. The check is the figure, not the query string — the row's own amount and the total of the list it lands on are the same number, or the link is wrong however plausible its filters look. A card with no window to pass on, an all-time vendor total or a link into the whole return history, passes none rather than inventing one.
+**A row that opens a list opens the list its own card is describing.** A card naming a stretch of time is a claim about which orders it counted, so a row inside it that opens "the orders behind this slice" carries that stretch: a category row under *Where it went • Aug* opens August's orders in that category, not every one since the account was made. The check is the figure, not the query string — the row's own amount and the total of the list it lands on are the same number, or the link is wrong however plausible its filters look. A card with no window to pass on, an all-time vendor total or a link into the whole return history, passes none rather than inventing one.
 
 **The dashboard is personal.** Which cards appear, and in what order, is the user's choice: an edit mode exposes a grip per card, cards drag (or move by arrow key, Home and End for the ends), and the arrangement persists. Everyone sees the same Orders page; Home shows what this user chose to see.
 
@@ -583,11 +583,11 @@ A stretch of time in numbers: the window's name between two arrows with the widt
 
 **One control is drawn as one.** The two arrows, the name they step and the five widths share a band, and every button in it is the same box — a width button is the size of a paging button, because they are two halves of one control and a row of two heights reads as two. The name between the arrows holds a width wide enough for the longest one the pager can reach, so choosing a width does not slide the picker sideways under the pointer that just clicked one; that is the same rule as *selection is a fill, not a weight* one level out, and it costs about 30px of empty band next to the short names. On a phone the hold is released and the row is what is kept: a band that fits is worth more than a picker that never moves, when the alternative is the picker on a second row.
 
-**Every width is a calendar unit, and it is named as one.** Week, month, quarter, year, and everything there is: *Week 30, 2026* | *July 2026* | *Quarter 2, 2026* | *2026* | *All time*. Not a count of days back from today — a window ninety days wide has no name, cannot be linked as one thing, and cannot be paged to the one before it. A week is an ISO week (Monday to Sunday, week 1 the one holding 4 January), so a week that runs across the end of a month runs across it, because weeks do. Where the records stop mid-unit the window holds the days that exist and says which they are.
+**Every width is a calendar unit, and it is named as one.** Week, month, quarter, year, and everything there is: *Week 30, 2026* • *July 2026* • *Quarter 2, 2026* • *2026* • *All time*. Not a count of days back from today — a window ninety days wide has no name, cannot be linked as one thing, and cannot be paged to the one before it. A week is an ISO week (Monday to Sunday, week 1 the one holding 4 January), so a week that runs across the end of a month runs across it, because weeks do. Where the records stop mid-unit the window holds the days that exist and says which they are.
 
 **The control that offers the widths calls them what they are** — *Week*, *Month*, *Quarter*, *Year*, *All* — in the chip, in the arrow that steps one, and in the URL that links one. A chip reading *3M* or *YTD* names a duration, and a duration is the one thing this control cannot deliver: what it draws is the quarter the window lands in, which may be a single month of records, and the year, which pages back to whole years that are not to any date ([the numbers](docs/defects.md#statistics--the-chips-named-durations-and-the-windows-were-calendar-units)). A name that has to be decoded against the calendar to be checked is a name nobody checks.
 
-**A unit says what it is, the window says which days.** The pager names the unit; the card over the chart names the days it actually covers — *Overview | 1 May – 30 June* under *Quarter 2, 2026* — because a unit name does not tell you where the records begin and end inside it, and a clipped window would otherwise claim a whole quarter.
+**A unit says what it is, the window says which days.** The pager names the unit; the card over the chart names the days it actually covers — *Overview • 1 May – 30 June* under *Quarter 2, 2026* — because a unit name does not tell you where the records begin and end inside it, and a clipped window would otherwise claim a whole quarter.
 
 **A window is drawn under the name it is announced under.** One string, read by eye and by screen reader. *W30, 2026* was drawn short enough for the band and announced unabbreviated beside it, because a letter, a number and a year says nothing about weeks — one window under two names, of which the readable one was the one nobody could read. Writing the unit out costs about 30px in a band with room for it, and leaves a single name to keep true.
 
@@ -799,7 +799,7 @@ The copy is English; the number grammar is Danish. Neither is negotiable per scr
 - **Dates** read day-first: `18 July`.
 - **Inputs speak the same grammar they display.** An amount field accepts `1.187,25`, gets the numeric keyboard, and treats `89.95` as a typo to name rather than a number to guess at — which is why no money field is a native number input; those reject the comma outright.
 - **Button labels are caps**, and they name the action: SEE THOSE ORDERS, ADD FILE, CLEAR ALL. One voice for every action in the product.
-- **The separator in copy is the vertical bar** — `34 orders | latest 12/8`, `Items | 2`, `Image | 1 KB` — never the middle dot (`·`). The dot is typographic filler that reads as machine-written, and this applies to every future string as much as the current ones: meta lines, card titles, file metas, the lot.
+- **The separator in copy is the vertical bar** — `34 orders • latest 12/8`, `Items • 2`, `Image • 1 KB` — never the middle dot (`·`). The dot is typographic filler that reads as machine-written, and this applies to every future string as much as the current ones: meta lines, card titles, file metas, the lot.
 - **An ellipsis is three dots** — `Search vendors...`, `SAVING...` — never the single character (`…`), in copy, placeholders, button states and code alike, now and in everything written later. Same reason as the dot above: it reads as machine-written.
 - **Field labels are questions where a question is clearer**: "Who did you buy from?" beats "Vendor" on a form a person fills once.
 - **Back buttons name the destination**, not the direction: "Back to orders", never just "Back".

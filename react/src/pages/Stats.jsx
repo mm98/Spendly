@@ -10,7 +10,7 @@ import { IconButton } from '../components/Button.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { useApi } from '../api/useApi.js'
 import { getStats, ranges } from '../api/client.js'
-import { kr, krRound } from '../api/format.js'
+import { kr, krRound, sep } from '../api/format.js'
 
 /* Statistics.
 
@@ -133,7 +133,7 @@ export default function Stats() {
 						</div>
 
 						<Card aria-label="Overview">
-							<CardHeader title={`Overview | ${view.shortLabel}`}>
+							<CardHeader title={`Overview${sep}${view.shortLabel}`}>
 								{view.previousLabel
 									? <span className="field-help">vs {view.previousLabel}</span>
 									: null}
@@ -170,7 +170,7 @@ export default function Stats() {
 							    one over the tiles, because a card that names nothing is a card a reader
 							    has to scroll up to date. */}
 							<Card aria-label="Pace">
-								<CardHeader title={`Pace | ${view.shortLabel}`}>
+								<CardHeader title={`Pace${sep}${view.shortLabel}`}>
 									<span className="field-help">{view.pace.daysIn} days in</span>
 								</CardHeader>
 								<CardDivider />
@@ -181,8 +181,8 @@ export default function Stats() {
 									    is the total itself and says so. */}
 									<span className="field-help">
 										{view.pace.running
-											? `projected for ${view.label} | ${kr(view.spent)} spent so far`
-											: `total for ${view.label} | ${view.pace.daysIn} days of records`}</span>
+											? `projected for ${view.label}${sep}${kr(view.spent)} spent so far`
+											: `total for ${view.label}${sep}${view.pace.daysIn} days of records`}</span>
 									<Meter className="meter-under-caption"
 										/* projected is 0 exactly when spent is -- nothing bought yet this
 										   window -- and 0/0 is NaN, an invalid CSS width the browser drops
@@ -208,7 +208,7 @@ export default function Stats() {
 							</Card>
 
 							<Card aria-label="Weekly rhythm">
-								<CardHeader title={`Weekly rhythm | ${view.shortLabel}`}>
+								<CardHeader title={`Weekly rhythm${sep}${view.shortLabel}`}>
 									<span className="field-help">busiest day: {view.rhythm.busiestDay}</span>
 								</CardHeader>
 								<CardDivider />
@@ -223,7 +223,7 @@ export default function Stats() {
 
 						<div className="two-column">
 							<Card aria-label="Where it went">
-								<CardHeader title={`Where it went | ${view.shortLabel}`} />
+								<CardHeader title={`Where it went${sep}${view.shortLabel}`} />
 								<CardDivider />
 								<CardBody variant="ring-row">
 									{/* The ring and the rows are one list of numbers: the segments are the
@@ -265,7 +265,7 @@ export default function Stats() {
 							</Card>
 						</div>
 
-						<ReturnsCard title={`Returns | ${view.shortLabel}`} span={view.shortLabel}
+						<ReturnsCard title={`Returns${sep}${view.shortLabel}`} span={view.shortLabel}
 							returns={view.returns} />
 					</>
 				)

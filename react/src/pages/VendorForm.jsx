@@ -13,7 +13,7 @@ import {
 	createVendor, deleteVendor, getHomeContent, getVendor, getVendors, getVendorsOverview,
 	updateVendor
 } from '../api/client.js'
-import { krRound } from '../api/format.js'
+import { krRound, sep } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
 
 /* A vendor, on its own page -- the same page component as a category and as an order, because
@@ -170,7 +170,7 @@ function VendorSummary({ name, colour, initials, favourite, vendor }) {
 				<div className="entry-list summary-preview">
 					<EntryRow avatar={{ colour, initials }} name={name || 'Your vendor'}
 						meta={vendor
-							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'} | saved ${krRound(vendor.saved)}`
+							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'}${sep}saved ${krRound(vendor.saved)}`
 							: 'no orders yet'} />
 				</div>
 				<div className="summary-row">Name<span className="summary-row-value">{name || '—'}</span></div>

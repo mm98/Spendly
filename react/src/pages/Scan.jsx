@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { Sep } from '../components/Sep.jsx'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -426,8 +427,8 @@ function ScanReviewForm({ answer }) {
 
 			<div>
 				<div className="space-between space-between-tight">
-					<span className="section-label">Lines read | {answer.linesRead}</span>
-					<span className="field-help">the pencil corrects a line | ADD LINE for one that wasn't read</span>
+					<span className="section-label">Lines read<Sep />{answer.linesRead}</span>
+					<span className="field-help">the pencil corrects a line<Sep />ADD LINE for one that wasn't read</span>
 				</div>
 				<InsetPanel>
 					{draft.lines.map(line => (

@@ -12,7 +12,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
-import { dayMonth, parseAmount, percent } from '../api/format.js'
+import { dayMonth, parseAmount, percent, sep } from '../api/format.js'
 
 /* All orders: the search, the filters, and what they leave.
 
@@ -282,7 +282,7 @@ export default function AllOrders() {
 
 			<Async state={results} label="Loading orders">{data => (
 				<Card aria-label="Orders">
-					<CardHeader title={`Orders | ${data.matched} match`}>
+					<CardHeader title={`Orders${sep}${data.matched} match`}>
 						<span className="field-help">filtered from {data.total}</span>
 					</CardHeader>
 					<CardDivider />
@@ -304,7 +304,7 @@ export default function AllOrders() {
 								{data.matched
 									? `Showing ${data.from} to ${data.to} of ${data.matched}`
 									: 'Nothing to show'}
-								{data.pages > 1 ? ` | page ${data.page} of ${data.pages}` : ''}
+								{data.pages > 1 ? `${sep}page ${data.page} of ${data.pages}` : ''}
 							</span>
 							<span className="row-inline pager-buttons">
 								<Button variant="ghost" icon="chevronLeft" disabled={data.page <= 1}

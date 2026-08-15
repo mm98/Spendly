@@ -4,17 +4,13 @@ import { db } from '../db.js'
 import { cardRowsFor } from '../lib/prefs.js'
 import { newId } from '../lib/ids.js'
 import { getDecoratedOrder } from '../lib/decorate.js'
+import { sep, fileSizeLabel } from '../lib/copy.js'
 import { processAttachment } from '../lib/images.js'
 
 export const router = Router()
 // See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
 // multipart filenames as latin1 unless told otherwise, and browsers never say otherwise.
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
-
-const fileSizeLabel = bytes => {
-	const kb = Math.max(1, Math.round((bytes ?? 0) / 1024))
-	return kb > 1024 ? (kb / 1024).toFixed(1).replace('.', ',') + ' MB' : kb + ' KB'
-}
 
 const insertUpload = db.prepare(`INSERT INTO scan_uploads (id, user_id, name, size, kind, content_type, data, thumbnail, thumbnail_content_type)
 	VALUES (@id, @userId, @name, @size, @kind, @contentType, @data, @thumbnail, @thumbnailContentType)`)
@@ -37,7 +33,7 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 		contentType: processed.contentType ?? file.mimetype, data: processed.data,
 		thumbnail: processed.thumbnail, thumbnailContentType: processed.thumbnailContentType
 	})
-	res.status(201).json({ key: id, name: file.originalname, kind, meta: `${kind === 'pdf' ? 'PDF' : 'Image'} | ${fileSizeLabel(processed.size)}` })
+	res.status(201).json({ key: id, name: file.originalname, kind, meta: `${kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(processed.size)}` })
 })
 
 /** The review step's starting point. Honest about not having read the file: no vendor guess,
@@ -53,7 +49,7 @@ router.get('/draft/:key', (req, res) => {
 		documentKey: upload.id,
 		file: {
 			key: upload.id, name: upload.name, kind: upload.kind, hasThumbnail: Boolean(upload.thumbnail),
-			meta: `${upload.kind === 'pdf' ? 'PDF' : 'Image'} | ${fileSizeLabel(upload.size)}`
+			meta: `${upload.kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(upload.size)}`
 		},
 		vendor: '', vendorMatched: false, date: new Date().toISOString().slice(0, 10),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
@@ -74,7 +70,7 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 	db.prepare(`INSERT INTO attachments (id, order_id, name, kind, meta, content_type, size, data, thumbnail, thumbnail_content_type)
 		VALUES (@id, @orderId, @name, @kind, @meta, @contentType, @size, @data, @thumbnail, @thumbnailContentType)`).run({
 		id: newId('a'), orderId: order.id, name: upload.name, kind: upload.kind,
-		meta: `Scanned today | ${fileSizeLabel(upload.size)}`, contentType: upload.content_type, size: upload.size, data: upload.data,
+		meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, contentType: upload.content_type, size: upload.size, data: upload.data,
 		thumbnail: upload.thumbnail, thumbnailContentType: upload.thumbnail_content_type
 	})
 	deleteUpload.run(upload.id, req.user.id)

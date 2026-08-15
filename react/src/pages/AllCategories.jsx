@@ -10,7 +10,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getSettings } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
-import { krRound, percent } from '../api/format.js'
+import { krRound, percent, sep } from '../api/format.js'
 
 /* All categories -- the same split as All vendors and All orders, for the same reasons. The
    rows open the category, because this is where a category is kept right: its budget, its
@@ -68,7 +68,7 @@ export default function AllCategories() {
 
 				return (
 					<Card aria-label="All categories">
-						<CardHeader title={`Categories | ${listed.length}${listed.length === categories.length ? '' : ` of ${categories.length}`}`}>
+						<CardHeader title={`Categories${sep}${listed.length}${listed.length === categories.length ? '' : ` of ${categories.length}`}`}>
 							<Button variant="pill" icon="plus" to="/categories/new">ADD</Button>
 						</CardHeader>
 						<CardDivider />
@@ -80,8 +80,8 @@ export default function AllCategories() {
 										<Icon name={category.icon} path={category.iconPath} /></span>}
 									name={category.name}
 									meta={category.budget
-										? `${percent(category.share)} of expenses | ${krRound(category.spend)} of ${krRound(category.budget)} budget`
-										: `${percent(category.share)} of expenses | no budget set`}
+										? `${percent(category.share)} of expenses${sep}${krRound(category.spend)} of ${krRound(category.budget)} budget`
+										: `${percent(category.share)} of expenses${sep}no budget set`}
 									amount={krRound(category.spend)}
 									sub={`saved ${krRound(category.saved)}`}
 									editTo={`/categories/${category.id}/edit`}

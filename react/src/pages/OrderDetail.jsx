@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Sep } from '../components/Sep.jsx'
 import { useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -17,7 +18,7 @@ import {
 	getOrderAsDraft, getOrders, getOrdersOverview, getStats, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
 	removeAttachment
 } from '../api/client.js'
-import { kr, longDate, percent, shortDate } from '../api/format.js'
+import { kr, longDate, percent, shortDate, sep } from '../api/format.js'
 
 /* One order, and everything you can do to it.
 
@@ -115,7 +116,7 @@ export default function OrderDetail() {
 										<div className="order-title">
 											{order.vendor?.name}</div>
 										<div className="field-help order-subtitle">
-											{longDate(order.date)} | {order.itemCount} items</div>
+											{longDate(order.date)}<Sep />{order.itemCount} items</div>
 									</div>
 									<div className="row-inline row-inline-nowrap order-head-actions">
 										<IconButton icon="pencil" label="Edit order" to={`/orders/${id}/edit`} />
@@ -135,7 +136,7 @@ export default function OrderDetail() {
 						</Card>
 
 						<Card aria-label="Items">
-							<CardHeader title={`Items | ${order.itemCount}`}>
+							<CardHeader title={`Items${sep}${order.itemCount}`}>
 								<span className="field-help tabular-figures">{kr(order.subtotal)}</span>
 							</CardHeader>
 							<CardDivider />
@@ -149,8 +150,8 @@ export default function OrderDetail() {
 										onThumbClick={photo ? () => setOpenPhoto({ item, photo }) : undefined}
 										title={item.title}
 										meta={`${item.quantity} × ${kr(item.price)}`
-											+ (item.retail ? ` | retail ${kr(item.retail)}` : '')
-											+ (item.note ? ` | ${item.note}` : '')}
+											+ (item.retail ? `${sep}retail ${kr(item.retail)}` : '')
+											+ (item.note ? `${sep}${item.note}` : '')}
 										amount={kr(item.price * item.quantity)} />
 									)
 								})}
@@ -205,7 +206,7 @@ export default function OrderDetail() {
 						</Card>
 
 						<Card aria-label="Attachments">
-							<CardHeader title={`Attachments | ${order.attachments.length}`}>
+							<CardHeader title={`Attachments${sep}${order.attachments.length}`}>
 								<button type="button" className="button button-pill"
 									onClick={() => filePicker.current?.click()}>ADD FILES</button>
 							</CardHeader>
@@ -247,7 +248,7 @@ export default function OrderDetail() {
 											<div className="attachment-preview">
 												<DocumentPreview kind={file.kind}
 													src={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined} />
-												<span className="field-help">{file.name} | {file.meta}</span>
+												<span className="field-help">{file.name}<Sep />{file.meta}</span>
 											</div>
 										) : null}
 									</div>

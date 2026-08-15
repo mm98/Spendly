@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { sep } from '../api/format.js'
 import { Icon, ICONS } from './Icon.jsx'
 import { FieldShell } from './Form.jsx'
 import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
@@ -121,7 +122,7 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
 			{/* What the choice is worth, since a colour can be picked that its own contents cannot
 			    survive. The ink flips automatically; this says which way and by how much. */}
 			<span className="field-help colour-picker-contrast">
-				{chosen ? null : `${hex.toUpperCase()} | ${inkContrast(value).toFixed(1)}:1`}
+				{chosen ? null : `${hex.toUpperCase()}${sep}${inkContrast(value).toFixed(1)}:1`}
 			</span>
 		</div>
 	)

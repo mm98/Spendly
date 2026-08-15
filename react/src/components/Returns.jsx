@@ -1,7 +1,7 @@
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from './Card.jsx'
 import { EntryRow } from './Rows.jsx'
 import { Button } from './Button.jsx'
-import { dayMonth, kr } from '../api/format.js'
+import { dayMonth, kr, sep } from '../api/format.js'
 
 /* The returns in a window, on whichever page asks for them.
 
@@ -35,7 +35,7 @@ export function ReturnsCard({ title, span, returns }) {
 						<div className="entry-list">
 							{items.map(r => (
 								<EntryRow key={r.id} avatar={r.vendor} name={r.vendor.name}
-									meta={`${dayMonth(r.date)}${r.refunded ? ' | refunded in full' : ''}`}
+									meta={`${dayMonth(r.date)}${r.refunded ? `${sep}refunded in full` : ''}`}
 									amount={kr(r.total)} sub={`saved ${kr(r.saved)}`}
 									to={`/orders/${r.id}`} />
 							))}

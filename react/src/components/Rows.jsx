@@ -1,4 +1,5 @@
 import { forwardRef } from 'react'
+import { Sep } from './Sep.jsx'
 import { Link } from 'react-router'
 import { Icon, ImageOrIcon } from './Icon.jsx'
 import { kr, krRound, percent } from '../api/format.js'
@@ -118,7 +119,7 @@ export function OrderRow({ order, to }) {
 				<div className="order-row-identity-text">
 					<div className="order-row-vendor">{order.vendor?.name}</div>
 					<div className="order-row-meta">
-						{order.dateLabel} | {order.itemCount} items | {order.categories.map(c => c.name).join(', ')}
+						{order.dateLabel}<Sep />{order.itemCount} items<Sep />{order.categories.map(c => c.name).join(', ')}
 					</div>
 				</div>
 			</div>

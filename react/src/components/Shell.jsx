@@ -1,4 +1,5 @@
 import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { Sep } from './Sep.jsx'
 import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Icon } from './Icon.jsx'
 import { Button, IconButton } from './Button.jsx'
@@ -61,7 +62,7 @@ function Sidebar({ navKey }) {
 					)
 				})}
 			</nav>
-			<div className="sidebar-footer"><span>Spendly | personal ledger</span></div>
+			<div className="sidebar-footer"><span>Spendly<Sep />personal ledger</span></div>
 		</aside>
 	)
 }

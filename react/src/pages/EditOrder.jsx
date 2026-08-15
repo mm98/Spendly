@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
+import { Sep } from '../components/Sep.jsx'
 import { useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -23,7 +24,7 @@ import {
 	itemAttachmentThumbnailUrl, spendKinds, updateOrder
 } from '../api/client.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, kr, parseAmount, percent, today } from '../api/format.js'
+import { amount, kr, parseAmount, percent, today, sep } from '../api/format.js'
 
 /* Editing an order, whole.
 
@@ -187,7 +188,7 @@ function EditOrderForm({ id, seed }) {
 		update({ items })
 		clearItemForm()
 		const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		toast(`${item.title} ${was ? 'updated' : 'added'}. Items | ${items.length}, ${kr(total)}`)
+		toast(`${item.title} ${was ? 'updated' : 'added'}. Items${sep}${items.length}, ${kr(total)}`)
 	}
 
 	/* ---- save, once, for the whole order ---- */
@@ -357,7 +358,7 @@ function EditOrderForm({ id, seed }) {
 				</Card>
 
 				<Card aria-label="Items">
-					<CardHeader title={`Items | ${draft.items.length}`} />
+					<CardHeader title={`Items${sep}${draft.items.length}`} />
 					<CardDivider />
 					<CardBody variant="card-body-tight">
 						<Form>
@@ -443,7 +444,7 @@ function EditOrderForm({ id, seed }) {
 
 						<div>
 							<div className="space-between space-between-tight">
-								<span className="section-label">Lines | {draft.items.length}</span>
+								<span className="section-label">Lines<Sep />{draft.items.length}</span>
 								<span className="field-help">drag the grip to reorder</span>
 							</div>
 							<InsetPanel {...reorder.listProps}>
@@ -461,7 +462,7 @@ function EditOrderForm({ id, seed }) {
 											title={item.title}
 											handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
 											meta={`${item.quantity} × ${kr(item.price)}`
-												+ (item.retail ? ` | retail ${kr(item.retail)}` : '')}
+												+ (item.retail ? `${sep}retail ${kr(item.retail)}` : '')}
 											amount={kr(item.price * item.quantity)}
 											{...reorder.rowProps(item)}>
 											<span className="row-inline row-actions">

@@ -7,7 +7,7 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import { getVendors, getVendorsOverview, updateVendor } from '../api/client.js'
-import { dayMonth, krRound } from '../api/format.js'
+import { dayMonth, krRound, sep } from '../api/format.js'
 
 /* Vendors, overview.
 
@@ -67,7 +67,7 @@ export default function Vendors() {
 						</div>
 
 						<Card aria-label="Where it goes">
-							<CardHeader title="Where it goes | all time" to="/vendors/all"
+							<CardHeader title={`Where it goes${sep}all time`} to="/vendors/all"
 								label="Where it goes, open all vendors" />
 							<CardDivider />
 							<CardBody variant="ring-row">
@@ -111,15 +111,15 @@ export default function Vendors() {
 														{vendor.lead ?? `${vendor.orders} orders, ${krRound(vendor.spend)}.`}</div>
 													<InsetPanel>
 														<ItemRow icon="discount" title="Saved vs retail"
-															meta={`${vendor.name} | all time`} amount={krRound(vendor.saved)} />
+															meta={`${vendor.name}${sep}all time`} amount={krRound(vendor.saved)} />
 														{/* The row is always drawn. Dropping it for a vendor with no orders
 														    yet left two cards side by side at different heights, with the
 														    shorter one's buttons floating in the gap -- and it said nothing
 														    about why. A fact that is not there is still a fact. */}
 														<ItemRow icon="receipt" title="Latest order"
 															meta={vendor.latest
-																? `${dayMonth(vendor.latest.date)} | ${vendor.latest.items} items`
-																: 'None | all time'}
+																? `${dayMonth(vendor.latest.date)}${sep}${vendor.latest.items} items`
+																: `None${sep}all time`}
 															amount={krRound(vendor.latest?.total ?? 0)} />
 													</InsetPanel>
 													<div className="row-inline row-actions entity-actions">
