@@ -34,24 +34,49 @@ const buildPath = (points, width, height, kind) => {
 
 	if (kind === 'line') return 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1]).join(' L')
 
-	/* A Catmull-Rom style tangent at each point, expressed as a cubic. The endpoints
-	   duplicate their neighbour so the curve starts and ends flat rather than overshooting.
+	/* Monotone cubic Hermite (Fritsch-Carlson), not a Catmull-Rom tangent -- a Catmull-Rom
+	   segment is only confined to the convex hull of its *own* four control points, which is
+	   no promise at all about the two data points it's actually drawn between: a flat lead-in
+	   that jumps to a total and back is exactly the sharp turn that hull is widest on, so the
+	   curve dips below its own flat run before rising, and overshoots above the total before
+	   settling back to it -- a claim about values the series never held. Clamping the control
+	   points to the chart's [0, height] (the previous fix here) only stopped that overshoot
+	   from being clipped by the SVG edge; it never stopped the overshoot from being drawn.
 
-	   A sharp turn between them still overshoots -- a month with one order is a flat line
-	   that jumps straight to its total and back, and the two control points below can land
-	   well past the data they're tangent to. Padding a call site's top/bottom inset by a
-	   guess at "enough" is a bet on how sharp its own data gets, and a second order the same
-	   month can make a sharper turn than the one the guess was measured against. A cubic
-	   Bézier is provably confined to the convex hull of its four control points, so clamping
-	   only the two computed here to [0, height] -- the anchors are already inside it, being
-	   plotted() output -- confines the whole segment there too, for any series at all. */
-	const clampY = y => Math.max(0, Math.min(height, y))
+	   Fritsch-Carlson chooses each point's tangent from the slopes on both sides of it -- zero
+	   at any point where the series turns (the slopes either side disagree in sign, or one is
+	   flat), then rescaled so neither side of a segment can overshoot the pair of values it
+	   connects. The curve is therefore confined to [min(y_i, y_i+1), max(y_i, y_i+1)] on every
+	   segment, which is what "the curve doesn't invent values" actually means -- a stronger
+	   and cheaper guarantee than clamping to the whole chart's height ever was. */
+	const slope = new Array(n - 1)
+	for (let i = 0; i < n - 1; i++) {
+		const dx = pts[i + 1][0] - pts[i][0]
+		slope[i] = dx ? (pts[i + 1][1] - pts[i][1]) / dx : 0
+	}
+	const tangent = new Array(n)
+	tangent[0] = slope[0]
+	tangent[n - 1] = slope[n - 2]
+	for (let i = 1; i < n - 1; i++) {
+		const a = slope[i - 1], b = slope[i]
+		tangent[i] = (a === 0 || b === 0 || (a > 0) !== (b > 0)) ? 0 : (a + b) / 2
+	}
+	for (let i = 0; i < n - 1; i++) {
+		if (slope[i] === 0) { tangent[i] = 0; tangent[i + 1] = 0; continue }
+		const a = tangent[i] / slope[i], b = tangent[i + 1] / slope[i]
+		const s = a * a + b * b
+		if (s > 9) {
+			const tau = 3 / Math.sqrt(s)
+			tangent[i] = tau * a * slope[i]
+			tangent[i + 1] = tau * b * slope[i]
+		}
+	}
 	let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1]
 	for (let i = 0; i < pts.length - 1; i++) {
-		const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2
-		d += ' C' + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + ' ' + clampY(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)
-			+ ' ' + (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + ' ' + clampY(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)
-			+ ' ' + p2[0].toFixed(1) + ' ' + p2[1]
+		const h = pts[i + 1][0] - pts[i][0]
+		d += ' C' + (pts[i][0] + h / 3).toFixed(1) + ' ' + (pts[i][1] + h * tangent[i] / 3).toFixed(1)
+			+ ' ' + (pts[i + 1][0] - h / 3).toFixed(1) + ' ' + (pts[i + 1][1] - h * tangent[i + 1] / 3).toFixed(1)
+			+ ' ' + pts[i + 1][0].toFixed(1) + ' ' + pts[i + 1][1]
 	}
 	if (kind === 'area') {
 		d += ' L' + pts[pts.length - 1][0].toFixed(1) + ' ' + height

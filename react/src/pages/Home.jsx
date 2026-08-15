@@ -101,7 +101,13 @@ function Hero({ month, categories }) {
 						<div className="chart-wrap">
 							<Chart height={HERO_HEIGHT} label={heroLabel(series, view)}
 								tabIndex={0} aria-describedby={calloutId}
-								series={[{ points, kind: 'line', stroke: '#3A423D', strokeWidth: 1.6 }]} />
+								/* The one chart here that was drawn 'line' -- straight segments with a corner at
+								   every point, beside three curves on the same page. The curve was the riskier
+								   kind to hand a spiky series while the spline could overshoot: this one is a
+								   bucketed daily average, not a running total, so it turns hard in both
+								   directions and had the most to invent. Monotone now, so a segment stays
+								   between the two days it joins and there is nothing left to trade. */
+								series={[{ points, kind: 'curve', stroke: '#3A423D', strokeWidth: 1.6 }]} />
 							{/* Read off the window's own days. The authored sentence named July's 23rd and a
 							    vendor, and stayed there while the chips moved the chart under it. */}
 							<div className="chart-callout" id={calloutId} role="tooltip">
@@ -361,14 +367,15 @@ export default function Home() {
 											gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
 												{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
 											baselines={[{ y: 92, stroke: '#E4E7E2', dash: '3 4' }]}
-											/* A month with a single order is a flat line that jumps straight to its
-											   total and back to flat -- the sharpest turn this curve draws -- and the
-											   spline's control points overshoot past the line on a turn that sharp,
-											   by about as much again as the jump itself. 6px of inset left nothing to
-											   absorb that: the overshoot ran past the box edge and was cut off by the
-											   SVG's own clipping, on both ends. 17px is enough room for it. */
+											/* 7px of headroom (plotted()'s 4th arg) is the marker's, not the curve's:
+											   the marker rides the line, a cumulative series peaks on its last day, and
+											   a 4.5px circle with a 2px stroke paints 5.5px past the point it sits on.
+											   It used to be 17 to absorb the old spline's overshoot on the flat-jump-flat
+											   turn a one-order month draws; the curve is monotone now and peaks exactly
+											   at its own maximum, so that 10px was headroom held for a shape that can no
+											   longer be drawn. README: Charts. */
 											series={[{ points: plotted(data.period.series.cumulative,
-												Math.max(...data.period.series.cumulative), 93, 17), kind: 'curve',
+												Math.max(...data.period.series.cumulative), 93, 7), kind: 'curve',
 												stroke: 'gradient:spend', strokeWidth: 2.4 }]}
 											/* Where the running total actually is today, on a series that runs
 											   one point past it for every day the month has left -- a marker
@@ -415,21 +422,19 @@ export default function Home() {
 												{ offset: 0, color: '#14AC72', opacity: 0.22 },
 												{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
 											baselines={[{ y: 87, stroke: '#E4E7E2', dash: '3 4' }]}
-											/* The zero line sat flush with the box's own bottom edge (top === height),
-											   so the flat lead-in most accounts draw before their first order was a
-											   path running exactly along y=height -- half the curve's 2.2px stroke has
-											   nowhere to paint but past that edge, and the SVG clips it same as any
-											   overshoot would be. Orders' card fixed this the same way, with more room
-											   than a stroke needs, because its curve alone can overshoot on a sharp
-											   turn; the area here has no stroke to protect against overshoot, only the
-											   1.1px a 2.2px line paints either side of where it sits, so 3px of
-											   daylight is what the flat run needs, not 17. The area's own close still
-											   runs to height regardless of top. README: Home. */
+											/* 3px of daylight at both ends, and it is the stroke's: a 2.2px line paints
+											   1.1px either side of where it sits, and the zero line used to sit flush
+											   with the box's own bottom edge (top === height), so the flat lead-in most
+											   accounts draw before their first order had half its stroke clipped away
+											   by the SVG boundary. The top was 17 to absorb the old spline's overshoot
+											   instead -- there are no markers on this chart, so with a monotone curve
+											   the peak is the peak and the other 14px were held for nothing. The area's
+											   own close still runs to height regardless of top. README: Home. */
 											series={[
 												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 87, 17), kind: 'area', fill: 'gradient:savings' },
+													Math.max(...data.period.series.savingsGrowth), 87, 3), kind: 'area', fill: 'gradient:savings' },
 												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 87, 17), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
+													Math.max(...data.period.series.savingsGrowth), 87, 3), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
 											]} />
 										<ChartAxis />
 									</>
