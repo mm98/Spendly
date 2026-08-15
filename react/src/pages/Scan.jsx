@@ -138,7 +138,9 @@ export function ScanUpload() {
 								))}
 							</InsetPanel>
 						)}</Async>
-						<Button variant="block" to="/orders/all">VIEW ALL</Button>
+						{/* Says orders, because that is where it goes: a scan becomes an order and
+						    there is no list of scans to show all of. */}
+						<Button variant="block" to="/orders/all">SEE ALL ORDERS</Button>
 					</CardBody>
 				</Card>
 			</div>

@@ -208,7 +208,10 @@ export default function Orders() {
 										</div>
 									</>
 								)}
-								<Button variant="block" to="/orders/all">SEE ALL</Button>
+								{/* Categories, so the destination is the categories page. It read SEE ALL
+								    under a list of categories and opened the orders list -- the same
+								    mismatch the Categories page's own VIEW ALL had. */}
+								<Button variant="block" to="/categories">ALL CATEGORIES</Button>
 							</CardBody>
 						</Card>
 

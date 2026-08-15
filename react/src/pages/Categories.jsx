@@ -102,10 +102,14 @@ function CategoriesBody({ data, query, sort, manage, answering, setAnswering }) 
 					{listed.length === 0
 						? <p className="field-help">{query ? `No category matches "${query}".` : 'No categories yet.'}</p>
 						: null}
+					{/* No VIEW ALL on the overview: it sat under a card headed CATEGORIES, said it
+					    would show all of them, and opened the orders list instead. The rows above
+					    are now every category there is, so the honest version of that button is no
+					    button. README: Honest Affordances. */}
 					{manage
 						? <span className="field-help">A row opens the category: its budget, its colour,
 							its glyph, and the button that removes it.</span>
-						: <Button variant="block" to="/orders/all">VIEW ALL</Button>}
+						: null}
 				</CardBody>
 			</Card>
 
