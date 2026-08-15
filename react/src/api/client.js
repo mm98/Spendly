@@ -413,10 +413,13 @@ export const cardRowOptions = [1, 2, 4, 6, 8, 10]
     lists have: vendors can also sort by order count and categories by share of spend, and
     neither can be the shared default, since the other list has no such column to sort on. Those
     stay on the pages, one click from wherever this opens them. */
+/* Labelled the way `sorts` above labels the orders list -- the column and the direction, so an
+   option says what it does before it is pressed. Bare "Spend" was secretly highest-first, and
+   the reader found out by pressing it. */
 export const listSorts = [
-	{ id: 'name', label: 'Name' },
-	{ id: 'spend', label: 'Spend' },
-	{ id: 'saved', label: 'Saved' }
+	{ id: 'name', label: 'Name, A to Z' },
+	{ id: 'spend', label: 'Spend, highest' },
+	{ id: 'saved', label: 'Saved, highest' }
 ]
 
 export async function getHomeContent(signal) {

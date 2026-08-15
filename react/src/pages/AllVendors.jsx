@@ -5,9 +5,10 @@ import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { EntityRow } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { FieldShell, Segmented } from '../components/Form.jsx'
+import { FieldShell } from '../components/Form.jsx'
+import { Combobox } from '../components/Combobox.jsx'
 import { useApi } from '../api/useApi.js'
-import { getVendors, getSettings, listSorts } from '../api/client.js'
+import { getVendors, getSettings } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
 import { dayMonth, krRound } from '../api/format.js'
 
@@ -28,12 +29,15 @@ import { dayMonth, krRound } from '../api/format.js'
    being somewhere else is not a reason to leave it out of the one list that searches and
    sorts. */
 
-const SORTS = {
-	Spend: (a, b) => b.spend - a.spend,
-	Name: (a, b) => a.name.localeCompare(b.name),
-	Orders: (a, b) => b.orders - a.orders,
-	Saved: (a, b) => b.saved - a.saved
-}
+/* The shared three carry the ids the setting stores; Orders is this list's own column and has
+   no setting id to answer to. Labels name the column and the direction, like the orders list's
+   own sort -- an option that says "Spend" and means highest-first names half of what it does. */
+const SORTS = [
+	{ id: 'name', label: 'Name, A to Z', cmp: (a, b) => a.name.localeCompare(b.name) },
+	{ id: 'spend', label: 'Spend, highest', cmp: (a, b) => b.spend - a.spend },
+	{ id: 'orders', label: 'Orders, most', cmp: (a, b) => b.orders - a.orders },
+	{ id: 'saved', label: 'Saved, highest', cmp: (a, b) => b.saved - a.saved }
+]
 
 export default function AllVendors() {
 	const state = useApi(getVendors)
@@ -46,7 +50,8 @@ export default function AllVendors() {
 	   this visit; the setting is what it opens as. README: Settings. */
 	const settings = useApi(getSettings)
 	const [chosen, setChosen] = useState(null)
-	const sort = chosen ?? listSorts.find(s => s.id === settings.data?.listSort)?.label ?? 'Name'
+	const sortId = chosen ?? settings.data?.listSort ?? 'name'
+	const sort = SORTS.find(s => s.id === sortId) ?? SORTS[0]
 
 	return (
 		<Page>
@@ -56,15 +61,19 @@ export default function AllVendors() {
 					<input type="search" value={query} placeholder="Search vendor name…"
 						aria-label="Search vendors" onChange={e => setQuery(e.target.value)} />
 				</FieldShell>
-				<Segmented options={Object.keys(SORTS)} value={sort} onChange={setChosen}
-					label="Sort vendors" tablist={false} />
+				{/* The same combobox All orders sorts with -- three working lists asked the same
+				    question with two different controls and two vocabularies. README: All Orders. */}
+				<Combobox className="toolbar-sort" label="Sort vendors"
+					value={sort.label} onChange={() => {}}
+					onSelect={o => setChosen(o.id)}
+					groups={[{ heading: 'Sort by', options: SORTS.map(s => ({ id: s.id, label: s.label })) }]} />
 			</div>
 
 			<Async state={state} label="Loading your vendors">{vendors => {
 				const needle = query.trim().toLowerCase()
 				const listed = vendors
 					.filter(v => !needle || v.name.toLowerCase().includes(needle))
-					.sort(SORTS[sort])
+					.sort(sort.cmp)
 
 				return (
 					<Card aria-label="All vendors">

@@ -5,9 +5,10 @@ import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { EntityRow } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { FieldShell, Segmented } from '../components/Form.jsx'
+import { FieldShell } from '../components/Form.jsx'
+import { Combobox } from '../components/Combobox.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories, getSettings, listSorts } from '../api/client.js'
+import { getCategories, getSettings } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
 import { krRound, percent } from '../api/format.js'
 
@@ -20,12 +21,13 @@ import { krRound, percent } from '../api/format.js'
    row, which is where every other fact about a category goes, and a progress bar per row is a
    layout this app does not use anywhere else. */
 
-const SORTS = {
-	Spend: (a, b) => b.spend - a.spend,
-	Name: (a, b) => a.name.localeCompare(b.name),
-	Share: (a, b) => b.share - a.share,
-	Saved: (a, b) => b.saved - a.saved
-}
+/* Same shape as All vendors' list, with Share as this list's own column. */
+const SORTS = [
+	{ id: 'name', label: 'Name, A to Z', cmp: (a, b) => a.name.localeCompare(b.name) },
+	{ id: 'spend', label: 'Spend, highest', cmp: (a, b) => b.spend - a.spend },
+	{ id: 'share', label: 'Share, highest', cmp: (a, b) => b.share - a.share },
+	{ id: 'saved', label: 'Saved, highest', cmp: (a, b) => b.saved - a.saved }
+]
 
 export default function AllCategories() {
 	const state = useApi(getCategories)
@@ -38,7 +40,8 @@ export default function AllCategories() {
 	   this visit; the setting is what it opens as. README: Settings. */
 	const settings = useApi(getSettings)
 	const [chosen, setChosen] = useState(null)
-	const sort = chosen ?? listSorts.find(s => s.id === settings.data?.listSort)?.label ?? 'Name'
+	const sortId = chosen ?? settings.data?.listSort ?? 'name'
+	const sort = SORTS.find(s => s.id === sortId) ?? SORTS[0]
 
 	return (
 		<Page>
@@ -48,15 +51,17 @@ export default function AllCategories() {
 					<input type="search" value={query} placeholder="Search category name…"
 						aria-label="Search categories" onChange={e => setQuery(e.target.value)} />
 				</FieldShell>
-				<Segmented options={Object.keys(SORTS)} value={sort} onChange={setChosen}
-					label="Sort categories" tablist={false} />
+				<Combobox className="toolbar-sort" label="Sort categories"
+					value={sort.label} onChange={() => {}}
+					onSelect={o => setChosen(o.id)}
+					groups={[{ heading: 'Sort by', options: SORTS.map(s => ({ id: s.id, label: s.label })) }]} />
 			</div>
 
 			<Async state={state} label="Loading your categories">{categories => {
 				const needle = query.trim().toLowerCase()
 				const listed = categories
 					.filter(c => !needle || c.name.toLowerCase().includes(needle))
-					.sort(SORTS[sort])
+					.sort(sort.cmp)
 
 				return (
 					<Card aria-label="All categories">

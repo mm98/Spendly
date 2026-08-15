@@ -1409,3 +1409,39 @@ other and disagreeing with reality.
 
 Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
 **Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Data Rows — one saving, three styles; and one question, sorted three ways
+
+Two findings from a full-app consistency sweep (13 routes, both widths, everything enumerated from
+the rendered DOM), fixed together because both are the same defect shape: one fact, drawn
+differently depending which screen happened to draw it.
+
+**The saved line.** The `saved …` line under a total is drawn by three row families, and the
+stylesheet held three specs for it: muted 500 in `.entry-amount-sub` (Home, Orders overview,
+Returns), green 600 in `.order-row-total-saved` (All orders) and green 600 in
+`.entity-row-amount-sub` (All vendors, All categories) — the same fact in two colours and two
+weights, on the lists most often read side by side, and two of the three against the README's own
+"muted tone" rule. One spec now. Measured across the six routes that draw the line: **69 instances
+at 1440, 70 under `devices['iPhone 13']`, every one `rgb(99,109,100) / 500 / 11px`** — one spec of
+one, where the same sweep read two of three before.
+
+**The sort control.** Three working lists ask "order this list by", and they asked it two ways with
+two vocabularies: All orders with a combobox offering *Date, newest / Amount, highest / Vendor,
+A to Z*, the vendors and categories lists with a segmented control offering bare *Spend / Name /
+Orders / Saved* — direction unstated, so *Spend* was secretly highest-first and the reader found
+out by pressing it. They also led with Spend while opening on Name, so the selected option sat
+second in its own list.
+
+One control and one vocabulary now: the combobox on all three, options worded *column, direction* —
+*Name, A to Z · Spend, highest · Orders, most · Saved, highest* on vendors, *Share, highest* in
+place of Orders on categories — and Settings' "Sort vendors and categories by" speaks the identical
+strings for the shared three, the way "Sort orders by" always has with All orders. Driven, not
+asserted: each list opens as *Name, A to Z* from the setting, picking *Spend, highest* reorders it
+(Zalando first; Everything else first), at both widths, 0 page errors. The phone toolbar held: all
+three toolbars at 86px, two rows, 0 element overhang, 0 document overflow — checked per element,
+since `.main-panel` clips overflow and a clipped overhang never widens the document.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
