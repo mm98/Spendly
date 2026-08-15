@@ -68,7 +68,7 @@ function Hero({ month, categories }) {
 					{/* Statistics opens on its own default, which is this same month -- so arriving
 					    there is a continuation, and every other stretch of time is chosen once you
 					    are on the page that has a pager for it. README: Home. */}
-					<CardHeader title={`Spent · ${view.label}`} to="/stats"
+					<CardHeader title={`Spent | ${view.label}`} to="/stats"
 						label={`Spent, ${view.label}, open Statistics`} />
 					<CardDivider />
 					{/* No padding-top override. 2px here put the big number 10px under the hairline
@@ -127,7 +127,7 @@ function Hero({ month, categories }) {
 						    legend says which month in its own heading rather than borrowing the card's --
 						    the same rule the month-wide cards on Statistics follow under a window that
 						    moves. README: Statistics. */}
-						<div className="list-heading">Where it went · {month.shortLabel}</div>
+						<div className="list-heading">Where it went | {month.shortLabel}</div>
 						<div className="chart-legend">
 							{month.heroLegend.map(entry => {
 								/* The row names a category, so the link filters by it. "Everything else" is a
@@ -139,7 +139,7 @@ function Hero({ month, categories }) {
 										amount={krRound(entry.amount)}
 										/* The month the heading names, carried into the list. The row was a
 										   link to every order in that category since the account was made,
-										   under a card headed "Where it went · Aug" -- a list whose total
+										   under a card headed "Where it went | Aug" -- a list whose total
 										   contradicts the figure that was clicked. The fold row has no
 										   category to filter by and still has the month. */
 										to={ordersIn({ category: category?.id, from: month.from, to: month.to })} />
@@ -221,7 +221,7 @@ function TopVendorsCard({ vendors, rows }) {
 			<CardDivider />
 			<CardBody>
 				<div className="figure-card tabular-figures">{krRound(vendors[0].spend)}</div>
-				<span className="card-caption">{vendors[0].name} · all time</span>
+				<span className="card-caption">{vendors[0].name} | all time</span>
 				<div className="entry-list" ref={listRef}>
 					{vendors.slice(0, budget).map(v => (
 						<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
@@ -290,7 +290,7 @@ function dashboardCard(key, data) {
 					    README: Charts. */}
 					<CardBody variant="card-body-fill">
 						<div className="figure-card tabular-figures">{kr(period.averageOrder)}</div>
-						<span className="card-caption">average order · {period.shortLabel}</span>
+						<span className="card-caption">average order | {period.shortLabel}</span>
 						<WeekdayBars days={period.weekdays} />
 						<div className="chart-legend-inline">
 							<span className="chart-swatch" />
@@ -333,7 +333,7 @@ function dashboardCard(key, data) {
 					<CardBody>
 						<div className="figure-card tabular-figures">{krRound(period.projected)}</div>
 						<span className="card-caption">
-							projected for {period.shortLabel} · {period.daysIn} days in</span>
+							projected for {period.shortLabel} | {period.daysIn} days in</span>
 						<Meter className="meter-under-caption"
 							/* projected is 0 exactly when spent is -- nothing bought yet this month --
 							   and 0/0 is NaN, an invalid CSS width the browser drops silently rather

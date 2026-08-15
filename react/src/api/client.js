@@ -371,7 +371,7 @@ export async function getHomeHero(signal) {
 
     A card that names a stretch of time is a claim about which orders it is counting, and a row
     inside it that opens "the orders behind this slice" has to open *those* orders. Four of them
-    did not: the hero legend under "Where it went · Aug", the category rows under two rings
+    did not: the hero legend under "Where it went | Aug", the category rows under two rings
     reading "Spent this month", and the row for whatever has no category. Each opened every
     order in that category since the account was made — a list whose total contradicts the
     figure the reader clicked, under filters that do not mention the month.
@@ -543,7 +543,7 @@ export async function search(query, signal) {
 	const take = (heading, options) => { if (options.length) groups.push({ heading, options }) }
 
 	take('Orders', orders.slice(0, 4)
-		.map(o => ({ id: o.id, ...highlight(`${o.vendor?.name} · ${dayMonth(o.date)}`, needle),
+		.map(o => ({ id: o.id, ...highlight(`${o.vendor?.name} | ${dayMonth(o.date)}`, needle),
 			meta: krLabel(o.total), to: `/orders/${o.id}` })))
 
 	take('Vendors', vendors.slice(0, 3)
@@ -557,7 +557,7 @@ export async function search(query, signal) {
 		for (const i of o.items) {
 			if (!i.title.toLowerCase().includes(needle)) continue
 			lines.push({ id: o.id + '-' + i.id, ...highlight(`"${i.title}"`, needle),
-				meta: `${o.vendor?.name} · ${dayMonth(o.date)}`, to: `/orders/${o.id}` })
+				meta: `${o.vendor?.name} | ${dayMonth(o.date)}`, to: `/orders/${o.id}` })
 			if (lines.length === 4) break
 		}
 		if (lines.length === 4) break
@@ -567,7 +567,7 @@ export async function search(query, signal) {
 	take('Notes', orders
 		.filter(o => (o.note || '').toLowerCase().includes(needle)).slice(0, 3)
 		.map(o => ({ id: o.id + '-note', ...highlight(`"${o.note}"`, needle),
-			meta: `${o.vendor?.name} · ${dayMonth(o.date)}`, to: `/orders/${o.id}` })))
+			meta: `${o.vendor?.name} | ${dayMonth(o.date)}`, to: `/orders/${o.id}` })))
 
 	const vendorCreateOptions = vendors.slice(0, 3).map(v => ({ id: 'cmd-new-order-' + v.id,
 		...highlight(`Create order with ${v.name}`, needle), meta: 'Create',

@@ -37,7 +37,7 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 		contentType: processed.contentType ?? file.mimetype, data: processed.data,
 		thumbnail: processed.thumbnail, thumbnailContentType: processed.thumbnailContentType
 	})
-	res.status(201).json({ key: id, name: file.originalname, kind, meta: `${kind === 'pdf' ? 'PDF' : 'Image'} · ${fileSizeLabel(processed.size)}` })
+	res.status(201).json({ key: id, name: file.originalname, kind, meta: `${kind === 'pdf' ? 'PDF' : 'Image'} | ${fileSizeLabel(processed.size)}` })
 })
 
 /** The review step's starting point. Honest about not having read the file: no vendor guess,
@@ -53,7 +53,7 @@ router.get('/draft/:key', (req, res) => {
 		documentKey: upload.id,
 		file: {
 			key: upload.id, name: upload.name, kind: upload.kind, hasThumbnail: Boolean(upload.thumbnail),
-			meta: `${upload.kind === 'pdf' ? 'PDF' : 'Image'} · ${fileSizeLabel(upload.size)}`
+			meta: `${upload.kind === 'pdf' ? 'PDF' : 'Image'} | ${fileSizeLabel(upload.size)}`
 		},
 		vendor: '', vendorMatched: false, date: new Date().toISOString().slice(0, 10),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
@@ -74,7 +74,7 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 	db.prepare(`INSERT INTO attachments (id, order_id, name, kind, meta, content_type, size, data, thumbnail, thumbnail_content_type)
 		VALUES (@id, @orderId, @name, @kind, @meta, @contentType, @size, @data, @thumbnail, @thumbnailContentType)`).run({
 		id: newId('a'), orderId: order.id, name: upload.name, kind: upload.kind,
-		meta: `Scanned today · ${fileSizeLabel(upload.size)}`, contentType: upload.content_type, size: upload.size, data: upload.data,
+		meta: `Scanned today | ${fileSizeLabel(upload.size)}`, contentType: upload.content_type, size: upload.size, data: upload.data,
 		thumbnail: upload.thumbnail, thumbnailContentType: upload.thumbnail_content_type
 	})
 	deleteUpload.run(upload.id, req.user.id)

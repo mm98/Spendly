@@ -118,7 +118,7 @@ export function OrderRow({ order, to }) {
 				<div className="order-row-identity-text">
 					<div className="order-row-vendor">{order.vendor?.name}</div>
 					<div className="order-row-meta">
-						{order.dateLabel} · {order.itemCount} items · {order.categories.map(c => c.name).join(', ')}
+						{order.dateLabel} | {order.itemCount} items | {order.categories.map(c => c.name).join(', ')}
 					</div>
 				</div>
 			</div>

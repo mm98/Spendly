@@ -276,7 +276,7 @@ async function saveAttachments(files, owner, existingNames) {
 		const attachment = {
 			id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
 			name: file.originalname, kind,
-			meta: `Added today · ${fileSizeLabel(processed.size)}`,
+			meta: `Added today | ${fileSizeLabel(processed.size)}`,
 			contentType: processed.contentType ?? file.mimetype, size: processed.size, data: processed.data,
 			thumbnail: processed.thumbnail, thumbnailContentType: processed.thumbnailContentType
 		}
@@ -388,7 +388,7 @@ async function processImportAttachments(list) {
 
 const insertImportedAttachment = (a, owner) => insertAttachment.run({
 	id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
-	name: a.name, kind: a.kind, meta: `Imported · ${fileSizeLabel(a.size)}`,
+	name: a.name, kind: a.kind, meta: `Imported | ${fileSizeLabel(a.size)}`,
 	contentType: a.contentType, size: a.size, data: a.data,
 	thumbnail: a.thumbnail, thumbnailContentType: a.thumbnailContentType
 })

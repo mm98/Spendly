@@ -170,7 +170,7 @@ function VendorSummary({ name, colour, initials, favourite, vendor }) {
 				<div className="entry-list summary-preview">
 					<EntryRow avatar={{ colour, initials }} name={name || 'Your vendor'}
 						meta={vendor
-							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'} · saved ${krRound(vendor.saved)}`
+							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'} | saved ${krRound(vendor.saved)}`
 							: 'no orders yet'} />
 				</div>
 				<div className="summary-row">Name<span className="summary-row-value">{name || '—'}</span></div>

@@ -85,7 +85,7 @@ export default function AllVendors() {
 						{/* The count says how many are on screen, and how many there are when a search
 						    is holding some back -- "12" and "3 of 12" are different facts and the
 						    second one is the one a filtered list owes the reader. */}
-						<CardHeader title={`Vendors · ${listed.length}${listed.length === vendors.length ? '' : ` of ${vendors.length}`}`}>
+						<CardHeader title={`Vendors | ${listed.length}${listed.length === vendors.length ? '' : ` of ${vendors.length}`}`}>
 							<Button variant="pill" icon="plus" to="/vendors/new">ADD</Button>
 						</CardHeader>
 						<CardDivider />
@@ -96,7 +96,7 @@ export default function AllVendors() {
 										style={{ background: vendor.colour, color: inkOn(vendor.colour) }}>{vendor.initials}</span>}
 									name={vendor.name}
 									meta={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}` +
-										(vendor.latest ? ` · latest ${dayMonth(vendor.latest.date)}` : ' · none yet')}
+										(vendor.latest ? ` | latest ${dayMonth(vendor.latest.date)}` : ' | none yet')}
 									amount={krRound(vendor.spend)}
 									sub={`saved ${krRound(vendor.saved)}`}
 									editTo={`/vendors/${vendor.id}/edit`}

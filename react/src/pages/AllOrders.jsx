@@ -282,7 +282,7 @@ export default function AllOrders() {
 
 			<Async state={results} label="Loading orders">{data => (
 				<Card aria-label="Orders">
-					<CardHeader title={`Orders · ${data.matched} match`}>
+					<CardHeader title={`Orders | ${data.matched} match`}>
 						<span className="field-help">filtered from {data.total}</span>
 					</CardHeader>
 					<CardDivider />
@@ -304,7 +304,7 @@ export default function AllOrders() {
 								{data.matched
 									? `Showing ${data.from} to ${data.to} of ${data.matched}`
 									: 'Nothing to show'}
-								{data.pages > 1 ? ` · page ${data.page} of ${data.pages}` : ''}
+								{data.pages > 1 ? ` | page ${data.page} of ${data.pages}` : ''}
 							</span>
 							<span className="row-inline pager-buttons">
 								<Button variant="ghost" icon="chevronLeft" disabled={data.page <= 1}

@@ -12,7 +12,7 @@ const vendorStatsQuery = db.prepare(`
 
 /* The newest order each vendor has, in one pass rather than a query per vendor. The Vendors
    page draws a "Latest order" row on every spotlight card and nothing ever answered it, so a
-   vendor with 34 orders read "None · all time — 0 kr." -- the card's own fallback for a vendor
+   vendor with 34 orders read "None | all time — 0 kr." -- the card's own fallback for a vendor
    that has never been bought from, shown for every vendor there is.
 
    ROW_NUMBER over a partition is what picks one row per vendor; the id breaks the tie so two

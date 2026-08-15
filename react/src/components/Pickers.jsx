@@ -121,7 +121,7 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
 			{/* What the choice is worth, since a colour can be picked that its own contents cannot
 			    survive. The ink flips automatically; this says which way and by how much. */}
 			<span className="field-help colour-picker-contrast">
-				{chosen ? null : `${hex.toUpperCase()} · ${inkContrast(value).toFixed(1)}:1`}
+				{chosen ? null : `${hex.toUpperCase()} | ${inkContrast(value).toFixed(1)}:1`}
 			</span>
 		</div>
 	)

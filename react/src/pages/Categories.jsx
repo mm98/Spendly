@@ -64,7 +64,7 @@ export default function Categories() {
 						</div>
 
 						<Card aria-label="Breakdown">
-							<CardHeader title="Breakdown · all time" to="/categories/all"
+							<CardHeader title="Breakdown | all time" to="/categories/all"
 								label="Breakdown, open all categories" />
 							<CardDivider />
 							{/* The ring and the rows beside it are drawn from one array, which is the rule

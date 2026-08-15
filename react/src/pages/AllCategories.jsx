@@ -68,7 +68,7 @@ export default function AllCategories() {
 
 				return (
 					<Card aria-label="All categories">
-						<CardHeader title={`Categories · ${listed.length}${listed.length === categories.length ? '' : ` of ${categories.length}`}`}>
+						<CardHeader title={`Categories | ${listed.length}${listed.length === categories.length ? '' : ` of ${categories.length}`}`}>
 							<Button variant="pill" icon="plus" to="/categories/new">ADD</Button>
 						</CardHeader>
 						<CardDivider />
@@ -80,8 +80,8 @@ export default function AllCategories() {
 										<Icon name={category.icon} path={category.iconPath} /></span>}
 									name={category.name}
 									meta={category.budget
-										? `${percent(category.share)} of expenses · ${krRound(category.spend)} of ${krRound(category.budget)} budget`
-										: `${percent(category.share)} of expenses · no budget set`}
+										? `${percent(category.share)} of expenses | ${krRound(category.spend)} of ${krRound(category.budget)} budget`
+										: `${percent(category.share)} of expenses | no budget set`}
 									amount={krRound(category.spend)}
 									sub={`saved ${krRound(category.saved)}`}
 									editTo={`/categories/${category.id}/edit`}

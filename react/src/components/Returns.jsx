@@ -13,7 +13,7 @@ import { dayMonth, kr } from '../api/format.js'
    absence wearing the answer's clothes. README: Empty states, Honest Affordances.
 
    "Open" went with it. It meant a return whose refund has not landed -- the record carries a
-   `refunded` flag and a row that has it reads "· refunded in full" -- but nothing filtered on
+   `refunded` flag and a row that has it reads "| refunded in full" -- but nothing filtered on
    it here, and nothing in the app can set it, so the word promised a distinction the product
    does not offer. The card says returns, and lists returns.
 
@@ -35,7 +35,7 @@ export function ReturnsCard({ title, span, returns }) {
 						<div className="entry-list">
 							{items.map(r => (
 								<EntryRow key={r.id} avatar={r.vendor} name={r.vendor.name}
-									meta={`${dayMonth(r.date)}${r.refunded ? ' · refunded in full' : ''}`}
+									meta={`${dayMonth(r.date)}${r.refunded ? ' | refunded in full' : ''}`}
 									amount={kr(r.total)} sub={`saved ${kr(r.saved)}`}
 									to={`/orders/${r.id}`} />
 							))}

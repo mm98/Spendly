@@ -187,7 +187,7 @@ function EditOrderForm({ id, seed }) {
 		update({ items })
 		clearItemForm()
 		const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		toast(`${item.title} ${was ? 'updated' : 'added'}. Items · ${items.length}, ${kr(total)}`)
+		toast(`${item.title} ${was ? 'updated' : 'added'}. Items | ${items.length}, ${kr(total)}`)
 	}
 
 	/* ---- save, once, for the whole order ---- */
@@ -357,7 +357,7 @@ function EditOrderForm({ id, seed }) {
 				</Card>
 
 				<Card aria-label="Items">
-					<CardHeader title={`Items · ${draft.items.length}`} />
+					<CardHeader title={`Items | ${draft.items.length}`} />
 					<CardDivider />
 					<CardBody variant="card-body-tight">
 						<Form>
@@ -443,7 +443,7 @@ function EditOrderForm({ id, seed }) {
 
 						<div>
 							<div className="space-between space-between-tight">
-								<span className="section-label">Lines · {draft.items.length}</span>
+								<span className="section-label">Lines | {draft.items.length}</span>
 								<span className="field-help">drag the grip to reorder</span>
 							</div>
 							<InsetPanel {...reorder.listProps}>
@@ -461,7 +461,7 @@ function EditOrderForm({ id, seed }) {
 											title={item.title}
 											handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
 											meta={`${item.quantity} × ${kr(item.price)}`
-												+ (item.retail ? ` · retail ${kr(item.retail)}` : '')}
+												+ (item.retail ? ` | retail ${kr(item.retail)}` : '')}
 											amount={kr(item.price * item.quantity)}
 											{...reorder.rowProps(item)}>
 											<span className="row-inline row-actions">

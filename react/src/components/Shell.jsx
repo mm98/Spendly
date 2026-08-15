@@ -61,7 +61,7 @@ function Sidebar({ navKey }) {
 					)
 				})}
 			</nav>
-			<div className="sidebar-footer"><span>Spendly · personal ledger</span></div>
+			<div className="sidebar-footer"><span>Spendly | personal ledger</span></div>
 		</aside>
 	)
 }
