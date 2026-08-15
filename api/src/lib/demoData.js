@@ -117,7 +117,7 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 	for (let back = months - 1; back >= 0; back--) {
 		const first = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - back, 1))
 		const lastDay = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate()
-		const count = 14 + Math.floor(rnd() * 9)              // 14..22 orders in the month
+		const count = 28 + Math.floor(rnd() * 17)             // 28..44 orders in the month
 
 		for (let i = 0; i < count; i++) {
 			// Spread across the month rather than clustering, and never past today.
