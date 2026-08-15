@@ -413,14 +413,13 @@ export const cardRowOptions = [1, 2, 4, 6, 8, 10]
     lists have: vendors can also sort by order count and categories by share of spend, and
     neither can be the shared default, since the other list has no such column to sort on. Those
     stay on the pages, one click from wherever this opens them. */
-/* Labelled the way `sorts` above labels the orders list -- the column and the direction, both
-   directions per column, so an option says what it does before it is pressed. Bare "Spend" was
-   secretly highest-first, and the reader found out by pressing it; then the columns offered one
-   direction each while the orders list offered two, which was the same laziness one layer up.
+/* Labelled the way `sorts` above labels the orders list -- the column and the direction, so an
+   option says what it does before it is pressed. Bare "Spend" was secretly highest-first, and
+   the reader found out by pressing it. Ranking columns come as pairs; Name is alphabetical, and
+   an alphabetical order is for finding a record, so it offers the one direction that finds.
    The id carries the direction too ('name-asc'), exactly as the orders sort's ids always have. */
 export const listSorts = [
 	{ id: 'name-asc', label: 'Name, A to Z' },
-	{ id: 'name-desc', label: 'Name, Z to A' },
 	{ id: 'spend-desc', label: 'Spend, highest' },
 	{ id: 'spend-asc', label: 'Spend, lowest' },
 	{ id: 'saved-desc', label: 'Saved, highest' },

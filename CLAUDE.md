@@ -282,6 +282,15 @@ expectation, which is a minute well spent; the sweep for the money column found 
 introduced two minutes earlier in the very same edit. Neither was reachable by looking harder at the
 thing that was reported.
 
+The rule covers requests, not just defects. "Remove the Z to A" was read as the one option the
+previous reply had discussed, so *Vendor, Z to A* came out of All orders while *Name, Z to A* went
+on rendering on two toolbars and in Settings -- and the user had to come back and point at it, which
+is this rule failing in a sentence instead of a screenshot. A request phrased against a label is a
+request against every element carrying it: grep the label app-wide first (`grep -rn 'Z to A'
+react/src` returned all four in under a second), and either take the whole class out or say in the
+reply which instances stayed and why. Narrowing a general instruction to its nearest instance is the
+same mistake as fixing the one card on screen, made while reading instead of while coding.
+
 **Check the rule, not the gap it leaves -- a fixture can hide an outcome the arithmetic gives
 away.** The rounding that decides how many rows a card gives up to the graphic above it was written
 as `ceil`, which charges a whole row for any overflow at all: a headline figure and caption came to

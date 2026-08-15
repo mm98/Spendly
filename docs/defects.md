@@ -1434,28 +1434,27 @@ Orders / Saved* — direction unstated, so *Spend* was secretly highest-first an
 out by pressing it. They also led with Spend while opening on Name, so the selected option sat
 second in its own list.
 
-One control and one vocabulary now — and one *scheme*: both directions, every column, on all three
-lists. The first pass of this fix gave vendors and categories one direction per column while All
-orders offered pairs, which is the same defect moved into the option list. Every column is a pair
-now (*Name, A to Z / Name, Z to A*, *Spend, highest / Spend, lowest*, *Orders, most / Orders,
-fewest*, *Share, highest / Share, lowest*, *Saved, highest / Saved, lowest*), and the stored
-setting carries the direction (`name-asc`), exactly as the orders sort's ids always have —
-existing bare values migrated to the direction they always meant, 218 rows checked converted.
-Settings' "Sort vendors and categories by" offers the shared six under the identical strings.
-Driven, not asserted: **all 20 directions reverse or restore the list** — 8 on vendors, 8 on
-categories, 4 on All orders — the six directed setting ids round-trip and bare or foreign ids are
-refused, and *saved-asc* set once opens vendors on Netto and categories on Home office, at 1440,
-0 page errors.
+One control and one vocabulary now — and one *scheme*: every ranking column is a pair, on all
+three lists. The first pass of this fix gave vendors and categories one direction per column while
+All orders offered pairs, which is the same defect moved into the option list. Every ranking
+column is a pair now (*Spend, highest / Spend, lowest*, *Orders, most / Orders, fewest*, *Share,
+highest / Share, lowest*, *Saved, highest / Saved, lowest*), and the stored setting carries the
+direction (`name-asc`), exactly as the orders sort's ids always have — existing bare values
+migrated to the direction they always meant, 218 rows checked converted. Settings' "Sort vendors
+and categories by" offers the shared five under the identical strings. Driven, not asserted:
+**every direction reverses or restores its list** — 6 on vendors, 6 on categories, 4 on All
+orders — the directed setting ids round-trip and bare or foreign ids are refused, and *saved-asc*
+set once opens vendors on Netto and categories on Home office, at 1440, 0 page errors.
 
-One pair went too far and came back out on review: symmetry handed All orders a *Vendor, Z to A*,
-and Vendor is not a ranking — it groups one vendor's orders together, and reversed it groups the
-same clusters in an order nobody asks for. The pair rule is about ranking columns, where the
-reverse answers a different question ("cheapest?" is not "dearest?"); a grouping column's reverse
-answers the same one. So Vendor stays *A to Z* alone, the settings route maps a stored
-`vendor-desc` back to `vendor-asc` (and now refuses unknown orders-sort ids the way it always
-refused unknown list-sort ids — the one field the "stored preference nothing obeys" rule was not
-yet enforcing), and the README rule names the exception rather than leaving one single-direction
-column to read as an oversight. The phone toolbar held: all
+The second pass then over-corrected: symmetry handed every column a pair, including *Vendor,
+Z to A* on All orders and *Name, Z to A* on the other two lists, and the alphabet is not a
+ranking. The pair rule is about ranking columns, where the reverse answers a different question
+("cheapest?" is not "dearest?"); an alphabetical column orders a list for *finding* a record,
+and Z to A finds nothing that A to Z cannot. So Vendor and Name stay *A to Z* alone, migrations
+map a stored `vendor-desc` or `name-desc` back to the direction that stays, the settings route
+now refuses unknown orders-sort ids the way it always refused unknown list-sort ids (the one
+field the "stored preference nothing obeys" rule was not yet enforcing), and the README rule
+names the exception rather than leaving single-direction columns to read as an oversight. The phone toolbar held: all
 three toolbars at 86px, two rows, 0 element overhang, 0 document overflow — checked per element,
 since `.main-panel` clips overflow and a clipped overhang never widens the document.
 

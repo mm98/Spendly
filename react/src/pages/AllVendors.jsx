@@ -29,13 +29,13 @@ import { dayMonth, krRound } from '../api/format.js'
    being somewhere else is not a reason to leave it out of the one list that searches and
    sorts. */
 
-/* Every ranking column, both directions, paired -- the scheme the orders list sorts by. The
-   shared six carry the ids the setting stores; Orders is this list's own column and has no
-   setting id to answer to. Labels name the column and the direction, because an option that
-   says "Spend" and means highest-first names half of what it does. */
+/* Every ranking column, both directions, paired -- the scheme the orders list sorts by; Name
+   is alphabetical, for finding a record, so it offers the one direction that finds. The shared
+   five carry the ids the setting stores; Orders is this list's own column and has no setting
+   id to answer to. Labels name the column and the direction, because an option that says
+   "Spend" and means highest-first names half of what it does. */
 const SORTS = [
 	{ id: 'name-asc', label: 'Name, A to Z', cmp: (a, b) => a.name.localeCompare(b.name) },
-	{ id: 'name-desc', label: 'Name, Z to A', cmp: (a, b) => b.name.localeCompare(a.name) },
 	{ id: 'spend-desc', label: 'Spend, highest', cmp: (a, b) => b.spend - a.spend },
 	{ id: 'spend-asc', label: 'Spend, lowest', cmp: (a, b) => a.spend - b.spend },
 	{ id: 'orders-desc', label: 'Orders, most', cmp: (a, b) => b.orders - a.orders },

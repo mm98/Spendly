@@ -33,7 +33,7 @@ const toApi = row => ({
    in force. Anything unrecognised falls back to what is already stored. */
 export const CARD_ROWS = [1, 2, 4, 6, 8, 10]
 export const ORDER_SORTS = ['date-desc', 'date-asc', 'amount-desc', 'amount-asc', 'vendor-asc']
-export const LIST_SORTS = ['name-asc', 'name-desc', 'spend-desc', 'spend-asc', 'saved-desc', 'saved-asc']
+export const LIST_SORTS = ['name-asc', 'spend-desc', 'spend-asc', 'saved-desc', 'saved-asc']
 const oneOf = (allowed, asked, fallback) => (allowed.includes(asked) ? asked : fallback)
 
 router.get('/', (req, res) => {

@@ -24,7 +24,6 @@ import { krRound, percent } from '../api/format.js'
 /* Same shape as All vendors' list, with Share as this list's own column. */
 const SORTS = [
 	{ id: 'name-asc', label: 'Name, A to Z', cmp: (a, b) => a.name.localeCompare(b.name) },
-	{ id: 'name-desc', label: 'Name, Z to A', cmp: (a, b) => b.name.localeCompare(a.name) },
 	{ id: 'spend-desc', label: 'Spend, highest', cmp: (a, b) => b.spend - a.spend },
 	{ id: 'spend-asc', label: 'Spend, lowest', cmp: (a, b) => a.spend - b.spend },
 	{ id: 'share-desc', label: 'Share, highest', cmp: (a, b) => b.share - a.share },
