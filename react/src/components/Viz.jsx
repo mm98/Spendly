@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { Icon, ImageOrIcon } from './Icon.jsx'
 import { IconButton } from './Button.jsx'
 
@@ -16,6 +16,14 @@ import { IconButton } from './Button.jsx'
    wraps around the circle and lands between that segment and itself, which read as a category
    that is 100% of the spend somehow not filling its own ring. Applying it only when there is
    something on both sides of it is what a separator means. */
+/* The hairline between two segments, as a share of the circle: 0.6% is 2.16°, about 3px of arc
+   on the 170px gauge and 2.5px on the 132px donut. One number for every ring in the app --
+   the gauge carried 2% and the donut carried none at all, so the same split drawn on Home and
+   on Statistics read as two different charts. 2% was 7.2°, which put 43 of the ring's 360
+   degrees into white space and left the smallest category drawing less colour than the gap
+   beside it. README: Charts. */
+const RING_GAP = 0.6
+
 const conic = (segments, gap = 0) => {
 	let at = 0
 	const total = segments.reduce((sum, s) => sum + s.share, 0) || 100
@@ -39,17 +47,90 @@ const conic = (segments, gap = 0) => {
 	return `conic-gradient(${stops.join(', ')})`
 }
 
-const RingCentre = ({ value, label }) => (
-	<span className="ring-centre">
-		<span className="ring-centre-value tabular-figures">{value}</span>
-		<span className="ring-centre-label">{label}</span>
-	</span>
-)
+/* The figure in the middle of a ring, shrunk to whatever the hole can actually hold.
 
-/** The 132px ring on Home, Orders and Categories. */
+   The hole is a circle, so the room a line of text has is not the hole's width -- it is the
+   chord at that line's own height, and the value sits above centre with its label underneath.
+   At the authored 16.5px the Categories ring gave the value 90px of chord and "237.538 kr."
+   measured 91.2px, so the figure this app ships today already runs 1.1px past the white and
+   over the segments; a million takes it 11.8px past, ten million 21.7px. Nothing clips it,
+   because the hole is painted by a ::before that the text sits on top of -- so it does not
+   overflow visibly the way a box would, it just quietly touches the ring.
+
+   Measured rather than guessed at from the string's length: the hole is read off the ring's
+   own ::before inset, the chord is computed at the box's furthest edge from centre, and the
+   size is stepped down until it fits. That way a longer currency suffix, a different face or
+   a ring of another size all stay correct without a second number to keep in step. */
+const RingCentre = ({ value, label }) => {
+	const ref = useRef(null)
+
+	/* The size is written straight onto the node and is never React state. It was both for a
+	   while, and that is a bug with a very quiet failure: the measuring pass has to clear the
+	   inline size to read the stylesheet's own, which is a direct DOM write, and then setting
+	   state to the value it already held made React bail out of re-rendering -- so nothing put
+	   the cleared property back and the figure stayed at its authored size. It measured
+	   correctly on every run and applied on none of them. One writer per property. */
+	const fit = useCallback(() => {
+		const el = ref.current
+		if (!el) return
+		const ring = el.parentElement?.parentElement
+		if (!ring) return
+		const box = ring.getBoundingClientRect()
+		if (!box.width) return
+		const inset = parseFloat(getComputedStyle(ring, '::before').inset) || 0
+		const holeR = box.width / 2 - inset
+		// Start from the stylesheet's own size every time, or a re-fit can only ever shrink.
+		const base = parseFloat(getComputedStyle(el).fontSize)
+		el.style.fontSize = ''
+		const authored = parseFloat(getComputedStyle(el).fontSize) || base
+		const cy = box.top + box.height / 2
+		let next = authored
+		// Shrinking moves the box, which changes the chord it has to fit inside, so the fit is
+		// re-checked rather than solved once. Six steps covers 16.5px down to about 9px.
+		for (let i = 0; i < 6; i++) {
+			el.style.fontSize = next + 'px'
+			const t = el.getBoundingClientRect()
+			const dy = Math.max(Math.abs(t.top - cy), Math.abs(t.bottom - cy))
+			const room = dy >= holeR ? 0 : Math.sqrt(holeR * holeR - dy * dy) * 2
+			if (t.width <= room) break
+			// No room at all means the line is taller than the hole, which is still a reason to
+			// shrink -- breaking out of the loop there would give up in the one case that needs
+			// this most, and leave the figure at its authored size lying across the segments.
+			next = Math.max(9, room ? next * Math.max(0.72, room / t.width) - 0.25 : next * 0.8)
+		}
+		el.style.fontSize = next < authored ? next + 'px' : ''
+	}, [])
+
+	useLayoutEffect(fit, [fit, value, label])
+	useEffect(() => {
+		const ring = ref.current?.parentElement?.parentElement
+		const ro = ring && window.ResizeObserver ? new ResizeObserver(fit) : null
+		ro?.observe(ring)
+		/* A layout effect runs before a webfont has loaded, so the first measurement is of the
+		   fallback face -- which is narrower here, fits, and leaves the figure unshrunk for the
+		   Poppins that swaps in a moment later and does not. The ring's own box never changes
+		   when that happens, so the observer above cannot see it either. Re-fit when the fonts
+		   this page actually uses are ready. */
+		let live = true
+		document.fonts?.ready?.then(() => { if (live) fit() })
+		return () => { live = false; ro?.disconnect() }
+	}, [fit])
+
+	return (
+		<span className="ring-centre">
+			<span ref={ref} className="ring-centre-value tabular-figures">{value}</span>
+			<span className="ring-centre-label">{label}</span>
+		</span>
+	)
+}
+
+/** The 132px ring on Home, Orders and Categories. Same separator as the gauge below: these
+    drew their segments butted straight up against each other while Statistics' ring had
+    hairlines between its, so two rings of the same data read as two different charts. The
+    gap is a share of the circle, so one number gives both rings the same hairline. */
 export const Donut = ({ segments, value, label, ariaLabel }) => (
 	<div className="donut" role="img" aria-label={ariaLabel}
-		style={segments?.length ? { background: conic(segments) } : undefined}>
+		style={segments?.length ? { background: conic(segments, RING_GAP) } : undefined}>
 		<RingCentre value={value} label={label} />
 	</div>
 )
@@ -57,12 +138,10 @@ export const Donut = ({ segments, value, label, ariaLabel }) => (
 export const DonutBox = ({ children, className }) =>
 	<div className={['donut-box', className].filter(Boolean).join(' ')}>{children}</div>
 
-/** Statistics' larger ring, which separates its segments with a hairline of the card colour.
-    0.6% is 2.16° -- about 3px of arc on the 170px ring, which is a hairline. It was 2%, which
-    is 7.2° and 10.7px, and put 43° of the 360 into white space. */
+/** Statistics' larger ring, which separates its segments with a hairline of the card colour. */
 export const SpendGauge = ({ segments, value, label, ariaLabel }) => (
 	<div className="spend-gauge" role="img" aria-label={ariaLabel}
-		style={segments?.length ? { background: conic(segments, 0.6) } : undefined}>
+		style={segments?.length ? { background: conic(segments, RING_GAP) } : undefined}>
 		<RingCentre value={value} label={label} />
 	</div>
 )
