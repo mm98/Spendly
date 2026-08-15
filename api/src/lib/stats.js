@@ -392,11 +392,16 @@ function axisFor(range, from, to) {
 	return marks
 }
 
-/** Full statistics for one window. `summary` skips the two sub-computations only the
-    Statistics page itself reads (`recent`: up to 6 *extra* full aggregate queries, one per
-    prior window, for a bar chart nothing else renders; `returnsNote`: one more query for a
-    sentence nothing else prints) — callers building a lighter "period" summary (Home, Orders
-    overview) pass this rather than paying for a chart they throw away. */
+/** Full statistics for one window. `summary` skips the one sub-computation only the Statistics
+    page reads — `recent`, up to 6 *extra* full aggregate queries, one per prior window, for a
+    bar chart nothing else renders — so callers building a lighter "period" summary (Home,
+    Orders overview) do not pay for a chart they throw away.
+
+    `returns` is *not* behind that flag, and used to be. It is one indexed range query, and
+    Orders overview draws the same returns card Statistics does: the flag existed to skip
+    expensive work, so hanging a card's only data source on it meant Orders overview asked for
+    a summary, got `returns: null`, and drew a permanent empty state over a month that had four.
+    Skip what costs; never skip what something renders. README: Empty states. */
 export function getStats(userId, range, windowId, { summary = false } = {}) {
 	const width = ['week', 'month', 'quarter', 'year', 'all'].includes(range) ? range : 'month'
 	const id = windowId && windowBounds(userId, width, windowId) ? windowId : currentWindowId(width)
@@ -442,7 +447,7 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 			rhythm: rhythmOver(userId, bounds.from, bounds.to),
 			split: splitOver(userId, bounds.from, bounds.to, now.spent),
 			recent: summary ? null : recentColumns(userId, width, id),
-			returns: summary ? null : returnsIn(userId, bounds.from, bounds.to),
+			returns: returnsIn(userId, bounds.from, bounds.to),
 			kpis: kpisFor(now, was, previousBounds?.shortLabel),
 			series: {
 				current: seriesOver(userId, bounds.from, bounds.to),

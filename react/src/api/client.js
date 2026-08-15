@@ -274,6 +274,10 @@ const periodFromWindow = w => ({
 	   01/08/15/22/29 instead -- five dates that are no unit of anything, printed unchanged under
 	   a February that has 28. The window knows its own bounds; nothing else does. */
 	axis: w.axis,
+	/* The window's returns, as records. Orders overview draws the same card Statistics does,
+	   and used to draw it from nothing at all -- a hardcoded "No open returns found" over a
+	   month holding four. README: Empty states. */
+	returns: w.returns,
 	spent: w.spent, saved: w.saved, savedPercent: w.savedPercent, retail: w.retail,
 	averageOrder: w.average, weekdays: w.rhythm.weekdays,
 	busiestDay: w.rhythm.busiestDay, busiestDaySpend: w.rhythm.busiestDaySpend,
@@ -321,7 +325,9 @@ export async function resetStoredData(signal) {
 
 /** Replaces this account's ledger with a year of generated demo orders, so the app can be
     looked at with something in it. Replaces rather than adds — see the route's own note.
-    Answers { orders, vendors, categories, months }. */
+    A different year each press: no seed is sent, so the route picks one. Answers
+    { orders, vendors, categories, months, seed } — the seed it used, which is what makes a
+    dataset worth reporting reproducible. */
 export async function populateDemoData(signal) {
 	return request('/api/demo-data', { method: 'POST', signal })
 }
@@ -341,10 +347,11 @@ export async function getStats(range, windowId, signal) {
 }
 
 /** The lighter form getOrdersOverview/getHomeContent build their "period" summary from —
-    everything periodFromWindow reads, minus the two sub-computations only the Statistics page
-    itself needs (`recent`: up to 6 *extra* aggregate queries for a bar chart; `returnsNote`: one
-    more query for a sentence) that were making Home and Orders overview pay for a chart they
-    throw away. Not exported: nothing calls this through useApi directly. */
+    everything periodFromWindow reads, minus the one sub-computation only the Statistics page
+    itself needs (`recent`: up to 6 *extra* aggregate queries for a bar chart) that was making
+    Home and Orders overview pay for a chart they throw away. The window's returns are not
+    behind the flag: they are one indexed query and Orders overview renders them.
+    Not exported: nothing calls this through useApi directly. */
 const getStatsSummary = (range, windowId, signal) =>
 	request('/api/stats' + qs({ range, windowId, summary: 1 }), { signal })
 

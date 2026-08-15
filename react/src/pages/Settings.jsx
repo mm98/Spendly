@@ -195,7 +195,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						<p className="card-lead" style={{ marginTop: 0 }}>
 							Fill the account with a year of made-up orders — twelve months back, every
 							vendor and category its own colour — so the lists and charts have something
-							in them to look at.
+							in them to look at. A different year every time: the orders, their days
+							and their totals are rolled fresh on each fill.
 						</p>
 						{filling ? (
 							<>

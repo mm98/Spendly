@@ -4,6 +4,7 @@ import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../componen
 import { Chart, ChartScale, plotted } from '../components/Chart.jsx'
 import { Donut, DonutBox } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
+import { ReturnsCard } from '../components/Returns.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
@@ -122,16 +123,12 @@ export default function Orders() {
 					</div>
 
 					<div className="order-list-column">
-						<Card aria-label="Returns this month">
-							<CardHeader title="Returns this month" />
-							<CardDivider />
-							<CardBody>
-								<EmptyState>
-									<p>No open returns found</p>
-									<ButtonLink to="/orders/all?status=Returned">SEE RETURN HISTORY</ButtonLink>
-								</EmptyState>
-							</CardBody>
-						</Card>
+						{/* The same card Statistics draws, from the same data, at this page's own
+						    width -- it used to be markup with nothing behind it, four rows of
+						    returns on Statistics and a permanent "No open returns found" here.
+						    README: Empty states. */}
+						<ReturnsCard title={`Returns · ${data.period.label}`}
+							span={data.period.shortLabel} returns={data.period.returns} />
 
 						<Card aria-label="Question of the day">
 							<CardHeader title="Question of the day" />

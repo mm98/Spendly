@@ -920,3 +920,100 @@ same 0.02px worst error.
 Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
 **Not run:** Gecko and WebKit are not installed in this container.
 
+
+---
+
+## Returns — one card said four and the other said none
+
+August held four returns. *Statistics* listed them: Proshop on the 9th, 1.510 kr.; Power on the 7th,
+669; Føtex on the 5th, 371; Zalando on the 2nd, 3.171. *Orders overview*, one click away and scoped to
+the same month, drew a search glyph and the sentence **"No open returns found"**.
+
+Neither page could fail on its own. Statistics rendered correct rows from a correct query. Orders
+rendered a correct empty state — correct markup, correct icon, correct spacing, in every engine and at
+every width — over data it had never asked for. The card was a stand-in: `EmptyState` with a hardcoded
+sentence and a link, no data path behind it, so it drew the same thing over a month with four returns
+and over a month with none. The two pages only disagreed with each other, and only about a fact
+neither of them printed twice.
+
+Behind it was a flag doing a job it was not for. `getStats(…, { summary })` exists to skip expensive
+work for callers that will throw it away — `recent` is up to six extra full aggregate queries for a
+bar chart only Statistics draws. `returns` had been put behind the same flag, and it is one indexed
+range query that a card renders. Orders overview asked for a summary, got `returns: null`, and had
+nothing to draw even once someone thought to draw it. **Skip what costs; never skip what something
+renders.**
+
+### One card now, not two copies
+
+`ReturnsCard` is the card, and both pages call it with the window they are showing. Measured at
+1440x900 and under `devices['iPhone 13']`, each route loaded fresh:
+
+| page / range | rows drawn | count line |
+|---|---|---|
+| Orders overview (August) | Proshop 1.510 · Power 669 · Føtex 371 · Zalando 3.171 | — |
+| Statistics, month (Aug) | the same four, in the same order | — |
+| Statistics, week (Week 33) | none — "No returns in Week 33." | — |
+| Statistics, year (2026) | the newest five | The 5 most recent of 40 in 2026. |
+| Statistics, all time | the newest five | The 5 most recent of 65 in all time. |
+
+Identical on desktop and phone, 0 page errors, 0 document overflow, the card 392.4px in Orders'
+right-hand rail and 366px on a phone with the heading on one line in both.
+
+### The word "open"
+
+It meant a return whose refund has not landed — the record carries a `refunded` flag, and Statistics
+prints "· refunded in full" beside a row that has it. Nothing filtered on it: the sentence claimed a
+distinction the card never applied. Nothing can *set* it either — no form field writes `refunded`, and
+generated data leaves all 65 returns unrefunded — so the open/closed distinction the copy leant on is
+one the product cannot currently record at all. The card says returns and lists returns; the empty
+sentence names the span it is empty of, which is the thing a reader actually needs.
+
+### The action under it
+
+The closing link was the one card in seven that was not the full-width block button. `.button-link`
+declares no top margin of its own, so it sat **2px** under the last row of the list; the six cards that
+close with `.button.button-block` sit at **12px**, that variant's own margin. It is now the block
+button in all seven, measured at 12px in every state of both pages, at both widths.
+
+Two smaller things went with it. The empty state was the app's only `icon={null}` with a `14px 12px`
+padding override — 13 empty states, 12 of them the shape the design system defines, and the odd one
+out was the one two pages had to agree on. And the count line's `style="display:block;margin-top:10px"`
+became `.entry-list-note`: an inline declaration outranks every rule the stylesheet can write, which
+is a bad trade for a value that now has more than one call site.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Demo data — the button rebuilt the same year every time
+
+FILL WITH DEMO DATA wipes the account and generates twelve months of orders. The generator is
+deterministic for a given `(seed, today)` — deliberately, so one harness run can be compared against
+another instead of eyeballed — but the seed was a **default parameter on the generator** and the
+button was the only caller. It never passed one. So every press of it, on every account, on the same
+day, produced the identical year: the same 413 orders, on the same days, from the same vendors, for
+the same totals. Pressing it twice looked exactly like pressing it once, which is the one thing a
+button that says *fill* must not look like.
+
+The seed belongs to the caller, so the route picks one now and passes it. Three presses, no seed
+sent:
+
+| press | seed | orders | month spend |
+|---|---|---|---|
+| 1 | 1791625037 | 435 | 15.394 kr. |
+| 2 | 197403416 | 393 | 19.735 kr. |
+| 3 | 1456363375 | 424 | 20.708 kr. |
+
+Three distinct datasets of three, compared as the full sorted list of every order's
+date · vendor · status · kind · total · line count.
+
+Determinism did not go anywhere — it moved to where it can be asked for. `POST /api/demo-data` takes
+`{"seed": n}`, and the response now says which seed it used, so a dataset can be named in a bug
+report and rebuilt. Seed 424242 twice: **413 orders, identical on all six fields**. Seed 424243:
+**402 orders, different**. (Row *ids* stay random and always were, so two orders sharing a date can
+come back either way round under `date DESC, id DESC`; the fingerprint above is of the data, not of
+the tie-break.)
+
+Measured against the API directly at `localhost:4000` — no browser involved, since nothing here is a
+rendering question.

@@ -283,6 +283,8 @@ A card is a section with optional header, content, and divider.
 
 **A note and the action under it stand 12px apart, set from the note** (`.note + .button`). Set from the button, the gap depends on which variant happens to follow — one variant carries its own margin and another carries none, which is how the same pair once measured 12px on one page and 0 on another. ([`docs/defects.md`](docs/defects.md))
 
+**A card that ends with a link into a longer list ends with the block button.** Seven cards do — latest orders, waiting receipts, categories twice, vendors, recent scans, returns. The seventh spent a while as a bare underlined link instead: a different weight, a smaller thing to hit, and 2px of air above it where the other six have 12. One job, one control. ([`docs/defects.md`](docs/defects.md#returns--one-card-said-four-and-the-other-said-none))
+
 ### Data Rows
 
 A row displays one record in a list. It is either:
@@ -322,7 +324,11 @@ What a list shows when it holds nothing: a 42px icon tile, then one sentence, ce
 
 **An empty state is an answer, not an absence.** A filtered list with no matches says so under the very filters that caused it — the chips stay, because removing them is how the user gets out. A record that does not exist gets "Nothing here." rather than an empty frame that looks like a slow one.
 
-**The sentence says what would fill it** ("No orders match these filters", not "No data") — the difference between a dead end and a next step.
+**The sentence says what would fill it** ("No orders match these filters", not "No data") — the difference between a dead end and a next step. It names the span it is empty *of*, too: "No returns in Aug." over a card headed *Returns · Aug*, so the reader is not left asking which stretch of time was searched.
+
+**An empty state has to be able to fill.** A card that shows the same sentence whatever the records hold is not answering — it is a picture of an answer, and on the day the list really is empty it is indistinguishable from a working one. *Returns this month* said "No open returns found" over a month holding four returns, and would have said it over a month holding four hundred. ([`docs/defects.md`](docs/defects.md#returns--one-card-said-four-and-the-other-said-none))
+
+**Its words have to be ones the product can make true.** "No open returns" promises a difference between an open return and a closed one; a return is closed when its refund lands, and nothing in the app can record that a refund landed. A sentence naming a state the product cannot reach is the [decorative control](#honest-affordances) defect written in prose.
 
 ### Chips
 
@@ -476,6 +482,8 @@ The landing screen, top to bottom: the stretch of time being viewed, the hero ch
 ### Orders Overview
 
 The month in review: this month against the one before, side by side with the same structure in both columns — same rows, same order, so the eye compares without re-reading. Then the latest orders, suggestions drawn from history, and the question of the day.
+
+**The returns card is the one on [Statistics](#statistics), at this page's width.** Same rows, same count line, same link — one card, drawn from the window each page is showing, because two copies of it is how one page came to report four returns in August while the other reported none.
 
 **The question card** asks something the data can answer ("Did you order more than last month?"), shows the answer in the note tones, and offers one action — SEE THOSE ORDERS — which is a link into All Orders carrying the filters that prove the answer. The card is a door, not a widget.
 
@@ -691,6 +699,7 @@ A control is a promise. Everything drawn as interactive must do the thing it dep
 - **Hover states are earned.** Only elements that navigate get the row tint — it's keyed on `data-go`, the attribute that actually navigates, not on the row's class. A tint on an inert row invites a click that does nothing.
 - **Disabled is shown, not hidden.** A pager at its last page shows NEXT disabled rather than removing it — the control exists, it just can't act right now, and the difference is information.
 - **Copy is a promise too.** If the words enumerate what the product accepts, every named case must work (see [Scan Flow](#scan-flow)).
+- **A control that rebuilds something rebuilds it visibly.** FILL WITH DEMO DATA wiped a year of orders and wrote back the same year — same count, same days, same vendors — so pressing it twice was indistinguishable from pressing it once, and from pressing nothing. Made-up data is made up afresh on every press. ([`docs/defects.md`](docs/defects.md#demo-data--the-button-rebuilt-the-same-year-every-time))
 
 ### Accessibility
 

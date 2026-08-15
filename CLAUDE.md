@@ -240,6 +240,26 @@ its step; page the pager, then read the width. Labels count as the other control
 name was fixed at "Daily spend through July" while the tabs beside it chose the series and the chips
 chose the span, so it announced neither, and a screen reader heard "spend" over a line of order counts.
 
+**Two pages that state the same fact are a probe, and only reading both of them runs it.** Statistics
+listed August's four returns; Orders overview, scoped to the same month, said *No open returns found*
+-- and it said it because the card was markup with no data path behind it, so it would have said it
+over four hundred. Every instrument here cleared it: it renders, it renders identically run to run, it
+is in every engine, its rects and computed styles are right, and its empty state is the shape the
+design system defines. An empty state is *supposed* to look like that; the only thing that can
+distinguish a correct one from a card that cannot fill is a second source for the fact it is empty of.
+So when a page prints a figure, a count or a list that another page also prints, read it in both and
+require them to agree -- this is the two-controls rule one level up, where the disagreement is between
+pages rather than between controls, and neither side is ever wrong on its own terms. Where they share
+one component, the check is free and the defect cannot recur.
+
+**Ask what a card would have to be given to be empty, and check it was given it.** The gap above is
+not really about pages -- it is that an empty state, a zero and a "none" are the three renderings that
+look correct when the data never arrived. `returns` was `null` because it sat behind a `summary` flag
+whose job was skipping expensive work nothing renders, and a null list draws the same empty branch a
+genuinely empty list draws. Any probe reading a card that can legitimately be empty has to assert the
+*query* was empty, not just the card: read the endpoint the page called, and compare its payload to
+what was drawn. A rendered "none" is not evidence of none.
+
 **A decoration has no state to read back, so every probe above skips it.** The tick strip under every
 chart was a `repeating-linear-gradient` -- a line every 24px, from one declaration, with no element per
 tick, no attribute, no handler and no data behind it. Fire it and nothing moves; walk the DOM and it is
@@ -379,6 +399,17 @@ and empty fields that passed, are exactly what the *previous* build does, and ne
 pair of new bugs. Before hunting an unreproducible report, establish which build is in front of the
 reporter -- one question about a string only the new file contains settles it, and it is cheaper than
 any of the four theories it replaces.
+
+**A fixture built for the harness is not a fixture built for the product, and the app is not the
+place to keep the difference.** The demo generator is deterministic on purpose -- that is what lets
+two runs be compared rather than eyeballed, and it is a good property. It was held by a *default*
+seed on the generator, and the app's own FILL WITH DEMO DATA was the only caller and never passed
+one, so the button rebuilt the identical year on every press: the property the measurement wanted was
+the property the product must not have, and one constant in the wrong place gave the harness what it
+needed by taking it out of the product. Every probe here was happier for it, which is exactly why it
+sat. Put the reproducibility on the call -- the harness names its seed, the button rolls one -- so the
+determinism a run depends on is something a run asks for, never something the shipped path is stuck
+with. Then say which you used: a number in a report that cannot be re-rolled is not evidence.
 
 **A narrow viewport is not a phone, in a harness any more than in a screenshot.** The cross-engine run
 that cleared this change used a plain 390px window, so `pointer: coarse` never matched and the whole

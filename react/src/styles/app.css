@@ -559,6 +559,12 @@ svg.chart { width:100%; display:block; }
 .chart-series-key .chart-series-key-row { display:inline-flex; align-items:center; gap:6px; }
 .chart-series-key .chart-series-key-swatch { width:9px; height:9px; border-radius:3px; flex:none; }
 .entry-list { margin-top:8px; }
+/* The count under a truncated list ("The 5 most recent of 40 in Aug."). A block of its own, so
+   the button under it clears it -- .field-help is an inline span, and inline is what let this
+   line sit inside the row above it. Written as style="display:block;margin-top:10px" at its one
+   call site until the card became shared: an inline declaration outranks every rule the
+   stylesheet can write, so a value with a name belongs on the element as that name. */
+.entry-list-note { display:block; margin-top:10px; }
 /* Base spec, for the same reason .section-label and .card-caption have one: a group inside a
    card names itself, and the entry list is not the only group that does. The hero card's legend
    is written per month under a header that names a window, so it says which month over its own

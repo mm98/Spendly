@@ -89,7 +89,12 @@ const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, posit
 
 /** Populates one account with `months` months of orders ending today. Deterministic for a
     given (seed, today) so two runs of the verification harness can be compared rather than
-    merely eyeballed. Runs in one transaction: a half-written year is worse than none. */
+    merely eyeballed. Runs in one transaction: a half-written year is worse than none.
+
+    The seed belongs to the caller. The default here is a fallback for a caller that has no
+    opinion, not the dataset: the route behind FILL WITH DEMO DATA picks a fresh one per press,
+    because a constant default meant the only caller in the app rebuilt the same year every
+    time. Determinism is a property of (seed, today), not of leaving the argument off. */
 export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242 } = {}) => {
 	let s = seed
 	const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
