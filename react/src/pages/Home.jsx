@@ -2,7 +2,7 @@ import { useId } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Chart, ChartScale, plotted } from '../components/Chart.jsx'
+import { Chart, ChartScale, plotted, todayMarker } from '../components/Chart.jsx'
 import { Donut, DonutBox, Meter, WeekdayBars, foldForRing, useListBudget } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow, LegendRow } from '../components/Rows.jsx'
 import { DashboardCards } from '../components/DashboardCards.jsx'
@@ -87,6 +87,10 @@ function Hero({ month, categories }) {
 						    description, because the resting state is visibility:hidden and a hidden node is out
 						    of the accessibility tree unless something references it. README: Charts. */}
 						<div className="chart-wrap">
+							{/* Today, on both lines: they are two facts about the same days, and a
+							    mark on one of them would say the other ends somewhere else. The
+							    comparison lines elsewhere get none, because their days are not
+							    today's. README: Charts. */}
 							<Chart height={HERO_HEIGHT} label={heroLabel(view)}
 								tabIndex={0} aria-describedby={calloutId}
 								/* The one chart here that was drawn 'line' -- straight segments with a corner at
@@ -102,6 +106,10 @@ function Hero({ month, categories }) {
 								series={[
 									{ points: line(spend), kind: 'curve', stroke: 'var(--teal)', strokeWidth: 2 },
 									{ points: line(saved), kind: 'curve', stroke: 'var(--green)', strokeWidth: 1.6 }
+								]}
+								markers={[
+									...todayMarker(view.todayIndex, { series: 0, colour: 'var(--teal)' }),
+									...todayMarker(view.todayIndex, { series: 1, colour: 'var(--green)' })
 								]} />
 							{/* Read off the window's own days. The authored sentence named July's 23rd and a
 							    vendor, and stayed there while the chips moved the chart under it. */}
@@ -260,8 +268,8 @@ function LatestOrders({ orders, rows }) {
 			<div className="list-heading">Latest orders</div>
 			{orders.slice(0, budget).map(order => (
 				<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-					meta={dayMonth(order.date)} amount={krRound(order.total)}
-					to={`/orders/${order.id}`} />
+					meta={dayMonth(order.date)} amount={kr(order.total)}
+					sub={`saved ${kr(order.saved)}`} to={`/orders/${order.id}`} />
 			))}
 		</div>
 	)
@@ -426,7 +434,7 @@ export default function Home() {
 											   first order landed later than the 2nd, a claim about a day the
 											   curve has nothing to say about. daysIn is the same count Statistics'
 											   own pace reads its "N days of records" from. */
-											markers={[{ index: data.period.daysIn - 1, series: 0, r: 4.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 2 }]} />
+											markers={todayMarker(data.period.todayIndex, { colour: '#4F5BD5' })} />
 										<ChartScale marks={data.period.axis} span={data.period.series.cumulative.length} />
 										{/* The total, in the slot the total goes in -- this list held the
 										    saving there and the total in the meta line beneath the vendor,
@@ -463,20 +471,21 @@ export default function Home() {
 												{ offset: 0, color: '#14AC72', opacity: 0.22 },
 												{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
 											baselines={[{ y: 87, stroke: '#E4E7E2', dash: '3 4' }]}
-											/* 3px of daylight at both ends, and it is the stroke's: a 2.2px line paints
-											   1.1px either side of where it sits, and the zero line used to sit flush
-											   with the box's own bottom edge (top === height), so the flat lead-in most
-											   accounts draw before their first order had half its stroke clipped away
-											   by the SVG boundary. The top was 17 to absorb the old spline's overshoot
-											   instead -- there are no markers on this chart, so with a monotone curve
-											   the peak is the peak and the other 14px were held for nothing. The area's
-											   own close still runs to height regardless of top. README: Home. */
+											/* 6.5px of inset at both ends, and it is the marker's: a 4.5px circle with
+											   a 2px stroke paints 5.5px past the point it sits on, and a running total
+											   peaks on its own last day, so today's mark on the peak would have half
+											   its circle cut off by the SVG's edge. It was 3 while this chart had no
+											   marker on it -- enough for the 2.2px line's own half-stroke and nothing
+											   more -- and 17 before that, held for a spline overshoot the monotone
+											   curve cannot draw. The area's own close still runs to height regardless
+											   of the top. README: Home, Charts. */
 											series={[
 												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 87, 3), kind: 'area', fill: 'gradient:savings' },
+													Math.max(...data.period.series.savingsGrowth), 83.5, 6.5), kind: 'area', fill: 'gradient:savings' },
 												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 87, 3), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
-											]} />
+													Math.max(...data.period.series.savingsGrowth), 83.5, 6.5), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
+											]}
+											markers={todayMarker(data.period.todayIndex, { series: 1, colour: '#14AC72' })} />
 										<ChartScale marks={data.period.axis} span={data.period.series.savingsGrowth.length} />
 									</>
 								) : (

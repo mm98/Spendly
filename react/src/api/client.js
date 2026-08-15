@@ -268,6 +268,8 @@ const periodFromWindow = w => ({
 	label: w.label, shortLabel: w.shortLabel, previousLabel: w.previousLabel,
 	// The window's own dates, for the links out of it -- see ordersIn below.
 	from: w.from, to: w.to,
+	// Which point on the charts drawn from this window is today, or null if it holds no today.
+	todayIndex: w.todayIndex,
 	/* The window's own marks. Every chart drawn from this object used to carry a hardcoded
 	   01/08/15/22/29 instead -- five dates that are no unit of anything, printed unchanged under
 	   a February that has 28. The window knows its own bounds; nothing else does. */

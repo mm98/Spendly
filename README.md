@@ -300,6 +300,8 @@ Editing never happens in the row — a record is edited on its own form page, on
 
 All gaps are 12px. If that's wrong for a row type, it needs its own CSS rule.
 
+**An order is listed the same way wherever it is listed.** Four screens draw a list of orders — the latest on Home, the latest on Orders overview, the returns card, and All orders — and the money column is one shape in all four: the total, then what it saved beneath it in the muted tone. They had three shapes between them, and the saved line was drawn only where the figure was positive, so a row that saved nothing had a total where every other row had a total and a line under it. **A zero is a figure, so it is printed**: *saved 0,00 kr.* An absent line is not "nothing saved" — it is a reader wondering what is missing from this row.
+
 **The money column holds what the row is worth, and its colour is not an argument.** A list of orders shows what each order cost; a list of vendors shows what has been spent there. Two lists of orders once showed the *saving* instead — "+26,04 kr.", in green, in the slot every other list puts the total in — because the slot itself was green by default and the figure was picked to agree with the colour. Green means saved, everywhere, so a slot that is green whatever it holds is a claim about every number put in it. Where a row has both figures to state, the total leads and the saving is the second line under it, in the muted tone, named. ([`docs/defects.md`](docs/defects.md#data-rows--the-money-column-was-green-so-two-lists-showed-the-saving))
 
 **Hover state:** On desktop with a pointer, rows that navigate show a tint (`[data-go]:hover`). On phone with touch, no hover. The tint bleeds 10px into the card gutter on each side.
@@ -419,6 +421,10 @@ Small quantitative graphics, each with one job:
 **None of these carry text.** The figure they illustrate stands beside them as real text in tabular figures — a number inside a graphic is a number a screen reader loses and a walk cannot compare.
 
 ### Charts
+
+**A line that runs through today says so, in one mark.** Every line chart draws the same 4.5px circle in the line's own colour on today's point — and none where today is outside the window, which is a stretch of time that has already finished and a mark reading *you are here* about a day months ago. A comparison line gets none either: it runs through its own days, and today is not among them. Two of the app's five charts drew this and drew it two different ways, one as a haloed disc and one as a dot; three drew nothing.
+
+**A chart with a mark on it is inset by the mark, not by the line.** The circle paints 5.5px past the point it sits on and a running total peaks on its own last day, so the plotted band is inset 6.5px top and bottom — the same 6.5 everywhere, since it is the same mark. Horizontally the line runs edge to edge and the mark keeps its own circle off the sides.
 
 The app draws a line chart, a donut, weekday bars, meters and progress rings. Eight rules hold them together:
 

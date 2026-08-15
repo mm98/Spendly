@@ -1353,3 +1353,59 @@ and under `devices['iPhone 13']`, 0 page errors.
 
 Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
 **Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Charts — three of five line charts never said where today was
+
+Home's Orders card drew a dot on today's point. Orders overview drew a haloed disc on it. The
+hero, the savings chart and every chart on Statistics drew nothing — so the same question, *where
+on this line is now*, had three answers depending which card you were reading.
+
+It is one mark now: a 4.5px circle, white, stroked 2px in the line's own colour, on the point the
+window says is today. The window says it — `todayIndex`, null when the window holds no today —
+rather than each page working it out from a day count, because "is today inside this window" is a
+fact about the window and three pages deriving it separately is three chances to mark a month that
+ended in March.
+
+The sweep is the point. Rather than checking the three charts that were changed, every `svg.chart`
+in the app is enumerated from the DOM across eleven states and eleven cards, at 1440x900 and under
+`devices['iPhone 13']`, against one rule: one marker per line that runs through today, on that
+line, in that line's colour; none on a comparison line; none at all in a window paged into the
+past. **0 failing, both widths, 0 page errors.**
+
+| state | chart | lines | markers |
+|---|---|---|---|
+| Home | hero, spend and saved | 2 | 2 — both run to today |
+| Home | Orders, Saved vs retail | 1 each | 1 each |
+| Orders overview | this month against last | 2 | 1 — the paler line is last month |
+| Statistics · week / month / quarter / year / all time | current against previous | 2 | 1 |
+| Statistics · March, · 2025 | current against previous | 2 | **0** |
+
+The inset came with it: the circle paints 5.5px past its point and a running total peaks on its own
+last day, so the plotted band is inset 6.5px top and bottom on every chart that carries a mark. It
+was 3px on the savings chart, which would have clipped the circle in half, and 17px on Orders
+overview, held for a halo of r=13 that no longer exists — that chart's line has 10.5px more height
+to use.
+
+## Data Rows — an order's total was listed three ways
+
+Four screens list orders: the latest on Home, the latest on Orders overview, the returns card on
+two pages, and All orders. Between them the money column had three shapes — rounded with no saving,
+rounded with no saving, and exact with a saving printed *only where it was positive*. So the same
+order read `1.510 kr.` on one card and `1.509,88 kr.` with a line under it on another, and within
+All orders the column changed shape row to row depending on whether that order had saved anything.
+
+One shape now, in all four: the exact total, and beneath it `saved …` in the muted tone, on every
+row. **A zero is a figure and is printed** — an order at full price reads `saved 0,00 kr.` rather
+than a blank where every neighbour has a line. Swept from the DOM across six routes at both widths:
+**every order row in the app carries the saved line, 100% of rows, and every one prints decimals**;
+vendors and categories keep their own rounded record shape, consistently within itself.
+
+The sweep caught its own regression on the way: the returns payload had no `saved` field, because
+those rows had never printed one, so the first run of the fixed markup drew `saved NaN,undefined
+kr.` in the two returns cards. A per-call-site check would have shown two lists agreeing with each
+other and disagreeing with reality.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.

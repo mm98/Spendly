@@ -110,6 +110,24 @@ function useMeasuredWidth() {
 	return [ref, width]
 }
 
+/* Today, on a line that runs through it.
+
+   Every line chart in the app draws the same mark in the same place, because it answers the same
+   question on all of them -- *where on this line is now*. Two of the five drew one, three did
+   not, and the two that did drew it differently, so the same fact was a halo and a dot on one
+   page, a bare dot on another, and nothing at all on the rest.
+
+   Null where today is outside the window, which is the whole point of taking `todayIndex` from
+   the API rather than reaching for the last point: a month paged back on Statistics has a line
+   that ends at its own last day, and marking that would say "you are here" about a day three
+   months ago. Null again where the chart is a comparison -- the previous window's line runs
+   through its own days, and none of them is today.
+
+   `series` names which line it sits on; `colour` is that line's own stroke, so the mark reads as
+   part of it rather than as a fifth colour on the page. */
+export const todayMarker = (index, { series = 0, colour } = {}) =>
+	(index == null ? [] : [{ index, series, r: 4.5, fill: '#fff', stroke: colour, strokeWidth: 2 }])
+
 /**
  * series:    [{ points, kind: 'line' | 'curve' | 'area', stroke, strokeWidth, fill, dash }]
  * baselines: [{ y, stroke, dash }]

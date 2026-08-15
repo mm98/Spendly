@@ -75,7 +75,7 @@ export default function AllCategories() {
 										? `${percent(category.share)} of expenses · ${krRound(category.spend)} of ${krRound(category.budget)} budget`
 										: `${percent(category.share)} of expenses · no budget set`}
 									amount={krRound(category.spend)}
-									sub={category.saved > 0 ? `saved ${krRound(category.saved)}` : undefined}
+									sub={`saved ${krRound(category.saved)}`}
 									editTo={`/categories/${category.id}/edit`}
 									ordersTo={`/orders/all?category=${category.id}`}
 									ordersLabel={`Orders in ${category.name}`} />

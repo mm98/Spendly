@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
-import { Chart, ChartScale, RangeTabs, bucketsFor, plotted, sampled } from '../components/Chart.jsx'
+import { Chart, ChartScale, RangeTabs, bucketOf, bucketsFor, plotted, sampled, todayMarker } from '../components/Chart.jsx'
 import { Meter, MonthColumns, SpendGauge, WeekdayBars } from '../components/Viz.jsx'
 import { LegendRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
@@ -146,10 +146,20 @@ export default function Stats() {
 										{ offset: 0, color: '#14AC72', opacity: 0.2 },
 										{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
 									series={[
-										{ points: plotted(points, ceiling), kind: 'area', fill: 'gradient:spend' },
-										{ points: plotted(points, ceiling), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.4 },
-										...(compare ? [{ points: plotted(compare, ceiling), kind: 'curve', stroke: '#95ABAA', strokeWidth: 1.6, dash: '4 4' }] : [])
-									]} />
+										{ points: plotted(points, ceiling, 203.5, 6.5), kind: 'area', fill: 'gradient:spend' },
+										{ points: plotted(points, ceiling, 203.5, 6.5), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.4 },
+										...(compare ? [{ points: plotted(compare, ceiling, 203.5, 6.5), kind: 'curve', stroke: '#95ABAA', strokeWidth: 1.6, dash: '4 4' }] : [])
+									]}
+									/* Today, and only where the window holds one: this is the page with a
+									   pager, so the same chart draws a month that ended in March. The index
+									   is a day, and this series may be cut into months -- so it goes through
+									   the same cut the points did, or the mark would sit on the 15th point
+									   of twelve rather than in the month it is in. Not on the dashed line:
+									   that is the window before, whose days are not today's.
+									   README: Charts. */
+									markers={todayMarker(view.todayIndex == null ? null
+										: bucketOf(view.todayIndex, view.series.current.length, buckets),
+									{ series: 1, colour: '#14AC72' })} />
 								<ChartScale marks={view.axis} span={view.series.current.length} buckets={buckets} />
 							</CardBody>
 						</Card>

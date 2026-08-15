@@ -1,7 +1,7 @@
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
-import { Chart, ChartScale, plotted } from '../components/Chart.jsx'
+import { Chart, ChartScale, plotted, todayMarker } from '../components/Chart.jsx'
 import { Donut, DonutBox } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
@@ -61,28 +61,24 @@ export default function Orders() {
 								<Chart height={250} style={{ marginTop: 8 }}
 									label={`${data.period.shortLabel} against ${data.period.previousLabel}, day by day`}
 									baselines={[{ y: 128, stroke: '#D9DDD8', dash: '5 5' }]}
-									/* 17px of vertical inset (plotted()'s 3rd/4th args, not a chart-level
-									   pad) is the marker's room: the halo below is r=13 and rides the line,
-									   which on a running total peaks on its last day and rests on the flat
-									   lead-in before the first order, so both ends need more than that
-									   radius. It was first written for the old spline's overshoot on a day
-									   of no spend beside a day of a lot of it; the curve is monotone now and
-									   stays between the two days it joins, but the halo still wants all 17,
-									   so the number stands and only its reason changed. Horizontally the
-									   line runs edge to edge -- the marker keeps its own circle off the side
-									   edges, not an inset on the line. README: Home. */
+									/* 6.5px of vertical inset (plotted()'s 3rd/4th args, not a chart-level pad)
+									   is the marker's room, and it is the same 6.5 on every chart that draws
+									   one: a 4.5px circle with a 2px stroke paints 5.5px past its point, and
+									   a running total peaks on its own last day. It was 17 for a halo of
+									   r=13 that no longer exists, and 17 before that for a spline overshoot
+									   the monotone curve cannot draw -- so the line has 10.5px more height
+									   to use. Horizontally it runs edge to edge; the marker keeps its own
+									   circle off the side edges rather than the line being inset for it.
+									   README: Charts. */
 									series={[
-										{ points: plotted(data.period.series.monthPrevious, chartMax, 233, 17), kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
-										{ points: plotted(data.period.series.monthCurrent, chartMax, 233, 17), kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
+										{ points: plotted(data.period.series.monthPrevious, chartMax, 243.5, 6.5), kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
+										{ points: plotted(data.period.series.monthCurrent, chartMax, 243.5, 6.5), kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
 									]}
-									/* Same fix as Home's Orders card: monthCurrent is that same running
-									   total (both read w.series.current), and a marker fixed at index 3
-									   landed on the flat lead-in for any account whose first order came
-									   later than the 3rd. daysIn - 1 is where the line actually is today. */
-									markers={[
-										{ index: data.period.daysIn - 1, series: 1, r: 13, fill: '#4F5BD5', opacity: 0.14 },
-										{ index: data.period.daysIn - 1, series: 1, r: 5.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 3 }
-									]} />
+									/* Today, on the current month's line only -- the paler line behind it is
+									   last month, whose days are not today's. It was a halo and an oversized
+									   dot here and a plain dot on Home, which is one fact drawn two ways on
+									   two pages; the mark is the same everywhere now. README: Charts. */
+									markers={todayMarker(data.period.todayIndex, { series: 1, colour: '#4F5BD5' })} />
 								<ChartScale marks={data.period.axis} span={data.period.series.monthCurrent.length} />
 							</CardBody>
 						</Card>
@@ -101,8 +97,8 @@ export default function Orders() {
 								<CardBody variant="entry-list card-body-tight">
 									{data.latest.map(order => (
 										<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-											meta={dayMonth(order.date)} amount={krRound(order.total)}
-											to={`/orders/${order.id}`} />
+											meta={dayMonth(order.date)} amount={kr(order.total)}
+											sub={`saved ${kr(order.saved)}`} to={`/orders/${order.id}`} />
 									))}
 									<Button variant="block" to="/orders/all">SEE ALL</Button>
 								</CardBody>

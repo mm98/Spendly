@@ -1,7 +1,7 @@
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from './Card.jsx'
 import { EntryRow } from './Rows.jsx'
 import { Button } from './Button.jsx'
-import { dayMonth, krRound } from '../api/format.js'
+import { dayMonth, kr } from '../api/format.js'
 
 /* The returns in a window, on whichever page asks for them.
 
@@ -36,7 +36,8 @@ export function ReturnsCard({ title, span, returns }) {
 							{items.map(r => (
 								<EntryRow key={r.id} avatar={r.vendor} name={r.vendor.name}
 									meta={`${dayMonth(r.date)}${r.refunded ? ' · refunded in full' : ''}`}
-									amount={krRound(r.total)} to={`/orders/${r.id}`} />
+									amount={kr(r.total)} sub={`saved ${kr(r.saved)}`}
+									to={`/orders/${r.id}`} />
 							))}
 						</div>
 						{/* Said only when some are missing: "5 of 5" on a card showing all five is a

@@ -271,6 +271,17 @@ genuinely empty list draws. Any probe reading a card that can legitimately be em
 *query* was empty, not just the card: read the endpoint the page called, and compare its payload to
 what was drawn. A rendered "none" is not evidence of none.
 
+**Fix the class, not the instance you were shown.** Three rounds of this session went: a defect is
+pointed at, the one card is fixed, and the next round points at its neighbour. Every one of them was
+the same rule broken in several places -- the entry count in six, the money column in four, the
+today-marker in five -- and each time the fix touched only what was on screen in the screenshot.
+The cheap move is to stop hand-checking and enumerate: build the list from the DOM rather than from
+the call sites you remember, assert one rule over all of it, and read the failures. The sweep for
+the markers found the app already right in ten of eleven charts and the eleventh was the probe's
+expectation, which is a minute well spent; the sweep for the money column found a regression I had
+introduced two minutes earlier in the very same edit. Neither was reachable by looking harder at the
+thing that was reported.
+
 **Check the rule, not the gap it leaves -- a fixture can hide an outcome the arithmetic gives
 away.** The rounding that decides how many rows a card gives up to the graphic above it was written
 as `ceil`, which charges a whole row for any overflow at all: a headline figure and caption came to

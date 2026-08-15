@@ -123,9 +123,14 @@ export function OrderRow({ order, to }) {
 				</div>
 			</div>
 			<span className="chip-status">{order.status}</span>
+			{/* The total, then what it saved -- always, including "saved 0,00 kr.". The saved line
+			    was drawn only when it was positive, so a row with no saving had a total where
+			    every other row had a total and a line under it, and the column changed shape
+			    down the list. An absent line is not "nothing saved"; it is a reader wondering
+			    whether this row is missing something. README: Data Rows. */}
 			<div className="order-row-total tabular-figures">
 				{kr(order.total)}
-				{order.saved > 0 ? <div className="order-row-total-saved">saved {kr(order.saved)}</div> : null}
+				<div className="order-row-total-saved">saved {kr(order.saved)}</div>
 			</div>
 			<span className="order-row-chevron"><Icon name="chevronRight" /></span>
 		</Row>

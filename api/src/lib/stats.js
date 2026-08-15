@@ -221,7 +221,7 @@ function seriesOver(userId, from, to, key = 'spend') {
 }
 
 const selectReturned = db.prepare(`
-	SELECT ot.id, ot.date, ot.total, ot.refunded,
+	SELECT ot.id, ot.date, ot.total, ot.saved, ot.refunded,
 		v.name AS vendorName, v.initials AS vendorInitials, v.colour AS vendorColour
 	FROM order_totals ot JOIN vendors v ON v.id = ot.vendor_id
 	WHERE ot.user_id = @userId AND ot.status = 'Returned' AND ot.date >= @from AND ot.date < @to
@@ -255,7 +255,10 @@ function returnsIn(userId, from, to) {
 		// Five, once, written here. It is the same kind of card as the latest orders and the top
 		// vendors, so it is the same number -- the account's, not this file's.
 		items: all.slice(0, cardRowsFor(userId)).map(r => ({
-			id: r.id, date: fromEpoch(r.date), total: r.total, refunded: Boolean(r.refunded),
+			// `saved` because a returned order is listed the way every other order is listed --
+			// its total, and what it saved under it. It was left out while these rows drew the
+			// total alone, and the row was the only list of orders in the app drawing it alone.
+			id: r.id, date: fromEpoch(r.date), total: r.total, saved: r.saved, refunded: Boolean(r.refunded),
 			vendor: { name: r.vendorName, initials: r.vendorInitials, colour: r.vendorColour }
 		}))
 	}
@@ -319,6 +322,12 @@ function recentColumns(userId, range, id, count = 6) {
 
 /** Where the current (still-running) window lands if the rest of it looks like the start —
     only meaningful for the window containing today; a past window is already complete. */
+/** Today's day index inside [from, to), or null if today is outside it. */
+function todayIn(from, to) {
+	const now = Math.floor(Date.now() / 1000)
+	return now >= from && now < to ? Math.floor((now - from) / DAY) : null
+}
+
 function paceFor(range, from, to, spent) {
 	const now = Math.floor(Date.now() / 1000)
 	if (now < from || now >= to) return { running: false, projected: spent, daysIn: Math.round((to - from) / DAY) }
@@ -450,6 +459,12 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 			orders: now.orders, average: now.average, savedPercent: now.savedPercent,
 			previousTotal: was?.spent ?? null, previousLabel: previousBounds?.shortLabel ?? null,
 			pace: paceFor(width, bounds.from, bounds.to, now.spent),
+			/* Which point on the chart is today, or null when the window is entirely in the past
+			   or entirely ahead. Every line chart in the app draws a marker there and none of
+			   them should have to work it out: "is today inside this window" is a fact about the
+			   window, and three pages deriving it separately is three chances to get a paged-back
+			   month wrong. Day index, so a bucketed series maps it through its own cut. */
+			todayIndex: todayIn(bounds.from, bounds.to),
 			rhythm: rhythmOver(userId, bounds.from, bounds.to),
 			split: splitOver(userId, bounds.from, bounds.to, now.spent),
 			recent: summary ? null : recentColumns(userId, width, id),
@@ -486,6 +501,7 @@ export function getHomeHero(userId) {
 
 	return {
 		label: bounds.label, shortLabel: bounds.shortLabel,
+		todayIndex: todayIn(bounds.from, bounds.to),
 		/* The window's own dates, inclusive, the same pair getStats answers. The card names a
 		   stretch of time and its legend rows open the orders behind each slice, so the rows
 		   need the stretch: without it a row under "Where it went · Aug" opened every order in

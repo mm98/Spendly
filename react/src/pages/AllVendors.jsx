@@ -84,7 +84,7 @@ export default function AllVendors() {
 									meta={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}` +
 										(vendor.latest ? ` · latest ${dayMonth(vendor.latest.date)}` : ' · none yet')}
 									amount={krRound(vendor.spend)}
-									sub={vendor.saved > 0 ? `saved ${krRound(vendor.saved)}` : undefined}
+									sub={`saved ${krRound(vendor.saved)}`}
 									editTo={`/vendors/${vendor.id}/edit`}
 									ordersTo={`/orders/all?vendor=${vendor.id}`}
 									ordersLabel={`Orders from ${vendor.name}`} />
