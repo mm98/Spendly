@@ -10,10 +10,29 @@ const vendorStatsQuery = db.prepare(`
 	GROUP BY vendor_id
 `)
 
-/** Orders/spend/saved per vendor, keyed by vendor id. A vendor belongs to exactly one order at
-    a time, so this is a plain SUM — no splitting question the way categories have. */
+/* The newest order each vendor has, in one pass rather than a query per vendor. The Vendors
+   page draws a "Latest order" row on every spotlight card and nothing ever answered it, so a
+   vendor with 34 orders read "None · all time — 0 kr." -- the card's own fallback for a vendor
+   that has never been bought from, shown for every vendor there is.
+
+   ROW_NUMBER over a partition is what picks one row per vendor; the id breaks the tie so two
+   orders on the same day resolve the same way the orders list does (date DESC, id DESC). */
+const vendorLatestQuery = db.prepare(`
+	SELECT vendorId, date, item_count AS items, total FROM (
+		SELECT vendor_id AS vendorId, date, item_count, total,
+			ROW_NUMBER() OVER (PARTITION BY vendor_id ORDER BY date DESC, id DESC) AS rn
+		FROM order_totals WHERE user_id = ?
+	) WHERE rn = 1
+`)
+
+/** Orders/spend/saved per vendor, keyed by vendor id, plus that vendor's most recent order. A
+    vendor belongs to exactly one order at a time, so the totals are a plain SUM — no splitting
+    question the way categories have. */
 export function vendorStats(userId) {
-	return new Map(vendorStatsQuery.all(userId).map(r => [r.vendorId, { orders: r.orders, spend: r.spend, saved: r.saved }]))
+	const latest = new Map(vendorLatestQuery.all(userId).map(r => [r.vendorId, r]))
+	return new Map(vendorStatsQuery.all(userId).map(r => [r.vendorId, {
+		orders: r.orders, spend: r.spend, saved: r.saved, latest: latest.get(r.vendorId) ?? null
+	}]))
 }
 
 /* An order can carry more than one category (order_categories is many-to-many), and nothing in

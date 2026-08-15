@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { vendorStats } from '../lib/aggregate.js'
+import { fromEpoch } from '../lib/dates.js'
 import { colourFor } from '../lib/palette.js'
 
 export const router = Router()
@@ -17,11 +18,13 @@ const deleteOne = db.prepare('DELETE FROM vendors WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE vendors SET name=@name, initials=@initials, colour=@colour, favourite=@favourite, lead=@lead WHERE id=@id AND user_id=@userId')
 
 const withStats = (vendor, stats) => {
-	const s = stats.get(vendor.id) ?? { orders: 0, spend: 0, saved: 0 }
+	const s = stats.get(vendor.id) ?? { orders: 0, spend: 0, saved: 0, latest: null }
 	return {
 		id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour,
 		favourite: Boolean(vendor.favourite), lead: vendor.lead ?? undefined,
-		orders: s.orders, spend: s.spend, saved: s.saved
+		orders: s.orders, spend: s.spend, saved: s.saved,
+		// null for a vendor with no orders, which is the one case the card's "None" is for.
+		latest: s.latest ? { date: fromEpoch(s.latest.date), items: s.latest.items, total: s.latest.total } : null
 	}
 }
 
