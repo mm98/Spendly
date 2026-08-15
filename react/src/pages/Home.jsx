@@ -128,24 +128,6 @@ function Hero({ month, categories }) {
 						    one carried none, so its peaks sat at no date a reader could name.
 						    README: Charts. */}
 						<ChartAxis labels={view.axis} />
-						{/* One key for the two lines above and the two segments below: same green,
-						    same teal, named once. It replaces a tablist that used to choose which of the
-						    two series was drawn -- with both on the chart it chose nothing, and a control
-						    that looks live and does nothing is the defect this app refuses to ship.
-						    README: Honest Affordances. */}
-						<div className="chart-series-key">
-							{/* Saved first: spending already holds the headline, the delta line and the
-							    taller of the two curves, and what the app is for is the part of it that
-							    was kept. */}
-							<div className="chart-series-key-row">
-								<div className="chart-series-key-swatch" style={{ background: 'var(--green)' }} />
-								Saved {kr(view.saved)}
-							</div>
-							<div className="chart-series-key-row">
-								<div className="chart-series-key-swatch" style={{ background: 'var(--teal)' }} />
-								Spent {kr(view.spent)}
-							</div>
-						</div>
 						{/* The categories are written per month, which is as fine as the records cut, so the
 						    legend says which month in its own heading rather than borrowing the card's --
 						    the same rule the month-wide cards on Statistics follow under a window that
