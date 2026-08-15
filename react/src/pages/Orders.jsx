@@ -5,7 +5,6 @@ import { Chart, ChartAxis, ChartRuler, plotted } from '../components/Chart.jsx'
 import { Donut, DonutBox } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
-import { TagChip } from '../components/Chip.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import { getOrdersOverview } from '../api/client.js'
@@ -30,11 +29,10 @@ const budgetUsed = categories => {
 export default function Orders() {
 	const state = useApi(getOrdersOverview)
 	const [breakdown, setBreakdown] = useState('Expenses')
-	/* HOW IT WORKS and ASK SPENDLY both open something. A button that explains and a button
-	   that answers are the two shapes a decorative control most often takes, because neither
-	   has an obvious destination -- so each one owns a disclosure here, with aria-expanded
-	   saying which state it is in. README: Honest Affordances. */
-	const [explaining, setExplaining] = useState(false)
+	/* ASK SPENDLY opens something. A button that answers is one of the two shapes a decorative
+	   control most often takes, because it has no obvious destination -- so it owns a
+	   disclosure here, with aria-expanded saying which state it is in. README: Honest
+	   Affordances. */
 	const [answering, setAnswering] = useState(false)
 
 	return (
@@ -122,32 +120,6 @@ export default function Orders() {
 							</Card>
 						</div>
 
-						<Card aria-label="For you">
-							<CardHeader title="For you">
-								<button type="button" className="button button-pill"
-									aria-expanded={explaining} aria-controls="for-you-explainer"
-									onClick={() => setExplaining(o => !o)}>HOW IT WORKS</button>
-							</CardHeader>
-							<CardDivider />
-							{explaining ? (
-								<div className="card-body" id="for-you-explainer">
-									<Note tone="positive" title="What these are.">
-										General tips on using Spendly, not suggestions read from your own orders --
-										the vendor-matching and stale-order checks this card once described were
-										never wired up. Nothing here looks at your data.
-									</Note>
-								</div>
-							) : null}
-							<CardBody variant="promo-row">
-								{data.promos.map(promo => (
-									<div className="promo" key={promo.id}>
-										<TagChip tone={promo.tone} icon={promo.tagIcon}>{promo.tag}</TagChip>
-										<span className="promo-title">{promo.title}</span>
-										<p>{promo.body}</p>
-									</div>
-								))}
-							</CardBody>
-						</Card>
 					</div>
 
 					<div className="order-list-column">

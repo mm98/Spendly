@@ -264,7 +264,7 @@ export async function getOrdersOverview(signal) {
 	const monthCategories = monthCategoriesFrom(categories, window.split).slice(0, 4)
 	return {
 		latest, period: periodFromWindow(window), categories: monthCategories,
-		promos: home.promos, question: home.questionOfTheDay
+		question: home.questionOfTheDay
 	}
 }
 

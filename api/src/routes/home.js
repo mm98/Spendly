@@ -8,13 +8,6 @@ router.get('/hero', (req, res) => {
 	res.json(getHomeHero(req.user.id, req.query.range))
 })
 
-const PROMOS = [
-	{ id: 'p-1', tag: 'AI scan', tagIcon: 'sparkles', tone: 'blue', title: 'Forward email receipts',
-		body: 'Screenshots of order emails scan just as well as paper receipts.' },
-	{ id: 'p-2', tag: 'Quick wins', tagIcon: 'bolt', tone: 'pink', title: 'Mark deliveries',
-		body: 'Orders left "Ordered" for a while are easy to lose track of. Check if they arrived.' }
-]
-
 const monthKey = date => date.slice(0, 7)
 const selectLastMonthTop = db.prepare(`
 	SELECT c.id, c.name, SUM(ot.total * 1.0 / cc.cat_count) AS spend
@@ -67,7 +60,6 @@ router.get('/', (req, res) => {
 		countCustomDashboard.get(req.user.id).c > 0
 	]
 	res.json({
-		promos: PROMOS,
 		questionOfTheDay: questionOfTheDay(req.user.id),
 		onboarding: { done: steps.filter(Boolean).length, total: steps.length }
 	})

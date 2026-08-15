@@ -638,11 +638,7 @@ svg.chart { width:100%; display:block; }
 .empty-state p { margin:0; font-size:13.5px; color:var(--text-body); max-width:30ch; }
 .chip-tag { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:8px; font-size:11px; font-weight:600; width:max-content; }
 .chip-tag svg.icon { width:13px; height:13px; }
-.promo { border:1px solid var(--border-card); border-radius:14px; padding:14px; display:grid; gap:8px; min-width:0; align-content:start; }
 .panel-heading { font-weight:700; }
-.promo-title { font-weight:700; font-size:14.5px; letter-spacing:-.01em; }
-.promo p { margin:0; font-size:12px; color:var(--text-muted); line-height:1.5; }
-.promo-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(200px,1fr); gap:12px; overflow:hidden; }
 .chart-ruler { height:9px; background:repeating-linear-gradient(to right, #D9DDD8 0 1px, transparent 1px 23px); margin-top:8px; }
 .segmented.segmented-compact { padding:3px; border-radius:var(--radius-page); }
 .segmented.segmented-compact button { padding:7px 16px; border-radius:9px; font-size:12px; }
@@ -1099,7 +1095,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	.app-shell { grid-template-columns:250px minmax(0,1fr); }
 	.content-grid { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
 }
-@media (max-width:1180px) { .order-list-grid { grid-template-columns:minmax(0,1fr); } .promo-row { grid-auto-columns:minmax(180px,1fr); overflow-x:auto; } }
+@media (max-width:1180px) { .order-list-grid { grid-template-columns:minmax(0,1fr); } }
 /* The phone layout is this one block, and it is the last breakpoint in the file so
    its rules win over the wider ones without any of them needing a bump. Split across
    two blocks it disagreed with itself in silence: the nav was sized 50px/10px here
@@ -1226,9 +1222,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   line, flush under the tile. Any value from 62% clears the threshold; 64% clears
 	   it by more than the tile geometry can move. README: Responsive Layout. */
 	.item-row > div:has(.item-row-title) { flex:1 1 64%; }
-	/* The promo row scrolls sideways from 1180 down; on a phone it stacks instead --
-	   a 180px card and a swipe are both too small to be worth it at this width. */
-	.promo-row { grid-auto-flow:row; grid-auto-columns:unset; grid-template-columns:1fr; }
 	/* .global-finder carries the margin-left:auto that pushes the actions right, and it is
 	   hidden here, so .topbar-actions has to take the job over or it sits against the title. */
 	.global-finder { display:none; }
