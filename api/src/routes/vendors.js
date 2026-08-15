@@ -30,14 +30,6 @@ router.get('/', (req, res) => {
 	res.json(selectAll.all(req.user.id).map(v => withStats(v, stats)))
 })
 
-/** Top vendors by spend, for the vendors-overview tab. Registered before /:id so "overview"
-    isn't captured as an id param. */
-router.get('/overview', (req, res) => {
-	const stats = vendorStats(req.user.id)
-	const top = selectAll.all(req.user.id).map(v => withStats(v, stats)).sort((a, b) => b.spend - a.spend).slice(0, 5)
-	res.json({ top, total: selectAll.all(req.user.id).length })
-})
-
 router.post('/', (req, res) => {
 	const name = String(req.body?.name ?? '').trim()
 	if (!name) return res.status(400).json({ error: 'A vendor needs a name.' })

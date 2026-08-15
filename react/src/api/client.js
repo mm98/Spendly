@@ -81,9 +81,21 @@ export async function deleteVendor(id, signal) {
 	return request(`/api/vendors/${id}`, { method: 'DELETE', signal })
 }
 
+/* Every vendor, split into the spotlight and the list under it.
+
+   This used to read /api/vendors/overview, which answered the five biggest by spend -- so an
+   account with twelve could reach five of them, and the search box below the spotlight
+   filtered a list the server had already cut down: typing a vendor that exists but sits sixth
+   answered "No vendor matches", which is a false sentence rather than an empty result. Starring
+   one of those seven was worse, since a favourite is a standing preference and the Favourites
+   section it was starred into could not show it either.
+
+   With nothing truncated the route answered exactly what GET /api/vendors already answers, so
+   it is gone and this reads the list itself. The page sorts and searches client-side, and the
+   spotlight is whichever of them are favourites. */
 export async function getVendorsOverview(signal) {
-	const { top, total } = await request('/api/vendors/overview', { signal })
-	return { favourites: top.filter(v => v.favourite), rest: top.filter(v => !v.favourite), total }
+	const vendors = await request('/api/vendors', { signal })
+	return { favourites: vendors.filter(v => v.favourite), rest: vendors.filter(v => !v.favourite) }
 }
 
 /* ---- categories ---- */
