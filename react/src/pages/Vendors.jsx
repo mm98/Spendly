@@ -74,10 +74,10 @@ export default function Vendors() {
 function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, setView }) {
 	const listed = useMemo(() => {
 		const needle = query.trim().toLowerCase()
-		return data.rest
+		return data.all
 			.filter(v => !needle || v.name.toLowerCase().includes(needle))
 			.sort(SORTS[sort])
-	}, [data.rest, query, sort])
+	}, [data.all, query, sort])
 
 	return (
 		<>
@@ -182,7 +182,7 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, setVie
 					</Card>
 				))}
 				{listed.length === 0
-					? <p className="field-help">{query ? `No vendor matches "${query}".` : 'Every vendor is a favourite.'}</p>
+					? <p className="field-help">{query ? `No vendor matches "${query}".` : 'No vendors yet.'}</p>
 					: null}
 			</div>
 		</>

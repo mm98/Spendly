@@ -94,8 +94,14 @@ export async function deleteVendor(id, signal) {
    it is gone and this reads the list itself. The page sorts and searches client-side, and the
    spotlight is whichever of them are favourites. */
 export async function getVendorsOverview(signal) {
+	/* `all` is every vendor, favourites included, rather than the ones left over after the
+	   spotlight took its share. Starring a vendor used to remove it from the list below --
+	   which is the only searchable, sortable view of them -- so the more of them you marked as
+	   worth finding, the fewer you could find. Fifty favourites meant fifty vendors reachable
+	   only by eye, in a spotlight that neither filters nor sorts. A favourite is drawn twice
+	   now: once where it was pinned, and once in the list it never should have left. */
 	const vendors = await request('/api/vendors', { signal })
-	return { favourites: vendors.filter(v => v.favourite), rest: vendors.filter(v => !v.favourite) }
+	return { favourites: vendors.filter(v => v.favourite), all: vendors }
 }
 
 /* ---- categories ---- */
@@ -120,12 +126,24 @@ export async function deleteCategory(id, signal) {
 	return request(`/api/categories/${id}`, { method: 'DELETE', signal })
 }
 
+/* Every category, for the same reason the vendors list takes every vendor.
+
+   This read /api/categories/overview, which answered the five biggest by spend, and the page
+   drew all three of its things from that one array -- so an account with ten categories showed
+   five. The Manage tab is where you go to see whether something already exists before adding
+   it, and it was showing half of them: add a category that is already there and the only way
+   to find out was the 409 the save came back with.
+
+   The ring was wrong as well as short. Its centre reads "Spent, all time" and the page sums it
+   from this array, so with five of ten categories in hand the headline figure was the spend of
+   whichever five happened to be biggest, printed as the total. Untruncated, the route answered
+   exactly what GET /api/categories answers, so it is gone. */
 export async function getCategoriesOverview(signal) {
-	const [{ top }, question] = await Promise.all([
-		request('/api/categories/overview', { signal }),
+	const [categories, question] = await Promise.all([
+		request('/api/categories', { signal }),
 		request('/api/home/question', { signal })
 	])
-	return { categories: top, question }
+	return { categories, question }
 }
 
 /* ---- orders ----
@@ -273,7 +291,11 @@ export async function getOrdersOverview(signal) {
 	   and none this month would otherwise fill a ring a 0 kr. centre says is empty). window.split
 	   is the same month-scoped breakdown Home's hero legend reads; icon/budget still come from
 	   categories since split doesn't carry either. */
-	const monthCategories = monthCategoriesFrom(categories, window.split).slice(0, 4)
+	/* Every category with spend this month, not the four biggest. The ring these feed reads
+	   "Spent this month" in its middle and is drawn from this array, so cutting it to four drew
+	   a circle that did not add up to its own centre -- and the rows under it, which name the
+	   ring's colours, could only ever name four of them. */
+	const monthCategories = monthCategoriesFrom(categories, window.split)
 	return {
 		latest, period: periodFromWindow(window), categories: monthCategories, question
 	}

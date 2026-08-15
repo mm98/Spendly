@@ -29,14 +29,6 @@ router.get('/', (req, res) => {
 	res.json(selectAll.all(req.user.id).map(c => withStats(c, stats)))
 })
 
-/** Top categories by spend, for the categories-overview tab. Registered before /:id so
-    "overview" isn't captured as an id param. */
-router.get('/overview', (req, res) => {
-	const stats = categoryStats(req.user.id)
-	const top = selectAll.all(req.user.id).map(c => withStats(c, stats)).sort((a, b) => b.spend - a.spend).slice(0, 5)
-	res.json({ top, total: selectAll.all(req.user.id).length })
-})
-
 // The client's own budget field rejects a leading "-" (AMOUNT_PATTERN has no sign in it at
 // all), so a negative budget only ever reached this table by calling the API directly -- but it
 // did reach it, and "budget: -500" survives to render as "100 kr of -500 kr budget" on the row
