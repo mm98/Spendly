@@ -1392,10 +1392,12 @@ label.field-shell { cursor:pointer; }
 
 /* Toasts. The show transition lives here so the reduced-motion block above reaches it,
    which the inline copy it replaces could not (README: Feedback). */
-.toast { display:flex; align-items:flex-start; gap:10px; padding:12px 12px 12px 14px; border-left:3px solid var(--green); box-shadow:0 12px 28px rgb(11 26 18 / .16); pointer-events:auto; transition:opacity .18s ease, transform .18s ease; }
+/* Centred, not top-aligned: a toast is one short sentence beside a 26px dismiss button, and
+   flex-start left the text riding high against it. */
+.toast { display:flex; align-items:center; gap:10px; padding:12px 12px 12px 14px; border-left:3px solid var(--green); box-shadow:0 12px 28px rgb(11 26 18 / .16); pointer-events:auto; transition:opacity .18s ease, transform .18s ease; }
 .toast:not(.is-shown) { opacity:0; transform:translateY(-6px); }
 .toast-negative { border-left-color:var(--text-negative); }
-.toast-icon { display:grid; place-items:center; flex:none; margin-top:1px; color:var(--green); }
+.toast-icon { display:grid; place-items:center; flex:none; color:var(--green); }
 .toast-negative .toast-icon { color:var(--text-negative); }
 .toast-message { flex:1; min-width:0; font-size:13px; line-height:1.45; color:var(--text-body); }
 .toast .icon-button-clear { margin-left:0; }
@@ -1415,7 +1417,6 @@ label.field-shell { cursor:pointer; }
 .order-subtitle { font-size:12.5px; }
 .order-head-actions { gap:8px; }
 .order-chips { gap:6px; margin-top:12px; flex-wrap:wrap; }
-.order-status-field { margin-top:14px; }
 .attachment-preview { padding:0 4px 10px; }
 
 /* Statistics. */

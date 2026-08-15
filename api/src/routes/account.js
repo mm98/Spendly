@@ -5,11 +5,19 @@ import { populateDemoData } from '../lib/demoData.js'
 
 export const router = Router()
 
-const wipe = db.transaction(userId => {
+/* The ledger: what the demo fill replaces. Settings and dashboard cards are preferences, not
+   data -- filling the account with demo orders must not hand back someone's page size, sort
+   order or card layout, and it used to: the fill reused the full wipe, so pressing it reset
+   Settings to the defaults alongside the ledger it promised to replace. */
+const wipeLedger = userId => {
 	// orders first: cascades order_items, order_categories, attachments
 	db.prepare('DELETE FROM orders WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM vendors WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM categories WHERE user_id = ?').run(userId)
+}
+
+const wipe = db.transaction(userId => {
+	wipeLedger(userId)
 	db.prepare('DELETE FROM settings WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM dashboard_cards WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM scan_uploads WHERE user_id = ?').run(userId)
@@ -26,13 +34,14 @@ router.post('/reset', (req, res) => {
 
 /* Fills the account with a year of demo orders. Replaces rather than appends: pressed twice,
    appending would double a year of orders and leave every per-month figure quietly wrong,
-   which is a worse answer than the obvious one. It reuses `wipe` so "replace" means exactly
-   what CLEAR STORED DATA means, and the button says so before it is pressed.
+   which is a worse answer than the obvious one. It replaces the ledger only -- the button
+   promises "every order, vendor and category is removed first" and keeps exactly that
+   promise; CLEAR STORED DATA is the button that resets preferences too.
 
    Only ever this account -- populateDemoData writes every row against req.user.id, the same
    rule every other route here follows. */
 const replaceWithDemo = db.transaction((userId, seed) => {
-	wipe(userId)
+	wipeLedger(userId)
 	return populateDemoData(userId, { seed })
 })
 

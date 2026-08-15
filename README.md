@@ -532,9 +532,11 @@ Arriving at that URL shows a filtered list. The chips reflect the URL, the panel
 
 ### Order Detail
 
-One order's full record. The header band holds the identity and the actions: status, date, total, edit — and the trash, which follows the [deletion policy](#deletion). Below it: the line items with what each cost and saved, then the attachments card — add a file, open one, remove one (that trash follows the same [deletion policy](#deletion)), with the header counting them.
+One order's full record. The header band holds the identity and the actions: vendor, date, edit — and the trash, which follows the [deletion policy](#deletion). Below it: the line items with what each cost and saved, then the attachments card — add a file, open one, remove one (that trash follows the same [deletion policy](#deletion)), with the header counting them. The summary card states the status, kind and total.
 
 **Everything shown is derived from the record.** The subtotal is the lines added up; the saving is retail minus paid. A stored total beside stored lines is two claims that can disagree while both look right.
+
+**The detail page shows; the form page changes.** Status is read here and edited on the edit page like every other field — a status editor drawn on the reading view is the form's control paying rent twice, at a full band's height, and it stood here once.
 
 **Why edit is a separate page:** the form has validation, a draft, and two steps. That complexity doesn't belong on the reading view — the detail page shows, the form page changes.
 
@@ -682,7 +684,7 @@ When a form rejects a value:
 
 ### Feedback
 
-Everything the app says back after an action — saved, added, removed, moved, refused — goes to **one layer**: top right, under the top bar, a single polite status region. A toast clears itself after five seconds, can be dismissed, stacks newest first, and is capped so the stack cannot wallpaper the screen. The layer never swallows a click meant for what is under it.
+Everything the app says back after an action — saved, added, removed, moved, refused — goes to **one layer**: top right, under the top bar, a single polite status region. A toast clears itself after five seconds, can be dismissed, stacks newest first, and is capped so the stack cannot wallpaper the screen. The layer never swallows a click meant for what is under it. Inside a toast, the glyph, the sentence and the dismiss share one vertical centre — a toast is one short line, and top-aligning it against a taller dismiss button reads as a misprint.
 
 Before the one layer existed, each page printed its result wherever there was room — a removed file was reported a column away from the file, a reorder was announced at the top of a form nobody was looking at. **Feedback nobody sees is feedback that was not given.**
 
@@ -729,6 +731,7 @@ A control is a promise. Everything drawn as interactive must do the thing it dep
 - **Disabled is shown, not hidden.** A pager at its last page shows NEXT disabled rather than removing it — the control exists, it just can't act right now, and the difference is information.
 - **Copy is a promise too.** If the words enumerate what the product accepts, every named case must work (see [Scan Flow](#scan-flow)).
 - **A control that rebuilds something rebuilds it visibly.** FILL WITH DEMO DATA wiped a year of orders and wrote back the same year — same count, same days, same vendors — so pressing it twice was indistinguishable from pressing it once, and from pressing nothing. Made-up data is made up afresh on every press. ([`docs/defects.md`](docs/defects.md#demo-data--the-button-rebuilt-the-same-year-every-time))
+- **A control that replaces something replaces exactly what it names.** FILL WITH DEMO DATA says every order, vendor and category is removed first — and that is all it removes. Settings and the dashboard layout are preferences, not ledger data, and it once reset them too; CLEAR STORED DATA is the one control that returns preferences to the shipped state, and it says so.
 
 ### Accessibility
 

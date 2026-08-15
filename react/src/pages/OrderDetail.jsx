@@ -10,13 +10,12 @@ import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { AiCard } from '../components/AiCard.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
-import { Segmented } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	addAttachments, attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, getHomeContent, getHomeHero, getOrder,
 	getOrderAsDraft, getOrders, getOrdersOverview, getStats, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
-	removeAttachment, updateOrder
+	removeAttachment
 } from '../api/client.js'
 import { kr, longDate, percent, shortDate } from '../api/format.js'
 
@@ -27,10 +26,11 @@ import { kr, longDate, percent, shortDate } from '../api/format.js'
    that do not add to it is the defect this page is most able to hide, because both halves
    look right on their own.
 
-   Every control here acts. Status is a live segmented control rather than a chip, because
-   marking an order delivered is the single commonest thing to do to one and walking through
-   the edit form for it is three screens too many. Edit opens the New order flow with this
-   order in it. Delete asks first, unless Settings says not to. */
+   Every control here acts, and the page shows the record rather than editing it: status is
+   read in the summary card and changed on the edit page. A live status editor stood on this
+   card once -- a full-width segmented band duplicating the control the edit form already has,
+   which is the reading view paying rent for the form's job (README: Order Detail). Edit opens
+   the New order flow with this order in it. Delete asks first, unless Settings says not to. */
 
 export default function OrderDetail() {
 	const { id } = useParams()
@@ -51,17 +51,6 @@ export default function OrderDetail() {
 		invalidate(getOrder); invalidate(getOrders); invalidate(getHomeContent)
 		invalidate(getOrdersOverview); invalidate(getOrderAsDraft)
 		invalidate(getStats); invalidate(getHomeHero)
-	}
-
-	const setOrderStatus = (order, next) => {
-		updateOrder(id, {
-			vendor: order.vendor?.name, date: order.date, status: next, kind: order.kind,
-			categories: order.categories.map(c => c.name),
-			shipping: order.shipping ? String(order.shipping).replace('.', ',') : '',
-			reference: order.reference, note: order.note, items: order.items
-		})
-			.then(() => { invalidateOrder(); state.refresh(); toast(`Marked ${next.toLowerCase()}.`) })
-			.catch(() => toast('That did not save.', 'negative'))
 	}
 
 	/* The same asking, the same warm note and the same setting as deleting a category or a
@@ -141,12 +130,6 @@ export default function OrderDetail() {
 									{order.categories.length === 0
 										? <span className="field-help">No categories on this order.</span>
 										: null}
-								</div>
-
-								<div className="field order-status-field">
-									<span>Status</span>
-									<Segmented options={['Ordered', 'Delivered', 'Returned']} value={order.status}
-										onChange={next => setOrderStatus(order, next)} label="Order status" />
 								</div>
 							</CardBody>
 						</Card>
