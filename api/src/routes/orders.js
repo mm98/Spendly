@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import multer from 'multer'
 import { db } from '../db.js'
+import { cardRowsFor } from '../lib/prefs.js'
 import { newId } from '../lib/ids.js'
 import { toEpoch } from '../lib/dates.js'
 import { getDecoratedOrder, decorateOrderRows } from '../lib/decorate.js'
@@ -54,11 +55,14 @@ const selectLatestOrders = db.prepare(
 
 /* ---- overview / draft ---- */
 
-/** "Latest N orders" — N is the caller's choice (default 4, matching the Home/Orders-overview
-    cards), not a number baked into the query. Clamped to a sane range so a client can't ask for
-    an unbounded scan. */
+/** "Latest N orders" — N defaults to the account's entries-per-card setting, which is what
+    every card holding a list of things is cut to. It used to default to 4 and be passed as 3 by
+    one caller and 4 by the other, so the same card on two pages was two lengths for no reason
+    either page could state. A caller may still ask for a specific count (the scan flow wants a
+    handful regardless), and it is clamped so nobody can ask for an unbounded scan. */
 router.get('/overview', (req, res) => {
-	const count = Math.min(Math.max(1, Number(req.query.count) || 4), 100)
+	const asked = Number(req.query.count)
+	const count = Math.min(Math.max(1, asked || cardRowsFor(req.user.id)), 100)
 	const totalsRows = selectLatestOrders.all({ userId: req.user.id, count })
 	res.json({ latest: decorateOrderRows(totalsRows), total: countAllOrders.get(req.user.id).c })
 })

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Icon, ImageOrIcon } from './Icon.jsx'
 import { IconButton } from './Button.jsx'
 
@@ -36,6 +36,69 @@ const RING_GAP = 0.6
    not close. README: Charts. */
 export const RING_LEGEND_MAX = 5
 
+/* How many rows a card's list has room for, measured by the list itself.
+
+   A card's entry count is one number for the whole app, and cards share grid rows -- so a card
+   that spends 138px on a donut before its first row and then draws the same number of rows as
+   its neighbour stands taller than the neighbour by exactly the donut. Whatever is above the
+   list is not free space; it is space the list does not get.
+
+   Measured, not declared, and measured by the list about itself. A table of "the donut costs 3
+   rows, the sparkline costs 2" is a second copy of the layout kept in JavaScript, right until
+   someone changes a chart's height or a row's line-height -- both of which have happened here
+   -- and then it is a wrong copy that nothing renders and no probe can fail. Worse, it would
+   have to name every card. This instead reads its own top against the card body's, and its own
+   first row's height: a donut, a sparkline, a headline figure, a caption, a segmented control,
+   or any three of them together all measure the same way, and the next thing put above a list
+   needs no code at all.
+
+   The two passes settle in one step, because what sits above the list does not depend on how
+   long the list is -- cutting the list cannot change the measurement that cut it.
+
+   A number rather than a shortened list, because how a list is shortened is the card's own
+   business: most drop the tail, and the category ring cannot -- it is drawn from the same array
+   as its rows, so dropping the tail leaves a circle that does not add up to the figure in its
+   own middle, and the graphic above the rows has to be built from whatever the rows end up
+   being. A component that cut the list itself could not tell the donut what it had done.
+
+   Never below one row. A card reduced to a graphic and nothing else has stopped being a list,
+   and the setting offers 1 so that "one example under the headline" can be asked for on purpose
+   rather than arrived at by subtraction. */
+export function useListBudget(rows) {
+	const ref = useRef(null)
+	const [budget, setBudget] = useState(rows)
+
+	const measure = useCallback(() => {
+		const list = ref.current
+		const body = list?.closest('.card-body')
+		if (!list || !body) return
+		/* A row, not the first child: an entry list opens with its own heading, so measuring
+		   `firstElementChild` measures a 15px label and divides the graphic above by that --
+		   the budget then comes out near zero and the card draws one row whatever the setting
+		   says. Take the last child that is not the heading; every one of these lists ends on
+		   a row. */
+		const row = [...list.children].reverse()
+			.find(el => !el.classList.contains('list-heading'))
+		const rowHeight = row?.getBoundingClientRect().height ?? 0
+		if (!rowHeight) return setBudget(rows)
+		const above = list.getBoundingClientRect().top - body.getBoundingClientRect().top
+			- parseFloat(getComputedStyle(body).paddingTop || 0)
+		const next = Math.max(1, rows - Math.ceil(Math.max(0, above) / rowHeight))
+		setBudget(b => (b === next ? b : next))
+	}, [rows])
+
+	useLayoutEffect(measure)
+	useEffect(() => {
+		const body = ref.current?.closest('.card-body')
+		if (!body || !window.ResizeObserver) return
+		const ro = new ResizeObserver(measure)
+		ro.observe(body)
+		return () => ro.disconnect()
+	}, [measure])
+
+	return [ref, budget]
+}
+
 /* The fold's colour has to be one no entry in the ring is already using, or the segment
    standing for "everything else I did not draw" is the same colour as some real row -- which
    happened immediately: a category actually named "Everything else" is #45524C, and so was the
@@ -50,9 +113,17 @@ export function foldForRing(entries, foldLabel, max = RING_LEGEND_MAX) {
 	const head = ranked.slice(0, max)
 	const taken = new Set(head.map(e => String(e.colour).toLowerCase()))
 	const colour = FOLD_COLOURS.find(c => !taken.has(c.toLowerCase())) ?? FOLD_COLOURS.at(-1)
+	/* The fold carries every field a real entry carries, not just the two the first caller
+	   happened to read. It was `{id, name, colour, spend}` because the only thing drawing it was
+	   a legend row, which takes its parts as props -- and the first component to receive one of
+	   these as a *record* crashed on it, because a category row asks the record for its share
+	   and got undefined. A stand-in for N things has to be the same shape as one thing.
+	   `share` is the tail's real share, so the row says truthfully what fraction it stands for;
+	   the tag is the neutral glyph a group has, since the categories inside it have several. */
+	const sum = (field) => tail.reduce((total, e) => total + (e[field] ?? 0), 0)
 	return [...head, {
-		id: null, name: foldLabel(tail.length), colour,
-		spend: tail.reduce((sum, e) => sum + e.spend, 0)
+		id: null, name: foldLabel(tail.length), colour, icon: 'tag', iconPath: null,
+		spend: sum('spend'), share: sum('share'), saved: sum('saved'), orders: sum('orders')
 	}]
 }
 

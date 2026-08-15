@@ -278,16 +278,22 @@ const periodFromWindow = w => ({
 	averageOrder: w.average, weekdays: w.rhythm.weekdays,
 	busiestDay: w.rhythm.busiestDay, busiestDaySpend: w.rhythm.busiestDaySpend,
 	projected: w.pace.projected, daysIn: w.pace.daysIn, previousTotal: w.previousTotal,
-	heroLegend: w.split.slice(0, 3),
+	/* Cut by whoever builds the page, not here: this object is shared and the legend is a card
+	   list like the others, so it follows the account's entries-per-card setting. */
+	heroLegend: w.split,
 	series: { cumulative: w.series.current, savingsGrowth: w.series.savedCumulative,
 		monthCurrent: w.series.current, monthPrevious: w.series.previous }
 })
 
 export async function getOrdersOverview(signal) {
-	const [{ latest }, { window }, categories] = await Promise.all([
-		request('/api/orders/overview' + qs({ count: 4 }), { signal }),
+	const [{ latest }, { window }, categories, settings] = await Promise.all([
+		// No count: the server cuts it to the account's entries-per-card setting, the same
+		// number the returns card beside it and every list on Home are cut to. This asked for 4
+		// while Home asked for 3, so one card was two lengths depending which page drew it.
+		request('/api/orders/overview', { signal }),
 		getStatsSummary('month', undefined, signal),
-		getCategories(signal)
+		getCategories(signal),
+		getSettings(signal)
 	])
 	/* The ring reads "Spent this month," so its segments and the rows under it have to be
 	   this month's spend too — categories carries all-time totals (categories with old orders
@@ -299,7 +305,10 @@ export async function getOrdersOverview(signal) {
 	   a circle that did not add up to its own centre -- and the rows under it, which name the
 	   ring's colours, could only ever name four of them. */
 	const monthCategories = monthCategoriesFrom(categories, window.split)
-	return { latest, period: periodFromWindow(window), categories: monthCategories }
+	return {
+		latest, period: periodFromWindow(window), categories: monthCategories,
+		cardRows: settings.cardRows ?? defaultCardRows
+	}
 }
 
 /* ---- settings / dashboard / account ---- */
@@ -352,7 +361,7 @@ export async function getHomeHero(range, signal) {
 	return request('/api/home/hero' + qs({ range }), { signal })
 }
 
-/** How many rows a card on Home fills with, where it has rows to fill.
+/** How many entries a card fills with, where it has entries to fill.
 
     Home's cards share grid rows, and a grid row is as tall as its tallest card -- so a card
     that holds three of something beside a card that holds ten is not a shorter card, it is the
@@ -360,14 +369,33 @@ export async function getHomeHero(range, signal) {
     spend this month, which the ring in its middle has to add up to), and the two beside it were
     cut to three and drew about 300px of nothing each.
 
-    Ten, and *filled* to ten where the account has ten. Not "all", because these are summary
-    cards with the full list one click behind them, and a card that grows without limit stops
-    sharing a row with anything. Change the number here and every list on the page follows it.
+    This is the *default*, not the number: the account owns it, under Settings, and everything
+    on Home reads whatever it says. It was a bare constant here first, which made "ten" a fact
+    about the build rather than a choice about the account -- the same shape of mistake as the
+    demo seed, one screen over.
 
-    Not the category ring's list: that one is every category with spend this month by rule, since
-    the arcs have to add up to the figure printed in the centre. Capping it is a defect with its
-    own entry. */
-export const homeCardRows = 10
+    Not the category ring's list, whichever number is chosen: that one is every category with
+    spend this month by rule, since the arcs have to add up to the figure printed in the centre.
+    Capping it is a defect with its own entry. */
+export const defaultCardRows = 10
+
+/** What the picker offers. Small numbers included on purpose -- a card cut to one row is a
+    headline with a single example under it, which is a legitimate thing to want from a
+    dashboard -- and stopping at ten because these are summaries with the full list one click
+    behind them. Kept in step with the API, which rejects anything outside this set rather than
+    storing a preference no control would obey. */
+export const cardRowOptions = [1, 2, 4, 6, 8, 10]
+
+/** The order the vendors and categories lists open in — one setting, because these are the same
+    kind of list and a person who wants one alphabetical wants both. Only the orders *both*
+    lists have: vendors can also sort by order count and categories by share of spend, and
+    neither can be the shared default, since the other list has no such column to sort on. Those
+    stay on the pages, one click from wherever this opens them. */
+export const listSorts = [
+	{ id: 'name', label: 'Name' },
+	{ id: 'spend', label: 'Spend' },
+	{ id: 'saved', label: 'Saved' }
+]
 
 export async function getHomeContent(signal) {
 	// Fetched directly rather than through getOrdersOverview, which independently re-fetches
@@ -379,16 +407,28 @@ export async function getHomeContent(signal) {
 		getVendors(signal),
 		getCategories(signal),
 		getSettings(signal),
-		request('/api/orders/overview' + qs({ count: homeCardRows }), { signal })
+		request('/api/orders/overview', { signal })
 	])
+	/* The account's number, with the constant above standing in only for a settings row that
+	   has not answered yet. The lists the *server* cuts (the latest orders, the returns card)
+	   are already this length when they arrive; these three are derived here from full lists
+	   the API answers by rule, so they are cut here to the same number. */
+	const rows = settings.cardRows ?? defaultCardRows
 	/* "The categories are written per month" below, and the ring right above them reads
 	   "Spent this month" -- so both need this month's spend, not categories' all-time totals.
 	   window.split is the same month-scoped breakdown the hero legend reads its own entries
 	   from; icon/budget still come from categories since split carries neither. */
 	const monthCategories = monthCategoriesFrom(categories, window.split)
+	const period = periodFromWindow(window)
 	return {
-		period: periodFromWindow(window),
-		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, homeCardRows),
+		// The page's own budget, so a card that spends height on a graphic can take that off
+		// its list rather than standing taller than the card beside it.
+		cardRows: rows,
+		// The hero's "Where it went" legend is a card list too, so it is the same length as the
+		// rest -- it was three, chosen where the period object is built and therefore three on
+		// every page that reads one.
+		period: { ...period, heroLegend: period.heroLegend.slice(0, rows) },
+		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, rows),
 		categories: monthCategories,
 		// All-time, from the raw list rather than monthCategories -- that one's filtered to
 		// spend > 0 this month, and a favourite is a standing preference, not an activity
@@ -396,7 +436,7 @@ export async function getHomeContent(signal) {
 		// should still show up here, the same way a starred vendor with no orders yet still
 		// leads the Vendors page's own Favourites section.
 		favouriteCategories: categories.filter(c => c.favourite)
-			.sort((a, b) => b.spend - a.spend).slice(0, homeCardRows),
+			.sort((a, b) => b.spend - a.spend).slice(0, rows),
 		onboarding,
 		showScanCard: settings.showScanCard,
 		latest

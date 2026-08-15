@@ -1,4 +1,5 @@
 import { db } from '../db.js'
+import { cardRowsFor } from './prefs.js'
 import { fromEpoch } from './dates.js'
 
 /* Statistics, computed by real SQL aggregation over the user's own orders — SUM/GROUP BY
@@ -247,13 +248,13 @@ const krLabel = n => Math.round(n).toLocaleString('da-DK') + ' kr.'
    behind it, so it carries the newest few and says how many there are; paging inside it would
    be a second orders list, with its own state, sitting next to the real one.
    README: Data rows. */
-const RETURNS_SHOWN = 5
-
 function returnsIn(userId, from, to) {
 	const all = selectReturned.all({ userId, from, to })
 	return {
 		total: all.length,
-		items: all.slice(0, RETURNS_SHOWN).map(r => ({
+		// Five, once, written here. It is the same kind of card as the latest orders and the top
+		// vendors, so it is the same number -- the account's, not this file's.
+		items: all.slice(0, cardRowsFor(userId)).map(r => ({
 			id: r.id, date: fromEpoch(r.date), total: r.total, refunded: Boolean(r.refunded),
 			vendor: { name: r.vendorName, initials: r.vendorInitials, colour: r.vendorColour }
 		}))

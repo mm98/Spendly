@@ -1140,3 +1140,65 @@ rather than vanishing, so a 0% bar measures 3px against a computed 0.
 
 Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`,
 0 page errors. **Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Settings — the entry count and the list order were facts about the build
+
+Two numbers the app stated and nobody had chosen.
+
+**Entries per card** was `.slice(0, 3)` in the client for Home's vendors, `count: 3` for Home's
+orders, `count: 4` for the same card on Orders overview, `RETURNS_SHOWN = 5` in the API for the
+returns card, `LIMIT 10` for recent scans and `slice(0, 3)` for the hero's legend — six numbers,
+none of them chosen together, one of them making the same card two lengths depending which page
+drew it. It is one account setting now (1, 2, 4, 6, 8 or 10), read on the server by every route
+that truncates a list and in the client by the three lists it derives itself. Driven from the
+picker and counted on screen, at 1440x900:
+
+| setting | top vendors | orders card | where it went | latest orders | returns |
+|---|---|---|---|---|---|
+| 10 | 8 | 6 | 6 | 10 | 4 of 4 |
+| 8 | 6 | 4 | 6 | 8 | 4 of 4 |
+| 6 | 4 | 2 | 6 | 6 | 4 of 4 |
+| 4 | 2 | 1 | 4 | 4 | 4 of 4 |
+| 2 | 1 | 1 | 2 | 2 | 2 of 4 |
+| 1 | 1 | 1 | 1 | 1 | 1 of 4 |
+
+The API side was checked without a browser too: recent scans, latest orders and the returns card
+all cut to the setting, over an account imported with twelve receipts.
+
+**The list order** was `useState('Name')` written once on All vendors and again on All categories —
+one answer in two places, which is two places for it to drift. One setting, offering only the three
+orders both lists have (Name, Spend, Saved); vendors' own *Orders* and categories' own *Share* stay
+on the pages, since a default naming either is one the other list cannot honour. Both lists open in
+the chosen order and the segmented control shows it: *Name* → Bilka, Coop, Elgiganten and Clothing,
+Eating out, Electronics; *Spend* → Zalando, Matas, Jysk and Everything else, Electronics, Household;
+*Saved* → Zalando, Bilka, Jysk and Everything else, Household, Electronics.
+
+Both settings refuse what nothing obeys. `cardRows` of 0, 3, 7, 11, 999, −1, `"ten"` and `null`, and
+`listSort` of `orders`, `share`, `colour`, `""`, `null` and `7` are all rejected with the stored
+value standing — checked one by one, 14 of 14.
+
+### The graphic above a list is height the list does not get
+
+Filling every card to ten made the card with a donut three rows taller than the card beside it. The
+entry count is now the setting less whatever the card drew above its rows, measured by the list
+against its own card body rather than tabulated per card — so a headline figure and caption cost Top
+vendors two rows, a chart and a caption cost the Orders card four, and the donut costs the breakdown
+three, none of which is written down anywhere. Measured on the dashboard row at 1440x900: three
+cards, **586px each, 1px, 17px and 1px of unused space** — against 403px and about 300px before any
+of this.
+
+Two traps inside that. The row height has to come from a *row*: an entry list opens with its own
+heading, so measuring the first child measures a 15px label, divides the graphic by that, and cuts
+every card to one row whatever the setting says. And the fold that shortens the ring's list had been
+shaped for the legend that first drew it — `{id, name, colour, spend}` — so the first card to render
+it as a category *record* crashed on `percent(category.share)`, at settings small enough for the fold
+to appear at all. It carries share, saved, orders and a glyph now, like the records it stands for.
+
+A card may still hold fewer than the setting: August had four returns beside a list of ten orders, so
+it draws four and keeps its neighbour's height — **690px both**, 323px of it empty, which is the
+month being short of returns and not the layout being wrong.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`,
+0 page errors. **Not run:** Gecko and WebKit are not installed in this container.

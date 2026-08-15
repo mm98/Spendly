@@ -11,8 +11,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	getHomeContent, getOrderDraft, getOrders, getSettings, logout, populateDemoData,
-	resetStoredData, saveSettings, sorts, spendKinds
+	cardRowOptions, getCategories, getHomeContent, getOrderDraft, getOrders, getSettings,
+	getVendors, listSorts, logout, populateDemoData, resetStoredData, saveSettings, sorts,
+	spendKinds
 } from '../api/client.js'
 
 /* Order settings.
@@ -42,6 +43,10 @@ export default function Settings() {
 	   change is wrong the moment it is saved, so it goes rather than being left to expire. */
 	const refresh = useCallback(() => {
 		invalidate(getSettings); invalidate(getOrderDraft); invalidate(getOrders); invalidate(getHomeContent)
+		// Entries per card is baked into what Home answers, and the list order into what the
+		// vendors and categories tabs open as -- so their caches are as stale as the rest the
+		// moment either is saved.
+		invalidate(getVendors); invalidate(getCategories)
 	}, [])
 
 	const set = useCallback((patch, said) => {
@@ -141,6 +146,27 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 										onChange={() => {}}
 										onSelect={o => change({ sort: o.id }, 'Default sort saved.')}
 										groups={[{ heading: 'Sort', options: sorts.map(s => ({ id: s.id, label: s.label })) }]} />
+								</Field>
+								{/* One control for two lists, because they are the same kind of list and
+								    the answer is the same answer. Only the orders both of them have:
+								    vendors can also sort by order count and categories by share, and a
+								    default naming either would be a setting one of the two pages could
+								    not obey. README: Settings. */}
+								<Field label="Sort vendors and categories by" group
+									help="What All vendors and All categories open sorted by. Both lists, one order.">
+									<Segmented options={listSorts.map(s => s.label)}
+										value={listSorts.find(s => s.id === local.listSort)?.label ?? 'Name'}
+										onChange={label => change(
+											{ listSort: listSorts.find(s => s.label === label).id },
+											'List order saved.')}
+										label="Sort vendors and categories by" />
+								</Field>
+								<Field label="Entries per card" group
+									help="How many rows a card on Home fills with — the latest orders, the top vendors, the favourite categories.">
+									<Segmented options={cardRowOptions.map(String)}
+										value={String(local.cardRows)}
+										onChange={v => change({ cardRows: Number(v) }, 'Entries per card saved.')}
+										label="Entries per card" />
 								</Field>
 							</FilterSection>
 

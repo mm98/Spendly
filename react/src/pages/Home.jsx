@@ -3,7 +3,7 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { Chart, ChartScale, RangeTabs, bucketed, bucketsFor, plotted } from '../components/Chart.jsx'
-import { Donut, DonutBox, Meter, WeekdayBars } from '../components/Viz.jsx'
+import { Donut, DonutBox, Meter, WeekdayBars, foldForRing, useListBudget } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow, LegendRow } from '../components/Rows.jsx'
 import { DashboardCards } from '../components/DashboardCards.jsx'
 import { AiCard, AiCardMark } from '../components/AiCard.jsx'
@@ -152,10 +152,128 @@ function Hero({ month, categories }) {
 	)
 }
 
+
+/* The dashboard's category card, as its own component because it needs a hook: how many rows it
+   can hold depends on how much of the card the donut above them took, and that is measured
+   rather than assumed. Both the arcs and the rows are drawn from the folded array, so the ring
+   still adds up to the figure printed in its middle however few rows the card has room for.
+   README: Home, Charts. */
+function BreakdownCard({ period, categories, rows }) {
+	const [listRef, budget] = useListBudget(rows)
+	const shown = foldForRing(categories, more => `${more} more categories`, budget)
+	return (
+		<>
+			<CardHeader title="Category breakdown" />
+			<CardDivider />
+			<CardBody>
+				<DonutBox>
+					<Donut segments={shown.map(c => ({ share: c.share, colour: c.colour }))}
+						value={krRound(period.spent)} label="Spent this month"
+						ariaLabel={`Category split of ${krRound(period.spent)} this month`} />
+				</DonutBox>
+				{/* Every category the ring draws, named -- the rows were once sliced to three under a
+				    ring built from the whole list, so on a real account it drew six colours and named
+				    half, and the reader could see that something was a fifth of the month with no way
+				    to find out what. Slicing the ring instead would make it disagree with its own
+				    middle, so the tail folds into one segment worth the sum of what it holds.
+
+				    "Without category" and the fold row carry no real category id -- the orders list
+				    has no filter for either, so the id would ask for a category that matches nothing
+				    and read as an empty list. Same fallback the hero legend and Statistics' own
+				    version of this row already use. */}
+				<div className="category-rows" ref={listRef}>
+					{shown.map(c =>
+						<CategoryRow key={c.id ?? 'more'} category={c}
+							to={c.id && c.id !== 'none' ? `/orders/all?category=${c.id}` : '/orders/all'} />)}
+				</div>
+			</CardBody>
+		</>
+	)
+}
+
+
+/* Two more list cards, components for the same reason BreakdownCard is one: what a card can hold
+   is the entry count less whatever the card drew above the list, and only the list can measure
+   that. Here it is a headline figure and its caption rather than a graphic -- which is the point
+   of measuring instead of tabulating chart heights: the card does not have to be told what kind
+   of thing is above its rows, or that anything is. */
+function TopVendorsCard({ vendors, rows }) {
+	const [listRef, budget] = useListBudget(rows)
+	if (!vendors.length) return (
+		<>
+			<CardHeader title="Top vendors" to="/vendors" label="Top vendors, open Vendors" />
+			<CardDivider />
+			<CardBody>
+				<EmptyState>
+					<p>No vendors yet. Add an order and its vendor lands here.</p>
+				</EmptyState>
+			</CardBody>
+		</>
+	)
+	return (
+		<>
+			<CardHeader title="Top vendors" to="/vendors" label="Top vendors, open Vendors" />
+			<CardDivider />
+			<CardBody>
+				<div className="figure-card tabular-figures">{krRound(vendors[0].spend)}</div>
+				<span className="card-caption">{vendors[0].name} · all time</span>
+				<div className="entry-list" ref={listRef}>
+					{vendors.slice(0, budget).map(v => (
+						<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
+							amount={krRound(v.spend)} sub={`saved ${krRound(v.saved)}`}
+							to={`/orders/all?vendor=${v.id}`} />
+					))}
+				</div>
+			</CardBody>
+		</>
+	)
+}
+
+function FavouriteCategoriesCard({ categories, rows }) {
+	const [listRef, budget] = useListBudget(rows)
+	return (
+		<>
+			<CardHeader title="Favourite categories" to="/categories" label="Favourite categories, open Categories" />
+			<CardDivider />
+			<CardBody>
+				{categories.length ? (
+					<div className="category-rows" ref={listRef}>
+						{categories.slice(0, budget).map(c =>
+							<CategoryRow key={c.id} category={c} meta={`saved ${krRound(c.saved)}`}
+								to={`/orders/all?category=${c.id}`} />)}
+					</div>
+				) : (
+					<EmptyState>
+						<p>No favourites yet. Star a category on its edit page and it lands here.</p>
+					</EmptyState>
+				)}
+			</CardBody>
+		</>
+	)
+}
+
+
+/* The Orders card's list, under its chart. Its own component so it can measure: the chart, the
+   caption above it and this list's own heading are all height the rows do not get, and none of
+   those numbers is written down anywhere. */
+function LatestOrders({ orders, rows }) {
+	const [listRef, budget] = useListBudget(rows)
+	return (
+		<div className="entry-list" ref={listRef}>
+			<div className="list-heading">Latest orders</div>
+			{orders.slice(0, budget).map(order => (
+				<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
+					meta={dayMonth(order.date)} amount={krRound(order.total)}
+					to={`/orders/${order.id}`} />
+			))}
+		</div>
+	)
+}
+
 /* The six cards the dashboard can hold. Each is the body only -- the <section class="card">
    around it belongs to DashboardCards, which is what puts the reorder bar inside it. */
 function dashboardCard(key, data) {
-	const { period, vendors, categories, favouriteCategories } = data
+	const { period, vendors, categories, favouriteCategories, cardRows } = data
 	switch (key) {
 		case 'rhythm':
 			return (
@@ -179,81 +297,11 @@ function dashboardCard(key, data) {
 				</>
 			)
 		case 'breakdown':
-			return (
-				<>
-					<CardHeader title="Category breakdown" />
-					<CardDivider />
-					<CardBody>
-						<DonutBox>
-							<Donut segments={categories.map(c => ({ share: c.share, colour: c.colour }))}
-								value={krRound(period.spent)} label="Spent this month"
-								ariaLabel={`Category split of ${krRound(period.spent)} this month`} />
-						</DonutBox>
-						<div className="category-rows">
-							{/* Every category the ring draws, not the top three of them. The ring is
-								built from the whole list and the rows were sliced to 3, so on a real
-								account it drew six colours and named half -- the reader could see that
-								something was a fifth of the month and had no way to find out what. The
-								ring's centre is the month's whole spend, so slicing the ring instead
-								would make it disagree with its own middle. README: Charts.
-
-								"Without category" carries no real category id -- the orders list has no
-								filter for it yet, so the id it does carry would ask for a category
-								that matches nothing and read as an empty list. Same fallback the hero
-								legend and Statistics' own version of this row already use. */}
-							{categories.map(c =>
-								<CategoryRow key={c.id} category={c}
-									to={c.id === 'none' ? '/orders/all' : `/orders/all?category=${c.id}`} />)}
-						</div>
-					</CardBody>
-				</>
-			)
+			return <BreakdownCard period={period} categories={categories} rows={cardRows} />
 		case 'vendors':
-			return (
-				<>
-					<CardHeader title="Top vendors" to="/vendors" label="Top vendors, open Vendors" />
-					<CardDivider />
-					<CardBody>
-						{vendors.length ? (
-							<>
-								<div className="figure-card tabular-figures">{krRound(vendors[0].spend)}</div>
-								<span className="card-caption">{vendors[0].name} · all time</span>
-								<div className="entry-list">
-									{vendors.map(v => (
-										<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
-											amount={krRound(v.spend)} sub={`saved ${krRound(v.saved)}`}
-											to={`/orders/all?vendor=${v.id}`} />
-									))}
-								</div>
-							</>
-						) : (
-							<EmptyState>
-								<p>No vendors yet. Add an order and its vendor lands here.</p>
-							</EmptyState>
-						)}
-					</CardBody>
-				</>
-			)
+			return <TopVendorsCard vendors={vendors} rows={cardRows} />
 		case 'favcats':
-			return (
-				<>
-					<CardHeader title="Favourite categories" to="/categories" label="Favourite categories, open Categories" />
-					<CardDivider />
-					<CardBody>
-						{favouriteCategories.length ? (
-							<div className="category-rows">
-								{favouriteCategories.map(c =>
-									<CategoryRow key={c.id} category={c} meta={`saved ${krRound(c.saved)}`}
-										to={`/orders/all?category=${c.id}`} />)}
-							</div>
-						) : (
-							<EmptyState>
-								<p>No favourites yet. Star a category on its edit page and it lands here.</p>
-							</EmptyState>
-						)}
-					</CardBody>
-				</>
-			)
+			return <FavouriteCategoriesCard categories={favouriteCategories} rows={cardRows} />
 		case 'saved':
 			return (
 				<>
@@ -383,19 +431,12 @@ export default function Home() {
 											   own pace reads its "N days of records" from. */
 											markers={[{ index: data.period.daysIn - 1, series: 0, r: 4.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 2 }]} />
 										<ChartScale marks={data.period.axis} span={data.period.series.cumulative.length} />
-										<div className="entry-list">
-											<div className="list-heading">Latest orders</div>
-											{/* The total, in the slot the total goes in -- this list held the
-											    saving there and the total in the meta line beneath the vendor,
-											    which is the same pair of figures the other two lists of orders
-											    draw and the only one drawing them the other way round.
-											    README: Data Rows. */}
-											{data.latest.map(order => (
-												<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-													meta={dayMonth(order.date)} amount={krRound(order.total)}
-													to={`/orders/${order.id}`} />
-											))}
-										</div>
+										{/* The total, in the slot the total goes in -- this list held the
+										    saving there and the total in the meta line beneath the vendor,
+										    which is the same pair of figures the other two lists of orders
+										    draw and the only one drawing them the other way round.
+										    README: Data Rows. */}
+										<LatestOrders orders={data.latest} rows={data.cardRows} />
 									</>
 								) : (
 									<EmptyState>

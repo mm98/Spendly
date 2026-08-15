@@ -271,6 +271,16 @@ genuinely empty list draws. Any probe reading a card that can legitimately be em
 *query* was empty, not just the card: read the endpoint the page called, and compare its payload to
 what was drawn. A rendered "none" is not evidence of none.
 
+**A stand-in for N things has to be the same shape as one thing.** The "5 more categories" row a
+ring folds its tail into was built as `{id, name, colour, spend}` -- exactly the four fields the
+legend row that first drew it takes as props -- and the first component to receive one as a *record*
+crashed on it, because a category row asks the record for its own share and got `undefined.toFixed`.
+Nothing had been wrong with the fold; what was wrong was that its shape had been fitted to one
+caller's questions rather than to the thing it stands for. When a value is a placeholder for a
+record, give it every field a record has, and reach it through a component that renders it -- the
+crash surfaced only at settings small enough to make the fold appear at all, which is three clicks
+into a picker, on one card, on one page.
+
 **The loading state is a card, so `waitForSelector('.card')` waits for nothing.** The screenshot
 harness waited on `.card`, and Home's Async placeholder *is* a card -- so it proceeded while the
 page still read "Loading your month...". The settle loop behind it agreed: it compares the `d` of

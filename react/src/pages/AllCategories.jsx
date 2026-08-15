@@ -7,7 +7,7 @@ import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { FieldShell, Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories } from '../api/client.js'
+import { getCategories, getSettings, listSorts } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
 import { krRound, percent } from '../api/format.js'
 
@@ -30,11 +30,15 @@ const SORTS = {
 export default function AllCategories() {
 	const state = useApi(getCategories)
 	const [query, setQuery] = useState('')
-	/* Name, not Spend. This tab is where you come to find a particular category -- to check
-	   whether it already exists, or to open it and put it right -- and alphabetical is the
-	   order that lets you do that without reading every row. Spend is one click away and is
-	   what the Overview tab is for. */
-	const [sort, setSort] = useState('Name')
+	/* The account's order, not this page's opinion of one. It was hardcoded to Name here and
+	   again on the other list, which is two places to change one answer and two places for the
+	   answer to drift; it is one setting now, and Name is still what a fresh account gets --
+	   this tab is where you come to find a particular record, and alphabetical is the order
+	   that lets you do that without reading every row. Picking a different order here is for
+	   this visit; the setting is what it opens as. README: Settings. */
+	const settings = useApi(getSettings)
+	const [chosen, setChosen] = useState(null)
+	const sort = chosen ?? listSorts.find(s => s.id === settings.data?.listSort)?.label ?? 'Name'
 
 	return (
 		<Page>
@@ -44,7 +48,7 @@ export default function AllCategories() {
 					<input type="search" value={query} placeholder="Search category name…"
 						aria-label="Search categories" onChange={e => setQuery(e.target.value)} />
 				</FieldShell>
-				<Segmented options={Object.keys(SORTS)} value={sort} onChange={setSort}
+				<Segmented options={Object.keys(SORTS)} value={sort} onChange={setChosen}
 					label="Sort categories" tablist={false} />
 			</div>
 

@@ -18,14 +18,19 @@ export const DASHBOARD_CARDS = [
 
 export const DEFAULT_SETTINGS = {
 	defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10,
-	sort: 'date-desc', showScanCard: true, confirmDelete: true
+	sort: 'date-desc', showScanCard: true, confirmDelete: true,
+	// What the two pages hardcoded before either was a setting: ten rows a card, and the
+	// vendors and categories lists opening alphabetically.
+	cardRows: 10, listSort: 'name'
 }
 
 /** Inserts the settings row and dashboard-card rows every account needs. Runs inside the
     caller's transaction (db.transaction wraps the whole register/reset flow). */
 export function seedAccountDefaults(db, userId) {
-	db.prepare(`INSERT INTO settings (user_id, default_kind, default_status, page_size, sort, show_scan_card, confirm_delete)
-		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard, @confirmDelete)`)
+	db.prepare(`INSERT INTO settings (user_id, default_kind, default_status, page_size, sort,
+		show_scan_card, confirm_delete, card_rows, list_sort)
+		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard,
+			@confirmDelete, @cardRows, @listSort)`)
 		.run({ userId, ...DEFAULT_SETTINGS, showScanCard: DEFAULT_SETTINGS.showScanCard ? 1 : 0,
 			confirmDelete: DEFAULT_SETTINGS.confirmDelete ? 1 : 0 })
 

@@ -478,7 +478,13 @@ The landing screen, top to bottom: the stretch of time being viewed, the hero ch
 
 **The dashboard is personal.** Which cards appear, and in what order, is the user's choice: an edit mode exposes a grip per card, cards drag (or move by arrow key, Home and End for the ends), and the arrangement persists. Everyone sees the same Orders page; Home shows what this user chose to see.
 
-**Cards share a row, so they are filled to the same depth.** A grid row is as tall as its tallest card, and a card that holds three of something beside a card that holds ten is not a shorter card — it is the same card with a hole under it. Every list on this page holds up to the same number of rows, from one number the page states once, and is *filled* to it wherever the account has that many; every chart on it grows into whatever the row gives it rather than standing at a height chosen elsewhere. Ten is the number today: enough to fill a row beside the category breakdown, few enough that these stay summaries with the full list one click behind them. The one list exempt is the category ring's, which is every category with spend this month because the arcs have to add up to the figure in the middle ([the numbers](docs/defects.md#home--three-cards-in-a-row-and-two-of-them-mostly-empty)).
+**Cards share a row, so they are filled to the same depth.** A grid row is as tall as its tallest card, and a card that holds three of something beside a card that holds ten is not a shorter card — it is the same card with a hole under it. Every list in the app holds up to the same number of entries — [one setting](#settings), read everywhere a card truncates a list, on every page and not just this one — and is *filled* to it wherever the account has that many; every chart grows into whatever its row gives it rather than standing at a height chosen elsewhere ([the numbers](docs/defects.md#home--three-cards-in-a-row-and-two-of-them-mostly-empty)).
+
+**What sits above a list is height the list does not get.** A card that spends a donut before its first row and then draws as many rows as its neighbour stands taller than the neighbour by exactly the donut, so a card's entries are the setting less what it drew above them — and that is *measured*, by the list, against the card it is in. A table of "the donut costs three rows, the sparkline two" is a second copy of the layout kept somewhere nothing renders, wrong the day a chart's height or a row's leading changes, and it would have to name every card. Measured, a headline figure, a caption, a chart, a ring or any three together all subtract themselves, and the next thing put above a list needs no rule of its own.
+
+**Running out is allowed; shrinking is not.** A card with four returns in a month that offers room for ten draws four — an invented row is worse than an empty inch — and it keeps the height of the card beside it rather than collapsing, because a grid row of cards at different heights reads as a rendering fault.
+
+**Where the list feeds a graphic, it folds rather than drops.** The category ring is drawn from the same array as the rows under it, so cutting the tail would leave a circle that does not add up to the figure in its own middle. The tail becomes one segment worth the sum of what it holds, with a row that says how many and links to the full list — and that folded entry is a whole record, not a label and a number, because the row it lands in asks it the same questions it asks a real one.
 
 **A drag shows what is moving and where it lands.** The lifted card leaves the flow at the size it had, follows the pointer on a shadow, and a dashed slot of exactly that size travels through the grid. A dimmed card shuffled in place is a drag where the most important thing on screen is the faintest.
 
@@ -585,9 +591,13 @@ A stretch of time in numbers: the window's name between two arrows with the widt
 
 ### Settings
 
-Every control here names what reads it, and the page proves it: default kind and status (what the order form opens with), rows per page and sort (what All Orders obeys), the scan card switch (the same setting Home's LATER writes), ask-before-deleting (what every trash reads), and clear stored data (back to the shipped state, said before it does it).
+Every control here names what reads it, and the page proves it: default kind and status (what the order form opens with), rows per page and sort (what All Orders obeys), entries per card and the vendors-and-categories order (what every card and both lists open as), the scan card switch (the same setting Home's LATER writes), ask-before-deleting (what every trash reads), and clear stored data (back to the shipped state, said before it does it).
 
 **A settings page whose switches change nothing is the decorative-control defect with more surface area.** A setting exists here only if something observably reads it.
+
+**One question, one control — even where it is asked on two pages.** Vendors and categories are the same kind of list, so the order they open in is one setting and not two: a person who wants one alphabetical wants both. It offers only the orders *both* lists have, since a default naming one list's own column is a preference the other cannot obey — vendors can also sort by order count and categories by share, and those stay on the pages, one click from wherever the setting opens them.
+
+**A setting stores only values something obeys.** Anything outside the set a control offers is refused and the stored value stands. A preference that saves, comes back, and is then quietly ignored is worse than no preference, because the settings page goes on saying it is in force.
 
 ---
 

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import multer from 'multer'
 import { db } from '../db.js'
+import { cardRowsFor } from '../lib/prefs.js'
 import { newId } from '../lib/ids.js'
 import { getDecoratedOrder } from '../lib/decorate.js'
 import { processAttachment } from '../lib/images.js'
@@ -108,17 +109,19 @@ router.get('/documents/:key/file', (req, res) => {
 })
 
 /** Recently completed scans — the account's own orders that carry an attachment, newest first.
-    Real history, not the phantom store's two hardcoded rows. */
+    Real history, not the phantom store's two hardcoded rows. Cut to the account's
+    entries-per-card setting, like every other card holding a list. */
+const selectRecentScans = db.prepare(`
+	SELECT o.id AS orderId, a.name, a.meta, ot.total, o.created_at
+	FROM orders o
+	JOIN order_totals ot ON ot.id = o.id
+	JOIN attachments a ON a.order_id = o.id
+	WHERE o.user_id = @userId
+	GROUP BY o.id
+	ORDER BY o.created_at DESC
+	LIMIT @limit
+`)
 router.get('/recent', (req, res) => {
-	const rows = db.prepare(`
-		SELECT o.id AS orderId, a.name, a.meta, ot.total, o.created_at
-		FROM orders o
-		JOIN order_totals ot ON ot.id = o.id
-		JOIN attachments a ON a.order_id = o.id
-		WHERE o.user_id = ?
-		GROUP BY o.id
-		ORDER BY o.created_at DESC
-		LIMIT 10
-	`).all(req.user.id)
+	const rows = selectRecentScans.all({ userId: req.user.id, limit: cardRowsFor(req.user.id) })
 	res.json(rows.map(r => ({ id: r.orderId, name: r.name, meta: r.meta, total: r.total, orderId: r.orderId })))
 })
