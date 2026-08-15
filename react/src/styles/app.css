@@ -693,7 +693,15 @@ svg.chart { width:100%; display:block; }
 .card-kpi .card-kpi-label { font-size:12px; color:var(--text-muted); letter-spacing:normal; text-transform:none; font-weight:500; }
 .delta { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; }
 .delta svg.icon { width:13px; height:13px; }
+/* Three tones, because a delta has three things to say and only ever had two colours for them.
+   Neutral used to carry both "moved the wrong way" and "there is nothing to compare against",
+   which are opposite messages in the same body grey -- so a month where spending, average order
+   and shipping all rose read as four unremarkable lines with one green one. --text-negative is
+   the token the colour table already names for a negative delta, and this is the first rule to
+   use it for one; every other use is a form error. Both tones are qualified with .delta because
+   `.card-kpi span` sets a colour and outranks a lone class. README: Color. */
 .delta.delta-good { color:var(--text-positive); }
+.delta.delta-bad { color:var(--text-negative); }
 .delta.delta-neutral { color:var(--text-body,#3A423D); }
 .meter { position:relative; height:10px; border-radius:5px; background:#E7EAE5; }
 .meter-fill { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--green); }

@@ -247,9 +247,20 @@ function kpisFor(now, was, wasLabel) {
 		const pct = wasVal ? Math.round((nowVal / wasVal - 1) * 100) : (nowVal ? 100 : 0)
 		const direction = pct === 0 ? 'level' : pct < 0 ? 'down' : 'up'
 		const delta = pct === 0 ? `level with ${wasLabel}` : `${Math.abs(pct)}% ${direction} vs ${wasLabel}`
+		/* Three tones, one per thing a delta can mean. It used to be two: anything that was not
+		   the good direction came back 'neutral', so a tile that moved the wrong way was printed
+		   in the same grey as a tile with nothing to be up or down against -- opposite messages,
+		   one colour. 'level' is its own case rather than folded into bad, because holding still
+		   is not a regression.
+
+		   trend stays 'level' too. Mapping it to 'up' made the card's own `trend === 'level'`
+		   branch unreachable, so a tile reading "level with July" drew a rising arrow over a
+		   figure that had not moved. */
+		const good = direction === (kpi.goodUp ? 'up' : 'down')
 		return {
-			label: kpi.label, value: kpi.value(now), delta, trend: direction === 'level' ? 'up' : direction,
-			tone: direction === (kpi.goodUp ? 'up' : 'down') ? 'good' : 'neutral', note: kpi.note?.(now) ?? null
+			label: kpi.label, value: kpi.value(now), delta, trend: direction,
+			tone: direction === 'level' ? 'neutral' : good ? 'good' : 'bad',
+			note: kpi.note?.(now) ?? null
 		}
 	})
 }
