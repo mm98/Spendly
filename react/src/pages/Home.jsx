@@ -139,6 +139,21 @@ function Hero({ month, categories }) {
 							own savedPercent traced once and left there. */}
 						<SplitBar segments={[{ width: view.savedPercent, colour: 'var(--green)' },
 							{ width: 100 - view.savedPercent, colour: 'var(--teal)' }]} />
+						{/* Two colours naming nothing is what this was: the bar is aria-hidden, so the
+						    only thing that could say which half is which is a key, and it had none --
+						    the one chart in the app drawn without one. Same horizontal key the Orders
+						    overview puts under its two-line chart, so a reader meets one shape for
+						    "what the colours mean" on both pages. README: Charts. */}
+						<div className="chart-series-key">
+							<div className="chart-series-key-row">
+								<div className="chart-series-key-swatch" style={{ background: 'var(--green)' }} />
+								Saved {kr(view.saved)}
+							</div>
+							<div className="chart-series-key-row">
+								<div className="chart-series-key-swatch" style={{ background: 'var(--teal)' }} />
+								Spent {kr(view.spent)}
+							</div>
+						</div>
 						{/* The categories are written per month, which is as fine as the records cut, so the
 						    legend says which month in its own heading rather than borrowing the card's --
 						    the same rule the month-wide cards on Statistics follow under a window that
@@ -199,11 +214,18 @@ function dashboardCard(key, data) {
 								ariaLabel={`Category split of ${krRound(period.spent)} this month`} />
 						</DonutBox>
 						<div className="category-rows">
-							{/* "Without category" carries no real category id -- the orders list has no
+							{/* Every category the ring draws, not the top three of them. The ring is
+								built from the whole list and the rows were sliced to 3, so on a real
+								account it drew six colours and named half -- the reader could see that
+								something was a fifth of the month and had no way to find out what. The
+								ring's centre is the month's whole spend, so slicing the ring instead
+								would make it disagree with its own middle. README: Charts.
+
+								"Without category" carries no real category id -- the orders list has no
 								filter for it yet, so the id it does carry would ask for a category
 								that matches nothing and read as an empty list. Same fallback the hero
 								legend and Statistics' own version of this row already use. */}
-							{categories.slice(0, 3).map(c =>
+							{categories.map(c =>
 								<CategoryRow key={c.id} category={c}
 									to={c.id === 'none' ? '/orders/all' : `/orders/all?category=${c.id}`} />)}
 						</div>
