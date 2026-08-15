@@ -220,10 +220,6 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    rather than each surface inventing a height. */
 .topbar .topbar-actions .button { height:32px; padding:0 15px; gap:6px; font-size:11px; letter-spacing:.04em; }
 /* A button's icon follows the button's tier (README: Buttons), not the call site. */
-.button svg.icon { width:15px; height:15px; }
-.topbar .topbar-actions .button svg.icon { width:14px; height:14px; }
-.button-pill svg.icon { width:13px; height:13px; }
-.button-compact svg.icon { width:14px; height:14px; }
 /* The square icon buttons. Same base, and each variant carries only its size --
    26, 28, 32, 38 and 40px were five separate copies of this rule. */
 .icon-button {
@@ -288,7 +284,6 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    instead of buying an exception here. Stated as a height rather than a min-height
    because the defect is headers growing, not headers shrinking. README: Cards. */
 .card-header { height:calc(28px + 11.5px * 1.45); }
-.card-header .section-label { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); }
 /* Base specs, so a component used outside a blessed container still has a rule
    that reaches it. Without these .section-label and .card-caption were styled
    only as .card-header/.section-header descendants, and the 14 instances that
@@ -303,7 +298,6 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    inline width/height pairs, which is how .icon-button-arrow ended up holding
    14px in 8 places, 15px in 4 and 16px in 3. Same defect as the button geometry
    in README: Buttons, one element further in. */
-.chevron svg.icon { width:15px; height:15px; }
 /* A chevron means "this row goes somewhere", so it only ever appears on something
    that actually navigates, and anything that navigates carries one. Anything that
    navigates is an <a> too, so the keyboard path is the platform's, not ours. */
@@ -424,7 +418,7 @@ a[data-go] { color:inherit; text-decoration:none; }
 .compare-tabs { display:flex; margin-top:6px; box-shadow:inset 0 -1px 0 var(--border-divider); }
 .compare-tabs button { flex:1; font:inherit; background:none; border:0; text-align:center; padding:10px 4px 12px; cursor:pointer; border-bottom:2px solid transparent; }
 .compare-tabs .compare-tabs-value { display:block; font-size:13px; font-weight:600; color:var(--text); }
-.compare-tabs .compare-tabs-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
+.compare-tabs .compare-tabs-label, .chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
 .compare-tabs button.is-on { border-bottom-color:var(--text); }
 .compare-tabs button:not(.is-on) .compare-tabs-value { color:var(--text-muted); }
 .chart-legend { margin-top:4px; }
@@ -437,7 +431,8 @@ svg.chart { width:100%; display:block; }
 /* The label was a bare text node taking 12.5px off the row, which is how the one list
    with no element around its own label ended up half a point under every other list's
    title. It is a part with a name now, at the row spec's 13/600. README: Data Rows. */
-.chart-legend-row-title { font-size:13px; font-weight:600; }
+.chart-legend-row-title, .card-tray-row-title, .category-row-title,
+.entry-list .entry-name { font-size:13px; font-weight:600; }
 .chart-legend .amount { margin-left:auto; font-size:13px; font-weight:600; }
 .chart-legend .chevron { color:var(--text-faint); margin-left:6px; }
 
@@ -448,7 +443,6 @@ svg.chart { width:100%; display:block; }
    above and below. So these level up to the control instead of down to the label: one
    header gains air, none overflow, and the three are one height. README: Cards. */
 .section-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 2px; min-height:40px; }
-.section-header .section-label { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); }
 .button.button-pill { gap:6px; height:32px; padding:0 15px; border-color:#DFE3DE; background:var(--bg-card); color:var(--text); font-size:11px; letter-spacing:.04em; }
 
 /* dashboard card row */
@@ -465,15 +459,12 @@ svg.chart { width:100%; display:block; }
 .dashboard-cards.is-editing > .card { border-style:dashed; border-color:var(--text-faint); }
 .card-reorder-bar { display:flex; align-items:center; gap:6px; padding:11px 14px 0; }
 .card-reorder-bar .card-reorder-position { font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin-right:auto; }
-.icon-button-reorder svg { width:14px; height:14px; }
-.icon-button-arrow svg.icon { width:14px; height:14px; }
 .icon-button-clear svg.icon { width:12px; height:12px; }
 .icon-button-reorder:disabled { opacity:.35; cursor:default; }
 .icon-button-reorder.icon-button-reorder-remove { color:var(--donut-red); }
 .card-tray { margin-top:18px; }
 .card-tray-row { border-top:1px solid var(--border-divider); }
 .card-tray-row:first-child { border-top:0; }
-.card-tray-row-title { font-size:13px; font-weight:600; }
 .card-tray-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .card-tray-row .button-pill { margin-left:auto; flex:none; }
 .card-tray-empty { margin:0; padding:4px 0; font-size:12px; color:var(--text-muted); }
@@ -527,7 +518,6 @@ svg.chart { width:100%; display:block; }
 .category-row:first-child { border-top:0; }
 .category-icon { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; flex:none; }
 .category-icon svg.icon { width:17px; height:17px; stroke-width:2; }
-.category-row-title { font-size:13px; font-weight:600; }
 .category-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .category-row .amount { margin-left:auto; font-weight:600; font-size:13px; }
 
@@ -555,7 +545,6 @@ svg.chart { width:100%; display:block; }
 
 /* orders (spending) card */
 .chart-caption { padding:2px 0 0; }
-.chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
 .chart-caption-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
 /* The scale under a chart: ticks and labels, both placed by the same fraction of the box (see
    ChartScale). Each row is its own positioning context and each mark is absolute inside it, so
@@ -602,7 +591,6 @@ svg.chart { width:100%; display:block; }
    = 34.8px, and the 5.8px was the whole of "Latest orders is spaced differently from
    Category breakdown". The value was inherited from a <br> layout that has been gone
    since the class-renaming sweep; keeping it kept that layout's leading. README: Data Rows. */
-.entry-list .entry-name { font-size:13px; font-weight:600; }
 .entry-list .entry-meta { font-size:11px; color:var(--text-muted); }
 /* --text, not --text-positive. Green means one thing in this system -- money saved -- so a
    slot that is green by default says "saved" about whatever is put in it, and three of the
@@ -612,7 +600,11 @@ svg.chart { width:100%; display:block; }
    figure inside a two-tone amount used to be overridden back to --text here; with the slot
    itself neutral, that override said nothing and is gone. README: Color, Data Rows. */
 .entry-list .amount { margin-left:auto; text-align:right; font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; flex:none; }
-.entry-list .entry-amount-sub { font-style:normal; font-size:11px; color:var(--text-muted); font-weight:500; }
+/* The saving under a total is one fact drawn in three row families, so it is one rule: it was
+   muted 500 in one and green 600 in the other two once, and then one spec in three copies.
+   README: Data Rows. */
+.entry-list .entry-amount-sub, .entity-row .entity-row-amount-sub,
+.order-row .order-row-total-saved { font-style:normal; font-size:11px; color:var(--text-muted); font-weight:500; }
 /* The chevron is a flex item like any other, so the row that navigates spends 26px of
    its right-hand run on one and lands its figure 26px left of the rows that do not --
    the money column stepping in on the only row a pointer ever lights up. The rows
@@ -626,8 +618,6 @@ svg.chart { width:100%; display:block; }
 
 /* saved card */
 .chip-saving { display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:8px; background:var(--bg-positive); color:var(--text-positive); font-size:11px; font-weight:700; }
-.chip-saving svg.icon { width:13px; height:13px; }
-
 
 /* ---------------- inner-page patterns from the design system ---------------- */
 .page:not(.is-on) { display:none !important; }
@@ -643,11 +633,9 @@ svg.chart { width:100%; display:block; }
 .item-row > span:not(:has(.item-row-title)) { flex:none; }
 .item-row-title { overflow-wrap:anywhere; }
 .item-row .item-row-icon { width:36px; height:36px; border-radius:var(--radius-compact); background:#DFF0E6; color:#12A56B; display:grid; place-items:center; font-size:14px; font-weight:700; flex:none; }
-.item-row .item-row-icon svg.icon { width:17px; height:17px; }
 /* The drag handle was a bare <span> styling itself, down to a var(--text-faint,#9AA39B)
    whose fallback had drifted a digit from the token it falls back to. */
 .item-row .item-row-grip { color:var(--text-faint); cursor:grab; }
-.item-row .item-row-grip svg.icon { width:15px; height:15px; }
 .item-row-title { font-size:13px; font-weight:600; color:var(--text-strong,#0B0F0D); }
 /* The meta ellipses rather than wrapping. A second line here costs the row 14.72px
    and the step reads as a broken list rather than as more text -- 12 of 28 metas
@@ -674,7 +662,6 @@ svg.chart { width:100%; display:block; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:18px; align-items:start; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; min-width:0; }
 .entry-list .entry-glyph { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:#F3F5F1; flex:none; }
-.entry-list .entry-glyph svg.icon { width:17px; height:17px; }
 /* A tight top belongs to the container, not to the row. The row's padding is the box
    the hover tint paints, so the 7px taken off the first row to close the gap under the
    divider is 7px the lit band loses above the text and keeps below it -- ink 2px under
@@ -689,7 +676,6 @@ svg.chart { width:100%; display:block; }
 .empty-state .empty-state-icon svg.icon { width:19px; height:19px; }
 .empty-state p { margin:0; font-size:13.5px; color:var(--text-body); max-width:30ch; }
 .chip-tag { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:8px; font-size:11px; font-weight:600; width:max-content; }
-.chip-tag svg.icon { width:13px; height:13px; }
 .panel-heading { font-weight:700; }
 .chart-ruler { position:relative; height:9px; }
 .chart-ruler i { position:absolute; top:0; width:1px; height:9px; background:#D9DDD8; }
@@ -735,13 +721,11 @@ svg.chart { width:100%; display:block; }
    and colour alone is not a message (1.4.1). README: Fields and Forms. */
 .field > span.field-error { font-size:12px; font-weight:600; color:var(--text-negative); }
 .field-thumb { width:32px; height:32px; border-radius:8px; background:#F0F2EF; display:grid; place-items:center; color:#7C867E; flex:none; }
-.field-thumb svg.icon { width:17px; height:17px; }
 .kpi-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
 .card-kpi span { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); font-weight:600; }
 .card-kpi .card-kpi-value { font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.02em; text-transform:none; font-weight:700; }
 .card-kpi .card-kpi-label { font-size:12px; color:var(--text-muted); letter-spacing:normal; text-transform:none; font-weight:500; }
 .delta { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; }
-.delta svg.icon { width:13px; height:13px; }
 /* Three tones, because a delta has three things to say and only ever had two colours for them.
    Neutral used to carry both "moved the wrong way" and "there is nothing to compare against",
    which are opposite messages in the same body grey -- so a month where spending, average order
@@ -783,10 +767,10 @@ svg.chart { width:100%; display:block; }
 .entity-row:last-child { border-bottom:0; }
 .entity-row .entity-row-main { flex:1; min-width:0; padding:12px 0; border-radius:8px; }
 .entity-row .entity-row-text { min-width:0; flex:1; }
-.entity-row .entity-row-name { font-size:13.5px; font-weight:600; color:var(--text); }
+.entity-row .entity-row-name, .order-row .order-row-vendor,
+.stepper-step-label { font-size:13.5px; font-weight:600; color:var(--text); }
 .entity-row .entity-row-meta { font-size:11.5px; color:var(--text-muted); }
 .entity-row .entity-row-amount { text-align:right; font-weight:600; font-size:13.5px; color:var(--text); }
-.entity-row .entity-row-amount-sub { font-size:11px; color:var(--text-muted); font-weight:500; }
 .entity-row .entity-row-orders { display:inline-flex; align-items:center; justify-content:center;
 	width:38px; flex:none; color:var(--text-muted); border-radius:8px; }
 .entity-row .entity-row-orders:hover { background:var(--bg-app); color:var(--text); }
@@ -802,16 +786,9 @@ svg.chart { width:100%; display:block; }
    row became an <a>, the only one of its type, and it was the anchor that lost
    its border instead. A tag is not what makes this the last row. README: Responsive Layout. */
 .order-row:not(:has(~ .order-row)) { border-bottom:0; }
-.order-row .order-row-vendor { font-size:13.5px; font-weight:600; color:var(--text); }
 .order-row .order-row-meta { font-size:11.5px; color:var(--text-muted); }
 .order-row .order-row-total { text-align:right; font-weight:600; font-size:13.5px; }
-/* Muted, like .entry-amount-sub and .entity-row-amount-sub: the saving under a total is one
-   fact drawn in three row families, and it was muted 500 in one and green 600 in the other
-   two -- three specs for one line, on the row families most often read side by side.
-   README: Data Rows. */
-.order-row .order-row-total-saved { font-style:normal; font-size:11px; color:var(--text-muted); font-weight:500; }
 .order-row .order-row-chevron { color:var(--text-muted); }
-.order-row .order-row-chevron svg.icon { width:15px; height:15px; }
 .chip-status.chip-status-warning { background:#F6ECD9; color:#84651E; }
 .chip-status.chip-status-warning::before { background:#D9A63C; }
 .note { border-radius:var(--radius-page); padding:11px 14px; font-size:13px; color:var(--text); }
@@ -871,7 +848,6 @@ svg.chart { width:100%; display:block; }
 /* A thumbnail in a list row is the row's tile, so it is the row spec's tile: 36 and
    --radius-compact, not a 44px box of its own. It only ever appears inside .item-row. */
 .document-thumb { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; overflow:hidden; font-size:0; }
-.document-thumb svg.icon { width:17px; height:17px; }
 .document-thumb-img { width:100%; height:100%; object-fit:cover; display:block; }
 .document-thumb-button { border:0; padding:0; cursor:pointer; }
 .document-thumb-button:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
@@ -881,7 +857,6 @@ svg.chart { width:100%; display:block; }
 .combobox > .field-shell { cursor:pointer; }
 .combobox > .combobox-panel { display:none; }
 .combobox.is-open > .combobox-panel { display:block; }
-.combobox.is-open > .field-shell { border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
 .combobox.is-open > .field-shell .chevron-icon { transform:rotate(180deg); }
 .combobox-panel { position:absolute; top:calc(100% + 6px); left:0; right:0; background:#fff; border:1px solid var(--border-control); border-radius:14px; box-shadow:0 18px 44px rgb(11 26 18 / .14); padding:6px; z-index:6; }
 .combobox-group { padding:8px 4px 3px; }
@@ -905,7 +880,6 @@ svg.chart { width:100%; display:block; }
    inline, which is a paint mode, not a per-record value. */
 .combobox-option-star svg.icon { width:14px; height:14px; fill:currentColor; stroke:none; }
 .combobox-action { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:9px; margin-top:4px; padding:11px 12px; border-top:1px solid var(--border-divider); font-size:12px; font-weight:600; letter-spacing:.05em; color:var(--text); cursor:pointer; }
-.combobox-action svg.icon { width:15px; height:15px; }
 /* A placeholder truncates, it never wraps. Wrapping also knocks the control off
    its geometry tier (SS5): the search field grew to two lines and stood taller
    than the FILTERS and Sort controls sharing its row. Trailing bits (unit, key
@@ -960,7 +934,18 @@ label.field-shell { cursor:pointer; }
 /* The combobox chevron keeps its own size wherever it is used -- in a field
    shell and in the FILTERS button -- so it is sized on the class, not the
    container. */
-svg.icon.chevron-icon { width:14px; height:14px; }
+/* The icon tiers (README: Buttons -- an icon follows its tier, not its call site). The same
+   four numbers were restated in twenty scattered rules, one per context, which is how a tier
+   drifts one selector at a time; each tier is one rule naming its contexts. Order matters
+   twice: compact and pill must beat .button's 15px, and the chevron the field-shell's. */
+.button svg.icon, .chevron svg.icon, .item-row .item-row-grip svg.icon,
+.order-row .order-row-chevron svg.icon, .combobox-action svg.icon,
+.ai-suggestion-row button svg.icon { width:15px; height:15px; }
+.topbar .topbar-actions .button svg.icon, .button-compact svg.icon, .icon-button-reorder svg,
+.icon-button-arrow svg.icon, svg.icon.chevron-icon { width:14px; height:14px; }
+.item-row .item-row-icon svg.icon, .entry-list .entry-glyph svg.icon, .field-thumb svg.icon,
+.document-thumb svg.icon, .account-row > span > svg.icon { width:17px; height:17px; }
+.button-pill svg.icon, .chip-saving svg.icon, .chip-tag svg.icon, .delta svg.icon { width:13px; height:13px; }
 .field-shell > svg.icon.chevron-icon { margin-left:auto; }
 .field-shell.field-shell-date > input[type="date"] { flex:none; width:calc(100% + 56px); }
 /* Unscoped for the same reason as the value pseudo-element below: time, month and
@@ -975,7 +960,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    and the pseudo-element does not exist on other input types, so this is inert there.
    Blink and Gecko already left-align, so nothing changes off WebKit. */
 .field-shell > input::-webkit-date-and-time-value { text-align:left; }
-.field-shell:focus-within { border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
+.field-shell:focus-within, .combobox.is-open > .field-shell { border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
 /* A rejected field wears the rejection while it is focused too -- the user is
    standing in the field being told about, so the focus edge is the one that has
    to give way. Both selectors compute 0,2,0 (:has adds nothing, its argument
@@ -1044,7 +1029,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .stepper-step .stepper-icon { width:40px; height:40px; border-radius:var(--radius-page); border:1px solid var(--border-control); display:grid; place-items:center; color:var(--text-body); background:#fff; }
 .stepper-step .stepper-bar { height:4px; border-radius:2px; background:#E7EAE5; width:100%; }
 .stepper-step.is-on .stepper-bar { background:var(--green); }
-.stepper-step-label { font-size:13.5px; font-weight:600; color:var(--text); }
 .stepper-step:not(.is-on) .stepper-step-label { color:var(--text-muted); font-weight:500; }
 .stepper-step.stepper-step-done .stepper-icon { background:var(--green); border-color:var(--green); color:#fff; }
 .stepper-step.stepper-step-done .stepper-bar { background:var(--green); }
@@ -1124,7 +1108,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .ai-prompt-bar > span > svg.icon { width:20px; height:20px; }
 .ai-suggestion-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
 .ai-suggestion-row button { font:inherit; display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px; border-radius:var(--radius-compact); border:1px solid #D9DED8; background:var(--bg-card); font-size:12px; font-weight:500; color:var(--text-body); cursor:pointer; }
-.ai-suggestion-row button svg.icon { width:15px; height:15px; }
 .spotlight-pair { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .spotlight-pair .card .card-body { display:grid; gap:8px; }
 .button.button-ghost { gap:6px; padding:0 15px; border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; width:max-content; }
@@ -1155,7 +1138,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .account-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--border-divider); }
 .account-row:first-child { border-top:0; }
 .account-row-text { font-size:12.5px; }
-.account-row > span > svg.icon { width:17px; height:17px; }
 .card-question .card-question-label { font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--text-muted); text-transform:uppercase; }
 .card-question .card-question-title { font-size:15px; font-weight:700; margin:8px 0 12px; letter-spacing:-.01em; }
 @media (max-width:900px) { .two-column, .spotlight-pair { grid-template-columns:1fr; } }

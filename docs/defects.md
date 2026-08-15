@@ -1510,5 +1510,17 @@ hold — a shown toast, a drag-over — probed directly. The first attempt also 
 form's verdict line: the fix was not a rename but using the existing class, which is how the
 auth pages' third styling came to light at all.
 
+**The follow-up sweep.** With the inline copies gone, the stylesheet's own duplication became
+countable: 606 rules held 24 groups whose declaration bodies were identical under different
+names. The same-concept groups were merged into one rule each — the four icon-size tiers
+(15/14/17/13px, twenty scattered rules become four naming their contexts), the 13px and 13.5px
+row-title families, the section-label restated verbatim in two scoped copies, the focus ring
+written once for `:focus-within` and again for an open combobox, the caption label, and the
+saved-subline that the money-column fix had made one spec in three copies. 609 rules to 582,
+and the walk read the merge at **0 differences of 10,659 records across 52 states** — a
+grouped rule either renders identically or it was not the same rule. Coincidence groups
+(`.sidebar-nav` and `.icon-picker` both happening to be `grid; gap:8px`) were left apart:
+merging those couples things that only agree today.
+
 Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
 **Not run:** Gecko and WebKit are not installed in this container.
