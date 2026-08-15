@@ -240,6 +240,19 @@ its step; page the pager, then read the width. Labels count as the other control
 name was fixed at "Daily spend through July" while the tabs beside it chose the series and the chips
 chose the span, so it announced neither, and a screen reader heard "spend" over a line of order counts.
 
+**A decoration has no state to read back, so every probe above skips it.** The tick strip under every
+chart was a `repeating-linear-gradient` -- a line every 24px, from one declaration, with no element per
+tick, no attribute, no handler and no data behind it. Fire it and nothing moves; walk the DOM and it is
+one 9px div; diff the pixels and it is identical before and after, because it is identical. It sat 47
+ticks under 5 labels for as long as it existed, and the labels beside it were spread evenly under dates
+that are not evenly spaced, so the last one was 74px from the day it names. Both were *drawn* correctly
+-- each on its own terms, which is the trap one rule up: they were never measured **against each
+other**, and neither had anything to say about the other. So when two things are drawn to be read
+together, measure the distance between them rather than each on its own -- and treat a CSS-only
+graphic as unverified by default, because it is the one thing on the page that cannot fail a test until
+you write the test that compares it to something real (here: the x of every tick against the
+coordinates in the chart's own path `d`, which is where the data actually is).
+
 **Fixing the label a rule names is not fixing the rule.** That chart label was made to follow both of
 its controls, and the fix stopped at the string the paragraph above happens to quote. One line up, the
 card's own heading went on reading "Spent this month" under all five widths, over a total, a saving and

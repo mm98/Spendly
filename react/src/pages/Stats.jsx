@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
-import { Chart, ChartAxis, ChartRuler, RangeTabs, RANGE_POINTS, plotted, sampled } from '../components/Chart.jsx'
+import { Chart, ChartScale, RangeTabs, bucketsFor, plotted, sampled } from '../components/Chart.jsx'
 import { Meter, MonthColumns, SpendGauge, WeekdayBars } from '../components/Viz.jsx'
 import { EntryRow, LegendRow } from '../components/Rows.jsx'
 import { ButtonLink, IconButton } from '../components/Button.jsx'
@@ -55,8 +55,9 @@ export default function Stats() {
 				/* One scale for both lines, and the running total the figure above the chart
 				   states is the line itself -- a chart drawn from other numbers than the ones
 				   printed beside it cannot fail visibly. README: Charts. */
-				const points = sampled(view.series.current, RANGE_POINTS[view.range])
-				const compare = view.series.previous && sampled(view.series.previous, RANGE_POINTS[view.range])
+				const buckets = bucketsFor(view.range, view.axis, view.series.current.length)
+				const points = sampled(view.series.current, buckets)
+				const compare = view.series.previous && sampled(view.series.previous, buckets)
 				const ceiling = Math.max(view.spent, compare ? view.series.previous.at(-1) : 0)
 
 				return (
@@ -148,8 +149,7 @@ export default function Stats() {
 										{ points: plotted(points, ceiling), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.4 },
 										...(compare ? [{ points: plotted(compare, ceiling), kind: 'curve', stroke: '#95ABAA', strokeWidth: 1.6, dash: '4 4' }] : [])
 									]} />
-								<ChartRuler />
-								<ChartAxis labels={view.axis} />
+								<ChartScale marks={view.axis} span={view.series.current.length} buckets={buckets} />
 							</CardBody>
 						</Card>
 
@@ -245,7 +245,10 @@ export default function Stats() {
 									{view.recent.note ? <span className="field-help">{view.recent.note}</span> : null}
 								</CardHeader>
 								<CardDivider />
-								<CardBody>
+								{/* Fills the card rather than sitting 150px tall in it: this shares a row
+								    with the category breakdown, which is as long as the account has
+								    categories. README: Charts. */}
+								<CardBody variant="card-body-fill">
 									<MonthColumns months={view.recent.columns} />
 								</CardBody>
 							</Card>

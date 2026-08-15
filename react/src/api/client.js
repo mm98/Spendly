@@ -270,6 +270,10 @@ const monthCategoriesFrom = (categories, split) => {
 
 const periodFromWindow = w => ({
 	label: w.label, shortLabel: w.shortLabel, previousLabel: w.previousLabel,
+	/* The window's own marks. Every chart drawn from this object used to carry a hardcoded
+	   01/08/15/22/29 instead -- five dates that are no unit of anything, printed unchanged under
+	   a February that has 28. The window knows its own bounds; nothing else does. */
+	axis: w.axis,
 	spent: w.spent, saved: w.saved, savedPercent: w.savedPercent, retail: w.retail,
 	averageOrder: w.average, weekdays: w.rhythm.weekdays,
 	busiestDay: w.rhythm.busiestDay, busiestDaySpend: w.rhythm.busiestDaySpend,

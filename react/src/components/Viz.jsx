@@ -201,11 +201,22 @@ export const WeekdayBars = ({ days, field = 'home', style }) => (
 	</div>
 )
 
+/** A column per window, at a fixed scale-height, with its name underneath.
+
+    The bar sits in a track of its own rather than sharing the column's box with the label. It
+    used to be a flex sibling of that label inside a 150px column, so the space a percentage
+    resolved against was 150px while the space a bar could actually occupy was 128.05 -- 150
+    less the 6px gap and the 15.95px line of text -- and flex-shrink quietly took every bar
+    above 85% down to exactly that. 100%, 96% and 85% drew three bars the same height, on a
+    chart whose entire job is comparing heights, and the one that happened to be right was the
+    85. A percentage needs a box that means it. */
 export const MonthColumns = ({ months }) => (
 	<div className="month-columns">
 		{months.map(m => (
 			<div key={m.label} className={m.current ? 'is-on' : undefined}>
-				<div className="month-columns-fill" style={{ height: m.height + '%' }} />
+				<div className="month-columns-track">
+					<div className="month-columns-fill" style={{ height: m.height + '%' }} />
+				</div>
 				<span>{m.label}</span>
 			</div>
 		))}

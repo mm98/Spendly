@@ -793,3 +793,130 @@ on a size mismatch that reads as a layout change and is not one.
 
 **Not rendered:** Gecko and WebKit are not installed in this container. These files are Blink renders,
 as they have always been.
+
+---
+
+## Charts — the ruler under every chart was a fixed comb, and the marks were spread evenly
+
+The strip of tick marks under a chart was one CSS declaration:
+`repeating-linear-gradient(to right, #D9DDD8 0 1px, transparent 1px 23px)` — a line every 24px, from
+the left edge, forever. It knew nothing about the dates printed under it. On the 1114px charts that is
+**47 ticks under 5 labels**; on the 704px Orders card, **30 under 5**; on a phone, **14 under 5**. No
+tick landed on a label except by arithmetic accident, and the strip read as a scale because it is
+shaped like one.
+
+The labels were no better placed. They were spread by `justify-content:space-between`, so mark *i* of
+*n* sat at `i/(n-1)` of the box — evenly, whatever the dates were. The chart plots day *d* of a
+31-day month at `(d-1)/30`, so the five marks belonged at 0, .233, .467, .700 and **.933**, not at 0,
+.25, .5, .75 and **1**. The distance between where the last mark was drawn and where its own day is
+plotted:
+
+| chart | width | the "29" was off by |
+| --- | --- | --- |
+| Home hero, Home's two rail charts, Statistics' overview | 1114px | **74.3px** |
+| Orders' overview | 704px | **47.0px** |
+| all five, at `devices['iPhone 13']` | 324px | **21.7px** |
+
+Both rows are one component now (`ChartScale`), drawn from one array of marks the window itself
+sends — `[{ label, day }]`, where `day` indexes the window's own daily series. A mark is placed at
+`left:p%` and pulled back by `p` of its own width, so p=0 sits flush left, p=1 flush right and p=.5
+centred: exactly what space-between was doing to the labels, which is why they have not moved, but now
+the tick is placed by the same number. Measured across **21 chart states** — Home's hero and Statistics'
+overview at all five widths, Home's two rail charts and Orders' overview, at 1440x900 and
+`devices['iPhone 13']` — the worst distance from a tick to the nearest point the chart's own path
+plots is **1.36px**, against a tick 1px wide. Read off the rendered `d` attribute, since the viewBox is
+1:1 with pixels and a path coordinate is therefore a pixel offset.
+
+### A year drawn as 12 equal slices is not 12 months
+
+`RANGE_POINTS` cut a year into 12 buckets of `365/12 = 30.4` days. Calendar months are 28 to 31, so
+they slid: 1 Feb is day 31 and lands in bucket 1, and so does 1 Mar, day 59. Two marks, one point. The
+axis printed **Jan Feb Apr May Jun Jul Aug Sep Oct Nov Dec** — 11 labels for 12 months, March drawn
+and unnamed, and before the marks were placed on their real points it printed both on top of each
+other. "All time" was worse at 6 buckets: **12 marks onto 6 points**.
+
+So the cut is the marks themselves for those two ranges — the months the window already names are the
+buckets it is drawn in — and 12 points across a year are its 12 months, exactly. A quarter is not
+bucketed at all any more: it is ~92 days and a chart draws 92 points of them, so its three month marks
+land on their own dates rather than in whichever of 13 weekly slices held them. `RANGE_POINTS` is gone
+with it — a count per range was the wrong shape for the question.
+
+| range | the unit it is marked in | marks sent | drawn at 1440 | on the phone | points plotted |
+| --- | --- | --- | --- | --- | --- |
+| week | its 7 days | 7 | 7 | 7 | 7 |
+| month | its 28 to 31 days | 31 | **31** | 16 | 31 |
+| quarter | its 3 months | 3 | 3 | 3 | **92** |
+| year | its 12 months | 12 | **12** | **12** | 12 |
+| all time | the months it spans | 12 | **12** | 10 | 12 |
+
+The marks are the window's calendar, not its contents: a 31-day month sends 31 marks whether it
+holds five orders or five hundred.
+
+### How many fit is a question about width, not about range
+
+A month has up to 31 marks and a year of days would have 365, so marks are dropped left to right until
+each has room for its own label, keeping the first and the last. The room asked for is the two labels'
+own half-widths plus 7px of daylight, not a constant: a flat 34px is what "Jan" needs beside "2025",
+and reserving it for twelve three-letter names cost the phone half a year — **6 marks of 12**, missing
+Feb, Apr, Jun, Aug, Oct and Nov. Sized off the labels, the phone keeps all twelve months, and a month's
+31 days come down to **16** (01, 03, 05 … 31) on a 324px card and stay at 31 on a 1114px one. No two
+rendered labels overlap in any of the 21 states, asserted as `left[i] > right[i-1] + 2`.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173` against
+a real API and a fresh account with 12 months of demo data, at 1440x900 and under
+`devices['iPhone 13']` with `deviceScaleFactor: 2`; every range entered by clicking its button and
+confirmed by reading `aria-pressed` back before measuring. **0 page errors** in either profile.
+
+### The screenshots
+
+`docs/home.png` moved **923,487 of 5,184,000** and `docs/phone.png` **92,635 of 1,035,840**; both were
+re-rendered. `all-orders.png` is byte-identical — it holds no chart. The whole of that difference is
+this change and none of it is drift: the same harness run against the unchanged source reproduces both
+committed files at **0 differing pixels**, and each new file was rendered twice and required to agree
+with itself at 0 before being written. Most of it is not the scale itself but what sits under it —
+Home's three charts had labels and no ticks, so each gained a **17px** strip (8px of margin and a 9px
+ruler, against the 4px margin the labels carried alone) and everything below them moved down by it;
+each also went from 5 marks to 31, three times over.
+
+The row holding the labels is `height:1lh` and not a pixel count. Every label in it is absolutely
+positioned, so the row would otherwise collapse to nothing; a hardcoded 14px was 1.2px short of the
+15.225 the 10.5px text occupies, which is three more small shifts on Home for no reason at all.
+
+**Not run:** Gecko and WebKit are not installed in this container. This is a Blink render. The change
+is `position:absolute` with a percentage `transform`, which is not an engine-shaped construct, but it
+has not been checked in the other two.
+
+---
+
+## Charts — three bars of 100%, 96% and 85% drew the same height
+
+*Last six quarters* is six bars, each given a height as a percentage of the tallest. Three consecutive
+quarters were sent **96%, 85% and 100%** and all three rendered at **128.05px**.
+
+The column was a 150px flex column holding the bar *and* its label. A percentage height resolves
+against that 150px, so 100% asked for 150 — but the space left after the 6px gap and the 15.95px line
+of text is 150 − 6 − 15.95 = **128.05px**, and `flex-shrink` (1 by default) quietly took every bar that
+asked for more down to exactly it. 85% asked for 127.5 and fitted, which is why the shortest of the
+three was the only one drawn correctly, and why the defect reads as "the tall ones are capped" rather
+than as a scale that is wrong everywhere. Anything above **85.4%** drew at the cap: on this data that
+was three bars of six.
+
+The bar has a track of its own now, and the label is outside it, so the box a percentage resolves
+against is the box the bar can actually fill. Measured across five ranges at 1440x900 and under
+`devices['iPhone 13']` — 60 bars — the largest disagreement between a bar's rendered height and
+`track x percent` is **0.02px**, and no two bars with different percentages draw within 0.5px of each
+other.
+
+### The track is a floor, not a height
+
+150px was also the whole of it, in a card that shares a grid row with the category breakdown — which
+is as long as the account has categories. Ten legend rows beside six bars left the bar card 380px tall
+with a 150px chart in the top of it and **230px of nothing** underneath. The track is `flex:1` with a
+150px `min-height` now, and the card and its body pass the row's height down: measured at 1440, the
+chart fills **527 of 527px** of the body's inner width and leaves **1px** below itself, against 230
+before. The percentages still resolve exactly against the grown track — 220.13px and 379.5px tracks,
+same 0.02px worst error.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+

@@ -2,7 +2,7 @@ import { useId, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Chart, ChartAxis, RANGE_POINTS, RangeTabs, bucketed, plotted } from '../components/Chart.jsx'
+import { Chart, ChartScale, RangeTabs, bucketed, bucketsFor, plotted } from '../components/Chart.jsx'
 import { Donut, DonutBox, Meter, WeekdayBars } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow, LegendRow } from '../components/Rows.jsx'
 import { DashboardCards } from '../components/DashboardCards.jsx'
@@ -39,11 +39,9 @@ const statsHref = range => (range === 'month' ? '/stats' : `/stats?range=${range
    controls have moved on from. It names both lines now, because both are drawn. The window
    says which days it covers; how coarsely they are drawn is the chart's own business, so it is
    the part the sentence adds. */
-const heroLabel = view => {
-	const points = RANGE_POINTS[view.range]
-	if (!points) return `Spent and saved per day, ${view.shortLabel}`
-	return `Spent and saved across ${view.shortLabel}, bucketed into ${points} points`
-}
+const heroLabel = (view, points) => (points === view.series.spend.length
+	? `Spent and saved per day, ${view.shortLabel}`
+	: `Spent and saved across ${view.shortLabel}, bucketed into ${points} points`)
 
 function Hero({ month, categories }) {
 	const [range, setRange] = useState('month')
@@ -65,8 +63,9 @@ function Hero({ month, categories }) {
 			   draws every wide window squashed into the bottom of the box -- and scaling each
 			   line to its own peak would draw the smaller one as tall as the larger, which is
 			   the defect the Orders overview chart already carries a note about. */
-			const spend = bucketed(view.series.spend, RANGE_POINTS[view.range])
-			const saved = bucketed(view.series.saved, RANGE_POINTS[view.range])
+			const buckets = bucketsFor(view.range, view.axis, view.series.spend.length)
+			const spend = bucketed(view.series.spend, buckets)
+			const saved = bucketed(view.series.saved, buckets)
 			const ceiling = Math.max(...spend, ...saved)
 			const line = values => plotted(values, ceiling, HERO_HEIGHT - HERO_INSET, HERO_INSET)
 
@@ -100,7 +99,7 @@ function Hero({ month, categories }) {
 						    description, because the resting state is visibility:hidden and a hidden node is out
 						    of the accessibility tree unless something references it. README: Charts. */}
 						<div className="chart-wrap">
-							<Chart height={HERO_HEIGHT} label={heroLabel(view)}
+							<Chart height={HERO_HEIGHT} label={heroLabel(view, spend.length)}
 								tabIndex={0} aria-describedby={calloutId}
 								/* The one chart here that was drawn 'line' -- straight segments with a corner at
 								   every point, beside three curves on the same page. The curve was the riskier
@@ -123,11 +122,11 @@ function Hero({ month, categories }) {
 							</div>
 						</div>
 						{/* The window's own marks, not a fixed row of days: the chips move this chart
-						    across five widths, so a hardcoded 01/08/15/22/29 would be a month's dates
-						    printed under a year. Every other chart in the app carries an axis and this
+						    across five widths, so a hardcoded set of dates would be one month's printed
+						    under a year. Every other chart in the app carries an axis and this
 						    one carried none, so its peaks sat at no date a reader could name.
 						    README: Charts. */}
-						<ChartAxis labels={view.axis} />
+						<ChartScale marks={view.axis} span={view.series.spend.length} buckets={buckets} />
 						{/* The categories are written per month, which is as fine as the records cut, so the
 						    legend says which month in its own heading rather than borrowing the card's --
 						    the same rule the month-wide cards on Statistics follow under a window that
@@ -380,7 +379,7 @@ export default function Home() {
 											   curve has nothing to say about. daysIn is the same count Statistics'
 											   own pace reads its "N days of records" from. */
 											markers={[{ index: data.period.daysIn - 1, series: 0, r: 4.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 2 }]} />
-										<ChartAxis />
+										<ChartScale marks={data.period.axis} span={data.period.series.cumulative.length} />
 										<div className="entry-list">
 											<div className="list-heading">Latest orders</div>
 											{data.latest.map(order => (
@@ -432,7 +431,7 @@ export default function Home() {
 												{ points: plotted(data.period.series.savingsGrowth,
 													Math.max(...data.period.series.savingsGrowth), 87, 3), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
 											]} />
-										<ChartAxis />
+										<ChartScale marks={data.period.axis} span={data.period.series.savingsGrowth.length} />
 									</>
 								) : (
 									<EmptyState>

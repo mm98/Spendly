@@ -347,23 +347,49 @@ function abbrFor(range, id) {
 	return 'All time'
 }
 
-/** The x-axis marks under the main chart — day-of-month for a window narrow enough to show
-    every day, the month's own 01/08/15/22/29 for a whole month, and the months it spans for
-    anything wider. */
+/** The x-axis marks under the main chart — every day of a window that has days in it, and every
+    month of one too wide for that.
+
+    A window is marked in its own unit. A week is seven days, a month is the 28 to 31 it actually
+    has, a quarter is its three months and a year its twelve; "all time" is the months it spans.
+    How many of those there is room to print is the axis's question and not this one's (see
+    fitMarks) — this side says what the marks *are*, the width says how many survive.
+
+    A month used to be marked 01/08/15/22/29: five fixed dates, no unit at all, the same five
+    under February as under July, and the 29 printed under a month that has 28 days.
+
+    Every mark carries the day it belongs to, as an index into the window's own daily series,
+    not just its text. A list of five strings says nothing about where they go, so the axis drew
+    them evenly and the last one landed on the right-hand edge — which is the end of the window,
+    two days past the 29th of a 31-day month, about 22px away from the point the chart plots for
+    it. The client turns the index into an x through the same bucketing it drew the line with,
+    so a mark sits over its own day whatever the width does to the series. */
 function axisFor(range, from, to) {
 	const days = Math.round((to - from) / DAY)
-	if (days <= 14) {
+	const mark = (label, d) => ({ label, day: Math.round((d - from) / DAY) })
+	// A month is the widest window still drawn a day at a time, so 31 is the most marks this can
+	// return in days -- an axis the width can thin, rather than a comb it cannot.
+	if (days <= 31) {
 		const marks = []
-		for (let d = from; d < to; d += DAY) marks.push(pad(new Date(d * 1000).getUTCDate()))
+		for (let d = from; d < to; d += DAY) marks.push(mark(pad(new Date(d * 1000).getUTCDate()), d))
 		return marks
 	}
-	if (range === 'month') return ['01', '08', '15', '22', '29'].filter(d => Number(d) <= days)
-	const months = []
+	/* One mark per month the window spans, on that month's first day inside it. A span that
+	   crosses a year names the year instead of "Jan": three years of records otherwise print
+	   Jan three times, which is one label for three different marks — ambiguous to read, and
+	   two of them silently dropped when the axis keyed its marks by their text. */
+	const multiYear = new Date(from * 1000).getUTCFullYear() !== new Date((to - DAY) * 1000).getUTCFullYear()
+	const marks = []
+	let last = null
 	for (let d = from; d < to; d += DAY) {
-		const abbr = MONTH_ABBR[new Date(d * 1000).getUTCMonth()]
-		if (months.at(-1) !== abbr) months.push(abbr)
+		const at = new Date(d * 1000)
+		const month = at.getUTCMonth()
+		if (month === last) continue
+		last = month
+		marks.push(mark(multiYear && (month === 0 || !marks.length) ? String(at.getUTCFullYear())
+			: MONTH_ABBR[month], d))
 	}
-	return months
+	return marks
 }
 
 /** Full statistics for one window. `summary` skips the two sub-computations only the
@@ -433,7 +459,7 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 /** Home's hero: always the newest window of the chosen width (no pager). Day-level (not
     cumulative) order counts and saved amounts, one point per day of the window, for the
     Orders/Saved tab toggle — the client buckets these down to a handful of columns
-    (RANGE_POINTS in Chart.jsx) the way it already did over the phantom store's per-day rows. */
+    (bucketsFor in Chart.jsx) once a window is too wide to draw a point per day. */
 export function getHomeHero(userId, range) {
 	const width = ['week', 'month', 'quarter', 'year', 'all'].includes(range) ? range : 'month'
 	const id = currentWindowId(width)
@@ -456,7 +482,7 @@ export function getHomeHero(userId, range) {
 		   one chart in the app with no x-axis, so its peaks sat at no date a reader could name.
 		   It is computed here rather than in the page because only this side knows the window's
 		   real bounds, and the five widths need five different sets of marks: days for a week,
-		   01/08/15/22/29 for a month, month names for anything wider. */
+		   its own days for a month, month names for anything wider. */
 		axis: axisFor(width, bounds.from, bounds.to),
 		peak: { date: fromEpoch(peak.date), spend: peak.spend }
 	}

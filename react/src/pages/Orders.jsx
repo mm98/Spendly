@@ -1,7 +1,7 @@
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Chart, ChartAxis, ChartRuler, plotted } from '../components/Chart.jsx'
+import { Chart, ChartScale, plotted } from '../components/Chart.jsx'
 import { Donut, DonutBox } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
@@ -88,8 +88,7 @@ export default function Orders() {
 										{ index: data.period.daysIn - 1, series: 1, r: 13, fill: '#4F5BD5', opacity: 0.14 },
 										{ index: data.period.daysIn - 1, series: 1, r: 5.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 3 }
 									]} />
-								<ChartRuler />
-								<ChartAxis />
+								<ChartScale marks={data.period.axis} span={data.period.series.monthCurrent.length} />
 							</CardBody>
 						</Card>
 

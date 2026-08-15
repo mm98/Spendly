@@ -171,19 +171,130 @@ export const Chart = memo(function Chart({ height, label, series = [],
 	)
 })
 
-/** The day-of-month scale under a chart. */
-export const ChartAxis = ({ labels = ['01', '08', '15', '22', '29'] }) => (
-	<div className="chart-axis tabular-figures">{labels.map(l => <span key={l}>{l}</span>)}</div>
-)
+/* ---- the scale under a chart ----
 
-export const ChartRuler = () => <div className="chart-ruler" aria-hidden="true" />
+   One component, one array of marks, both rows drawn from it. It used to be two: a
+   `<ChartRuler />` whose ticks were a `repeating-linear-gradient` every 23px, and a
+   `<ChartAxis />` of labels spread by `justify-content:space-between`. Neither knew the other
+   existed, so the ticks were a fixed comb that landed under the dates by coincidence and never
+   again once the range moved -- 14 ticks under 5 labels on a month, the last one nowhere near
+   the 29. A tick strip that does not mark the labels is decoration pretending to be a scale.
 
-/* ---- ranges ----
-   How many points a range is drawn with once it is wider than a chart can plot day by day.
-   Both pages read these against a window of the same timeline: Statistics samples a running
-   total down to them, Home's hero averages a day-by-day series into them. README: Buttons. */
+   Anchoring, and why it is not plain centring: the plotted line runs edge to edge, x=0 to
+   x=width (see buildPath), so mark i belongs at p = i/(n-1) of the box -- the first hard against
+   the left edge, the last hard against the right. A label centred on either would hang half
+   outside the card. So every mark is placed at `left:p%` and pulled back by p of *its own*
+   width: p=0 leaves it flush left, p=1 pulls it flush right, p=.5 centres it. That is exactly
+   what space-between was already doing to the labels, which is why they have not moved -- but
+   now the tick is placed by the same rule, so the point at fraction p across the tick and the
+   point at fraction p across the label both sit at p x width. They cannot drift apart again,
+   whatever the range or the width, because there is one number behind both.
 
-export const RANGE_POINTS = { quarter: 13, year: 12, all: 6 }
+   Marks come from the window (`window.axis` on the API side), never from a hardcoded month. */
+
+/* Room two marks need between them: half of each label plus daylight, since a label is centred
+   on its own tick. Measured off the label rather than assumed for the widest one -- a flat 34px
+   is what "Jan" needs when it stands next to "2025", and it costs a phone half the months of a
+   year to reserve it for twelve three-letter names that want 26. The axis renders at 10.5px, in
+   a face whose digits are tabular, so a character is about 6.5px wide. */
+const CHAR = 6.5
+const GAP = 7
+const spacing = (a, b) => (String(a.label).length + String(b.label).length) * CHAR / 2 + GAP
+
+/** As many marks as fit, left to right, dropping any that would land too close to the last one
+    kept. A fortnight of days is 14 marks and a year of them would be 365; the axis has to
+    survive both, and a phone has room for a year's twelve months but not for its days.
+
+    By real x, not by counting: the marks are not evenly spaced (months are 28 to 31 days long)
+    and a wide window quantises several of them onto one plotted point -- a year drawn as 12
+    equal buckets puts Feb and Mar in the same one, and "all time" as 6 puts whole seasons
+    there. Thinning to a count kept both of those and drew them on top of each other. Distance
+    is the thing that decides whether a label has room, so distance is what it now asks. */
+export function fitMarks(marks, width) {
+	// Before the first measurement there is no width to fit to, and thinning to a guess would
+	// draw a scale that jumps on the next frame. Everything, then the real answer.
+	if (!width || marks.length < 3) return marks
+	const kept = [marks[0]]
+	for (const m of marks.slice(1)) {
+		if ((m.p - kept.at(-1).p) * width >= spacing(kept.at(-1), m)) kept.push(m)
+	}
+	/* The end of the window is worth naming, so when the final mark was dropped for being close
+	   it takes the place of the one that crowded it out -- otherwise a year's axis stops at Nov
+	   and the last stretch of the line is unlabelled. */
+	const last = marks.at(-1)
+	if (kept.at(-1) !== last && kept.length > 1
+		&& (last.p - kept.at(-2).p) * width >= spacing(kept.at(-2), last)) kept[kept.length - 1] = last
+	return kept
+}
+
+const at = p => ({ left: p * 100 + '%', transform: `translateX(-${p * 100}%)` })
+
+/**
+ * The scale under a chart: a tick per mark, the mark's own label under it.
+ *
+ * marks:   the window's own marks, `[{ label, day }]` — the days of a week or a month, the
+ *          months of a quarter, a year or all time. `day` indexes the window's daily series.
+ * span:    how many days that series holds.
+ * buckets: the cut the chart was drawn with (bucketsFor), when it draws fewer points than days.
+ */
+export const ChartScale = ({ marks = [], span, buckets }) => {
+	const [ref, width] = useMeasuredWidth()
+	const days = span ?? marks.length
+	const total = pointCount(buckets, days)
+	const placed = marks.map(m => ({
+		...m,
+		// Through the same cut the line was drawn with, not evenly by index: a window's months
+		// are 28 to 31 days apart and not one length, and spreading them as though they were
+		// put every mark but the first somewhere the chart plots a different date.
+		p: total > 1 ? bucketOf(m.day, days, buckets) / (total - 1) : 0
+	}))
+	const shown = fitMarks(placed, width)
+	if (!shown.length) return null
+
+	return (
+		<div className="chart-scale" ref={ref}>
+			<div className="chart-ruler" aria-hidden="true">
+				{/* Keyed by day, not by label: a span of two years names "Feb" twice, and two
+				    identical keys is React silently drawing one of them. */}
+				{shown.map(m => <i key={m.day} style={at(m.p)} />)}
+			</div>
+			<div className="chart-axis tabular-figures">
+				{shown.map(m => <span key={m.day} style={at(m.p)}>{m.label}</span>)}
+			</div>
+		</div>
+	)
+}
+
+/* ---- how a window is cut into the points a chart draws ----
+
+   A window is drawn in the unit its axis names. A week is 7 days, a month its own 28 to 31 and
+   a quarter the ~90 it spans -- all of them one point per day, and every mark then sits exactly
+   on its own date with nothing to round. Only a year and "all time" are too wide for that, and
+   both are marked in months, so months are what they are cut into.
+
+   The cut used to be a count per range -- 13 points for a quarter, 12 for a year, 6 for all
+   time -- and that is what the axis could not survive. A year cut into 12 slices of 30.4 days
+   is not 12 calendar months: 1 Feb is day 31 and 1 Mar is day 59, and both land in the second
+   slice, so the axis printed Jan Feb Apr with March drawn and unnamed. There was nowhere to
+   name it that was not already February's. Twelve points across a year *are* its twelve
+   months, so the cuts are the months themselves, read off the marks the window already sends.
+   One source: the boundary a bucket ends on is the boundary its mark names, so no mark can miss
+   its own point, and a quarter's three months no longer land three days from where they are.
+   README: Buttons. */
+
+/** The cut for a range: the marks' own days where a window is too wide to draw a point per day,
+    and `null` -- one point per day, nothing to bucket -- everywhere else. */
+export function bucketsFor(range, marks, days) {
+	if (range !== 'year' && range !== 'all') return null
+	const cuts = marks.map(m => m.day)
+	// Fewer marks than days is what makes them a bucketing; a window young enough to be marked
+	// day by day is already one point per day.
+	return cuts.length > 1 && cuts.length < days ? cuts : null
+}
+
+/** How many points a cut draws. */
+export const pointCount = (buckets, days) =>
+	(Array.isArray(buckets) ? buckets.length : buckets || days)
 
 /** Averages a day-by-day series down to `n` buckets. Not a running total -- use `sampled` for
     one, for the reason written on it.
@@ -191,25 +302,48 @@ export const RANGE_POINTS = { quarter: 13, year: 12, all: 6 }
     Nothing is rounded on the way out. These are order counts and kroner on their way into
     `plotted`, and a month of days where most hold one order rounds to a row of 1s and draws a
     flat line: the rounding was for the pixel coordinates this used to be handed. */
-export function bucketed(values, n) {
-	if (!n || values.length <= n) return values
-	const out = []
-	for (let i = 0; i < n; i++) {
-		const a = Math.floor(i * values.length / n)
-		const b = Math.max(a + 1, Math.floor((i + 1) * values.length / n))
-		const part = values.slice(a, b)
-		out.push(part.reduce((sum, v) => sum + v, 0) / part.length)
-	}
-	return out
+export function bucketed(values, buckets) {
+	const n = pointCount(buckets, values.length)
+	if (!buckets || values.length <= n) return values
+	return Array.from({ length: n }, (_, i) => {
+		const a = cutAt(i, values.length, buckets)
+		const part = values.slice(a, Math.max(a + 1, cutAt(i + 1, values.length, buckets)))
+		return part.reduce((sum, v) => sum + v, 0) / part.length
+	})
+}
+
+/* ---- where a day lands once a series is drawn coarser than it was recorded ----
+   One cut, used by all three: the two reducers here and the scale that has to say which plotted
+   point a calendar date ended up inside. They used to disagree -- bucketed() cut on
+   floor(i x L / n) and sampled() kept ceil((i+1) x L / n) - 1, which is the same idea rounded
+   the other way, so the two charts on Home and Statistics put the same date up to a bucket
+   apart. A scale can only be right about one of them, so there is now one to be right about. */
+
+/** First index of bucket `i`, under either kind of cut. */
+const cutAt = (i, L, buckets) =>
+	(Array.isArray(buckets) ? (i < buckets.length ? buckets[i] : L) : Math.floor(i * L / buckets))
+
+/** Which plotted point holds day `day` of an `L`-day series. */
+export function bucketOf(day, L, buckets) {
+	const n = pointCount(buckets, L)
+	if (!buckets || L <= n) return Math.min(day, L - 1)
+	if (!Array.isArray(buckets)) return Math.min(n - 1, Math.floor(day * n / L))
+	let i = 0
+	while (i + 1 < n && buckets[i + 1] <= day) i++
+	return i
 }
 
 /** Thins a running total down to `n` points by keeping the last value in each bucket. Averaging
     one is not one: the mean of a rising series sits below where it actually reached, so a
     three-month window would end short of the total printed above it. */
-export function sampled(values, n) {
-	if (!n || values.length <= n) return values
+export function sampled(values, buckets) {
+	const n = pointCount(buckets, values.length)
+	if (!buckets || values.length <= n) return values
+	// The last value of each bucket, on the same cut bucketed() splits on -- and the last value
+	// of the last bucket is the series' own last value, which is what a running total has to end
+	// on to agree with the total printed above the chart.
 	return Array.from({ length: n }, (_, i) =>
-		values[Math.min(values.length - 1, Math.ceil((i + 1) * values.length / n) - 1)])
+		values[Math.max(0, Math.min(values.length - 1, cutAt(i + 1, values.length, buckets) - 1))])
 }
 
 /** Kroner onto the chart's pixel box, since one user unit is one CSS pixel and a series has to

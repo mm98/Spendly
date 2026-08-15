@@ -405,17 +405,23 @@ Small quantitative graphics, each with one job:
 - **Meter** (10px bar): how much of a budget is used. The fill is `--green`; a 2.5px marker in `--text` shows a reference point (the comparable figure last month). The marker is why it is a meter and not a progress bar — it states *against what*.
 - **Progress bar** (6px): completion of a process, no marker.
 - **Progress ring**: the same, radial, where the number it wraps is the subject.
-- **Month columns**: a column per month at fixed 150px scale-height, the current month `.is-on`.
+- **Month columns**: a column per window, the current one `.is-on`. The bar sits in a track of its own and its height is a percentage of that track — never of a box that also holds the label, or every tall bar shrinks to the same height and the chart stops comparing anything ([the numbers](docs/defects.md#charts--three-bars-of-100-96-and-85-drew-the-same-height)). The track is 150px at its smallest and grows to fill the card, since this chart shares a row with one that is as long as the account has categories.
 
 **None of these carry text.** The figure they illustrate stands beside them as real text in tabular figures — a number inside a graphic is a number a screen reader loses and a walk cannot compare.
 
 ### Charts
 
-The app draws a line chart, a donut, weekday bars, meters and progress rings. Five rules hold them together:
+The app draws a line chart, a donut, weekday bars, meters and progress rings. Eight rules hold them together:
 
 **One user unit is one CSS pixel.** The line chart's viewBox is remapped 1:1 onto the element's pixel box on every resize, so stroke widths hold and text in the chart is never scaled. A chart whose viewBox is a guess renders its 1px grid line at 1.3px on one screen and 0.8px on another.
 
 **A chart is drawn from the records the list beside it is drawn from.** The donut's shares and its legend must come from one source. A ring with shares baked into the stylesheet next to a list with its own numbers cannot fail visibly — a ring has no opinion about the list beside it — and the two once disagreed exactly that way.
+
+**Every chart carries a scale, and it is one control: ticks and labels from one set of marks.** An unlabelled line puts its peaks at no date a reader can name, and a tick strip that does not mark the labels is decoration — a comb of evenly repeated lines will agree with an axis by accident and never again once the range moves ([the numbers](docs/defects.md#charts--the-ruler-under-every-chart-was-a-fixed-comb-and-the-marks-were-spread-evenly)).
+
+**A window is marked in its own unit, and drawn in it.** A week is its seven days, a month the 28 to 31 it actually has, a quarter its three months, a year its twelve, and all time the months it spans — the calendar's units, not a fixed set of dates and not a count chosen per range. The marks are the window's own, so a month sends 31 of them whether it holds five orders or five hundred. Where a window is too wide to draw a point per day, the points are cut on the marks themselves: twelve points across a year are its twelve calendar months, because twelve *equal* slices of a year are not, and the months slide against them until two land on one point and one goes unnamed.
+
+**A mark sits over the point the chart plotted for its date** — which is not its position in the list of marks, since the units a scale names are not all the same length. How many marks are drawn is then a question about the width available, not about the range: marks are dropped until each has room for its own label, keeping the first and the last, and the room asked for is measured off the labels rather than reserved for the widest one there could be.
 
 **Chart colors are the data-viz palette** (`--donut-*`), which exists so segments differ from each other. Semantic colors stay out of charts: a slice is not "positive".
 
