@@ -153,7 +153,10 @@ function VendorsBody({ data, query, setQuery, sort, setSort, onFavourite, setVie
 					label="Sort vendors" tablist={false} />
 			</div>
 
-			<div className="scroll-row" data-view-only="overview" tabIndex={0} role="region" aria-label="All vendors">
+			{/* No tabIndex: it was there to let a keyboard scroll the row sideways, and the row
+			    does not scroll any more -- a tab stop that lands on a container and does nothing
+			    is a stop the keyboard has to spend on nothing. */}
+			<div className="vendor-grid" data-view-only="overview" role="region" aria-label="All vendors">
 				{listed.map(vendor => (
 					/* The way into the vendor's orders is the card header, which is where every other
 					   card in this app puts it: the label on the left, the chevron on the right, the

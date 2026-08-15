@@ -447,7 +447,7 @@ svg.chart { width:100%; display:block; }
 .dashboard-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
 .figure-card { font-size:21px; font-weight:700; letter-spacing:-.02em; }
 /* The vendor cards ride in a horizontal scroller and take the smaller figure. */
-.scroll-row .figure-card { font-size:17px; }
+.vendor-grid .figure-card { font-size:17px; }
 
 /* card personalisation.
    Reordering is button-driven, never drag-only: a keyboard has to be able to do
@@ -1062,7 +1062,12 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    classic 15px bar is drawn hard against the cards' bottom border and reads as covering
    them. It is the same 14px as the gap between the cards, so the bar gets a lane of its
    own. README: Views. */
-.scroll-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(210px,1fr); gap:14px; overflow-x:auto; padding-bottom:14px; }
+/* Wraps rather than scrolls sideways. It was one row of columns with overflow-x:auto, which
+   put every vendor past the fourth behind a horizontal scrollbar -- fine for the five the API
+   used to answer with, and a filing cabinet on its side once it answers with all of them.
+   auto-fill lets the row take as many as fit, so the count follows the width instead of a
+   number written here: four across the desktop column, fewer as it narrows, one on a phone. */
+.vendor-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px; }
 /* A ring beside the rows that name its segments. Was .spend-gauge-row, which named the one
    ring that happened to use it first -- Categories' Breakdown ring needs the same arrangement
    and has no gauge on the page, so the class is named for the arrangement instead. */
