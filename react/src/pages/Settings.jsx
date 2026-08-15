@@ -152,14 +152,17 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								    vendors can also sort by order count and categories by share, and a
 								    default naming either would be a setting one of the two pages could
 								    not obey. README: Settings. */}
-								<Field label="Sort vendors and categories by" group
+								{/* The same control as the sort above it, because it is the same question:
+								    a combobox over a named list of orders. It shipped once as a segmented
+								    control -- two controls asking one kind of thing, side by side, drawn
+								    differently. README: Uniformity, Fields and Forms. */}
+								<Field label="Sort vendors and categories by"
 									help="What All vendors and All categories open sorted by. Both lists, one order.">
-									<Segmented options={listSorts.map(s => s.label)}
-										value={listSorts.find(s => s.id === local.listSort)?.label ?? 'Name'}
-										onChange={label => change(
-											{ listSort: listSorts.find(s => s.label === label).id },
-											'List order saved.')}
-										label="Sort vendors and categories by" />
+									<Combobox label="Default list sort"
+										value={listSorts.find(s => s.id === local.listSort)?.label ?? ''}
+										onChange={() => {}}
+										onSelect={o => change({ listSort: o.id }, 'List order saved.')}
+										groups={[{ heading: 'Sort', options: listSorts.map(s => ({ id: s.id, label: s.label })) }]} />
 								</Field>
 								<Field label="Entries per card" group
 									help="How many rows a card on Home fills with — the latest orders, the top vendors, the favourite categories.">
