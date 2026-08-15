@@ -109,9 +109,20 @@ box, not about any change.
 - **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
   screenshot section names as rendering `docs/` at 0 of 5,184,000 from the app, so this container is
   the good case rather than the text-rasterisation case -- still run the unchanged app against
-  `docs/` once to confirm it before trusting a diff. Confirmed on 2026-07-31, rendering the app: 0 of
-  5,184,000 on `home.png` and `all-orders.png`, 0 of 1,035,840 on `phone.png`, each reproduced twice
-  in a row. **`all-orders.png` holds three pieces of state at once**, and each one has to be driven:
+  `docs/` once to confirm it before trusting a diff. Two runs of the same source on the same day
+  agree at 0 of 5,184,000 and 0 of 1,035,840, reproduced twice in a row, so the *engine* is not the
+  variable here.
+- **Two of the three shots are dated, and the date is the data.** `regen-docs.mjs` shifts every seed
+  order so the newest lands *today*, and Home's hero names the current month -- so a shot rendered on
+  one day and re-rendered on another differs by the whole dataset, with no change to the app at all.
+  Re-rendering on 2026-08-15 a file last written on 2026-07-31 came back **849,085 of 5,184,000** on
+  `home.png` and **51,738 of 1,035,840** on `phone.png`, spread over every band that carries a
+  figure. That is a number to attribute before believing it: `git stash`, restart both servers,
+  render, and compare. The pre-change source produced *the same two numbers to the pixel*, which is
+  what said the change under test contributed 0. `all-orders.png` is unaffected -- it is a filtered
+  list of a fixed window, so it comes back byte-identical -- and that contrast is the quickest tell
+  that a diff is the calendar rather than the code.
+- **`all-orders.png` holds three pieces of state at once**, and each one has to be driven:
   the FILTERS panel is open, which is no longer the state the page loads in; the list is filtered to
   `?vendor=bilka&status=Delivered&from=2026-07-01&to=2026-07-31`, 3 matching; and the global finder
   (`input[aria-label="Search everything"]`) has `bil` typed into it, open. Render it closed or drop
@@ -259,6 +270,27 @@ whose job was skipping expensive work nothing renders, and a null list draws the
 genuinely empty list draws. Any probe reading a card that can legitimately be empty has to assert the
 *query* was empty, not just the card: read the endpoint the page called, and compare its payload to
 what was drawn. A rendered "none" is not evidence of none.
+
+**The loading state is a card, so `waitForSelector('.card')` waits for nothing.** The screenshot
+harness waited on `.card`, and Home's Async placeholder *is* a card -- so it proceeded while the
+page still read "Loading your month...". The settle loop behind it agreed: it compares the `d` of
+every `svg.chart path`, and a page that has drawn no charts has none, so `''` equalled `''` three
+times in 180ms and it returned. Two checks that cannot fail compose into a harness that screenshots
+a spinner and reports a byte count, which is what it did -- 79,524 bytes against a committed 344,406,
+a number that reads as "the page got simpler". Every pixel comparison taken against those files was
+then a spinner against a page, including the one reported as evidence that a change moved nothing.
+Wait on the content the page exists to show, assert the loading text is gone, and make any settle
+loop require the thing it claims to be settling; a screenshot step should refuse to write a file
+while the word "Loading" is on screen. And when a rendered artefact changes size by 4x, open it --
+the byte count was in front of me twice before the image was.
+
+**A size check is not a position check.** The weekday bars were re-cut as a percentage of a track
+and the probe read every bar back at `track x share` with a worst error of 0px, on a chart hanging
+from the ceiling: `align-self:stretch` on an item with a definite height resolves to flex-start, so
+all seven were the right size in the wrong place and the measurement had no opinion about where a
+box sits. Any check on a box's dimension needs its edge too -- assert the bar's bottom against the
+track's bottom, the row's left against its container's left -- and look at the render, because
+"correct height, wrong baseline" is invisible to arithmetic and obvious to an eye.
 
 **Deleting a component is a claim about how many elements used it, and the count is cheap.**
 Removing two cards took their component and their CSS with them, and three of those rules were
@@ -520,6 +552,15 @@ renders. A stale screenshot is a wrong claim about the product, and it is the on
 believes without checking — so a change that moves one of these three is regenerated in the same
 pass that verifies it, and never before: a shot regenerated mid-work is a shot that has to be
 regenerated again when the next edit lands.
+
+**"Moves one of these three" is not the only reason to re-render two of them.** `home.png` and
+`phone.png` are dated -- the environment bullet above has the numbers -- so they go out of date on
+their own, without anybody touching the app, and a re-render on a later day is a legitimate change to
+those files that no diff of the source explains. That is a change to make deliberately and to say so
+in the report, never one to let arrive quietly inside a pass that was about something else: the way
+to keep both honest is to render the *unchanged* source first, attribute that number to the calendar,
+and only then re-render. `all-orders.png` is dateless and should come back byte-identical; if it
+does not, the diff is the code.
 
 **`docs/` is not a baseline unless your machine reproduces it.** The tab conversion was accepted on 0
 differing pixels against these shots; the same comparison run in a container came back 83,630 of

@@ -1087,3 +1087,56 @@ which would have been a regression on a page this change never touched: the scan
 so (`.card-question` → **1**, not 0), and the panel measures 18px padding, a 10.5px/700 uppercase
 label and a 15px/700 title, unchanged. `.card-headline-question` really was orphaned — **0 matches,
 0 source references** — and is gone.
+
+---
+
+## Home — three cards in a row, and two of them mostly empty
+
+*Spending rhythm*, *Category breakdown* and *Top vendors* share one grid row, so all three are as
+tall as the tallest. Measured at 1440x900 with twelve vendors and six categories carrying spend:
+
+| card | rows | height | empty below its content |
+|---|---|---|---|
+| Spending rhythm | — | 698px | **403px** |
+| Category breakdown | 6 | 698px | 129px |
+| Top vendors | 3 | 698px | **~300px** |
+
+Two different faults with the same look. *Top vendors* was cut to three by
+`.slice(0, 3)` — a number written once, in the client, with nothing else in the app agreeing to it;
+the account had twelve and the card had room for ten. *Spending rhythm* could not be filled at all,
+because its bars were **pixel heights computed in the API**: `rhythmOver` scaled the busiest weekday
+to 70px and returned that number twice, once as `home` and once as `stats`, so the chart was exactly
+as tall as a decision taken where the data is and the card kept whatever was left.
+
+Both are now one number and one shape. The row count is a single exported constant the page's lists
+all read, set to 10; the bars are a **share of the busiest day** rendered as a percentage of a track
+that grows with the card, which is the shape the month columns already use for the same reason.
+After, same account, same viewport:
+
+| card | rows | height | empty below its content |
+|---|---|---|---|
+| Spending rhythm | — | 698px | **1px** |
+| Category breakdown | 6 | 698px | 129px |
+| Top vendors | 10 | 698px | **1px** |
+
+The breakdown's remaining 129px is the account's, not the layout's: that list is every category with
+spend this month by rule, since the ring above it has to add up to the figure printed in its centre,
+and this month has six. The Orders card on the same page went 3 rows to 10 from the same constant
+and also closes at 1px.
+
+### The bars were the right size and in the wrong place
+
+The share-of-track rewrite measured perfectly and rendered upside down. Every bar came back within
+**0px** of `track x share` — 495.5px track on Home, 62.1px on Statistics, at 1440 and under
+`devices['iPhone 13']` — while all seven hung from the top of the track instead of standing on its
+floor. `align-self: stretch` was left over from when the bar was a direct child of its column, where
+the cross axis is horizontal and stretch is what spanned it; inside the track the cross axis is
+vertical, and stretch on an item with a definite height resolves to flex-start. A height check has
+no opinion about where a box sits, so it passed. The probe now reads each bar's bottom edge against
+its track's bottom: **0px on all 28 bars**, across both pages and both viewports.
+
+The only non-zero figure left is deliberate: a weekday with no spend draws at `min-height: 3px`
+rather than vanishing, so a 0% bar measures 3px against a computed 0.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`,
+0 page errors. **Not run:** Gecko and WebKit are not installed in this container.

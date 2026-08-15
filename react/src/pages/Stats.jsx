@@ -206,7 +206,7 @@ export default function Stats() {
 									<div className="figure-large tabular-figures">{view.rhythm.weekendShare}%{' '}
 										<span style={{ fontWeight: 500, fontSize: 14, color: 'var(--text-muted)' }}>
 											of spend lands on weekends</span></div>
-									<WeekdayBars days={view.rhythm.weekdays} field="stats" style={{ height: 86 }} />
+									<WeekdayBars days={view.rhythm.weekdays} style={{ minHeight: 86 }} />
 								</CardBody>
 							</Card>
 						</div>

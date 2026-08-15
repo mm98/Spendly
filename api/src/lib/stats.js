@@ -136,13 +136,18 @@ function rhythmOver(userId, from, to) {
 	const total = spend.reduce((s, v) => s + v, 0)
 	const most = Math.max(...spend, 0)
 	return {
-		/* `home` and `stats` carry the same real bar heights — the two contexts that read this
-		   (the Home dashboard card and the Statistics page) draw at different chart heights but
-		   there is one real weekday-spend shape behind both, not two authored ones. */
-		weekdays: WEEKDAY_TICKS.map((day, i) => {
-			const height = most ? Math.round((spend[i] / most) * 70) : 0
-			return { day, stats: height, home: height, peak: most > 0 && spend[i] === most }
-		}),
+		/* A share of the busiest day, not a height. It used to answer pixels -- 70 of them at
+		   the peak, under two names (`home` and `stats`) carrying the identical number -- which
+		   is a presentation decision taken where the data is, and it pinned both charts to
+		   whatever box 70px happened to suit. The Home card sits in a grid row as tall as the
+		   category breakdown beside it and had 403px of nothing under a 112px chart, because a
+		   pixel height cannot grow into a row it knows nothing about. A share can: the bar is
+		   that percentage of whatever track it is given. */
+		weekdays: WEEKDAY_TICKS.map((day, i) => ({
+			day,
+			share: most ? Math.round((spend[i] / most) * 1000) / 10 : 0,
+			peak: most > 0 && spend[i] === most
+		})),
 		weekendShare: total ? Math.round(((spend[5] + spend[6]) / total) * 100) : 0,
 		busiestDay: most > 0 ? WEEKDAY_NAMES[spend.indexOf(most)] : null,
 		busiestDaySpend: most

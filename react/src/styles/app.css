@@ -379,7 +379,7 @@ a[data-go] { color:inherit; text-decoration:none; }
    card becomes a column so the body can take the leftover height, and the body passes it on. */
 .card:has(> .card-body-fill) { display:flex; flex-direction:column; }
 .card-body-fill { flex:1; display:flex; flex-direction:column; }
-.card-body-fill > .month-columns { flex:1; }
+.card-body-fill > .month-columns, .card-body-fill > .weekday-bars { flex:1; }
 /* The page heading inside a card and the sentence under it. Seven headings were
    unclassed <div>s carrying the full spec, which is how two of them ended up at
    17px against the other five at 19px, and the lead's bottom margin at 16px
@@ -480,9 +480,21 @@ svg.chart { width:100%; display:block; }
 .dashboard-cards-empty { margin:0; padding:26px 20px; text-align:center; font-size:12.5px; color:var(--text-muted); border:1px dashed var(--text-faint); border-radius:var(--radius-card); }
 
 /* weekday bars */
-.weekday-bars { display:flex; align-items:flex-end; gap:8px; height:112px; margin-top:14px; }
-.weekday-bars > div { flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-end; height:100%; }
-.weekday-bars .chart-bar { align-self:stretch; }
+/* Grows into whatever the card gives it, with a 112px floor -- the Home card shares a grid row
+   with the category breakdown, so its height is the row's, not the chart's. The bar is a
+   percentage of its own track rather than a pixel height chosen in the API; the track is what
+   makes that percentage mean something, exactly as on .month-columns below. */
+.weekday-bars { display:flex; align-items:stretch; gap:8px; flex:1; min-height:112px; margin-top:14px; }
+.weekday-bars > div { flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-end; }
+.weekday-bars .weekday-bars-track { display:flex; align-items:flex-end; width:100%; flex:1; }
+/* No align-self here. It used to read `stretch`, which is what spanned the bar across the
+   column back when the bar was a direct child of that column and the cross axis was
+   horizontal. Inside the track the cross axis is vertical, and `stretch` on an item with a
+   definite height resolves to flex-start -- so all seven bars hung from the top of the track
+   instead of standing on its floor. Every bar was still exactly `track x share` tall, which is
+   why the height check passed: it measured the size and said nothing about where it sat. The
+   width comes from the .chart-bar rule below, which already sets 100%. */
+.weekday-bars .chart-bar { flex:none; }
 /* The track is the control's furniture and the height is the data, so a weekday the window
    spent nothing on still draws one: these bars are the chosen window's now, and a Monday-to-
    Friday window really does hold 0 on Saturday. Without the floor that day renders as a bare

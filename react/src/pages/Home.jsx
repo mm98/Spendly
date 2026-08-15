@@ -162,10 +162,13 @@ function dashboardCard(key, data) {
 				<>
 					<CardHeader title="Spending rhythm" />
 					<CardDivider />
-					<CardBody>
+					{/* Fills the card rather than sitting 112px tall in it: this shares a grid row
+					    with the category breakdown, which is as long as the month has categories.
+					    README: Charts. */}
+					<CardBody variant="card-body-fill">
 						<div className="figure-card tabular-figures">{kr(period.averageOrder)}</div>
 						<span className="card-caption">average order · {period.shortLabel}</span>
-						<WeekdayBars days={period.weekdays} field="home" />
+						<WeekdayBars days={period.weekdays} />
 						<div className="chart-legend-inline">
 							<span className="chart-swatch" />
 							<span style={{ whiteSpace: 'nowrap' }}>{period.busiestDay} peak</span>

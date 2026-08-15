@@ -414,6 +414,7 @@ Small quantitative graphics, each with one job:
 - **Progress bar** (6px): completion of a process, no marker.
 - **Progress ring**: the same, radial, where the number it wraps is the subject.
 - **Month columns**: a column per window, the current one `.is-on`. The bar sits in a track of its own and its height is a percentage of that track — never of a box that also holds the label, or every tall bar shrinks to the same height and the chart stops comparing anything ([the numbers](docs/defects.md#charts--three-bars-of-100-96-and-85-drew-the-same-height)). The track is 150px at its smallest and grows to fill the card, since this chart shares a row with one that is as long as the account has categories.
+- **Weekday bars**: seven bars, one per day, each a share of the busiest. Same track, same rule, same reason — and the share is what the bar is given, never a height in pixels: a figure decided away from the card can only be right for one card. It was, for two, and the taller of them kept 403px of nothing underneath.
 
 **None of these carry text.** The figure they illustrate stands beside them as real text in tabular figures — a number inside a graphic is a number a screen reader loses and a walk cannot compare.
 
@@ -476,6 +477,8 @@ The landing screen, top to bottom: the stretch of time being viewed, the hero ch
 **A card that names a window links to that window.** The hero's header opens Statistics on the window the card is showing, under the name the chip carries, so arriving there is a continuation rather than a fresh question — and the total printed on the two pages is the same number, because it is derived from the same days.
 
 **The dashboard is personal.** Which cards appear, and in what order, is the user's choice: an edit mode exposes a grip per card, cards drag (or move by arrow key, Home and End for the ends), and the arrangement persists. Everyone sees the same Orders page; Home shows what this user chose to see.
+
+**Cards share a row, so they are filled to the same depth.** A grid row is as tall as its tallest card, and a card that holds three of something beside a card that holds ten is not a shorter card — it is the same card with a hole under it. Every list on this page holds up to the same number of rows, from one number the page states once, and is *filled* to it wherever the account has that many; every chart on it grows into whatever the row gives it rather than standing at a height chosen elsewhere. Ten is the number today: enough to fill a row beside the category breakdown, few enough that these stay summaries with the full list one click behind them. The one list exempt is the category ring's, which is every category with spend this month because the arcs have to add up to the figure in the middle ([the numbers](docs/defects.md#home--three-cards-in-a-row-and-two-of-them-mostly-empty)).
 
 **A drag shows what is moving and where it lands.** The lifted card leaves the flow at the size it had, follows the pointer on a shadow, and a dashed slot of exactly that size travels through the grid. A dimmed card shuffled in place is a drag where the most important thing on screen is the faintest.
 

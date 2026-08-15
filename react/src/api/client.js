@@ -352,6 +352,23 @@ export async function getHomeHero(range, signal) {
 	return request('/api/home/hero' + qs({ range }), { signal })
 }
 
+/** How many rows a card on Home fills with, where it has rows to fill.
+
+    Home's cards share grid rows, and a grid row is as tall as its tallest card -- so a card
+    that holds three of something beside a card that holds ten is not a shorter card, it is the
+    same card with a hole under it. Category breakdown is the long one (every category with
+    spend this month, which the ring in its middle has to add up to), and the two beside it were
+    cut to three and drew about 300px of nothing each.
+
+    Ten, and *filled* to ten where the account has ten. Not "all", because these are summary
+    cards with the full list one click behind them, and a card that grows without limit stops
+    sharing a row with anything. Change the number here and every list on the page follows it.
+
+    Not the category ring's list: that one is every category with spend this month by rule, since
+    the arcs have to add up to the figure printed in the centre. Capping it is a defect with its
+    own entry. */
+export const homeCardRows = 10
+
 export async function getHomeContent(signal) {
 	// Fetched directly rather than through getOrdersOverview, which independently re-fetches
 	// stats/categories/home for its own callers — going through it here paid for that work
@@ -362,7 +379,7 @@ export async function getHomeContent(signal) {
 		getVendors(signal),
 		getCategories(signal),
 		getSettings(signal),
-		request('/api/orders/overview' + qs({ count: 3 }), { signal })
+		request('/api/orders/overview' + qs({ count: homeCardRows }), { signal })
 	])
 	/* "The categories are written per month" below, and the ring right above them reads
 	   "Spent this month" -- so both need this month's spend, not categories' all-time totals.
@@ -371,14 +388,15 @@ export async function getHomeContent(signal) {
 	const monthCategories = monthCategoriesFrom(categories, window.split)
 	return {
 		period: periodFromWindow(window),
-		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, 3),
+		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, homeCardRows),
 		categories: monthCategories,
 		// All-time, from the raw list rather than monthCategories -- that one's filtered to
 		// spend > 0 this month, and a favourite is a standing preference, not an activity
 		// filter: a category starred last week with nothing bought from it yet this month
 		// should still show up here, the same way a starred vendor with no orders yet still
 		// leads the Vendors page's own Favourites section.
-		favouriteCategories: categories.filter(c => c.favourite).sort((a, b) => b.spend - a.spend),
+		favouriteCategories: categories.filter(c => c.favourite)
+			.sort((a, b) => b.spend - a.spend).slice(0, homeCardRows),
 		onboarding,
 		showScanCard: settings.showScanCard,
 		latest

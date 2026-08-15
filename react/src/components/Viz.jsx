@@ -188,12 +188,21 @@ export const Meter = ({ fill, marker, ariaLabel, style }) => (
 
 /** Seven bars, one per weekday. The peak days carry a lighter track with a filled portion,
     which is how the prototype marks them; everything else is the plain track. */
-export const WeekdayBars = ({ days, field = 'home', style }) => (
+/** A bar per weekday, each a share of the busiest one, with its name underneath.
+
+    Same shape as MonthColumns below and for the same reason: the bar sits in a track, and the
+    track -- not the column, and not a number chosen in the API -- is the box the percentage
+    resolves against. It used to take a pixel height per day and a `field` naming which of two
+    identical copies of that height to read, so the chart was exactly as tall as the API had
+    decided and the card around it kept whatever was left. */
+export const WeekdayBars = ({ days, style }) => (
 	<div className="weekday-bars" style={style} aria-hidden="true">
 		{days.map(d => (
 			<div key={d.day}>
-				<div className="chart-bar" style={{ height: d[field] + 'px', background: d.peak ? '#BFE5D2' : undefined }}>
-					<div className="chart-bar-fill" style={{ '--f': d.peak ? '55%' : '0%' }} />
+				<div className="weekday-bars-track">
+					<div className="chart-bar" style={{ height: d.share + '%', background: d.peak ? '#BFE5D2' : undefined }}>
+						<div className="chart-bar-fill" style={{ '--f': d.peak ? '55%' : '0%' }} />
+					</div>
 				</div>
 				<span>{d.day}</span>
 			</div>
