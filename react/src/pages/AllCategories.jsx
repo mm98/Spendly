@@ -30,7 +30,11 @@ const SORTS = {
 export default function AllCategories() {
 	const state = useApi(getCategories)
 	const [query, setQuery] = useState('')
-	const [sort, setSort] = useState('Spend')
+	/* Name, not Spend. This tab is where you come to find a particular category -- to check
+	   whether it already exists, or to open it and put it right -- and alphabetical is the
+	   order that lets you do that without reading every row. Spend is one click away and is
+	   what the Overview tab is for. */
+	const [sort, setSort] = useState('Name')
 
 	return (
 		<Page>

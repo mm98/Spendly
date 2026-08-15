@@ -34,15 +34,24 @@ const RING_GAP = 0.6
    adds up to the figure in its middle. That is the part a cap gets wrong when it simply drops
    the tail -- a ring of the top ten drawn around a total of all twenty is a circle that does
    not close. README: Charts. */
-export const RING_LEGEND_MAX = 10
-const FOLD_COLOUR = '#45524C'
+export const RING_LEGEND_MAX = 5
+
+/* The fold's colour has to be one no entry in the ring is already using, or the segment
+   standing for "everything else I did not draw" is the same colour as some real row -- which
+   happened immediately: a category actually named "Everything else" is #45524C, and so was the
+   fold, so the ring had two identical greys meaning different things. Neutral greys in order
+   of preference; the first one not already on screen wins. */
+const FOLD_COLOURS = ['#8A968D', '#5B6660', '#A7B0A8', '#6E7A72']
 
 export function foldForRing(entries, foldLabel, max = RING_LEGEND_MAX) {
 	const ranked = entries.filter(e => e.spend > 0).sort((a, b) => b.spend - a.spend)
 	if (ranked.length <= max) return ranked
 	const tail = ranked.slice(max)
-	return [...ranked.slice(0, max), {
-		id: null, name: foldLabel(tail.length), colour: FOLD_COLOUR,
+	const head = ranked.slice(0, max)
+	const taken = new Set(head.map(e => String(e.colour).toLowerCase()))
+	const colour = FOLD_COLOURS.find(c => !taken.has(c.toLowerCase())) ?? FOLD_COLOURS.at(-1)
+	return [...head, {
+		id: null, name: foldLabel(tail.length), colour,
 		spend: tail.reduce((sum, e) => sum + e.spend, 0)
 	}]
 }
