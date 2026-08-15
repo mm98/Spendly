@@ -32,7 +32,7 @@ const toApi = row => ({
    nothing obeys is worse than no preference, because it says on the settings page that it is
    in force. Anything unrecognised falls back to what is already stored. */
 export const CARD_ROWS = [1, 2, 4, 6, 8, 10]
-export const LIST_SORTS = ['name', 'spend', 'saved']
+export const LIST_SORTS = ['name-asc', 'name-desc', 'spend-desc', 'spend-asc', 'saved-desc', 'saved-asc']
 const oneOf = (allowed, asked, fallback) => (allowed.includes(asked) ? asked : fallback)
 
 router.get('/', (req, res) => {
@@ -44,7 +44,7 @@ router.patch('/', (req, res) => {
 	const current = selectSettings.get(req.user.id)
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
-		showScanCard: true, confirmDelete: true, cardRows: 10, listSort: 'name'
+		showScanCard: true, confirmDelete: true, cardRows: 10, listSort: 'name-asc'
 	}
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({

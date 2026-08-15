@@ -1434,12 +1434,19 @@ Orders / Saved* — direction unstated, so *Spend* was secretly highest-first an
 out by pressing it. They also led with Spend while opening on Name, so the selected option sat
 second in its own list.
 
-One control and one vocabulary now: the combobox on all three, options worded *column, direction* —
-*Name, A to Z · Spend, highest · Orders, most · Saved, highest* on vendors, *Share, highest* in
-place of Orders on categories — and Settings' "Sort vendors and categories by" speaks the identical
-strings for the shared three, the way "Sort orders by" always has with All orders. Driven, not
-asserted: each list opens as *Name, A to Z* from the setting, picking *Spend, highest* reorders it
-(Zalando first; Everything else first), at both widths, 0 page errors. The phone toolbar held: all
+One control and one vocabulary now — and one *scheme*: both directions, every column, on all three
+lists. The first pass of this fix gave vendors and categories one direction per column while All
+orders offered pairs, which is the same defect moved into the option list. Every column is a pair
+now (*Name, A to Z / Name, Z to A*, *Spend, highest / Spend, lowest*, *Orders, most / Orders,
+fewest*, *Share, highest / Share, lowest*, *Saved, highest / Saved, lowest*), All orders gained the
+*Vendor, Z to A* it was itself missing, and the stored setting carries the direction
+(`name-asc`), exactly as the orders sort's ids always have — existing bare values migrated to the
+direction they always meant, 218 rows checked converted. Settings' "Sort vendors and categories by"
+offers the shared six under the identical strings. Driven, not asserted: **all 22 direction pairs
+reverse the list** — 8 on vendors, 8 on categories, 6 on All orders (Vendor Z-to-A through the
+API's own SQL sort) — the six directed setting ids round-trip and bare or foreign ids are refused,
+and *saved-asc* set once opens vendors on Netto and categories on Home office, at 1440, 0 page
+errors. The phone toolbar held: all
 three toolbars at 86px, two rows, 0 element overhang, 0 document overflow — checked per element,
 since `.main-panel` clips overflow and a clipped overhang never widens the document.
 

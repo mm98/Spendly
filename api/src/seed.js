@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS = {
 	sort: 'date-desc', showScanCard: true, confirmDelete: true,
 	// What the two pages hardcoded before either was a setting: ten rows a card, and the
 	// vendors and categories lists opening alphabetically.
-	cardRows: 10, listSort: 'name'
+	cardRows: 10, listSort: 'name-asc'
 }
 
 /** Inserts the settings row and dashboard-card rows every account needs. Runs inside the

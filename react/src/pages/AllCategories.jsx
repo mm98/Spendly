@@ -23,10 +23,14 @@ import { krRound, percent } from '../api/format.js'
 
 /* Same shape as All vendors' list, with Share as this list's own column. */
 const SORTS = [
-	{ id: 'name', label: 'Name, A to Z', cmp: (a, b) => a.name.localeCompare(b.name) },
-	{ id: 'spend', label: 'Spend, highest', cmp: (a, b) => b.spend - a.spend },
-	{ id: 'share', label: 'Share, highest', cmp: (a, b) => b.share - a.share },
-	{ id: 'saved', label: 'Saved, highest', cmp: (a, b) => b.saved - a.saved }
+	{ id: 'name-asc', label: 'Name, A to Z', cmp: (a, b) => a.name.localeCompare(b.name) },
+	{ id: 'name-desc', label: 'Name, Z to A', cmp: (a, b) => b.name.localeCompare(a.name) },
+	{ id: 'spend-desc', label: 'Spend, highest', cmp: (a, b) => b.spend - a.spend },
+	{ id: 'spend-asc', label: 'Spend, lowest', cmp: (a, b) => a.spend - b.spend },
+	{ id: 'share-desc', label: 'Share, highest', cmp: (a, b) => b.share - a.share },
+	{ id: 'share-asc', label: 'Share, lowest', cmp: (a, b) => a.share - b.share },
+	{ id: 'saved-desc', label: 'Saved, highest', cmp: (a, b) => b.saved - a.saved },
+	{ id: 'saved-asc', label: 'Saved, lowest', cmp: (a, b) => a.saved - b.saved }
 ]
 
 export default function AllCategories() {
@@ -40,7 +44,7 @@ export default function AllCategories() {
 	   this visit; the setting is what it opens as. README: Settings. */
 	const settings = useApi(getSettings)
 	const [chosen, setChosen] = useState(null)
-	const sortId = chosen ?? settings.data?.listSort ?? 'name'
+	const sortId = chosen ?? settings.data?.listSort ?? 'name-asc'
 	const sort = SORTS.find(s => s.id === sortId) ?? SORTS[0]
 
 	return (

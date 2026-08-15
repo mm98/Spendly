@@ -29,14 +29,19 @@ import { dayMonth, krRound } from '../api/format.js'
    being somewhere else is not a reason to leave it out of the one list that searches and
    sorts. */
 
-/* The shared three carry the ids the setting stores; Orders is this list's own column and has
-   no setting id to answer to. Labels name the column and the direction, like the orders list's
-   own sort -- an option that says "Spend" and means highest-first names half of what it does. */
+/* Every column, both directions, paired -- the scheme the orders list sorts by. The shared six
+   carry the ids the setting stores; Orders is this list's own column and has no setting id to
+   answer to. Labels name the column and the direction, because an option that says "Spend" and
+   means highest-first names half of what it does. */
 const SORTS = [
-	{ id: 'name', label: 'Name, A to Z', cmp: (a, b) => a.name.localeCompare(b.name) },
-	{ id: 'spend', label: 'Spend, highest', cmp: (a, b) => b.spend - a.spend },
-	{ id: 'orders', label: 'Orders, most', cmp: (a, b) => b.orders - a.orders },
-	{ id: 'saved', label: 'Saved, highest', cmp: (a, b) => b.saved - a.saved }
+	{ id: 'name-asc', label: 'Name, A to Z', cmp: (a, b) => a.name.localeCompare(b.name) },
+	{ id: 'name-desc', label: 'Name, Z to A', cmp: (a, b) => b.name.localeCompare(a.name) },
+	{ id: 'spend-desc', label: 'Spend, highest', cmp: (a, b) => b.spend - a.spend },
+	{ id: 'spend-asc', label: 'Spend, lowest', cmp: (a, b) => a.spend - b.spend },
+	{ id: 'orders-desc', label: 'Orders, most', cmp: (a, b) => b.orders - a.orders },
+	{ id: 'orders-asc', label: 'Orders, fewest', cmp: (a, b) => a.orders - b.orders },
+	{ id: 'saved-desc', label: 'Saved, highest', cmp: (a, b) => b.saved - a.saved },
+	{ id: 'saved-asc', label: 'Saved, lowest', cmp: (a, b) => a.saved - b.saved }
 ]
 
 export default function AllVendors() {
@@ -50,7 +55,7 @@ export default function AllVendors() {
 	   this visit; the setting is what it opens as. README: Settings. */
 	const settings = useApi(getSettings)
 	const [chosen, setChosen] = useState(null)
-	const sortId = chosen ?? settings.data?.listSort ?? 'name'
+	const sortId = chosen ?? settings.data?.listSort ?? 'name-asc'
 	const sort = SORTS.find(s => s.id === sortId) ?? SORTS[0]
 
 	return (
