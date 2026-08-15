@@ -71,7 +71,7 @@ export function NewOrderLayout() {
 
 	if (seed.error) return <Page><Card><CardBody><p className="field-help">
 		That order could not be loaded. {seed.error.message}</p></CardBody></Card></Page>
-	if (!value) return <Page><p className="field-help">Loading the form…</p></Page>
+	if (!value) return <Page><p className="field-help">Loading the form...</p></Page>
 	return <Outlet context={{ draft: value, update }} />
 }
 
@@ -97,7 +97,7 @@ export function NewOrderDetails() {
 
 	const set = (name, key) => v => { update({ [key]: v }); recheck(name, v) }
 
-	/* CREATE VENDOR "…" is the foot of the vendor list, and it creates the vendor rather than
+	/* CREATE VENDOR "..." is the foot of the vendor list, and it creates the vendor rather than
 	   only typing its name into the field: a row labelled with a verb that does not do the
 	   verb is the decorative-control rule inside a dropdown. README: Honest Affordances. */
 	const addVendor = name => {
@@ -155,7 +155,7 @@ export function NewOrderDetails() {
 			<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId}
 				help="Every dropdown is this combobox: type to search, grouped results, create from the foot.">
 				<Combobox id="order-vendor" label="Vendor" required
-					placeholder="Search vendors…" value={draft.vendor}
+					placeholder="Search vendors..." value={draft.vendor}
 					invalid={vendorField.invalid} describedBy={vendorField.describedBy}
 					onChange={set('order-vendor', 'vendor')}
 					onSelect={o => { update({ vendor: o.label }); recheck('order-vendor', o.label) }}
@@ -199,7 +199,7 @@ export function NewOrderDetails() {
 			    deleted a category instead of opening the list. See components/Form.jsx. */}
 			<Field label="Categories" htmlFor="order-categories"
 				help="Pick from your categories, or type one and press Enter.">
-				<Combobox id="order-categories" label="Add category" placeholder="Add category…"
+				<Combobox id="order-categories" label="Add category" placeholder="Add category..."
 					chips={draft.categories.map(name => (
 						<Chip key={name} label={`Remove category ${name}`}
 							onRemove={() => update({ categories: draft.categories.filter(c => c !== name) })}>
@@ -479,7 +479,7 @@ export function NewOrderItems() {
 			lead="Line by line, with the price you paid and what it would have cost at retail."
 			steps={STEPS(1)} status={status}
 			cancel={{ to: '/orders/new', label: 'BACK', icon: 'chevronLeft' }}
-			submit={{ label: saving ? 'SAVING…' : 'SAVE ORDER', onClick: save, disabled: saving }}
+			submit={{ label: saving ? 'SAVING...' : 'SAVE ORDER', onClick: save, disabled: saving }}
 			rail={
 				<>
 					<OrderSummary draft={draft} estimate showItems />
@@ -557,7 +557,7 @@ export function NewOrderItems() {
 					    prototype's own markup and not an accident: the rule that hides the input is
 					    `.field-shell > .field-file-input`, a child combinator. Wrapping the input
 					    one level deeper -- in an inner label, say -- leaves the rule unmatched and
-					    the browser draws "Browse… No file selected" in the middle of the form. It
+					    the browser draws "Browse... No file selected" in the middle of the form. It
 					    did.
 
 					    The name is the file's own rather than a fixed one: a picker that reports
@@ -570,7 +570,7 @@ export function NewOrderItems() {
 							<input type="file" accept="image/*" aria-label="Product photo"
 								className="field-file-input"
 								onChange={e => setPhoto(e.target.files?.[0] ?? null)} />
-							<span className="field-file-name">{photo?.name ?? 'Choose a photo…'}</span>
+							<span className="field-file-name">{photo?.name ?? 'Choose a photo...'}</span>
 							{photo ? (
 								<IconButton variant="clear" icon="close" label="Remove photo"
 									onClick={e => { e.preventDefault(); setPhoto(null) }} />

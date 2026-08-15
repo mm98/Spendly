@@ -63,7 +63,7 @@ export default function AllVendors() {
 			<div className="row-inline toolbar">
 				<FieldShell>
 					<Icon name="search" />
-					<input type="search" value={query} placeholder="Search vendor name…"
+					<input type="search" value={query} placeholder="Search vendor name..."
 						aria-label="Search vendors" onChange={e => setQuery(e.target.value)} />
 				</FieldShell>
 				{/* The same combobox All orders sorts with -- three working lists asked the same

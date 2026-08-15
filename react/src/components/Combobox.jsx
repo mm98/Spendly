@@ -105,8 +105,8 @@ export function Combobox({
 				if (e.key === 'Escape') { setOpen(false); return }
 				if (e.key !== 'ArrowDown' && e.key !== 'Enter') return
 				e.preventDefault()
-				/* Enter runs the action at the foot of the list -- CREATE VENDOR "…", ADD
-				   CATEGORY "…" -- but only when what was typed matches nothing already there.
+				/* Enter runs the action at the foot of the list -- CREATE VENDOR "...", ADD
+				   CATEGORY "..." -- but only when what was typed matches nothing already there.
 				   Typing the name of something that exists and pressing Enter should pick it,
 				   not make a second one. */
 				if (e.key === 'Enter' && action && typed) {

@@ -110,7 +110,7 @@ function VendorFields({ mode, vendor }) {
 			status={status}
 			cancel={{ to: '/vendors' }}
 			submit={{
-				label: saving ? 'SAVING…' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD VENDOR',
+				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD VENDOR',
 				onClick: save, disabled: saving
 			}}
 			rail={

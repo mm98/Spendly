@@ -7,7 +7,7 @@ import { ButtonLink } from './Button.jsx'
    The stylesheet hides a file input with `.field-shell > .field-file-input` -- note the child
    combinator. That rule is right where the prototype uses it, inside the field shell, and it
    silently does nothing anywhere else: put the input one level deeper, or in a card body, and
-   the browser's own "Browse… No file selected" appears in the middle of the page. It did, in
+   the browser's own "Browse... No file selected" appears in the middle of the page. It did, in
    two places. So the hiding is carried by the element itself here rather than by where it
    happens to sit.
 

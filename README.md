@@ -800,6 +800,7 @@ The copy is English; the number grammar is Danish. Neither is negotiable per scr
 - **Inputs speak the same grammar they display.** An amount field accepts `1.187,25`, gets the numeric keyboard, and treats `89.95` as a typo to name rather than a number to guess at — which is why no money field is a native number input; those reject the comma outright.
 - **Button labels are caps**, and they name the action: SEE THOSE ORDERS, ADD FILE, CLEAR ALL. One voice for every action in the product.
 - **The separator in copy is the vertical bar** — `34 orders | latest 12/8`, `Items | 2`, `Image | 1 KB` — never the middle dot (`·`). The dot is typographic filler that reads as machine-written, and this applies to every future string as much as the current ones: meta lines, card titles, file metas, the lot.
+- **An ellipsis is three dots** — `Search vendors...`, `SAVING...` — never the single character (`…`), in copy, placeholders, button states and code alike, now and in everything written later. Same reason as the dot above: it reads as machine-written.
 - **Field labels are questions where a question is clearer**: "Who did you buy from?" beats "Vendor" on a form a person fills once.
 - **Back buttons name the destination**, not the direction: "Back to orders", never just "Back".
 - **A rejection names the fields**: "Cannot continue — Vendor and Date need fixing."

@@ -13,7 +13,7 @@ import { Card, CardBody, EmptyState } from './Card.jsx'
 export const Waiting = ({ label = 'Loading' }) => (
 	<Card aria-busy="true" aria-label={label}>
 		<CardBody variant="card-body-centered">
-			<p className="field-help">{label}…</p>
+			<p className="field-help">{label}...</p>
 		</CardBody>
 	</Card>
 )

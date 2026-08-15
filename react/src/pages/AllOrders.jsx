@@ -181,7 +181,7 @@ export default function AllOrders() {
 						<FieldShell>
 							<Icon name="search" />
 							<input ref={searchField} type="search" value={query}
-								placeholder="Search vendor, note or item text…" aria-label="Search orders"
+								placeholder="Search vendor, note or item text..." aria-label="Search orders"
 								onChange={e => setQuery(e.target.value)} />
 						</FieldShell>
 						<button type="button" className="button button-ghost"

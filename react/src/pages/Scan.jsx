@@ -93,7 +93,7 @@ export function ScanUpload() {
 					}}
 					onClick={() => picker.current?.click()}>
 					<span aria-hidden="true"><Icon name="receipt" className="icon scan-drop-icon" /></span>
-					<span className="field-shell-placeholder">Drop a receipt here, or click to choose a file…</span>
+					<span className="field-shell-placeholder">Drop a receipt here, or click to choose a file...</span>
 					<HiddenFileInput ref={picker} accept="image/*,.pdf" label="Choose a receipt" onFiles={upload} />
 					<IconButton variant="send" icon="upload" label="Choose a receipt to scan"
 						onClick={e => { e.stopPropagation(); picker.current?.click() }} />
@@ -291,7 +291,7 @@ function ScanReviewForm({ answer }) {
 			title="Review the draft" lead="Every value is editable. Nothing is stored until you save."
 			steps={SCAN_STEPS(2)} status={status}
 			cancel={{ to: '/scan', label: 'DISCARD' }}
-			submit={{ label: saving ? 'SAVING…' : 'SAVE ORDER', onClick: save, disabled: saving }}
+			submit={{ label: saving ? 'SAVING...' : 'SAVE ORDER', onClick: save, disabled: saving }}
 			notice={
 				/* The verdict is about the numbers on screen, so it is recomputed from them:
 				   correct a line and the note either still says the total matches or stops saying
@@ -384,7 +384,7 @@ function ScanReviewForm({ answer }) {
 			<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId}>
 				<FieldShell>
 					<TextInput id="order-vendor" value={draft.vendor} onChange={set('order-vendor', 'vendor')}
-						placeholder="Search vendors…" aria-label="Vendor" aria-required="true"
+						placeholder="Search vendors..." aria-label="Vendor" aria-required="true"
 						invalid={vendorField.invalid} describedBy={vendorField.describedBy} />
 					{answer.vendorMatched && draft.vendor === answer.vendor
 						? <StatusChip className="chip-matched">matched</StatusChip>

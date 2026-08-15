@@ -155,7 +155,7 @@ function CategoryFields({ mode, category }) {
 			status={status}
 			cancel={{ to: '/categories' }}
 			submit={{
-				label: saving ? 'SAVING…' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD CATEGORY',
+				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD CATEGORY',
 				onClick: save, disabled: saving
 			}}
 			rail={

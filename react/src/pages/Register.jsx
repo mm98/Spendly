@@ -61,7 +61,7 @@ export default function Register() {
 							</p>
 						) : null}
 						<FormActions>
-							<Button variant="primary" type="submit" disabled={saving}>{saving ? 'CREATING…' : 'CREATE ACCOUNT'}</Button>
+							<Button variant="primary" type="submit" disabled={saving}>{saving ? 'CREATING...' : 'CREATE ACCOUNT'}</Button>
 						</FormActions>
 					</form>
 					<p className="field-help auth-switch">

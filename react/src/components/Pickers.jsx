@@ -197,7 +197,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 			<FieldShell>
 				<Icon name="search" />
 				<input type="search" value={query}
-					placeholder={total ? `Search ${total.toLocaleString('da-DK')} icons…` : 'Search icons…'}
+					placeholder={total ? `Search ${total.toLocaleString('da-DK')} icons...` : 'Search icons...'}
 					aria-label="Search icons" onChange={e => setQuery(e.target.value)} />
 			</FieldShell>
 			<div role="radiogroup" className="icon-picker-grid" aria-label={label} aria-busy={waiting || undefined}>
@@ -235,7 +235,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 						? null
 						: total
 							? `${names.length} already used by a category. Search all ${total.toLocaleString('da-DK')}.`
-							: `${names.length} already used by a category. Loading the rest…`}
+							: `${names.length} already used by a category. Loading the rest...`}
 			</span>
 		</div>
 	)

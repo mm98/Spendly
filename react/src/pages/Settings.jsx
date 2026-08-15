@@ -70,7 +70,7 @@ const tokenizeJson = (text, prefix) => {
    ordinary prose beneath its box, never annotation lines inside it. */
 const RECIPE_LOGIN = [
 	<span key="req" className="tok-req">POST /api/auth/login</span>, '\n',
-	...tokenizeJson(JSON.stringify({ email: '…', password: '…' }, null, 2), 'login')
+	...tokenizeJson(JSON.stringify({ email: '...', password: '...' }, null, 2), 'login')
 ]
 const RECIPE_REQUEST = [
 	<span key="req" className="tok-req">POST /api/orders/import</span>, '\n',
@@ -78,7 +78,7 @@ const RECIPE_REQUEST = [
 ]
 const RECIPE_RESPONSE = [
 	<span key="ok" className="tok-req">200</span>, '\n',
-	...tokenizeJson(JSON.stringify({ imported: 1, orders: ['…'], failed: [{ index: 3, error: '…' }] }, null, 2), 'resp')
+	...tokenizeJson(JSON.stringify({ imported: 1, orders: ['...'], failed: [{ index: 3, error: '...' }] }, null, 2), 'resp')
 ]
 
 export default function Settings() {
@@ -284,7 +284,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								</p>
 								<FormActions>
 									<Button variant="caps compact" disabled={busy} onClick={fill}>
-										{busy ? 'FILLING…' : 'YES, FILL IT'}
+										{busy ? 'FILLING...' : 'YES, FILL IT'}
 									</Button>
 									<Button variant="ghost compact" disabled={busy}
 										onClick={() => setFilling(false)}>CANCEL</Button>

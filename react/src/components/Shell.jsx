@@ -154,7 +154,7 @@ function GlobalFinder() {
 				    them -- axe calls that critical, and the attribute is simply ignored. This is a
 				    combobox, so it says so, the same as every other one in the app. */}
 				<input ref={input} type="search" value={query}
-					placeholder="Search orders, vendors, notes…"
+					placeholder="Search orders, vendors, notes..."
 					role="combobox" aria-autocomplete="list" aria-controls={panelId}
 					aria-label="Search everything" aria-expanded={open}
 					aria-activedescendant={open && current ? optionId(flat.indexOf(current)) : undefined}

@@ -258,14 +258,14 @@ function EditOrderForm({ id, seed }) {
 						<div className="space-between space-between-top">
 							<div className="card-headline">Edit order</div>
 							<Button variant="caps compact" onClick={save} disabled={saving}>
-								{saving ? 'SAVING…' : 'SAVE'}</Button>
+								{saving ? 'SAVING...' : 'SAVE'}</Button>
 						</div>
 						<p className="card-lead">Update the details, the items, or both — everything saves together.</p>
 						<FormStatus message={status.message} good={status.good} />
 						<Form>
 							<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId}>
 								<Combobox id="order-vendor" label="Vendor" required
-									placeholder="Search vendors…" value={draft.vendor}
+									placeholder="Search vendors..." value={draft.vendor}
 									invalid={vendorField.invalid} describedBy={vendorField.describedBy}
 									onChange={set('order-vendor', 'vendor')}
 									onSelect={o => { update({ vendor: o.label }); orderErrors.recheck('order-vendor', o.label) }}
@@ -295,7 +295,7 @@ function EditOrderForm({ id, seed }) {
 
 							<Field label="Categories" htmlFor="order-categories"
 								help="Pick from your categories, or type one and press Enter.">
-								<Combobox id="order-categories" label="Add category" placeholder="Add category…"
+								<Combobox id="order-categories" label="Add category" placeholder="Add category..."
 									chips={draft.categories.map(name => (
 										<Chip key={name} label={`Remove category ${name}`}
 											onRemove={() => update({ categories: draft.categories.filter(c => c !== name) })}>
@@ -419,7 +419,7 @@ function EditOrderForm({ id, seed }) {
 										<input type="file" accept="image/*" aria-label="Product photo"
 											className="field-file-input"
 											onChange={e => setPhoto(e.target.files?.[0] ?? null)} />
-										<span className="field-file-name">{photo?.name ?? 'Choose a photo…'}</span>
+										<span className="field-file-name">{photo?.name ?? 'Choose a photo...'}</span>
 										{photo ? (
 											<IconButton variant="clear" icon="close" label="Remove photo"
 												onClick={e => { e.preventDefault(); setPhoto(null) }} />
@@ -487,7 +487,7 @@ function EditOrderForm({ id, seed }) {
 				<FormActions split>
 					<Button variant="ghost" onClick={() => navigate(`/orders/${id}`)}>CANCEL</Button>
 					<Button variant="caps" onClick={save} disabled={saving}>
-						{saving ? 'SAVING…' : 'SAVE'}</Button>
+						{saving ? 'SAVING...' : 'SAVE'}</Button>
 				</FormActions>
 			</div>
 

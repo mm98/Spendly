@@ -51,7 +51,7 @@ export default function AllCategories() {
 			<div className="row-inline toolbar">
 				<FieldShell>
 					<Icon name="search" />
-					<input type="search" value={query} placeholder="Search category name…"
+					<input type="search" value={query} placeholder="Search category name..."
 						aria-label="Search categories" onChange={e => setQuery(e.target.value)} />
 				</FieldShell>
 				<Combobox className="toolbar-sort" label="Sort categories"
