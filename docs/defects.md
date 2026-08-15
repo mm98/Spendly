@@ -1460,3 +1460,55 @@ since `.main-panel` clips overflow and a clipped overhang never widens the docum
 
 Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
 **Not run:** Gecko and WebKit are not installed in this container.
+
+## The stylesheet that was being overruled by its own pages
+
+**The defect.** The app carried 122 `style` attributes, and about 90 of them were system values
+— margins, gaps, sizes, colours out of the token set — written on elements instead of into the
+stylesheet. CLAUDE.md had already recorded the mechanism once ("an inline style in a port
+outranks every rule the shared stylesheet can write") for a toolbar width; this pass found the
+same mechanism live in the shipped app, twice. `.stats-window .panel-heading { font-size:14px }`
+sits in the phone media block and had never rendered, because the pager heading carried
+`fontSize: 16` inline; `.space-between > .row-inline { gap:6px }` in the same block was silenced
+on Order detail's header actions and All orders' pager by inline `gap: 8`. Two phone rules,
+written, shipped, and never once drawn.
+
+**What the inline copies were also hiding.** Values that had drifted apart inside the same slot,
+which no grep of the stylesheet could see because the stylesheet never had them: the meter under
+a figure sat 14px below it on two pages and 16px on Home; the chart under its caption row 8px on
+two cards and 6px on the hero; the divider above a summary total 4px in two files (via
+`card-divider-tight`) and 2px inline in two others; the icon-action cluster on a data row
+`gap:2` in the order forms and `gap:4` on Order detail; two drop targets with two drag-over
+outline offsets; Settings' three block buttons at an inline 8px above the lead while
+`.button-block` itself says 12; the scan hero's check drawn `#12A56B` beside a `--green` that is
+`#14AC72`; and the auth pages' status line — a third styling of the `form-status` verdict the
+order forms already define, at 13.5px/500 with a `var(--red, #C0392B)` whose token does not
+exist, so the fallback was the colour. Each is now the one value, under the one name.
+
+**The conversion.** Every fixed layout value moved into `react/src/styles/app.css` under a
+named class — shared names where the pattern repeats (`.card-lead-flush` ×4, `.summary-saved`
+×3, `.chart-legend-fill` ×3, `.row-actions`, `.push-end`, `.is-dragover`), component names
+where it does not. What stays inline is the data speaking: record colours, chart shares and
+positions, a dragged row's captured size, the toast stack's measured top. Chart, Meter,
+WeekdayBars, ProgressBar, DocumentPreview, Note and StatusChip gained `className` passthrough
+so call sites can name their slot without a wrapper element. Moving the toast's show transition
+into the stylesheet also retired its JS reduced-motion check: the global reduced-motion block
+now reaches it, which the inline transition was the one thing preventing.
+
+**Measured.** 52 states — every route plus the driven ones: both confirm dialogs, the added
+order line, scan review and its line editor, login and register with their status lines rendered
+— at 1440 and under `devices['iPhone 13']`, 10,659 element records per run, 42 computed
+properties and a rect per element. The baseline was run twice and agreed at 0 differences before
+the diff was trusted, and the harness needed one fix first: the filter panel's combobox options
+land from a fetch tens of milliseconds after mount, and a settle loop sampling ~50ms of rAF
+frames read the page both before and after they arrived on different runs — 150ms-spaced samples
+settled it. After the conversion: **0 element-count changes, 0 tag mismatches, 1,162
+differences, every one attributable to a named unification above** (the 2px cascades under a
+moved chart account for most of the rect shifts), and the two states a navigation walk cannot
+hold — a shown toast, a drag-over — probed directly. The first attempt also minted a colliding
+`.form-status` beside the one that already existed, which the walk caught as 12→13.5px on every
+form's verdict line: the fix was not a rename but using the existing class, which is how the
+auth pages' third styling came to light at all.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.

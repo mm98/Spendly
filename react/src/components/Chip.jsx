@@ -25,16 +25,11 @@ export function Chip({ children, onRemove, label, icon, className, ...rest }) {
 		: <span className={join('chip', className)} {...rest}>{content}</span>
 }
 
-export const StatusChip = ({ children, tone, ...rest }) =>
-	<span className={join('chip-status', tone && 'chip-status-' + tone)} {...rest}>{children}</span>
+export const StatusChip = ({ children, tone, className, ...rest }) =>
+	<span className={join('chip-status', tone && 'chip-status-' + tone, className)} {...rest}>{children}</span>
 
 export const SavingChip = ({ children, ...rest }) =>
 	<span className="chip-saving tabular-figures" {...rest}><Icon name="trendUp" />{children}</span>
 
-const TAG_TONES = {
-	pink: { background: '#F6E3F1', color: '#A2477F' },
-	blue: { background: '#DFF0F7', color: '#20708C' }
-}
-
 export const TagChip = ({ tone = 'pink', icon, children }) =>
-	<span className="chip-tag" style={TAG_TONES[tone]}><Icon name={icon} />{children}</span>
+	<span className={join('chip-tag', 'chip-tag-' + tone)}><Icon name={icon} />{children}</span>

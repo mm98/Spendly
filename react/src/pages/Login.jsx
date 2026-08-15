@@ -52,7 +52,7 @@ export default function Login() {
 							</FieldShell>
 						</Field>
 						{status.message ? (
-							<p role="alert" style={{ color: status.good ? 'var(--green)' : 'var(--red, #C0392B)', fontSize: 13.5 }}>
+							<p role="alert" className={status.good ? 'form-status' : 'form-status form-status-negative'}>
 								{status.message}
 							</p>
 						) : null}
@@ -60,7 +60,7 @@ export default function Login() {
 							<Button variant="primary" type="submit" disabled={saving}>{saving ? 'SIGNING IN…' : 'SIGN IN'}</Button>
 						</FormActions>
 					</form>
-					<p className="field-help" style={{ marginTop: 14 }}>
+					<p className="field-help auth-switch">
 						No account yet? <Link to="/register">Create one</Link>.
 					</p>
 				</CardBody>

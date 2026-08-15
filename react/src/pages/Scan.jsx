@@ -83,7 +83,7 @@ export function ScanUpload() {
 			<div className="hero hero-column">
 				<h2>Receipts read at your fingertips.</h2>
 				<p>Drop a PDF, photo or screenshot. The AI drafts the order; you review every value before it is saved.</p>
-				<div className="ai-prompt-bar"
+				<div className={'ai-prompt-bar scan-drop' + (over ? ' is-dragover' : '')}
 					onDragOver={e => { e.preventDefault(); setOver(true) }}
 					onDragEnter={e => { e.preventDefault(); setOver(true) }}
 					onDragLeave={() => setOver(false)}
@@ -91,9 +91,8 @@ export function ScanUpload() {
 						e.preventDefault(); setOver(false)
 						upload([...(e.dataTransfer?.files ?? [])])
 					}}
-					onClick={() => picker.current?.click()}
-					style={{ cursor: 'pointer', ...(over ? { outline: '2px dashed var(--green)', outlineOffset: 3 } : {}) }}>
-					<span aria-hidden="true"><Icon name="receipt" style={{ color: 'var(--text-faint)' }} /></span>
+					onClick={() => picker.current?.click()}>
+					<span aria-hidden="true"><Icon name="receipt" className="icon scan-drop-icon" /></span>
 					<span className="field-shell-placeholder">Drop a receipt here, or click to choose a file…</span>
 					<HiddenFileInput ref={picker} accept="image/*,.pdf" label="Choose a receipt" onFiles={upload} />
 					<IconButton variant="send" icon="upload" label="Choose a receipt to scan"
@@ -108,20 +107,20 @@ export function ScanUpload() {
 				</div>
 			</div>
 
-			<div className="two-column" style={{ marginTop: 22 }}>
+			<div className="two-column scan-info-row">
 				<div className="card card-question">
 					<span className="card-question-label">What the AI checks</span>
 					<div className="card-question-title">Nothing is stored until you approve it</div>
 					<div className="account-row">
-						<span><Icon name="check" style={{ color: '#12A56B' }} /></span>
+						<span><Icon name="check" className="icon scan-check-icon" /></span>
 						<span className="account-row-text">Totals reconciled against the printed total, incl. 25% VAT</span>
 					</div>
 					<div className="account-row">
-						<span><Icon name="eye" style={{ color: 'var(--text-body)' }} /></span>
+						<span><Icon name="eye" className="icon scan-info-icon" /></span>
 						<span className="account-row-text">Possible duplicates flagged with date and amount to compare</span>
 					</div>
 					<div className="account-row">
-						<span><Icon name="tag" style={{ color: 'var(--text-body)' }} /></span>
+						<span><Icon name="tag" className="icon scan-info-icon" /></span>
 						<span className="account-row-text">Vendor matched to your list, or offered as a new vendor</span>
 					</div>
 				</div>
@@ -164,14 +163,14 @@ export function ScanReading() {
 				return (
 					<Card aria-label="Reading the document" aria-busy="true">
 						<CardBody variant="card-body-centered">
-							<DocumentPreview kind={file.kind} style={{ width: 120, height: 150 }}
+							<DocumentPreview kind={file.kind} className="scan-reading-preview"
 								src={file.hasThumbnail ? scanThumbnailUrl(key) : undefined} />
 							<div>
 								<div className="card-headline">Reading {file.name}</div>
 								<span className="field-help">
 									This usually takes a few seconds. Nothing is stored until you approve the review.</span>
 							</div>
-							<ProgressBar style={{ width: '100%', maxWidth: 420 }} label="Reading progress" />
+							<ProgressBar className="scan-reading-progress" label="Reading progress" />
 							<ButtonLink to={`/scan/review?doc=${key}`}>OPEN THE REVIEW</ButtonLink>
 						</CardBody>
 					</Card>
@@ -299,11 +298,11 @@ function ScanReviewForm({ answer }) {
 				   it. A fixed "Total matches." over edited figures is the app asserting something
 				   it has not checked. */
 				Math.abs(linesTotal + shipping - answer.total) < 0.005 ? (
-					<Note tone="positive" title="Total matches." style={{ marginBottom: 16 }}>
+					<Note tone="positive" title="Total matches." className="note-lead">
 						{answer.reconciled}
 					</Note>
 				) : (
-					<Note tone="warning" title="Total no longer matches." style={{ marginBottom: 16 }}>
+					<Note tone="warning" title="Total no longer matches." className="note-lead">
 						The lines now add up to {kr(linesTotal + shipping)}, against the document total
 						of {kr(answer.total)}. Saving keeps what is on screen.
 					</Note>
@@ -336,11 +335,11 @@ function ScanReviewForm({ answer }) {
 						<CardDivider />
 						<CardBody>
 							<DocumentPreview kind={answer.file.kind} id="scan-source-preview"
-								style={sourceOpen ? { height: 520 } : undefined}
+								className={sourceOpen ? 'scan-source-open' : undefined}
 								src={answer.file.hasThumbnail
 									? (sourceOpen ? scanFileUrl(answer.documentKey) : scanThumbnailUrl(answer.documentKey))
 									: undefined} />
-							<div className="space-between document-name-row" style={{ marginTop: 10 }}>
+							<div className="space-between document-name-row">
 								<span className="document-name">{answer.file.name}</span>
 								<span className="field-help">{answer.file.meta}</span>
 							</div>
@@ -353,7 +352,7 @@ function ScanReviewForm({ answer }) {
 							<CardHeader title="Possible duplicate" />
 							<CardDivider />
 							<CardBody>
-								<Note tone="warning" title="Check before saving." style={{ marginBottom: 10 }}>
+								<Note tone="warning" title="Check before saving." className="note-above-row">
 									You already have a {answer.vendor} order within 14 days of this date.
 								</Note>
 								<ItemRow thumb="receipt" to={`/orders/${answer.duplicate.orderId}`}
@@ -388,7 +387,7 @@ function ScanReviewForm({ answer }) {
 						placeholder="Search vendors…" aria-label="Vendor" aria-required="true"
 						invalid={vendorField.invalid} describedBy={vendorField.describedBy} />
 					{answer.vendorMatched && draft.vendor === answer.vendor
-						? <StatusChip style={{ height: 24, fontSize: 10.5 }}>matched</StatusChip>
+						? <StatusChip className="chip-matched">matched</StatusChip>
 						: null}
 				</FieldShell>
 			</Field>
@@ -458,21 +457,21 @@ function ScanReviewForm({ answer }) {
 								? 'Kept as read; the document stays attached to the order.'
 								: `${kr(draft.remainder.total)} together`}>
 							{showAll ? null : (
-								<ButtonLink style={{ marginLeft: 'auto' }}
+								<ButtonLink className="push-end"
 									onClick={() => setShowAll(true)}>SHOW ALL</ButtonLink>
 							)}
 						</ItemRow>
 					) : null}
 				</InsetPanel>
 				{editingLine === null ? (
-					<Button variant="ghost compact" icon="plus" style={{ marginTop: 10 }}
+					<Button variant="ghost compact" icon="plus" className="panel-cta"
 						onClick={addLine}>ADD LINE</Button>
 				) : null}
 			</div>
 
 			<SummaryRow label="Lines subtotal" value={kr(linesTotal)} />
 			<SummaryRow label="Shipping" value={kr(shipping)} />
-			<div className="card-divider" style={{ margin: '2px 0 0' }} />
+			<div className="card-divider card-divider-tight" />
 			<SummaryTotal value={kr(linesTotal + shipping)} />
 		</FormPage>
 	)
@@ -510,7 +509,7 @@ function LineEditor({ line, onSave, onCancel }) {
 	}
 
 	return (
-		<div className="filter-section" style={{ margin: '4px 0' }}>
+		<div className="filter-section line-editor">
 			<Field label="Line" error={description.error} errorId={description.errorId}>
 				<FieldShell>
 					<TextInput id="line-description" value={form['line-description']} autoFocus

@@ -167,7 +167,7 @@ function VendorSummary({ name, colour, initials, favourite, vendor }) {
 			<CardBody>
 				<div className="card-subheading">Vendor summary</div>
 				<span className="section-label">How it will look</span>
-				<div className="entry-list" style={{ marginBottom: 4 }}>
+				<div className="entry-list summary-preview">
 					<EntryRow avatar={{ colour, initials }} name={name || 'Your vendor'}
 						meta={vendor
 							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'} · saved ${krRound(vendor.saved)}`

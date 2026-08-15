@@ -76,7 +76,7 @@ export default function Vendors() {
 										<Donut segments={split.map(v => ({ share: spend ? (v.spend / spend) * 100 : 0, colour: v.colour }))}
 											value={krRound(spend)} label="Spent, all time"
 											ariaLabel={`Vendor split of ${krRound(spend)}`} />
-										<div className="chart-legend" style={{ flex: 1, minWidth: 170 }}>
+										<div className="chart-legend chart-legend-fill">
 											{split.map(v => (
 												/* The folded row names a count rather than a vendor, so it opens the
 												   list where those vendors actually are instead of an orders filter
@@ -122,7 +122,7 @@ export default function Vendors() {
 																: 'None · all time'}
 															amount={krRound(vendor.latest?.total ?? 0)} />
 													</InsetPanel>
-													<div className="row-inline" style={{ gap: 4, marginTop: 10 }}>
+													<div className="row-inline row-actions entity-actions">
 														<IconButton icon="star" label={`Remove ${vendor.name} from favourites`}
 															onClick={() => toggleFavourite(vendor)} />
 														<IconButton icon="pencil" label={`Edit ${vendor.name}`}

@@ -223,7 +223,7 @@ function GlobalFinder() {
 					<div className="combobox-action"
 						onClick={e => { e.preventDefault(); e.stopPropagation(); go('/orders/all?q=' + encodeURIComponent(query)) }}>
 						SEARCH ALL ORDERS FOR "{query.toUpperCase()}"
-						<span className="combobox-option-meta" style={{ fontWeight: 500 }}>Enter</span>
+						<span className="combobox-option-meta">Enter</span>
 					</div>
 				) : null}
 			</div>

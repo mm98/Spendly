@@ -33,5 +33,5 @@ export function Async({ state, children, label = 'Loading' }) {
 	if (state.data === undefined) return <Waiting label={label} />
 	/* Data is present. A refetch in the background keeps the last good render on screen
 	   rather than collapsing the layout, and says so on the region for anything listening. */
-	return <div aria-busy={state.loading || undefined} style={{ display: 'contents' }}>{children(state.data)}</div>
+	return <div aria-busy={state.loading || undefined} className="async-live">{children(state.data)}</div>
 }

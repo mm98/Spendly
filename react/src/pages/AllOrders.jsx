@@ -188,7 +188,7 @@ export default function AllOrders() {
 							data-filters-toggle aria-expanded={panelOpen} aria-controls="filter-panel"
 							onClick={() => setPanelOpen(open => !open)}>
 							<Icon name="filters" />FILTERS
-							<Icon name="chevronDown" className="icon chevron-icon" style={{ color: 'var(--text-muted)' }} />
+							<Icon name="chevronDown" className="icon chevron-icon" />
 						</button>
 						{/* The prototype draws this as a chip with a chevron and no handler -- a control
 						    by every visual cue and inert. It is the app's one dropdown pattern now, and
@@ -207,13 +207,13 @@ export default function AllOrders() {
 					</div>
 
 					{chips.length ? (
-						<div className="row-inline" style={{ gap: 6 }} ref={chipRow}>
+						<div className="row-inline chip-row" ref={chipRow}>
 							{chips.map((chip, i) => (
 								<Chip key={chip.key} data-chip={chip.key}
 									label={'Remove filter ' + chip.label}
 									onRemove={() => removeChip(chip, i)}>{chip.label}</Chip>
 							))}
-							<ButtonLink className="button-link" style={{ marginLeft: 6 }} onClick={clearAll}>CLEAR ALL</ButtonLink>
+							<ButtonLink className="button-link" onClick={clearAll}>CLEAR ALL</ButtonLink>
 						</div>
 					) : null}
 
@@ -299,19 +299,17 @@ export default function AllOrders() {
 						{/* A real pager. It was two disabled buttons and a fixed "Showing 1 to 3 of 3";
 						    the numbers are the API's now, and the buttons are disabled only at the ends,
 						    which is the one honest reason to disable a control. README: Honest Affordances. */}
-						<div className="space-between" style={{ marginTop: 12 }}>
+						<div className="space-between pager-row">
 							<span className="field-help">
 								{data.matched
 									? `Showing ${data.from} to ${data.to} of ${data.matched}`
 									: 'Nothing to show'}
 								{data.pages > 1 ? ` · page ${data.page} of ${data.pages}` : ''}
 							</span>
-							<span className="row-inline" style={{ gap: 8 }}>
+							<span className="row-inline pager-buttons">
 								<Button variant="ghost" icon="chevronLeft" disabled={data.page <= 1}
-									style={data.page <= 1 ? { opacity: 0.45 } : undefined}
 									onClick={() => setPage(Math.max(1, data.page - 1))}>PREVIOUS</Button>
 								<Button variant="ghost" iconAfter="chevronRight" disabled={data.page >= data.pages}
-									style={data.page >= data.pages ? { opacity: 0.45 } : undefined}
 									onClick={() => setPage(data.page + 1)}>NEXT</Button>
 							</span>
 						</div>

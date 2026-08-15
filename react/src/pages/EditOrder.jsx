@@ -255,7 +255,7 @@ function EditOrderForm({ id, seed }) {
 						    .space-between wraps under 700px (README: Fields and Forms), and a
 						    button sharing a row with a two-line paragraph wraps onto its own line
 						    with a gap under it; sharing a row with four words never needs to. */}
-						<div className="space-between" style={{ alignItems: 'flex-start' }}>
+						<div className="space-between space-between-top">
 							<div className="card-headline">Edit order</div>
 							<Button variant="caps compact" onClick={save} disabled={saving}>
 								{saving ? 'SAVING…' : 'SAVE'}</Button>
@@ -436,7 +436,7 @@ function EditOrderForm({ id, seed }) {
 										clearItemForm(); setItemStatus({ message: '', good: true })
 									}}>CANCEL EDIT</Button>
 									: null}
-								<span className="field-help" style={{ alignSelf: 'center' }}>
+								<span className="field-help form-actions-note">
 									Enter {editingId ? 'saves' : 'adds'} and keeps the form; Escape clears it.</span>
 							</FormActions>
 						</FilterSection>
@@ -464,7 +464,7 @@ function EditOrderForm({ id, seed }) {
 												+ (item.retail ? ` · retail ${kr(item.retail)}` : '')}
 											amount={kr(item.price * item.quantity)}
 											{...reorder.rowProps(item)}>
-											<span className="row-inline" style={{ gap: 2 }}>
+											<span className="row-inline row-actions">
 												<IconButton icon="pencil" label={`Edit ${item.title}`}
 													onClick={() => editItem(item)} />
 												{itemDel.iconButton(item)}
@@ -474,7 +474,7 @@ function EditOrderForm({ id, seed }) {
 									)
 								})}
 								{draft.items.length === 0
-									? <p className="field-help" style={{ padding: '10px 12px' }}>
+									? <p className="field-help inset-panel-note">
 										No items yet. Add the first one above.</p>
 									: null}
 							</InsetPanel>
@@ -502,7 +502,7 @@ function EditOrderForm({ id, seed }) {
 							<span className="summary-row-value">{draft.categories.join(', ') || '—'}</span></div>
 						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
 						<SummaryRow label="Shipping" value={kr(draft.shipping ? parseAmount(draft.shipping) : 0)} />
-						<span className="section-label" style={{ display: 'block', marginTop: 10 }}>Items</span>
+						<span className="section-label section-label-break">Items</span>
 						{draft.items.map(item => (
 							<SummaryRow key={item.id} className="summary-row-item"
 								label={`${item.title} × ${item.quantity}`}
@@ -513,7 +513,7 @@ function EditOrderForm({ id, seed }) {
 						    real entry against a real order, not a preview of one still being built. */}
 						<SummaryTotal value={kr(total)} />
 						{saved > 0 ? (
-							<span className="field-help" style={{ color: 'var(--text-positive)', fontWeight: 600 }}>
+							<span className="field-help summary-saved">
 								saved {kr(saved)} vs retail ({percent(saved / retail * 100)})
 							</span>
 						) : null}

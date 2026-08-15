@@ -79,7 +79,7 @@ export default function Categories() {
 										<Donut segments={split.map(c => ({ share: spent ? (c.spend / spent) * 100 : 0, colour: c.colour }))}
 											value={krRound(spent)} label="Spent, all time"
 											ariaLabel={`Category split of ${krRound(spent)}`} />
-										<div className="chart-legend" style={{ flex: 1, minWidth: 170 }}>
+										<div className="chart-legend chart-legend-fill">
 											{split.map(c => (
 												/* The folded row names a count, not a category, so it opens the list
 												   those categories are on rather than a filter for one that has no id. */
@@ -111,10 +111,10 @@ export default function Categories() {
 										<div className="figure-card tabular-figures">
 											{percent(budgetUsed(categories), 0)}</div>
 										<span className="card-caption">of this month's budget used</span>
-										<Meter style={{ marginTop: 14 }}
+										<Meter className="meter-under-caption"
 											fill={Math.min(100, budgetUsed(categories))}
 											ariaLabel={`${percent(budgetUsed(categories), 0)} of budget used`} />
-										<span className="field-help" style={{ marginTop: 8, display: 'block' }}>
+										<span className="field-help field-help-below">
 											{budgeted.length} categor{budgeted.length === 1 ? 'y has' : 'ies have'} a
 											budget{over.length ? `, ${over.length} over it` : ''}. Budgets are set on a
 											category's own page.

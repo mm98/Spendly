@@ -17,16 +17,11 @@ import { ButtonLink } from './Button.jsx'
    for a drop to fire at all -- without `preventDefault` the browser navigates to the file
    instead, which is the failure mode that looks like nothing happening. */
 
-const HIDDEN = {
-	position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none',
-	overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap'
-}
-
 /** A file input that is hidden wherever it is put, and opened by something else. */
 export const HiddenFileInput = forwardRef(function HiddenFileInput({ onFiles, multiple, accept, label }, ref) {
 	return (
 		<input ref={ref} type="file" multiple={multiple} accept={accept}
-			className="field-file-input" style={HIDDEN} tabIndex={-1} aria-hidden="true"
+			className="field-file-input" tabIndex={-1} aria-hidden="true"
 			aria-label={label}
 			onChange={e => {
 				const files = [...(e.target.files ?? [])]
@@ -52,8 +47,7 @@ export function DropZone({ onFiles, multiple = true, accept, label, hint, action
 	}
 
 	return (
-		<div className="empty-state"
-			style={over ? { outline: '2px dashed var(--green)', outlineOffset: 2, borderRadius: 14 } : undefined}
+		<div className={over ? 'empty-state is-dragover' : 'empty-state'}
 			onDragOver={e => { e.preventDefault(); setOver(true) }}
 			onDragEnter={e => { e.preventDefault(); setOver(true) }}
 			onDragLeave={() => setOver(false)}

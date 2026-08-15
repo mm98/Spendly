@@ -292,7 +292,7 @@ function OrderSummary({ draft, estimate, showItems }) {
 				)}
 				{showItems ? (
 					<>
-						<span className="section-label" style={{ display: 'block', marginTop: 10 }}>Items</span>
+						<span className="section-label section-label-break">Items</span>
 						{draft.items.map(item => (
 							<SummaryRow key={item.id} className="summary-row-item"
 								label={`${item.title} × ${item.quantity}`}
@@ -303,7 +303,7 @@ function OrderSummary({ draft, estimate, showItems }) {
 				<div className="card-divider card-divider-tight" />
 				<SummaryTotal label="Total est." value={kr(total)} estimate={estimate} />
 				{showItems && saved > 0 ? (
-					<span className="field-help" style={{ color: 'var(--text-positive)', fontWeight: 600 }}>
+					<span className="field-help summary-saved">
 						saved {kr(saved)} vs retail ({percent(saved / retail * 100)})
 					</span>
 				) : (
@@ -587,7 +587,7 @@ export function NewOrderItems() {
 							clearForm(); setStatus({ message: '', good: true })
 						}}>CANCEL EDIT</Button>
 						: null}
-					<span className="field-help" style={{ alignSelf: 'center' }}>
+					<span className="field-help form-actions-note">
 						Enter {editingId ? 'saves' : 'adds'} and keeps the form; Escape clears it.</span>
 				</FormActions>
 			</FilterSection>
@@ -617,7 +617,7 @@ export function NewOrderItems() {
 								+ (item.retail ? ` · retail ${kr(item.retail)}` : '')}
 							amount={kr(item.price * item.quantity)}
 							{...reorder.rowProps(item)}>
-							<span className="row-inline" style={{ gap: 2 }}>
+							<span className="row-inline row-actions">
 								<IconButton icon="pencil" label={`Edit ${item.title}`}
 									onClick={() => editItem(item)} />
 								{itemDel.iconButton(item)}
@@ -627,7 +627,7 @@ export function NewOrderItems() {
 						)
 					})}
 					{draft.items.length === 0
-						? <p className="field-help" style={{ padding: '10px 12px' }}>
+						? <p className="field-help inset-panel-note">
 							No items yet. Add the first one above.</p>
 						: null}
 				</InsetPanel>

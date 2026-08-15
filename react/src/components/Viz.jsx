@@ -287,8 +287,8 @@ export const SpendGauge = ({ segments, value, label, ariaLabel }) => (
 )
 
 /** Spend against a projection, with a marker where the previous month ended. */
-export const Meter = ({ fill, marker, ariaLabel, style }) => (
-	<div className="meter" style={style} role="img" aria-label={ariaLabel}>
+export const Meter = ({ fill, marker, ariaLabel, className, style }) => (
+	<div className={['meter', className].filter(Boolean).join(' ')} style={style} role="img" aria-label={ariaLabel}>
 		<span className="meter-fill" style={{ width: fill + '%' }} />
 		{marker != null ? <span className="meter-marker" style={{ left: marker + '%' }} /> : null}
 	</div>
@@ -303,8 +303,8 @@ export const Meter = ({ fill, marker, ariaLabel, style }) => (
     resolves against. It used to take a pixel height per day and a `field` naming which of two
     identical copies of that height to read, so the chart was exactly as tall as the API had
     decided and the card around it kept whatever was left. */
-export const WeekdayBars = ({ days, style }) => (
-	<div className="weekday-bars" style={style} aria-hidden="true">
+export const WeekdayBars = ({ days, className, style }) => (
+	<div className={['weekday-bars', className].filter(Boolean).join(' ')} style={style} aria-hidden="true">
 		{days.map(d => (
 			<div key={d.day}>
 				<div className="weekday-bars-track">
@@ -342,8 +342,8 @@ export const MonthColumns = ({ months }) => (
 
 /** Indeterminate by default: the scan step cannot say how far through a document it is, and
     a bar that claims a percentage it has not got is a worse answer than one that does not. */
-export const ProgressBar = ({ indeterminate = true, value, label, style }) => (
-	<div className={['progress-bar', indeterminate && 'progress-bar-indeterminate'].filter(Boolean).join(' ')}
+export const ProgressBar = ({ indeterminate = true, value, label, className, style }) => (
+	<div className={['progress-bar', indeterminate && 'progress-bar-indeterminate', className].filter(Boolean).join(' ')}
 		style={style} role="progressbar" aria-label={label}
 		aria-valuenow={indeterminate ? undefined : value}
 		aria-valuemin={indeterminate ? undefined : 0} aria-valuemax={indeterminate ? undefined : 100}>
@@ -368,8 +368,9 @@ export const ProgressRing = ({ done, total }) => {
     image (the backend generates both — see api/src/lib/images.js); without one, or if it fails
     to load, this falls back to the glyph for the file's own kind, because a PDF invoice drawn
     with a photo glyph is the screen telling the user it read something else. README: Views. */
-export const DocumentPreview = ({ kind = 'image', src, style, ...rest }) => (
-	<div className={`document-preview document-preview-${kind}`} style={style} aria-hidden="true" {...rest}>
+export const DocumentPreview = ({ kind = 'image', src, className, style, ...rest }) => (
+	<div className={[`document-preview document-preview-${kind}`, className].filter(Boolean).join(' ')}
+		style={style} aria-hidden="true" {...rest}>
 		<ImageOrIcon src={src} icon={kind === 'pdf' ? 'document' : 'photo'}
 			className={`document-preview-glyph document-preview-glyph-${kind}`}
 			imgClassName="document-preview-photo" />

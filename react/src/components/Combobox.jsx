@@ -126,8 +126,7 @@ export function Combobox({
 	   rather than sitting in a wrapper div holding an inline width. */
 	return (
 		<div className={join('combobox', open && 'is-open', className)} ref={wrapper}>
-			<div className={join('field-shell', wrapping && 'field-shell-chips')}
-				style={wrapping ? { height: 'auto', minHeight: 48 } : undefined}>
+			<div className={join('field-shell', wrapping && 'field-shell-chips')}>
 				{leadingIcon ? <Icon name={leadingIcon} /> : null}
 				{chips}
 				{inputEl}

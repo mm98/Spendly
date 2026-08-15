@@ -50,15 +50,15 @@ export default function Orders() {
 								<div className="figure-large tabular-figures">{kr(data.period.spent)}</div>
 								<div className="chart-series-key">
 									<div className="chart-series-key-row">
-										<div className="chart-series-key-swatch" style={{ background: 'var(--blue)' }} />
+										<div className="chart-series-key-swatch swatch-current" />
 										{data.period.shortLabel}
 									</div>
 									<div className="chart-series-key-row">
-										<div className="chart-series-key-swatch" style={{ background: 'var(--blue-light)' }} />
+										<div className="chart-series-key-swatch swatch-previous" />
 										{data.period.previousLabel}
 									</div>
 								</div>
-								<Chart height={250} style={{ marginTop: 8 }}
+								<Chart height={250} className="chart-under-caption"
 									label={`${data.period.shortLabel} against ${data.period.previousLabel}, day by day`}
 									baselines={[{ y: 128, stroke: '#D9DDD8', dash: '5 5' }]}
 									/* 6.5px of vertical inset (plotted()'s 3rd/4th args, not a chart-level pad)
@@ -129,7 +129,7 @@ export default function Orders() {
 							<CardHeader title="Category breakdown" />
 							<CardDivider />
 							<CardBody>
-								<div style={{ marginBottom: 14 }}>
+								<div className="card-toggle-row">
 									<Segmented options={['Expenses', 'Budget']} value={breakdown}
 										onChange={setBreakdown} label="Category breakdown basis" />
 								</div>

@@ -138,14 +138,14 @@ export const todayMarker = (index, { series = 0, colour } = {}) =>
  *            and an invisible one -- the second silently borrows the first's colours.
  */
 export const Chart = memo(function Chart({ height, label, series = [],
-	baselines = [], markers = [], gradients = [], style, ...rest }) {
+	baselines = [], markers = [], gradients = [], className, style, ...rest }) {
 	const [ref, width] = useMeasuredWidth()
 	const uid = useId().replace(/:/g, '')
 	const paint = value => (typeof value === 'string' && value.startsWith('gradient:')
 		? `url(#${uid}-${value.slice(9)})` : value)
 
 	return (
-		<svg ref={ref} className="chart" viewBox={`0 0 ${width || 1} ${height}`}
+		<svg ref={ref} className={['chart', className].filter(Boolean).join(' ')} viewBox={`0 0 ${width || 1} ${height}`}
 			style={{ height, ...style }} role="img" aria-label={label} {...rest}>
 			{gradients.length ? (
 				<defs>

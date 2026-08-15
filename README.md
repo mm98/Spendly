@@ -214,7 +214,7 @@ A variant is never written alone. It is always `class="button button-primary"`, 
 | `button-ghost` | No fill at all — low emphasis, the quiet second choice |
 | `button-pill` | The 32px tier: top bar and section actions share this one size |
 | `button-block` | Full width, 44px — a card's one big action |
-| `button-caps` | The hero's 48px entry buttons |
+| `button-caps` | Dark surface, white label at 11.5px caps — the filled action tier. At the base 38px it is the form-page submit and the confirm in a dialog; inside a hero it rises to 48px with wider padding, the entry-button size |
 | `button-link` | Underlined text action (SEE ALL, CLEAR ALL) — no box at all |
 
 **Every button label is caps.** One voice for actions, everywhere.
@@ -821,6 +821,8 @@ Three documents, one job each — because a rule stated in two places is obeyed 
 **Honest affordances:** If a control can't do something, don't draw it as if it can. A button that doesn't work is a button that shouldn't be drawn yet.
 
 **Uniformity:** When something repeats, count how many times. If three things do it one way and one does it another, change the one, not the three. Never add a new way.
+
+**The stylesheet owns layout.** A layout value — a margin, a gap, a size, a colour that is the system's rather than a record's — lives in the stylesheet under a name. An element carries a style attribute only when the value is the data speaking: a category's colour, a bar's share, a dragged row's size. An inline copy of a system value outranks every rule the stylesheet can write, which is how a phone rule gets written, shipped and never rendered ([`docs/defects.md`](docs/defects.md#the-stylesheet-that-was-being-overruled-by-its-own-pages)).
 
 **Elements before components before views:** An element is defined before the component that uses it. A component before the view that shows it. Reading top to bottom is reading in dependency order.
 

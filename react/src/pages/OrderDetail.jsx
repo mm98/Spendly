@@ -121,14 +121,14 @@ export default function OrderDetail() {
 					<div className="order-list-column">
 						<Card aria-label="Order">
 							<CardBody variant="card-body-page">
-								<div className="space-between" style={{ alignItems: 'flex-start' }}>
+								<div className="space-between space-between-top">
 									<div>
-										<div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-.01em' }}>
+										<div className="order-title">
 											{order.vendor?.name}</div>
-										<div className="field-help" style={{ fontSize: 12.5 }}>
+										<div className="field-help order-subtitle">
 											{longDate(order.date)} · {order.itemCount} items</div>
 									</div>
-									<div className="row-inline row-inline-nowrap" style={{ gap: 8 }}>
+									<div className="row-inline row-inline-nowrap order-head-actions">
 										<IconButton icon="pencil" label="Edit order" to={`/orders/${id}/edit`} />
 										{del.iconButton}
 									</div>
@@ -136,14 +136,14 @@ export default function OrderDetail() {
 
 								{del.dialog}
 
-								<div className="row-inline" style={{ gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
+								<div className="row-inline order-chips">
 									{order.categories.map(c => <Chip key={c.id}>{c.name}</Chip>)}
 									{order.categories.length === 0
 										? <span className="field-help">No categories on this order.</span>
 										: null}
 								</div>
 
-								<div className="field" style={{ marginTop: 14 }}>
+								<div className="field order-status-field">
 									<span>Status</span>
 									<Segmented options={['Ordered', 'Delivered', 'Returned']} value={order.status}
 										onChange={next => setOrderStatus(order, next)} label="Order status" />
@@ -178,13 +178,13 @@ export default function OrderDetail() {
 										title={`${order.itemCount - order.items.length} more lines`}
 										meta="On the receipt, and in the total below." />
 								) : null}
-								<div className="card-divider" style={{ margin: '6px 0 0' }} />
+								<div className="card-divider card-divider-gap" />
 								<SummaryRow label="Items subtotal" value={kr(order.subtotal)} />
 								<SummaryRow label="Shipping" value={kr(order.shipping)} />
-								<div className="card-divider" style={{ margin: '2px 0 0' }} />
+								<div className="card-divider card-divider-tight" />
 								<SummaryTotal value={kr(order.total)} />
 								{order.saved > 0 ? (
-									<span className="field-help" style={{ color: 'var(--text-positive)', fontWeight: 600 }}>
+									<span className="field-help summary-saved">
 										saved {kr(order.saved)} vs retail ({percent(order.savedPercent)})
 									</span>
 								) : null}
@@ -244,7 +244,7 @@ export default function OrderDetail() {
 										<ItemRow thumb={file.kind === 'pdf' ? 'document' : 'photo'}
 											thumbSrc={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined}
 											title={file.name} meta={file.meta}>
-											<span className="row-inline row-inline-nowrap" style={{ gap: 4, marginLeft: 'auto' }}>
+											<span className="row-inline row-inline-nowrap row-actions push-end">
 												<IconButton icon={openFile === file.id ? 'chevronDown' : 'chevronRight'}
 													label={`${openFile === file.id ? 'Close' : 'Open'} ${file.name}`}
 													aria-expanded={openFile === file.id}
@@ -261,7 +261,7 @@ export default function OrderDetail() {
 											</span>
 										</ItemRow>
 										{openFile === file.id ? (
-											<div style={{ padding: '0 4px 10px' }}>
+											<div className="attachment-preview">
 												<DocumentPreview kind={file.kind}
 													src={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined} />
 												<span className="field-help">{file.name} · {file.meta}</span>

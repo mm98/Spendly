@@ -56,7 +56,7 @@ export default function Register() {
 							</FieldShell>
 						</Field>
 						{status.message ? (
-							<p role="alert" style={{ color: status.good ? 'var(--green)' : 'var(--red, #C0392B)', fontSize: 13.5 }}>
+							<p role="alert" className={status.good ? 'form-status' : 'form-status form-status-negative'}>
 								{status.message}
 							</p>
 						) : null}
@@ -64,7 +64,7 @@ export default function Register() {
 							<Button variant="primary" type="submit" disabled={saving}>{saving ? 'CREATING…' : 'CREATE ACCOUNT'}</Button>
 						</FormActions>
 					</form>
-					<p className="field-help" style={{ marginTop: 14 }}>
+					<p className="field-help auth-switch">
 						Already have an account? <Link to="/login">Sign in</Link>.
 					</p>
 				</CardBody>

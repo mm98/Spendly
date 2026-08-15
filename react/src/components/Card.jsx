@@ -75,9 +75,9 @@ export function EmptyState({ icon = 'search', children, className, ...rest }) {
 }
 
 /** The tinted callout used for a verdict on a draft: positive, warning. */
-export function Note({ tone = 'positive', title, children, ...rest }) {
+export function Note({ tone = 'positive', title, children, className, ...rest }) {
 	return (
-		<div className={join('note', 'note-' + tone)} {...rest}>
+		<div className={join('note', 'note-' + tone, className)} {...rest}>
 			{title ? <strong>{title}</strong> : null} {children}
 		</div>
 	)

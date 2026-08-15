@@ -232,7 +232,7 @@ function CategorySummary({ values, budget, category }) {
 			<CardBody>
 				<div className="card-subheading">Category summary</div>
 				<span className="section-label">How it will look</span>
-				<div className="category-rows" style={{ marginBottom: 4 }}>
+				<div className="category-rows summary-preview">
 					<CategoryPreview icon={values.icon} iconPath={values.iconPath}
 						colour={values.colour} name={values.name} />
 				</div>

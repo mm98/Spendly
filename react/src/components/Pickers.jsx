@@ -81,20 +81,18 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
 	const chosen = colours.some(c => c.id === value)
 	const hex = resolveColour(value)
 
-	const swatch = (on, background) => ({
-		width: 30, height: 30, background, borderColor: background,
-		/* The selected one is ringed rather than ticked: a check mark inside a swatch has to
-		   survive every background it can be given, and on the yellow it does not. */
-		boxShadow: on ? '0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-strong)' : undefined
-	})
+	/* The colour is the data, so it stays on the element; the size and the selection ring are
+	   the stylesheet's (.colour-swatch -- the ring survives every background a swatch can be
+	   given, where a check mark inside it does not). */
+	const swatch = background => ({ background, borderColor: background })
 
 	return (
-		<div className="row-inline" role="group" aria-label={label} style={{ gap: 6, flexWrap: 'wrap' }}>
+		<div className="row-inline colour-picker" role="group" aria-label={label}>
 			{colours.map(colour => (
-				<button key={colour.id} type="button" className="icon-button"
+				<button key={colour.id} type="button" className="icon-button colour-swatch"
 					aria-label={colour.label} aria-pressed={colour.id === value}
 					onClick={() => onChange(colour.id)}
-					style={swatch(colour.id === value, colour.id)} />
+					style={swatch(colour.id)} />
 			))}
 
 			{/* Anything else. The swatch below is drawn to look like the row's other buttons; the
@@ -106,26 +104,23 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
 			    the native chrome needs a -webkit-appearance hack and two vendor-prefixed
 			    pseudo-elements per engine, and letting the platform draw its own dialog needs no
 			    such bet. */}
-			<span style={{ position: 'relative', display: 'inline-block', width: 30, height: 30 }}>
-				<span aria-hidden="true" className="icon-button" style={{
-					...swatch(!chosen, chosen ? 'var(--bg-card)' : value),
-					color: chosen ? 'var(--text-body)' : inkOn(value),
-					pointerEvents: 'none'
-				}}>
+			<span className="colour-picker-custom">
+				<span aria-hidden="true"
+					className={['icon-button colour-swatch colour-picker-face', !chosen && 'is-on'].filter(Boolean).join(' ')}
+					style={{
+						...swatch(chosen ? 'var(--bg-card)' : value),
+						color: chosen ? 'var(--text-body)' : inkOn(value)
+					}}>
 					<Icon name={chosen ? 'plus' : 'pencil'} />
 				</span>
-				<input type="color" value={hex}
+				<input type="color" value={hex} className="colour-picker-input"
 					aria-label={chosen ? 'Pick another colour' : `Custom colour ${hex}`}
-					onChange={e => onChange(e.target.value)}
-					style={{
-						position: 'absolute', inset: 0, width: '100%', height: '100%',
-						border: 0, padding: 0, margin: 0, opacity: 0, cursor: 'pointer'
-					}} />
+					onChange={e => onChange(e.target.value)} />
 			</span>
 
 			{/* What the choice is worth, since a colour can be picked that its own contents cannot
 			    survive. The ink flips automatically; this says which way and by how much. */}
-			<span className="field-help" style={{ alignSelf: 'center', marginLeft: 4 }}>
+			<span className="field-help colour-picker-contrast">
 				{chosen ? null : `${hex.toUpperCase()} · ${inkContrast(value).toFixed(1)}:1`}
 			</span>
 		</div>
@@ -198,18 +193,14 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 	const waiting = names.some(name => !paths[name] && !usedByName.has(name) && !ICONS[name])
 
 	return (
-		<div style={{ display: 'grid', gap: 8 }}>
-			<FieldShell style={{ height: 38 }}>
+		<div className="icon-picker">
+			<FieldShell>
 				<Icon name="search" />
 				<input type="search" value={query}
 					placeholder={total ? `Search ${total.toLocaleString('da-DK')} icons…` : 'Search icons…'}
 					aria-label="Search icons" onChange={e => setQuery(e.target.value)} />
 			</FieldShell>
-			<div role="radiogroup" aria-label={label} aria-busy={waiting || undefined}
-				style={{
-					display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(38px, 1fr))',
-					gap: 6, maxHeight: 168, overflowY: 'auto', padding: 2
-				}}>
+			<div role="radiogroup" className="icon-picker-grid" aria-label={label} aria-busy={waiting || undefined}>
 				{names.map(name => {
 					const on = name === value
 					/* A used icon's path travels with the record that already carries it, so the
@@ -219,15 +210,9 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 					   seen is not a choice that can be made. */
 					const d = paths[name] ?? usedByName.get(name) ?? ICONS[name]
 					return (
-						<button key={name} type="button" className="icon-button"
+						<button key={name} type="button" className="icon-button icon-picker-tile"
 							role="radio" aria-checked={on} aria-label={name} disabled={!d}
-							onClick={() => onChange(name, d)}
-							style={{
-								width: '100%', height: 34,
-								background: on ? 'var(--bg-dark)' : 'var(--bg-card)',
-								color: on ? '#fff' : 'var(--text-body)',
-								borderColor: on ? 'var(--bg-dark)' : 'var(--border-control)'
-							}}>
+							onClick={() => onChange(name, d)}>
 							{d
 								? <Icon name={name} path={d} />
 								: <svg className="icon" viewBox="0 0 24 24" aria-hidden="true" />}
@@ -235,7 +220,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 					)
 				})}
 				{names.length === 0
-					? <p className="field-help" style={{ gridColumn: '1 / -1' }}>
+					? <p className="field-help icon-picker-empty">
 						{query.trim() ? `No icon matches "${query}".` : 'No category has an icon yet -- search to pick one.'}
 					</p>
 					: null}
@@ -258,7 +243,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 
 /** What the choice will look like, at the size it is used at. */
 export const CategoryPreview = ({ icon, iconPath, colour, name }) => (
-	<div className="data-row category-row" style={{ pointerEvents: 'none' }}>
+	<div className="data-row category-row category-preview">
 		<span className="category-icon" style={{ background: colour, color: inkOn(colour) }}>
 			<Icon name={icon} path={iconPath} /></span>
 		<div>

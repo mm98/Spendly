@@ -85,12 +85,12 @@ export function ItemRow({ icon, iconTone, thumb, thumbSrc, onThumbClick, handle,
 			    are not "open this photo", only the photo is. */}
 			{thumb ? (
 				onThumbClick ? (
-					<button type="button" className="document-thumb document-thumb-button" style={{ fontSize: 0 }}
+					<button type="button" className="document-thumb document-thumb-button"
 						onClick={onThumbClick} aria-label={`View photo${title ? ` for ${title}` : ''}`}>
 						<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
 					</button>
 				) : (
-					<span className="document-thumb" style={{ fontSize: 0 }} aria-hidden="true">
+					<span className="document-thumb" aria-hidden="true">
 						<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
 					</span>
 				)

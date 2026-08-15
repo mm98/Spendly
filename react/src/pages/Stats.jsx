@@ -63,7 +63,7 @@ export default function Stats() {
 
 				return (
 					<>
-						<div className="space-between" style={{ flexWrap: 'wrap', gap: 12, padding: '2px 2px 0' }}>
+						<div className="space-between stats-toolbar">
 							<div className="row-inline">
 								{/* The arrows and the name they step hold a width, so the picker beside
 								    them does not slide when the name changes length: Year to Quarter is
@@ -79,7 +79,7 @@ export default function Stats() {
 									    control does. README: Honest Affordances. */}
 									<IconButton icon="chevronLeft"
 										label={older ? `Previous ${view.unit}` : `No earlier ${view.unit}`}
-										disabled={!older} style={older ? undefined : { opacity: 0.45 }}
+										disabled={!older} className="pager-arrow"
 										onClick={() => older && show(view.range, older)} />
 									{/* One name at any width, drawn and announced. Both forms are in the markup
 									    and the stylesheet renders exactly one -- the unit written out wherever
@@ -90,12 +90,12 @@ export default function Stats() {
 									    not read and a second copy to keep in step; `display:none` is not
 									    announced, so there is one string here either way. The days the window
 									    covers are on the card below, over the chart. */}
-									<span className="panel-heading" style={{ fontSize: 16, letterSpacing: '-.01em' }}>
+									<span className="panel-heading pager-heading">
 										<span className="pager-wide">{view.label}</span>
 										<span className="pager-narrow">{view.abbr}</span></span>
 									<IconButton icon="chevronRight"
 										label={newer ? `Next ${view.unit}` : `No later ${view.unit}`}
-										disabled={!newer} style={newer ? undefined : { opacity: 0.45 }}
+										disabled={!newer} className="pager-arrow"
 										onClick={() => newer && show(view.range, newer)} />
 								</div>
 								{/* The widths, beside the arrows that step them, in the same box the
@@ -183,7 +183,7 @@ export default function Stats() {
 										{view.pace.running
 											? `projected for ${view.label} · ${kr(view.spent)} spent so far`
 											: `total for ${view.label} · ${view.pace.daysIn} days of records`}</span>
-									<Meter style={{ marginTop: 14 }}
+									<Meter className="meter-under-caption"
 										/* projected is 0 exactly when spent is -- nothing bought yet this
 										   window -- and 0/0 is NaN, an invalid CSS width the browser drops
 										   silently rather than rejecting: no fill at all instead of an
@@ -201,7 +201,7 @@ export default function Stats() {
 									{/* No full stop after the amount: krRound ends in "kr." and this line has been
 									    closing a second one on top of it -- "20.680 kr..". */}
 									{view.previousTotal != null
-										? <span className="field-help" style={{ marginTop: 8, display: 'block' }}>
+										? <span className="field-help field-help-below">
 											The marker is where {view.previousLabel} ended: {krRound(view.previousTotal)}</span>
 										: null}
 								</CardBody>
@@ -214,9 +214,9 @@ export default function Stats() {
 								<CardDivider />
 								<CardBody>
 									<div className="figure-large tabular-figures">{view.rhythm.weekendShare}%{' '}
-										<span style={{ fontWeight: 500, fontSize: 14, color: 'var(--text-muted)' }}>
+										<span className="figure-unit">
 											of spend lands on weekends</span></div>
-									<WeekdayBars days={view.rhythm.weekdays} style={{ minHeight: 86 }} />
+									<WeekdayBars days={view.rhythm.weekdays} className="rhythm-bars" />
 								</CardBody>
 							</Card>
 						</div>
@@ -233,7 +233,7 @@ export default function Stats() {
 										({ share: entry.share, colour: entry.colour }))}
 										value={krRound(view.spent)} label={view.tick}
 										ariaLabel={`Category split of ${krRound(view.spent)} in ${view.label}`} />
-									<div className="chart-legend" style={{ flex: 1, minWidth: 170 }}>
+									<div className="chart-legend chart-legend-fill">
 										{view.split.map(entry => (
 											/* The row names a category and states the window's amount for it, so
 											   the link carries both: an unfiltered list, or the category across

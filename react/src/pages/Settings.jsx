@@ -203,11 +203,11 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					<CardHeader title="Account" />
 					<CardDivider />
 					<CardBody>
-						<p className="card-lead" style={{ marginTop: 0 }}>
+						<p className="card-lead card-lead-flush">
 							Sign out on this device. Your orders, vendors, categories and settings stay on
 							the account — signing back in returns you to them.
 						</p>
-						<Button variant="block" style={{ marginTop: 8 }} onClick={signOut}>
+						<Button variant="block" onClick={signOut}>
 							SIGN OUT
 						</Button>
 					</CardBody>
@@ -221,7 +221,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					<CardHeader title="Demo data" />
 					<CardDivider />
 					<CardBody>
-						<p className="card-lead" style={{ marginTop: 0 }}>
+						<p className="card-lead card-lead-flush">
 							Fill the account with a year of made-up orders — twelve months back, every
 							vendor and category its own colour — so the lists and charts have something
 							in them to look at. A different year every time: the orders, their days
@@ -229,7 +229,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						</p>
 						{filling ? (
 							<>
-								<p className="field-help" style={{ color: 'var(--text-negative)', fontWeight: 600 }}>
+								<p className="field-help danger-note">
 									This replaces what is here now. Every order, vendor and category you have
 									added is removed first, and the demo year is written in its place.
 								</p>
@@ -242,7 +242,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								</FormActions>
 							</>
 						) : (
-							<Button variant="block" icon="sparkles" style={{ marginTop: 8 }}
+							<Button variant="block" icon="sparkles"
 								onClick={() => setFilling(true)}>FILL WITH DEMO DATA</Button>
 						)}
 					</CardBody>
@@ -252,13 +252,13 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					<CardHeader title="Your data" />
 					<CardDivider />
 					<CardBody>
-						<p className="card-lead" style={{ marginTop: 0 }}>
+						<p className="card-lead card-lead-flush">
 							Orders you save, vendors and categories you add, your dashboard and these
 							settings belong to this account.
 						</p>
 						{confirming ? (
 							<>
-								<p className="field-help" style={{ color: 'var(--text-negative)', fontWeight: 600 }}>
+								<p className="field-help danger-note">
 									This removes every order, vendor and category you have added — permanently,
 									and there is no demo data to fall back to. The ledger goes back to empty.
 								</p>
@@ -268,7 +268,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								</FormActions>
 							</>
 						) : (
-							<Button variant="block" icon="trash" style={{ marginTop: 8 }}
+							<Button variant="block" icon="trash"
 								onClick={() => setConfirming(true)}>CLEAR STORED DATA</Button>
 						)}
 					</CardBody>

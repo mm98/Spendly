@@ -864,13 +864,13 @@ svg.chart { width:100%; display:block; }
 /* min-width:0 only lets the name shrink on a line that cannot wrap, and .space-between
    wraps at 700 -- so the phone rule has to be overruled here by class count, not by
    source order. */
-.space-between.document-name-row { flex-wrap:nowrap; }
+.space-between.document-name-row { flex-wrap:nowrap; margin-top:10px; }
 .document-name-row .field-help { flex:none; }
 .chip-status { display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 12px; border-radius:9px; background:#DFF3EA; color:var(--text-positive); font-size:11.5px; font-weight:600; }
 .chip-status::before { content:""; width:6px; height:6px; border-radius:50%; background:#14AC72; }
 /* A thumbnail in a list row is the row's tile, so it is the row spec's tile: 36 and
    --radius-compact, not a 44px box of its own. It only ever appears inside .item-row. */
-.document-thumb { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; overflow:hidden; }
+.document-thumb { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; overflow:hidden; font-size:0; }
 .document-thumb svg.icon { width:17px; height:17px; }
 .document-thumb-img { width:100%; height:100%; object-fit:cover; display:block; }
 .document-thumb-button { border:0; padding:0; cursor:pointer; }
@@ -924,7 +924,7 @@ svg.chart { width:100%; display:block; }
    9px gap the rest of the row uses -- room the input (flex-basis 0 in Combobox.jsx, so
    it competes for whatever's left rather than reserving any of its own) would otherwise
    run its overflow straight through. */
-.field-shell-chips { flex-wrap:wrap; padding:8px 43px 8px 10px; position:relative; }
+.field-shell-chips { flex-wrap:wrap; padding:8px 43px 8px 10px; position:relative; height:auto; min-height:48px; }
 .field-shell-chips > .chevron-icon { position:absolute; top:0; bottom:0; right:10px; margin:auto 0; }
 /* overflow is set rather than left to the UA sheet: Blink and WebKit default a textarea to
    auto and Gecko computes visible, so the three engines disagreed on a property the walk
@@ -944,7 +944,7 @@ svg.chart { width:100%; display:block; }
    absolute box in a static shell resolves that against the viewport. The input
    was 1440px wide and invisible, hanging 657px off the right of the only page
    that carries one and scrolling the document into blank space. README: Responsive Layout. */
-.field-shell > .field-file-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.field-file-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 label.field-shell { cursor:pointer; }
 .field-file-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
 /* No engine may draw a calendar beside ours (the icon set is one style only, and a browser-drawn
@@ -1355,6 +1355,126 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   here the edge does it for nothing. */
 	.space-between > .row-inline:first-child { flex:1 0 100%; justify-content:space-between; }
 }
+/* ---- Layout values retired from inline styles ----
+   An inline style outranks every rule this file can write (README: Responsive Layout), so a
+   layout value lives here under a name, and an element carries a style attribute only when the
+   value is the data speaking: a record's colour, a chart's share, a dragged row's size.
+   Each class notes its sites; a match count is the check that it reaches them and nothing else. */
+
+/* Shared. */
+.nowrap { white-space:nowrap; }
+.push-end { margin-left:auto; }
+.card-lead-flush { margin-top:0; }
+.summary-saved { color:var(--text-positive); font-weight:600; }
+.danger-note { color:var(--text-negative); font-weight:600; }
+.chart-legend-fill { flex:1; min-width:170px; }
+.field-help-below { display:block; margin-top:8px; }
+.field-help-tight { margin:2px 0 0; }
+.panel-cta { margin-top:10px; }
+.chip-row { gap:6px; }
+.chip-row .button-link { margin-left:6px; }
+.row-actions { gap:4px; }
+.space-between-top { align-items:flex-start; }
+.section-label-break { display:block; margin-top:10px; }
+.inset-panel-note { padding:10px 12px; }
+.card-divider-gap { margin:6px 0 0; }
+.meter-under-caption { margin-top:14px; }
+.chart-under-caption { margin-top:8px; }
+.caption-chip-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.form-actions-note { align-self:center; }
+.async-live { display:contents; }
+.confirm-dialog .form-actions { margin-top:12px; }
+
+/* The pagers: All orders' buttons, Statistics' arrows. */
+.pager-row { margin-top:12px; }
+.pager-buttons { gap:8px; }
+.pager-buttons .button:disabled { opacity:.45; }
+.pager-arrow:disabled { opacity:.45; }
+[data-filters-toggle] .chevron-icon { color:var(--text-muted); }
+
+/* The colour and icon pickers on the category and vendor forms. */
+.colour-picker { gap:6px; flex-wrap:wrap; }
+.colour-swatch { width:30px; height:30px; }
+.colour-swatch[aria-pressed="true"], .colour-picker-face.is-on { box-shadow:0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-strong); }
+.colour-picker-custom { position:relative; display:inline-block; width:30px; height:30px; }
+.colour-picker-face { width:30px; height:30px; pointer-events:none; }
+.colour-picker-input { position:absolute; inset:0; width:100%; height:100%; border:0; padding:0; margin:0; opacity:0; cursor:pointer; }
+.colour-picker-contrast { align-self:center; margin-left:4px; }
+.icon-picker { display:grid; gap:8px; }
+.icon-picker .field-shell { height:38px; }
+.icon-picker-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(38px, 1fr)); gap:6px; max-height:168px; overflow-y:auto; padding:2px; }
+.icon-picker-tile { width:100%; height:34px; }
+.icon-picker-tile[aria-checked="true"] { background:var(--bg-dark); color:#fff; border-color:var(--bg-dark); }
+.icon-picker-empty { grid-column:1 / -1; }
+.category-preview { pointer-events:none; }
+
+/* Toasts. The show transition lives here so the reduced-motion block above reaches it,
+   which the inline copy it replaces could not (README: Feedback). */
+.toast { display:flex; align-items:flex-start; gap:10px; padding:12px 12px 12px 14px; border-left:3px solid var(--green); box-shadow:0 12px 28px rgb(11 26 18 / .16); pointer-events:auto; transition:opacity .18s ease, transform .18s ease; }
+.toast:not(.is-shown) { opacity:0; transform:translateY(-6px); }
+.toast-negative { border-left-color:var(--text-negative); }
+.toast-icon { display:grid; place-items:center; flex:none; margin-top:1px; color:var(--green); }
+.toast-negative .toast-icon { color:var(--text-negative); }
+.toast-message { flex:1; min-width:0; font-size:13px; line-height:1.45; color:var(--text-body); }
+.toast .icon-button-clear { margin-left:0; }
+/* The stack the toasts land in; its top is measured off the top bar at runtime, so that one
+   value rides on the element. */
+.toast-stack { position:fixed; right:14px; z-index:80; display:grid; gap:8px; width:min(360px, calc(100vw - 28px)); pointer-events:none; }
+.combobox-action .combobox-option-meta { font-weight:500; }
+.chip-tag-pink { background:#F6E3F1; color:#A2477F; }
+.chip-tag-blue { background:#DFF0F7; color:#20708C; }
+
+/* The reorder grip on item rows. */
+.item-row-grip { font:inherit; background:none; border:0; padding:0; display:inline-flex; align-items:center; flex:none; touch-action:none; cursor:grab; }
+.item-row-grip.is-dragging { cursor:grabbing; }
+
+/* Order detail. */
+.order-title { font-size:22px; font-weight:600; letter-spacing:-.01em; }
+.order-subtitle { font-size:12.5px; }
+.order-head-actions { gap:8px; }
+.order-chips { gap:6px; margin-top:12px; flex-wrap:wrap; }
+.order-status-field { margin-top:14px; }
+.attachment-preview { padding:0 4px 10px; }
+
+/* Statistics. */
+.stats-toolbar { flex-wrap:wrap; gap:12px; padding:2px 2px 0; }
+.pager-heading { font-size:16px; letter-spacing:-.01em; }
+.figure-unit { font-weight:500; font-size:14px; color:var(--text-muted); }
+.rhythm-bars { min-height:86px; }
+
+/* Orders overview's two-series key. */
+.swatch-current { background:var(--blue); }
+.swatch-previous { background:var(--blue-light); }
+.card-toggle-row { margin-bottom:14px; }
+
+/* Scan. */
+.scan-drop { cursor:pointer; }
+/* One drag-over affordance for every drop target -- the scan bar and the attachment drop zone
+   each carried their own inline copy, one at 3px offset and one at 2. */
+.is-dragover { outline:2px dashed var(--green); outline-offset:2px; }
+.empty-state.is-dragover { border-radius:14px; }
+.scan-drop-icon { color:var(--text-faint); }
+.scan-info-row { margin-top:22px; }
+.scan-check-icon { color:var(--green); }
+.scan-info-icon { color:var(--text-body); }
+.scan-reading-preview { width:120px; height:150px; }
+.scan-source-open { height:520px; }
+.scan-reading-progress { width:100%; max-width:420px; }
+.note-lead { margin-bottom:16px; }
+.note-above-row { margin-bottom:10px; }
+.chip-matched { height:24px; font-size:10.5px; }
+.line-editor { margin:4px 0; }
+
+/* Sign in and register. The status line wears the form-status classes the order forms'
+   verdict line already defines -- it is the same line, and it was drawn a third way here. */
+.auth-switch { margin-top:14px; }
+
+/* The record preview on the vendor and category forms. */
+.summary-preview { margin-bottom:4px; }
+
+/* Vendor overview's per-card actions. */
+.entity-actions { margin-top:10px; }
+
 /* Reduced motion calms the interface but must never freeze a busy indicator:
    a stopped spinner reads as a hung app. Progress keeps moving, just slower. */
 @media (prefers-reduced-motion: reduce) {

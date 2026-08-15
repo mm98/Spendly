@@ -294,8 +294,8 @@ function dashboardCard(key, data) {
 						<WeekdayBars days={period.weekdays} />
 						<div className="chart-legend-inline">
 							<span className="chart-swatch" />
-							<span style={{ whiteSpace: 'nowrap' }}>{period.busiestDay} peak</span>
-							<span className="amount tabular-figures" style={{ whiteSpace: 'nowrap' }}>
+							<span className="nowrap">{period.busiestDay} peak</span>
+							<span className="amount tabular-figures nowrap">
 								{krRound(period.busiestDaySpend)}</span>
 						</div>
 					</CardBody>
@@ -315,7 +315,7 @@ function dashboardCard(key, data) {
 					<CardBody>
 						<div className="figure-card tabular-figures">{kr(period.saved)}</div>
 						<span className="card-caption">saved this month</span>
-						<div style={{ marginTop: 14 }}>
+						<div className="saving-chip-row">
 							<SavingChip>{percent(period.savedPercent)} under retail</SavingChip>
 						</div>
 						<div className="chart-legend-inline">
@@ -334,7 +334,7 @@ function dashboardCard(key, data) {
 						<div className="figure-card tabular-figures">{krRound(period.projected)}</div>
 						<span className="card-caption">
 							projected for {period.shortLabel} · {period.daysIn} days in</span>
-						<Meter style={{ marginTop: 16 }}
+						<Meter className="meter-under-caption"
 							/* projected is 0 exactly when spent is -- nothing bought yet this month --
 							   and 0/0 is NaN, an invalid CSS width the browser drops silently rather
 							   than rejecting: no fill at all instead of an honest 0%. Same reasoning
@@ -413,7 +413,7 @@ export default function Home() {
 											<div className="chart-caption-label">Spent this month</div>
 											<span className="chart-caption-value tabular-figures">{kr(data.period.spent)}</span>
 										</div>
-										<Chart height={110} style={{ marginTop: 6 }}
+										<Chart height={110} className="chart-under-caption"
 											label={`Cumulative spend through ${data.period.shortLabel}`}
 											gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
 												{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
@@ -458,14 +458,14 @@ export default function Home() {
 							<CardBody>
 								{data.latest.length ? (
 									<>
-										<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+										<div className="caption-chip-row">
 											<div className="chart-caption">
 												<div className="chart-caption-label">Total saved</div>
 												<span className="chart-caption-value tabular-figures">{kr(data.period.saved)}</span>
 											</div>
 											<SavingChip>{percent(data.period.savedPercent)}</SavingChip>
 										</div>
-										<Chart height={90} style={{ marginTop: 8 }}
+										<Chart height={90} className="chart-under-caption"
 											label={`Savings growth through ${data.period.shortLabel}`}
 											gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
 												{ offset: 0, color: '#14AC72', opacity: 0.22 },
