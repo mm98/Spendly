@@ -2,7 +2,7 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
 import { InsetPanel, ItemRow, LegendRow } from '../components/Rows.jsx'
-import { Donut } from '../components/Viz.jsx'
+import { Donut, foldForRing } from '../components/Viz.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
@@ -18,12 +18,6 @@ import { dayMonth, krRound } from '../api/format.js'
    A vendor page is for two things, and browsing orders is neither: it is for what the spending
    looks like across the shops, and for keeping the records right. So the ring splits spend by
    vendor, the tiles count what there is, and every way into a record is on the other tab. */
-
-/** The vendors a ring can usefully draw. Past a handful the arcs are slivers and the legend is
-    a list -- which is what the All vendors tab is -- so the tail is folded into one segment
-    rather than drawn as twelve. Its share is real: it is the sum of everything folded. */
-const RING_MAX = 6
-const FOLD_COLOUR = '#45524C'
 
 export default function Vendors() {
 	const state = useApi(getVendorsOverview)
@@ -56,16 +50,9 @@ export default function Vendors() {
 
 				/* The ring and the rows beside it are one list of numbers, drawn from one array --
 				   the rule every other ring in this app already follows. */
-				const ranked = [...all].filter(v => v.spend > 0).sort((a, b) => b.spend - a.spend)
-				const head = ranked.slice(0, RING_MAX)
-				const tail = ranked.slice(RING_MAX)
-				const tailSpend = tail.reduce((sum, v) => sum + v.spend, 0)
-				const split = [
-					...head.map(v => ({ id: v.id, name: v.name, colour: v.colour, spend: v.spend })),
-					...(tail.length
-						? [{ id: null, name: `${tail.length} more vendors`, colour: FOLD_COLOUR, spend: tailSpend }]
-						: [])
-				]
+				const split = foldForRing(
+					all.map(v => ({ id: v.id, name: v.name, colour: v.colour, spend: v.spend })),
+					n => `${n} more vendors`)
 
 				return (
 					<>

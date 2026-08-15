@@ -553,7 +553,12 @@ svg.chart { width:100%; display:block; }
    swatch -- these initials are white at 10px/700, so every value has to clear 4.5:1
    against white. Four of the seven were the donut's chart hues, which are picked to
    separate ring segments and reached 2.24:1 under type. README: Color, Accessibility. */
-.entry-list .entry-avatar, .order-row-identity .entry-avatar { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
+/* Unscoped, like .category-icon above it. It was styled only under .entry-list and
+   .order-row-identity, so the mark was a size the parent happened to grant rather than a size
+   the avatar has -- and the first row family to use it outside those two rendered bare
+   initials on a coloured background at whatever the text size was. A component that only
+   looks right inside the parents it has met so far is a trap for the next parent. */
+.entry-avatar { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
 /* No line-height here. Pinning the wrapper at 1.45em computed one length off its own
    inherited 14px -- 20.3px -- and handed it to both lines, so a 13px name and an 11px
    meta were struck on the same 20.3px leading and the pair stood 40.6px tall. Every

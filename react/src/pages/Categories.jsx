@@ -3,7 +3,7 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, Note, QuestionCard } from '../components/Card.jsx'
 import { LegendRow } from '../components/Rows.jsx'
-import { Donut, Meter } from '../components/Viz.jsx'
+import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategoriesOverview } from '../api/client.js'
@@ -50,6 +50,10 @@ export default function Categories() {
 				const over = budgeted.filter(c => c.spend > c.budget)
 				const top = categories.reduce((most, c) => (c.spend > (most?.spend ?? 0) ? c : most), null)
 
+				const split = foldForRing(
+					categories.map(c => ({ id: c.id, name: c.name, colour: c.colour, spend: c.spend })),
+					n => `${n} more categories`)
+
 				return (
 					<>
 						<div className="kpi-row">
@@ -71,15 +75,20 @@ export default function Categories() {
 							    orders behind its own slice -- the one place on this page where orders are
 							    the useful destination, because the slice is what the reader just clicked. */}
 							<CardBody variant="ring-row">
-								{categories.length ? (
+								{split.length ? (
 									<>
-										<Donut segments={categories.map(c => ({ share: c.share, colour: c.colour }))}
+										{/* Shares off spend rather than the API's own `share`, so the arcs add up
+										    to the figure in the middle even once the tail is folded into one. */}
+										<Donut segments={split.map(c => ({ share: spent ? (c.spend / spent) * 100 : 0, colour: c.colour }))}
 											value={krRound(spent)} label="Spent, all time"
 											ariaLabel={`Category split of ${krRound(spent)}`} />
 										<div className="chart-legend" style={{ flex: 1, minWidth: 170 }}>
-											{categories.map(c => (
-												<LegendRow key={c.id} colour={c.colour} title={c.name}
-													amount={krRound(c.spend)} to={`/orders/all?category=${c.id}`} />
+											{split.map(c => (
+												/* The folded row names a count, not a category, so it opens the list
+												   those categories are on rather than a filter for one that has no id. */
+												<LegendRow key={c.id ?? 'more'} colour={c.colour} title={c.name}
+													amount={krRound(c.spend)}
+													to={c.id ? `/orders/all?category=${c.id}` : '/categories/all'} />
 											))}
 										</div>
 									</>

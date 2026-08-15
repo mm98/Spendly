@@ -25,6 +25,28 @@ import { IconButton } from './Button.jsx'
    its own ring. README: Charts. */
 const RING_GAP = 0.6
 
+/* A ring's legend is a list, and a list that grows with the account is a list that stops being
+   a summary. Past this many the tail is folded into one segment rather than drawn as twenty
+   slivers with twenty rows under them -- the full list is its own page, and the fold row says
+   how many it is holding and links there.
+
+   The folded segment's share is real: it is the sum of everything inside it, so the ring still
+   adds up to the figure in its middle. That is the part a cap gets wrong when it simply drops
+   the tail -- a ring of the top ten drawn around a total of all twenty is a circle that does
+   not close. README: Charts. */
+export const RING_LEGEND_MAX = 10
+const FOLD_COLOUR = '#45524C'
+
+export function foldForRing(entries, foldLabel, max = RING_LEGEND_MAX) {
+	const ranked = entries.filter(e => e.spend > 0).sort((a, b) => b.spend - a.spend)
+	if (ranked.length <= max) return ranked
+	const tail = ranked.slice(max)
+	return [...ranked.slice(0, max), {
+		id: null, name: foldLabel(tail.length), colour: FOLD_COLOUR,
+		spend: tail.reduce((sum, e) => sum + e.spend, 0)
+	}]
+}
+
 const conic = (segments, gap = 0) => {
 	let at = 0
 	const total = segments.reduce((sum, s) => sum + s.share, 0) || 100
