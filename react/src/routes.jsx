@@ -35,7 +35,33 @@ const requireAuth = async () => {
    A module with more than one page in it (NewOrder, Scan) is named once per export and still
    fetched once: they resolve to the same chunk. */
 
-const page = (load, name = 'default') => lazy(() => load().then(m => ({ default: m[name] })))
+/* A deploy gives every chunk a new content hash, and the index.html that names them is
+   replaced in the same breath -- but a tab opened before the deploy is still running the old
+   one, and the first lazy route it navigates to asks for a file that no longer exists. React's
+   lazy caches the rejected promise, so the page is dead until someone reloads by hand; what
+   they see is "error loading dynamically imported module" and a route that never arrives.
+
+   Reloading fetches the new index.html and, with it, chunk names that exist. The flag makes it
+   at most one reload: if the fresh copy cannot load the chunk either, the problem is not
+   staleness and the error belongs on screen (RouteError) rather than in a refresh loop. It is
+   cleared by any successful load, so the next deploy can recover the same way. sessionStorage
+   rather than a module variable, since the reload is what discards module state. */
+const RELOAD_FLAG = 'spendly:stale-chunk-reloaded'
+const flag = {
+	get: () => { try { return sessionStorage.getItem(RELOAD_FLAG) } catch { return null } },
+	set: () => { try { sessionStorage.setItem(RELOAD_FLAG, '1') } catch { /* storage denied */ } },
+	clear: () => { try { sessionStorage.removeItem(RELOAD_FLAG) } catch { /* storage denied */ } }
+}
+
+const page = (load, name = 'default') => lazy(() => load()
+	.then(m => { flag.clear(); return { default: m[name] } })
+	.catch(error => {
+		if (flag.get()) throw error
+		flag.set()
+		window.location.reload()
+		// Never settles: the reload replaces the document before React can render anything.
+		return new Promise(() => {})
+	}))
 
 const Home = page(() => import('./pages/Home.jsx'))
 const Orders = page(() => import('./pages/Orders.jsx'))
