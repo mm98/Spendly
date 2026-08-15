@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
-import { Button, IconButton } from '../components/Button.jsx'
+import { Button } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import {
 	Field, FieldPair, FilterSection, Form, FormActions, Segmented, Switch
@@ -66,16 +66,19 @@ const tokenizeJson = (text, prefix) => {
 	return out
 }
 
-const IMPORT_RECIPE = [
-	<span key="login" className="tok-req">POST /api/auth/login</span>, '\n',
-	...tokenizeJson(JSON.stringify({ email: '…', password: '…' }), 'login'), '\n',
-	<span key="login-note" className="tok-note">{'→ sets the spendly_session cookie;\n  the response body returns the same token'}</span>, '\n\n',
-	<span key="import" className="tok-req">POST /api/orders/import</span>, '\n',
-	<span key="import-note" className="tok-note">Cookie, or Authorization: Bearer &lt;token&gt;</span>, '\n',
-	...tokenizeJson(JSON.stringify(IMPORT_EXAMPLE, null, 2), 'body'), '\n\n',
-	<span key="ok" className="tok-note">→ 200 </span>,
-	...tokenizeJson(JSON.stringify({ imported: 1, orders: ['…'], failed: [{ index: 3, error: '…' }] }), 'resp'), '\n',
-	<span key="bad" className="tok-note">{'  '}400 when the array is empty or every order failed</span>
+/* Three boxes, each holding only the request or response itself; what each one means is
+   ordinary prose beneath its box, never annotation lines inside it. */
+const RECIPE_LOGIN = [
+	<span key="req" className="tok-req">POST /api/auth/login</span>, '\n',
+	...tokenizeJson(JSON.stringify({ email: '…', password: '…' }, null, 2), 'login')
+]
+const RECIPE_REQUEST = [
+	<span key="req" className="tok-req">POST /api/orders/import</span>, '\n',
+	...tokenizeJson(JSON.stringify(IMPORT_EXAMPLE, null, 2), 'body')
+]
+const RECIPE_RESPONSE = [
+	<span key="ok" className="tok-req">200</span>, '\n',
+	...tokenizeJson(JSON.stringify({ imported: 1, orders: ['…'], failed: [{ index: 3, error: '…' }] }, null, 2), 'resp')
 ]
 
 export default function Settings() {
@@ -327,22 +330,26 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 				    Every JSON fragment is JSON.stringify's own output, coloured by a
 				    ten-line tokenizer -- hand-aligned annotation columns drifted immediately. */}
 				<Card aria-label="Import orders">
-					<CardHeader title="Import from another system">
-						<IconButton icon="chevronDown" className="import-toggle"
-							label={importOpen ? 'Hide the import reference' : 'Show the import reference'}
-							aria-expanded={importOpen} aria-controls="import-reference"
-							onClick={() => setImportOpen(open => !open)} />
-					</CardHeader>
+					<CardHeader title="Import from another system"
+						onToggle={() => setImportOpen(open => !open)} open={importOpen}
+						controls="import-reference"
+						label={importOpen ? 'Hide the import reference' : 'Show the import reference'} />
 					{importOpen ? (
 						<>
 							<CardDivider />
 							<CardBody id="import-reference">
 								<p className="card-lead card-lead-flush">
 									Bring orders in from another expense tracker — vendors, categories, line
-									items and receipt files — with a script of your own: sign in once, then
-									post the orders as JSON with either credential below.
+									items and receipt files — with a script of your own: sign in, post the
+									orders, read back what landed.
 								</p>
-								<pre className="import-schema" aria-label="Import request shape">{IMPORT_RECIPE}</pre>
+								<pre className="import-schema" aria-label="Sign-in request">{RECIPE_LOGIN}</pre>
+								<span className="field-help import-caption">
+									Signing in sets the <code>spendly_session</code> cookie and returns the same
+									token in the body. Every later call takes either credential: the cookie, or{' '}
+									<code>Authorization: Bearer</code> with that token.
+								</span>
+								<pre className="import-schema" aria-label="Import request shape">{RECIPE_REQUEST}</pre>
 								<ul className="import-rules">
 									<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
 										least one item with <code>title</code>, <code>quantity</code> and{' '}
@@ -354,15 +361,15 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 										<code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
 									<li>Attachments carry base64 bytes: on the order for the receipt, on an item
 										for its photo.</li>
+									<li>Vendors and categories are matched by name, case-insensitively, and
+										created when new.</li>
 								</ul>
+								<pre className="import-schema" aria-label="Import response shape">{RECIPE_RESPONSE}</pre>
 								<span className="field-help">
-									Either credential works on every endpoint: the <code>spendly_session</code>{' '}
-									cookie the sign-in sets, or the same token from the sign-in response as an{' '}
-									<code>Authorization: Bearer</code> header. Vendors and categories are matched
-									by name, case-insensitively, and created when new. Each order imports in its
-									own transaction, so one bad row fails alone — the response names each failure
-									by its index. Batch large exports: the request body is capped at
-									50&nbsp;MB, and base64 grows files by a third.
+									Each order imports in its own transaction, so one bad row fails alone — the
+									response names every failure by its index, and the status is 400 only when
+									the array is empty or nothing imported. Batch large exports: the request body
+									is capped at 50&nbsp;MB, and base64 grows files by a third.
 								</span>
 							</CardBody>
 						</>

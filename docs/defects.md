@@ -1571,3 +1571,16 @@ is stale but because no screen offers removing a saved item photo, which is a ga
 leftovers. Driven: both removed endpoints answer 404, upload → draft (the OCR plug-in point)
 → recent all still serve, the import endpoint still validates, and the full 52-state walk
 renders identically to the pixel where nothing was meant to change.
+
+## Settings — the import card invented a second header band and wrote prose into its JSON
+
+Two consistency misses on one card, both caught in review rather than by the sweeps. The
+disclosure shipped as a boxed icon-button riding a passive header — a second implementation of
+a band the system already had, since a navigating card header is the whole band with a bare
+chevron in its right-hand slot. The disclosure is that same band now: `CardHeader` renders a
+`button` styled by the same `.card-header` rules, same 44.75px as every header beside it, the
+chevron pointing down or up instead of right. And the JSON blocks carried annotation prose
+inside them; the boxes hold only the request or the response now — three of them, each parsing
+as real JSON, each explained in ordinary text beneath its own box. Driven at 1440 and on the
+phone descriptor: band toggles both ways, chevron rotates, three boxes parse, prose only
+outside them, 0 overhang, 0 page errors. Verified in Blink.

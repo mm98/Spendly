@@ -310,7 +310,14 @@ a[data-go] { color:inherit; text-decoration:none; }
 /* A subtab selection has to change what is on screen, or the tab is decoration. */
 .page[data-view="favourites"] [data-view-only="overview"],
 .page[data-view="manage"] [data-view-only="overview"] { display:none; }
-.card-header[data-go]:hover { background:var(--bg-row-hover); }
+.card-header[data-go]:hover, button.card-header:hover { background:var(--bg-row-hover); }
+/* The disclosure band: the nav band as a button. Element reset only -- everything it looks
+   like comes from .card-header. Closed it is the card's whole face, so it rounds on all four
+   corners; open, like the nav band, only on top. */
+button.card-header { font:inherit; width:100%; background:none; border:0; text-align:left; cursor:pointer; border-radius:calc(var(--radius-card) - 1px); }
+button.card-header[aria-expanded="true"] { border-radius:calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0; }
+button.card-header[aria-expanded="true"] .chevron svg.icon { transform:rotate(180deg); }
+button.card-header:hover + .card-divider { margin-inline:0; }
 /* One data row, written once. Every list of records on this page is .data-row and the
    six family classes beside it name only what that list holds -- they are its variants,
    and the -row suffix is what says so. Before the identifier existed the families were
@@ -1465,9 +1472,9 @@ label.field-shell { cursor:pointer; }
 .tok-pun { color:var(--text-muted); }
 .tok-req { color:var(--text); font-weight:700; }
 .tok-note { color:var(--text-muted); }
-.import-rules { margin:0 0 12px; padding-left:16px; display:grid; gap:5px; font-size:12px; color:var(--text-muted); }
+.import-caption { display:block; margin:0 0 16px; }
+.import-rules { margin:0 0 16px; padding-left:16px; display:grid; gap:5px; font-size:12px; color:var(--text-muted); }
 .import-rules code, .card-body .field-help code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; color:var(--text-body); background:#F2F4F1; padding:1px 4px; border-radius:4px; }
-.import-toggle[aria-expanded="true"] svg.icon { transform:rotate(180deg); }
 
 /* Vendor overview's per-card actions. */
 .entity-actions { margin-top:10px; }

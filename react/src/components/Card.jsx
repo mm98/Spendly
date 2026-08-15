@@ -18,18 +18,29 @@ export function Card({ variant, children, className, ...rest }) {
 	return <section className={join('card', variant, className)} {...rest}>{children}</section>
 }
 
-export function CardHeader({ title, to, label, children, className }) {
+export function CardHeader({ title, to, label, onToggle, open, controls, children, className }) {
 	const classes = join('card-header', className)
 	const body = (
 		<>
 			<span className="section-label">{title}</span>
 			{children}
 			{to ? <span className="chevron" aria-hidden="true"><Icon name="chevronRight" /></span> : null}
+			{onToggle ? <span className="chevron" aria-hidden="true"><Icon name="chevronDown" /></span> : null}
 		</>
 	)
-	return to
-		? <Link className={classes} to={to} data-go={to} aria-label={label || `${title}, open ${to}`}>{body}</Link>
-		: <div className={classes}>{body}</div>
+	if (to) return <Link className={classes} to={to} data-go={to} aria-label={label || `${title}, open ${to}`}>{body}</Link>
+	/* A disclosure band is the nav band with a different destination: the whole band is the
+	   control, the same bare chevron sits in the same right-hand slot, pointing down or up
+	   instead of right. Never a boxed icon-button riding a passive header -- one band, two
+	   verbs (README: Cards, Progressive Disclosure). */
+	if (onToggle) {
+		return (
+			<button type="button" className={classes} onClick={onToggle}
+				aria-expanded={open} aria-controls={controls}
+				aria-label={label || `${title}, ${open ? 'collapse' : 'expand'}`}>{body}</button>
+		)
+	}
+	return <div className={classes}>{body}</div>
 }
 
 export const CardDivider = ({ className }) => <div className={join('card-divider', className)} />
