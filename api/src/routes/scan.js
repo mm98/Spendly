@@ -18,10 +18,6 @@ const fileSizeLabel = bytes => {
 
 const insertUpload = db.prepare(`INSERT INTO scan_uploads (id, user_id, name, size, kind, content_type, data, thumbnail, thumbnail_content_type)
 	VALUES (@id, @userId, @name, @size, @kind, @contentType, @data, @thumbnail, @thumbnailContentType)`)
-const selectUploads = db.prepare(`
-	SELECT id, name, kind, size, (thumbnail IS NOT NULL) AS has_thumbnail
-	FROM scan_uploads WHERE user_id = ? ORDER BY created_at DESC
-`)
 const selectUpload = db.prepare('SELECT id, name, size, kind, content_type, data, thumbnail, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
 const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
 const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
@@ -42,13 +38,6 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 		thumbnail: processed.thumbnail, thumbnailContentType: processed.thumbnailContentType
 	})
 	res.status(201).json({ key: id, name: file.originalname, kind, meta: `${kind === 'pdf' ? 'PDF' : 'Image'} · ${fileSizeLabel(processed.size)}` })
-})
-
-router.get('/documents', (req, res) => {
-	res.json(selectUploads.all(req.user.id).map(u => ({
-		key: u.id, name: u.name, kind: u.kind, hasThumbnail: Boolean(u.has_thumbnail),
-		meta: `${u.kind === 'pdf' ? 'PDF' : 'Image'} · ${fileSizeLabel(u.size)}`
-	})))
 })
 
 /** The review step's starting point. Honest about not having read the file: no vendor guess,

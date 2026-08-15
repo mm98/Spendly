@@ -1552,3 +1552,22 @@ The toast row was `align-items:flex-start` with a 1px nudge on the glyph, which 
 19px sentence against a 26px dismiss button — every toast read as a misprint by a few pixels.
 The row centres now: glyph, sentence and dismiss measured at a shared vertical centre, worst
 offset **0.00px**, with the row's own box as the reference. Verified in Blink.
+
+## API — endpoints the app had stopped asking for
+
+Removing features left surface behind, found by sweeping the whole boundary rather than the
+removals remembered: every route the API serves against every path the client calls, then
+every client export against what pages import, then every API-side export against its
+importers. Dead and now gone: `GET /api/orders/:id/draft` (the client has always composed the
+edit draft from `GET /api/orders/:id` itself), `GET /api/scan/documents` and its client
+wrapper (the scan flow goes upload → review with the key in hand; no screen lists raw
+uploads), `react/src/api/seed.js` (the phantom store's 376-line dataset, imported by nothing
+since the API port), the API-side `SORTS` and `RANGES` constants (dead copies of option lists
+only the client reads — a copy imported by nothing is drift waiting to happen), and the
+`selectUploads` statement and `defaultCardRows` export those left behind. Kept deliberately:
+`POST /api/orders/import` and its wrapper (the documented entry point for external
+migrations), and `DELETE .../items/:itemId/attachments/:attachmentId` — unused not because it
+is stale but because no screen offers removing a saved item photo, which is a gap, not
+leftovers. Driven: both removed endpoints answer 404, upload → draft (the OCR plug-in point)
+→ recent all still serve, the import endpoint still validates, and the full 52-state walk
+renders identically to the pixel where nothing was meant to change.

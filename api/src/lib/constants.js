@@ -1,21 +1,8 @@
+/* What the server validates against; the client's spendKinds mirrors SPEND_KINDS. Option
+   lists the server never reads (sort labels, range chips) live in the client alone -- copies
+   of them sat here once, imported by nothing, which is how a dead copy starts to drift. */
 export const SPEND_KINDS = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
 export const ORDER_STATUSES = ['Ordered', 'Delivered', 'Returned']
-
-export const SORTS = [
-	{ id: 'date-desc', label: 'Date, newest' },
-	{ id: 'date-asc', label: 'Date, oldest' },
-	{ id: 'amount-desc', label: 'Amount, highest' },
-	{ id: 'amount-asc', label: 'Amount, lowest' },
-	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
-]
-
-export const RANGES = [
-	{ key: 'week', label: 'Week', short: 'WK' },
-	{ key: 'month', label: 'Month', short: 'MO' },
-	{ key: 'quarter', label: 'Quarter', short: 'QT' },
-	{ key: 'year', label: 'Year', short: 'YR' },
-	{ key: 'all', label: 'All', short: 'ALL' }
-]
 
 export const DASHBOARD_CARD_CATALOGUE = [
 	{ key: 'rhythm',    name: 'Spending rhythm',      desc: 'Average order, and which weekday you spend on' },

@@ -399,7 +399,7 @@ export const ordersIn = ({ category, vendor, from, to } = {}) =>
     Not the category ring's list, whichever number is chosen: that one is every category with
     spend this month by rule, since the arcs have to add up to the figure printed in the centre.
     Capping it is a defect with its own entry. */
-export const defaultCardRows = 10
+const defaultCardRows = 10
 
 /** What the picker offers. Small numbers included on purpose -- a card cut to one row is a
     headline with a single example under it, which is a legitimate thing to want from a
@@ -473,10 +473,6 @@ export async function getHomeContent(signal) {
 }
 
 /* ---- scan ---- */
-
-export async function getScanDocuments(signal) {
-	return request('/api/scan/documents', { signal })
-}
 
 /** Uploads the real file that was dropped or picked — the backend keeps its bytes until the
     review step turns it into the new order's own attachment (attachScanDocument below). */
@@ -587,7 +583,9 @@ export async function search(query, signal) {
 	return { query, groups }
 }
 
-/* ---- static option lists (not user data — match api/src/lib/constants.js) ---- */
+/* ---- static option lists (not user data — spendKinds mirrors the server's SPEND_KINDS;
+   the rest are the client's alone, since the server never reads a sort label or a range
+   chip) ---- */
 
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
 

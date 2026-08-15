@@ -76,17 +76,6 @@ router.get('/draft', (req, res) => {
 	})
 })
 
-router.get('/:id/draft', (req, res) => {
-	const order = getDecoratedOrder(req.user.id, req.params.id)
-	if (!order) return res.status(404).json({ error: 'No order ' + req.params.id })
-	res.json({
-		vendor: order.vendor?.name ?? '', date: order.date, status: order.status, kind: order.kind,
-		categories: order.categories.map(c => c.name), shipping: order.shipping,
-		reference: order.reference, note: order.note,
-		items: order.items.map(i => ({ title: i.title, quantity: i.quantity, price: i.price, retail: i.retail ?? null, note: i.note ?? '' }))
-	})
-})
-
 /* ---- list: real SQL filter/sort/paginate over the order_totals view ----
    Built as parameterized clauses reused between the COUNT (matched) and the SELECT (page), so
    the two can never disagree about which rows qualify. LIMIT/OFFSET does the paging in SQLite
