@@ -273,6 +273,65 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						)}
 					</CardBody>
 				</Card>
+
+				{/* Documentation, not a control -- the one thing on this page that is. The import
+				    endpoint is for a program (a script, an exporter), not a form, so what a
+				    program needs is written where its owner will look for it: the address, the
+				    shape, and the rules the server actually enforces. The example mirrors
+				    validateOrderDraft and the import route; change those and change this. */}
+				<Card aria-label="Import orders">
+					<CardHeader title="Import from another system" />
+					<CardDivider />
+					<CardBody>
+						<p className="card-lead card-lead-flush">
+							Bring orders in from another expense tracker — vendors, categories, line
+							items and receipt files — with a script of your own: sign in for a session
+							cookie, then post the orders as JSON.
+						</p>
+						<pre className="import-schema tabular-figures" aria-label="Import request shape">{`POST /api/auth/login
+{ "email": "…", "password": "…" }
+→ keep the spendly_session cookie it sets
+
+POST /api/orders/import       with that cookie
+{ "orders": [{
+    "vendor": "Bilka",            required, ≤ 80 chars
+    "date": "2026-07-18",         required, YYYY-MM-DD, not future
+    "kind": "Expense",            required: Expense · Gift ·
+                                  Sold · Work · Other
+    "status": "Delivered",        optional: Ordered · Delivered ·
+                                  Returned (default Delivered)
+    "categories": ["Groceries"],  optional, names
+    "shipping": 0,                optional, ≥ 0
+    "reference": "A-10419",       optional
+    "note": "",                   optional
+    "items": [{                   required, at least one
+      "title": "Rugbrød",         required, ≤ 120 chars
+      "quantity": 1,              whole number, 1–9999
+      "price": 24.95,             required, ≥ 0
+      "retail": 32.00,            optional, ≥ 0
+      "note": "",                 optional
+      "attachments": [{           optional, the item's photo
+        "filename": "brod.jpg",
+        "contentType": "image/jpeg",
+        "data": "<base64>" }]
+    }],
+    "attachments": [{             optional, the receipt itself
+      "filename": "receipt.pdf",
+      "contentType": "application/pdf",
+      "data": "<base64>" }]
+}] }
+
+→ 200 { "imported": 1, "orders": [...],
+        "failed": [{ "index": 3, "error": "…" }] }
+  400 when the array is empty or every order failed`}</pre>
+						<span className="field-help">
+							Vendors and categories are matched by name, case-insensitively, and created
+							when new. Each order imports in its own transaction, so one bad row fails
+							alone — the response names each failure by its index. Batch large exports:
+							the request body is capped at 50&nbsp;MB, and base64 grows files by a third.
+						</span>
+					</CardBody>
+				</Card>
 			</div>
 		</div>
 	)

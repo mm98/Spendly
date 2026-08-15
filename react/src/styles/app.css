@@ -1455,6 +1455,11 @@ label.field-shell { cursor:pointer; }
 /* The record preview on the vendor and category forms. */
 .summary-preview { margin-bottom:4px; }
 
+/* The import card's request shape on Settings: reference material for a program's owner, so
+   it reads like source -- monospace, inset, scrolling inside its own box rather than ever
+   widening the card (README: Responsive Layout). */
+.import-schema { margin:0 0 10px; padding:12px 14px; background:#F2F4F1; border-radius:var(--radius-page); font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; line-height:1.6; color:var(--text-body); overflow-x:auto; }
+
 /* Vendor overview's per-card actions. */
 .entity-actions { margin-top:10px; }
 

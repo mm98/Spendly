@@ -613,6 +613,8 @@ Every control here names what reads it, and the page proves it: default kind and
 
 **A settings page whose switches change nothing is the decorative-control defect with more surface area.** A setting exists here only if something observably reads it.
 
+**One card documents instead of controlling: the import card.** The orders-import endpoint exists for a program, not a form, so Settings states its address, its request shape and the rules the server enforces — sign in for the session cookie, post the orders, read back what imported and what failed by index. Reference drawn from the validator itself, not a paraphrase of it: the card and `validateOrderDraft` state the same limits or one of them is wrong.
+
 **One question, one control — even where it is asked on two pages.** Vendors and categories are the same kind of list, so the order they open in is one setting and not two: a person who wants one alphabetical wants both. It offers only the orders *both* lists have, since a default naming one list's own column is a preference the other cannot obey — vendors can also sort by order count and categories by share, and those stay on the pages, one click from wherever the setting opens them.
 
 **A setting stores only values something obeys.** Anything outside the set a control offers is refused and the stored value stands. A preference that saves, comes back, and is then quietly ignored is worse than no preference, because the settings page goes on saying it is in force.
