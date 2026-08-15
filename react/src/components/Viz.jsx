@@ -83,7 +83,13 @@ export function useListBudget(rows) {
 		if (!rowHeight) return setBudget(rows)
 		const above = list.getBoundingClientRect().top - body.getBoundingClientRect().top
 			- parseFloat(getComputedStyle(body).paddingTop || 0)
-		const next = Math.max(1, rows - Math.ceil(Math.max(0, above) / rowHeight))
+		/* Rounded, not ceiled. Ceiling charges a whole row for any overflow at all, and Top
+		   vendors' headline figure and caption come to 58.7px against a 56px row -- 1.05 rows,
+		   billed as two, so the card gave up 56px to cover 2.7px and stood a row shorter than
+		   the card beside it. Rounding is the answer that minimises what is left over: a card's
+		   content lands within half a row of the height it is aiming at, rather than up to a
+		   full row under it. */
+		const next = Math.max(1, rows - Math.round(Math.max(0, above) / rowHeight))
 		setBudget(b => (b === next ? b : next))
 	}, [rows])
 
@@ -109,8 +115,18 @@ const FOLD_COLOURS = ['#8A968D', '#5B6660', '#A7B0A8', '#6E7A72']
 export function foldForRing(entries, foldLabel, max = RING_LEGEND_MAX) {
 	const ranked = entries.filter(e => e.spend > 0).sort((a, b) => b.spend - a.spend)
 	if (ranked.length <= max) return ranked
-	const tail = ranked.slice(max)
-	const head = ranked.slice(0, max)
+	/* `max` is how many rows come back, fold included -- it used to be how many *real* rows came
+	   back, so a card given room for seven drew eight and stood a row taller than its neighbour.
+	   The fold is a row like any other: it takes a line, an icon and a figure, and the card pays
+	   for it out of the same budget. */
+	/* At least one real entry survives the fold. A budget of one spends its single row on the
+	   fold itself, which draws a ring of one grey segment under a row reading "6 more
+	   categories" -- a chart with nothing in it and a legend naming nothing, from a card that
+	   was asked for one entry and could have shown the biggest. One over budget is the right
+	   trade there; the alternative is a card that says less than nothing. */
+	const keep = Math.max(1, max - 1)
+	const tail = ranked.slice(keep)
+	const head = ranked.slice(0, keep)
 	const taken = new Set(head.map(e => String(e.colour).toLowerCase()))
 	const colour = FOLD_COLOURS.find(c => !taken.has(c.toLowerCase())) ?? FOLD_COLOURS.at(-1)
 	/* The fold carries every field a real entry carries, not just the two the first caller

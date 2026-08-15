@@ -187,8 +187,12 @@ export const routes = [
 					handle: { title: 'Edit category', navKey: 'categories', back: { to: '/categories', label: 'categories' } } }
 			] },
 			{ path: 'stats', element: <Stats />, handle: { title: 'Statistics', navKey: 'stats' } },
-			{ path: 'settings', element: <Settings />,
-				handle: { title: 'Order settings', navKey: 'orders', back: { to: '/orders', label: 'orders' } } },
+			/* No `back` and no rail key: settings is reached from the top bar on every page now,
+			   not from a button at the foot of the Orders rail, so there is no one page it came
+			   from to send the reader back to and no sidebar item it belongs under. It was
+			   titled "Order settings" for the same reason it lived there, and it has never only
+			   been about orders. */
+			{ path: 'settings', element: <Settings />, handle: { title: 'Settings' } },
 
 			{ path: '*', element: <Home />, handle: { title: 'Home', navKey: 'home' } }
 		]

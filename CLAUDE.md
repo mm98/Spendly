@@ -271,6 +271,19 @@ genuinely empty list draws. Any probe reading a card that can legitimately be em
 *query* was empty, not just the card: read the endpoint the page called, and compare its payload to
 what was drawn. A rendered "none" is not evidence of none.
 
+**Check the rule, not the gap it leaves -- a fixture can hide an outcome the arithmetic gives
+away.** The rounding that decides how many rows a card gives up to the graphic above it was written
+as `ceil`, which charges a whole row for any overflow at all: a headline figure and caption came to
+58.7px against a 56px row, 1.05 rows, billed as two, and the card stood 56px short. The check for it
+measured *unused space per card* and came back 1px, 17px, 1px -- clean -- because the account under
+test had six categories, fewer than the budget, so the card beside it never stretched the row and
+there was no gap for the short card to fail to fill. A screenshot of an account with nine showed it
+at a glance. The instrument was fine and the question was wrong: "is there a gap" is answerable only
+when something else is tall enough to make one, which is a fact about the data, while "does the card
+land within half a row of the height it is aiming at" is answerable on any data and fails at
+-53.3px. When a check comes back clean, ask which part of the fixture is making it clean -- and if
+the answer is "the fixture happens to be small", the check is measuring the fixture.
+
 **A stand-in for N things has to be the same shape as one thing.** The "5 more categories" row a
 ring folds its tail into was built as `{id, name, colour, spend}` -- exactly the four fields the
 legend row that first drew it takes as props -- and the first component to receive one as a *record*

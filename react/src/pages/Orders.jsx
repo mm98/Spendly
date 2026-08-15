@@ -189,7 +189,6 @@ export default function Orders() {
 							</CardBody>
 						</Card>
 
-						<Button variant="block" icon="settings" style={{ marginTop: 0 }} to="/settings">ORDER SETTINGS</Button>
 					</div>
 				</div>
 				)

@@ -1202,3 +1202,65 @@ month being short of returns and not the layout being wrong.
 
 Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`,
 0 page errors. **Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Home — the card with a one-line header gave up two rows
+
+A card's entries are the entry count less what the card drew above them, and the deduction rounded
+*up*. Top vendors' headline figure and caption measure **58.7px** against a **56px** row — 1.05 rows
+— so it was charged two, gave up 56px to cover 2.7px of overflow, and drew 8 rows where the card
+beside it drew 9 and the row it shared was tall enough for 9.
+
+Rounding is what minimises the leftover: a card's content then lands within half a row of the height
+it is aiming at, rather than up to a full row under it. Measured at 1440x900 with the setting on 10,
+against a target of `10 x rowHeight`:
+
+| card | above the list | in rows | drew | off target |
+|---|---|---|---|---|
+| Top vendors | 58.7px | 1.05 | 9 rows | **+2.7px** |
+| Orders | 208.4px | 3.72 | 6 rows | −15.6px |
+| Category breakdown | 150px | 2.63 | its 6 categories | −78px (list ran out) |
+
+Two smaller things came out of the same measurement. The fold row counts against the budget now — a
+card given room for seven drew seven real rows *and* the "3 more categories" row, so it stood one
+row taller than its neighbour for a row it had not been given. And a budget of one used to spend its
+single row on the fold itself, drawing a ring of one grey segment under a row naming nothing; at
+least one real entry survives the fold, one over budget, because the alternative is a chart with
+nothing in it.
+
+### The check that could not fail
+
+The first version of this measured **unused space per card** and came back 1px, 17px, 1px — clean —
+on the same build that shipped the defect. The account under test had six categories with spend,
+fewer than the card's budget, so the breakdown never stretched the grid row and there was no gap for
+the short card beside it to fail to fill. The rounding was wrong the whole time; the fixture was too
+small to show it, and an account with nine categories showed it in a screenshot at a glance.
+
+What replaced it asserts the arithmetic instead: a card's content should land within half a row of
+`setting x rowHeight`. That fails at **−53.3px** for the ceiling rule on any dataset, and passes at
++2.7 / −15.6 / −21 for the rounding one. A check that only fails when some other card happens to be
+tall is a check on the fixture.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`,
+0 page errors. **Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Chrome — settings lived at the foot of one rail
+
+Every default in the app — what the order form opens with, how many entries a card holds, which
+order the vendors and categories lists open in, whether a trash asks first, how many orders a page
+shows — was reached through a full-width **ORDER SETTINGS** button at the bottom of the right-hand
+rail on the Orders overview tab. One tab, of one page, below a category breakdown and a chart; and
+titled *Order settings*, after the one part of itself that page happened to own.
+
+It is a glyph in the top bar now, in the 32px tier the back arrow and the top-bar actions already
+use, present on every screen. Driven rather than asserted from the markup: nine routes — Home,
+Orders overview, All orders, Statistics, Vendors, All vendors, Categories, All categories, Scan —
+each loaded fresh, the glyph pressed, and the arrival checked. **9 of 9 at 1440x900 and 9 of 9 under
+`devices['iPhone 13']`**, every one landing on `#/settings` with the heading reading *Settings*, and
+the ORDER SETTINGS button gone from Orders. 0 page errors at both widths.
+
+The route lost its back arrow and its sidebar key with the move: there is no one page it came from
+to send the reader back to, and it belongs under no rail item.

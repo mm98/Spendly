@@ -1,7 +1,7 @@
 import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Icon } from './Icon.jsx'
-import { Button } from './Button.jsx'
+import { Button, IconButton } from './Button.jsx'
 import { Waiting } from './Async.jsx'
 import { ToastProvider } from './Toast.jsx'
 import { search } from '../api/client.js'
@@ -318,6 +318,15 @@ export function AppShell() {
 							<Button variant="outline" to="/orders/new" icon="plus" aria-label="New order">
 								<span>NEW <span className="wide-only">ORDER</span></span>
 							</Button>
+							{/* Settings reaches every page from every page, because that is what it is
+							    about: the order form's defaults, both lists' opening order, how many
+							    entries a card holds, whether a trash asks first. It used to be a
+							    full-width ORDER SETTINGS button at the foot of the Orders rail --
+							    findable only from one tab of one page, and named for the one part of
+							    itself that page happened to own. A glyph, beside the two actions the
+							    bar already carries, since it is a destination rather than a thing to
+							    do here. README: Chrome, Settings. */}
+							<IconButton icon="settings" to="/settings" label="Settings" />
 						</div>
 					</header>
 
