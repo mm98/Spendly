@@ -2,11 +2,9 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { vendorStats } from '../lib/aggregate.js'
+import { colourFor } from '../lib/palette.js'
 
 export const router = Router()
-
-const PALETTE = ['#235553', '#877364', '#177DA7', '#AD620D', '#8453F5', '#4F5BD5']
-const colourFor = name => PALETTE[[...name].reduce((n, c) => n + c.charCodeAt(0), 0) % PALETTE.length]
 
 const VENDOR_COLUMNS = 'id, name, initials, colour, favourite, lead'
 const selectAll = db.prepare(`SELECT ${VENDOR_COLUMNS} FROM vendors WHERE user_id = ? ORDER BY name`)

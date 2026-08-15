@@ -282,6 +282,13 @@ export async function resetStoredData(signal) {
 	return request('/api/reset', { method: 'POST', signal })
 }
 
+/** Replaces this account's ledger with a year of generated demo orders, so the app can be
+    looked at with something in it. Replaces rather than adds — see the route's own note.
+    Answers { orders, vendors, categories, months }. */
+export async function populateDemoData(signal) {
+	return request('/api/demo-data', { method: 'POST', signal })
+}
+
 export async function getDashboardCards(signal) {
 	return request('/api/dashboard-cards', { signal })
 }

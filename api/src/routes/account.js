@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { seedAccountDefaults } from '../seed.js'
+import { populateDemoData } from '../lib/demoData.js'
 
 export const router = Router()
 
@@ -21,4 +22,20 @@ const wipe = db.transaction(userId => {
 router.post('/reset', (req, res) => {
 	wipe(req.user.id)
 	res.json({ cleared: true })
+})
+
+/* Fills the account with a year of demo orders. Replaces rather than appends: pressed twice,
+   appending would double a year of orders and leave every per-month figure quietly wrong,
+   which is a worse answer than the obvious one. It reuses `wipe` so "replace" means exactly
+   what CLEAR STORED DATA means, and the button says so before it is pressed.
+
+   Only ever this account -- populateDemoData writes every row against req.user.id, the same
+   rule every other route here follows. */
+const replaceWithDemo = db.transaction(userId => {
+	wipe(userId)
+	return populateDemoData(userId)
+})
+
+router.post('/demo-data', (req, res) => {
+	res.json(replaceWithDemo(req.user.id))
 })

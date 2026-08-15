@@ -11,8 +11,8 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	getHomeContent, getOrderDraft, getOrders, getSettings, logout, resetStoredData, saveSettings,
-	sorts, spendKinds
+	getHomeContent, getOrderDraft, getOrders, getSettings, logout, populateDemoData,
+	resetStoredData, saveSettings, sorts, spendKinds
 } from '../api/client.js'
 
 /* Order settings.
@@ -36,6 +36,7 @@ export default function Settings() {
 	const state = useApi(getSettings)
 	const toast = useToast()
 	const [confirming, setConfirming] = useState(false)
+	const [filling, setFilling] = useState(false)
 
 	/* The endpoints that bake a setting into their answer. Anything cached from before the
 	   change is wrong the moment it is saved, so it goes rather than being left to expire. */
@@ -54,13 +55,15 @@ export default function Settings() {
 			<Async state={state} label="Loading your settings">{settings => (
 				<SettingsBody settings={settings} set={set} toast={toast}
 					confirming={confirming} setConfirming={setConfirming} refresh={refresh}
+					filling={filling} setFilling={setFilling}
 					reload={state.refresh} />
 			)}</Async>
 		</Page>
 	)
 }
 
-function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh, reload }) {
+function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh, reload,
+	filling, setFilling }) {
 	const navigate = useNavigate()
 	const signOut = () => logout().then(() => navigate('/login', { replace: true }))
 	/* The controls are driven from the stored value, so what is on screen is what is saved --
@@ -80,6 +83,22 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 				toast('Everything stored in this browser was cleared.')
 			})
 			.catch(() => toast('That did not clear.', 'negative'))
+	}
+
+	/* `busy` rather than only hiding the confirm: a year of orders is one request, and a
+	   second press before it answers would run the whole replace twice. */
+	const [busy, setBusy] = useState(false)
+	const fill = () => {
+		setBusy(true)
+		populateDemoData()
+			.then(({ orders, vendors, categories, months }) => {
+				refresh()
+				reload()
+				setFilling(false)
+				toast(`${orders} orders across ${months} months, ${vendors} vendors and ${categories} categories.`)
+			})
+			.catch(() => toast('That did not fill.', 'negative'))
+			.finally(() => setBusy(false))
 	}
 
 	return (
@@ -162,6 +181,40 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						<Button variant="block" style={{ marginTop: 8 }} onClick={signOut}>
 							SIGN OUT
 						</Button>
+					</CardBody>
+				</Card>
+
+				{/* Demo data is asked for, never given. A fresh account used to arrive holding a
+				    stranger's shopping, which reads as a leak rather than a demo, so nothing
+				    populates itself -- this is the door, and it is behind a confirm because it
+				    replaces whatever is already here. */}
+				<Card aria-label="Demo data">
+					<CardHeader title="Demo data" />
+					<CardDivider />
+					<CardBody>
+						<p className="card-lead" style={{ marginTop: 0 }}>
+							Fill the account with a year of made-up orders — twelve months back, every
+							vendor and category its own colour — so the lists and charts have something
+							in them to look at.
+						</p>
+						{filling ? (
+							<>
+								<p className="field-help" style={{ color: 'var(--text-negative)', fontWeight: 600 }}>
+									This replaces what is here now. Every order, vendor and category you have
+									added is removed first, and the demo year is written in its place.
+								</p>
+								<FormActions>
+									<Button variant="caps compact" disabled={busy} onClick={fill}>
+										{busy ? 'FILLING…' : 'YES, FILL IT'}
+									</Button>
+									<Button variant="ghost compact" disabled={busy}
+										onClick={() => setFilling(false)}>CANCEL</Button>
+								</FormActions>
+							</>
+						) : (
+							<Button variant="block" icon="sparkles" style={{ marginTop: 8 }}
+								onClick={() => setFilling(true)}>FILL WITH DEMO DATA</Button>
+						)}
 					</CardBody>
 				</Card>
 
