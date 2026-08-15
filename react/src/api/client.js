@@ -109,11 +109,11 @@ export async function deleteCategory(id, signal) {
 }
 
 export async function getCategoriesOverview(signal) {
-	const [{ top }, home] = await Promise.all([
+	const [{ top }, question] = await Promise.all([
 		request('/api/categories/overview', { signal }),
-		request('/api/home', { signal })
+		request('/api/home/question', { signal })
 	])
-	return { categories: top, question: home.questionOfTheDay }
+	return { categories: top, question }
 }
 
 /* ---- orders ----
@@ -250,11 +250,11 @@ const periodFromWindow = w => ({
 })
 
 export async function getOrdersOverview(signal) {
-	const [{ latest }, { window }, categories, home] = await Promise.all([
+	const [{ latest }, { window }, categories, question] = await Promise.all([
 		request('/api/orders/overview' + qs({ count: 4 }), { signal }),
 		getStatsSummary('month', undefined, signal),
 		getCategories(signal),
-		request('/api/home', { signal })
+		request('/api/home/question', { signal })
 	])
 	/* The ring reads "Spent this month," so its segments and the rows under it have to be
 	   this month's spend too — categories carries all-time totals (categories with old orders
@@ -263,8 +263,7 @@ export async function getOrdersOverview(signal) {
 	   categories since split doesn't carry either. */
 	const monthCategories = monthCategoriesFrom(categories, window.split).slice(0, 4)
 	return {
-		latest, period: periodFromWindow(window), categories: monthCategories,
-		question: home.questionOfTheDay
+		latest, period: periodFromWindow(window), categories: monthCategories, question
 	}
 }
 
@@ -319,8 +318,8 @@ export async function getHomeContent(signal) {
 	// Fetched directly rather than through getOrdersOverview, which independently re-fetches
 	// stats/categories/home for its own callers — going through it here paid for that work
 	// twice on every Home load.
-	const [content, { window }, vendors, categories, settings, { latest }] = await Promise.all([
-		request('/api/home', { signal }),
+	const [onboarding, { window }, vendors, categories, settings, { latest }] = await Promise.all([
+		request('/api/home/onboarding', { signal }),
 		getStatsSummary('month', undefined, signal),
 		getVendors(signal),
 		getCategories(signal),
@@ -342,7 +341,7 @@ export async function getHomeContent(signal) {
 		// should still show up here, the same way a starred vendor with no orders yet still
 		// leads the Vendors page's own Favourites section.
 		favouriteCategories: categories.filter(c => c.favourite).sort((a, b) => b.spend - a.spend),
-		onboarding: content.onboarding,
+		onboarding,
 		showScanCard: settings.showScanCard,
 		latest
 	}

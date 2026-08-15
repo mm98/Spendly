@@ -444,7 +444,9 @@ export function getHomeHero(userId, range) {
 
 	return {
 		range: width, label: bounds.label, shortLabel: bounds.shortLabel,
-		spent: now.spent, saved: now.saved, savedPercent: now.savedPercent, orderCount: now.orders,
+		// No orderCount: it was the figure on the hero's Orders tab, and both went with the
+		// change that put spend on the chart instead of a count.
+		spent: now.spent, saved: now.saved, savedPercent: now.savedPercent,
 		/* Spend per day, not orders per day. The card's headline is the window's spend and
 		   its chart plotted a count instead, so the biggest number on Home was drawn by a
 		   line that never showed it -- and a count answers a question nobody has: three

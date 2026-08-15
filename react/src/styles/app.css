@@ -419,8 +419,6 @@ a[data-go] { color:inherit; text-decoration:none; }
 .compare-tabs .compare-tabs-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
 .compare-tabs button.is-on { border-bottom-color:var(--text); }
 .compare-tabs button:not(.is-on) .compare-tabs-value { color:var(--text-muted); }
-.chart-split-bar { display:flex; gap:3px; height:9px; margin-top:14px; }
-.chart-split-bar-segment { border-radius:5px; }
 .chart-legend { margin-top:4px; }
 .chart-legend-row { border-top:1px solid var(--border-divider); }
 .chart-legend-row:first-child { border-top:0; }

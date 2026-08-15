@@ -44,7 +44,10 @@ function questionOfTheDay(userId) {
 		short: `What did ${top.name} cost in ${monthName}?`,
 		answer: `${amount}, across ${orderCount} order${orderCount === 1 ? '' : 's'} in ${monthName}.`,
 		detail: `That was this account's top category in ${monthName}.`,
-		categoryId: top.id, categoryName: top.name,
+		// categoryId, from and to are what SEE THOSE ORDERS filters the list by. No
+		// categoryName: the name is already inside every sentence above it, and nothing read
+		// the separate copy.
+		categoryId: top.id,
 		from: month + '-01', to: monthEnd.toISOString().slice(0, 10)
 	}
 }
@@ -53,14 +56,22 @@ const countFavouriteVendors = db.prepare('SELECT COUNT(*) c FROM vendors WHERE u
 const countOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
 const countCustomDashboard = db.prepare('SELECT COUNT(*) c FROM dashboard_cards WHERE user_id = ?')
 
-router.get('/', (req, res) => {
+/* Two answers rather than one, because nothing ever wanted both.
+
+   They used to share GET /api/home, and every caller took one and threw the other away: Home
+   read `onboarding` and discarded a question that costs two aggregate queries to build, while
+   Orders overview and Categories read `question` and discarded three COUNTs. One route serving
+   two unrelated things means every page paid for the half it does not draw, on every load. */
+
+router.get('/onboarding', (req, res) => {
 	const steps = [
 		countOrders.get(req.user.id).c > 0,
 		countFavouriteVendors.get(req.user.id).c > 0,
 		countCustomDashboard.get(req.user.id).c > 0
 	]
-	res.json({
-		questionOfTheDay: questionOfTheDay(req.user.id),
-		onboarding: { done: steps.filter(Boolean).length, total: steps.length }
-	})
+	res.json({ done: steps.filter(Boolean).length, total: steps.length })
+})
+
+router.get('/question', (req, res) => {
+	res.json(questionOfTheDay(req.user.id))
 })

@@ -12,16 +12,17 @@ import { IconButton } from './Button.jsx'
    is, so the two cannot disagree; the stylesheet keeps its default for anything that does
    not pass segments. README: Buttons. */
 
-/* A gap is a separator between two segments -- with only one, the "gap after the last segment"
-   wraps around the circle and lands between that segment and itself, which read as a category
-   that is 100% of the spend somehow not filling its own ring. Applying it only when there is
-   something on both sides of it is what a separator means. */
 /* The hairline between two segments, as a share of the circle: 0.6% is 2.16°, about 3px of arc
    on the 170px gauge and 2.5px on the 132px donut. One number for every ring in the app --
    the gauge carried 2% and the donut carried none at all, so the same split drawn on Home and
    on Statistics read as two different charts. 2% was 7.2°, which put 43 of the ring's 360
    degrees into white space and left the smallest category drawing less colour than the gap
-   beside it. README: Charts. */
+   beside it.
+
+   A gap is a separator between two segments, so with only one segment there is nothing to
+   separate: the "gap after the last" would wrap around the circle and land between that
+   segment and itself, which read as a category that is 100% of the spend somehow not filling
+   its own ring. README: Charts. */
 const RING_GAP = 0.6
 
 const conic = (segments, gap = 0) => {
@@ -177,14 +178,6 @@ export const MonthColumns = ({ months }) => (
 				<span>{m.label}</span>
 			</div>
 		))}
-	</div>
-)
-
-/** The two-tone rule under the hero number. */
-export const SplitBar = ({ segments }) => (
-	<div className="chart-split-bar" aria-hidden="true">
-		{segments.map((s, i) =>
-			<span key={i} className="chart-split-bar-segment" style={{ width: s.width + '%', background: s.colour }} />)}
 	</div>
 )
 
