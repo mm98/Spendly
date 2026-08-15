@@ -34,7 +34,10 @@ happened to be followed by: the same pair on Orders / Overview stood correctly a
 button there was the block variant.
 
 The fix sets the gap from the note (`.note + .button { margin-top: 12px }`), so the pair is 12px
-whichever button follows it. The block variant's own margin computes to the same 12 rather than to 24
+whichever button follows it. The card that produced this measurement has since been removed from
+both screens that drew it, so `.note + .button` matches **0 elements** across the app's fourteen
+screens today; the rule stays because the pair is a shape the system allows, and the next screen to
+use it should not have to rediscover which variant it picked. The block variant's own margin computes to the same 12 rather than to 24
 — equal specificity, and the note rule is later in the file.
 
 Measured after, in Blink 141.0.7390.37 at 1440x900: the four children of `.card-question` sit at
@@ -793,3 +796,791 @@ on a size mismatch that reads as a layout change and is not one.
 
 **Not rendered:** Gecko and WebKit are not installed in this container. These files are Blink renders,
 as they have always been.
+
+---
+
+## Charts — the ruler under every chart was a fixed comb, and the marks were spread evenly
+
+The strip of tick marks under a chart was one CSS declaration:
+`repeating-linear-gradient(to right, #D9DDD8 0 1px, transparent 1px 23px)` — a line every 24px, from
+the left edge, forever. It knew nothing about the dates printed under it. On the 1114px charts that is
+**47 ticks under 5 labels**; on the 704px Orders card, **30 under 5**; on a phone, **14 under 5**. No
+tick landed on a label except by arithmetic accident, and the strip read as a scale because it is
+shaped like one.
+
+The labels were no better placed. They were spread by `justify-content:space-between`, so mark *i* of
+*n* sat at `i/(n-1)` of the box — evenly, whatever the dates were. The chart plots day *d* of a
+31-day month at `(d-1)/30`, so the five marks belonged at 0, .233, .467, .700 and **.933**, not at 0,
+.25, .5, .75 and **1**. The distance between where the last mark was drawn and where its own day is
+plotted:
+
+| chart | width | the "29" was off by |
+| --- | --- | --- |
+| Home hero, Home's two rail charts, Statistics' overview | 1114px | **74.3px** |
+| Orders' overview | 704px | **47.0px** |
+| all five, at `devices['iPhone 13']` | 324px | **21.7px** |
+
+Both rows are one component now (`ChartScale`), drawn from one array of marks the window itself
+sends — `[{ label, day }]`, where `day` indexes the window's own daily series. A mark is placed at
+`left:p%` and pulled back by `p` of its own width, so p=0 sits flush left, p=1 flush right and p=.5
+centred: exactly what space-between was doing to the labels, which is why they have not moved, but now
+the tick is placed by the same number. Measured across **21 chart states** — Home's hero and Statistics'
+overview at all five widths, Home's two rail charts and Orders' overview, at 1440x900 and
+`devices['iPhone 13']` — the worst distance from a tick to the nearest point the chart's own path
+plots is **1.36px**, against a tick 1px wide. Read off the rendered `d` attribute, since the viewBox is
+1:1 with pixels and a path coordinate is therefore a pixel offset.
+
+### A year drawn as 12 equal slices is not 12 months
+
+`RANGE_POINTS` cut a year into 12 buckets of `365/12 = 30.4` days. Calendar months are 28 to 31, so
+they slid: 1 Feb is day 31 and lands in bucket 1, and so does 1 Mar, day 59. Two marks, one point. The
+axis printed **Jan Feb Apr May Jun Jul Aug Sep Oct Nov Dec** — 11 labels for 12 months, March drawn
+and unnamed, and before the marks were placed on their real points it printed both on top of each
+other. "All time" was worse at 6 buckets: **12 marks onto 6 points**.
+
+So the cut is the marks themselves for those two ranges — the months the window already names are the
+buckets it is drawn in — and 12 points across a year are its 12 months, exactly. A quarter is not
+bucketed at all any more: it is ~92 days and a chart draws 92 points of them, so its three month marks
+land on their own dates rather than in whichever of 13 weekly slices held them. `RANGE_POINTS` is gone
+with it — a count per range was the wrong shape for the question.
+
+| range | the unit it is marked in | marks sent | drawn at 1440 | on the phone | points plotted |
+| --- | --- | --- | --- | --- | --- |
+| week | its 7 days | 7 | 7 | 7 | 7 |
+| month | its 28 to 31 days | 31 | **31** | 16 | 31 |
+| quarter | its 3 months | 3 | 3 | 3 | **92** |
+| year | its 12 months | 12 | **12** | **12** | 12 |
+| all time | the months it spans | 12 | **12** | 10 | 12 |
+
+The marks are the window's calendar, not its contents: a 31-day month sends 31 marks whether it
+holds five orders or five hundred.
+
+### How many fit is a question about width, not about range
+
+A month has up to 31 marks and a year of days would have 365, so marks are dropped left to right until
+each has room for its own label, keeping the first and the last. The room asked for is the two labels'
+own half-widths plus 7px of daylight, not a constant: a flat 34px is what "Jan" needs beside "2025",
+and reserving it for twelve three-letter names cost the phone half a year — **6 marks of 12**, missing
+Feb, Apr, Jun, Aug, Oct and Nov. Sized off the labels, the phone keeps all twelve months, and a month's
+31 days come down to **16** (01, 03, 05 … 31) on a 324px card and stay at 31 on a 1114px one. No two
+rendered labels overlap in any of the 21 states, asserted as `left[i] > right[i-1] + 2`.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173` against
+a real API and a fresh account with 12 months of demo data, at 1440x900 and under
+`devices['iPhone 13']` with `deviceScaleFactor: 2`; every range entered by clicking its button and
+confirmed by reading `aria-pressed` back before measuring. **0 page errors** in either profile.
+
+### The screenshots
+
+`docs/home.png` moved **923,487 of 5,184,000** and `docs/phone.png` **92,635 of 1,035,840**; both were
+re-rendered. `all-orders.png` is byte-identical — it holds no chart. The whole of that difference is
+this change and none of it is drift: the same harness run against the unchanged source reproduces both
+committed files at **0 differing pixels**, and each new file was rendered twice and required to agree
+with itself at 0 before being written. Most of it is not the scale itself but what sits under it —
+Home's three charts had labels and no ticks, so each gained a **17px** strip (8px of margin and a 9px
+ruler, against the 4px margin the labels carried alone) and everything below them moved down by it;
+each also went from 5 marks to 31, three times over.
+
+The row holding the labels is `height:1lh` and not a pixel count. Every label in it is absolutely
+positioned, so the row would otherwise collapse to nothing; a hardcoded 14px was 1.2px short of the
+15.225 the 10.5px text occupies, which is three more small shifts on Home for no reason at all.
+
+**Not run:** Gecko and WebKit are not installed in this container. This is a Blink render. The change
+is `position:absolute` with a percentage `transform`, which is not an engine-shaped construct, but it
+has not been checked in the other two.
+
+---
+
+## Charts — three bars of 100%, 96% and 85% drew the same height
+
+*Last six quarters* is six bars, each given a height as a percentage of the tallest. Three consecutive
+quarters were sent **96%, 85% and 100%** and all three rendered at **128.05px**.
+
+The column was a 150px flex column holding the bar *and* its label. A percentage height resolves
+against that 150px, so 100% asked for 150 — but the space left after the 6px gap and the 15.95px line
+of text is 150 − 6 − 15.95 = **128.05px**, and `flex-shrink` (1 by default) quietly took every bar that
+asked for more down to exactly it. 85% asked for 127.5 and fitted, which is why the shortest of the
+three was the only one drawn correctly, and why the defect reads as "the tall ones are capped" rather
+than as a scale that is wrong everywhere. Anything above **85.4%** drew at the cap: on this data that
+was three bars of six.
+
+The bar has a track of its own now, and the label is outside it, so the box a percentage resolves
+against is the box the bar can actually fill. Measured across five ranges at 1440x900 and under
+`devices['iPhone 13']` — 60 bars — the largest disagreement between a bar's rendered height and
+`track x percent` is **0.02px**, and no two bars with different percentages draw within 0.5px of each
+other.
+
+### The track is a floor, not a height
+
+150px was also the whole of it, in a card that shares a grid row with the category breakdown — which
+is as long as the account has categories. Ten legend rows beside six bars left the bar card 380px tall
+with a 150px chart in the top of it and **230px of nothing** underneath. The track is `flex:1` with a
+150px `min-height` now, and the card and its body pass the row's height down: measured at 1440, the
+chart fills **527 of 527px** of the body's inner width and leaves **1px** below itself, against 230
+before. The percentages still resolve exactly against the grown track — 220.13px and 379.5px tracks,
+same 0.02px worst error.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+
+---
+
+## Returns — one card said four and the other said none
+
+August held four returns. *Statistics* listed them: Proshop on the 9th, 1.510 kr.; Power on the 7th,
+669; Føtex on the 5th, 371; Zalando on the 2nd, 3.171. *Orders overview*, one click away and scoped to
+the same month, drew a search glyph and the sentence **"No open returns found"**.
+
+Neither page could fail on its own. Statistics rendered correct rows from a correct query. Orders
+rendered a correct empty state — correct markup, correct icon, correct spacing, in every engine and at
+every width — over data it had never asked for. The card was a stand-in: `EmptyState` with a hardcoded
+sentence and a link, no data path behind it, so it drew the same thing over a month with four returns
+and over a month with none. The two pages only disagreed with each other, and only about a fact
+neither of them printed twice.
+
+Behind it was a flag doing a job it was not for. `getStats(…, { summary })` exists to skip expensive
+work for callers that will throw it away — `recent` is up to six extra full aggregate queries for a
+bar chart only Statistics draws. `returns` had been put behind the same flag, and it is one indexed
+range query that a card renders. Orders overview asked for a summary, got `returns: null`, and had
+nothing to draw even once someone thought to draw it. **Skip what costs; never skip what something
+renders.**
+
+### One card now, not two copies
+
+`ReturnsCard` is the card, and both pages call it with the window they are showing. Measured at
+1440x900 and under `devices['iPhone 13']`, each route loaded fresh:
+
+| page / range | rows drawn | count line |
+|---|---|---|
+| Orders overview (August) | Proshop 1.510 · Power 669 · Føtex 371 · Zalando 3.171 | — |
+| Statistics, month (Aug) | the same four, in the same order | — |
+| Statistics, week (Week 33) | none — "No returns in Week 33." | — |
+| Statistics, year (2026) | the newest five | The 5 most recent of 40 in 2026. |
+| Statistics, all time | the newest five | The 5 most recent of 65 in all time. |
+
+Identical on desktop and phone, 0 page errors, 0 document overflow, the card 392.4px in Orders'
+right-hand rail and 366px on a phone with the heading on one line in both.
+
+### The word "open"
+
+It meant a return whose refund has not landed — the record carries a `refunded` flag, and Statistics
+prints "· refunded in full" beside a row that has it. Nothing filtered on it: the sentence claimed a
+distinction the card never applied. Nothing can *set* it either — no form field writes `refunded`, and
+generated data leaves all 65 returns unrefunded — so the open/closed distinction the copy leant on is
+one the product cannot currently record at all. The card says returns and lists returns; the empty
+sentence names the span it is empty of, which is the thing a reader actually needs.
+
+### The action under it
+
+The closing link was the one card in seven that was not the full-width block button. `.button-link`
+declares no top margin of its own, so it sat **2px** under the last row of the list; the six cards that
+close with `.button.button-block` sit at **12px**, that variant's own margin. It is now the block
+button in all seven, measured at 12px in every state of both pages, at both widths.
+
+Two smaller things went with it. The empty state was the app's only `icon={null}` with a `14px 12px`
+padding override — 13 empty states, 12 of them the shape the design system defines, and the odd one
+out was the one two pages had to agree on. And the count line's `style="display:block;margin-top:10px"`
+became `.entry-list-note`: an inline declaration outranks every rule the stylesheet can write, which
+is a bad trade for a value that now has more than one call site.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Demo data — the button rebuilt the same year every time
+
+FILL WITH DEMO DATA wipes the account and generates twelve months of orders. The generator is
+deterministic for a given `(seed, today)` — deliberately, so one harness run can be compared against
+another instead of eyeballed — but the seed was a **default parameter on the generator** and the
+button was the only caller. It never passed one. So every press of it, on every account, on the same
+day, produced the identical year: the same 413 orders, on the same days, from the same vendors, for
+the same totals. Pressing it twice looked exactly like pressing it once, which is the one thing a
+button that says *fill* must not look like.
+
+The seed belongs to the caller, so the route picks one now and passes it. Three presses, no seed
+sent:
+
+| press | seed | orders | month spend |
+|---|---|---|---|
+| 1 | 1791625037 | 435 | 15.394 kr. |
+| 2 | 197403416 | 393 | 19.735 kr. |
+| 3 | 1456363375 | 424 | 20.708 kr. |
+
+Three distinct datasets of three, compared as the full sorted list of every order's
+date · vendor · status · kind · total · line count.
+
+Determinism did not go anywhere — it moved to where it can be asked for. `POST /api/demo-data` takes
+`{"seed": n}`, and the response now says which seed it used, so a dataset can be named in a bug
+report and rebuilt. Seed 424242 twice: **413 orders, identical on all six fields**. Seed 424243:
+**402 orders, different**. (Row *ids* stay random and always were, so two orders sharing a date can
+come back either way round under `date DESC, id DESC`; the fingerprint above is of the data, not of
+the tie-break.)
+
+Measured against the API directly at `localhost:4000` — no browser involved, since nothing here is a
+rendering question.
+
+---
+
+## Data Rows — the money column was green, so two lists showed the saving
+
+*Latest orders* on Orders overview listed four orders as **+26,04 · +9,39 · +336,98 · +893,77 kr.**,
+in green, under a card headed *Spent · August 2026*. Those are the savings. The orders were
+**295 · 189 · 2.783 · 3.718 kr.** The same list on Home did the same thing, with the real total
+demoted to the meta line beside the date.
+
+The colour came first and the figure was chosen to agree with it. `.entry-list .amount` set
+`color: var(--text-positive)` on the *family*, so every list using those rows had a green money
+column whatever it put there — and green in this system means one thing, money saved. Three of the
+four lists using the family put a total in that slot; the two that put a saving there are the two
+that had been written to match the paint.
+
+Nothing could catch it by looking. The figure is correctly formatted, correctly aligned, correctly
+right-aligned in the correct column, and the row it sits on links to the right order. The only way
+to see it is to read the number against the record it names — so the check does that, fetching each
+row's own order and comparing: **15 rows across Home, Orders overview and Statistics, at 1440x900 and
+under `devices['iPhone 13']`, all 15 now showing the order's total**, every `.amount` computing to
+`rgb(11, 15, 13)` (`--text`) where the two lists were `--text-positive`. Top vendors keeps both
+figures the way it always did — the total in `--text`, `saved 7.680 kr.` beneath it in the muted
+tone — which is the shape a row uses when it has two things to say.
+
+Removing the family's colour also made the override under it dead: `.entry-list .amount
+.tabular-figures { color: var(--text) }` existed to pull the figure back out of the green for exactly
+that two-tone case, and with the slot neutral it set the value that was already there. Gone with it.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Empty states — two of the four cards on Orders overview drew nothing, permanently
+
+The returns card is [one entry up](#returns--one-card-said-four-and-the-other-said-none). It had a
+neighbour with the same shape of fault, and removing it is what made the count worth writing down.
+
+*Latest receipts* drew a 42px search glyph, "No receipts waiting. Scan one and the order drafts
+itself.", a SCAN A RECEIPT link and a SEE ALL button into the orders list — over no data at all. No
+request behind it, no field to be empty, no state in which it would have drawn anything else. Two of
+the four cards on that page were therefore pictures of cards, side by side, and both looked exactly
+like the working ones: correct spacing, correct icon, correct copy, identical in three engines and at
+every width, stable to the pixel run over run.
+
+Both are gone. The month's returns take the position *Latest receipts* held, so the page now reads as
+two lists of the same month's orders side by side — the latest, and the returned — measured at
+**364x368 each** at 1440x900. Scanning is reached from the top bar on every page, from Home, from an
+order and from the create form, so nothing lost its only way in.
+
+*Question of the day* went with them, on both screens that carried it, along with the two aggregate
+queries behind it: last calendar month's top category and that category's order count, served from
+`GET /api/home/question`. That route now has no caller, so it is gone too — a route nothing reads is
+a query somebody has to keep working and a shape somebody has to keep compatible. It was already
+split from `/api/home/onboarding` (they used to share one response and every caller threw half of it
+away), and that split is what made removing one of them a deletion rather than surgery. Measured
+after: Orders overview requests `/api/orders/overview`, `/api/stats` and `/api/categories`;
+Categories requests `/api/categories`. 0 page errors on either, at both widths.
+
+Deleting a card means deleting what drew it, and the reach of that is not obvious by reading. The
+`QuestionCard` component went with its two callers — and the three CSS rules under it nearly did,
+which would have been a regression on a page this change never touched: the scan page writes
+`class="card card-question"` by hand for its *What the AI checks* panel. A match count is what said
+so (`.card-question` → **1**, not 0), and the panel measures 18px padding, a 10.5px/700 uppercase
+label and a 15px/700 title, unchanged. `.card-headline-question` really was orphaned — **0 matches,
+0 source references** — and is gone.
+
+---
+
+## Home — three cards in a row, and two of them mostly empty
+
+*Spending rhythm*, *Category breakdown* and *Top vendors* share one grid row, so all three are as
+tall as the tallest. Measured at 1440x900 with twelve vendors and six categories carrying spend:
+
+| card | rows | height | empty below its content |
+|---|---|---|---|
+| Spending rhythm | — | 698px | **403px** |
+| Category breakdown | 6 | 698px | 129px |
+| Top vendors | 3 | 698px | **~300px** |
+
+Two different faults with the same look. *Top vendors* was cut to three by
+`.slice(0, 3)` — a number written once, in the client, with nothing else in the app agreeing to it;
+the account had twelve and the card had room for ten. *Spending rhythm* could not be filled at all,
+because its bars were **pixel heights computed in the API**: `rhythmOver` scaled the busiest weekday
+to 70px and returned that number twice, once as `home` and once as `stats`, so the chart was exactly
+as tall as a decision taken where the data is and the card kept whatever was left.
+
+Both are now one number and one shape. The row count is a single exported constant the page's lists
+all read, set to 10; the bars are a **share of the busiest day** rendered as a percentage of a track
+that grows with the card, which is the shape the month columns already use for the same reason.
+After, same account, same viewport:
+
+| card | rows | height | empty below its content |
+|---|---|---|---|
+| Spending rhythm | — | 698px | **1px** |
+| Category breakdown | 6 | 698px | 129px |
+| Top vendors | 10 | 698px | **1px** |
+
+The breakdown's remaining 129px is the account's, not the layout's: that list is every category with
+spend this month by rule, since the ring above it has to add up to the figure printed in its centre,
+and this month has six. The Orders card on the same page went 3 rows to 10 from the same constant
+and also closes at 1px.
+
+### The bars were the right size and in the wrong place
+
+The share-of-track rewrite measured perfectly and rendered upside down. Every bar came back within
+**0px** of `track x share` — 495.5px track on Home, 62.1px on Statistics, at 1440 and under
+`devices['iPhone 13']` — while all seven hung from the top of the track instead of standing on its
+floor. `align-self: stretch` was left over from when the bar was a direct child of its column, where
+the cross axis is horizontal and stretch is what spanned it; inside the track the cross axis is
+vertical, and stretch on an item with a definite height resolves to flex-start. A height check has
+no opinion about where a box sits, so it passed. The probe now reads each bar's bottom edge against
+its track's bottom: **0px on all 28 bars**, across both pages and both viewports.
+
+The only non-zero figure left is deliberate: a weekday with no spend draws at `min-height: 3px`
+rather than vanishing, so a 0% bar measures 3px against a computed 0.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`,
+0 page errors. **Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Settings — the entry count and the list order were facts about the build
+
+Two numbers the app stated and nobody had chosen.
+
+**Entries per card** was `.slice(0, 3)` in the client for Home's vendors, `count: 3` for Home's
+orders, `count: 4` for the same card on Orders overview, `RETURNS_SHOWN = 5` in the API for the
+returns card, `LIMIT 10` for recent scans and `slice(0, 3)` for the hero's legend — six numbers,
+none of them chosen together, one of them making the same card two lengths depending which page
+drew it. It is one account setting now (1, 2, 4, 6, 8 or 10), read on the server by every route
+that truncates a list and in the client by the three lists it derives itself. Driven from the
+picker and counted on screen, at 1440x900:
+
+| setting | top vendors | orders card | where it went | latest orders | returns |
+|---|---|---|---|---|---|
+| 10 | 8 | 6 | 6 | 10 | 4 of 4 |
+| 8 | 6 | 4 | 6 | 8 | 4 of 4 |
+| 6 | 4 | 2 | 6 | 6 | 4 of 4 |
+| 4 | 2 | 1 | 4 | 4 | 4 of 4 |
+| 2 | 1 | 1 | 2 | 2 | 2 of 4 |
+| 1 | 1 | 1 | 1 | 1 | 1 of 4 |
+
+The API side was checked without a browser too: recent scans, latest orders and the returns card
+all cut to the setting, over an account imported with twelve receipts.
+
+**The list order** was `useState('Name')` written once on All vendors and again on All categories —
+one answer in two places, which is two places for it to drift. One setting, offering only the three
+orders both lists have (Name, Spend, Saved); vendors' own *Orders* and categories' own *Share* stay
+on the pages, since a default naming either is one the other list cannot honour. Both lists open in
+the chosen order and the segmented control shows it: *Name* → Bilka, Coop, Elgiganten and Clothing,
+Eating out, Electronics; *Spend* → Zalando, Matas, Jysk and Everything else, Electronics, Household;
+*Saved* → Zalando, Bilka, Jysk and Everything else, Household, Electronics.
+
+Both settings refuse what nothing obeys. `cardRows` of 0, 3, 7, 11, 999, −1, `"ten"` and `null`, and
+`listSort` of `orders`, `share`, `colour`, `""`, `null` and `7` are all rejected with the stored
+value standing — checked one by one, 14 of 14.
+
+### The graphic above a list is height the list does not get
+
+Filling every card to ten made the card with a donut three rows taller than the card beside it. The
+entry count is now the setting less whatever the card drew above its rows, measured by the list
+against its own card body rather than tabulated per card — so a headline figure and caption cost Top
+vendors two rows, a chart and a caption cost the Orders card four, and the donut costs the breakdown
+three, none of which is written down anywhere. Measured on the dashboard row at 1440x900: three
+cards, **586px each, 1px, 17px and 1px of unused space** — against 403px and about 300px before any
+of this.
+
+Two traps inside that. The row height has to come from a *row*: an entry list opens with its own
+heading, so measuring the first child measures a 15px label, divides the graphic by that, and cuts
+every card to one row whatever the setting says. And the fold that shortens the ring's list had been
+shaped for the legend that first drew it — `{id, name, colour, spend}` — so the first card to render
+it as a category *record* crashed on `percent(category.share)`, at settings small enough for the fold
+to appear at all. It carries share, saved, orders and a glyph now, like the records it stands for.
+
+A card may still hold fewer than the setting: August had four returns beside a list of ten orders, so
+it draws four and keeps its neighbour's height — **690px both**, 323px of it empty, which is the
+month being short of returns and not the layout being wrong.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`,
+0 page errors. **Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Home — the card with a one-line header gave up two rows
+
+A card's entries are the entry count less what the card drew above them, and the deduction rounded
+*up*. Top vendors' headline figure and caption measure **58.7px** against a **56px** row — 1.05 rows
+— so it was charged two, gave up 56px to cover 2.7px of overflow, and drew 8 rows where the card
+beside it drew 9 and the row it shared was tall enough for 9.
+
+Rounding is what minimises the leftover: a card's content then lands within half a row of the height
+it is aiming at, rather than up to a full row under it. Measured at 1440x900 with the setting on 10,
+against a target of `10 x rowHeight`:
+
+| card | above the list | in rows | drew | off target |
+|---|---|---|---|---|
+| Top vendors | 58.7px | 1.05 | 9 rows | **+2.7px** |
+| Orders | 208.4px | 3.72 | 6 rows | −15.6px |
+| Category breakdown | 150px | 2.63 | its 6 categories | −78px (list ran out) |
+
+Two smaller things came out of the same measurement. The fold row counts against the budget now — a
+card given room for seven drew seven real rows *and* the "3 more categories" row, so it stood one
+row taller than its neighbour for a row it had not been given. And a budget of one used to spend its
+single row on the fold itself, drawing a ring of one grey segment under a row naming nothing; at
+least one real entry survives the fold, one over budget, because the alternative is a chart with
+nothing in it.
+
+### The check that could not fail
+
+The first version of this measured **unused space per card** and came back 1px, 17px, 1px — clean —
+on the same build that shipped the defect. The account under test had six categories with spend,
+fewer than the card's budget, so the breakdown never stretched the grid row and there was no gap for
+the short card beside it to fail to fill. The rounding was wrong the whole time; the fixture was too
+small to show it, and an account with nine categories showed it in a screenshot at a glance.
+
+What replaced it asserts the arithmetic instead: a card's content should land within half a row of
+`setting x rowHeight`. That fails at **−53.3px** for the ceiling rule on any dataset, and passes at
++2.7 / −15.6 / −21 for the rounding one. A check that only fails when some other card happens to be
+tall is a check on the fixture.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`,
+0 page errors. **Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Chrome — settings lived at the foot of one rail
+
+Every default in the app — what the order form opens with, how many entries a card holds, which
+order the vendors and categories lists open in, whether a trash asks first, how many orders a page
+shows — was reached through a full-width **ORDER SETTINGS** button at the bottom of the right-hand
+rail on the Orders overview tab. One tab, of one page, below a category breakdown and a chart; and
+titled *Order settings*, after the one part of itself that page happened to own.
+
+It is a glyph in the top bar now, in the 32px tier the back arrow and the top-bar actions already
+use, present on every screen. Driven rather than asserted from the markup: nine routes — Home,
+Orders overview, All orders, Statistics, Vendors, All vendors, Categories, All categories, Scan —
+each loaded fresh, the glyph pressed, and the arrival checked. **9 of 9 at 1440x900 and 9 of 9 under
+`devices['iPhone 13']`**, every one landing on `#/settings` with the heading reading *Settings*, and
+the ORDER SETTINGS button gone from Orders. 0 page errors at both widths.
+
+The route lost its back arrow and its sidebar key with the move: there is no one page it came from
+to send the reader back to, and it belongs under no rail item.
+
+---
+
+## Home — a card with no neighbour was still paying for one
+
+The entry count less what a card drew above its list keeps a card level with the card beside it.
+A card with nothing beside it was paying the same toll for a neighbour it did not have — the Orders
+card on Home sits on a grid row of its own at 1440 and drew **6 rows of a setting of 10**, four
+entries given up to leave room for nothing. On a phone the grid is one column and every card was
+doing it: the whole dashboard, cut to make space for cards that were stacked above and below rather
+than beside.
+
+Whether a card has a neighbour is read from the layout, not passed in — it is a fact about the grid
+at this width, and a card told once would go on believing it at every other. Measured at 1440x900
+and under `devices['iPhone 13']`, setting on 10:
+
+| card | 1440 | beside it at 1440 | phone |
+|---|---|---|---|
+| Category breakdown | 6 (all it has) | Spending rhythm, Top vendors | 6 (all it has) |
+| Top vendors | 9 | Spending rhythm, Category breakdown | **10** |
+| Orders | **10** | — | **10** |
+| Latest orders (Orders overview) | 10 | Returns, Category breakdown | 10 |
+| Returns (Orders overview) | 4 (all August has) | Latest orders, Category breakdown | 4 |
+
+Every card closes within 1px of its own content except the two whose lists ran out — the breakdown
+at 73px, six categories against room for seven, and Returns at 323px, four returns beside a list of
+ten orders. 0 page errors at either width.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Home — every row into the orders list dropped the window it came from
+
+Under a card headed *Where it went · Aug*, the row reading **Clothing 5.152 kr.** opened
+`/orders/all?category=…` — every Clothing order the account has ever held, no dates, a list whose
+total contradicts the figure that was clicked and whose filter chips do not mention August. The
+same on the two category rings reading *Spent this month*, on Home and on Orders overview, and on
+the rows for whatever has no category.
+
+Nothing about it looks broken. The destination is a real, filtered, working list; it is a list of
+the wrong thing, and the only way to see that is to add up what it holds. So the check is the
+figure rather than the query string: each row's own amount against the total of the orders its link
+actually selects. Measured at 1440x900 and under `devices['iPhone 13']`, every link on Home and
+Orders overview that opens the orders list — **21 and 8 links, both widths, every one exact**:
+
+| card | row | dated | row figure | list total |
+|---|---|---|---|---|
+| Where it went · Aug | Everything else | yes | 7.169 | 7.169 |
+| Where it went · Aug | Household | yes | 560 | 560 |
+| Category breakdown | Health | yes | 3.171 | 3.171 |
+| Top vendors | Zalando | no | 49.673 | 49.673 |
+| Top vendors | Netto | no | 26.546 | 26.546 |
+
+The undated ones are undated on purpose and check out the same way: Top vendors is an all-time
+figure under an all-time caption, SEE RETURN HISTORY is the whole history by name. A card with no
+window to pass on passes none.
+
+The link is built in one place now rather than composed at each of the four call sites, because a
+filter dropped from one of them is invisible: it still navigates, still filters, still looks right.
+
+### The probe that failed everything
+
+The first run reported a mismatch on every row, including rows that were correct. It forwarded the
+page's own query string to the API — and the list page's parameters are not the API's (`category`
+against `categoryId`, `vendor` against `vendorId`), so the filter was silently dropped and every row
+was compared against the same whole-month total. It also compared links to a *single order* against
+a list total, which cannot agree. A probe that fails everything is as useless as one that passes
+everything, and it took longer to disbelieve than a probe that had simply said nothing.
+
+## Home — the hero offered five windows on the screen that answers one question
+
+The hero card carried the same five widths Statistics offers — Week, Month, Quarter, Year, All — so
+the app had two screens where a stretch of time is chosen and only one of them with a pager, a
+comparison against the window before, four summary tiles and a returns card to go with the choice.
+Home answers *where am I this month*; the chips are gone and the card is the current month, with the
+header opening Statistics, which is the page built for the rest.
+
+The range went out of the API with them: `GET /api/home/hero` took a width, validated it against
+five names and returned which one it had used, all to serve a control that no longer exists. It
+takes no parameters now and its response carries no `range`. The bucketing on the client went too —
+it existed to draw a year as twelve points under twelve marks, and a month is at most 31 days
+against a scale that fits 31, so every point is its own day. Measured after: one request,
+`/api/home/hero` with no query string, heading *Spent · August 2026*, **0 range chips** at 1440x900
+and under `devices['iPhone 13']`, 0 page errors.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Charts — three of five line charts never said where today was
+
+Home's Orders card drew a dot on today's point. Orders overview drew a haloed disc on it. The
+hero, the savings chart and every chart on Statistics drew nothing — so the same question, *where
+on this line is now*, had three answers depending which card you were reading.
+
+It is one mark now: a 4.5px circle, white, stroked 2px in the line's own colour, on the point the
+window says is today. The window says it — `todayIndex`, null when the window holds no today —
+rather than each page working it out from a day count, because "is today inside this window" is a
+fact about the window and three pages deriving it separately is three chances to mark a month that
+ended in March.
+
+The sweep is the point. Rather than checking the three charts that were changed, every `svg.chart`
+in the app is enumerated from the DOM across eleven states and eleven cards, at 1440x900 and under
+`devices['iPhone 13']`, against one rule: one marker per line that runs through today, on that
+line, in that line's colour; none on a comparison line; none at all in a window paged into the
+past. **0 failing, both widths, 0 page errors.**
+
+| state | chart | lines | markers |
+|---|---|---|---|
+| Home | hero, spend and saved | 2 | 2 — both run to today |
+| Home | Orders, Saved vs retail | 1 each | 1 each |
+| Orders overview | this month against last | 2 | 1 — the paler line is last month |
+| Statistics · week / month / quarter / year / all time | current against previous | 2 | 1 |
+| Statistics · March, · 2025 | current against previous | 2 | **0** |
+
+The inset came with it: the circle paints 5.5px past its point and a running total peaks on its own
+last day, so the plotted band is inset 6.5px top and bottom on every chart that carries a mark. It
+was 3px on the savings chart, which would have clipped the circle in half, and 17px on Orders
+overview, held for a halo of r=13 that no longer exists — that chart's line has 10.5px more height
+to use.
+
+## Data Rows — an order's total was listed three ways
+
+Four screens list orders: the latest on Home, the latest on Orders overview, the returns card on
+two pages, and All orders. Between them the money column had three shapes — rounded with no saving,
+rounded with no saving, and exact with a saving printed *only where it was positive*. So the same
+order read `1.510 kr.` on one card and `1.509,88 kr.` with a line under it on another, and within
+All orders the column changed shape row to row depending on whether that order had saved anything.
+
+One shape now, in all four: the exact total, and beneath it `saved …` in the muted tone, on every
+row. **A zero is a figure and is printed** — an order at full price reads `saved 0,00 kr.` rather
+than a blank where every neighbour has a line. Swept from the DOM across six routes at both widths:
+**every order row in the app carries the saved line, 100% of rows, and every one prints decimals**;
+vendors and categories keep their own rounded record shape, consistently within itself.
+
+The sweep caught its own regression on the way: the returns payload had no `saved` field, because
+those rows had never printed one, so the first run of the fixed markup drew `saved NaN,undefined
+kr.` in the two returns cards. A per-call-site check would have shown two lists agreeing with each
+other and disagreeing with reality.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Data Rows — one saving, three styles; and one question, sorted three ways
+
+Two findings from a full-app consistency sweep (13 routes, both widths, everything enumerated from
+the rendered DOM), fixed together because both are the same defect shape: one fact, drawn
+differently depending which screen happened to draw it.
+
+**The saved line.** The `saved …` line under a total is drawn by three row families, and the
+stylesheet held three specs for it: muted 500 in `.entry-amount-sub` (Home, Orders overview,
+Returns), green 600 in `.order-row-total-saved` (All orders) and green 600 in
+`.entity-row-amount-sub` (All vendors, All categories) — the same fact in two colours and two
+weights, on the lists most often read side by side, and two of the three against the README's own
+"muted tone" rule. One spec now. Measured across the six routes that draw the line: **69 instances
+at 1440, 70 under `devices['iPhone 13']`, every one `rgb(99,109,100) / 500 / 11px`** — one spec of
+one, where the same sweep read two of three before.
+
+**The sort control.** Three working lists ask "order this list by", and they asked it two ways with
+two vocabularies: All orders with a combobox offering *Date, newest / Amount, highest / Vendor,
+A to Z*, the vendors and categories lists with a segmented control offering bare *Spend / Name /
+Orders / Saved* — direction unstated, so *Spend* was secretly highest-first and the reader found
+out by pressing it. They also led with Spend while opening on Name, so the selected option sat
+second in its own list.
+
+One control and one vocabulary now — and one *scheme*: every ranking column is a pair, on all
+three lists. The first pass of this fix gave vendors and categories one direction per column while
+All orders offered pairs, which is the same defect moved into the option list. Every ranking
+column is a pair now (*Spend, highest / Spend, lowest*, *Orders, most / Orders, fewest*, *Share,
+highest / Share, lowest*, *Saved, highest / Saved, lowest*), and the stored setting carries the
+direction (`name-asc`), exactly as the orders sort's ids always have — existing bare values
+migrated to the direction they always meant, 218 rows checked converted. Settings' "Sort vendors
+and categories by" offers the shared five under the identical strings. Driven, not asserted:
+**every direction reverses or restores its list** — 6 on vendors, 6 on categories, 4 on All
+orders — the directed setting ids round-trip and bare or foreign ids are refused, and *saved-asc*
+set once opens vendors on Netto and categories on Home office, at 1440, 0 page errors.
+
+The second pass then over-corrected: symmetry handed every column a pair, including *Vendor,
+Z to A* on All orders and *Name, Z to A* on the other two lists, and the alphabet is not a
+ranking. The pair rule is about ranking columns, where the reverse answers a different question
+("cheapest?" is not "dearest?"); an alphabetical column orders a list for *finding* a record,
+and Z to A finds nothing that A to Z cannot. So Vendor and Name stay *A to Z* alone, migrations
+map a stored `vendor-desc` or `name-desc` back to the direction that stays, the settings route
+now refuses unknown orders-sort ids the way it always refused unknown list-sort ids (the one
+field the "stored preference nothing obeys" rule was not yet enforcing), and the README rule
+names the exception rather than leaving single-direction columns to read as an oversight. The phone toolbar held: all
+three toolbars at 86px, two rows, 0 element overhang, 0 document overflow — checked per element,
+since `.main-panel` clips overflow and a clipped overhang never widens the document.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+## The stylesheet that was being overruled by its own pages
+
+**The defect.** The app carried 122 `style` attributes, and about 90 of them were system values
+— margins, gaps, sizes, colours out of the token set — written on elements instead of into the
+stylesheet. CLAUDE.md had already recorded the mechanism once ("an inline style in a port
+outranks every rule the shared stylesheet can write") for a toolbar width; this pass found the
+same mechanism live in the shipped app, twice. `.stats-window .panel-heading { font-size:14px }`
+sits in the phone media block and had never rendered, because the pager heading carried
+`fontSize: 16` inline; `.space-between > .row-inline { gap:6px }` in the same block was silenced
+on Order detail's header actions and All orders' pager by inline `gap: 8`. Two phone rules,
+written, shipped, and never once drawn.
+
+**What the inline copies were also hiding.** Values that had drifted apart inside the same slot,
+which no grep of the stylesheet could see because the stylesheet never had them: the meter under
+a figure sat 14px below it on two pages and 16px on Home; the chart under its caption row 8px on
+two cards and 6px on the hero; the divider above a summary total 4px in two files (via
+`card-divider-tight`) and 2px inline in two others; the icon-action cluster on a data row
+`gap:2` in the order forms and `gap:4` on Order detail; two drop targets with two drag-over
+outline offsets; Settings' three block buttons at an inline 8px above the lead while
+`.button-block` itself says 12; the scan hero's check drawn `#12A56B` beside a `--green` that is
+`#14AC72`; and the auth pages' status line — a third styling of the `form-status` verdict the
+order forms already define, at 13.5px/500 with a `var(--red, #C0392B)` whose token does not
+exist, so the fallback was the colour. Each is now the one value, under the one name.
+
+**The conversion.** Every fixed layout value moved into `react/src/styles/app.css` under a
+named class — shared names where the pattern repeats (`.card-lead-flush` ×4, `.summary-saved`
+×3, `.chart-legend-fill` ×3, `.row-actions`, `.push-end`, `.is-dragover`), component names
+where it does not. What stays inline is the data speaking: record colours, chart shares and
+positions, a dragged row's captured size, the toast stack's measured top. Chart, Meter,
+WeekdayBars, ProgressBar, DocumentPreview, Note and StatusChip gained `className` passthrough
+so call sites can name their slot without a wrapper element. Moving the toast's show transition
+into the stylesheet also retired its JS reduced-motion check: the global reduced-motion block
+now reaches it, which the inline transition was the one thing preventing.
+
+**Measured.** 52 states — every route plus the driven ones: both confirm dialogs, the added
+order line, scan review and its line editor, login and register with their status lines rendered
+— at 1440 and under `devices['iPhone 13']`, 10,659 element records per run, 42 computed
+properties and a rect per element. The baseline was run twice and agreed at 0 differences before
+the diff was trusted, and the harness needed one fix first: the filter panel's combobox options
+land from a fetch tens of milliseconds after mount, and a settle loop sampling ~50ms of rAF
+frames read the page both before and after they arrived on different runs — 150ms-spaced samples
+settled it. After the conversion: **0 element-count changes, 0 tag mismatches, 1,162
+differences, every one attributable to a named unification above** (the 2px cascades under a
+moved chart account for most of the rect shifts), and the two states a navigation walk cannot
+hold — a shown toast, a drag-over — probed directly. The first attempt also minted a colliding
+`.form-status` beside the one that already existed, which the walk caught as 12→13.5px on every
+form's verdict line: the fix was not a rename but using the existing class, which is how the
+auth pages' third styling came to light at all.
+
+**The follow-up sweep.** With the inline copies gone, the stylesheet's own duplication became
+countable: 606 rules held 24 groups whose declaration bodies were identical under different
+names. The same-concept groups were merged into one rule each — the four icon-size tiers
+(15/14/17/13px, twenty scattered rules become four naming their contexts), the 13px and 13.5px
+row-title families, the section-label restated verbatim in two scoped copies, the focus ring
+written once for `:focus-within` and again for an open combobox, the caption label, and the
+saved-subline that the money-column fix had made one spec in three copies. 609 rules to 582,
+and the walk read the merge at **0 differences of 10,659 records across 52 states** — a
+grouped rule either renders identically or it was not the same rule. Coincidence groups
+(`.sidebar-nav` and `.icon-picker` both happening to be `grid; gap:8px`) were left apart:
+merging those couples things that only agree today.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+## Order Detail — the reading view was paying rent for the form's job
+
+The detail page drew a live, full-width Status segmented control between the category chips and
+the items card — a band as tall as any form row, editing the one field the edit page's own
+Status control already edits, on the page whose README rule is "the detail page shows, the form
+page changes". Removed on review: status is read in the summary card's own row and changed on
+the edit page like every other field. The removal was measured, not assumed: the detail page
+renders no `[aria-label="Order status"]` and no `.order-status-field` (0 matches app-wide, rule
+deleted), the summary row still states the status, and the edit page's `[role="tablist"]
+[aria-label="Status"]` still stands. Verified in Blink; Gecko and WebKit not installed.
+
+## Settings — FILL WITH DEMO DATA reset more than it replaced
+
+The fill reused the account wipe that CLEAR STORED DATA uses, so pressing it deleted the
+settings row and the dashboard layout along with the ledger and re-seeded the defaults — a
+button whose confirm copy promises "every order, vendor and category you have added is removed
+first" was also handing back the shipped page size, sort order and card layout. The fill now
+wipes the ledger tables only. Driven: page size 25, list order *Spend, lowest* and four entries
+per card survive a 400-order fill unchanged, and CLEAR STORED DATA still returns all three to
+the shipped state — the two buttons finally differ by exactly what their copy says.
+
+## Feedback — the toast's one line rode high against its dismiss
+
+The toast row was `align-items:flex-start` with a 1px nudge on the glyph, which top-aligned a
+19px sentence against a 26px dismiss button — every toast read as a misprint by a few pixels.
+The row centres now: glyph, sentence and dismiss measured at a shared vertical centre, worst
+offset **0.00px**, with the row's own box as the reference. Verified in Blink.
+
+## API — endpoints the app had stopped asking for
+
+Removing features left surface behind, found by sweeping the whole boundary rather than the
+removals remembered: every route the API serves against every path the client calls, then
+every client export against what pages import, then every API-side export against its
+importers. Dead and now gone: `GET /api/orders/:id/draft` (the client has always composed the
+edit draft from `GET /api/orders/:id` itself), `GET /api/scan/documents` and its client
+wrapper (the scan flow goes upload → review with the key in hand; no screen lists raw
+uploads), `react/src/api/seed.js` (the phantom store's 376-line dataset, imported by nothing
+since the API port), the API-side `SORTS` and `RANGES` constants (dead copies of option lists
+only the client reads — a copy imported by nothing is drift waiting to happen), and the
+`selectUploads` statement and `defaultCardRows` export those left behind. Kept deliberately:
+`POST /api/orders/import` and its wrapper (the documented entry point for external
+migrations), and `DELETE .../items/:itemId/attachments/:attachmentId` — unused not because it
+is stale but because no screen offers removing a saved item photo, which is a gap, not
+leftovers. Driven: both removed endpoints answer 404, upload → draft (the OCR plug-in point)
+→ recent all still serve, the import endpoint still validates, and the full 52-state walk
+renders identically to the pixel where nothing was meant to change.
+
+## Settings — the import card invented a second header band and wrote prose into its JSON
+
+Two consistency misses on one card, both caught in review rather than by the sweeps. The
+disclosure shipped as a boxed icon-button riding a passive header — a second implementation of
+a band the system already had, since a navigating card header is the whole band with a bare
+chevron in its right-hand slot. The disclosure is that same band now: `CardHeader` renders a
+`button` styled by the same `.card-header` rules, same 44.75px as every header beside it, the
+chevron pointing down or up instead of right. And the JSON blocks carried annotation prose
+inside them; the boxes hold only the request or the response now — three of them, each parsing
+as real JSON, each explained in ordinary text beneath its own box. Driven at 1440 and on the
+phone descriptor: band toggles both ways, chevron rotates, three boxes parse, prose only
+outside them, 0 overhang, 0 page errors. Verified in Blink.

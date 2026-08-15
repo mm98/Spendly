@@ -39,31 +39,16 @@ function Toast({ toast, onDismiss }) {
 
 	const negative = toast.tone === 'negative'
 	return (
-		<div className="card" role="group" aria-label={negative ? 'Error' : 'Notice'}
-			style={{
-				display: 'flex', alignItems: 'flex-start', gap: 10,
-				padding: '12px 12px 12px 14px',
-				borderLeft: `3px solid ${negative ? 'var(--text-negative)' : 'var(--green)'}`,
-				boxShadow: '0 12px 28px rgb(11 26 18 / .16)',
-				pointerEvents: 'auto',
-				/* Motion is a fade and a short slide, and it is skipped outright where the reader
-				   has asked for that -- the stylesheet's reduced-motion block cannot reach an
-				   inline transition, so this has to honour the preference itself. */
-				opacity: shown ? 1 : 0,
-				transform: shown ? 'none' : 'translateY(-6px)',
-				transition: REDUCED() ? undefined : 'opacity .18s ease, transform .18s ease'
-			}}>
-			<span aria-hidden="true" style={{
-				display: 'grid', placeItems: 'center', flex: 'none', marginTop: 1,
-				color: negative ? 'var(--text-negative)' : 'var(--green)'
-			}}>
+		<div role="group" aria-label={negative ? 'Error' : 'Notice'}
+			className={['card toast', negative && 'toast-negative', shown && 'is-shown'].filter(Boolean).join(' ')}>
+			<span aria-hidden="true" className="toast-icon">
 				<Icon name={negative ? 'alert' : 'check'} />
 			</span>
-			<span style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.45, color: 'var(--text-body)' }}>
+			<span className="toast-message">
 				{toast.message}
 			</span>
 			<button type="button" className="icon-button icon-button-clear"
-				aria-label="Dismiss" onClick={onDismiss} style={{ marginLeft: 0 }}>
+				aria-label="Dismiss" onClick={onDismiss}>
 				<Icon name="close" />
 			</button>
 		</div>
@@ -117,12 +102,10 @@ export function ToastProvider({ children }) {
 			    inside the same 12px gutter the rest of the phone layout uses. The container never
 			    takes pointer events -- only the toasts in it do -- so it cannot swallow a click
 			    on whatever is underneath. */}
+			{/* top is measured off the top bar at runtime, so it is the one value that stays
+			    on the element. */}
 			<div role="status" aria-live="polite" aria-relevant="additions"
-				style={{
-					position: 'fixed', top: below, right: 14, zIndex: 80,
-					display: 'grid', gap: 8, width: 'min(360px, calc(100vw - 28px))',
-					pointerEvents: 'none'
-				}}>
+				className="toast-stack" style={{ top: below }}>
 				{toasts.map(t => <Toast key={t.id} toast={t} onDismiss={() => dismiss(t.id)} />)}
 			</div>
 		</ToastContext.Provider>

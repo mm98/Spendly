@@ -13,7 +13,7 @@ import {
 	createVendor, deleteVendor, getHomeContent, getVendor, getVendors, getVendorsOverview,
 	updateVendor
 } from '../api/client.js'
-import { krRound } from '../api/format.js'
+import { krRound, sep } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
 
 /* A vendor, on its own page -- the same page component as a category and as an order, because
@@ -110,7 +110,7 @@ function VendorFields({ mode, vendor }) {
 			status={status}
 			cancel={{ to: '/vendors' }}
 			submit={{
-				label: saving ? 'SAVING…' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD VENDOR',
+				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD VENDOR',
 				onClick: save, disabled: saving
 			}}
 			rail={
@@ -148,7 +148,7 @@ function VendorFields({ mode, vendor }) {
 			    second control for a job this one already has. README: Fields and Forms. */}
 			<FilterSection>
 				<div className="space-between">
-					<span className="field-help" style={{ maxWidth: '32ch' }}>
+					<span className="field-help toggle-help">
 						Favourites are spotlighted at the top of the Vendors page, and lead the vendor
 						list on a new order.
 					</span>
@@ -167,10 +167,10 @@ function VendorSummary({ name, colour, initials, favourite, vendor }) {
 			<CardBody>
 				<div className="card-subheading">Vendor summary</div>
 				<span className="section-label">How it will look</span>
-				<div className="entry-list" style={{ marginBottom: 4 }}>
+				<div className="entry-list summary-preview">
 					<EntryRow avatar={{ colour, initials }} name={name || 'Your vendor'}
 						meta={vendor
-							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'} · saved ${krRound(vendor.saved)}`
+							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'}${sep}saved ${krRound(vendor.saved)}`
 							: 'no orders yet'} />
 				</div>
 				<div className="summary-row">Name<span className="summary-row-value">{name || '—'}</span></div>

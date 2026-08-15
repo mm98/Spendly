@@ -9,11 +9,11 @@
 @font-face { font-family:'Poppins'; font-style:normal; font-weight:600; font-display:swap; src:url(/fonts/poppins-600.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
 @font-face { font-family:'Poppins'; font-style:normal; font-weight:700; font-display:swap; src:url(/fonts/poppins-700.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
 /* ============================================================
-   Spendly · Savexa-matched dashboard
+   Spendly • Savexa-matched dashboard
    Colours sampled from the reference shot itself:
-   sidebar #EFF1EF · canvas #F7F8F6 · card #FFFFFF · ink #0B0F0D
-   vivid green #14AC72 · deep teal #07625E · dark card #0B1A12
-   spending line #4F5BD5→#A5B4FC · donut blue #1FA8E0
+   sidebar #EFF1EF • canvas #F7F8F6 • card #FFFFFF • ink #0B0F0D
+   vivid green #14AC72 • deep teal #07625E • dark card #0B1A12
+   spending line #4F5BD5→#A5B4FC • donut blue #1FA8E0
    ============================================================ */
 :root {
 	/* A colour token is named for the surface it paints, because that is the one
@@ -123,7 +123,15 @@
 html, body { height:100%; }
 body {
 	margin:0; background:var(--bg-app); color:var(--text);
-	font-family:"Poppins","Century Gothic","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+	/* Poppins is served from /fonts, so this list is only what shows for the moment before it
+	   arrives. It used to name "Century Gothic" and "Segoe UI Variable Text" ahead of the
+	   generics: both are optional installs rather than base system fonts, so Firefox refuses
+	   to look either of them up under its default font-fingerprinting setting and logs
+	   "blocked at visibility level 2 (requires 3)" for every element that asks -- around fifty
+	   lines on one reload of the orders page. Neither exists on macOS or Linux at all, and
+	   Windows resolves system-ui to Segoe UI on its own, so the two names bought one brief
+	   frame on one platform and cost a console nobody can read. README: Typography. */
+	font-family:"Poppins",system-ui,sans-serif;
 	font-size:14px; font-weight:500; line-height:1.45; -webkit-font-smoothing:antialiased;
 }
 :focus-visible { outline:2px solid var(--teal); outline-offset:2px; border-radius:6px; }
@@ -142,6 +150,12 @@ body {
 .row-inline.row-inline-nowrap { flex-wrap:nowrap; }
 .key-cap-push { margin-left:auto; }
 .space-between-tight { margin-bottom:4px; }
+/* The gap before a Switch at the end of a .space-between row -- .space-between's own 14px
+   gap left the last wrapped line of text running up against the toggle. Only below
+   700px .space-between itself switches to flex-wrap:wrap and the Switch drops to a line
+   of its own (see the phone rule further down), so this padding would sit on the right of
+   text with nothing beside it there; zeroed at that width rather than left to look stray. */
+.toggle-help { padding-right:20px; }
 svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
 /* ---------------- shell ---------------- */
@@ -164,6 +178,23 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .sidebar-nav a.is-on { background:var(--bg-nav-active); color:var(--text); font-weight:600; }
 .sidebar-nav a.is-on svg.icon { stroke-width:2.1; }
 .sidebar .sidebar-footer { margin-top:auto; padding:0 10px; font-size:11.5px; color:var(--text-muted); display:grid; gap:6px; }
+
+/* Sign-in and sign-up. Outside the shell, so there is no sidebar to carry the brand mark --
+   the same mark the sidebar draws (same gradient), beside the heading rather than above it,
+   left-aligned like every other card header in the app rather than centred.
+
+   The page background stays plain --bg-app rather than a lighter gradient behind the card --
+   a lighter stop there sits close enough to white that .card's own --border-card hairline
+   nearly disappears against it, which is the one thing the shadow below is added to prevent,
+   not to paper over. */
+.auth-page { display:grid; place-items:center; min-height:100vh; padding:24px; background:var(--bg-app); }
+.auth-card { width:100%; max-width:380px; box-shadow:var(--shadow); }
+.auth-card .card-body { padding:28px; }
+.auth-heading { display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+.auth-heading .brand-mark { width:72px; height:72px; flex:none; }
+.auth-heading .brand-mark svg { width:38px; height:38px; }
+.auth-heading h1 { font-size:19px; line-height:1.2; margin:0; }
+.auth-tagline { color:var(--text-faint); font-size:12px; line-height:1.35; margin:3px 0 0; }
 
 /* topbar */
 .main-panel { min-width:0; display:flex; flex-direction:column; background:#fff; border-radius:26px 0 0 26px; margin:12px 0; overflow:hidden; box-shadow:0 2px 14px rgb(11 26 18 / .05); }
@@ -189,10 +220,6 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    rather than each surface inventing a height. */
 .topbar .topbar-actions .button { height:32px; padding:0 15px; gap:6px; font-size:11px; letter-spacing:.04em; }
 /* A button's icon follows the button's tier (README: Buttons), not the call site. */
-.button svg.icon { width:15px; height:15px; }
-.topbar .topbar-actions .button svg.icon { width:14px; height:14px; }
-.button-pill svg.icon { width:13px; height:13px; }
-.button-compact svg.icon { width:14px; height:14px; }
 /* The square icon buttons. Same base, and each variant carries only its size --
    26, 28, 32, 38 and 40px were five separate copies of this rule. */
 .icon-button {
@@ -234,6 +261,10 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    variants now: class="card card-kpi". */
 .card { background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-card); }
 .card.card-kpi { padding:16px 18px; display:grid; gap:2px; }
+/* The pale prompt card. One user left: the scan page's "What the AI checks" panel, which
+   writes the markup itself. The QuestionCard component that also drew it is gone with the
+   question-of-the-day cards, and these three rules nearly went with it -- a match count is
+   what said otherwise, on a page the change never touched. */
 .card.card-question { padding:18px; }
 .card.card-ai { background:linear-gradient(160deg, var(--bg-dark-lift), var(--bg-dark) 55%); border:0; padding:18px; color:#fff; }
 /* Even padding because five of these headers light up on hover and the padding is the
@@ -253,7 +284,6 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    instead of buying an exception here. Stated as a height rather than a min-height
    because the defect is headers growing, not headers shrinking. README: Cards. */
 .card-header { height:calc(28px + 11.5px * 1.45); }
-.card-header .section-label { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); }
 /* Base specs, so a component used outside a blessed container still has a rule
    that reaches it. Without these .section-label and .card-caption were styled
    only as .card-header/.section-header descendants, and the 14 instances that
@@ -268,7 +298,6 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    inline width/height pairs, which is how .icon-button-arrow ended up holding
    14px in 8 places, 15px in 4 and 16px in 3. Same defect as the button geometry
    in README: Buttons, one element further in. */
-.chevron svg.icon { width:15px; height:15px; }
 /* A chevron means "this row goes somewhere", so it only ever appears on something
    that actually navigates, and anything that navigates carries one. Anything that
    navigates is an <a> too, so the keyboard path is the platform's, not ours. */
@@ -281,7 +310,14 @@ a[data-go] { color:inherit; text-decoration:none; }
 /* A subtab selection has to change what is on screen, or the tab is decoration. */
 .page[data-view="favourites"] [data-view-only="overview"],
 .page[data-view="manage"] [data-view-only="overview"] { display:none; }
-.card-header[data-go]:hover { background:var(--bg-row-hover); }
+.card-header[data-go]:hover, button.card-header:hover { background:var(--bg-row-hover); }
+/* The disclosure band: the nav band as a button. Element reset only -- everything it looks
+   like comes from .card-header. Closed it is the card's whole face, so it rounds on all four
+   corners; open, like the nav band, only on top. */
+button.card-header { font:inherit; width:100%; background:none; border:0; text-align:left; cursor:pointer; border-radius:calc(var(--radius-card) - 1px); }
+button.card-header[aria-expanded="true"] { border-radius:calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0; }
+button.card-header[aria-expanded="true"] .chevron svg.icon { transform:rotate(180deg); }
+button.card-header:hover + .card-divider { margin-inline:0; }
 /* One data row, written once. Every list of records on this page is .data-row and the
    six family classes beside it name only what that list holds -- they are its variants,
    and the -row suffix is what says so. Before the identifier existed the families were
@@ -340,13 +376,17 @@ a[data-go] { color:inherit; text-decoration:none; }
 .card-body-tight { padding-top:6px; }
 .card-body-centered { padding:34px 28px; display:grid; justify-items:center; gap:14px; text-align:center; }
 .card-body-filters { padding:16px 18px; display:grid; gap:12px; }
+/* A body whose one child is a chart, in a card that is only as tall as the row it shares. The
+   card becomes a column so the body can take the leftover height, and the body passes it on. */
+.card:has(> .card-body-fill) { display:flex; flex-direction:column; }
+.card-body-fill { flex:1; display:flex; flex-direction:column; }
+.card-body-fill > .month-columns, .card-body-fill > .weekday-bars { flex:1; }
 /* The page heading inside a card and the sentence under it. Seven headings were
    unclassed <div>s carrying the full spec, which is how two of them ended up at
    17px against the other five at 19px, and the lead's bottom margin at 16px
    against 18px. The README's Typography section sets the weight and tracking; these name the two sizes. */
 .card-headline { font-size:19px; font-weight:600; letter-spacing:-.01em; }
 .card-subheading { font-size:17px; font-weight:600; letter-spacing:-.01em; margin-bottom:6px; }
-.card-headline-question { line-height:1.35; margin:2px 0 14px; }
 .card-lead { margin:2px 0 18px; font-size:13px; color:var(--text-muted); }
 /* The stepper card sits tight against the form below it. */
 .card-steps { margin-bottom:2px; }
@@ -385,11 +425,9 @@ a[data-go] { color:inherit; text-decoration:none; }
 .compare-tabs { display:flex; margin-top:6px; box-shadow:inset 0 -1px 0 var(--border-divider); }
 .compare-tabs button { flex:1; font:inherit; background:none; border:0; text-align:center; padding:10px 4px 12px; cursor:pointer; border-bottom:2px solid transparent; }
 .compare-tabs .compare-tabs-value { display:block; font-size:13px; font-weight:600; color:var(--text); }
-.compare-tabs .compare-tabs-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
+.compare-tabs .compare-tabs-label, .chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
 .compare-tabs button.is-on { border-bottom-color:var(--text); }
 .compare-tabs button:not(.is-on) .compare-tabs-value { color:var(--text-muted); }
-.chart-split-bar { display:flex; gap:3px; height:9px; margin-top:14px; }
-.chart-split-bar-segment { border-radius:5px; }
 .chart-legend { margin-top:4px; }
 .chart-legend-row { border-top:1px solid var(--border-divider); }
 .chart-legend-row:first-child { border-top:0; }
@@ -400,7 +438,8 @@ svg.chart { width:100%; display:block; }
 /* The label was a bare text node taking 12.5px off the row, which is how the one list
    with no element around its own label ended up half a point under every other list's
    title. It is a part with a name now, at the row spec's 13/600. README: Data Rows. */
-.chart-legend-row-title { font-size:13px; font-weight:600; }
+.chart-legend-row-title, .card-tray-row-title, .category-row-title,
+.entry-list .entry-name { font-size:13px; font-weight:600; }
 .chart-legend .amount { margin-left:auto; font-size:13px; font-weight:600; }
 .chart-legend .chevron { color:var(--text-faint); margin-left:6px; }
 
@@ -411,14 +450,13 @@ svg.chart { width:100%; display:block; }
    above and below. So these level up to the control instead of down to the label: one
    header gains air, none overflow, and the three are one height. README: Cards. */
 .section-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 2px; min-height:40px; }
-.section-header .section-label { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); }
 .button.button-pill { gap:6px; height:32px; padding:0 15px; border-color:#DFE3DE; background:var(--bg-card); color:var(--text); font-size:11px; letter-spacing:.04em; }
 
 /* dashboard card row */
 .dashboard-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
 .figure-card { font-size:21px; font-weight:700; letter-spacing:-.02em; }
 /* The vendor cards ride in a horizontal scroller and take the smaller figure. */
-.scroll-row .figure-card { font-size:17px; }
+.vendor-grid .figure-card { font-size:17px; }
 
 /* card personalisation.
    Reordering is button-driven, never drag-only: a keyboard has to be able to do
@@ -428,30 +466,42 @@ svg.chart { width:100%; display:block; }
 .dashboard-cards.is-editing > .card { border-style:dashed; border-color:var(--text-faint); }
 .card-reorder-bar { display:flex; align-items:center; gap:6px; padding:11px 14px 0; }
 .card-reorder-bar .card-reorder-position { font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin-right:auto; }
-.icon-button-reorder svg { width:14px; height:14px; }
-.icon-button-arrow svg.icon { width:14px; height:14px; }
 .icon-button-clear svg.icon { width:12px; height:12px; }
 .icon-button-reorder:disabled { opacity:.35; cursor:default; }
 .icon-button-reorder.icon-button-reorder-remove { color:var(--donut-red); }
 .card-tray { margin-top:18px; }
 .card-tray-row { border-top:1px solid var(--border-divider); }
 .card-tray-row:first-child { border-top:0; }
-.card-tray-row-title { font-size:13px; font-weight:600; }
 .card-tray-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .card-tray-row .button-pill { margin-left:auto; flex:none; }
 .card-tray-empty { margin:0; padding:4px 0; font-size:12px; color:var(--text-muted); }
 .dashboard-cards-empty { margin:0; padding:26px 20px; text-align:center; font-size:12.5px; color:var(--text-muted); border:1px dashed var(--text-faint); border-radius:var(--radius-card); }
 
 /* weekday bars */
-.weekday-bars { display:flex; align-items:flex-end; gap:8px; height:112px; margin-top:14px; }
-.weekday-bars > div { flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-end; height:100%; }
-.weekday-bars .chart-bar { align-self:stretch; }
+/* Grows into whatever the card gives it, with a 112px floor -- the Home card shares a grid row
+   with the category breakdown, so its height is the row's, not the chart's. The bar is a
+   percentage of its own track rather than a pixel height chosen in the API; the track is what
+   makes that percentage mean something, exactly as on .month-columns below. */
+.weekday-bars { display:flex; align-items:stretch; gap:8px; flex:1; min-height:112px; margin-top:14px; }
+.weekday-bars > div { flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-end; }
+.weekday-bars .weekday-bars-track { display:flex; align-items:flex-end; width:100%; flex:1; }
+/* No align-self here. It used to read `stretch`, which is what spanned the bar across the
+   column back when the bar was a direct child of that column and the cross axis was
+   horizontal. Inside the track the cross axis is vertical, and `stretch` on an item with a
+   definite height resolves to flex-start -- so all seven bars hung from the top of the track
+   instead of standing on its floor. Every bar was still exactly `track x share` tall, which is
+   why the height check passed: it measured the size and said nothing about where it sat. The
+   width comes from the .chart-bar rule below, which already sets 100%. */
+.weekday-bars .chart-bar { flex:none; }
 /* The track is the control's furniture and the height is the data, so a weekday the window
    spent nothing on still draws one: these bars are the chosen window's now, and a Monday-to-
    Friday window really does hold 0 on Saturday. Without the floor that day renders as a bare
    label under nothing, which reads as a broken bar rather than an empty one. */
-.weekday-bars .chart-bar { width:100%; min-height:3px; border-radius:var(--radius-compact); background:var(--bg-bar-track); position:relative; overflow:hidden; }
-.weekday-bars .chart-bar-fill { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact); }
+/* Rounded on top only -- these grow up from the day label like any bar chart's baseline, and a
+   bottom corner rounded to match the top drew every bar as a capsule floating clear of its own
+   axis, full height and 3px sliver alike. */
+.weekday-bars .chart-bar { width:100%; min-height:3px; border-radius:var(--radius-compact) var(--radius-compact) 0 0; background:var(--bg-bar-track); position:relative; overflow:hidden; }
+.weekday-bars .chart-bar-fill { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact) var(--radius-compact) 0 0; }
 .weekday-bars span { font-size:11px; color:var(--text-muted); font-weight:500; }
 .chart-legend-inline { display:flex; align-items:center; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-divider); font-size:11.5px; color:var(--text-body); }
 .chart-legend-inline .chart-swatch { width:10px; height:10px; border-radius:3px; background:var(--green); }
@@ -459,8 +509,12 @@ svg.chart { width:100%; display:block; }
 
 /* donut */
 .donut-box { display:grid; justify-items:center; padding-top:6px; }
-.donut { width:132px; height:132px; border-radius:50%; position:relative;
-	background:conic-gradient(var(--donut-red) 0 13%, var(--donut-yellow) 13% 27%, var(--donut-purple) 27% 33%, var(--donut-orange) 33% 43%, var(--donut-blue) 43% 100%); }
+/* No baked-in conic-gradient here: the prototype's own ring drew fixed shares -- 13%, 14%,
+   6%, 10%, 57% -- beside a category list that read different numbers, which is exactly the
+   "nothing rendered could fail" defect the comment atop Viz.jsx is about. Real segments are
+   set inline in JS; an account with no spend to split gets a flat neutral ring, not
+   someone else's category split rendered as its own. */
+.donut { width:132px; height:132px; border-radius:50%; position:relative; background:var(--border-card); }
 .donut::before { content:""; position:absolute; inset:17px; background:var(--bg-card); border-radius:50%; }
 .donut .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:1px; z-index:1; text-align:center; }
 .donut .ring-centre-value { font-size:16.5px; font-weight:700; letter-spacing:-.01em; }
@@ -471,14 +525,17 @@ svg.chart { width:100%; display:block; }
 .category-row:first-child { border-top:0; }
 .category-icon { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; flex:none; }
 .category-icon svg.icon { width:17px; height:17px; stroke-width:2; }
-.category-row-title { font-size:13px; font-weight:600; }
 .category-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .category-row .amount { margin-left:auto; font-weight:600; font-size:13px; }
 
 /* dark AI card */
 .ai-card-header { display:flex; align-items:center; gap:12px; }
+/* No baked-in 33% here either -- ProgressRing always computes and sets its own fill from
+   done/total, so a fixed default would only ever be the fallback for a fraction not yet
+   known, and rgb(255 255 255 / .22) (the ring's own "remaining" colour) reads as that
+   better than a stale third would. */
 .progress-ring { width:40px; height:40px; border-radius:50%; flex:none; position:relative;
-	background:conic-gradient(var(--green) 0 33%, rgb(255 255 255 / .22) 33% 100%); }
+	background:rgb(255 255 255 / .22); }
 .progress-ring::before { content:""; position:absolute; inset:4px; border-radius:50%; background:var(--bg-dark); }
 .progress-ring-value { position:absolute; inset:0; display:grid; place-items:center; font-size:10px; font-weight:600; z-index:1; }
 .ai-card-title-text { font-size:13.5px; font-weight:700; }
@@ -495,15 +552,30 @@ svg.chart { width:100%; display:block; }
 
 /* orders (spending) card */
 .chart-caption { padding:2px 0 0; }
-.chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
 .chart-caption-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
-.chart-axis { display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:4px; }
+/* The scale under a chart: ticks and labels, both placed by the same fraction of the box (see
+   ChartScale). Each row is its own positioning context and each mark is absolute inside it, so
+   a tick and its label share one x and cannot drift apart. */
+.chart-scale { margin-top:8px; }
+/* 1lh, because every label is absolutely positioned and a row of nothing but absolute children
+   collapses to no height at all. One line of this row's own text is exactly what the row used to
+   be when the labels were in flow, so the cards below it do not move: a hardcoded 14px here was
+   1.2px short of the 15.225 the 10.5px text actually occupies, and three charts on Home shifted
+   everything under them by that much three times over. */
+.chart-axis { position:relative; height:1lh; font-size:10.5px; color:var(--text-muted); margin-top:4px; }
+.chart-axis span { position:absolute; top:0; white-space:nowrap; }
 /* Key for a two-series chart. Both lines get named -- a swatch that labels one of two
    plotted series is worse than no key at all. Wraps rather than overflows on a phone. */
 .chart-series-key { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; color:var(--text-body); margin-top:2px; }
 .chart-series-key .chart-series-key-row { display:inline-flex; align-items:center; gap:6px; }
 .chart-series-key .chart-series-key-swatch { width:9px; height:9px; border-radius:3px; flex:none; }
 .entry-list { margin-top:8px; }
+/* The count under a truncated list ("The 5 most recent of 40 in Aug."). A block of its own, so
+   the button under it clears it -- .field-help is an inline span, and inline is what let this
+   line sit inside the row above it. Written as style="display:block;margin-top:10px" at its one
+   call site until the card became shared: an inline declaration outranks every rule the
+   stylesheet can write, so a value with a name belongs on the element as that name. */
+.entry-list-note { display:block; margin-top:10px; }
 /* Base spec, for the same reason .section-label and .card-caption have one: a group inside a
    card names itself, and the entry list is not the only group that does. The hero card's legend
    is written per month under a header that names a window, so it says which month over its own
@@ -513,7 +585,12 @@ svg.chart { width:100%; display:block; }
    swatch -- these initials are white at 10px/700, so every value has to clear 4.5:1
    against white. Four of the seven were the donut's chart hues, which are picked to
    separate ring segments and reached 2.24:1 under type. README: Color, Accessibility. */
-.entry-list .entry-avatar, .order-row-identity .entry-avatar { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
+/* Unscoped, like .category-icon above it. It was styled only under .entry-list and
+   .order-row-identity, so the mark was a size the parent happened to grant rather than a size
+   the avatar has -- and the first row family to use it outside those two rendered bare
+   initials on a coloured background at whatever the text size was. A component that only
+   looks right inside the parents it has met so far is a trap for the next parent. */
+.entry-avatar { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
 /* No line-height here. Pinning the wrapper at 1.45em computed one length off its own
    inherited 14px -- 20.3px -- and handed it to both lines, so a 13px name and an 11px
    meta were struck on the same 20.3px leading and the pair stood 40.6px tall. Every
@@ -521,12 +598,20 @@ svg.chart { width:100%; display:block; }
    = 34.8px, and the 5.8px was the whole of "Latest orders is spaced differently from
    Category breakdown". The value was inherited from a <br> layout that has been gone
    since the class-renaming sweep; keeping it kept that layout's leading. README: Data Rows. */
-.entry-list .entry-name { font-size:13px; font-weight:600; }
 .entry-list .entry-meta { font-size:11px; color:var(--text-muted); }
-.entry-list .amount { margin-left:auto; text-align:right; font-size:13px; font-weight:600; color:var(--text-positive); white-space:nowrap; flex:none; }
-/* A two-tone amount: the row's green label with the figure itself in --text. */
-.entry-list .amount .tabular-figures { color:var(--text); }
-.entry-list .entry-amount-sub { font-style:normal; font-size:11px; color:var(--text-muted); font-weight:500; }
+/* --text, not --text-positive. Green means one thing in this system -- money saved -- so a
+   slot that is green by default says "saved" about whatever is put in it, and three of the
+   four lists using this family put a total there. Two of them were then written as savings to
+   agree with the colour, which is the tail wagging: *Latest orders* on two pages listed
+   "+26,04 kr." in green where every other list of orders writes what the order cost. The
+   figure inside a two-tone amount used to be overridden back to --text here; with the slot
+   itself neutral, that override said nothing and is gone. README: Color, Data Rows. */
+.entry-list .amount { margin-left:auto; text-align:right; font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; flex:none; }
+/* The saving under a total is one fact drawn in three row families, so it is one rule: it was
+   muted 500 in one and green 600 in the other two once, and then one spec in three copies.
+   README: Data Rows. */
+.entry-list .entry-amount-sub, .entity-row .entity-row-amount-sub,
+.order-row .order-row-total-saved { font-style:normal; font-size:11px; color:var(--text-muted); font-weight:500; }
 /* The chevron is a flex item like any other, so the row that navigates spends 26px of
    its right-hand run on one and lands its figure 26px left of the rows that do not --
    the money column stepping in on the only row a pointer ever lights up. The rows
@@ -540,8 +625,6 @@ svg.chart { width:100%; display:block; }
 
 /* saved card */
 .chip-saving { display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:8px; background:var(--bg-positive); color:var(--text-positive); font-size:11px; font-weight:700; }
-.chip-saving svg.icon { width:13px; height:13px; }
-
 
 /* ---------------- inner-page patterns from the design system ---------------- */
 .page:not(.is-on) { display:none !important; }
@@ -557,11 +640,9 @@ svg.chart { width:100%; display:block; }
 .item-row > span:not(:has(.item-row-title)) { flex:none; }
 .item-row-title { overflow-wrap:anywhere; }
 .item-row .item-row-icon { width:36px; height:36px; border-radius:var(--radius-compact); background:#DFF0E6; color:#12A56B; display:grid; place-items:center; font-size:14px; font-weight:700; flex:none; }
-.item-row .item-row-icon svg.icon { width:17px; height:17px; }
 /* The drag handle was a bare <span> styling itself, down to a var(--text-faint,#9AA39B)
    whose fallback had drifted a digit from the token it falls back to. */
 .item-row .item-row-grip { color:var(--text-faint); cursor:grab; }
-.item-row .item-row-grip svg.icon { width:15px; height:15px; }
 .item-row-title { font-size:13px; font-weight:600; color:var(--text-strong,#0B0F0D); }
 /* The meta ellipses rather than wrapping. A second line here costs the row 14.72px
    and the step reads as a broken list rather than as more text -- 12 of 28 metas
@@ -588,7 +669,6 @@ svg.chart { width:100%; display:block; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:18px; align-items:start; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; min-width:0; }
 .entry-list .entry-glyph { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:#F3F5F1; flex:none; }
-.entry-list .entry-glyph svg.icon { width:17px; height:17px; }
 /* A tight top belongs to the container, not to the row. The row's padding is the box
    the hover tint paints, so the 7px taken off the first row to close the gap under the
    divider is 7px the lit band loses above the text and keeps below it -- ink 2px under
@@ -603,13 +683,9 @@ svg.chart { width:100%; display:block; }
 .empty-state .empty-state-icon svg.icon { width:19px; height:19px; }
 .empty-state p { margin:0; font-size:13.5px; color:var(--text-body); max-width:30ch; }
 .chip-tag { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:8px; font-size:11px; font-weight:600; width:max-content; }
-.chip-tag svg.icon { width:13px; height:13px; }
-.promo { border:1px solid var(--border-card); border-radius:14px; padding:14px; display:grid; gap:8px; min-width:0; align-content:start; }
 .panel-heading { font-weight:700; }
-.promo-title { font-weight:700; font-size:14.5px; letter-spacing:-.01em; }
-.promo p { margin:0; font-size:12px; color:var(--text-muted); line-height:1.5; }
-.promo-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(200px,1fr); gap:12px; overflow:hidden; }
-.chart-ruler { height:9px; background:repeating-linear-gradient(to right, #D9DDD8 0 1px, transparent 1px 23px); margin-top:8px; }
+.chart-ruler { position:relative; height:9px; }
+.chart-ruler i { position:absolute; top:0; width:1px; height:9px; background:#D9DDD8; }
 .segmented.segmented-compact { padding:3px; border-radius:var(--radius-page); }
 .segmented.segmented-compact button { padding:7px 16px; border-radius:9px; font-size:12px; }
 .row-inline { display:flex; align-items:center; gap:10px; }
@@ -652,21 +728,34 @@ svg.chart { width:100%; display:block; }
    and colour alone is not a message (1.4.1). README: Fields and Forms. */
 .field > span.field-error { font-size:12px; font-weight:600; color:var(--text-negative); }
 .field-thumb { width:32px; height:32px; border-radius:8px; background:#F0F2EF; display:grid; place-items:center; color:#7C867E; flex:none; }
-.field-thumb svg.icon { width:17px; height:17px; }
 .kpi-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
 .card-kpi span { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); font-weight:600; }
 .card-kpi .card-kpi-value { font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.02em; text-transform:none; font-weight:700; }
 .card-kpi .card-kpi-label { font-size:12px; color:var(--text-muted); letter-spacing:normal; text-transform:none; font-weight:500; }
 .delta { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; }
-.delta svg.icon { width:13px; height:13px; }
+/* Three tones, because a delta has three things to say and only ever had two colours for them.
+   Neutral used to carry both "moved the wrong way" and "there is nothing to compare against",
+   which are opposite messages in the same body grey -- so a month where spending, average order
+   and shipping all rose read as four unremarkable lines with one green one. --text-negative is
+   the token the colour table already names for a negative delta, and this is the first rule to
+   use it for one; every other use is a form error. Both tones are qualified with .delta because
+   `.card-kpi span` sets a colour and outranks a lone class. README: Color. */
 .delta.delta-good { color:var(--text-positive); }
+.delta.delta-bad { color:var(--text-negative); }
 .delta.delta-neutral { color:var(--text-body,#3A423D); }
 .meter { position:relative; height:10px; border-radius:5px; background:#E7EAE5; }
 .meter-fill { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--green); }
 .meter-marker { position:absolute; top:-4px; bottom:-4px; width:2.5px; border-radius:2px; background:var(--text); }
-.month-columns { display:flex; align-items:flex-end; gap:14px; height:150px; }
-.month-columns > div { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%; }
-.month-columns-fill { width:100%; border-radius:8px 8px 4px 4px; background:#E2ECE9; }
+/* The track is the scale, and the label is outside it: a bar is a percentage of the scale, and a
+   scale that includes the label under it makes every tall bar shrink to the same height.
+
+   150px is the track's floor, not its height. The card this chart sits in shares a grid row with
+   one that grows with the account -- ten legend rows beside six bars -- so a fixed track left a
+   third of the card empty under the labels. It grows into whatever the row gives it. */
+.month-columns { display:flex; align-items:stretch; gap:14px; }
+.month-columns > div { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.month-columns-track { display:flex; align-items:flex-end; width:100%; flex:1; min-height:150px; }
+.month-columns-fill { width:100%; flex:none; border-radius:8px 8px 4px 4px; background:#E2ECE9; }
 .month-columns .is-on .month-columns-fill { background:var(--green); }
 .month-columns span { font-size:11px; color:var(--text-muted); }
 @media (max-width:900px) { .kpi-row { grid-template-columns:repeat(2,minmax(0,1fr)); } }
@@ -678,6 +767,22 @@ svg.chart { width:100%; display:block; }
    carry its denser 13.5/11.5 type. gap:12px and align-items:center are not restated --
    they are the identifier's and they already agreed, and a value restated beside the one
    it copies is the near-miss the identifier exists to stop. README: Data Rows. */
+/* One row, two links. The strip owns the divider and the hover, so the pair reads as a single
+   row rather than a row with something bolted to it; each half keeps its own focus ring, since
+   they are two destinations and a keyboard has to be able to tell them apart. */
+.entity-row { display:flex; align-items:stretch; gap:4px; border-bottom:1px solid var(--border-divider); }
+.entity-row:last-child { border-bottom:0; }
+.entity-row .entity-row-main { flex:1; min-width:0; padding:12px 0; border-radius:8px; }
+.entity-row .entity-row-text { min-width:0; flex:1; }
+.entity-row .entity-row-name, .order-row .order-row-vendor,
+.stepper-step-label { font-size:13.5px; font-weight:600; color:var(--text); }
+.entity-row .entity-row-meta { font-size:11.5px; color:var(--text-muted); }
+.entity-row .entity-row-amount { text-align:right; font-weight:600; font-size:13.5px; color:var(--text); }
+.entity-row .entity-row-orders { display:inline-flex; align-items:center; justify-content:center;
+	width:38px; flex:none; color:var(--text-muted); border-radius:8px; }
+.entity-row .entity-row-orders:hover { background:var(--bg-app); color:var(--text); }
+.entity-row .entity-row-orders svg.icon { width:16px; height:16px; }
+
 .order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; padding:12px 0; border-bottom:1px solid var(--border-divider); }
 .order-row .order-row-identity { display:flex; align-items:center; gap:12px; min-width:0; }
 .order-row .order-row-identity-text { min-width:0; }
@@ -688,12 +793,9 @@ svg.chart { width:100%; display:block; }
    row became an <a>, the only one of its type, and it was the anchor that lost
    its border instead. A tag is not what makes this the last row. README: Responsive Layout. */
 .order-row:not(:has(~ .order-row)) { border-bottom:0; }
-.order-row .order-row-vendor { font-size:13.5px; font-weight:600; color:var(--text); }
 .order-row .order-row-meta { font-size:11.5px; color:var(--text-muted); }
 .order-row .order-row-total { text-align:right; font-weight:600; font-size:13.5px; }
-.order-row .order-row-total-saved { font-style:normal; font-size:11px; color:var(--text-positive); font-weight:600; }
 .order-row .order-row-chevron { color:var(--text-muted); }
-.order-row .order-row-chevron svg.icon { width:15px; height:15px; }
 .chip-status.chip-status-warning { background:#F6ECD9; color:#84651E; }
 .chip-status.chip-status-warning::before { background:#D9A63C; }
 .note { border-radius:var(--radius-page); padding:11px 14px; font-size:13px; color:var(--text); }
@@ -717,12 +819,19 @@ svg.chart { width:100%; display:block; }
 .confirm-dialog-card { background:var(--bg-card); border-radius:var(--radius-card); padding:18px 20px; font-size:13px; color:var(--text); box-shadow:0 14px 44px rgb(11 26 18 / .22); }
 .confirm-dialog-card strong { display:block; margin-bottom:4px; }
 .confirm-dialog-card p { margin:0; color:var(--text-body); line-height:1.5; }
+/* Shrink-wraps its image: no fixed width, so the dialog is exactly as big as the photo up to
+   the viewport ceiling below and never bigger. */
+.image-lightbox { border:0; padding:0; background:transparent; overflow:visible; }
+.image-lightbox::backdrop { background:rgb(11 26 18 / .5); }
+.image-lightbox-img { display:block; max-width:calc(100vw - 48px); max-height:calc(100vh - 48px); border-radius:var(--radius-card); box-shadow:0 14px 44px rgb(11 26 18 / .3); }
+.image-lightbox-close { position:absolute; top:-16px; right:-16px; background:var(--bg-card); box-shadow:0 4px 14px rgb(11 26 18 / .25); }
 .progress-bar { height:6px; border-radius:3px; background:#E7EAE5; overflow:hidden; }
 .progress-bar-fill { height:100%; width:72%; background:var(--green); border-radius:3px; }
 .progress-bar.progress-bar-indeterminate .progress-bar-fill { width:38%; animation:pslide 1.5s ease-in-out infinite; }
 @keyframes pslide { from { transform:translateX(-100%); } to { transform:translateX(264%); } }
-.document-preview { background:#F2F4F1; border-radius:var(--radius-page); display:grid; place-items:center; height:180px; color:#9AA39B; }
+.document-preview { background:#F2F4F1; border-radius:var(--radius-page); display:grid; place-items:center; height:180px; color:#9AA39B; overflow:hidden; }
 .document-preview svg { width:46px; height:46px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.document-preview-photo { width:100%; height:100%; object-fit:cover; display:block; }
 /* The preview stands in for the file, so it draws the file's format -- ti-photo for a
    photo or a screenshot, ti-file-text for a PDF. Both glyphs sit in the markup and the
    variant picks one, so the state is reachable without script. It drew one receipt
@@ -739,21 +848,22 @@ svg.chart { width:100%; display:block; }
 /* min-width:0 only lets the name shrink on a line that cannot wrap, and .space-between
    wraps at 700 -- so the phone rule has to be overruled here by class count, not by
    source order. */
-.space-between.document-name-row { flex-wrap:nowrap; }
+.space-between.document-name-row { flex-wrap:nowrap; margin-top:10px; }
 .document-name-row .field-help { flex:none; }
 .chip-status { display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 12px; border-radius:9px; background:#DFF3EA; color:var(--text-positive); font-size:11.5px; font-weight:600; }
 .chip-status::before { content:""; width:6px; height:6px; border-radius:50%; background:#14AC72; }
 /* A thumbnail in a list row is the row's tile, so it is the row spec's tile: 36 and
    --radius-compact, not a 44px box of its own. It only ever appears inside .item-row. */
-.document-thumb { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; }
-.document-thumb svg.icon { width:17px; height:17px; }
+.document-thumb { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; overflow:hidden; font-size:0; }
+.document-thumb-img { width:100%; height:100%; object-fit:cover; display:block; }
+.document-thumb-button { border:0; padding:0; cursor:pointer; }
+.document-thumb-button:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
 /* combobox: the system's replacement for every native select.
    Searchable, grouped, with a create action at the foot. */
 .combobox { position:relative; }
 .combobox > .field-shell { cursor:pointer; }
 .combobox > .combobox-panel { display:none; }
 .combobox.is-open > .combobox-panel { display:block; }
-.combobox.is-open > .field-shell { border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
 .combobox.is-open > .field-shell .chevron-icon { transform:rotate(180deg); }
 .combobox-panel { position:absolute; top:calc(100% + 6px); left:0; right:0; background:#fff; border:1px solid var(--border-control); border-radius:14px; box-shadow:0 18px 44px rgb(11 26 18 / .14); padding:6px; z-index:6; }
 .combobox-group { padding:8px 4px 3px; }
@@ -777,7 +887,6 @@ svg.chart { width:100%; display:block; }
    inline, which is a paint mode, not a per-record value. */
 .combobox-option-star svg.icon { width:14px; height:14px; fill:currentColor; stroke:none; }
 .combobox-action { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:9px; margin-top:4px; padding:11px 12px; border-top:1px solid var(--border-divider); font-size:12px; font-weight:600; letter-spacing:.05em; color:var(--text); cursor:pointer; }
-.combobox-action svg.icon { width:15px; height:15px; }
 /* A placeholder truncates, it never wraps. Wrapping also knocks the control off
    its geometry tier (SS5): the search field grew to two lines and stood taller
    than the FILTERS and Sort controls sharing its row. Trailing bits (unit, key
@@ -796,7 +905,7 @@ svg.chart { width:100%; display:block; }
    9px gap the rest of the row uses -- room the input (flex-basis 0 in Combobox.jsx, so
    it competes for whatever's left rather than reserving any of its own) would otherwise
    run its overflow straight through. */
-.field-shell-chips { flex-wrap:wrap; padding:8px 43px 8px 10px; position:relative; }
+.field-shell-chips { flex-wrap:wrap; padding:8px 43px 8px 10px; position:relative; height:auto; min-height:48px; }
 .field-shell-chips > .chevron-icon { position:absolute; top:0; bottom:0; right:10px; margin:auto 0; }
 /* overflow is set rather than left to the UA sheet: Blink and WebKit default a textarea to
    auto and Gecko computes visible, so the three engines disagreed on a property the walk
@@ -816,7 +925,7 @@ svg.chart { width:100%; display:block; }
    absolute box in a static shell resolves that against the viewport. The input
    was 1440px wide and invisible, hanging 657px off the right of the only page
    that carries one and scrolling the document into blank space. README: Responsive Layout. */
-.field-shell > .field-file-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.field-file-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 label.field-shell { cursor:pointer; }
 .field-file-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
 /* No engine may draw a calendar beside ours (the icon set is one style only, and a browser-drawn
@@ -832,7 +941,18 @@ label.field-shell { cursor:pointer; }
 /* The combobox chevron keeps its own size wherever it is used -- in a field
    shell and in the FILTERS button -- so it is sized on the class, not the
    container. */
-svg.icon.chevron-icon { width:14px; height:14px; }
+/* The icon tiers (README: Buttons -- an icon follows its tier, not its call site). The same
+   four numbers were restated in twenty scattered rules, one per context, which is how a tier
+   drifts one selector at a time; each tier is one rule naming its contexts. Order matters
+   twice: compact and pill must beat .button's 15px, and the chevron the field-shell's. */
+.button svg.icon, .chevron svg.icon, .item-row .item-row-grip svg.icon,
+.order-row .order-row-chevron svg.icon, .combobox-action svg.icon,
+.ai-suggestion-row button svg.icon { width:15px; height:15px; }
+.topbar .topbar-actions .button svg.icon, .button-compact svg.icon, .icon-button-reorder svg,
+.icon-button-arrow svg.icon, svg.icon.chevron-icon { width:14px; height:14px; }
+.item-row .item-row-icon svg.icon, .entry-list .entry-glyph svg.icon, .field-thumb svg.icon,
+.document-thumb svg.icon, .account-row > span > svg.icon { width:17px; height:17px; }
+.button-pill svg.icon, .chip-saving svg.icon, .chip-tag svg.icon, .delta svg.icon { width:13px; height:13px; }
 .field-shell > svg.icon.chevron-icon { margin-left:auto; }
 .field-shell.field-shell-date > input[type="date"] { flex:none; width:calc(100% + 56px); }
 /* Unscoped for the same reason as the value pseudo-element below: time, month and
@@ -847,7 +967,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    and the pseudo-element does not exist on other input types, so this is inert there.
    Blink and Gecko already left-align, so nothing changes off WebKit. */
 .field-shell > input::-webkit-date-and-time-value { text-align:left; }
-.field-shell:focus-within { border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
+.field-shell:focus-within, .combobox.is-open > .field-shell { border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
 /* A rejected field wears the rejection while it is focused too -- the user is
    standing in the field being told about, so the focus edge is the one that has
    to give way. Both selectors compute 0,2,0 (:has adds nothing, its argument
@@ -916,7 +1036,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .stepper-step .stepper-icon { width:40px; height:40px; border-radius:var(--radius-page); border:1px solid var(--border-control); display:grid; place-items:center; color:var(--text-body); background:#fff; }
 .stepper-step .stepper-bar { height:4px; border-radius:2px; background:#E7EAE5; width:100%; }
 .stepper-step.is-on .stepper-bar { background:var(--green); }
-.stepper-step-label { font-size:13.5px; font-weight:600; color:var(--text); }
 .stepper-step:not(.is-on) .stepper-step-label { color:var(--text-muted); font-weight:500; }
 .stepper-step.stepper-step-done .stepper-icon { background:var(--green); border-color:var(--green); color:#fff; }
 .stepper-step.stepper-step-done .stepper-bar { background:var(--green); }
@@ -996,7 +1115,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .ai-prompt-bar > span > svg.icon { width:20px; height:20px; }
 .ai-suggestion-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
 .ai-suggestion-row button { font:inherit; display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px; border-radius:var(--radius-compact); border:1px solid #D9DED8; background:var(--bg-card); font-size:12px; font-weight:500; color:var(--text-body); cursor:pointer; }
-.ai-suggestion-row button svg.icon { width:15px; height:15px; }
 .spotlight-pair { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .spotlight-pair .card .card-body { display:grid; gap:8px; }
 .button.button-ghost { gap:6px; padding:0 15px; border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; width:max-content; }
@@ -1008,10 +1126,18 @@ svg.icon.chevron-icon { width:14px; height:14px; }
    classic 15px bar is drawn hard against the cards' bottom border and reads as covering
    them. It is the same 14px as the gap between the cards, so the bar gets a lane of its
    own. README: Views. */
-.scroll-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(210px,1fr); gap:14px; overflow-x:auto; padding-bottom:14px; }
-.spend-gauge-row { display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
-.spend-gauge { width:170px; height:170px; border-radius:50%; position:relative; flex:none;
-	background:conic-gradient(var(--donut-blue) 0 46%, var(--bg-card) 46% 48%, var(--green) 48% 69%, var(--bg-card) 69% 71%, var(--donut-yellow) 71% 84%, var(--bg-card) 84% 86%, var(--donut-purple) 86% 98%, var(--bg-card) 98% 100%); }
+/* Wraps rather than scrolls sideways. It was one row of columns with overflow-x:auto, which
+   put every vendor past the fourth behind a horizontal scrollbar -- fine for the five the API
+   used to answer with, and a filing cabinet on its side once it answers with all of them.
+   auto-fill lets the row take as many as fit, so the count follows the width instead of a
+   number written here: four across the desktop column, fewer as it narrows, one on a phone. */
+.vendor-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px; }
+/* A ring beside the rows that name its segments. Was .spend-gauge-row, which named the one
+   ring that happened to use it first -- Categories' Breakdown ring needs the same arrangement
+   and has no gauge on the page, so the class is named for the arrangement instead. */
+.ring-row { display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
+/* Same reasoning as .donut -- no baked-in split rendered when there's nothing to show. */
+.spend-gauge { width:170px; height:170px; border-radius:50%; position:relative; flex:none; background:var(--border-card); }
 .spend-gauge::before { content:""; position:absolute; inset:22px; background:var(--bg-card); border-radius:50%; }
 .spend-gauge .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:2px; z-index:1; text-align:center; }
 .spend-gauge .ring-centre-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
@@ -1019,7 +1145,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 .account-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--border-divider); }
 .account-row:first-child { border-top:0; }
 .account-row-text { font-size:12.5px; }
-.account-row > span > svg.icon { width:17px; height:17px; }
 .card-question .card-question-label { font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--text-muted); text-transform:uppercase; }
 .card-question .card-question-title { font-size:15px; font-weight:700; margin:8px 0 12px; letter-spacing:-.01em; }
 @media (max-width:900px) { .two-column, .spotlight-pair { grid-template-columns:1fr; } }
@@ -1044,7 +1169,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	.app-shell { grid-template-columns:250px minmax(0,1fr); }
 	.content-grid { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
 }
-@media (max-width:1180px) { .order-list-grid { grid-template-columns:minmax(0,1fr); } .promo-row { grid-auto-columns:minmax(180px,1fr); overflow-x:auto; } }
+@media (max-width:1180px) { .order-list-grid { grid-template-columns:minmax(0,1fr); } }
 /* The phone layout is this one block, and it is the last breakpoint in the file so
    its rules win over the wider ones without any of them needing a bump. Split across
    two blocks it disagreed with itself in silence: the nav was sized 50px/10px here
@@ -1135,6 +1260,7 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	.order-row > .order-row-chevron { grid-area:c; }
 	.row-inline { flex-wrap:wrap; }
 	.space-between { flex-wrap:wrap; }
+	.toggle-help { padding-right:0; }
 	/* Wrapping needs height:auto, but the buttons have no vertical padding to fall
 	   back on -- .field .segmented button zeroes it, and it outranks .segmented.segmented-compact
 	   button only by source order, both being two classes and an element. So the
@@ -1170,9 +1296,6 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   line, flush under the tile. Any value from 62% clears the threshold; 64% clears
 	   it by more than the tile geometry can move. README: Responsive Layout. */
 	.item-row > div:has(.item-row-title) { flex:1 1 64%; }
-	/* The promo row scrolls sideways from 1180 down; on a phone it stacks instead --
-	   a 180px card and a swipe are both too small to be worth it at this width. */
-	.promo-row { grid-auto-flow:row; grid-auto-columns:unset; grid-template-columns:1fr; }
 	/* .global-finder carries the margin-left:auto that pushes the actions right, and it is
 	   hidden here, so .topbar-actions has to take the job over or it sits against the title. */
 	.global-finder { display:none; }
@@ -1221,6 +1344,141 @@ svg.icon.chevron-icon { width:14px; height:14px; }
 	   here the edge does it for nothing. */
 	.space-between > .row-inline:first-child { flex:1 0 100%; justify-content:space-between; }
 }
+/* ---- Layout values retired from inline styles ----
+   An inline style outranks every rule this file can write (README: Responsive Layout), so a
+   layout value lives here under a name, and an element carries a style attribute only when the
+   value is the data speaking: a record's colour, a chart's share, a dragged row's size.
+   Each class notes its sites; a match count is the check that it reaches them and nothing else. */
+
+/* Shared. */
+.nowrap { white-space:nowrap; }
+.push-end { margin-left:auto; }
+.card-lead-flush { margin-top:0; }
+.summary-saved { color:var(--text-positive); font-weight:600; }
+.danger-note { color:var(--text-negative); font-weight:600; }
+.chart-legend-fill { flex:1; min-width:170px; }
+.field-help-below { display:block; margin-top:8px; }
+.field-help-tight { margin:2px 0 0; }
+.panel-cta { margin-top:10px; }
+.chip-row { gap:6px; }
+.chip-row .button-link { margin-left:6px; }
+.row-actions { gap:4px; }
+.space-between-top { align-items:flex-start; }
+.section-label-break { display:block; margin-top:10px; }
+.inset-panel-note { padding:10px 12px; }
+.card-divider-gap { margin:6px 0 0; }
+.meter-under-caption { margin-top:14px; }
+.chart-under-caption { margin-top:8px; }
+.caption-chip-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.form-actions-note { align-self:center; }
+.async-live { display:contents; }
+.confirm-dialog .form-actions { margin-top:12px; }
+
+/* The pagers: All orders' buttons, Statistics' arrows. */
+.pager-row { margin-top:12px; }
+.pager-buttons { gap:8px; }
+.pager-buttons .button:disabled { opacity:.45; }
+.pager-arrow:disabled { opacity:.45; }
+[data-filters-toggle] .chevron-icon { color:var(--text-muted); }
+
+/* The colour and icon pickers on the category and vendor forms. */
+.colour-picker { gap:6px; flex-wrap:wrap; }
+.colour-swatch { width:30px; height:30px; }
+.colour-swatch[aria-pressed="true"], .colour-picker-face.is-on { box-shadow:0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-strong); }
+.colour-picker-custom { position:relative; display:inline-block; width:30px; height:30px; }
+.colour-picker-face { width:30px; height:30px; pointer-events:none; }
+.colour-picker-input { position:absolute; inset:0; width:100%; height:100%; border:0; padding:0; margin:0; opacity:0; cursor:pointer; }
+.colour-picker-contrast { align-self:center; margin-left:4px; }
+.icon-picker { display:grid; gap:8px; }
+.icon-picker .field-shell { height:38px; }
+.icon-picker-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(38px, 1fr)); gap:6px; max-height:168px; overflow-y:auto; padding:2px; }
+.icon-picker-tile { width:100%; height:34px; }
+.icon-picker-tile[aria-checked="true"] { background:var(--bg-dark); color:#fff; border-color:var(--bg-dark); }
+.icon-picker-empty { grid-column:1 / -1; }
+.category-preview { pointer-events:none; }
+
+/* Toasts. The show transition lives here so the reduced-motion block above reaches it,
+   which the inline copy it replaces could not (README: Feedback). */
+/* Centred, not top-aligned: a toast is one short sentence beside a 26px dismiss button, and
+   flex-start left the text riding high against it. */
+.toast { display:flex; align-items:center; gap:10px; padding:12px 12px 12px 14px; border-left:3px solid var(--green); box-shadow:0 12px 28px rgb(11 26 18 / .16); pointer-events:auto; transition:opacity .18s ease, transform .18s ease; }
+.toast:not(.is-shown) { opacity:0; transform:translateY(-6px); }
+.toast-negative { border-left-color:var(--text-negative); }
+.toast-icon { display:grid; place-items:center; flex:none; color:var(--green); }
+.toast-negative .toast-icon { color:var(--text-negative); }
+.toast-message { flex:1; min-width:0; font-size:13px; line-height:1.45; color:var(--text-body); }
+.toast .icon-button-clear { margin-left:0; }
+/* The stack the toasts land in; its top is measured off the top bar at runtime, so that one
+   value rides on the element. */
+.toast-stack { position:fixed; right:14px; z-index:80; display:grid; gap:8px; width:min(360px, calc(100vw - 28px)); pointer-events:none; }
+.combobox-action .combobox-option-meta { font-weight:500; }
+.chip-tag-pink { background:#F6E3F1; color:#A2477F; }
+.chip-tag-blue { background:#DFF0F7; color:#20708C; }
+
+/* The reorder grip on item rows. */
+.item-row-grip { font:inherit; background:none; border:0; padding:0; display:inline-flex; align-items:center; flex:none; touch-action:none; cursor:grab; }
+.item-row-grip.is-dragging { cursor:grabbing; }
+
+/* Order detail. */
+.order-title { font-size:22px; font-weight:600; letter-spacing:-.01em; }
+.order-subtitle { font-size:12.5px; }
+.order-head-actions { gap:8px; }
+.order-chips { gap:6px; margin-top:12px; flex-wrap:wrap; }
+.attachment-preview { padding:0 4px 10px; }
+
+/* Statistics. */
+.stats-toolbar { flex-wrap:wrap; gap:12px; padding:2px 2px 0; }
+.pager-heading { font-size:16px; letter-spacing:-.01em; }
+.figure-unit { font-weight:500; font-size:14px; color:var(--text-muted); }
+.rhythm-bars { min-height:86px; }
+
+/* Orders overview's two-series key. */
+.swatch-current { background:var(--blue); }
+.swatch-previous { background:var(--blue-light); }
+.card-toggle-row { margin-bottom:14px; }
+
+/* Scan. */
+.scan-drop { cursor:pointer; }
+/* One drag-over affordance for every drop target -- the scan bar and the attachment drop zone
+   each carried their own inline copy, one at 3px offset and one at 2. */
+.is-dragover { outline:2px dashed var(--green); outline-offset:2px; }
+.empty-state.is-dragover { border-radius:14px; }
+.scan-drop-icon { color:var(--text-faint); }
+.scan-info-row { margin-top:22px; }
+.scan-check-icon { color:var(--green); }
+.scan-info-icon { color:var(--text-body); }
+.scan-reading-preview { width:120px; height:150px; }
+.scan-source-open { height:520px; }
+.scan-reading-progress { width:100%; max-width:420px; }
+.note-lead { margin-bottom:16px; }
+.note-above-row { margin-bottom:10px; }
+.chip-matched { height:24px; font-size:10.5px; }
+.line-editor { margin:4px 0; }
+
+/* Sign in and register. The status line wears the form-status classes the order forms'
+   verdict line already defines -- it is the same line, and it was drawn a third way here. */
+.auth-switch { margin-top:14px; }
+
+/* The record preview on the vendor and category forms. */
+.summary-preview { margin-bottom:4px; }
+
+/* The import card's request shape on Settings: reference material for a program's owner, so
+   it reads like source -- monospace, inset, scrolling inside its own box rather than ever
+   widening the card (README: Responsive Layout). Token colours are the app's own. */
+.import-schema { margin:0 0 12px; padding:12px 14px; background:#F2F4F1; border-radius:var(--radius-page); font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; line-height:1.6; color:var(--text-body); overflow-x:auto; }
+.tok-key { color:var(--text); font-weight:600; }
+.tok-str { color:var(--text-positive); }
+.tok-num { color:var(--blue); }
+.tok-pun { color:var(--text-muted); }
+.tok-req { color:var(--text); font-weight:700; }
+.tok-note { color:var(--text-muted); }
+.import-caption { display:block; margin:0 0 16px; }
+.import-rules { margin:0 0 16px; padding-left:16px; display:grid; gap:5px; font-size:12px; color:var(--text-muted); }
+.import-rules code, .card-body .field-help code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; color:var(--text-body); background:#F2F4F1; padding:1px 4px; border-radius:4px; }
+
+/* Vendor overview's per-card actions. */
+.entity-actions { margin-top:10px; }
+
 /* Reduced motion calms the interface but must never freeze a busy indicator:
    a stopped spinner reads as a hung app. Progress keeps moving, just slower. */
 @media (prefers-reduced-motion: reduce) {

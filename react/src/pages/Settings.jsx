@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
@@ -10,7 +11,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	getHomeContent, getOrderDraft, getOrders, getSettings, resetStoredData, saveSettings, sorts, spendKinds
+	cardRowOptions, getCategories, getHomeContent, getOrderDraft, getOrders, getSettings,
+	getVendors, listSorts, logout, populateDemoData, resetStoredData, saveSettings, sorts,
+	spendKinds
 } from '../api/client.js'
 
 /* Order settings.
@@ -30,15 +33,68 @@ import {
 
 const PAGE_SIZES = ['5', '10', '25', '50']
 
+/* The import card's reference block. Every JSON fragment is JSON.stringify's own output over
+   a real example value -- a hand-formatted block with annotation columns drifted out of
+   alignment immediately -- and the colour is a small tokenizer over that output: keys strong,
+   strings green, numbers blue, punctuation muted. The rules the annotations used to carry sit
+   in the list under the block instead. */
+const IMPORT_EXAMPLE = {
+	orders: [{
+		vendor: 'Bilka', date: '2026-07-18', kind: 'Expense', status: 'Delivered',
+		categories: ['Groceries'], shipping: 0, reference: 'A-10419', note: '',
+		items: [{
+			title: 'Rugbrød', quantity: 1, price: 24.95, retail: 32.00, note: '',
+			attachments: [{ filename: 'brod.jpg', contentType: 'image/jpeg', data: '<base64>' }]
+		}],
+		attachments: [{ filename: 'receipt.pdf', contentType: 'application/pdf', data: '<base64>' }]
+	}]
+}
+
+const tokenizeJson = (text, prefix) => {
+	const pattern = /("(?:[^"\\]|\\.)*")(\s*:)?|-?\d+(?:\.\d+)?|[{}[\],]/g
+	const out = []
+	let last = 0, n = 0, m
+	while ((m = pattern.exec(text))) {
+		if (m.index > last) out.push(text.slice(last, m.index))
+		const key = `${prefix}-${n++}`
+		if (m[1] != null) out.push(<span key={key} className={m[2] ? 'tok-key' : 'tok-str'}>{m[1]}</span>, m[2] ?? '')
+		else if (/^[{}[\],]$/.test(m[0])) out.push(<span key={key} className="tok-pun">{m[0]}</span>)
+		else out.push(<span key={key} className="tok-num">{m[0]}</span>)
+		last = m.index + m[0].length
+	}
+	out.push(text.slice(last))
+	return out
+}
+
+/* Three boxes, each holding only the request or response itself; what each one means is
+   ordinary prose beneath its box, never annotation lines inside it. */
+const RECIPE_LOGIN = [
+	<span key="req" className="tok-req">POST /api/auth/login</span>, '\n',
+	...tokenizeJson(JSON.stringify({ email: '...', password: '...' }, null, 2), 'login')
+]
+const RECIPE_REQUEST = [
+	<span key="req" className="tok-req">POST /api/orders/import</span>, '\n',
+	...tokenizeJson(JSON.stringify(IMPORT_EXAMPLE, null, 2), 'body')
+]
+const RECIPE_RESPONSE = [
+	<span key="ok" className="tok-req">200</span>, '\n',
+	...tokenizeJson(JSON.stringify({ imported: 1, orders: ['...'], failed: [{ index: 3, error: '...' }] }, null, 2), 'resp')
+]
+
 export default function Settings() {
 	const state = useApi(getSettings)
 	const toast = useToast()
 	const [confirming, setConfirming] = useState(false)
+	const [filling, setFilling] = useState(false)
 
 	/* The endpoints that bake a setting into their answer. Anything cached from before the
 	   change is wrong the moment it is saved, so it goes rather than being left to expire. */
 	const refresh = useCallback(() => {
 		invalidate(getSettings); invalidate(getOrderDraft); invalidate(getOrders); invalidate(getHomeContent)
+		// Entries per card is baked into what Home answers, and the list order into what the
+		// vendors and categories tabs open as -- so their caches are as stale as the rest the
+		// moment either is saved.
+		invalidate(getVendors); invalidate(getCategories)
 	}, [])
 
 	const set = useCallback((patch, said) => {
@@ -52,18 +108,23 @@ export default function Settings() {
 			<Async state={state} label="Loading your settings">{settings => (
 				<SettingsBody settings={settings} set={set} toast={toast}
 					confirming={confirming} setConfirming={setConfirming} refresh={refresh}
+					filling={filling} setFilling={setFilling}
 					reload={state.refresh} />
 			)}</Async>
 		</Page>
 	)
 }
 
-function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh, reload }) {
+function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh, reload,
+	filling, setFilling }) {
+	const navigate = useNavigate()
+	const signOut = () => logout().then(() => navigate('/login', { replace: true }))
 	/* The controls are driven from the stored value, so what is on screen is what is saved --
 	   there is no local copy to drift. `local` exists only to keep a control responsive while
 	   the phantom API is answering. */
 	const [local, setLocal] = useState(settings)
 	useEffect(() => setLocal(settings), [settings])
+	const [importOpen, setImportOpen] = useState(false)
 
 	const change = (patch, said) => { setLocal(l => ({ ...l, ...patch })); set(patch, said) }
 
@@ -76,6 +137,22 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 				toast('Everything stored in this browser was cleared.')
 			})
 			.catch(() => toast('That did not clear.', 'negative'))
+	}
+
+	/* `busy` rather than only hiding the confirm: a year of orders is one request, and a
+	   second press before it answers would run the whole replace twice. */
+	const [busy, setBusy] = useState(false)
+	const fill = () => {
+		setBusy(true)
+		populateDemoData()
+			.then(({ orders, vendors, categories, months }) => {
+				refresh()
+				reload()
+				setFilling(false)
+				toast(`${orders} orders across ${months} months, ${vendors} vendors and ${categories} categories.`)
+			})
+			.catch(() => toast('That did not fill.', 'negative'))
+			.finally(() => setBusy(false))
 	}
 
 	return (
@@ -119,12 +196,36 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 										onSelect={o => change({ sort: o.id }, 'Default sort saved.')}
 										groups={[{ heading: 'Sort', options: sorts.map(s => ({ id: s.id, label: s.label })) }]} />
 								</Field>
+								{/* One control for two lists, because they are the same kind of list and
+								    the answer is the same answer. Only the orders both of them have:
+								    vendors can also sort by order count and categories by share, and a
+								    default naming either would be a setting one of the two pages could
+								    not obey. README: Settings. */}
+								{/* The same control as the sort above it, because it is the same question:
+								    a combobox over a named list of orders. It shipped once as a segmented
+								    control -- two controls asking one kind of thing, side by side, drawn
+								    differently. README: Uniformity, Fields and Forms. */}
+								<Field label="Sort vendors and categories by"
+									help="What All vendors and All categories open sorted by. Both lists, one order.">
+									<Combobox label="Default list sort"
+										value={listSorts.find(s => s.id === local.listSort)?.label ?? ''}
+										onChange={() => {}}
+										onSelect={o => change({ listSort: o.id }, 'List order saved.')}
+										groups={[{ heading: 'Sort', options: listSorts.map(s => ({ id: s.id, label: s.label })) }]} />
+								</Field>
+								<Field label="Entries per card" group
+									help="How many rows a card on Home fills with — the latest orders, the top vendors, the favourite categories.">
+									<Segmented options={cardRowOptions.map(String)}
+										value={String(local.cardRows)}
+										onChange={v => change({ cardRows: Number(v) }, 'Entries per card saved.')}
+										label="Entries per card" />
+								</Field>
 							</FilterSection>
 
 							<FilterSection>
 								<span className="panel-heading">On screen</span>
 								<div className="space-between">
-									<span className="field-help" style={{ maxWidth: '32ch' }}>
+									<span className="field-help toggle-help">
 										Show the scan card on Home. LATER on the card itself turns this off too.
 									</span>
 									<Switch checked={local.showScanCard} label="Show the scan card on Home"
@@ -132,7 +233,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 											v ? 'The scan card is back on Home.' : 'The scan card is off.')} />
 								</div>
 								<div className="space-between">
-									<span className="field-help" style={{ maxWidth: '32ch' }}>
+									<span className="field-help toggle-help">
 										Ask before deleting anything — an order, a category, a vendor, a line
 										item, an attachment. With this off, the trash acts straight away.
 									</span>
@@ -147,18 +248,68 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 			</div>
 
 			<div className="order-list-column">
-				<Card aria-label="Stored data">
-					<CardHeader title="Stored in this browser" />
+				<Card aria-label="Account">
+					<CardHeader title="Account" />
 					<CardDivider />
 					<CardBody>
-						<p className="card-lead" style={{ marginTop: 0 }}>
+						<p className="card-lead card-lead-flush">
+							Sign out on this device. Your orders, vendors, categories and settings stay on
+							the account — signing back in returns you to them.
+						</p>
+						<Button variant="block" onClick={signOut}>
+							SIGN OUT
+						</Button>
+					</CardBody>
+				</Card>
+
+				{/* Demo data is asked for, never given. A fresh account used to arrive holding a
+				    stranger's shopping, which reads as a leak rather than a demo, so nothing
+				    populates itself -- this is the door, and it is behind a confirm because it
+				    replaces whatever is already here. */}
+				<Card aria-label="Demo data">
+					<CardHeader title="Demo data" />
+					<CardDivider />
+					<CardBody>
+						<p className="card-lead card-lead-flush">
+							Fill the account with a year of made-up orders — twelve months back, every
+							vendor and category its own colour — so the lists and charts have something
+							in them to look at. A different year every time: the orders, their days
+							and their totals are rolled fresh on each fill.
+						</p>
+						{filling ? (
+							<>
+								<p className="field-help danger-note">
+									This replaces what is here now. Every order, vendor and category you have
+									added is removed first, and the demo year is written in its place.
+								</p>
+								<FormActions>
+									<Button variant="caps compact" disabled={busy} onClick={fill}>
+										{busy ? 'FILLING...' : 'YES, FILL IT'}
+									</Button>
+									<Button variant="ghost compact" disabled={busy}
+										onClick={() => setFilling(false)}>CANCEL</Button>
+								</FormActions>
+							</>
+						) : (
+							<Button variant="block" icon="sparkles"
+								onClick={() => setFilling(true)}>FILL WITH DEMO DATA</Button>
+						)}
+					</CardBody>
+				</Card>
+
+				<Card aria-label="Stored data">
+					<CardHeader title="Your data" />
+					<CardDivider />
+					<CardBody>
+						<p className="card-lead card-lead-flush">
 							Orders you save, vendors and categories you add, your dashboard and these
-							settings are kept in this browser. Nothing leaves it.
+							settings belong to this account.
 						</p>
 						{confirming ? (
 							<>
-								<p className="field-help" style={{ color: 'var(--text-negative)', fontWeight: 600 }}>
-									This removes everything you have added or changed and puts the demo data back.
+								<p className="field-help danger-note">
+									This removes every order, vendor and category you have added — permanently,
+									and there is no demo data to fall back to. The ledger goes back to empty.
 								</p>
 								<FormActions>
 									<Button variant="caps compact" onClick={clear}>YES, CLEAR IT</Button>
@@ -166,26 +317,64 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								</FormActions>
 							</>
 						) : (
-							<Button variant="block" icon="trash" style={{ marginTop: 8 }}
+							<Button variant="block" icon="trash"
 								onClick={() => setConfirming(true)}>CLEAR STORED DATA</Button>
 						)}
 					</CardBody>
 				</Card>
 
-				<Card aria-label="About the data">
-					<CardHeader title="Where the numbers come from" />
-					<CardDivider />
-					<CardBody>
-						<p className="card-lead" style={{ marginTop: 0 }}>
-							Every figure in Spendly is served by a phantom API: an in-browser data source
-							with the shape a real backend would have. It answers asynchronously, it can
-							fail, and what you change through it persists.
-						</p>
-						<span className="field-help">
-							Totals are derived from their lines rather than stored beside them, so a total
-							and its items cannot disagree.
-						</span>
-					</CardBody>
+				{/* Documentation, not a control -- the one thing on this page that is, which is why
+				    it is also the one card that opens closed: reference material for the day a
+				    script gets written, not a screenful to scroll past on every visit. The example
+				    mirrors validateOrderDraft and the import route; change those and change this.
+				    Every JSON fragment is JSON.stringify's own output, coloured by a
+				    ten-line tokenizer -- hand-aligned annotation columns drifted immediately. */}
+				<Card aria-label="Import orders">
+					<CardHeader title="Import from another system"
+						onToggle={() => setImportOpen(open => !open)} open={importOpen}
+						controls="import-reference"
+						label={importOpen ? 'Hide the import reference' : 'Show the import reference'} />
+					{importOpen ? (
+						<>
+							<CardDivider />
+							<CardBody id="import-reference">
+								<p className="card-lead card-lead-flush">
+									Bring orders in from another expense tracker — vendors, categories, line
+									items and receipt files — with a script of your own: sign in, post the
+									orders, read back what landed.
+								</p>
+								<pre className="import-schema" aria-label="Sign-in request">{RECIPE_LOGIN}</pre>
+								<span className="field-help import-caption">
+									Signing in sets the <code>spendly_session</code> cookie and returns the same
+									token in the body. Every later call takes either credential: the cookie, or{' '}
+									<code>Authorization: Bearer</code> with that token.
+								</span>
+								<pre className="import-schema" aria-label="Import request shape">{RECIPE_REQUEST}</pre>
+								<ul className="import-rules">
+									<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
+										least one item with <code>title</code>, <code>quantity</code> and{' '}
+										<code>price</code>. Everything else is optional, and every amount ≥ 0.</li>
+									<li><code>vendor</code> ≤ 80 characters.</li>
+									<li><code>title</code> ≤ 120 characters.</li>
+									<li><code>quantity</code> a whole number, 1–9999.</li>
+									<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
+									<li><code>kind</code>: Expense, Gift, Sold, Work or Other.</li>
+									<li><code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
+									<li>Attachments carry base64 bytes: on the order for the receipt, on an item
+										for its photo.</li>
+									<li>Vendors and categories are matched by name, case-insensitively, and
+										created when new.</li>
+								</ul>
+								<pre className="import-schema" aria-label="Import response shape">{RECIPE_RESPONSE}</pre>
+								<span className="field-help">
+									Each order imports in its own transaction, so one bad row fails alone — the
+									response names every failure by its index, and the status is 400 only when
+									the array is empty or nothing imported. Batch large exports: the request body
+									is capped at 50&nbsp;MB, and base64 grows files by a third.
+								</span>
+							</CardBody>
+						</>
+					) : null}
 				</Card>
 			</div>
 		</div>

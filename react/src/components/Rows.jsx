@@ -1,7 +1,8 @@
 import { forwardRef } from 'react'
+import { Sep } from './Sep.jsx'
 import { Link } from 'react-router'
-import { Icon } from './Icon.jsx'
-import { kr, krRound } from '../api/format.js'
+import { Icon, ImageOrIcon } from './Icon.jsx'
+import { kr, krRound, percent } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
 /* Every list row in the app.
@@ -60,7 +61,7 @@ export function CategoryRow({ category, meta, to }) {
 				<Icon name={category.icon} path={category.iconPath} /></span>
 			<div>
 				<div className="category-row-title">{category.name}</div>
-				<div className="category-row-meta">{meta ?? `${category.share}% of expenses`}</div>
+				<div className="category-row-meta">{meta ?? `${percent(category.share)} of expenses`}</div>
 			</div>
 			<span className="amount tabular-figures">{krRound(category.spend)}</span>
 			{to ? <Chevron /> : null}
@@ -70,7 +71,7 @@ export function CategoryRow({ category, meta, to }) {
 
 /** A line on an order, a line read off a receipt, or a fact in an inset panel.
     `tone` recolours the leading tile where the line is a warning rather than a value. */
-export function ItemRow({ icon, iconTone, thumb, handle, title, meta, amount, to, children, ...rest }) {
+export function ItemRow({ icon, iconTone, thumb, thumbSrc, onThumbClick, handle, title, meta, amount, to, children, ...rest }) {
 	return (
 		<Row to={to} family="item-row" {...rest}>
 			{/* The handle is passed in rather than drawn here: a grip is only honest when
@@ -78,7 +79,23 @@ export function ItemRow({ icon, iconTone, thumb, handle, title, meta, amount, to
 			    one on its own. See Reorder.jsx. */}
 			{handle}
 			{icon ? <span className="item-row-icon" style={iconTone}><Icon name={icon} /></span> : null}
-			{thumb ? <span className="document-thumb" style={{ fontSize: 0 }} aria-hidden="true"><Icon name={thumb} /></span> : null}
+			{/* thumbSrc is a real preview (a thumbnail the backend generated) for the icon named
+			    by thumb to fall back to — most callers pass thumb alone and never had bytes to
+			    preview in the first place. onThumbClick makes the thumb itself a button that
+			    opens the full image, rather than the whole row -- the row's own title and amount
+			    are not "open this photo", only the photo is. */}
+			{thumb ? (
+				onThumbClick ? (
+					<button type="button" className="document-thumb document-thumb-button"
+						onClick={onThumbClick} aria-label={`View photo${title ? ` for ${title}` : ''}`}>
+						<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
+					</button>
+				) : (
+					<span className="document-thumb" aria-hidden="true">
+						<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
+					</span>
+				)
+			) : null}
 			<div>
 				<div className="item-row-title">{title}</div>
 				{meta ? <div className="item-row-meta">{meta}</div> : null}
@@ -102,14 +119,19 @@ export function OrderRow({ order, to }) {
 				<div className="order-row-identity-text">
 					<div className="order-row-vendor">{order.vendor?.name}</div>
 					<div className="order-row-meta">
-						{order.dateLabel} · {order.itemCount} items · {order.categories.map(c => c.name).join(', ')}
+						{order.dateLabel}<Sep />{order.itemCount} items<Sep />{order.categories.map(c => c.name).join(', ')}
 					</div>
 				</div>
 			</div>
 			<span className="chip-status">{order.status}</span>
+			{/* The total, then what it saved -- always, including "saved 0,00 kr.". The saved line
+			    was drawn only when it was positive, so a row with no saving had a total where
+			    every other row had a total and a line under it, and the column changed shape
+			    down the list. An absent line is not "nothing saved"; it is a reader wondering
+			    whether this row is missing something. README: Data Rows. */}
 			<div className="order-row-total tabular-figures">
 				{kr(order.total)}
-				{order.saved > 0 ? <div className="order-row-total-saved">saved {kr(order.saved)}</div> : null}
+				<div className="order-row-total-saved">saved {kr(order.saved)}</div>
 			</div>
 			<span className="order-row-chevron"><Icon name="chevronRight" /></span>
 		</Row>
@@ -125,6 +147,38 @@ export function LegendRow({ colour, title, amount, to }) {
 			<span className="amount tabular-figures">{amount}</span>
 			{to ? <Chevron /> : null}
 		</Row>
+	)
+}
+
+/* A vendor or a category in a long list, with two places to go.
+
+   The record itself is the row: the whole band opens it for editing, the way an order row
+   opens the order. Its orders are the other thing anyone wants from a category called Health,
+   and that is a different destination -- so it is a second link at the end of the row rather
+   than a second meaning for the first one.
+
+   Two links, not a link inside a link: Row renders an <a> when it is given `to`, and nesting
+   one anchor in another is invalid and lands the click wherever the browser decides. They are
+   siblings under one bordered strip, which is what makes them read as a single row. */
+export function EntityRow({ mark, name, meta, amount, sub, editTo, ordersTo, ordersLabel }) {
+	return (
+		<div className="entity-row">
+			<Link className="data-row entity-row-main" to={editTo} data-go={editTo}>
+				{mark}
+				<div className="entity-row-text">
+					<div className="entity-row-name">{name}</div>
+					{meta ? <div className="entity-row-meta">{meta}</div> : null}
+				</div>
+				<div className="entity-row-amount tabular-figures">
+					{amount}
+					{sub ? <div className="entity-row-amount-sub">{sub}</div> : null}
+				</div>
+				<Chevron />
+			</Link>
+			<Link className="entity-row-orders" to={ordersTo} data-go={ordersTo} aria-label={ordersLabel}>
+				<Icon name="receipt" />
+			</Link>
+		</div>
 	)
 }
 

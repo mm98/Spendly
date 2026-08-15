@@ -103,7 +103,7 @@ function ConfirmDialog({ what, detail, onConfirm, onCancel }) {
 			<div className="confirm-dialog-card">
 				<strong>Delete this {what}?</strong>
 				<p>{detail}</p>
-				<div className="form-actions" style={{ marginTop: 12 }}>
+				<div className="form-actions">
 					<Button variant="caps compact" onClick={onConfirm}>DELETE</Button>
 					<Button ref={cancelRef} variant="ghost compact" onClick={onCancel}>CANCEL</Button>
 				</div>
@@ -183,7 +183,7 @@ export function DeleteCard({ what, children, del }) {
 			<CardHeader title={`Delete ${what}`} />
 			<CardDivider />
 			<CardBody>
-				<p className="card-lead" style={{ marginTop: 0 }}>{children}</p>
+				<p className="card-lead card-lead-flush">{children}</p>
 				{del.button}
 				{del.dialog}
 			</CardBody>

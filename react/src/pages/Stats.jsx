@@ -1,15 +1,16 @@
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
-import { Chart, ChartAxis, ChartRuler, RangeTabs, RANGE_POINTS, plotted, sampled } from '../components/Chart.jsx'
+import { Card, CardBody, CardDivider, CardHeader, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
+import { Chart, ChartScale, RangeTabs, bucketOf, bucketsFor, plotted, sampled, todayMarker } from '../components/Chart.jsx'
 import { Meter, MonthColumns, SpendGauge, WeekdayBars } from '../components/Viz.jsx'
 import { LegendRow } from '../components/Rows.jsx'
-import { ButtonLink, IconButton } from '../components/Button.jsx'
+import { ReturnsCard } from '../components/Returns.jsx'
+import { IconButton } from '../components/Button.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { useApi } from '../api/useApi.js'
 import { getStats, ranges } from '../api/client.js'
-import { kr, krRound } from '../api/format.js'
+import { kr, krRound, sep } from '../api/format.js'
 
 /* Statistics.
 
@@ -51,17 +52,18 @@ export default function Stats() {
 
 	return (
 		<Page variant="page-grid">
-			<Async state={state} label="Loading your statistics">{({ categories, window: view, newer, older }) => {
+			<Async state={state} label="Loading your statistics">{({ window: view, newer, older }) => {
 				/* One scale for both lines, and the running total the figure above the chart
 				   states is the line itself -- a chart drawn from other numbers than the ones
 				   printed beside it cannot fail visibly. README: Charts. */
-				const points = sampled(view.series.current, RANGE_POINTS[view.range])
-				const compare = view.series.previous && sampled(view.series.previous, RANGE_POINTS[view.range])
+				const buckets = bucketsFor(view.range, view.axis, view.series.current.length)
+				const points = sampled(view.series.current, buckets)
+				const compare = view.series.previous && sampled(view.series.previous, buckets)
 				const ceiling = Math.max(view.spent, compare ? view.series.previous.at(-1) : 0)
 
 				return (
 					<>
-						<div className="space-between" style={{ flexWrap: 'wrap', gap: 12, padding: '2px 2px 0' }}>
+						<div className="space-between stats-toolbar">
 							<div className="row-inline">
 								{/* The arrows and the name they step hold a width, so the picker beside
 								    them does not slide when the name changes length: Year to Quarter is
@@ -77,7 +79,7 @@ export default function Stats() {
 									    control does. README: Honest Affordances. */}
 									<IconButton icon="chevronLeft"
 										label={older ? `Previous ${view.unit}` : `No earlier ${view.unit}`}
-										disabled={!older} style={older ? undefined : { opacity: 0.45 }}
+										disabled={!older} className="pager-arrow"
 										onClick={() => older && show(view.range, older)} />
 									{/* One name at any width, drawn and announced. Both forms are in the markup
 									    and the stylesheet renders exactly one -- the unit written out wherever
@@ -88,12 +90,12 @@ export default function Stats() {
 									    not read and a second copy to keep in step; `display:none` is not
 									    announced, so there is one string here either way. The days the window
 									    covers are on the card below, over the chart. */}
-									<span className="panel-heading" style={{ fontSize: 16, letterSpacing: '-.01em' }}>
+									<span className="panel-heading pager-heading">
 										<span className="pager-wide">{view.label}</span>
 										<span className="pager-narrow">{view.abbr}</span></span>
 									<IconButton icon="chevronRight"
 										label={newer ? `Next ${view.unit}` : `No later ${view.unit}`}
-										disabled={!newer} style={newer ? undefined : { opacity: 0.45 }}
+										disabled={!newer} className="pager-arrow"
 										onClick={() => newer && show(view.range, newer)} />
 								</div>
 								{/* The widths, beside the arrows that step them, in the same box the
@@ -131,25 +133,34 @@ export default function Stats() {
 						</div>
 
 						<Card aria-label="Overview">
-							<CardHeader title={`Overview · ${view.shortLabel}`}>
+							<CardHeader title={`Overview${sep}${view.shortLabel}`}>
 								{view.previousLabel
 									? <span className="field-help">vs {view.previousLabel}</span>
 									: null}
 							</CardHeader>
 							<CardDivider />
 							<CardBody variant="card-body-tight">
-								<Chart height={210} pad={10}
+								<Chart height={210}
 									label={`Cumulative spend across ${view.shortLabel}${compare ? `, ${view.previousLabel} dashed behind it` : ''}`}
 									gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
 										{ offset: 0, color: '#14AC72', opacity: 0.2 },
 										{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
 									series={[
-										{ points: plotted(points, ceiling), kind: 'area', fill: 'gradient:spend' },
-										{ points: plotted(points, ceiling), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.4 },
-										...(compare ? [{ points: plotted(compare, ceiling), kind: 'curve', stroke: '#95ABAA', strokeWidth: 1.6, dash: '4 4' }] : [])
-									]} />
-								<ChartRuler />
-								<ChartAxis labels={view.axis} />
+										{ points: plotted(points, ceiling, 203.5, 6.5), kind: 'area', fill: 'gradient:spend' },
+										{ points: plotted(points, ceiling, 203.5, 6.5), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.4 },
+										...(compare ? [{ points: plotted(compare, ceiling, 203.5, 6.5), kind: 'curve', stroke: '#95ABAA', strokeWidth: 1.6, dash: '4 4' }] : [])
+									]}
+									/* Today, and only where the window holds one: this is the page with a
+									   pager, so the same chart draws a month that ended in March. The index
+									   is a day, and this series may be cut into months -- so it goes through
+									   the same cut the points did, or the mark would sit on the 15th point
+									   of twelve rather than in the month it is in. Not on the dashed line:
+									   that is the window before, whose days are not today's.
+									   README: Charts. */
+									markers={todayMarker(view.todayIndex == null ? null
+										: bucketOf(view.todayIndex, view.series.current.length, buckets),
+									{ series: 1, colour: '#14AC72' })} />
+								<ChartScale marks={view.axis} span={view.series.current.length} buckets={buckets} />
 							</CardBody>
 						</Card>
 
@@ -159,7 +170,7 @@ export default function Stats() {
 							    one over the tiles, because a card that names nothing is a card a reader
 							    has to scroll up to date. */}
 							<Card aria-label="Pace">
-								<CardHeader title={`Pace · ${view.shortLabel}`}>
+								<CardHeader title={`Pace${sep}${view.shortLabel}`}>
 									<span className="field-help">{view.pace.daysIn} days in</span>
 								</CardHeader>
 								<CardDivider />
@@ -170,10 +181,14 @@ export default function Stats() {
 									    is the total itself and says so. */}
 									<span className="field-help">
 										{view.pace.running
-											? `projected for ${view.label} · ${kr(view.spent)} spent so far`
-											: `total for ${view.label} · ${view.pace.daysIn} days of records`}</span>
-									<Meter style={{ marginTop: 14 }}
-										fill={Math.round(view.spent / view.pace.projected * 100)}
+											? `projected for ${view.label}${sep}${kr(view.spent)} spent so far`
+											: `total for ${view.label}${sep}${view.pace.daysIn} days of records`}</span>
+									<Meter className="meter-under-caption"
+										/* projected is 0 exactly when spent is -- nothing bought yet this
+										   window -- and 0/0 is NaN, an invalid CSS width the browser drops
+										   silently rather than rejecting: no fill at all instead of an
+										   honest 0%. Spent nothing of a projected nothing is 0% spent. */
+										fill={view.pace.projected ? Math.round(view.spent / view.pace.projected * 100) : 0}
 										/* The marker is a position on this window's track, so a previous
 										   window that spent more than this one is projected to sits at the
 										   end of it -- the figure it stands for is printed under the meter,
@@ -186,31 +201,31 @@ export default function Stats() {
 									{/* No full stop after the amount: krRound ends in "kr." and this line has been
 									    closing a second one on top of it -- "20.680 kr..". */}
 									{view.previousTotal != null
-										? <span className="field-help" style={{ marginTop: 8, display: 'block' }}>
+										? <span className="field-help field-help-below">
 											The marker is where {view.previousLabel} ended: {krRound(view.previousTotal)}</span>
 										: null}
 								</CardBody>
 							</Card>
 
 							<Card aria-label="Weekly rhythm">
-								<CardHeader title={`Weekly rhythm · ${view.shortLabel}`}>
+								<CardHeader title={`Weekly rhythm${sep}${view.shortLabel}`}>
 									<span className="field-help">busiest day: {view.rhythm.busiestDay}</span>
 								</CardHeader>
 								<CardDivider />
 								<CardBody>
 									<div className="figure-large tabular-figures">{view.rhythm.weekendShare}%{' '}
-										<span style={{ fontWeight: 500, fontSize: 14, color: 'var(--text-muted)' }}>
+										<span className="figure-unit">
 											of spend lands on weekends</span></div>
-									<WeekdayBars days={view.rhythm.weekdays} field="stats" style={{ height: 86 }} />
+									<WeekdayBars days={view.rhythm.weekdays} className="rhythm-bars" />
 								</CardBody>
 							</Card>
 						</div>
 
 						<div className="two-column">
 							<Card aria-label="Where it went">
-								<CardHeader title={`Where it went · ${view.shortLabel}`} />
+								<CardHeader title={`Where it went${sep}${view.shortLabel}`} />
 								<CardDivider />
-								<CardBody variant="spend-gauge-row">
+								<CardBody variant="ring-row">
 									{/* The ring and the rows are one list of numbers: the segments are the
 									    shares the amounts beside them make, so a ring drawn from all-time
 									    category totals over a month's legend cannot happen again. */}
@@ -218,19 +233,16 @@ export default function Stats() {
 										({ share: entry.share, colour: entry.colour }))}
 										value={krRound(view.spent)} label={view.tick}
 										ariaLabel={`Category split of ${krRound(view.spent)} in ${view.label}`} />
-									<div className="chart-legend" style={{ flex: 1, minWidth: 170 }}>
-										{view.split.map(entry => {
+									<div className="chart-legend chart-legend-fill">
+										{view.split.map(entry => (
 											/* The row names a category and states the window's amount for it, so
 											   the link carries both: an unfiltered list, or the category across
 											   all time, is a link that does not go where the row says. */
-											const category = categories.find(c => c.name === entry.name)
-											return (
-												<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
-													amount={krRound(entry.amount)}
-													to={'/orders/all?' + (category ? `category=${category.id}&` : '')
-														+ `from=${view.from}&to=${view.to}`} />
-											)
-										})}
+											<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
+												amount={krRound(entry.amount)}
+												to={'/orders/all?' + (entry.id ? `category=${entry.id}&` : '')
+													+ `from=${view.from}&to=${view.to}`} />
+										))}
 									</div>
 								</CardBody>
 							</Card>
@@ -244,24 +256,17 @@ export default function Stats() {
 									{view.recent.note ? <span className="field-help">{view.recent.note}</span> : null}
 								</CardHeader>
 								<CardDivider />
-								<CardBody>
+								{/* Fills the card rather than sitting 150px tall in it: this shares a row
+								    with the category breakdown, which is as long as the account has
+								    categories. README: Charts. */}
+								<CardBody variant="card-body-fill">
 									<MonthColumns months={view.recent.columns} />
 								</CardBody>
 							</Card>
 						</div>
 
-						<Card aria-label="Returns">
-							<CardHeader title={`Returns · ${view.shortLabel}`} />
-							<CardDivider />
-							<CardBody>
-								<EmptyState icon={null} style={{ padding: '14px 12px' }}>
-									<p>{view.returnsNote}</p>
-									{/* The note is the window's; the history behind it is all of them, which
-									    is what the label says and where the link goes. */}
-									<ButtonLink to="/orders/all?status=Returned">SEE RETURN HISTORY</ButtonLink>
-								</EmptyState>
-							</CardBody>
-						</Card>
+						<ReturnsCard title={`Returns${sep}${view.shortLabel}`} span={view.shortLabel}
+							returns={view.returns} />
 					</>
 				)
 			}}</Async>

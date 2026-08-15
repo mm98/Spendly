@@ -1,17 +1,16 @@
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Chart, ChartAxis, ChartRuler } from '../components/Chart.jsx'
+import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
+import { Chart, ChartScale, plotted, todayMarker } from '../components/Chart.jsx'
 import { Donut, DonutBox } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
-import { Button, ButtonLink } from '../components/Button.jsx'
-import { TagChip } from '../components/Chip.jsx'
+import { ReturnsCard } from '../components/Returns.jsx'
+import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
-import { getAnswer, getOrdersOverview } from '../api/client.js'
-import { dayMonth, kr, krRound, percent } from '../api/format.js'
+import { getOrdersOverview, ordersIn } from '../api/client.js'
+import { dayMonth, kr, krRound, percent, sep } from '../api/format.js'
 import { useState } from 'react'
-import { Note } from '../components/Card.jsx'
 
 /** How much of the month's total budget has been spent. Categories with no budget set are
     left out of both sides, so an unbudgeted category cannot drag the figure down. */
@@ -29,23 +28,21 @@ const budgetUsed = categories => {
 
 export default function Orders() {
 	const state = useApi(getOrdersOverview)
-	const answer = useApi(getAnswer)
 	const [breakdown, setBreakdown] = useState('Expenses')
-	/* HOW IT WORKS and ASK SPENDLY both open something. A button that explains and a button
-	   that answers are the two shapes a decorative control most often takes, because neither
-	   has an obvious destination -- so each one owns a disclosure here, with aria-expanded
-	   saying which state it is in. README: Honest Affordances. */
-	const [explaining, setExplaining] = useState(false)
-	const [answering, setAnswering] = useState(false)
 
 	return (
 		<Page>
-			<Async state={state} label="Loading your orders">{data => (
+			<Async state={state} label="Loading your orders">{data => {
+				/* One scale for both lines, shared rather than each drawn to its own peak --
+				   the smaller one would otherwise read as though it reached as high as the
+				   larger. README: Buttons. */
+				const chartMax = Math.max(...data.period.series.monthCurrent, ...data.period.series.monthPrevious)
+				return (
 				<div className="order-list-grid">
 					<div className="order-list-column">
-						<Card aria-label="Spent over July">
-							<CardHeader title={`Spent · ${data.period.label}`} to="/stats"
-								label={`Spent · ${data.period.label}, open Statistics`} />
+						<Card aria-label={`Spent${sep}${data.period.label}`}>
+							<CardHeader title={`Spent${sep}${data.period.label}`} to="/stats"
+								label={`Spent${sep}${data.period.label}, open Statistics`} />
 							<CardDivider />
 							{/* No padding-top override here either -- the 2px this card carried put the
 							    first line 4.5px under the hairline, the tightest in the file. README: Cards. */}
@@ -53,27 +50,36 @@ export default function Orders() {
 								<div className="figure-large tabular-figures">{kr(data.period.spent)}</div>
 								<div className="chart-series-key">
 									<div className="chart-series-key-row">
-										<div className="chart-series-key-swatch" style={{ background: 'var(--blue)' }} />
+										<div className="chart-series-key-swatch swatch-current" />
 										{data.period.shortLabel}
 									</div>
 									<div className="chart-series-key-row">
-										<div className="chart-series-key-swatch" style={{ background: 'var(--blue-light)' }} />
+										<div className="chart-series-key-swatch swatch-previous" />
 										{data.period.previousLabel}
 									</div>
 								</div>
-								<Chart height={250} pad={10} style={{ marginTop: 8 }}
+								<Chart height={250} className="chart-under-caption"
 									label={`${data.period.shortLabel} against ${data.period.previousLabel}, day by day`}
 									baselines={[{ y: 128, stroke: '#D9DDD8', dash: '5 5' }]}
+									/* 6.5px of vertical inset (plotted()'s 3rd/4th args, not a chart-level pad)
+									   is the marker's room, and it is the same 6.5 on every chart that draws
+									   one: a 4.5px circle with a 2px stroke paints 5.5px past its point, and
+									   a running total peaks on its own last day. It was 17 for a halo of
+									   r=13 that no longer exists, and 17 before that for a spline overshoot
+									   the monotone curve cannot draw -- so the line has 10.5px more height
+									   to use. Horizontally it runs edge to edge; the marker keeps its own
+									   circle off the side edges rather than the line being inset for it.
+									   README: Charts. */
 									series={[
-										{ points: data.period.series.monthPrevious, kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
-										{ points: data.period.series.monthCurrent, kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
+										{ points: plotted(data.period.series.monthPrevious, chartMax, 243.5, 6.5), kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
+										{ points: plotted(data.period.series.monthCurrent, chartMax, 243.5, 6.5), kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
 									]}
-									markers={[
-										{ index: 3, series: 1, r: 13, fill: '#4F5BD5', opacity: 0.14 },
-										{ index: 3, series: 1, r: 5.5, fill: '#fff', stroke: '#4F5BD5', strokeWidth: 3 }
-									]} />
-								<ChartRuler />
-								<ChartAxis />
+									/* Today, on the current month's line only -- the paler line behind it is
+									   last month, whose days are not today's. It was a halo and an oversized
+									   dot here and a plain dot on Home, which is one fact drawn two ways on
+									   two pages; the mark is the same everywhere now. README: Charts. */
+									markers={todayMarker(data.period.todayIndex, { series: 1, colour: '#4F5BD5' })} />
+								<ChartScale marks={data.period.axis} span={data.period.series.monthCurrent.length} />
 							</CardBody>
 						</Card>
 
@@ -81,96 +87,49 @@ export default function Orders() {
 							<Card aria-label="Latest orders">
 								<CardHeader title="Latest orders" />
 								<CardDivider />
+								{/* What the order cost, the way the returns card beside it writes what a
+								    return was worth. It used to be the saving -- "+26,04 kr." in green,
+								    in the slot every other list of orders puts the total in, on a card
+								    headed *Latest orders* under a card headed *Spent*. A reader has no
+								    way to tell a total from a saving by looking, so the green plus over
+								    an order from Elgiganten read as an order for 26 kroner. The saving
+								    is on the order's own page, where it is named. README: Data Rows. */}
 								<CardBody variant="entry-list card-body-tight">
 									{data.latest.map(order => (
 										<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-											meta={dayMonth(order.date)} amount={'+' + kr(order.saved)}
-											to={`/orders/${order.id}`} />
+											meta={dayMonth(order.date)} amount={kr(order.total)}
+											sub={`saved ${kr(order.saved)}`} to={`/orders/${order.id}`} />
 									))}
 									<Button variant="block" to="/orders/all">SEE ALL</Button>
 								</CardBody>
 							</Card>
 
-							<Card aria-label="Waiting receipts">
-								<CardHeader title="Latest receipts" />
-								<CardDivider />
-								<CardBody variant="card-body-tight">
-									<EmptyState>
-										<p>No receipts waiting. Scan one and the order drafts itself.</p>
-										<ButtonLink to="/scan">SCAN A RECEIPT</ButtonLink>
-									</EmptyState>
-									<Button variant="block" to="/orders/all">SEE ALL</Button>
-								</CardBody>
-							</Card>
+							{/* The same card Statistics draws, from the same data, at this page's own
+							    width -- it used to be markup with nothing behind it, four rows of
+							    returns on Statistics and a permanent "No open returns found" here.
+							    README: Empty states.
+
+							    It sits beside the latest orders because that is what it is: the
+							    month's other list of orders, the same rows in the same shape, read
+							    across rather than down a rail. What was here was a *Latest receipts*
+							    card that had no receipts to draw and never would -- an empty state
+							    with nothing behind it, wired to nothing, offering SEE ALL into the
+							    orders list it was not a list of. Scanning is reached from the top bar
+							    on every page, from Home, from an order and from the create form, so
+							    nothing was the only way in. README: Empty states. */}
+							<ReturnsCard title={`Returns${sep}${data.period.label}`}
+								span={data.period.shortLabel} returns={data.period.returns} />
 						</div>
 
-						<Card aria-label="For you">
-							<CardHeader title="For you">
-								<button type="button" className="button button-pill"
-									aria-expanded={explaining} aria-controls="for-you-explainer"
-									onClick={() => setExplaining(o => !o)}>HOW IT WORKS</button>
-							</CardHeader>
-							<CardDivider />
-							{explaining ? (
-								<div className="card-body" id="for-you-explainer">
-									<Note tone="positive" title="Where these come from.">
-										Spendly reads the orders you have already saved: vendor names it could not
-										match, orders still marked Ordered after ten days, and categories that moved
-										a lot this month. Nothing is sent anywhere — the check runs on your own data,
-										in this browser.
-									</Note>
-								</div>
-							) : null}
-							<CardBody variant="promo-row">
-								{data.promos.map(promo => (
-									<div className="promo" key={promo.id}>
-										<TagChip tone={promo.tone} icon={promo.tagIcon}>{promo.tag}</TagChip>
-										<span className="promo-title">{promo.title}</span>
-										<p>{promo.body}</p>
-									</div>
-								))}
-							</CardBody>
-						</Card>
 					</div>
 
 					<div className="order-list-column">
-						<Card aria-label="Returns this month">
-							<CardHeader title="Returns this month" />
-							<CardDivider />
-							<CardBody>
-								<EmptyState>
-									<p>No open returns found</p>
-									<ButtonLink to="/orders/all?status=Returned">SEE RETURN HISTORY</ButtonLink>
-								</EmptyState>
-							</CardBody>
-						</Card>
-
-						<Card aria-label="Question of the day">
-							<CardHeader title="Question of the day" />
-							<CardDivider />
-							<CardBody>
-								<div className="card-headline card-headline-question">
-									{answer.data?.question ?? data.question.long}</div>
-								{answering && answer.data ? (
-									<>
-										<Note tone="positive" title={answer.data.answer}>{answer.data.detail}</Note>
-										<Button variant="block" iconAfter="chevronRight"
-											to={`/orders/all?category=${answer.data.categoryId}&from=2026-06-01&to=2026-06-30`}>
-											SEE THOSE ORDERS</Button>
-									</>
-								) : (
-									<Button variant="block" icon="sparkles" style={{ marginTop: 0 }}
-										aria-expanded={answering} onClick={() => setAnswering(true)}
-										disabled={!answer.data}>ASK SPENDLY</Button>
-								)}
-							</CardBody>
-						</Card>
 
 						<Card aria-label="Category breakdown">
 							<CardHeader title="Category breakdown" />
 							<CardDivider />
 							<CardBody>
-								<div style={{ marginBottom: 14 }}>
+								<div className="card-toggle-row">
 									<Segmented options={['Expenses', 'Budget']} value={breakdown}
 										onChange={setBreakdown} label="Category breakdown basis" />
 								</div>
@@ -186,9 +145,17 @@ export default function Orders() {
 												value={krRound(data.period.spent)} label="Spent this month"
 												ariaLabel={`Category split of ${krRound(data.period.spent)} this month`} />
 										</DonutBox>
+										{/* "Without category" carries no real id -- the orders list has no filter
+										    for it yet, so linking it the same way as a real category would ask
+										    for one that matches nothing. README: Home. */}
 										<div className="category-rows">
 											{data.categories.map(c =>
-												<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`} />)}
+												<CategoryRow key={c.id} category={c}
+													/* The month this ring is of. Its centre reads "Spent this month",
+												   so a row opening every order in that category ever is a list
+												   that disagrees with the figure clicked to reach it. */
+												to={ordersIn({ category: c.id === 'none' ? undefined : c.id,
+													from: data.period.from, to: data.period.to })} />)}
 										</div>
 									</>
 								) : (
@@ -206,7 +173,9 @@ export default function Orders() {
 										    does not use anywhere else. README: Cards. */}
 										<div className="category-rows">
 											{data.categories.map(c => (
-												<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`}
+												<CategoryRow key={c.id} category={c}
+													to={ordersIn({ category: c.id === 'none' ? undefined : c.id,
+													from: data.period.from, to: data.period.to })}
 													meta={c.budget
 														? `${krRound(c.spend)} of ${krRound(c.budget)} budget`
 														: 'No budget set'} />
@@ -214,14 +183,17 @@ export default function Orders() {
 										</div>
 									</>
 								)}
-								<Button variant="block" to="/orders/all">SEE ALL</Button>
+								{/* Categories, so the destination is the categories page. It read SEE ALL
+								    under a list of categories and opened the orders list -- the same
+								    mismatch the Categories page's own VIEW ALL had. */}
+								<Button variant="block" to="/categories">ALL CATEGORIES</Button>
 							</CardBody>
 						</Card>
 
-						<Button variant="block" icon="settings" style={{ marginTop: 0 }} to="/settings">ORDER SETTINGS</Button>
 					</div>
 				</div>
-			)}</Async>
+				)
+			}}</Async>
 		</Page>
 	)
 }

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { Sep } from '../components/Sep.jsx'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -7,7 +8,7 @@ import { Stepper } from '../components/Stepper.jsx'
 import { FormPage, RecordWait } from '../components/FormPage.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview, ProgressBar } from '../components/Viz.jsx'
-import { HiddenFileInput, describeFile } from '../components/FileInput.jsx'
+import { HiddenFileInput } from '../components/FileInput.jsx'
 import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
@@ -19,8 +20,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
-	createOrder, getHomeContent, getOrders, getOrdersOverview, getRecentScans, getScanDocuments,
-	getScanDraft, putScanDocument, spendKinds
+	attachScanDocument, createOrder, getHomeContent, getHomeHero, getOrders, getOrdersOverview,
+	getRecentScans, getScanDraft, getStats, putScanDocument, scanFileUrl, scanThumbnailUrl,
+	spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
@@ -35,8 +37,9 @@ import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
 
    So the choice travels: the entry names the document, the URL carries it, and both steps
    after it render what was actually picked. The format is the file's, which is why a page
-   count belongs to the PDFs and to nothing else. The draft underneath is the same Bilka
-   purchase in every case -- that part really is one document. README: Scan Flow. */
+   count belongs to the PDFs and to nothing else. There is no OCR behind any of it -- the
+   draft underneath is the same honest blank in every case, today's date and the account's
+   own defaults, nothing read from the file. README: Scan Flow. */
 
 const SCAN_STEPS = at => [
 	{ label: 'Upload', icon: 'upload', done: at > 0, on: at === 0 },
@@ -67,13 +70,13 @@ export function ScanUpload() {
 
 	/* The hero says "Drop a receipt here, or click to choose a file" and now it does both. A
 	   dropped file is the document the next two steps name, with its own format and its own
-	   size; what the reader finds inside is still the one Bilka purchase, which is demo data
-	   and is described as such. A prompt bar that says drop and answers only a click is the
-	   decorative-control rule wearing a different sense. README: Scan Flow, Honest Affordances. */
+	   size; what the reader finds inside is an honest blank draft, since nothing here reads
+	   the file. A prompt bar that says drop and answers only a click is the decorative-control
+	   rule wearing a different sense. README: Scan Flow, Honest Affordances. */
 	const upload = files => {
 		const file = files[0]
 		if (!file) return
-		putScanDocument(describeFile(file)).then(({ key }) => go(key))
+		putScanDocument(file).then(({ key }) => go(key))
 	}
 
 	return (
@@ -81,7 +84,7 @@ export function ScanUpload() {
 			<div className="hero hero-column">
 				<h2>Receipts read at your fingertips.</h2>
 				<p>Drop a PDF, photo or screenshot. The AI drafts the order; you review every value before it is saved.</p>
-				<div className="ai-prompt-bar"
+				<div className={'ai-prompt-bar scan-drop' + (over ? ' is-dragover' : '')}
 					onDragOver={e => { e.preventDefault(); setOver(true) }}
 					onDragEnter={e => { e.preventDefault(); setOver(true) }}
 					onDragLeave={() => setOver(false)}
@@ -89,10 +92,9 @@ export function ScanUpload() {
 						e.preventDefault(); setOver(false)
 						upload([...(e.dataTransfer?.files ?? [])])
 					}}
-					onClick={() => picker.current?.click()}
-					style={{ cursor: 'pointer', ...(over ? { outline: '2px dashed var(--green)', outlineOffset: 3 } : {}) }}>
-					<span aria-hidden="true"><Icon name="receipt" style={{ color: 'var(--text-faint)' }} /></span>
-					<span className="field-shell-placeholder">Drop a receipt here, or click to choose a file…</span>
+					onClick={() => picker.current?.click()}>
+					<span aria-hidden="true"><Icon name="receipt" className="icon scan-drop-icon" /></span>
+					<span className="field-shell-placeholder">Drop a receipt here, or click to choose a file...</span>
 					<HiddenFileInput ref={picker} accept="image/*,.pdf" label="Choose a receipt" onFiles={upload} />
 					<IconButton variant="send" icon="upload" label="Choose a receipt to scan"
 						onClick={e => { e.stopPropagation(); picker.current?.click() }} />
@@ -106,20 +108,20 @@ export function ScanUpload() {
 				</div>
 			</div>
 
-			<div className="two-column" style={{ marginTop: 22 }}>
+			<div className="two-column scan-info-row">
 				<div className="card card-question">
 					<span className="card-question-label">What the AI checks</span>
 					<div className="card-question-title">Nothing is stored until you approve it</div>
 					<div className="account-row">
-						<span><Icon name="check" style={{ color: '#12A56B' }} /></span>
+						<span><Icon name="check" className="icon scan-check-icon" /></span>
 						<span className="account-row-text">Totals reconciled against the printed total, incl. 25% VAT</span>
 					</div>
 					<div className="account-row">
-						<span><Icon name="eye" style={{ color: 'var(--text-body)' }} /></span>
+						<span><Icon name="eye" className="icon scan-info-icon" /></span>
 						<span className="account-row-text">Possible duplicates flagged with date and amount to compare</span>
 					</div>
 					<div className="account-row">
-						<span><Icon name="tag" style={{ color: 'var(--text-body)' }} /></span>
+						<span><Icon name="tag" className="icon scan-info-icon" /></span>
 						<span className="account-row-text">Vendor matched to your list, or offered as a new vendor</span>
 					</div>
 				</div>
@@ -136,7 +138,9 @@ export function ScanUpload() {
 								))}
 							</InsetPanel>
 						)}</Async>
-						<Button variant="block" to="/orders/all">VIEW ALL</Button>
+						{/* Says orders, because that is where it goes: a scan becomes an order and
+						    there is no list of scans to show all of. */}
+						<Button variant="block" to="/orders/all">SEE ALL ORDERS</Button>
 					</CardBody>
 				</Card>
 			</div>
@@ -148,23 +152,26 @@ export function ScanUpload() {
 
 export function ScanReading() {
 	const key = useDocumentKey()
-	const documents = useApi(getScanDocuments)
+	// Same fetch ScanReview makes for the same key — useApi caches it, so this doesn't cost a
+	// second round trip once step 3 opens.
+	const draft = useApi(getScanDraft, [key])
 
 	return (
 		<Page>
 			<Stepper steps={SCAN_STEPS(1)} />
-			<Async state={documents} label="Loading the document">{docs => {
-				const file = docs[key] ?? docs.photo
+			<Async state={draft} label="Loading the document">{answer => {
+				const file = answer.file
 				return (
 					<Card aria-label="Reading the document" aria-busy="true">
 						<CardBody variant="card-body-centered">
-							<DocumentPreview kind={file.kind} style={{ width: 120, height: 150 }} />
+							<DocumentPreview kind={file.kind} className="scan-reading-preview"
+								src={file.hasThumbnail ? scanThumbnailUrl(key) : undefined} />
 							<div>
 								<div className="card-headline">Reading {file.name}</div>
 								<span className="field-help">
 									This usually takes a few seconds. Nothing is stored until you approve the review.</span>
 							</div>
-							<ProgressBar style={{ width: '100%', maxWidth: 420 }} label="Reading progress" />
+							<ProgressBar className="scan-reading-progress" label="Reading progress" />
 							<ButtonLink to={`/scan/review?doc=${key}`}>OPEN THE REVIEW</ButtonLink>
 						</CardBody>
 					</Card>
@@ -201,7 +208,24 @@ function ScanReviewForm({ answer }) {
 		remainder: answer.remainder
 	}))
 	const [editingLine, setEditingLine] = useState(null)
+	const [newLineId, setNewLineId] = useState(null)
 	const [sourceOpen, setSourceOpen] = useState(false)
+
+	/* There is no OCR behind this review yet (see api/scan/draft/:key on the server) — a
+	   freshly uploaded document reads back with no lines at all, and the only way this form
+	   could edit a line was to already have one. ADD LINE opens a blank one the same editor
+	   below already knows how to save; cancelling a line that was never saved removes it again
+	   rather than leaving an empty row behind. */
+	const addLine = () => {
+		const id = 'l-new-' + crypto.randomUUID()
+		patch({ lines: [...draft.lines, { id, title: '', quantity: 1, price: 0 }] })
+		setNewLineId(id)
+		setEditingLine(id)
+	}
+	const cancelLine = id => {
+		if (id === newLineId) { patch({ lines: draft.lines.filter(l => l.id !== id) }); setNewLineId(null) }
+		setEditingLine(null)
+	}
 
 	/* The same four rules step 1 checks, from the same module. This screen used to check
 	   nothing at all: a receipt whose vendor line came back blank saved an order with no
@@ -225,8 +249,10 @@ function ScanReviewForm({ answer }) {
 			? { ...l, title: values.title, quantity: values.quantity, price: values.price,
 				uncertain: false, meta: undefined, amount: undefined }
 			: l)) })
+		const wasNew = id === newLineId
+		if (wasNew) setNewLineId(null)
 		setEditingLine(null)
-		toast(`${values.title} corrected.`)
+		toast(wasNew ? `${values.title} added.` : `${values.title} corrected.`)
 	}
 
 	const linesTotal = draft.lines.reduce((sum, l) => sum + l.price * l.quantity, 0)
@@ -252,8 +278,10 @@ function ScanReviewForm({ answer }) {
 			categories: [], shipping: draft.shipping,
 			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price }))
 		})
+			.then(order => attachScanDocument(answer.documentKey, order.id).then(() => order).catch(() => order))
 			.then(order => {
 				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
+				invalidate(getStats); invalidate(getHomeHero)
 				navigate('/orders/' + order.id)
 			})
 			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
@@ -264,18 +292,18 @@ function ScanReviewForm({ answer }) {
 			title="Review the draft" lead="Every value is editable. Nothing is stored until you save."
 			steps={SCAN_STEPS(2)} status={status}
 			cancel={{ to: '/scan', label: 'DISCARD' }}
-			submit={{ label: saving ? 'SAVING…' : 'SAVE ORDER', onClick: save, disabled: saving }}
+			submit={{ label: saving ? 'SAVING...' : 'SAVE ORDER', onClick: save, disabled: saving }}
 			notice={
 				/* The verdict is about the numbers on screen, so it is recomputed from them:
 				   correct a line and the note either still says the total matches or stops saying
 				   it. A fixed "Total matches." over edited figures is the app asserting something
 				   it has not checked. */
 				Math.abs(linesTotal + shipping - answer.total) < 0.005 ? (
-					<Note tone="positive" title="Total matches." style={{ marginBottom: 16 }}>
+					<Note tone="positive" title="Total matches." className="note-lead">
 						{answer.reconciled}
 					</Note>
 				) : (
-					<Note tone="warning" title="Total no longer matches." style={{ marginBottom: 16 }}>
+					<Note tone="warning" title="Total no longer matches." className="note-lead">
 						The lines now add up to {kr(linesTotal + shipping)}, against the document total
 						of {kr(answer.total)}. Saving keeps what is on screen.
 					</Note>
@@ -288,16 +316,31 @@ function ScanReviewForm({ answer }) {
 							{/* The preview under this button is a thumbnail; OPEN is what makes it big
 							    enough to read from. It says which state it is in, and it says CLOSE when
 							    it would close -- a toggle labelled the same in both states is a control
-							    that tells you nothing about what pressing it does. */}
-							<button type="button" className="button button-pill"
-								aria-expanded={sourceOpen} aria-controls="scan-source-preview"
-								onClick={() => setSourceOpen(o => !o)}>{sourceOpen ? 'CLOSE' : 'OPEN'}</button>
+							    that tells you nothing about what pressing it does.
+
+							    A PDF's toggle swapped this same <img> to the raw PDF's own bytes, which
+							    no browser decodes as an image -- ImageOrIcon's onError fallback silently
+							    replaced the thumbnail with a bare document glyph, the opposite of "big
+							    enough to read from". A real link, opened in a new tab, hands it to the
+							    browser's own PDF viewer instead; an image has no such problem; the swap
+							    already showed its own real bytes correctly. */}
+							{answer.file.kind === 'pdf' ? (
+								<a className="button button-pill" href={scanFileUrl(answer.documentKey)}
+									target="_blank" rel="noopener noreferrer">OPEN</a>
+							) : (
+								<button type="button" className="button button-pill"
+									aria-expanded={sourceOpen} aria-controls="scan-source-preview"
+									onClick={() => setSourceOpen(o => !o)}>{sourceOpen ? 'CLOSE' : 'OPEN'}</button>
+							)}
 						</CardHeader>
 						<CardDivider />
 						<CardBody>
 							<DocumentPreview kind={answer.file.kind} id="scan-source-preview"
-								style={sourceOpen ? { height: 520 } : undefined} />
-							<div className="space-between document-name-row" style={{ marginTop: 10 }}>
+								className={sourceOpen ? 'scan-source-open' : undefined}
+								src={answer.file.hasThumbnail
+									? (sourceOpen ? scanFileUrl(answer.documentKey) : scanThumbnailUrl(answer.documentKey))
+									: undefined} />
+							<div className="space-between document-name-row">
 								<span className="document-name">{answer.file.name}</span>
 								<span className="field-help">{answer.file.meta}</span>
 							</div>
@@ -305,43 +348,47 @@ function ScanReviewForm({ answer }) {
 						</CardBody>
 					</Card>
 
-					<Card aria-label="Possible duplicate">
-						<CardHeader title="Possible duplicate" />
-						<CardDivider />
-						<CardBody>
-							<Note tone="warning" title="Check before saving." style={{ marginBottom: 10 }}>
-								You already have a {answer.vendor} order within 14 days of this date.
-							</Note>
-							<ItemRow thumb="receipt" to={`/orders/${answer.duplicate.orderId}`}
-								title={answer.duplicate.title} meta={answer.duplicate.meta}
-								amount={kr(answer.duplicate.total)} />
-						</CardBody>
-					</Card>
+					{answer.duplicate ? (
+						<Card aria-label="Possible duplicate">
+							<CardHeader title="Possible duplicate" />
+							<CardDivider />
+							<CardBody>
+								<Note tone="warning" title="Check before saving." className="note-above-row">
+									You already have a {answer.vendor} order within 14 days of this date.
+								</Note>
+								<ItemRow thumb="receipt" to={`/orders/${answer.duplicate.orderId}`}
+									title={answer.duplicate.title} meta={answer.duplicate.meta}
+									amount={kr(answer.duplicate.total)} />
+							</CardBody>
+						</Card>
+					) : null}
 
-					<Card aria-label="What was checked">
-						<CardHeader title="What was checked" />
-						<CardDivider />
-						<CardBody>
-							<InsetPanel>
-								{answer.checks.map(check => (
-									<ItemRow key={check.id}
-										icon={check.warning ? 'alert' : 'check'}
-										iconTone={check.warning ? { background: '#F6ECD9', color: '#84651E' } : undefined}
-										title={check.title} meta={check.meta} />
-								))}
-							</InsetPanel>
-						</CardBody>
-					</Card>
+					{answer.checks.length ? (
+						<Card aria-label="What was checked">
+							<CardHeader title="What was checked" />
+							<CardDivider />
+							<CardBody>
+								<InsetPanel>
+									{answer.checks.map(check => (
+										<ItemRow key={check.id}
+											icon={check.warning ? 'alert' : 'check'}
+											iconTone={check.warning ? { background: '#F6ECD9', color: '#84651E' } : undefined}
+											title={check.title} meta={check.meta} />
+									))}
+								</InsetPanel>
+							</CardBody>
+						</Card>
+					) : null}
 				</>
 			}>
 
 			<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId}>
 				<FieldShell>
 					<TextInput id="order-vendor" value={draft.vendor} onChange={set('order-vendor', 'vendor')}
-						placeholder="Search vendors…" aria-label="Vendor" aria-required="true"
+						placeholder="Search vendors..." aria-label="Vendor" aria-required="true"
 						invalid={vendorField.invalid} describedBy={vendorField.describedBy} />
 					{answer.vendorMatched && draft.vendor === answer.vendor
-						? <StatusChip style={{ height: 24, fontSize: 10.5 }}>matched</StatusChip>
+						? <StatusChip className="chip-matched">matched</StatusChip>
 						: null}
 				</FieldShell>
 			</Field>
@@ -380,15 +427,15 @@ function ScanReviewForm({ answer }) {
 
 			<div>
 				<div className="space-between space-between-tight">
-					<span className="section-label">Lines read · {answer.linesRead}</span>
-					<span className="field-help">the pencil corrects a line</span>
+					<span className="section-label">Lines read<Sep />{answer.linesRead}</span>
+					<span className="field-help">the pencil corrects a line<Sep />ADD LINE for one that wasn't read</span>
 				</div>
 				<InsetPanel>
 					{draft.lines.map(line => (
 						editingLine === line.id ? (
 							<LineEditor key={line.id} line={line}
 								onSave={values => saveLine(line.id, values)}
-								onCancel={() => setEditingLine(null)} />
+								onCancel={() => cancelLine(line.id)} />
 						) : (
 							<ItemRow key={line.id}
 								icon={line.uncertain ? 'alert' : 'check'}
@@ -411,17 +458,21 @@ function ScanReviewForm({ answer }) {
 								? 'Kept as read; the document stays attached to the order.'
 								: `${kr(draft.remainder.total)} together`}>
 							{showAll ? null : (
-								<ButtonLink style={{ marginLeft: 'auto' }}
+								<ButtonLink className="push-end"
 									onClick={() => setShowAll(true)}>SHOW ALL</ButtonLink>
 							)}
 						</ItemRow>
 					) : null}
 				</InsetPanel>
+				{editingLine === null ? (
+					<Button variant="ghost compact" icon="plus" className="panel-cta"
+						onClick={addLine}>ADD LINE</Button>
+				) : null}
 			</div>
 
 			<SummaryRow label="Lines subtotal" value={kr(linesTotal)} />
 			<SummaryRow label="Shipping" value={kr(shipping)} />
-			<div className="card-divider" style={{ margin: '2px 0 0' }} />
+			<div className="card-divider card-divider-tight" />
 			<SummaryTotal value={kr(linesTotal + shipping)} />
 		</FormPage>
 	)
@@ -459,7 +510,7 @@ function LineEditor({ line, onSave, onCancel }) {
 	}
 
 	return (
-		<div className="filter-section" style={{ margin: '4px 0' }}>
+		<div className="filter-section line-editor">
 			<Field label="Line" error={description.error} errorId={description.errorId}>
 				<FieldShell>
 					<TextInput id="line-description" value={form['line-description']} autoFocus

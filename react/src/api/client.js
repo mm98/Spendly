@@ -1,1173 +1,526 @@
-/* The phantom API.
+/* The real API client.
 
-   Every page reads through this module and none of them reach into seed.js, so the whole
-   surface a real backend would have to implement is the list of exports below. Each one is
-   async and each one takes a little time, because a component written against an instantly
-   resolved promise is a component with no loading state -- and the loading state is the
-   half that breaks when the fetch is real.
+   Was a phantom in-memory store (seeded from ./seed.js, persisted as diffs in localStorage);
+   is now a thin fetch() wrapper around the Express + SQLite backend in api/. Every exported
+   function keeps its original name and signature — useApi.js keys its cache off `fn.name`, and
+   every page already calls this module by these names — so nothing above this file changed to
+   make the swap. seed.js is no longer imported: the data it held is now real rows on the
+   server, seeded once per account at registration (api/src/seed.js).
 
-   Mutations write to an in-memory copy of the seed and persist to localStorage where the
-   choice is the user's (their dashboard, their orders). Storage being refused is not an
-   error worth surfacing: the choice still holds for the session. */
+   The dev server proxies /api to the API process (see vite.config.js), so every path here is
+   relative. `credentials: 'include'` carries the session cookie on every request. */
 
-import * as seed from './seed.js'
+import { dayMonth, parseAmount, sep } from './format.js'
 
-const STORAGE_PREFIX = 'spendly.'
-const LATENCY = [90, 260]   // ms, uniform -- enough to see a skeleton, short enough to use
-
-const wait = signal => new Promise((resolve, reject) => {
-	const ms = LATENCY[0] + Math.random() * (LATENCY[1] - LATENCY[0])
-	const timer = setTimeout(resolve, ms)
-	if (!signal) return
-	if (signal.aborted) { clearTimeout(timer); reject(abortError()); return }
-	signal.addEventListener('abort', () => { clearTimeout(timer); reject(abortError()) }, { once: true })
-})
-
-const abortError = () => {
-	const e = new Error('Request aborted')
-	e.name = 'AbortError'
-	return e
+class ApiError extends Error {
+	constructor(message, status, fields) {
+		super(message)
+		this.name = 'ApiError'
+		this.status = status
+		this.fields = fields
+	}
 }
 
-/* Deep-enough copies, so a component that mutates what it was handed cannot corrupt the
-   store behind everyone else's back. structuredClone is in every engine this targets. */
-const copy = value => structuredClone(value)
-
-const read = (key, fallback) => {
-	try {
-		const raw = localStorage.getItem(STORAGE_PREFIX + key)
-		return raw === null ? fallback : JSON.parse(raw)
-	} catch { return fallback }
+const qs = params => {
+	const usp = new URLSearchParams()
+	for (const [k, v] of Object.entries(params ?? {})) if (v !== '' && v != null) usp.set(k, String(v))
+	const s = usp.toString()
+	return s ? '?' + s : ''
 }
 
-const write = (key, value) => {
-	try { localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value)) } catch { /* storage refused */ }
-}
-
-/* ---- the store ---- */
-
-const store = {
-	orders: copy(seed.orders),
-	vendors: copy(seed.vendors),
-	categories: copy(seed.categories),
-	period: copy(seed.period),
-	periods: copy(seed.periods),
-	settings: { ...copy(seed.defaultSettings), ...read('settings', {}) },
-	/* Documents dropped on the scan page this session. Not persisted: a file the browser no
-	   longer holds is not a document, and remembering its name across a reload would be the
-	   app claiming to have something it does not. */
-	uploads: {}
-}
-
-/* Vendors and categories the user made, and the seeded ones they edited or removed, outlive
-   the reload the same way their orders do. The seed is never re-persisted, so clearing
-   storage returns the app to its shipped state. */
-const applyStored = (list, stored) => {
-	if (!stored) return list
-	const removed = new Set(stored.removed ?? [])
-	const patched = list
-		.filter(x => !removed.has(x.id))
-		.map(x => ({ ...x, ...(stored.patched?.[x.id] ?? {}) }))
-	return [...patched, ...(stored.added ?? [])]
-}
-store.vendors = applyStored(store.vendors, read('vendors', null))
-store.categories = applyStored(store.categories, read('categories', null))
-
-/* What is written back is the difference from the seed, not the whole list -- a stored copy
-   of every record would freeze the seed at the version it was first read at, and a fix to
-   the demo data would never reach anyone who had opened the app once. */
-const persistList = (key, list, seeded) => {
-	const seedIds = new Set(seeded.map(x => x.id))
-	write(key, {
-		added: list.filter(x => !seedIds.has(x.id)),
-		removed: seeded.filter(x => !list.some(y => y.id === x.id)).map(x => x.id),
-		patched: Object.fromEntries(list.filter(x => seedIds.has(x.id)).map(x => [x.id, x]))
+async function request(path, { method = 'GET', body, signal, form } = {}) {
+	const res = await fetch(path, {
+		method, signal, credentials: 'include',
+		headers: form || body === undefined ? undefined : { 'Content-Type': 'application/json' },
+		body: form ?? (body === undefined ? undefined : JSON.stringify(body))
 	})
+	if (res.status === 204) return null
+	let data = null
+	try { data = await res.json() } catch { /* empty body */ }
+	if (!res.ok) throw new ApiError(data?.error || res.statusText || 'Request failed', res.status, data?.fields)
+	return data
 }
 
-/* Orders behave like vendors and categories: what this browser added, removed or changed is
-   what gets stored, and the seed is never re-persisted. Storing only the added ones was the
-   version that shipped first, and it meant an edit to a seeded order -- marking it delivered,
-   correcting a line -- was written to the store, rendered, and gone on the next reload. Only
-   a reload could show it, which is the one thing a click-through never does. */
-store.orders = applyStored(store.orders, read('orders', null))
+/* ---- auth ---- */
 
-const vendorOf = order => store.vendors.find(v => v.id === order.vendorId)
-const categoriesOf = order => order.categoryIds.map(id => store.categories.find(c => c.id === id)).filter(Boolean)
-
-const itemsTotal = order => order.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-
-/* An order's total is its lines plus shipping. Three of the seeded orders carry more lines
-   than the prototype ever printed -- a 23-line Bilka receipt is 23 lines -- so those hold
-   an override for the count and the total, and everything else is derived. Deriving where
-   we can is what stops a total and its lines from disagreeing after an edit. */
-const decorate = order => {
-	const vendor = vendorOf(order)
-	const partial = order.itemCountOverride != null
-	const subtotal = order.totalOverride != null ? order.totalOverride - order.shipping : itemsTotal(order)
-	/* What the order saved is derived from the lines wherever the lines are all there. Storing
-	   it beside them lets the two disagree, and both halves look right on their own -- a
-	   Matas order read 88 kr. saved over five lines that add up to 102. Where the list is
-	   partial the stored figure is the receipt's, and the item count says why. */
-	const paid = itemsTotal(order)
-	const retail = order.items.reduce((sum, i) => sum + (i.retail ?? i.price) * i.quantity, 0)
-	const saved = partial ? order.saved : retail - paid
-	return {
-		...copy(order),
-		vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,
-		categories: categoriesOf(order).map(c => ({ id: c.id, name: c.name, colour: c.colour, icon: c.icon })),
-		itemCount: order.itemCountOverride ?? order.items.length,
-		subtotal,
-		total: subtotal + order.shipping,
-		saved,
-		savedPercent: partial ? order.savedPercent : (retail > 0 ? (saved / retail) * 100 : 0)
-	}
+export async function register(email, password, signal) {
+	return request('/api/auth/register', { method: 'POST', body: { email, password }, signal })
 }
 
-const byDateDescending = (a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)
-
-const SORTERS = {
-	'date-desc': byDateDescending,
-	'date-asc': (a, b) => -byDateDescending(a, b),
-	'amount-desc': (a, b) => b.total - a.total,
-	'amount-asc': (a, b) => a.total - b.total,
-	'vendor-asc': (a, b) => (a.vendor?.name ?? '').localeCompare(b.vendor?.name ?? '')
+export async function login(email, password, signal) {
+	return request('/api/auth/login', { method: 'POST', body: { email, password }, signal })
 }
 
-export const sorts = seed.sorts
-
-/** The widths a statistics window comes in. The chips render this list and the pager steps by
-    whichever one is on, so both read the same array. */
-export const ranges = seed.ranges
-
-/* ---- endpoints ---- */
-
-export async function getVendors(signal) {
-	await wait(signal)
-	return copy(store.vendors)
+export async function logout(signal) {
+	return request('/api/auth/logout', { method: 'POST', signal })
 }
 
-export async function getCategories(signal) {
-	await wait(signal)
-	return copy(store.categories)
-}
-
-/** The order list, filtered the way the All orders page filters it. */
-export async function getOrders({ query = '', vendorId = '', categoryId = '', status = 'Any',
-	kind = '', from = '', to = '', minAmount = null, maxAmount = null, limit = null,
-	sort = 'date-desc', page = 1, pageSize = null } = {}, signal) {
-	await wait(signal)
-	const needle = query.trim().toLowerCase()
-	const all = store.orders.map(decorate)
-	const matches = all.filter(o => {
-		if (vendorId && o.vendorId !== vendorId) return false
-		if (categoryId && !o.categoryIds.includes(categoryId)) return false
-		if (status !== 'Any' && o.status !== status) return false
-		if (kind && o.kind !== kind) return false
-		if (from && o.date < from) return false
-		if (to && o.date > to) return false
-		if (minAmount != null && o.total < minAmount) return false
-		if (maxAmount != null && o.total > maxAmount) return false
-		if (!needle) return true
-		return o.vendor?.name.toLowerCase().includes(needle)
-			|| o.categories.some(c => c.name.toLowerCase().includes(needle))
-			|| o.items.some(i => i.title.toLowerCase().includes(needle))
-			|| (o.note || '').toLowerCase().includes(needle)
-	}).sort(SORTERS[sort] ?? byDateDescending)
-
-	/* Paging is done here rather than in the page, because "how many are there" and "which
-	   ones am I looking at" are two different numbers and the list has to print both. A pager
-	   that slices an array the page already holds cannot say the first one. */
-	const size = pageSize ?? limit ?? matches.length
-	const pages = Math.max(1, Math.ceil(matches.length / Math.max(1, size)))
-	const at = Math.min(Math.max(1, page), pages)
-	return {
-		orders: matches.slice((at - 1) * size, at * size),
-		matched: matches.length,
-		total: store.orders.length,
-		page: at,
-		pages,
-		from: matches.length ? (at - 1) * size + 1 : 0,
-		to: Math.min(at * size, matches.length)
-	}
-}
-
-export async function getOrder(id, signal) {
-	await wait(signal)
-	const order = store.orders.find(o => o.id === id)
-	if (!order) {
-		const e = new Error('No order ' + id)
-		e.status = 404
-		throw e
-	}
-	return decorate(order)
-}
-
-const persistOrders = () => persistList('orders', store.orders, seed.orders)
-
-/* A draft is turned into a stored order in one place, so create and update cannot disagree
-   about what an order is made of. */
-const fromDraft = (draft, base = {}) => ({
-	...base,
-	vendorId: store.vendors.find(v => v.name.toLowerCase() === String(draft.vendor).trim().toLowerCase())?.id
-		?? base.vendorId ?? 'matas',
-	date: draft.date,
-	status: draft.status || 'Delivered',
-	kind: draft.kind || 'Expense',
-	categoryIds: (draft.categories || [])
-		.map(name => store.categories.find(c => c.name.toLowerCase() === String(name).toLowerCase())?.id)
-		.filter(Boolean),
-	shipping: draft.shipping ? Number(String(draft.shipping).replace(/\./g, '').replace(',', '.')) : 0,
-	note: draft.note || '',
-	reference: draft.reference || '',
-	items: (draft.items || []).map((i, n) => ({ ...i, id: i.id || 'i-new-' + n })),
-	attachments: base.attachments ?? []
-})
-
-/** Saves a draft as an order and hands back the stored record. */
-export async function createOrder(draft, signal) {
-	await wait(signal)
-	const order = fromDraft(draft, { id: 'o-' + Date.now().toString(36) })
-	store.orders = [order, ...store.orders]
-	persistOrders()
-	return decorate(order)
-}
-
-/** Writes an edit back over an existing order. */
-export async function updateOrder(id, draft, signal) {
-	await wait(signal)
-	const at = store.orders.findIndex(o => o.id === id)
-	if (at < 0) { const e = new Error('No order ' + id); e.status = 404; throw e }
-	/* The overrides go with the edit. A 23-line receipt whose lines you have just retyped is
-	   an order with the lines you typed, and leaving the count and total behind would print a
-	   total the new lines do not add up to. */
-	const { itemCountOverride, totalOverride, saved, savedPercent, ...rest } = store.orders[at]
-	store.orders[at] = fromDraft(draft, rest)
-	persistOrders()
-	return decorate(store.orders[at])
-}
-
-export async function deleteOrder(id, signal) {
-	await wait(signal)
-	store.orders = store.orders.filter(o => o.id !== id)
-	persistOrders()
-	return { id }
-}
-
-/* Attachments. The phantom source keeps each file's name, size and kind -- the bytes are the
-   one thing a prototype has no business pretending to hold. */
-
-const fileSize = bytes => {
-	const kb = Math.max(1, Math.round((bytes ?? 0) / 1024))
-	return kb > 1024 ? (kb / 1024).toFixed(1).replace('.', ',') + ' MB' : kb + ' KB'
-}
-
-/** Takes however many files were dropped or chosen. One at a time was the shape that made a
-    card offering to hold receipts accept exactly one per trip through the picker. */
-export async function addAttachments(orderId, files, signal) {
-	await wait(signal)
-	const order = store.orders.find(o => o.id === orderId)
-	if (!order) { const e = new Error('No order ' + orderId); e.status = 404; throw e }
-	const list = Array.isArray(files) ? files : [files]
-	const seen = new Set(order.attachments.map(a => a.name.toLowerCase()))
-	const added = []
-	const skipped = []
-	for (const [n, file] of list.entries()) {
-		/* The same receipt attached twice is a duplicate the user did not mean, and the two
-		   rows are indistinguishable afterwards. Refused by name, and the caller is told. */
-		if (seen.has(file.name.toLowerCase())) { skipped.push(file.name); continue }
-		seen.add(file.name.toLowerCase())
-		added.push({
-			id: 'a-' + Date.now().toString(36) + '-' + n,
-			name: file.name,
-			kind: file.kind ?? (/\.pdf$/i.test(file.name) ? 'pdf' : 'image'),
-			meta: `Added today · ${fileSize(file.size)}`
-		})
-	}
-	order.attachments = [...order.attachments, ...added]
-	persistOrders()
-	return { order: decorate(order), added, skipped }
-}
-
-export async function removeAttachment(orderId, attachmentId, signal) {
-	await wait(signal)
-	const order = store.orders.find(o => o.id === orderId)
-	if (!order) { const e = new Error('No order ' + orderId); e.status = 404; throw e }
-	order.attachments = order.attachments.filter(a => a.id !== attachmentId)
-	persistOrders()
-	return decorate(order)
+export async function getCurrentUser(signal) {
+	return request('/api/auth/me', { signal })
 }
 
 /* ---- vendors ---- */
 
+export async function getVendors(signal) {
+	return request('/api/vendors', { signal })
+}
+
 export async function createVendor(name, look = {}, signal) {
-	await wait(signal)
-	const clean = String(name).trim()
-	if (!clean) { const e = new Error('A vendor needs a name.'); e.status = 400; throw e }
-	/* Refused the same way a duplicate category is, rather than quietly handing back the
-	   vendor that is already there: two create endpoints that disagree about what a duplicate
-	   means are two rules for one thing, and the caller cannot tell which it got. */
-	if (store.vendors.some(v => v.name.toLowerCase() === clean.toLowerCase())) {
-		const e = new Error('You already have a vendor called ' + clean + '.')
-		e.status = 409
-		throw e
-	}
-	const vendor = {
-		id: 'v-' + clean.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36),
-		name: clean,
-		initials: look.initials ?? clean.slice(0, 2).toUpperCase(),
-		/* The caller's colour where it gave one. Failing that, picked from the palette by the
-		   name, so the same vendor is at least the same colour on every render rather than a
-		   different one each time the list is drawn. */
-		colour: look.colour ?? ['#235553', '#877364', '#177DA7', '#AD620D', '#8453F5', '#4F5BD5'][
-			[...clean].reduce((n, c) => n + c.charCodeAt(0), 0) % 6],
-		orders: 0, spend: 0, saved: 0, favourite: Boolean(look.favourite)
-	}
-	store.vendors = [...store.vendors, vendor]
-	persistList('vendors', store.vendors, seed.vendors)
-	return copy(vendor)
+	return request('/api/vendors', { method: 'POST', body: { name, look }, signal })
 }
 
 export async function getVendor(id, signal) {
-	await wait(signal)
-	const vendor = store.vendors.find(v => v.id === id)
-	if (!vendor) { const e = new Error('No vendor ' + id); e.status = 404; throw e }
-	return copy(vendor)
+	return request(`/api/vendors/${id}`, { signal })
 }
 
 export async function updateVendor(id, patch, signal) {
-	await wait(signal)
-	const vendor = store.vendors.find(v => v.id === id)
-	if (!vendor) { const e = new Error('No vendor ' + id); e.status = 404; throw e }
-	Object.assign(vendor, patch)
-	persistList('vendors', store.vendors, seed.vendors)
-	return copy(vendor)
+	return request(`/api/vendors/${id}`, { method: 'PATCH', body: patch, signal })
 }
 
 export async function deleteVendor(id, signal) {
-	await wait(signal)
-	if (store.orders.some(o => o.vendorId === id)) {
-		const e = new Error('That vendor still has orders.')
-		e.status = 409
-		throw e
-	}
-	store.vendors = store.vendors.filter(v => v.id !== id)
-	persistList('vendors', store.vendors, seed.vendors)
-	return { id }
+	return request(`/api/vendors/${id}`, { method: 'DELETE', signal })
+}
+
+/* Every vendor, split into the spotlight and the list under it.
+
+   This used to read /api/vendors/overview, which answered the five biggest by spend -- so an
+   account with twelve could reach five of them, and the search box below the spotlight
+   filtered a list the server had already cut down: typing a vendor that exists but sits sixth
+   answered "No vendor matches", which is a false sentence rather than an empty result. Starring
+   one of those seven was worse, since a favourite is a standing preference and the Favourites
+   section it was starred into could not show it either.
+
+   With nothing truncated the route answered exactly what GET /api/vendors already answers, so
+   it is gone and this reads the list itself. The page sorts and searches client-side, and the
+   spotlight is whichever of them are favourites. */
+export async function getVendorsOverview(signal) {
+	/* `all` is every vendor, favourites included, rather than the ones left over after the
+	   spotlight took its share. Starring a vendor used to remove it from the list below --
+	   which is the only searchable, sortable view of them -- so the more of them you marked as
+	   worth finding, the fewer you could find. Fifty favourites meant fifty vendors reachable
+	   only by eye, in a spotlight that neither filters nor sorts. A favourite is drawn twice
+	   now: once where it was pinned, and once in the list it never should have left. */
+	const vendors = await request('/api/vendors', { signal })
+	return { favourites: vendors.filter(v => v.favourite), all: vendors }
 }
 
 /* ---- categories ---- */
 
+export async function getCategories(signal) {
+	return request('/api/categories', { signal })
+}
+
 export async function createCategory(name, look = {}, signal) {
-	await wait(signal)
-	const clean = String(name).trim()
-	if (!clean) { const e = new Error('A category needs a name.'); e.status = 400; throw e }
-	if (store.categories.some(c => c.name.toLowerCase() === clean.toLowerCase())) {
-		const e = new Error('You already have a category called ' + clean + '.')
-		e.status = 409
-		throw e
-	}
-	/* The glyph, the colour and the budget are the caller's, and they arrive with the create
-	   rather than in an update straight after it: a form that writes twice can half-succeed,
-	   and the second write is the one carrying everything the user chose. The look used to be
-	   assigned from a palette by position, with a tag glyph regardless of what the category was
-	   for -- a value the user can see, cannot explain and could not change. */
-	const category = {
-		id: 'c-' + clean.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36),
-		name: clean,
-		icon: look.icon ?? 'tag',
-		/* The path travels with the name, and this endpoint used to drop it: the record was
-		   built field by field and `iconPath` was not one of the fields, so a category created
-		   with any of Tabler's 5,129 glyphs was stored under its name alone. Editing one wrote
-		   it, because updateCategory assigns the whole patch -- so the defect was only ever in
-		   half the flow, and the half that looked right on screen, since the picker draws its
-		   own preview from the form. Null for the app's own 39, which Icon.jsx knows by name. */
-		iconPath: look.iconPath ?? null,
-		colour: look.colour ?? 'var(--icon-red)',
-		spend: 0, share: 0, saved: 0, budget: Number(look.budget) || 0
-	}
-	store.categories = [...store.categories, category]
-	persistList('categories', store.categories, seed.categories)
-	return copy(category)
+	return request('/api/categories', { method: 'POST', body: { name, look }, signal })
 }
 
 export async function getCategory(id, signal) {
-	await wait(signal)
-	const category = store.categories.find(c => c.id === id)
-	if (!category) { const e = new Error('No category ' + id); e.status = 404; throw e }
-	return copy(category)
+	return request(`/api/categories/${id}`, { signal })
 }
 
 export async function updateCategory(id, patch, signal) {
-	await wait(signal)
-	const category = store.categories.find(c => c.id === id)
-	if (!category) { const e = new Error('No category ' + id); e.status = 404; throw e }
-	Object.assign(category, patch)
-	persistList('categories', store.categories, seed.categories)
-	return copy(category)
+	return request(`/api/categories/${id}`, { method: 'PATCH', body: patch, signal })
 }
 
 export async function deleteCategory(id, signal) {
-	await wait(signal)
-	const used = store.orders.filter(o => o.categoryIds.includes(id)).length
-	if (used) {
-		const e = new Error(`That category is on ${used} order${used === 1 ? '' : 's'}.`)
-		e.status = 409
-		throw e
-	}
-	store.categories = store.categories.filter(c => c.id !== id)
-	persistList('categories', store.categories, seed.categories)
-	return { id }
+	return request(`/api/categories/${id}`, { method: 'DELETE', signal })
 }
 
-/* ---- settings ---- */
+/* Every category, for the same reason the vendors list takes every vendor.
 
-export async function getSettings(signal) {
-	await wait(signal)
-	return copy(store.settings)
+   This read /api/categories/overview, which answered the five biggest by spend, and the page
+   drew all three of its things from that one array -- so an account with ten categories showed
+   five. The Manage tab is where you go to see whether something already exists before adding
+   it, and it was showing half of them: add a category that is already there and the only way
+   to find out was the 409 the save came back with.
+
+   The ring was wrong as well as short. Its centre reads "Spent, all time" and the page sums it
+   from this array, so with five of ten categories in hand the headline figure was the spend of
+   whichever five happened to be biggest, printed as the total. Untruncated, the route answered
+   exactly what GET /api/categories answers, so it is gone. */
+export async function getCategoriesOverview(signal) {
+	return { categories: await request('/api/categories', { signal }) }
 }
 
-export async function saveSettings(patch, signal) {
-	await wait(signal)
-	store.settings = { ...store.settings, ...patch }
-	write('settings', store.settings)
-	return copy(store.settings)
-}
+/* ---- orders ----
+   A draft's `shipping` arrives from the create/edit form as a comma-formatted string (or ''),
+   the same way it always has — parseAmount is what turns "49,00" into 49, and the API wants a
+   plain number. Everything else in a draft (vendor name, category names, numeric item fields)
+   already matches what the server expects. */
 
-/** Forgets everything this browser has stored and returns the app to its shipped state. */
-export async function resetStoredData(signal) {
-	await wait(signal)
-	for (const key of ['orders', 'cards', 'vendors', 'categories', 'settings']) {
-		try { localStorage.removeItem(STORAGE_PREFIX + key) } catch { /* storage refused */ }
-	}
-	return { cleared: true }
-}
-
-/** Home's dashboard: which cards are on it, in the user's order. */
-export async function getDashboardCards(signal) {
-	await wait(signal)
-	const stored = read('cards', null)
-	const known = seed.dashboardCards.map(c => c.key)
-	const on = Array.isArray(stored) && stored.length
-		? stored.filter(k => known.includes(k))
-		: seed.dashboardCards.filter(c => c.on).map(c => c.key)
-	return { all: copy(seed.dashboardCards), on }
-}
-
-export async function saveDashboardCards(keys, signal) {
-	await wait(signal)
-	write('cards', keys)
-	return { on: [...keys] }
-}
-
-/* ---- the statistics window ----
-
-   The range chips and the pager are one control over one timeline: the chips choose how wide
-   the window is, the arrows step by that width. They used to disagree -- the arrows walked
-   `periods` a month at a time whatever the chips said, so a week drew a week and paged a month --
-   and a pager that steps something other than what is on screen is the decorative-control
-   defect with arithmetic in it. README: Statistics, Pagination.
-
-   A window narrower than a month has to know what a day cost, and the month records carry a
-   total and a cumulative curve with nothing in between. So a day's spend is the step that
-   month's curve takes down from the day before it, scaled so the steps sum to the month's own
-   `spent`: the days of July sum to July, no window inside it can disagree with it, and July is
-   24.418,57 kr. here and on Home. The first day has no day before it and takes the second
-   day's step -- the one guess in this file, and it is one day wide. */
-
-const dailySpend = period => {
-	const curve = period.series.statsCurrent
-	const steps = curve.map((y, i) => (i ? curve[i - 1] - y : curve[0] - curve[1]))
-	const drop = steps.reduce((sum, step) => sum + step, 0)
-	return steps.map(step => (period.spent * step) / drop)
-}
-
-/** Every day the store holds, oldest first, each one knowing the month it belongs to. */
-/* The rest of a month's totals ride on the same days, split by what each day cost, so a window
-   narrower than a month has a row of tiles of its own instead of the month's sitting under its
-   heading -- and the days of July still add up to July's 23 orders, 2.106 kr. saved and 388 kr.
-   of shipping. Orders are whole ones: a day cannot have 0.7 of an order, so the fractions are
-   handed out by largest remainder and the count lands exactly on the month's own. */
-const wholeShares = (shares, total) => {
-	const exact = shares.map(share => share * total)
-	const whole = exact.map(Math.floor)
-	const short = total - whole.reduce((sum, n) => sum + n, 0)
-	const byRemainder = exact.map((v, i) => [v - whole[i], i]).sort((a, b) => b[0] - a[0])
-	for (let i = 0; i < short; i++) whole[byRemainder[i][1]]++
-	return whole
-}
-
-const days = [...store.periods].reverse().flatMap(period => {
-	const spend = dailySpend(period)
-	const shares = spend.map(kroner => kroner / period.spent)
-	const orders = wholeShares(shares, period.orderCount)
-	return spend.map((kroner, i) => ({
-		date: period.id + '-' + String(i + 1).padStart(2, '0'),
-		periodId: period.id,
-		spend: kroner,
-		orders: orders[i],
-		saved: period.saved * shares[i],
-		shipping: period.shipping * shares[i],
-		savedPercent: period.savedPercent
+const toApiDraft = draft => ({
+	vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
+	categories: draft.categories ?? [], shipping: draft.shipping ? parseAmount(draft.shipping) : 0,
+	reference: draft.reference ?? '', note: draft.note ?? '',
+	/* A saved order's own item id travels through -- PUT matches a submitted item against what's
+	   already in the database by id, updating it in place rather than deleting and recreating it
+	   under a fresh one, so anything keyed to that id (an item's own attachment) survives an edit
+	   that never touched that line. A draft item with no real id yet (still local to this
+	   session, or a brand-new line) has none to send -- the server treats that the same as
+	   before, a fresh row with a fresh id of its own. */
+	items: (draft.items ?? []).map(i => ({
+		...(i.id ? { id: i.id } : {}),
+		title: i.title, quantity: i.quantity, price: i.price,
+		retail: i.retail ?? null, note: i.note ?? ''
 	}))
 })
 
-const monthOf = periodId => store.periods.find(p => p.id === periodId)
-
-/** Everything the figures on the page state, for a stretch of days. */
-const totalsOver = (from, length) => {
-	const within = days.slice(from, from + length)
-	const sum = key => within.reduce((total, day) => total + day[key], 0)
-	const spent = sum('spend'), orders = sum('orders'), shipping = sum('shipping')
-	return {
-		spent, orders, shipping, saved: sum('saved'),
-		average: orders ? spent / orders : 0,
-		/* Weighted by spend rather than worked out from `saved`: the months author this figure
-		   and it does not reconcile with their own saved-against-retail, so a window blends what
-		   the months claim rather than contradicting the same number printed on Home. */
-		savedPercent: spent ? within.reduce((t, day) => t + day.spend * day.savedPercent, 0) / spent : 0,
-		shippingShare: spent ? (shipping / spent) * 100 : 0
-	}
+export async function getOrders(params = {}, signal) {
+	return request('/api/orders' + qs(params), { signal })
 }
 
-/** The running total in kroner, which is the line the chart draws and the figure printed above
-    it -- one series, so the number and the line it sits over cannot disagree. */
-const runningTotal = (from, length) => {
-	let sum = 0
-	return days.slice(from, from + length).map(day => (sum += day.spend))
+export async function getOrder(id, signal) {
+	return request(`/api/orders/${id}`, { signal })
 }
 
-/* What the arrows call their own step, which is the width's own name: the chips are calendar
-   units, so `week` pages a week and the arrow says so with no table in between. `all` has no
-   unit and no step -- it is the whole of the records, so it is the one window whose arrows are
-   disabled at both ends at once. */
-const unitOf = range => (range === 'all' ? 'range' : range)
-const dayNumber = date => Number(date.slice(8))
-
-/* Weeks are ISO weeks: Monday to Sunday, numbered so that week 1 is the one holding 4 January.
-   Chunking each month from its own 1st was simpler and it meant "week" here named a stretch of
-   time no calendar agrees with -- the store starts on Friday 1 May, which is the tail of week
-   18, not the head of a week at all. A week crosses a month boundary because weeks do.
-
-   Pure UTC arithmetic, deliberately: these are calendar dates rather than moments, and running
-   them through the local clock is what dates an evening in Copenhagen to tomorrow. */
-const DAY = 86400000
-const mondayFirst = at => (new Date(at).getUTCDay() + 6) % 7   // Monday 0 ... Sunday 6
-
-const isoWeek = iso => {
-	const [y, m, d] = iso.split('-').map(Number)
-	const at = Date.UTC(y, m - 1, d)
-	/* A week belongs to the year holding its Thursday, and 4 January is always in week 1 --
-	   the two facts the whole numbering follows from. */
-	const thursday = at + (3 - mondayFirst(at)) * DAY
-	const year = new Date(thursday).getUTCFullYear()
-	const jan4 = Date.UTC(year, 0, 4)
-	const firstThursday = jan4 + (3 - mondayFirst(jan4)) * DAY
-	return { year, week: Math.round((thursday - firstThursday) / (7 * DAY)) + 1 }
+export async function createOrder(draft, signal) {
+	return request('/api/orders', { method: 'POST', body: toApiDraft(draft), signal })
 }
 
-const weekKey = iso => {
-	const { year, week } = isoWeek(iso)
-	return year + '-W' + String(week).padStart(2, '0')
+export async function updateOrder(id, draft, signal) {
+	return request(`/api/orders/${id}`, { method: 'PUT', body: toApiDraft(draft), signal })
 }
 
-/* The other three units the pager steps in. Every one of them is a calendar unit rather than a
-   duration: the quarter is the one the window lands in, not the ninety days before it, and the
-   year is the year, with the current one running only as far as the records do. A control that
-   offers a unit and pages something else is the same defect one level in. */
-const quarterOf = iso => Math.floor((Number(iso.slice(5, 7)) - 1) / 3) + 1
-const quarterKey = iso => iso.slice(0, 4) + '-Q' + quarterOf(iso)
-const monthKey = iso => iso.slice(0, 7)
-const yearKey = iso => iso.slice(0, 4)
-
-/* The date the window labels print. Duplicated from format.js on purpose, the same way krLabel
-   at the foot of this file is: that module is the app's, and an API that hands back
-   half-formatted strings would be handing the page a rendering decision it cannot undo. What a
-   window is called is the API's own sentence -- the page prints it and does not compose it. */
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
-	'July', 'August', 'September', 'October', 'November', 'December']
-const dayMonth = iso => {
-	const [, m, d] = iso.split('-')
-	return Number(d) + ' ' + MONTHS[Number(m) - 1]
+export async function deleteOrder(id, signal) {
+	return request(`/api/orders/${id}`, { method: 'DELETE', signal })
 }
 
-/** "1–7 July", and "24 June – 7 July" for a window that spans two of them. */
-const spanText = (from, to) => from.slice(0, 7) === to.slice(0, 7)
-	? dayNumber(from) + '–' + dayMonth(to)
-	: dayMonth(from) + ' – ' + dayMonth(to)
-
-/* Five names per window, because they are read in five places.
-
-   `label` is what the pager draws and what the heading over the tiles is made of, and it says
-   its unit in the calendar's own words -- Week 30, 2026 · July 2026 · Quarter 2, 2026 · 2026.
-   It used to be abbreviated to W30 and Q2 to keep it short enough for the band, with a second
-   unabbreviated string carried beside it for screen readers, because "W30, 2026" is a letter, a
-   number and a year and nothing in it says week. Two strings for one window is a thing to keep
-   in step, and the drawn one was the one that could not be read: writing the unit out costs
-   about 30px in a band that has room for it and leaves one name to keep true.
-
-   `short` is the days the window actually covers, printed over the chart that plots them --
-   which is what a unit name does not tell you, and what the clipped windows at either end of
-   the records need said. `ref` is how anything comparing itself against this window names it.
-
-   `tick` is the label under a column in a bar chart, where six of them share the width of half
-   a card. It is not a second name for the window the way the abbreviated `label` was -- nothing
-   announces a tick as the window's name, and the heading over the columns says which unit they
-   are, so "Q3" is decoded one line up rather than against the calendar.
-
-   `abbr` is `label` for a band too narrow to hold it -- W31 2026, Jul 2026, Q3 2026. It is the
-   one thing this file said was settled and is not: a name that has to be decoded is a name
-   nobody checks, which is why the pager writes its unit out. On a 390px phone the row that
-   holds the two arrows, this name and the five widths has about 96px for it, and "Quarter 3,
-   2026" is 128.6px, so the choice there is between the short name and a second row. What made
-   the short name a defect before was that it was drawn while a *different* string was announced;
-   here the two are one -- the stylesheet renders exactly one of them at any width, and
-   `display:none` is not announced either. README: Statistics. */
-const labelsFor = (range, first, last, periodId) => {
-	const year = first.date.slice(0, 4)
-	const span = spanText(first.date, last.date)
-	if (range === 'week') {
-		const at = isoWeek(first.date)
-		return { label: 'Week ' + at.week + ', ' + at.year, short: span, ref: span,
-			tick: dayNumber(first.date) + ' ' + MONTHS[Number(first.date.slice(5, 7)) - 1].slice(0, 3),
-			abbr: 'W' + at.week + ' ' + at.year }
-	}
-	if (range === 'month') {
-		const month = monthOf(periodId)
-		return { label: month.label, short: month.shortLabel, ref: month.shortLabel,
-			tick: month.shortLabel.slice(0, 3), abbr: month.shortLabel.slice(0, 3) + ' ' + year }
-	}
-	if (range === 'quarter') {
-		const q = quarterOf(first.date)
-		return { label: 'Quarter ' + q + ', ' + year, short: span, ref: 'Quarter ' + q, tick: 'Q' + q,
-			abbr: 'Q' + q + ' ' + year }
-	}
-	if (range === 'year') return { label: year, short: span, ref: year, tick: year, abbr: year }
-	return { label: 'All time', short: 'all time', ref: null, tick: 'All time', abbr: 'All time' }
+/** Takes real File objects (from a picker or a drop) and uploads their actual bytes — the
+    backend stores them for real, unlike the phantom store's name-only record. */
+export async function addAttachments(orderId, files, signal) {
+	const form = new FormData()
+	for (const file of files) form.append('files', file)
+	return request(`/api/orders/${orderId}/attachments`, { method: 'POST', form, signal })
 }
 
-/* The scale under the chart is the window's own, and it is keyed on the days rather than on the
-   chip: a quarter that has only started is one month of days and wants the marks a month wants.
-   Left at the month's fixed 01/08/15/22/29 it printed the wrong days under every week and month
-   names under none of the long ones. */
-const axisFor = (from, length) => {
-	const within = days.slice(from, from + length)
-	const first = within[0], last = within[within.length - 1]
-	if (length <= 14) return within.map(day => day.date.slice(8))
-	if (first.periodId === last.periodId && dayNumber(first.date) === 1)
-		return ['01', '08', '15', '22', '29'].filter(d => Number(d) <= length)
-	return [...new Set(within.map(day => monthOf(day.periodId).shortLabel.slice(0, 3)))]
+export async function removeAttachment(orderId, attachmentId, signal) {
+	return request(`/api/orders/${orderId}/attachments/${attachmentId}`, { method: 'DELETE', signal })
 }
 
-/* Which month the cards beside the chart are about. A window wider than a week takes the month
-   it ends in, which is the month a reader paging into it has just arrived at. A week takes the
-   month most of its days fall in, because a week straddles two: for a whole one that is the
-   month holding its Thursday, the rule ISO itself uses to place a week in a year, and for the
-   clipped ones at either end of the store it is the month that is actually there. */
-const monthUnder = within => {
-	const tally = new Map()
-	for (const day of within) tally.set(day.periodId, (tally.get(day.periodId) ?? 0) + 1)
-	return [...tally].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? 1 : -1))[0][0]
+/** `<img src>` reads these directly rather than going through fetch() — the browser sends the
+    session cookie on a same-origin image request the same way it does on any other, so there's
+    nothing useApi.js needs to do here. Kept as functions (not inline template strings at every
+    call site) so the URL shape lives in one place. */
+export const attachmentThumbnailUrl = (orderId, attachmentId) => `/api/orders/${orderId}/attachments/${attachmentId}/thumbnail`
+export const attachmentFileUrl = (orderId, attachmentId) => `/api/orders/${orderId}/attachments/${attachmentId}/file`
+
+/** The same as addAttachments/removeAttachment above, one level down: a photo (or a PDF) of a
+    single line item rather than the whole receipt. The item has to already exist server-side —
+    NewOrder.jsx uploads these after the order (and so the item) is saved, not while the item is
+    still a client-side draft with no id of its own yet. */
+export async function addItemAttachments(orderId, itemId, files, signal) {
+	const form = new FormData()
+	for (const file of files) form.append('files', file)
+	return request(`/api/orders/${orderId}/items/${itemId}/attachments`, { method: 'POST', form, signal })
 }
 
-const KEYS = { week: weekKey, month: monthKey, quarter: quarterKey, year: yearKey }
-
-const windowAt = (range, from, length) => {
-	const within = days.slice(from, from + length)
-	const first = within[0], last = within[within.length - 1]
-	const periodId = range === 'week' ? monthUnder(within) : last.periodId
-	const { label, short, ref, tick, abbr } = labelsFor(range, first, last, periodId)
-	return {
-		id: KEYS[range] ? KEYS[range](first.date) : range,
-		range, unit: unitOf(range), periodId, ref, tick, abbr,
-		/* The day this window stands on when the width changes under it: the newest one that
-		   belongs to the month the window is filed under. Its own last day would do for every
-		   window that sits inside a month, and would walk a reader off the month the cards are
-		   showing for the one week that does not -- ask for a month from a week whose Thursday
-		   is in July and you get July, which is the month the page was already about. */
-		anchor: from + within.findLastIndex(day => day.periodId === periodId),
-		from: first.date, to: last.date, start: from, length,
-		label, shortLabel: short, axis: axisFor(from, length)
-	}
+export async function removeItemAttachment(orderId, itemId, attachmentId, signal) {
+	return request(`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}`, { method: 'DELETE', signal })
 }
 
-/* Every window a range offers, newest first, which is the order the pager walks: the timeline
-   cut into runs of days sharing a calendar key. The first and last run of any unit are clipped
-   to the days the store has -- week 18 is the three days of May it starts with, Q3 is July on
-   its own, 2026 is three months of it. A clipped window is a fact about where the records stop
-   rather than a different kind of window: it says which days it holds, and it is compared like
-   any other or not at all. `all` is the one window that is not a calendar unit. */
-const built = {}
-const windowsOf = range => (built[range] ??= (() => {
-	const keyOf = KEYS[range]
-	if (!keyOf) return [windowAt(range, 0, days.length)]
-	const out = []
-	for (let i = 0; i < days.length;) {
-		const key = keyOf(days[i].date)
-		let n = 1
-		while (i + n < days.length && keyOf(days[i + n].date) === key) n++
-		out.push(windowAt(range, i, n))
-		i += n
-	}
-	return out.reverse()
-})())
+export const itemAttachmentThumbnailUrl = (orderId, itemId, attachmentId) =>
+	`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}/thumbnail`
+export const itemAttachmentFileUrl = (orderId, itemId, attachmentId) =>
+	`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}/file`
 
-/* What a window is measured against: the calendar unit before it -- the month before a month,
-   the quarter before a quarter -- and for a week, the same number of days immediately before it.
-   The week is the exception because a week can be clipped to a few days at either end of the
-   records, and the window before it is a whole one: five days against seven is a delta about
-   the calendar rather than about the spending. Months, quarters and years differ in length by
-   nature, and "vs June" is what the record itself says. */
-const previousOf = chosen => {
-	if (chosen.range === 'week') {
-		if (chosen.start < chosen.length) return null
-		const start = chosen.start - chosen.length
-		return { start, length: chosen.length, label: spanText(days[start].date, days[start + chosen.length - 1].date) }
-	}
-	const list = windowsOf(chosen.range)
-	const before = list[list.findIndex(w => w.id === chosen.id) + 1]
-	return before ? { start: before.start, length: before.length, label: before.ref } : null
+/** Bulk-imports whole orders (vendor, categories, items, attachment images) from another
+    expense-tracking system in one call. Not wired to any page yet — this is the entry point
+    for that migration, called directly (a script, a one-off import screen) rather than through
+    useApi like the read endpoints above. */
+export async function importOrders(orders, signal) {
+	return request('/api/orders/import', { method: 'POST', body: { orders }, signal })
 }
 
-/* Which way it went comes back beside the sentence, because spending less is a good down --
-   the same split the KPI tiles make between trend and tone. Every authored delta in the store
-   was an up, so the chip could be amber and never be wrong about it; a pager that steps a week
-   reaches windows that cost less than the one before them.
-
-   Nothing is the third direction, and it is not "0% up": four orders against four orders reads
-   as a rise of nothing with an arrow over it, and the arrow is the part that lies. A window
-   narrow enough to hold whole orders lands there often. */
-const deltaOf = (now, before, beforeLabel) => {
-	if (!before || !beforeLabel) return { label: null, direction: null }
-	const pct = Math.round((now / before - 1) * 100)
-	if (pct === 0) return { label: 'level with ' + beforeLabel, direction: 'level' }
-	return { label: Math.abs(pct) + '% ' + (pct < 0 ? 'down' : 'up') + ' vs ' + beforeLabel,
-		direction: pct < 0 ? 'down' : 'up' }
-}
-
-/* The four tiles, for whatever the window is, and which way is good news for each: spending
-   less is a good down, and saving more is the one of the four where up is the good direction.
-   Trend and tone are separate for exactly that reason. README: Statistics.
-
-   Derived from the same days the figure above the chart is, which is what lets the heading over
-   them name the window: a month's authored row comes back out of this unchanged -- 23 orders,
-   1.062 kr., 2.106 kr., 388 kr., and all four of its delta sentences -- so nothing was lost by
-   deriving them, and a week has a row that is the week's. */
-const KPIS = [
-	{ label: 'Orders', goodUp: false, of: t => t.orders,
-		value: t => String(t.orders),
-		note: (t, was, label) => (was ? `${label}: ${was.orders} orders` : null) },
-	{ label: 'Average order', goodUp: false, of: t => t.average,
-		value: t => krLabel(t.average, 0),
-		note: (t, was, label) => (was?.orders ? `${label}: ${krLabel(was.average, 0)}` : null) },
-	{ label: 'Saved vs retail', goodUp: true, of: t => t.saved,
-		value: t => krLabel(t.saved, 0),
-		note: t => `${Math.round(t.savedPercent)}% under retail prices` },
-	{ label: 'Shipping', goodUp: false, of: t => t.shipping,
-		value: t => krLabel(t.shipping, 0),
-		note: t => t.shippingShare.toFixed(1).replace('.', ',') + '% of spend' }
-]
-
-const kpisFor = (now, was, wasLabel) => KPIS.map(kpi => {
-	const delta = was ? deltaOf(kpi.of(now), kpi.of(was), wasLabel) : { label: null, direction: null }
-	return {
-		label: kpi.label,
-		value: kpi.value(now),
-		delta: delta.label,
-		trend: delta.direction ?? 'up',
-		tone: delta.direction === (kpi.goodUp ? 'up' : 'down') ? 'good' : 'neutral',
-		note: kpi.note(now, was, wasLabel)
-	}
-})
-
-/* ---- the four cards beside the chart ----
-
-   Every one of them used to be the month's, whatever the picker said: the pace, the weekly
-   rhythm, the category split, the columns and the returns note came straight off the month
-   record, so choosing a week changed the tiles and the chart above them and left five cards
-   reading July. They are the window's now, derived from the same days everything else on the
-   page is -- the charts are unchanged, it is the source under them that moved. README:
-   Statistics.
-
-   What a month authors and a day does not -- which categories a purchase fell into -- is
-   split across that month's days by what each day cost, the same way `saved` and `shipping`
-   already are. So a window inside July carries July's proportions scaled to its own spend,
-   and the four amounts add up to the total printed above the chart instead of to the
-   all-time category totals the month legend actually holds. */
-
-const WEEKDAY_TICKS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-const weekdayOf = iso => {
-	const [y, m, d] = iso.split('-').map(Number)
-	return mondayFirst(Date.UTC(y, m - 1, d))
-}
-
-/** The seven bars, the weekend share and the busiest day, for a stretch of days. Heights are
-    px, the way the bars are authored: the busiest weekday is the 70px a month record draws
-    and every other bar is its share of that one. A window narrower than a week leaves the
-    weekdays it does not hold at 0, which is what a Monday-to-Friday window actually spent on
-    a Saturday. */
-const rhythmOver = (from, length) => {
-	const spend = WEEKDAY_TICKS.map(() => 0)
-	for (const day of days.slice(from, from + length)) spend[weekdayOf(day.date)] += day.spend
-	const total = spend.reduce((sum, v) => sum + v, 0)
-	const most = Math.max(...spend)
-	return {
-		weekdays: WEEKDAY_TICKS.map((day, i) => ({
-			day,
-			stats: most ? Math.round((spend[i] / most) * 70) : 0,
-			peak: most > 0 && spend[i] === most
-		})),
-		weekendShare: total ? Math.round(((spend[5] + spend[6]) / total) * 100) : 0,
-		busiestDay: WEEKDAY_NAMES[spend.indexOf(most)]
-	}
-}
-
-/* Falls back for a legend entry with no live category behind it -- a renamed or deleted one --
-   so the ring still has a colour to draw. Anything with a category record uses that category's
-   own colour instead: Statistics is the one place this used to be assigned by rank, so the same
-   category could carry a different colour here than on Orders or Home, and a different colour
-   month to month as its rank moved. README: Statistics. */
-const FALLBACK_SPLIT_COLOURS = ['var(--donut-blue)', 'var(--green)', 'var(--donut-yellow)', 'var(--donut-purple)', '#45524C']
-
-/** Where a window's spend went, by category: every day's spend split by the proportions its
-    own month authors, summed, and ranked. The ring and the rows are drawn from this one list,
-    so the two cannot disagree the way a ring built from all-time shares and a list built from
-    a month's legend could. */
-const splitOver = (from, length) => {
-	const tally = new Map()
-	for (const day of days.slice(from, from + length)) {
-		const legend = monthOf(day.periodId).statsLegend
-		const whole = legend.reduce((sum, entry) => sum + entry.amount, 0)
-		for (const entry of legend)
-			tally.set(entry.name, (tally.get(entry.name) ?? 0) + day.spend * (entry.amount / whole))
-	}
-	const total = [...tally.values()].reduce((sum, amount) => sum + amount, 0)
-	return [...tally].sort((a, b) => b[1] - a[1]).map(([name, amount], i) => ({
-		name, amount,
-		share: total ? (amount / total) * 100 : 0,
-		colour: store.categories.find(c => c.name === name)?.colour
-			?? FALLBACK_SPLIT_COLOURS[Math.min(i, FALLBACK_SPLIT_COLOURS.length - 1)]
-	}))
-}
-
-const daysInMonth = (year, month) => new Date(Date.UTC(year, month, 0)).getUTCDate()
-
-/** How long the calendar unit a window names actually is, which is not how many days of it
-    the records hold: July is 31 either way, Quarter 3 is 92 of which the store has 31. */
-const unitLength = chosen => {
-	const [year, month] = chosen.from.split('-').map(Number)
-	if (chosen.range === 'week') return 7
-	if (chosen.range === 'month') return daysInMonth(year, month)
-	if (chosen.range === 'quarter') {
-		const first = (quarterOf(chosen.from) - 1) * 3 + 1
-		return daysInMonth(year, first) + daysInMonth(year, first + 1) + daysInMonth(year, first + 2)
-	}
-	if (chosen.range === 'year') return daysInMonth(year, 2) === 29 ? 366 : 365
-	return chosen.length
-}
-
-/** Where the window lands if the rest of it looks like the start.
-
-    Only the newest window is still being written, and it is the only one this projects: an
-    older window clipped by the edge of the records -- week 18 is the three days of May the
-    store opens on, the tail of a week that ended before it -- is missing days that already
-    happened, so scaling its three days up to seven would be a claim about a past the records
-    do not have. Everywhere else the projection is the total, and the note says so. */
-const paceOf = (chosen, spent, at) => {
-	const unitDays = unitLength(chosen)
-	const running = at === 0 && chosen.length < unitDays
-	return {
-		daysIn: chosen.length, unitDays, running,
-		projected: running ? (spent / chosen.length) * unitDays : spent
-	}
-}
-
-const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six']
-const countWord = n => COUNT_WORDS[n] ?? String(n)
-const sentenceCase = text => text[0].toUpperCase() + text.slice(1)
-
-/** The last six windows of whatever width the picker chose, oldest first, the chosen one
-    marked -- so Week pages six weeks under the columns as well as one week above them.
-
-    A width with only one window has nothing to compare against: All time is the whole of the
-    records and 2026 is the only year in them, so both fall back to the months inside the
-    window, which is what this card has always drawn. */
-const columnsFor = (chosen, at) => {
-	const own = windowsOf(chosen.range)
-	const byMonth = own.length < 2
-	const list = byMonth ? windowsOf('month') : own
-	const last = chosen.start + chosen.length - 1
-	const index = byMonth ? list.findIndex(w => last >= w.start && last < w.start + w.length) : at
-	const shown = list.slice(index, index + 6).reverse()
-	const totals = shown.map(w => totalsOver(w.start, w.length).spent)
-	const most = Math.max(...totals)
-	const top = shown[totals.indexOf(most)]
-	const unit = byMonth ? 'month' : chosen.range
-	return {
-		title: `Last ${countWord(shown.length)} ${unit}${shown.length === 1 ? '' : 's'}`,
-		note: shown.length > 1 ? `${top.ref ?? top.tick} is the highest` : null,
-		columns: shown.map((w, i) => ({
-			label: w.tick,
-			height: most ? Math.round((totals[i] / most) * 100) : 0,
-			current: byMonth ? w.id === chosen.periodId : w.id === chosen.id
-		}))
-	}
-}
-
-/** What came back, in the window's own days. Derived from the orders themselves rather than
-    authored per month, so the sentence is true of whatever stretch is on screen -- and of an
-    order the user returns today, which no authored note could know about. */
-const returnsIn = (chosen, spanName) => {
-	const returned = store.orders
-		.filter(o => o.status === 'Returned' && o.date >= chosen.from && o.date <= chosen.to)
-		.sort(byDateDescending)
-	if (!returned.length) return `No returns in ${spanName}.`
-	const listed = returned.map(order => {
-		const { vendor, total } = decorate(order)
-		return `${vendor?.name ?? 'An unnamed vendor'} on ${dayMonth(order.date)}`
-			+ `${order.refunded ? ', refunded in full' : ''}: ${krLabel(total)}`
-	})
-	/* No full stop after the last amount: krLabel ends in "kr." and a sentence closed on top
-	   of it reads "799,00 kr..", which is how the note under the pace meter has been printing
-	   its own figure. */
-	return `${sentenceCase(countWord(returned.length))} return${returned.length === 1 ? '' : 's'}`
-		+ ` in ${spanName}: ${listed.join('; ')}`
-}
-
-/** Which day the URL is pointing at: a date is itself, a week or a month is its last day, and
-    anything else -- a span key, an empty parameter, a typo -- is the newest day there is. It is
-    a day rather than a window because it is what survives a change of width: switching the
-    chips keeps the reader where they were, on whichever window of the new width holds it. */
-const anchorDay = windowId => {
-	const exact = days.findIndex(d => d.date === windowId)
-	if (exact >= 0) return exact
-	const named = ranges.flatMap(r => windowsOf(r.key)).find(w => w.id === windowId)
-	return named ? named.anchor : days.length - 1
-}
-
-/** Statistics, for one window of the timeline. `range` is the width the chips chose and the
-    step the arrows take; `windowId` says where. `at` and `count` come back with the data
-    rather than being worked out again in the page. */
-export async function getStats(range, windowId, signal) {
-	await wait(signal)
-	const width = seed.ranges.some(r => r.key === range) ? range : 'month'
-	const list = windowsOf(width)
-	const anchor = anchorDay(windowId)
-	const at = Math.max(0, list.findIndex(w => anchor >= w.start && anchor < w.start + w.length))
-	const { start, length, anchor: _anchor, ...current } = list[at]
-	const period = monthOf(current.periodId)
-	const previous = previousOf(list[at])
-
-	/* The delta is derived from the two totals rather than stored beside them -- a month
-	   carrying "18% up vs June" and a spend that disagrees with it are two claims, and both
-	   look right on their own. Where the store has nothing before the window, and the window
-	   is a month, the month's own figure is the only one there is: April is a total in May's
-	   record and not a curve, so it can be compared against and cannot be drawn. */
-	const now = totalsOver(start, length)
-	const was = previous ? totalsOver(previous.start, previous.length) : null
-	const previousTotal = was ? was.spent : (current.range === 'month' ? period.previousTotal : null)
-	const previousLabel = previous ? previous.label
-		: (current.range === 'month' ? period.previousLabel : null)
-	const delta = deltaOf(now.spent, previousTotal, previousLabel)
-
-	/* What the cards call the window in a sentence. All time is the one window whose short
-	   label is not a noun phrase -- "No returns in all time" -- so it names the records. */
-	const spanName = current.range === 'all' ? 'the records' : current.shortLabel
-
-	return {
-		categories: copy(store.categories),
-		window: {
-			...current, days: length, spent: now.spent, previousLabel, previousTotal,
-			deltaLabel: delta.label, deltaUp: delta.direction === 'up', spanName,
-			pace: paceOf(list[at], now.spent, at),
-			rhythm: rhythmOver(start, length),
-			split: splitOver(start, length),
-			recent: columnsFor(list[at], at),
-			returnsNote: returnsIn(list[at], spanName),
-			/* April is a total in May's record and not a curve, so the oldest month can be
-			   compared against and cannot be broken into tiles: there, and only there, the
-			   month's own authored row is the only one there is. */
-			kpis: !was && current.range === 'month' ? copy(period.kpis) : kpisFor(now, was, previousLabel),
-			series: {
-				current: runningTotal(start, length),
-				previous: previous ? runningTotal(previous.start, previous.length) : null
-			}
-		},
-		defaultId: windowsOf('month')[0].id,
-		at,
-		count: list.length,
-		newer: at > 0 ? list[at - 1].id : null,
-		older: at < list.length - 1 ? list[at + 1].id : null
-	}
-}
-
-/** The question of the day, and the answer behind it. */
-export async function getAnswer(signal) {
-	await wait(signal)
-	return copy(seed.answers[0])
-}
-
-export async function getScanDocuments(signal) {
-	await wait(signal)
-	return { ...copy(seed.scanDocuments), ...copy(store.uploads) }
-}
-
-/** Takes a file the user actually dropped on the scan page and hands back the key the two
-    steps after it read. The prototype's hero says "Drop a receipt here" and answers a click
-    with one of four canned documents; this way a dropped file is the document those steps
-    name, with its own size and its own format. What the reader finds inside is still the one
-    Bilka purchase -- that part is demo data and says so. README: Scan Flow. */
-export async function putScanDocument(file, signal) {
-	await wait(signal)
-	const key = 'upload-' + Date.now().toString(36)
-	const kind = file.kind ?? (/\.pdf$/i.test(file.name) ? 'pdf' : 'image')
-	store.uploads[key] = {
-		kind,
-		name: file.name,
-		meta: `${kind === 'pdf' ? 'PDF' : (file.name.split('.').pop() ?? 'FILE').toUpperCase()} · ${fileSize(file.size)}`
-	}
-	return { key, ...store.uploads[key] }
-}
-
-export async function getRecentScans(signal) {
-	await wait(signal)
-	return copy(seed.recentScans)
-}
-
-/** What the reader hands back once it has finished with the chosen document. */
-export async function getScanDraft(documentKey, signal) {
-	await wait(signal)
-	const file = seed.scanDocuments[documentKey] || store.uploads[documentKey] || seed.scanDocuments.photo
-	return { ...copy(seed.scanDraft), file: { ...file, key: documentKey } }
-}
-
-/** The draft New order opens on, with the defaults the user chose in Settings applied. A
-    setting that nothing reads is the same defect as a button that does nothing. */
 export async function getOrderDraft(signal) {
-	await wait(signal)
-	return { ...copy(seed.orderDraft), kind: store.settings.defaultKind, status: store.settings.defaultStatus }
+	return request('/api/orders/draft', { signal })
 }
 
-/** An existing order as a draft the New order form can edit. */
 export async function getOrderAsDraft(id, signal) {
 	const order = await getOrder(id, signal)
 	return {
-		vendor: order.vendor?.name ?? '',
-		date: order.date,
-		status: order.status,
-		categories: order.categories.map(c => c.name),
-		kind: order.kind,
+		vendor: order.vendor?.name ?? '', date: order.date, status: order.status,
+		categories: order.categories.map(c => c.name), kind: order.kind,
 		shipping: order.shipping ? String(order.shipping).replace('.', ',') : '',
-		reference: order.reference ?? '',
-		note: order.note ?? '',
-		items: order.items
+		reference: order.reference ?? '', note: order.note ?? '', items: order.items
 	}
 }
 
-/** Home's hero card, for one width of the timeline.
-
-    Home has no pager, so the window is always the newest one the chosen width offers -- the
-    week July ends in, July, Quarter 3, 2026, or the whole of the records -- and everything the
-    card states comes back with it: the total, what it saved, the orders behind it, the days
-    themselves and the biggest of them. Derived from the same days Statistics reads, so the two
-    pages cannot disagree about a window they both name.
-
-    The chips used to reslice one authored month here: Quarter, Year and All drew July at a
-    coarser resolution, under a heading that read "Spent this month" and a total that was July's
-    whichever chip was pressed. A width that cannot change the figure under it is a width the
-    card does not have. README: Home. */
-export async function getHomeHero(range, signal) {
-	await wait(signal)
-	const width = seed.ranges.some(r => r.key === range) ? range : 'month'
-	const { start, length, label, shortLabel } = windowsOf(width)[0]
-	const within = days.slice(start, start + length)
-	const totals = totalsOver(start, length)
-	const peak = within.reduce((most, day) => (day.spend > most.spend ? day : most))
-	return {
-		range: width, label, shortLabel,
-		spent: totals.spent, saved: totals.saved, savedPercent: totals.savedPercent,
-		orderCount: totals.orders,
-		/* Day by day rather than cumulative, because the tabs beside the chart name a count and
-		   a saving: each tab's figure is its own series summed, so the line and the number over
-		   it are one series the way the running total and its figure are on Statistics. */
-		series: { orders: within.map(day => day.orders), saved: within.map(day => day.saved) },
-		peak: { date: peak.date, spend: peak.spend }
-	}
+/* A month's statistics window, reshaped into the "period" object Home and Orders read — those
+   two pages were written against the phantom store's hand-authored per-month record, and this
+   is what keeps them working against a real, computed window instead: same field names, real
+   numbers underneath. */
+/** Real categories, left-joined against this month's window.split, plus the "Without category"
+    row split carries for whatever's left over -- that row names no real category, so it cannot
+    come from mapping the categories list the way every other one here does. Both callers below
+    need this join; each one reading its own copy is how the ring end up with a row a category's
+    own list never had a way to grow. */
+const monthCategoriesFrom = (categories, split) => {
+	const byId = new Map(split.map(s => [s.id, s]))
+	const none = split.find(s => s.id == null)
+	const named = categories.map(c => ({ ...c, spend: byId.get(c.id)?.amount ?? 0, share: byId.get(c.id)?.share ?? 0 }))
+	const rows = none
+		? [...named, { id: 'none', name: none.name, icon: 'tag', colour: none.colour, spend: none.amount, share: none.share }]
+		: named
+	return rows.filter(c => c.spend > 0).sort((a, b) => b.spend - a.spend)
 }
 
-export async function getHomeContent(signal) {
-	await wait(signal)
-	return {
-		period: copy(store.period),
-		vendors: copy(store.vendors).sort((a, b) => b.spend - a.spend).slice(0, 3),
-		categories: copy(store.categories),
-		favouriteCategories: copy(store.categories).filter(c => ['groceries', 'household', 'homeoffice'].includes(c.id)),
-		onboarding: copy(seed.onboarding),
-		showScanCard: store.settings.showScanCard,
-		latest: store.orders.map(decorate).sort(byDateDescending).slice(0, 3)
-	}
-}
+const periodFromWindow = w => ({
+	label: w.label, shortLabel: w.shortLabel, previousLabel: w.previousLabel,
+	// The window's own dates, for the links out of it -- see ordersIn below.
+	from: w.from, to: w.to,
+	// Which point on the charts drawn from this window is today, or null if it holds no today.
+	todayIndex: w.todayIndex,
+	/* The window's own marks. Every chart drawn from this object used to carry a hardcoded
+	   01/08/15/22/29 instead -- five dates that are no unit of anything, printed unchanged under
+	   a February that has 28. The window knows its own bounds; nothing else does. */
+	axis: w.axis,
+	/* The window's returns, as records. Orders overview draws the same card Statistics does,
+	   and used to draw it from nothing at all -- a hardcoded "No open returns found" over a
+	   month holding four. README: Empty states. */
+	returns: w.returns,
+	spent: w.spent, saved: w.saved, savedPercent: w.savedPercent, retail: w.retail,
+	averageOrder: w.average, weekdays: w.rhythm.weekdays,
+	busiestDay: w.rhythm.busiestDay, busiestDaySpend: w.rhythm.busiestDaySpend,
+	projected: w.pace.projected, daysIn: w.pace.daysIn, previousTotal: w.previousTotal,
+	/* Cut by whoever builds the page, not here: this object is shared and the legend is a card
+	   list like the others, so it follows the account's entries-per-card setting. */
+	heroLegend: w.split,
+	series: { cumulative: w.series.current, savingsGrowth: w.series.savedCumulative,
+		monthCurrent: w.series.current, monthPrevious: w.series.previous }
+})
 
 export async function getOrdersOverview(signal) {
-	await wait(signal)
+	const [{ latest }, { window }, categories, settings] = await Promise.all([
+		// No count: the server cuts it to the account's entries-per-card setting, the same
+		// number the returns card beside it and every list on Home are cut to. This asked for 4
+		// while Home asked for 3, so one card was two lengths depending which page drew it.
+		request('/api/orders/overview', { signal }),
+		getStatsSummary('month', undefined, signal),
+		getCategories(signal),
+		getSettings(signal)
+	])
+	/* The ring reads "Spent this month," so its segments and the rows under it have to be
+	   this month's spend too — categories carries all-time totals (categories with old orders
+	   and none this month would otherwise fill a ring a 0 kr. centre says is empty). window.split
+	   is the same month-scoped breakdown Home's hero legend reads; icon/budget still come from
+	   categories since split doesn't carry either. */
+	/* Every category with spend this month, not the four biggest. The ring these feed reads
+	   "Spent this month" in its middle and is drawn from this array, so cutting it to four drew
+	   a circle that did not add up to its own centre -- and the rows under it, which name the
+	   ring's colours, could only ever name four of them. */
+	const monthCategories = monthCategoriesFrom(categories, window.split)
 	return {
-		period: copy(store.period),
-		latest: store.orders.map(decorate).sort(byDateDescending).slice(0, 4),
-		categories: copy(store.categories).slice(0, 4),
-		promos: copy(seed.promos),
-		question: copy(seed.questionOfTheDay)
+		latest, period: periodFromWindow(window), categories: monthCategories,
+		cardRows: settings.cardRows ?? defaultCardRows
 	}
 }
 
-export async function getVendorsOverview(signal) {
-	await wait(signal)
-	/* The latest order is read off the orders, not stored beside them. Two of the seven vendors
-	   carried a stored one and the other five carried none, so a card claiming 29 orders and
-	   1.480 kr. saved drew "Latest order -- None": a vendor cannot have saved you money on
-	   orders it has not got. It is the same rule the totals follow -- derive it, and the two
-	   cannot disagree -- and it keeps up on its own when an order is saved or deleted. */
-	const latestOf = id => {
-		const order = store.orders
-			.filter(o => o.vendorId === id)
-			.sort(byDateDescending)[0]
-		if (!order) return null
-		const full = decorate(order)
-		return { date: full.date, items: full.itemCount, total: full.total }
+/* ---- settings / dashboard / account ---- */
+
+export async function getSettings(signal) {
+	return request('/api/settings', { signal })
+}
+
+export async function saveSettings(patch, signal) {
+	return request('/api/settings', { method: 'PATCH', body: patch, signal })
+}
+
+export async function resetStoredData(signal) {
+	return request('/api/reset', { method: 'POST', signal })
+}
+
+/** Replaces this account's ledger with a year of generated demo orders, so the app can be
+    looked at with something in it. Replaces rather than adds — see the route's own note.
+    A different year each press: no seed is sent, so the route picks one. Answers
+    { orders, vendors, categories, months, seed } — the seed it used, which is what makes a
+    dataset worth reporting reproducible. */
+export async function populateDemoData(signal) {
+	return request('/api/demo-data', { method: 'POST', signal })
+}
+
+export async function getDashboardCards(signal) {
+	return request('/api/dashboard-cards', { signal })
+}
+
+export async function saveDashboardCards(keys, signal) {
+	return request('/api/dashboard-cards', { method: 'PUT', body: { on: keys }, signal })
+}
+
+/* ---- statistics / home ---- */
+
+export async function getStats(range, windowId, signal) {
+	return request('/api/stats' + qs({ range, windowId }), { signal })
+}
+
+/** The lighter form getOrdersOverview/getHomeContent build their "period" summary from —
+    everything periodFromWindow reads, minus the one sub-computation only the Statistics page
+    itself needs (`recent`: up to 6 *extra* aggregate queries for a bar chart) that was making
+    Home and Orders overview pay for a chart they throw away. The window's returns are not
+    behind the flag: they are one indexed query and Orders overview renders them.
+    Not exported: nothing calls this through useApi directly. */
+const getStatsSummary = (range, windowId, signal) =>
+	request('/api/stats' + qs({ range, windowId, summary: 1 }), { signal })
+
+/** This month's spend and saving, day by day, for Home's hero. No range: the hero is the
+    current month and Statistics is where another stretch of time is chosen. */
+export async function getHomeHero(signal) {
+	return request('/api/home/hero', { signal })
+}
+
+/** A link into All orders, filtered the way the card it is leaving says it is filtered.
+
+    A card that names a stretch of time is a claim about which orders it is counting, and a row
+    inside it that opens "the orders behind this slice" has to open *those* orders. Four of them
+    did not: the hero legend under "Where it went • Aug", the category rows under two rings
+    reading "Spent this month", and the row for whatever has no category. Each opened every
+    order in that category since the account was made — a list whose total contradicts the
+    figure the reader clicked, under filters that do not mention the month.
+
+    Built here rather than at each call site so the four cannot drift, and because a filter
+    dropped from one of them is invisible: the destination is a real, working, filtered list
+    either way, just of the wrong thing. `from`/`to` are omitted when the card has no window to
+    pass on — an all-time ring, a vendor's whole history — rather than being faked. */
+export const ordersIn = ({ category, vendor, from, to } = {}) =>
+	'/orders/all' + qs({ category, vendor, from, to })
+
+/** How many entries a card fills with, where it has entries to fill.
+
+    Home's cards share grid rows, and a grid row is as tall as its tallest card -- so a card
+    that holds three of something beside a card that holds ten is not a shorter card, it is the
+    same card with a hole under it. Category breakdown is the long one (every category with
+    spend this month, which the ring in its middle has to add up to), and the two beside it were
+    cut to three and drew about 300px of nothing each.
+
+    This is the *default*, not the number: the account owns it, under Settings, and everything
+    on Home reads whatever it says. It was a bare constant here first, which made "ten" a fact
+    about the build rather than a choice about the account -- the same shape of mistake as the
+    demo seed, one screen over.
+
+    Not the category ring's list, whichever number is chosen: that one is every category with
+    spend this month by rule, since the arcs have to add up to the figure printed in the centre.
+    Capping it is a defect with its own entry. */
+const defaultCardRows = 10
+
+/** What the picker offers. Small numbers included on purpose -- a card cut to one row is a
+    headline with a single example under it, which is a legitimate thing to want from a
+    dashboard -- and stopping at ten because these are summaries with the full list one click
+    behind them. Kept in step with the API, which rejects anything outside this set rather than
+    storing a preference no control would obey. */
+export const cardRowOptions = [1, 2, 4, 6, 8, 10]
+
+/** The order the vendors and categories lists open in — one setting, because these are the same
+    kind of list and a person who wants one alphabetical wants both. Only the orders *both*
+    lists have: vendors can also sort by order count and categories by share of spend, and
+    neither can be the shared default, since the other list has no such column to sort on. Those
+    stay on the pages, one click from wherever this opens them. */
+/* Labelled the way `sorts` above labels the orders list -- the column and the direction, so an
+   option says what it does before it is pressed. Bare "Spend" was secretly highest-first, and
+   the reader found out by pressing it. Ranking columns come as pairs; Name is alphabetical, and
+   an alphabetical order is for finding a record, so it offers the one direction that finds.
+   The id carries the direction too ('name-asc'), exactly as the orders sort's ids always have. */
+export const listSorts = [
+	{ id: 'name-asc', label: 'Name, A to Z' },
+	{ id: 'spend-desc', label: 'Spend, highest' },
+	{ id: 'spend-asc', label: 'Spend, lowest' },
+	{ id: 'saved-desc', label: 'Saved, highest' },
+	{ id: 'saved-asc', label: 'Saved, lowest' }
+]
+
+export async function getHomeContent(signal) {
+	// Fetched directly rather than through getOrdersOverview, which independently re-fetches
+	// stats/categories/home for its own callers — going through it here paid for that work
+	// twice on every Home load.
+	const [onboarding, { window }, vendors, categories, settings, { latest }] = await Promise.all([
+		request('/api/home/onboarding', { signal }),
+		getStatsSummary('month', undefined, signal),
+		getVendors(signal),
+		getCategories(signal),
+		getSettings(signal),
+		request('/api/orders/overview', { signal })
+	])
+	/* The account's number, with the constant above standing in only for a settings row that
+	   has not answered yet. The lists the *server* cuts (the latest orders, the returns card)
+	   are already this length when they arrive; these three are derived here from full lists
+	   the API answers by rule, so they are cut here to the same number. */
+	const rows = settings.cardRows ?? defaultCardRows
+	/* "The categories are written per month" below, and the ring right above them reads
+	   "Spent this month" -- so both need this month's spend, not categories' all-time totals.
+	   window.split is the same month-scoped breakdown the hero legend reads its own entries
+	   from; icon/budget still come from categories since split carries neither. */
+	const monthCategories = monthCategoriesFrom(categories, window.split)
+	const period = periodFromWindow(window)
+	return {
+		// The page's own budget, so a card that spends height on a graphic can take that off
+		// its list rather than standing taller than the card beside it.
+		cardRows: rows,
+		// The hero's "Where it went" legend is a card list too, so it is the same length as the
+		// rest -- it was three, chosen where the period object is built and therefore three on
+		// every page that reads one.
+		period: { ...period, heroLegend: period.heroLegend.slice(0, rows) },
+		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, rows),
+		categories: monthCategories,
+		// All-time, from the raw list rather than monthCategories -- that one's filtered to
+		// spend > 0 this month, and a favourite is a standing preference, not an activity
+		// filter: a category starred last week with nothing bought from it yet this month
+		// should still show up here, the same way a starred vendor with no orders yet still
+		// leads the Vendors page's own Favourites section.
+		favouriteCategories: categories.filter(c => c.favourite)
+			.sort((a, b) => b.spend - a.spend).slice(0, rows),
+		onboarding,
+		showScanCard: settings.showScanCard,
+		latest
 	}
-	const all = copy(store.vendors).map(v => ({ ...v, latest: latestOf(v.id) }))
-	return { favourites: all.filter(v => v.favourite), rest: all.filter(v => !v.favourite) }
 }
 
-export async function getCategoriesOverview(signal) {
-	await wait(signal)
-	return { categories: copy(store.categories), question: copy(seed.questionOfTheDay) }
+/* ---- scan ---- */
+
+/** Uploads the real file that was dropped or picked — the backend keeps its bytes until the
+    review step turns it into the new order's own attachment (attachScanDocument below). */
+export async function putScanDocument(file, signal) {
+	const form = new FormData()
+	form.append('file', file)
+	return request('/api/scan/documents', { method: 'POST', form, signal })
 }
 
-/* ---- the command palette ----
+export async function getRecentScans(signal) {
+	return request('/api/scan/recent', { signal })
+}
 
-   The top bar prints CTRL K, and a key cap is a promise. This is what it opens: one query
-   over orders, vendors, categories, item lines and notes, plus the commands the app can run.
+export async function getScanDraft(documentKey, signal) {
+	return request(`/api/scan/draft/${documentKey}`, { signal })
+}
 
-   It is a real index rather than a fixed answer for one query. The prototype ships four
-   results for "bil" written into the markup, which is right for that word and wrong for
-   every other -- and there is no way to tell from the screen which one you are looking at. */
+export async function attachScanDocument(documentKey, orderId, signal) {
+	return request(`/api/scan/documents/${documentKey}/attach/${orderId}`, { method: 'POST', signal })
+}
+
+export const scanThumbnailUrl = documentKey => `/api/scan/documents/${documentKey}/thumbnail`
+export const scanFileUrl = documentKey => `/api/scan/documents/${documentKey}/file`
+
+/* ---- command palette ----
+   The server's /api/search matches vendors, categories and orders (by vendor name, note or an
+   item's title) against the account's own rows — the same real query getOrders' text search
+   runs. Grouping that into headed sections, highlighting the matched substring and mixing in
+   the static "go to"/"create" commands is presentation, not data, so it stays here rather than
+   asking the server to compose UI. */
 
 const highlight = (text, needle) => {
+	if (!needle) return { before: text, mark: '', rest: '' }
 	const at = text.toLowerCase().indexOf(needle)
 	return at < 0
 		? { before: text, mark: '', rest: '' }
 		: { before: text.slice(0, at), mark: text.slice(at, at + needle.length), rest: text.slice(at + needle.length) }
 }
 
-/* Commands are the half of a palette that is not a search result: things to do, not things
-   to open. Each one names where it goes, so none of them can be listed and lead nowhere. */
+const krLabel = (n, decimals = 2) => {
+	const fixed = Math.abs(n).toFixed(decimals)
+	const [whole, rest] = fixed.split('.')
+	return whole.replace(/\B(?=(\d{3})+$)/g, '.') + (rest ? ',' + rest : '') + ' kr.'
+}
+
 const COMMANDS = [
 	{ id: 'cmd-new', label: 'New order', meta: 'Create', to: '/orders/new', keywords: 'new order create add' },
 	{ id: 'cmd-scan', label: 'Scan a receipt', meta: 'Create', to: '/scan', keywords: 'scan receipt upload pdf photo ai' },
-	/* Every record the app can create is creatable from here, on one route shape:
-	   /<records>/new. A palette that offers one of the three teaches that the other two are
-	   somewhere else. */
 	{ id: 'cmd-new-vendor', label: 'New vendor', meta: 'Create', to: '/vendors/new', keywords: 'new vendor shop store create add' },
 	{ id: 'cmd-new-category', label: 'New category', meta: 'Create', to: '/categories/new', keywords: 'new category tag budget create add' },
 	{ id: 'cmd-orders', label: 'All orders', meta: 'Go to', to: '/orders/all', keywords: 'orders list all search filter' },
@@ -1179,45 +532,32 @@ const COMMANDS = [
 ]
 
 export async function search(query, signal) {
-	await wait(signal)
 	const needle = query.trim().toLowerCase()
 	if (!needle) {
-		/* An empty query is not a failed search, so it answers with what the palette can do
-		   rather than with nothing. */
 		return { query, groups: [{ heading: 'Commands', options: COMMANDS.slice(0, 5)
 			.map(c => ({ id: c.id, ...highlight(c.label, ''), meta: c.meta, to: c.to })) }] }
 	}
 
+	const { vendors, categories, orders } = await request('/api/search' + qs({ query }), { signal })
 	const groups = []
 	const take = (heading, options) => { if (options.length) groups.push({ heading, options }) }
 
-	const orders = store.orders.map(decorate)
-
-	take('Orders', orders
-		.filter(o => o.vendor?.name.toLowerCase().includes(needle))
-		.sort(byDateDescending).slice(0, 4)
-		.map(o => ({ id: o.id, ...highlight(`${o.vendor.name} · ${dayMonth(o.date)}`, needle),
+	take('Orders', orders.slice(0, 4)
+		.map(o => ({ id: o.id, ...highlight(`${o.vendor?.name}${sep}${dayMonth(o.date)}`, needle),
 			meta: krLabel(o.total), to: `/orders/${o.id}` })))
 
-	const vendorMatches = store.vendors.filter(v => v.name.toLowerCase().includes(needle)).slice(0, 3)
+	take('Vendors', vendors.slice(0, 3)
+		.map(v => ({ id: v.id, ...highlight(v.name, needle), meta: 'Vendor', to: `/orders/all?vendor=${v.id}` })))
 
-	take('Vendors', vendorMatches
-		.map(v => ({ id: v.id, ...highlight(v.name, needle),
-			meta: `${v.orders} orders · ${krLabel(v.spend, 0)}`, to: `/orders/all?vendor=${v.id}` })))
+	take('Categories', categories.slice(0, 3)
+		.map(c => ({ id: c.id, ...highlight(c.name, needle), meta: 'Category', to: `/orders/all?category=${c.id}` })))
 
-	take('Categories', store.categories
-		.filter(c => c.name.toLowerCase().includes(needle)).slice(0, 3)
-		.map(c => ({ id: c.id, ...highlight(c.name, needle),
-			meta: `${c.share}% of expenses`, to: `/orders/all?category=${c.id}` })))
-
-	/* Item lines and notes, which is what makes this a search rather than a vendor picker.
-	   The line is quoted, so a hit inside an order reads as a quotation and not as a title. */
 	const lines = []
 	for (const o of orders) {
 		for (const i of o.items) {
 			if (!i.title.toLowerCase().includes(needle)) continue
 			lines.push({ id: o.id + '-' + i.id, ...highlight(`"${i.title}"`, needle),
-				meta: `${o.vendor?.name} · ${dayMonth(o.date)}`, to: `/orders/${o.id}` })
+				meta: `${o.vendor?.name}${sep}${dayMonth(o.date)}`, to: `/orders/${o.id}` })
 			if (lines.length === 4) break
 		}
 		if (lines.length === 4) break
@@ -1227,12 +567,9 @@ export async function search(query, signal) {
 	take('Notes', orders
 		.filter(o => (o.note || '').toLowerCase().includes(needle)).slice(0, 3)
 		.map(o => ({ id: o.id + '-note', ...highlight(`"${o.note}"`, needle),
-			meta: `${o.vendor?.name} · ${dayMonth(o.date)}`, to: `/orders/${o.id}` })))
+			meta: `${o.vendor?.name}${sep}${dayMonth(o.date)}`, to: `/orders/${o.id}` })))
 
-	/* A vendor match is also a reason to buy from them again, so each one earns a command of
-	   its own -- not just a link to their past orders. Ahead of the static list, since it is
-	   the one command the search term itself picked out. */
-	const vendorCreateOptions = vendorMatches.map(v => ({ id: 'cmd-new-order-' + v.id,
+	const vendorCreateOptions = vendors.slice(0, 3).map(v => ({ id: 'cmd-new-order-' + v.id,
 		...highlight(`Create order with ${v.name}`, needle), meta: 'Create',
 		to: `/orders/new?vendor=${encodeURIComponent(v.name)}` }))
 
@@ -1246,14 +583,28 @@ export async function search(query, signal) {
 	return { query, groups }
 }
 
-/* The amount the search results print. Duplicated from format.js on purpose, the same way
-   dayMonth above is: that module is the app's, and an API that hands back half-formatted
-   strings would be handing the page a rendering decision it cannot undo. This builds the
-   label the result line prints, which is the API's own sentence. */
-const krLabel = (n, decimals = 2) => {
-	const fixed = Math.abs(n).toFixed(decimals)
-	const [whole, rest] = fixed.split('.')
-	return whole.replace(/\B(?=(\d{3})+$)/g, '.') + (rest ? ',' + rest : '') + ' kr.'
-}
+/* ---- static option lists (not user data — spendKinds mirrors the server's SPEND_KINDS;
+   the rest are the client's alone, since the server never reads a sort label or a range
+   chip) ---- */
 
-export const spendKinds = seed.spendKinds
+export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
+
+/* Ranking columns come as pairs, the same scheme the vendors and categories lists follow,
+   because three lists sorting one way each is three vocabularies for one control. Vendor is
+   the exception: it groups the list rather than ranks it, and reversed grouping is the same
+   clusters in an order nobody asks for, so it offers the one direction that reads. */
+export const sorts = [
+	{ id: 'date-desc', label: 'Date, newest' },
+	{ id: 'date-asc', label: 'Date, oldest' },
+	{ id: 'amount-desc', label: 'Amount, highest' },
+	{ id: 'amount-asc', label: 'Amount, lowest' },
+	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
+]
+
+export const ranges = [
+	{ key: 'week', label: 'Week', short: 'WK' },
+	{ key: 'month', label: 'Month', short: 'MO' },
+	{ key: 'quarter', label: 'Quarter', short: 'QT' },
+	{ key: 'year', label: 'Year', short: 'YR' },
+	{ key: 'all', label: 'All', short: 'ALL' }
+]

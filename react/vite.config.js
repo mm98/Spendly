@@ -20,7 +20,19 @@ const stripHtmlComments = () => ({
 export default defineConfig({
 	base: './',
 	plugins: [react(), stripHtmlComments()],
-	server: { port: 5173 },
+	server: {
+		port: 5173,
+		// Same-origin from the browser's point of view, so the session cookie the API sets is a
+		// first-party cookie rather than a cross-site one a browser might refuse.
+		proxy: { '/api': { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', changeOrigin: true } }
+	},
+	// `vite preview` serves the production build but does not inherit `server.proxy` -- it
+	// reads its own `preview.proxy`, so without this a built app has no way to reach the API
+	// locally and every fetch('/api/...') 404s against the preview server itself.
+	preview: {
+		port: 4173,
+		proxy: { '/api': { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', changeOrigin: true } }
+	},
 	build: {
 		rolldownOptions: {
 			output: {

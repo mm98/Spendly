@@ -1,0 +1,34 @@
+/* The colours a vendor or a category gets when nobody picked one.
+
+   This lived twice -- the same six-entry PALETTE and the same colourFor were copied into
+   routes/vendors.js and lib/findOrCreate.js, so a vendor created by saving the form and a
+   vendor created by importing an order agreed only for as long as nobody edited one copy.
+   One list, read by both.
+
+   Vendor colours carry white initials on an avatar, so every one of them is dark enough to
+   clear AA against white: measured 4.50:1 (#877364, the lightest) to 8.41:1 (#235553).
+   Category colours are swatches, legend dots and donut segments -- read against the card
+   rather than written on, so they are free to be brighter, and they are chosen to differ
+   from each other, which is the whole job of a data-viz palette. README: Color. */
+
+export const VENDOR_PALETTE = [
+	'#235553', '#877364', '#177DA7', '#AD620D', '#8453F5', '#4F5BD5',
+	'#1F7A4D', '#A8324A', '#3E5C8A', '#6B4E9E', '#B4552B', '#2C6E6B'
+]
+
+export const CATEGORY_PALETTE = [
+	'#C43F2A', '#E9C517', '#8B5CF6', '#1FA8E0', '#F09A38',
+	'#2FA36B', '#D34F2E', '#7A8B2E', '#E0568A', '#45524C'
+]
+
+/** A stable colour for a name, so the same vendor is the same colour on every page without
+    storing a choice nobody made. Two names can still land on one colour -- that is a hash,
+    not an allocation; use `nthColour` where the caller knows the whole set up front and can
+    hand out distinct ones instead. */
+export const colourFor = (name, palette = VENDOR_PALETTE) =>
+	palette[[...String(name)].reduce((n, c) => n + c.charCodeAt(0), 0) % palette.length]
+
+/** The i-th colour, wrapping. For a caller creating a known set in one go: distinct for as
+    many entries as the palette is long, which is what "every vendor a different colour"
+    actually requires and what a hash cannot promise. */
+export const nthColour = (i, palette = VENDOR_PALETTE) => palette[i % palette.length]

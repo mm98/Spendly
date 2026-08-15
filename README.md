@@ -38,11 +38,11 @@ That third file is the audit, kept running. A rule in this document that looks a
 
 The system is layered: an element is defined before the component that uses it, a component before the view that composes it, a view before the pattern that repeats across several. Read down for depth.
 
-- **[Foundations](#foundations)** — Color · Elevation and shape · Typography · Sizing · Spacing · Grids and breakpoints
-- **[Components](#components)** — Buttons · Fields and forms · Stepper · Cards · Data rows · Notes · Empty states · Chips · Combobox · Segmented control · Switch · Charts · Meters and progress · Chrome · Icons
-- **[Views](#views)** — Home · Orders overview · All orders · Order detail · Create and edit · Scan flow · Vendors · Categories · Statistics · Settings
-- **[Patterns](#patterns)** — Filtering · Creation flow · Search · Progressive disclosure · Form validation · Feedback · Deletion · Pagination · Data persistence · Loading and errors · Honest affordances · Accessibility · iOS and WebKit · Responsive layout
-- **[Conventions](#conventions)** — Naming in the markup · Language and formats · Documentation
+- **[Foundations](#foundations)** — Color • Elevation and shape • Typography • Sizing • Spacing • Grids and breakpoints
+- **[Components](#components)** — Buttons • Fields and forms • Stepper • Cards • Data rows • Notes • Empty states • Chips • Combobox • Segmented control • Switch • Charts • Meters and progress • Chrome • Icons
+- **[Views](#views)** — Home • Orders overview • All orders • Order detail • Create and edit • Scan flow • Vendors • Categories • Statistics • Settings
+- **[Patterns](#patterns)** — Filtering • Creation flow • Search • Progressive disclosure • Form validation • Feedback • Deletion • Pagination • Data persistence • Loading and errors • Honest affordances • Accessibility • iOS and WebKit • Responsive layout
+- **[Conventions](#conventions)** — Naming in the markup • Language and formats • Documentation
 
 ---
 
@@ -214,7 +214,7 @@ A variant is never written alone. It is always `class="button button-primary"`, 
 | `button-ghost` | No fill at all — low emphasis, the quiet second choice |
 | `button-pill` | The 32px tier: top bar and section actions share this one size |
 | `button-block` | Full width, 44px — a card's one big action |
-| `button-caps` | The hero's 48px entry buttons |
+| `button-caps` | Dark surface, white label at 11.5px caps — the filled action tier. At the base 38px it is the form-page submit and the confirm in a dialog; inside a hero it rises to 48px with wider padding, the entry-button size |
 | `button-link` | Underlined text action (SEE ALL, CLEAR ALL) — no box at all |
 
 **Every button label is caps.** One voice for actions, everywhere.
@@ -278,10 +278,12 @@ A card is a section with optional header, content, and divider.
 
 **Card types:**
 - **Data card**: Static information (orders, vendor details)
-- **Question card** (`.card-question`): Asks something, has an answer and a call-to-action
 - **KPI card** (`.card-kpi`): Number, label, delta (statistic tiles on Statistics page)
+- **Prompt card** (`.card-question`): A pale panel — small caps label, a title, then whatever it introduces
 
-**A note and the action under it stand 12px apart, set from the note** (`.note + .button`). Set from the button, the gap depends on which variant happens to follow — one variant carries its own margin and another carries none, which is how the same pair once measured 12px on one page and 0 on another. ([`docs/defects.md`](docs/defects.md))
+**A note and the action under it stand 12px apart, set from the note** (`.note + .button`). Set from the button, the gap depends on which variant happens to follow — one variant carries its own margin and another carries none, which is how the same pair once measured 12px on one page and 0 on another. No screen pairs them today; the rule stands for the next one that does. ([`docs/defects.md`](docs/defects.md))
+
+**A card that ends with a link into a longer list ends with the block button.** Six cards do — latest orders, categories twice, vendors, recent scans, returns. The last spent a while as a bare underlined link instead: a different weight, a smaller thing to hit, and 2px of air above it where the other five have 12. One job, one control. ([`docs/defects.md`](docs/defects.md#returns--one-card-said-four-and-the-other-said-none))
 
 ### Data Rows
 
@@ -297,6 +299,10 @@ Editing never happens in the row — a record is edited on its own form page, on
 - Right: optional action (chevron to navigate, delete button, etc.)
 
 All gaps are 12px. If that's wrong for a row type, it needs its own CSS rule.
+
+**An order is listed the same way wherever it is listed.** Four screens draw a list of orders — the latest on Home, the latest on Orders overview, the returns card, and All orders — and the money column is one shape in all four: the total, then what it saved beneath it in the muted tone. They had three shapes between them, and the saved line was drawn only where the figure was positive, so a row that saved nothing had a total where every other row had a total and a line under it. **A zero is a figure, so it is printed**: *saved 0,00 kr.* An absent line is not "nothing saved" — it is a reader wondering what is missing from this row. And the line is one style wherever it appears — muted, regular weight — not muted on one screen and green bold on the next: three row families draw it, and they drew it in two colours and two weights for the same fact ([`docs/defects.md`](docs/defects.md#data-rows--one-saving-three-styles-and-one-question-sorted-three-ways)).
+
+**The money column holds what the row is worth, and its colour is not an argument.** A list of orders shows what each order cost; a list of vendors shows what has been spent there. Two lists of orders once showed the *saving* instead — "+26,04 kr.", in green, in the slot every other list puts the total in — because the slot itself was green by default and the figure was picked to agree with the colour. Green means saved, everywhere, so a slot that is green whatever it holds is a claim about every number put in it. Where a row has both figures to state, the total leads and the saving is the second line under it, in the muted tone, named. ([`docs/defects.md`](docs/defects.md#data-rows--the-money-column-was-green-so-two-lists-showed-the-saving))
 
 **Hover state:** On desktop with a pointer, rows that navigate show a tint (`[data-go]:hover`). On phone with touch, no hover. The tint bleeds 10px into the card gutter on each side.
 
@@ -322,7 +328,11 @@ What a list shows when it holds nothing: a 42px icon tile, then one sentence, ce
 
 **An empty state is an answer, not an absence.** A filtered list with no matches says so under the very filters that caused it — the chips stay, because removing them is how the user gets out. A record that does not exist gets "Nothing here." rather than an empty frame that looks like a slow one.
 
-**The sentence says what would fill it** ("No orders match these filters", not "No data") — the difference between a dead end and a next step.
+**The sentence says what would fill it** ("No orders match these filters", not "No data") — the difference between a dead end and a next step. It names the span it is empty *of*, too: "No returns in Aug." over a card headed *Returns • Aug*, so the reader is not left asking which stretch of time was searched.
+
+**An empty state has to be able to fill.** A card that shows the same sentence whatever the records hold is not answering — it is a picture of an answer, and on the day the list really is empty it is indistinguishable from a working one. *Returns this month* said "No open returns found" over a month holding four returns, and would have said it over a month holding four hundred. ([`docs/defects.md`](docs/defects.md#returns--one-card-said-four-and-the-other-said-none))
+
+**Its words have to be ones the product can make true.** "No open returns" promises a difference between an open return and a closed one; a return is closed when its refund lands, and nothing in the app can record that a refund landed. A sentence naming a state the product cannot reach is the [decorative control](#honest-affordances) defect written in prose.
 
 ### Chips
 
@@ -405,17 +415,28 @@ Small quantitative graphics, each with one job:
 - **Meter** (10px bar): how much of a budget is used. The fill is `--green`; a 2.5px marker in `--text` shows a reference point (the comparable figure last month). The marker is why it is a meter and not a progress bar — it states *against what*.
 - **Progress bar** (6px): completion of a process, no marker.
 - **Progress ring**: the same, radial, where the number it wraps is the subject.
-- **Month columns**: a column per month at fixed 150px scale-height, the current month `.is-on`.
+- **Month columns**: a column per window, the current one `.is-on`. The bar sits in a track of its own and its height is a percentage of that track — never of a box that also holds the label, or every tall bar shrinks to the same height and the chart stops comparing anything ([the numbers](docs/defects.md#charts--three-bars-of-100-96-and-85-drew-the-same-height)). The track is 150px at its smallest and grows to fill the card, since this chart shares a row with one that is as long as the account has categories.
+- **Weekday bars**: seven bars, one per day, each a share of the busiest. Same track, same rule, same reason — and the share is what the bar is given, never a height in pixels: a figure decided away from the card can only be right for one card. It was, for two, and the taller of them kept 403px of nothing underneath.
 
 **None of these carry text.** The figure they illustrate stands beside them as real text in tabular figures — a number inside a graphic is a number a screen reader loses and a walk cannot compare.
 
 ### Charts
 
-The app draws a line chart, a donut, weekday bars, meters and progress rings. Five rules hold them together:
+**A line that runs through today says so, in one mark.** Every line chart draws the same 4.5px circle in the line's own colour on today's point — and none where today is outside the window, which is a stretch of time that has already finished and a mark reading *you are here* about a day months ago. A comparison line gets none either: it runs through its own days, and today is not among them. Two of the app's five charts drew this and drew it two different ways, one as a haloed disc and one as a dot; three drew nothing.
+
+**A chart with a mark on it is inset by the mark, not by the line.** The circle paints 5.5px past the point it sits on and a running total peaks on its own last day, so the plotted band is inset 6.5px top and bottom — the same 6.5 everywhere, since it is the same mark. Horizontally the line runs edge to edge and the mark keeps its own circle off the sides.
+
+The app draws a line chart, a donut, weekday bars, meters and progress rings. Eight rules hold them together:
 
 **One user unit is one CSS pixel.** The line chart's viewBox is remapped 1:1 onto the element's pixel box on every resize, so stroke widths hold and text in the chart is never scaled. A chart whose viewBox is a guess renders its 1px grid line at 1.3px on one screen and 0.8px on another.
 
 **A chart is drawn from the records the list beside it is drawn from.** The donut's shares and its legend must come from one source. A ring with shares baked into the stylesheet next to a list with its own numbers cannot fail visibly — a ring has no opinion about the list beside it — and the two once disagreed exactly that way.
+
+**Every chart carries a scale, and it is one control: ticks and labels from one set of marks.** An unlabelled line puts its peaks at no date a reader can name, and a tick strip that does not mark the labels is decoration — a comb of evenly repeated lines will agree with an axis by accident and never again once the range moves ([the numbers](docs/defects.md#charts--the-ruler-under-every-chart-was-a-fixed-comb-and-the-marks-were-spread-evenly)).
+
+**A window is marked in its own unit, and drawn in it.** A week is its seven days, a month the 28 to 31 it actually has, a quarter its three months, a year its twelve, and all time the months it spans — the calendar's units, not a fixed set of dates and not a count chosen per range. The marks are the window's own, so a month sends 31 of them whether it holds five orders or five hundred. Where a window is too wide to draw a point per day, the points are cut on the marks themselves: twelve points across a year are its twelve calendar months, because twelve *equal* slices of a year are not, and the months slide against them until two land on one point and one goes unnamed.
+
+**A mark sits over the point the chart plotted for its date** — which is not its position in the list of marks, since the units a scale names are not all the same length. How many marks are drawn is then a question about the width available, not about the range: marks are dropped until each has room for its own label, keeping the first and the last, and the room asked for is measured off the labels rather than reserved for the widest one there could be.
 
 **Chart colors are the data-viz palette** (`--donut-*`), which exists so segments differ from each other. Semantic colors stay out of charts: a slice is not "positive".
 
@@ -437,6 +458,8 @@ The frame around the pages: sidebar, top bar, bottom nav on the phone.
 
 **The sheet's bottom padding is the bar's height, not a number that resembles it.** The bar floats over the content, so what the page below has to clear is whatever the bar measures — including the platform inset the bar just added to itself. Written as its own constant it agrees with the bar until the day one of them moves, and the disagreement shows only on the last card of a page.
 
+**Settings is chrome, not a page's furniture.** It is reached by one glyph in the top bar, from every screen — what it holds (the order form's defaults, both lists' opening order, how many entries a card holds, whether a trash asks first) belongs to no single page, so no single page owns the way in. It spent a while as a full-width button at the foot of the Orders rail, findable from one tab of one screen and titled for the one part of itself that screen happened to own.
+
 ### Icons
 
 The system uses 39 glyphs across the entire app, every one stroke-drawn in the same style and named for its meaning. When a new page needs an icon, it reaches for one of these before inventing a fortieth — a glyph that exists twice in slightly different paths is the drift the uniformity rule exists to stop.
@@ -457,11 +480,25 @@ Views are screens. They're composed from foundations and components.
 
 The landing screen, top to bottom: the stretch of time being viewed, the hero chart, then a card grid the user owns.
 
-**The hero card is one window, and it is named at the top of itself.** The range control chooses how wide — the same five widths under the same names [Statistics](#statistics) offers, so *All* means all of the records here too — and everything inside the card is that window's: the heading, the total, what it saved against retail, the order count on the tab and the line under both. A width that cannot move the figure below it is not a width the card has, it is a resolution control wearing a span's name; a heading fixed at *Spent this month* while five widths pass under it is the [label describing a state its control has moved on from](#charts), one level up from the chart ([the numbers](docs/defects.md#home--the-hero-card-said-spent-this-month-under-every-width-there-was)). What the records only hold per month — the category split under the chart — names that month in its own heading rather than borrowing the card's, exactly as the month-wide cards on Statistics do.
+**The hero card is this month, and it is named at the top of itself.** The heading, the total, what it saved against retail and the line under them are all the current month's, and there is no control on the card to make them anything else. It carried the same five widths [Statistics](#statistics) offers for a while, which is two screens where a stretch of time is chosen and only one of them with a pager, a comparison, summary tiles and a returns card to go with it. Home answers *where am I this month*; another month, or a week, or a year, is a question the page built for it answers. What the records only hold per month — the category split under the chart — names that month in its own heading rather than borrowing the card's, exactly as the month-wide cards on Statistics do.
 
-**A card that names a window links to that window.** The hero's header opens Statistics on the window the card is showing, under the name the chip carries, so arriving there is a continuation rather than a fresh question — and the total printed on the two pages is the same number, because it is derived from the same days.
+Whatever a card names, the rule the widths were removed *from* still holds: a figure that a control above it cannot move is not a figure that control has an opinion about, and a heading fixed at *Spent this month* while five widths pass under it is the [label describing a state its control has moved on from](#charts) ([the numbers](docs/defects.md#home--the-hero-card-said-spent-this-month-under-every-width-there-was)).
+
+**A card that names a window links to that window.** The hero's header opens Statistics on the month the card is showing — Statistics' own default, so arriving there is a continuation rather than a fresh question — and the total printed on the two pages is the same number, because it is derived from the same days.
+
+**A row that opens a list opens the list its own card is describing.** A card naming a stretch of time is a claim about which orders it counted, so a row inside it that opens "the orders behind this slice" carries that stretch: a category row under *Where it went • Aug* opens August's orders in that category, not every one since the account was made. The check is the figure, not the query string — the row's own amount and the total of the list it lands on are the same number, or the link is wrong however plausible its filters look. A card with no window to pass on, an all-time vendor total or a link into the whole return history, passes none rather than inventing one.
 
 **The dashboard is personal.** Which cards appear, and in what order, is the user's choice: an edit mode exposes a grip per card, cards drag (or move by arrow key, Home and End for the ends), and the arrangement persists. Everyone sees the same Orders page; Home shows what this user chose to see.
+
+**Cards share a row, so they are filled to the same depth.** A grid row is as tall as its tallest card, and a card that holds three of something beside a card that holds ten is not a shorter card — it is the same card with a hole under it. Every list in the app holds up to the same number of entries — [one setting](#settings), read everywhere a card truncates a list, on every page and not just this one — and is *filled* to it wherever the account has that many; every chart grows into whatever its row gives it rather than standing at a height chosen elsewhere ([the numbers](docs/defects.md#home--three-cards-in-a-row-and-two-of-them-mostly-empty)).
+
+**A card with nothing beside it takes the whole count.** The deduction below exists only to keep a card level with the card next to it, so a card standing alone does not pay it — a shorter card in a row of its own is not a hole, it is just a card, and cutting its list to leave room for a neighbour it does not have costs entries and buys nothing. That is every card on a phone, where the grid is one column.
+
+**What sits above a list is height the list does not get.** A card that spends a donut before its first row and then draws as many rows as its neighbour stands taller than the neighbour by exactly the donut, so a card's entries are the setting less what it drew above them — *rounded*, not rounded up, or a card whose header runs a hair past one row's height gives up two and stands a row short of everything beside it — and that is *measured*, by the list, against the card it is in. A table of "the donut costs three rows, the sparkline two" is a second copy of the layout kept somewhere nothing renders, wrong the day a chart's height or a row's leading changes, and it would have to name every card. Measured, a headline figure, a caption, a chart, a ring or any three together all subtract themselves, and the next thing put above a list needs no rule of its own.
+
+**Running out is allowed; shrinking is not.** A card with four returns in a month that offers room for ten draws four — an invented row is worse than an empty inch — and it keeps the height of the card beside it rather than collapsing, because a grid row of cards at different heights reads as a rendering fault.
+
+**Where the list feeds a graphic, it folds rather than drops.** The category ring is drawn from the same array as the rows under it, so cutting the tail would leave a circle that does not add up to the figure in its own middle. The tail becomes one segment worth the sum of what it holds, with a row that says how many and links to the full list — and that folded entry is a whole record, not a label and a number, because the row it lands in asks it the same questions it asks a real one.
 
 **A drag shows what is moving and where it lands.** The lifted card leaves the flow at the size it had, follows the pointer on a shadow, and a dashed slot of exactly that size travels through the grid. A dimmed card shuffled in place is a drag where the most important thing on screen is the faintest.
 
@@ -469,9 +506,9 @@ The landing screen, top to bottom: the stretch of time being viewed, the hero ch
 
 ### Orders Overview
 
-The month in review: this month against the one before, side by side with the same structure in both columns — same rows, same order, so the eye compares without re-reading. Then the latest orders, suggestions drawn from history, and the question of the day.
+The month in review: this month against the one before, side by side with the same structure in both columns — same rows, same order, so the eye compares without re-reading. Then the month's two lists of orders side by side — the latest, and the returned — and the category breakdown beside them.
 
-**The question card** asks something the data can answer ("Did you order more than last month?"), shows the answer in the note tones, and offers one action — SEE THOSE ORDERS — which is a link into All Orders carrying the filters that prove the answer. The card is a door, not a widget.
+**The returns card is the one on [Statistics](#statistics), at this page's width.** Same rows, same count line, same link — one card, drawn from the window each page is showing, because two copies of it is how one page came to report four returns in August while the other reported none. It sits beside the latest orders, since the two are the same shape reading the same month.
 
 ### All Orders
 
@@ -485,17 +522,21 @@ Every piece of that state lives in the URL:
 
 Arriving at that URL shows a filtered list. The chips reflect the URL, the panel's fields reflect the URL, the count reflects the rows.
 
-**A filtered list is a place, not a mode.** It can be linked to, bookmarked, sent — and it *is* linked to: category tiles, vendor cards, chart legend rows and the question of the day all land here carrying filters. Closing the filter panel doesn't clear the filters; they stay in the URL.
+**A filtered list is a place, not a mode.** It can be linked to, bookmarked, sent — and it *is* linked to: category tiles, vendor cards and chart legend rows all land here carrying filters. Closing the filter panel doesn't clear the filters; they stay in the URL.
 
 **Two controls describing one filter may never disagree** — the sub-tab and the panel's status control are the same filter in two places, and so are a chip and its combobox.
+
+**Every working list sorts with the same control, and its options name the column and the direction — both directions on every column that ranks.** All orders, All vendors and All categories ask one question — "order this list by" — so it is one combobox on all three, not a combobox on one and a segmented control on the others. An option reads *Spend, highest*, never a bare *Spend* that is secretly highest-first: half-named options make the reader press to find out. And each ranking column comes as a pair — *Amount, highest / Amount, lowest*, *Date, newest / Date, oldest* — because a list that can be ranked by a column can be ranked by it both ways, and one list offering pairs while another offers singles is the two-controls defect written into one control's options. An alphabetical column is the exception: the alphabet orders a list for *finding* a record, not for ranking it, and Z to A finds nothing that A to Z cannot — so Vendor on the orders list and Name on the vendors and categories lists offer *A to Z* alone. Each list offers the pairs every list shares plus its own columns', and it opens in [the account's chosen order](#settings), direction included ([`docs/defects.md`](docs/defects.md#data-rows--one-saving-three-styles-and-one-question-sorted-three-ways)).
 
 **On a phone the toolbar is two rows, not three.** The search field takes the first row; FILTERS and the sort control are one group and share the second, the sort taking whatever the disclosure leaves. They shape the same list, so they read as a pair — and a row each pushes the first order further down the page for nothing. See `docs/defects.md`, *Responsive Layout*.
 
 ### Order Detail
 
-One order's full record. The header band holds the identity and the actions: status, date, total, edit — and the trash, which follows the [deletion policy](#deletion). Below it: the line items with what each cost and saved, then the attachments card — add a file, open one, remove one (that trash follows the same [deletion policy](#deletion)), with the header counting them.
+One order's full record. The header band holds the identity and the actions: vendor, date, edit — and the trash, which follows the [deletion policy](#deletion). Below it: the line items with what each cost and saved, then the attachments card — add a file, open one, remove one (that trash follows the same [deletion policy](#deletion)), with the header counting them. The summary card states the status, kind and total.
 
 **Everything shown is derived from the record.** The subtotal is the lines added up; the saving is retail minus paid. A stored total beside stored lines is two claims that can disagree while both look right.
+
+**The detail page shows; the form page changes.** Status is read here and edited on the edit page like every other field — a status editor drawn on the reading view is the form's control paying rent twice, at a full band's height, and it stood here once.
 
 **Why edit is a separate page:** the form has validation, a draft, and two steps. That complexity doesn't belong on the reading view — the detail page shows, the form page changes.
 
@@ -542,11 +583,11 @@ A stretch of time in numbers: the window's name between two arrows with the widt
 
 **One control is drawn as one.** The two arrows, the name they step and the five widths share a band, and every button in it is the same box — a width button is the size of a paging button, because they are two halves of one control and a row of two heights reads as two. The name between the arrows holds a width wide enough for the longest one the pager can reach, so choosing a width does not slide the picker sideways under the pointer that just clicked one; that is the same rule as *selection is a fill, not a weight* one level out, and it costs about 30px of empty band next to the short names. On a phone the hold is released and the row is what is kept: a band that fits is worth more than a picker that never moves, when the alternative is the picker on a second row.
 
-**Every width is a calendar unit, and it is named as one.** Week, month, quarter, year, and everything there is: *Week 30, 2026* · *July 2026* · *Quarter 2, 2026* · *2026* · *All time*. Not a count of days back from today — a window ninety days wide has no name, cannot be linked as one thing, and cannot be paged to the one before it. A week is an ISO week (Monday to Sunday, week 1 the one holding 4 January), so a week that runs across the end of a month runs across it, because weeks do. Where the records stop mid-unit the window holds the days that exist and says which they are.
+**Every width is a calendar unit, and it is named as one.** Week, month, quarter, year, and everything there is: *Week 30, 2026* • *July 2026* • *Quarter 2, 2026* • *2026* • *All time*. Not a count of days back from today — a window ninety days wide has no name, cannot be linked as one thing, and cannot be paged to the one before it. A week is an ISO week (Monday to Sunday, week 1 the one holding 4 January), so a week that runs across the end of a month runs across it, because weeks do. Where the records stop mid-unit the window holds the days that exist and says which they are.
 
 **The control that offers the widths calls them what they are** — *Week*, *Month*, *Quarter*, *Year*, *All* — in the chip, in the arrow that steps one, and in the URL that links one. A chip reading *3M* or *YTD* names a duration, and a duration is the one thing this control cannot deliver: what it draws is the quarter the window lands in, which may be a single month of records, and the year, which pages back to whole years that are not to any date ([the numbers](docs/defects.md#statistics--the-chips-named-durations-and-the-windows-were-calendar-units)). A name that has to be decoded against the calendar to be checked is a name nobody checks.
 
-**A unit says what it is, the window says which days.** The pager names the unit; the card over the chart names the days it actually covers — *Overview · 1 May – 30 June* under *Quarter 2, 2026* — because a unit name does not tell you where the records begin and end inside it, and a clipped window would otherwise claim a whole quarter.
+**A unit says what it is, the window says which days.** The pager names the unit; the card over the chart names the days it actually covers — *Overview • 1 May – 30 June* under *Quarter 2, 2026* — because a unit name does not tell you where the records begin and end inside it, and a clipped window would otherwise claim a whole quarter.
 
 **A window is drawn under the name it is announced under.** One string, read by eye and by screen reader. *W30, 2026* was drawn short enough for the band and announced unabbreviated beside it, because a letter, a number and a year says nothing about weeks — one window under two names, of which the readable one was the one nobody could read. Writing the unit out costs about 30px in a band with room for it, and leaves a single name to keep true.
 
@@ -568,9 +609,15 @@ A stretch of time in numbers: the window's name between two arrows with the widt
 
 ### Settings
 
-Every control here names what reads it, and the page proves it: default kind and status (what the order form opens with), rows per page and sort (what All Orders obeys), the scan card switch (the same setting Home's LATER writes), ask-before-deleting (what every trash reads), and clear stored data (back to the shipped state, said before it does it).
+Every control here names what reads it, and the page proves it: default kind and status (what the order form opens with), rows per page and sort (what All Orders obeys), entries per card and the vendors-and-categories order (what every card and both lists open as), the scan card switch (the same setting Home's LATER writes), ask-before-deleting (what every trash reads), and clear stored data (back to the shipped state, said before it does it).
 
 **A settings page whose switches change nothing is the decorative-control defect with more surface area.** A setting exists here only if something observably reads it.
+
+**One card documents instead of controlling: the import card.** The orders-import endpoint exists for a program, not a form, so Settings states its address, its request shape and the rules the server enforces — sign in, post the orders with either credential (the session cookie, or the same token as an `Authorization: Bearer` header — one session row either way), read back what imported and what failed by index. Reference drawn from the validator itself, not a paraphrase of it: the card and `validateOrderDraft` state the same limits or one of them is wrong. Because it is reference and not a control, it is also the one card that opens closed — and the disclosure is the header band itself, the same whole-band control a navigating header is, with the same bare chevron in the same right-hand slot pointing down or up instead of right. A boxed icon-button riding a passive header would be a second implementation of a band the system already has. And the JSON it shows is a formatter's output, coloured by token, never hand-aligned: annotation columns kept by hand drift on the first edit.
+
+**One question, one control — even where it is asked on two pages.** Vendors and categories are the same kind of list, so the order they open in is one setting and not two: a person who wants one alphabetical wants both. It offers only the orders *both* lists have, since a default naming one list's own column is a preference the other cannot obey — vendors can also sort by order count and categories by share, and those stay on the pages, one click from wherever the setting opens them.
+
+**A setting stores only values something obeys.** Anything outside the set a control offers is refused and the stored value stands. A preference that saves, comes back, and is then quietly ignored is worse than no preference, because the settings page goes on saying it is in force.
 
 ---
 
@@ -639,7 +686,7 @@ When a form rejects a value:
 
 ### Feedback
 
-Everything the app says back after an action — saved, added, removed, moved, refused — goes to **one layer**: top right, under the top bar, a single polite status region. A toast clears itself after five seconds, can be dismissed, stacks newest first, and is capped so the stack cannot wallpaper the screen. The layer never swallows a click meant for what is under it.
+Everything the app says back after an action — saved, added, removed, moved, refused — goes to **one layer**: top right, under the top bar, a single polite status region. A toast clears itself after five seconds, can be dismissed, stacks newest first, and is capped so the stack cannot wallpaper the screen. The layer never swallows a click meant for what is under it. Inside a toast, the glyph, the sentence and the dismiss share one vertical centre — a toast is one short line, and top-aligning it against a taller dismiss button reads as a misprint.
 
 Before the one layer existed, each page printed its result wherever there was room — a removed file was reported a column away from the file, a reorder was announced at the top of a form nobody was looking at. **Feedback nobody sees is feedback that was not given.**
 
@@ -685,6 +732,8 @@ A control is a promise. Everything drawn as interactive must do the thing it dep
 - **Hover states are earned.** Only elements that navigate get the row tint — it's keyed on `data-go`, the attribute that actually navigates, not on the row's class. A tint on an inert row invites a click that does nothing.
 - **Disabled is shown, not hidden.** A pager at its last page shows NEXT disabled rather than removing it — the control exists, it just can't act right now, and the difference is information.
 - **Copy is a promise too.** If the words enumerate what the product accepts, every named case must work (see [Scan Flow](#scan-flow)).
+- **A control that rebuilds something rebuilds it visibly.** FILL WITH DEMO DATA wiped a year of orders and wrote back the same year — same count, same days, same vendors — so pressing it twice was indistinguishable from pressing it once, and from pressing nothing. Made-up data is made up afresh on every press. ([`docs/defects.md`](docs/defects.md#demo-data--the-button-rebuilt-the-same-year-every-time))
+- **A control that replaces something replaces exactly what it names.** FILL WITH DEMO DATA says every order, vendor and category is removed first — and that is all it removes. Settings and the dashboard layout are preferences, not ledger data, and it once reset them too; CLEAR STORED DATA is the one control that returns preferences to the shipped state, and it says so.
 
 ### Accessibility
 
@@ -750,6 +799,8 @@ The copy is English; the number grammar is Danish. Neither is negotiable per scr
 - **Dates** read day-first: `18 July`.
 - **Inputs speak the same grammar they display.** An amount field accepts `1.187,25`, gets the numeric keyboard, and treats `89.95` as a typo to name rather than a number to guess at — which is why no money field is a native number input; those reject the comma outright.
 - **Button labels are caps**, and they name the action: SEE THOSE ORDERS, ADD FILE, CLEAR ALL. One voice for every action in the product.
+- **The separator in copy is the bullet** (`•`, U+2022) — `34 orders • latest 12/8`, `Items • 2`, `Image • 1 KB` — never the middle dot (`·`, U+00B7), which reads as machine-written. And it is written once, not sixty times: JSX text joins with the `<Sep />` component, template strings with the `sep` constant it renders (`react/src/api/format.js`; the API's own metas use `api/src/lib/copy.js`), so changing the character is one edit per runtime — plus a migration for stored attachment metas, which bake it in at write time.
+- **An ellipsis is three dots** — `Search vendors...`, `SAVING...` — never the single character (`…`), in copy, placeholders, button states and code alike, now and in everything written later. Same reason as the dot above: it reads as machine-written.
 - **Field labels are questions where a question is clearer**: "Who did you buy from?" beats "Vendor" on a form a person fills once.
 - **Back buttons name the destination**, not the direction: "Back to orders", never just "Back".
 - **A rejection names the fields**: "Cannot continue — Vendor and Date need fixing."
@@ -777,6 +828,8 @@ Three documents, one job each — because a rule stated in two places is obeyed 
 **Honest affordances:** If a control can't do something, don't draw it as if it can. A button that doesn't work is a button that shouldn't be drawn yet.
 
 **Uniformity:** When something repeats, count how many times. If three things do it one way and one does it another, change the one, not the three. Never add a new way.
+
+**The stylesheet owns layout.** A layout value — a margin, a gap, a size, a colour that is the system's rather than a record's — lives in the stylesheet under a name. An element carries a style attribute only when the value is the data speaking: a category's colour, a bar's share, a dragged row's size. An inline copy of a system value outranks every rule the stylesheet can write, which is how a phone rule gets written, shipped and never rendered ([`docs/defects.md`](docs/defects.md#the-stylesheet-that-was-being-overruled-by-its-own-pages)).
 
 **Elements before components before views:** An element is defined before the component that uses it. A component before the view that shows it. Reading top to bottom is reading in dependency order.
 

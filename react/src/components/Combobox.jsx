@@ -84,6 +84,14 @@ export function Combobox({
 	   a shared top edge, so both fields still start on the same line. README: Combobox. */
 	const wrapping = Boolean(chips)
 
+	/* The action row is "create what was typed," so there is nothing to create until something
+	   is typed -- CREATE VENDOR "" offered a vendor with no name. And typing the name of one
+	   that already exists should pick it, not offer a second one of the same name, which is
+	   the same rule Enter already follows below. */
+	const typed = String(value ?? '').trim()
+	const typedMatches = typed && groups.some(g => g.options.some(o => o.label.toLowerCase() === typed.toLowerCase()))
+	const showAction = Boolean(action) && Boolean(typed) && !typedMatches
+
 	const inputEl = (
 		<input ref={input} type="text" id={id} role="combobox"
 			aria-expanded={open} aria-controls={panelId} aria-autocomplete="list"
@@ -97,11 +105,10 @@ export function Combobox({
 				if (e.key === 'Escape') { setOpen(false); return }
 				if (e.key !== 'ArrowDown' && e.key !== 'Enter') return
 				e.preventDefault()
-				/* Enter runs the action at the foot of the list -- CREATE VENDOR "…", ADD
-				   CATEGORY "…" -- but only when what was typed matches nothing already there.
+				/* Enter runs the action at the foot of the list -- CREATE VENDOR "...", ADD
+				   CATEGORY "..." -- but only when what was typed matches nothing already there.
 				   Typing the name of something that exists and pressing Enter should pick it,
 				   not make a second one. */
-				const typed = String(value ?? '').trim()
 				if (e.key === 'Enter' && action && typed) {
 					const match = groups.flatMap(g => g.options)
 						.find(o => o.label.toLowerCase() === typed.toLowerCase())
@@ -119,8 +126,7 @@ export function Combobox({
 	   rather than sitting in a wrapper div holding an inline width. */
 	return (
 		<div className={join('combobox', open && 'is-open', className)} ref={wrapper}>
-			<div className={join('field-shell', wrapping && 'field-shell-chips')}
-				style={wrapping ? { height: 'auto', minHeight: 48 } : undefined}>
+			<div className={join('field-shell', wrapping && 'field-shell-chips')}>
 				{leadingIcon ? <Icon name={leadingIcon} /> : null}
 				{chips}
 				{inputEl}
@@ -157,7 +163,7 @@ export function Combobox({
 					</div>
 				))}
 				{children}
-				{action ? (
+				{showAction ? (
 					<div className="combobox-action"
 						onClick={e => { e.preventDefault(); e.stopPropagation(); action.onSelect?.(value); setOpen(false) }}>
 						{action.icon ? <Icon name={action.icon} /> : null}{action.label}

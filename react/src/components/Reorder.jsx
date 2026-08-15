@@ -249,13 +249,9 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 	    cosmetic: without it the first move gesture scrolls the page and the drag never
 	    starts. */
 	const handle = (item, index) => (
-		<button type="button" className="item-row-grip" data-reorder-handle={item.id}
+		<button type="button" data-reorder-handle={item.id}
+			className={['item-row-grip', draggingId === item.id && 'is-dragging'].filter(Boolean).join(' ')}
 			aria-label={`Reorder ${describe(item)}, ${index + 1} of ${items.length}. Drag, or use the arrow keys.`}
-			style={{
-				font: 'inherit', background: 'none', border: 0, padding: 0,
-				display: 'inline-flex', alignItems: 'center', flex: 'none',
-				touchAction: 'none', cursor: draggingId === item.id ? 'grabbing' : 'grab'
-			}}
 			onPointerDown={e => onPointerDown(e, index, item)}
 			onKeyDown={e => onKeyDown(e, index, item)}>
 			<Icon name="grip" />

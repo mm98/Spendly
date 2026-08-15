@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { sep } from '../api/format.js'
 import { Icon, ICONS } from './Icon.jsx'
 import { FieldShell } from './Form.jsx'
 import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
@@ -44,16 +45,20 @@ import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
     keystroke can pull. */
 const LIMIT = 240
 
-/** The palette a category or a vendor can be. Tokens where the system has one, so a category
-    coloured "red" is the same red as the one in the donut. */
+/** The palette a category or a vendor can be -- the same hex the system's own tokens resolve
+    to (a category coloured "red" is the same red as the one in the donut), copied here rather
+    than passed as `var(--icon-red)` and the like. A stored `var(...)` reference needs a browser
+    with this app's own stylesheet loaded to mean anything -- resolveColour()
+    (../api/colour.js) exists only to paper over that at read time -- where a plain hex, the
+    form VENDOR_COLOURS below already used, is a value on its own. */
 export const CATEGORY_COLOURS = [
-	{ id: 'var(--icon-red)', label: 'Red' },
-	{ id: 'var(--icon-yellow)', label: 'Yellow' },
-	{ id: 'var(--icon-purple)', label: 'Purple' },
-	{ id: 'var(--donut-blue)', label: 'Blue' },
-	{ id: 'var(--donut-orange)', label: 'Orange' },
-	{ id: 'var(--green)', label: 'Green' },
-	{ id: 'var(--teal)', label: 'Teal' },
+	{ id: '#C43F2A', label: 'Red' },
+	{ id: '#E9C517', label: 'Yellow' },
+	{ id: '#8B5CF6', label: 'Purple' },
+	{ id: '#1FA8E0', label: 'Blue' },
+	{ id: '#F09A38', label: 'Orange' },
+	{ id: '#14AC72', label: 'Green' },
+	{ id: '#07625E', label: 'Teal' },
 	{ id: '#45524C', label: 'Slate' }
 ]
 
@@ -74,50 +79,50 @@ export const VENDOR_COLOURS = [
     state, because each one is a toggle in a set of toggles rather than a tab: nothing changes
     view when you press it. */
 export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, label }) {
-	const native = useRef(null)
 	const chosen = colours.some(c => c.id === value)
 	const hex = resolveColour(value)
 
-	const swatch = (on, background) => ({
-		width: 30, height: 30, background, borderColor: background,
-		/* The selected one is ringed rather than ticked: a check mark inside a swatch has to
-		   survive every background it can be given, and on the yellow it does not. */
-		boxShadow: on ? '0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-strong)' : undefined
-	})
+	/* The colour is the data, so it stays on the element; the size and the selection ring are
+	   the stylesheet's (.colour-swatch -- the ring survives every background a swatch can be
+	   given, where a check mark inside it does not). */
+	const swatch = background => ({ background, borderColor: background })
 
 	return (
-		<div className="row-inline" role="group" aria-label={label} style={{ gap: 6, flexWrap: 'wrap' }}>
+		<div className="row-inline colour-picker" role="group" aria-label={label}>
 			{colours.map(colour => (
-				<button key={colour.id} type="button" className="icon-button"
+				<button key={colour.id} type="button" className="icon-button colour-swatch"
 					aria-label={colour.label} aria-pressed={colour.id === value}
 					onClick={() => onChange(colour.id)}
-					style={swatch(colour.id === value, colour.id)} />
+					style={swatch(colour.id)} />
 			))}
 
-			{/* Anything else. The button is the swatch the system draws; the input behind it is
-			    the one the platform draws, opened by a click on the button. */}
-			<button type="button" className="icon-button"
-				aria-label={chosen ? 'Pick another colour' : `Custom colour ${hex}`}
-				aria-pressed={!chosen}
-				onClick={() => native.current?.click()}
-				style={{
-					...swatch(!chosen, chosen ? 'var(--bg-card)' : value),
-					color: chosen ? 'var(--text-body)' : inkOn(value)
-				}}>
-				<Icon name={chosen ? 'plus' : 'pencil'} />
-			</button>
-			<input ref={native} type="color" value={hex} aria-label={`${label}, custom`}
-				onChange={e => onChange(e.target.value)}
-				tabIndex={-1} aria-hidden="true"
-				style={{
-					position: 'absolute', width: 1, height: 1, border: 0, padding: 0,
-					opacity: 0, pointerEvents: 'none', overflow: 'hidden', clip: 'rect(0 0 0 0)'
-				}} />
+			{/* Anything else. The swatch below is drawn to look like the row's other buttons; the
+			    real control is the platform's own input, stacked on top of it at the same size
+			    so a tap lands on the input directly rather than on a stand-in that proxies the
+			    open with a JS .click() -- a synthetic click reaching a fully hidden input never
+			    carried a trusted touch activation on to it, and iOS Safari's colour sheet does
+			    not open for that. Kept invisible rather than styled, same as before: stripping
+			    the native chrome needs a -webkit-appearance hack and two vendor-prefixed
+			    pseudo-elements per engine, and letting the platform draw its own dialog needs no
+			    such bet. */}
+			<span className="colour-picker-custom">
+				<span aria-hidden="true"
+					className={['icon-button colour-swatch colour-picker-face', !chosen && 'is-on'].filter(Boolean).join(' ')}
+					style={{
+						...swatch(chosen ? 'var(--bg-card)' : value),
+						color: chosen ? 'var(--text-body)' : inkOn(value)
+					}}>
+					<Icon name={chosen ? 'plus' : 'pencil'} />
+				</span>
+				<input type="color" value={hex} className="colour-picker-input"
+					aria-label={chosen ? 'Pick another colour' : `Custom colour ${hex}`}
+					onChange={e => onChange(e.target.value)} />
+			</span>
 
 			{/* What the choice is worth, since a colour can be picked that its own contents cannot
 			    survive. The ink flips automatically; this says which way and by how much. */}
-			<span className="field-help" style={{ alignSelf: 'center', marginLeft: 4 }}>
-				{chosen ? null : `${hex.toUpperCase()} · ${inkContrast(value).toFixed(1)}:1`}
+			<span className="field-help colour-picker-contrast">
+				{chosen ? null : `${hex.toUpperCase()}${sep}${inkContrast(value).toFixed(1)}:1`}
 			</span>
 		</div>
 	)
@@ -189,18 +194,14 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 	const waiting = names.some(name => !paths[name] && !usedByName.has(name) && !ICONS[name])
 
 	return (
-		<div style={{ display: 'grid', gap: 8 }}>
-			<FieldShell style={{ height: 38 }}>
+		<div className="icon-picker">
+			<FieldShell>
 				<Icon name="search" />
 				<input type="search" value={query}
-					placeholder={total ? `Search ${total.toLocaleString('da-DK')} icons…` : 'Search icons…'}
+					placeholder={total ? `Search ${total.toLocaleString('da-DK')} icons...` : 'Search icons...'}
 					aria-label="Search icons" onChange={e => setQuery(e.target.value)} />
 			</FieldShell>
-			<div role="radiogroup" aria-label={label} aria-busy={waiting || undefined}
-				style={{
-					display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(38px, 1fr))',
-					gap: 6, maxHeight: 168, overflowY: 'auto', padding: 2
-				}}>
+			<div role="radiogroup" className="icon-picker-grid" aria-label={label} aria-busy={waiting || undefined}>
 				{names.map(name => {
 					const on = name === value
 					/* A used icon's path travels with the record that already carries it, so the
@@ -210,15 +211,9 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 					   seen is not a choice that can be made. */
 					const d = paths[name] ?? usedByName.get(name) ?? ICONS[name]
 					return (
-						<button key={name} type="button" className="icon-button"
+						<button key={name} type="button" className="icon-button icon-picker-tile"
 							role="radio" aria-checked={on} aria-label={name} disabled={!d}
-							onClick={() => onChange(name, d)}
-							style={{
-								width: '100%', height: 34,
-								background: on ? 'var(--bg-dark)' : 'var(--bg-card)',
-								color: on ? '#fff' : 'var(--text-body)',
-								borderColor: on ? 'var(--bg-dark)' : 'var(--border-control)'
-							}}>
+							onClick={() => onChange(name, d)}>
 							{d
 								? <Icon name={name} path={d} />
 								: <svg className="icon" viewBox="0 0 24 24" aria-hidden="true" />}
@@ -226,7 +221,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 					)
 				})}
 				{names.length === 0
-					? <p className="field-help" style={{ gridColumn: '1 / -1' }}>
+					? <p className="field-help icon-picker-empty">
 						{query.trim() ? `No icon matches "${query}".` : 'No category has an icon yet -- search to pick one.'}
 					</p>
 					: null}
@@ -241,7 +236,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 						? null
 						: total
 							? `${names.length} already used by a category. Search all ${total.toLocaleString('da-DK')}.`
-							: `${names.length} already used by a category. Loading the rest…`}
+							: `${names.length} already used by a category. Loading the rest...`}
 			</span>
 		</div>
 	)
@@ -249,7 +244,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 
 /** What the choice will look like, at the size it is used at. */
 export const CategoryPreview = ({ icon, iconPath, colour, name }) => (
-	<div className="data-row category-row" style={{ pointerEvents: 'none' }}>
+	<div className="data-row category-row category-preview">
 		<span className="category-icon" style={{ background: colour, color: inkOn(colour) }}>
 			<Icon name={icon} path={iconPath} /></span>
 		<div>

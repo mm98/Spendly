@@ -6,13 +6,13 @@ import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormP
 import { CategoryPreview, ColourPicker, IconPicker } from '../components/Pickers.jsx'
 import { ICONS } from '../components/Icon.jsx'
 import {
-	Field, FieldShell, FieldUnit, TextInput, focusField, needFixing, useFieldErrors
+	Field, FieldShell, FieldUnit, FilterSection, Switch, TextInput, focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	createCategory, deleteCategory, getCategories, getCategoriesOverview, getCategory,
-	getHomeContent, getOrdersOverview, updateCategory
+	getHomeContent, getHomeHero, getOrdersOverview, getStats, updateCategory
 } from '../api/client.js'
 import { AMOUNT_PATTERN, amountRound, krRound, parseAmount } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
@@ -28,7 +28,7 @@ import { resolveColour } from '../api/colour.js'
    Create and edit are one component, because they differ by which record they start from and
    by nothing else. A second one for the other is the near-miss the uniformity rule is about. */
 
-const BLANK = { name: '', icon: 'tag', iconPath: undefined, colour: 'var(--icon-red)', budget: '' }
+const BLANK = { name: '', icon: 'tag', iconPath: undefined, colour: '#C43F2A', budget: '', favourite: false }
 
 export default function CategoryForm({ mode = 'create' }) {
 	const { id } = useParams()
@@ -57,7 +57,8 @@ function CategoryFields({ mode, category }) {
 			icon: category.icon,
 			iconPath: category.iconPath,
 			colour: category.colour,
-			budget: category.budget ? amountRound(category.budget) : ''
+			budget: category.budget ? amountRound(category.budget) : '',
+			favourite: Boolean(category.favourite)
 		})
 	}, [category])
 
@@ -99,10 +100,12 @@ function CategoryFields({ mode, category }) {
 	const budget = values.budget && AMOUNT_PATTERN.test(values.budget) ? parseAmount(values.budget) : 0
 
 	/* Every figure that counts categories is stale the moment one is written, so all of them
-	   go rather than being left to expire. */
+	   go rather than being left to expire -- Statistics' category split is one of them, since
+	   a renamed or recoloured category changes what its own segment reads. */
 	const refresh = () => {
 		invalidate(getCategories); invalidate(getCategoriesOverview); invalidate(getCategory)
 		invalidate(getHomeContent); invalidate(getOrdersOverview)
+		invalidate(getStats); invalidate(getHomeHero)
 	}
 
 	const save = () => {
@@ -121,7 +124,7 @@ function CategoryFields({ mode, category }) {
 		   clears it. */
 		const patch = {
 			name: values.name.trim(), icon: values.icon, iconPath: values.iconPath ?? null,
-			colour: values.colour, budget
+			colour: values.colour, budget, favourite: values.favourite
 		}
 		const written = mode === 'edit'
 			? updateCategory(category.id, patch)
@@ -152,7 +155,7 @@ function CategoryFields({ mode, category }) {
 			status={status}
 			cancel={{ to: '/categories' }}
 			submit={{
-				label: saving ? 'SAVING…' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD CATEGORY',
+				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD CATEGORY',
 				onClick: save, disabled: saving
 			}}
 			rail={
@@ -205,6 +208,18 @@ function CategoryFields({ mode, category }) {
 					}))}
 					label="Category icon" />
 			</Field>
+
+			{/* Same control, same placement, as the vendor form's own favourite switch. README:
+			    Fields and Forms. */}
+			<FilterSection>
+				<div className="space-between">
+					<span className="field-help toggle-help">
+						Favourites appear in Home's Favourite categories card.
+					</span>
+					<Switch checked={values.favourite}
+						onChange={favourite => setValues(v => ({ ...v, favourite }))} label="Favourite" />
+				</div>
+			</FilterSection>
 		</FormPage>
 	)
 }
@@ -217,7 +232,7 @@ function CategorySummary({ values, budget, category }) {
 			<CardBody>
 				<div className="card-subheading">Category summary</div>
 				<span className="section-label">How it will look</span>
-				<div className="category-rows" style={{ marginBottom: 4 }}>
+				<div className="category-rows summary-preview">
 					<CategoryPreview icon={values.icon} iconPath={values.iconPath}
 						colour={values.colour} name={values.name} />
 				</div>
@@ -227,6 +242,8 @@ function CategorySummary({ values, budget, category }) {
 					<span className="summary-row-value">{resolveColour(values.colour).toUpperCase()}</span></div>
 				<div className="summary-row">Icon
 					<span className="summary-row-value">{values.icon}</span></div>
+				<div className="summary-row">Favourite
+					<span className="summary-row-value">{values.favourite ? 'Yes' : 'No'}</span></div>
 				{category ? <SummaryRow label="Spent this month" value={krRound(category.spend)} /> : null}
 				<div className="card-divider card-divider-tight" />
 				{/* Rounded, because the row in the Manage list rounds it: two figures for one

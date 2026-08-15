@@ -109,9 +109,20 @@ box, not about any change.
 - **That build is a valid pixel baseline.** 141.0.7390.37 under the 1.56.1 bundle is the pair the
   screenshot section names as rendering `docs/` at 0 of 5,184,000 from the app, so this container is
   the good case rather than the text-rasterisation case -- still run the unchanged app against
-  `docs/` once to confirm it before trusting a diff. Confirmed on 2026-07-31, rendering the app: 0 of
-  5,184,000 on `home.png` and `all-orders.png`, 0 of 1,035,840 on `phone.png`, each reproduced twice
-  in a row. **`all-orders.png` holds three pieces of state at once**, and each one has to be driven:
+  `docs/` once to confirm it before trusting a diff. Two runs of the same source on the same day
+  agree at 0 of 5,184,000 and 0 of 1,035,840, reproduced twice in a row, so the *engine* is not the
+  variable here.
+- **Two of the three shots are dated, and the date is the data.** `regen-docs.mjs` shifts every seed
+  order so the newest lands *today*, and Home's hero names the current month -- so a shot rendered on
+  one day and re-rendered on another differs by the whole dataset, with no change to the app at all.
+  Re-rendering on 2026-08-15 a file last written on 2026-07-31 came back **849,085 of 5,184,000** on
+  `home.png` and **51,738 of 1,035,840** on `phone.png`, spread over every band that carries a
+  figure. That is a number to attribute before believing it: `git stash`, restart both servers,
+  render, and compare. The pre-change source produced *the same two numbers to the pixel*, which is
+  what said the change under test contributed 0. `all-orders.png` is unaffected -- it is a filtered
+  list of a fixed window, so it comes back byte-identical -- and that contrast is the quickest tell
+  that a diff is the calendar rather than the code.
+- **`all-orders.png` holds three pieces of state at once**, and each one has to be driven:
   the FILTERS panel is open, which is no longer the state the page loads in; the list is filtered to
   `?vendor=bilka&status=Delivered&from=2026-07-01&to=2026-07-31`, 3 matching; and the global finder
   (`input[aria-label="Search everything"]`) has `bil` typed into it, open. Render it closed or drop
@@ -240,6 +251,113 @@ its step; page the pager, then read the width. Labels count as the other control
 name was fixed at "Daily spend through July" while the tabs beside it chose the series and the chips
 chose the span, so it announced neither, and a screen reader heard "spend" over a line of order counts.
 
+**Two pages that state the same fact are a probe, and only reading both of them runs it.** Statistics
+listed August's four returns; Orders overview, scoped to the same month, said *No open returns found*
+-- and it said it because the card was markup with no data path behind it, so it would have said it
+over four hundred. Every instrument here cleared it: it renders, it renders identically run to run, it
+is in every engine, its rects and computed styles are right, and its empty state is the shape the
+design system defines. An empty state is *supposed* to look like that; the only thing that can
+distinguish a correct one from a card that cannot fill is a second source for the fact it is empty of.
+So when a page prints a figure, a count or a list that another page also prints, read it in both and
+require them to agree -- this is the two-controls rule one level up, where the disagreement is between
+pages rather than between controls, and neither side is ever wrong on its own terms. Where they share
+one component, the check is free and the defect cannot recur.
+
+**Ask what a card would have to be given to be empty, and check it was given it.** The gap above is
+not really about pages -- it is that an empty state, a zero and a "none" are the three renderings that
+look correct when the data never arrived. `returns` was `null` because it sat behind a `summary` flag
+whose job was skipping expensive work nothing renders, and a null list draws the same empty branch a
+genuinely empty list draws. Any probe reading a card that can legitimately be empty has to assert the
+*query* was empty, not just the card: read the endpoint the page called, and compare its payload to
+what was drawn. A rendered "none" is not evidence of none.
+
+**Fix the class, not the instance you were shown.** Three rounds of this session went: a defect is
+pointed at, the one card is fixed, and the next round points at its neighbour. Every one of them was
+the same rule broken in several places -- the entry count in six, the money column in four, the
+today-marker in five -- and each time the fix touched only what was on screen in the screenshot.
+The cheap move is to stop hand-checking and enumerate: build the list from the DOM rather than from
+the call sites you remember, assert one rule over all of it, and read the failures. The sweep for
+the markers found the app already right in ten of eleven charts and the eleventh was the probe's
+expectation, which is a minute well spent; the sweep for the money column found a regression I had
+introduced two minutes earlier in the very same edit. Neither was reachable by looking harder at the
+thing that was reported.
+
+The rule covers requests, not just defects. "Remove the Z to A" was read as the one option the
+previous reply had discussed, so *Vendor, Z to A* came out of All orders while *Name, Z to A* went
+on rendering on two toolbars and in Settings -- and the user had to come back and point at it, which
+is this rule failing in a sentence instead of a screenshot. A request phrased against a label is a
+request against every element carrying it: grep the label app-wide first (`grep -rn 'Z to A'
+react/src` returned all four in under a second), and either take the whole class out or say in the
+reply which instances stayed and why. Narrowing a general instruction to its nearest instance is the
+same mistake as fixing the one card on screen, made while reading instead of while coding.
+
+**Check the rule, not the gap it leaves -- a fixture can hide an outcome the arithmetic gives
+away.** The rounding that decides how many rows a card gives up to the graphic above it was written
+as `ceil`, which charges a whole row for any overflow at all: a headline figure and caption came to
+58.7px against a 56px row, 1.05 rows, billed as two, and the card stood 56px short. The check for it
+measured *unused space per card* and came back 1px, 17px, 1px -- clean -- because the account under
+test had six categories, fewer than the budget, so the card beside it never stretched the row and
+there was no gap for the short card to fail to fill. A screenshot of an account with nine showed it
+at a glance. The instrument was fine and the question was wrong: "is there a gap" is answerable only
+when something else is tall enough to make one, which is a fact about the data, while "does the card
+land within half a row of the height it is aiming at" is answerable on any data and fails at
+-53.3px. When a check comes back clean, ask which part of the fixture is making it clean -- and if
+the answer is "the fixture happens to be small", the check is measuring the fixture.
+
+**A stand-in for N things has to be the same shape as one thing.** The "5 more categories" row a
+ring folds its tail into was built as `{id, name, colour, spend}` -- exactly the four fields the
+legend row that first drew it takes as props -- and the first component to receive one as a *record*
+crashed on it, because a category row asks the record for its own share and got `undefined.toFixed`.
+Nothing had been wrong with the fold; what was wrong was that its shape had been fitted to one
+caller's questions rather than to the thing it stands for. When a value is a placeholder for a
+record, give it every field a record has, and reach it through a component that renders it -- the
+crash surfaced only at settings small enough to make the fold appear at all, which is three clicks
+into a picker, on one card, on one page.
+
+**The loading state is a card, so `waitForSelector('.card')` waits for nothing.** The screenshot
+harness waited on `.card`, and Home's Async placeholder *is* a card -- so it proceeded while the
+page still read "Loading your month...". The settle loop behind it agreed: it compares the `d` of
+every `svg.chart path`, and a page that has drawn no charts has none, so `''` equalled `''` three
+times in 180ms and it returned. Two checks that cannot fail compose into a harness that screenshots
+a spinner and reports a byte count, which is what it did -- 79,524 bytes against a committed 344,406,
+a number that reads as "the page got simpler". Every pixel comparison taken against those files was
+then a spinner against a page, including the one reported as evidence that a change moved nothing.
+Wait on the content the page exists to show, assert the loading text is gone, and make any settle
+loop require the thing it claims to be settling; a screenshot step should refuse to write a file
+while the word "Loading" is on screen. And when a rendered artefact changes size by 4x, open it --
+the byte count was in front of me twice before the image was.
+
+**A size check is not a position check.** The weekday bars were re-cut as a percentage of a track
+and the probe read every bar back at `track x share` with a worst error of 0px, on a chart hanging
+from the ceiling: `align-self:stretch` on an item with a definite height resolves to flex-start, so
+all seven were the right size in the wrong place and the measurement had no opinion about where a
+box sits. Any check on a box's dimension needs its edge too -- assert the bar's bottom against the
+track's bottom, the row's left against its container's left -- and look at the render, because
+"correct height, wrong baseline" is invisible to arithmetic and obvious to an eye.
+
+**Deleting a component is a claim about how many elements used it, and the count is cheap.**
+Removing two cards took their component and their CSS with them, and three of those rules were
+still live: the scan page writes `class="card card-question"` by hand rather than using the
+component, so the rules read as the component's and were not. Nothing in the change touched that
+page, so no diff, shot or walk of the *changed* pages had an opinion — `document.querySelectorAll`
+over every screen did, in one run, returning 1 where the deletion assumed 0. Before deleting a
+selector, count what it matches app-wide and require the number to be zero; the same count
+afterwards is what says an orphan really was one (`.card-headline-question`: 0 matches, 0 source
+references, safe).
+
+**A decoration has no state to read back, so every probe above skips it.** The tick strip under every
+chart was a `repeating-linear-gradient` -- a line every 24px, from one declaration, with no element per
+tick, no attribute, no handler and no data behind it. Fire it and nothing moves; walk the DOM and it is
+one 9px div; diff the pixels and it is identical before and after, because it is identical. It sat 47
+ticks under 5 labels for as long as it existed, and the labels beside it were spread evenly under dates
+that are not evenly spaced, so the last one was 74px from the day it names. Both were *drawn* correctly
+-- each on its own terms, which is the trap one rule up: they were never measured **against each
+other**, and neither had anything to say about the other. So when two things are drawn to be read
+together, measure the distance between them rather than each on its own -- and treat a CSS-only
+graphic as unverified by default, because it is the one thing on the page that cannot fail a test until
+you write the test that compares it to something real (here: the x of every tick against the
+coordinates in the chart's own path `d`, which is where the data actually is).
+
 **Fixing the label a rule names is not fixing the rule.** That chart label was made to follow both of
 its controls, and the fix stopped at the string the paragraph above happens to quote. One line up, the
 card's own heading went on reading "Spent this month" under all five widths, over a total, a saving and
@@ -367,6 +485,17 @@ pair of new bugs. Before hunting an unreproducible report, establish which build
 reporter -- one question about a string only the new file contains settles it, and it is cheaper than
 any of the four theories it replaces.
 
+**A fixture built for the harness is not a fixture built for the product, and the app is not the
+place to keep the difference.** The demo generator is deterministic on purpose -- that is what lets
+two runs be compared rather than eyeballed, and it is a good property. It was held by a *default*
+seed on the generator, and the app's own FILL WITH DEMO DATA was the only caller and never passed
+one, so the button rebuilt the identical year on every press: the property the measurement wanted was
+the property the product must not have, and one constant in the wrong place gave the harness what it
+needed by taking it out of the product. Every probe here was happier for it, which is exactly why it
+sat. Put the reproducibility on the call -- the harness names its seed, the button rolls one -- so the
+determinism a run depends on is something a run asks for, never something the shipped path is stuck
+with. Then say which you used: a number in a report that cannot be re-rolled is not evidence.
+
 **A narrow viewport is not a phone, in a harness any more than in a screenshot.** The cross-engine run
 that cleared this change used a plain 390px window, so `pointer: coarse` never matched and the whole
 `@media (pointer: coarse)` block -- the 16px-and-scale-back rule on every field -- was inert. It
@@ -466,6 +595,15 @@ renders. A stale screenshot is a wrong claim about the product, and it is the on
 believes without checking — so a change that moves one of these three is regenerated in the same
 pass that verifies it, and never before: a shot regenerated mid-work is a shot that has to be
 regenerated again when the next edit lands.
+
+**"Moves one of these three" is not the only reason to re-render two of them.** `home.png` and
+`phone.png` are dated -- the environment bullet above has the numbers -- so they go out of date on
+their own, without anybody touching the app, and a re-render on a later day is a legitimate change to
+those files that no diff of the source explains. That is a change to make deliberately and to say so
+in the report, never one to let arrive quietly inside a pass that was about something else: the way
+to keep both honest is to render the *unchanged* source first, attribute that number to the calendar,
+and only then re-render. `all-orders.png` is dateless and should come back byte-identical; if it
+does not, the diff is the code.
 
 **`docs/` is not a baseline unless your machine reproduces it.** The tab conversion was accepted on 0
 differing pixels against these shots; the same comparison run in a container came back 83,630 of

@@ -13,7 +13,7 @@ import { Card, CardBody, EmptyState } from './Card.jsx'
 export const Waiting = ({ label = 'Loading' }) => (
 	<Card aria-busy="true" aria-label={label}>
 		<CardBody variant="card-body-centered">
-			<p className="field-help">{label}…</p>
+			<p className="field-help">{label}...</p>
 		</CardBody>
 	</Card>
 )
@@ -33,5 +33,5 @@ export function Async({ state, children, label = 'Loading' }) {
 	if (state.data === undefined) return <Waiting label={label} />
 	/* Data is present. A refetch in the background keeps the last good render on screen
 	   rather than collapsing the layout, and says so on the region for anything listening. */
-	return <div aria-busy={state.loading || undefined} style={{ display: 'contents' }}>{children(state.data)}</div>
+	return <div aria-busy={state.loading || undefined} className="async-live">{children(state.data)}</div>
 }
