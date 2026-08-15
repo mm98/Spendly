@@ -445,7 +445,17 @@ export function getHomeHero(userId, range) {
 	return {
 		range: width, label: bounds.label, shortLabel: bounds.shortLabel,
 		spent: now.spent, saved: now.saved, savedPercent: now.savedPercent, orderCount: now.orders,
-		series: { orders: days.map(d => d.orders), saved: days.map(d => d.saved) },
+		/* Spend per day, not orders per day. The card's headline is the window's spend and
+		   its chart plotted a count instead, so the biggest number on Home was drawn by a
+		   line that never showed it -- and a count answers a question nobody has: three
+		   orders of 40 kr. and three of 4.000 kr. drew the same chart. */
+		series: { spend: days.map(d => d.spend), saved: days.map(d => d.saved) },
+		/* The same marks Statistics draws under its own chart. The hero had none at all -- the
+		   one chart in the app with no x-axis, so its peaks sat at no date a reader could name.
+		   It is computed here rather than in the page because only this side knows the window's
+		   real bounds, and the five widths need five different sets of marks: days for a week,
+		   01/08/15/22/29 for a month, month names for anything wider. */
+		axis: axisFor(width, bounds.from, bounds.to),
 		peak: { date: fromEpoch(peak.date), spend: peak.spend }
 	}
 }

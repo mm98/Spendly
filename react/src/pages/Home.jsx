@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { useId, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
@@ -21,11 +21,6 @@ import { dayMonth, kr, krRound, percent } from '../api/format.js'
    the window and the tab picks a series out of it. Letting each write the chart directly is how
    one of them silently stops working: whichever was clicked last wins. README: Buttons. */
 
-const HERO_SERIES = [
-	{ key: 'orders', label: 'Orders' },
-	{ key: 'saved', label: 'Saved' }
-]
-
 /* The chart's box, and how far inside it a series is drawn. `plotted` puts a zero at the first
    number and the window's peak at the second, so the 12px is an equal inset top and bottom
    rather than two numbers that happen to look right. */
@@ -37,23 +32,21 @@ const HERO_INSET = 12
    does with the same width. README: Statistics. */
 const statsHref = range => (range === 'month' ? '/stats' : `/stats?range=${range}`)
 
-/* The chart's own sentence follows both controls above it. Fixed at "daily spend through July"
-   it named a series the tabs change and a span the chips change, so a screen reader heard
-   "spend" over a line of order counts, and "through July" over seven days of it -- the same
-   defect the pager had on Statistics, one level down: a label describing a state the controls
-   have moved on from. The window says which days it covers; how coarsely they are drawn is the
-   chart's own business, so it is the part the sentence adds. */
-const heroLabel = (key, view) => {
-	const what = HERO_SERIES.find(tab => tab.key === key).label
+/* The chart's own sentence follows the chips above it. Fixed at "daily spend through July" it
+   named a series the tabs used to change and a span the chips still change, so a screen reader
+   heard "spend" over a line of order counts, and "through July" over seven days of it -- the
+   same defect the pager had on Statistics, one level down: a label describing a state the
+   controls have moved on from. It names both lines now, because both are drawn. The window
+   says which days it covers; how coarsely they are drawn is the chart's own business, so it is
+   the part the sentence adds. */
+const heroLabel = view => {
 	const points = RANGE_POINTS[view.range]
-	if (!points) return `${what} per day, ${view.shortLabel}`
-	return `${what} across ${view.shortLabel}, bucketed into ${points} points`
+	if (!points) return `Spent and saved per day, ${view.shortLabel}`
+	return `Spent and saved across ${view.shortLabel}, bucketed into ${points} points`
 }
 
 function Hero({ month, categories }) {
 	const [range, setRange] = useState('month')
-	const [series, setSeries] = useState('orders')
-	const refs = useMemo(() => [], [])
 	const calloutId = useId()
 	/* The chips choose a window, not a slice of a fixed one, so pressing one is a read. The last
 	   good window stays on screen while the next is in flight -- see Async -- rather than the
@@ -62,12 +55,20 @@ function Hero({ month, categories }) {
 
 	return (
 		<Async state={state} label="Loading your spending">{view => {
-			/* One scale, and it is the drawn series' own: a bucket average is below the peak of
-			   the days inside it, so scaling by the raw maximum would draw every wide window
-			   squashed into the bottom of the box. */
-			const values = bucketed(view.series[series], RANGE_POINTS[view.range])
-			const points = plotted(values, Math.max(...values), HERO_HEIGHT - HERO_INSET, HERO_INSET)
-			const heroValue = key => key === 'orders' ? String(view.orderCount) : kr(view.saved)
+			/* Both series, drawn together rather than one at a time behind a pair of tabs.
+			   Spending and what it saved are the same story told twice, and a control that
+			   showed one or the other made the reader hold the first in their head to compare
+			   it with the second.
+
+			   One scale for the two of them, and it is the pair's own maximum: a bucket average
+			   sits below the peak of the days inside it, so scaling by the raw daily maximum
+			   draws every wide window squashed into the bottom of the box -- and scaling each
+			   line to its own peak would draw the smaller one as tall as the larger, which is
+			   the defect the Orders overview chart already carries a note about. */
+			const spend = bucketed(view.series.spend, RANGE_POINTS[view.range])
+			const saved = bucketed(view.series.saved, RANGE_POINTS[view.range])
+			const ceiling = Math.max(...spend, ...saved)
+			const line = values => plotted(values, ceiling, HERO_HEIGHT - HERO_INSET, HERO_INSET)
 
 			return (
 				<Card aria-label={`Spent, ${view.label}`}>
@@ -99,61 +100,54 @@ function Hero({ month, categories }) {
 						    description, because the resting state is visibility:hidden and a hidden node is out
 						    of the accessibility tree unless something references it. README: Charts. */}
 						<div className="chart-wrap">
-							<Chart height={HERO_HEIGHT} label={heroLabel(series, view)}
+							<Chart height={HERO_HEIGHT} label={heroLabel(view)}
 								tabIndex={0} aria-describedby={calloutId}
 								/* The one chart here that was drawn 'line' -- straight segments with a corner at
 								   every point, beside three curves on the same page. The curve was the riskier
 								   kind to hand a spiky series while the spline could overshoot: this one is a
 								   bucketed daily average, not a running total, so it turns hard in both
 								   directions and had the most to invent. Monotone now, so a segment stays
-								   between the two days it joins and there is nothing left to trade. */
-								series={[{ points, kind: 'curve', stroke: '#3A423D', strokeWidth: 1.6 }]} />
+								   between the two days it joins and there is nothing left to trade.
+
+								   Saved is drawn second, so the thinner line sits over the thicker one where
+								   they cross rather than under it. The two colours are the split bar's own,
+								   which is what lets one key below name both. */
+								series={[
+									{ points: line(spend), kind: 'curve', stroke: 'var(--teal)', strokeWidth: 2 },
+									{ points: line(saved), kind: 'curve', stroke: 'var(--green)', strokeWidth: 1.6 }
+								]} />
 							{/* Read off the window's own days. The authored sentence named July's 23rd and a
 							    vendor, and stayed there while the chips moved the chart under it. */}
 							<div className="chart-callout" id={calloutId} role="tooltip">
 								Biggest day was {dayMonth(view.peak.date)}: {kr(view.peak.spend)}
 							</div>
 						</div>
-						<div className="compare-tabs" role="tablist" aria-label="Hero chart series">
-							{HERO_SERIES.map((tab, i) => (
-								<button key={tab.key} type="button" role="tab" ref={el => { refs[i] = el }}
-									aria-selected={tab.key === series}
-									tabIndex={tab.key === series ? 0 : -1}
-									className={tab.key === series ? 'is-on' : undefined}
-									onClick={() => setSeries(tab.key)}
-									onKeyDown={e => {
-										const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
-										if (!step) return
-										e.preventDefault()
-										const next = (i + step + HERO_SERIES.length) % HERO_SERIES.length
-										setSeries(HERO_SERIES[next].key)
-										refs[next]?.focus()
-									}}>
-									<span className="compare-tabs-value">{tab.label}</span>
-									<span className="compare-tabs-label tabular-figures">{heroValue(tab.key)}</span>
-								</button>
-							))}
+						{/* The window's own marks, not a fixed row of days: the chips move this chart
+						    across five widths, so a hardcoded 01/08/15/22/29 would be a month's dates
+						    printed under a year. Every other chart in the app carries an axis and this
+						    one carried none, so its peaks sat at no date a reader could name.
+						    README: Charts. */}
+						<ChartAxis labels={view.axis} />
+						{/* One key for the two lines above and the two segments below: same green,
+						    same teal, named once. It replaces a tablist that used to choose which of the
+						    two series was drawn -- with both on the chart it chose nothing, and a control
+						    that looks live and does nothing is the defect this app refuses to ship.
+						    README: Honest Affordances. */}
+						<div className="chart-series-key">
+							<div className="chart-series-key-row">
+								<div className="chart-series-key-swatch" style={{ background: 'var(--teal)' }} />
+								Spent {kr(view.spent)}
+							</div>
+							<div className="chart-series-key-row">
+								<div className="chart-series-key-swatch" style={{ background: 'var(--green)' }} />
+								Saved {kr(view.saved)}
+							</div>
 						</div>
 						{/* The figure just above reads the window's real saved-vs-retail percentage --
 							this bar drew a fixed 8/92 split under it regardless, the old demo month's
 							own savedPercent traced once and left there. */}
 						<SplitBar segments={[{ width: view.savedPercent, colour: 'var(--green)' },
 							{ width: 100 - view.savedPercent, colour: 'var(--teal)' }]} />
-						{/* Two colours naming nothing is what this was: the bar is aria-hidden, so the
-						    only thing that could say which half is which is a key, and it had none --
-						    the one chart in the app drawn without one. Same horizontal key the Orders
-						    overview puts under its two-line chart, so a reader meets one shape for
-						    "what the colours mean" on both pages. README: Charts. */}
-						<div className="chart-series-key">
-							<div className="chart-series-key-row">
-								<div className="chart-series-key-swatch" style={{ background: 'var(--green)' }} />
-								Saved {kr(view.saved)}
-							</div>
-							<div className="chart-series-key-row">
-								<div className="chart-series-key-swatch" style={{ background: 'var(--teal)' }} />
-								Spent {kr(view.spent)}
-							</div>
-						</div>
 						{/* The categories are written per month, which is as fine as the records cut, so the
 						    legend says which month in its own heading rather than borrowing the card's --
 						    the same rule the month-wide cards on Statistics follow under a window that
