@@ -123,7 +123,15 @@
 html, body { height:100%; }
 body {
 	margin:0; background:var(--bg-app); color:var(--text);
-	font-family:"Poppins","Century Gothic","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+	/* Poppins is served from /fonts, so this list is only what shows for the moment before it
+	   arrives. It used to name "Century Gothic" and "Segoe UI Variable Text" ahead of the
+	   generics: both are optional installs rather than base system fonts, so Firefox refuses
+	   to look either of them up under its default font-fingerprinting setting and logs
+	   "blocked at visibility level 2 (requires 3)" for every element that asks -- around fifty
+	   lines on one reload of the orders page. Neither exists on macOS or Linux at all, and
+	   Windows resolves system-ui to Segoe UI on its own, so the two names bought one brief
+	   frame on one platform and cost a console nobody can read. README: Typography. */
+	font-family:"Poppins",system-ui,sans-serif;
 	font-size:14px; font-weight:500; line-height:1.45; -webkit-font-smoothing:antialiased;
 }
 :focus-visible { outline:2px solid var(--teal); outline-offset:2px; border-radius:6px; }

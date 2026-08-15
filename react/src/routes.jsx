@@ -2,6 +2,7 @@ import { lazy } from 'react'
 import { redirect } from 'react-router'
 import { AppShell } from './components/Shell.jsx'
 import { RouteError } from './components/RouteError.jsx'
+import { Waiting } from './components/Async.jsx'
 import { getCurrentUser } from './api/client.js'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
@@ -110,6 +111,13 @@ export const routes = [
 		element: <AppShell />,
 		errorElement: <RouteError />,
 		loader: requireAuth,
+		/* What the first paint is, while requireAuth is still asking the server who this is.
+		   Without one the router renders nothing at all for that round trip -- a blank page on
+		   every reload, not a slow one -- and says so on the console: "No `HydrateFallback`
+		   element provided to render during initial hydration". It is the same wait a page's
+		   own chunk shows (Shell.jsx hangs Waiting off the Suspense boundary for that), because
+		   a session being checked and a chunk being fetched are the same wait to the reader. */
+		HydrateFallback: () => <Waiting label="Loading Spendly" />,
 		children: [
 			{ index: true, element: <Home />, handle: { title: 'Home', navKey: 'home' } },
 
