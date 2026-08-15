@@ -1,17 +1,16 @@
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Chart, ChartScale, plotted } from '../components/Chart.jsx'
 import { Donut, DonutBox } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
-import { Button, ButtonLink } from '../components/Button.jsx'
+import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import { getOrdersOverview } from '../api/client.js'
 import { dayMonth, kr, krRound, percent } from '../api/format.js'
 import { useState } from 'react'
-import { Note } from '../components/Card.jsx'
 
 /** How much of the month's total budget has been spent. Categories with no budget set are
     left out of both sides, so an unbudgeted category cannot drag the figure down. */
@@ -30,11 +29,6 @@ const budgetUsed = categories => {
 export default function Orders() {
 	const state = useApi(getOrdersOverview)
 	const [breakdown, setBreakdown] = useState('Expenses')
-	/* ASK SPENDLY opens something. A button that answers is one of the two shapes a decorative
-	   control most often takes, because it has no obvious destination -- so it owns a
-	   disclosure here, with aria-expanded saying which state it is in. README: Honest
-	   Affordances. */
-	const [answering, setAnswering] = useState(false)
 
 	return (
 		<Page>
@@ -97,59 +91,43 @@ export default function Orders() {
 							<Card aria-label="Latest orders">
 								<CardHeader title="Latest orders" />
 								<CardDivider />
+								{/* What the order cost, the way the returns card beside it writes what a
+								    return was worth. It used to be the saving -- "+26,04 kr." in green,
+								    in the slot every other list of orders puts the total in, on a card
+								    headed *Latest orders* under a card headed *Spent*. A reader has no
+								    way to tell a total from a saving by looking, so the green plus over
+								    an order from Elgiganten read as an order for 26 kroner. The saving
+								    is on the order's own page, where it is named. README: Data Rows. */}
 								<CardBody variant="entry-list card-body-tight">
 									{data.latest.map(order => (
 										<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-											meta={dayMonth(order.date)} amount={'+' + kr(order.saved)}
+											meta={dayMonth(order.date)} amount={krRound(order.total)}
 											to={`/orders/${order.id}`} />
 									))}
 									<Button variant="block" to="/orders/all">SEE ALL</Button>
 								</CardBody>
 							</Card>
 
-							<Card aria-label="Waiting receipts">
-								<CardHeader title="Latest receipts" />
-								<CardDivider />
-								<CardBody variant="card-body-tight">
-									<EmptyState>
-										<p>No receipts waiting. Scan one and the order drafts itself.</p>
-										<ButtonLink to="/scan">SCAN A RECEIPT</ButtonLink>
-									</EmptyState>
-									<Button variant="block" to="/orders/all">SEE ALL</Button>
-								</CardBody>
-							</Card>
+							{/* The same card Statistics draws, from the same data, at this page's own
+							    width -- it used to be markup with nothing behind it, four rows of
+							    returns on Statistics and a permanent "No open returns found" here.
+							    README: Empty states.
+
+							    It sits beside the latest orders because that is what it is: the
+							    month's other list of orders, the same rows in the same shape, read
+							    across rather than down a rail. What was here was a *Latest receipts*
+							    card that had no receipts to draw and never would -- an empty state
+							    with nothing behind it, wired to nothing, offering SEE ALL into the
+							    orders list it was not a list of. Scanning is reached from the top bar
+							    on every page, from Home, from an order and from the create form, so
+							    nothing was the only way in. README: Empty states. */}
+							<ReturnsCard title={`Returns · ${data.period.label}`}
+								span={data.period.shortLabel} returns={data.period.returns} />
 						</div>
 
 					</div>
 
 					<div className="order-list-column">
-						{/* The same card Statistics draws, from the same data, at this page's own
-						    width -- it used to be markup with nothing behind it, four rows of
-						    returns on Statistics and a permanent "No open returns found" here.
-						    README: Empty states. */}
-						<ReturnsCard title={`Returns · ${data.period.label}`}
-							span={data.period.shortLabel} returns={data.period.returns} />
-
-						<Card aria-label="Question of the day">
-							<CardHeader title="Question of the day" />
-							<CardDivider />
-							<CardBody>
-								<div className="card-headline card-headline-question">
-									{data.question?.question ?? 'Ask Spendly about your spending.'}</div>
-								{answering && data.question ? (
-									<>
-										<Note tone="positive" title={data.question.answer}>{data.question.detail}</Note>
-										<Button variant="block" iconAfter="chevronRight"
-											to={`/orders/all?category=${data.question.categoryId}&from=${data.question.from}&to=${data.question.to}`}>
-											SEE THOSE ORDERS</Button>
-									</>
-								) : (
-									<Button variant="block" icon="sparkles" style={{ marginTop: 0 }}
-										aria-expanded={answering} onClick={() => setAnswering(true)}
-										disabled={!data.question}>ASK SPENDLY</Button>
-								)}
-							</CardBody>
-						</Card>
 
 						<Card aria-label="Category breakdown">
 							<CardHeader title="Category breakdown" />

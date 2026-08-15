@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, Note, QuestionCard } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
 import { LegendRow } from '../components/Rows.jsx'
 import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
@@ -31,7 +30,6 @@ const budgetUsed = categories => {
 
 export default function Categories() {
 	const state = useApi(getCategoriesOverview)
-	const [answering, setAnswering] = useState(false)
 
 	return (
 		<Page variant="page-grid">
@@ -43,7 +41,6 @@ export default function Categories() {
 
 			<Async state={state} label="Loading your categories">{data => {
 				const categories = data.categories
-				const answer = data.question
 				const spent = categories.reduce((sum, c) => sum + c.spend, 0)
 				const saved = categories.reduce((sum, c) => sum + c.saved, 0)
 				const budgeted = categories.filter(c => c.budget > 0)
@@ -100,50 +97,37 @@ export default function Categories() {
 							</CardBody>
 						</Card>
 
-						<div className="two-column">
-							<QuestionCard label="Question of the day"
-								title={answer?.short ?? 'Ask Spendly about your spending.'}>
-								{answering && answer ? (
+						{/* Full width, like the breakdown above it. It shared a `two-column` row with
+						    the question-of-the-day card; with that gone, keeping the wrapper would leave
+						    one card in a two-column grid and nothing at all beside it.
+						    README: Grids and Breakpoints. */}
+						<Card aria-label="Budget">
+							<CardHeader title="Against budget" to="/categories/all"
+								label="Against budget, open all categories" />
+							<CardDivider />
+							<CardBody>
+								{budgeted.length ? (
 									<>
-										<Note tone="positive" title={answer.answer}>{answer.detail}</Note>
-										<Button variant="ghost" iconAfter="chevronRight"
-											to={`/orders/all?category=${answer.categoryId}&from=${answer.from}&to=${answer.to}`}>
-											SEE THOSE ORDERS</Button>
+										<div className="figure-card tabular-figures">
+											{percent(budgetUsed(categories), 0)}</div>
+										<span className="card-caption">of this month's budget used</span>
+										<Meter style={{ marginTop: 14 }}
+											fill={Math.min(100, budgetUsed(categories))}
+											ariaLabel={`${percent(budgetUsed(categories), 0)} of budget used`} />
+										<span className="field-help" style={{ marginTop: 8, display: 'block' }}>
+											{budgeted.length} categor{budgeted.length === 1 ? 'y has' : 'ies have'} a
+											budget{over.length ? `, ${over.length} over it` : ''}. Budgets are set on a
+											category's own page.
+										</span>
 									</>
 								) : (
-									<Button variant="ghost" aria-expanded={answering} disabled={!answer}
-										onClick={() => setAnswering(true)}>SEE THE ANSWER</Button>
+									<EmptyState>
+										<p>No budgets set. Open a category and give it one to see this fill up.</p>
+										<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
+									</EmptyState>
 								)}
-							</QuestionCard>
-
-							<Card aria-label="Budget">
-								<CardHeader title="Against budget" to="/categories/all"
-									label="Against budget, open all categories" />
-								<CardDivider />
-								<CardBody>
-									{budgeted.length ? (
-										<>
-											<div className="figure-card tabular-figures">
-												{percent(budgetUsed(categories), 0)}</div>
-											<span className="card-caption">of this month's budget used</span>
-											<Meter style={{ marginTop: 14 }}
-												fill={Math.min(100, budgetUsed(categories))}
-												ariaLabel={`${percent(budgetUsed(categories), 0)} of budget used`} />
-											<span className="field-help" style={{ marginTop: 8, display: 'block' }}>
-												{budgeted.length} categor{budgeted.length === 1 ? 'y has' : 'ies have'} a
-												budget{over.length ? `, ${over.length} over it` : ''}. Budgets are set on a
-												category's own page.
-											</span>
-										</>
-									) : (
-										<EmptyState>
-											<p>No budgets set. Open a category and give it one to see this fill up.</p>
-											<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
-										</EmptyState>
-									)}
-								</CardBody>
-							</Card>
-						</div>
+							</CardBody>
+						</Card>
 					</>
 				)
 			}}</Async>

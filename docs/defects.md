@@ -34,7 +34,10 @@ happened to be followed by: the same pair on Orders / Overview stood correctly a
 button there was the block variant.
 
 The fix sets the gap from the note (`.note + .button { margin-top: 12px }`), so the pair is 12px
-whichever button follows it. The block variant's own margin computes to the same 12 rather than to 24
+whichever button follows it. The card that produced this measurement has since been removed from
+both screens that drew it, so `.note + .button` matches **0 elements** across the app's fourteen
+screens today; the rule stays because the pair is a shape the system allows, and the next screen to
+use it should not have to rediscover which variant it picked. The block variant's own margin computes to the same 12 rather than to 24
 — equal specificity, and the note rule is later in the file.
 
 Measured after, in Blink 141.0.7390.37 at 1440x900: the four children of `.card-question` sit at
@@ -1017,3 +1020,70 @@ the tie-break.)
 
 Measured against the API directly at `localhost:4000` — no browser involved, since nothing here is a
 rendering question.
+
+---
+
+## Data Rows — the money column was green, so two lists showed the saving
+
+*Latest orders* on Orders overview listed four orders as **+26,04 · +9,39 · +336,98 · +893,77 kr.**,
+in green, under a card headed *Spent · August 2026*. Those are the savings. The orders were
+**295 · 189 · 2.783 · 3.718 kr.** The same list on Home did the same thing, with the real total
+demoted to the meta line beside the date.
+
+The colour came first and the figure was chosen to agree with it. `.entry-list .amount` set
+`color: var(--text-positive)` on the *family*, so every list using those rows had a green money
+column whatever it put there — and green in this system means one thing, money saved. Three of the
+four lists using the family put a total in that slot; the two that put a saving there are the two
+that had been written to match the paint.
+
+Nothing could catch it by looking. The figure is correctly formatted, correctly aligned, correctly
+right-aligned in the correct column, and the row it sits on links to the right order. The only way
+to see it is to read the number against the record it names — so the check does that, fetching each
+row's own order and comparing: **15 rows across Home, Orders overview and Statistics, at 1440x900 and
+under `devices['iPhone 13']`, all 15 now showing the order's total**, every `.amount` computing to
+`rgb(11, 15, 13)` (`--text`) where the two lists were `--text-positive`. Top vendors keeps both
+figures the way it always did — the total in `--text`, `saved 7.680 kr.` beneath it in the muted
+tone — which is the shape a row uses when it has two things to say.
+
+Removing the family's colour also made the override under it dead: `.entry-list .amount
+.tabular-figures { color: var(--text) }` existed to pull the figure back out of the green for exactly
+that two-tone case, and with the slot neutral it set the value that was already there. Gone with it.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
+**Not run:** Gecko and WebKit are not installed in this container.
+
+---
+
+## Empty states — two of the four cards on Orders overview drew nothing, permanently
+
+The returns card is [one entry up](#returns--one-card-said-four-and-the-other-said-none). It had a
+neighbour with the same shape of fault, and removing it is what made the count worth writing down.
+
+*Latest receipts* drew a 42px search glyph, "No receipts waiting. Scan one and the order drafts
+itself.", a SCAN A RECEIPT link and a SEE ALL button into the orders list — over no data at all. No
+request behind it, no field to be empty, no state in which it would have drawn anything else. Two of
+the four cards on that page were therefore pictures of cards, side by side, and both looked exactly
+like the working ones: correct spacing, correct icon, correct copy, identical in three engines and at
+every width, stable to the pixel run over run.
+
+Both are gone. The month's returns take the position *Latest receipts* held, so the page now reads as
+two lists of the same month's orders side by side — the latest, and the returned — measured at
+**364x368 each** at 1440x900. Scanning is reached from the top bar on every page, from Home, from an
+order and from the create form, so nothing lost its only way in.
+
+*Question of the day* went with them, on both screens that carried it, along with the two aggregate
+queries behind it: last calendar month's top category and that category's order count, served from
+`GET /api/home/question`. That route now has no caller, so it is gone too — a route nothing reads is
+a query somebody has to keep working and a shape somebody has to keep compatible. It was already
+split from `/api/home/onboarding` (they used to share one response and every caller threw half of it
+away), and that split is what made removing one of them a deletion rather than surgery. Measured
+after: Orders overview requests `/api/orders/overview`, `/api/stats` and `/api/categories`;
+Categories requests `/api/categories`. 0 page errors on either, at both widths.
+
+Deleting a card means deleting what drew it, and the reach of that is not obvious by reading. The
+`QuestionCard` component went with its two callers — and the three CSS rules under it nearly did,
+which would have been a regression on a page this change never touched: the scan page writes
+`class="card card-question"` by hand for its *What the AI checks* panel. A match count is what said
+so (`.card-question` → **1**, not 0), and the panel measures 18px padding, a 10.5px/700 uppercase
+label and a 15px/700 title, unchanged. `.card-headline-question` really was orphaned — **0 matches,
+0 source references** — and is gone.

@@ -265,6 +265,10 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    variants now: class="card card-kpi". */
 .card { background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-card); }
 .card.card-kpi { padding:16px 18px; display:grid; gap:2px; }
+/* The pale prompt card. One user left: the scan page's "What the AI checks" panel, which
+   writes the markup itself. The QuestionCard component that also drew it is gone with the
+   question-of-the-day cards, and these three rules nearly went with it -- a match count is
+   what said otherwise, on a page the change never touched. */
 .card.card-question { padding:18px; }
 .card.card-ai { background:linear-gradient(160deg, var(--bg-dark-lift), var(--bg-dark) 55%); border:0; padding:18px; color:#fff; }
 /* Even padding because five of these headers light up on hover and the padding is the
@@ -382,7 +386,6 @@ a[data-go] { color:inherit; text-decoration:none; }
    against 18px. The README's Typography section sets the weight and tracking; these name the two sizes. */
 .card-headline { font-size:19px; font-weight:600; letter-spacing:-.01em; }
 .card-subheading { font-size:17px; font-weight:600; letter-spacing:-.01em; margin-bottom:6px; }
-.card-headline-question { line-height:1.35; margin:2px 0 14px; }
 .card-lead { margin:2px 0 18px; font-size:13px; color:var(--text-muted); }
 /* The stepper card sits tight against the form below it. */
 .card-steps { margin-bottom:2px; }
@@ -589,9 +592,14 @@ svg.chart { width:100%; display:block; }
    since the class-renaming sweep; keeping it kept that layout's leading. README: Data Rows. */
 .entry-list .entry-name { font-size:13px; font-weight:600; }
 .entry-list .entry-meta { font-size:11px; color:var(--text-muted); }
-.entry-list .amount { margin-left:auto; text-align:right; font-size:13px; font-weight:600; color:var(--text-positive); white-space:nowrap; flex:none; }
-/* A two-tone amount: the row's green label with the figure itself in --text. */
-.entry-list .amount .tabular-figures { color:var(--text); }
+/* --text, not --text-positive. Green means one thing in this system -- money saved -- so a
+   slot that is green by default says "saved" about whatever is put in it, and three of the
+   four lists using this family put a total there. Two of them were then written as savings to
+   agree with the colour, which is the tail wagging: *Latest orders* on two pages listed
+   "+26,04 kr." in green where every other list of orders writes what the order cost. The
+   figure inside a two-tone amount used to be overridden back to --text here; with the slot
+   itself neutral, that override said nothing and is gone. README: Color, Data Rows. */
+.entry-list .amount { margin-left:auto; text-align:right; font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; flex:none; }
 .entry-list .entry-amount-sub { font-style:normal; font-size:11px; color:var(--text-muted); font-weight:500; }
 /* The chevron is a flex item like any other, so the row that navigates spends 26px of
    its right-hand run on one and lands its figure 26px left of the rows that do not --

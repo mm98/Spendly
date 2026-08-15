@@ -260,6 +260,16 @@ genuinely empty list draws. Any probe reading a card that can legitimately be em
 *query* was empty, not just the card: read the endpoint the page called, and compare its payload to
 what was drawn. A rendered "none" is not evidence of none.
 
+**Deleting a component is a claim about how many elements used it, and the count is cheap.**
+Removing two cards took their component and their CSS with them, and three of those rules were
+still live: the scan page writes `class="card card-question"` by hand rather than using the
+component, so the rules read as the component's and were not. Nothing in the change touched that
+page, so no diff, shot or walk of the *changed* pages had an opinion — `document.querySelectorAll`
+over every screen did, in one run, returning 1 where the deletion assumed 0. Before deleting a
+selector, count what it matches app-wide and require the number to be zero; the same count
+afterwards is what says an orphan really was one (`.card-headline-question`: 0 matches, 0 source
+references, safe).
+
 **A decoration has no state to read back, so every probe above skips it.** The tick strip under every
 chart was a `repeating-linear-gradient` -- a line every 24px, from one declaration, with no element per
 tick, no attribute, no handler and no data behind it. Fire it and nothing moves; walk the DOM and it is

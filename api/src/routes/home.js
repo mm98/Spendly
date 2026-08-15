@@ -8,60 +8,22 @@ router.get('/hero', (req, res) => {
 	res.json(getHomeHero(req.user.id, req.query.range))
 })
 
-const monthKey = date => date.slice(0, 7)
-const selectLastMonthTop = db.prepare(`
-	SELECT c.id, c.name, SUM(ot.total * 1.0 / cc.cat_count) AS spend
-	FROM order_categories oc
-	JOIN order_totals ot ON ot.id = oc.order_id
-	JOIN categories c ON c.id = oc.category_id
-	JOIN (SELECT order_id, COUNT(*) AS cat_count FROM order_categories GROUP BY order_id) cc ON cc.order_id = oc.order_id
-	WHERE ot.user_id = @userId AND strftime('%Y-%m', ot.date, 'unixepoch') = @month
-	GROUP BY c.id ORDER BY spend DESC LIMIT 1
-`)
-const selectLastMonthOrderCount = db.prepare(`
-	SELECT COUNT(*) c FROM order_categories oc JOIN orders o ON o.id = oc.order_id
-	WHERE o.user_id = @userId AND oc.category_id = @categoryId AND strftime('%Y-%m', o.date, 'unixepoch') = @month
-`)
-
-/** "What did Groceries cost me in June?" — real, computed from last calendar month's actual
-    category spend, not a fact frozen into the seed data. `from`/`to` are that month's real
-    bounds, for a caller that wants to link straight to the orders behind the answer — the
-    prototype's own such link was hardcoded to "2026-06-01..2026-06-30" regardless of which
-    month or category the question was actually about. Null once there's nothing to ask about
-    (a brand-new account whose only month is the current, incomplete one). */
-function questionOfTheDay(userId) {
-	const now = new Date()
-	const lastMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1))
-	const monthName = lastMonth.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' })
-	const month = monthKey(lastMonth.toISOString())
-	const top = selectLastMonthTop.get({ userId, month })
-	if (!top) return null
-	const orderCount = selectLastMonthOrderCount.get({ userId, categoryId: top.id, month }).c
-	const amount = Math.round(top.spend).toLocaleString('da-DK') + ' kr.'
-	const monthEnd = new Date(Date.UTC(lastMonth.getUTCFullYear(), lastMonth.getUTCMonth() + 1, 0))
-	return {
-		question: `What did ${top.name} cost me in ${monthName}?`,
-		short: `What did ${top.name} cost in ${monthName}?`,
-		answer: `${amount}, across ${orderCount} order${orderCount === 1 ? '' : 's'} in ${monthName}.`,
-		detail: `That was this account's top category in ${monthName}.`,
-		// categoryId, from and to are what SEE THOSE ORDERS filters the list by. No
-		// categoryName: the name is already inside every sentence above it, and nothing read
-		// the separate copy.
-		categoryId: top.id,
-		from: month + '-01', to: monthEnd.toISOString().slice(0, 10)
-	}
-}
-
 const countFavouriteVendors = db.prepare('SELECT COUNT(*) c FROM vendors WHERE user_id = ? AND favourite = 1')
 const countOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
 const countCustomDashboard = db.prepare('SELECT COUNT(*) c FROM dashboard_cards WHERE user_id = ?')
 
-/* Two answers rather than one, because nothing ever wanted both.
+/* GET /question is gone, with the question-of-the-day card it existed for.
 
-   They used to share GET /api/home, and every caller took one and threw the other away: Home
-   read `onboarding` and discarded a question that costs two aggregate queries to build, while
-   Orders overview and Categories read `question` and discarded three COUNTs. One route serving
-   two unrelated things means every page paid for the half it does not draw, on every load. */
+   It was two aggregate queries — last calendar month's top category, then that category's order
+   count — built to fill one card on Orders overview and one on Categories. Both cards have been
+   removed, so the route answered nobody. A route with no caller is not free: it is a query
+   somebody has to keep working, a shape somebody has to keep compatible, and a thing the next
+   reader has to look up before finding out nothing reads it.
+
+   `/onboarding` stays, and this is why it is separate. The two used to share GET /api/home and
+   every caller took one and threw the other away — Home read `onboarding` and discarded the
+   question, Orders overview and Categories read `question` and discarded three COUNTs. Split,
+   removing one costs nothing; joined, this would have been surgery on a shape Home depends on. */
 
 router.get('/onboarding', (req, res) => {
 	const steps = [
@@ -70,8 +32,4 @@ router.get('/onboarding', (req, res) => {
 		countCustomDashboard.get(req.user.id).c > 0
 	]
 	res.json({ done: steps.filter(Boolean).length, total: steps.length })
-})
-
-router.get('/question', (req, res) => {
-	res.json(questionOfTheDay(req.user.id))
 })

@@ -139,11 +139,7 @@ export async function deleteCategory(id, signal) {
    whichever five happened to be biggest, printed as the total. Untruncated, the route answered
    exactly what GET /api/categories answers, so it is gone. */
 export async function getCategoriesOverview(signal) {
-	const [categories, question] = await Promise.all([
-		request('/api/categories', { signal }),
-		request('/api/home/question', { signal })
-	])
-	return { categories, question }
+	return { categories: await request('/api/categories', { signal }) }
 }
 
 /* ---- orders ----
@@ -288,11 +284,10 @@ const periodFromWindow = w => ({
 })
 
 export async function getOrdersOverview(signal) {
-	const [{ latest }, { window }, categories, question] = await Promise.all([
+	const [{ latest }, { window }, categories] = await Promise.all([
 		request('/api/orders/overview' + qs({ count: 4 }), { signal }),
 		getStatsSummary('month', undefined, signal),
-		getCategories(signal),
-		request('/api/home/question', { signal })
+		getCategories(signal)
 	])
 	/* The ring reads "Spent this month," so its segments and the rows under it have to be
 	   this month's spend too — categories carries all-time totals (categories with old orders
@@ -304,9 +299,7 @@ export async function getOrdersOverview(signal) {
 	   a circle that did not add up to its own centre -- and the rows under it, which name the
 	   ring's colours, could only ever name four of them. */
 	const monthCategories = monthCategoriesFrom(categories, window.split)
-	return {
-		latest, period: periodFromWindow(window), categories: monthCategories, question
-	}
+	return { latest, period: periodFromWindow(window), categories: monthCategories }
 }
 
 /* ---- settings / dashboard / account ---- */

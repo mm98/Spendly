@@ -65,17 +65,6 @@ export function KpiCard({ label, value, delta, trend = 'up', tone = 'neutral', n
 	)
 }
 
-/** The pale prompt card: a label, a question, and one way to answer it. */
-export function QuestionCard({ label, title, children }) {
-	return (
-		<div className="card card-question">
-			<span className="card-question-label">{label}</span>
-			<div className="card-question-title">{title}</div>
-			{children}
-		</div>
-	)
-}
-
 export function EmptyState({ icon = 'search', children, className, ...rest }) {
 	return (
 		<div className={join('empty-state', className)} {...rest}>

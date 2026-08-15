@@ -278,12 +278,12 @@ A card is a section with optional header, content, and divider.
 
 **Card types:**
 - **Data card**: Static information (orders, vendor details)
-- **Question card** (`.card-question`): Asks something, has an answer and a call-to-action
 - **KPI card** (`.card-kpi`): Number, label, delta (statistic tiles on Statistics page)
+- **Prompt card** (`.card-question`): A pale panel — small caps label, a title, then whatever it introduces
 
-**A note and the action under it stand 12px apart, set from the note** (`.note + .button`). Set from the button, the gap depends on which variant happens to follow — one variant carries its own margin and another carries none, which is how the same pair once measured 12px on one page and 0 on another. ([`docs/defects.md`](docs/defects.md))
+**A note and the action under it stand 12px apart, set from the note** (`.note + .button`). Set from the button, the gap depends on which variant happens to follow — one variant carries its own margin and another carries none, which is how the same pair once measured 12px on one page and 0 on another. No screen pairs them today; the rule stands for the next one that does. ([`docs/defects.md`](docs/defects.md))
 
-**A card that ends with a link into a longer list ends with the block button.** Seven cards do — latest orders, waiting receipts, categories twice, vendors, recent scans, returns. The seventh spent a while as a bare underlined link instead: a different weight, a smaller thing to hit, and 2px of air above it where the other six have 12. One job, one control. ([`docs/defects.md`](docs/defects.md#returns--one-card-said-four-and-the-other-said-none))
+**A card that ends with a link into a longer list ends with the block button.** Six cards do — latest orders, categories twice, vendors, recent scans, returns. The last spent a while as a bare underlined link instead: a different weight, a smaller thing to hit, and 2px of air above it where the other five have 12. One job, one control. ([`docs/defects.md`](docs/defects.md#returns--one-card-said-four-and-the-other-said-none))
 
 ### Data Rows
 
@@ -299,6 +299,8 @@ Editing never happens in the row — a record is edited on its own form page, on
 - Right: optional action (chevron to navigate, delete button, etc.)
 
 All gaps are 12px. If that's wrong for a row type, it needs its own CSS rule.
+
+**The money column holds what the row is worth, and its colour is not an argument.** A list of orders shows what each order cost; a list of vendors shows what has been spent there. Two lists of orders once showed the *saving* instead — "+26,04 kr.", in green, in the slot every other list puts the total in — because the slot itself was green by default and the figure was picked to agree with the colour. Green means saved, everywhere, so a slot that is green whatever it holds is a claim about every number put in it. Where a row has both figures to state, the total leads and the saving is the second line under it, in the muted tone, named. ([`docs/defects.md`](docs/defects.md#data-rows--the-money-column-was-green-so-two-lists-showed-the-saving))
 
 **Hover state:** On desktop with a pointer, rows that navigate show a tint (`[data-go]:hover`). On phone with touch, no hover. The tint bleeds 10px into the card gutter on each side.
 
@@ -481,11 +483,9 @@ The landing screen, top to bottom: the stretch of time being viewed, the hero ch
 
 ### Orders Overview
 
-The month in review: this month against the one before, side by side with the same structure in both columns — same rows, same order, so the eye compares without re-reading. Then the latest orders, suggestions drawn from history, and the question of the day.
+The month in review: this month against the one before, side by side with the same structure in both columns — same rows, same order, so the eye compares without re-reading. Then the month's two lists of orders side by side — the latest, and the returned — and the category breakdown beside them.
 
-**The returns card is the one on [Statistics](#statistics), at this page's width.** Same rows, same count line, same link — one card, drawn from the window each page is showing, because two copies of it is how one page came to report four returns in August while the other reported none.
-
-**The question card** asks something the data can answer ("Did you order more than last month?"), shows the answer in the note tones, and offers one action — SEE THOSE ORDERS — which is a link into All Orders carrying the filters that prove the answer. The card is a door, not a widget.
+**The returns card is the one on [Statistics](#statistics), at this page's width.** Same rows, same count line, same link — one card, drawn from the window each page is showing, because two copies of it is how one page came to report four returns in August while the other reported none. It sits beside the latest orders, since the two are the same shape reading the same month.
 
 ### All Orders
 
@@ -499,7 +499,7 @@ Every piece of that state lives in the URL:
 
 Arriving at that URL shows a filtered list. The chips reflect the URL, the panel's fields reflect the URL, the count reflects the rows.
 
-**A filtered list is a place, not a mode.** It can be linked to, bookmarked, sent — and it *is* linked to: category tiles, vendor cards, chart legend rows and the question of the day all land here carrying filters. Closing the filter panel doesn't clear the filters; they stay in the URL.
+**A filtered list is a place, not a mode.** It can be linked to, bookmarked, sent — and it *is* linked to: category tiles, vendor cards and chart legend rows all land here carrying filters. Closing the filter panel doesn't clear the filters; they stay in the URL.
 
 **Two controls describing one filter may never disagree** — the sub-tab and the panel's status control are the same filter in two places, and so are a chip and its combobox.
 

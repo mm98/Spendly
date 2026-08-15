@@ -382,10 +382,15 @@ export default function Home() {
 										<ChartScale marks={data.period.axis} span={data.period.series.cumulative.length} />
 										<div className="entry-list">
 											<div className="list-heading">Latest orders</div>
+											{/* The total, in the slot the total goes in -- this list held the
+											    saving there and the total in the meta line beneath the vendor,
+											    which is the same pair of figures the other two lists of orders
+											    draw and the only one drawing them the other way round.
+											    README: Data Rows. */}
 											{data.latest.map(order => (
 												<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-													meta={`${dayMonth(order.date)} · ${kr(order.total)}`}
-													amount={'+' + kr(order.saved)} to={`/orders/${order.id}`} />
+													meta={dayMonth(order.date)} amount={krRound(order.total)}
+													to={`/orders/${order.id}`} />
 											))}
 										</div>
 									</>
