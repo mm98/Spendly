@@ -357,8 +357,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 									<li><code>vendor</code> ≤ 80 characters | <code>title</code> ≤ 120 |{' '}
 										<code>quantity</code> a whole number 1–9999 | every amount ≥ 0.</li>
 									<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
-									<li><code>kind</code>: Expense, Gift, Sold, Work or Other |{' '}
-										<code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
+									<li><code>kind</code>: Expense, Gift, Sold, Work or Other.</li>
+									<li><code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
 									<li>Attachments carry base64 bytes: on the order for the receipt, on an item
 										for its photo.</li>
 									<li>Vendors and categories are matched by name, case-insensitively, and
