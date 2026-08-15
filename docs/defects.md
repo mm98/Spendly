@@ -1524,3 +1524,31 @@ merging those couples things that only agree today.
 
 Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`.
 **Not run:** Gecko and WebKit are not installed in this container.
+
+## Order Detail — the reading view was paying rent for the form's job
+
+The detail page drew a live, full-width Status segmented control between the category chips and
+the items card — a band as tall as any form row, editing the one field the edit page's own
+Status control already edits, on the page whose README rule is "the detail page shows, the form
+page changes". Removed on review: status is read in the summary card's own row and changed on
+the edit page like every other field. The removal was measured, not assumed: the detail page
+renders no `[aria-label="Order status"]` and no `.order-status-field` (0 matches app-wide, rule
+deleted), the summary row still states the status, and the edit page's `[role="tablist"]
+[aria-label="Status"]` still stands. Verified in Blink; Gecko and WebKit not installed.
+
+## Settings — FILL WITH DEMO DATA reset more than it replaced
+
+The fill reused the account wipe that CLEAR STORED DATA uses, so pressing it deleted the
+settings row and the dashboard layout along with the ledger and re-seeded the defaults — a
+button whose confirm copy promises "every order, vendor and category you have added is removed
+first" was also handing back the shipped page size, sort order and card layout. The fill now
+wipes the ledger tables only. Driven: page size 25, list order *Spend, lowest* and four entries
+per card survive a 400-order fill unchanged, and CLEAR STORED DATA still returns all three to
+the shipped state — the two buttons finally differ by exactly what their copy says.
+
+## Feedback — the toast's one line rode high against its dismiss
+
+The toast row was `align-items:flex-start` with a 1px nudge on the glyph, which top-aligned a
+19px sentence against a 26px dismiss button — every toast read as a misprint by a few pixels.
+The row centres now: glyph, sentence and dismiss measured at a shared vertical centre, worst
+offset **0.00px**, with the row's own box as the reference. Verified in Blink.
