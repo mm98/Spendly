@@ -1438,15 +1438,24 @@ One control and one vocabulary now — and one *scheme*: both directions, every 
 lists. The first pass of this fix gave vendors and categories one direction per column while All
 orders offered pairs, which is the same defect moved into the option list. Every column is a pair
 now (*Name, A to Z / Name, Z to A*, *Spend, highest / Spend, lowest*, *Orders, most / Orders,
-fewest*, *Share, highest / Share, lowest*, *Saved, highest / Saved, lowest*), All orders gained the
-*Vendor, Z to A* it was itself missing, and the stored setting carries the direction
-(`name-asc`), exactly as the orders sort's ids always have — existing bare values migrated to the
-direction they always meant, 218 rows checked converted. Settings' "Sort vendors and categories by"
-offers the shared six under the identical strings. Driven, not asserted: **all 22 direction pairs
-reverse the list** — 8 on vendors, 8 on categories, 6 on All orders (Vendor Z-to-A through the
-API's own SQL sort) — the six directed setting ids round-trip and bare or foreign ids are refused,
-and *saved-asc* set once opens vendors on Netto and categories on Home office, at 1440, 0 page
-errors. The phone toolbar held: all
+fewest*, *Share, highest / Share, lowest*, *Saved, highest / Saved, lowest*), and the stored
+setting carries the direction (`name-asc`), exactly as the orders sort's ids always have —
+existing bare values migrated to the direction they always meant, 218 rows checked converted.
+Settings' "Sort vendors and categories by" offers the shared six under the identical strings.
+Driven, not asserted: **all 20 directions reverse or restore the list** — 8 on vendors, 8 on
+categories, 4 on All orders — the six directed setting ids round-trip and bare or foreign ids are
+refused, and *saved-asc* set once opens vendors on Netto and categories on Home office, at 1440,
+0 page errors.
+
+One pair went too far and came back out on review: symmetry handed All orders a *Vendor, Z to A*,
+and Vendor is not a ranking — it groups one vendor's orders together, and reversed it groups the
+same clusters in an order nobody asks for. The pair rule is about ranking columns, where the
+reverse answers a different question ("cheapest?" is not "dearest?"); a grouping column's reverse
+answers the same one. So Vendor stays *A to Z* alone, the settings route maps a stored
+`vendor-desc` back to `vendor-asc` (and now refuses unknown orders-sort ids the way it always
+refused unknown list-sort ids — the one field the "stored preference nothing obeys" rule was not
+yet enforcing), and the README rule names the exception rather than leaving one single-direction
+column to read as an oversight. The phone toolbar held: all
 three toolbars at 86px, two rows, 0 element overhang, 0 document overflow — checked per element,
 since `.main-panel` clips overflow and a clipped overhang never widens the document.
 

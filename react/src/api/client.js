@@ -592,15 +592,16 @@ export async function search(query, signal) {
 
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
 
-/* Every column, both directions, paired -- the same scheme the vendors and categories lists
-   follow, because three lists sorting one way each is three vocabularies for one control. */
+/* Ranking columns come as pairs, the same scheme the vendors and categories lists follow,
+   because three lists sorting one way each is three vocabularies for one control. Vendor is
+   the exception: it groups the list rather than ranks it, and reversed grouping is the same
+   clusters in an order nobody asks for, so it offers the one direction that reads. */
 export const sorts = [
 	{ id: 'date-desc', label: 'Date, newest' },
 	{ id: 'date-asc', label: 'Date, oldest' },
 	{ id: 'amount-desc', label: 'Amount, highest' },
 	{ id: 'amount-asc', label: 'Amount, lowest' },
-	{ id: 'vendor-asc', label: 'Vendor, A to Z' },
-	{ id: 'vendor-desc', label: 'Vendor, Z to A' }
+	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
 ]
 
 export const ranges = [

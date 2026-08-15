@@ -98,8 +98,7 @@ const SORT_SQL = {
 	'date-asc': 'ot.date ASC, ot.id ASC',
 	'amount-desc': 'ot.total DESC, ot.id DESC',
 	'amount-asc': 'ot.total ASC, ot.id ASC',
-	'vendor-asc': 'v.name COLLATE NOCASE ASC, ot.id ASC',
-	'vendor-desc': 'v.name COLLATE NOCASE DESC, ot.id ASC'
+	'vendor-asc': 'v.name COLLATE NOCASE ASC, ot.id ASC'
 }
 
 function buildOrderFilter(userId, q) {
