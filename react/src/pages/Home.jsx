@@ -134,6 +134,12 @@ function Hero({ month, categories }) {
 						    that looks live and does nothing is the defect this app refuses to ship.
 						    README: Honest Affordances. */}
 						<div className="chart-series-key">
+							{/* Spent first here and in the bar below, which is the order the rest of the
+							    card already reads in: the headline is the window's spend and the line
+							    under it is what that spend saved. A key and the thing it names, one
+							    above the other in two different orders, is a lookup table that has to
+							    be read twice -- so the bar was turned round to match this rather than
+							    the other way about. */}
 							<div className="chart-series-key-row">
 								<div className="chart-series-key-swatch" style={{ background: 'var(--teal)' }} />
 								Spent {kr(view.spent)}
@@ -146,8 +152,8 @@ function Hero({ month, categories }) {
 						{/* The figure just above reads the window's real saved-vs-retail percentage --
 							this bar drew a fixed 8/92 split under it regardless, the old demo month's
 							own savedPercent traced once and left there. */}
-						<SplitBar segments={[{ width: view.savedPercent, colour: 'var(--green)' },
-							{ width: 100 - view.savedPercent, colour: 'var(--teal)' }]} />
+						<SplitBar segments={[{ width: 100 - view.savedPercent, colour: 'var(--teal)' },
+							{ width: view.savedPercent, colour: 'var(--green)' }]} />
 						{/* The categories are written per month, which is as fine as the records cut, so the
 						    legend says which month in its own heading rather than borrowing the card's --
 						    the same rule the month-wide cards on Statistics follow under a window that
