@@ -17,10 +17,18 @@ const selectItemAttachments = db.prepare(`
 	FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id
 	WHERE oi.order_id = ?
 `)
+/* ORDER BY name, because without one SQLite is free to return these in whatever order the
+   join happens to walk, and it does: the same two categories on the same order came back
+   "Household, Groceries" for one account and "Groceries, Household" for another, since the
+   row ids differ. Stable within an account, arbitrary between them -- so no reader would ever
+   catch it, and a screenshot of the orders list was not reproducible run to run. `position`
+   is what order_items uses for the same reason; categories have no such column and no order
+   the user chose, so the name is the one stable answer available. */
 const selectCategories = db.prepare(`
 	SELECT c.id, c.name, c.colour, c.icon FROM categories c
 	JOIN order_categories oc ON oc.category_id = c.id
 	WHERE oc.order_id = ?
+	ORDER BY c.name
 `)
 const selectVendor = db.prepare('SELECT id, name, initials, colour FROM vendors WHERE id = ?')
 
@@ -91,10 +99,13 @@ const selectItemAttachmentsFor = db.prepare(`
 	FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id
 	WHERE oi.order_id IN (SELECT value FROM json_each(?))
 `)
+// Same ordering as selectCategories above, or one order reads differently in a list than it
+// does on its own page -- the batched query is the list's and the single one is the record's.
 const selectCategoriesFor = db.prepare(`
 	SELECT oc.order_id, c.id, c.name, c.colour, c.icon FROM categories c
 	JOIN order_categories oc ON oc.category_id = c.id
 	WHERE oc.order_id IN (SELECT value FROM json_each(?))
+	ORDER BY oc.order_id, c.name
 `)
 const selectVendorsFor = db.prepare(`SELECT id, name, initials, colour FROM vendors WHERE id IN (SELECT value FROM json_each(?))`)
 
