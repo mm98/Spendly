@@ -9,6 +9,9 @@ services:
       - "4000:4000"
     environment:
       SPENDLY_DB: /data/spendly.sqlite3
+      # Sessions over plain http (LAN access by IP). Remove this line if you put the app
+      # behind HTTPS (reverse proxy, Tailscale serve), so the cookie goes back to Secure.
+      SPENDLY_PLAIN_HTTP: "1"
     volumes:
       # On QNAP, prefer an absolute path on a real share, e.g. /share/Container/spendly:/data
       - ./data:/data
