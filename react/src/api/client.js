@@ -11,6 +11,7 @@
    relative. `credentials: 'include'` carries the session cookie on every request. */
 
 import { dayMonth, parseAmount, sep } from './format.js'
+import { invalidate } from './useApi.js'
 
 class ApiError extends Error {
 	constructor(message, status, fields) {
@@ -41,18 +42,29 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
 	return data
 }
 
-/* ---- auth ---- */
+/* ---- auth ----
+
+   Each of these clears the whole read cache on success, here rather than at any call site:
+   crossing the account boundary is what makes every cached answer someone else's, and the
+   cache trusts its entries now (useApi.js) -- a signed-out account's figures surviving into
+   the next sign-in would not be a flash before a refetch, it would be the page. */
 
 export async function register(email, password, signal) {
-	return request('/api/auth/register', { method: 'POST', body: { email, password }, signal })
+	const user = await request('/api/auth/register', { method: 'POST', body: { email, password }, signal })
+	invalidate()
+	return user
 }
 
 export async function login(email, password, signal) {
-	return request('/api/auth/login', { method: 'POST', body: { email, password }, signal })
+	const user = await request('/api/auth/login', { method: 'POST', body: { email, password }, signal })
+	invalidate()
+	return user
 }
 
 export async function logout(signal) {
-	return request('/api/auth/logout', { method: 'POST', signal })
+	const out = await request('/api/auth/logout', { method: 'POST', signal })
+	invalidate()
+	return out
 }
 
 export async function getCurrentUser(signal) {
@@ -81,28 +93,11 @@ export async function deleteVendor(id, signal) {
 	return request(`/api/vendors/${id}`, { method: 'DELETE', signal })
 }
 
-/* Every vendor, split into the spotlight and the list under it.
-
-   This used to read /api/vendors/overview, which answered the five biggest by spend -- so an
-   account with twelve could reach five of them, and the search box below the spotlight
-   filtered a list the server had already cut down: typing a vendor that exists but sits sixth
-   answered "No vendor matches", which is a false sentence rather than an empty result. Starring
-   one of those seven was worse, since a favourite is a standing preference and the Favourites
-   section it was starred into could not show it either.
-
-   With nothing truncated the route answered exactly what GET /api/vendors already answers, so
-   it is gone and this reads the list itself. The page sorts and searches client-side, and the
-   spotlight is whichever of them are favourites. */
-export async function getVendorsOverview(signal) {
-	/* `all` is every vendor, favourites included, rather than the ones left over after the
-	   spotlight took its share. Starring a vendor used to remove it from the list below --
-	   which is the only searchable, sortable view of them -- so the more of them you marked as
-	   worth finding, the fewer you could find. Fifty favourites meant fifty vendors reachable
-	   only by eye, in a spotlight that neither filters nor sorts. A favourite is drawn twice
-	   now: once where it was pinned, and once in the list it never should have left. */
-	const vendors = await request('/api/vendors', { signal })
-	return { favourites: vendors.filter(v => v.favourite), all: vendors }
-}
+/* There is no getVendorsOverview and no getCategoriesOverview: each was the same GET as the
+   plain list with a client-side reshape on top, which is a second cache entry for one request
+   -- the overview tab and the list tab each paid the fetch the other had already paid.
+   A wrapper earns a name (and an entry) only when it is a different request or a join of
+   several; a reshape of one answer belongs to the page that wants that shape. */
 
 /* ---- categories ---- */
 
@@ -124,22 +119,6 @@ export async function updateCategory(id, patch, signal) {
 
 export async function deleteCategory(id, signal) {
 	return request(`/api/categories/${id}`, { method: 'DELETE', signal })
-}
-
-/* Every category, for the same reason the vendors list takes every vendor.
-
-   This read /api/categories/overview, which answered the five biggest by spend, and the page
-   drew all three of its things from that one array -- so an account with ten categories showed
-   five. The Manage tab is where you go to see whether something already exists before adding
-   it, and it was showing half of them: add a category that is already there and the only way
-   to find out was the 409 the save came back with.
-
-   The ring was wrong as well as short. Its centre reads "Spent, all time" and the page sums it
-   from this array, so with five of ten categories in hand the headline figure was the spend of
-   whichever five happened to be biggest, printed as the total. Untruncated, the route answered
-   exactly what GET /api/categories answers, so it is gone. */
-export async function getCategoriesOverview(signal) {
-	return { categories: await request('/api/categories', { signal }) }
 }
 
 /* ---- orders ----
@@ -623,3 +602,43 @@ export const ranges = [
 	{ key: 'year', label: 'Year', short: 'YR' },
 	{ key: 'all', label: 'All', short: 'ALL' }
 ]
+
+/* ---- what a write invalidates ----
+
+   The cache trusts its entries until a write drops them (useApi.js), so these lists are
+   load-bearing: an endpoint missing from the group its write belongs to is a page showing
+   last hour's numbers, not a skeleton that heals on the next mount. They live here, beside
+   the endpoints they name, because every write site listing its own subset is how order
+   writes went years invalidating the order lists but never the vendor and category stats
+   the same rows feed -- masked for exactly as long as every mount re-fetched anyway.
+
+   Grouped by what changed, not by which page called it. Over-invalidation costs one request
+   the next time that page is opened; under-invalidation is a wrong figure with no way home. */
+
+/** An order was created, edited, deleted or returned. Orders are the row everything
+    aggregates: the lists and the record embed them, stats/hero/home sum them, and the vendor
+    and category records carry spend/share/saved computed from them. */
+export function invalidateOrderData() {
+	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
+	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
+	invalidate(getStats)
+	invalidate(getVendors); invalidate(getVendor)
+	invalidate(getCategories); invalidate(getCategory)
+}
+
+/** A vendor record changed (name, look, favourite) or one was created. Order rows embed the
+    vendor's name, initials and colour, so the order reads go too -- not just the vendor ones. */
+export function invalidateVendorData() {
+	invalidate(getVendors); invalidate(getVendor)
+	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
+	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getStats)
+}
+
+/** A category record changed (name, look, budget, favourite) or one was created. Same shape
+    as vendors, plus the hero: its legend is the month's category split, colours and all. */
+export function invalidateCategoryData() {
+	invalidate(getCategories); invalidate(getCategory)
+	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
+	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
+	invalidate(getStats)
+}

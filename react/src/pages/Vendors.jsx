@@ -5,8 +5,8 @@ import { InsetPanel, ItemRow, LegendRow } from '../components/Rows.jsx'
 import { Donut, foldForRing } from '../components/Viz.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { useToast } from '../components/Toast.jsx'
-import { invalidate, useApi } from '../api/useApi.js'
-import { getVendors, getVendorsOverview, updateVendor } from '../api/client.js'
+import { useApi } from '../api/useApi.js'
+import { getVendors, invalidateVendorData, updateVendor } from '../api/client.js'
 import { dayMonth, krRound, sep } from '../api/format.js'
 
 /* Vendors, overview.
@@ -20,13 +20,15 @@ import { dayMonth, krRound, sep } from '../api/format.js'
    vendor, the tiles count what there is, and every way into a record is on the other tab. */
 
 export default function Vendors() {
-	const state = useApi(getVendorsOverview)
+	/* The same request the All vendors tab reads, under the same cache key -- the spotlight/
+	   list split is this page's own reshape of that one answer, below. */
+	const state = useApi(getVendors)
 	const toast = useToast()
 
 	const toggleFavourite = vendor => {
 		updateVendor(vendor.id, { favourite: !vendor.favourite })
 			.then(() => {
-				invalidate(getVendors); invalidate(getVendorsOverview)
+				invalidateVendorData()
 				state.refresh()
 				toast(`${vendor.name} ${vendor.favourite ? 'removed from' : 'added to'} favourites.`)
 			})
@@ -41,8 +43,12 @@ export default function Vendors() {
 				<Button variant="caps" to="/vendors/new">ADD VENDOR</Button>
 			</div>
 
-			<Async state={state} label="Loading your vendors">{data => {
-				const all = data.all
+			<Async state={state} label="Loading your vendors">{all => {
+				/* `favourites` is drawn from the same array it is a subset of, favourites
+				   included in both: starring a vendor pins it to the spotlight without removing
+				   it from the only searchable, sortable view of them. A favourite is drawn
+				   twice -- once where it was pinned, and once in the list it never left. */
+				const favourites = all.filter(v => v.favourite)
 				const spend = all.reduce((sum, v) => sum + v.spend, 0)
 				const saved = all.reduce((sum, v) => sum + v.saved, 0)
 				const orders = all.reduce((sum, v) => sum + v.orders, 0)
@@ -105,9 +111,9 @@ export default function Vendors() {
 								label="Favourites, open all vendors" />
 							<CardDivider />
 							<CardBody>
-								{data.favourites.length ? (
+								{favourites.length ? (
 									<div className="spotlight-pair">
-										{data.favourites.map(vendor => (
+										{favourites.map(vendor => (
 											<Card key={vendor.id}>
 												<CardHeader title={vendor.name} to={`/orders/all?vendor=${vendor.id}`}
 													label={`${vendor.name}, open their orders`} />

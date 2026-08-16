@@ -14,6 +14,7 @@ import { router as homeRouter } from './routes/home.js'
 import { router as scanRouter } from './routes/scan.js'
 import { router as searchRouter } from './routes/search.js'
 import { requireAuth } from './lib/auth.js'
+import { readCache } from './lib/readCache.js'
 
 export const app = express()
 
@@ -49,20 +50,27 @@ if (process.argv.includes('--debug') || process.env.DEBUG) {
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 
 app.use('/api/auth', authRouter)
-app.use('/api/vendors', requireAuth, vendorsRouter)
-app.use('/api/categories', requireAuth, categoriesRouter)
-app.use('/api/orders', requireAuth, ordersRouter)
-app.use('/api/settings', requireAuth, settingsRouter)
-app.use('/api/dashboard-cards', requireAuth, dashboardCardsRouter)
+
+/* One auth gate for every data route, rather than requireAuth repeated per mount: the session
+   lookup runs once per request this way, and readCache (which needs req.user) sits behind it
+   in the same line. Anything meant to be reachable *without* auth (like /api/health) has to
+   be registered above this line, and /api/auth handles its own routes before the gate is
+   reached. */
+app.use('/api', requireAuth, readCache)
+
+app.use('/api/vendors', vendorsRouter)
+app.use('/api/categories', categoriesRouter)
+app.use('/api/orders', ordersRouter)
+app.use('/api/settings', settingsRouter)
+app.use('/api/dashboard-cards', dashboardCardsRouter)
 /* accountRouter only defines POST /reset, but it's mounted at the bare /api prefix (the route
    itself, /api/reset, needs the full path) — every route above is registered first, so this
-   still can't shadow any of them, but anything meant to be reachable *without* auth (like
-   /api/health) has to be registered before this line or requireAuth would gate it too. */
-app.use('/api', requireAuth, accountRouter)
-app.use('/api/stats', requireAuth, statsRouter)
-app.use('/api/home', requireAuth, homeRouter)
-app.use('/api/scan', requireAuth, scanRouter)
-app.use('/api/search', requireAuth, searchRouter)
+   still can't shadow any of them. */
+app.use('/api', accountRouter)
+app.use('/api/stats', statsRouter)
+app.use('/api/home', homeRouter)
+app.use('/api/scan', scanRouter)
+app.use('/api/search', searchRouter)
 
 /* react/'s own dev server (Vite) serves the app locally, proxying /api to this process --
    nothing here needs to serve HTML in that mode, and CLIENT_DIST simply won't exist. A

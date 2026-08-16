@@ -19,11 +19,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	addItemAttachments, createOrder, createVendor, getCategories, getHomeContent, getHomeHero,
-	getOrderDraft, getOrders, getOrdersOverview, getStats, getVendors,
-	getVendorsOverview, spendKinds
+	addItemAttachments, createOrder, createVendor, getCategories, getOrderDraft, getVendors,
+	invalidateOrderData, invalidateVendorData, spendKinds
 } from '../api/client.js'
-import { invalidate } from '../api/useApi.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { amount, kr, parseAmount, percent, shortDate, today, sep } from '../api/format.js'
 
@@ -106,7 +104,7 @@ export function NewOrderDetails() {
 		if (!clean) return
 		createVendor(clean)
 			.then(vendor => {
-				invalidate(getVendors); invalidate(getVendorsOverview)
+				invalidateVendorData()
 				vendors.refresh()
 				update({ vendor: vendor.name })
 				recheck('order-vendor', vendor.name)
@@ -448,11 +446,10 @@ export function NewOrderItems() {
 		setSaving(true)
 		createOrder(draft)
 			.then(async order => {
-				/* The list, the dashboard, the overview, Statistics and the Home hero chart all
-				   count or aggregate orders, so all five are dropped from the cache rather than
-				   left showing figures from before. */
-				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
-				invalidate(getStats); invalidate(getHomeHero)
+				/* The save can also have created its vendor or a category by name (the server
+				   finds-or-creates both), so the group covers those lists too -- not just the
+				   reads that count orders. */
+				invalidateOrderData()
 
 				/* A photo was picked against a draft item that did not have a real id yet -- this
 				   is the first point one exists to attach it to. createOrder writes items in the

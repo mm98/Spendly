@@ -11,10 +11,10 @@ import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { useToast } from '../components/Toast.jsx'
-import { invalidate, useApi } from '../api/useApi.js'
+import { useApi } from '../api/useApi.js'
 import {
-	addAttachments, attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, getHomeContent, getHomeHero, getOrder,
-	getOrderAsDraft, getOrders, getOrdersOverview, getStats, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
+	addAttachments, attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, getOrder,
+	invalidateOrderData, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
 	removeAttachment
 } from '../api/client.js'
 import { kr, longDate, percent, shortDate, sep } from '../api/format.js'
@@ -44,14 +44,7 @@ export default function OrderDetail() {
 	const [openPhoto, setOpenPhoto] = useState(null)
 	const filePicker = useRef(null)
 
-	/* Anything that counts orders, or shows this one, is stale the moment it is written --
-	   Statistics and the Home hero chart both aggregate over order rows and neither has any
-	   other trigger to refetch. */
-	const invalidateOrder = () => {
-		invalidate(getOrder); invalidate(getOrders); invalidate(getHomeContent)
-		invalidate(getOrdersOverview); invalidate(getOrderAsDraft)
-		invalidate(getStats); invalidate(getHomeHero)
-	}
+	const invalidateOrder = () => invalidateOrderData()
 
 	/* The same asking, the same warm note and the same setting as deleting a category or a
 	   vendor -- one destructive action written once, rather than one per screen that agrees

@@ -4,7 +4,8 @@ import { IconButton } from './Button.jsx'
 import { useReorder } from './Reorder.jsx'
 import { Icon } from './Icon.jsx'
 import { useToast } from './Toast.jsx'
-import { saveDashboardCards } from '../api/client.js'
+import { getDashboardCards, saveDashboardCards } from '../api/client.js'
+import { invalidate } from '../api/useApi.js'
 
 /* Which cards sit on the dashboard, and in what order, is the user's choice, so it persists.
 
@@ -89,7 +90,11 @@ export function DashboardCards({ all, initial, render }) {
 	}
 
 	const done = () => {
-		saveDashboardCards(on).catch(() => { /* storage refused: the choice holds for this session */ })
+		/* The cached card list is the save's own read -- without dropping it, leaving Home and
+		   coming back would draw the arrangement from before the edit. */
+		saveDashboardCards(on)
+			.then(() => invalidate(getDashboardCards))
+			.catch(() => { /* storage refused: the choice holds for this session */ })
 		setEditing(false)
 		toast('Your cards were saved.')
 		queueMicrotask(() => editButton.current?.focus())
