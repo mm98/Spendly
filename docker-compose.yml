@@ -1,0 +1,14 @@
+# Spendly for a home server (written for QNAP Container Station, works anywhere Docker does).
+# The bind mount is the database: back that folder up and you have backed the app up.
+services:
+  spendly:
+    build: .
+    container_name: spendly
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      SPENDLY_DB: /data/spendly.sqlite3
+    volumes:
+      # On QNAP, prefer an absolute path on a real share, e.g. /share/Container/spendly:/data
+      - ./data:/data
