@@ -100,7 +100,6 @@ function sliceOrders(orders) {
 export default function SettingsImport() {
 	const toast = useToast()
 	const [importFile, setImportFile] = useState(null)
-	const [importOpen, setImportOpen] = useState(false)
 
 	/* The file import. The picker takes one JSON file holding the same shape the reference
 	   card documents -- `{ "orders": [...] }`, or a bare array of orders -- sliced under the
@@ -226,65 +225,58 @@ export default function SettingsImport() {
 				</div>
 
 				<div className="order-list-column">
-					{/* Documentation, not a control -- which is why it is the one card that opens
-					    closed: reference material for the day a script gets written, not a
-					    screenful to scroll past on every visit. The example mirrors
-					    validateOrderDraft and the import route; change those and change this.
-					    Every JSON fragment is JSON.stringify's own output, coloured by a
+					{/* Documentation, not a control. It used to open closed to spare the settings
+					    page a screenful of reference on every visit; on a tab that exists for
+					    importing, the reference is half the point, so it stands open. The example
+					    mirrors validateOrderDraft and the import route; change those and change
+					    this. Every JSON fragment is JSON.stringify's own output, coloured by a
 					    ten-line tokenizer -- hand-aligned annotation columns drifted immediately. */}
 					<Card aria-label="Import from another system">
-						<CardHeader title="Import from another system"
-							onToggle={() => setImportOpen(open => !open)} open={importOpen}
-							controls="import-reference"
-							label={importOpen ? 'Hide the import reference' : 'Show the import reference'} />
-						{importOpen ? (
-							<>
-								<CardDivider />
-								<CardBody id="import-reference">
-									<p className="card-lead card-lead-flush">
-										Bring orders in from another expense tracker — vendors, categories, line
-										items and receipt files — with a script of your own: sign in, post the
-										orders, read back what landed.
-									</p>
-									<pre className="import-schema" aria-label="Sign-in request">{RECIPE_LOGIN}</pre>
-									<span className="field-help import-caption">
-										Signing in sets the <code>spendly_session</code> cookie and returns the same
-										token in the body. Every later call takes either credential: the cookie, or{' '}
-										<code>Authorization: Bearer</code> with that token.
-									</span>
-									<pre className="import-schema" aria-label="Import request shape">{RECIPE_REQUEST}</pre>
-									<ul className="import-rules">
-										<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
-											least one item with <code>title</code>, <code>quantity</code> and{' '}
-											<code>price</code>. Everything else is optional.</li>
-										<li><code>price</code> may be negative — a discount line subtracts, the way it
-											did at the till. <code>retail</code> and <code>shipping</code>, the only
-											other amounts, stay at zero or above.</li>
-										<li><code>vendor</code> ≤ 80 characters.</li>
-										<li><code>title</code> ≤ 120 characters.</li>
-										<li><code>quantity</code> a whole number, 1–9999.</li>
-										<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
-										<li><code>kind</code>: Expense, Gift, Sold, Work or Other.</li>
-										<li><code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
-										<li>Attachments carry base64 bytes: on the order for the receipt, on an item
-											for its photo.</li>
-										<li>Vendors and categories are matched by name, case-insensitively, and
-											created when new.</li>
-									</ul>
-									<pre className="import-schema" aria-label="Import response shape">{RECIPE_RESPONSE}</pre>
-									<span className="field-help">
-										Each order imports in its own transaction, so one bad row fails alone — the
-										response names every failure by its index, and the status is 400 only when
-										the array is empty or nothing imported. Batch large exports: the request body
-										is capped at 50&nbsp;MB, and base64 grows files by a third. Add{' '}
-										<code>?progress=stream</code> and the response arrives as NDJSON instead —{' '}
-										<code>{'{"done":50,"total":1200}'}</code> lines while rows land, closed by
-										this same result object on a 200 — which is what the upload card above uses
-										for its bar.
-									</span>
-								</CardBody>
-							</>
-						) : null}
+						<CardHeader title="Import from another system" />
+						<CardDivider />
+						<CardBody id="import-reference">
+								<p className="card-lead card-lead-flush">
+									Bring orders in from another expense tracker — vendors, categories, line
+									items and receipt files — with a script of your own: sign in, post the
+									orders, read back what landed.
+								</p>
+								<pre className="import-schema" aria-label="Sign-in request">{RECIPE_LOGIN}</pre>
+								<span className="field-help import-caption">
+									Signing in sets the <code>spendly_session</code> cookie and returns the same
+									token in the body. Every later call takes either credential: the cookie, or{' '}
+									<code>Authorization: Bearer</code> with that token.
+								</span>
+								<pre className="import-schema" aria-label="Import request shape">{RECIPE_REQUEST}</pre>
+								<ul className="import-rules">
+									<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
+										least one item with <code>title</code>, <code>quantity</code> and{' '}
+										<code>price</code>. Everything else is optional.</li>
+									<li><code>price</code> may be negative — a discount line subtracts, the way it
+										did at the till. <code>retail</code> and <code>shipping</code>, the only
+										other amounts, stay at zero or above.</li>
+									<li><code>vendor</code> ≤ 80 characters.</li>
+									<li><code>title</code> ≤ 120 characters.</li>
+									<li><code>quantity</code> a whole number, 1–9999.</li>
+									<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
+									<li><code>kind</code>: Expense, Gift, Sold, Work or Other.</li>
+									<li><code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
+									<li>Attachments carry base64 bytes: on the order for the receipt, on an item
+										for its photo.</li>
+									<li>Vendors and categories are matched by name, case-insensitively, and
+										created when new.</li>
+								</ul>
+								<pre className="import-schema" aria-label="Import response shape">{RECIPE_RESPONSE}</pre>
+								<span className="field-help">
+									Each order imports in its own transaction, so one bad row fails alone — the
+									response names every failure by its index, and the status is 400 only when
+									the array is empty or nothing imported. Batch large exports: the request body
+									is capped at 50&nbsp;MB, and base64 grows files by a third. Add{' '}
+									<code>?progress=stream</code> and the response arrives as NDJSON instead —{' '}
+									<code>{'{"done":50,"total":1200}'}</code> lines while rows land, closed by
+									this same result object on a 200 — which is what the upload card above uses
+									for its bar.
+								</span>
+						</CardBody>
 					</Card>
 				</div>
 			</div>
