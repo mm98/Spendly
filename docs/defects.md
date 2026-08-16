@@ -162,6 +162,43 @@ longer depends on an engine's intrinsic-width arithmetic — a flex-basis of 0 i
 the question — but the sort control's resting width off the phone is still that number, and 298px is
 Blink's.
 
+## Responsive Layout — the order forms scrolled sideways into blank space
+
+Edit order's document was **2097px wide in a 1440px window** — a horizontal scrollbar with nothing
+visible in the extra 657px. It reproduced at every width tried, always by the same margin arithmetic:
+**2309 against 1600**, **456 against 390**. The element behind it was the item editor's hidden file
+input, the Photo field on Edit order and on New order's items step, measuring **1440x1 at left 657**
+— the width of the viewport, starting from its static position in the middle of the form.
+
+The defect is two rules fighting over one property. `.field-shell > input` declares `width:100%` for
+the text inputs a shell presents; `.field-file-input` declares `width:1px` (with `position:absolute`,
+`opacity:0` and the rest of the visually-hidden recipe) for the file input something else opens. Inside
+a shell both match, and class-plus-type (0,1,1) outweighs a lone class (0,1,0) — so the input kept
+`absolute` and `1px` tall, uncontested, and took `100%` wide from the rule it was supposed to lose to.
+An absolute box in an all-static ancestry resolves that 100% against the viewport, from wherever its
+static position left it — which is mid-form, so its right edge lands one viewport-width past mid-form,
+off screen at every window size there is.
+
+The rule was born scoped — `.field-shell > .field-file-input`, (0,2,0), which wins that fight — and
+was widened to the bare class when inputs outside shells (the scan page's drop bar, the attachments
+card) needed the same hiding. The widening kept the reach and resigned the rank, and the comment
+beside the rule went on describing the scoped selector as the reason this could not happen. Nothing
+renders a comment.
+
+The fix is a selector list, `.field-file-input, .field-shell > .field-file-input`: the bare class for
+the sites with no competing rule, the scoped form to outrank `.field-shell > input` where there is
+one. Same declarations either way.
+
+Measured after, in Blink 141.0.7390.37 under the Playwright 1.56.1 bundle: Edit order at 1600, 1440,
+1100, 800, 700 and 390 — `scrollWidth` equals `clientWidth` at all six, the input at **1x1**, and the
+shell still rendering "Choose a photo...". New order driven through step 1 to the items step: 1x1,
+no overflow. The three `.field-file-input` sites outside a shell were 1x1 before and after. This is
+cascade arithmetic and holds in any engine; Gecko and WebKit are not installed here and were not run.
+
+Unlike the sort control above, this one is the case the README's stated test does catch: the box is
+absolute, so no ancestor's `overflow:hidden` clips it, and the document really is wider than the
+window. `scrollWidth` against `clientWidth` read it at every width, on the first run.
+
 ## Chrome — the bottom bar sat in the corner of a rounded screen, and the sheet ran under it
 
 Reported from an iPhone: the bottom bar is too slim and too close to the bottom of the screen. The
