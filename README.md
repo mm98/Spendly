@@ -542,6 +542,17 @@ One order's full record. The header band holds the identity and the actions: ven
 
 **The detail page shows; the form page changes.** Status is read here and edited on the edit page like every other field — a status editor drawn on the reading view is the form's control paying rent twice, at a full band's height, and it stood here once.
 
+**On a phone, this page's rows stay one line: title left, figures and actions grouped right.** An
+item row's total and an attachment row's actions belong beside the name they price and act on, not
+right-aligned under it on a line of their own — the general phone rule that wraps a row exists for
+rows whose fixed columns leave the title nothing, and these rows are not that: their titles fit
+with room to spare. So the row states that it groups, the title yields instead of the line
+breaking — one line, truncated with an ellipsis when a long filename or name asks for more, the
+meta the same — and the full name stays readable where the row already shows it: an attachment's
+in its preview, an item's on the edit page. The line *editors* on Create and Edit keep the wrap,
+because there the fixed columns genuinely leave the title nothing (64px, measured). Desktop is
+untouched either way. ([`docs/defects.md`](docs/defects.md#order-detail--the-rows-figures-dropped-to-a-line-of-their-own-over-room-they-never-measured))
+
 **Why edit is a separate page:** the form has validation, a draft, and two steps. That complexity doesn't belong on the reading view — the detail page shows, the form page changes.
 
 ### Create and Edit

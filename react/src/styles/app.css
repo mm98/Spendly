@@ -1299,6 +1299,24 @@ label.field-shell { cursor:pointer; }
 	   line, flush under the tile. Any value from 62% clears the threshold; 64% clears
 	   it by more than the tile geometry can move. README: Responsive Layout. */
 	.item-row > div:has(.item-row-title) { flex:1 1 64%; }
+	/* The opt-out, for rows meant to read as one line: title left, figures and
+	   actions grouped right. The 64% basis above is a reservation, not a
+	   measurement, so an attachment's three buttons and an item's lone total
+	   dropped to their own line whatever the title's actual length. A grouped row
+	   keeps them beside the title and gives the title what is left. On the pages
+	   that took it -- Order details' items and attachments -- that is 199px and
+	   160px of a 390px phone, plenty for the names those rows carry. The rows
+	   that keep the wrap are the New/Edit order line editors: a grip, a tile, a
+	   price and two buttons leave a grouped title 64px there, measured, which is
+	   a mid-word stack no one asked to read. README: Responsive Layout. */
+	.item-row.item-row-group { flex-wrap:nowrap; }
+	.item-row.item-row-group > div:has(.item-row-title) { flex:1 1 auto; }
+	/* Truncate, don't stack: overflow-wrap:anywhere breaks a long single word --
+	   a filename, a compound product name -- into a narrow column mid-word once
+	   the row is grouped. The grouped title takes the meta's own treatment
+	   instead, one line with an ellipsis; the attachment's full name is in the
+	   preview under the row, and an item's on the order's edit page. */
+	.item-row.item-row-group .item-row-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 	/* .global-finder carries the margin-left:auto that pushes the actions right, and it is
 	   hidden here, so .topbar-actions has to take the job over or it sits against the title. */
 	.global-finder { display:none; }
