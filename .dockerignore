@@ -1,0 +1,7 @@
+**/node_modules
+react/dist
+docs
+spendly.html
+*.sqlite3
+data
+.git
