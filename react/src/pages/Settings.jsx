@@ -11,6 +11,7 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
 import { ProgressBar } from '../components/Viz.jsx'
+import { percent } from '../api/format.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	cardRowOptions, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
@@ -218,11 +219,16 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 	   apart from a refused import, because "try a different file" and "fix row 3" are
 	   different instructions. `progress` is null when resting; while sending it counts slices
 	   ({done, total}, for the button's label) and bytes ({doneBytes, totalBytes}, for the
-	   bar), which stay at 0/0 while the file is still being read and parsed. */
+	   bar), which stay at 0/0 while the file is still being read and parsed. Within the slice
+	   on the wire, two live fractions keep the bar moving through both of its waits: sentFrac
+	   is the request body handed to the network (the browser's own upload progress), rowsFrac
+	   is rows the server says it has written (streamed back by the route). Each counts for
+	   half the slice's span -- neither phase's real share is knowable up front, and a bar that
+	   moves through both honestly beats one that freezes for either. */
 	const importPicker = useRef(null)
 	const [progress, setProgress] = useState(null)
 	const runImport = async () => {
-		setProgress({ done: 0, total: 0, doneBytes: 0, totalBytes: 0 })
+		setProgress({ done: 0, total: 0, doneBytes: 0, totalBytes: 0, sliceBytes: 0, sentFrac: 0, rowsFrac: 0 })
 		let imported = 0
 		const failed = []
 		try {
@@ -231,10 +237,15 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 			const orders = Array.isArray(parsed) ? parsed : parsed?.orders
 			if (!Array.isArray(orders) || !orders.length) throw new Error('import-no-orders')
 			const batches = sliceOrders(orders)
-			setProgress({ done: 0, total: batches.length, doneBytes: 0, totalBytes: batches.reduce((n, b) => n + b.bytes, 0) })
+			const totalBytes = batches.reduce((n, b) => n + b.bytes, 0)
+			setProgress({ done: 0, total: batches.length, doneBytes: 0, totalBytes, sliceBytes: 0, sentFrac: 0, rowsFrac: 0 })
 			for (const batch of batches) {
+				setProgress(p => p && { ...p, sliceBytes: batch.bytes, sentFrac: 0, rowsFrac: 0 })
 				try {
-					const result = await importOrders(batch.orders)
+					const result = await importOrders(batch.orders, {
+						onSent: f => setProgress(p => p && { ...p, sentFrac: f }),
+						onRows: (done, total) => setProgress(p => p && { ...p, rowsFrac: total ? done / total : 0 })
+					})
 					imported += result.imported
 					failed.push(...result.failed.map(f => ({ ...f, index: f.index + batch.offset })))
 				} catch (e) {
@@ -246,7 +257,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					else if (e.status === 413) failed.push({ index: batch.offset, error: 'This one order is bigger than the 50 MB the server takes in a request.' })
 					else throw e
 				}
-				setProgress(p => ({ ...p, done: p.done + 1, doneBytes: p.doneBytes + batch.bytes }))
+				setProgress(p => p && ({ ...p, done: p.done + 1, doneBytes: p.doneBytes + batch.bytes, sliceBytes: 0, sentFrac: 0, rowsFrac: 0 }))
 			}
 			// Imported orders reach every list, chart and card, same as a fill: everything goes.
 			if (imported) { invalidate(); reload(); setImportFile(null) }
@@ -484,15 +495,26 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						{importFile ? (
 							<>
 								<p className="field-help">{importFile.name}</p>
-								{/* Determinate only once there is more than one slice to be partway
-								    through: a single-request import has no honest percentage between
-								    0 and done, and neither has the parse -- the same reasoning as
-								    the scan's bar (Viz.jsx), just with the sizes known here. */}
-								{progress ? (
-									<ProgressBar className="import-progress" label="Import progress"
-										indeterminate={progress.total < 2}
-										value={progress.totalBytes ? Math.round((progress.doneBytes / progress.totalBytes) * 100) : 0} />
-								) : null}
+								{/* Indeterminate only while the file is still being read and parsed --
+								    once slices are on the wire the percentage is measured, not
+								    guessed: bytes the browser reports sent and rows the server
+								    reports written, so it moves through both waits. The figure
+								    beside the bar is the same number said in words. */}
+								{progress ? (() => {
+									const { doneBytes, totalBytes, sliceBytes, sentFrac, rowsFrac } = progress
+									const pct = totalBytes
+										? Math.min(100, ((doneBytes + sliceBytes * ((sentFrac + rowsFrac) / 2)) / totalBytes) * 100)
+										: 0
+									return (
+										<div className="import-progress">
+											<ProgressBar label="Import progress" indeterminate={!totalBytes}
+												value={Math.round(pct)} />
+											{totalBytes ? (
+												<span className="field-help tabular-figures">{percent(pct, 0)}</span>
+											) : null}
+										</div>
+									)
+								})() : null}
 								<FormActions>
 									<Button variant="caps compact" disabled={!!progress} onClick={runImport}>
 										{!progress ? 'IMPORT'
@@ -561,7 +583,11 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 									Each order imports in its own transaction, so one bad row fails alone — the
 									response names every failure by its index, and the status is 400 only when
 									the array is empty or nothing imported. Batch large exports: the request body
-									is capped at 50&nbsp;MB, and base64 grows files by a third.
+									is capped at 50&nbsp;MB, and base64 grows files by a third. Add{' '}
+									<code>?progress=stream</code> and the response arrives as NDJSON instead —{' '}
+									<code>{'{"done":50,"total":1200}'}</code> lines while rows land, closed by
+									this same result object on a 200 — which is what the upload card above uses
+									for its bar.
 								</span>
 							</CardBody>
 						</>
