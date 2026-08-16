@@ -2,7 +2,8 @@ import { db } from '../db.js'
 import { newId } from './ids.js'
 import { CATEGORY_PALETTE, VENDOR_PALETTE, nthColour } from './palette.js'
 
-/* A year of plausible ledger, for looking at the app with something in it.
+/* A stretch of plausible ledger — a year by default, up to decades — for looking at the app
+   with something in it.
 
    This is not the demo data a new account used to be seeded with -- that was dropped in
    df597f3 because an account that registers and immediately shows somebody's shopping reads
@@ -104,6 +105,18 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 	const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
 	const pick = arr => arr[Math.floor(rnd() * arr.length)]
 
+	/* The order_items triggers are off for the bulk insert and one UPDATE rebuilds the stored
+	   totals at the end. Not because the totals are expensive -- because a statement that fires
+	   a trigger keeps a statement journal sized by what the transaction has already changed, so
+	   a big fill inside the route's replace transaction went quadratic: 30s for 10K orders over
+	   an existing 10K, over five minutes at 50K. Trigger-free, the same shape is 0.65s. DDL is
+	   transactional in SQLite, so a rollback anywhere in here restores the triggers untouched;
+	   the recreate below is from sqlite_master's own copy, never a second statement of them.
+	   Single connection, synchronous driver: nothing else can write while they are off. */
+	const triggers = db.prepare(
+		`SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'order_items'`).all()
+	for (const t of triggers) db.exec(`DROP TRIGGER ${t.name}`)
+
 	const vendorIds = VENDORS.map((v, i) => {
 		const id = newId('v')
 		insertVendor.run({ id, userId, name: v.name, initials: v.initials,
@@ -174,6 +187,16 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 			made++
 		}
 	}
+
+	/* The one recompute the triggers would have done 150,000 times: every stored aggregate on
+	   this account's orders, from the items underneath, then the triggers back in place --
+	   totals first, or recreating them would fire them once per row for nothing. */
+	db.prepare(`UPDATE orders SET (item_count, paid, retail) = (
+			SELECT COUNT(*), COALESCE(SUM(price * quantity), 0),
+				COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+			FROM order_items WHERE order_id = orders.id)
+		WHERE user_id = ?`).run(userId)
+	for (const t of triggers) db.exec(t.sql)
 
 	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months }
 })

@@ -45,6 +45,20 @@ const DEMO_ORDER_COUNTS = [
 	{ id: 50000, label: '50K orders' }
 ]
 
+/* How far back those orders reach, ending today. Stored in months because that is the unit
+   the generator spreads by; labelled in years because that is the unit a person chooses in. */
+const DEMO_PERIODS = [
+	{ id: 12, label: '1 year' },
+	{ id: 24, label: '2 years' },
+	{ id: 48, label: '4 years' },
+	{ id: 72, label: '6 years' },
+	{ id: 96, label: '8 years' },
+	{ id: 120, label: '10 years' },
+	{ id: 144, label: '12 years' },
+	{ id: 216, label: '18 years' },
+	{ id: 288, label: '24 years' }
+]
+
 /* The import card's reference block. Every JSON fragment is JSON.stringify's own output over
    a real example value -- a hand-formatted block with annotation columns drifted out of
    alignment immediately -- and the colour is a small tokenizer over that output: keys strong,
@@ -99,8 +113,9 @@ export default function Settings() {
 	const [confirming, setConfirming] = useState(false)
 	const [filling, setFilling] = useState(false)
 	/* Beside `filling` rather than in the body for the same reason `filling` is: the body
-	   remounts when the settings reload, and the chosen count should survive that. */
+	   remounts when the settings reload, and the chosen count and period should survive that. */
 	const [demoCount, setDemoCount] = useState(DEMO_ORDER_COUNTS[0].id)
+	const [demoPeriod, setDemoPeriod] = useState(DEMO_PERIODS[0].id)
 
 	/* The endpoints that bake a setting into their answer. Anything cached from before the
 	   change is wrong the moment it is saved, so it goes rather than being left to expire. */
@@ -125,6 +140,7 @@ export default function Settings() {
 					confirming={confirming} setConfirming={setConfirming} refresh={refresh}
 					filling={filling} setFilling={setFilling}
 					demoCount={demoCount} setDemoCount={setDemoCount}
+					demoPeriod={demoPeriod} setDemoPeriod={setDemoPeriod}
 					reload={state.refresh} />
 			)}</Async>
 		</Page>
@@ -132,7 +148,7 @@ export default function Settings() {
 }
 
 function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh, reload,
-	filling, setFilling, demoCount, setDemoCount }) {
+	filling, setFilling, demoCount, setDemoCount, demoPeriod, setDemoPeriod }) {
 	const navigate = useNavigate()
 	const signOut = () => logout().then(() => navigate('/login', { replace: true }))
 	/* The controls are driven from the stored value, so what is on screen is what is saved --
@@ -160,12 +176,14 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 	const [busy, setBusy] = useState(false)
 	const fill = () => {
 		setBusy(true)
-		populateDemoData(demoCount)
+		populateDemoData(demoCount, demoPeriod)
 			.then(({ orders, vendors, categories, months }) => {
 				refresh()
 				reload()
 				setFilling(false)
-				toast(`${orders} orders across ${months} months, ${vendors} vendors and ${categories} categories.`)
+				// The span in the unit it was chosen in: years when it is whole years, months when not.
+				const span = months % 12 === 0 ? `${months / 12} year${months === 12 ? '' : 's'}` : `${months} months`
+				toast(`${orders} orders across ${span}, ${vendors} vendors and ${categories} categories.`)
 			})
 			.catch(() => toast('That did not fill.', 'negative'))
 			.finally(() => setBusy(false))
@@ -287,18 +305,27 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					<CardDivider />
 					<CardBody>
 						<p className="card-lead card-lead-flush">
-							Fill the account with a year of made-up orders — as many as you choose,
-							twelve months back, every vendor and category its own colour — so the lists
-							and charts have something in them to look at. A different year every time:
-							the orders, their days and their totals are rolled fresh on each fill.
+							Fill the account with made-up orders — as many as you choose, reaching as
+							far back as you choose, every vendor and category its own colour — so the
+							lists and charts have something in them to look at. A different ledger
+							every time: the orders, their days and their totals are rolled fresh on
+							each fill.
 						</p>
 						<Field label="How many orders" className="demo-count-field"
-							help="Spread across the twelve months. More orders take longer to write.">
+							help="Spread across the whole period. More orders take longer to write.">
 							<Combobox label="Orders to create"
 								value={DEMO_ORDER_COUNTS.find(o => o.id === demoCount)?.label ?? ''}
 								onChange={() => {}}
 								onSelect={o => setDemoCount(o.id)}
 								groups={[{ heading: 'Orders', options: DEMO_ORDER_COUNTS }]} />
+						</Field>
+						<Field label="Over how long" className="demo-count-field"
+							help="How far back the orders reach, ending today.">
+							<Combobox label="Period to create orders over"
+								value={DEMO_PERIODS.find(p => p.id === demoPeriod)?.label ?? ''}
+								onChange={() => {}}
+								onSelect={p => setDemoPeriod(p.id)}
+								groups={[{ heading: 'Period', options: DEMO_PERIODS }]} />
 						</Field>
 						{filling ? (
 							<>
