@@ -6,7 +6,7 @@ import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormP
 import { CategoryPreview, ColourPicker, IconPicker } from '../components/Pickers.jsx'
 import { ICONS } from '../components/Icon.jsx'
 import {
-	Field, FieldShell, FieldUnit, FilterSection, Switch, TextInput, focusField, needFixing, useFieldErrors
+	CheckRow, Field, FieldShell, FieldUnit, TextInput, focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
@@ -201,17 +201,12 @@ function CategoryFields({ mode, category }) {
 					label="Category icon" />
 			</Field>
 
-			{/* Same control, same placement, as the vendor form's own favourite switch. README:
-			    Fields and Forms. */}
-			<FilterSection>
-				<div className="space-between">
-					<span className="field-help toggle-help">
-						Favourites appear in Home's Favourite categories card.
-					</span>
-					<Switch checked={values.favourite}
-						onChange={favourite => setValues(v => ({ ...v, favourite }))} label="Favourite" />
-				</div>
-			</FilterSection>
+			{/* Same row, same reason, as the vendor form's own favourite: a form choice landing
+			    on SAVE CHANGES, so a checkbox row, not a switch. README: Checkbox Row. */}
+			<CheckRow id="category-favourite" checked={values.favourite}
+				onChange={favourite => setValues(v => ({ ...v, favourite }))}
+				label="Favourite"
+				help="Appears in Home's Favourite categories card." />
 		</FormPage>
 	)
 }

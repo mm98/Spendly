@@ -13,7 +13,7 @@ import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Row
 import { useReorder } from '../components/Reorder.jsx'
 import {
 	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, FilterSectionBody,
-	FormActions, Segmented, Switch, TextArea, TextInput,
+	FormActions, Segmented, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -82,7 +82,6 @@ export function NewOrderDetails() {
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
 	const toast = useToast()
-	const [more, setMore] = useState(true)
 	const [status, setStatus] = useState({ message: '', good: true })
 
 	const values = useMemo(() => ({
@@ -131,9 +130,6 @@ export function NewOrderDetails() {
 	const next = () => {
 		const failed = check()
 		if (!failed.length) { setStatus({ message: '', good: true }); navigate('/orders/new/items'); return }
-		/* Shipping fee lives inside the More-details disclosure, so a rejection there can sit
-		   behind a closed panel -- a message nobody can open is the same as no message. */
-		if (failed.some(f => f.name === 'order-shipping')) setMore(true)
 		setStatus({ message: 'Cannot continue: ' + needFixing(failed), good: false })
 		focusField(failed[0].name)
 	}
@@ -246,13 +242,12 @@ export function NewOrderDetails() {
 					groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
 			</Field>
 
+			{/* The optional fields, always on show under their heading. They used to sit
+			    behind a More details? switch; three optional fields cost less on screen
+			    than a control everyone had to flip to reach them. */}
 			<FilterSection>
-				<div className="space-between">
-					<span className="panel-heading">More details?</span>
-					<Switch checked={more} onChange={setMore} label="More details"
-						controls="more-details-panel" />
-				</div>
-				<FilterSectionBody id="more-details-panel" hidden={!more}>
+				<span className="panel-heading">More details</span>
+				<FilterSectionBody>
 					<FieldPair>
 						<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
 							<FieldShell>

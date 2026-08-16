@@ -13,7 +13,7 @@ import { useReorder } from '../components/Reorder.jsx'
 import { useRowDelete } from '../components/FormPage.jsx'
 import {
 	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, FilterSectionBody,
-	Form, FormActions, FormStatus, Segmented, Switch, TextArea, TextInput,
+	Form, FormActions, FormStatus, Segmented, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -63,7 +63,6 @@ function EditOrderForm({ id, seed }) {
 	const [draft, setDraft] = useState(seed)
 	const update = useCallback(patch => setDraft(prev => ({ ...prev, ...patch })), [])
 
-	const [more, setMore] = useState(Boolean(seed.shipping || seed.reference || seed.note))
 	const [status, setStatus] = useState({ message: '', good: true })
 	const [saving, setSaving] = useState(false)
 
@@ -208,7 +207,6 @@ function EditOrderForm({ id, seed }) {
 	const save = () => {
 		const failedOrder = orderErrors.check()
 		if (failedOrder.length) {
-			if (failedOrder.some(f => f.name === 'order-shipping')) setMore(true)
 			setStatus({ message: 'Cannot save: ' + needFixing(failedOrder), good: false })
 			focusField(failedOrder[0].name)
 			return
@@ -338,13 +336,11 @@ function EditOrderForm({ id, seed }) {
 									groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
 							</Field>
 
+							{/* The optional fields, always on show under their heading -- the same
+							    section, sans switch, as the new order form's. */}
 							<FilterSection>
-								<div className="space-between">
-									<span className="panel-heading">More details?</span>
-									<Switch checked={more} onChange={setMore} label="More details"
-										controls="more-details-panel" />
-								</div>
-								<FilterSectionBody id="more-details-panel" hidden={!more}>
+								<span className="panel-heading">More details</span>
+								<FilterSectionBody>
 									<FieldPair>
 										<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
 											<FieldShell>
