@@ -108,6 +108,33 @@ const RECIPE_RESPONSE = [
 	...tokenizeJson(JSON.stringify({ imported: 1, orders: ['...'], failed: [{ index: 3, error: '...' }] }, null, 2), 'resp')
 ]
 
+/* The server takes 50 MB per request (app.js raises the limit for /api/orders/import alone),
+   and an export with receipts riding along as base64 can be well past that -- a whole file
+   posted in one call comes back 413, "request entity too large". So the upload sends slices:
+   orders accumulate until the next would push the slice's JSON past BATCH_BYTES, and each
+   slice is its own request. 40 MB leaves headroom for the `{"orders":[...]}` wrapper and for
+   UTF-8 bytes running past JSON.stringify's character count on non-ASCII text. */
+const BATCH_BYTES = 40 * 1024 * 1024
+
+/** Cuts orders into batches under BATCH_BYTES, each remembering the index its first order has
+    in the whole file -- the server numbers failures within the request it saw, and a reported
+    row has to be a row of the file the person chose. */
+function sliceOrders(orders) {
+	const batches = []
+	let batch = [], bytes = 0, offset = 0
+	for (const order of orders) {
+		const size = JSON.stringify(order).length + 1
+		if (batch.length && bytes + size > BATCH_BYTES) {
+			batches.push({ orders: batch, offset })
+			offset += batch.length
+			batch = []; bytes = 0
+		}
+		batch.push(order); bytes += size
+	}
+	batches.push({ orders: batch, offset })
+	return batches
+}
+
 export default function Settings() {
 	const state = useApi(getSettings)
 	const toast = useToast()
@@ -180,35 +207,55 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 	}
 
 	/* The file import. The picker takes one JSON file holding the same shape the reference
-	   card documents -- `{ "orders": [...] }`, or a bare array of orders -- and IMPORT posts
-	   it through the same endpoint a script would use. The two file-shaped failures (not
-	   JSON, no orders array) are told apart from a refused import, because "try a different
-	   file" and "fix row 3" are different instructions. */
+	   card documents -- `{ "orders": [...] }`, or a bare array of orders -- sliced under the
+	   server's per-request cap (sliceOrders above) and posted through the same endpoint a
+	   script would use. The two file-shaped failures (not JSON, no orders array) are told
+	   apart from a refused import, because "try a different file" and "fix row 3" are
+	   different instructions. `progress` is null when resting; {done, total} counts slices
+	   while sending, so a many-slice file says how far along it is. */
 	const importPicker = useRef(null)
-	const [importing, setImporting] = useState(false)
-	const runImport = () => {
-		setImporting(true)
-		importFile.text()
-			.then(text => {
-				let parsed
-				try { parsed = JSON.parse(text) } catch { throw new Error('import-not-json') }
-				const orders = Array.isArray(parsed) ? parsed : parsed?.orders
-				if (!Array.isArray(orders) || !orders.length) throw new Error('import-no-orders')
-				return importOrders(orders)
-			})
-			.then(({ imported, failed }) => {
-				// Imported orders reach every list, chart and card, same as a fill: everything goes.
-				invalidate()
-				reload()
-				setImportFile(null)
-				if (failed.length) toast(`${imported} imported, ${failed.length} failed — row ${failed[0].index}: ${failed[0].error}`, 'negative')
-				else toast(`${imported} order${imported === 1 ? '' : 's'} imported.`)
-			})
-			.catch(e => toast(
-				e.message === 'import-not-json' ? 'That file is not valid JSON.'
-					: e.message === 'import-no-orders' ? 'No orders in that file — it needs an "orders" array.'
-						: failureMessage(e, 'That did not import.'), 'negative'))
-			.finally(() => setImporting(false))
+	const [progress, setProgress] = useState(null)
+	const runImport = async () => {
+		setProgress({ done: 0, total: 0 })
+		let imported = 0
+		const failed = []
+		try {
+			let parsed
+			try { parsed = JSON.parse(await importFile.text()) } catch { throw new Error('import-not-json') }
+			const orders = Array.isArray(parsed) ? parsed : parsed?.orders
+			if (!Array.isArray(orders) || !orders.length) throw new Error('import-no-orders')
+			const batches = sliceOrders(orders)
+			setProgress({ done: 0, total: batches.length })
+			for (const batch of batches) {
+				try {
+					const result = await importOrders(batch.orders)
+					imported += result.imported
+					failed.push(...result.failed.map(f => ({ ...f, index: f.index + batch.offset })))
+				} catch (e) {
+					/* A 400 here is the route saying every row in this slice was refused --
+					   its body still names each one. A 413 can only be a single order too big
+					   for a request all by itself, since slices are cut under the cap; no
+					   re-slicing helps it, so it is reported by row and the rest carry on. */
+					if (e.status === 400 && e.body?.failed) failed.push(...e.body.failed.map(f => ({ ...f, index: f.index + batch.offset })))
+					else if (e.status === 413) failed.push({ index: batch.offset, error: 'This one order is bigger than the 50 MB the server takes in a request.' })
+					else throw e
+				}
+				setProgress(p => ({ ...p, done: p.done + 1 }))
+			}
+			// Imported orders reach every list, chart and card, same as a fill: everything goes.
+			if (imported) { invalidate(); reload(); setImportFile(null) }
+			if (failed.length) toast(`${imported} imported, ${failed.length} failed — row ${failed[0].index}: ${failed[0].error}`, 'negative')
+			else toast(`${imported} order${imported === 1 ? '' : 's'} imported.`)
+		} catch (e) {
+			// A transport failure mid-run: what landed stays landed, and the report says so.
+			if (imported) { invalidate(); reload() }
+			const said = e.message === 'import-not-json' ? 'That file is not valid JSON.'
+				: e.message === 'import-no-orders' ? 'No orders in that file — it needs an "orders" array.'
+					: failureMessage(e, 'That did not import.')
+			toast(imported ? `${said} ${imported} made it in before it stopped.` : said, 'negative')
+		} finally {
+			setProgress(null)
+		}
 	}
 
 	/* `busy` rather than only hiding the confirm: a year of orders is one request, and a
@@ -425,16 +472,19 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						<p className="card-lead card-lead-flush">
 							Bring orders in from a JSON file — an object holding an{' '}
 							<code>orders</code> array, the shape the reference below documents. Each
-							order imports on its own, so one bad row fails alone.
+							order imports on its own, so one bad row fails alone, and a big file is
+							sent in slices — no need to split it yourself.
 						</p>
 						{importFile ? (
 							<>
 								<p className="field-help">{importFile.name}</p>
 								<FormActions>
-									<Button variant="caps compact" disabled={importing} onClick={runImport}>
-										{importing ? 'IMPORTING...' : 'IMPORT'}
+									<Button variant="caps compact" disabled={!!progress} onClick={runImport}>
+										{!progress ? 'IMPORT'
+											: progress.total > 1 ? `IMPORTING ${Math.min(progress.done + 1, progress.total)} OF ${progress.total}...`
+												: 'IMPORTING...'}
 									</Button>
-									<Button variant="ghost compact" disabled={importing}
+									<Button variant="ghost compact" disabled={!!progress}
 										onClick={() => setImportFile(null)}>CANCEL</Button>
 								</FormActions>
 							</>
