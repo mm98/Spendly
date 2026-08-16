@@ -191,8 +191,7 @@ export default function SettingsImport() {
 						<p className="card-lead card-lead-flush">
 							Bring orders in from a JSON file — an object holding an{' '}
 							<code>orders</code> array, the shape the reference card documents. Each
-							order imports on its own, so one bad row fails alone, and a big file is
-							sent in slices — no need to split it yourself.
+							order imports on its own, so one bad row fails alone.
 						</p>
 						{/* The same row every boolean in Settings uses: help text left, switch
 						    right. A checkbox would be a second control for the same question.
