@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
-import { Form, FormActions, Switch } from '../components/Form.jsx'
+import { CheckRow, FormActions } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
 import { ProgressBar } from '../components/Viz.jsx'
@@ -193,29 +193,17 @@ export default function SettingsImport() {
 							<code>orders</code> array, the shape the reference card documents. Each
 							order imports on its own, so one bad row fails alone.
 						</p>
-						{/* The switch leads its row here, description beside it, in the Form grid
-						    that spaces the rows. A checkbox would be a second control for the
-						    same question. Two rows because the schema carries two kinds of
-						    file, and someone migrating may want the receipts without megabytes
-						    of photos. */}
-						<Form>
-							<div className="toggle-row">
-								<Switch checked={withAttachments} label="Import attachments"
-									onChange={setWithAttachments} />
-								<span className="field-help">
-									Bring attachments along: the receipt file riding on an order.
-									With this off, orders import without their attachments.
-								</span>
-							</div>
-							<div className="toggle-row">
-								<Switch checked={withImages} label="Import images"
-									onChange={setWithImages} />
-								<span className="field-help">
-									Bring images along: the photo riding on a line item.
-									With this off, items import without their images.
-								</span>
-							</div>
-						</Form>
+						{/* Checkbox rows, not switches: these are form choices, read once when
+						    IMPORT runs, and nothing observably changes on toggle -- a switch
+						    here would state an effect it does not have (README: Checkbox Row).
+						    Two rows because the schema carries two kinds of file, and someone
+						    migrating may want the receipts without megabytes of photos. */}
+						<CheckRow id="import-attachments" checked={withAttachments}
+							onChange={setWithAttachments} label="Import attachments"
+							help="The receipt file riding on an order. With this off, orders import without their attachments." />
+						<CheckRow id="import-images" checked={withImages}
+							onChange={setWithImages} label="Import images"
+							help="The photo riding on a line item. With this off, items import without their images." />
 						{importFile ? (
 							<>
 								<p className="field-help">{importFile.name}</p>

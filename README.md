@@ -39,7 +39,7 @@ That third file is the audit, kept running. A rule in this document that looks a
 The system is layered: an element is defined before the component that uses it, a component before the view that composes it, a view before the pattern that repeats across several. Read down for depth.
 
 - **[Foundations](#foundations)** — Color • Elevation and shape • Typography • Sizing • Spacing • Grids and breakpoints
-- **[Components](#components)** — Buttons • Fields and forms • Stepper • Cards • Data rows • Notes • Empty states • Chips • Combobox • Segmented control • Switch • Charts • Meters and progress • Chrome • Icons
+- **[Components](#components)** — Buttons • Fields and forms • Stepper • Cards • Data rows • Notes • Empty states • Chips • Combobox • Segmented control • Switch • Checkbox row • Charts • Meters and progress • Chrome • Icons
 - **[Views](#views)** — Home • Orders overview • All orders • Order detail • Create and edit • Scan flow • Vendors • Categories • Statistics • Settings
 - **[Patterns](#patterns)** — Filtering • Creation flow • Search • Progressive disclosure • Form validation • Feedback • Deletion • Pagination • Data persistence • Loading and errors • Honest affordances • Accessibility • iOS and WebKit • Responsive layout
 - **[Conventions](#conventions)** — Naming in the markup • Language and formats • Documentation
@@ -403,6 +403,16 @@ The on/off control: 44×26, a round knob on a pill track.
 **A switch is a statement, not a request.** Flipping it takes effect immediately — no save button. A switch that needs APPLY is a checkbox wearing the wrong costume.
 
 **Every switch names what reads it.** A settings page of switches that change nothing is the decorative-control defect with more surface area — so each one's label says what it controls, and somewhere in the product that thing observably changes.
+
+### Checkbox row
+
+The form choice: a 20×20 box in its own column, the option's bold name beside it, the description hanging indented to the name's edge — never under the box, and never a paragraph beside a bare control.
+
+**A checkbox asks, a switch states.** A switch says what is true right now and takes effect on the flip; a checkbox says what the next act should include and is read when that act runs. An option a button will consume — an import, a submit — is a checkbox row; a preference something observably obeys immediately is a switch. One control per question, chosen by which question it is.
+
+**Both states are drawn, and they differ in three ways at once:** checked is the green fill with the white tick; unchecked is the empty box with the grey edge — the same grey as the off switch track, visible on the card, because 1.4.11 covers a control's states here as it does the switch's. Fill *and* edge *and* glyph move together, for the same reason the switch's states differ three ways.
+
+**The row is the target.** The whole row is the label: name, description and the space between all toggle the box, so the phone-sized target needs no phone-only rule. Rows stack with a divider between them and a hover fill over each, the same line and fill the data lists use — a stack of options reads as rows, not prose. The accessible name is the bold name alone; the description is the control's description, not part of its name.
 
 ### Stepper
 
