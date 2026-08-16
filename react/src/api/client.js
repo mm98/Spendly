@@ -137,6 +137,13 @@ export async function getCategories(signal) {
 	return request('/api/categories', { signal })
 }
 
+/** The account's uncategorised orders, summed -- the all-time "Without category" figures the
+    Categories overview draws beside the real records. Not a row in getCategories' list: that
+    list is the account's records, and its readers map records into comboboxes and forms. */
+export async function getUncategorised(signal) {
+	return request('/api/categories/uncategorised', { signal })
+}
+
 export async function createCategory(name, look = {}, signal) {
 	return request('/api/categories', { method: 'POST', body: { name, look }, signal })
 }
@@ -710,7 +717,7 @@ export function invalidateOrderData() {
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
 	invalidate(getStats)
 	invalidate(getVendors); invalidate(getVendor)
-	invalidate(getCategories); invalidate(getCategory)
+	invalidate(getCategories); invalidate(getCategory); invalidate(getUncategorised)
 }
 
 /** A vendor record changed (name, look, favourite) or one was created. Order rows embed the
@@ -724,7 +731,7 @@ export function invalidateVendorData() {
 /** A category record changed (name, look, budget, favourite) or one was created. Same shape
     as vendors, plus the hero: its legend is the month's category split, colours and all. */
 export function invalidateCategoryData() {
-	invalidate(getCategories); invalidate(getCategory)
+	invalidate(getCategories); invalidate(getCategory); invalidate(getUncategorised)
 	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
 	invalidate(getStats)
