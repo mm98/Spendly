@@ -910,6 +910,10 @@ svg.chart { width:100%; display:block; }
    run its overflow straight through. */
 .field-shell-chips { flex-wrap:wrap; padding:8px 43px 8px 10px; position:relative; height:auto; min-height:48px; }
 .field-shell-chips > .chevron-icon { position:absolute; top:0; bottom:0; right:10px; margin:auto 0; }
+/* The vendor form's alias editor wraps chips exactly as the categories field does, but it
+   has no list to open and so no chevron -- without this, the 33px reserved above for one
+   sits as dead right padding beside nothing. */
+.field-shell-chips.field-shell-no-chevron { padding-right:10px; }
 /* overflow is set rather than left to the UA sheet: Blink and WebKit default a textarea to
    auto and Gecko computes visible, so the three engines disagreed on a property the walk
    compares. Nothing rendered differently -- a textarea scrolls its own content whatever this

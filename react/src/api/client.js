@@ -102,6 +102,14 @@ export async function deleteVendor(id, signal) {
 	return request(`/api/vendors/${id}`, { method: 'DELETE', signal })
 }
 
+/** Adds one alias to a vendor -- another string that resolves to it when an order names its
+    vendor by text (a scanned receipt's vendor line, a typed name). The vendor form edits the
+    whole list through updateVendor; this is the scan review's learning path, which only ever
+    has the one string to add. Idempotent for an alias the vendor already has. */
+export async function addVendorAlias(id, name, signal) {
+	return request('/api/vendors/aliases', { method: 'POST', body: { vendorId: id, name }, signal })
+}
+
 /* There is no getVendorsOverview and no getCategoriesOverview: each was the same GET as the
    plain list with a client-side reshape on top, which is a second cache entry for one request
    -- the overview tab and the list tab each paid the fetch the other had already paid.

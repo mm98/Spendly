@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Card, CardBody } from '../components/Card.jsx'
+import { Chip } from '../components/Chip.jsx'
 import { EntryRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { ColourPicker, VENDOR_COLOURS } from '../components/Pickers.jsx'
@@ -37,6 +38,8 @@ function VendorFields({ mode, vendor }) {
 	const [name, setName] = useState('')
 	const [colour, setColour] = useState(VENDOR_COLOURS[0].id)
 	const [favourite, setFavourite] = useState(false)
+	const [aliases, setAliases] = useState([])
+	const [aliasQuery, setAliasQuery] = useState('')
 	const [status, setStatus] = useState({ message: '', good: true })
 	const [saving, setSaving] = useState(false)
 
@@ -45,6 +48,7 @@ function VendorFields({ mode, vendor }) {
 		setName(vendor.name)
 		setColour(vendor.colour)
 		setFavourite(Boolean(vendor.favourite))
+		setAliases(vendor.aliases ?? [])
 	}, [vendor])
 
 	const fields = useMemo(() => {
@@ -65,6 +69,21 @@ function VendorFields({ mode, vendor }) {
 
 	const initials = (name.trim() || 'NY').slice(0, 2).toUpperCase()
 
+	/* An alias is another string that resolves to this vendor, so one equal to the name says
+	   nothing, and one already in the list is already there -- neither is addable, and Enter
+	   with nothing addable does nothing rather than pretending. Clashes with *other* vendors'
+	   names are the server's to refuse; its sentence reaches the toast on save. */
+	const aliasClean = aliasQuery.trim()
+	const aliasAddable = Boolean(aliasClean)
+		&& aliasClean.length <= 80
+		&& aliasClean.toLowerCase() !== name.trim().toLowerCase()
+		&& !aliases.some(a => a.toLowerCase() === aliasClean.toLowerCase())
+	const addAlias = () => {
+		if (!aliasAddable) return
+		setAliases([...aliases, aliasClean])
+		setAliasQuery('')
+	}
+
 	const refresh = () => invalidateVendorData()
 
 	const save = () => {
@@ -76,7 +95,7 @@ function VendorFields({ mode, vendor }) {
 		}
 		setStatus({ message: '', good: true })
 		setSaving(true)
-		const patch = { name: name.trim(), colour, initials, favourite }
+		const patch = { name: name.trim(), colour, initials, favourite, aliases }
 		const written = mode === 'edit' ? updateVendor(vendor.id, patch) : createVendor(patch.name, patch)
 		written
 			.then(saved => {
@@ -112,7 +131,7 @@ function VendorFields({ mode, vendor }) {
 			rail={
 				<>
 					<VendorSummary name={name} colour={colour} initials={initials}
-						favourite={favourite} vendor={vendor} />
+						favourite={favourite} aliases={aliases} vendor={vendor} />
 					{mode === 'edit' ? (
 						<DeleteCard what="vendor" del={del}>
 							A vendor that still has orders on it cannot be removed — the orders would
@@ -129,6 +148,25 @@ function VendorFields({ mode, vendor }) {
 						aria-label="Vendor name" aria-required="true" placeholder="Silvan"
 						invalid={nameField.invalid} describedBy={nameField.describedBy}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
+				</FieldShell>
+			</Field>
+
+			{/* htmlFor, because the chips are labelable and come first -- same reason as the
+			    categories field on the order form (components/Form.jsx): without it the label
+			    points at the first chip's remove button and a tap anywhere in the field that is
+			    not itself a control deletes an alias. */}
+			<Field label="Aliases" htmlFor="vendor-aliases"
+				help={'Other names this vendor goes by — the name it had before a rename, or the '
+					+ 'shortened form an invoice prints. An order or scanned receipt naming one files '
+					+ 'under this vendor. Type one and press Enter; an alias must differ from the name.'}>
+				<FieldShell className="field-shell-chips field-shell-no-chevron">
+					{aliases.map(a => (
+						<Chip key={a} label={`Remove alias ${a}`}
+							onRemove={() => setAliases(aliases.filter(x => x !== a))}>{a}</Chip>
+					))}
+					<TextInput id="vendor-aliases" value={aliasQuery} onChange={setAliasQuery}
+						aria-label="Add alias" placeholder="Add alias..."
+						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addAlias() } }} />
 				</FieldShell>
 			</Field>
 
@@ -157,7 +195,7 @@ function VendorFields({ mode, vendor }) {
 
 /** The rail card that mirrors the form: the row as it will be drawn, then its values, then
     what the vendor has cost all told. */
-function VendorSummary({ name, colour, initials, favourite, vendor }) {
+function VendorSummary({ name, colour, initials, favourite, aliases, vendor }) {
 	return (
 		<Card aria-label="Vendor summary">
 			<CardBody>
@@ -175,6 +213,8 @@ function VendorSummary({ name, colour, initials, favourite, vendor }) {
 					<span className="summary-row-value">{resolveColour(colour).toUpperCase()}</span></div>
 				<div className="summary-row">Favourite
 					<span className="summary-row-value">{favourite ? 'Yes' : 'No'}</span></div>
+				<div className="summary-row">Aliases
+					<span className="summary-row-value">{aliases.length ? aliases.join(', ') : '—'}</span></div>
 				{vendor ? <SummaryRow label="Saved vs retail" value={krRound(vendor.saved)} /> : null}
 				<div className="card-divider card-divider-tight" />
 				<SummaryTotal label="Spent all time" value={krRound(vendor?.spend ?? 0)}

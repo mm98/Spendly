@@ -10,13 +10,22 @@ import { CATEGORY_PALETTE, VENDOR_PALETTE, colourFor } from './palette.js'
    the id, so that's all these fetch and return. */
 
 const selectVendorIdByName = db.prepare('SELECT id FROM vendors WHERE user_id = ? AND lower(name) = lower(?)')
+const selectVendorIdByAlias = db.prepare('SELECT vendor_id AS id FROM vendor_aliases WHERE user_id = ? AND lower(name) = lower(?)')
 const insertVendor = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite)
 	VALUES (@id, @userId, @name, @initials, @colour, 0)`)
 
+/** The one string-to-vendor lookup: the vendor's own name first, then its aliases -- the
+    name it had before a rename, the shortened form an invoice prints (vendor_aliases).
+    A scanned receipt saying "Bilka A/S" files under Bilka instead of creating a twin. */
+export function findVendorIdByAnyName(userId, name) {
+	const clean = String(name).trim()
+	return (selectVendorIdByName.get(userId, clean) ?? selectVendorIdByAlias.get(userId, clean))?.id
+}
+
 export function findOrCreateVendor(userId, name) {
 	const clean = String(name).trim()
-	const existing = selectVendorIdByName.get(userId, clean)
-	if (existing) return existing.id
+	const existing = findVendorIdByAnyName(userId, clean)
+	if (existing) return existing
 	const id = newId('v')
 	insertVendor.run({ id, userId, name: clean, initials: clean.slice(0, 2).toUpperCase(),
 		colour: colourFor(clean, VENDOR_PALETTE) })
