@@ -338,9 +338,15 @@ export async function resetStoredData(signal) {
     A different year each press: no seed is sent, so the route picks one. `orders` is how many
     the year holds in total, the count the card's combobox chose. Answers
     { orders, vendors, categories, months, seed } — the seed it used, which is what makes a
-    dataset worth reporting reproducible. */
+    dataset worth reporting reproducible.
+
+    30 seconds and the request is abandoned rather than spinning forever: the largest fill is
+    ~5s on the API's own measurements, so six times that is a hang, not a slow day. Abandoned,
+    not cancelled — the server finishes what it started, so a fill that answers late has still
+    happened, and the error toast is about this page's knowledge of it, not about the data. */
 export async function populateDemoData(orders, signal) {
-	return request('/api/demo-data', { method: 'POST', body: { orders }, signal })
+	return request('/api/demo-data', { method: 'POST', body: { orders },
+		signal: signal ?? AbortSignal.timeout(30000) })
 }
 
 export async function getDashboardCards(signal) {
