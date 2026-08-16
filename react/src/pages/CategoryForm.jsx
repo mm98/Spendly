@@ -103,7 +103,7 @@ function CategoryFields({ mode, category }) {
 	const save = () => {
 		const failed = check()
 		if (failed.length) {
-			setStatus({ message: 'Cannot save — ' + needFixing(failed), good: false })
+			setStatus({ message: 'Cannot save: ' + needFixing(failed), good: false })
 			focusField(failed[0].name)
 			return
 		}
@@ -229,7 +229,7 @@ function CategorySummary({ values, budget, category }) {
 						colour={values.colour} name={values.name} />
 				</div>
 				<div className="summary-row">Name
-					<span className="summary-row-value">{values.name || '—'}</span></div>
+					<span className="summary-row-value">{values.name || '-'}</span></div>
 				<div className="summary-row">Colour
 					<span className="summary-row-value">{resolveColour(values.colour).toUpperCase()}</span></div>
 				<div className="summary-row">Icon

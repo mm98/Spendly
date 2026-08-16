@@ -86,7 +86,7 @@ function EditOrderForm({ id, seed }) {
 		if (existing) {
 			update({ vendor: existing.name })
 			orderErrors.recheck('order-vendor', existing.name)
-			toast(`"${clean}" is an alias of ${existing.name} — using ${existing.name}.`)
+			toast(`"${clean}" is an alias of ${existing.name}, so ${existing.name} is used.`)
 			return
 		}
 		createVendor(clean)
@@ -176,7 +176,7 @@ function EditOrderForm({ id, seed }) {
 	const submitItem = () => {
 		const failed = itemErrors.check()
 		if (failed.length) {
-			setItemStatus({ message: 'Not added — ' + needFixing(failed), good: false })
+			setItemStatus({ message: 'Not added: ' + needFixing(failed), good: false })
 			focusField(failed[0].name)
 			return
 		}
@@ -209,7 +209,7 @@ function EditOrderForm({ id, seed }) {
 		const failedOrder = orderErrors.check()
 		if (failedOrder.length) {
 			if (failedOrder.some(f => f.name === 'order-shipping')) setMore(true)
-			setStatus({ message: 'Cannot save — ' + needFixing(failedOrder), good: false })
+			setStatus({ message: 'Cannot save: ' + needFixing(failedOrder), good: false })
 			focusField(failedOrder[0].name)
 			return
 		}
@@ -273,7 +273,7 @@ function EditOrderForm({ id, seed }) {
 							<Button variant="caps compact" onClick={save} disabled={saving}>
 								{saving ? 'SAVING...' : 'SAVE'}</Button>
 						</div>
-						<p className="card-lead">Update the details, the items, or both — everything saves together.</p>
+						<p className="card-lead">Update the details, the items, or both; everything saves together.</p>
 						<FormStatus message={status.message} good={status.good} />
 						<Form>
 							<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId}>
@@ -291,7 +291,7 @@ function EditOrderForm({ id, seed }) {
 									]}
 									action={aliasHit
 										? { icon: 'check',
-											label: `USE ${aliasHit.name.toUpperCase()} — "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
+											label: `USE ${aliasHit.name.toUpperCase()}: "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
 											onSelect: addVendor }
 										: { icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
 											onSelect: addVendor }} />

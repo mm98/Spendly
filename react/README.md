@@ -49,7 +49,8 @@ src/
 | `/categories` | Categories, and a Manage tab whose rows open the record |
 | `/categories/new`, `/categories/:id/edit` | A category: name, budget, colour, glyph, delete |
 | `/stats` | Statistics, with a pager over weeks, months, quarters and years |
-| `/settings` | Order settings — what ORDER SETTINGS opens |
+| `/settings` | Settings: order defaults, lists, account, demo data |
+| `/settings/import` | Importing: the JSON upload and the API reference |
 
 ### The stylesheet
 

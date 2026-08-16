@@ -143,7 +143,7 @@ export default function AllOrders() {
 	const chips = useMemo(() => {
 		const out = []
 		if (filters.from || filters.to) out.push({ key: 'dates',
-			label: [filters.from && dayMonth(filters.from), filters.to && dayMonth(filters.to)].filter(Boolean).join(' – '),
+			label: [filters.from && dayMonth(filters.from), filters.to && dayMonth(filters.to)].filter(Boolean).join(' - '),
 			clear: { from: '', to: '' } })
 		if (filters.status !== 'Any') out.push({ key: 'status', label: filters.status, clear: { status: 'Any' } })
 		if (filters.vendorId) out.push({ key: 'vendor', label: 'Vendor: ' + nameOf(vendors.data, filters.vendorId), clear: { vendorId: '', vendorName: '' } })

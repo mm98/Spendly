@@ -54,7 +54,7 @@ router.get('/draft/:key', (req, res) => {
 		vendor: '', vendorMatched: false, date: new Date().toISOString().slice(0, 10),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
 		shipping: 0, linesRead: 0, lines: [], remainder: null, total: 0,
-		reconciled: 'This document has not been read automatically — add the line items and totals below yourself.',
+		reconciled: 'This document has not been read automatically. Add the line items and totals below yourself.',
 		checks: [], duplicate: null
 	})
 })

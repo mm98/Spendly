@@ -156,6 +156,14 @@ body {
    of its own (see the phone rule further down), so this padding would sit on the right of
    text with nothing beside it there; zeroed at that width rather than left to look stray. */
 .toggle-help { padding-right:20px; }
+/* A switch leading its own description: control on the left, text left-aligned beside it.
+   flex-start rather than center so a wrapped second line stays under the first, never
+   drifting the control; the 4px sets the first line just under the 26px control's top,
+   the desktop look. The phone block swaps it for a negative margin that puts the text's
+   first inked pixel row flush with the switch's. flex:1 with min-width:0 is what lets
+   the text wrap at phone widths instead of pushing the row wide. */
+.toggle-row { display:flex; align-items:flex-start; gap:14px; }
+.toggle-row .field-help { flex:1; min-width:0; padding-top:4px; }
 svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
 /* ---------------- shell ---------------- */
@@ -1183,6 +1191,10 @@ label.field-shell { cursor:pointer; }
    and 48px/9.5px there, and the comment on .topbar .topbar-actions pointed at a .global-finder rule that
    lived somewhere else entirely. Keep it one block. README: Responsive Layout. */
 @media (max-width:700px) {
+	/* Top-aligned on a phone: the ink of the text's first line flush with the switch's
+	   top edge, measured from rendered pixels; -3.2px rather than the geometric 4.2px cap
+	   offset because the glyphs' antialiasing carries ink a pixel above the cap line. */
+	.toggle-row .field-help { padding-top:0; margin-top:-3.2px; }
 	.app-shell { grid-template-columns:1fr; }
 	/* The canvas tint exists to frame the floating white sheet against the sidebar.
 	   A phone has no sidebar, so all it produced in the content area was an 8px
