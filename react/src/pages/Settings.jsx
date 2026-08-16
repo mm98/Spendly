@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -9,10 +9,11 @@ import {
 	Field, FieldPair, FilterSection, Form, FormActions, Segmented, Switch
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
+import { HiddenFileInput } from '../components/FileInput.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	cardRowOptions, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
-	getSettings, getVendors, listSorts, logout, populateDemoData, resetStoredData, saveSettings,
+	getSettings, getVendors, importOrders, listSorts, logout, populateDemoData, resetStoredData, saveSettings,
 	sorts, spendKinds
 } from '../api/client.js'
 
@@ -112,6 +113,9 @@ export default function Settings() {
 	const toast = useToast()
 	const [confirming, setConfirming] = useState(false)
 	const [filling, setFilling] = useState(false)
+	// Beside `filling` for the same reason it is: the body remounts when the settings reload,
+	// and a chosen file should survive that.
+	const [importFile, setImportFile] = useState(null)
 	/* Beside `filling` rather than in the body for the same reason `filling` is: the body
 	   remounts when the settings reload, and the chosen count and period should survive that. */
 	const [demoCount, setDemoCount] = useState(DEMO_ORDER_COUNTS[0].id)
@@ -140,6 +144,7 @@ export default function Settings() {
 				<SettingsBody settings={settings} set={set} toast={toast}
 					confirming={confirming} setConfirming={setConfirming} refresh={refresh}
 					filling={filling} setFilling={setFilling}
+					importFile={importFile} setImportFile={setImportFile}
 					demoCount={demoCount} setDemoCount={setDemoCount}
 					demoPeriod={demoPeriod} setDemoPeriod={setDemoPeriod}
 					reload={state.refresh} />
@@ -149,7 +154,7 @@ export default function Settings() {
 }
 
 function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh, reload,
-	filling, setFilling, demoCount, setDemoCount, demoPeriod, setDemoPeriod }) {
+	filling, setFilling, importFile, setImportFile, demoCount, setDemoCount, demoPeriod, setDemoPeriod }) {
 	const navigate = useNavigate()
 	const signOut = () => logout().then(() => navigate('/login', { replace: true }))
 	/* The controls are driven from the stored value, so what is on screen is what is saved --
@@ -172,6 +177,38 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 				toast('Everything stored in this browser was cleared.')
 			})
 			.catch(e => toast(failureMessage(e, 'That did not clear.'), 'negative'))
+	}
+
+	/* The file import. The picker takes one JSON file holding the same shape the reference
+	   card documents -- `{ "orders": [...] }`, or a bare array of orders -- and IMPORT posts
+	   it through the same endpoint a script would use. The two file-shaped failures (not
+	   JSON, no orders array) are told apart from a refused import, because "try a different
+	   file" and "fix row 3" are different instructions. */
+	const importPicker = useRef(null)
+	const [importing, setImporting] = useState(false)
+	const runImport = () => {
+		setImporting(true)
+		importFile.text()
+			.then(text => {
+				let parsed
+				try { parsed = JSON.parse(text) } catch { throw new Error('import-not-json') }
+				const orders = Array.isArray(parsed) ? parsed : parsed?.orders
+				if (!Array.isArray(orders) || !orders.length) throw new Error('import-no-orders')
+				return importOrders(orders)
+			})
+			.then(({ imported, failed }) => {
+				// Imported orders reach every list, chart and card, same as a fill: everything goes.
+				invalidate()
+				reload()
+				setImportFile(null)
+				if (failed.length) toast(`${imported} imported, ${failed.length} failed — row ${failed[0].index}: ${failed[0].error}`, 'negative')
+				else toast(`${imported} order${imported === 1 ? '' : 's'} imported.`)
+			})
+			.catch(e => toast(
+				e.message === 'import-not-json' ? 'That file is not valid JSON.'
+					: e.message === 'import-no-orders' ? 'No orders in that file — it needs an "orders" array.'
+						: failureMessage(e, 'That did not import.'), 'negative'))
+			.finally(() => setImporting(false))
 	}
 
 	/* `busy` rather than only hiding the confirm: a year of orders is one request, and a
@@ -378,13 +415,45 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					</CardBody>
 				</Card>
 
+				{/* The upload half of importing: choose a JSON file, press IMPORT. The shape the
+				    file must hold is the reference card below -- one schema, two doors, and the
+				    server validates both the same way. */}
+				<Card aria-label="Import orders">
+					<CardHeader title="Import orders" />
+					<CardDivider />
+					<CardBody>
+						<p className="card-lead card-lead-flush">
+							Bring orders in from a JSON file — an object holding an{' '}
+							<code>orders</code> array, the shape the reference below documents. Each
+							order imports on its own, so one bad row fails alone.
+						</p>
+						{importFile ? (
+							<>
+								<p className="field-help">{importFile.name}</p>
+								<FormActions>
+									<Button variant="caps compact" disabled={importing} onClick={runImport}>
+										{importing ? 'IMPORTING...' : 'IMPORT'}
+									</Button>
+									<Button variant="ghost compact" disabled={importing}
+										onClick={() => setImportFile(null)}>CANCEL</Button>
+								</FormActions>
+							</>
+						) : (
+							<Button variant="block" icon="upload"
+								onClick={() => importPicker.current?.click()}>CHOOSE A JSON FILE</Button>
+						)}
+						<HiddenFileInput ref={importPicker} accept=".json,application/json"
+							label="Choose a JSON file of orders" onFiles={([file]) => setImportFile(file)} />
+					</CardBody>
+				</Card>
+
 				{/* Documentation, not a control -- the one thing on this page that is, which is why
 				    it is also the one card that opens closed: reference material for the day a
 				    script gets written, not a screenful to scroll past on every visit. The example
 				    mirrors validateOrderDraft and the import route; change those and change this.
 				    Every JSON fragment is JSON.stringify's own output, coloured by a
 				    ten-line tokenizer -- hand-aligned annotation columns drifted immediately. */}
-				<Card aria-label="Import orders">
+				<Card aria-label="Import from another system">
 					<CardHeader title="Import from another system"
 						onToggle={() => setImportOpen(open => !open)} open={importOpen}
 						controls="import-reference"
