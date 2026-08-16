@@ -11,7 +11,7 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	cardRowOptions, getCategories, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
+	cardRowOptions, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
 	getSettings, getVendors, listSorts, logout, populateDemoData, resetStoredData, saveSettings,
 	sorts, spendKinds
 } from '../api/client.js'
@@ -131,7 +131,7 @@ export default function Settings() {
 	const set = useCallback((patch, said) => {
 		saveSettings(patch)
 			.then(() => { refresh(); toast(said) })
-			.catch(() => toast('That did not save.', 'negative'))
+			.catch(e => toast(failureMessage(e, 'That did not save.'), 'negative'))
 	}, [refresh, toast])
 
 	return (
@@ -171,7 +171,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 				setConfirming(false)
 				toast('Everything stored in this browser was cleared.')
 			})
-			.catch(() => toast('That did not clear.', 'negative'))
+			.catch(e => toast(failureMessage(e, 'That did not clear.'), 'negative'))
 	}
 
 	/* `busy` rather than only hiding the confirm: a year of orders is one request, and a
@@ -189,7 +189,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 				const span = months % 12 === 0 ? `${months / 12} year${months === 12 ? '' : 's'}` : `${months} months`
 				toast(`${orders} orders across ${span}, ${vendors} vendors and ${categories} categories.`)
 			})
-			.catch(() => toast('That did not fill.', 'negative'))
+			.catch(e => toast(failureMessage(e, 'That did not fill.'), 'negative'))
 			.finally(() => setBusy(false))
 	}
 

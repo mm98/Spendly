@@ -11,7 +11,9 @@ import { AiCard, AiCardMark } from '../components/AiCard.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { SavingChip } from '../components/Chip.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
-import { getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn, saveSettings } from '../api/client.js'
+import {
+	failureMessage, getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn, saveSettings
+} from '../api/client.js'
 import { dayMonth, kr, krRound, percent, sep } from '../api/format.js'
 
 /* Home.
@@ -383,6 +385,7 @@ function dashboardCard(key, data) {
 export default function Home() {
 	const content = useApi(getHomeContent)
 	const cards = useApi(getDashboardCards)
+	const toast = useToast()
 
 	/* LATER is a preference, not a state that lives until the next reload. It writes the same
 	   setting the Settings page toggles, so dismissing the card here and turning it back on
@@ -390,6 +393,7 @@ export default function Home() {
 	const dismissScanCard = () => {
 		saveSettings({ showScanCard: false })
 			.then(() => { invalidate(getSettings); invalidate(getHomeContent); content.refresh() })
+			.catch(e => toast(failureMessage(e, 'That did not save.'), 'negative'))
 		document.getElementById('page-title')?.focus()
 	}
 

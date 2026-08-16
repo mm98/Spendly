@@ -6,7 +6,7 @@ import { Donut, foldForRing } from '../components/Viz.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
-import { getVendors, invalidateVendorData, updateVendor } from '../api/client.js'
+import { failureMessage, getVendors, invalidateVendorData, updateVendor } from '../api/client.js'
 import { dayMonth, krRound, sep } from '../api/format.js'
 
 /* Vendors, overview.
@@ -32,7 +32,7 @@ export default function Vendors() {
 				state.refresh()
 				toast(`${vendor.name} ${vendor.favourite ? 'removed from' : 'added to'} favourites.`)
 			})
-			.catch(e => toast(e.message, 'negative'))
+			.catch(e => toast(failureMessage(e, 'That did not save.'), 'negative'))
 	}
 
 	return (

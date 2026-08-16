@@ -10,7 +10,7 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, getVendor, getVendors, invalidateVendorData, updateVendor
+	createVendor, deleteVendor, failureMessage, getVendor, getVendors, invalidateVendorData, updateVendor
 } from '../api/client.js'
 import { krRound, sep } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
@@ -84,7 +84,7 @@ function VendorFields({ mode, vendor }) {
 				toast(`${saved.name} ${mode === 'edit' ? 'saved' : 'added'}.`)
 				navigate('/vendors')
 			})
-			.catch(e => { setSaving(false); toast(e.message, 'negative') })
+			.catch(e => { setSaving(false); toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
 
 	const del = useDelete({
@@ -94,7 +94,7 @@ function VendorFields({ mode, vendor }) {
 			.then(() => { refresh(); toast(`${vendor.name} removed.`); navigate('/vendors') })
 			/* A vendor with orders on it cannot go: the orders would point at nothing. The API
 			   refuses with a 409 that names the reason rather than failing silently. */
-			.catch(e => toast(e.message, 'negative'))
+			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
 	})
 
 	return (

@@ -13,7 +13,7 @@ import { Chip } from '../components/Chip.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	addAttachments, attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, getOrder,
+	addAttachments, attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder,
 	invalidateOrderData, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
 	removeAttachment
 } from '../api/client.js'
@@ -57,7 +57,7 @@ export default function OrderDetail() {
 			: '',
 		onDelete: () => deleteOrder(id)
 			.then(() => { invalidateOrder(); navigate('/orders/all') })
-			.catch(() => toast('That did not delete.', 'negative'))
+			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
 	})
 
 	const attach = files => {
@@ -72,7 +72,7 @@ export default function OrderDetail() {
 					: ''
 				toast([said, also].filter(Boolean).join(' '), added.length ? 'positive' : 'negative')
 			})
-			.catch(() => toast('That did not attach.', 'negative'))
+			.catch(e => toast(failureMessage(e, 'That did not attach.'), 'negative'))
 	}
 
 	const detach = file => {
@@ -82,7 +82,7 @@ export default function OrderDetail() {
 				if (openFile === file.id) setOpenFile(null)
 				toast(`${file.name} removed.`)
 			})
-			.catch(() => toast('That did not remove.', 'negative'))
+			.catch(e => toast(failureMessage(e, 'That did not remove.'), 'negative'))
 	}
 
 	/* The row's trash asks the same way the header band's does -- one setting, every delete

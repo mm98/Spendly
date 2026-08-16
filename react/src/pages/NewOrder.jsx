@@ -19,8 +19,8 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	addItemAttachments, createOrder, createVendor, getCategories, getOrderDraft, getVendors,
-	invalidateOrderData, invalidateVendorData, spendKinds
+	addItemAttachments, createOrder, createVendor, failureMessage, getCategories, getOrderDraft,
+	getVendors, invalidateOrderData, invalidateVendorData, spendKinds
 } from '../api/client.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { amount, kr, parseAmount, percent, shortDate, today, sep } from '../api/format.js'
@@ -110,7 +110,7 @@ export function NewOrderDetails() {
 				recheck('order-vendor', vendor.name)
 				toast(`${vendor.name} added to your vendors.`)
 			})
-			.catch(e => toast(e.message, 'negative'))
+			.catch(e => toast(failureMessage(e, 'The vendor was not created. Try again.'), 'negative'))
 	}
 
 	const next = () => {
@@ -468,10 +468,8 @@ export function NewOrderItems() {
 
 				navigate('/orders/' + order.id)
 			})
-			/* A server rejection carries its own sentence about the field; the generic line is
-			   only for errors that have none. See the same catch on the scan review. */
 			.catch(e => { setSaving(false)
-				toast(e.name === 'ApiError' ? e.message : 'That did not save. Try again.', 'negative') })
+				toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
 
 	return (

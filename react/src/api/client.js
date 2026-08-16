@@ -22,6 +22,15 @@ class ApiError extends Error {
 	}
 }
 
+/** The sentence a failed request shows. The server's refusal carries its own words about the
+    cause -- "Describe the item.", a 409 naming how many orders are in the way -- and those words
+    travel to the screen; the fallback is only for errors that have none (a network failure, a
+    timeout), where the browser's own message is prose about the transport, not about what the
+    user did. One copy, because every catch writing its own ternary is how three of them showed
+    the words and six threw them away. README: Feedback. */
+export const failureMessage = (error, fallback) =>
+	error?.name === 'ApiError' ? error.message : fallback
+
 const qs = params => {
 	const usp = new URLSearchParams()
 	for (const [k, v] of Object.entries(params ?? {})) if (v !== '' && v != null) usp.set(k, String(v))

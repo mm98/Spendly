@@ -4,7 +4,7 @@ import { IconButton } from './Button.jsx'
 import { useReorder } from './Reorder.jsx'
 import { Icon } from './Icon.jsx'
 import { useToast } from './Toast.jsx'
-import { getDashboardCards, saveDashboardCards } from '../api/client.js'
+import { failureMessage, getDashboardCards, saveDashboardCards } from '../api/client.js'
 import { invalidate } from '../api/useApi.js'
 
 /* Which cards sit on the dashboard, and in what order, is the user's choice, so it persists.
@@ -92,11 +92,13 @@ export function DashboardCards({ all, initial, render }) {
 	const done = () => {
 		/* The cached card list is the save's own read -- without dropping it, leaving Home and
 		   coming back would draw the arrangement from before the edit. */
+		/* "Saved" waits for the save. This used to toast it before the request settled and
+		   swallow the failure under a comment about localStorage -- a relic of the phantom
+		   store, over what is a real API write now. README: Feedback. */
 		saveDashboardCards(on)
-			.then(() => invalidate(getDashboardCards))
-			.catch(() => { /* storage refused: the choice holds for this session */ })
+			.then(() => { invalidate(getDashboardCards); toast('Your cards were saved.') })
+			.catch(e => toast(failureMessage(e, 'Your cards were not saved.'), 'negative'))
 		setEditing(false)
-		toast('Your cards were saved.')
 		queueMicrotask(() => editButton.current?.focus())
 	}
 
