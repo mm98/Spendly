@@ -4,8 +4,8 @@ services:
   spendly:
     # Build locally, or swap these two lines for the CI-built image from GHCR
     # (docker login ghcr.io first if the repo is private):
-    #   image: ghcr.io/mm98/spendly:latest
-    build: .
+    image: ghcr.io/mm98/spendly:latest
+    #   build: .
     container_name: spendly
     restart: unless-stopped
     ports:
