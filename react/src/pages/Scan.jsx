@@ -20,9 +20,8 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
-	attachScanDocument, createOrder, getHomeContent, getHomeHero, getOrders, getOrdersOverview,
-	getRecentScans, getScanDraft, getStats, putScanDocument, scanFileUrl, scanThumbnailUrl,
-	spendKinds
+	attachScanDocument, createOrder, getRecentScans, getScanDraft, invalidateOrderData,
+	putScanDocument, scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
@@ -76,7 +75,9 @@ export function ScanUpload() {
 	const upload = files => {
 		const file = files[0]
 		if (!file) return
-		putScanDocument(file).then(({ key }) => go(key))
+		/* The upload is a write to the recent-scans list this very page draws -- walking back
+		   here has to show the document that was just dropped. */
+		putScanDocument(file).then(({ key }) => { invalidate(getRecentScans); go(key) })
 	}
 
 	return (
@@ -291,8 +292,10 @@ function ScanReviewForm({ answer }) {
 		})
 			.then(order => attachScanDocument(answer.documentKey, order.id).then(() => order).catch(() => order))
 			.then(order => {
-				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
-				invalidate(getStats); invalidate(getHomeHero)
+				invalidateOrderData()
+				/* Attaching consumed the scanned document, so the recent-scans list on the
+				   landing step no longer holds it. */
+				invalidate(getRecentScans)
 				navigate('/orders/' + order.id)
 			})
 			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })

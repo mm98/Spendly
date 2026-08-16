@@ -17,11 +17,10 @@ import {
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
-import { useApi, invalidate } from '../api/useApi.js'
+import { useApi } from '../api/useApi.js'
 import {
-	addItemAttachments, createVendor, getCategories, getHomeContent, getHomeHero,
-	getOrderAsDraft, getOrders, getOrdersOverview, getStats, getVendors, getVendorsOverview,
-	itemAttachmentThumbnailUrl, spendKinds, updateOrder
+	addItemAttachments, createVendor, getCategories, getOrderAsDraft, getVendors,
+	invalidateOrderData, invalidateVendorData, itemAttachmentThumbnailUrl, spendKinds, updateOrder
 } from '../api/client.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { amount, kr, parseAmount, percent, today, sep } from '../api/format.js'
@@ -79,7 +78,7 @@ function EditOrderForm({ id, seed }) {
 		if (!clean) return
 		createVendor(clean)
 			.then(vendor => {
-				invalidate(getVendors); invalidate(getVendorsOverview)
+				invalidateVendorData()
 				vendors.refresh()
 				update({ vendor: vendor.name })
 				orderErrors.recheck('order-vendor', vendor.name)
@@ -210,8 +209,7 @@ function EditOrderForm({ id, seed }) {
 		setSaving(true)
 		updateOrder(id, draft)
 			.then(async order => {
-				invalidate(getOrders); invalidate(getHomeContent); invalidate(getOrdersOverview)
-				invalidate(getOrderAsDraft); invalidate(getStats); invalidate(getHomeHero)
+				invalidateOrderData()
 
 				const uploads = draft.items
 					.map((item, i) => [pendingPhotos[item.id], order.items[i]])

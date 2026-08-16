@@ -8,10 +8,9 @@ import {
 	Field, FieldShell, FilterSection, Switch, TextInput, focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
-import { invalidate, useApi } from '../api/useApi.js'
+import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, getHomeContent, getVendor, getVendors, getVendorsOverview,
-	updateVendor
+	createVendor, deleteVendor, getVendor, getVendors, invalidateVendorData, updateVendor
 } from '../api/client.js'
 import { krRound, sep } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
@@ -66,10 +65,7 @@ function VendorFields({ mode, vendor }) {
 
 	const initials = (name.trim() || 'NY').slice(0, 2).toUpperCase()
 
-	const refresh = () => {
-		invalidate(getVendors); invalidate(getVendorsOverview); invalidate(getVendor)
-		invalidate(getHomeContent)
-	}
+	const refresh = () => invalidateVendorData()
 
 	const save = () => {
 		const failed = check()

@@ -11,9 +11,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	cardRowOptions, getCategories, getHomeContent, getOrderDraft, getOrders, getSettings,
-	getVendors, listSorts, logout, populateDemoData, resetStoredData, saveSettings, sorts,
-	spendKinds
+	cardRowOptions, getCategories, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
+	getSettings, getVendors, listSorts, logout, populateDemoData, resetStoredData, saveSettings,
+	sorts, spendKinds
 } from '../api/client.js'
 
 /* Order settings.
@@ -121,9 +121,10 @@ export default function Settings() {
 	   change is wrong the moment it is saved, so it goes rather than being left to expire. */
 	const refresh = useCallback(() => {
 		invalidate(getSettings); invalidate(getOrderDraft); invalidate(getOrders); invalidate(getHomeContent)
-		// Entries per card is baked into what Home answers, and the list order into what the
-		// vendors and categories tabs open as -- so their caches are as stale as the rest the
-		// moment either is saved.
+		// Entries per card is baked into what Home and the orders overview answer, and the list
+		// order into what the vendors and categories tabs open as -- so their caches are as
+		// stale as the rest the moment either is saved.
+		invalidate(getOrdersOverview)
 		invalidate(getVendors); invalidate(getCategories)
 	}, [])
 
@@ -163,7 +164,9 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 	const clear = () => {
 		resetStoredData()
 			.then(() => {
-				refresh()
+				/* The reset replaced the account's whole ledger, so no cached answer anywhere
+				   survives it -- the bare call clears everything, not a list of endpoints. */
+				invalidate()
 				reload()
 				setConfirming(false)
 				toast('Everything stored in this browser was cleared.')
@@ -178,7 +181,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 		setBusy(true)
 		populateDemoData(demoCount, demoPeriod)
 			.then(({ orders, vendors, categories, months }) => {
-				refresh()
+				// A whole replaced ledger, same as the reset above: everything goes.
+				invalidate()
 				reload()
 				setFilling(false)
 				// The span in the unit it was chosen in: years when it is whole years, months when not.

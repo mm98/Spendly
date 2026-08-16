@@ -5,7 +5,7 @@ import { LegendRow } from '../components/Rows.jsx'
 import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategoriesOverview } from '../api/client.js'
+import { getCategories } from '../api/client.js'
 import { krRound, percent, sep } from '../api/format.js'
 
 /* Categories, overview.
@@ -29,7 +29,10 @@ const budgetUsed = categories => {
 }
 
 export default function Categories() {
-	const state = useApi(getCategoriesOverview)
+	/* The same request the All categories tab reads, under the same cache key -- switching
+	   between the two tabs re-uses one answer instead of fetching /api/categories once per
+	   tab name. */
+	const state = useApi(getCategories)
 
 	return (
 		<Page variant="page-grid">
@@ -39,8 +42,7 @@ export default function Categories() {
 				<Button variant="caps" to="/categories/new">ADD CATEGORY</Button>
 			</div>
 
-			<Async state={state} label="Loading your categories">{data => {
-				const categories = data.categories
+			<Async state={state} label="Loading your categories">{categories => {
 				const spent = categories.reduce((sum, c) => sum + c.spend, 0)
 				const saved = categories.reduce((sum, c) => sum + c.saved, 0)
 				const budgeted = categories.filter(c => c.budget > 0)

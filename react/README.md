@@ -140,6 +140,24 @@ changed; it keeps the last good data across a refetch, so the layout does not co
 the user; and it reports the error rather than rendering nothing. `invalidate(endpoint)`
 drops what a write has just made stale.
 
+The cache is trusted, not just painted: a hit younger than five minutes costs no request, so
+switching between two tabs of one page moves no traffic at all — it used to re-fetch the
+same endpoint on every switch, which read as the tab being slow and was the server
+re-aggregating an unchanged answer. What earns a refetch is a write, and the write sites
+call grouped invalidators (`invalidateOrderData` and friends, foot of `client.js`) so an
+order write also drops the vendor and category stats its rows feed — the lists a targeted
+invalidation forgot were exactly the ones the old refetch-on-mount papered over. Past the
+five-minute horizon a hit still paints instantly and revalidates in the background, which is
+what catches another device's edits and the day rolling over under an open window. Crossing
+the auth boundary (login, register, logout) clears the whole cache in `client.js` itself.
+
+The API mirrors the same idea one level down (`api/src/lib/readCache.js`): GET answers are
+kept per user for up to a minute and any write from that user flushes them, so a repeated
+read within the window replays the JSON instead of re-running the aggregation — the
+`X-Cache: hit`/`miss` header on every JSON response says which one happened. That cache
+leans on the app being one process over one SQLite file; a deploy with more than one API
+process would need a shared store before keeping it.
+
 ### What derives, and what does not
 
 An order's subtotal is its lines added up, and its total is that plus shipping. What it saved

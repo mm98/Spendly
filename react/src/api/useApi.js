@@ -10,11 +10,22 @@ import { useCallback, useEffect, useRef, useState } from 'react'
    layout does not collapse and reflow under the user; and it reports the error rather than
    rendering an empty page that looks like an answer.
 
+   A cached answer is *trusted*, not just painted: within FRESH_MS a hit costs no request at
+   all. Every write in the app already invalidates the reads it can change (the grouped
+   helpers at the foot of client.js), so re-asking on every mount bought nothing within a tab
+   and charged the server a full aggregation per tab switch for it. The horizon exists for
+   what invalidation cannot see -- another device editing the account, and the day rolling
+   over under a window left open (Home's hero and the stats windows are anchored to today) --
+   past it a hit still paints instantly and revalidates in the background, so the cost is at
+   most one quiet request per entry per horizon, never a skeleton.
+
    The cache key is the endpoint's name and its arguments as JSON. That is also why `args`
    need not be memoised at the call site: a fresh array with the same contents is the same
    key, so passing one inline does not re-run the effect on every render. */
 
-const cache = new Map()
+const cache = new Map()   // key -> { data, at }
+
+const FRESH_MS = 5 * 60 * 1000
 
 /* A Map with no ceiling is one entry per endpoint-and-arguments combination for the life of
    the tab -- All orders alone reaches one per distinct filter, sort and page reachable through
@@ -31,7 +42,7 @@ const keyOf = (fn, args) => (fn.name || 'anonymous') + ':' + JSON.stringify(args
 export function useApi(fn, args = [], { enabled = true } = {}) {
 	const key = enabled ? keyOf(fn, args) : null
 	const [state, setState] = useState(() => ({
-		data: key !== null ? cache.get(key) : undefined,
+		data: key !== null ? cache.get(key)?.data : undefined,
 		error: null,
 		loading: enabled && !(key !== null && cache.has(key))
 	}))
@@ -45,10 +56,19 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 
 	useEffect(() => {
 		if (key === null) return
+		const hit = cache.get(key)
+
+		/* A fresh hit is the answer -- no request. Opening a view is not a reason to re-ask;
+		   only a write (which deletes the entry) or the horizon above is. */
+		if (hit && Date.now() - hit.at < FRESH_MS) {
+			setState({ data: hit.data, error: null, loading: false })
+			return
+		}
+
 		const controller = new AbortController()
 		let live = true
 
-		if (cache.has(key)) setState({ data: cache.get(key), error: null, loading: false })
+		if (hit) setState({ data: hit.data, error: null, loading: false })
 		else setState(s => ({ data: s.data, error: null, loading: true }))
 
 		const { fn: endpoint, args: params } = request.current
@@ -56,7 +76,7 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 			.then(() => endpoint(...params, controller.signal))
 			.then(data => {
 				if (!live) return
-				cache.set(key, data)
+				cache.set(key, { data, at: Date.now() })
 				evict()
 				setState({ data, error: null, loading: false })
 			})
