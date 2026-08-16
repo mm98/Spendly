@@ -1,4 +1,4 @@
-import { AMOUNT_PATTERN, WHOLE_NUMBER_PATTERN, today } from './format.js'
+import { AMOUNT_PATTERN, SIGNED_AMOUNT_PATTERN, WHOLE_NUMBER_PATTERN, today } from './format.js'
 import { spendKinds } from './client.js'
 
 /* What an order and an item may hold, in one place.
@@ -27,7 +27,9 @@ export const ORDER_FIELDS = [
 		: spendKinds.some(k => k.toLowerCase() === v.toLowerCase()) ? ''
 		: 'Kind is one of: ' + spendKinds.join(', ') + '.' },
 	{ name: 'order-shipping', label: 'Shipping fee', check: v =>
-		!v || AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 49,00.' }
+		!v ? ''
+		: v.startsWith('-') ? 'Shipping cannot go below zero.'
+		: AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 49,00.' }
 ]
 
 /** Step 2's item form. Required: Description, Quantity, Price paid. Retail is optional and
@@ -40,11 +42,16 @@ export const ITEM_FIELDS = [
 		: !WHOLE_NUMBER_PATTERN.test(v) ? 'Whole pieces only, such as 2.'
 		: Number(v) < 1 ? 'At least 1 pc.'
 		: Number(v) > 9999 ? '9.999 pcs at most.' : '' },
+	/* Price is the one signed amount -- a receipt line can be a discount (rabat), entered
+	   with a leading minus, and it subtracts from the order the way it did at the till.
+	   Retail and shipping stay at zero or above, and say so rather than blaming the comma. */
 	{ name: 'item-price', label: 'Price paid', check: v =>
 		!v ? 'What did you pay?'
-		: !AMOUNT_PATTERN.test(v) ? 'Amounts take a comma, such as 89,95.' : '' },
+		: !SIGNED_AMOUNT_PATTERN.test(v) ? 'Amounts take a comma, such as 89,95.' : '' },
 	{ name: 'item-retail', label: 'Retail price', check: v =>
-		!v || AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 104,95.' }
+		!v ? ''
+		: v.startsWith('-') ? 'Retail cannot go below zero.'
+		: AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 104,95.' }
 ]
 
 /** A line corrected on the scan review is an item under a different name, so it takes the

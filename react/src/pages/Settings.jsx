@@ -72,6 +72,8 @@ const IMPORT_EXAMPLE = {
 		items: [{
 			title: 'Rugbrød', quantity: 1, price: 24.95, retail: 32.00, note: '',
 			attachments: [{ filename: 'brod.jpg', contentType: 'image/jpeg', data: '<base64>' }]
+		}, {
+			title: 'Rabat', quantity: 1, price: -10.00
 		}],
 		attachments: [{ filename: 'receipt.pdf', contentType: 'application/pdf', data: '<base64>' }]
 	}]
@@ -527,7 +529,9 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								<ul className="import-rules">
 									<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
 										least one item with <code>title</code>, <code>quantity</code> and{' '}
-										<code>price</code>. Everything else is optional, and every amount ≥ 0.</li>
+										<code>price</code>. Everything else is optional.</li>
+									<li><code>price</code> may be negative — a discount line subtracts, the way it
+										did at the till. Every other amount ≥ 0.</li>
 									<li><code>vendor</code> ≤ 80 characters.</li>
 									<li><code>title</code> ≤ 120 characters.</li>
 									<li><code>quantity</code> a whole number, 1–9999.</li>
