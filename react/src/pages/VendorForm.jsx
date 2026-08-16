@@ -89,7 +89,7 @@ function VendorFields({ mode, vendor }) {
 	const save = () => {
 		const failed = check()
 		if (failed.length) {
-			setStatus({ message: 'Cannot save — ' + needFixing(failed), good: false })
+			setStatus({ message: 'Cannot save: ' + needFixing(failed), good: false })
 			focusField(failed[0].name)
 			return
 		}
@@ -134,7 +134,7 @@ function VendorFields({ mode, vendor }) {
 						favourite={favourite} aliases={aliases} vendor={vendor} />
 					{mode === 'edit' ? (
 						<DeleteCard what="vendor" del={del}>
-							A vendor that still has orders on it cannot be removed — the orders would
+							A vendor that still has orders on it cannot be removed: the orders would
 							point at nothing.
 						</DeleteCard>
 					) : null}
@@ -156,7 +156,7 @@ function VendorFields({ mode, vendor }) {
 			    points at the first chip's remove button and a tap anywhere in the field that is
 			    not itself a control deletes an alias. */}
 			<Field label="Aliases" htmlFor="vendor-aliases"
-				help={'Other names this vendor goes by — the name it had before a rename, or the '
+				help={'Other names this vendor goes by: the name it had before a rename, or the '
 					+ 'shortened form an invoice prints. An order or scanned receipt naming one files '
 					+ 'under this vendor. Type one and press Enter; an alias must differ from the name.'}>
 				<FieldShell className="field-shell-chips field-shell-no-chevron">
@@ -207,14 +207,14 @@ function VendorSummary({ name, colour, initials, favourite, aliases, vendor }) {
 							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'}${sep}saved ${krRound(vendor.saved)}`
 							: 'no orders yet'} />
 				</div>
-				<div className="summary-row">Name<span className="summary-row-value">{name || '—'}</span></div>
+				<div className="summary-row">Name<span className="summary-row-value">{name || '-'}</span></div>
 				<div className="summary-row">Initials<span className="summary-row-value">{initials}</span></div>
 				<div className="summary-row">Colour
 					<span className="summary-row-value">{resolveColour(colour).toUpperCase()}</span></div>
 				<div className="summary-row">Favourite
 					<span className="summary-row-value">{favourite ? 'Yes' : 'No'}</span></div>
 				<div className="summary-row">Aliases
-					<span className="summary-row-value">{aliases.length ? aliases.join(', ') : '—'}</span></div>
+					<span className="summary-row-value">{aliases.length ? aliases.join(', ') : '-'}</span></div>
 				{vendor ? <SummaryRow label="Saved vs retail" value={krRound(vendor.saved)} /> : null}
 				<div className="card-divider card-divider-tight" />
 				<SummaryTotal label="Spent all time" value={krRound(vendor?.spend ?? 0)}

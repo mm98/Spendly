@@ -203,7 +203,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 										groups={[{ heading: 'Sort', options: listSorts.map(s => ({ id: s.id, label: s.label })) }]} />
 								</Field>
 								<Field label="Entries per card" group
-									help="How many rows a card on Home fills with — the latest orders, the top vendors, the favourite categories.">
+									help="How many rows a card on Home fills with: the latest orders, the top vendors, the favourite categories.">
 									<Segmented options={cardRowOptions.map(String)}
 										value={String(local.cardRows)}
 										onChange={v => change({ cardRows: Number(v) }, 'Entries per card saved.')}
@@ -223,7 +223,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								</div>
 								<div className="space-between">
 									<span className="field-help toggle-help">
-										Ask before deleting anything — an order, a category, a vendor, a line
+										Ask before deleting anything: an order, a category, a vendor, a line
 										item, an attachment. With this off, the trash acts straight away.
 									</span>
 									<Switch checked={local.confirmDelete} label="Ask before deleting anything"
@@ -243,7 +243,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					<CardBody>
 						<p className="card-lead card-lead-flush">
 							Sign out on this device. Your orders, vendors, categories and settings stay on
-							the account — signing back in returns you to them.
+							the account; signing back in returns you to them.
 						</p>
 						<Button variant="block" onClick={signOut}>
 							SIGN OUT
@@ -260,9 +260,9 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					<CardDivider />
 					<CardBody>
 						<p className="card-lead card-lead-flush">
-							Fill the account with made-up orders — as many as you choose, reaching as
-							far back as you choose, every vendor and category its own colour — so the
-							lists and charts have something in them to look at. A different ledger
+							Fill the account with made-up orders so the lists and charts have something
+							in them to look at: as many as you choose, reaching as far back as you
+							choose, every vendor and category its own colour. A different ledger
 							every time: the orders, their days and their totals are rolled fresh on
 							each fill.
 						</p>
@@ -314,7 +314,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						{confirming ? (
 							<>
 								<p className="field-help danger-note">
-									This removes every order, vendor and category you have added — permanently,
+									This removes every order, vendor and category you have added, permanently,
 									and there is no demo data to fall back to. The ledger goes back to empty.
 								</p>
 								<FormActions>

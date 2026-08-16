@@ -179,7 +179,7 @@ export default function OrderDetail() {
 								<div className="summary-row">Vendor<span className="summary-row-value">{order.vendor?.name}</span></div>
 								<div className="summary-row">Categories
 									<span className="summary-row-value">
-										{order.categories.map(c => c.name).join(', ') || '—'}</span></div>
+										{order.categories.map(c => c.name).join(', ') || '-'}</span></div>
 								<div className="summary-row">Kind<span className="summary-row-value">{order.kind}</span></div>
 								{order.reference ? (
 									<div className="summary-row">Reference

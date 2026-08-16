@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
-import { FormActions, Switch } from '../components/Form.jsx'
+import { Form, FormActions, Switch } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
 import { ProgressBar } from '../components/Viz.jsx'
@@ -162,13 +162,13 @@ export default function SettingsImport() {
 			}
 			// Imported orders reach every list, chart and card: every cached answer goes.
 			if (imported) { invalidate(); setImportFile(null) }
-			if (failed.length) toast(`${imported} imported, ${failed.length} failed — row ${failed[0].index}: ${failed[0].error}`, 'negative')
+			if (failed.length) toast(`${imported} imported, ${failed.length} failed. Row ${failed[0].index}: ${failed[0].error}`, 'negative')
 			else toast(`${imported} order${imported === 1 ? '' : 's'} imported.`)
 		} catch (e) {
 			// A transport failure mid-run: what landed stays landed, and the report says so.
 			if (imported) invalidate()
 			const said = e.message === 'import-not-json' ? 'That file is not valid JSON.'
-				: e.message === 'import-no-orders' ? 'No orders in that file — it needs an "orders" array.'
+				: e.message === 'import-no-orders' ? 'No orders in that file. It needs an "orders" array.'
 					: failureMessage(e, 'That did not import.')
 			toast(imported ? `${said} ${imported} made it in before it stopped.` : said, 'negative')
 		} finally {
@@ -189,30 +189,33 @@ export default function SettingsImport() {
 					<CardDivider />
 					<CardBody>
 						<p className="card-lead card-lead-flush">
-							Bring orders in from a JSON file — an object holding an{' '}
+							Bring orders in from a JSON file: an object holding an{' '}
 							<code>orders</code> array, the shape the reference card documents. Each
 							order imports on its own, so one bad row fails alone.
 						</p>
-						{/* The same row every boolean in Settings uses: help text left, switch
-						    right. A checkbox would be a second control for the same question.
-						    Two rows because the schema carries two kinds of file, and someone
-						    migrating may want the receipts without megabytes of photos. */}
-						<div className="space-between">
-							<span className="field-help toggle-help">
-								Bring attachments along — the receipt file riding on an order.
-								With this off, orders import without their attachments.
-							</span>
-							<Switch checked={withAttachments} label="Import attachments"
-								onChange={setWithAttachments} />
-						</div>
-						<div className="space-between">
-							<span className="field-help toggle-help">
-								Bring images along — the photo riding on a line item.
-								With this off, items import without their images.
-							</span>
-							<Switch checked={withImages} label="Import images"
-								onChange={setWithImages} />
-						</div>
+						{/* The same rows every boolean in Settings uses, in the same Form grid
+						    that spaces them there: help text left, switch right. A checkbox
+						    would be a second control for the same question. Two rows because
+						    the schema carries two kinds of file, and someone migrating may
+						    want the receipts without megabytes of photos. */}
+						<Form>
+							<div className="space-between">
+								<span className="field-help toggle-help">
+									Bring attachments along: the receipt file riding on an order.
+									With this off, orders import without their attachments.
+								</span>
+								<Switch checked={withAttachments} label="Import attachments"
+									onChange={setWithAttachments} />
+							</div>
+							<div className="space-between">
+								<span className="field-help toggle-help">
+									Bring images along: the photo riding on a line item.
+									With this off, items import without their images.
+								</span>
+								<Switch checked={withImages} label="Import images"
+									onChange={setWithImages} />
+							</div>
+						</Form>
 						{importFile ? (
 							<>
 								<p className="field-help">{importFile.name}</p>
@@ -265,9 +268,9 @@ export default function SettingsImport() {
 					<CardDivider />
 					<CardBody id="import-reference">
 							<p className="card-lead card-lead-flush">
-								Bring orders in from another expense tracker — vendors, categories, line
-								items and receipt files — with a script of your own: sign in, post the
-								orders, read back what landed.
+								Bring orders in from another expense tracker, with a script of your own:
+								sign in, post the orders, read back what landed. Vendors, categories,
+								line items and receipt files all come along.
 							</p>
 							<pre className="import-schema" aria-label="Sign-in request">{RECIPE_LOGIN}</pre>
 							<span className="field-help import-caption">
@@ -280,15 +283,15 @@ export default function SettingsImport() {
 								<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
 									least one item with <code>title</code>, <code>quantity</code> and{' '}
 									<code>price</code>. Everything else is optional.</li>
-								<li><code>price</code> may be negative — a discount line subtracts, the way it
+								<li><code>price</code> may be negative: a discount line subtracts, the way it
 									did at the till. <code>retail</code> and <code>shipping</code>, the only
 									other amounts, stay at zero or above.</li>
 								<li><code>vendor</code> ≤ 80 characters.</li>
 								<li><code>title</code> ≤ 120 characters.</li>
-								<li><code>quantity</code> a whole number, 1–9999.</li>
+								<li><code>quantity</code> a whole number, 1-9999.</li>
 								<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
 								<li><code>kind</code>: Expense, Gift, Sold, Work or Other.</li>
-								<li><code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
+								<li><code>status</code>: Ordered, Delivered or Returned; Delivered when omitted.</li>
 								<li>Attachments carry base64 bytes: on the order for the receipt, on an item
 									for its photo.</li>
 								<li>Vendors and categories are matched by name, case-insensitively, and
@@ -296,14 +299,14 @@ export default function SettingsImport() {
 							</ul>
 							<pre className="import-schema" aria-label="Import response shape">{RECIPE_RESPONSE}</pre>
 							<span className="field-help">
-								Each order imports in its own transaction, so one bad row fails alone — the
+								Each order imports in its own transaction, so one bad row fails alone: the
 								response names every failure by its index, and the status is 400 only when
 								the array is empty or nothing imported. Batch large exports: the request body
 								is capped at 50&nbsp;MB, and base64 grows files by a third. Add{' '}
-								<code>?progress=stream</code> and the response arrives as NDJSON instead —{' '}
+								<code>?progress=stream</code> and the response arrives as NDJSON instead:{' '}
 								<code>{'{"done":50,"total":1200}'}</code> lines while rows land, closed by
-								this same result object on a 200 — which is what the upload card above uses
-								for its bar.
+								this same result object on a 200. That stream is what the upload card
+								above uses for its bar.
 							</span>
 					</CardBody>
 				</Card>

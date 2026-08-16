@@ -280,7 +280,7 @@ function ScanReviewForm({ answer }) {
 		if (existing) {
 			patch({ vendor: existing.name })
 			recheck('order-vendor', existing.name)
-			toast(`"${clean}" is an alias of ${existing.name} — using ${existing.name}.`)
+			toast(`"${clean}" is an alias of ${existing.name}, so ${existing.name} is used.`)
 			return
 		}
 		createVendor(clean)
@@ -313,7 +313,7 @@ function ScanReviewForm({ answer }) {
 	const save = () => {
 		const failed = check()
 		if (failed.length) {
-			setStatus({ message: 'Cannot save — ' + needFixing(failed), good: false })
+			setStatus({ message: 'Cannot save: ' + needFixing(failed), good: false })
 			focusField(failed[0].name)
 			return
 		}
@@ -334,7 +334,7 @@ function ScanReviewForm({ answer }) {
 			const failedLine = LINE_FIELDS.filter(f => f.check(String(lineValues[f.name] ?? '').trim()))
 			if (failedLine.length) {
 				setEditingLine(line.id)
-				setStatus({ message: 'Cannot save — ' + needFixing(failedLine), good: false })
+				setStatus({ message: 'Cannot save: ' + needFixing(failedLine), good: false })
 				focusField(failedLine[0].name)
 				return
 			}
@@ -485,7 +485,7 @@ function ScanReviewForm({ answer }) {
 					]}
 					action={aliasHit
 						? { icon: 'check',
-							label: `USE ${aliasHit.name.toUpperCase()} — "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
+							label: `USE ${aliasHit.name.toUpperCase()}: "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
 							onSelect: addVendor }
 						: { icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
 							onSelect: addVendor }} />

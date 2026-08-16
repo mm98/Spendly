@@ -825,9 +825,10 @@ The copy is English; the number grammar is Danish. Neither is negotiable per scr
 - **Button labels are caps**, and they name the action: SEE THOSE ORDERS, ADD FILE, CLEAR ALL. One voice for every action in the product.
 - **The separator in copy is the bullet** (`•`, U+2022) — `34 orders • latest 12/8`, `Items • 2`, `Image • 1 KB` — never the middle dot (`·`, U+00B7), which reads as machine-written. And it is written once, not sixty times: JSX text joins with the `<Sep />` component, template strings with the `sep` constant it renders (`react/src/api/format.js`; the API's own metas use `api/src/lib/copy.js`), so changing the character is one edit per runtime — plus a migration for stored attachment metas, which bake it in at write time.
 - **An ellipsis is three dots** — `Search vendors...`, `SAVING...` — never the single character (`…`), in copy, placeholders, button states and code alike, now and in everything written later. Same reason as the dot above: it reads as machine-written.
+- **No long dash in copy, ever.** The em dash (`—`) and en dash (`–`) never appear in anything the product renders — same reason as the two above: they read as machine-written. A sentence that wants one is rewritten with a colon, a comma, a semicolon or a full stop, and mostly reads better for it. Where a dash is genuinely part of a value — an empty summary cell, a range like `1-9999`, a date span in a chip — it is the plain hyphen (`-`).
 - **Field labels are questions where a question is clearer**: "Who did you buy from?" beats "Vendor" on a form a person fills once.
 - **Back buttons name the destination**, not the direction: "Back to orders", never just "Back".
-- **A rejection names the fields**: "Cannot continue — Vendor and Date need fixing."
+- **A rejection names the fields**: "Cannot continue: Vendor and Date need fixing."
 - **Copy that enumerates is a contract**: if the words say "a PDF, photo or screenshot", each named case works ([Scan Flow](#scan-flow)).
 
 ### Documentation

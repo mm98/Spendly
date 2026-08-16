@@ -114,7 +114,7 @@ export function NewOrderDetails() {
 		if (existing) {
 			update({ vendor: existing.name })
 			recheck('order-vendor', existing.name)
-			toast(`"${clean}" is an alias of ${existing.name} — using ${existing.name}.`)
+			toast(`"${clean}" is an alias of ${existing.name}, so ${existing.name} is used.`)
 			return
 		}
 		createVendor(clean)
@@ -134,7 +134,7 @@ export function NewOrderDetails() {
 		/* Shipping fee lives inside the More-details disclosure, so a rejection there can sit
 		   behind a closed panel -- a message nobody can open is the same as no message. */
 		if (failed.some(f => f.name === 'order-shipping')) setMore(true)
-		setStatus({ message: 'Cannot continue — ' + needFixing(failed), good: false })
+		setStatus({ message: 'Cannot continue: ' + needFixing(failed), good: false })
 		focusField(failed[0].name)
 	}
 
@@ -182,7 +182,7 @@ export function NewOrderDetails() {
 					]}
 					action={aliasHit
 						? { icon: 'check',
-							label: `USE ${aliasHit.name.toUpperCase()} — "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
+							label: `USE ${aliasHit.name.toUpperCase()}: "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
 							onSelect: addVendor }
 						: { icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
 							onSelect: addVendor }} />
@@ -303,7 +303,7 @@ function OrderSummary({ draft, estimate, showItems }) {
 				{showItems ? null : (
 					<>
 						<div className="summary-row">Categories
-							<span className="summary-row-value">{draft.categories.join(', ') || '—'}</span></div>
+							<span className="summary-row-value">{draft.categories.join(', ') || '-'}</span></div>
 						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
 						<SummaryRow label="Shipping" value={kr(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 					</>
@@ -429,7 +429,7 @@ export function NewOrderItems() {
 	const submit = () => {
 		const failed = check()
 		if (failed.length) {
-			setStatus({ message: 'Not added — ' + needFixing(failed), good: false })
+			setStatus({ message: 'Not added: ' + needFixing(failed), good: false })
 			focusField(failed[0].name)
 			return
 		}
