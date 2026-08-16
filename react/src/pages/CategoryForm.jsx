@@ -11,7 +11,7 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createCategory, deleteCategory, getCategories, getCategory, invalidateCategoryData, updateCategory
+	createCategory, deleteCategory, failureMessage, getCategories, getCategory, invalidateCategoryData, updateCategory
 } from '../api/client.js'
 import { AMOUNT_PATTERN, amountRound, krRound, parseAmount } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
@@ -127,7 +127,7 @@ function CategoryFields({ mode, category }) {
 				toast(`${saved.name} ${mode === 'edit' ? 'saved' : 'added'}.`)
 				navigate('/categories')
 			})
-			.catch(e => { setSaving(false); toast(e.message, 'negative') })
+			.catch(e => { setSaving(false); toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
 
 	const del = useDelete({
@@ -137,7 +137,7 @@ function CategoryFields({ mode, category }) {
 			.then(() => { refresh(); toast(`${category.name} removed.`); navigate('/categories') })
 			/* A category on an order cannot go, or the order points at nothing. The API says so
 			   with a 409 naming how many orders are in the way. */
-			.catch(e => toast(e.message, 'negative'))
+			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
 	})
 
 	return (

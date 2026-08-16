@@ -4,7 +4,7 @@ import { Card, CardBody } from '../components/Card.jsx'
 import { Field, FieldShell, TextInput, FormActions } from '../components/Form.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { login } from '../api/client.js'
+import { failureMessage, login } from '../api/client.js'
 
 /* Sign-in. Outside the app shell on purpose — the sidebar, the rail and the command palette are
    the signed-in app's chrome, and drawing them around a page nobody is signed in to yet would
@@ -24,7 +24,8 @@ export default function Login() {
 		setStatus({ message: '', good: true })
 		login(email.trim().toLowerCase(), password)
 			.then(() => navigate(params.get('from') || '/', { replace: true }))
-			.catch(err => { setSaving(false); setStatus({ message: err.message, good: false }) })
+			.catch(err => { setSaving(false)
+				setStatus({ message: failureMessage(err, 'Could not sign in. Try again.'), good: false }) })
 	}
 
 	return (

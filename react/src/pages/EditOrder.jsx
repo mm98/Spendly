@@ -19,7 +19,7 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	addItemAttachments, createVendor, getCategories, getOrderAsDraft, getVendors,
+	addItemAttachments, createVendor, failureMessage, getCategories, getOrderAsDraft, getVendors,
 	invalidateOrderData, invalidateVendorData, itemAttachmentThumbnailUrl, spendKinds, updateOrder
 } from '../api/client.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
@@ -84,7 +84,7 @@ function EditOrderForm({ id, seed }) {
 				orderErrors.recheck('order-vendor', vendor.name)
 				toast(`${vendor.name} added to your vendors.`)
 			})
-			.catch(e => toast(e.message, 'negative'))
+			.catch(e => toast(failureMessage(e, 'The vendor was not created. Try again.'), 'negative'))
 	}
 
 	const [categoryQuery, setCategoryQuery] = useState('')
@@ -224,7 +224,8 @@ function EditOrderForm({ id, seed }) {
 
 				navigate(`/orders/${id}`)
 			})
-			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
+			.catch(e => { setSaving(false)
+				toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
 
 	const total = draft.items.reduce((sum, i) => sum + i.price * i.quantity, 0)

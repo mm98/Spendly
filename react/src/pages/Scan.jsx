@@ -20,9 +20,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
-	attachScanDocument, createOrder, createVendor, getRecentScans, getScanDraft, getVendors,
-	invalidateOrderData, invalidateVendorData, putScanDocument, scanFileUrl, scanThumbnailUrl,
-	spendKinds
+	attachScanDocument, createOrder, createVendor, failureMessage, getRecentScans, getScanDraft,
+	getVendors, invalidateOrderData, invalidateVendorData, putScanDocument, scanFileUrl,
+	scanThumbnailUrl, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
@@ -66,6 +66,7 @@ export function ScanUpload() {
 	const navigate = useNavigate()
 	const picker = useRef(null)
 	const [over, setOver] = useState(false)
+	const toast = useToast()
 	const go = key => navigate('/scan/reading?doc=' + key)
 
 	/* The hero says "Drop a receipt here, or click to choose a file" and now it does both. A
@@ -78,7 +79,11 @@ export function ScanUpload() {
 		if (!file) return
 		/* The upload is a write to the recent-scans list this very page draws -- walking back
 		   here has to show the document that was just dropped. */
-		putScanDocument(file).then(({ key }) => { invalidate(getRecentScans); go(key) })
+		putScanDocument(file)
+			.then(({ key }) => { invalidate(getRecentScans); go(key) })
+			/* A dropped file that fails to upload used to do nothing at all -- no navigation and
+			   no sentence, which reads as the drop not registering. README: Feedback. */
+			.catch(e => toast(failureMessage(e, 'The upload failed. Try again.'), 'negative'))
 	}
 
 	return (
@@ -273,7 +278,7 @@ function ScanReviewForm({ answer }) {
 				recheck('order-vendor', vendor.name)
 				toast(`${vendor.name} added to your vendors.`)
 			})
-			.catch(e => toast(e.message, 'negative'))
+			.catch(e => toast(failureMessage(e, 'The vendor was not created. Try again.'), 'negative'))
 	}
 
 	const saveLine = (id, values) => {
@@ -303,6 +308,24 @@ function ScanReviewForm({ answer }) {
 			setStatus({ message: 'An order needs at least one line.', good: false })
 			return
 		}
+		/* The draft is what gets submitted, so the draft is what gets checked. ADD LINE puts its
+		   blank row into the draft the moment the editor opens, so a line abandoned mid-edit --
+		   editor still open, or left behind by opening another line's pencil -- reaches this
+		   button as an item the server rejects. The same three rules the line editor runs, over
+		   the values the editor would have been given. */
+		for (const line of draft.lines) {
+			const lineValues = {
+				'line-description': line.title, 'line-quantity': String(line.quantity),
+				'line-price': amount(line.price)
+			}
+			const failedLine = LINE_FIELDS.filter(f => f.check(String(lineValues[f.name] ?? '').trim()))
+			if (failedLine.length) {
+				setEditingLine(line.id)
+				setStatus({ message: 'Cannot save — ' + needFixing(failedLine), good: false })
+				focusField(failedLine[0].name)
+				return
+			}
+		}
 		setStatus({ message: '', good: true })
 		setSaving(true)
 		createOrder({
@@ -310,7 +333,10 @@ function ScanReviewForm({ answer }) {
 			categories: [], shipping: draft.shipping,
 			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price }))
 		})
-			.then(order => attachScanDocument(answer.documentKey, order.id).then(() => order).catch(() => order))
+			/* The order is saved either way -- navigation proceeds -- but a receipt that quietly
+			   failed to attach is the one claim this flow exists to keep, so the failure is said. */
+			.then(order => attachScanDocument(answer.documentKey, order.id).then(() => order)
+				.catch(() => { toast('Order saved, but the receipt did not attach.', 'negative'); return order }))
 			.then(order => {
 				invalidateOrderData()
 				/* Attaching consumed the scanned document, so the recent-scans list on the
@@ -318,7 +344,8 @@ function ScanReviewForm({ answer }) {
 				invalidate(getRecentScans)
 				navigate('/orders/' + order.id)
 			})
-			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
+			.catch(e => { setSaving(false)
+				toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
 
 	return (

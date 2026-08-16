@@ -251,6 +251,15 @@ have gone green on a control that renders identically in both states: green trac
 colour `rgb(20,172,114)` to `rgb(131,140,132)`, knob `right:3px` to `left:3px`, the section 271.7px
 to 56px. An ARIA attribute is a claim about the pixels, and only the pixels can settle it.
 
+**A guard beside a rule reads as the rule, and a flattened error hides that it is not.** The scan
+review's save checked `lines.length` beside a server that validates every line's contents, and the
+count read as the coverage — so a blank line ADD LINE had seeded into the draft passed where zero
+lines were refused, and the server's 400 ("Describe the item.") was caught and reported as "Try
+again", which is a network blip's sentence over a validation failure. Two validators of one draft
+are the two-controls rule below wearing an API: submit one invalid draft and read back which door
+refuses it and in what words, because while the client's catch rewrites the server's answer, the
+only place the two can be seen to disagree is the network log nobody ships.
+
 **Two controls that are each right on their own can still disagree with each other.** Both controls
 on Statistics passed the rule above for as long as they existed: the range chips changed the chart on
 every click, and the period arrows moved the period on every click. They meant different periods --

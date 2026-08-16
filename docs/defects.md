@@ -1697,3 +1697,46 @@ one short-named and one long-named attachment:
 Verified in Blink only; Gecko and WebKit are not installed and were not checked. The New and Edit
 order line editors keep the 64% wrap on purpose, measured above — grouping is a claim the title
 can afford, and there it cannot.
+
+## Form Validation — the scan review submitted a blank line, and the 400 came back as "try again"
+
+ADD LINE on the scan review seeds its blank row into the draft the moment the editor opens, and the
+draft is what SAVE ORDER sends. The line editor's own rules ran only at its SAVE LINE button, so a
+line abandoned mid-edit — the editor still open at save, or left behind by opening another line's
+pencil — travelled to the API as `{"title":"","quantity":1,"price":0}`. The save's guard counted
+lines (`needs at least one line`) without checking any, so one blank line passed where zero lines
+were refused.
+
+The server refused it correctly — `POST /api/orders` 400, `"Describe the item."`, the same rule from
+`ORDER_FIELDS`/`ITEM_FIELDS` both doors share — and the form's catch flattened that sentence into
+"That did not save. Try again.": a validation failure reported as a network blip, with no field
+marked and nothing on screen naming what was missing. Retrying resubmitted the same rejected draft.
+
+The fix is both halves of the sentence the README now states. Saving sweeps every line in the draft
+with the same three rules the line editor runs, reopens the first line that fails and names the
+field in the status line; and a refused save shows the API's own sentence in the feedback layer,
+keeping the generic line only for errors that carry none. New order and Edit order admit items only
+through their validated item form, so the sweep is the scan review's alone.
+
+The flattened catch was a class, not a site, and the app-wide count settled its scope: of the 20
+write-path catches, 3 flattened the server's sentence into a generic line, 6 more threw the error
+away for their own generic line, 9 showed the sentence but fell back to the browser's raw transport
+prose ("Failed to fetch") on a network failure, and 3 writes had no catch at all -- a failed scan
+upload did nothing, a failed scan-document attach lost the receipt silently after the order saved,
+and the dashboard-card editor toasted "Your cards were saved." before the request settled and then
+swallowed the refusal under a comment about localStorage, a relic of the phantom store. The rule now
+has one copy -- `failureMessage(error, fallback)` beside the ApiError it reads -- and every write
+catch shows the server's words when it has them and the action's own sentence when it does not.
+The three legitimate exceptions are named rather than silent: the dashboard grid's sessionStorage
+probe (not an API call), the command palette's per-keystroke search (aborts and degrades to empty),
+and the stale-chunk reload in the router (the reload is the handling).
+
+Measured after, in Blink 141.0.7390.37 (headless, 1280x720), driving the app from a fresh account
+through upload → review: SAVE ORDER over zero lines shows "An order needs at least one line.",
+**0 POSTs**; ADD LINE then SAVE ORDER without saving the line shows "Cannot save — Description
+needs fixing.", reopens the line's editor with focus on `line-description`, **0 POSTs**; filling
+and saving the line then saves the order with **1 POST** and lands on the order page. The catch
+was measured by interception on a previously-swallowing site (Settings): a routed 400 with
+`{"error":"The server said no."}` toasts exactly **"The server said no."**, and the same control
+with the request aborted toasts the action's own **"That did not save."** Gecko and WebKit are not
+installed and were not checked.

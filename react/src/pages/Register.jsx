@@ -4,7 +4,7 @@ import { Card, CardBody } from '../components/Card.jsx'
 import { Field, FieldShell, TextInput, FormActions } from '../components/Form.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { register } from '../api/client.js'
+import { failureMessage, register } from '../api/client.js'
 
 /** Sign-up. A new account starts genuinely empty -- no vendor, no category, no order until
     the person who owns it adds one. It used to seed a demo dataset so a fresh account opened
@@ -28,7 +28,8 @@ export default function Register() {
 		setStatus({ message: '', good: true })
 		register(email.trim().toLowerCase(), password)
 			.then(() => navigate('/', { replace: true }))
-			.catch(err => { setSaving(false); setStatus({ message: err.message, good: false }) })
+			.catch(err => { setSaving(false)
+				setStatus({ message: failureMessage(err, 'Could not create the account. Try again.'), good: false }) })
 	}
 
 	return (
