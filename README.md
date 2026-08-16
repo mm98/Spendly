@@ -39,7 +39,7 @@ That third file is the audit, kept running. A rule in this document that looks a
 The system is layered: an element is defined before the component that uses it, a component before the view that composes it, a view before the pattern that repeats across several. Read down for depth.
 
 - **[Foundations](#foundations)** — Color • Elevation and shape • Typography • Sizing • Spacing • Grids and breakpoints
-- **[Components](#components)** — Buttons • Fields and forms • Stepper • Cards • Data rows • Notes • Empty states • Chips • Combobox • Segmented control • Switch • Charts • Meters and progress • Chrome • Icons
+- **[Components](#components)** — Buttons • Fields and forms • Stepper • Cards • Data rows • Notes • Empty states • Chips • Combobox • Segmented control • Switch • Checkbox row • Charts • Meters and progress • Chrome • Icons
 - **[Views](#views)** — Home • Orders overview • All orders • Order detail • Create and edit • Scan flow • Vendors • Categories • Statistics • Settings
 - **[Patterns](#patterns)** — Filtering • Creation flow • Search • Progressive disclosure • Form validation • Feedback • Deletion • Pagination • Data persistence • Loading and errors • Honest affordances • Accessibility • iOS and WebKit • Responsive layout
 - **[Conventions](#conventions)** — Naming in the markup • Language and formats • Documentation
@@ -191,7 +191,7 @@ A component has as many states as the stylesheet gives it, and no more — a sta
 | Combobox | `.is-open` on the wrapper: panel shown, field edge darkened, chevron rotated 180° |
 | Data row, card header | `[data-go]:hover` — the tint, keyed on the attribute that navigates, never on the row's class |
 | Segmented, sub-tabs, range tabs, month columns, stepper, sidebar nav | `.is-on` — one selection mechanism for every group of one-of-many |
-| Switch | `[aria-checked="false"]` — grey track, knob left. Both states are written, because the on state was once the only one |
+| Switch | `:not(:checked)` — grey track, knob left. Both states are written, because the on state was once the only one |
 | Disclosure button | `[aria-expanded="true"]` rotates the chevron; the label never changes |
 | Anything focusable | `:focus-visible` — 2px `--teal`, 2px offset, one rule for the whole document |
 
@@ -415,6 +415,16 @@ control's hit area, not a caption near it.
 **A switch is a statement, not a request.** Flipping it takes effect immediately — no save button. A switch that needs APPLY is a checkbox wearing the wrong costume.
 
 **Every switch names what reads it.** A settings page of switches that change nothing is the decorative-control defect with more surface area — so each one's label says what it controls, and somewhere in the product that thing observably changes.
+
+### Checkbox row
+
+The form choice: a 20×20 box in its own column, the option's bold name beside it, the description hanging indented to the name's edge — never under the box, and never a paragraph beside a bare control.
+
+**A checkbox asks, a switch states.** A switch says what is true right now and takes effect on the flip; a checkbox says what the next act should include and is read when that act runs. An option a button will consume — an import, a submit — is a checkbox row; a preference something observably obeys immediately is a switch. One control per question, chosen by which question it is.
+
+**Both states are drawn, and they differ in three ways at once:** checked is the green fill with the white tick; unchecked is the empty box with the grey edge — the same grey as the off switch track, visible on the card, because 1.4.11 covers a control's states here as it does the switch's. Fill *and* edge *and* glyph move together, for the same reason the switch's states differ three ways.
+
+**The row is the target.** The whole row is the label: name, description and the space between all toggle the box, so the phone-sized target needs no phone-only rule. Rows stack with a divider between them and a hover fill over each, the same line and fill the data lists use — a stack of options reads as rows, not prose. The accessible name is the bold name alone; the description is the control's description, not part of its name.
 
 ### Stepper
 
@@ -694,7 +704,7 @@ Two surfaces, one promise: typed text finds things.
 
 ### Progressive Disclosure
 
-Complex features are hidden until needed: the filter panel behind FILTERS, extra detail behind a switch, an item editor behind its line. Users see what they need now, not everything at once.
+Complex features are hidden until needed: the filter panel behind FILTERS, an item editor behind its line. Users see what they need now, not everything at once. Three optional fields are not a complex feature: shipping fee, order reference and note are plain rows of the order form, because a control everyone must flip — or a section fencing them off — costs more than the fields themselves.
 
 **The mechanics are fixed:**
 - The disclosure button states its state: `aria-expanded` flips, and the chevron rotates with it. The label never changes — the arrow is what says open or closed.
@@ -821,7 +831,7 @@ The class names are the system's public vocabulary, and they follow one grammar:
 
 - **Family prefix, then part**: `card`, `card-header`, `card-body`, `card-divider`. A part's name says whose part it is.
 - **Base plus variant, never variant alone**: `button button-pill`, `note note-warning`. The base owns the shape; the variant owns only its difference. A variant written alone is a control that silently lost its shape.
-- **One state vocabulary**: `.is-on` for every selection, `aria-expanded` for every disclosure, `aria-checked` for every switch, `aria-invalid` for every rejection. State is never a bespoke class per component — a harness, a stylesheet and a reader all check it the same way everywhere.
+- **One state vocabulary**: `.is-on` for every selection, `aria-expanded` for every disclosure, `:checked` for every switch and checkbox, `aria-invalid` for every rejection. State is never a bespoke class per component — a harness, a stylesheet and a reader all check it the same way everywhere.
 - **Attributes are API**: `data-go` names where an element navigates, and it is what the styling and the hover treatment key off — so "looks like it navigates" and "navigates" cannot come apart.
 - **A new selector is a claim about how many elements it matches.** Read the count back and require the number you meant: a rule that renders plausibly is not a rule that matched what you aimed at. Three of thirty rules once reached further than intended, and only the count said so.
 

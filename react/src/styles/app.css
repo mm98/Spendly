@@ -156,14 +156,25 @@ body {
    of its own (see the phone rule further down), so this padding would sit on the right of
    text with nothing beside it there; zeroed at that width rather than left to look stray. */
 .toggle-help { padding-right:20px; }
-/* A switch leading its own description: control on the left, text left-aligned beside it.
-   flex-start rather than center so a wrapped second line stays under the first, never
-   drifting the control; the 4px sets the first line just under the 26px control's top,
-   the desktop look. The phone block swaps it for a negative margin that puts the text's
-   first inked pixel row flush with the switch's. flex:1 with min-width:0 is what lets
-   the text wrap at phone widths instead of pushing the row wide. */
-.toggle-row { display:flex; align-items:flex-start; gap:14px; }
-.toggle-row .field-help { flex:1; min-width:0; padding-top:4px; }
+/* A checkbox leading a divided row: the box in its own 20px column, the option's name
+   bold beside it, and the description hanging indented to the name's edge rather than
+   the box's -- one block of text per option, never a paragraph beside a control. Rows
+   divide with the same line the data lists use, and the hover fill says the row is one
+   target before the pointer commits. The whole row is a <label>, so a tap anywhere on
+   it toggles -- the phone-sized target with no phone-only rule, which is why no
+   phone block mentions it. The 12px side padding is what the hover fill paints; the
+   negative margin gives it back so the text column stays aligned with the card's
+   other children. README: Checkbox Row. */
+.check-row { display:grid; grid-template-columns:20px 1fr; column-gap:12px; align-items:start; padding:13px 12px; margin:0 -12px; border-radius:var(--radius-compact); cursor:pointer; }
+.check-row:hover { background:var(--bg-row-hover); }
+/* Only the stack's outer corners round: a row with a row above loses its top radius, a
+   row with a row below loses its bottom one, so the middle of a stack is square and a
+   lone row keeps all four. Written as longhands because the default above has to hold
+   whichever end of the stack the row is not. */
+.check-row + .check-row { border-top:1px solid var(--border-divider); border-top-left-radius:0; border-top-right-radius:0; }
+.check-row:has(+ .check-row) { border-bottom-left-radius:0; border-bottom-right-radius:0; }
+.check-row .field-help { grid-column:2; margin-top:2px; }
+.check-label { font-weight:600; }
 svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
 /* ---------------- shell ---------------- */
@@ -1105,6 +1116,15 @@ label.field-shell { cursor:pointer; }
    control, not only text. No transition; nothing in this file has one. README: Honest Affordances, Accessibility. */
 .switch:not(:checked) { background:#838C84; }
 .switch:not(:checked)::after { right:auto; left:3px; }
+/* The checkbox, drawn from the switch's own vocabulary: unchecked is an edge in the off
+   track's #838C84 -- 3.47:1 on the card, so the empty state is visible, 1.4.11 covering
+   a control's states as it does the switch's -- and checked fills --green and draws the
+   tick in white on top of it. Both states differ in fill, edge and glyph at once, for
+   the same reason the switch's two states differ three ways. The glyph is a clip-path
+   over a plain box, not an icon: it has no text, so it cannot fall back to one. */
+.check-box { appearance:none; -webkit-appearance:none; width:20px; height:20px; margin:1px 0 0; border:1.5px solid #838C84; border-radius:6px; background:var(--bg-card); display:grid; place-items:center; cursor:pointer; flex:none; }
+.check-box:checked { background:var(--green); border-color:var(--green); }
+.check-box:checked::after { content:""; width:11px; height:9px; background:#fff; clip-path:polygon(38% 100%, 0 58%, 14% 44%, 38% 68%, 86% 0, 100% 12%); }
 .field-unit { margin-left:auto; height:28px; padding:0 10px; border:1px solid var(--border-control); border-radius:9px; background:#F7F8F5; font-size:11.5px; font-weight:600; color:var(--text-body); display:inline-flex; align-items:center; flex:none; }
 .field-pair { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
 /* a segmented control inside a form is an entry field: full width, 48px tier, equal segments */
@@ -1191,10 +1211,6 @@ label.field-shell { cursor:pointer; }
    and 48px/9.5px there, and the comment on .topbar .topbar-actions pointed at a .global-finder rule that
    lived somewhere else entirely. Keep it one block. README: Responsive Layout. */
 @media (max-width:700px) {
-	/* Top-aligned on a phone: the ink of the text's first line flush with the switch's
-	   top edge, measured from rendered pixels; -3.2px rather than the geometric 4.2px cap
-	   offset because the glyphs' antialiasing carries ink a pixel above the cap line. */
-	.toggle-row .field-help { padding-top:0; margin-top:-3.2px; }
 	.app-shell { grid-template-columns:1fr; }
 	/* The canvas tint exists to frame the floating white sheet against the sidebar.
 	   A phone has no sidebar, so all it produced in the content area was an 8px

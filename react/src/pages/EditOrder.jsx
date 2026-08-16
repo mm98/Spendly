@@ -12,8 +12,8 @@ import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Row
 import { useReorder } from '../components/Reorder.jsx'
 import { useRowDelete } from '../components/FormPage.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, FilterSectionBody,
-	Form, FormActions, FormStatus, Segmented, Switch, TextArea, TextInput,
+	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection,
+	Form, FormActions, FormStatus, Segmented, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -63,7 +63,6 @@ function EditOrderForm({ id, seed }) {
 	const [draft, setDraft] = useState(seed)
 	const update = useCallback(patch => setDraft(prev => ({ ...prev, ...patch })), [])
 
-	const [more, setMore] = useState(Boolean(seed.shipping || seed.reference || seed.note))
 	const [status, setStatus] = useState({ message: '', good: true })
 	const [saving, setSaving] = useState(false)
 
@@ -208,7 +207,6 @@ function EditOrderForm({ id, seed }) {
 	const save = () => {
 		const failedOrder = orderErrors.check()
 		if (failedOrder.length) {
-			if (failedOrder.some(f => f.name === 'order-shipping')) setMore(true)
 			setStatus({ message: 'Cannot save: ' + needFixing(failedOrder), good: false })
 			focusField(failedOrder[0].name)
 			return
@@ -338,37 +336,30 @@ function EditOrderForm({ id, seed }) {
 									groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
 							</Field>
 
-							<FilterSection>
-								<div className="space-between">
-									<label className="panel-heading" htmlFor="more-details-switch">More details?</label>
-									<Switch id="more-details-switch" checked={more} onChange={setMore} label="More details"
-										controls="more-details-panel" />
-								</div>
-								<FilterSectionBody id="more-details-panel" hidden={!more}>
-									<FieldPair>
-										<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId} htmlFor="order-shipping">
-											<FieldShell>
-												<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
-													aria-label="Shipping fee" value={draft.shipping}
-													invalid={shippingField.invalid} describedBy={shippingField.describedBy}
-													onChange={set('order-shipping', 'shipping')} />
-												<FieldUnit>kr.</FieldUnit>
-											</FieldShell>
-										</Field>
-										<Field label="Order reference" htmlFor="order-reference">
-											<FieldShell>
-												<TextInput id="order-reference" placeholder="Optional" aria-label="Order reference"
-													value={draft.reference} onChange={v => update({ reference: v })} />
-											</FieldShell>
-										</Field>
-									</FieldPair>
-									<Field label="Note" htmlFor="order-note">
-										<TextArea id="order-note" aria-label="Note" value={draft.note}
-											placeholder="Anything worth remembering about this purchase."
-											onChange={v => update({ note: v })} />
-									</Field>
-								</FilterSectionBody>
-							</FilterSection>
+							{/* The optional fields, plain rows of the form -- the same flat rows
+							    as the new order form's. */}
+							<FieldPair>
+								<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
+									<FieldShell>
+										<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
+											aria-label="Shipping fee" value={draft.shipping}
+											invalid={shippingField.invalid} describedBy={shippingField.describedBy}
+											onChange={set('order-shipping', 'shipping')} />
+										<FieldUnit>kr.</FieldUnit>
+									</FieldShell>
+								</Field>
+								<Field label="Order reference">
+									<FieldShell>
+										<TextInput placeholder="Optional" aria-label="Order reference"
+											value={draft.reference} onChange={v => update({ reference: v })} />
+									</FieldShell>
+								</Field>
+							</FieldPair>
+							<Field label="Note">
+								<TextArea aria-label="Note" value={draft.note}
+									placeholder="Anything worth remembering about this purchase."
+									onChange={v => update({ note: v })} />
+							</Field>
 						</Form>
 					</CardBody>
 				</Card>

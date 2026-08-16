@@ -6,7 +6,7 @@ import { EntryRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { ColourPicker, VENDOR_COLOURS } from '../components/Pickers.jsx'
 import {
-	Field, FieldShell, FilterSection, Switch, TextInput, focusField, needFixing, useFieldErrors
+	CheckRow, Field, FieldShell, TextInput, focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
@@ -176,19 +176,14 @@ function VendorFields({ mode, vendor }) {
 					label="Vendor colour" />
 			</Field>
 
-			{/* A boolean is the green switch in a bordered section, right-aligned, which is what
-			    the system draws for one everywhere else it has one -- the order form's More
-			    details and every row on Settings. A button carrying aria-pressed would be a
-			    second control for a job this one already has. README: Fields and Forms. */}
-			<FilterSection>
-				<div className="space-between">
-					<label className="field-help toggle-help" htmlFor="vendor-favourite">
-						Favourites are spotlighted at the top of the Vendors page, and lead the vendor
-						list on a new order.
-					</label>
-					<Switch id="vendor-favourite" checked={favourite} onChange={setFavourite} label="Favourite" />
-				</div>
-			</FilterSection>
+			{/* Favourite is a form choice: it lands when SAVE CHANGES runs, and a switch that
+			    needs a save is a checkbox wearing the wrong costume -- the README's own words,
+			    which this row obeyed only after the Import tab did. The switch stays the
+			    control for booleans that act on the flip (Settings). README:
+			    Switch, Checkbox Row. */}
+			<CheckRow id="vendor-favourite" checked={favourite} onChange={setFavourite}
+				label="Favourite"
+				help="Spotlighted at the top of the Vendors page, and leads the vendor list on a new order." />
 		</FormPage>
 	)
 }

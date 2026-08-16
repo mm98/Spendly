@@ -167,6 +167,27 @@ export function Switch({ checked, onChange, label, controls, id }) {
 	)
 }
 
+/* ---- checkbox row ----
+   A checkbox for a form choice, where the switch above is a live preference: a switch
+   states what is now true, a checkbox asks what the next act should include, and the
+   import options are the second kind -- read once, when IMPORT runs. The row hangs its
+   description under the bold name rather than under the box, and the whole row is the
+   label, so the tap target is the row. aria-labelledby keeps the accessible name to the
+   name span alone: a wrapping label with nothing said would read the entire description
+   out as the control's name. README: Checkbox Row. */
+export function CheckRow({ id, checked, onChange, label, help }) {
+	return (
+		<label className="check-row" htmlFor={id}>
+			<input type="checkbox" id={id} className="check-box" checked={checked}
+				onChange={e => onChange?.(e.target.checked)}
+				aria-labelledby={id + '-label'}
+				aria-describedby={help ? id + '-help' : undefined} />
+			<span className="check-label" id={id + '-label'}>{label}</span>
+			{help ? <span className="field-help" id={id + '-help'}>{help}</span> : null}
+		</label>
+	)
+}
+
 /** A bordered group of fields, with the optional disclosure the switch above it owns. */
 export const FilterSection = ({ children, id, ...rest }) =>
 	<div className="filter-section" id={id} {...rest}>{children}</div>
