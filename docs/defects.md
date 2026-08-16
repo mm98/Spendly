@@ -1619,3 +1619,44 @@ buttons or linked headers onto empty lists; filled shows every button and linked
 zero empty states outside the scans card (demo data creates no scans), and no console or page
 errors beyond the pre-existing 401 the signed-out `auth/me` probe answers. Verified in Blink;
 Gecko and WebKit unverified.
+
+## Order Detail — the row's figures dropped to a line of their own, over room they never measured
+
+On a phone, every row on Order details broke after its title: the item rows put their total on a
+second line, and the attachment rows put all three of their buttons there, right-aligned under
+130px of empty first row. The titles those rows carry — "Vaskepulver, 2 kg", `IMG_4309.jpeg` —
+fit with room to spare, so the break read as a bug about space and was not one: it was the phone
+rule the line *editors* need, reaching rows it was never written for.
+
+The phone stylesheet wraps `.item-row` and gives the title block `flex:1 1 64%`. That basis is a
+reservation, not a measurement — it decides where the flex line breaks before the text has a say,
+so any trailing group wider than what 64% leaves goes to the next line whatever the title's actual
+length. On New/Edit order's line editor that is the right trade: a grip, a 36px tile, a nowrap
+price and two buttons genuinely leave the description nothing (grouped, its title measures **64px**
+and stacks mid-word two and three lines tall — measured before deciding those pages keep the
+wrap). On Order details' read rows it charged the same price with nothing to buy: a lone total, or
+three 44px buttons, dropped below a title using a fraction of its line.
+
+The fix is an opt-out a row states, `.item-row-group`, defined only inside the phone media block —
+desktop carries no rule for it and is untouched, as is every row that does not claim it. A grouped
+row keeps `flex-wrap:nowrap`, hands the title block `flex:1 1 auto`, and truncates the title to
+one line with an ellipsis — `overflow-wrap:anywhere` on a grouped row breaks a long filename
+mid-word into a narrow multi-line column, which is how a 112px attachment row happened. The meta
+already truncates from the base rules. The full name stays reachable where each row already shows
+it: the attachment's in the preview under the row, the item's on the order's edit page.
+
+Measured on `devices['iPhone 13']` at `deviceScaleFactor: 2`, Blink 141.0.7390.37, demo data plus
+one short-named and one long-named attachment:
+
+| row | before | after |
+| --- | --- | --- |
+| item rows | 81px, total on line 2 (7px under the title block) | 56px, total on the title line |
+| attachment, `tiny.png` | 94px, three buttons on line 2 | 56px, buttons on the title line |
+| attachment, 42-char name | 112px, name wrapped mid-word over two lines | 56px, name ellipsized |
+| title block width | 276px (the whole row) | 199px items, 160px attachments |
+| overhang past the row | 0 | 0 |
+| document overflow | 0 | 0 |
+
+Verified in Blink only; Gecko and WebKit are not installed and were not checked. The New and Edit
+order line editors keep the 64% wrap on purpose, measured above — grouping is a claim the title
+can afford, and there it cannot.

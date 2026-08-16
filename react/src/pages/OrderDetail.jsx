@@ -143,7 +143,7 @@ export default function OrderDetail() {
 								{order.items.map(item => {
 									const photo = item.attachments?.[0]
 									return (
-									<ItemRow key={item.id}
+									<ItemRow key={item.id} className="item-row-group"
 										icon={photo ? undefined : 'cube'} thumb={photo ? 'photo' : undefined}
 										thumbSrc={photo?.hasThumbnail ? itemAttachmentThumbnailUrl(order.id, item.id, photo.id) : undefined}
 										onThumbClick={photo ? () => setOpenPhoto({ item, photo }) : undefined}
@@ -224,7 +224,7 @@ export default function OrderDetail() {
 									label="Add attachments" onFiles={attach} />
 								{order.attachments.length ? order.attachments.map(file => (
 									<div key={file.id}>
-										<ItemRow thumb={file.kind === 'pdf' ? 'document' : 'photo'}
+										<ItemRow className="item-row-group" thumb={file.kind === 'pdf' ? 'document' : 'photo'}
 											thumbSrc={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined}
 											title={file.name} meta={file.meta}>
 											<span className="row-inline row-inline-nowrap row-actions push-end">
