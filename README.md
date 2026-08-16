@@ -584,6 +584,8 @@ Favourites in the spotlight, every vendor below — **one card, in two sizes**. 
 
 **A linked header may not hold a button.** An action inside a link is two things to activate in one box — the star lives in the card foot, outside the link.
 
+**A vendor answers to more names than the one it shows.** A vendor carries aliases — the name it had before a rename, the shortened form an invoice prints — and anywhere a vendor is resolved from a string (an order named by text, a scanned receipt's vendor line, an import) an alias matches exactly like the name. Aliases are edited on the vendor's own form page, and learned without being asked for: when a scanned document names the vendor one way and the order is saved under another, the document's string is kept as an alias of the chosen vendor, so the next document naming it needs no correction. An alias is always a *different* name — one equal to the vendor's own is refused, and each string belongs to exactly one vendor, name or alias, because resolution must read it back to exactly one. Renaming a vendor to one of its own aliases swaps the two: the alias becomes the name and the old name stays behind as an alias, keeping every document that carries it resolving here.
+
 ### Categories
 
 Each category is a tile — its glyph, its color, its month's total and budget meter — and the tile is a door: it opens All Orders filtered to that category. A Manage tab lists the same categories as rows whose job is editing; a row opens the record's own form page.

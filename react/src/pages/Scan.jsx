@@ -20,9 +20,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
-	attachScanDocument, createOrder, createVendor, failureMessage, getRecentScans, getScanDraft,
-	getVendors, invalidateOrderData, invalidateVendorData, putScanDocument, scanFileUrl,
-	scanThumbnailUrl, spendKinds
+	addVendorAlias, attachScanDocument, createOrder, createVendor, failureMessage, getRecentScans,
+	getScanDraft, getVendors, invalidateOrderData, invalidateVendorData, putScanDocument,
+	scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
@@ -338,6 +338,17 @@ function ScanReviewForm({ answer }) {
 			.then(order => attachScanDocument(answer.documentKey, order.id).then(() => order)
 				.catch(() => { toast('Order saved, but the receipt did not attach.', 'negative'); return order }))
 			.then(order => {
+				/* The document's vendor line said one string and the order was just filed under
+				   another -- the correction is the mapping, so it is kept: the scanned string
+				   becomes an alias of the chosen vendor, and the next receipt naming it matches
+				   without being corrected. Best-effort, quietly: the order is already saved, and
+				   an alias that cannot be kept (the string is some other vendor's name) is not
+				   this save's failure. The server no-ops an alias the vendor already has. */
+				const scanned = String(answer.vendor ?? '').trim()
+				if (scanned && order.vendor?.id
+					&& scanned.toLowerCase() !== draft.vendor.trim().toLowerCase())
+					addVendorAlias(order.vendor.id, scanned)
+						.then(() => invalidateVendorData()).catch(() => {})
 				invalidateOrderData()
 				/* Attaching consumed the scanned document, so the recent-scans list on the
 				   landing step no longer holds it. */
