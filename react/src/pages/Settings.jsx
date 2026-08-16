@@ -10,6 +10,7 @@ import {
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
+import { ProgressBar } from '../components/Viz.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	cardRowOptions, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
@@ -120,20 +121,22 @@ const BATCH_BYTES = 40 * 1024 * 1024
 
 /** Cuts orders into batches under BATCH_BYTES, each remembering the index its first order has
     in the whole file -- the server numbers failures within the request it saw, and a reported
-    row has to be a row of the file the person chose. */
+    row has to be a row of the file the person chose -- and its own size, because the progress
+    bar advances by bytes sent, not by slices: slices are cut by size, so the last one can be a
+    sliver, and a bar that counts slices would crawl through the big ones and leap the small. */
 function sliceOrders(orders) {
 	const batches = []
 	let batch = [], bytes = 0, offset = 0
 	for (const order of orders) {
 		const size = JSON.stringify(order).length + 1
 		if (batch.length && bytes + size > BATCH_BYTES) {
-			batches.push({ orders: batch, offset })
+			batches.push({ orders: batch, offset, bytes })
 			offset += batch.length
 			batch = []; bytes = 0
 		}
 		batch.push(order); bytes += size
 	}
-	batches.push({ orders: batch, offset })
+	batches.push({ orders: batch, offset, bytes })
 	return batches
 }
 
@@ -213,12 +216,13 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 	   server's per-request cap (sliceOrders above) and posted through the same endpoint a
 	   script would use. The two file-shaped failures (not JSON, no orders array) are told
 	   apart from a refused import, because "try a different file" and "fix row 3" are
-	   different instructions. `progress` is null when resting; {done, total} counts slices
-	   while sending, so a many-slice file says how far along it is. */
+	   different instructions. `progress` is null when resting; while sending it counts slices
+	   ({done, total}, for the button's label) and bytes ({doneBytes, totalBytes}, for the
+	   bar), which stay at 0/0 while the file is still being read and parsed. */
 	const importPicker = useRef(null)
 	const [progress, setProgress] = useState(null)
 	const runImport = async () => {
-		setProgress({ done: 0, total: 0 })
+		setProgress({ done: 0, total: 0, doneBytes: 0, totalBytes: 0 })
 		let imported = 0
 		const failed = []
 		try {
@@ -227,7 +231,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 			const orders = Array.isArray(parsed) ? parsed : parsed?.orders
 			if (!Array.isArray(orders) || !orders.length) throw new Error('import-no-orders')
 			const batches = sliceOrders(orders)
-			setProgress({ done: 0, total: batches.length })
+			setProgress({ done: 0, total: batches.length, doneBytes: 0, totalBytes: batches.reduce((n, b) => n + b.bytes, 0) })
 			for (const batch of batches) {
 				try {
 					const result = await importOrders(batch.orders)
@@ -242,7 +246,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					else if (e.status === 413) failed.push({ index: batch.offset, error: 'This one order is bigger than the 50 MB the server takes in a request.' })
 					else throw e
 				}
-				setProgress(p => ({ ...p, done: p.done + 1 }))
+				setProgress(p => ({ ...p, done: p.done + 1, doneBytes: p.doneBytes + batch.bytes }))
 			}
 			// Imported orders reach every list, chart and card, same as a fill: everything goes.
 			if (imported) { invalidate(); reload(); setImportFile(null) }
@@ -480,6 +484,15 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						{importFile ? (
 							<>
 								<p className="field-help">{importFile.name}</p>
+								{/* Determinate only once there is more than one slice to be partway
+								    through: a single-request import has no honest percentage between
+								    0 and done, and neither has the parse -- the same reasoning as
+								    the scan's bar (Viz.jsx), just with the sizes known here. */}
+								{progress ? (
+									<ProgressBar className="import-progress" label="Import progress"
+										indeterminate={progress.total < 2}
+										value={progress.totalBytes ? Math.round((progress.doneBytes / progress.totalBytes) * 100) : 0} />
+								) : null}
 								<FormActions>
 									<Button variant="caps compact" disabled={!!progress} onClick={runImport}>
 										{!progress ? 'IMPORT'

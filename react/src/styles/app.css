@@ -1493,6 +1493,9 @@ label.field-shell { cursor:pointer; }
    it reads like source -- monospace, inset, scrolling inside its own box rather than ever
    widening the card (README: Responsive Layout). Token colours are the app's own. */
 .import-schema { margin:0 0 12px; padding:12px 14px; background:#F2F4F1; border-radius:var(--radius-page); font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; line-height:1.6; color:var(--text-body); overflow-x:auto; }
+/* The upload card's bar while slices send: the shared .progress-bar, given only the breathing
+   room between the filename above it and the actions below. */
+.import-progress { margin:12px 0 6px; }
 .tok-key { color:var(--text); font-weight:600; }
 .tok-str { color:var(--text-positive); }
 .tok-num { color:var(--blue); }
