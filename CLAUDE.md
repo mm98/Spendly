@@ -682,6 +682,18 @@ nothing but the walk's style fields could have caught it. Read the match count b
 (`document.querySelectorAll(sel).length`) and require the number you meant, before and after. A rule
 that renders plausibly is not a rule that matched what you aimed at.
 
+**Widening a selector keeps its reach and resigns its rank.** `.field-shell > .field-file-input`
+was rewritten as bare `.field-file-input` so the hiding would also reach file inputs outside shells
+— and inside them, the one place with a competing rule, `.field-shell > input`'s `width:100%`
+started winning again: class-plus-type outweighs a lone class, property by property, so the input
+stayed absolute and invisible and became a viewport wide, and every order form scrolled 657px into
+blank space. The comment beside the rule went on naming the scoped selector as the reason this
+could not happen — nothing renders a comment, so no instrument has an opinion about one, and a
+claim of specificity is checked by reading the selector, not the prose beside it. When loosening a
+selector, list the fights its old form was winning (grep the properties it declares for other rules
+that set them on the same elements) and keep a scoped variant in the selector list wherever a fight
+exists; the reach and the rank are separate decisions, and one selector was carrying both.
+
 ## spendly.html is frozen
 
 It no longer gets edited: react/ is the one place the design system is built, and there is no sync

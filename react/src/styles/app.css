@@ -928,7 +928,7 @@ svg.chart { width:100%; display:block; }
    absolute box in a static shell resolves that against the viewport. The input
    was 1440px wide and invisible, hanging 657px off the right of the only page
    that carries one and scrolling the document into blank space. README: Responsive Layout. */
-.field-file-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+.field-file-input, .field-shell > .field-file-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 label.field-shell { cursor:pointer; }
 .field-file-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
 /* No engine may draw a calendar beside ours (the icon set is one style only, and a browser-drawn
