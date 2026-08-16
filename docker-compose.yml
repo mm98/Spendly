@@ -2,6 +2,9 @@
 # The bind mount is the database: back that folder up and you have backed the app up.
 services:
   spendly:
+    # Build locally, or swap these two lines for the CI-built image from GHCR
+    # (docker login ghcr.io first if the repo is private):
+    #   image: ghcr.io/mm98/spendly:latest
     build: .
     container_name: spendly
     restart: unless-stopped
@@ -9,6 +12,9 @@ services:
       - "4000:4000"
     environment:
       SPENDLY_DB: /data/spendly.sqlite3
+      # Sessions over plain http (LAN access by IP). Remove this line if you put the app
+      # behind HTTPS (reverse proxy, Tailscale serve), so the cookie goes back to Secure.
+      SPENDLY_PLAIN_HTTP: "1"
     volumes:
       # On QNAP, prefer an absolute path on a real share, e.g. /share/Container/spendly:/data
       - ./data:/data

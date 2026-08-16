@@ -14,12 +14,22 @@ RUN npm --prefix react ci --include=dev
 COPY react react
 RUN npm --prefix react run build
 
-FROM node:22-bookworm-slim
-ENV NODE_ENV=production
+# api deps in their own stage with a toolchain: better-sqlite3 falls back to a node-gyp
+# source build when its prebuilt binary can't be fetched, and slim has no python/g++.
+# Only node_modules is copied out, so none of the toolchain reaches the final image.
+FROM node:22-bookworm-slim AS apideps
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends python3 make g++ \
+	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY api/package.json api/package-lock.json api/
 RUN npm --prefix api ci --omit=dev
+
+FROM node:22-bookworm-slim
+ENV NODE_ENV=production
+WORKDIR /app
 COPY api api
+COPY --from=apideps /app/api/node_modules api/node_modules
 COPY --from=build /app/react/dist react/dist
 ENV SPENDLY_DB=/data/spendly.sqlite3
 EXPOSE 4000

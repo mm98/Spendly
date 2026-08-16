@@ -16,7 +16,10 @@ export function readCookie(req, name) {
 
 export function setCookie(res, name, value, { maxAgeSeconds } = {}) {
 	const attrs = [`${name}=${encodeURIComponent(value)}`, 'Path=/', 'HttpOnly', 'SameSite=Lax']
-	if (process.env.NODE_ENV === 'production') attrs.push('Secure')
+	/* Secure cookies are refused by browsers over plain http, so a LAN deploy with no TLS
+	   (a NAS at http://192.168.x.x) opts out via SPENDLY_PLAIN_HTTP -- sessions can't stick
+	   there otherwise. Anything reachable over https should not set it. */
+	if (process.env.NODE_ENV === 'production' && process.env.SPENDLY_PLAIN_HTTP !== '1') attrs.push('Secure')
 	if (maxAgeSeconds != null) attrs.push(`Max-Age=${maxAgeSeconds}`)
 	res.append('Set-Cookie', attrs.join('; '))
 }
