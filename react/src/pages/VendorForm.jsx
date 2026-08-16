@@ -141,7 +141,7 @@ function VendorFields({ mode, vendor }) {
 				</>
 			}>
 
-			<Field label="Name" error={nameField.error} errorId={nameField.errorId}>
+			<Field label="Name" error={nameField.error} errorId={nameField.errorId} htmlFor="vendor-name">
 				<FieldShell>
 					<TextInput id="vendor-name" value={name} autoFocus
 						onChange={v => { setName(v); recheck('vendor-name', v) }}

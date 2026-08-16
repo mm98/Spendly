@@ -1103,19 +1103,19 @@ label.field-shell { cursor:pointer; }
    off the segmented control, from the button side. README: Segmented Control, Honest Affordances. */
 [data-filters-toggle][aria-expanded="true"] .chevron-icon { transform:rotate(180deg); }
 .card-body > * { min-width:0; }
-.switch { width:44px; height:26px; border-radius:999px; background:var(--green); position:relative; flex:none; border:0; cursor:pointer; }
+.switch { appearance:none; width:44px; height:26px; margin:0; border-radius:999px; background:var(--green); position:relative; flex:none; border:0; cursor:pointer; }
 .switch::after { content:""; position:absolute; top:3px; right:3px; width:20px; height:20px; background:#fff; border-radius:50%; box-shadow:0 1px 2px rgb(0 0 0 / .18); }
 /* The optional fields the switch above owns. Wrapping them took them out of
    .filter-section's grid, so the gap between the pair and the Note is restated
    here -- a plain div would have stacked them with nothing between. README: Fields and Forms. */
 .filter-section-body { display:grid; gap:14px; }
 /* Off state. The switch drew the on state and nothing else, so flipping
-   aria-checked left an identical green pill: a control that reports its state to
+   its state left an identical green pill: a control that reports its state to
    a screen reader and not to the eye. #838C84 is 3.47:1 on the white card, which
    keeps the white knob visible against it -- 1.4.11 covers the states of a
    control, not only text. No transition; nothing in this file has one. README: Honest Affordances, Accessibility. */
-.switch[aria-checked="false"] { background:#838C84; }
-.switch[aria-checked="false"]::after { right:auto; left:3px; }
+.switch:not(:checked) { background:#838C84; }
+.switch:not(:checked)::after { right:auto; left:3px; }
 /* The checkbox, drawn from the switch's own vocabulary: unchecked is an edge in the off
    track's #838C84 -- 3.47:1 on the card, so the empty state is visible, 1.4.11 covering
    a control's states as it does the switch's -- and checked fills --green and draws the

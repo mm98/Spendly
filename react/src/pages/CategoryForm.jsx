@@ -165,7 +165,7 @@ function CategoryFields({ mode, category }) {
 			{/* A name holds a row by itself, like the vendor field on an order: it carries the
 			    longest string on the form and a pair would give it half the room at exactly the
 			    width where it has least. README: Fields and Forms. */}
-			<Field label="Name" error={nameField.error} errorId={nameField.errorId}>
+			<Field label="Name" error={nameField.error} errorId={nameField.errorId} htmlFor="category-name">
 				<FieldShell>
 					<TextInput id="category-name" value={values.name} autoFocus
 						onChange={set('name', 'category-name')} aria-label="Category name"
@@ -175,7 +175,7 @@ function CategoryFields({ mode, category }) {
 				</FieldShell>
 			</Field>
 
-			<Field label="Monthly budget" help="Leave it empty for no budget."
+			<Field label="Monthly budget" htmlFor="category-budget" help="Leave it empty for no budget."
 				error={budgetField.error} errorId={budgetField.errorId}>
 				<FieldShell>
 					<TextInput id="category-budget" inputMode="decimal" value={values.budget}

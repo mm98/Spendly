@@ -162,7 +162,7 @@ export function NewOrderDetails() {
 				</>
 			}>
 
-			<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId}
+			<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId} htmlFor="order-vendor"
 				help="Every dropdown is this combobox: type to search, grouped results, create from the foot.">
 				<Combobox id="order-vendor" label="Vendor" required
 					placeholder="Search vendors..." value={draft.vendor}
@@ -185,7 +185,7 @@ export function NewOrderDetails() {
 			</Field>
 
 			<FieldPair>
-				<Field label="Date" error={dateField.error} errorId={dateField.errorId}>
+				<Field label="Date" error={dateField.error} errorId={dateField.errorId} htmlFor="order-date">
 					<DateInput id="order-date" label="Order date" value={draft.date}
 						aria-required="true" trail={draft.date === today() ? 'today' : undefined}
 						invalid={dateField.invalid} describedBy={dateField.describedBy}
@@ -229,7 +229,7 @@ export function NewOrderDetails() {
 							onSelect: name => { addCategory(name); setCategoryQuery('') } }
 						: undefined} />
 			</Field>
-			<Field label="Kind" error={kindField.error} errorId={kindField.errorId}
+			<Field label="Kind" error={kindField.error} errorId={kindField.errorId} htmlFor="order-kind"
 				help="Only expenses count towards your totals.">
 				<Combobox id="order-kind" label="Kind" required placeholder="Expense"
 					value={draft.kind}
@@ -520,7 +520,7 @@ export function NewOrderItems() {
 						clearForm(); setStatus({ message: '', good: true })
 					}
 				}}>
-				<Field label="Description" error={itemDescription.error} errorId={itemDescription.errorId}>
+				<Field label="Description" error={itemDescription.error} errorId={itemDescription.errorId} htmlFor="item-description">
 					<FieldShell>
 						<TextInput id="item-description" aria-label="Description" aria-required="true"
 							value={form['item-description']} onChange={set('item-description')}
@@ -530,7 +530,7 @@ export function NewOrderItems() {
 				</Field>
 
 				<FieldPair>
-					<Field label="Quantity" error={itemQuantity.error} errorId={itemQuantity.errorId}>
+					<Field label="Quantity" error={itemQuantity.error} errorId={itemQuantity.errorId} htmlFor="item-quantity">
 						<FieldShell>
 							<TextInput id="item-quantity" inputMode="numeric" aria-label="Quantity"
 								aria-required="true" value={form['item-quantity']}
@@ -539,7 +539,7 @@ export function NewOrderItems() {
 							<FieldUnit>pcs</FieldUnit>
 						</FieldShell>
 					</Field>
-					<Field label="Price paid" error={itemPrice.error} errorId={itemPrice.errorId}>
+					<Field label="Price paid" error={itemPrice.error} errorId={itemPrice.errorId} htmlFor="item-price">
 						<FieldShell>
 							<TextInput id="item-price" inputMode="decimal" aria-label="Price paid"
 								aria-required="true" value={form['item-price']}
@@ -551,7 +551,7 @@ export function NewOrderItems() {
 				</FieldPair>
 
 				<FieldPair>
-					<Field label="Retail price" error={itemRetail.error} errorId={itemRetail.errorId}
+					<Field label="Retail price" error={itemRetail.error} errorId={itemRetail.errorId} htmlFor="item-retail"
 						help="Optional. Powers the saved-vs-retail figures.">
 						<FieldShell>
 							<TextInput id="item-retail" inputMode="decimal" placeholder="104,95"
