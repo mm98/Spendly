@@ -303,6 +303,24 @@ function ScanReviewForm({ answer }) {
 			setStatus({ message: 'An order needs at least one line.', good: false })
 			return
 		}
+		/* The draft is what gets submitted, so the draft is what gets checked. ADD LINE puts its
+		   blank row into the draft the moment the editor opens, so a line abandoned mid-edit --
+		   editor still open, or left behind by opening another line's pencil -- reaches this
+		   button as an item the server rejects. The same three rules the line editor runs, over
+		   the values the editor would have been given. */
+		for (const line of draft.lines) {
+			const lineValues = {
+				'line-description': line.title, 'line-quantity': String(line.quantity),
+				'line-price': amount(line.price)
+			}
+			const failedLine = LINE_FIELDS.filter(f => f.check(String(lineValues[f.name] ?? '').trim()))
+			if (failedLine.length) {
+				setEditingLine(line.id)
+				setStatus({ message: 'Cannot save — ' + needFixing(failedLine), good: false })
+				focusField(failedLine[0].name)
+				return
+			}
+		}
 		setStatus({ message: '', good: true })
 		setSaving(true)
 		createOrder({
@@ -318,7 +336,12 @@ function ScanReviewForm({ answer }) {
 				invalidate(getRecentScans)
 				navigate('/orders/' + order.id)
 			})
-			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
+			/* The server rejects with a sentence about the field ("Describe the item."), and this
+			   used to flatten it to "Try again" -- a validation failure read as a network blip,
+			   with nothing on screen saying what was missing. Its words travel; the generic line
+			   is only for errors that have none. */
+			.catch(e => { setSaving(false)
+				toast(e.name === 'ApiError' ? e.message : 'That did not save. Try again.', 'negative') })
 	}
 
 	return (

@@ -1697,3 +1697,31 @@ one short-named and one long-named attachment:
 Verified in Blink only; Gecko and WebKit are not installed and were not checked. The New and Edit
 order line editors keep the 64% wrap on purpose, measured above — grouping is a claim the title
 can afford, and there it cannot.
+
+## Form Validation — the scan review submitted a blank line, and the 400 came back as "try again"
+
+ADD LINE on the scan review seeds its blank row into the draft the moment the editor opens, and the
+draft is what SAVE ORDER sends. The line editor's own rules ran only at its SAVE LINE button, so a
+line abandoned mid-edit — the editor still open at save, or left behind by opening another line's
+pencil — travelled to the API as `{"title":"","quantity":1,"price":0}`. The save's guard counted
+lines (`needs at least one line`) without checking any, so one blank line passed where zero lines
+were refused.
+
+The server refused it correctly — `POST /api/orders` 400, `"Describe the item."`, the same rule from
+`ORDER_FIELDS`/`ITEM_FIELDS` both doors share — and the form's catch flattened that sentence into
+"That did not save. Try again.": a validation failure reported as a network blip, with no field
+marked and nothing on screen naming what was missing. Retrying resubmitted the same rejected draft.
+
+The fix is both halves of the sentence the README now states. Saving sweeps every line in the draft
+with the same three rules the line editor runs, reopens the first line that fails and names the
+field in the status line; and a refused save shows the API's own sentence in the feedback layer,
+keeping the generic line only for errors that carry none. New order and Edit order admit items only
+through their validated item form, so the sweep is the scan review's alone; the flattened catch was
+on all three save handlers and was fixed on all three.
+
+Measured after, in Blink 141.0.7390.37 (headless, 1280x720), driving the app from a fresh account
+through upload → review: SAVE ORDER over zero lines shows "An order needs at least one line.",
+**0 POSTs**; ADD LINE then SAVE ORDER without saving the line shows "Cannot save — Description
+needs fixing.", reopens the line's editor with focus on `line-description`, **0 POSTs**; filling
+and saving the line then saves the order with **1 POST** and lands on the order page. Gecko and
+WebKit are not installed and were not checked.

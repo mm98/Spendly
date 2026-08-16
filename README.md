@@ -699,6 +699,10 @@ When a form rejects a value:
 
 **A verdict is not a toast.** Saved / added / removed goes to the transient feedback layer; "cannot continue" stays on the form, beside the fields it names, until they are fixed.
 
+**The draft that is submitted is the draft that is validated.** Saving runs the rules over everything the form is about to send, not just the fields on screen: a row an ADD action seeds into the draft is part of the submission from the moment it exists, so saving sweeps every row with the same rules the row's own editor runs, reopens the first one that fails, and names it in the status line. Counting rows is not checking them — see [`docs/defects.md`](docs/defects.md).
+
+**A refused save says what was refused.** When the API rejects a write, its sentence about the field is the one the feedback layer shows. A rejection flattened into a generic "try again" reports a network blip about a form error, and the reader retries the same rejected draft.
+
 ### Feedback
 
 Everything the app says back after an action — saved, added, removed, moved, refused — goes to **one layer**: top right, under the top bar, a single polite status region. A toast clears itself after five seconds, can be dismissed, stacks newest first, and is capped so the stack cannot wallpaper the screen. The layer never swallows a click meant for what is under it. Inside a toast, the glyph, the sentence and the dismiss share one vertical centre — a toast is one short line, and top-aligning it against a taller dismiss button reads as a misprint.

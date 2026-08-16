@@ -468,7 +468,10 @@ export function NewOrderItems() {
 
 				navigate('/orders/' + order.id)
 			})
-			.catch(() => { setSaving(false); toast('That did not save. Try again.', 'negative') })
+			/* A server rejection carries its own sentence about the field; the generic line is
+			   only for errors that have none. See the same catch on the scan review. */
+			.catch(e => { setSaving(false)
+				toast(e.name === 'ApiError' ? e.message : 'That did not save. Try again.', 'negative') })
 	}
 
 	return (
