@@ -124,10 +124,18 @@ box, not about any change.
   that a diff is the calendar rather than the code.
 - **`all-orders.png` holds three pieces of state at once**, and each one has to be driven:
   the FILTERS panel is open, which is no longer the state the page loads in; the list is filtered to
-  `?vendor=bilka&status=Delivered&from=2026-07-01&to=2026-07-31`, 3 matching; and the global finder
+  Bilka + Delivered + 1-31 July 2026, 3 matching; and the global finder
   (`input[aria-label="Search everything"]`) has `bil` typed into it, open. Render it closed or drop
   any one of the three and the comparison reads like a rasterisation-floor mismatch and is not one --
   drive each shot into the state it holds before believing the number, in either direction.
+  `react/scripts/regen-docs.mjs` drives all three shots into their states and is the canonical
+  record of how. Two traps it already steps around: the server filters by `vendorId` (an exact,
+  per-account generated id -- read it back from `/api/vendors`; it ignores an unknown `vendor=`
+  param, so a hand-built `?vendor=bilka` URL quietly matches nothing), and the demo fill is a
+  function of (params, today) -- the whole year re-rolls daily, so the fill parameters that gave
+  the committed shot its 3 matches may give 0 on a later day and have to be re-picked then. The
+  params behind the current shots are in the script; a count in the render is checked against the
+  API before it is believed.
 - **If a browser download 403s, it is egress policy and not the CDN.** `playwright install` fails
   with a bare `Download failure, code=1`, which names no host and no cause; guessing one from it is
   guessing. `curl -sS "$HTTPS_PROXY/__agentproxy/status"` lists `recentRelayFailures` with the host
