@@ -49,6 +49,16 @@ if (process.argv.includes('--debug') || process.env.DEBUG) {
 
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 
+/* Which build is running: the image's build time and commit, stamped at build time
+   (Dockerfile ARG -> ENV) so the Settings page can print them and a reader can compare the
+   commit against the newest one on GitHub. Outside the image both are null -- a dev server
+   has no build to be out of date. Above the auth gate like /api/health: whether the
+   container is current is a fact about the deployment, not about any account. */
+app.get('/api/version', (req, res) => res.json({
+	builtAt: process.env.SPENDLY_BUILD_TIME || null,
+	commit: process.env.SPENDLY_BUILD_SHA || null
+}))
+
 app.use('/api/auth', authRouter)
 
 /* One auth gate for every data route, rather than requireAuth repeated per mount: the session

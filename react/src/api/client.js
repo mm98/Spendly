@@ -394,6 +394,13 @@ export async function getSettings(signal) {
 	return request('/api/settings', { signal })
 }
 
+/** The running server's build stamp -- { builtAt, commit }, both null outside the Docker
+    image, where there is no build to be out of date. Settings prints it so a self-hosted
+    box can be checked against the newest commit without shelling into the container. */
+export async function getVersion(signal) {
+	return request('/api/version', { signal })
+}
+
 export async function saveSettings(patch, signal) {
 	return request('/api/settings', { method: 'PATCH', body: patch, signal })
 }
