@@ -40,13 +40,13 @@ export default function Login() {
 						</div>
 					</div>
 					<form className="form" onSubmit={submit}>
-						<Field label="Email">
+						<Field label="Email" htmlFor="login-email">
 							<FieldShell>
 								<TextInput id="login-email" type="email" value={email} autoFocus
 									onChange={setEmail} aria-label="Email" aria-required="true" />
 							</FieldShell>
 						</Field>
-						<Field label="Password">
+						<Field label="Password" htmlFor="login-password">
 							<FieldShell>
 								<TextInput id="login-password" type="password" value={password}
 									onChange={setPassword} aria-label="Password" aria-required="true" />

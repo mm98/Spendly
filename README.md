@@ -227,6 +227,13 @@ A variant is never written alone. It is always `class="button button-primary"`, 
 
 A field is a label, an input, an error message and help text, in that order.
 
+**The label is a real `<label>`, tied to its control.** Every input, textarea and switch is
+associated with the text that names it -- by `for`/`id` wherever the control has an id, by
+wrapping otherwise -- so clicking the text focuses or toggles the control, exactly as a native
+form does. Text that merely sits near a control is a promise the pointer cannot collect.
+Controls with no visible text (an icon-only search, a hidden file picker behind a button)
+carry an `aria-label` instead; that is the only case a visible label is not required.
+
 ```
 Label
 [━━ input ━━]
@@ -398,7 +405,12 @@ One is always selected. Clicking a different one switches which is selected. All
 
 The on/off control: 44×26, a round knob on a pill track.
 
-**Both states are drawn, and they differ in three ways at once:** on is the green track with the knob right; off (`[aria-checked="false"]`) is the grey track with the knob left. Track color *and* knob side *and* — where the switch discloses something — the disclosed content itself. Redundancy is the point: this switch once had only its on state written, so it rendered green-and-right whatever the truth was, and no attribute check could see it.
+**Both states are drawn, and they differ in three ways at once:** on is the green track with the knob right; off (`:not(:checked)`) is the grey track with the knob left. Track color *and* knob side *and* — where the switch discloses something — the disclosed content itself. Redundancy is the point: this switch once had only its on state written, so it rendered green-and-right whatever the truth was, and no attribute check could see it.
+
+**A switch is a real checkbox, so its label is a real label.** The control is an
+`<input type="checkbox">` styled as the pill, announced as a switch -- which is what lets the
+sentence beside it be a `<label for>` that toggles it natively. The text is part of the
+control's hit area, not a caption near it.
 
 **A switch is a statement, not a request.** Flipping it takes effect immediately — no save button. A switch that needs APPLY is a checkbox wearing the wrong costume.
 

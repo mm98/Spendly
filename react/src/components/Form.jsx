@@ -151,15 +151,19 @@ export function Segmented({ options, value, onChange, label, compact = true, tab
    nothing -- the decorative control with its state already painted, which is the form no
    screenshot can fail, since the only wrong frame is the one after a click.
 
-   Both states have to be visible, not just announced: without an [aria-checked="false"]
-   rule the track stays green and the knob stays right, so a probe that flips the attribute
+   Both states have to be visible, not just announced: without a :not(:checked)
+   rule the track stays green and the knob stays right, so a probe that flips the state
    and reads it back goes green on a control that renders identically either way. The
-   stylesheet carries that rule; this component carries the attribute it reads. README: Honest Affordances. */
-export function Switch({ checked, onChange, label, controls }) {
+   stylesheet carries that rule; this component carries the state it reads.
+
+   A checkbox rather than a button, so the text beside it can be a real <label htmlFor>:
+   clicking the label toggles the control natively, with nothing to wire. Every call
+   site passes an id and renders its text as a label pointing at it. README: Honest Affordances. */
+export function Switch({ checked, onChange, label, controls, id }) {
 	return (
-		<button type="button" className="switch" role="switch" aria-checked={checked}
-			aria-controls={controls} aria-label={label}
-			onClick={() => onChange?.(!checked)} />
+		<input type="checkbox" className="switch" role="switch" id={id}
+			checked={checked} aria-controls={controls} aria-label={label}
+			onChange={e => onChange?.(e.target.checked)} />
 	)
 }
 

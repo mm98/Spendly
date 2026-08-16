@@ -467,7 +467,7 @@ function ScanReviewForm({ answer }) {
 				</>
 			}>
 
-			<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId}>
+			<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId} htmlFor="order-vendor">
 				<Combobox id="order-vendor" label="Vendor" required
 					placeholder="Search vendors..." value={draft.vendor}
 					invalid={vendorField.invalid} describedBy={vendorField.describedBy}
@@ -492,7 +492,7 @@ function ScanReviewForm({ answer }) {
 			</Field>
 
 			<FieldPair>
-				<Field label="Date" error={dateField.error} errorId={dateField.errorId}>
+				<Field label="Date" error={dateField.error} errorId={dateField.errorId} htmlFor="order-date">
 					<DateInput id="order-date" label="Order date" value={draft.date}
 						onChange={set('order-date', 'date')} aria-required="true"
 						invalid={dateField.invalid} describedBy={dateField.describedBy} />
@@ -504,7 +504,7 @@ function ScanReviewForm({ answer }) {
 			</FieldPair>
 
 			<FieldPair>
-				<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}
+				<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId} htmlFor="order-shipping"
 					help="Not on the receipt; add it if the order was delivered.">
 					<FieldShell>
 						<TextInput id="order-shipping" inputMode="decimal" value={draft.shipping}
@@ -513,7 +513,7 @@ function ScanReviewForm({ answer }) {
 						<FieldUnit>kr.</FieldUnit>
 					</FieldShell>
 				</Field>
-				<Field label="Kind" error={kindField.error} errorId={kindField.errorId}
+				<Field label="Kind" error={kindField.error} errorId={kindField.errorId} htmlFor="order-kind"
 					help="Only expenses count towards your totals.">
 					<Combobox id="order-kind" label="Kind" value={draft.kind} required
 						onChange={set('order-kind', 'kind')}
@@ -609,7 +609,7 @@ function LineEditor({ line, onSave, onCancel }) {
 
 	return (
 		<div className="filter-section line-editor">
-			<Field label="Line" error={description.error} errorId={description.errorId}>
+			<Field label="Line" error={description.error} errorId={description.errorId} htmlFor="line-description">
 				<FieldShell>
 					<TextInput id="line-description" value={form['line-description']} autoFocus
 						onChange={set('line-description')} aria-label="Line description"
@@ -618,7 +618,7 @@ function LineEditor({ line, onSave, onCancel }) {
 				</FieldShell>
 			</Field>
 			<FieldPair>
-				<Field label="Quantity" error={quantity.error} errorId={quantity.errorId}>
+				<Field label="Quantity" error={quantity.error} errorId={quantity.errorId} htmlFor="line-quantity">
 					<FieldShell>
 						<TextInput id="line-quantity" inputMode="numeric" value={form['line-quantity']}
 							onChange={set('line-quantity')} aria-label="Quantity" aria-required="true"
@@ -626,7 +626,7 @@ function LineEditor({ line, onSave, onCancel }) {
 						<FieldUnit>pcs</FieldUnit>
 					</FieldShell>
 				</Field>
-				<Field label="Price" error={price.error} errorId={price.errorId}>
+				<Field label="Price" error={price.error} errorId={price.errorId} htmlFor="line-price">
 					<FieldShell>
 						<TextInput id="line-price" inputMode="decimal" value={form['line-price']}
 							onChange={set('line-price')} aria-label="Price" aria-required="true"

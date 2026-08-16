@@ -276,7 +276,7 @@ function EditOrderForm({ id, seed }) {
 						<p className="card-lead">Update the details, the items, or both; everything saves together.</p>
 						<FormStatus message={status.message} good={status.good} />
 						<Form>
-							<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId}>
+							<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId} htmlFor="order-vendor">
 								<Combobox id="order-vendor" label="Vendor" required
 									placeholder="Search vendors..." value={draft.vendor}
 									invalid={vendorField.invalid} describedBy={vendorField.describedBy}
@@ -298,7 +298,7 @@ function EditOrderForm({ id, seed }) {
 							</Field>
 
 							<FieldPair>
-								<Field label="Date" error={dateField.error} errorId={dateField.errorId}>
+								<Field label="Date" error={dateField.error} errorId={dateField.errorId} htmlFor="order-date">
 									<DateInput id="order-date" label="Order date" value={draft.date}
 										aria-required="true" trail={draft.date === today() ? 'today' : undefined}
 										invalid={dateField.invalid} describedBy={dateField.describedBy}
@@ -328,7 +328,7 @@ function EditOrderForm({ id, seed }) {
 											onSelect: name => { addCategory(name); setCategoryQuery('') } }
 										: undefined} />
 							</Field>
-							<Field label="Kind" error={kindField.error} errorId={kindField.errorId}
+							<Field label="Kind" error={kindField.error} errorId={kindField.errorId} htmlFor="order-kind"
 								help="Only expenses count towards your totals.">
 								<Combobox id="order-kind" label="Kind" required placeholder="Expense"
 									value={draft.kind}
@@ -340,13 +340,13 @@ function EditOrderForm({ id, seed }) {
 
 							<FilterSection>
 								<div className="space-between">
-									<span className="panel-heading">More details?</span>
-									<Switch checked={more} onChange={setMore} label="More details"
+									<label className="panel-heading" htmlFor="more-details-switch">More details?</label>
+									<Switch id="more-details-switch" checked={more} onChange={setMore} label="More details"
 										controls="more-details-panel" />
 								</div>
 								<FilterSectionBody id="more-details-panel" hidden={!more}>
 									<FieldPair>
-										<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
+										<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId} htmlFor="order-shipping">
 											<FieldShell>
 												<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
 													aria-label="Shipping fee" value={draft.shipping}
@@ -355,15 +355,15 @@ function EditOrderForm({ id, seed }) {
 												<FieldUnit>kr.</FieldUnit>
 											</FieldShell>
 										</Field>
-										<Field label="Order reference">
+										<Field label="Order reference" htmlFor="order-reference">
 											<FieldShell>
-												<TextInput placeholder="Optional" aria-label="Order reference"
+												<TextInput id="order-reference" placeholder="Optional" aria-label="Order reference"
 													value={draft.reference} onChange={v => update({ reference: v })} />
 											</FieldShell>
 										</Field>
 									</FieldPair>
-									<Field label="Note">
-										<TextArea aria-label="Note" value={draft.note}
+									<Field label="Note" htmlFor="order-note">
+										<TextArea id="order-note" aria-label="Note" value={draft.note}
 											placeholder="Anything worth remembering about this purchase."
 											onChange={v => update({ note: v })} />
 									</Field>
@@ -388,7 +388,7 @@ function EditOrderForm({ id, seed }) {
 								}
 							}}>
 							<FormStatus message={itemStatus.message} good={itemStatus.good} />
-							<Field label="Description" error={itemDescription.error} errorId={itemDescription.errorId}>
+							<Field label="Description" error={itemDescription.error} errorId={itemDescription.errorId} htmlFor="item-description">
 								<FieldShell>
 									<TextInput id="item-description" aria-label="Description" aria-required="true"
 										value={itemForm['item-description']} onChange={setItem('item-description')}
@@ -398,7 +398,7 @@ function EditOrderForm({ id, seed }) {
 							</Field>
 
 							<FieldPair>
-								<Field label="Quantity" error={itemQuantity.error} errorId={itemQuantity.errorId}>
+								<Field label="Quantity" error={itemQuantity.error} errorId={itemQuantity.errorId} htmlFor="item-quantity">
 									<FieldShell>
 										<TextInput id="item-quantity" inputMode="numeric" aria-label="Quantity"
 											aria-required="true" value={itemForm['item-quantity']}
@@ -407,7 +407,7 @@ function EditOrderForm({ id, seed }) {
 										<FieldUnit>pcs</FieldUnit>
 									</FieldShell>
 								</Field>
-								<Field label="Price paid" error={itemPrice.error} errorId={itemPrice.errorId}>
+								<Field label="Price paid" error={itemPrice.error} errorId={itemPrice.errorId} htmlFor="item-price">
 									<FieldShell>
 										<TextInput id="item-price" inputMode="decimal" aria-label="Price paid"
 											aria-required="true" value={itemForm['item-price']}
@@ -419,7 +419,7 @@ function EditOrderForm({ id, seed }) {
 							</FieldPair>
 
 							<FieldPair>
-								<Field label="Retail price" error={itemRetail.error} errorId={itemRetail.errorId}
+								<Field label="Retail price" error={itemRetail.error} errorId={itemRetail.errorId} htmlFor="item-retail"
 									help="Optional. Powers the saved-vs-retail figures.">
 									<FieldShell>
 										<TextInput id="item-retail" inputMode="decimal" placeholder="104,95"
