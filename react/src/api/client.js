@@ -333,10 +333,11 @@ export async function resetStoredData(signal) {
 	return request('/api/reset', { method: 'POST', signal })
 }
 
-/** Replaces this account's ledger with a year of generated demo orders, so the app can be
-    looked at with something in it. Replaces rather than adds — see the route's own note.
-    A different year each press: no seed is sent, so the route picks one. `orders` is how many
-    the year holds in total, the count the card's combobox chose. Answers
+/** Replaces this account's ledger with generated demo orders, so the app can be looked at
+    with something in it. Replaces rather than adds — see the route's own note.
+    A different ledger each press: no seed is sent, so the route picks one. `orders` is how
+    many it holds in total and `months` how far back they reach, ending today — the two
+    comboboxes on the card. Answers
     { orders, vendors, categories, months, seed } — the seed it used, which is what makes a
     dataset worth reporting reproducible.
 
@@ -344,8 +345,8 @@ export async function resetStoredData(signal) {
     ~5s on the API's own measurements, so six times that is a hang, not a slow day. Abandoned,
     not cancelled — the server finishes what it started, so a fill that answers late has still
     happened, and the error toast is about this page's knowledge of it, not about the data. */
-export async function populateDemoData(orders, signal) {
-	return request('/api/demo-data', { method: 'POST', body: { orders },
+export async function populateDemoData(orders, months, signal) {
+	return request('/api/demo-data', { method: 'POST', body: { orders, months },
 		signal: signal ?? AbortSignal.timeout(30000) })
 }
 

@@ -40,9 +40,9 @@ router.post('/reset', (req, res) => {
 
    Only ever this account -- populateDemoData writes every row against req.user.id, the same
    rule every other route here follows. */
-const replaceWithDemo = db.transaction((userId, seed, orders) => {
+const replaceWithDemo = db.transaction((userId, seed, orders, months) => {
 	wipeLedger(userId)
-	return populateDemoData(userId, { seed, orders })
+	return populateDemoData(userId, { seed, orders, months })
 })
 
 /* A different year every time it is pressed.
@@ -67,5 +67,10 @@ router.post('/demo-data', (req, res) => {
 	const askedOrders = Number(req.body?.orders)
 	const orders = Number.isFinite(askedOrders) && askedOrders > 0
 		? Math.min(50000, Math.floor(askedOrders)) : undefined
-	res.json({ ...replaceWithDemo(req.user.id, seed, orders), seed })
+	/* How far back the ledger reaches, in months, ending today. Capped at the UI's largest
+	   offer (24 years) for the same reason as the order count above. */
+	const askedMonths = Number(req.body?.months)
+	const months = Number.isFinite(askedMonths) && askedMonths > 0
+		? Math.min(288, Math.floor(askedMonths)) : undefined
+	res.json({ ...replaceWithDemo(req.user.id, seed, orders, months), seed })
 })

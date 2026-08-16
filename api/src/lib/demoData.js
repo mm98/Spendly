@@ -2,7 +2,8 @@ import { db } from '../db.js'
 import { newId } from './ids.js'
 import { CATEGORY_PALETTE, VENDOR_PALETTE, nthColour } from './palette.js'
 
-/* A year of plausible ledger, for looking at the app with something in it.
+/* A stretch of plausible ledger — a year by default, up to decades — for looking at the app
+   with something in it.
 
    This is not the demo data a new account used to be seeded with -- that was dropped in
    df597f3 because an account that registers and immediately shows somebody's shopping reads
