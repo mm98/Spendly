@@ -110,6 +110,17 @@ export async function addVendorAlias(id, name, signal) {
 	return request('/api/vendors/aliases', { method: 'POST', body: { vendorId: id, name }, signal })
 }
 
+/** The client-side twin of the server's string-to-vendor resolution: a vendor matches by its
+    own name or any of its aliases, case-insensitively. The vendor comboboxes use it so that
+    typing an alias and choosing the action row picks the vendor the alias belongs to, rather
+    than offering to create a twin the server would refuse. */
+export const vendorByAnyName = (vendors, name) => {
+	const needle = String(name ?? '').trim().toLowerCase()
+	if (!needle) return undefined
+	return vendors.find(v => v.name.toLowerCase() === needle
+		|| (v.aliases ?? []).some(a => a.toLowerCase() === needle))
+}
+
 /* There is no getVendorsOverview and no getCategoriesOverview: each was the same GET as the
    plain list with a client-side reshape on top, which is a second cache entry for one request
    -- the overview tab and the list tab each paid the fetch the other had already paid.
@@ -557,8 +568,12 @@ export async function search(query, signal) {
 		.map(o => ({ id: o.id, ...highlight(`${o.vendor?.name}${sep}${dayMonth(o.date)}`, needle),
 			meta: krLabel(o.total), to: `/orders/${o.id}` })))
 
+	/* A vendor found through an alias shows the parent vendor's row -- the alias is not a
+	   record of its own -- and the meta names the alias that matched, because the needle may
+	   not appear anywhere in the name the row shows. */
 	take('Vendors', vendors.slice(0, 3)
-		.map(v => ({ id: v.id, ...highlight(v.name, needle), meta: 'Vendor', to: `/orders/all?vendor=${v.id}` })))
+		.map(v => ({ id: v.id, ...highlight(v.name, needle),
+			meta: v.alias ? `Vendor${sep}${v.alias}` : 'Vendor', to: `/orders/all?vendor=${v.id}` })))
 
 	take('Categories', categories.slice(0, 3)
 		.map(c => ({ id: c.id, ...highlight(c.name, needle), meta: 'Category', to: `/orders/all?category=${c.id}` })))

@@ -22,7 +22,7 @@ import { useApi, invalidate } from '../api/useApi.js'
 import {
 	addVendorAlias, attachScanDocument, createOrder, createVendor, failureMessage, getRecentScans,
 	getScanDraft, getVendors, invalidateOrderData, invalidateVendorData, putScanDocument,
-	scanFileUrl, scanThumbnailUrl, spendKinds
+	scanFileUrl, scanThumbnailUrl, spendKinds, vendorByAnyName
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
@@ -267,9 +267,22 @@ function ScanReviewForm({ answer }) {
 	   vendor", and CREATE VENDOR "..." at the foot of the list is the second half of that
 	   promise doing the verb -- the same wiring as New order and Edit order, because create
 	   and scan are two doors to one saved order. README: Honest Affordances. */
+	/* Same rule as New order: typed text that is an existing vendor's alias picks that vendor,
+	   never creates a twin -- the action row says USE before it is pressed, and the guard in
+	   addVendor resolves identically if pressed anyway. A receipt's misspelt-but-known vendor
+	   line is exactly the string aliases exist to catch. */
+	const aliasHit = vendorByAnyName(vendors.data ?? [], draft.vendor)
+
 	const addVendor = name => {
 		const clean = String(name).trim()
 		if (!clean) return
+		const existing = vendorByAnyName(vendors.data ?? [], clean)
+		if (existing) {
+			patch({ vendor: existing.name })
+			recheck('order-vendor', existing.name)
+			toast(`"${clean}" is an alias of ${existing.name} — using ${existing.name}.`)
+			return
+		}
 		createVendor(clean)
 			.then(vendor => {
 				invalidateVendorData()
@@ -470,8 +483,12 @@ function ScanReviewForm({ answer }) {
 						{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
 							.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders` })) }
 					]}
-					action={{ icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
-						onSelect: addVendor }} />
+					action={aliasHit
+						? { icon: 'check',
+							label: `USE ${aliasHit.name.toUpperCase()} — "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
+							onSelect: addVendor }
+						: { icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
+							onSelect: addVendor }} />
 			</Field>
 
 			<FieldPair>
