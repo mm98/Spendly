@@ -1204,8 +1204,13 @@ label.field-shell { cursor:pointer; }
 	   see .field-pair-keep. README: Fields and Forms, Responsive Layout. */
 	.field-pair.field-pair-stack-early { grid-template-columns:1fr; }
 }
+/* Layout only, which is all the README claims for this breakpoint. It also carried
+   body { font-size:16px }, which no pinned size ever saw -- 126 font-size declarations,
+   all px -- so its whole effect was resizing whichever class had forgotten to state a
+   size: .check-label rendered 16px on wide monitors while every neighbour held, and
+   .panel-heading still does the same silent step. A type scale for wide screens is a
+   rem conversion at the root, not one inherited px value ambushing the unpinned. */
 @media (min-width:2200px) {
-	body { font-size:16px; }
 	.app-shell { grid-template-columns:250px minmax(0,1fr); }
 	.content-grid { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
 }
