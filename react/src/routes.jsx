@@ -73,6 +73,7 @@ const NewOrderDetails = page(() => import('./pages/NewOrder.jsx'), 'NewOrderDeta
 const NewOrderItems = page(() => import('./pages/NewOrder.jsx'), 'NewOrderItems')
 const EditOrder = page(() => import('./pages/EditOrder.jsx'))
 const Settings = page(() => import('./pages/Settings.jsx'))
+const SettingsImport = page(() => import('./pages/SettingsImport.jsx'))
 const CategoryForm = page(() => import('./pages/CategoryForm.jsx'))
 const VendorForm = page(() => import('./pages/VendorForm.jsx'))
 const ScanUpload = page(() => import('./pages/Scan.jsx'), 'ScanUpload')
@@ -113,6 +114,14 @@ const VENDOR_TABS = at => [
 const CATEGORY_TABS = at => [
 	{ label: 'Overview', to: '/categories', on: at === 'overview' },
 	{ label: 'All categories', to: '/categories/all', on: at === 'all' }
+]
+
+/* Settings tabs the same way: importing is an act, not a preference, so it gets a page of its
+   own rather than two more cards among the switches -- and a URL, so it can be linked to and
+   survives a reload, like every other tab in the app. */
+const SETTINGS_TABS = at => [
+	{ label: 'Overview', to: '/settings', on: at === 'overview' },
+	{ label: 'Import', to: '/settings/import', on: at === 'import' }
 ]
 
 export const routes = [
@@ -192,7 +201,10 @@ export const routes = [
 			   from to send the reader back to and no sidebar item it belongs under. It was
 			   titled "Order settings" for the same reason it lived there, and it has never only
 			   been about orders. */
-			{ path: 'settings', element: <Settings />, handle: { title: 'Settings' } },
+			{ path: 'settings', handle: { title: 'Settings' }, children: [
+				{ index: true, element: <Settings />, handle: { title: 'Settings', tabs: SETTINGS_TABS('overview') } },
+				{ path: 'import', element: <SettingsImport />, handle: { title: 'Settings', tabs: SETTINGS_TABS('import') } }
+			] },
 
 			{ path: '*', element: <Home />, handle: { title: 'Home', navKey: 'home' } }
 		]
