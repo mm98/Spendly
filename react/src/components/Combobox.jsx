@@ -39,7 +39,7 @@ const isSelected = (label, query) => {
 
 export function Combobox({
 	value, onChange, onSelect, groups = [], action, placeholder, label, required,
-	leadingIcon, id, invalid, describedBy, children, chips, className
+	leadingIcon, id, invalid, describedBy, children, chips, trail, className
 }) {
 	const [open, setOpen] = useState(false)
 	const wrapper = useRef(null)
@@ -130,6 +130,9 @@ export function Combobox({
 				{leadingIcon ? <Icon name={leadingIcon} /> : null}
 				{chips}
 				{inputEl}
+				{/* Trailing chips ride inside the border like FieldShell's do -- the scan review's
+				    "matched" chip sits here, between the input and the chevron. */}
+				{trail}
 				{/* The chevron used to wrap with the chips and the input, so a full line of
 				    chips left it no room and dropped it to a line of its own -- with the input,
 				    left to reserve a flex-basis of its own, overflowing the shell's right edge

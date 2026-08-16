@@ -20,8 +20,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import {
-	attachScanDocument, createOrder, getRecentScans, getScanDraft, invalidateOrderData,
-	putScanDocument, scanFileUrl, scanThumbnailUrl, spendKinds
+	attachScanDocument, createOrder, createVendor, getRecentScans, getScanDraft, getVendors,
+	invalidateOrderData, invalidateVendorData, putScanDocument, scanFileUrl, scanThumbnailUrl,
+	spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
@@ -207,6 +208,7 @@ export function ScanReview() {
 
 function ScanReviewForm({ answer }) {
 	const navigate = useNavigate()
+	const vendors = useApi(getVendors)
 	const [showAll, setShowAll] = useState(false)
 	const [saving, setSaving] = useState(false)
 	const [status, setStatus] = useState({ message: '', good: true })
@@ -255,6 +257,24 @@ function ScanReviewForm({ answer }) {
 
 	const patch = p => setDraft(d => ({ ...d, ...p }))
 	const set = (name, key) => v => { patch({ [key]: v }); recheck(name, v) }
+
+	/* The info card on step 1 promises "Vendor matched to your list, or offered as a new
+	   vendor", and CREATE VENDOR "..." at the foot of the list is the second half of that
+	   promise doing the verb -- the same wiring as New order and Edit order, because create
+	   and scan are two doors to one saved order. README: Honest Affordances. */
+	const addVendor = name => {
+		const clean = String(name).trim()
+		if (!clean) return
+		createVendor(clean)
+			.then(vendor => {
+				invalidateVendorData()
+				vendors.refresh()
+				patch({ vendor: vendor.name })
+				recheck('order-vendor', vendor.name)
+				toast(`${vendor.name} added to your vendors.`)
+			})
+			.catch(e => toast(e.message, 'negative'))
+	}
 
 	const saveLine = (id, values) => {
 		patch({ lines: draft.lines.map(l => (l.id === id
@@ -397,14 +417,23 @@ function ScanReviewForm({ answer }) {
 			}>
 
 			<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId}>
-				<FieldShell>
-					<TextInput id="order-vendor" value={draft.vendor} onChange={set('order-vendor', 'vendor')}
-						placeholder="Search vendors..." aria-label="Vendor" aria-required="true"
-						invalid={vendorField.invalid} describedBy={vendorField.describedBy} />
-					{answer.vendorMatched && draft.vendor === answer.vendor
+				<Combobox id="order-vendor" label="Vendor" required
+					placeholder="Search vendors..." value={draft.vendor}
+					invalid={vendorField.invalid} describedBy={vendorField.describedBy}
+					onChange={set('order-vendor', 'vendor')}
+					onSelect={o => { patch({ vendor: o.label }); recheck('order-vendor', o.label) }}
+					leadingIcon="search"
+					trail={answer.vendorMatched && draft.vendor === answer.vendor
 						? <StatusChip className="chip-matched">matched</StatusChip>
 						: null}
-				</FieldShell>
+					groups={[
+						{ heading: 'Favourites', options: (vendors.data ?? []).filter(v => v.favourite)
+							.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders`, star: true })) },
+						{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
+							.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders` })) }
+					]}
+					action={{ icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
+						onSelect: addVendor }} />
 			</Field>
 
 			<FieldPair>
