@@ -109,7 +109,7 @@ export function shiftWindowId(range, id, delta) {
 const selectWindowTotals = db.prepare(`
 	SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spent, COALESCE(SUM(saved), 0) AS saved,
 		COALESCE(SUM(shipping), 0) AS shipping, COALESCE(SUM(retail), 0) AS retail
-	FROM order_totals WHERE user_id = @userId AND date >= @from AND date < @to
+	FROM orders WHERE user_id = @userId AND date >= @from AND date < @to
 `)
 
 function totalsOver(userId, from, to) {
@@ -126,7 +126,7 @@ const WEEKDAY_TICKS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const selectRhythm = db.prepare(`
 	SELECT CAST(strftime('%w', date, 'unixepoch') AS INTEGER) AS dow, SUM(total) AS spend
-	FROM order_totals WHERE user_id = @userId AND date >= @from AND date < @to
+	FROM orders WHERE user_id = @userId AND date >= @from AND date < @to
 	GROUP BY dow
 `)
 
@@ -160,7 +160,7 @@ const selectSplit = db.prepare(`
 	SELECT c.id, c.name, c.colour,
 		SUM(ot.total * 1.0 / cc.cat_count) AS spend
 	FROM order_categories oc
-	JOIN order_totals ot ON ot.id = oc.order_id
+	JOIN orders ot ON ot.id = oc.order_id
 	JOIN categories c ON c.id = oc.category_id
 	JOIN (SELECT order_id, COUNT(*) AS cat_count FROM order_categories GROUP BY order_id) cc ON cc.order_id = oc.order_id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
@@ -193,7 +193,7 @@ function splitOver(userId, from, to, trueTotal) {
 }
 
 const selectDailyTotals = db.prepare(`
-	SELECT date, COUNT(*) AS orders, SUM(total) AS spend, SUM(saved) AS saved FROM order_totals
+	SELECT date, COUNT(*) AS orders, SUM(total) AS spend, SUM(saved) AS saved FROM orders
 	WHERE user_id = @userId AND date >= @from AND date < @to
 	GROUP BY date ORDER BY date
 `)
@@ -223,7 +223,7 @@ function seriesOver(userId, from, to, key = 'spend') {
 const selectReturned = db.prepare(`
 	SELECT ot.id, ot.date, ot.total, ot.saved, ot.refunded,
 		v.name AS vendorName, v.initials AS vendorInitials, v.colour AS vendorColour
-	FROM order_totals ot JOIN vendors v ON v.id = ot.vendor_id
+	FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
 	WHERE ot.user_id = @userId AND ot.status = 'Returned' AND ot.date >= @from AND ot.date < @to
 	ORDER BY ot.date DESC
 `)

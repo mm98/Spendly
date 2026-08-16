@@ -39,11 +39,16 @@ CREATE TABLE categories (
 	UNIQUE (user_id, name)
 );
 
--- No partial-receipt override columns: that escape hatch existed only so the old phantom demo
--- store could fake a "23-line receipt" without actually authoring 23 lines. A real backend has
--- no reason not to store every line of a real order, so subtotal/total/saved/item count are
--- always the real sum of order_items (see the order_totals view below) — never a stored figure
--- that could silently disagree with the lines underneath it.
+-- Totals are stored on the order row itself and maintained by the order_items triggers below —
+-- never computed per read. This used to be a view (order_totals) aggregating order_items on
+-- every query, which reprices the whole table to answer any list, stats or search question;
+-- at hundreds of accounts with thousands of orders each, that GROUP BY is the cost of every
+-- read. The triggers are the consistency guarantee the view used to give: no code path can
+-- write an item without SQLite itself refreshing the parent order's figures, so the stored
+-- numbers can never silently disagree with the lines underneath them. item_count/paid/retail
+-- are the trigger-maintained aggregates; subtotal/total/saved/saved_percent are STORED
+-- generated columns derived from them, so the whole shape is readable (and indexable) as
+-- plain columns.
 CREATE TABLE orders (
 	id TEXT PRIMARY KEY,
 	user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -55,7 +60,15 @@ CREATE TABLE orders (
 	note TEXT NOT NULL DEFAULT '',
 	reference TEXT NOT NULL DEFAULT '',
 	refunded INTEGER NOT NULL DEFAULT 0,
-	created_at INTEGER NOT NULL DEFAULT (unixepoch())
+	created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+	item_count INTEGER NOT NULL DEFAULT 0,
+	paid REAL NOT NULL DEFAULT 0,
+	retail REAL NOT NULL DEFAULT 0,
+	subtotal REAL GENERATED ALWAYS AS (paid) STORED,
+	total REAL GENERATED ALWAYS AS (paid + shipping) STORED,
+	saved REAL GENERATED ALWAYS AS (retail - paid) STORED,
+	saved_percent REAL GENERATED ALWAYS AS
+		(CASE WHEN retail > 0 THEN (retail - paid) / retail * 100 ELSE 0 END) STORED
 );
 
 CREATE TABLE order_categories (
@@ -106,7 +119,14 @@ CREATE TABLE settings (
 	page_size INTEGER NOT NULL,
 	sort TEXT NOT NULL,
 	show_scan_card INTEGER NOT NULL,
-	confirm_delete INTEGER NOT NULL
+	confirm_delete INTEGER NOT NULL,
+	-- card_rows: how many entries a card on Home fills with — a fact about the account, not the
+	-- build, since the cards share a grid row and the number decides how much of it each uses.
+	-- list_sort: the order the vendors and categories lists open in — one column because it is
+	-- one answer to one question, stored as key-with-direction ('name-asc' | 'spend-desc' |
+	-- 'saved-desc') so the printed label can change without rewriting rows.
+	card_rows INTEGER NOT NULL DEFAULT 6,
+	list_sort TEXT NOT NULL DEFAULT 'name-asc'
 );
 
 CREATE TABLE dashboard_cards (
@@ -134,32 +154,47 @@ CREATE TABLE scan_uploads (
 	created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
--- One place for order math (client.js:104-125's `decorate`, ported once here as real
--- aggregation) instead of re-deriving it per caller: every consumer — a single order fetch, the
--- list filter/sort, vendor/category rollups — reads this view with SUM/WHERE/ORDER BY/LIMIT
--- rather than loading rows into JS to compute it.
-CREATE VIEW order_totals AS
-SELECT
-	o.id, o.user_id, o.vendor_id, o.date, o.status, o.kind, o.shipping, o.note, o.reference, o.refunded,
-	COALESCE(li.item_count, 0) AS item_count,
-	COALESCE(li.paid, 0) AS paid,
-	COALESCE(li.retail, 0) AS retail,
-	COALESCE(li.paid, 0) AS subtotal,
-	COALESCE(li.paid, 0) + o.shipping AS total,
-	COALESCE(li.retail, 0) - COALESCE(li.paid, 0) AS saved,
-	CASE WHEN COALESCE(li.retail, 0) > 0
-		THEN (COALESCE(li.retail, 0) - COALESCE(li.paid, 0)) / li.retail * 100
-		ELSE 0 END AS saved_percent
-FROM orders o
-LEFT JOIN (
-	SELECT order_id, COUNT(*) AS item_count, SUM(price * quantity) AS paid,
-		SUM(COALESCE(retail, price) * quantity) AS retail
-	FROM order_items
-	GROUP BY order_id
-) li ON li.order_id = o.id;
+-- One place for order math: the three triggers below refresh the parent order's stored
+-- aggregates on every item write, inside the same transaction as the write itself. Each
+-- recomputes from the order's own items (an indexed handful of rows) rather than adjusting
+-- incrementally, so repeated edits can never accumulate floating-point drift. Every consumer —
+-- a single order fetch, the list filter/sort, vendor/category rollups, stats windows — reads
+-- the stored columns straight off `orders` with no join and no GROUP BY.
+CREATE TRIGGER order_items_totals_insert AFTER INSERT ON order_items
+BEGIN
+	UPDATE orders SET (item_count, paid, retail) = (
+		SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+		FROM order_items WHERE order_id = NEW.order_id
+	) WHERE id = NEW.order_id;
+END;
+
+CREATE TRIGGER order_items_totals_update AFTER UPDATE ON order_items
+BEGIN
+	UPDATE orders SET (item_count, paid, retail) = (
+		SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+		FROM order_items WHERE order_id = OLD.order_id
+	) WHERE id = OLD.order_id;
+	-- An item never moves between orders through the app, but a trigger guards the schema, not
+	-- the app: if one ever does, both sides come out right.
+	UPDATE orders SET (item_count, paid, retail) = (
+		SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+		FROM order_items WHERE order_id = NEW.order_id
+	) WHERE id = NEW.order_id AND NEW.order_id <> OLD.order_id;
+END;
+
+CREATE TRIGGER order_items_totals_delete AFTER DELETE ON order_items
+BEGIN
+	UPDATE orders SET (item_count, paid, retail) = (
+		SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+		FROM order_items WHERE order_id = OLD.order_id
+	) WHERE id = OLD.order_id;
+END;
 
 CREATE INDEX idx_sessions_user ON sessions(user_id);
 CREATE INDEX idx_orders_user_date ON orders(user_id, date);
+-- total is a STORED generated column, so it is indexable: this serves the orders list's
+-- amount sorts and min/max amount filters without a scan-and-sort over the account's rows.
+CREATE INDEX idx_orders_user_total ON orders(user_id, total);
 CREATE INDEX idx_orders_user_vendor ON orders(user_id, vendor_id);
 CREATE INDEX idx_order_categories_cat ON order_categories(category_id);
 CREATE INDEX idx_order_items_order ON order_items(order_id);

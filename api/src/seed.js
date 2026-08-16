@@ -19,9 +19,8 @@ export const DASHBOARD_CARDS = [
 export const DEFAULT_SETTINGS = {
 	defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10,
 	sort: 'date-desc', showScanCard: true, confirmDelete: true,
-	// What the two pages hardcoded before either was a setting: ten rows a card, and the
-	// vendors and categories lists opening alphabetically.
-	cardRows: 10, listSort: 'name-asc'
+	// Six rows a card, and the vendors and categories lists opening alphabetically.
+	cardRows: 6, listSort: 'name-asc'
 }
 
 /** Inserts the settings row and dashboard-card rows every account needs. Runs inside the

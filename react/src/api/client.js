@@ -399,7 +399,7 @@ export const ordersIn = ({ category, vendor, from, to } = {}) =>
     Not the category ring's list, whichever number is chosen: that one is every category with
     spend this month by rule, since the arcs have to add up to the figure printed in the centre.
     Capping it is a defect with its own entry. */
-const defaultCardRows = 10
+const defaultCardRows = 6
 
 /** What the picker offers. Small numbers included on purpose -- a card cut to one row is a
     headline with a single example under it, which is a legitimate thing to want from a

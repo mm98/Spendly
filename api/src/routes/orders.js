@@ -51,7 +51,7 @@ const selectItemAttachment = db.prepare('SELECT name, content_type, data FROM at
 const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
 const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectLatestOrders = db.prepare(
-	`SELECT ${orderTotalsSelectList()} FROM order_totals WHERE user_id = @userId ORDER BY date DESC, id DESC LIMIT @count`
+	`SELECT ${orderTotalsSelectList()} FROM orders WHERE user_id = @userId ORDER BY date DESC, id DESC LIMIT @count`
 )
 
 /* ---- overview / draft ---- */
@@ -77,7 +77,7 @@ router.get('/draft', (req, res) => {
 	})
 })
 
-/* ---- list: real SQL filter/sort/paginate over the order_totals view ----
+/* ---- list: real SQL filter/sort/paginate over the orders table's stored totals ----
    Built as parameterized clauses reused between the COUNT (matched) and the SELECT (page), so
    the two can never disagree about which rows qualify. LIMIT/OFFSET does the paging in SQLite
    rather than in JS, and only the resulting page (not the whole table) is passed to
@@ -128,7 +128,7 @@ router.get('/', (req, res) => {
 	const orderSql = SORT_SQL[q.sort] ?? SORT_SQL['date-desc']
 
 	const matched = db.prepare(`
-		SELECT COUNT(*) c FROM order_totals ot JOIN vendors v ON v.id = ot.vendor_id WHERE ${whereSql}
+		SELECT COUNT(*) c FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ${whereSql}
 	`).get(params).c
 
 	// LIMIT/OFFSET go straight into the query below, so this is the one place a caller-chosen
@@ -142,7 +142,7 @@ router.get('/', (req, res) => {
 	const at = Math.min(Math.max(1, Number(q.page) || 1), pages)
 
 	const totalsRows = db.prepare(`
-		SELECT ${orderTotalsSelectList('ot')} FROM order_totals ot JOIN vendors v ON v.id = ot.vendor_id
+		SELECT ${orderTotalsSelectList('ot')} FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
 		WHERE ${whereSql}
 		ORDER BY ${orderSql}
 		LIMIT @limit OFFSET @offset

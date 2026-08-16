@@ -45,7 +45,7 @@ router.patch('/', (req, res) => {
 	const current = selectSettings.get(req.user.id)
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
-		showScanCard: true, confirmDelete: true, cardRows: 10, listSort: 'name-asc'
+		showScanCard: true, confirmDelete: true, cardRows: 6, listSort: 'name-asc'
 	}
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({
