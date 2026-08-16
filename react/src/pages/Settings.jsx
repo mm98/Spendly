@@ -566,7 +566,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 										least one item with <code>title</code>, <code>quantity</code> and{' '}
 										<code>price</code>. Everything else is optional.</li>
 									<li><code>price</code> may be negative — a discount line subtracts, the way it
-										did at the till. Every other amount ≥ 0.</li>
+										did at the till. <code>retail</code> and <code>shipping</code>, the only
+										other amounts, stay at zero or above.</li>
 									<li><code>vendor</code> ≤ 80 characters.</li>
 									<li><code>title</code> ≤ 120 characters.</li>
 									<li><code>quantity</code> a whole number, 1–9999.</li>
