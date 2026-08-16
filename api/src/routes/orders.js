@@ -97,7 +97,13 @@ function buildOrderFilter(userId, q) {
 	const params = { userId }
 
 	if (q.vendorId) { where.push('ot.vendor_id = @vendorId'); params.vendorId = q.vendorId }
-	if (q.categoryId) {
+	if (q.categoryId === 'none') {
+		// The sentinel every "Without category" row links with. Real ids are newId()-prefixed,
+		// so nothing an account creates can collide with it. category_count is the stored,
+		// trigger-maintained column the split's own remainder is computed from (lib/stats.js),
+		// so the rows this matches are exactly the orders that remainder added up.
+		where.push('ot.category_count = 0')
+	} else if (q.categoryId) {
 		// IN driven from the category's own (indexed, covering) links rather than an EXISTS
 		// probe per order row: the filter reads the few thousand rows the category actually
 		// has, not every order the account has. 250ms -> 3ms at 50k orders, same rows.

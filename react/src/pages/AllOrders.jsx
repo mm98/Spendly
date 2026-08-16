@@ -54,6 +54,12 @@ const filtersFromParams = params => ({
    landed and is better than a chip reading "Vendor: ". */
 const nameOf = (list, id) => list?.find(x => x.id === id)?.name ?? id
 
+/* `none` is the sentinel the "Without category" rows link with -- it names no record in the
+   categories list, so the lookup above would echo the raw token into the chip and the panel.
+   One place turns it into the name those rows carry, so the filter reads the same wherever it
+   is shown. */
+const categoryNameOf = (list, id) => id === 'none' ? 'Without category' : nameOf(list, id)
+
 const paramsFromFilters = (filters, query, sort, page) => {
 	const out = {}
 	if (query) out.q = query
@@ -105,7 +111,7 @@ export default function AllOrders() {
 	useEffect(() => setDraft({
 		...filters,
 		vendorName: nameOf(vendors.data, filters.vendorId),
-		categoryName: nameOf(categories.data, filters.categoryId)
+		categoryName: categoryNameOf(categories.data, filters.categoryId)
 	}), [filters, vendors.data, categories.data])
 
 	/* The sort is the URL's when the URL has one, and the user's stored default otherwise. */
@@ -147,7 +153,7 @@ export default function AllOrders() {
 			clear: { from: '', to: '' } })
 		if (filters.status !== 'Any') out.push({ key: 'status', label: filters.status, clear: { status: 'Any' } })
 		if (filters.vendorId) out.push({ key: 'vendor', label: 'Vendor: ' + nameOf(vendors.data, filters.vendorId), clear: { vendorId: '', vendorName: '' } })
-		if (filters.categoryId) out.push({ key: 'category', label: 'Category: ' + nameOf(categories.data, filters.categoryId), clear: { categoryId: '', categoryName: '' } })
+		if (filters.categoryId) out.push({ key: 'category', label: 'Category: ' + categoryNameOf(categories.data, filters.categoryId), clear: { categoryId: '', categoryName: '' } })
 		if (filters.kind) out.push({ key: 'kind', label: filters.kind, clear: { kind: '' } })
 		if (filters.minAmount) out.push({ key: 'min', label: 'From ' + filters.minAmount + ' kr.', clear: { minAmount: '' } })
 		if (filters.maxAmount) out.push({ key: 'max', label: 'To ' + filters.maxAmount + ' kr.', clear: { maxAmount: '' } })
@@ -236,7 +242,12 @@ export default function AllOrders() {
 									onChange={v => setDraft({ ...draft, categoryName: v, categoryId: '' })}
 									onSelect={o => setDraft({ ...draft, categoryName: o.label, categoryId: o.id })}
 									groups={[{ heading: 'All categories', options: (categories.data ?? []).map(c =>
-										({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }]} />
+										({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) },
+										/* The rows every ring folds its remainder into are reachable from here
+										   too, not only by arriving on their link -- a filter the chip row can
+										   name has to be one the panel can set. Its own group, because it is
+										   not a category and should not read as one of them. */
+										{ heading: 'Other', options: [{ id: 'none', label: 'Without category' }] }]} />
 							</Field>
 							<Field label="Kind" htmlFor="filter-kind">
 								<Combobox id="filter-kind" label="Kind" placeholder="Any kind" value={draft.kind ?? ''}
