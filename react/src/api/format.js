@@ -34,6 +34,10 @@ export const percent = (n, decimals = 1) =>
    keyboard; the parsing is ours. A dot groups thousands and never separates decimals,
    which makes 89.95 a typo to name rather than a number to guess at. README: Fields and Forms. */
 export const AMOUNT_PATTERN = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
+/** The same grammar with a leading minus allowed. An item's price is the one signed money
+    field -- a receipt line can be a discount (rabat), and it subtracts -- where retail and
+    shipping never go below zero. parseAmount carries the sign through unchanged. */
+export const SIGNED_AMOUNT_PATTERN = /^-?(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
 export const WHOLE_NUMBER_PATTERN = /^\d+$/
 export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',', '.'))
 

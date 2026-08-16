@@ -14,11 +14,15 @@ import { dayMonth, parseAmount, sep } from './format.js'
 import { invalidate } from './useApi.js'
 
 class ApiError extends Error {
-	constructor(message, status, fields) {
+	constructor(message, status, fields, body) {
 		super(message)
 		this.name = 'ApiError'
 		this.status = status
 		this.fields = fields
+		/* The parsed response body, kept whole: the import route's 400 carries no `error`
+		   sentence but a per-row `failed` list, and a caller sending slices needs that list
+		   to say which rows of the file were refused. */
+		this.body = body
 	}
 }
 
@@ -47,7 +51,7 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
 	if (res.status === 204) return null
 	let data = null
 	try { data = await res.json() } catch { /* empty body */ }
-	if (!res.ok) throw new ApiError(data?.error || res.statusText || 'Request failed', res.status, data?.fields)
+	if (!res.ok) throw new ApiError(data?.error || res.statusText || 'Request failed', res.status, data?.fields, data)
 	return data
 }
 

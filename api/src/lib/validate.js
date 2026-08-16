@@ -43,8 +43,10 @@ export function validateOrderDraft(draft) {
 		if (!Number.isInteger(quantity) || quantity < 1 || quantity > 9999)
 			errors[`items.${i}.quantity`] = 'Quantity must be a whole number from 1 to 9999.'
 
+		/* The one signed amount: a receipt line can be a discount (rabat), and it subtracts
+		   here the way it did at the till. Retail and shipping stay at zero or above. */
 		const price = Number(item.price)
-		if (!Number.isFinite(price) || price < 0)
+		if (!Number.isFinite(price))
 			errors[`items.${i}.price`] = 'What did you pay?'
 
 		if (item.retail != null && (!Number.isFinite(Number(item.retail)) || Number(item.retail) < 0))
