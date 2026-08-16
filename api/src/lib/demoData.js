@@ -105,16 +105,19 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 	const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
 	const pick = arr => arr[Math.floor(rnd() * arr.length)]
 
-	/* The order_items triggers are off for the bulk insert and one UPDATE rebuilds the stored
-	   totals at the end. Not because the totals are expensive -- because a statement that fires
-	   a trigger keeps a statement journal sized by what the transaction has already changed, so
-	   a big fill inside the route's replace transaction went quadratic: 30s for 10K orders over
-	   an existing 10K, over five minutes at 50K. Trigger-free, the same shape is 0.65s. DDL is
-	   transactional in SQLite, so a rollback anywhere in here restores the triggers untouched;
-	   the recreate below is from sqlite_master's own copy, never a second statement of them.
-	   Single connection, synchronous driver: nothing else can write while they are off. */
+	/* Every trigger the fill would fire per row is off for the bulk insert -- the item-totals
+	   set, the orders search_text pair, the order_categories count pair -- and one UPDATE
+	   rebuilds all the stored columns at the end. Not because the recomputes are expensive --
+	   because a statement that fires a trigger keeps a statement journal sized by what the
+	   transaction has already changed, so a big fill inside the route's replace transaction
+	   went quadratic: 30s for 10K orders over an existing 10K, over five minutes at 50K.
+	   Trigger-free, the same shape is 0.65s. DDL is transactional in SQLite, so a rollback
+	   anywhere in here restores the triggers untouched; the recreate below is from
+	   sqlite_master's own copy, never a second statement of them. Single connection,
+	   synchronous driver: nothing else can write while they are off. */
 	const triggers = db.prepare(
-		`SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'order_items'`).all()
+		`SELECT name, sql FROM sqlite_master WHERE type = 'trigger'
+		 AND tbl_name IN ('order_items', 'orders', 'order_categories')`).all()
 	for (const t of triggers) db.exec(`DROP TRIGGER ${t.name}`)
 
 	const vendorIds = VENDORS.map((v, i) => {
@@ -188,13 +191,18 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 		}
 	}
 
-	/* The one recompute the triggers would have done 150,000 times: every stored aggregate on
-	   this account's orders, from the items underneath, then the triggers back in place --
-	   totals first, or recreating them would fire them once per row for nothing. */
-	db.prepare(`UPDATE orders SET (item_count, paid, retail) = (
-			SELECT COUNT(*), COALESCE(SUM(price * quantity), 0),
-				COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
-			FROM order_items WHERE order_id = orders.id)
+	/* The one recompute the triggers would have done 150,000 times: every stored column on
+	   this account's orders -- the totals, the searchable text, the category count -- from
+	   the rows underneath, then the triggers back in place -- rebuild first, or recreating
+	   them would fire them once per row for nothing. */
+	db.prepare(`UPDATE orders SET
+			(item_count, paid, retail) = (
+				SELECT COUNT(*), COALESCE(SUM(price * quantity), 0),
+					COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+				FROM order_items WHERE order_id = orders.id),
+			search_text = note || char(10) ||
+				COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = orders.id), ''),
+			category_count = (SELECT COUNT(*) FROM order_categories oc WHERE oc.order_id = orders.id)
 		WHERE user_id = ?`).run(userId)
 	for (const t of triggers) db.exec(t.sql)
 
