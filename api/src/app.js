@@ -29,18 +29,21 @@ app.use((req, res, next) => (req.path === '/api/orders/import' ? importJson : sm
 // as a request arrives (with its JSON body, if it has one -- after the parser above so req.body
 // is already the parsed object, not the raw stream) and one line when the response finishes, so
 // a request and its outcome read as a pair in the terminal rather than status codes arriving in
-// whatever order handlers happen to finish in. Password is the one field worth hiding -- both
+// whatever order handlers happen to finish in. Each line starts with an ISO timestamp and pads
+// the method to the width of the longest one (OPTIONS, 7), so the URLs line up in a column and
+// the log reads like a standard access log. Password is the one field worth hiding -- both
 // auth routes carry it in plain text, and a debug log is still a log a terminal keeps scrollback
 // of. Registered only when on, rather than checked every request, so a normal run pays nothing.
 if (process.argv.includes('--debug') || process.env.DEBUG) {
 	const REDACT_KEYS = ['password']
 	const redacted = body => JSON.stringify(body, (key, value) => REDACT_KEYS.includes(key) ? '***' : value)
+	const line = (ts, arrow, method, rest) => console.log(`${ts} ${arrow} ${method.padEnd(7)} ${rest}`)
 	app.use((req, res, next) => {
 		const start = Date.now()
 		const body = req.is('application/json') && req.body && Object.keys(req.body).length ? ' ' + redacted(req.body) : ''
-		console.log(`--> ${req.method} ${req.originalUrl}${body}`)
+		line(new Date().toISOString(), '-->', req.method, `${req.originalUrl}${body}`)
 		res.on('finish', () => {
-			console.log(`<-- ${req.method} ${req.originalUrl} ${res.statusCode} (${Date.now() - start}ms)`)
+			line(new Date().toISOString(), '<--', req.method, `${req.originalUrl} ${res.statusCode} (${Date.now() - start}ms)`)
 		})
 		next()
 	})
