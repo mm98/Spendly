@@ -193,27 +193,27 @@ export default function SettingsImport() {
 							<code>orders</code> array, the shape the reference card documents. Each
 							order imports on its own, so one bad row fails alone.
 						</p>
-						{/* The same rows every boolean in Settings uses, in the same Form grid
-						    that spaces them there: help text left, switch right. A checkbox
-						    would be a second control for the same question. Two rows because
-						    the schema carries two kinds of file, and someone migrating may
-						    want the receipts without megabytes of photos. */}
+						{/* The switch leads its row here, description beside it, in the Form grid
+						    that spaces the rows. A checkbox would be a second control for the
+						    same question. Two rows because the schema carries two kinds of
+						    file, and someone migrating may want the receipts without megabytes
+						    of photos. */}
 						<Form>
-							<div className="space-between">
-								<span className="field-help toggle-help">
+							<div className="toggle-row">
+								<Switch checked={withAttachments} label="Import attachments"
+									onChange={setWithAttachments} />
+								<span className="field-help">
 									Bring attachments along: the receipt file riding on an order.
 									With this off, orders import without their attachments.
 								</span>
-								<Switch checked={withAttachments} label="Import attachments"
-									onChange={setWithAttachments} />
 							</div>
-							<div className="space-between">
-								<span className="field-help toggle-help">
+							<div className="toggle-row">
+								<Switch checked={withImages} label="Import images"
+									onChange={setWithImages} />
+								<span className="field-help">
 									Bring images along: the photo riding on a line item.
 									With this off, items import without their images.
 								</span>
-								<Switch checked={withImages} label="Import images"
-									onChange={setWithImages} />
 							</div>
 						</Form>
 						{importFile ? (

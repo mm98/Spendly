@@ -156,6 +156,13 @@ body {
    of its own (see the phone rule further down), so this padding would sit on the right of
    text with nothing beside it there; zeroed at that width rather than left to look stray. */
 .toggle-help { padding-right:20px; }
+/* A switch leading its own description: control on the left, text left-aligned beside it.
+   flex-start rather than center so a wrapped second line stays under the first, never
+   drifting the control; the text's top padding sets its first line on the 26px control's
+   centre. flex:1 with min-width:0 is what lets the text wrap at phone widths instead of
+   pushing the row wide. */
+.toggle-row { display:flex; align-items:flex-start; gap:14px; }
+.toggle-row .field-help { flex:1; min-width:0; padding-top:4px; }
 svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
 /* ---------------- shell ---------------- */
