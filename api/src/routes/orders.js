@@ -414,6 +414,19 @@ router.post('/import', async (req, res) => {
 	const orders = Array.isArray(req.body?.orders) ? req.body.orders : []
 	if (!orders.length) return res.status(400).json({ error: 'Provide a non-empty "orders" array.' })
 
+	/* ?progress=stream turns the response into NDJSON: a {done, total} line as rows land --
+	   at most ~100 of them however big the batch, so a 25k-row import is not spent writing
+	   progress -- closed by the same result object the plain response carries. The status is
+	   always 200 once streaming starts, the headers being long gone, so a streaming caller
+	   reads the final line for the verdict; a script that posts without the flag keeps the
+	   documented one-object response and its 400 when nothing imported. */
+	const streaming = req.query.progress === 'stream'
+	const step = Math.max(1, Math.ceil(orders.length / 100))
+	if (streaming) {
+		res.status(200).set({ 'Content-Type': 'application/x-ndjson', 'Cache-Control': 'no-store' })
+		res.flushHeaders()
+	}
+
 	const imported = [], failed = []
 	for (const [index, draft] of orders.entries()) {
 		try {
@@ -436,7 +449,11 @@ router.post('/import', async (req, res) => {
 		} catch (e) {
 			failed.push({ index, error: e.message })
 		}
+		if (streaming && ((index + 1) % step === 0 || index + 1 === orders.length))
+			res.write(JSON.stringify({ done: index + 1, total: orders.length }) + '\n')
 	}
 
-	res.status(failed.length && !imported.length ? 400 : 200).json({ imported: imported.length, orders: imported, failed })
+	const result = { imported: imported.length, orders: imported, failed }
+	if (streaming) res.end(JSON.stringify(result) + '\n')
+	else res.status(failed.length && !imported.length ? 400 : 200).json(result)
 })

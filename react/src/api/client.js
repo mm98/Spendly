@@ -234,12 +234,63 @@ export const itemAttachmentThumbnailUrl = (orderId, itemId, attachmentId) =>
 export const itemAttachmentFileUrl = (orderId, itemId, attachmentId) =>
 	`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}/file`
 
+/** POST carried by XMLHttpRequest rather than fetch, for two things fetch cannot serve at
+    once: the sent fraction of the request body (xhr.upload.onprogress) and the response read
+    line by line while it is still arriving. When the server answers NDJSON (the import
+    route's ?progress=stream), each complete line is parsed and handed to `onLine` as it
+    lands, and the last line is the result -- the status is 200 throughout a stream, so the
+    final line carries the verdict. A plain JSON response resolves and rejects exactly as
+    request() does, ApiError body and all. */
+function uploadJson(path, body, { signal, onSent, onLine } = {}) {
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest()
+		xhr.open('POST', path)
+		xhr.setRequestHeader('Content-Type', 'application/json')
+		xhr.withCredentials = true
+		if (onSent) xhr.upload.onprogress = e => { if (e.lengthComputable && e.total) onSent(e.loaded / e.total) }
+		const streamed = () => (xhr.getResponseHeader('Content-Type') || '').includes('x-ndjson')
+		let read = 0, last = null
+		const take = line => {
+			if (!line.trim()) return
+			try { const o = JSON.parse(line); last = o; if (onLine) onLine(o) } catch { /* partial line */ }
+		}
+		const drain = () => {
+			const text = xhr.responseText
+			let nl
+			while ((nl = text.indexOf('\n', read)) !== -1) { take(text.slice(read, nl)); read = nl + 1 }
+		}
+		xhr.onprogress = () => { if (streamed()) drain() }
+		xhr.onerror = () => reject(new TypeError('Network request failed'))
+		xhr.ontimeout = () => reject(new TypeError('Network request timed out'))
+		xhr.onabort = () => reject(new DOMException('The operation was aborted.', 'AbortError'))
+		if (signal) signal.addEventListener('abort', () => xhr.abort(), { once: true })
+		xhr.onload = () => {
+			if (streamed()) {
+				drain()
+				take(xhr.responseText.slice(read))
+				if (last && 'imported' in last) resolve(last)
+				else reject(new ApiError('The import ended before its result arrived.', xhr.status, undefined, last))
+			} else {
+				let data = null
+				try { data = JSON.parse(xhr.responseText) } catch { /* empty body */ }
+				if (xhr.status >= 200 && xhr.status < 300) resolve(data)
+				else reject(new ApiError(data?.error || xhr.statusText || 'Request failed', xhr.status, data?.fields, data))
+			}
+		}
+		xhr.send(JSON.stringify(body))
+	})
+}
+
 /** Bulk-imports whole orders (vendor, categories, items, attachment images) from another
     expense-tracking system in one call. Called by the Settings import card (and any script a
     user writes against the endpoint directly) rather than through useApi like the read
-    endpoints above. */
-export async function importOrders(orders, signal) {
-	return request('/api/orders/import', { method: 'POST', body: { orders }, signal })
+    endpoints above. `onSent` reports the request body's sent fraction, 0 to 1; `onRows`
+    reports rows the server has processed so far, streamed back while the import runs. */
+export async function importOrders(orders, { signal, onSent, onRows } = {}) {
+	return uploadJson('/api/orders/import?progress=stream', { orders }, {
+		signal, onSent,
+		onLine: o => { if (onRows && o && 'done' in o && 'total' in o) onRows(o.done, o.total) }
+	})
 }
 
 export async function getOrderDraft(signal) {
