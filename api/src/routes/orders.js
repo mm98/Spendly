@@ -8,6 +8,7 @@ import { getDecoratedOrder, decorateOrderRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
+import { MAX_PAGE_SIZE } from '../lib/constants.js'
 import { processAttachment } from '../lib/images.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 
@@ -152,9 +153,12 @@ router.get('/', (req, res) => {
 	// pageSize has to be made safe before it reaches SQL: SQLite treats any negative LIMIT as
 	// "no limit at all" (not an error, and not clamped to 1 the way this code used to assume),
 	// so `pageSize=-3` silently returned every matched row while the page/pages fields in the
-	// response still claimed a 3-row page -- the metadata and the data disagreed.
+	// response still claimed a 3-row page -- the metadata and the data disagreed. The ceiling
+	// bounds the other direction: an oversized ask (or none, which used to mean "everything")
+	// is a whole account decorated into one response, so it pages like any other reader.
 	const requestedSize = Number(q.pageSize) || Number(q.limit) || matched || 1
-	const size = Number.isFinite(requestedSize) ? Math.max(1, Math.floor(requestedSize)) : Math.max(1, matched)
+	const size = Math.min(MAX_PAGE_SIZE, Number.isFinite(requestedSize)
+		? Math.max(1, Math.floor(requestedSize)) : Math.max(1, matched))
 	const pages = Math.max(1, Math.ceil(matched / size))
 	const at = Math.min(Math.max(1, Number(q.page) || 1), pages)
 
