@@ -678,7 +678,10 @@ svg.chart { width:100%; display:block; }
    up keep the tight top, since nothing there ever draws the box. README: Honest Affordances. */
 .entry-list:not(:has(.entry-list-row[data-go])) > .entry-list-row:first-child { padding-top:0; }
 .card-body-tight:has(> .entry-list-row[data-go]) { padding-top:0; }
-.empty-state { display:grid; justify-items:center; gap:10px; padding:24px 12px; text-align:center; }
+/* flex:1 is for the flex bodies (.ring-row): a block-level grid fills its card on its own, but
+   as a flex item it shrinks to content and sits at flex-start -- two empty states rendered
+   hard left while every other one centered. README: Empty states. */
+.empty-state { display:grid; justify-items:center; gap:10px; padding:24px 12px; text-align:center; flex:1; }
 .empty-state .empty-state-icon { width:42px; height:42px; border-radius:var(--radius-page); border:1px solid #DFE3DE; background:#F7F8F5; display:grid; place-items:center; color:#9AA39B; }
 .empty-state .empty-state-icon svg.icon { width:19px; height:19px; }
 .empty-state p { margin:0; font-size:13.5px; color:var(--text-body); max-width:30ch; }

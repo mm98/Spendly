@@ -63,8 +63,12 @@ export default function Categories() {
 								note={budgeted.length ? `${over.length} over this month` : 'none set yet'} />
 						</div>
 
+						{/* The header opens the list only while the list has rows to show: on an account
+						    with no categories the band is a plain heading, the same degrade the button
+						    below makes. README: Empty states. */}
 						<Card aria-label="Breakdown">
-							<CardHeader title={`Breakdown${sep}all time`} to="/categories/all"
+							<CardHeader title={`Breakdown${sep}all time`}
+								to={categories.length ? '/categories/all' : undefined}
 								label="Breakdown, open all categories" />
 							<CardDivider />
 							{/* The ring and the rows beside it are drawn from one array, which is the rule
@@ -102,7 +106,8 @@ export default function Categories() {
 						    one card in a two-column grid and nothing at all beside it.
 						    README: Grids and Breakpoints. */}
 						<Card aria-label="Budget">
-							<CardHeader title="Against budget" to="/categories/all"
+							<CardHeader title="Against budget"
+								to={categories.length ? '/categories/all' : undefined}
 								label="Against budget, open all categories" />
 							<CardDivider />
 							<CardBody>
@@ -121,9 +126,20 @@ export default function Categories() {
 										</span>
 									</>
 								) : (
+									/* Two absences, two answers: with categories the sentence names the next
+									   step and the button opens the list where budgets are set; with none, the
+									   step it named ("open a category") did not exist and the button opened an
+									   empty list -- an action that cannot show anything is not drawn.
+									   README: Empty states, Honest Affordances. */
 									<EmptyState>
-										<p>No budgets set. Open a category and give it one to see this fill up.</p>
-										<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
+										{categories.length ? (
+											<>
+												<p>No budgets set. Open a category and give it one to see this fill up.</p>
+												<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
+											</>
+										) : (
+											<p>No categories yet. A budget is set on a category's own page.</p>
+										)}
 									</EmptyState>
 								)}
 							</CardBody>

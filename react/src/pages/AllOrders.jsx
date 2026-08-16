@@ -290,7 +290,16 @@ export default function AllOrders() {
 						{data.orders.length ? data.orders.map(order => (
 							<OrderRow key={order.id} to={`/orders/${order.id}`}
 								order={{ ...order, dateLabel: dayMonth(order.date) }} />
-						)) : (
+						)) : data.total === 0 ? (
+							/* Nothing to filter is not "nothing matches": on an account with no orders
+							   at all the filter sentence blamed filters that were not set, and CLEAR ALL
+							   offered to clear them. The answer is the create action, in the words Home's
+							   Orders card already uses. README: Empty states, Honest Affordances. */
+							<EmptyState>
+								<p>No orders yet. Add one and your spending shows up here.</p>
+								<ButtonLink to="/orders/new">ADD AN ORDER</ButtonLink>
+							</EmptyState>
+						) : (
 							<EmptyState>
 								<p>No orders match these filters.</p>
 								<ButtonLink onClick={clearAll}>CLEAR ALL</ButtonLink>

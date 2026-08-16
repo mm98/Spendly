@@ -60,8 +60,15 @@ export function ReturnsCard({ title, span, returns }) {
 				{/* The rows are the window's; the history behind them is all of them, which is what
 				    the label says and where the link goes. A card's closing action is the block
 				    button in the six other cards that have one -- as a bare .button-link it declared
-				    no margin of its own and stood 2px under the last row it followed. README: Buttons. */}
-				<Button variant="block" to="/orders/all?status=Returned">SEE RETURN HISTORY</Button>
+				    no margin of its own and stood 2px under the last row it followed. README: Buttons.
+
+				    Only while there is a history to see: `history` is the account's count, not the
+				    window's, so a quiet month over a year of returns keeps the button and a fresh
+				    account is not offered a filtered list that answers nothing.
+				    README: Honest Affordances. */}
+				{(returns?.history ?? items.length) > 0 ? (
+					<Button variant="block" to="/orders/all?status=Returned">SEE RETURN HISTORY</Button>
+				) : null}
 			</CardBody>
 		</Card>
 	)

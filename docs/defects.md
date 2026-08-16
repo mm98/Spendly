@@ -1584,3 +1584,38 @@ inside them; the boxes hold only the request or the response now — three of th
 as real JSON, each explained in ordinary text beneath its own box. Driven at 1440 and on the
 phone descriptor: band toggles both ways, chevron rotates, three boxes parse, prose only
 outside them, 0 overhang, 0 page errors. Verified in Blink.
+
+## Empty states — two sat left, and the actions offered lists with nothing in them
+
+A fresh account is a state of every page, and driving all ten routes through one found the
+absence-shaped defects clustered there. Measured against the card body's inner edge, the
+Categories Breakdown and Vendors Where-it-goes empty states sat at **20px left / 840px right**
+in a 1154px body while every other one measured 20/20: `.empty-state` is a block-level grid
+and fills a plain body on its own, but those two bodies are the ring-beside-legend flex row,
+where a flex item shrinks to content and sits at flex-start. The fix is one declaration,
+`flex:1`, on the class — after it, all thirteen empty states across the ten routes measure
+symmetric at 1440 and on the iPhone 13 descriptor (20/20 everywhere, 0 document overflow).
+
+The stale actions were the same sweep's other column. On an account with no records at all:
+ALL CATEGORIES closed the Categories budget card over an empty list, under a sentence
+instructing "open a category" with no category to open; ALL VENDORS did the same on Vendors'
+favourites; Latest orders on Orders overview drew **a lone SEE ALL and no empty state at
+all**; the category breakdown there kept its toggle, a grey 0 kr. ring and ALL CATEGORIES over
+zero rows; SEE RETURN HISTORY closed both returns cards onto a filtered list matching nothing;
+Scan's recent card drew a bare grey inset band with SEE ALL ORDERS under it; and All orders
+answered an empty account with "No orders match these filters" plus CLEAR ALL, blaming filters
+nobody had set. The two all-list pages also answered emptiness as a bare left-aligned help
+line rather than the system's own empty state. Each list-opening action now exists only while
+its list has rows — including the two pages' header chevrons into the empty lists — the
+returns cards read the account's own returned-order count rather than the window's (a quiet
+month over a year of returns keeps its history button), and the create action is what an empty
+account is offered, in the same words on every card that offers it. The six-month bar chart's
+"is the highest" note needed the same guard: reduce over all-zero columns picked the first and
+named it highest over an account that had spent nothing.
+
+Driven twice, fresh and demo-filled, all ten routes at 1440 and the empty states again on the
+iPhone 13 descriptor: fresh shows 13 empty states all at 20/20 with zero list-opening block
+buttons or linked headers onto empty lists; filled shows every button and linked header back,
+zero empty states outside the scans card (demo data creates no scans), and no console or page
+errors beyond the pre-existing 401 the signed-out `auth/me` probe answers. Verified in Blink;
+Gecko and WebKit unverified.
