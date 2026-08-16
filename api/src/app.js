@@ -41,9 +41,9 @@ if (process.argv.includes('--debug') || process.env.DEBUG) {
 	app.use((req, res, next) => {
 		const start = Date.now()
 		const body = req.is('application/json') && req.body && Object.keys(req.body).length ? ' ' + redacted(req.body) : ''
-		line(new Date().toISOString(), '-->', req.method, `${req.originalUrl}${body}`)
+		line(new Date().toISOString(), '>', req.method, `${req.originalUrl}${body}`)
 		res.on('finish', () => {
-			line(new Date().toISOString(), '<--', req.method, `${req.originalUrl} ${res.statusCode} (${Date.now() - start}ms)`)
+			line(new Date().toISOString(), '<', req.method, `${req.originalUrl} ${res.statusCode} (${Date.now() - start}ms)`)
 		})
 		next()
 	})
