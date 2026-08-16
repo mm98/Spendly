@@ -20,7 +20,7 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	addItemAttachments, createOrder, createVendor, failureMessage, getCategories, getOrderDraft,
-	getVendors, invalidateOrderData, invalidateVendorData, spendKinds
+	getVendors, invalidateOrderData, invalidateVendorData, spendKinds, vendorByAnyName
 } from '../api/client.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { amount, kr, parseAmount, percent, shortDate, today, sep } from '../api/format.js'
@@ -98,10 +98,25 @@ export function NewOrderDetails() {
 
 	/* CREATE VENDOR "..." is the foot of the vendor list, and it creates the vendor rather than
 	   only typing its name into the field: a row labelled with a verb that does not do the
-	   verb is the decorative-control rule inside a dropdown. README: Honest Affordances. */
+	   verb is the decorative-control rule inside a dropdown. README: Honest Affordances.
+	   Typed text that is an existing vendor's alias never reaches the create: the action row
+	   swaps to USE <vendor> before it is pressed, and this guard resolves the same way if it
+	   is somehow pressed anyway -- creating a twin is the thing aliases exist to prevent. */
+	/* What the typed text already is, before offering to make it something: a match here on an
+	   alias swaps the action row's label from CREATE to USE. A match on a vendor's own name
+	   never renders -- the combobox hides the action for text matching an option's label. */
+	const aliasHit = vendorByAnyName(vendors.data ?? [], draft.vendor)
+
 	const addVendor = name => {
 		const clean = String(name).trim()
 		if (!clean) return
+		const existing = vendorByAnyName(vendors.data ?? [], clean)
+		if (existing) {
+			update({ vendor: existing.name })
+			recheck('order-vendor', existing.name)
+			toast(`"${clean}" is an alias of ${existing.name} — using ${existing.name}.`)
+			return
+		}
 		createVendor(clean)
 			.then(vendor => {
 				invalidateVendorData()
@@ -165,8 +180,12 @@ export function NewOrderDetails() {
 						{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
 							.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders` })) }
 					]}
-					action={{ icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
-						onSelect: addVendor }} />
+					action={aliasHit
+						? { icon: 'check',
+							label: `USE ${aliasHit.name.toUpperCase()} — "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
+							onSelect: addVendor }
+						: { icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
+							onSelect: addVendor }} />
 			</Field>
 
 			<FieldPair>

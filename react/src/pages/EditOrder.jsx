@@ -20,7 +20,8 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	addItemAttachments, createVendor, failureMessage, getCategories, getOrderAsDraft, getVendors,
-	invalidateOrderData, invalidateVendorData, itemAttachmentThumbnailUrl, spendKinds, updateOrder
+	invalidateOrderData, invalidateVendorData, itemAttachmentThumbnailUrl, spendKinds, updateOrder,
+	vendorByAnyName
 } from '../api/client.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { amount, kr, parseAmount, percent, today, sep } from '../api/format.js'
@@ -73,9 +74,21 @@ function EditOrderForm({ id, seed }) {
 	const orderErrors = useFieldErrors(ORDER_FIELDS, orderValues)
 	const set = (name, key) => v => { update({ [key]: v }); orderErrors.recheck(name, v) }
 
+	/* Same rule as New order: typed text that is an existing vendor's alias picks that vendor,
+	   never creates a twin -- the action row says USE before it is pressed, and this guard
+	   resolves identically if pressed anyway. */
+	const aliasHit = vendorByAnyName(vendors.data ?? [], draft.vendor)
+
 	const addVendor = name => {
 		const clean = String(name).trim()
 		if (!clean) return
+		const existing = vendorByAnyName(vendors.data ?? [], clean)
+		if (existing) {
+			update({ vendor: existing.name })
+			orderErrors.recheck('order-vendor', existing.name)
+			toast(`"${clean}" is an alias of ${existing.name} — using ${existing.name}.`)
+			return
+		}
 		createVendor(clean)
 			.then(vendor => {
 				invalidateVendorData()
@@ -276,8 +289,12 @@ function EditOrderForm({ id, seed }) {
 										{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
 											.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders` })) }
 									]}
-									action={{ icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
-										onSelect: addVendor }} />
+									action={aliasHit
+										? { icon: 'check',
+											label: `USE ${aliasHit.name.toUpperCase()} — "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
+											onSelect: addVendor }
+										: { icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
+											onSelect: addVendor }} />
 							</Field>
 
 							<FieldPair>
