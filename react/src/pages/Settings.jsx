@@ -16,7 +16,7 @@ import {
 	sorts, spendKinds
 } from '../api/client.js'
 
-/* Order settings.
+/* Settings.
 
    The prototype draws an ORDER SETTINGS button at the foot of the Orders rail and it opens
    nothing. This is what it opens, and every switch on it is read somewhere: a settings page
@@ -147,9 +147,9 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 	return (
 		<div className="order-list-grid">
 			<div className="order-list-column">
-				<Card aria-label="Order settings">
+				<Card aria-label="General settings">
 					<CardBody variant="card-body-page">
-						<div className="card-headline">Order settings</div>
+						<div className="card-headline">General settings</div>
 						<p className="card-lead">What a new order starts as, and how your lists behave.</p>
 						<Form>
 							<FilterSection>
