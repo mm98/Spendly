@@ -32,5 +32,13 @@ COPY api api
 COPY --from=apideps /app/api/node_modules api/node_modules
 COPY --from=build /app/react/dist react/dist
 ENV SPENDLY_DB=/data/spendly.sqlite3
+# The build stamp /api/version answers with, so the UI can say which image is running and a
+# reader can compare it against the newest commit. Passed in as args -- .git is dockerignored,
+# so the image cannot ask git itself -- and declared last, so a changing timestamp re-runs
+# only this layer. Unset (a bare `docker build .`) they stamp nothing and the endpoint
+# answers nulls, which the UI reads as an unstamped build.
+ARG BUILD_TIME
+ARG GIT_SHA
+ENV SPENDLY_BUILD_TIME=$BUILD_TIME SPENDLY_BUILD_SHA=$GIT_SHA
 EXPOSE 4000
 CMD ["node", "api/src/server.js"]

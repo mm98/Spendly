@@ -6,6 +6,8 @@ services:
     # (docker login ghcr.io first if the repo is private):
     image: ghcr.io/mm98/spendly:latest
     #   build: .
+    # A local build stamps no build time or commit into Settings > This build unless told:
+    #   docker compose build --build-arg BUILD_TIME=$(date -u +%FT%TZ) --build-arg GIT_SHA=$(git rev-parse HEAD)
     container_name: spendly
     restart: unless-stopped
     ports:

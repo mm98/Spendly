@@ -12,7 +12,7 @@ import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	cardRowOptions, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
-	getSettings, getVendors, listSorts, logout, populateDemoData, resetStoredData, saveSettings,
+	getSettings, getVendors, getVersion, listSorts, logout, populateDemoData, resetStoredData, saveSettings,
 	sorts, spendKinds
 } from '../api/client.js'
 
@@ -328,7 +328,42 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						)}
 					</CardBody>
 				</Card>
+
+				<BuildCard />
 			</div>
 		</div>
+	)
+}
+
+/* Which build is serving this page. The Docker image stamps its build time and commit into
+   /api/version, so a self-hosted box can be checked against the newest commit from here
+   rather than by shelling into the container. Outside the image the endpoint answers nulls
+   -- a dev server has no build to be out of date, and the card says so instead of dressing
+   the absence up as a version. Its own fetch rather than a field on getSettings: the stamp
+   is a fact about the deployment, not a setting, and the endpoint sits outside the auth
+   gate for the same reason. */
+function BuildCard() {
+	const version = useApi(getVersion)
+	if (!version.data && !version.error) return null
+	const { builtAt, commit } = version.data ?? {}
+	return (
+		<Card aria-label="This build">
+			<CardHeader title="This build" />
+			<CardDivider />
+			<CardBody>
+				<p className="card-lead card-lead-flush">
+					{builtAt || commit ? (<>
+						Image built {builtAt
+							? new Date(builtAt).toLocaleString('da-DK', { dateStyle: 'long', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
+							: 'at an unrecorded time'}
+						{commit ? <> from commit <code>{commit.slice(0, 7)}</code></> : null}.
+						If the newest commit on the repository is different, the container is
+						running an older image: pull and restart to catch up.
+					</>) : (
+						'No build stamp: this server is not running from the Docker image, so what you see is whatever is on disk right now.'
+					)}
+				</p>
+			</CardBody>
+		</Card>
 	)
 }
