@@ -335,11 +335,12 @@ export async function resetStoredData(signal) {
 
 /** Replaces this account's ledger with a year of generated demo orders, so the app can be
     looked at with something in it. Replaces rather than adds — see the route's own note.
-    A different year each press: no seed is sent, so the route picks one. Answers
+    A different year each press: no seed is sent, so the route picks one. `orders` is how many
+    the year holds in total, the count the card's combobox chose. Answers
     { orders, vendors, categories, months, seed } — the seed it used, which is what makes a
     dataset worth reporting reproducible. */
-export async function populateDemoData(signal) {
-	return request('/api/demo-data', { method: 'POST', signal })
+export async function populateDemoData(orders, signal) {
+	return request('/api/demo-data', { method: 'POST', body: { orders }, signal })
 }
 
 export async function getDashboardCards(signal) {

@@ -40,9 +40,9 @@ router.post('/reset', (req, res) => {
 
    Only ever this account -- populateDemoData writes every row against req.user.id, the same
    rule every other route here follows. */
-const replaceWithDemo = db.transaction((userId, seed) => {
+const replaceWithDemo = db.transaction((userId, seed, orders) => {
 	wipeLedger(userId)
-	return populateDemoData(userId, { seed })
+	return populateDemoData(userId, { seed, orders })
 })
 
 /* A different year every time it is pressed.
@@ -61,5 +61,11 @@ router.post('/demo-data', (req, res) => {
 	const asked = Number(req.body?.seed)
 	const seed = Number.isFinite(asked) && asked > 0 ? Math.floor(asked)
 		: 1 + Math.floor(Math.random() * 0x7ffffffe)
-	res.json({ ...replaceWithDemo(req.user.id, seed), seed })
+	/* How many orders the year lands on. Optional -- left off, the generator rolls each
+	   month's count as it always has. Capped so a stray body cannot ask for a ledger the
+	   database spends minutes writing; 50,000 is the largest the UI offers. */
+	const askedOrders = Number(req.body?.orders)
+	const orders = Number.isFinite(askedOrders) && askedOrders > 0
+		? Math.min(50000, Math.floor(askedOrders)) : undefined
+	res.json({ ...replaceWithDemo(req.user.id, seed, orders), seed })
 })

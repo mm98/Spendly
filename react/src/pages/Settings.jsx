@@ -33,6 +33,18 @@ import {
 
 const PAGE_SIZES = ['5', '10', '25', '50']
 
+/* What FILL WITH DEMO DATA writes, chosen before it is pressed. Named counts rather than a
+   free field: the point is a ledger big enough to look at, not a number to type, and the
+   route caps at the largest of these anyway. */
+const DEMO_ORDER_COUNTS = [
+	{ id: 500, label: '500 orders' },
+	{ id: 1000, label: '1K orders' },
+	{ id: 5000, label: '5K orders' },
+	{ id: 10000, label: '10K orders' },
+	{ id: 25000, label: '25K orders' },
+	{ id: 50000, label: '50K orders' }
+]
+
 /* The import card's reference block. Every JSON fragment is JSON.stringify's own output over
    a real example value -- a hand-formatted block with annotation columns drifted out of
    alignment immediately -- and the colour is a small tokenizer over that output: keys strong,
@@ -86,6 +98,9 @@ export default function Settings() {
 	const toast = useToast()
 	const [confirming, setConfirming] = useState(false)
 	const [filling, setFilling] = useState(false)
+	/* Beside `filling` rather than in the body for the same reason `filling` is: the body
+	   remounts when the settings reload, and the chosen count should survive that. */
+	const [demoCount, setDemoCount] = useState(DEMO_ORDER_COUNTS[0].id)
 
 	/* The endpoints that bake a setting into their answer. Anything cached from before the
 	   change is wrong the moment it is saved, so it goes rather than being left to expire. */
@@ -109,6 +124,7 @@ export default function Settings() {
 				<SettingsBody settings={settings} set={set} toast={toast}
 					confirming={confirming} setConfirming={setConfirming} refresh={refresh}
 					filling={filling} setFilling={setFilling}
+					demoCount={demoCount} setDemoCount={setDemoCount}
 					reload={state.refresh} />
 			)}</Async>
 		</Page>
@@ -116,7 +132,7 @@ export default function Settings() {
 }
 
 function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh, reload,
-	filling, setFilling }) {
+	filling, setFilling, demoCount, setDemoCount }) {
 	const navigate = useNavigate()
 	const signOut = () => logout().then(() => navigate('/login', { replace: true }))
 	/* The controls are driven from the stored value, so what is on screen is what is saved --
@@ -144,7 +160,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 	const [busy, setBusy] = useState(false)
 	const fill = () => {
 		setBusy(true)
-		populateDemoData()
+		populateDemoData(demoCount)
 			.then(({ orders, vendors, categories, months }) => {
 				refresh()
 				reload()
@@ -271,11 +287,19 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 					<CardDivider />
 					<CardBody>
 						<p className="card-lead card-lead-flush">
-							Fill the account with a year of made-up orders — twelve months back, every
-							vendor and category its own colour — so the lists and charts have something
-							in them to look at. A different year every time: the orders, their days
-							and their totals are rolled fresh on each fill.
+							Fill the account with a year of made-up orders — as many as you choose,
+							twelve months back, every vendor and category its own colour — so the lists
+							and charts have something in them to look at. A different year every time:
+							the orders, their days and their totals are rolled fresh on each fill.
 						</p>
+						<Field label="How many orders" className="demo-count-field"
+							help="Spread across the twelve months. More orders take longer to write.">
+							<Combobox label="Orders to create"
+								value={DEMO_ORDER_COUNTS.find(o => o.id === demoCount)?.label ?? ''}
+								onChange={() => {}}
+								onSelect={o => setDemoCount(o.id)}
+								groups={[{ heading: 'Orders', options: DEMO_ORDER_COUNTS }]} />
+						</Field>
 						{filling ? (
 							<>
 								<p className="field-help danger-note">
