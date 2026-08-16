@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { db } from '../db.js'
+import { MAX_PAGE_SIZE } from '../lib/constants.js'
 
 export const router = Router()
 
@@ -50,7 +51,11 @@ router.patch('/', (req, res) => {
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({
 		userId: req.user.id, defaultKind: next.defaultKind, defaultStatus: next.defaultStatus,
-		pageSize: Number(next.pageSize) || 10, sort: oneOf(ORDER_SORTS, next.sort, currentApi.sort),
+		// Same bounds the list route enforces on its own param -- a stored preference outside
+		// them would save, come back, and be clamped by every read anyway; storing what will
+		// actually be obeyed keeps the settings page honest about what is in force.
+		pageSize: Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(Number(next.pageSize) || 10))),
+		sort: oneOf(ORDER_SORTS, next.sort, currentApi.sort),
 		showScanCard: next.showScanCard ? 1 : 0, confirmDelete: next.confirmDelete ? 1 : 0,
 		cardRows: oneOf(CARD_ROWS, Number(next.cardRows), currentApi.cardRows),
 		listSort: oneOf(LIST_SORTS, next.listSort, currentApi.listSort)

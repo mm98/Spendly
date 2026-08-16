@@ -4,6 +4,14 @@
 export const SPEND_KINDS = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
 export const ORDER_STATUSES = ['Ordered', 'Delivered', 'Returned']
 
+/* The most rows one orders-list page may carry, enforced wherever a page size enters -- the
+   list route's query param and the stored settings value. LIMIT is the one place a caller's
+   number reaches SQL, and without a ceiling `?pageSize=100000000` (or no pageSize at all, on
+   a large account) returned every matched row, decorated, in one response. 1000 is two
+   orders of magnitude above the UI's largest offered size -- room for an export-ish reader,
+   never the whole ledger. */
+export const MAX_PAGE_SIZE = 1000
+
 export const DASHBOARD_CARD_CATALOGUE = [
 	{ key: 'rhythm',    name: 'Spending rhythm',      desc: 'Average order, and which weekday you spend on' },
 	{ key: 'breakdown', name: 'Category breakdown',   desc: "Where this month's spend went, by category" },

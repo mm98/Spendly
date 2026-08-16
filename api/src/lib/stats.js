@@ -156,13 +156,18 @@ function rhythmOver(userId, from, to) {
 }
 
 const FALLBACK_SPLIT_COLOURS = ['var(--donut-blue)', 'var(--green)', 'var(--donut-yellow)', 'var(--donut-purple)', '#45524C']
+/* category_count -- how many categories share this order's total -- is the stored,
+   trigger-maintained column on the order row, NOT a joined `GROUP BY order_id` over the
+   whole table: that grouped subquery has no user or date bound SQLite can push inside it, so
+   it counted every account's links to answer one window. On a 5.1M-order database that was
+   ~1.9s per stats read, for any account; the stored count is ~8ms, identical rows. Same fix
+   in lib/aggregate.js. */
 const selectSplit = db.prepare(`
 	SELECT c.id, c.name, c.colour,
-		SUM(ot.total * 1.0 / cc.cat_count) AS spend
+		SUM(ot.total * 1.0 / ot.category_count) AS spend
 	FROM order_categories oc
 	JOIN orders ot ON ot.id = oc.order_id
 	JOIN categories c ON c.id = oc.category_id
-	JOIN (SELECT order_id, COUNT(*) AS cat_count FROM order_categories GROUP BY order_id) cc ON cc.order_id = oc.order_id
 	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
 	GROUP BY c.id
 	ORDER BY spend DESC
