@@ -94,8 +94,12 @@ const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, posit
     The seed belongs to the caller. The default here is a fallback for a caller that has no
     opinion, not the dataset: the route behind FILL WITH DEMO DATA picks a fresh one per press,
     because a constant default meant the only caller in the app rebuilt the same year every
-    time. Determinism is a property of (seed, today), not of leaving the argument off. */
-export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242 } = {}) => {
+    time. Determinism is a property of (seed, today), not of leaving the argument off.
+
+    `orders` is the total the whole year lands on, exactly: the months split it between them
+    with some jitter, and the current month absorbs the rounding. Left off, each month rolls
+    its own 28..44 as before. */
+export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242, orders } = {}) => {
 	let s = seed
 	const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
 	const pick = arr => arr[Math.floor(rnd() * arr.length)]
@@ -116,20 +120,28 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 
 	const today = new Date()
 	today.setUTCHours(0, 0, 0, 0)
-	const todayStr = iso(today)
 	let made = 0, reference = 1000
+	let remaining = Number.isFinite(orders) && orders > 0 ? Math.floor(orders) : null
 
 	for (let back = months - 1; back >= 0; back--) {
 		const first = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - back, 1))
 		const lastDay = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate()
-		const count = 28 + Math.floor(rnd() * 17)             // 28..44 orders in the month
+		// The current month only runs up to today, so its orders spread over the elapsed days
+		// rather than being drawn on future ones and thrown away -- a total asked for is a
+		// total delivered.
+		const maxDay = back === 0 ? today.getUTCDate() : lastDay
+		// An even split of what is left, jittered so the months differ; the last month takes
+		// the remainder exactly. Without a total, each month rolls its own as it always has.
+		const count = remaining == null ? 28 + Math.floor(rnd() * 17)   // 28..44 orders in the month
+			: back === 0 ? remaining
+			: Math.max(0, Math.min(remaining, Math.round((remaining / (back + 1)) * (0.85 + rnd() * 0.3))))
+		if (remaining != null) remaining -= count
 
 		for (let i = 0; i < count; i++) {
-			// Spread across the month rather than clustering, and never past today.
-			let day = 1 + Math.floor(((i + 0.5) / count) * lastDay + (rnd() * 5 - 2.5))
-			day = Math.max(1, Math.min(lastDay, day))
+			// Spread across the month rather than clustering.
+			let day = 1 + Math.floor(((i + 0.5) / count) * maxDay + (rnd() * 5 - 2.5))
+			day = Math.max(1, Math.min(maxDay, day))
 			const date = iso(new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), day)))
-			if (date > todayStr) continue
 
 			const category = pick(categoryIds)
 			const pool = ITEMS[category.name]

@@ -1374,6 +1374,8 @@ label.field-shell { cursor:pointer; }
 .chart-under-caption { margin-top:8px; }
 .caption-chip-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .form-actions-note { align-self:center; }
+/* The demo card's order-count field, sitting between the lead and the fill button. */
+.demo-count-field { margin-bottom:14px; }
 .async-live { display:contents; }
 .confirm-dialog .form-actions { margin-top:12px; }
 
