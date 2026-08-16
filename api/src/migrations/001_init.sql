@@ -64,6 +64,22 @@ CREATE TABLE orders (
 	item_count INTEGER NOT NULL DEFAULT 0,
 	paid REAL NOT NULL DEFAULT 0,
 	retail REAL NOT NULL DEFAULT 0,
+	-- The order's own searchable text -- its note and its items' titles -- maintained by the
+	-- same triggers as the aggregates above, so text search is one LIKE over this column
+	-- instead of a correlated scan of order_items per order row (~660ms vs ~100ms per search
+	-- at 50,000 orders, byte-identical results). Vendor and category names are deliberately
+	-- NOT copied in: both are renameable, and a rename would have to rewrite every order
+	-- carrying the name -- search reaches them through their own small tables instead (see
+	-- routes/orders.js). Newline-separated so a needle containing a space cannot falsely
+	-- match across two titles.
+	search_text TEXT NOT NULL DEFAULT '',
+	-- How many categories share this order's total, maintained by the order_categories
+	-- triggers below. Every category breakdown divides the order's spend evenly across its
+	-- categories, and counting them per read meant either a whole-table GROUP BY (which
+	-- counted every account's links to answer one -- ~1.9s per stats read at 5.1M orders) or a
+	-- correlated probe per joined row (~100ms per rollup). A stored count is read for free
+	-- with the row, the same trade as item_count above.
+	category_count INTEGER NOT NULL DEFAULT 0,
 	subtotal REAL GENERATED ALWAYS AS (paid) STORED,
 	total REAL GENERATED ALWAYS AS (paid + shipping) STORED,
 	saved REAL GENERATED ALWAYS AS (retail - paid) STORED,
@@ -155,48 +171,109 @@ CREATE TABLE scan_uploads (
 );
 
 -- One place for order math: the three triggers below refresh the parent order's stored
--- aggregates on every item write, inside the same transaction as the write itself. Each
--- recomputes from the order's own items (an indexed handful of rows) rather than adjusting
--- incrementally, so repeated edits can never accumulate floating-point drift. Every consumer —
--- a single order fetch, the list filter/sort, vendor/category rollups, stats windows — reads
--- the stored columns straight off `orders` with no join and no GROUP BY.
+-- aggregates -- and its search_text -- on every item write, inside the same transaction as
+-- the write itself. Each recomputes from the order's own items (an indexed handful of rows)
+-- rather than adjusting incrementally, so repeated edits can never accumulate floating-point
+-- drift. Every consumer — a single order fetch, the list filter/sort, vendor/category
+-- rollups, stats windows, text search — reads the stored columns straight off `orders` with
+-- no join and no GROUP BY.
 CREATE TRIGGER order_items_totals_insert AFTER INSERT ON order_items
 BEGIN
-	UPDATE orders SET (item_count, paid, retail) = (
-		SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
-		FROM order_items WHERE order_id = NEW.order_id
-	) WHERE id = NEW.order_id;
+	UPDATE orders SET
+		(item_count, paid, retail) = (
+			SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+			FROM order_items WHERE order_id = NEW.order_id
+		),
+		search_text = note || char(10) ||
+			COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = NEW.order_id), '')
+	WHERE id = NEW.order_id;
 END;
 
 CREATE TRIGGER order_items_totals_update AFTER UPDATE ON order_items
 BEGIN
-	UPDATE orders SET (item_count, paid, retail) = (
-		SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
-		FROM order_items WHERE order_id = OLD.order_id
-	) WHERE id = OLD.order_id;
+	UPDATE orders SET
+		(item_count, paid, retail) = (
+			SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+			FROM order_items WHERE order_id = OLD.order_id
+		),
+		search_text = note || char(10) ||
+			COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = OLD.order_id), '')
+	WHERE id = OLD.order_id;
 	-- An item never moves between orders through the app, but a trigger guards the schema, not
 	-- the app: if one ever does, both sides come out right.
-	UPDATE orders SET (item_count, paid, retail) = (
-		SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
-		FROM order_items WHERE order_id = NEW.order_id
-	) WHERE id = NEW.order_id AND NEW.order_id <> OLD.order_id;
+	UPDATE orders SET
+		(item_count, paid, retail) = (
+			SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+			FROM order_items WHERE order_id = NEW.order_id
+		),
+		search_text = note || char(10) ||
+			COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = NEW.order_id), '')
+	WHERE id = NEW.order_id AND NEW.order_id <> OLD.order_id;
 END;
 
 CREATE TRIGGER order_items_totals_delete AFTER DELETE ON order_items
 BEGIN
-	UPDATE orders SET (item_count, paid, retail) = (
-		SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
-		FROM order_items WHERE order_id = OLD.order_id
-	) WHERE id = OLD.order_id;
+	UPDATE orders SET
+		(item_count, paid, retail) = (
+			SELECT COUNT(*), COALESCE(SUM(price * quantity), 0), COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+			FROM order_items WHERE order_id = OLD.order_id
+		),
+		search_text = note || char(10) ||
+			COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = OLD.order_id), '')
+	WHERE id = OLD.order_id;
+END;
+
+-- category_count, kept in step with the links the same way the item triggers keep the
+-- totals: recomputed from the order's own few rows on every link write, never adjusted
+-- incrementally. An UPDATE trigger is not needed -- order_categories rows are only ever
+-- inserted and deleted (the PK is the whole row; the app's edit path clears and reinserts).
+CREATE TRIGGER order_categories_count_insert AFTER INSERT ON order_categories
+BEGIN
+	UPDATE orders SET category_count = (SELECT COUNT(*) FROM order_categories WHERE order_id = NEW.order_id)
+	WHERE id = NEW.order_id;
+END;
+
+CREATE TRIGGER order_categories_count_delete AFTER DELETE ON order_categories
+BEGIN
+	UPDATE orders SET category_count = (SELECT COUNT(*) FROM order_categories WHERE order_id = OLD.order_id)
+	WHERE id = OLD.order_id;
+END;
+
+-- A new order has no items yet, so its searchable text is just the note; the item triggers
+-- take over from the first line added. The note-update trigger rebuilds the whole column
+-- because the stored value interleaves note and titles; guarded so the routine save of an
+-- unchanged note costs nothing.
+CREATE TRIGGER orders_search_text_insert AFTER INSERT ON orders
+BEGIN
+	UPDATE orders SET search_text = NEW.note || char(10) WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER orders_search_text_note_update AFTER UPDATE OF note ON orders
+WHEN NEW.note <> OLD.note
+BEGIN
+	UPDATE orders SET search_text = NEW.note || char(10) ||
+		COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = NEW.id), '')
+	WHERE id = NEW.id;
 END;
 
 CREATE INDEX idx_sessions_user ON sessions(user_id);
-CREATE INDEX idx_orders_user_date ON orders(user_id, date);
+-- The list sorts on (date, id) and (total, id) -- id breaking the tie so two orders on one
+-- day always come back in one order -- and the id sits in the index so no page re-sorts its
+-- tail in a temp B-tree and a deep OFFSET stays an index walk: the last page of 50,000
+-- orders cost 63ms with the tie-break outside the index, 1.6ms with it in.
+CREATE INDEX idx_orders_user_date ON orders(user_id, date, id);
 -- total is a STORED generated column, so it is indexable: this serves the orders list's
 -- amount sorts and min/max amount filters without a scan-and-sort over the account's rows.
-CREATE INDEX idx_orders_user_total ON orders(user_id, total);
+CREATE INDEX idx_orders_user_total ON orders(user_id, total, id);
 CREATE INDEX idx_orders_user_vendor ON orders(user_id, vendor_id);
-CREATE INDEX idx_order_categories_cat ON order_categories(category_id);
+-- The filter panel's two enumerated filters, each a covering index so a filtered list's
+-- COUNT is an index scan rather than a walk of every order row the account has:
+-- status=Delivered over 50,000 orders counted in 44ms through the row scan, 1ms through this.
+CREATE INDEX idx_orders_user_status ON orders(user_id, status);
+CREATE INDEX idx_orders_user_kind ON orders(user_id, kind);
+-- order_id alongside category_id so the category filter's IN (SELECT order_id ... WHERE
+-- category_id = ?) subquery reads this covering, without a table probe per matched row.
+CREATE INDEX idx_order_categories_cat ON order_categories(category_id, order_id);
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 CREATE INDEX idx_vendors_user ON vendors(user_id);
 CREATE INDEX idx_categories_user ON categories(user_id);

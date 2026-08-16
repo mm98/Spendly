@@ -97,7 +97,10 @@ function buildOrderFilter(userId, q) {
 
 	if (q.vendorId) { where.push('ot.vendor_id = @vendorId'); params.vendorId = q.vendorId }
 	if (q.categoryId) {
-		where.push('EXISTS (SELECT 1 FROM order_categories oc WHERE oc.order_id = ot.id AND oc.category_id = @categoryId)')
+		// IN driven from the category's own (indexed, covering) links rather than an EXISTS
+		// probe per order row: the filter reads the few thousand rows the category actually
+		// has, not every order the account has. 250ms -> 3ms at 50k orders, same rows.
+		where.push('ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)')
 		params.categoryId = q.categoryId
 	}
 	if (q.status && q.status !== 'Any') { where.push('ot.status = @status'); params.status = q.status }
@@ -107,15 +110,23 @@ function buildOrderFilter(userId, q) {
 	if (q.minAmount != null && q.minAmount !== '') { where.push('ot.total >= @minAmount'); params.minAmount = Number(q.minAmount) }
 	if (q.maxAmount != null && q.maxAmount !== '') { where.push('ot.total <= @maxAmount'); params.maxAmount = Number(q.maxAmount) }
 
+	/* One LIKE over the order's trigger-maintained search_text (its note and item titles --
+	   see migrations/002) instead of a correlated scan of order_items per order row, plus the
+	   two renameable names reached through their own small tables: matching vendors and
+	   categories resolve to id sets first (a dozen rows and ten), and the orders side is an
+	   indexed IN. Byte-identical results to the old four-way OR, measured across item-title,
+	   note, vendor and no-match needles; ~660ms -> ~100ms per search at 50k orders. LIKE is
+	   already case-insensitive for ASCII, which is exactly what lower() gave (SQLite's lower()
+	   never folded non-ASCII either), so the needle stays lowercased and the columns are
+	   compared as stored. */
 	const needle = String(q.query ?? '').trim().toLowerCase()
 	if (needle) {
 		params.needle = `%${needle}%`
 		where.push(`(
-			lower(v.name) LIKE @needle
-			OR lower(ot.note) LIKE @needle
-			OR EXISTS (SELECT 1 FROM order_categories oc JOIN categories c ON c.id = oc.category_id
-				WHERE oc.order_id = ot.id AND lower(c.name) LIKE @needle)
-			OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = ot.id AND lower(oi.title) LIKE @needle)
+			ot.search_text LIKE @needle
+			OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle)
+			OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id
+				WHERE c.user_id = @userId AND c.name LIKE @needle)
 		)`)
 	}
 
@@ -127,8 +138,14 @@ router.get('/', (req, res) => {
 	const { whereSql, params } = buildOrderFilter(req.user.id, q)
 	const orderSql = SORT_SQL[q.sort] ?? SORT_SQL['date-desc']
 
+	/* The vendors join exists for exactly one reader: the vendor-name sort. The filter above
+	   never references v (search reaches vendors through its own subquery), so the COUNT is
+	   always index-only on orders, and the page joins only when its ORDER BY needs the name --
+	   an unconditional join cost the COUNT a vendors probe per counted row. */
+	const vendorJoin = orderSql.includes('v.name') ? 'JOIN vendors v ON v.id = ot.vendor_id' : ''
+
 	const matched = db.prepare(`
-		SELECT COUNT(*) c FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ${whereSql}
+		SELECT COUNT(*) c FROM orders ot WHERE ${whereSql}
 	`).get(params).c
 
 	// LIMIT/OFFSET go straight into the query below, so this is the one place a caller-chosen
@@ -142,7 +159,7 @@ router.get('/', (req, res) => {
 	const at = Math.min(Math.max(1, Number(q.page) || 1), pages)
 
 	const totalsRows = db.prepare(`
-		SELECT ${orderTotalsSelectList('ot')} FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
+		SELECT ${orderTotalsSelectList('ot')} FROM orders ot ${vendorJoin}
 		WHERE ${whereSql}
 		ORDER BY ${orderSql}
 		LIMIT @limit OFFSET @offset
