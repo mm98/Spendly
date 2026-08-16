@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { EntityRow } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -89,9 +89,15 @@ export default function AllCategories() {
 									ordersLabel={`Orders in ${category.name}`} />
 							))}
 							{listed.length === 0 ? (
-								<p className="field-help">
-									{query ? `No category matches "${query}".` : 'No categories yet.'}
-								</p>
+								/* The system's empty state, not a bare help line -- this list and All
+								   vendors were the two places an empty list was a left-aligned sentence
+								   with no icon tile. The no-records sentence says what fills it, the same
+								   words the overview's breakdown uses. README: Empty states. */
+								<EmptyState>
+									<p>{query
+										? `No category matches "${query}".`
+										: 'No categories yet. Add one and your spending splits by kind.'}</p>
+								</EmptyState>
 							) : null}
 						</CardBody>
 					</Card>

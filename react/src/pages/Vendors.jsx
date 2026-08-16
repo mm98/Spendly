@@ -66,8 +66,13 @@ export default function Vendors() {
 								note={all.length ? `${Math.round(orders / all.length)} per vendor on average` : null} />
 						</div>
 
+						{/* Same rule as Categories: the header band and the closing buttons open the
+						    vendors list only while it has rows -- on an empty account each degrades to
+						    its passive form rather than opening a list that answers "No vendors yet".
+						    README: Empty states. */}
 						<Card aria-label="Where it goes">
-							<CardHeader title={`Where it goes${sep}all time`} to="/vendors/all"
+							<CardHeader title={`Where it goes${sep}all time`}
+								to={all.length ? '/vendors/all' : undefined}
 								label="Where it goes, open all vendors" />
 							<CardDivider />
 							<CardBody variant="ring-row">
@@ -96,7 +101,8 @@ export default function Vendors() {
 						</Card>
 
 						<Card aria-label="Favourites">
-							<CardHeader title="Favourites" to="/vendors/all" label="Favourites, open all vendors" />
+							<CardHeader title="Favourites" to={all.length ? '/vendors/all' : undefined}
+								label="Favourites, open all vendors" />
 							<CardDivider />
 							<CardBody>
 								{data.favourites.length ? (
@@ -133,9 +139,18 @@ export default function Vendors() {
 										))}
 									</div>
 								) : (
+									/* With vendors, the sentence names the next step and the button opens the
+									   list the starring happens from; with none there is no vendor to star and
+									   nothing for the button to show, so neither claim is made. */
 									<EmptyState>
-										<p>No favourites yet. Star a vendor on its own page and it lands here.</p>
-										<Button variant="block" to="/vendors/all">ALL VENDORS</Button>
+										{all.length ? (
+											<>
+												<p>No favourites yet. Star a vendor on its own page and it lands here.</p>
+												<Button variant="block" to="/vendors/all">ALL VENDORS</Button>
+											</>
+										) : (
+											<p>No vendors to star yet. Your first order creates its vendor.</p>
+										)}
 									</EmptyState>
 								)}
 							</CardBody>

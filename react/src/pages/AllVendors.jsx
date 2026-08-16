@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { EntityRow } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -104,9 +104,12 @@ export default function AllVendors() {
 									ordersLabel={`Orders from ${vendor.name}`} />
 							))}
 							{listed.length === 0 ? (
-								<p className="field-help">
-									{query ? `No vendor matches "${query}".` : 'No vendors yet. One is created with your first order.'}
-								</p>
+								/* The system's empty state, not a bare help line -- see All categories. */
+								<EmptyState>
+									<p>{query
+										? `No vendor matches "${query}".`
+										: 'No vendors yet. One is created with your first order.'}</p>
+								</EmptyState>
 							) : null}
 						</CardBody>
 					</Card>

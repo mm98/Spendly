@@ -311,6 +311,10 @@ export async function getOrdersOverview(signal) {
 	const monthCategories = monthCategoriesFrom(categories, window.split)
 	return {
 		latest, period: periodFromWindow(window), categories: monthCategories,
+		/* monthCategories is filtered to spend > 0 this month, so its emptiness cannot say
+		   whether the account has categories at all -- and the breakdown card's empty state has
+		   to know which absence it is answering: nothing bought yet, or no categories yet. */
+		hasCategories: categories.length > 0,
 		cardRows: settings.cardRows ?? defaultCardRows
 	}
 }
@@ -459,6 +463,9 @@ export async function getHomeContent(signal) {
 		period: { ...period, heroLegend: period.heroLegend.slice(0, rows) },
 		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, rows),
 		categories: monthCategories,
+		// Same field getOrdersOverview carries, for the same card: the month list's emptiness
+		// cannot say whether the account has categories at all.
+		hasCategories: categories.length > 0,
 		// All-time, from the raw list rather than monthCategories -- that one's filtered to
 		// spend > 0 this month, and a favourite is a standing preference, not an activity
 		// filter: a category starred last week with nothing bought from it yet this month

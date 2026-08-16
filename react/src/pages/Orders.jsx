@@ -1,11 +1,11 @@
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { Chart, ChartScale, plotted, todayMarker } from '../components/Chart.jsx'
 import { Donut, DonutBox } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
-import { Button } from '../components/Button.jsx'
+import { Button, ButtonLink } from '../components/Button.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import { getOrdersOverview, ordersIn } from '../api/client.js'
@@ -95,12 +95,26 @@ export default function Orders() {
 								    an order from Elgiganten read as an order for 26 kroner. The saving
 								    is on the order's own page, where it is named. README: Data Rows. */}
 								<CardBody variant="entry-list card-body-tight">
-									{data.latest.map(order => (
-										<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-											meta={dayMonth(order.date)} amount={kr(order.total)}
-											sub={`saved ${kr(order.saved)}`} to={`/orders/${order.id}`} />
-									))}
-									<Button variant="block" to="/orders/all">SEE ALL</Button>
+									{data.latest.length ? (
+										<>
+											{data.latest.map(order => (
+												<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
+													meta={dayMonth(order.date)} amount={kr(order.total)}
+													sub={`saved ${kr(order.saved)}`} to={`/orders/${order.id}`} />
+											))}
+											<Button variant="block" to="/orders/all">SEE ALL</Button>
+										</>
+									) : (
+										/* The card rendered nothing but SEE ALL here -- a closing action
+										   with no list above it and an empty list behind it. The empty
+										   state and its create action are Home's Orders card's, so the
+										   two cards answer the same absence in the same words.
+										   README: Empty states, Honest Affordances. */
+										<EmptyState>
+											<p>No orders yet. Add one and your spending shows up here.</p>
+											<ButtonLink to="/orders/new">ADD AN ORDER</ButtonLink>
+										</EmptyState>
+									)}
 								</CardBody>
 							</Card>
 
@@ -129,64 +143,84 @@ export default function Orders() {
 							<CardHeader title="Category breakdown" />
 							<CardDivider />
 							<CardBody>
-								<div className="card-toggle-row">
-									<Segmented options={['Expenses', 'Budget']} value={breakdown}
-										onChange={setBreakdown} label="Category breakdown basis" />
-								</div>
-								{/* Two views, and the toggle really switches them. Expenses is each category's
-								    share of the month; Budget is the same categories against what they were
-								    allowed, which is a different question and gets a different ring. The
-								    prototype draws this control and changes nothing with it -- the
-								    decorative-control rule wearing the shape of a tab. README: Honest Affordances. */}
-								{breakdown === 'Expenses' ? (
+								{/* With no rows to split, the toggle switched between two empty rings and
+								    ALL CATEGORIES closed the card over a list with nothing in it -- the
+								    empty state answers instead, and it has to know which absence it is
+								    answering: a month with nothing bought, or an account with no
+								    categories at all. README: Empty states, Honest Affordances. */}
+								{data.categories.length ? (
 									<>
-										<DonutBox>
-											<Donut segments={data.categories.map(c => ({ share: c.share, colour: c.colour }))}
-												value={krRound(data.period.spent)} label="Spent this month"
-												ariaLabel={`Category split of ${krRound(data.period.spent)} this month`} />
-										</DonutBox>
-										{/* "Without category" carries no real id -- the orders list has no filter
-										    for it yet, so linking it the same way as a real category would ask
-										    for one that matches nothing. README: Home. */}
-										<div className="category-rows">
-											{data.categories.map(c =>
-												<CategoryRow key={c.id} category={c}
-													/* The month this ring is of. Its centre reads "Spent this month",
-												   so a row opening every order in that category ever is a list
-												   that disagrees with the figure clicked to reach it. */
-												to={ordersIn({ category: c.id === 'none' ? undefined : c.id,
-													from: data.period.from, to: data.period.to })} />)}
-										</div>
+									<div className="card-toggle-row">
+										<Segmented options={['Expenses', 'Budget']} value={breakdown}
+											onChange={setBreakdown} label="Category breakdown basis" />
+									</div>
+									{/* Two views, and the toggle really switches them. Expenses is each category's
+									    share of the month; Budget is the same categories against what they were
+									    allowed, which is a different question and gets a different ring. The
+									    prototype draws this control and changes nothing with it -- the
+									    decorative-control rule wearing the shape of a tab. README: Honest Affordances. */}
+									{breakdown === 'Expenses' ? (
+										<>
+											<DonutBox>
+												<Donut segments={data.categories.map(c => ({ share: c.share, colour: c.colour }))}
+													value={krRound(data.period.spent)} label="Spent this month"
+													ariaLabel={`Category split of ${krRound(data.period.spent)} this month`} />
+											</DonutBox>
+											{/* "Without category" carries no real id -- the orders list has no filter
+											    for it yet, so linking it the same way as a real category would ask
+											    for one that matches nothing. README: Home. */}
+											<div className="category-rows">
+												{data.categories.map(c =>
+													<CategoryRow key={c.id} category={c}
+														/* The month this ring is of. Its centre reads "Spent this month",
+													   so a row opening every order in that category ever is a list
+													   that disagrees with the figure clicked to reach it. */
+													to={ordersIn({ category: c.id === 'none' ? undefined : c.id,
+														from: data.period.from, to: data.period.to })} />)}
+											</div>
+										</>
+									) : (
+										<>
+											<DonutBox>
+												<Donut segments={[
+													{ share: Math.min(100, budgetUsed(data.categories)), colour: 'var(--green)' },
+													{ share: Math.max(0, 100 - budgetUsed(data.categories)), colour: '#E7EAE5' }
+												]}
+													value={percent(budgetUsed(data.categories), 0)} label="of budget used"
+													ariaLabel={`${percent(budgetUsed(data.categories), 0)} of this month's budget used`} />
+											</DonutBox>
+											{/* The same rows as the Expenses view, saying a different thing in the
+											    meta line. A progress bar under each one would be a layout this app
+											    does not use anywhere else. README: Cards. */}
+											<div className="category-rows">
+												{data.categories.map(c => (
+													<CategoryRow key={c.id} category={c}
+														to={ordersIn({ category: c.id === 'none' ? undefined : c.id,
+														from: data.period.from, to: data.period.to })}
+														meta={c.budget
+															? `${krRound(c.spend)} of ${krRound(c.budget)} budget`
+															: 'No budget set'} />
+												))}
+											</div>
+										</>
+									)}
+									{/* Categories, so the destination is the categories page. It read SEE ALL
+									    under a list of categories and opened the orders list -- the same
+									    mismatch the Categories page's own VIEW ALL had. */}
+									<Button variant="block" to="/categories">ALL CATEGORIES</Button>
 									</>
 								) : (
-									<>
-										<DonutBox>
-											<Donut segments={[
-												{ share: Math.min(100, budgetUsed(data.categories)), colour: 'var(--green)' },
-												{ share: Math.max(0, 100 - budgetUsed(data.categories)), colour: '#E7EAE5' }
-											]}
-												value={percent(budgetUsed(data.categories), 0)} label="of budget used"
-												ariaLabel={`${percent(budgetUsed(data.categories), 0)} of this month's budget used`} />
-										</DonutBox>
-										{/* The same rows as the Expenses view, saying a different thing in the
-										    meta line. A progress bar under each one would be a layout this app
-										    does not use anywhere else. README: Cards. */}
-										<div className="category-rows">
-											{data.categories.map(c => (
-												<CategoryRow key={c.id} category={c}
-													to={ordersIn({ category: c.id === 'none' ? undefined : c.id,
-													from: data.period.from, to: data.period.to })}
-													meta={c.budget
-														? `${krRound(c.spend)} of ${krRound(c.budget)} budget`
-														: 'No budget set'} />
-											))}
-										</div>
-									</>
+									<EmptyState>
+										{data.hasCategories ? (
+											<>
+												<p>Nothing spent in {data.period.shortLabel} yet. An order's categories split it here.</p>
+												<Button variant="block" to="/categories">ALL CATEGORIES</Button>
+											</>
+										) : (
+											<p>No categories yet. Add one and your spending splits by kind.</p>
+										)}
+									</EmptyState>
 								)}
-								{/* Categories, so the destination is the categories page. It read SEE ALL
-								    under a list of categories and opened the orders list -- the same
-								    mismatch the Categories page's own VIEW ALL had. */}
-								<Button variant="block" to="/categories">ALL CATEGORIES</Button>
 							</CardBody>
 						</Card>
 

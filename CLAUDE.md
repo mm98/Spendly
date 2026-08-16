@@ -207,6 +207,17 @@ nothing. Full-page shots of every state are the instrument that can fail: 28 sta
 pixels of 129,081,480 in Blink, 128,930,760 in Gecko and 128,411,280 in WebKit. Match the instrument
 to what the change can actually move, or the clean result is just the wrong question answered twice.
 
+**A fresh account is a state of every page, and no walk here had ever held it.** Every sweep in
+this file drives the demo data, so absence never renders: a card whose empty branch sits left, a
+SEE ALL over a list with no rows, a "no match" sentence blaming filters nobody set — none of them
+can fail a run that always has records. When one was finally pointed at, the same sweep on an
+empty account found the class in one pass: two empty states at 20px/840px against ten at 20/20,
+seven list-opening actions with nothing behind them, one card with no empty branch at all. So any
+walk that claims the app's states covers the account with none — register fresh, drive every
+route, and read back what is offered: an action that opens a list is a claim that the list has
+rows, and the probe is the same `querySelectorAll` the other enumerations use. The demo-filled run
+stays beside it, because every one of those hides is a regression the moment it hides over data.
+
 **One state is not coverage.** A screenshot captures one state of one control. The segmented control
 changed width when the selection moved, because the active segment was bolder and the track is
 `width:max-content` — visible in any engine, invisible in any single screenshot. Exercise every state

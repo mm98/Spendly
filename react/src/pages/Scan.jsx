@@ -3,7 +3,7 @@ import { Sep } from '../components/Sep.jsx'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader, Note } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader, EmptyState, Note } from '../components/Card.jsx'
 import { Stepper } from '../components/Stepper.jsx'
 import { FormPage, RecordWait } from '../components/FormPage.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
@@ -131,16 +131,27 @@ export function ScanUpload() {
 					<CardDivider />
 					<CardBody variant="card-body-tight">
 						<Async state={recent} label="Loading recent scans">{scans => (
-							<InsetPanel>
-								{scans.map(scan => (
-									<ItemRow key={scan.id} icon="check" title={scan.name} meta={scan.meta}
-										amount={kr(scan.total)} to={`/orders/${scan.orderId}`} />
-								))}
-							</InsetPanel>
+							scans.length ? (
+								<>
+									<InsetPanel>
+										{scans.map(scan => (
+											<ItemRow key={scan.id} icon="check" title={scan.name} meta={scan.meta}
+												amount={kr(scan.total)} to={`/orders/${scan.orderId}`} />
+										))}
+									</InsetPanel>
+									{/* Says orders, because that is where it goes: a scan becomes an order and
+									    there is no list of scans to show all of. Inside the branch with rows:
+									    over an empty panel it was a closing action for a list with nothing in
+									    it, under a panel drawn as a bare grey band. README: Empty states,
+									    Honest Affordances. */}
+									<Button variant="block" to="/orders/all">SEE ALL ORDERS</Button>
+								</>
+							) : (
+								<EmptyState>
+									<p>No scans yet. A receipt you scan becomes an order and lands here.</p>
+								</EmptyState>
+							)
 						)}</Async>
-						{/* Says orders, because that is where it goes: a scan becomes an order and
-						    there is no list of scans to show all of. */}
-						<Button variant="block" to="/orders/all">SEE ALL ORDERS</Button>
 					</CardBody>
 				</Card>
 			</div>

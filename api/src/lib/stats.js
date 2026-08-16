@@ -228,6 +228,13 @@ const selectReturned = db.prepare(`
 	ORDER BY ot.date DESC
 `)
 
+/* The account's returns, not the window's -- what the card's SEE RETURN HISTORY button stands
+   on. The window's own count cannot answer it: a quiet month over a year of returns would hide
+   a history that exists, and a fresh account would offer one that does not. */
+const countReturnedEver = db.prepare(`
+	SELECT COUNT(*) AS n FROM orders WHERE user_id = ? AND status = 'Returned'
+`)
+
 const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six']
 const countWord = n => COUNT_WORDS[n] ?? String(n)
 const krLabel = n => Math.round(n).toLocaleString('da-DK') + ' kr.'
@@ -252,6 +259,7 @@ function returnsIn(userId, from, to) {
 	const all = selectReturned.all({ userId, from, to })
 	return {
 		total: all.length,
+		history: countReturnedEver.get(userId).n,
 		// Five, once, written here. It is the same kind of card as the latest orders and the top
 		// vendors, so it is the same number -- the account's, not this file's.
 		items: all.slice(0, cardRowsFor(userId)).map(r => ({
@@ -315,7 +323,9 @@ function recentColumns(userId, range, id, count = 6) {
 	const top = columns.reduce((best, c) => (c.spend > (best?.spend ?? -1) ? c : best), null)
 	return {
 		title: `Last ${countWord(columns.length)} ${range}${columns.length === 1 ? '' : 's'}`,
-		note: columns.length > 1 && top ? `${top.label} is the highest` : null,
+		/* top.spend > 0: reduce picks the first all-zero column otherwise, and the note named a
+		   month as "the highest" on an account that had spent nothing at all. */
+		note: columns.length > 1 && top && top.spend > 0 ? `${top.label} is the highest` : null,
 		columns: columns.map(c => ({ label: c.label, height: most ? Math.round((c.spend / most) * 100) : 0, current: c.id === id }))
 	}
 }

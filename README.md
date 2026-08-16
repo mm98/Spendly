@@ -334,6 +334,10 @@ What a list shows when it holds nothing: a 42px icon tile, then one sentence, ce
 
 **Its words have to be ones the product can make true.** "No open returns" promises a difference between an open return and a closed one; a return is closed when its refund lands, and nothing in the app can record that a refund landed. A sentence naming a state the product cannot reach is the [decorative control](#honest-affordances) defect written in prose.
 
+**It sits where the full list would, centered.** One empty state per shape, wherever it appears: the same icon tile, the same centered sentence, filling the card body whatever layout a full list would have used. Two of them shrank to their own content and sat hard left inside a body laid out for a ring beside its legend, while every other one centered — the same answer drawn in two places on one page ([`docs/defects.md`](docs/defects.md#empty-states--two-sat-left-and-the-actions-offered-lists-with-nothing-in-them)).
+
+**An action that opens a list exists only while the list has rows.** SEE ALL, ALL CATEGORIES, SEE RETURN HISTORY and a card header's own chevron each promise records on the other side; over an absence they open a page whose answer is the same absence, one click later. When the records do not exist, the action is not drawn and the empty state's sentence answers instead — and what an empty account *is* offered is the create action, since adding a record is the one act that can make any of those lists worth opening. The same honesty binds the sentence: a list empty because the account is empty may not blame filters nobody set, and an instruction may only name a step that exists — "open a category and give it one" is not an answer on an account with no category to open ([`docs/defects.md`](docs/defects.md#empty-states--two-sat-left-and-the-actions-offered-lists-with-nothing-in-them)).
+
 ### Chips
 
 A chip is a small label, usually removable. Used for filters, tags, and selections.

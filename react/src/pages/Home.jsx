@@ -128,6 +128,9 @@ function Hero({ month, categories }) {
 						    legend says which month in its own heading rather than borrowing the card's --
 						    the same rule the month-wide cards on Statistics follow under a window that
 						    moves. README: Statistics. */}
+						{/* Drawn only over rows: the heading over an empty list was a label with
+						    nothing under it, on a card whose figures already read 0. */}
+						{month.heroLegend.length ? <>
 						<div className="list-heading">Where it went<Sep />{month.shortLabel}</div>
 						<div className="chart-legend">
 							{month.heroLegend.map(entry => {
@@ -147,6 +150,7 @@ function Hero({ month, categories }) {
 								)
 							})}
 						</div>
+						</> : null}
 					</CardBody>
 				</Card>
 			)
@@ -160,9 +164,26 @@ function Hero({ month, categories }) {
    rather than assumed. Both the arcs and the rows are drawn from the folded array, so the ring
    still adds up to the figure printed in its middle however few rows the card has room for.
    README: Home, Charts. */
-function BreakdownCard({ period, categories, rows }) {
+function BreakdownCard({ period, categories, hasCategories, rows }) {
 	const [listRef, budget] = useListBudget(rows)
 	const shown = foldForRing(categories, more => `${more} more categories`, budget)
+	/* A ring with no segments is a grey circle claiming a split of nothing -- the same absence
+	   the vendors card one over already answers with an empty state. Which sentence depends on
+	   which absence: a month with nothing bought, or an account with no categories at all.
+	   README: Empty states. */
+	if (!shown.length) return (
+		<>
+			<CardHeader title="Category breakdown" />
+			<CardDivider />
+			<CardBody>
+				<EmptyState>
+					<p>{hasCategories
+						? `Nothing spent in ${period.shortLabel} yet. An order's categories split it here.`
+						: 'No categories yet. Add one and your spending splits by kind.'}</p>
+				</EmptyState>
+			</CardBody>
+		</>
+	)
 	return (
 		<>
 			<CardHeader title="Category breakdown" />
@@ -303,7 +324,8 @@ function dashboardCard(key, data) {
 				</>
 			)
 		case 'breakdown':
-			return <BreakdownCard period={period} categories={categories} rows={cardRows} />
+			return <BreakdownCard period={period} categories={categories}
+				hasCategories={data.hasCategories} rows={cardRows} />
 		case 'vendors':
 			return <TopVendorsCard vendors={vendors} rows={cardRows} />
 		case 'favcats':
