@@ -231,9 +231,9 @@ export const itemAttachmentFileUrl = (orderId, itemId, attachmentId) =>
 	`/api/orders/${orderId}/items/${itemId}/attachments/${attachmentId}/file`
 
 /** Bulk-imports whole orders (vendor, categories, items, attachment images) from another
-    expense-tracking system in one call. Not wired to any page yet — this is the entry point
-    for that migration, called directly (a script, a one-off import screen) rather than through
-    useApi like the read endpoints above. */
+    expense-tracking system in one call. Called by the Settings import card (and any script a
+    user writes against the endpoint directly) rather than through useApi like the read
+    endpoints above. */
 export async function importOrders(orders, signal) {
 	return request('/api/orders/import', { method: 'POST', body: { orders }, signal })
 }
