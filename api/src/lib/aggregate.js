@@ -1,11 +1,11 @@
 import { db } from '../db.js'
 
-/* Real aggregation: SUM/GROUP BY over the order_totals view (see migrations/001_init.sql),
-   not a per-order fetch-and-add-in-JS loop. */
+/* Real aggregation: SUM/GROUP BY over the orders table's stored totals (see
+   migrations/001_init.sql), not a per-order fetch-and-add-in-JS loop. */
 
 const vendorStatsQuery = db.prepare(`
 	SELECT vendor_id AS vendorId, COUNT(*) AS orders, SUM(total) AS spend, SUM(saved) AS saved
-	FROM order_totals
+	FROM orders
 	WHERE user_id = ?
 	GROUP BY vendor_id
 `)
@@ -21,7 +21,7 @@ const vendorLatestQuery = db.prepare(`
 	SELECT vendorId, date, item_count AS items, total FROM (
 		SELECT vendor_id AS vendorId, date, item_count, total,
 			ROW_NUMBER() OVER (PARTITION BY vendor_id ORDER BY date DESC, id DESC) AS rn
-		FROM order_totals WHERE user_id = ?
+		FROM orders WHERE user_id = ?
 	) WHERE rn = 1
 `)
 
@@ -45,7 +45,7 @@ const categoryStatsQuery = db.prepare(`
 		SUM(ot.total * 1.0 / cc.cat_count) AS spend,
 		SUM(ot.saved * 1.0 / cc.cat_count) AS saved
 	FROM order_categories oc
-	JOIN order_totals ot ON ot.id = oc.order_id
+	JOIN orders ot ON ot.id = oc.order_id
 	JOIN (SELECT order_id, COUNT(*) AS cat_count FROM order_categories GROUP BY order_id) cc
 		ON cc.order_id = oc.order_id
 	WHERE ot.user_id = ?

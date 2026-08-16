@@ -97,9 +97,8 @@ router.get('/documents/:key/file', (req, res) => {
     Real history, not the phantom store's two hardcoded rows. Cut to the account's
     entries-per-card setting, like every other card holding a list. */
 const selectRecentScans = db.prepare(`
-	SELECT o.id AS orderId, a.name, a.meta, ot.total, o.created_at
+	SELECT o.id AS orderId, a.name, a.meta, o.total, o.created_at
 	FROM orders o
-	JOIN order_totals ot ON ot.id = o.id
 	JOIN attachments a ON a.order_id = o.id
 	WHERE o.user_id = @userId
 	GROUP BY o.id

@@ -2,12 +2,12 @@ import { db } from '../db.js'
 import { fromEpoch } from './dates.js'
 import { orderTotalsSelectList } from './orderColumns.js'
 
-/* The order math (client.js:104-125's `decorate`, now real aggregation) lives in the
-   order_totals SQL view (see migrations/001_init.sql) — one formula, computed by SQLite, that
-   every reader here shares. Nothing in this file recomputes subtotal/total/saved in JS. Every
-   query below selects only the columns its caller actually reads, not `SELECT *`. */
+/* The order math lives in the orders table itself: stored columns maintained by the
+   order_items triggers (see migrations/001_init.sql) — one formula, applied by SQLite at write
+   time, that every reader here shares. Nothing in this file recomputes subtotal/total/saved in
+   JS. Every query below selects only the columns its caller actually reads, not `SELECT *`. */
 
-const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()} FROM order_totals WHERE id = ? AND user_id = ?`)
+const selectTotals = db.prepare(`SELECT ${orderTotalsSelectList()} FROM orders WHERE id = ? AND user_id = ?`)
 const selectItems = db.prepare('SELECT id, title, quantity, price, retail, note FROM order_items WHERE order_id = ? ORDER BY position')
 const selectAttachments = db.prepare(`
 	SELECT id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail FROM attachments WHERE order_id = ?
@@ -43,7 +43,7 @@ const mapItem = (i, itemAttachments) => ({
 	attachments: (itemAttachments?.get(i.id) ?? []).map(mapAttachment)
 })
 
-/** Turns one order_totals row plus its already-fetched child rows into the shape the frontend
+/** Turns one orders row plus its already-fetched child rows into the shape the frontend
     expects from client.js. Pure — callers decide how the child rows were fetched (one order at
     a time, or batched for a whole page, see decorateOrderRows below). */
 export function decorateOrder(totals, { items, attachments, itemAttachments, categories, vendor }) {
@@ -118,7 +118,7 @@ const groupBy = (rows, key) => {
 	return map
 }
 
-/** Decorates many order_totals rows (a page of the order list) in a fixed 4 queries total,
+/** Decorates many orders rows (a page of the order list) in a fixed 4 queries total,
     instead of the 4-per-order it would cost to call getDecoratedOrder in a loop — the same N+1
     a page of 20 orders would otherwise turn into 80 round trips for. */
 export function decorateOrderRows(totalsRows) {

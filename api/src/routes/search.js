@@ -10,7 +10,7 @@ const MAX_PER_KIND = 8
 const searchVendors = db.prepare('SELECT id, name FROM vendors WHERE user_id = ? AND lower(name) LIKE ? ORDER BY name LIMIT ?')
 const searchCategories = db.prepare('SELECT id, name FROM categories WHERE user_id = ? AND lower(name) LIKE ? ORDER BY name LIMIT ?')
 const searchOrders = db.prepare(`
-	SELECT ${orderTotalsSelectList('ot')} FROM order_totals ot
+	SELECT ${orderTotalsSelectList('ot')} FROM orders ot
 	JOIN vendors v ON v.id = ot.vendor_id
 	WHERE ot.user_id = ? AND (
 		lower(v.name) LIKE ?
