@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
-import { FormActions } from '../components/Form.jsx'
+import { FormActions, Switch } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
 import { ProgressBar } from '../components/Viz.jsx'
@@ -100,6 +100,12 @@ function sliceOrders(orders) {
 export default function SettingsImport() {
 	const toast = useToast()
 	const [importFile, setImportFile] = useState(null)
+	/* Whether files ride along, on by default and split the way the schema splits them: the
+	   order's own attachments (the receipt), and the images on its items (the photos). Off
+	   strips them before slicing, so the batches are cut to the size of what is actually
+	   sent and a file too big only for its attachments imports without them. */
+	const [withAttachments, setWithAttachments] = useState(true)
+	const [withImages, setWithImages] = useState(true)
 
 	/* The file import. The picker takes one JSON file holding the same shape the reference
 	   card documents -- `{ "orders": [...] }`, or a bare array of orders -- sliced under the
@@ -123,8 +129,14 @@ export default function SettingsImport() {
 		try {
 			let parsed
 			try { parsed = JSON.parse(await importFile.text()) } catch { throw new Error('import-not-json') }
-			const orders = Array.isArray(parsed) ? parsed : parsed?.orders
+			let orders = Array.isArray(parsed) ? parsed : parsed?.orders
 			if (!Array.isArray(orders) || !orders.length) throw new Error('import-no-orders')
+			if (!withAttachments) orders = orders.map(({ attachments, ...order }) => order)
+			if (!withImages) {
+				orders = orders.map(order => Array.isArray(order.items)
+					? { ...order, items: order.items.map(({ attachments, ...item }) => item) }
+					: order)
+			}
 			const batches = sliceOrders(orders)
 			const totalBytes = batches.reduce((n, b) => n + b.bytes, 0)
 			setProgress({ done: 0, total: batches.length, doneBytes: 0, totalBytes, sliceBytes: 0, sentFrac: 0, rowsFrac: 0 })
@@ -166,119 +178,136 @@ export default function SettingsImport() {
 
 	return (
 		<Page>
-			<div className="order-list-grid">
-				<div className="order-list-column">
-					{/* The upload half of importing: choose a JSON file, press IMPORT. The shape
-					    the file must hold is the reference card beside it -- one schema, two
-					    doors, and the server validates both the same way. */}
-					<Card aria-label="Import orders">
-						<CardHeader title="Import orders" />
-						<CardDivider />
-						<CardBody>
+			{/* One column, upload first and the reference beneath it -- the reference is read
+			    while writing a file or a script, and a narrow rail wrapped its schema blocks. */}
+			<div className="order-list-column">
+				{/* The upload half of importing: choose a JSON file, press IMPORT. The shape
+				    the file must hold is the reference card beneath it -- one schema, two
+				    doors, and the server validates both the same way. */}
+				<Card aria-label="Import orders">
+					<CardHeader title="Import orders" />
+					<CardDivider />
+					<CardBody>
+						<p className="card-lead card-lead-flush">
+							Bring orders in from a JSON file — an object holding an{' '}
+							<code>orders</code> array, the shape the reference card documents. Each
+							order imports on its own, so one bad row fails alone, and a big file is
+							sent in slices — no need to split it yourself.
+						</p>
+						{/* The same row every boolean in Settings uses: help text left, switch
+						    right. A checkbox would be a second control for the same question.
+						    Two rows because the schema carries two kinds of file, and someone
+						    migrating may want the receipts without megabytes of photos. */}
+						<div className="space-between">
+							<span className="field-help toggle-help">
+								Bring attachments along — the receipt file riding on an order.
+								With this off, orders import without their attachments.
+							</span>
+							<Switch checked={withAttachments} label="Import attachments"
+								onChange={setWithAttachments} />
+						</div>
+						<div className="space-between">
+							<span className="field-help toggle-help">
+								Bring images along — the photo riding on a line item.
+								With this off, items import without their images.
+							</span>
+							<Switch checked={withImages} label="Import images"
+								onChange={setWithImages} />
+						</div>
+						{importFile ? (
+							<>
+								<p className="field-help">{importFile.name}</p>
+								{/* Indeterminate only while the file is still being read and parsed --
+								    once slices are on the wire the percentage is measured, not
+								    guessed: bytes the browser reports sent and rows the server
+								    reports written, so it moves through both waits. The figure
+								    beside the bar is the same number said in words. */}
+								{progress ? (() => {
+									const { doneBytes, totalBytes, sliceBytes, sentFrac, rowsFrac } = progress
+									const pct = totalBytes
+										? Math.min(100, ((doneBytes + sliceBytes * ((sentFrac + rowsFrac) / 2)) / totalBytes) * 100)
+										: 0
+									return (
+										<div className="import-progress">
+											<ProgressBar label="Import progress" indeterminate={!totalBytes}
+												value={Math.round(pct)} />
+											{totalBytes ? (
+												<span className="field-help tabular-figures">{percent(pct, 0)}</span>
+											) : null}
+										</div>
+									)
+								})() : null}
+								<FormActions>
+									<Button variant="caps compact" disabled={!!progress} onClick={runImport}>
+										{!progress ? 'IMPORT'
+											: progress.total > 1 ? `IMPORTING ${Math.min(progress.done + 1, progress.total)} OF ${progress.total}...`
+												: 'IMPORTING...'}
+									</Button>
+									<Button variant="ghost compact" disabled={!!progress}
+										onClick={() => setImportFile(null)}>CANCEL</Button>
+								</FormActions>
+							</>
+						) : (
+							<Button variant="block" icon="upload"
+								onClick={() => importPicker.current?.click()}>CHOOSE A JSON FILE</Button>
+						)}
+						<HiddenFileInput ref={importPicker} accept=".json,application/json"
+							label="Choose a JSON file of orders" onFiles={([file]) => setImportFile(file)} />
+					</CardBody>
+				</Card>
+				{/* Documentation, not a control. It used to open closed to spare the settings
+				    page a screenful of reference on every visit; on a tab that exists for
+				    importing, the reference is half the point, so it stands open. The example
+				    mirrors validateOrderDraft and the import route; change those and change
+				    this. Every JSON fragment is JSON.stringify's own output, coloured by a
+				    ten-line tokenizer -- hand-aligned annotation columns drifted immediately. */}
+				<Card aria-label="Import from another system">
+					<CardHeader title="Import from another system" />
+					<CardDivider />
+					<CardBody id="import-reference">
 							<p className="card-lead card-lead-flush">
-								Bring orders in from a JSON file — an object holding an{' '}
-								<code>orders</code> array, the shape the reference card documents. Each
-								order imports on its own, so one bad row fails alone, and a big file is
-								sent in slices — no need to split it yourself.
+								Bring orders in from another expense tracker — vendors, categories, line
+								items and receipt files — with a script of your own: sign in, post the
+								orders, read back what landed.
 							</p>
-							{importFile ? (
-								<>
-									<p className="field-help">{importFile.name}</p>
-									{/* Indeterminate only while the file is still being read and parsed --
-									    once slices are on the wire the percentage is measured, not
-									    guessed: bytes the browser reports sent and rows the server
-									    reports written, so it moves through both waits. The figure
-									    beside the bar is the same number said in words. */}
-									{progress ? (() => {
-										const { doneBytes, totalBytes, sliceBytes, sentFrac, rowsFrac } = progress
-										const pct = totalBytes
-											? Math.min(100, ((doneBytes + sliceBytes * ((sentFrac + rowsFrac) / 2)) / totalBytes) * 100)
-											: 0
-										return (
-											<div className="import-progress">
-												<ProgressBar label="Import progress" indeterminate={!totalBytes}
-													value={Math.round(pct)} />
-												{totalBytes ? (
-													<span className="field-help tabular-figures">{percent(pct, 0)}</span>
-												) : null}
-											</div>
-										)
-									})() : null}
-									<FormActions>
-										<Button variant="caps compact" disabled={!!progress} onClick={runImport}>
-											{!progress ? 'IMPORT'
-												: progress.total > 1 ? `IMPORTING ${Math.min(progress.done + 1, progress.total)} OF ${progress.total}...`
-													: 'IMPORTING...'}
-										</Button>
-										<Button variant="ghost compact" disabled={!!progress}
-											onClick={() => setImportFile(null)}>CANCEL</Button>
-									</FormActions>
-								</>
-							) : (
-								<Button variant="block" icon="upload"
-									onClick={() => importPicker.current?.click()}>CHOOSE A JSON FILE</Button>
-							)}
-							<HiddenFileInput ref={importPicker} accept=".json,application/json"
-								label="Choose a JSON file of orders" onFiles={([file]) => setImportFile(file)} />
-						</CardBody>
-					</Card>
-				</div>
-
-				<div className="order-list-column">
-					{/* Documentation, not a control. It used to open closed to spare the settings
-					    page a screenful of reference on every visit; on a tab that exists for
-					    importing, the reference is half the point, so it stands open. The example
-					    mirrors validateOrderDraft and the import route; change those and change
-					    this. Every JSON fragment is JSON.stringify's own output, coloured by a
-					    ten-line tokenizer -- hand-aligned annotation columns drifted immediately. */}
-					<Card aria-label="Import from another system">
-						<CardHeader title="Import from another system" />
-						<CardDivider />
-						<CardBody id="import-reference">
-								<p className="card-lead card-lead-flush">
-									Bring orders in from another expense tracker — vendors, categories, line
-									items and receipt files — with a script of your own: sign in, post the
-									orders, read back what landed.
-								</p>
-								<pre className="import-schema" aria-label="Sign-in request">{RECIPE_LOGIN}</pre>
-								<span className="field-help import-caption">
-									Signing in sets the <code>spendly_session</code> cookie and returns the same
-									token in the body. Every later call takes either credential: the cookie, or{' '}
-									<code>Authorization: Bearer</code> with that token.
-								</span>
-								<pre className="import-schema" aria-label="Import request shape">{RECIPE_REQUEST}</pre>
-								<ul className="import-rules">
-									<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
-										least one item with <code>title</code>, <code>quantity</code> and{' '}
-										<code>price</code>. Everything else is optional.</li>
-									<li><code>price</code> may be negative — a discount line subtracts, the way it
-										did at the till. <code>retail</code> and <code>shipping</code>, the only
-										other amounts, stay at zero or above.</li>
-									<li><code>vendor</code> ≤ 80 characters.</li>
-									<li><code>title</code> ≤ 120 characters.</li>
-									<li><code>quantity</code> a whole number, 1–9999.</li>
-									<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
-									<li><code>kind</code>: Expense, Gift, Sold, Work or Other.</li>
-									<li><code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
-									<li>Attachments carry base64 bytes: on the order for the receipt, on an item
-										for its photo.</li>
-									<li>Vendors and categories are matched by name, case-insensitively, and
-										created when new.</li>
-								</ul>
-								<pre className="import-schema" aria-label="Import response shape">{RECIPE_RESPONSE}</pre>
-								<span className="field-help">
-									Each order imports in its own transaction, so one bad row fails alone — the
-									response names every failure by its index, and the status is 400 only when
-									the array is empty or nothing imported. Batch large exports: the request body
-									is capped at 50&nbsp;MB, and base64 grows files by a third. Add{' '}
-									<code>?progress=stream</code> and the response arrives as NDJSON instead —{' '}
-									<code>{'{"done":50,"total":1200}'}</code> lines while rows land, closed by
-									this same result object on a 200 — which is what the upload card above uses
-									for its bar.
-								</span>
-						</CardBody>
-					</Card>
-				</div>
+							<pre className="import-schema" aria-label="Sign-in request">{RECIPE_LOGIN}</pre>
+							<span className="field-help import-caption">
+								Signing in sets the <code>spendly_session</code> cookie and returns the same
+								token in the body. Every later call takes either credential: the cookie, or{' '}
+								<code>Authorization: Bearer</code> with that token.
+							</span>
+							<pre className="import-schema" aria-label="Import request shape">{RECIPE_REQUEST}</pre>
+							<ul className="import-rules">
+								<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
+									least one item with <code>title</code>, <code>quantity</code> and{' '}
+									<code>price</code>. Everything else is optional.</li>
+								<li><code>price</code> may be negative — a discount line subtracts, the way it
+									did at the till. <code>retail</code> and <code>shipping</code>, the only
+									other amounts, stay at zero or above.</li>
+								<li><code>vendor</code> ≤ 80 characters.</li>
+								<li><code>title</code> ≤ 120 characters.</li>
+								<li><code>quantity</code> a whole number, 1–9999.</li>
+								<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
+								<li><code>kind</code>: Expense, Gift, Sold, Work or Other.</li>
+								<li><code>status</code>: Ordered, Delivered or Returned — Delivered when omitted.</li>
+								<li>Attachments carry base64 bytes: on the order for the receipt, on an item
+									for its photo.</li>
+								<li>Vendors and categories are matched by name, case-insensitively, and
+									created when new.</li>
+							</ul>
+							<pre className="import-schema" aria-label="Import response shape">{RECIPE_RESPONSE}</pre>
+							<span className="field-help">
+								Each order imports in its own transaction, so one bad row fails alone — the
+								response names every failure by its index, and the status is 400 only when
+								the array is empty or nothing imported. Batch large exports: the request body
+								is capped at 50&nbsp;MB, and base64 grows files by a third. Add{' '}
+								<code>?progress=stream</code> and the response arrives as NDJSON instead —{' '}
+								<code>{'{"done":50,"total":1200}'}</code> lines while rows land, closed by
+								this same result object on a 200 — which is what the upload card above uses
+								for its bar.
+							</span>
+					</CardBody>
+				</Card>
 			</div>
 		</Page>
 	)
