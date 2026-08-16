@@ -12,7 +12,7 @@ import { Icon } from '../components/Icon.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { useReorder } from '../components/Reorder.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, FilterSectionBody,
+	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection,
 	FormActions, Segmented, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
@@ -242,36 +242,31 @@ export function NewOrderDetails() {
 					groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
 			</Field>
 
-			{/* The optional fields, always on show under their heading. They used to sit
-			    behind a More details? switch; three optional fields cost less on screen
-			    than a control everyone had to flip to reach them. */}
-			<FilterSection>
-				<span className="panel-heading">More details</span>
-				<FilterSectionBody>
-					<FieldPair>
-						<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
-							<FieldShell>
-								<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
-									aria-label="Shipping fee" value={draft.shipping}
-									invalid={shippingField.invalid} describedBy={shippingField.describedBy}
-									onChange={set('order-shipping', 'shipping')} />
-								<FieldUnit>kr.</FieldUnit>
-							</FieldShell>
-						</Field>
-						<Field label="Order reference">
-							<FieldShell>
-								<TextInput placeholder="Optional" aria-label="Order reference"
-									value={draft.reference} onChange={v => update({ reference: v })} />
-							</FieldShell>
-						</Field>
-					</FieldPair>
-					<Field label="Note">
-						<TextArea aria-label="Note" value={draft.note}
-							placeholder="Anything worth remembering about this purchase."
-							onChange={v => update({ note: v })} />
-					</Field>
-				</FilterSectionBody>
-			</FilterSection>
+			{/* The optional fields, plain rows of the form like everything above them. They
+			    used to sit behind a More details? switch and then under its heading in a
+			    bordered section; three optional fields cost less on screen than either. */}
+			<FieldPair>
+				<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
+					<FieldShell>
+						<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
+							aria-label="Shipping fee" value={draft.shipping}
+							invalid={shippingField.invalid} describedBy={shippingField.describedBy}
+							onChange={set('order-shipping', 'shipping')} />
+						<FieldUnit>kr.</FieldUnit>
+					</FieldShell>
+				</Field>
+				<Field label="Order reference">
+					<FieldShell>
+						<TextInput placeholder="Optional" aria-label="Order reference"
+							value={draft.reference} onChange={v => update({ reference: v })} />
+					</FieldShell>
+				</Field>
+			</FieldPair>
+			<Field label="Note">
+				<TextArea aria-label="Note" value={draft.note}
+					placeholder="Anything worth remembering about this purchase."
+					onChange={v => update({ note: v })} />
+			</Field>
 		</FormPage>
 	)
 }

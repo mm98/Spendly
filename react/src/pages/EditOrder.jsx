@@ -12,7 +12,7 @@ import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Row
 import { useReorder } from '../components/Reorder.jsx'
 import { useRowDelete } from '../components/FormPage.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, FilterSectionBody,
+	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection,
 	Form, FormActions, FormStatus, Segmented, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
@@ -336,35 +336,30 @@ function EditOrderForm({ id, seed }) {
 									groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
 							</Field>
 
-							{/* The optional fields, always on show under their heading -- the same
-							    section, sans switch, as the new order form's. */}
-							<FilterSection>
-								<span className="panel-heading">More details</span>
-								<FilterSectionBody>
-									<FieldPair>
-										<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
-											<FieldShell>
-												<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
-													aria-label="Shipping fee" value={draft.shipping}
-													invalid={shippingField.invalid} describedBy={shippingField.describedBy}
-													onChange={set('order-shipping', 'shipping')} />
-												<FieldUnit>kr.</FieldUnit>
-											</FieldShell>
-										</Field>
-										<Field label="Order reference">
-											<FieldShell>
-												<TextInput placeholder="Optional" aria-label="Order reference"
-													value={draft.reference} onChange={v => update({ reference: v })} />
-											</FieldShell>
-										</Field>
-									</FieldPair>
-									<Field label="Note">
-										<TextArea aria-label="Note" value={draft.note}
-											placeholder="Anything worth remembering about this purchase."
-											onChange={v => update({ note: v })} />
-									</Field>
-								</FilterSectionBody>
-							</FilterSection>
+							{/* The optional fields, plain rows of the form -- the same flat rows
+							    as the new order form's. */}
+							<FieldPair>
+								<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
+									<FieldShell>
+										<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
+											aria-label="Shipping fee" value={draft.shipping}
+											invalid={shippingField.invalid} describedBy={shippingField.describedBy}
+											onChange={set('order-shipping', 'shipping')} />
+										<FieldUnit>kr.</FieldUnit>
+									</FieldShell>
+								</Field>
+								<Field label="Order reference">
+									<FieldShell>
+										<TextInput placeholder="Optional" aria-label="Order reference"
+											value={draft.reference} onChange={v => update({ reference: v })} />
+									</FieldShell>
+								</Field>
+							</FieldPair>
+							<Field label="Note">
+								<TextArea aria-label="Note" value={draft.note}
+									placeholder="Anything worth remembering about this purchase."
+									onChange={v => update({ note: v })} />
+							</Field>
 						</Form>
 					</CardBody>
 				</Card>

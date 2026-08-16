@@ -692,7 +692,7 @@ Two surfaces, one promise: typed text finds things.
 
 ### Progressive Disclosure
 
-Complex features are hidden until needed: the filter panel behind FILTERS, an item editor behind its line. Users see what they need now, not everything at once. Three optional fields are not a complex feature: the order form's More details section stands open under its heading, because a control everyone must flip costs more than the fields it hides.
+Complex features are hidden until needed: the filter panel behind FILTERS, an item editor behind its line. Users see what they need now, not everything at once. Three optional fields are not a complex feature: shipping fee, order reference and note are plain rows of the order form, because a control everyone must flip — or a section fencing them off — costs more than the fields themselves.
 
 **The mechanics are fixed:**
 - The disclosure button states its state: `aria-expanded` flips, and the chevron rotates with it. The label never changes — the arrow is what says open or closed.
