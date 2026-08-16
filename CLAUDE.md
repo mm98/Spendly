@@ -251,7 +251,16 @@ have gone green on a control that renders identically in both states: green trac
 colour `rgb(20,172,114)` to `rgb(131,140,132)`, knob `right:3px` to `left:3px`, the section 271.7px
 to 56px. An ARIA attribute is a claim about the pixels, and only the pixels can settle it.
 
-**A guard beside a rule reads as the rule, and a flattened error hides that it is not.** The scan
+**The bundler passes an unimported name, so "build clean" says nothing about a page rendering.**
+Rollup treats a bare identifier as a global and emits it unresolved: `useToast()` with no import
+built without a warning twice in one session and threw `ReferenceError` on Home's first render,
+which the route error boundary turned into "Something went wrong loading this page" on the front
+page of a merged branch. The user found it, on first load, which is the whole failure. Two rules,
+both cheap: every file a change touches gets its page *opened* before the push — the smoke is one
+navigation per route asserting the error card is absent, under a minute for all thirteen — and a
+name added to N files by search-and-replace is checked by parsing the import lists back
+(`matchAll(/import\s*{([^}]*)}/)` against uses), not by grepping lines, because a multiline import
+defeats a line-shaped grep and an ad-hoc checker that cannot parse is a probe that cannot fail. The scan
 review's save checked `lines.length` beside a server that validates every line's contents, and the
 count read as the coverage — so a blank line ADD LINE had seeded into the draft passed where zero
 lines were refused, and the server's 400 ("Describe the item.") was caught and reported as "Try

@@ -10,6 +10,7 @@ import { DashboardCards } from '../components/DashboardCards.jsx'
 import { AiCard, AiCardMark } from '../components/AiCard.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { SavingChip } from '../components/Chip.jsx'
+import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn, saveSettings
