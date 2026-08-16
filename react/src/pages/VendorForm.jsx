@@ -141,7 +141,7 @@ function VendorFields({ mode, vendor }) {
 				</>
 			}>
 
-			<Field label="Name" error={nameField.error} errorId={nameField.errorId}>
+			<Field label="Name" error={nameField.error} errorId={nameField.errorId} htmlFor="vendor-name">
 				<FieldShell>
 					<TextInput id="vendor-name" value={name} autoFocus
 						onChange={v => { setName(v); recheck('vendor-name', v) }}
@@ -182,11 +182,11 @@ function VendorFields({ mode, vendor }) {
 			    second control for a job this one already has. README: Fields and Forms. */}
 			<FilterSection>
 				<div className="space-between">
-					<span className="field-help toggle-help">
+					<label className="field-help toggle-help" htmlFor="vendor-favourite">
 						Favourites are spotlighted at the top of the Vendors page, and lead the vendor
 						list on a new order.
-					</span>
-					<Switch checked={favourite} onChange={setFavourite} label="Favourite" />
+					</label>
+					<Switch id="vendor-favourite" checked={favourite} onChange={setFavourite} label="Favourite" />
 				</div>
 			</FilterSection>
 		</FormPage>

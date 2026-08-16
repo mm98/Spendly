@@ -221,8 +221,8 @@ export default function AllOrders() {
 						{/* Every dropdown in the app is the one combobox: type to search, grouped
 						    results, create from the foot. A native <select> here would be a second
 						    dropdown pattern and a hole in the design system. README: Fields and Forms. */}
-						<Field label="Vendor">
-							<Combobox label="Vendor" placeholder="Any vendor"
+						<Field label="Vendor" htmlFor="filter-vendor">
+							<Combobox id="filter-vendor" label="Vendor" placeholder="Any vendor"
 								value={draft.vendorName ?? ''}
 								onChange={v => setDraft({ ...draft, vendorName: v, vendorId: '' })}
 								onSelect={o => setDraft({ ...draft, vendorName: o.label, vendorId: o.id })}
@@ -230,39 +230,39 @@ export default function AllOrders() {
 									({ id: v.id, label: v.name, meta: `${v.orders} orders` })) }]} />
 						</Field>
 						<FieldPair variant="field-pair-stack-early">
-							<Field label="Category">
-								<Combobox label="Category" placeholder="Any category"
+							<Field label="Category" htmlFor="filter-category">
+								<Combobox id="filter-category" label="Category" placeholder="Any category"
 									value={draft.categoryName ?? ''}
 									onChange={v => setDraft({ ...draft, categoryName: v, categoryId: '' })}
 									onSelect={o => setDraft({ ...draft, categoryName: o.label, categoryId: o.id })}
 									groups={[{ heading: 'All categories', options: (categories.data ?? []).map(c =>
 										({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }]} />
 							</Field>
-							<Field label="Kind">
-								<Combobox label="Kind" placeholder="Any kind" value={draft.kind ?? ''}
+							<Field label="Kind" htmlFor="filter-kind">
+								<Combobox id="filter-kind" label="Kind" placeholder="Any kind" value={draft.kind ?? ''}
 									onChange={v => setDraft({ ...draft, kind: v })}
 									groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
 							</Field>
 						</FieldPair>
 						<FieldPair variant="field-pair-keep">
-							<Field label="From">
-								<DateInput label="From date" value={draft.from} onChange={v => setDraft({ ...draft, from: v })} />
+							<Field label="From" htmlFor="filter-from">
+								<DateInput id="filter-from" label="From date" value={draft.from} onChange={v => setDraft({ ...draft, from: v })} />
 							</Field>
-							<Field label="To">
-								<DateInput label="To date" value={draft.to} onChange={v => setDraft({ ...draft, to: v })} />
+							<Field label="To" htmlFor="filter-to">
+								<DateInput id="filter-to" label="To date" value={draft.to} onChange={v => setDraft({ ...draft, to: v })} />
 							</Field>
 						</FieldPair>
 						<FieldPair variant="field-pair-keep">
-							<Field label="Min amount">
+							<Field label="Min amount" htmlFor="filter-min-amount">
 								<FieldShell>
-									<input type="text" inputMode="decimal" placeholder="0,00" aria-label="Minimum amount"
+									<input id="filter-min-amount" type="text" inputMode="decimal" placeholder="0,00" aria-label="Minimum amount"
 										value={draft.minAmount} onChange={e => setDraft({ ...draft, minAmount: e.target.value })} />
 									<FieldUnit>kr.</FieldUnit>
 								</FieldShell>
 							</Field>
-							<Field label="Max amount">
+							<Field label="Max amount" htmlFor="filter-max-amount">
 								<FieldShell>
-									<input type="text" inputMode="decimal" placeholder="Any" aria-label="Maximum amount"
+									<input id="filter-max-amount" type="text" inputMode="decimal" placeholder="Any" aria-label="Maximum amount"
 										value={draft.maxAmount} onChange={e => setDraft({ ...draft, maxAmount: e.target.value })} />
 									<FieldUnit>kr.</FieldUnit>
 								</FieldShell>

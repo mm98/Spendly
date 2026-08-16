@@ -155,8 +155,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 							<FilterSection>
 								<span className="panel-heading">New orders</span>
 								<FieldPair>
-									<Field label="Kind" help="What the Kind field on step 1 opens with.">
-										<Combobox label="Default kind" value={local.defaultKind}
+									<Field label="Kind" htmlFor="setting-default-kind" help="What the Kind field on step 1 opens with.">
+										<Combobox id="setting-default-kind" label="Default kind" value={local.defaultKind}
 											onChange={v => change({ defaultKind: v }, 'Default kind saved.')}
 											onSelect={o => change({ defaultKind: o.label }, 'Default kind saved.')}
 											groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
@@ -178,8 +178,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 										onChange={v => change({ pageSize: Number(v) }, 'Page size saved.')}
 										label="Rows per page" />
 								</Field>
-								<Field label="Sort orders by" help="What All orders opens sorted by.">
-									<Combobox label="Default sort"
+								<Field label="Sort orders by" htmlFor="setting-sort" help="What All orders opens sorted by.">
+									<Combobox id="setting-sort" label="Default sort"
 										value={sorts.find(s => s.id === local.sort)?.label ?? ''}
 										onChange={() => {}}
 										onSelect={o => change({ sort: o.id }, 'Default sort saved.')}
@@ -194,9 +194,9 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								    a combobox over a named list of orders. It shipped once as a segmented
 								    control -- two controls asking one kind of thing, side by side, drawn
 								    differently. README: Uniformity, Fields and Forms. */}
-								<Field label="Sort vendors and categories by"
+								<Field label="Sort vendors and categories by" htmlFor="setting-list-sort"
 									help="What All vendors and All categories open sorted by. Both lists, one order.">
-									<Combobox label="Default list sort"
+									<Combobox id="setting-list-sort" label="Default list sort"
 										value={listSorts.find(s => s.id === local.listSort)?.label ?? ''}
 										onChange={() => {}}
 										onSelect={o => change({ listSort: o.id }, 'List order saved.')}
@@ -214,19 +214,19 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 							<FilterSection>
 								<span className="panel-heading">On screen</span>
 								<div className="space-between">
-									<span className="field-help toggle-help">
+									<label className="field-help toggle-help" htmlFor="setting-scan-card">
 										Show the scan card on Home. LATER on the card itself turns this off too.
-									</span>
-									<Switch checked={local.showScanCard} label="Show the scan card on Home"
+									</label>
+									<Switch id="setting-scan-card" checked={local.showScanCard} label="Show the scan card on Home"
 										onChange={v => change({ showScanCard: v },
 											v ? 'The scan card is back on Home.' : 'The scan card is off.')} />
 								</div>
 								<div className="space-between">
-									<span className="field-help toggle-help">
+									<label className="field-help toggle-help" htmlFor="setting-confirm-delete">
 										Ask before deleting anything: an order, a category, a vendor, a line
 										item, an attachment. With this off, the trash acts straight away.
-									</span>
-									<Switch checked={local.confirmDelete} label="Ask before deleting anything"
+									</label>
+									<Switch id="setting-confirm-delete" checked={local.confirmDelete} label="Ask before deleting anything"
 										onChange={v => change({ confirmDelete: v },
 											v ? 'Deleting will ask first.' : 'Deleting will not ask.')} />
 								</div>
@@ -266,17 +266,17 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 							every time: the orders, their days and their totals are rolled fresh on
 							each fill.
 						</p>
-						<Field label="How many orders" className="demo-count-field"
+						<Field label="How many orders" htmlFor="demo-order-count" className="demo-count-field"
 							help="Spread across the whole period. More orders take longer to write.">
-							<Combobox label="Orders to create"
+							<Combobox id="demo-order-count" label="Orders to create"
 								value={DEMO_ORDER_COUNTS.find(o => o.id === demoCount)?.label ?? ''}
 								onChange={() => {}}
 								onSelect={o => setDemoCount(o.id)}
 								groups={[{ heading: 'Orders', options: DEMO_ORDER_COUNTS }]} />
 						</Field>
-						<Field label="Over how long" className="demo-count-field"
+						<Field label="Over how long" htmlFor="demo-period" className="demo-count-field"
 							help="How far back the orders reach, ending today.">
-							<Combobox label="Period to create orders over"
+							<Combobox id="demo-period" label="Period to create orders over"
 								value={DEMO_PERIODS.find(p => p.id === demoPeriod)?.label ?? ''}
 								onChange={() => {}}
 								onSelect={p => setDemoPeriod(p.id)}

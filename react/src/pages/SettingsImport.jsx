@@ -200,20 +200,20 @@ export default function SettingsImport() {
 						    of photos. */}
 						<Form>
 							<div className="toggle-row">
-								<Switch checked={withAttachments} label="Import attachments"
+								<Switch id="import-attachments" checked={withAttachments} label="Import attachments"
 									onChange={setWithAttachments} />
-								<span className="field-help">
+								<label className="field-help" htmlFor="import-attachments">
 									Bring attachments along: the receipt file riding on an order.
 									With this off, orders import without their attachments.
-								</span>
+								</label>
 							</div>
 							<div className="toggle-row">
-								<Switch checked={withImages} label="Import images"
+								<Switch id="import-images" checked={withImages} label="Import images"
 									onChange={setWithImages} />
-								<span className="field-help">
+								<label className="field-help" htmlFor="import-images">
 									Bring images along: the photo riding on a line item.
 									With this off, items import without their images.
-								</span>
+								</label>
 							</div>
 						</Form>
 						{importFile ? (

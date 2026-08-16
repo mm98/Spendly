@@ -44,13 +44,13 @@ export default function Register() {
 						</div>
 					</div>
 					<form className="form" onSubmit={submit}>
-						<Field label="Email">
+						<Field label="Email" htmlFor="register-email">
 							<FieldShell>
 								<TextInput id="register-email" type="email" value={email} autoFocus
 									onChange={setEmail} aria-label="Email" aria-required="true" />
 							</FieldShell>
 						</Field>
-						<Field label="Password" help="At least 8 characters.">
+						<Field label="Password" htmlFor="register-password" help="At least 8 characters.">
 							<FieldShell>
 								<TextInput id="register-password" type="password" value={password}
 									onChange={setPassword} aria-label="Password" aria-required="true" />
