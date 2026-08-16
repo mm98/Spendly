@@ -174,7 +174,10 @@ body {
 .check-row + .check-row { border-top:1px solid var(--border-divider); border-top-left-radius:0; border-top-right-radius:0; }
 .check-row:has(+ .check-row) { border-bottom-left-radius:0; border-bottom-right-radius:0; }
 .check-row .field-help { grid-column:2; margin-top:2px; }
-.check-label { font-weight:600; }
+/* The size stated, not inherited: with only the weight declared this took the body's
+   14px and read outsized. The name is the description's 12px, only bold -- one text
+   block in two weights, not two sizes. */
+.check-label { font-size:12px; font-weight:600; }
 svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
 /* ---------------- shell ---------------- */
@@ -1122,7 +1125,9 @@ label.field-shell { cursor:pointer; }
    tick in white on top of it. Both states differ in fill, edge and glyph at once, for
    the same reason the switch's two states differ three ways. The glyph is a clip-path
    over a plain box, not an icon: it has no text, so it cannot fall back to one. */
-.check-box { appearance:none; -webkit-appearance:none; width:20px; height:20px; margin:1px 0 0; border:1.5px solid #838C84; border-radius:6px; background:var(--bg-card); display:grid; place-items:center; cursor:pointer; flex:none; }
+/* -1.5px centres the 20px box on the label's first line box, measured from rendered
+   pixels; re-measured 0.0px skew at the 12px label. */
+.check-box { appearance:none; -webkit-appearance:none; width:20px; height:20px; margin:-1.5px 0 0; border:1.5px solid #838C84; border-radius:6px; background:var(--bg-card); display:grid; place-items:center; cursor:pointer; flex:none; }
 .check-box:checked { background:var(--green); border-color:var(--green); }
 .check-box:checked::after { content:""; width:11px; height:9px; background:#fff; clip-path:polygon(38% 100%, 0 58%, 14% 44%, 38% 68%, 86% 0, 100% 12%); }
 .field-unit { margin-left:auto; height:28px; padding:0 10px; border:1px solid var(--border-control); border-radius:9px; background:#F7F8F5; font-size:11.5px; font-weight:600; color:var(--text-body); display:inline-flex; align-items:center; flex:none; }
@@ -1199,8 +1204,13 @@ label.field-shell { cursor:pointer; }
 	   see .field-pair-keep. README: Fields and Forms, Responsive Layout. */
 	.field-pair.field-pair-stack-early { grid-template-columns:1fr; }
 }
+/* Layout only, which is all the README claims for this breakpoint. It also carried
+   body { font-size:16px }, which no pinned size ever saw -- 126 font-size declarations,
+   all px -- so its whole effect was resizing whichever class had forgotten to state a
+   size: .check-label rendered 16px on wide monitors while every neighbour held, and
+   .panel-heading still does the same silent step. A type scale for wide screens is a
+   rem conversion at the root, not one inherited px value ambushing the unpinned. */
 @media (min-width:2200px) {
-	body { font-size:16px; }
 	.app-shell { grid-template-columns:250px minmax(0,1fr); }
 	.content-grid { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
 }
