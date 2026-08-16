@@ -9,6 +9,7 @@ import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, Segmented } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
+import { Pager } from '../components/Pager.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
@@ -318,21 +319,11 @@ export default function AllOrders() {
 						)}
 						{/* A real pager. It was two disabled buttons and a fixed "Showing 1 to 3 of 3";
 						    the numbers are the API's now, and the buttons are disabled only at the ends,
-						    which is the one honest reason to disable a control. README: Honest Affordances. */}
-						<div className="space-between pager-row">
-							<span className="field-help">
-								{data.matched
-									? `Showing ${data.from} to ${data.to} of ${data.matched}`
-									: 'Nothing to show'}
-								{data.pages > 1 ? `${sep}page ${data.page} of ${data.pages}` : ''}
-							</span>
-							<span className="row-inline pager-buttons">
-								<Button variant="ghost" icon="chevronLeft" disabled={data.page <= 1}
-									onClick={() => setPage(Math.max(1, data.page - 1))}>PREVIOUS</Button>
-								<Button variant="ghost" iconAfter="chevronRight" disabled={data.page >= data.pages}
-									onClick={() => setPage(data.page + 1)}>NEXT</Button>
-							</span>
-						</div>
+						    which is the one honest reason to disable a control. Shared with the vendor
+						    and category lists, which page the same way from the same setting.
+						    README: Honest Affordances, Pagination. */}
+						<Pager from={data.from} to={data.to} matched={data.matched}
+							page={data.page} pages={data.pages} onPage={setPage} />
 					</CardBody>
 				</Card>
 			)}</Async>

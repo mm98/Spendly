@@ -173,7 +173,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 							<FilterSection>
 								<span className="panel-heading">Lists</span>
 								<Field label="Rows per page" group
-									help="How many orders All orders shows before the pager.">
+									help="How many rows the order, vendor and category lists show before the pager.">
 									<Segmented options={PAGE_SIZES} value={String(local.pageSize)}
 										onChange={v => change({ pageSize: Number(v) }, 'Page size saved.')}
 										label="Rows per page" />

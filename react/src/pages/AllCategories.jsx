@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
@@ -7,6 +8,7 @@ import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { FieldShell } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
+import { Pager, paginate } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getSettings } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
@@ -46,17 +48,27 @@ export default function AllCategories() {
 	const sortId = chosen ?? settings.data?.listSort ?? 'name-asc'
 	const sort = SORTS.find(s => s.id === sortId) ?? SORTS[0]
 
+	/* The same paging All orders has, from the same setting -- see All vendors, which pages
+	   for the same reason in the same shape. README: Settings, Pagination. */
+	const [params, setParams] = useSearchParams()
+	const pageSize = settings.data?.pageSize ?? 10
+	const requestedPage = Number(params.get('page') ?? 1)
+	const setPage = p => setParams(p > 1 ? { page: String(p) } : {}, { replace: true })
+
+	const search = q => { setQuery(q); setPage(1) }
+	const resort = id => { setChosen(id); setPage(1) }
+
 	return (
 		<Page>
 			<div className="row-inline toolbar">
 				<FieldShell>
 					<Icon name="search" />
 					<input type="search" value={query} placeholder="Search category name..."
-						aria-label="Search categories" onChange={e => setQuery(e.target.value)} />
+						aria-label="Search categories" onChange={e => search(e.target.value)} />
 				</FieldShell>
 				<Combobox className="toolbar-sort" label="Sort categories"
 					value={sort.label} onChange={() => {}}
-					onSelect={o => setChosen(o.id)}
+					onSelect={o => resort(o.id)}
 					groups={[{ heading: 'Sort by', options: SORTS.map(s => ({ id: s.id, label: s.label })) }]} />
 			</div>
 
@@ -65,6 +77,7 @@ export default function AllCategories() {
 				const listed = categories
 					.filter(c => !needle || c.name.toLowerCase().includes(needle))
 					.sort(sort.cmp)
+				const paged = paginate(listed, requestedPage, pageSize)
 
 				return (
 					<Card aria-label="All categories">
@@ -73,7 +86,7 @@ export default function AllCategories() {
 						</CardHeader>
 						<CardDivider />
 						<CardBody>
-							{listed.map(category => (
+							{paged.rows.map(category => (
 								<EntityRow key={category.id}
 									mark={<span className="category-icon"
 										style={{ background: category.colour, color: inkOn(category.colour) }}>
@@ -99,6 +112,7 @@ export default function AllCategories() {
 										: 'No categories yet. Add one and your spending splits by kind.'}</p>
 								</EmptyState>
 							) : null}
+							<Pager {...paged} onPage={setPage} />
 						</CardBody>
 					</Card>
 				)
