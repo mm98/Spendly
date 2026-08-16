@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
-import { categoryStats } from '../lib/aggregate.js'
+import { categoryStats, uncategorisedStats } from '../lib/aggregate.js'
 
 export const router = Router()
 
@@ -28,6 +28,12 @@ router.get('/', (req, res) => {
 	const stats = categoryStats(req.user.id)
 	res.json(selectAll.all(req.user.id).map(c => withStats(c, stats)))
 })
+
+/* Registered before /:id, or that route would answer it with "No category uncategorised".
+   Its own resource rather than a row in the list above: the list is the account's category
+   records, and every reader of it -- comboboxes, order forms, settings -- maps records.
+   A stand-in row there would be offered as something to assign and to edit. */
+router.get('/uncategorised', (req, res) => res.json(uncategorisedStats(req.user.id)))
 
 // The client's own budget field rejects a leading "-" (AMOUNT_PATTERN has no sign in it at
 // all), so a negative budget only ever reached this table by calling the API directly -- but it

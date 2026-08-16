@@ -23,6 +23,10 @@ const searchVendors = db.prepare(`
 	ORDER BY v.name LIMIT @limit
 `)
 const searchCategories = db.prepare('SELECT id, name FROM categories WHERE user_id = ? AND lower(name) LIKE ? ORDER BY name LIMIT ?')
+/* Whether the account has any uncategorised order at all -- the palette offers the
+   "Without category" filter only when there is something behind it, the same honesty rule
+   that keeps an action from opening a list with nothing in it. */
+const hasUncategorised = db.prepare('SELECT 1 AS present FROM orders WHERE user_id = ? AND category_count = 0 LIMIT 1')
 /* The same shape as the orders list's text filter (routes/orders.js): one LIKE over the
    trigger-maintained search_text column instead of a per-order scan of order_items, and the
    vendor name reached through its own dozen-row table. What made this query's worst case its
@@ -48,9 +52,16 @@ router.get('/', (req, res) => {
 	const like = `%${needle}%`
 
 	const orderRows = searchOrders.all({ userId: req.user.id, needle: like, limit: MAX_PER_KIND })
+	const categories = searchCategories.all(req.user.id, like, MAX_PER_KIND)
+	/* "Without category" is findable by the name its rows carry everywhere else, not only by
+	   arriving on a link. The sentinel id is the filter the client already builds category
+	   results into; matched the same way a category's name is, offered only over orders that
+	   exist. */
+	if ('without category'.includes(needle) && hasUncategorised.get(req.user.id))
+		categories.push({ id: 'none', name: 'Without category' })
 	res.json({
 		vendors: searchVendors.all({ userId: req.user.id, needle: like, limit: MAX_PER_KIND }),
-		categories: searchCategories.all(req.user.id, like, MAX_PER_KIND),
+		categories,
 		orders: decorateOrderRows(orderRows)
 	})
 })

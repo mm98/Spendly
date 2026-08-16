@@ -61,9 +61,32 @@ const categoryStatsQuery = db.prepare(`
 	GROUP BY oc.category_id
 `)
 
-/** Spend/saved/share per category, keyed by category id. */
+/* The account's true all-time spend, for the shares below. Shared against the categorised
+   sum instead, every category's "of expenses" overstated itself the moment one order had no
+   category -- the same defect lib/stats.js's splitOver names for the window split, at the
+   all-time scale these figures live at. */
+const accountTotalQuery = db.prepare('SELECT COALESCE(SUM(total), 0) AS spend FROM orders WHERE user_id = ?')
+
+/* What the shares above leave over: the orders no category claims. category_count is the
+   stored column the per-category splits divide by, so these rows are exactly the remainder
+   those splits never touch -- the figure the "Without category" rows carry. */
+const uncategorisedQuery = db.prepare(`
+	SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spend, COALESCE(SUM(saved), 0) AS saved
+	FROM orders WHERE user_id = ? AND category_count = 0
+`)
+
+/** Spend/saved/share per category, keyed by category id. Shares are of the account's whole
+    spend, so they and uncategorisedStats' share add up to it rather than to more. */
 export function categoryStats(userId) {
 	const rows = categoryStatsQuery.all(userId)
-	const total = rows.reduce((sum, r) => sum + r.spend, 0)
+	const total = accountTotalQuery.get(userId).spend
 	return new Map(rows.map(r => [r.categoryId, { spend: r.spend, saved: r.saved, share: total ? (r.spend / total) * 100 : 0 }]))
+}
+
+/** Orders/spend/saved/share of the account's uncategorised orders -- the all-time version of
+    the window split's "Without category" row, for whatever draws that row over all time. */
+export function uncategorisedStats(userId) {
+	const row = uncategorisedQuery.get(userId)
+	const total = accountTotalQuery.get(userId).spend
+	return { ...row, share: total ? (row.spend / total) * 100 : 0 }
 }

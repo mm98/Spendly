@@ -38,7 +38,7 @@ const HERO_INSET = 12
    what it describes should not depend on there being a control to keep it honest. */
 const heroLabel = view => `Spent and saved per day, ${view.shortLabel}`
 
-function Hero({ month, categories }) {
+function Hero({ month }) {
 	const calloutId = useId()
 	// This month, always. Statistics is where another one is chosen.
 	const state = useApi(getHomeHero)
@@ -136,22 +136,19 @@ function Hero({ month, categories }) {
 						{month.heroLegend.length ? <>
 						<div className="list-heading">Where it went<Sep />{month.shortLabel}</div>
 						<div className="chart-legend">
-							{month.heroLegend.map(entry => {
-								/* The row names a category, so the link filters by it. "Everything else" is a
-								   fold rather than a category, and it opens the unfiltered list -- which is
-								   what it stands for. */
-								const category = categories.find(c => c.name === entry.name)
-								return (
-									<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
-										amount={krRound(entry.amount)}
-										/* The month the heading names, carried into the list. The row was a
-										   link to every order in that category since the account was made,
-										   under a card headed "Where it went • Aug" -- a list whose total
-										   contradicts the figure that was clicked. The fold row has no
-										   category to filter by and still has the month. */
-										to={ordersIn({ category: category?.id, from: month.from, to: month.to })} />
-								)
-							})}
+							{month.heroLegend.map(entry => (
+								/* The row names a category, so the link filters by it. "Without category"
+								   is the split's remainder rather than a category -- its id is null, and it
+								   filters as `none`, the orders with no category at all. It used to open the
+								   unfiltered list, a list of everything under a row naming what is in nothing. */
+								<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
+									amount={krRound(entry.amount)}
+									/* The month the heading names, carried into the list. The row was a
+									   link to every order in that category since the account was made,
+									   under a card headed "Where it went • Aug" -- a list whose total
+									   contradicts the figure that was clicked. */
+									to={ordersIn({ category: entry.id ?? 'none', from: month.from, to: month.to })} />
+							))}
 						</div>
 						</> : null}
 					</CardBody>
@@ -203,17 +200,17 @@ function BreakdownCard({ period, categories, hasCategories, rows }) {
 				    to find out what. Slicing the ring instead would make it disagree with its own
 				    middle, so the tail folds into one segment worth the sum of what it holds.
 
-				    "Without category" and the fold row carry no real category id -- the orders list
-				    has no filter for either, so the id would ask for a category that matches nothing
-				    and read as an empty list. Same fallback the hero legend and Statistics' own
-				    version of this row already use. */}
+				    "Without category" filters as the `none` sentinel -- the orders the month spent
+				    outside every category, the same rows its figure added up. The fold row is the
+				    one stand-in with nothing to filter by: it holds several categories at once, so
+				    it carries the month alone and opens the whole of it. Same rule the hero legend
+				    and Statistics' own version of this row follow. */}
 				<div className="category-rows" ref={listRef}>
 					{shown.map(c =>
 						<CategoryRow key={c.id ?? 'more'} category={c}
 							/* Same month, same reason: the ring in this card reads "Spent this month"
-							   in its middle. "Without category" and the fold carry the month without a
-							   category, since the list has no filter for either. */
-							to={ordersIn({ category: c.id && c.id !== 'none' ? c.id : undefined,
+							   in its middle, so every row's list is that month's. */
+							to={ordersIn({ category: c.id ?? undefined,
 								from: period.from, to: period.to })} />)}
 				</div>
 			</CardBody>
@@ -403,7 +400,7 @@ export default function Home() {
 			<Async state={content} label="Loading your month">{data => (
 				<>
 					<div className="content-column-main">
-						<Hero month={data.period} categories={data.categories} />
+						<Hero month={data.period} />
 
 						<Async state={cards} label="Loading your cards">{({ all, on }) => (
 							<DashboardCards all={all} initial={on} render={key => dashboardCard(key, data)} />

@@ -237,10 +237,12 @@ export default function Stats() {
 										{view.split.map(entry => (
 											/* The row names a category and states the window's amount for it, so
 											   the link carries both: an unfiltered list, or the category across
-											   all time, is a link that does not go where the row says. */
+											   all time, is a link that does not go where the row says. The split's
+											   "Without category" remainder has a null id and filters as `none` --
+											   the window's orders with no category at all. */
 											<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
 												amount={krRound(entry.amount)}
-												to={'/orders/all?' + (entry.id ? `category=${entry.id}&` : '')
+												to={'/orders/all?' + `category=${entry.id ?? 'none'}&`
 													+ `from=${view.from}&to=${view.to}`} />
 										))}
 									</div>

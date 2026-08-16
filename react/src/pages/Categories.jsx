@@ -5,7 +5,7 @@ import { LegendRow } from '../components/Rows.jsx'
 import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories } from '../api/client.js'
+import { getCategories, getUncategorised } from '../api/client.js'
 import { krRound, percent, sep } from '../api/format.js'
 
 /* Categories, overview.
@@ -31,8 +31,17 @@ const budgetUsed = categories => {
 export default function Categories() {
 	/* The same request the All categories tab reads, under the same cache key -- switching
 	   between the two tabs re-uses one answer instead of fetching /api/categories once per
-	   tab name. */
+	   tab name. The uncategorised remainder is its own small read (it is not a record, so it
+	   is not in the list), and the page waits on both: a ring drawn from one and re-drawn
+	   when the other lands would show two different splits a beat apart. */
 	const state = useApi(getCategories)
+	const uncategorised = useApi(getUncategorised)
+	const both = {
+		error: state.error ?? uncategorised.error,
+		loading: state.loading || uncategorised.loading,
+		data: state.data !== undefined && uncategorised.data !== undefined
+			? { categories: state.data, none: uncategorised.data } : undefined
+	}
 
 	return (
 		<Page variant="page-grid">
@@ -42,15 +51,25 @@ export default function Categories() {
 				<Button variant="caps" to="/categories/new">ADD CATEGORY</Button>
 			</div>
 
-			<Async state={state} label="Loading your categories">{categories => {
-				const spent = categories.reduce((sum, c) => sum + c.spend, 0)
-				const saved = categories.reduce((sum, c) => sum + c.saved, 0)
+			<Async state={both} label="Loading your categories">{({ categories, none }) => {
+				/* Spent and saved are the account's, not the categorised part of it: the ring
+				   centre and the KPI carry the same figure, and both used to leave the
+				   uncategorised remainder out -- an all-time total that disagreed with every
+				   other all-time total by exactly what no category claimed. */
+				const spent = categories.reduce((sum, c) => sum + c.spend, 0) + none.spend
+				const saved = categories.reduce((sum, c) => sum + c.saved, 0) + none.saved
 				const budgeted = categories.filter(c => c.budget > 0)
 				const over = budgeted.filter(c => c.spend > c.budget)
+				/* The records' own superlative -- "Without category" is not a category, so it
+				   cannot be the largest one. */
 				const top = categories.reduce((most, c) => (c.spend > (most?.spend ?? 0) ? c : most), null)
 
+				/* The remainder rides into the fold like any real row: same fields, the same
+				   sentinel id and colour the window splits give it, so the legend row links to
+				   the none-filtered list the way every other row links to its category's. */
 				const split = foldForRing(
-					categories.map(c => ({ id: c.id, name: c.name, colour: c.colour, spend: c.spend })),
+					[...categories.map(c => ({ id: c.id, name: c.name, colour: c.colour, spend: c.spend })),
+						{ id: 'none', name: 'Without category', colour: 'var(--text-faint)', spend: none.spend }],
 					n => `${n} more categories`)
 
 				return (
