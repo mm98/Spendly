@@ -658,6 +658,10 @@ Every control here names what reads it, and the page proves it: default kind and
 
 **A setting stores only values something obeys.** Anything outside the set a control offers is refused and the stored value stands. A preference that saves, comes back, and is then quietly ignored is worse than no preference, because the settings page goes on saying it is in force.
 
+**Whether this build is current is a question the app can answer, not homework it sets.** The card that names the running build carries a control that asks, and it reports one of three answers in its own words: this is the published build, a newer one has been published, or the comparison could not be made — a build that was never published, or a registry that could not be reached. Printing a commit beside a sentence telling the reader to go and compare it against the newest one is the app knowing where the answer lives and sending someone else to fetch it. The check is a press, never part of the page's load: it crosses the network to a service outside the product, so it is slow, it can fail, and on most visits nobody asked.
+
+**A time is printed in the reader's own clock, with the zone named.** A stamp arrives in UTC because that is how a machine records one; a person reads it in the zone they are standing in, so that is what the page shows, and the zone rides along in the text so a converted time is never mistaken for the raw one.
+
 ---
 
 ## Patterns

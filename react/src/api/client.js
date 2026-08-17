@@ -401,6 +401,13 @@ export async function getVersion(signal) {
 	return request('/api/version', { signal })
 }
 
+/** Asks the server to compare its own stamp against the newest published image on the
+    registry -- { current, published, commit }. The server does the asking because the
+    browser cannot: the registry answers no CORS and wants its own token dance. */
+export async function checkVersion(signal) {
+	return request('/api/version/check', { signal })
+}
+
 export async function saveSettings(patch, signal) {
 	return request('/api/settings', { method: 'PATCH', body: patch, signal })
 }

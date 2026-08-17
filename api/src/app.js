@@ -59,6 +59,62 @@ app.get('/api/version', (req, res) => res.json({
 	commit: process.env.SPENDLY_BUILD_SHA || null
 }))
 
+/* Whether the newest published image is this one, asked of GHCR itself rather than of the
+   repository: the newest commit on main may not have finished building yet, and "pull and
+   restart" only ever gets what the registry holds. CI tags every push with `latest` and with
+   the full commit sha, so the question reduces to two manifest digests -- the one behind
+   `latest` against the one behind this container's own commit tag -- read from the
+   Docker-Content-Digest header of a HEAD request. Digests rather than the image config's
+   env stamp on purpose: the config is a blob, blobs redirect to a storage CDN on a second
+   host, and a comparison that stays on the registry keeps working where egress is narrow. */
+const IMAGE = process.env.SPENDLY_IMAGE || 'ghcr.io/mm98/spendly'
+const MANIFEST_TYPES = [
+	'application/vnd.oci.image.index.v1+json',
+	'application/vnd.docker.distribution.manifest.list.v2+json',
+	'application/vnd.oci.image.manifest.v1+json',
+	'application/vnd.docker.distribution.manifest.v2+json'
+].join(', ')
+
+async function publishedDigests(commit) {
+	const [registry, ...rest] = IMAGE.split('/')
+	const repo = rest.join('/')
+	// One deadline for the whole lookup, not per request: the caller is a button press, and
+	// three slow hops behind it should fail as one slow check, not three patient ones.
+	const signal = AbortSignal.timeout(10_000)
+	const tokenRes = await fetch(`https://${registry}/token?service=${registry}&scope=repository:${repo}:pull`, { signal })
+	if (!tokenRes.ok) throw new Error(`token endpoint answered ${tokenRes.status}`)
+	const { token } = await tokenRes.json()
+	const digestOf = async tag => {
+		const r = await fetch(`https://${registry}/v2/${repo}/manifests/${tag}`, {
+			method: 'HEAD', signal, headers: { Authorization: `Bearer ${token}`, Accept: MANIFEST_TYPES }
+		})
+		if (r.status === 404) return null
+		if (!r.ok) throw new Error(`manifest for ${tag === 'latest' ? tag : 'this commit'} answered ${r.status}`)
+		return r.headers.get('docker-content-digest')
+	}
+	const [latest, mine] = await Promise.all([digestOf('latest'), digestOf(commit)])
+	if (!latest) throw new Error('the registry holds no `latest` tag')
+	return { latest, mine }
+}
+
+/* Above the auth gate beside /api/version for the same reason it is: whether the container
+   is current is a fact about the deployment. Nothing here takes caller input -- the image
+   name and commit are the server's own configuration -- and nothing is cached: a check is a
+   question about right now, asked by one button press at a time. */
+app.get('/api/version/check', async (req, res) => {
+	const commit = process.env.SPENDLY_BUILD_SHA || null
+	if (!commit) return res.status(409).json({ error: 'No build stamp: this server is not running from the Docker image.' })
+	try {
+		const { latest, mine } = await publishedDigests(commit)
+		/* `published: false` is its own fact, not a flavour of "behind": a locally built
+		   image whose commit was never pushed to the registry cannot be compared, and
+		   calling it out of date would send someone pulling for an update that is not one. */
+		res.json({ current: mine !== null && mine === latest, published: mine !== null, commit })
+	} catch (e) {
+		res.status(502).json({ error: `Could not read the registry at ${IMAGE.split('/')[0]}: ${e.message ?? e}` })
+	}
+})
+
 app.use('/api/auth', authRouter)
 
 /* One auth gate for every data route, rather than requireAuth repeated per mount: the session

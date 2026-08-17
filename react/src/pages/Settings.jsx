@@ -11,9 +11,9 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	cardRowOptions, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
-	getSettings, getVendors, getVersion, listSorts, logout, populateDemoData, resetStoredData, saveSettings,
-	sorts, spendKinds
+	cardRowOptions, checkVersion, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders,
+	getOrdersOverview, getSettings, getVendors, getVersion, listSorts, logout, populateDemoData,
+	resetStoredData, saveSettings, sorts, spendKinds
 } from '../api/client.js'
 
 /* Settings.
@@ -31,7 +31,7 @@ import {
    navigate away. The status line says what happened; the caches that hold a stale copy of
    the answer are dropped in the same breath. */
 
-const PAGE_SIZES = ['5', '10', '25', '50']
+const PAGE_SIZES = ['5', '10', '15', '20', '25', '50', '100']
 
 /* What FILL WITH DEMO DATA writes, chosen before it is pressed. Named counts rather than a
    free field: the point is a ledger big enough to look at, not a number to type, and the
@@ -344,8 +344,34 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
    gate for the same reason. */
 function BuildCard() {
 	const version = useApi(getVersion)
+	/* The check is a button, not part of the card's load: it asks the registry over the
+	   network, which is slow, can fail, and answers a question nobody asked on most visits.
+	   The result lands in the card as a sentence, in the server's own words when it refuses
+	   (failureMessage), because "could not read the registry" and "you are behind" are
+	   different facts and only the server knows which one happened. */
+	const [checking, setChecking] = useState(false)
+	const [checked, setChecked] = useState(null)
+	const check = () => {
+		setChecking(true)
+		setChecked(null)
+		checkVersion()
+			.then(setChecked)
+			.catch(e => setChecked({ error: failureMessage(e, 'The registry could not be reached.') }))
+			.finally(() => setChecking(false))
+	}
 	if (!version.data && !version.error) return null
 	const { builtAt, commit } = version.data ?? {}
+	/* In the reader's own zone, not the UTC the stamp arrives in: the question the card
+	   answers is "when was this built", and a person answers that in their own clock. The
+	   ISO stamp carries its Z, so Date does the conversion; the zone name rides along so
+	   the number is not mistaken for UTC by someone who remembers it used to be. Spelled in
+	   components rather than dateStyle/timeStyle: the style shortcuts refuse to share an
+	   options bag with timeZoneName -- toLocaleString throws, and the route error card is
+	   what a thrown formatter looks like from the outside. */
+	const stampDate = at => new Date(at).toLocaleString('da-DK', {
+		day: 'numeric', month: 'long', year: 'numeric',
+		hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+	})
 	return (
 		<Card aria-label="This build">
 			<CardHeader title="This build" />
@@ -353,16 +379,26 @@ function BuildCard() {
 			<CardBody>
 				<p className="card-lead card-lead-flush">
 					{builtAt || commit ? (<>
-						Image built {builtAt
-							? new Date(builtAt).toLocaleString('da-DK', { dateStyle: 'long', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
-							: 'at an unrecorded time'}
+						Image built {builtAt ? stampDate(builtAt) : 'at an unrecorded time'}
 						{commit ? <> from commit <code>{commit.slice(0, 7)}</code></> : null}.
-						If the newest commit on the repository is different, the container is
-						running an older image: pull and restart to catch up.
+						{commit ? ' Checking asks the registry whether the published image is still this one.' : null}
 					</>) : (
 						'No build stamp: this server is not running from the Docker image, so what you see is whatever is on disk right now.'
 					)}
 				</p>
+				{commit ? (<>
+					{checked ? (
+						<p className={'field-help' + (checked.error || checked.current === false ? ' danger-note' : '')}>
+							{checked.error ? checked.error
+								: checked.current ? 'Up to date: the newest published image is this build.'
+								: checked.published ? 'Behind: a newer image than this build has been published. Pull and restart to catch up.'
+								: 'This build’s commit has no published image, so there is nothing to compare it against — likely a local build.'}
+						</p>
+					) : null}
+					<Button variant="block" icon="check" disabled={checking} onClick={check}>
+						{checking ? 'CHECKING…' : 'CHECK FOR UPDATES'}
+					</Button>
+				</>) : null}
 			</CardBody>
 		</Card>
 	)
