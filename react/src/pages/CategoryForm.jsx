@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import { Button } from '../components/Button.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
 import { SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
@@ -231,16 +232,28 @@ function CategorySummary({ values, budget, category }) {
 					<span className="summary-row-value">{values.icon}</span></div>
 				<div className="summary-row">Favourite
 					<span className="summary-row-value">{values.favourite ? 'Yes' : 'No'}</span></div>
-				{category ? <SummaryRow label="Spent this month" value={currency(category.spend, 0)} /> : null}
-				<div className="card-divider card-divider-tight" />
 				{/* Rounded, because the row in the Manage list rounds it: two figures for one
 				    budget, differing only in their decimals, read as two budgets. */}
-				<SummaryTotal label="Monthly budget" value={budget ? currency(budget, 0) : 'None'}
+				<SummaryRow label="Monthly budget" value={budget ? currency(budget, 0) : 'None'} />
+				<div className="card-divider card-divider-tight" />
+				{/* What the record has cost, at the foot, where the vendor summary puts the same
+				    figure -- two summary cards of one shape, and the bottom line is the money
+				    rather than a limit that is one of the form's own fields, restated. It is the
+				    all-time total the API computes, which is what the Categories page's own
+				    "Spent, all time" reads; this card called it "this month" over the same
+				    number. */}
+				<SummaryTotal label="Spent all time" value={currency(category?.spend ?? 0, 0)}
 					estimate={!category} />
 				<span className="field-help">
 					The tile is the colour you picked; the glyph on it is inked light or dark from that
 					colour, so it stays readable whatever you choose.
 				</span>
+				{/* Same control, same place, as the vendor summary's. README: Cards, Create and Edit. */}
+				{category ? (
+					<Button variant="block" icon="receipt" to={`/orders/all?category=${category.id}`}>
+						VIEW ORDERS
+					</Button>
+				) : null}
 			</CardBody>
 		</Card>
 	)

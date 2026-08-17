@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
-import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
+import { Card, CardBody } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
-import { CheckRow, FormActions } from '../components/Form.jsx'
+import { CheckRow, FilterSection, FormActions } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
 import { ProgressBar } from '../components/Viz.jsx'
@@ -182,11 +182,14 @@ export default function SettingsImport() {
 				{/* The upload half of importing: choose a JSON file, press IMPORT. The shape
 				    the file must hold is the reference card beneath it -- one schema, two
 				    doors, and the server validates both the same way. */}
+				{/* Headline and lead inside the body, not a header band over a divider -- the
+				    same card the other tab of this page is built from, and the same one every
+				    form page opens with. Two tabs of one page drawing their titles two ways is
+				    a shape to learn per tab. README: Cards, Settings. */}
 				<Card aria-label="Import orders">
-					<CardHeader title="Import orders" />
-					<CardDivider />
-					<CardBody>
-						<p className="card-lead card-lead-flush">
+					<CardBody variant="card-body-page">
+						<div className="card-headline">Import orders</div>
+						<p className="card-lead">
 							Bring orders in from a JSON file: an object holding an{' '}
 							<code>orders</code> array, the shape the reference card documents. Each
 							order imports on its own, so one bad row fails alone.
@@ -195,13 +198,20 @@ export default function SettingsImport() {
 						    IMPORT runs, and nothing observably changes on toggle -- a switch
 						    here would state an effect it does not have (README: Checkbox Row).
 						    Two rows because the schema carries two kinds of file, and someone
-						    migrating may want the receipts without megabytes of photos. */}
-						<CheckRow id="import-attachments" checked={withAttachments}
-							onChange={setWithAttachments} label="Import attachments"
-							help="The receipt file riding on an order. With this off, orders import without their attachments." />
-						<CheckRow id="import-images" checked={withImages}
-							onChange={setWithImages} label="Import images"
-							help="The photo riding on a line item. With this off, items import without their images." />
+						    migrating may want the receipts without megabytes of photos.
+
+						    In a headed section, like every group of controls on the other tab:
+						    the card body there holds no bare control, and two tabs of one page
+						    stacking their options two ways is a shape to learn per tab. */}
+						<FilterSection>
+							<span className="panel-heading">What comes along</span>
+							<CheckRow id="import-attachments" checked={withAttachments}
+								onChange={setWithAttachments} label="Import attachments"
+								help="The receipt file riding on an order. With this off, orders import without their attachments." />
+							<CheckRow id="import-images" checked={withImages}
+								onChange={setWithImages} label="Import images"
+								help="The photo riding on a line item. With this off, items import without their images." />
+						</FilterSection>
 						{importFile ? (
 							<>
 								<p className="field-help">{importFile.name}</p>
@@ -250,10 +260,9 @@ export default function SettingsImport() {
 				    this. Every JSON fragment is JSON.stringify's own output, coloured by a
 				    ten-line tokenizer -- hand-aligned annotation columns drifted immediately. */}
 				<Card aria-label="Import from another system">
-					<CardHeader title="Import from another system" />
-					<CardDivider />
-					<CardBody id="import-reference">
-							<p className="card-lead card-lead-flush">
+					<CardBody variant="card-body-page" id="import-reference">
+							<div className="card-headline">Import from another system</div>
+							<p className="card-lead">
 								Bring orders in from another expense tracker, with a script of your own:
 								sign in, post the orders, read back what landed. Vendors, categories,
 								line items and receipt files all come along.

@@ -16,8 +16,8 @@ import { currency, percent, sep } from '../api/format.js'
 
 /* All categories -- the same split as All vendors and All orders, for the same reasons. The
    rows open the category, because this is where a category is kept right: its budget, its
-   colour, its glyph and the button that removes it all live on that page. The orders behind it
-   are the second link at the end of the row.
+   colour, its glyph, the button that removes it and the way into the orders behind it all live
+   on that page.
 
    The budget is in the meta line rather than under a bar of its own. It is a fact about the
    row, which is where every other fact about a category goes, and a progress bar per row is a
@@ -97,9 +97,7 @@ export default function AllCategories() {
 										: `${percent(category.share)} of expenses${sep}no budget set`}
 									amount={currency(category.spend, 0)}
 									sub={`saved ${currency(category.saved, 0)}`}
-									editTo={`/categories/${category.id}/edit`}
-									ordersTo={`/orders/all?category=${category.id}`}
-									ordersLabel={`Orders in ${category.name}`} />
+									editTo={`/categories/${category.id}/edit`} />
 							))}
 							{listed.length === 0 ? (
 								/* The system's empty state, not a bare help line -- this list and All

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import { Button } from '../components/Button.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { EntryRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
@@ -218,6 +219,17 @@ function VendorSummary({ name, colour, initials, favourite, aliases, vendor }) {
 					The initials are inked light or dark from the tile colour, so they stay readable
 					whatever you pick.
 				</span>
+				{/* The way into the orders the figure above is the sum of, on the page that holds
+				    every other action on this record -- it used to be an unlabelled receipt glyph
+				    at the end of the vendor's row in the list. At the foot, because a card ending
+				    in a link into a longer list ends in the block button, like the six that
+				    already do. README: Cards, Create and Edit. Only when there is a record: a
+				    vendor being created has no orders to list. */}
+				{vendor ? (
+					<Button variant="block" icon="receipt" to={`/orders/all?vendor=${vendor.id}`}>
+						VIEW ORDERS
+					</Button>
+				) : null}
 			</CardBody>
 		</Card>
 	)

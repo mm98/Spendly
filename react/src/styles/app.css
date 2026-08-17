@@ -171,7 +171,13 @@ body {
    row with a row below loses its bottom one, so the middle of a stack is square and a
    lone row keeps all four. Written as longhands because the default above has to hold
    whichever end of the stack the row is not. */
-.check-row + .check-row { border-top:1px solid var(--border-divider); border-top-left-radius:0; border-top-right-radius:0; }
+/* A stack is contiguous, so it takes back whatever gap its container puts between its
+   children. The divider *is* the separation between two rows -- with a gapped grid above
+   them (Settings' .filter-section, 14px) the hover fill stopped 14px short of the line it
+   is supposed to meet, so the lit band had a strip of card under it and the row read as
+   two boxes. --stack-gap is declared wherever that gap is; a container that sets no gap
+   resolves it to 0px and this subtracts nothing. */
+.check-row + .check-row { margin-top:calc(-1 * var(--stack-gap, 0px)); border-top:1px solid var(--border-divider); border-top-left-radius:0; border-top-right-radius:0; }
 .check-row:has(+ .check-row) { border-bottom-left-radius:0; border-bottom-right-radius:0; }
 .check-row .field-help { grid-column:2; margin-top:2px; }
 /* The size stated, not inherited: with only the weight declared this took the body's
@@ -835,21 +841,15 @@ svg.chart { width:100%; display:block; }
    carry its denser 13.5/11.5 type. gap:12px and align-items:center are not restated --
    they are the identifier's and they already agreed, and a value restated beside the one
    it copies is the near-miss the identifier exists to stop. README: Data Rows. */
-/* One row, two links. The strip owns the divider and the hover, so the pair reads as a single
-   row rather than a row with something bolted to it; each half keeps its own focus ring, since
-   they are two destinations and a keyboard has to be able to tell them apart. */
-.entity-row { display:flex; align-items:stretch; gap:4px; border-bottom:1px solid var(--border-divider); }
+/* One row, one link -- the record. The orders behind it are reached from the record's own
+   page now, so the strip that used to hold a pair of destinations is the destination. */
+.entity-row { padding:12px 0; border-radius:8px; border-bottom:1px solid var(--border-divider); }
 .entity-row:last-child { border-bottom:0; }
-.entity-row .entity-row-main { flex:1; min-width:0; padding:12px 0; border-radius:8px; }
 .entity-row .entity-row-text { min-width:0; flex:1; }
 .entity-row .entity-row-name, .order-row .order-row-vendor,
 .stepper-step-label { font-size:13.5px; font-weight:600; color:var(--text); }
 .entity-row .entity-row-meta { font-size:11.5px; color:var(--text-muted); }
 .entity-row .entity-row-amount { text-align:right; font-weight:600; font-size:13.5px; color:var(--text); }
-.entity-row .entity-row-orders { display:inline-flex; align-items:center; justify-content:center;
-	width:38px; flex:none; color:var(--text-muted); border-radius:8px; }
-.entity-row .entity-row-orders:hover { background:var(--bg-app); color:var(--text); }
-.entity-row .entity-row-orders svg.icon { width:16px; height:16px; }
 
 .order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; padding:12px 0; border-bottom:1px solid var(--border-divider); }
 .order-row .order-row-identity { display:flex; align-items:center; gap:12px; min-width:0; }
@@ -1130,7 +1130,7 @@ label.field-shell { cursor:pointer; }
    nowrap chip forces the whole panel wider than its card and the overflow gets
    clipped, not scrolled: the controls simply become unreachable. Every layout
    container in the filter panel has to be allowed to shrink. */
-.filter-section { border:1px solid var(--border-card); border-radius:14px; padding:14px 16px; display:grid; gap:14px; min-width:0; }
+.filter-section { border:1px solid var(--border-card); border-radius:14px; padding:14px 16px; display:grid; --stack-gap:14px; gap:var(--stack-gap); min-width:0; }
 .filter-section > *, .filter-section-body > *, .field-pair > *, .row-inline > * { min-width:0; }
 /* The one row-inline child that holds a width instead of shrinking to fit, written here beside
    the rule it has to beat rather than up with the rest of the Statistics band -- the general
@@ -1154,7 +1154,7 @@ label.field-shell { cursor:pointer; }
 /* The optional fields the switch above owns. Wrapping them took them out of
    .filter-section's grid, so the gap between the pair and the Note is restated
    here -- a plain div would have stacked them with nothing between. README: Fields and Forms. */
-.filter-section-body { display:grid; gap:14px; }
+.filter-section-body { display:grid; --stack-gap:14px; gap:var(--stack-gap); }
 /* Off state. The switch drew the on state and nothing else, so flipping
    its state left an identical green pill: a control that reports its state to
    a screen reader and not to the eye. #838C84 is 3.47:1 on the white card, which

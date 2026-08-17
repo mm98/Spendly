@@ -1836,3 +1836,23 @@ says "The scan card is off." and Home stops drawing the card. On the iPhone 13 d
 document overflow and no overhang past the card. Across nine routes `.toggle-help` and
 `.switch`/`[role=switch]` match **0 elements**; twelve routes open with **0** error cards and **0**
 uncaught page errors. Gecko and WebKit are not installed and were not checked.
+
+## Checkbox row — the hover fill stopped 14px short of the divider it belongs to
+
+On Settings / Overview the two options in *On screen* were drawn inside a `.filter-section`, whose
+grid sets `gap:14px`. The divider between two rows is the following row's `border-top`, so the gap
+opened **14px** of bare card between the end of the hovered row's tint and the line under it: one
+stack of options rendered as two lit boxes with a strip of nothing between them, and the row's own
+`border-radius` cut its bottom corners against the gap rather than against the divider. The Import
+tab's two rows, sitting in a plain `.card-body` with no gap, met their divider exactly — the same
+component, correct on one tab and wrong on the other, decided by the container above it.
+
+The value the gap comes from now has a name (`--stack-gap`, declared where the gap is declared) and
+a row that follows another subtracts it, so the stack closes up wherever it is put; a container that
+spaces nothing resolves the property to `0px` and the rule takes nothing away.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, fresh account, 1440x900 at dSF2: between
+the two rows on Overview, gap **14px → 0px**, divider **1px** on the second row, hovered fill bottom
+**1291.02px** against the divider's top **1291.02px** — the same number, so the tint ends on the
+line. Import's pair, unchanged by the rule, stays at **0px**. The change is CSS-only and the two
+tabs' 4 check rows are its whole reach.
