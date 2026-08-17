@@ -1980,3 +1980,36 @@ field:
 The category combobox on the same page, given `clo`, answered 1 option against the API's 1 — the
 same rule, from the component, with no change of its own.
 
+
+## Combobox — the list could be searched, and not walked
+
+Typing filters the panel to the matches (the entry above), and then the keyboard had nothing more
+to offer: Down opened the list and stopped, Up did nothing, and Enter either picked an exact name
+or ran the create-action. A search that narrowed fifty rows to three still ended with a hand moving
+to the mouse, because no key could mark one of the three and no key could take the marked one. The
+input declared `aria-autocomplete="list"` — a promise of exactly this — with no
+`aria-activedescendant` behind it, so a screen reader was told the list navigates and then given
+nothing to navigate with.
+
+Down and Up now move a mark through the options the panel shows — the filtered set, across group
+boundaries, wrapping at either end — and Enter picks the marked row. The mark is indexed against
+the *shown* list, never the full one, resets whenever a keystroke, an open or a close can have
+changed the list under it, keeps itself scrolled into view inside the capped panel, and is named in
+the input's `aria-activedescendant`. With nothing marked, Enter keeps its standing rule — exact
+name picks, anything else creates — so the new path sits beside the old ones rather than across
+them.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, fresh account, demo fill
+`{seed: 1, months: 12, orders: 220}` (12 vendors, favourites Bilka and Proshop), on New order's
+vendor field:
+
+| keys | the panel |
+| --- | --- |
+| Down, field closed | opens, nothing marked — see the list, then walk it |
+| Down | *Bilka* marked, in view, `aria-activedescendant` names its row |
+| Up, Up from the top | wraps to *Zalando* — last row, scrolled into view inside the 340px cap |
+| Down from the end | wraps back to *Bilka* |
+| type `o` | 6 options, mark reset by the keystroke |
+| Down, Down | *Coop* — the walk crossed from Favourites into All vendors |
+| Enter | field reads *Coop*, panel closed |
+| type `zzz-new-vendor`, Enter, nothing marked | the vendor is created — the standing rule kept |

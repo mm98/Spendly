@@ -104,24 +104,52 @@ export function Combobox({
 	).filter(g => g.options.length)
 	const noMatch = searching && shown.length === 0
 
+	/* The keyboard walks what the panel shows. `active` indexes the flattened *shown* list --
+	   never `groups` -- so Down after a search lands on the first match, not on whatever the
+	   full list holds at that position. It resets whenever the list under it can have changed
+	   (a keystroke, an open, a close): a highlight that survives a re-filter points at a
+	   different row than the one the user marked. */
+	const [active, setActive] = useState(-1)
+	const flat = shown.flatMap(g => g.options)
+	const activeOption = active >= 0 && active < flat.length ? flat[active] : null
+	useEffect(() => { setActive(-1) }, [value, open])
+
+	/* The marked row keeps itself in view -- the panel scrolls, and an invisible highlight is
+	   no highlight. 'nearest' so walking downwards drags the list the minimum it needs. */
+	useEffect(() => {
+		if (activeOption) document.getElementById(`${panelId}-opt-${active}`)?.scrollIntoView({ block: 'nearest' })
+	}, [active, activeOption, panelId])
+
 	const inputEl = (
 		<input ref={input} type="text" id={id} role="combobox"
 			aria-expanded={open} aria-controls={panelId} aria-autocomplete="list"
 			aria-label={label} aria-required={required || undefined}
 			aria-invalid={invalid ? 'true' : undefined}
 			aria-describedby={invalid ? describedBy : undefined}
+			aria-activedescendant={activeOption ? `${panelId}-opt-${active}` : undefined}
 			value={value} placeholder={placeholder}
 			onChange={e => { onChange?.(e.target.value); setOpen(true) }}
 			onClick={() => setOpen(true)}
 			onKeyDown={e => {
 				if (e.key === 'Escape') { setOpen(false); return }
-				if (e.key !== 'ArrowDown' && e.key !== 'Enter') return
+				if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') return
 				e.preventDefault()
-				/* Enter runs the action at the foot of the list -- CREATE VENDOR "...", ADD
-				   CATEGORY "..." -- but only when what was typed matches nothing already there.
-				   Typing the name of something that exists and pressing Enter should pick it,
-				   not make a second one. */
-				if (e.key === 'Enter' && action && typed) {
+				/* Down and Up walk the shown options, wrapping at either end. The first Down on
+				   a closed field opens it and stops -- see the list, then walk it. */
+				if (e.key !== 'Enter') {
+					if (!open) { setOpen(true); return }
+					if (!flat.length) return
+					setActive(a => e.key === 'ArrowDown'
+						? (a + 1) % flat.length
+						: a <= 0 ? flat.length - 1 : a - 1)
+					return
+				}
+				/* Enter picks the marked row first; with nothing marked it keeps the old rule --
+				   an exact name picks the thing named, so typing what exists cannot create a
+				   second one, and anything else runs the action at the foot: CREATE VENDOR
+				   "...", ADD "...". */
+				if (activeOption) { choose(e, activeOption); return }
+				if (action && typed) {
 					const match = groups.flatMap(g => g.options)
 						.find(o => o.label.toLowerCase() === typed.toLowerCase())
 					if (match) { choose(e, match); return }
@@ -158,16 +186,21 @@ export function Combobox({
 				<Icon name="chevronDown" className="icon chevron-icon" />
 			</div>
 			<div className="combobox-panel" id={panelId} role="listbox" aria-label={label}>
-				{shown.map(group => (
+				{shown.map((group, gi) => {
+					/* The flat index this group starts at, so a row's id and the keyboard's
+					   `active` agree on which row is which across group boundaries. */
+					const before = shown.slice(0, gi).reduce((n, g) => n + g.options.length, 0)
+					return (
 					<div className="combobox-group" key={group.heading}>
 						<div className="combobox-group-heading">{group.heading}</div>
 						{group.options.map((option, i) => {
 							const selected = isSelected(option.label, value ?? '')
+							const marked = before + i === active
 							return (
-								<div key={option.id ?? option.label}
-									className={join('combobox-option', option.highlighted && 'combobox-option-highlighted',
+								<div key={option.id ?? option.label} id={`${panelId}-opt-${before + i}`}
+									className={join('combobox-option', (option.highlighted || marked) && 'combobox-option-highlighted',
 										selected && 'combobox-option-selected')}
-									role="option" aria-selected={option.highlighted || selected ? true : undefined}
+									role="option" aria-selected={option.highlighted || marked || selected ? true : undefined}
 									onClick={e => choose(e, option)}>
 									{option.star ? <span className="combobox-option-star"><Icon name="starFilled" /></span> : null}
 									{selected ? option.label : <Marked text={option.label} query={value ?? ''} />}
@@ -176,7 +209,8 @@ export function Combobox({
 							)
 						})}
 					</div>
-				))}
+					)
+				})}
 				{/* Filtered to nothing is a state to name, not an empty box: the sentence says the
 				    search worked and found none, and the action below it (where a caller offers
 				    one) is what to do about it. */}
