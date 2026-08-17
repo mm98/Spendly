@@ -157,8 +157,12 @@ export function Segmented({ options, value, onChange, label, compact = true, tab
    stylesheet carries that rule; this component carries the state it reads.
 
    A checkbox rather than a button, so the text beside it can be a real <label htmlFor>:
-   clicking the label toggles the control natively, with nothing to wire. Every call
-   site passes an id and renders its text as a label pointing at it. README: Honest Affordances. */
+   clicking the label toggles the control natively, with nothing to wire. README: Honest Affordances.
+
+   It has no call sites today: Settings' two preferences were the last pair, and they are
+   checkbox rows now, so every binary option in the app is one shape. Kept because the README
+   still defines the element, not because anything renders it -- wiring a new one is a design
+   decision (README: Checkbox Row, which says why the row won), not a free choice of control. */
 export function Switch({ checked, onChange, label, controls, id }) {
 	return (
 		<input type="checkbox" className="switch" role="switch" id={id}
