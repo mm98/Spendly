@@ -437,6 +437,16 @@ export async function populateDemoData(orders, months, signal) {
 		signal: signal ?? AbortSignal.timeout(30000) })
 }
 
+/** Compresses this account's own attachments and scan uploads that predate compression
+    existing — new ones already compress themselves on the way in. Answers
+    { attachments: { rows, beforeBytes, afterBytes }, scanUploads: { ... }, blobBackfillDone }.
+    Settings hides the button behind blobBackfillDone once this has run, so it never asks a
+    second time; a large legacy library re-deflating everything is a slower request than most
+    here, hence the longer timeout than the default. */
+export async function compressBlobs(signal) {
+	return request('/api/compress-blobs', { method: 'POST', signal: signal ?? AbortSignal.timeout(60000) })
+}
+
 export async function getDashboardCards(signal) {
 	return request('/api/dashboard-cards', { signal })
 }

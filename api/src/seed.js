@@ -27,18 +27,24 @@ export const DEFAULT_SETTINGS = {
 	cardRows: 6, listSort: 'name-asc',
 	// The ledger's unit. DKK because the app printed "kr." unconditionally before this was a
 	// setting, so it is what every existing account's figures already meant.
-	currency: 'DKK'
+	currency: 'DKK',
+	// True for a brand-new account: nothing it ever writes needs the compress-blobs backfill,
+	// since lib/images.js compresses every attachment and scan upload on the way in already.
+	// An existing account's row predates this column and gets the migration's default (0)
+	// instead, which is what puts the button in front of the accounts that actually need it.
+	blobBackfillDone: true
 }
 
 /** Inserts the settings row and dashboard-card rows every account needs. Runs inside the
     caller's transaction (db.transaction wraps the whole register/reset flow). */
 export function seedAccountDefaults(db, userId) {
 	db.prepare(`INSERT INTO settings (user_id, default_kind, default_status, page_size, sort,
-		show_scan_card, confirm_delete, card_rows, list_sort, currency)
+		show_scan_card, confirm_delete, card_rows, list_sort, currency, blob_backfill_done)
 		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard,
-			@confirmDelete, @cardRows, @listSort, @currency)`)
+			@confirmDelete, @cardRows, @listSort, @currency, @blobBackfillDone)`)
 		.run({ userId, ...DEFAULT_SETTINGS, showScanCard: DEFAULT_SETTINGS.showScanCard ? 1 : 0,
-			confirmDelete: DEFAULT_SETTINGS.confirmDelete ? 1 : 0 })
+			confirmDelete: DEFAULT_SETTINGS.confirmDelete ? 1 : 0,
+			blobBackfillDone: DEFAULT_SETTINGS.blobBackfillDone ? 1 : 0 })
 
 	const insertCard = db.prepare(`INSERT INTO dashboard_cards (user_id, key, position, on_dashboard) VALUES (?, ?, ?, ?)`)
 	DASHBOARD_CARDS.forEach((c, position) => insertCard.run(userId, c.key, position, c.on ? 1 : 0))
