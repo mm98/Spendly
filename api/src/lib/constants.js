@@ -30,11 +30,23 @@ export const CURRENCIES = [
    reader, never the whole ledger. */
 export const MAX_PAGE_SIZE = 1000
 
+/* The cards Home can hold: what the tray offers, what the PUT validates against, and what the
+   client switches on to draw one. Ordered as the tray offers them, so a new card is placed
+   here rather than wherever it happens to be added.
+
+   The key is the card's name in full, lower_snake_case. It was abbreviated while the catalogue
+   was six cards that were each about a different thing; the moment a second card is about
+   vendors, `vendors` names one of them and reads like it names both, and `saved` has four
+   other cards printing a saving beside it. A short key is unambiguous only against the list
+   that existed when it was chosen, and this list exists to be added to. Renaming what accounts
+   already store is migrations/004. */
 export const DASHBOARD_CARD_CATALOGUE = [
-	{ key: 'rhythm',    name: 'Spending rhythm',      desc: 'Average order, and which weekday you spend on' },
-	{ key: 'breakdown', name: 'Category breakdown',   desc: "Where this month's spend went, by category" },
-	{ key: 'vendors',   name: 'Top vendors',          desc: 'The shops you spend the most at, all time' },
-	{ key: 'favcats',   name: 'Favourite categories', desc: 'The categories you starred, with spend and savings' },
-	{ key: 'saved',     name: 'Saved vs retail',      desc: 'What you paid against the retail price, this month' },
-	{ key: 'pace',      name: 'Monthly pace',         desc: 'Where the month lands if the rest of it looks like the start' }
+	{ key: 'spending_rhythm',      name: 'Spending rhythm',      desc: 'Average order, and which weekday you spend on' },
+	{ key: 'category_breakdown',   name: 'Category breakdown',   desc: "Where this month's spend went, by category" },
+	{ key: 'top_vendors',          name: 'Top vendors',          desc: 'The shops you spend the most at, all time' },
+	{ key: 'top_categories',       name: 'Top categories',       desc: 'The kinds of thing you spend the most on, all time' },
+	{ key: 'favourite_categories', name: 'Favourite categories', desc: 'The categories you starred, with spend and savings' },
+	{ key: 'favourite_vendors',    name: 'Favourite vendors',    desc: 'The vendors you starred, with orders, spend and savings' },
+	{ key: 'saved_vs_retail',      name: 'Saved vs retail',      desc: 'What you paid against the retail price, this month' },
+	{ key: 'monthly_pace',         name: 'Monthly pace',         desc: 'Where the month lands if the rest of it looks like the start' }
 ]

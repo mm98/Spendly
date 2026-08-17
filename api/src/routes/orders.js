@@ -66,7 +66,9 @@ router.get('/overview', (req, res) => {
 	const asked = Number(req.query.count)
 	const count = Math.min(Math.max(1, asked || cardRowsFor(req.user.id)), 100)
 	const totalsRows = selectLatestOrders.all({ userId: req.user.id, count })
-	res.json({ latest: decorateOrderRows(totalsRows), total: countAllOrders.get(req.user.id).c })
+	// `latestOrders`, not `latest`: the two pages that read this each hold four other lists,
+	// and a field whose name is only an adjective is one they all answer to.
+	res.json({ latestOrders: decorateOrderRows(totalsRows), total: countAllOrders.get(req.user.id).c })
 })
 
 router.get('/draft', (req, res) => {

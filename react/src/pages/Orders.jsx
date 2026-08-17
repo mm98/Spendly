@@ -95,9 +95,9 @@ export default function Orders() {
 								    an order from Elgiganten read as an order for 26 kroner. The saving
 								    is on the order's own page, where it is named. README: Data Rows. */}
 								<CardBody variant="entry-list card-body-tight">
-									{data.latest.length ? (
+									{data.latestOrders.length ? (
 										<>
-											{data.latest.map(order => (
+											{data.latestOrders.map(order => (
 												<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
 													meta={dayMonth(order.date)} amount={currency(order.total)}
 													sub={`saved ${currency(order.saved)}`} to={`/orders/${order.id}`} />
@@ -148,7 +148,7 @@ export default function Orders() {
 								    empty state answers instead, and it has to know which absence it is
 								    answering: a month with nothing bought, or an account with no
 								    categories at all. README: Empty states, Honest Affordances. */}
-								{data.categories.length ? (
+								{data.monthCategories.length ? (
 									<>
 									<div className="card-toggle-row">
 										<Segmented options={['Expenses', 'Budget']} value={breakdown}
@@ -162,7 +162,7 @@ export default function Orders() {
 									{breakdown === 'Expenses' ? (
 										<>
 											<DonutBox>
-												<Donut segments={data.categories.map(c => ({ share: c.share, colour: c.colour }))}
+												<Donut segments={data.monthCategories.map(c => ({ share: c.share, colour: c.colour }))}
 													value={currency(data.period.spent, 0)} label="Spent this month"
 													ariaLabel={`Category split of ${currency(data.period.spent, 0)} this month`} />
 											</DonutBox>
@@ -170,7 +170,7 @@ export default function Orders() {
 											    filters by: the month's orders with no category at all, the same
 											    rows its figure added up. README: Home. */}
 											<div className="category-rows">
-												{data.categories.map(c =>
+												{data.monthCategories.map(c =>
 													<CategoryRow key={c.id} category={c}
 														/* The month this ring is of. Its centre reads "Spent this month",
 													   so a row opening every order in that category ever is a list
@@ -183,17 +183,17 @@ export default function Orders() {
 										<>
 											<DonutBox>
 												<Donut segments={[
-													{ share: Math.min(100, budgetUsed(data.categories)), colour: 'var(--green)' },
-													{ share: Math.max(0, 100 - budgetUsed(data.categories)), colour: '#E7EAE5' }
+													{ share: Math.min(100, budgetUsed(data.monthCategories)), colour: 'var(--green)' },
+													{ share: Math.max(0, 100 - budgetUsed(data.monthCategories)), colour: '#E7EAE5' }
 												]}
-													value={percent(budgetUsed(data.categories), 0)} label="of budget used"
-													ariaLabel={`${percent(budgetUsed(data.categories), 0)} of this month's budget used`} />
+													value={percent(budgetUsed(data.monthCategories), 0)} label="of budget used"
+													ariaLabel={`${percent(budgetUsed(data.monthCategories), 0)} of this month's budget used`} />
 											</DonutBox>
 											{/* The same rows as the Expenses view, saying a different thing in the
 											    meta line. A progress bar under each one would be a layout this app
 											    does not use anywhere else. README: Cards. */}
 											<div className="category-rows">
-												{data.categories.map(c => (
+												{data.monthCategories.map(c => (
 													<CategoryRow key={c.id} category={c}
 														to={ordersIn({ category: c.id,
 														from: data.period.from, to: data.period.to })}
