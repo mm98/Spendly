@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const SLOP = 8
 const THRESHOLD = 60
-const MIN_HOLD_MS = 300
+const MIN_HOLD_MS = 500
 
 export function PullToRefresh({ children }) {
 	const [pull, setPull] = useState(0)
