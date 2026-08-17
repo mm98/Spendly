@@ -52,6 +52,15 @@ These are the building blocks. Nothing here is a control. Everything here is wha
 
 Every color is a named token. A hex value written directly into a rule is a decision nobody can find later.
 
+Two kinds of value are exempt, and each for its own reason. **A vendor's or a category's color is
+data, not design** — every record carries its own, so a token would claim a decision the design
+system does not own; the same goes for a component's built-in default of that kind of color. And
+**a family of near-identical values pending a collapse decision stays literal** until the decision
+is made: several borders, inks and tile fills sit one or two shades apart, and merging them changes
+what is on screen, which is a design decision rather than a rename. Everything else — every fill,
+glyph, edge, shadow and backdrop — resolves through a token, which is the property a dark theme
+will need: one override block, no light-mode leaks.
+
 **Text, in four steps.** Text gets lighter as it gets less important, and the steps are fixed:
 
 | Token | Value | Usage |
@@ -153,13 +162,15 @@ palette and the built one drifted apart — see the defect log.)
 | `--pad-chip` | 11px | The 28px chip family's one inset |
 | `--pad-row-y` | 12px | The dense rows' vertical rhythm; the data row's 10px spec stays its own |
 | `--pad-pager` | 12px, 7px on the phone | The pager buttons' inset |
+| `--pad-bar-y` | 12px | The chrome bars' vertical band — the top bar and the page bar share it |
 | `--gap-cards` | 18px | Between cards, top-level grids |
-| `--gap-row` | 12px | Within a row, between small elements |
+| `--gap-panel` | 16px | Inside a panel, between sections, and across the form grid — one tier, merged from a 14/16 pair whose distinction never carried a decision |
+| `--gap-row` | 12px | Within a row of controls or small elements |
+| `--gap-block` | 12px | A block to the thing that follows it — a chart to its legend, a note to its button, a list to its pager |
 | `--gap-icon` | 6px | Icon to label inside a chip or a compact button; the standard button keeps 8px |
 
-Two documented distances stay bare values rather than tokens: 7px from a label to its field, and
-16px between fields at equal weight — each used in one family, so a token would only move the
-number somewhere harder to find.
+One documented distance stays a bare value rather than a token: 7px from a label to its field —
+used in one family, so a token would only move the number somewhere harder to find.
 
 **A value off the scale is a tuned exception, and it lives beside the reason it is tuned.** The
 segmented control's padding *is* its height, so it is the tier's number, not a spacing decision;

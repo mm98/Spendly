@@ -56,6 +56,38 @@ exactly the predicted property changes — gap 9→8 on 110 field shells, 7→6 
 row padding 11→12 on 44, chip insets to 11px on 40, 22→20 and 26→24 on 31 — plus their knock-on
 geometry, with no other property moving. Gecko and WebKit unverified.
 
+A second run with the same instrument swept what the first left: the shared 12px sites folded onto
+the existing tokens (plus `--gap-block` and `--pad-bar-y`, value-preserving, every site read back at
+its original computed value); then the gap ladder — the 10px control-row tier folded into
+`--gap-row` (gap 10→12 on 105 element-states), the 14px and 16px tiers merged as `--gap-panel:16px`
+(14→16 on 10), the two off-scale strays snapped (sidebar nav 13→14 on 75, brand 11→10 on 30), and
+the last 11px verticals joined 12. The walk decomposed the delta to exactly those changes and their
+knock-on geometry, 0 tag mismatches.
+
+## Color — the rule said every color is a token, and 79 declarations disagreed
+
+The Color section has always opened with the rule; the stylesheet under it carried **79 hex and
+rgb() literals (36 distinct) outside the token block**. Two dozen `#fff`s alone meant two different
+things — a card-tier fill in nine rules, a glyph on a dark or vivid fill in fifteen — which is
+exactly the distinction a dark theme has to make and a literal cannot. Ten shadows and two
+backdrops each wrote the same ink at their own alpha. Two rules wrote `#9AA39B` for an ink whose
+token is `#9AA39D` — the same one-digit drift an earlier fix had already caught in a `var()`
+fallback, now found twice more as the value itself.
+
+The fix routes them through roles: `--text-inverse` against `--bg-card` for the whites,
+`--shadow-ink` as a bare triplet so each shadow keeps its own alpha, status pairs (`--bg-warn` /
+`--text-warn` / `--icon-warn`) shared by the chip and the note that mean the same thing, and named
+fills for the sunken surfaces and tracks. 23 literal occurrences remain on purpose, in the two
+classes the README now exempts: vendor and category colors (data, not design — the tag chips and
+the line-item tile's default pair) and the near-identical families pending a collapse decision
+(four border greys, two dark inks, three tile fills, a hover pair one digit from `--bg-row-hover`).
+
+**Instrument:** the same 30-state element walk, reading computed color, background, border colors,
+box-shadow, stroke, fill, background-image and outline per element — 7,970 elements, Blink only.
+The before/after delta was the two `#9AA39B`→`#9AA39D` sites (24 field-changes, the declared drift
+fix) and the fresh-account dataset noise, in both directions; no other computed color moved in any
+state. Gecko and WebKit unverified.
+
 ## Cards — a note and the action under it
 
 The question card's answered state — the green answer, then SEE THOSE ORDERS — drew the button **flush
