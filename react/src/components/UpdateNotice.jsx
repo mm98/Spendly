@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button, IconButton } from './Button.jsx'
+import { ConfirmDialog } from './ConfirmDialog.jsx'
 import { getVersion } from '../api/client.js'
 
 /* Is the server still running the build that served this tab?
@@ -37,6 +38,9 @@ const QUIET_MS = 60 * 1000
 
 export function UpdateNotice() {
 	const [behind, setBehind] = useState(false)
+	/* Asked once, the moment it is known. Declining drops to the bar and never re-opens this on
+	   its own -- being asked twice about the same build is the nagging the bar exists to avoid. */
+	const [asking, setAsking] = useState(true)
 	const [dismissed, setDismissed] = useState(false)
 	const lastAsked = useRef(0)
 
@@ -68,19 +72,40 @@ export function UpdateNotice() {
 		}
 	}, [behind])
 
-	if (!behind || dismissed) return null
+	if (!behind) return null
 
-	/* Never a reload of its own accord. The update is not urgent enough to be worth throwing
-	   away a half-typed order for, and the reader is the only one who knows whether they are in
-	   the middle of one -- so this offers, and dismissing leaves the old build running until
-	   they reload on their own terms. README: Honest Affordances, Chrome. */
+	/* Two stages, and the reason for both is the same: the reader may be halfway through an
+	   order, and only they know it.
+
+	   The app asks as soon as it knows -- a notice that waits to be noticed is one that gets
+	   found a week later -- but it asks, it never reloads by itself. A reload throws away every
+	   field typed and not yet saved, so it is exactly the kind of act the app already puts
+	   behind a confirmation everywhere else, and it uses the same dialog to do it. Focus lands
+	   on NOT NOW for the same reason it lands on CANCEL there: an Enter still in flight from the
+	   form underneath must not be the keystroke that discards it.
+
+	   Declining is not dismissing. "Not now" means later, so the question folds down into the
+	   bar rather than disappearing -- still true, still reachable, and never asked twice. */
+	if (asking) {
+		return (
+			<ConfirmDialog
+				title="A new version is ready"
+				detail="Reloading loads it now. Anything typed on this page and not yet saved will be lost."
+				confirmLabel="RELOAD" cancelLabel="NOT NOW"
+				onConfirm={() => window.location.reload()}
+				onCancel={() => setAsking(false)} />
+		)
+	}
+
+	if (dismissed) return null
+
 	return (
 		<div className="update-notice" role="status">
 			{/* Short enough to stay on one line at 390px beside both controls -- "A new version of
 			    Spendly is ready" wrapped to two, and the app's own name is the one word a notice
 			    inside the app does not have to spend room on. */}
 			<span className="update-notice-text">A new version is ready.</span>
-			<Button variant="invert" onClick={() => window.location.reload()}>UPDATE</Button>
+			<Button variant="invert" onClick={() => setAsking(true)}>UPDATE</Button>
 			<IconButton variant="clear" icon="close" label="Dismiss until next time"
 				onClick={() => setDismissed(true)} />
 		</div>

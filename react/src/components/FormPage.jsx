@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Page } from './Shell.jsx'
 import { Async } from './Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from './Card.jsx'
 import { Stepper } from './Stepper.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Form, FormActions, FormStatus } from './Form.jsx'
+import { ConfirmDialog } from './ConfirmDialog.jsx'
 import { useApi } from '../api/useApi.js'
 import { getSettings } from '../api/client.js'
 
@@ -82,35 +83,13 @@ export const RecordWait = ({ state, label, steps }) => (
    <dialog> is the no-dependency modal: showModal() traps focus, Escape cancels, and closing
    hands focus back to the trash that opened it. */
 
-function ConfirmDialog({ what, detail, onConfirm, onCancel }) {
-	const ref = useRef(null)
-	const cancelRef = useRef(null)
-	useEffect(() => {
-		/* showModal() would hand focus to the first focusable -- DELETE -- so the safe answer
-		   takes it instead: the key the dialog opens under may not be the destructive one. The
-		   dialog leaves by unmounting rather than close(), which skips the element's own focus
-		   restore, so the opener is put back by hand; if the row it sat on was just deleted,
-		   focusing a detached element is a no-op and focus stays where the page put it. */
-		const opener = document.activeElement
-		ref.current?.showModal()
-		cancelRef.current?.focus()
-		return () => opener?.focus?.()
-	}, [])
-	return (
-		<dialog className="confirm-dialog" ref={ref} aria-label={`Delete this ${what}?`}
-			onCancel={onCancel}
-			onClick={e => { if (e.target === ref.current) onCancel() }}>
-			<div className="confirm-dialog-card">
-				<strong>Delete this {what}?</strong>
-				<p>{detail}</p>
-				<div className="form-actions">
-					<Button variant="caps compact" onClick={onConfirm}>DELETE</Button>
-					<Button ref={cancelRef} variant="ghost compact" onClick={onCancel}>CANCEL</Button>
-				</div>
-			</div>
-		</dialog>
-	)
-}
+/* The delete-shaped wording of the shared dialog (ConfirmDialog.jsx), which holds the modal
+   mechanics and the rule about where focus lands. Only the sentence and the verb are this
+   file's; a second copy of the machinery is how the two dialogs would drift apart. */
+const DeleteDialog = ({ what, detail, onConfirm, onCancel }) => (
+	<ConfirmDialog title={`Delete this ${what}?`} detail={detail} confirmLabel="DELETE"
+		onConfirm={onConfirm} onCancel={onCancel} />
+)
 
 /* `useDelete` is that question asked of a record. A hook rather than a component because the
    trigger renders apart from the rest of its page: on an order the trash is up in the header
@@ -141,7 +120,7 @@ export function useDelete({ what, detail, onDelete, icon = 'trash', variant = 'b
 		   delete side by side. Same handler, same setting, same question underneath. */
 		iconButton: <IconButton icon={icon} label={label ?? `Delete ${what}`} {...asks} />,
 		dialog: confirming ? (
-			<ConfirmDialog what={what} detail={`${detail} This cannot be undone.`}
+			<DeleteDialog what={what} detail={`${detail} This cannot be undone.`}
 				onConfirm={() => { setConfirming(false); onDelete() }}
 				onCancel={() => setConfirming(false)} />
 		) : null
@@ -168,7 +147,7 @@ export function useRowDelete({ what, label, detail, onDelete, icon = 'trash' }) 
 				aria-haspopup="dialog" />
 		),
 		dialog: confirming ? (
-			<ConfirmDialog what={what} detail={detail(confirming)}
+			<DeleteDialog what={what} detail={detail(confirming)}
 				onConfirm={() => { const it = confirming; setConfirming(null); onDelete(it) }}
 				onCancel={() => setConfirming(null)} />
 		) : null
