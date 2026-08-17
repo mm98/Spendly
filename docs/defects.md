@@ -25,6 +25,37 @@ system is organized by named sections (Foundations, Components, Views, Patterns)
 
 ---
 
+## Spacing — the documented palette and the built one had drifted apart
+
+The Spacing section listed six load-bearing values — 7, 12, 14, 16, 18, 20 — and closed with its own
+test: grep the stylesheet, the top six carry the layout. The test was finally run, across every
+`padding`, `margin` and `gap` declaration: **336 declarations drawing on 31 distinct px values**, and
+the top of the tally read **12(×48), 10(×39), 6(×33), 8(×31), 14(×28), 4(×25)** — 7px, the palette's
+first line, carried 6 uses, while 6px and 10px, which it never mentioned, carried 72 between them.
+The palette was a claim about the stylesheet that the stylesheet did not make.
+
+Under the tally sat the drift the palette could not prevent, because nothing shared a name:
+
+- Three side-insets for one control height: the 28px chip at 11px, the status chip at 12px, the
+  field unit at 10px.
+- Two row families at `11px 0`, between the data row's 10px spec and the dense rows' 12px.
+- 26px in four rules beside 24px, and 22px in two beside 20px.
+- Icon-to-label gaps at 5, 6 and 7px across nine chip and button rules.
+- The page gutter written as 24px in three chrome rules, each separately rewritten to 12px in the
+  phone block — the breakpoint edited six rules to move one distance.
+
+The fix is the section's current form: one scale (2–28, even steps past 8), named tokens for every
+shared distance, breakpoint changes on the token rather than per rule. Equalizing the
+near-neighbours moved about twenty declarations by 1–2px; the rest of the consolidation moved
+nothing, and the walk is what says so. **Instrument:** an element walk over 15 routes at desktop
+1440×900 and an iPhone 13 descriptor — 30 states, 7,970 elements, 13 spacing and geometry
+properties per element, Blink (Chromium 141) only. The value-preserving pass diffed at **0
+differences** outside an attributed floor (two order rows swapping list positions between
+freshly-seeded accounts, present run-to-run on identical source); the equalization pass diffed as
+exactly the predicted property changes — gap 9→8 on 110 field shells, 7→6 and 5→6 on 58 icon gaps,
+row padding 11→12 on 44, chip insets to 11px on 40, 22→20 and 26→24 on 31 — plus their knock-on
+geometry, with no other property moving. Gecko and WebKit unverified.
+
 ## Cards — a note and the action under it
 
 The question card's answered state — the green answer, then SEE THOSE ORDERS — drew the button **flush

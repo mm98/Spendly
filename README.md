@@ -137,20 +137,38 @@ Control heights come in tiers, and a control joins a tier rather than picking a 
 
 ### Spacing
 
-Spacing builds rhythm and hierarchy. The system uses a tight palette of intentional gaps:
+Spacing builds rhythm and hierarchy. Every spacing value is a step on one scale — 2, 4, 6, 8,
+10, 12, 14, 16, 18, 20, 24, 28 — and the load-bearing distances are named tokens, like the radii:
+a distance several components share is declared once, and a breakpoint that changes it changes
+the token, not one rule per surface. (This section once listed a palette instead, and the listed
+palette and the built one drifted apart — see the defect log.)
 
-| Value | Usage |
-|-------|-------|
-| 7px | Label to field |
-| 12px | Within a row, between small elements |
-| 14px | Inside panels, between sections |
-| 16px | Form grid, between fields at equal weight |
-| 18px | Between cards, top-level spacing |
-| 20px | Card gutter, row hover bleed |
+| Token | Value | Job |
+|-------|-------|-----|
+| `--gutter-page` | 24px, 12px on the phone | The sheet's edge to its content — the top bar, the page bar and the sheet share it |
+| `--pad-sheet-top` / `--pad-sheet-bottom` | 18px / 24px, one even 14px on the phone | The sheet's own vertical padding |
+| `--pad-card` | 20px | The card gutter |
+| `--pad-inset` | 12px | The side inset a row-shaped target paints its hover fill to |
+| `--pad-control` / `--pad-control-compact` | 15px / 13px | Control side-insets, standard and compact — by role, not by height tier |
+| `--pad-chip` | 11px | The 28px chip family's one inset |
+| `--pad-row-y` | 12px | The dense rows' vertical rhythm; the data row's 10px spec stays its own |
+| `--pad-pager` | 12px, 7px on the phone | The pager buttons' inset |
+| `--gap-cards` | 18px | Between cards, top-level grids |
+| `--gap-row` | 12px | Within a row, between small elements |
+| `--gap-icon` | 6px | Icon to label inside a chip or a compact button; the standard button keeps 8px |
 
-**Why these numbers:** They're the load-bearing values. Change one of these and the whole layout moves. Everything else is either derived from these or is a one-off constraint.
+Two documented distances stay bare values rather than tokens: 7px from a label to its field, and
+16px between fields at equal weight — each used in one family, so a token would only move the
+number somewhere harder to find.
 
-**The test:** Grep the stylesheet. Count how many places use each value. The top six are the ones that carry the layout.
+**A value off the scale is a tuned exception, and it lives beside the reason it is tuned.** The
+segmented control's padding *is* its height, so it is the tier's number, not a spacing decision;
+a checkbox's optical nudge and a chart's alignment constant belong to their components. An
+exception without a reason next to it is drift, not tuning.
+
+**The test:** grep the stylesheet. Every spacing value is a scale step, a token, or a defended
+exception — a near-neighbour (a 9 beside an 8, a 26 beside a 24, three insets for one chip
+height) is the drift this section exists to prevent.
 
 ### Grids and Breakpoints
 

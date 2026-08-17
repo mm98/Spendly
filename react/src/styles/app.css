@@ -113,6 +113,53 @@
 	   reads barely rounded against it, and a 999px capsule pulls the curve in far
 	   enough to crowd the outer icons' labels. */
 	--radius-float:24px;
+
+	/* The spacing scale, named for the job rather than the number -- the same rule the
+	   radius tier above follows. 336 padding/margin/gap declarations draw on 31 distinct
+	   px values here, so this is not the whole of the spacing: it is the load-bearing
+	   part, the six lengths that several unrelated rules were each writing out by hand.
+	   A value that appears once stays written where it is used; a token for it would only
+	   move the number somewhere harder to find. README: Spacing.
+
+	   --gutter-page is the only one that is not a constant. It is the distance from the
+	   sheet's edge to its content, and the phone block below narrows it -- so the three
+	   chrome surfaces that used to state 24px and then restate 12px in the phone block
+	   now state neither, and a change of gutter is one line rather than six. */
+	--gutter-page:24px;
+	/* The sheet's own vertical padding, beside the gutter above: 18px over the first
+	   card and 24px under the last at desktop, one even 14px on the phone. */
+	--pad-sheet-top:18px;
+	--pad-sheet-bottom:24px;
+	--pad-card:20px;
+	--pad-inset:12px;
+	/* Control side-insets come in two, by role rather than by height tier -- the 32px
+	   pill and the 48px field shell share the standard 15px, and the compact 13px is
+	   the search shells and the compact button. Nine rules each wrote their own copy,
+	   and the copies were the only thing keeping the two families from being read as
+	   nine opinions. The base .button's 0 16px is neither: it is the form grid's 16. */
+	--pad-control:15px;
+	--pad-control-compact:13px;
+	/* One inset for the 28px chip family. It was three: .chip 11px, .chip-status 12px,
+	   .field-unit 10px -- three answers to one question, each one control's own. */
+	--pad-chip:11px;
+	/* The dense rows' vertical rhythm -- entity, order, summary, account -- against the
+	   data row's 10px spec. Two of the four sat at 11px, between the families. */
+	--pad-row-y:12px;
+	/* The pager buttons' inset, narrowed on the phone where the row has to fit
+	   beside the range chips. */
+	--pad-pager:12px;
+	--gap-cards:18px;
+	--gap-row:12px;
+	/* Icon to label inside a chip or a button. It was 5, 6 and 7px across nine rules;
+	   the base .button keeps its own 8 -- a 38px control carries more air. */
+	--gap-icon:6px;
+	/* The square tile a list row leads with -- category icon, vendor initials, line-item
+	   mark, entry glyph, document thumbnail. Five rules, one size, and it is not one of
+	   the control tiers in README: Sizing: those are heights a control chooses, this is
+	   a box that is as tall as it is wide. Its radius is --radius-compact, which is the
+	   32px tier's, because the tile reads as chrome beside the row's text. */
+	--thumb-size:36px;
+
 	--shadow:0 1px 2px rgb(11 26 18 / .04), 0 10px 28px rgb(11 26 18 / .07);
 	color-scheme: light;
 }
@@ -165,7 +212,7 @@ body {
    phone block mentions it. The 12px side padding is what the hover fill paints; the
    negative margin gives it back so the text column stays aligned with the card's
    other children. README: Checkbox Row. */
-.check-row { display:grid; grid-template-columns:20px 1fr; column-gap:12px; align-items:start; padding:13px 12px; margin:0 -12px; border-radius:var(--radius-compact); cursor:pointer; }
+.check-row { display:grid; grid-template-columns:20px 1fr; column-gap:var(--gap-row); align-items:start; padding:13px var(--pad-inset); margin:0 calc(-1 * var(--pad-inset)); border-radius:var(--radius-compact); cursor:pointer; }
 .check-row:hover { background:var(--bg-row-hover); }
 /* Only the stack's outer corners round: a row with a row above loses its top radius, a
    row with a row below loses its bottom one, so the middle of a stack is square and a
@@ -201,7 +248,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .brand-mark svg { width:20px; height:20px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .brand-name { font-size:22px; font-weight:700; letter-spacing:-.01em; color:var(--text); }
 .sidebar-nav { display:grid; gap:8px; }
-.sidebar-nav a { display:flex; align-items:center; gap:13px; min-height:48px; padding:0 15px; border-radius:14px; text-decoration:none; color:#3C433D; font-size:14.5px; font-weight:500; }
+.sidebar-nav a { display:flex; align-items:center; gap:13px; min-height:48px; padding:0 var(--pad-control); border-radius:14px; text-decoration:none; color:#3C433D; font-size:14.5px; font-weight:500; }
 .sidebar-nav a svg.icon { width:19px; height:19px; }
 .sidebar-nav a.is-on { background:var(--bg-nav-active); color:var(--text); font-weight:600; }
 .sidebar-nav a.is-on svg.icon { stroke-width:2.1; }
@@ -226,7 +273,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 
 /* topbar */
 .main-panel { min-width:0; display:flex; flex-direction:column; background:#fff; border-radius:26px 0 0 26px; margin:12px 0; overflow:hidden; box-shadow:0 2px 14px rgb(11 26 18 / .05); }
-.topbar { display:flex; align-items:center; gap:10px; padding:12px 24px; background:#fff; border-bottom:1px solid var(--border-divider); position:sticky; top:0; z-index:10; }
+.topbar { display:flex; align-items:center; gap:10px; padding:12px var(--gutter-page); background:#fff; border-bottom:1px solid var(--border-divider); position:sticky; top:0; z-index:10; }
 .topbar h1 { margin:0; font-size:19px; font-weight:700; letter-spacing:-.01em; }
 .topbar .topbar-actions { margin-left:auto; display:flex; align-items:center; gap:10px; }
 /* Every text button in the system starts here and every variant below states only
@@ -246,7 +293,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    spec so neither drifts into its own treatment. That spec is `.button-pill`'s: one
    32px/r10 size serves both the top bar and section actions, at both breakpoints,
    rather than each surface inventing a height. */
-.topbar .topbar-actions .button { height:32px; padding:0 15px; gap:6px; font-size:11px; letter-spacing:.04em; }
+.topbar .topbar-actions .button { height:32px; padding:0 var(--pad-control); gap:6px; font-size:11px; letter-spacing:.04em; }
 /* A button's icon follows the button's tier (README: Buttons), not the call site. */
 /* The square icon buttons. Same base, and each variant carries only its size --
    26, 28, 32, 38 and 40px were five separate copies of this rule. */
@@ -270,9 +317,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    fire on any page. What actually hid it was the tab builder reaching up to
    subtabs.parentElement.style: JS styling an element it does not own, one wrapper
    away from hiding the wrong one, and an inline display:none in the served DOM. */
-.page-bar { background:#fff; padding:12px 24px 0; }
+.page-bar { background:#fff; padding:12px var(--gutter-page) 0; }
 .page-bar:not(:has(button)) { display:none; }
-.content-sheet { background:#fff; padding:18px 24px 26px; }
+.content-sheet { background:#fff; padding:var(--pad-sheet-top) var(--gutter-page) var(--pad-sheet-bottom); }
 .content-sheet-inner { width:100%; }
 
 /* Pull-to-refresh (components/PullToRefresh.jsx). Fixed to the viewport rather than to the page
@@ -317,8 +364,8 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    card with a border -- correct on the sheets it was written for, a stray white chip on this
    dark bar -- so it gives both up and carries the muted ink the dark surface already defines. */
 .update-notice .icon-button-clear { background:transparent; border-color:transparent; color:var(--text-on-dark); }
-.content-grid { display:grid; grid-template-columns:minmax(0,1.78fr) minmax(300px,1fr); gap:18px; align-items:start; }
-.content-column-main, .content-column-side { display:grid; gap:18px; min-width:0; }
+.content-grid { display:grid; grid-template-columns:minmax(0,1.78fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
+.content-column-main, .content-column-side { display:grid; gap:var(--gap-cards); min-width:0; }
 
 /* card */
 /* Elevation rule: flat surfaces carry a border, never a shadow.
@@ -342,7 +389,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    band: 16/12 measured 20px of band above the label's ink and 16px below it. The 28px
    total is unchanged, so the header keeps its height and nothing below it reflows --
    the label rises 2px and the lit block is even around it. README: Honest Affordances. */
-.card-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 20px; }
+.card-header { display:flex; align-items:center; justify-content:space-between; gap:var(--gap-row); padding:14px var(--pad-card); }
 /* One band height, whatever the header happens to carry -- every .card-header in the
    file, with no exception. The band is the label's line box plus its padding
    -- 14 + 11.5x1.45 + 14 -- and a control on the right sits in it rather than setting it.
@@ -399,7 +446,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
    still owns is what it holds, not how it is spaced -- the colour of the right-hand
    figure, an avatar's initials in place of a tile's glyph, one line where another has
    two. README: Data Rows. */
-.data-row { display:flex; align-items:center; gap:12px; padding:10px 0; }
+.data-row { display:flex; align-items:center; gap:var(--gap-row); padding:10px 0; }
 /* A row's highlight bleeds 10px past the body's 20px gutter at both ends, so the
    tint clears the first glyph and the chevron instead of stopping against them.
    The header above already lights up edge to edge; this is the same idea for a
@@ -435,15 +482,15 @@ button.card-header:hover + .card-divider { margin-inline:0; }
    the highlight -- it is --border-divider against --bg-row-hover now, and it reads as the
    bottom edge of the lit band rather than as part of the fill. */
 .card-header[data-go]:hover + .card-divider { margin-inline:0; }
-.card-body { padding:14px 20px 18px; }
+.card-body { padding:14px var(--pad-card) 18px; }
 /* Card body padding. Five variants lived inline, and the three that only tightened
    the top of a list card disagreed at 6px, 4px and 10px for one job -- the Cards section's
    warning is about not tightening under a hairline, not about doing it three ways.
    .card-steps and the summary card are reachable by structure; the other two are not,
    so they are named. Match counts checked: 4, 2, 4, 8, 1, 1. */
-.card-steps .card-body { padding:16px 20px; }
-.card-body:has(> .card-subheading) { padding:18px 20px; }
-.card-body-page { padding:20px 22px; }
+.card-steps .card-body { padding:16px var(--pad-card); }
+.card-body:has(> .card-subheading) { padding:18px var(--pad-card); }
+.card-body-page { padding:var(--pad-card); }
 .card-body-tight { padding-top:6px; }
 .card-body-centered { padding:34px 28px; display:grid; justify-items:center; gap:14px; text-align:center; }
 .card-body-filters { padding:16px 18px; display:grid; gap:12px; }
@@ -475,8 +522,8 @@ button.card-header:hover + .card-divider { margin-inline:0; }
    selected label is wider than its resting self and the whole row would shift under it every
    time the selection moved. README: Segmented Control, Statistics. */
 .range-tabs.range-tabs-pager { gap:6px; margin-top:0; }
-.range-tabs-pager button { height:32px; padding:0 12px; border:1px solid var(--border-control); border-radius:var(--radius-compact); background:var(--bg-card); }
-.range-tabs-pager button.is-on { padding:0 12px; border-radius:var(--radius-compact); border-color:var(--bg-dark); background:var(--bg-dark); color:#fff; }
+.range-tabs-pager button { height:32px; padding:0 var(--pad-pager); border:1px solid var(--border-control); border-radius:var(--radius-compact); background:var(--bg-card); }
+.range-tabs-pager button.is-on { padding:0 var(--pad-pager); border-radius:var(--radius-compact); border-color:var(--bg-dark); background:var(--bg-dark); color:#fff; }
 /* The pager band's two forms of a name -- the window's, and each width button's. The long one is
    what shows everywhere; the phone rule swaps which of the pair is rendered, and since only one
    of them is ever in the render tree, the string a reader sees is the string a screen reader
@@ -520,11 +567,11 @@ svg.chart { width:100%; display:block; }
    the label would hang the button 3.7px out of the band at both ends, over whatever sits
    above and below. So these level up to the control instead of down to the label: one
    header gains air, none overflow, and the three are one height. README: Cards. */
-.section-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 2px; min-height:40px; }
-.button.button-pill { gap:6px; height:32px; padding:0 15px; border-color:#DFE3DE; background:var(--bg-card); color:var(--text); font-size:11px; letter-spacing:.04em; }
+.section-header { display:flex; align-items:center; justify-content:space-between; gap:var(--gap-row); padding:4px 2px; min-height:40px; }
+.button.button-pill { gap:var(--gap-icon); height:32px; padding:0 var(--pad-control); border-color:#DFE3DE; background:var(--bg-card); color:var(--text); font-size:11px; letter-spacing:.04em; }
 
 /* dashboard card row */
-.dashboard-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.dashboard-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--gap-cards); }
 .figure-card { font-size:21px; font-weight:700; letter-spacing:-.02em; }
 /* The vendor cards ride in a horizontal scroller and take the smaller figure. */
 .vendor-grid .figure-card { font-size:17px; }
@@ -546,7 +593,7 @@ svg.chart { width:100%; display:block; }
 .card-tray-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .card-tray-row .button-pill { margin-left:auto; flex:none; }
 .card-tray-empty { margin:0; padding:4px 0; font-size:12px; color:var(--text-muted); }
-.dashboard-cards-empty { margin:0; padding:26px 20px; text-align:center; font-size:12.5px; color:var(--text-muted); border:1px dashed var(--text-faint); border-radius:var(--radius-card); }
+.dashboard-cards-empty { margin:0; padding:24px var(--pad-card); text-align:center; font-size:12.5px; color:var(--text-muted); border:1px dashed var(--text-faint); border-radius:var(--radius-card); }
 
 /* weekday bars */
 /* Grows into whatever the card gives it, with a 112px floor -- the Home card shares a grid row
@@ -594,13 +641,13 @@ svg.chart { width:100%; display:block; }
 .card-body > .category-rows:first-child { margin-top:0; }
 .category-row { border-top:1px solid var(--border-divider); }
 .category-row:first-child { border-top:0; }
-.category-icon { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; flex:none; }
+.category-icon { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; flex:none; }
 .category-icon svg.icon { width:17px; height:17px; stroke-width:2; }
 .category-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .category-row .amount { margin-left:auto; font-weight:600; font-size:13px; }
 
 /* dark AI card */
-.ai-card-header { display:flex; align-items:center; gap:12px; }
+.ai-card-header { display:flex; align-items:center; gap:var(--gap-row); }
 /* No baked-in 33% here either -- ProgressRing always computes and sets its own fill from
    done/total, so a fixed default would only ever be the fallback for a fraction not yet
    known, and rgb(255 255 255 / .22) (the ring's own "remaining" colour) reads as that
@@ -661,7 +708,7 @@ svg.chart { width:100%; display:block; }
    the avatar has -- and the first row family to use it outside those two rendered bare
    initials on a coloured background at whatever the text size was. A component that only
    looks right inside the parents it has met so far is a trap for the next parent. */
-.entry-avatar { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
+.entry-avatar { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:#fff; font-size:10px; font-weight:700; flex:none; }
 /* No line-height here. Pinning the wrapper at 1.45em computed one length off its own
    inherited 14px -- 20.3px -- and handed it to both lines, so a 13px name and an 11px
    meta were struck on the same 20.3px leading and the pair stood 40.6px tall. Every
@@ -695,11 +742,11 @@ svg.chart { width:100%; display:block; }
 	content:''; width:15px; flex:none; }
 
 /* saved card */
-.chip-saving { display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 9px; border-radius:8px; background:var(--bg-positive); color:var(--text-positive); font-size:11px; font-weight:700; }
+.chip-saving { display:inline-flex; align-items:center; gap:var(--gap-icon); height:24px; padding:0 8px; border-radius:8px; background:var(--bg-positive); color:var(--text-positive); font-size:11px; font-weight:700; }
 
 /* ---------------- inner-page patterns from the design system ---------------- */
 .page:not(.is-on) { display:none !important; }
-.page.is-on { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
+.page.is-on { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
 .segmented { display:inline-flex; gap:2px; padding:4px; background:#F1F2EE; border:1px solid #E5E7E2; border-radius:14px; width:max-content; }
 /* minmax(0,1fr), not the implicit auto column: an auto track sizes to its widest
    item's min-content, and a nowrap meta made one scan3 row 327px of min-content --
@@ -710,7 +757,7 @@ svg.chart { width:100%; display:block; }
 .item-row > div:has(.item-row-title) { min-width:0; }
 .item-row > span:not(:has(.item-row-title)) { flex:none; }
 .item-row-title { overflow-wrap:anywhere; }
-.item-row .item-row-icon { width:36px; height:36px; border-radius:var(--radius-compact); background:#DFF0E6; color:#12A56B; display:grid; place-items:center; font-size:14px; font-weight:700; flex:none; }
+.item-row .item-row-icon { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); background:#DFF0E6; color:#12A56B; display:grid; place-items:center; font-size:14px; font-weight:700; flex:none; }
 /* The drag handle was a bare <span> styling itself, down to a var(--text-faint,#9AA39B)
    whose fallback had drifted a digit from the token it falls back to. */
 .item-row .item-row-grip { color:var(--text-faint); cursor:grab; }
@@ -725,7 +772,7 @@ svg.chart { width:100%; display:block; }
 .item-row .amount { margin-left:auto; color:var(--text); font-weight:600; font-size:13px; white-space:nowrap; }
 .spotlight-pair .item-row .amount { color:var(--text-positive); }
 .key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid #DFE3DE; background:#F7F8F5; font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
-.chip { font:inherit; display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 11px; border-radius:var(--radius-compact); border:1px solid #E2E5E1; background:#fff; font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; }
+.chip { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:28px; padding:0 var(--pad-chip); border-radius:var(--radius-compact); border:1px solid #E2E5E1; background:#fff; font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; }
 .chip svg.icon { width:13px; height:13px; color:var(--chip-glyph); }
 .lead-sentence { font-size:16px; font-weight:600; color:var(--text); letter-spacing:-.01em; line-height:1.4; margin:2px 0 10px; }
 /* Selection may not change a segment's text metrics: the track is width:max-content, so
@@ -733,13 +780,13 @@ svg.chart { width:100%; display:block; }
    carries the selection alone. README: Segmented Control. */
 .segmented button { font:inherit; white-space:nowrap; padding:9px 19px; border-radius:11px; font-size:13px; font-weight:500; color:#3E453F; cursor:pointer; border:0; background:transparent; }
 .segmented button.is-on { background:var(--bg-dark); color:#fff; }
-.page-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
-.two-column { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-.button.button-block { display:flex; width:100%; height:44px; padding:0; gap:7px; border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; margin-top:12px; }
+.page-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
+.two-column { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-cards); }
+.button.button-block { display:flex; width:100%; height:44px; padding:0; gap:var(--gap-icon); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; margin-top:12px; }
 .button-link { font:inherit; background:none; border:0; padding:0; display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-decoration:underline; text-underline-offset:3px; color:var(--text); cursor:pointer; }
-.order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:18px; align-items:start; }
-.order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; min-width:0; }
-.entry-list .entry-glyph { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:#F3F5F1; flex:none; }
+.order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
+.order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); min-width:0; }
+.entry-list .entry-glyph { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:#F3F5F1; flex:none; }
 /* A tight top belongs to the container, not to the row. The row's padding is the box
    the hover tint paints, so the 7px taken off the first row to close the gap under the
    divider is 7px the lit band loses above the text and keeps below it -- ink 2px under
@@ -756,7 +803,7 @@ svg.chart { width:100%; display:block; }
 .empty-state .empty-state-icon { width:42px; height:42px; border-radius:var(--radius-page); border:1px solid #DFE3DE; background:#F7F8F5; display:grid; place-items:center; color:#9AA39B; }
 .empty-state .empty-state-icon svg.icon { width:19px; height:19px; }
 .empty-state p { margin:0; font-size:13.5px; color:var(--text-body); max-width:30ch; }
-.chip-tag { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:8px; font-size:11px; font-weight:600; width:max-content; }
+.chip-tag { display:inline-flex; align-items:center; gap:var(--gap-icon); height:26px; padding:0 10px; border-radius:8px; font-size:11px; font-weight:600; width:max-content; }
 .panel-heading { font-weight:700; }
 .chart-ruler { position:relative; height:9px; }
 .chart-ruler i { position:absolute; top:0; width:1px; height:9px; background:#D9DDD8; }
@@ -764,7 +811,7 @@ svg.chart { width:100%; display:block; }
 .segmented.segmented-compact button { padding:7px 16px; border-radius:9px; font-size:12px; }
 .row-inline { display:flex; align-items:center; gap:10px; }
 .toolbar { flex-wrap:nowrap; gap:10px; }
-.toolbar .field-shell { flex:1; height:38px; border-radius:var(--radius-compact); font-size:12.5px; padding:0 13px; }
+.toolbar .field-shell { flex:1; height:38px; border-radius:var(--radius-compact); font-size:12.5px; padding:0 var(--pad-control-compact); }
 /* The FILTERS disclosure. flex:none because its label is the whole of it: shrink it and the
    word compresses, and it is the control the sort slot beside it measures its share against.
    The one ghost button any toolbar carries -- counted, not assumed. */
@@ -784,7 +831,7 @@ svg.chart { width:100%; display:block; }
    slot stretches on a phone, and a chevron stranded mid-row reads as punctuation. */
 .toolbar > .toolbar-sort > svg.icon { margin-left:auto; }
 .global-finder { position:relative; margin-left:auto; flex:1; max-width:430px; }
-.global-finder > .field-shell { cursor:pointer; height:38px; border-radius:var(--radius-compact); font-size:12.5px; padding:0 13px; }
+.global-finder > .field-shell { cursor:pointer; height:38px; border-radius:var(--radius-compact); font-size:12.5px; padding:0 var(--pad-control-compact); }
 .global-finder .combobox-panel { display:none; right:auto; width:max(100%, 560px); max-width:calc(100vw - 72px); }
 .global-finder.is-open .combobox-panel { display:block; }
 .topbar .topbar-actions { margin-left:14px; }
@@ -806,7 +853,7 @@ svg.chart { width:100%; display:block; }
 .card-kpi span { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); font-weight:600; }
 .card-kpi .card-kpi-value { font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.02em; text-transform:none; font-weight:700; }
 .card-kpi .card-kpi-label { font-size:12px; color:var(--text-muted); letter-spacing:normal; text-transform:none; font-weight:500; }
-.delta { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; }
+.delta { display:inline-flex; align-items:center; gap:var(--gap-icon); font-size:12px; font-weight:600; }
 /* Three tones, because a delta has three things to say and only ever had two colours for them.
    Neutral used to carry both "moved the wrong way" and "there is nothing to compare against",
    which are opposite messages in the same body grey -- so a month where spending, average order
@@ -843,7 +890,7 @@ svg.chart { width:100%; display:block; }
    it copies is the near-miss the identifier exists to stop. README: Data Rows. */
 /* One row, one link -- the record. The orders behind it are reached from the record's own
    page now, so the strip that used to hold a pair of destinations is the destination. */
-.entity-row { padding:12px 0; border-radius:8px; border-bottom:1px solid var(--border-divider); }
+.entity-row { padding:var(--pad-row-y) 0; border-radius:8px; border-bottom:1px solid var(--border-divider); }
 .entity-row:last-child { border-bottom:0; }
 .entity-row .entity-row-text { min-width:0; flex:1; }
 .entity-row .entity-row-name, .order-row .order-row-vendor,
@@ -851,8 +898,8 @@ svg.chart { width:100%; display:block; }
 .entity-row .entity-row-meta { font-size:11.5px; color:var(--text-muted); }
 .entity-row .entity-row-amount { text-align:right; font-weight:600; font-size:13.5px; color:var(--text); }
 
-.order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; padding:12px 0; border-bottom:1px solid var(--border-divider); }
-.order-row .order-row-identity { display:flex; align-items:center; gap:12px; min-width:0; }
+.order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); }
+.order-row .order-row-identity { display:flex; align-items:center; gap:var(--gap-row); min-width:0; }
 .order-row .order-row-identity-text { min-width:0; }
 /* The list's outer edge carries no divider, the same way .category-row clears its
    first border-top. Written as "no .order-row after me" because :last-of-type
@@ -884,7 +931,7 @@ svg.chart { width:100%; display:block; }
    box around the card. Exercised by the port; the prototype's delete controls are static. */
 .confirm-dialog { border:0; padding:0; background:transparent; width:min(400px, calc(100vw - 48px)); }
 .confirm-dialog::backdrop { background:rgb(11 26 18 / .38); }
-.confirm-dialog-card { background:var(--bg-card); border-radius:var(--radius-card); padding:18px 20px; font-size:13px; color:var(--text); box-shadow:0 14px 44px rgb(11 26 18 / .22); }
+.confirm-dialog-card { background:var(--bg-card); border-radius:var(--radius-card); padding:18px var(--pad-card); font-size:13px; color:var(--text); box-shadow:0 14px 44px rgb(11 26 18 / .22); }
 .confirm-dialog-card strong { display:block; margin-bottom:4px; }
 .confirm-dialog-card p { margin:0; color:var(--text-body); line-height:1.5; }
 /* Shrink-wraps its image: no fixed width, so the dialog is exactly as big as the photo up to
@@ -918,11 +965,11 @@ svg.chart { width:100%; display:block; }
    source order. */
 .space-between.document-name-row { flex-wrap:nowrap; margin-top:10px; }
 .document-name-row .field-help { flex:none; }
-.chip-status { display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 12px; border-radius:9px; background:#DFF3EA; color:var(--text-positive); font-size:11.5px; font-weight:600; }
+.chip-status { display:inline-flex; align-items:center; gap:var(--gap-icon); height:28px; padding:0 var(--pad-chip); border-radius:9px; background:#DFF3EA; color:var(--text-positive); font-size:11.5px; font-weight:600; }
 .chip-status::before { content:""; width:6px; height:6px; border-radius:50%; background:#14AC72; }
 /* A thumbnail in a list row is the row's tile, so it is the row spec's tile: 36 and
    --radius-compact, not a 44px box of its own. It only ever appears inside .item-row. */
-.document-thumb { width:36px; height:36px; border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; overflow:hidden; font-size:0; }
+.document-thumb { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:#7C867E; flex:none; background:#EFF3EE; overflow:hidden; font-size:0; }
 .document-thumb-img { width:100%; height:100%; object-fit:cover; display:block; }
 .document-thumb-button { border:0; padding:0; cursor:pointer; }
 .document-thumb-button:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
@@ -936,7 +983,7 @@ svg.chart { width:100%; display:block; }
 .combobox-panel { position:absolute; top:calc(100% + 6px); left:0; right:0; background:#fff; border:1px solid var(--border-control); border-radius:14px; box-shadow:0 18px 44px rgb(11 26 18 / .14); padding:6px; z-index:6; }
 .combobox-group { padding:8px 4px 3px; }
 .combobox-group-heading { font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--text-muted); font-weight:600; padding:2px 10px 4px; }
-.combobox-option { display:flex; align-items:center; padding:10px 12px; border-radius:var(--radius-compact); font-size:13.5px; color:var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.combobox-option { display:flex; align-items:center; padding:10px var(--pad-inset); border-radius:var(--radius-compact); font-size:13.5px; color:var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .combobox-option:hover { background:#F5F7F4; }
 .combobox-option.combobox-option-highlighted { background:#F1F3EE; }
 .combobox-option.combobox-option-selected { background:#DFF0E6; font-weight:600; }
@@ -950,16 +997,16 @@ svg.chart { width:100%; display:block; }
 .global-finder mark.mark-lead { margin-left:4px; }
 .global-finder mark.mark-trail { margin-right:4px; }
 .combobox-option .combobox-option-meta { margin-left:auto; padding-left:14px; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }
-.combobox-option .combobox-option-star { color:var(--donut-yellow); display:inline-flex; align-items:center; margin-right:9px; }
+.combobox-option .combobox-option-star { color:var(--donut-yellow); display:inline-flex; align-items:center; margin-right:8px; }
 /* A star that reads as filled is filled. Both instances set fill and stroke
    inline, which is a paint mode, not a per-record value. */
 .combobox-option-star svg.icon { width:14px; height:14px; fill:currentColor; stroke:none; }
-.combobox-action { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:9px; margin-top:4px; padding:11px 12px; border-top:1px solid var(--border-divider); font-size:12px; font-weight:600; letter-spacing:.05em; color:var(--text); cursor:pointer; }
+.combobox-action { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:8px; margin-top:4px; padding:11px var(--pad-inset); border-top:1px solid var(--border-divider); font-size:12px; font-weight:600; letter-spacing:.05em; color:var(--text); cursor:pointer; }
 /* A placeholder truncates, it never wraps. Wrapping also knocks the control off
    its geometry tier (SS5): the search field grew to two lines and stood taller
    than the FILTERS and Sort controls sharing its row. Trailing bits (unit, key
    cap, status chip, thumbnail) keep their size; only the value column gives way. */
-.field-shell { white-space:nowrap; overflow:hidden; min-width:0; height:48px; border:1px solid var(--border-control); border-radius:var(--radius-page); background:#fff; display:flex; align-items:center; gap:9px; padding:0 15px; font-size:13.5px; color:var(--text); }
+.field-shell { white-space:nowrap; overflow:hidden; min-width:0; height:48px; border:1px solid var(--border-control); border-radius:var(--radius-page); background:#fff; display:flex; align-items:center; gap:8px; padding:0 var(--pad-control); font-size:13.5px; color:var(--text); }
 .field-shell > span:not(.field-unit):not(.key-cap):not(.chip-status):not(.field-thumb):not(.chip):not(.field-date-trail) { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
 /* Real controls, styled by the shell around them. The input carries no chrome of
    its own, so a native <input type="date"> gets the OS picker and a mobile
@@ -1007,7 +1054,7 @@ label.field-shell { cursor:pointer; }
    The trail leaves flow, never the input: the field being the input is what makes the
    whole of it the tap target on iOS. README: iOS and WebKit. */
 .field-shell.field-shell-date { position:relative; }
-.field-shell.field-shell-date > .field-date-trail { position:absolute; right:15px; top:0; bottom:0; display:flex; align-items:center; gap:9px; }
+.field-shell.field-shell-date > .field-date-trail { position:absolute; right:15px; top:0; bottom:0; display:flex; align-items:center; gap:8px; }
 .field-shell.field-shell-date > .field-date-trail > svg.icon { cursor:pointer; }
 .field-shell > svg.icon, .field-date-trail > svg.icon { width:15px; height:15px; color:var(--text-muted); }
 /* The combobox chevron keeps its own size wherever it is used -- in a field
@@ -1112,7 +1159,7 @@ label.field-shell { cursor:pointer; }
 .stepper-step.stepper-step-done .stepper-icon { background:var(--green); border-color:var(--green); color:#fff; }
 .stepper-step.stepper-step-done .stepper-bar { background:var(--green); }
 .stepper-step.stepper-step-done .stepper-step-label { color:var(--text); }
-.summary-row { display:flex; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid var(--border-divider); font-size:13px; color:var(--text-muted); }
+.summary-row { display:flex; justify-content:space-between; gap:var(--gap-row); padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); font-size:13px; color:var(--text-muted); }
 .summary-row-value { font-weight:600; color:var(--text); text-align:right; }
 .summary-row-value-saving { color:var(--text-positive); }
 /* The rule is "last in its run", and the run ends three different ways across
@@ -1173,7 +1220,7 @@ label.field-shell { cursor:pointer; }
 .check-box { appearance:none; -webkit-appearance:none; width:20px; height:20px; margin:-1.5px 0 0; border:1.5px solid #838C84; border-radius:6px; background:var(--bg-card); display:grid; place-items:center; cursor:pointer; flex:none; }
 .check-box:checked { background:var(--green); border-color:var(--green); }
 .check-box:checked::after { content:""; width:11px; height:9px; background:#fff; clip-path:polygon(38% 100%, 0 58%, 14% 44%, 38% 68%, 86% 0, 100% 12%); }
-.field-unit { margin-left:auto; height:28px; padding:0 10px; border:1px solid var(--border-control); border-radius:9px; background:#F7F8F5; font-size:11.5px; font-weight:600; color:var(--text-body); display:inline-flex; align-items:center; flex:none; }
+.field-unit { margin-left:auto; height:28px; padding:0 var(--pad-chip); border:1px solid var(--border-control); border-radius:9px; background:#F7F8F5; font-size:11.5px; font-weight:600; color:var(--text-body); display:inline-flex; align-items:center; flex:none; }
 .field-pair { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
 /* a segmented control inside a form is an entry field: full width, 48px tier, equal segments */
 .field .segmented { width:100%; height:48px; padding:4px; border-radius:var(--radius-page); }
@@ -1190,21 +1237,21 @@ label.field-shell { cursor:pointer; }
 .hero.hero-panel { text-align:left; padding:38px 42px; background:#EDEEE7; border-radius:20px; }
 /* Centred, so the sentence has to be centred in the column as well as in itself --
    max-width alone would pin it to the left edge of a 760px block. */
-.hero.hero-column { max-width:760px; margin:0 auto; text-align:center; padding:26px 0 10px; }
+.hero.hero-column { max-width:760px; margin:0 auto; text-align:center; padding:24px 0 10px; }
 .hero.hero-column p { margin-inline:auto; }
 .button.button-caps { gap:6px; border:0; border-radius:var(--radius-page); background:var(--bg-dark); color:#fff; font-size:11.5px; letter-spacing:.08em; }
 .ai-prompt-bar { display:flex; align-items:center; gap:12px; background:var(--bg-card); border:1px solid var(--border-card); border-radius:16px; box-shadow:var(--shadow); padding:8px 8px 8px 20px; max-width:640px; margin:0 auto; }
 .ai-prompt-bar .field-shell-placeholder { color:var(--text-muted); font-size:13px; flex:1; }
 .ai-prompt-bar > span > svg.icon { width:20px; height:20px; }
 .ai-suggestion-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
-.ai-suggestion-row button { font:inherit; display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px; border-radius:var(--radius-compact); border:1px solid #D9DED8; background:var(--bg-card); font-size:12px; font-weight:500; color:var(--text-body); cursor:pointer; }
-.spotlight-pair { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.ai-suggestion-row button { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:34px; padding:0 var(--pad-control-compact); border-radius:var(--radius-compact); border:1px solid #D9DED8; background:var(--bg-card); font-size:12px; font-weight:500; color:var(--text-body); cursor:pointer; }
+.spotlight-pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-cards); }
 .spotlight-pair .card .card-body { display:grid; gap:8px; }
-.button.button-ghost { gap:6px; padding:0 15px; border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; width:max-content; }
+.button.button-ghost { gap:var(--gap-icon); padding:0 var(--pad-control); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; width:max-content; }
 .spotlight-pair .button-ghost { width:100%; margin-top:4px; }
 /* Placed after the variants on purpose: it weighs the same as they do, so it only
    wins by sitting later in the file. Moving it up silently restores the 38px tier. */
-.button.button-compact { height:32px; padding:0 13px; font-size:10.5px; border-radius:var(--radius-compact); }
+.button.button-compact { height:32px; padding:0 var(--pad-control-compact); font-size:10.5px; border-radius:var(--radius-compact); }
 /* padding-bottom is the band the horizontal scrollbar sits in, not decoration -- at 4px a
    classic 15px bar is drawn hard against the cards' bottom border and reads as covering
    them. It is the same 14px as the gap between the cards, so the bar gets a lane of its
@@ -1218,14 +1265,14 @@ label.field-shell { cursor:pointer; }
 /* A ring beside the rows that name its segments. Was .spend-gauge-row, which named the one
    ring that happened to use it first -- Categories' Breakdown ring needs the same arrangement
    and has no gauge on the page, so the class is named for the arrangement instead. */
-.ring-row { display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
+.ring-row { display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
 /* Same reasoning as .donut -- no baked-in split rendered when there's nothing to show. */
 .spend-gauge { width:170px; height:170px; border-radius:50%; position:relative; flex:none; background:var(--border-card); }
 .spend-gauge::before { content:""; position:absolute; inset:22px; background:var(--bg-card); border-radius:50%; }
 .spend-gauge .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:2px; z-index:1; text-align:center; }
 .spend-gauge .ring-centre-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
 .spend-gauge .ring-centre-label { font-style:normal; font-size:10px; color:var(--text-muted); }
-.account-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--border-divider); }
+.account-row { display:flex; align-items:center; gap:var(--gap-row); padding:var(--pad-row-y) 0; border-top:1px solid var(--border-divider); }
 .account-row:first-child { border-top:0; }
 .account-row-text { font-size:12.5px; }
 .card-question .card-question-label { font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--text-muted); text-transform:uppercase; }
@@ -1295,6 +1342,15 @@ label.field-shell { cursor:pointer; }
 		--tabbar-gap:16px;
 		--tabbar-gap-bottom:3px;
 		--tabbar-height:64px;
+		/* The phone values of the spacing tokens, in one place instead of one rule per
+		   surface: README: Grids and Breakpoints names one 12px gutter below 700px, and
+		   the topbar, the page bar and the content sheet each used to restate it. The
+		   sheet's vertical padding evens out to 14px, and the pager buttons narrow so
+		   the row fits beside the range chips. */
+		--gutter-page:12px;
+		--pad-sheet-top:14px;
+		--pad-sheet-bottom:14px;
+		--pad-pager:7px;
 	}
 	.sidebar {
 		position:fixed;
@@ -1325,7 +1381,7 @@ label.field-shell { cursor:pointer; }
 	   same expression, off the same tokens, rather than a number that resembles the bar's
 	   height and stops agreeing with it the day the bar moves. */
 	.update-notice { bottom:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px); }
-	.topbar { flex-wrap:wrap; padding:12px; }
+	.topbar { flex-wrap:wrap; }
 	.topbar h1 { font-size:16px; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but
 	   typing an order is the one you need when there is no receipt to scan, so it
@@ -1417,10 +1473,10 @@ label.field-shell { cursor:pointer; }
 	   own edge and have nothing to be rounded against once they run full width, but
 	   the cards sitting on them keep their radius -- they are objects on the paper,
 	   not the paper. Controls keep theirs for the same reason. */
-	.content-sheet { margin:8px 0 14px; padding:14px 12px; border-radius:0; }
+	.content-sheet { margin:8px 0 14px; border-radius:0; }
 	/* The strip scrolls rather than wrapping: a second row of sub-tabs would push the
 	   first card below the fold, and the tabs are a set you scan, not a paragraph. */
-	.page-bar { padding:6px 12px 2px; overflow-x:auto; scrollbar-width:none; }
+	.page-bar { padding:6px var(--gutter-page) 2px; overflow-x:auto; scrollbar-width:none; }
 	.segmented { flex-wrap:nowrap; }
 	.dashboard-cards { grid-template-columns:1fr; }
 	/* No hover under a coarse pointer, so there is no way to ask for the tooltip and no
@@ -1438,7 +1494,6 @@ label.field-shell { cursor:pointer; }
 	.stats-window .pager-wide, .range-tabs-pager .pager-wide { display:none; }
 	.stats-window .pager-narrow, .range-tabs-pager .pager-narrow { display:inline; }
 	.range-tabs.range-tabs-pager { gap:4px; }
-	.range-tabs-pager button, .range-tabs-pager button.is-on { padding:0 7px; }
 	.row-inline > .stats-window { min-width:0; gap:6px; }
 	.space-between > .row-inline { gap:6px; }
 	.stats-window .panel-heading { font-size:14px; }
@@ -1474,7 +1529,7 @@ label.field-shell { cursor:pointer; }
 .row-actions { gap:4px; }
 .space-between-top { align-items:flex-start; }
 .section-label-break { display:block; margin-top:10px; }
-.inset-panel-note { padding:10px 12px; }
+.inset-panel-note { padding:10px var(--pad-inset); }
 .card-divider-gap { margin:6px 0 0; }
 .meter-under-caption { margin-top:14px; }
 .chart-under-caption { margin-top:8px; }
@@ -1555,7 +1610,7 @@ label.field-shell { cursor:pointer; }
 .is-dragover { outline:2px dashed var(--green); outline-offset:2px; }
 .empty-state.is-dragover { border-radius:14px; }
 .scan-drop-icon { color:var(--text-faint); }
-.scan-info-row { margin-top:22px; }
+.scan-info-row { margin-top:20px; }
 .scan-check-icon { color:var(--green); }
 .scan-info-icon { color:var(--text-body); }
 .scan-reading-preview { width:120px; height:150px; }
@@ -1589,7 +1644,7 @@ label.field-shell { cursor:pointer; }
 .tok-req { color:var(--text); font-weight:700; }
 .tok-note { color:var(--text-muted); }
 .import-caption { display:block; margin:0 0 16px; }
-.import-rules { margin:0 0 16px; padding-left:16px; display:grid; gap:5px; font-size:12px; color:var(--text-muted); }
+.import-rules { margin:0 0 16px; padding-left:16px; display:grid; gap:6px; font-size:12px; color:var(--text-muted); }
 .import-rules code, .card-body .field-help code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; color:var(--text-body); background:#F2F4F1; padding:1px 4px; border-radius:4px; }
 
 /* Vendor overview's per-card actions. */
