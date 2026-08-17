@@ -1,75 +1,75 @@
 import { useEffect, useRef, useState } from 'react'
 
-/* On a touchscreen there is no browser chrome to pull down for a reload, so this is the one
-   that stands in for it: hold a downward drag from the top of the page and it reloads, same
-   as tapping refresh in a browser tab -- nothing here re-asks the API on the page's behalf,
-   it just reloads the document.
+/* Pull down at the top of the page to reload it.
 
-   Below the DRAG_SLOP a touch is left alone entirely, so an ordinary scroll to the top is
-   never intercepted -- only a drag that continues past it, at scroll position 0, is read as a
-   pull. And reaching the distance is not enough on its own: MIN_HOLD_MS is what "pull should
-   require a bit of effort" means here, so a fast flick that happens to cross the distance
-   while flying past does not reload the page underneath the reader. */
+   The standard mobile gesture (Tweetie, 2008; UIRefreshControl since): drag past the top of the
+   content, a spinner appears, and letting go reloads. This app needs it because a web app opened
+   from the home screen has no browser chrome left to pull down for a reload.
 
+   Three numbers keep it deliberate rather than accidental. Nothing at all happens until the
+   finger has moved SLOP, so scrolling to the top is never intercepted; the page only reloads if
+   the pull reached THRESHOLD; and it has to have been held MIN_HOLD_MS, so a fast flick that
+   flies through the same distance scrolls instead of throwing the page away under the reader.
+
+   The spinner fades in and turns with the pull, which is what makes a hidden gesture
+   discoverable -- it shows its own progress before it commits to anything. Once it does commit
+   it spins until the reload replaces the document, so it is never showing "done" early. */
+
+const SLOP = 8
 const THRESHOLD = 60
 const MAX_PULL = 90
-const DRAG_SLOP = 8
 const MIN_HOLD_MS = 300
 
 export function PullToRefresh({ children }) {
-	const [distance, setDistance] = useState(0)
-	const [spinning, setSpinning] = useState(false)
-	const touch = useRef(null)
-	/* onEnd is one closure for the life of the gesture, and it has to read the distance at the
-	   very end of the drag -- well after the render that last set it -- so a ref mirrors the
-	   state rather than the effect closing over a stale value from when it was attached. */
-	const distanceRef = useRef(distance)
-	distanceRef.current = distance
+	const [pull, setPull] = useState(0)
+	const [refreshing, setRefreshing] = useState(false)
+	/* The gesture lives entirely in a ref: it is read and written from listeners that are
+	   attached once, so state here would only ever be stale. `pull` is the render of it. */
+	const drag = useRef(null)
+	const done = useRef(false)
 
 	useEffect(() => {
-		const atTop = () => (document.scrollingElement?.scrollTop ?? window.scrollY) <= 0
+		const atTop = () => (document.scrollingElement?.scrollTop ?? 0) <= 0
 
 		const onStart = e => {
-			if (spinning || e.touches.length !== 1 || !atTop()) return
+			if (done.current || e.touches.length !== 1 || !atTop()) return
 			const t = e.touches[0]
-			touch.current = { x: t.clientX, y: t.clientY, dragging: false, since: 0 }
+			drag.current = { x: t.clientX, y: t.clientY, pulling: false, since: 0, distance: 0 }
 		}
 
 		const onMove = e => {
-			const t = touch.current
-			if (!t) return
-			const point = e.touches[0]
-			const dy = point.clientY - t.y
-			const dx = point.clientX - t.x
-			if (!t.dragging) {
-				if (Math.abs(dy) < DRAG_SLOP && Math.abs(dx) < DRAG_SLOP) return
-				/* Sideways, or upward (scrolling toward the top the normal way): not a pull.
-				   Bail without touching the event so the page's own scrolling handles it. */
-				if (dy <= 0 || Math.abs(dx) > Math.abs(dy)) { touch.current = null; return }
-				t.dragging = true
-				t.since = Date.now()
+			const d = drag.current
+			if (!d) return
+			const dx = e.touches[0].clientX - d.x
+			const dy = e.touches[0].clientY - d.y
+			if (!d.pulling) {
+				if (Math.abs(dx) < SLOP && Math.abs(dy) < SLOP) return
+				/* Sideways, or upward -- an ordinary scroll. Drop the gesture without touching
+				   the event, so the page scrolls exactly as it always did. */
+				if (dy <= 0 || Math.abs(dx) > Math.abs(dy)) { drag.current = null; return }
+				d.pulling = true
+				d.since = Date.now()
 			}
-			if (!atTop()) { touch.current = null; setDistance(0); return }
-			/* Committed: this is the point a normal scroll and a pull diverge, so this is the
-			   latest it can wait to take over the gesture. */
+			/* Taking the gesture over: this is the first moment a pull and a scroll differ. */
 			e.preventDefault()
-			setDistance(Math.min(dy * 0.5, MAX_PULL))
+			/* Halved, and capped -- the page trails the finger instead of tracking it, the
+			   resistance a native list gives a pull past its own content. */
+			d.distance = Math.min(dy / 2, MAX_PULL)
+			setPull(d.distance)
 		}
 
 		const onEnd = () => {
-			const t = touch.current
-			touch.current = null
-			if (!t?.dragging) return
-			const held = Date.now() - t.since
-			if (distanceRef.current >= THRESHOLD && held >= MIN_HOLD_MS) {
-				setSpinning(true)
-				setDistance(THRESHOLD)
-				/* The spinner gets a beat on screen before the reload tears the page down --
-				   otherwise the gesture registers as nothing happening at all. */
-				setTimeout(() => window.location.reload(), 250)
-				return
-			}
-			setDistance(0)
+			const d = drag.current
+			drag.current = null
+			if (!d?.pulling) return
+			if (d.distance < THRESHOLD || Date.now() - d.since < MIN_HOLD_MS) { setPull(0); return }
+			done.current = true
+			setRefreshing(true)
+			setPull(THRESHOLD)
+			/* One beat for the spinner to paint before the reload blocks the main thread --
+			   without it the gesture ends looking like nothing happened. It keeps spinning from
+			   there until the new document replaces this one. */
+			setTimeout(() => window.location.reload(), 150)
 		}
 
 		document.addEventListener('touchstart', onStart, { passive: true })
@@ -82,16 +82,27 @@ export function PullToRefresh({ children }) {
 			document.removeEventListener('touchend', onEnd)
 			document.removeEventListener('touchcancel', onEnd)
 		}
-	}, [spinning])
+	}, [])
 
-	const live = distance > 0 && !spinning
+	/* No transition under a moving finger -- that would lag the page a frame behind the touch.
+	   Released, the same properties ease, which is the snap back. */
+	const dragging = pull > 0 && !refreshing
+	const ease = dragging ? 'none' : 'transform .2s ease, opacity .2s ease'
+
 	return (
 		<>
-			<div className="pull-to-refresh-indicator" aria-hidden={distance === 0}
-				style={{ opacity: Math.min(distance / THRESHOLD, 1), transition: live ? 'none' : 'opacity .2s ease' }}>
-				<span className={['pull-to-refresh-spinner', spinning && 'is-spinning'].filter(Boolean).join(' ')} />
+			<div className="pull-to-refresh-indicator" aria-hidden={!pull}
+				style={{
+					transform: `translateX(-50%) translateY(${pull * 0.4}px)`,
+					opacity: Math.min(pull / THRESHOLD, 1),
+					transition: ease
+				}}>
+				{/* The turn is inline while dragging and a CSS animation once refreshing, so the
+				    two never fight over the same property. */}
+				<span className={['pull-to-refresh-spinner', refreshing && 'is-spinning'].filter(Boolean).join(' ')}
+					style={refreshing ? undefined : { transform: `rotate(${pull * 4}deg)` }} />
 			</div>
-			<div style={{ transform: distance ? `translateY(${distance}px)` : undefined, transition: live ? 'none' : 'transform .2s ease' }}>
+			<div style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: ease }}>
 				{children}
 			</div>
 		</>

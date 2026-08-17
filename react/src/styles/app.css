@@ -270,13 +270,17 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .content-sheet-inner { width:100%; }
 
 /* Pull-to-refresh (components/PullToRefresh.jsx). Fixed to the viewport rather than to the page
-   it sits beside, since the page is what moves: dragging down translates the whole shell, which
-   uncovers this from behind it. The distance-driven transform and opacity are written inline by
-   the component -- both are per-pixel-of-drag and have no fixed states to name here. */
+   beside it, because the page is the thing that moves: a pull translates the whole shell down
+   and uncovers this from behind it. Everything distance-driven -- how far it has emerged, how
+   far it has turned, how visible it is -- is written inline by the component, since all three
+   are per-pixel-of-drag and have no fixed states to name here. */
 .pull-to-refresh-indicator {
-	position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:40;
+	position:fixed; top:8px; left:50%; z-index:40;
 	pointer-events:none; display:grid; place-items:center;
 }
+/* A ring with one coloured arc, so the turn is legible: a plain circle rotating shows nothing.
+   Drawn in CSS rather than as an icon -- it is a spinner, not one of the app's glyphs, and the
+   registry in Icon.jsx is for things the interface draws. */
 .pull-to-refresh-spinner {
 	width:22px; height:22px; border-radius:50%; border:2.5px solid var(--border-divider);
 	border-top-color:var(--text-positive);
