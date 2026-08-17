@@ -231,7 +231,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 			    and a broken one. */}
 			<span className="field-help">
 				{query.trim()
-					? `${names.length}${hits.capped ? '+' : ''} of ${(total ?? 0).toLocaleString('da-DK')} icons match.`
+					? `${names.length}${hits.capped ? '+' : ''} of ${(total ?? 0).toLocaleString('da-DK')} ${names.length === 1 && !hits.capped ? 'icon matches' : 'icons match'}.`
 					: names.length === 0
 						? null
 						: total

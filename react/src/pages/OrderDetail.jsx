@@ -151,7 +151,7 @@ export default function OrderDetail() {
 								    count above and the rows below quietly disagree. */}
 								{order.itemCount > order.items.length ? (
 									<ItemRow icon="dots" iconTone={{ background: '#EFF3EE', color: 'var(--text-muted)' }}
-										title={`${order.itemCount - order.items.length} more lines`}
+										title={plural(order.itemCount - order.items.length, 'more line', 'more lines')}
 										meta="On the receipt, and in the total below." />
 								) : null}
 								<div className="card-divider card-divider-gap" />

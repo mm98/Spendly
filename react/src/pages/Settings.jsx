@@ -9,7 +9,7 @@ import {
 	CheckRow, Field, FieldPair, FilterSection, Form, FormActions, Segmented
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
-import { CURRENCIES, localStamp, setCurrency } from '../api/format.js'
+import { CURRENCIES, localStamp, plural, setCurrency } from '../api/format.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	cardRowOptions, checkVersion, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders,
@@ -138,8 +138,8 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 				reload()
 				setFilling(false)
 				// The span in the unit it was chosen in: years when it is whole years, months when not.
-				const span = months % 12 === 0 ? `${months / 12} year${months === 12 ? '' : 's'}` : `${months} months`
-				toast(`${orders} orders across ${span}, ${vendors} vendors and ${categories} categories.`)
+				const span = months % 12 === 0 ? plural(months / 12, 'year') : plural(months, 'month')
+				toast(`${plural(orders, 'order')} across ${span}, ${plural(vendors, 'vendor')} and ${plural(categories, 'category', 'categories')}.`)
 			})
 			.catch(e => toast(failureMessage(e, 'That did not fill.'), 'negative'))
 			.finally(() => setBusy(false))

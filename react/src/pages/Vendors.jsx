@@ -120,7 +120,7 @@ export default function Vendors() {
 												<CardDivider />
 												<CardBody>
 													<div className="lead-sentence">
-														{vendor.lead ?? `${vendor.orders} orders, ${currency(vendor.spend, 0)}${fullStop()}`}</div>
+														{vendor.lead ?? `${plural(vendor.orders, 'order')}, ${currency(vendor.spend, 0)}${fullStop()}`}</div>
 													<InsetPanel>
 														<ItemRow icon="discount" title="Saved vs retail"
 															meta={`${vendor.name}${sep}all time`} amount={currency(vendor.saved, 0)} />

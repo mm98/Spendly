@@ -24,7 +24,7 @@ import {
 	vendorByAnyName
 } from '../api/client.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, currency, currencySymbol, fullStop, parseAmount, percent, sep, today } from '../api/format.js'
+import { amount, currency, currencySymbol, fullStop, parseAmount, percent, plural, sep, today } from '../api/format.js'
 
 /* Editing an order, whole.
 
@@ -283,9 +283,9 @@ function EditOrderForm({ id, seed }) {
 									leadingIcon="search"
 									groups={[
 										{ heading: 'Favourites', options: (vendors.data ?? []).filter(v => v.favourite)
-											.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders`, star: true })) },
+											.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order'), star: true })) },
 										{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
-											.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders` })) }
+											.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order') })) }
 									]}
 									action={aliasHit
 										? { icon: 'check',
