@@ -1948,3 +1948,35 @@ Measured in Blink 141.0.7390.37 under Playwright 1.56.1, fresh account, demo fil
 The category panel on the same page reads the same cap (340px against 472px of content) with no rule
 of its own, which is the point: the fix is the component's, so no list a combobox is given can
 outgrow reach again.
+
+## Combobox — typing marked the matches and moved none of them closer
+
+"Type to search" is the component's own promise, and typing did run a search — it just spent the
+answer on a highlight. Every option stayed in the panel wherever it already stood, matches wrapped
+in `<mark>` in place, so on a list long enough to scroll (the panel caps at 342px — the entry above)
+a match past the fold was exactly as unreachable after typing as before it: the search *found* it
+and the list never said so. On an account with ~50 vendors, typing a vendor's name left the
+Favourites group and every non-match standing between the reader and the row they had just named.
+
+Typing now filters: the panel keeps only the options whose label contains the typed string, a group
+filtered empty gives up its heading with it (Favourites included), and a search that matches nothing
+prints *No match for "..."* above whatever create-action the field offers. The one string that does
+not filter is an option's own label standing whole in the field — that is the resting selection a
+closed combobox displays, and reopening on it has to offer the full list, not the one row already
+chosen. The mark stays; it now lands on rows that are all matches.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, fresh account, demo fill
+`{seed: 1, months: 12, orders: 220}` (12 vendors, 2 favourite), 1280x720, on New order's vendor
+field:
+
+| typed | the panel |
+| --- | --- |
+| `` (empty) | 12 options in 2 groups (Favourites 2, All vendors 10) — unchanged |
+| `pro` | **1 option** (Proshop), marked, under Favourites alone — All vendors dropped its heading |
+| `zzz-none` | 0 options, *No match for "zzz-none".*, CREATE VENDOR "ZZZ-NONE" below it |
+| `Bilka` standing whole | 12 options — the resting name filtered nothing |
+| Proshop picked, reopened | 12 options — same rule after a click as after typing |
+
+The category combobox on the same page, given `clo`, answered 1 option against the API's 1 — the
+same rule, from the component, with no change of its own.
+
