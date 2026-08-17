@@ -119,6 +119,7 @@ const formatter = options => {
 	return () => (built ??= new Intl.DateTimeFormat(undefined, options))
 }
 const dayMonthFormat = formatter({ day: 'numeric', month: 'long' })
+const dayMonthYearFormat = formatter({ day: 'numeric', month: 'long', year: 'numeric' })
 const longDateFormat = formatter({ day: 'numeric', month: 'long', year: 'numeric' })
 const shortDateFormat = formatter({ day: '2-digit', month: '2-digit', year: 'numeric' })
 const stampFormat = formatter({
@@ -131,8 +132,15 @@ const dateOf = iso => {
 	return new Date(y, m - 1, d)
 }
 
-/** "2026-07-18" -> "18 July" for a reader in Copenhagen, "July 18" for one in Chicago. */
-export const dayMonth = iso => dayMonthFormat().format(dateOf(iso))
+/** "2026-07-18" -> "18 July" for a reader in Copenhagen, "July 18" for one in Chicago -- but
+    "17 January 2022" once the year isn't the reader's current one. A bare day and month reads
+    as this year to anyone who doesn't stop to check, which is exactly the wrong default for an
+    order that is several years old rather than several months. */
+export const dayMonth = iso => {
+	const date = dateOf(iso)
+	const sameYear = date.getFullYear() === new Date().getFullYear()
+	return (sameYear ? dayMonthFormat() : dayMonthYearFormat()).format(date)
+}
 
 /** "2026-07-18" -> "18 July 2026", in the reader's own order. */
 export const longDate = iso => longDateFormat().format(dateOf(iso))
