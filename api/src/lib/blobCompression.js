@@ -19,7 +19,7 @@ export function compressBlob(buffer) {
 }
 
 /** The inverse of compressBlob, keyed off the flag it returned (stored, e.g., as a row's
-    data_compressed/thumbnail_compressed column) -- never off the bytes themselves. `compressed`
+    data_is_compressed/thumbnail_is_compressed column) -- never off the bytes themselves. `compressed`
     falsy is a plain pass-through, so this is safe to call over every row uniformly, compressed
     or not. */
 export function decompressBlob(buffer, compressed) {

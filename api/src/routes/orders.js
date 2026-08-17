@@ -43,16 +43,16 @@ const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, t
 	price=@price, retail=@retail, note=@note WHERE id=@id AND order_id=@orderId`)
 const deleteOrderItem = db.prepare('DELETE FROM order_items WHERE id = ? AND order_id = ?')
 const insertAttachment = db.prepare(`INSERT INTO attachments
-	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_compressed, thumbnail, thumbnail_compressed, thumbnail_content_type)
+	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
 	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
 const selectExistingAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_id = ?')
 const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_item_id = ?')
 const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
 const deleteItemAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_item_id = ?')
-const selectAttachment = db.prepare('SELECT name, content_type, data, data_compressed FROM attachments WHERE id = ? AND order_id = ?')
-const selectItemAttachment = db.prepare('SELECT name, content_type, data, data_compressed FROM attachments WHERE id = ? AND order_item_id = ?')
-const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
-const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
+const selectAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_id = ?')
+const selectItemAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_item_id = ?')
+const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
+const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectLatestOrders = db.prepare(
 	`SELECT ${orderTotalsSelectList()} FROM orders WHERE user_id = @userId ORDER BY date DESC, id DESC LIMIT @count`
 )
@@ -335,7 +335,7 @@ router.get('/:id/attachments/:attachmentId/file', (req, res) => {
 	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
 	res.set('Content-Disposition', `inline; filename="${attachment.name.replace(/"/g, '')}"`)
-	res.send(decompressBlob(attachment.data, attachment.data_compressed))
+	res.send(decompressBlob(attachment.data, attachment.data_is_compressed))
 })
 
 router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
@@ -344,7 +344,7 @@ router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
 	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
 	res.set('Content-Type', attachment.thumbnail_content_type || 'image/jpeg')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // a thumbnail's bytes never change once made
-	res.send(decompressBlob(attachment.thumbnail, attachment.thumbnail_compressed))
+	res.send(decompressBlob(attachment.thumbnail, attachment.thumbnail_is_compressed))
 })
 
 /* ---- item attachments ----
@@ -376,7 +376,7 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/file', (req, res) => {
 	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
 	res.set('Content-Disposition', `inline; filename="${attachment.name.replace(/"/g, '')}"`)
-	res.send(decompressBlob(attachment.data, attachment.data_compressed))
+	res.send(decompressBlob(attachment.data, attachment.data_is_compressed))
 })
 
 router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) => {
@@ -386,7 +386,7 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) 
 	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
 	res.set('Content-Type', attachment.thumbnail_content_type || 'image/jpeg')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')
-	res.send(decompressBlob(attachment.thumbnail, attachment.thumbnail_compressed))
+	res.send(decompressBlob(attachment.thumbnail, attachment.thumbnail_is_compressed))
 })
 
 /* ---- bulk import ----
