@@ -55,6 +55,7 @@ export function decorateOrder(totals, { items, attachments, itemAttachments, cat
 		kind: totals.kind,
 		categoryIds: categories.map(c => c.id),
 		shipping: totals.shipping,
+		discount: totals.discount,
 		note: totals.note,
 		reference: totals.reference,
 		refunded: Boolean(totals.refunded),

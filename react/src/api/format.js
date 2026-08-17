@@ -65,8 +65,9 @@ export const currency = (n, decimals = 2) => {
 	if (!active.before) return figure + ' ' + active.symbol
 	/* The minus sits outside the symbol: "-$99,50", never "$-99,50". A prefix currency puts
 	   two characters in front of the digits and they are not interchangeable -- the sign is a
-	   fact about the amount, the symbol about the ledger. Item prices are the one signed money
-	   field here (a receipt line can be a discount), so this renders on any order with one. */
+	   fact about the amount, the symbol about the ledger. No field a user types is signed now,
+	   but plenty of figures the app computes are (a delta, a saving against a cheaper retail,
+	   a discount line in a summary), so this stays. */
 	return figure.startsWith('-') ? '-' + active.symbol + figure.slice(1) : active.symbol + figure
 }
 
@@ -86,12 +87,13 @@ export const percent = (n, decimals = 1) =>
    Nothing here is input[type=number] and nothing should be: type=number rejects the comma,
    so `value` comes back empty and min/max/step never run. inputmode gets the numeric
    keyboard; the parsing is ours. A dot groups thousands and never separates decimals,
-   which makes 89.95 a typo to name rather than a number to guess at. README: Fields and Forms. */
+   which makes 89.95 a typo to name rather than a number to guess at.
+
+   One pattern, because no money field a user types is signed. A rabat used to be a line item
+   with a negative price, which needed a second signed grammar beside this one -- and could not
+   be typed at all on a phone, whose decimal keypad has no minus key. It is the order's own
+   discount field now, entered as the amount taken off. README: Fields and Forms. */
 export const AMOUNT_PATTERN = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
-/** The same grammar with a leading minus allowed. An item's price is the one signed money
-    field -- a receipt line can be a discount (rabat), and it subtracts -- where retail and
-    shipping never go below zero. parseAmount carries the sign through unchanged. */
-export const SIGNED_AMOUNT_PATTERN = /^-?(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
 export const WHOLE_NUMBER_PATTERN = /^\d+$/
 export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',', '.'))
 

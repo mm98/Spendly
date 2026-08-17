@@ -88,7 +88,8 @@ export function NewOrderDetails() {
 		'order-vendor': draft.vendor,
 		'order-date': draft.date,
 		'order-kind': draft.kind,
-		'order-shipping': draft.shipping
+		'order-shipping': draft.shipping,
+		'order-discount': draft.discount
 	}), [draft])
 
 	const { check, recheck, propsFor } = useFieldErrors(ORDER_FIELDS, values)
@@ -144,6 +145,7 @@ export function NewOrderDetails() {
 	const dateField = propsFor('order-date')
 	const kindField = propsFor('order-kind')
 	const shippingField = propsFor('order-shipping')
+	const discountField = propsFor('order-discount')
 
 	return (
 		<FormPage
@@ -244,8 +246,22 @@ export function NewOrderDetails() {
 
 			{/* The optional fields, plain rows of the form like everything above them. They
 			    used to sit behind a More details? switch and then under its heading in a
-			    bordered section; three optional fields cost less on screen than either. */}
+			    bordered section; three optional fields cost less on screen than either.
+
+			    Discount and Shipping pair because they are the two order-level amounts, and the
+			    two halves of the same sentence -- in the order the total applies them: the rabat
+			    comes off what the goods cost, then the carrier's fee goes on. */}
 			<FieldPair>
+				<Field label="Discount" error={discountField.error} errorId={discountField.errorId}
+					help="What was taken off the order.">
+					<FieldShell>
+						<TextInput id="order-discount" inputMode="decimal" placeholder="0,00"
+							aria-label="Discount" value={draft.discount}
+							invalid={discountField.invalid} describedBy={discountField.describedBy}
+							onChange={set('order-discount', 'discount')} />
+						<FieldUnit>{currencySymbol()}</FieldUnit>
+					</FieldShell>
+				</Field>
 				<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
 					<FieldShell>
 						<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
@@ -255,6 +271,8 @@ export function NewOrderDetails() {
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
+			</FieldPair>
+			<FieldPair>
 				<Field label="Order reference">
 					<FieldShell>
 						<TextInput placeholder="Optional" aria-label="Order reference"
@@ -277,10 +295,14 @@ export function NewOrderDetails() {
    produce, not a fact about a real order yet. EditOrder.jsx's own rail drops it, because there
    the order and its items already exist. */
 function OrderSummary({ draft, estimate, showItems }) {
-	const total = draft.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		+ (draft.shipping ? parseAmount(draft.shipping) : 0)
+	/* The same three formulas the orders table generates (migrations/009), so the rail and the
+	   saved record cannot disagree: total adds shipping and takes the discount off, and the
+	   discount counts as money saved against retail. */
+	const paid = draft.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+	const discount = draft.discount ? parseAmount(draft.discount) : 0
+	const total = paid + (draft.shipping ? parseAmount(draft.shipping) : 0) - discount
 	const retail = draft.items.reduce((sum, i) => sum + (i.retail ?? i.price) * i.quantity, 0)
-	const saved = retail - draft.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+	const saved = retail - paid + discount
 
 	return (
 		<Card aria-label="Order summary">
@@ -295,6 +317,7 @@ function OrderSummary({ draft, estimate, showItems }) {
 						<div className="summary-row">Categories
 							<span className="summary-row-value">{draft.categories.join(', ') || '-'}</span></div>
 						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
+						{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
 						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 					</>
 				)}

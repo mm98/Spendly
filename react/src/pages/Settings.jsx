@@ -188,14 +188,32 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								</Field>
 							</FilterSection>
 
+							{/* Two sections, not one "Lists" section holding four controls. The four
+							    answer two different questions -- how much of a list is shown, and what
+							    order it arrives in -- and interleaved (count, sort, sort, count) they
+							    read as one undifferentiated stack of preferences. Grouped by the
+							    question, each section is two controls that share a heading and a
+							    shape: both counts are segmented, both sorts are comboboxes.
+							    README: Settings, Uniformity. */}
 							<FilterSection>
-								<span className="panel-heading">Lists</span>
+								<span className="panel-heading">Rows and entries</span>
 								<Field label="Rows per page" group
 									help="How many rows the order, vendor and category lists show before the pager.">
 									<Segmented options={PAGE_SIZES} value={String(local.pageSize)}
 										onChange={v => change({ pageSize: Number(v) }, 'Page size saved.')}
 										label="Rows per page" />
 								</Field>
+								<Field label="Entries per card" group
+									help="How many rows a card on Home fills with: the latest orders, the top vendors, the favourites.">
+									<Segmented options={cardRowOptions.map(String)}
+										value={String(local.cardRows)}
+										onChange={v => change({ cardRows: Number(v) }, 'Entries per card saved.')}
+										label="Entries per card" />
+								</Field>
+							</FilterSection>
+
+							<FilterSection>
+								<span className="panel-heading">Sorting</span>
 								<Field label="Sort orders by" htmlFor="setting-sort" help="What All orders opens sorted by.">
 									<Combobox id="setting-sort" label="Default sort"
 										value={sorts.find(s => s.id === local.sort)?.label ?? ''}
@@ -219,13 +237,6 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 										onChange={() => {}}
 										onSelect={o => change({ listSort: o.id }, 'List order saved.')}
 										groups={[{ heading: 'Sort', options: listSorts.map(s => ({ id: s.id, label: s.label })) }]} />
-								</Field>
-								<Field label="Entries per card" group
-									help="How many rows a card on Home fills with: the latest orders, the top vendors, the favourites.">
-									<Segmented options={cardRowOptions.map(String)}
-										value={String(local.cardRows)}
-										onChange={v => change({ cardRows: Number(v) }, 'Entries per card saved.')}
-										label="Entries per card" />
 								</Field>
 							</FilterSection>
 

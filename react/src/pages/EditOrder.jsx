@@ -68,7 +68,8 @@ function EditOrderForm({ id, seed }) {
 
 	const orderValues = useMemo(() => ({
 		'order-vendor': draft.vendor, 'order-date': draft.date,
-		'order-kind': draft.kind, 'order-shipping': draft.shipping
+		'order-kind': draft.kind, 'order-shipping': draft.shipping,
+		'order-discount': draft.discount
 	}), [draft])
 	const orderErrors = useFieldErrors(ORDER_FIELDS, orderValues)
 	const set = (name, key) => v => { update({ [key]: v }); orderErrors.recheck(name, v) }
@@ -239,15 +240,19 @@ function EditOrderForm({ id, seed }) {
 				toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
 
-	const total = draft.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		+ (draft.shipping ? parseAmount(draft.shipping) : 0)
+	/* Same three formulas the orders table generates (migrations/009) and the new order rail
+	   uses: total takes the discount off, and the discount counts as saved against retail. */
+	const paid = draft.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+	const discount = draft.discount ? parseAmount(draft.discount) : 0
+	const total = paid + (draft.shipping ? parseAmount(draft.shipping) : 0) - discount
 	const retail = draft.items.reduce((sum, i) => sum + (i.retail ?? i.price) * i.quantity, 0)
-	const saved = retail - draft.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+	const saved = retail - paid + discount
 
 	const vendorField = orderErrors.propsFor('order-vendor')
 	const dateField = orderErrors.propsFor('order-date')
 	const kindField = orderErrors.propsFor('order-kind')
 	const shippingField = orderErrors.propsFor('order-shipping')
+	const discountField = orderErrors.propsFor('order-discount')
 	const itemDescription = itemErrors.propsFor('item-description')
 	const itemQuantity = itemErrors.propsFor('item-quantity')
 	const itemPrice = itemErrors.propsFor('item-price')
@@ -339,6 +344,16 @@ function EditOrderForm({ id, seed }) {
 							{/* The optional fields, plain rows of the form -- the same flat rows
 							    as the new order form's. */}
 							<FieldPair>
+								<Field label="Discount" error={discountField.error} errorId={discountField.errorId}
+									help="What was taken off the order.">
+									<FieldShell>
+										<TextInput id="order-discount" inputMode="decimal" placeholder="0,00"
+											aria-label="Discount" value={draft.discount}
+											invalid={discountField.invalid} describedBy={discountField.describedBy}
+											onChange={set('order-discount', 'discount')} />
+										<FieldUnit>{currencySymbol()}</FieldUnit>
+									</FieldShell>
+								</Field>
 								<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
 									<FieldShell>
 										<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
@@ -348,6 +363,8 @@ function EditOrderForm({ id, seed }) {
 										<FieldUnit>{currencySymbol()}</FieldUnit>
 									</FieldShell>
 								</Field>
+							</FieldPair>
+							<FieldPair>
 								<Field label="Order reference">
 									<FieldShell>
 										<TextInput placeholder="Optional" aria-label="Order reference"
@@ -509,6 +526,7 @@ function EditOrderForm({ id, seed }) {
 						<div className="summary-row">Categories
 							<span className="summary-row-value">{draft.categories.join(', ') || '—'}</span></div>
 						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
+						{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
 						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 						<span className="section-label section-label-break">Items</span>
 						{draft.items.map(item => (

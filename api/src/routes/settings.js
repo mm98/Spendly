@@ -34,7 +34,10 @@ const toApi = row => ({
    nothing obeys is worse than no preference, because it says on the settings page that it is
    in force. Anything unrecognised falls back to what is already stored. */
 export const CARD_ROWS = [1, 2, 4, 6, 8, 10]
-export const ORDER_SORTS = ['date-desc', 'date-asc', 'amount-desc', 'amount-asc', 'vendor-asc']
+export const ORDER_SORTS = [
+	'date-desc', 'date-asc', 'amount-desc', 'amount-asc',
+	'discount-desc', 'discount-asc', 'vendor-asc'
+]
 export const LIST_SORTS = ['name-asc', 'spend-desc', 'spend-asc', 'saved-desc', 'saved-asc']
 const CURRENCY_CODES = CURRENCIES.map(c => c.code)
 const oneOf = (allowed, asked, fallback) => (allowed.includes(asked) ? asked : fallback)

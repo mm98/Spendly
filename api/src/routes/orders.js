@@ -31,10 +31,10 @@ const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM
 const countAllOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
 const deleteOrder = db.prepare('DELETE FROM orders WHERE id = ? AND user_id = ?')
 const deleteOrderCategories = db.prepare('DELETE FROM order_categories WHERE order_id = ?')
-const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date, status, kind, shipping, note, reference, refunded)
-	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, @note, @reference, @refunded)`)
+const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date, status, kind, shipping, discount, note, reference, refunded)
+	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, @discount, @note, @reference, @refunded)`)
 const updateOrderRow = db.prepare(`UPDATE orders SET vendor_id=@vendorId, date=@date, status=@status, kind=@kind,
-	shipping=@shipping, note=@note, reference=@reference, refunded=@refunded WHERE id=@id AND user_id=@userId`)
+	shipping=@shipping, discount=@discount, note=@note, reference=@reference, refunded=@refunded WHERE id=@id AND user_id=@userId`)
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
 const selectItemIds = db.prepare('SELECT id FROM order_items WHERE order_id = ?')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
@@ -78,7 +78,7 @@ router.get('/draft', (req, res) => {
 	res.json({
 		vendor: '', date: new Date().toISOString().slice(0, 10),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
-		categories: [], shipping: 0, reference: '', note: '', items: []
+		categories: [], shipping: 0, discount: 0, reference: '', note: '', items: []
 	})
 })
 
@@ -93,12 +93,23 @@ const SORT_SQL = {
 	'date-asc': 'ot.date ASC, ot.id ASC',
 	'amount-desc': 'ot.total DESC, ot.id DESC',
 	'amount-asc': 'ot.total ASC, ot.id ASC',
+	'discount-desc': 'ot.discount DESC, ot.id DESC',
+	'discount-asc': 'ot.discount ASC, ot.id ASC',
 	'vendor-asc': 'v.name COLLATE NOCASE ASC, ot.id ASC'
 }
 
+/* `q.sort` is read here as well as by SORT_SQL below, because one sort narrows the set rather
+   than only ordering it: an order with no discount is not an order "with the lowest discount",
+   it is an order the question does not apply to, so ranking by discount is over discounted
+   orders only. That predicate has to live in this builder and nowhere else -- the COUNT and
+   the page are both built from what it returns, so a row the page drops is a row the "N
+   matching" line above it has already stopped counting. Adding it beside the ORDER BY instead
+   would have filtered the page and left the count claiming rows the reader cannot reach. */
 function buildOrderFilter(userId, q) {
 	const where = ['ot.user_id = @userId']
 	const params = { userId }
+
+	if (String(q.sort ?? '').startsWith('discount-')) where.push('ot.discount > 0')
 
 	if (q.vendorId) { where.push('ot.vendor_id = @vendorId'); params.vendorId = q.vendorId }
 	if (q.categoryId === 'none') {
@@ -204,7 +215,8 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 	insertOrder.run({
 		id, userId, vendorId, date: toEpoch(draft.date),
 		status: draft.status || 'Delivered', kind: draft.kind || 'Expense',
-		shipping: Number(draft.shipping) || 0, note: draft.note || '', reference: draft.reference || '',
+		shipping: Number(draft.shipping) || 0, discount: Number(draft.discount) || 0,
+		note: draft.note || '', reference: draft.reference || '',
 		refunded: draft.refunded ? 1 : 0
 	})
 	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)
@@ -247,7 +259,8 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 	updateOrderRow.run({
 		id, userId, vendorId, date: toEpoch(draft.date),
 		status: draft.status || 'Delivered', kind: draft.kind || 'Expense',
-		shipping: Number(draft.shipping) || 0, note: draft.note || '', reference: draft.reference || '',
+		shipping: Number(draft.shipping) || 0, discount: Number(draft.discount) || 0,
+		note: draft.note || '', reference: draft.reference || '',
 		refunded: draft.refunded ? 1 : 0
 	})
 
