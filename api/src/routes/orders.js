@@ -98,9 +98,18 @@ const SORT_SQL = {
 	'vendor-asc': 'v.name COLLATE NOCASE ASC, ot.id ASC'
 }
 
+/* `q.sort` is read here as well as by SORT_SQL below, because one sort narrows the set rather
+   than only ordering it: an order with no discount is not an order "with the lowest discount",
+   it is an order the question does not apply to, so ranking by discount is over discounted
+   orders only. That predicate has to live in this builder and nowhere else -- the COUNT and
+   the page are both built from what it returns, so a row the page drops is a row the "N
+   matching" line above it has already stopped counting. Adding it beside the ORDER BY instead
+   would have filtered the page and left the count claiming rows the reader cannot reach. */
 function buildOrderFilter(userId, q) {
 	const where = ['ot.user_id = @userId']
 	const params = { userId }
+
+	if (String(q.sort ?? '').startsWith('discount-')) where.push('ot.discount > 0')
 
 	if (q.vendorId) { where.push('ot.vendor_id = @vendorId'); params.vendorId = q.vendorId }
 	if (q.categoryId === 'none') {

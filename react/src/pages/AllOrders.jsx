@@ -117,6 +117,14 @@ export default function AllOrders() {
 
 	/* The sort is the URL's when the URL has one, and the user's stored default otherwise. */
 	const activeSort = urlSort ?? settings.data?.sort ?? 'date-desc'
+	/* The one sort that also narrows: an order with no discount is not an order with the
+	   lowest discount, so ranking by discount is over discounted orders only (the server
+	   does it in buildOrderFilter, so the count and the page agree). That makes the sort a
+	   possible reason for an empty list, which the empty state below has to be able to say --
+	   "No orders match these filters" over filters nobody set, beside a CLEAR ALL that
+	   deliberately keeps the sort and so would not have cleared it, is the empty-state defect
+	   this page already fixed once for the no-orders-at-all case. */
+	const narrowingSort = activeSort.startsWith('discount-')
 	const pageSize = settings.data?.pageSize ?? 10
 
 	/* Writing a filter is writing the URL. Any change but the page resets to page one --
@@ -311,9 +319,17 @@ export default function AllOrders() {
 								<p>No orders yet. Add one and your spending shows up here.</p>
 								<ButtonLink to="/orders/new">ADD AN ORDER</ButtonLink>
 							</EmptyState>
+						) : narrowingSort && !chips.length && !query ? (
+							/* Sorted by discount with nothing filtered: the list is empty because no
+							   order has a discount, and the action that fixes it is the sort, not a
+							   CLEAR ALL with nothing to clear. */
+							<EmptyState>
+								<p>No orders have a discount yet.</p>
+								<ButtonLink onClick={() => write(filters, query, 'date-desc', 1)}>SORT BY DATE</ButtonLink>
+							</EmptyState>
 						) : (
 							<EmptyState>
-								<p>No orders match these filters.</p>
+								<p>{narrowingSort ? 'No discounted orders match these filters.' : 'No orders match these filters.'}</p>
 								<ButtonLink onClick={clearAll}>CLEAR ALL</ButtonLink>
 							</EmptyState>
 						)}
