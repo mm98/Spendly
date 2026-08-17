@@ -58,8 +58,17 @@ system does not own; the same goes for a component's built-in default of that ki
 **a family of near-identical values pending a collapse decision stays literal** until the decision
 is made: several borders, inks and tile fills sit one or two shades apart, and merging them changes
 what is on screen, which is a design decision rather than a rename. Everything else — every fill,
-glyph, edge, shadow and backdrop — resolves through a token, which is the property a dark theme
-will need: one override block, no light-mode leaks.
+glyph, edge, shadow and backdrop — resolves through a token, and the dark theme is that property
+cashed in: one override block, no light-mode leaks.
+
+**Dark follows the reader's system preference.** Its canvas is the ink itself (#0B0F0D) with cards
+lifted off it the way the dark card always has been; every text tier is re-tuned and re-measured
+(body 10.66:1, muted 6.94:1 on the card; positive, negative and warning inks all clear 4.5:1 with
+room). Glyphs on vivid fills stay white — a glyph-on-fill and a card fill are different roles even
+where light mode gave them one value, which is why the tokens name the role and not the color. The
+exempt near-identical literals take their nearest token under dark only, so the collapse decision
+they are waiting on stays a light-mode decision. Vendor and category colors are data and render as
+themselves on either ground.
 
 **Text, in four steps.** Text gets lighter as it gets less important, and the steps are fixed:
 
