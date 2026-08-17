@@ -1174,20 +1174,6 @@ label.field-shell { cursor:pointer; }
 .check-box:checked { background:var(--green); border-color:var(--green); }
 .check-box:checked::after { content:""; width:11px; height:9px; background:#fff; clip-path:polygon(38% 100%, 0 58%, 14% 44%, 38% 68%, 86% 0, 100% 12%); }
 .field-unit { margin-left:auto; height:28px; padding:0 10px; border:1px solid var(--border-control); border-radius:9px; background:#F7F8F5; font-size:11.5px; font-weight:600; color:var(--text-body); display:inline-flex; align-items:center; flex:none; }
-/* The sign toggle beside a signed amount field (README: Fields and Forms), sized and
-   coloured as `.field-unit` above rather than as an alarm -- a discount is a value, not a
-   rejection. Hidden by default: a physical keyboard types "-" directly, so the button only
-   earns its place under the coarse-pointer block below, where the platform keyboard has no
-   minus key to type it with. */
-.field-sign-toggle { display:none; height:28px; width:28px; padding:0; border:1px solid var(--border-control); border-radius:9px; background:#F7F8F5; font-size:13px; font-weight:600; line-height:1; color:var(--text-body); align-items:center; justify-content:center; flex:none; cursor:pointer; }
-.field-sign-toggle.is-on { color:var(--text-negative); border-color:var(--text-negative); }
-/* Coarse pointers only -- a physical keyboard already types "-", so the toggle stays
-   display:none above everywhere a fine pointer is in charge. Declared after the base rule:
-   equal specificity means source order decides, and the media block above (line ~1068) sits
-   before this and would lose that tie. */
-@media (pointer: coarse) {
-	.field-sign-toggle { display:inline-flex; }
-}
 .field-pair { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
 /* a segmented control inside a form is an entry field: full width, 48px tier, equal segments */
 .field .segmented { width:100%; height:48px; padding:4px; border-radius:var(--radius-page); }

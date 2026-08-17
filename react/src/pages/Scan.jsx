@@ -14,7 +14,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, FormActions, Segmented, SignToggle, TextInput,
+	DateInput, Field, FieldPair, FieldShell, FieldUnit, FormActions, Segmented, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -222,7 +222,7 @@ function ScanReviewForm({ answer }) {
 	   ORDER writes -- so the fields on this page are the order, rather than a picture of one. */
 	const [draft, setDraft] = useState(() => ({
 		vendor: answer.vendor, date: answer.date, status: answer.status,
-		kind: answer.kind, shipping: amount(answer.shipping),
+		kind: answer.kind, shipping: amount(answer.shipping), discount: '',
 		lines: answer.lines.map(l => ({ ...l, quantity: l.quantity ?? 1, price: l.price ?? l.amount })),
 		remainder: answer.remainder
 	}))
@@ -252,13 +252,15 @@ function ScanReviewForm({ answer }) {
 	   Create and scan are two doors to one saved order. README: Fields and Forms. */
 	const values = useMemo(() => ({
 		'order-vendor': draft.vendor, 'order-date': draft.date,
-		'order-kind': draft.kind, 'order-shipping': draft.shipping
+		'order-kind': draft.kind, 'order-shipping': draft.shipping,
+		'order-discount': draft.discount
 	}), [draft])
 	const { check, recheck, propsFor } = useFieldErrors(ORDER_FIELDS, values)
 	const vendorField = propsFor('order-vendor')
 	const dateField = propsFor('order-date')
 	const kindField = propsFor('order-kind')
 	const shippingField = propsFor('order-shipping')
+	const discountField = propsFor('order-discount')
 
 	const patch = p => setDraft(d => ({ ...d, ...p }))
 	const set = (name, key) => v => { patch({ [key]: v }); recheck(name, v) }
@@ -309,6 +311,12 @@ function ScanReviewForm({ answer }) {
 		+ (draft.remainder?.total ?? 0)
 	const shipping = draft.shipping && AMOUNT_PATTERN.test(draft.shipping)
 		? parseAmount(draft.shipping) : 0
+	const discount = draft.discount && AMOUNT_PATTERN.test(draft.discount)
+		? parseAmount(draft.discount) : 0
+	/* What the order comes to, and what the reconciliation note below is checked against: a
+	   discount is part of what the receipt says was paid, so leaving it out of this would put
+	   the note back to disagreeing with the figures beside it. */
+	const orderTotal = linesTotal + shipping - discount
 
 	const save = () => {
 		const failed = check()
@@ -343,7 +351,7 @@ function ScanReviewForm({ answer }) {
 		setSaving(true)
 		createOrder({
 			vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
-			categories: [], shipping: draft.shipping,
+			categories: [], shipping: draft.shipping, discount: draft.discount,
 			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price }))
 		})
 			/* The order is saved either way -- navigation proceeds -- but a receipt that quietly
@@ -383,13 +391,13 @@ function ScanReviewForm({ answer }) {
 				   correct a line and the note either still says the total matches or stops saying
 				   it. A fixed "Total matches." over edited figures is the app asserting something
 				   it has not checked. */
-				Math.abs(linesTotal + shipping - answer.total) < 0.005 ? (
+				Math.abs(orderTotal - answer.total) < 0.005 ? (
 					<Note tone="positive" title="Total matches." className="note-lead">
 						{answer.reconciled}
 					</Note>
 				) : (
 					<Note tone="warning" title="Total no longer matches." className="note-lead">
-						The lines now add up to {currency(linesTotal + shipping)}, against the document total
+						The lines now add up to {currency(orderTotal)}, against the document total
 						of {currency(answer.total)}{fullStop()} Saving keeps what is on screen.
 					</Note>
 				)
@@ -513,6 +521,19 @@ function ScanReviewForm({ answer }) {
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
+				<Field label="Discount" error={discountField.error} errorId={discountField.errorId} htmlFor="order-discount"
+					help="Any rabat taken off the whole order.">
+					<FieldShell>
+						<TextInput id="order-discount" inputMode="decimal" value={draft.discount}
+							onChange={set('order-discount', 'discount')} aria-label="Discount"
+							placeholder="0,00"
+							invalid={discountField.invalid} describedBy={discountField.describedBy} />
+						<FieldUnit>{currencySymbol()}</FieldUnit>
+					</FieldShell>
+				</Field>
+			</FieldPair>
+
+			<FieldPair>
 				<Field label="Kind" error={kindField.error} errorId={kindField.errorId} htmlFor="order-kind"
 					help="Only expenses count towards your totals.">
 					<Combobox id="order-kind" label="Kind" value={draft.kind} required
@@ -570,8 +591,9 @@ function ScanReviewForm({ answer }) {
 
 			<SummaryRow label="Lines subtotal" value={currency(linesTotal)} />
 			<SummaryRow label="Shipping" value={currency(shipping)} />
+			{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
 			<div className="card-divider card-divider-tight" />
-			<SummaryTotal value={currency(linesTotal + shipping)} />
+			<SummaryTotal value={currency(orderTotal)} />
 		</FormPage>
 	)
 }
@@ -631,7 +653,6 @@ function LineEditor({ line, onSave, onCancel }) {
 						<TextInput id="line-price" inputMode="decimal" value={form['line-price']}
 							onChange={set('line-price')} aria-label="Price" aria-required="true"
 							invalid={price.invalid} describedBy={price.describedBy} onKeyDown={keys} />
-						<SignToggle value={form['line-price']} onChange={set('line-price')} label="Price" />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>

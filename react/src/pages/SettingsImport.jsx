@@ -26,12 +26,10 @@ import { failureMessage, importOrders } from '../api/client.js'
 const IMPORT_EXAMPLE = {
 	orders: [{
 		vendor: 'Bilka', date: '2026-07-18', kind: 'Expense', status: 'Delivered',
-		categories: ['Groceries'], shipping: 0, reference: 'A-10419', note: '',
+		categories: ['Groceries'], shipping: 0, discount: 10.00, reference: 'A-10419', note: '',
 		items: [{
 			title: 'Rugbrød', quantity: 1, price: 24.95, retail: 32.00, note: '',
 			attachments: [{ filename: 'brod.jpg', contentType: 'image/jpeg', data: '<base64>' }]
-		}, {
-			title: 'Rabat', quantity: 1, price: -10.00
 		}],
 		attachments: [{ filename: 'receipt.pdf', contentType: 'application/pdf', data: '<base64>' }]
 	}]
@@ -271,9 +269,9 @@ export default function SettingsImport() {
 								<li>Required: <code>vendor</code>, <code>date</code>, <code>kind</code>, and at
 									least one item with <code>title</code>, <code>quantity</code> and{' '}
 									<code>price</code>. Everything else is optional.</li>
-								<li><code>price</code> may be negative: a discount line subtracts, the way it
-									did at the till. <code>retail</code> and <code>shipping</code>, the only
-									other amounts, stay at zero or above.</li>
+								<li>No amount is negative. A rabat is <code>discount</code> on the order,
+									entered as what was taken off; <code>price</code>, <code>retail</code> and{' '}
+									<code>shipping</code> all stay at zero or above.</li>
 								<li><code>vendor</code> ≤ 80 characters.</li>
 								<li><code>title</code> ≤ 120 characters.</li>
 								<li><code>quantity</code> a whole number, 1-9999.</li>

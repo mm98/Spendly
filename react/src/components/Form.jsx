@@ -62,25 +62,6 @@ export function TextInput({ value, onChange, invalid, describedBy, ...rest }) {
 	)
 }
 
-/** Prepends or strips the leading minus on a signed amount field -- the button a coarse
-    pointer needs, because a phone's decimal keypad (inputMode="decimal") draws no minus key
-    at all. A physical keyboard types "-" directly, so the toggle stays hidden there and
-    shows only under `@media (pointer: coarse)`, alongside `.field-unit` in weight and size
-    rather than styled as an alarm -- a discount is a value, not a rejection. Pressing it does
-    exactly what typing "-" first would, so the existing SIGNED_AMOUNT_PATTERN and parseAmount
-    need no change -- only a way to type the character on a device with no key for it.
-    README: Fields and Forms. */
-export function SignToggle({ value, onChange, label }) {
-	const raw = String(value ?? '')
-	const negative = raw.trim().startsWith('-')
-	return (
-		<button type="button" className={join('field-sign-toggle', negative && 'is-on')}
-			aria-pressed={negative}
-			aria-label={negative ? `${label}: switch to a positive amount` : `${label}: switch to a discount`}
-			onClick={() => onChange?.(negative ? raw.replace('-', '') : '-' + raw)}>−</button>
-	)
-}
-
 /** A date field with the glyph that opens the picker.
 
    No native affordance survives the stylesheet, so the glyph opens the picker itself. Where

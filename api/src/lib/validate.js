@@ -32,6 +32,12 @@ export function validateOrderDraft(draft) {
 	if (draft.shipping != null && (!Number.isFinite(Number(draft.shipping)) || Number(draft.shipping) < 0))
 		errors.shipping = 'Shipping must be a non-negative amount.'
 
+	/* The order's rabat, and the only field here that subtracts. It is entered as the amount
+	   taken off -- the sign is what the column means, not something a value carries -- so a
+	   negative discount is a surcharge, which this app has no concept of. */
+	if (draft.discount != null && (!Number.isFinite(Number(draft.discount)) || Number(draft.discount) < 0))
+		errors.discount = 'Discount must be a non-negative amount.'
+
 	const items = Array.isArray(draft.items) ? draft.items : []
 	if (!items.length) errors.items = 'An order needs at least one item.'
 	items.forEach((item, i) => {
@@ -43,11 +49,14 @@ export function validateOrderDraft(draft) {
 		if (!Number.isInteger(quantity) || quantity < 1 || quantity > 9999)
 			errors[`items.${i}.quantity`] = 'Quantity must be a whole number from 1 to 9999.'
 
-		/* The one signed amount: a receipt line can be a discount (rabat), and it subtracts
-		   here the way it did at the till. Retail and shipping stay at zero or above. */
+		/* No money field is signed any more. A rabat used to be entered as a line with a
+		   negative price; it is the order's own `discount` column now (migrations/009), so
+		   price joins retail and shipping at zero or above. */
 		const price = Number(item.price)
 		if (!Number.isFinite(price))
 			errors[`items.${i}.price`] = 'What did you pay?'
+		else if (price < 0)
+			errors[`items.${i}.price`] = 'Price cannot go below zero. Put a discount on the order instead.'
 
 		if (item.retail != null && (!Number.isFinite(Number(item.retail)) || Number(item.retail) < 0))
 			errors[`items.${i}.retail`] = 'Retail price must be a non-negative amount.'

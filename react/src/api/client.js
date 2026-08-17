@@ -161,14 +161,15 @@ export async function deleteCategory(id, signal) {
 }
 
 /* ---- orders ----
-   A draft's `shipping` arrives from the create/edit form as a comma-formatted string (or ''),
-   the same way it always has — parseAmount is what turns "49,00" into 49, and the API wants a
-   plain number. Everything else in a draft (vendor name, category names, numeric item fields)
+   A draft's `shipping` and `discount` arrive from the create/edit form as comma-formatted
+   strings (or ''), the same way shipping always has — parseAmount is what turns "49,00" into
+   49, and the API wants a plain number. Everything else in a draft (vendor name, category names, numeric item fields)
    already matches what the server expects. */
 
 const toApiDraft = draft => ({
 	vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
 	categories: draft.categories ?? [], shipping: draft.shipping ? parseAmount(draft.shipping) : 0,
+	discount: draft.discount ? parseAmount(draft.discount) : 0,
 	reference: draft.reference ?? '', note: draft.note ?? '',
 	/* A saved order's own item id travels through -- PUT matches a submitted item against what's
 	   already in the database by id, updating it in place rather than deleting and recreating it
@@ -310,6 +311,7 @@ export async function getOrderAsDraft(id, signal) {
 		vendor: order.vendor?.name ?? '', date: order.date, status: order.status,
 		categories: order.categories.map(c => c.name), kind: order.kind,
 		shipping: order.shipping ? String(order.shipping).replace('.', ',') : '',
+		discount: order.discount ? String(order.discount).replace('.', ',') : '',
 		reference: order.reference ?? '', note: order.note ?? '', items: order.items
 	}
 }

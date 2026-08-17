@@ -4,7 +4,7 @@
    already). Shared between lib/decorate.js and routes/orders.js's list query so both SELECT the
    same trimmed set instead of each re-deciding it. */
 export const ORDER_TOTALS_COLUMNS = [
-	'id', 'vendor_id', 'date', 'status', 'kind', 'shipping', 'note', 'reference', 'refunded',
+	'id', 'vendor_id', 'date', 'status', 'kind', 'shipping', 'discount', 'note', 'reference', 'refunded',
 	'item_count', 'subtotal', 'total', 'saved', 'saved_percent'
 ]
 
