@@ -207,7 +207,7 @@ function CategoryFields({ mode, category }) {
 			<CheckRow id="category-favourite" checked={values.favourite}
 				onChange={favourite => setValues(v => ({ ...v, favourite }))}
 				label="Favourite"
-				help="Appears in Home's Favourite categories card." />
+				help="Leads the category list on an order's form, and appears in Home's Favourite categories card." />
 		</FormPage>
 	)
 }
