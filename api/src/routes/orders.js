@@ -42,9 +42,12 @@ const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, posit
 const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, title=@title, quantity=@quantity,
 	price=@price, retail=@retail, note=@note WHERE id=@id AND order_id=@orderId`)
 const deleteOrderItem = db.prepare('DELETE FROM order_items WHERE id = ? AND order_id = ?')
+// data_checked/thumbnail_checked are hardcoded 1, not bound params: every row inserted here has
+// just been through processAttachment (lib/images.js), which always runs compressBlob on both --
+// there is no "not yet evaluated" state for a row created by this statement.
 const insertAttachment = db.prepare(`INSERT INTO attachments
-	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
-	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
+	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, data_checked, thumbnail, thumbnail_is_compressed, thumbnail_checked, thumbnail_content_type)
+	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, 1, @thumbnail, @thumbnailCompressed, 1, @thumbnailContentType)`)
 const selectExistingAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_id = ?')
 const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_item_id = ?')
 const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
