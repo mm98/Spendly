@@ -660,7 +660,7 @@ Every control here names what reads it, and the page proves it: default kind and
 
 **Whether this build is current is a question the app can answer, not homework it sets.** The card that names the running build carries a control that asks, and it reports one of three answers in its own words: this is the newest published build, a newer one exists, or the comparison could not be made — this build was never published, or the place that would know could not be reached. Naming a build beside a sentence telling the reader to go and compare it against the newest themselves is the app knowing where the answer lives and sending someone else to fetch it. The check is a press, never part of the page's load: the answer lives outside the app, so it is slow, it can fail, and on most visits nobody asked for it.
 
-**A time is printed in the reader's own clock, with the zone named.** A stamp arrives in UTC because that is how a machine records one; a person reads it in the zone they are standing in, so that is what the page shows, and the zone rides along in the text so a converted time is never mistaken for the raw one.
+**A time is printed in the reader's own clock, with the zone named — but in the product's own grammar.** A stamp arrives in UTC because that is how a machine records one; a person reads it in the zone they are standing in, so that is what the page shows, and the zone rides along in the text, because a converted time with nothing naming its zone is indistinguishable from the raw one. What moves is the instant, not the language: the date still reads day-first in English like every other date in the product. Handing the whole job to the reader's locale looks like the same courtesy and is not — it translates the month name and the separators too, and the page starts speaking a language the other fifty dates on it do not.
 
 ---
 
@@ -839,11 +839,12 @@ The class names are the system's public vocabulary, and they follow one grammar:
 
 ### Language and Formats
 
-The copy is English; the number grammar is Danish. Neither is negotiable per screen.
+The copy is English and the number grammar is Danish; neither is negotiable per screen. Dates and times are the exception, and they are not a screen's choice either — they are the reader's, and the browser is asked for them.
 
 - **Money**: a dot groups thousands, a comma separates decimals — `1.187,25 kr.` It is written in exactly two shapes: with the øre (`24.418,57 kr.`) where the figure is a total someone could reconcile against a receipt, and rounded (`18.420 kr.`) where it is a summary. Choosing the shape is choosing a claim about precision, not a formatting nit.
 - **Percent** uses the comma too: `12,6%`.
-- **Dates** read day-first: `18 July`.
+- **Dates and times are the reader's, in shape as well as in value.** `18 July`, `July 18` and `18.07` are one day written three ways, and the browser already knows which one the person in front of it expects, so it is asked rather than overridden. A timestamp converts to the reader's zone and names it, because a converted time with nothing marking its zone cannot be told from the raw one. Two traps sit under this, both of which render a plausible wrong answer instead of failing: a date-only value is a calendar day and must never be parsed as an instant (`new Date("2026-07-18")` is midnight *UTC*, which is the 17th for every reader in the Americas), and the screenshots in `docs/` document whichever locale rendered them unless the harness names one.
+- **Money is the exception, and it is not an inconsistency.** An amount's grammar is shared with the field that takes it back, so display and parsing move together or not at all: a reader shown `1,187.25` who types it into a field parsing `1.187,25` has their amount silently changed, which is the one formatting bug that costs money rather than looks wrong. The grammar stays Danish at both ends until both ends move.
 - **Inputs speak the same grammar they display.** An amount field accepts `1.187,25`, gets the numeric keyboard, and treats `89.95` as a typo to name rather than a number to guess at — which is why no money field is a native number input; those reject the comma outright.
 - **An item's price is the one signed amount.** A receipt line can be a discount, so a price takes a leading minus (`-10,00`) and subtracts from the order the way it did at the till — at every door: the item form, the scan review, the import. Every other money field — retail, shipping — stays at zero or above, and its refusal says so rather than blaming the grammar.
 - **Button labels are caps**, and they name the action: SEE THOSE ORDERS, ADD FILE, CLEAR ALL. One voice for every action in the product.

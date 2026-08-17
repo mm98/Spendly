@@ -41,22 +41,63 @@ export const SIGNED_AMOUNT_PATTERN = /^-?(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
 export const WHOLE_NUMBER_PATTERN = /^\d+$/
 export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',', '.'))
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
-	'July', 'August', 'September', 'October', 'November', 'December']
+/* Dates read in the reader's own locale, not in one this file picks.
 
-/** "2026-07-18" -> "18 July" */
-export const dayMonth = iso => {
-	const [, m, d] = iso.split('-')
-	return Number(d) + ' ' + MONTHS[Number(m) - 1]
+   A date's *shape* is the reader's: 18 July, July 18 and 18.07 are the same day written the
+   way three people expect to see it, and the browser already knows which one is standing in
+   front of it. Money is the other way round and stays Danish below -- an amount's grammar is
+   shared with the field that takes it back, so display and parsing move together or not at
+   all. README: Language and Formats.
+
+   Two traps this file has to keep clear of, both of which render a plausible wrong answer
+   rather than failing:
+
+   A formatter is expensive to build and these run per row, so they are built once. The
+   locale cannot change without a reload, so there is nothing to invalidate.
+
+   And an ISO date is not an instant. `new Date("2026-07-18")` parses as midnight *UTC*, so
+   formatting it anywhere west of UTC renders the 17th -- every date in the product off by
+   one, for every reader in the Americas, with no error anywhere. `dateOf` builds from local
+   components instead, which is the same calendar day in every zone. Instants (localStamp)
+   are the opposite case: they carry a zone and are meant to be converted. */
+const formatter = options => {
+	let built
+	return () => (built ??= new Intl.DateTimeFormat(undefined, options))
+}
+const dayMonthFormat = formatter({ day: 'numeric', month: 'long' })
+const longDateFormat = formatter({ day: 'numeric', month: 'long', year: 'numeric' })
+const shortDateFormat = formatter({ day: '2-digit', month: '2-digit', year: 'numeric' })
+const stampFormat = formatter({
+	day: 'numeric', month: 'long', year: 'numeric',
+	hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+})
+
+const dateOf = iso => {
+	const [y, m, d] = String(iso).split('-').map(Number)
+	return new Date(y, m - 1, d)
 }
 
-/** "2026-07-18" -> "18 July 2026" */
-export const longDate = iso => dayMonth(iso) + ' ' + iso.slice(0, 4)
+/** "2026-07-18" -> "18 July" for a reader in Copenhagen, "July 18" for one in Chicago. */
+export const dayMonth = iso => dayMonthFormat().format(dateOf(iso))
 
-/** "2026-07-18" -> "18.07.2026", the form the summary rows use */
-export const shortDate = iso => {
-	const [y, m, d] = iso.split('-')
-	return d + '.' + m + '.' + y
+/** "2026-07-18" -> "18 July 2026", in the reader's own order. */
+export const longDate = iso => longDateFormat().format(dateOf(iso))
+
+/** "2026-07-18" -> "18.07.2026", the form the summary rows use, in the reader's own order. */
+export const shortDate = iso => shortDateFormat().format(dateOf(iso))
+
+/** An instant -- a stamp that carries its own zone, like "2026-08-12T09:30:00Z" -- read in
+    the clock the reader is standing in: "12 August 2026 at 11:30 CEST" in Copenhagen,
+    "August 12, 2026 at 02:30 AM PDT" in Los Angeles.
+
+    Unlike the dates above, converting is the whole point: a machine records an instant in
+    UTC and a person reads it where they are. The zone is named in the text because a
+    converted time with nothing marking its zone is indistinguishable from the raw one.
+    Spelled in components rather than dateStyle/timeStyle -- those refuse to share an options
+    bag with timeZoneName, and toLocaleString throws rather than ignoring it. */
+export const localStamp = iso => {
+	const at = new Date(iso)
+	return Number.isNaN(at.getTime()) ? null : stampFormat().format(at)
 }
 
 /** Today in the input's own YYYY-MM-DD, built from the local clock rather than
