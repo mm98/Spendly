@@ -93,6 +93,8 @@ const SORT_SQL = {
 	'date-asc': 'ot.date ASC, ot.id ASC',
 	'amount-desc': 'ot.total DESC, ot.id DESC',
 	'amount-asc': 'ot.total ASC, ot.id ASC',
+	'discount-desc': 'ot.discount DESC, ot.id DESC',
+	'discount-asc': 'ot.discount ASC, ot.id ASC',
 	'vendor-asc': 'v.name COLLATE NOCASE ASC, ot.id ASC'
 }
 

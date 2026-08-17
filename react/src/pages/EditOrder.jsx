@@ -344,15 +344,6 @@ function EditOrderForm({ id, seed }) {
 							{/* The optional fields, plain rows of the form -- the same flat rows
 							    as the new order form's. */}
 							<FieldPair>
-								<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
-									<FieldShell>
-										<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
-											aria-label="Shipping fee" value={draft.shipping}
-											invalid={shippingField.invalid} describedBy={shippingField.describedBy}
-											onChange={set('order-shipping', 'shipping')} />
-										<FieldUnit>{currencySymbol()}</FieldUnit>
-									</FieldShell>
-								</Field>
 								<Field label="Discount" error={discountField.error} errorId={discountField.errorId}
 									help="What was taken off the order.">
 									<FieldShell>
@@ -360,6 +351,15 @@ function EditOrderForm({ id, seed }) {
 											aria-label="Discount" value={draft.discount}
 											invalid={discountField.invalid} describedBy={discountField.describedBy}
 											onChange={set('order-discount', 'discount')} />
+										<FieldUnit>{currencySymbol()}</FieldUnit>
+									</FieldShell>
+								</Field>
+								<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
+									<FieldShell>
+										<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
+											aria-label="Shipping fee" value={draft.shipping}
+											invalid={shippingField.invalid} describedBy={shippingField.describedBy}
+											onChange={set('order-shipping', 'shipping')} />
 										<FieldUnit>{currencySymbol()}</FieldUnit>
 									</FieldShell>
 								</Field>
@@ -526,8 +526,8 @@ function EditOrderForm({ id, seed }) {
 						<div className="summary-row">Categories
 							<span className="summary-row-value">{draft.categories.join(', ') || '—'}</span></div>
 						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
-						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 						{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
+						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 						<span className="section-label section-label-break">Items</span>
 						{draft.items.map(item => (
 							<SummaryRow key={item.id} className="summary-row-item"

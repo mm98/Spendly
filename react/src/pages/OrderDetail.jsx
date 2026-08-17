@@ -156,8 +156,8 @@ export default function OrderDetail() {
 								) : null}
 								<div className="card-divider card-divider-gap" />
 								<SummaryRow label="Items subtotal" value={currency(order.subtotal)} />
-								<SummaryRow label="Shipping" value={currency(order.shipping)} />
 								{order.discount ? <SummaryRow label="Discount" value={'-' + currency(order.discount)} /> : null}
+								<SummaryRow label="Shipping" value={currency(order.shipping)} />
 								<div className="card-divider card-divider-tight" />
 								<SummaryTotal value={currency(order.total)} />
 								{order.saved > 0 ? (

@@ -1,0 +1,12 @@
+-- The index behind "Discount, highest" and "Discount, lowest" on the orders list.
+--
+-- Same shape and the same reason as idx_orders_user_total (001_init.sql): the sort ends in
+-- `id` so two orders with an equal discount always come back in one order, and having the tie
+-- break inside the index is what keeps a deep OFFSET an index walk rather than a scan that
+-- re-sorts its tail in a temp B-tree. Every order that has never been discounted holds the
+-- column's default 0, so the ascending direction reads a long run of equal keys -- exactly the
+-- case where a stable tie-break in the index earns its keep.
+--
+-- discount is a plain column rather than a generated one, so unlike `total` it needs no
+-- comment about being indexable at all; it just was not sorted on until now.
+CREATE INDEX idx_orders_user_discount ON orders(user_id, discount, id);

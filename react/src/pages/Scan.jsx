@@ -512,15 +512,6 @@ function ScanReviewForm({ answer }) {
 			</FieldPair>
 
 			<FieldPair>
-				<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId} htmlFor="order-shipping"
-					help="Not on the receipt; add it if the order was delivered.">
-					<FieldShell>
-						<TextInput id="order-shipping" inputMode="decimal" value={draft.shipping}
-							onChange={set('order-shipping', 'shipping')} aria-label="Shipping fee"
-							invalid={shippingField.invalid} describedBy={shippingField.describedBy} />
-						<FieldUnit>{currencySymbol()}</FieldUnit>
-					</FieldShell>
-				</Field>
 				<Field label="Discount" error={discountField.error} errorId={discountField.errorId} htmlFor="order-discount"
 					help="Any rabat taken off the whole order.">
 					<FieldShell>
@@ -528,6 +519,15 @@ function ScanReviewForm({ answer }) {
 							onChange={set('order-discount', 'discount')} aria-label="Discount"
 							placeholder="0,00"
 							invalid={discountField.invalid} describedBy={discountField.describedBy} />
+						<FieldUnit>{currencySymbol()}</FieldUnit>
+					</FieldShell>
+				</Field>
+				<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId} htmlFor="order-shipping"
+					help="Not on the receipt; add it if the order was delivered.">
+					<FieldShell>
+						<TextInput id="order-shipping" inputMode="decimal" value={draft.shipping}
+							onChange={set('order-shipping', 'shipping')} aria-label="Shipping fee"
+							invalid={shippingField.invalid} describedBy={shippingField.describedBy} />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
@@ -590,8 +590,8 @@ function ScanReviewForm({ answer }) {
 			</div>
 
 			<SummaryRow label="Lines subtotal" value={currency(linesTotal)} />
-			<SummaryRow label="Shipping" value={currency(shipping)} />
 			{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
+			<SummaryRow label="Shipping" value={currency(shipping)} />
 			<div className="card-divider card-divider-tight" />
 			<SummaryTotal value={currency(orderTotal)} />
 		</FormPage>

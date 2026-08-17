@@ -248,18 +248,10 @@ export function NewOrderDetails() {
 			    used to sit behind a More details? switch and then under its heading in a
 			    bordered section; three optional fields cost less on screen than either.
 
-			    Shipping and Discount pair because they are the two order-level amounts, and the
-			    two halves of the same sentence: one adds to the total, the other comes off it. */}
+			    Discount and Shipping pair because they are the two order-level amounts, and the
+			    two halves of the same sentence -- in the order the total applies them: the rabat
+			    comes off what the goods cost, then the carrier's fee goes on. */}
 			<FieldPair>
-				<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
-					<FieldShell>
-						<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
-							aria-label="Shipping fee" value={draft.shipping}
-							invalid={shippingField.invalid} describedBy={shippingField.describedBy}
-							onChange={set('order-shipping', 'shipping')} />
-						<FieldUnit>{currencySymbol()}</FieldUnit>
-					</FieldShell>
-				</Field>
 				<Field label="Discount" error={discountField.error} errorId={discountField.errorId}
 					help="What was taken off the order.">
 					<FieldShell>
@@ -267,6 +259,15 @@ export function NewOrderDetails() {
 							aria-label="Discount" value={draft.discount}
 							invalid={discountField.invalid} describedBy={discountField.describedBy}
 							onChange={set('order-discount', 'discount')} />
+						<FieldUnit>{currencySymbol()}</FieldUnit>
+					</FieldShell>
+				</Field>
+				<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
+					<FieldShell>
+						<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
+							aria-label="Shipping fee" value={draft.shipping}
+							invalid={shippingField.invalid} describedBy={shippingField.describedBy}
+							onChange={set('order-shipping', 'shipping')} />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
@@ -316,8 +317,8 @@ function OrderSummary({ draft, estimate, showItems }) {
 						<div className="summary-row">Categories
 							<span className="summary-row-value">{draft.categories.join(', ') || '-'}</span></div>
 						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
-						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 						{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
+						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 					</>
 				)}
 				{showItems ? (
