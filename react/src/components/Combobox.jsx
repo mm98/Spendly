@@ -92,6 +92,18 @@ export function Combobox({
 	const typedMatches = typed && groups.some(g => g.options.some(o => o.label.toLowerCase() === typed.toLowerCase()))
 	const showAction = Boolean(action) && Boolean(typed) && !typedMatches
 
+	/* Typing filters the list; marking alone left every non-match in place, so a hit on a long
+	   list sat as far below the fold as ever. A value that names an option exactly is the
+	   resting selection rather than a search -- filtering by it would shrink the reopened list
+	   to the one row already chosen -- so the full list returns the moment a choice lands. A
+	   group filtered empty gives up its heading too, Favourites included. */
+	const searching = Boolean(typed) && !typedMatches
+	const shown = (searching
+		? groups.map(g => ({ ...g, options: g.options.filter(o => o.label.toLowerCase().includes(typed.toLowerCase())) }))
+		: groups
+	).filter(g => g.options.length)
+	const noMatch = searching && shown.length === 0
+
 	const inputEl = (
 		<input ref={input} type="text" id={id} role="combobox"
 			aria-expanded={open} aria-controls={panelId} aria-autocomplete="list"
@@ -146,7 +158,7 @@ export function Combobox({
 				<Icon name="chevronDown" className="icon chevron-icon" />
 			</div>
 			<div className="combobox-panel" id={panelId} role="listbox" aria-label={label}>
-				{groups.map(group => (
+				{shown.map(group => (
 					<div className="combobox-group" key={group.heading}>
 						<div className="combobox-group-heading">{group.heading}</div>
 						{group.options.map((option, i) => {
@@ -165,6 +177,10 @@ export function Combobox({
 						})}
 					</div>
 				))}
+				{/* Filtered to nothing is a state to name, not an empty box: the sentence says the
+				    search worked and found none, and the action below it (where a caller offers
+				    one) is what to do about it. */}
+				{noMatch ? <p className="combobox-empty">{`No match for "${typed}".`}</p> : null}
 				{children}
 				{showAction ? (
 					<div className="combobox-action"
