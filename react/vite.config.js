@@ -20,6 +20,17 @@ const stripHtmlComments = () => ({
 export default defineConfig({
 	base: './',
 	plugins: [react(), stripHtmlComments()],
+	/* The commit this bundle was built from, baked in as a literal so a running tab can tell
+	   whether the server has since been replaced under it -- see src/components/UpdateNotice.jsx,
+	   which compares it against the same commit the image stamps into /api/version. The
+	   Dockerfile passes GIT_SHA to the build stage for exactly this; anywhere else (a dev
+	   server, a bare `docker build .`) it is null, which the notice reads as "no build to be out
+	   of date" and never prompts on.
+
+	   `define` rather than `import.meta.env`: this has to be a compile-time literal in both the
+	   dev server and the build, and a VITE_-prefixed variable would additionally have to be
+	   present in the environment at dev time to exist at all. */
+	define: { __BUILD_COMMIT__: JSON.stringify(process.env.GIT_SHA || null) },
 	server: {
 		port: 5173,
 		// Same-origin from the browser's point of view, so the session cookie the API sets is a

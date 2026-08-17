@@ -287,6 +287,30 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 }
 .pull-to-refresh-spinner.is-spinning { animation:pull-to-refresh-spin .6s linear infinite; }
 @keyframes pull-to-refresh-spin { to { transform:rotate(360deg); } }
+
+/* "A new version is ready" (components/UpdateNotice.jsx). A floating bar rather than a toast:
+   a toast is for what just happened and takes itself away after five seconds, and this is a
+   state that stays true until the reader acts on it. It carries the dark surface and the white
+   button the AI card already defines (.button-invert), so it is not a new treatment.
+   The phone offset is in the phone block below, where the tab bar it has to clear is defined. */
+.update-notice {
+	position:fixed; z-index:35; left:50%; transform:translateX(-50%);
+	bottom:calc(16px + var(--safe-bottom, 0px));
+	display:flex; align-items:center; gap:12px;
+	/* width:max-content, or this wraps to three lines on a phone. A fixed element with `left`
+	   and no `right` resolves its width against the space from that edge to the viewport's --
+	   half the screen here -- so shrink-to-fit reads 195px of room on a 390px phone and breaks
+	   the sentence up inside it. The translate that centres it does not feed back into that
+	   calculation. */
+	width:max-content; max-width:calc(100vw - 32px); padding:10px 10px 10px 18px;
+	background:var(--bg-dark); color:#fff;
+	border-radius:var(--radius-float); box-shadow:var(--shadow);
+}
+.update-notice-text { font-size:12.5px; font-weight:600; }
+/* The dismiss is the one control here that is not the point. .icon-button paints itself a white
+   card with a border -- correct on the sheets it was written for, a stray white chip on this
+   dark bar -- so it gives both up and carries the muted ink the dark surface already defines. */
+.update-notice .icon-button-clear { background:transparent; border-color:transparent; color:var(--text-on-dark); }
 .content-grid { display:grid; grid-template-columns:minmax(0,1.78fr) minmax(300px,1fr); gap:18px; align-items:start; }
 .content-column-main, .content-column-side { display:grid; gap:18px; min-width:0; }
 
@@ -1297,6 +1321,10 @@ label.field-shell { cursor:pointer; }
 	   as a stray rectangle behind the active icon. */
 	.sidebar .sidebar-nav a.is-on { box-shadow:none; }
 	.main-panel { padding-bottom:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px); }
+	/* The update bar clears the floating tab bar the same way the sheet above it does -- the
+	   same expression, off the same tokens, rather than a number that resembles the bar's
+	   height and stops agreeing with it the day the bar moves. */
+	.update-notice { bottom:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px); }
 	.topbar { flex-wrap:wrap; padding:12px; }
 	.topbar h1 { font-size:16px; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but

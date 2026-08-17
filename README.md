@@ -484,6 +484,8 @@ The frame around the pages: sidebar, top bar, bottom nav on the phone.
 
 **The sheet's bottom padding is the bar's height, not a number that resembles it.** The bar floats over the content, so what the page below has to clear is whatever the bar measures — including the platform inset the bar just added to itself. Written as its own constant it agrees with the bar until the day one of them moves, and the disagreement shows only on the last card of a page.
 
+**A waiting update is a state, not an event.** When the server begins serving a build newer than the one this session is running, the app says so and offers to reload. It never reloads on its own: the reader may be halfway through an order, and they are the only one who knows. It is not a toast either — a toast reports what just happened and takes itself away after five seconds, while this stays true until it is acted on, so it is a bar that persists and carries the action. Dismissing it is allowed and means *later*, not *never*: the old build simply keeps running until the next reload. Where the running build cannot be identified at all, nothing is claimed — two unknowns matching is not a version check, and a development server has no build to be out of date.
+
 **Settings is chrome, not a page's furniture.** It is reached by one glyph in the top bar, from every screen — what it holds (the order form's defaults, both lists' opening order, how many entries a card holds, whether a trash asks first) belongs to no single page, so no single page owns the way in. It spent a while as a full-width button at the foot of the Orders rail, findable from one tab of one screen and titled for the one part of itself that screen happened to own.
 
 ### Icons

@@ -6,6 +6,7 @@ import { Button, IconButton } from './Button.jsx'
 import { Waiting } from './Async.jsx'
 import { ToastProvider } from './Toast.jsx'
 import { PullToRefresh } from './PullToRefresh.jsx'
+import { UpdateNotice } from './UpdateNotice.jsx'
 import { search } from '../api/client.js'
 
 /* The shell every page sits in: the rail, the top bar, the sub-tab band, and the sheet.
@@ -357,6 +358,10 @@ export function AppShell() {
 				</div>
 			</div>
 			</PullToRefresh>
+			{/* Outside PullToRefresh on purpose: it is fixed to the viewport, and a transformed
+			    ancestor would make it resolve against that element instead -- so a pull would
+			    drag it down the screen with the page. */}
+			<UpdateNotice />
 		</ToastProvider>
 		</ViewContext.Provider>
 	)
