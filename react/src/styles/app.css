@@ -150,6 +150,13 @@
 	--pad-pager:12px;
 	--gap-cards:18px;
 	--gap-row:12px;
+	/* A block to the thing that follows it -- a chart to its legend, a note to its
+	   button, a list to its pager. Nine rules each wrote margin-top:12px; the name is
+	   what says they are one distance. Not --stack-gap, which is the check-row
+	   mechanism's locally-declared container gap, a different job. */
+	--gap-block:12px;
+	/* The chrome bars' vertical band -- the top bar and the page bar share it. */
+	--pad-bar-y:12px;
 	/* Icon to label inside a chip or a button. It was 5, 6 and 7px across nine rules;
 	   the base .button keeps its own 8 -- a 38px control carries more air. */
 	--gap-icon:6px;
@@ -273,7 +280,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 
 /* topbar */
 .main-panel { min-width:0; display:flex; flex-direction:column; background:#fff; border-radius:26px 0 0 26px; margin:12px 0; overflow:hidden; box-shadow:0 2px 14px rgb(11 26 18 / .05); }
-.topbar { display:flex; align-items:center; gap:10px; padding:12px var(--gutter-page); background:#fff; border-bottom:1px solid var(--border-divider); position:sticky; top:0; z-index:10; }
+.topbar { display:flex; align-items:center; gap:10px; padding:var(--pad-bar-y) var(--gutter-page); background:#fff; border-bottom:1px solid var(--border-divider); position:sticky; top:0; z-index:10; }
 .topbar h1 { margin:0; font-size:19px; font-weight:700; letter-spacing:-.01em; }
 .topbar .topbar-actions { margin-left:auto; display:flex; align-items:center; gap:10px; }
 /* Every text button in the system starts here and every variant below states only
@@ -317,7 +324,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    fire on any page. What actually hid it was the tab builder reaching up to
    subtabs.parentElement.style: JS styling an element it does not own, one wrapper
    away from hiding the wrong one, and an inline display:none in the served DOM. */
-.page-bar { background:#fff; padding:12px var(--gutter-page) 0; }
+.page-bar { background:#fff; padding:var(--pad-bar-y) var(--gutter-page) 0; }
 .page-bar:not(:has(button)) { display:none; }
 .content-sheet { background:#fff; padding:var(--pad-sheet-top) var(--gutter-page) var(--pad-sheet-bottom); }
 .content-sheet-inner { width:100%; }
@@ -349,7 +356,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .update-notice {
 	position:fixed; z-index:35; left:50%; transform:translateX(-50%);
 	bottom:calc(16px + var(--safe-bottom, 0px));
-	display:flex; align-items:center; gap:12px;
+	display:flex; align-items:center; gap:var(--gap-row);
 	/* width:max-content, or this wraps to three lines on a phone. A fixed element with `left`
 	   and no `right` resolves its width against the space from that edge to the viewport's --
 	   half the screen here -- so shrink-to-fit reads 195px of room on a 390px phone and breaks
@@ -493,7 +500,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .card-body-page { padding:var(--pad-card); }
 .card-body-tight { padding-top:6px; }
 .card-body-centered { padding:34px 28px; display:grid; justify-items:center; gap:14px; text-align:center; }
-.card-body-filters { padding:16px 18px; display:grid; gap:12px; }
+.card-body-filters { padding:16px 18px; display:grid; gap:var(--gap-block); }
 /* A body whose one child is a chart, in a card that is only as tall as the row it shares. The
    card becomes a column so the body can take the leftover height, and the body passes it on. */
 .card:has(> .card-body-fill) { display:flex; flex-direction:column; }
@@ -621,7 +628,7 @@ svg.chart { width:100%; display:block; }
 .weekday-bars .chart-bar { width:100%; min-height:3px; border-radius:var(--radius-compact) var(--radius-compact) 0 0; background:var(--bg-bar-track); position:relative; overflow:hidden; }
 .weekday-bars .chart-bar-fill { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact) var(--radius-compact) 0 0; }
 .weekday-bars span { font-size:11px; color:var(--text-muted); font-weight:500; }
-.chart-legend-inline { display:flex; align-items:center; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-divider); font-size:11.5px; color:var(--text-body); }
+.chart-legend-inline { display:flex; align-items:center; gap:8px; margin-top:var(--gap-block); padding-top:10px; border-top:1px solid var(--border-divider); font-size:11.5px; color:var(--text-body); }
 .chart-legend-inline .chart-swatch { width:10px; height:10px; border-radius:3px; background:var(--green); }
 .chart-legend-inline .amount { margin-left:auto; font-weight:600; color:var(--text); }
 
@@ -637,7 +644,7 @@ svg.chart { width:100%; display:block; }
 .donut .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:1px; z-index:1; text-align:center; }
 .donut .ring-centre-value { font-size:16.5px; font-weight:700; letter-spacing:-.01em; }
 .donut .ring-centre-label { font-style:normal; font-size:9.5px; color:var(--text-muted); }
-.category-rows { margin-top:12px; display:grid; }
+.category-rows { margin-top:var(--gap-block); display:grid; }
 .card-body > .category-rows:first-child { margin-top:0; }
 .category-row { border-top:1px solid var(--border-divider); }
 .category-row:first-child { border-top:0; }
@@ -661,7 +668,7 @@ svg.chart { width:100%; display:block; }
 .ai-card-header .chevron { margin-left:auto; color:var(--text-on-dark); }
 .ai-card-headline { font-size:16px; font-weight:700; letter-spacing:-.01em; margin:2px 0 8px; }
 .ai-card-body { font-size:12.5px; color:var(--text-on-dark); line-height:1.55; margin:0; }
-.ai-card-actions { display:flex; align-items:center; gap:18px; margin-top:12px; }
+.ai-card-actions { display:flex; align-items:center; gap:18px; margin-top:var(--gap-block); }
 /* White on the dark card, rather than a button of its own. */
 .button.button-invert { padding:0 18px; border:0; border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:11.5px; font-weight:700; letter-spacing:.05em; }
 .button-link.button-link-invert { font-size:11.5px; letter-spacing:.05em; color:#fff; }
@@ -782,7 +789,7 @@ svg.chart { width:100%; display:block; }
 .segmented button.is-on { background:var(--bg-dark); color:#fff; }
 .page-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
 .two-column { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-cards); }
-.button.button-block { display:flex; width:100%; height:44px; padding:0; gap:var(--gap-icon); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; margin-top:12px; }
+.button.button-block { display:flex; width:100%; height:44px; padding:0; gap:var(--gap-icon); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; margin-top:var(--gap-block); }
 .button-link { font:inherit; background:none; border:0; padding:0; display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-decoration:underline; text-underline-offset:3px; color:var(--text); cursor:pointer; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); min-width:0; }
@@ -799,7 +806,7 @@ svg.chart { width:100%; display:block; }
 /* flex:1 is for the flex bodies (.ring-row): a block-level grid fills its card on its own, but
    as a flex item it shrinks to content and sits at flex-start -- two empty states rendered
    hard left while every other one centered. README: Empty states. */
-.empty-state { display:grid; justify-items:center; gap:10px; padding:24px 12px; text-align:center; flex:1; }
+.empty-state { display:grid; justify-items:center; gap:10px; padding:24px var(--pad-inset); text-align:center; flex:1; }
 .empty-state .empty-state-icon { width:42px; height:42px; border-radius:var(--radius-page); border:1px solid #DFE3DE; background:#F7F8F5; display:grid; place-items:center; color:#9AA39B; }
 .empty-state .empty-state-icon svg.icon { width:19px; height:19px; }
 .empty-state p { margin:0; font-size:13.5px; color:var(--text-body); max-width:30ch; }
@@ -924,7 +931,7 @@ svg.chart { width:100%; display:block; }
    THOSE ORDERS flush against the note it answers -- 0px measured -- while the identical
    pair one card over stood at 12 only because the button there happened to be the block
    variant. README: Cards. */
-.note + .button { margin-top:12px; }
+.note + .button { margin-top:var(--gap-block); }
 /* Delete confirmation is a modal <dialog>, never a note in the flow -- README: Deletion.
    showModal() owns focus, Escape and the focus return; these rules own only the look. The
    zeroed border and padding are load-bearing: the element's UA frame would draw a second
@@ -1240,7 +1247,7 @@ label.field-shell { cursor:pointer; }
 .hero.hero-column { max-width:760px; margin:0 auto; text-align:center; padding:24px 0 10px; }
 .hero.hero-column p { margin-inline:auto; }
 .button.button-caps { gap:6px; border:0; border-radius:var(--radius-page); background:var(--bg-dark); color:#fff; font-size:11.5px; letter-spacing:.08em; }
-.ai-prompt-bar { display:flex; align-items:center; gap:12px; background:var(--bg-card); border:1px solid var(--border-card); border-radius:16px; box-shadow:var(--shadow); padding:8px 8px 8px 20px; max-width:640px; margin:0 auto; }
+.ai-prompt-bar { display:flex; align-items:center; gap:var(--gap-row); background:var(--bg-card); border:1px solid var(--border-card); border-radius:16px; box-shadow:var(--shadow); padding:8px 8px 8px 20px; max-width:640px; margin:0 auto; }
 .ai-prompt-bar .field-shell-placeholder { color:var(--text-muted); font-size:13px; flex:1; }
 .ai-prompt-bar > span > svg.icon { width:20px; height:20px; }
 .ai-suggestion-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
@@ -1487,7 +1494,7 @@ label.field-shell { cursor:pointer; }
 	   hover on tap. display beats the reveal rule's visibility whatever specificity says. */
 	.chart-callout { display:none; }
 	.figure-headline { font-size:23px; }
-	.range-tabs { flex-wrap:wrap; gap:8px 12px; }
+	.range-tabs { flex-wrap:wrap; gap:8px var(--gap-row); }
 	/* The whole band on one row at 390: two 32px arrows, the window's name and five widths, in
 	   about 350px of panel. Every part of it gives something up -- the widths are drawn two
 	   letters wide (WK MO QT YR ALL), the window's name takes its short form (W31 2026), the
@@ -1541,10 +1548,10 @@ label.field-shell { cursor:pointer; }
 /* The demo card's order-count and period fields, sitting between the lead and the fill button. */
 .demo-count-field { margin-bottom:14px; }
 .async-live { display:contents; }
-.confirm-dialog .form-actions { margin-top:12px; }
+.confirm-dialog .form-actions { margin-top:var(--gap-block); }
 
 /* The pagers: All orders' buttons, Statistics' arrows. */
-.pager-row { margin-top:12px; }
+.pager-row { margin-top:var(--gap-block); }
 .pager-buttons { gap:8px; }
 .pager-buttons .button:disabled { opacity:.45; }
 .pager-arrow:disabled { opacity:.45; }
@@ -1592,11 +1599,11 @@ label.field-shell { cursor:pointer; }
 .order-title { font-size:22px; font-weight:600; letter-spacing:-.01em; }
 .order-subtitle { font-size:12.5px; }
 .order-head-actions { gap:8px; }
-.order-chips { gap:6px; margin-top:12px; flex-wrap:wrap; }
+.order-chips { gap:6px; margin-top:var(--gap-block); flex-wrap:wrap; }
 .attachment-preview { padding:0 4px 10px; }
 
 /* Statistics. */
-.stats-toolbar { flex-wrap:wrap; gap:12px; padding:2px 2px 0; }
+.stats-toolbar { flex-wrap:wrap; gap:var(--gap-row); padding:2px 2px 0; }
 .pager-heading { font-size:16px; letter-spacing:-.01em; }
 .figure-unit { font-weight:500; font-size:14px; color:var(--text-muted); }
 .rhythm-bars { min-height:86px; }
@@ -1634,10 +1641,10 @@ label.field-shell { cursor:pointer; }
 /* The import card's request shape on Settings: reference material for a program's owner, so
    it reads like source -- monospace, inset, scrolling inside its own box rather than ever
    widening the card (README: Responsive Layout). Token colours are the app's own. */
-.import-schema { margin:0 0 12px; padding:12px 14px; background:#F2F4F1; border-radius:var(--radius-page); font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; line-height:1.6; color:var(--text-body); overflow-x:auto; }
+.import-schema { margin:0 0 var(--gap-block); padding:12px 14px; background:#F2F4F1; border-radius:var(--radius-page); font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; line-height:1.6; color:var(--text-body); overflow-x:auto; }
 /* The upload card's bar while slices send: the shared .progress-bar beside its percentage,
    given only the breathing room between the filename above and the actions below. */
-.import-progress { display:flex; align-items:center; gap:10px; margin:12px 0 6px; }
+.import-progress { display:flex; align-items:center; gap:10px; margin:var(--gap-block) 0 6px; }
 .import-progress .progress-bar { flex:1; }
 .import-progress .field-help { flex:none; }
 .tok-key { color:var(--text); font-weight:600; }
