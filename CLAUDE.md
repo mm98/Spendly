@@ -145,6 +145,18 @@ box, not about any change.
   laptop, was never the question, because the 403 is raised by this container's gateway before
   anything reaches the CDN and the allowlist is per environment. Report a denial rather than hunting
   a route around it.
+- **The locale is the harness's to name, except inside a native control, where this build ignores
+  it.** Every date and time the app draws is rendered by the reader's locale and zone now, so a
+  context that names neither documents whichever machine ran it -- `regen-docs.mjs` pins
+  `locale: 'en-GB'` and `timezoneId: 'Europe/Copenhagen'`, which is the render the committed shots
+  already held, so pinning changed 0 pixels. The app's own dates obey it: verified rendering
+  da-DK, en-US, en-GB and ja-JP, four different shapes of the same day. A native
+  `<input type="date">` does not. It renders `07/01/2026` in this Chromium whatever it is told --
+  context `locale`, `--lang=en-GB` and `--lang=de-DE` all produce a byte-identical field -- so
+  `all-orders.png` documents US-shaped date inputs beside day-first app dates, and that mixture is
+  the instrument, not the product. A real reader's native controls follow their browser's own UI
+  language. Do not read those two fields as a formatting defect, and do not try to fix the shot by
+  varying the locale: nothing here moves them.
 - **The phone shot is `devices['iPhone 13']` with `deviceScaleFactor` overridden to 2** -- 390x664 at
   dSF2, so the committed file is 780x1328. A bare 390x844 viewport at dSF3 renders 1170x2532 and the
   comparison dies on a size mismatch, which reads as a layout change and is not one.
