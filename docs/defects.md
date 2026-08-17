@@ -1740,3 +1740,64 @@ was measured by interception on a previously-swallowing site (Settings): a route
 `{"error":"The server said no."}` toasts exactly **"The server said no."**, and the same control
 with the request aborted toasts the action's own **"That did not save."** Gecko and WebKit are not
 installed and were not checked.
+
+## Language and Formats — every date was written in one reader's shape
+
+Every date in the product was assembled from a hardcoded English month list, day-first, with a
+dotted short form; the one timestamp on the settings page was built with `toLocaleString('da-DK')`
+and printed "12. august 2026 kl. 11.30" — Danish prose in a product whose copy is English. Both are
+the same mistake pointing opposite ways. `da-DK` is the *number* grammar's locale, borrowed for a
+date because it was the locale already in the file, and the month list was one reader's shape
+frozen for every other reader.
+
+Nothing could catch either. A date renders, renders identically run to run, renders the same in
+every engine, and has correct geometry and computed styles in all of them — a wrong shape is a
+*correct render of the wrong thing*, which every instrument in this repo agrees with.
+
+Two traps under the fix, both of which render a plausible wrong answer rather than failing:
+
+A date-only value is a calendar day, not an instant. `new Date("2026-07-18")` parses as midnight
+**UTC**, so formatting it anywhere west of UTC renders the 17th — every date in the product off by
+one for every reader in the Americas, with no error anywhere and no failing assertion. Building the
+date from local components instead holds the day: verified at 18 July in Copenhagen, Los Angeles,
+Tokyo and Honolulu. A timestamp is the opposite case and *must* convert, which is why the two are
+separate functions rather than one with a flag.
+
+And the screenshot harness named no locale, so it inherited the machine's. The committed shots were
+rendered when dates were hardcoded; the same source on a box whose ICU default is `en-US` renders
+"July 18", and the diff has nothing in it to say whether the app moved or the machine did. The
+harness now names `en-GB` and `Europe/Copenhagen` — which is the render the shots already hold, so
+pinning it changed nothing and stops the next machine changing everything.
+
+## Language and Formats — the full stop after an amount was written six times and owned by nobody
+
+Six places ended a sentence with an amount. Five wrote a full stop after it and printed
+`1.187,25 kr..`, because `kr.` already carries one. The sixth had exactly that doubling reported
+against it, deleted **its own** full stop, and left the other five — the fix went to the instance in
+the report rather than to the rule, which is the same failure as fixing the one card on screen, and
+it left a comment behind explaining why this one line had no stop.
+
+Then the currency became a setting and the deleted stop became a second bug pointing the other way:
+`$20.680` carries no full stop, so the one place that had been "fixed" was now the only place
+leaving a sentence unpunctuated. Whether an amount closes a sentence is a fact about the symbol, so
+neither writing the stop nor deleting it can be right in a product with more than one currency —
+it has to be asked. Asking it in one function is also what makes the count checkable: six call
+sites, one rule, and the doubling cannot come back to the sixth after being fixed in five.
+
+## Language and Formats — the server rendered money, and did not know the currency
+
+Three statistics tiles arrived from the API as finished strings — `"1.510 kr."` — built with a
+hardcoded symbol and Danish grouping. That made the server the one place in the product deciding
+how an amount looks, and it is the wrong place twice over: the currency belongs to the account and
+the grammar to the client, and the server was told neither. An account that chose dollars read its
+own averages in kroner on one card and in dollars on the card beside it.
+
+Eleven money *inputs* had the same defect from the other side, with `kr.` written into the markup as
+the unit label — so a dollars account typed into a field labelled in kroner while the figure it
+rendered underneath said dollars. Neither is visible on a single-currency account, which is every
+account the product had until the setting existed: the defect was latent in the markup for as long
+as there was only one right answer.
+
+The tell that found both was cheap and worth keeping: switch the account to a currency whose symbol
+is not `kr.`, then grep the rendered page for the old one. Anything still printing `kr.` is a place
+that never asked.
