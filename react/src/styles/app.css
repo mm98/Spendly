@@ -1359,8 +1359,8 @@ label.field-shell { cursor:pointer; }
 	.app-shell { grid-template-columns:250px minmax(0,1fr); }
 	.content-grid { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
 	/* The list tiles grow with the rail -- one token, so every row family's tile
-	   moves together. */
-	:root { --thumb-size:46px; }
+	   moves together -- and the rows breathe wider with them. */
+	:root { --thumb-size:46px; --gap-row:20px; }
 }
 @media (max-width:1180px) { .order-list-grid { grid-template-columns:minmax(0,1fr); } }
 /* The phone layout is this one block, and it is the last breakpoint in the file so
@@ -1714,3 +1714,86 @@ label.field-shell { cursor:pointer; }
 	*:not(.progress-bar.progress-bar-indeterminate .progress-bar-fill) { animation:none !important; transition:none !important; }
 	.progress-bar.progress-bar-indeterminate .progress-bar-fill { animation-duration:2.6s; animation-timing-function:linear; }
 }
+
+
+/* ============================================================
+   Dark theme candidates -- three palettes over one token contract.
+   Every value below overrides a token the light :root declares; nothing
+   else changes, which is what the colour tokenization bought. The block
+   after them re-points the near-identical literals (the border greys,
+   the tile fills, the two dark inks -- left uncollapsed in light mode as
+   a design decision) at their nearest token under a dark theme only, so
+   the collapse decision stays open where it was made.
+   Contrast, computed: body 7.96-10.66:1 and muted 5.18-6.94:1 on each
+   card; --text-positive 7.29+:1, --text-negative 5.20+:1, warn ink on
+   warn wash 7.09:1. --text-faint paints glyphs, never text (its own
+   rule), so it sits below 4.5 by design.
+   ============================================================ */
+html[data-theme="dark-soft"] {
+	color-scheme:dark;
+	--text:#EAEEEB; --text-strong:#EAEEEB;
+	--text-body:#C4CBC6; --text-muted:#9BA59E; --text-faint:#6E7871;
+	--chip-glyph:#7F8981; --thumb-glyph:#8E988F;
+	--bg-app:#161B18; --bg-card:#1D231F;
+	--bg-nav-active:#242B26; --bg-row-hover:#222924;
+	--bg-positive:#123227; --bg-bar-track:#28322B; --bg-meter-track:#28322B;
+	--bg-inset:#242B26; --bg-control-tint:#262D28; --bg-hero:#242B26;
+	--border-card:#2A312C; --border-divider:#262D28; --border-control:#303731;
+	--text-positive:#4BD8A2; --text-negative:#F2837B; --teal:#38B8B2;
+	--bg-warn:#3A2F16; --text-warn:#E7B75F;
+	--bg-green-tint:#173829;
+	--control-resting:#5C665E;
+	--shadow-ink:0 0 0;
+}
+html[data-theme="dark-deep"] {
+	color-scheme:dark;
+	--text:#EAEEEB; --text-strong:#EAEEEB;
+	--text-body:#C4CBC6; --text-muted:#9BA59E; --text-faint:#6E7871;
+	--chip-glyph:#7F8981; --thumb-glyph:#8E988F;
+	--bg-app:#0B0F0D; --bg-card:#151A17;
+	--bg-nav-active:#1C221E; --bg-row-hover:#191F1B;
+	--bg-positive:#123227; --bg-bar-track:#202923; --bg-meter-track:#202923;
+	--bg-inset:#1C221E; --bg-control-tint:#1E2420; --bg-hero:#1C221E;
+	--border-card:#232925; --border-divider:#1F2521; --border-control:#282F2A;
+	--text-positive:#4BD8A2; --text-negative:#F2837B; --teal:#38B8B2;
+	--bg-warn:#3A2F16; --text-warn:#E7B75F;
+	--bg-green-tint:#173829;
+	--control-resting:#5C665E;
+	--shadow-ink:0 0 0;
+}
+html[data-theme="dark-dim"] {
+	color-scheme:dark;
+	--text:#EAEEEB; --text-strong:#EAEEEB;
+	--text-body:#C4CBC6; --text-muted:#9BA59E; --text-faint:#6E7871;
+	--chip-glyph:#7F8981; --thumb-glyph:#8E988F;
+	--bg-app:#242A26; --bg-card:#2B322D;
+	--bg-nav-active:#323A34; --bg-row-hover:#30382F;
+	--bg-positive:#123227; --bg-bar-track:#353F37; --bg-meter-track:#353F37;
+	--bg-inset:#323A34; --bg-control-tint:#343C36; --bg-hero:#323A34;
+	--border-card:#39413A; --border-divider:#333B34; --border-control:#3B443C;
+	--text-positive:#4BD8A2; --text-negative:#F2837B; --teal:#38B8B2;
+	--bg-warn:#3A2F16; --text-warn:#E7B75F;
+	--bg-green-tint:#173829;
+	--control-resting:#5C665E;
+	--shadow-ink:0 0 0;
+}
+
+/* The literals' dark-side aliases. Light mode keeps the exact shades; a dark
+   theme folds each onto the nearest role token rather than inventing five dark
+   near-identical greys nobody has chosen yet. */
+html[data-theme^="dark-"] .button.button-outline,
+html[data-theme^="dark-"] .range-tabs button.is-on,
+html[data-theme^="dark-"] .ai-suggestion-row button,
+html[data-theme^="dark-"] .button.button-pill,
+html[data-theme^="dark-"] .chip,
+html[data-theme^="dark-"] .key-cap,
+html[data-theme^="dark-"] .empty-state .empty-state-icon { border-color:var(--border-control); }
+html[data-theme^="dark-"] .segmented { background:var(--bg-inset); border-color:var(--border-control); }
+html[data-theme^="dark-"] .segmented button { color:var(--text-body); }
+html[data-theme^="dark-"] .sidebar-nav a { color:var(--text-body); }
+html[data-theme^="dark-"] .field-thumb,
+html[data-theme^="dark-"] .document-thumb,
+html[data-theme^="dark-"] .entry-list .entry-glyph { background:var(--bg-control-tint); }
+html[data-theme^="dark-"] .combobox-option:hover { background:var(--bg-row-hover); }
+html[data-theme^="dark-"] .combobox-option.combobox-option-highlighted { background:var(--bg-nav-active); }
+html[data-theme^="dark-"] .chart-ruler i { background:var(--border-control); }
