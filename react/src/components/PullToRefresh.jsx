@@ -17,7 +17,6 @@ import { useEffect, useRef, useState } from 'react'
 
 const SLOP = 8
 const THRESHOLD = 60
-const MAX_PULL = 90
 const MIN_HOLD_MS = 300
 
 export function PullToRefresh({ children }) {
@@ -52,9 +51,10 @@ export function PullToRefresh({ children }) {
 			}
 			/* Taking the gesture over: this is the first moment a pull and a scroll differ. */
 			e.preventDefault()
-			/* Halved, and capped -- the page trails the finger instead of tracking it, the
-			   resistance a native list gives a pull past its own content. */
-			d.distance = Math.min(dy / 2, MAX_PULL)
+			/* Halved, uncapped -- the page trails the finger instead of tracking it. No ceiling
+			   of our own: iOS already rubber-bands the overscroll itself, so a second, JS-side
+			   limit only fights the one the platform already applies. */
+			d.distance = dy / 2
 			setPull(d.distance)
 		}
 
