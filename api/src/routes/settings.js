@@ -6,17 +6,14 @@ export const router = Router()
 
 const selectSettings = db.prepare(`
 	SELECT default_kind, default_status, page_size, sort, show_scan_card, confirm_delete,
-		card_rows, list_sort, currency, blob_backfill_done
+		card_rows, list_sort, currency
 	FROM settings WHERE user_id = ?
 `)
-// blob_backfill_done is deliberately absent from this statement's @-params: it is set only by
-// POST /compress-blobs, never by a client's PATCH body, so it is carried over explicitly in the
-// route handler below rather than accepted here the way every other field is.
 const upsertSettings = db.prepare(`
 	INSERT INTO settings (user_id, default_kind, default_status, page_size, sort, show_scan_card,
-		confirm_delete, card_rows, list_sort, currency, blob_backfill_done)
+		confirm_delete, card_rows, list_sort, currency)
 	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard, @confirmDelete,
-		@cardRows, @listSort, @currency, @blobBackfillDone)
+		@cardRows, @listSort, @currency)
 	ON CONFLICT (user_id) DO UPDATE SET
 		default_kind = excluded.default_kind, default_status = excluded.default_status,
 		page_size = excluded.page_size, sort = excluded.sort,
@@ -28,8 +25,7 @@ const upsertSettings = db.prepare(`
 const toApi = row => ({
 	defaultKind: row.default_kind, defaultStatus: row.default_status, pageSize: row.page_size,
 	sort: row.sort, showScanCard: Boolean(row.show_scan_card), confirmDelete: Boolean(row.confirm_delete),
-	cardRows: row.card_rows, listSort: row.list_sort, currency: row.currency,
-	blobBackfillDone: Boolean(row.blob_backfill_done)
+	cardRows: row.card_rows, listSort: row.list_sort, currency: row.currency
 })
 
 /* A setting is a value something else reads, so the values it can hold are the ones that
@@ -52,8 +48,7 @@ router.patch('/', (req, res) => {
 	const current = selectSettings.get(req.user.id)
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
-		showScanCard: true, confirmDelete: true, cardRows: 6, listSort: 'name-asc', currency: 'DKK',
-		blobBackfillDone: false
+		showScanCard: true, confirmDelete: true, cardRows: 6, listSort: 'name-asc', currency: 'DKK'
 	}
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({
@@ -68,12 +63,7 @@ router.patch('/', (req, res) => {
 		listSort: oneOf(LIST_SORTS, next.listSort, currentApi.listSort),
 		/* The code only, upper-cased so 'dkk' from a script is the same preference 'DKK' is.
 		   Nothing here converts a figure: the currency names what the amounts already were. */
-		currency: oneOf(CURRENCY_CODES, String(next.currency ?? '').toUpperCase(), currentApi.currency),
-		// From currentApi, never from next/req.body -- see the note on upsertSettings above.
-		// The ON CONFLICT branch this normally takes doesn't even write this column; this value
-		// only matters the one time the INSERT branch fires, for a settings row that doesn't
-		// exist yet.
-		blobBackfillDone: currentApi.blobBackfillDone ? 1 : 0
+		currency: oneOf(CURRENCY_CODES, String(next.currency ?? '').toUpperCase(), currentApi.currency)
 	})
 	res.json(toApi(selectSettings.get(req.user.id)))
 })
