@@ -42,16 +42,17 @@ const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, posit
 const updateOrderItem = db.prepare(`UPDATE order_items SET position=@position, title=@title, quantity=@quantity,
 	price=@price, retail=@retail, note=@note WHERE id=@id AND order_id=@orderId`)
 const deleteOrderItem = db.prepare('DELETE FROM order_items WHERE id = ? AND order_id = ?')
-const insertAttachment = db.prepare(`INSERT INTO attachments (id, order_id, order_item_id, name, kind, meta, content_type, size, data, thumbnail, thumbnail_content_type)
-	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @thumbnail, @thumbnailContentType)`)
+const insertAttachment = db.prepare(`INSERT INTO attachments
+	(id, order_id, order_item_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
+	VALUES (@id, @orderId, @orderItemId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
 const selectExistingAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_id = ?')
 const selectExistingItemAttachmentNames = db.prepare('SELECT lower(name) n FROM attachments WHERE order_item_id = ?')
 const deleteAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_id = ?')
 const deleteItemAttachment = db.prepare('DELETE FROM attachments WHERE id = ? AND order_item_id = ?')
-const selectAttachment = db.prepare('SELECT name, content_type, data FROM attachments WHERE id = ? AND order_id = ?')
-const selectItemAttachment = db.prepare('SELECT name, content_type, data FROM attachments WHERE id = ? AND order_item_id = ?')
-const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
-const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
+const selectAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_id = ?')
+const selectItemAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_item_id = ?')
+const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
+const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectLatestOrders = db.prepare(
 	`SELECT ${orderTotalsSelectList()} FROM orders WHERE user_id = @userId ORDER BY date DESC, id DESC LIMIT @count`
 )
@@ -303,8 +304,10 @@ async function saveAttachments(files, owner, existingNames) {
 			id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
 			name: file.originalname, kind,
 			meta: `Added today${sep}${fileSizeLabel(processed.size)}`,
-			contentType: processed.contentType ?? file.mimetype, size: processed.size, data: processed.data,
-			thumbnail: processed.thumbnail, thumbnailContentType: processed.thumbnailContentType
+			contentType: processed.contentType ?? file.mimetype, size: processed.size,
+			data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
+			thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
+			thumbnailContentType: processed.thumbnailContentType
 		}
 		insertAttachment.run(attachment)
 		added.push({ id: attachment.id, name: attachment.name, kind: attachment.kind, meta: attachment.meta })
@@ -332,7 +335,7 @@ router.get('/:id/attachments/:attachmentId/file', (req, res) => {
 	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
 	res.set('Content-Disposition', `inline; filename="${attachment.name.replace(/"/g, '')}"`)
-	res.send(decompressBlob(attachment.data))
+	res.send(decompressBlob(attachment.data, attachment.data_is_compressed))
 })
 
 router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
@@ -341,7 +344,7 @@ router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
 	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
 	res.set('Content-Type', attachment.thumbnail_content_type || 'image/jpeg')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // a thumbnail's bytes never change once made
-	res.send(decompressBlob(attachment.thumbnail))
+	res.send(decompressBlob(attachment.thumbnail, attachment.thumbnail_is_compressed))
 })
 
 /* ---- item attachments ----
@@ -373,7 +376,7 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/file', (req, res) => {
 	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
 	res.set('Content-Disposition', `inline; filename="${attachment.name.replace(/"/g, '')}"`)
-	res.send(decompressBlob(attachment.data))
+	res.send(decompressBlob(attachment.data, attachment.data_is_compressed))
 })
 
 router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) => {
@@ -383,7 +386,7 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) 
 	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
 	res.set('Content-Type', attachment.thumbnail_content_type || 'image/jpeg')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')
-	res.send(decompressBlob(attachment.thumbnail))
+	res.send(decompressBlob(attachment.thumbnail, attachment.thumbnail_is_compressed))
 })
 
 /* ---- bulk import ----
@@ -415,8 +418,8 @@ async function processImportAttachments(list) {
 const insertImportedAttachment = (a, owner) => insertAttachment.run({
 	id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
 	name: a.name, kind: a.kind, meta: `Imported${sep}${fileSizeLabel(a.size)}`,
-	contentType: a.contentType, size: a.size, data: a.data,
-	thumbnail: a.thumbnail, thumbnailContentType: a.thumbnailContentType
+	contentType: a.contentType, size: a.size, data: a.data, dataCompressed: a.dataCompressed ? 1 : 0,
+	thumbnail: a.thumbnail, thumbnailCompressed: a.thumbnailCompressed ? 1 : 0, thumbnailContentType: a.thumbnailContentType
 })
 
 router.post('/import', async (req, res) => {
