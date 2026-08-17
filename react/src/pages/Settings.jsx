@@ -172,7 +172,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 							</FilterSection>
 
 							<FilterSection>
-								<span className="panel-heading">Currency</span>
+								<span className="panel-heading">Money</span>
 								{/* The unit the ledger is kept in, not a conversion: changing it restates what
 								    the figures are called, never what they are worth, and the help says so
 								    because a currency picker that silently revalued a ledger is exactly what a
