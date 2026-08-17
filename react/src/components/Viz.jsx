@@ -306,8 +306,10 @@ export const Meter = ({ fill, marker, ariaLabel, className, style }) => (
 	</div>
 )
 
-/** Seven bars, one per weekday. The peak days carry a lighter track with a filled portion,
-    which is how the prototype marks them; everything else is the plain track. */
+/** Seven bars, one per weekday. The peak days are marked by the filled portion alone; the
+    track is the same --bg-bar-track as every other day. It used to be an inline lighter
+    green, which no theme can reach: a hardcoded style is a light-mode leak, and the dark
+    theme rendered it as a pale slab on the busiest day of both rhythm cards. */
 /** A bar per weekday, each a share of the busiest one, with its name underneath.
 
     Same shape as MonthColumns below and for the same reason: the bar sits in a track, and the
@@ -320,7 +322,7 @@ export const WeekdayBars = ({ days, className, style }) => (
 		{days.map(d => (
 			<div key={d.day}>
 				<div className="weekday-bars-track">
-					<div className="chart-bar" style={{ height: d.share + '%', background: d.peak ? '#BFE5D2' : undefined }}>
+					<div className="chart-bar" style={{ height: d.share + '%' }}>
 						<div className="chart-bar-fill" style={{ '--f': d.peak ? '55%' : '0%' }} />
 					</div>
 				</div>
