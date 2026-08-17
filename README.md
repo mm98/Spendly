@@ -52,6 +52,15 @@ These are the building blocks. Nothing here is a control. Everything here is wha
 
 Every color is a named token. A hex value written directly into a rule is a decision nobody can find later.
 
+Two kinds of value are exempt, and each for its own reason. **A vendor's or a category's color is
+data, not design** — every record carries its own, so a token would claim a decision the design
+system does not own; the same goes for a component's built-in default of that kind of color. And
+**a family of near-identical values pending a collapse decision stays literal** until the decision
+is made: several borders, inks and tile fills sit one or two shades apart, and merging them changes
+what is on screen, which is a design decision rather than a rename. Everything else — every fill,
+glyph, edge, shadow and backdrop — resolves through a token, which is the property a dark theme
+will need: one override block, no light-mode leaks.
+
 **Text, in four steps.** Text gets lighter as it gets less important, and the steps are fixed:
 
 | Token | Value | Usage |
