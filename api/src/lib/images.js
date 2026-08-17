@@ -78,15 +78,15 @@ export async function processPdfThumbnail(buffer) {
 	}
 }
 
-/** { data, contentType, size, thumbnail, thumbnailContentType } for any uploaded attachment —
-    the one place this branches by kind (image → resized copies; pdf → original bytes plus a
-    rendered-page thumbnail where that succeeds), used by every upload path (a direct attachment,
-    a scan, a bulk import) so the three can't drift into different rules for what "processed"
-    for a given kind actually means. Also the one place the stored bytes are gzipped -- every
-    write path funnels through here, so the read side (orders.js/scan.js) only has to know how
-    to reverse it, not which upload produced a given row. `size` stays the uncompressed byte
-    count: it's what the UI shows as the file's size, and that should describe the upload, not
-    how this happened to store it. */
+/** { data, dataCompressed, contentType, size, thumbnail, thumbnailCompressed, thumbnailContentType }
+    for any uploaded attachment — the one place this branches by kind (image → resized copies;
+    pdf → original bytes plus a rendered-page thumbnail where that succeeds), used by every
+    upload path (a direct attachment, a scan, a bulk import) so the three can't drift into
+    different rules for what "processed" for a given kind actually means. Also the one place the
+    stored bytes are deflated -- every write path funnels through here, so the read side
+    (orders.js/scan.js) only has to know how to reverse it, not which upload produced a given
+    row. `size` stays the uncompressed byte count: it's what the UI shows as the file's size, and
+    that should describe the upload, not how this happened to store it. */
 export async function processAttachment(kind, buffer, mimetype) {
 	const processed = kind === 'image' ? await processImage(buffer) : await (async () => {
 		const pdfThumb = kind === 'pdf' ? await processPdfThumbnail(buffer) : null
@@ -95,5 +95,11 @@ export async function processAttachment(kind, buffer, mimetype) {
 			thumbnail: pdfThumb?.thumbnail ?? null, thumbnailContentType: pdfThumb?.thumbnailContentType ?? null
 		}
 	})()
-	return { ...processed, data: compressBlob(processed.data), thumbnail: compressBlob(processed.thumbnail) }
+	const data = compressBlob(processed.data)
+	const thumbnail = compressBlob(processed.thumbnail)
+	return {
+		...processed,
+		data: data.blob, dataCompressed: data.compressed,
+		thumbnail: thumbnail.blob, thumbnailCompressed: thumbnail.compressed
+	}
 }

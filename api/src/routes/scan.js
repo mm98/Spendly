@@ -13,10 +13,11 @@ export const router = Router()
 // multipart filenames as latin1 unless told otherwise, and browsers never say otherwise.
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
 
-const insertUpload = db.prepare(`INSERT INTO scan_uploads (id, user_id, name, size, kind, content_type, data, thumbnail, thumbnail_content_type)
-	VALUES (@id, @userId, @name, @size, @kind, @contentType, @data, @thumbnail, @thumbnailContentType)`)
-const selectUpload = db.prepare('SELECT id, name, size, kind, content_type, data, thumbnail, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
-const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
+const insertUpload = db.prepare(`INSERT INTO scan_uploads
+	(id, user_id, name, size, kind, content_type, data, data_compressed, thumbnail, thumbnail_compressed, thumbnail_content_type)
+	VALUES (@id, @userId, @name, @size, @kind, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
+const selectUpload = db.prepare('SELECT id, name, size, kind, content_type, data, data_compressed, thumbnail, thumbnail_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
+const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
 const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
 
 /** A dropped receipt, kept until review turns it into an order. There is no OCR behind this —
@@ -31,8 +32,10 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 	const id = newId('su')
 	insertUpload.run({
 		id, userId: req.user.id, name: file.originalname, size: processed.size, kind,
-		contentType: processed.contentType ?? file.mimetype, data: processed.data,
-		thumbnail: processed.thumbnail, thumbnailContentType: processed.thumbnailContentType
+		contentType: processed.contentType ?? file.mimetype,
+		data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
+		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
+		thumbnailContentType: processed.thumbnailContentType
 	})
 	res.status(201).json({ key: id, name: file.originalname, kind, meta: `${kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(processed.size)}` })
 })
@@ -68,11 +71,13 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 	const order = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?').get(req.params.orderId, req.user.id)
 	if (!order) return res.status(404).json({ error: 'No order ' + req.params.orderId })
 
-	db.prepare(`INSERT INTO attachments (id, order_id, name, kind, meta, content_type, size, data, thumbnail, thumbnail_content_type)
-		VALUES (@id, @orderId, @name, @kind, @meta, @contentType, @size, @data, @thumbnail, @thumbnailContentType)`).run({
+	db.prepare(`INSERT INTO attachments
+		(id, order_id, name, kind, meta, content_type, size, data, data_compressed, thumbnail, thumbnail_compressed, thumbnail_content_type)
+		VALUES (@id, @orderId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`).run({
 		id: newId('a'), orderId: order.id, name: upload.name, kind: upload.kind,
-		meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, contentType: upload.content_type, size: upload.size, data: upload.data,
-		thumbnail: upload.thumbnail, thumbnailContentType: upload.thumbnail_content_type
+		meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, contentType: upload.content_type, size: upload.size,
+		data: upload.data, dataCompressed: upload.data_compressed,
+		thumbnail: upload.thumbnail, thumbnailCompressed: upload.thumbnail_compressed, thumbnailContentType: upload.thumbnail_content_type
 	})
 	deleteUpload.run(upload.id, req.user.id)
 	res.json(getDecoratedOrder(req.user.id, order.id))
@@ -82,7 +87,7 @@ router.get('/documents/:key/thumbnail', (req, res) => {
 	const upload = selectUploadThumbnail.get(req.params.key, req.user.id)
 	if (!upload || !upload.thumbnail) return res.status(404).json({ error: 'No thumbnail for that document.' })
 	res.set('Content-Type', upload.thumbnail_content_type || 'image/jpeg')
-	res.send(decompressBlob(upload.thumbnail))
+	res.send(decompressBlob(upload.thumbnail, upload.thumbnail_compressed))
 })
 
 /** The full (1600px) display image — for a bigger preview than the 200px thumbnail is worth
@@ -91,7 +96,7 @@ router.get('/documents/:key/file', (req, res) => {
 	const upload = selectUpload.get(req.params.key, req.user.id)
 	if (!upload || !upload.data) return res.status(404).json({ error: 'No file stored for that document.' })
 	res.set('Content-Type', upload.content_type || 'application/octet-stream')
-	res.send(decompressBlob(upload.data))
+	res.send(decompressBlob(upload.data, upload.data_compressed))
 })
 
 /** Recently completed scans — the account's own orders that carry an attachment, newest first.
