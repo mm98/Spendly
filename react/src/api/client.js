@@ -359,7 +359,7 @@ const periodFromWindow = w => ({
 })
 
 export async function getOrdersOverview(signal) {
-	const [{ latest }, { window }, categories, settings] = await Promise.all([
+	const [{ latestOrders }, { window }, categories, settings] = await Promise.all([
 		// No count: the server cuts it to the account's entries-per-card setting, the same
 		// number the returns card beside it and every list on Home are cut to. This asked for 4
 		// while Home asked for 3, so one card was two lengths depending which page drew it.
@@ -379,7 +379,11 @@ export async function getOrdersOverview(signal) {
 	   ring's colours, could only ever name four of them. */
 	const monthCategories = monthCategoriesFrom(categories, window.split)
 	return {
-		latest, period: periodFromWindow(window), categories: monthCategories,
+		/* Both lists carry the name of the list they are, not the shape they have: this page
+		   draws orders and categories side by side, and Home draws two more of each. Same
+		   naming as getHomeContent below, so a field does not change meaning between the two
+		   objects that both feed a breakdown card. */
+		latestOrders, period: periodFromWindow(window), monthCategories,
 		/* monthCategories is filtered to spend > 0 this month, so its emptiness cannot say
 		   whether the account has categories at all -- and the breakdown card's empty state has
 		   to know which absence it is answering: nothing bought yet, or no categories yet. */
@@ -525,7 +529,7 @@ export async function getHomeContent(signal) {
 	// Fetched directly rather than through getOrdersOverview, which independently re-fetches
 	// stats/categories/home for its own callers — going through it here paid for that work
 	// twice on every Home load.
-	const [onboarding, { window }, vendors, categories, settings, { latest }] = await Promise.all([
+	const [onboarding, { window }, vendors, categories, settings, { latestOrders }] = await Promise.all([
 		request('/api/home/onboarding', { signal }),
 		getStatsSummary('month', undefined, signal),
 		getVendors(signal),
@@ -552,8 +556,18 @@ export async function getHomeContent(signal) {
 		// rest -- it was three, chosen where the period object is built and therefore three on
 		// every page that reads one.
 		period: { ...period, heroLegend: period.heroLegend.slice(0, rows) },
-		vendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, rows),
-		categories: monthCategories,
+		/* Every list below says which list it is, because Home now draws four that would each
+		   answer to a bare `categories` or `vendors`: the month's split, the all-time ranking
+		   and the starred ones, twice over. A field called `categories` on this object meant
+		   the month's split and read like it meant the account's categories -- the same
+		   ambiguity the card keys carry a note about in the API's own catalogue. */
+		topVendors: [...vendors].sort((a, b) => b.spend - a.spend).slice(0, rows),
+		monthCategories,
+		/* The same ranking asked of categories, and all-time like topVendors above it --
+		   deliberately not monthCategories, which is this month's split and belongs to the ring.
+		   The raw list's `share` is of the account's whole spend, which is the number All
+		   categories prints beside these same rows. */
+		topCategories: [...categories].sort((a, b) => b.spend - a.spend).slice(0, rows),
 		// Same field getOrdersOverview carries, for the same card: the month list's emptiness
 		// cannot say whether the account has categories at all.
 		hasCategories: categories.length > 0,
@@ -564,9 +578,15 @@ export async function getHomeContent(signal) {
 		// leads the Vendors page's own Favourites section.
 		favouriteCategories: categories.filter(c => c.favourite)
 			.sort((a, b) => b.spend - a.spend).slice(0, rows),
+		// The other half of that same preference. Cut from the raw list, not from topVendors --
+		// that one is already sliced to the top few by spend, and a favourite ranked eleventh is
+		// still a favourite. Ordered by spend like every other list of vendors here, so the two
+		// vendor cards on this page rank the same way.
+		favouriteVendors: vendors.filter(v => v.favourite)
+			.sort((a, b) => b.spend - a.spend).slice(0, rows),
 		onboarding,
 		showScanCard: settings.showScanCard,
-		latest
+		latestOrders
 	}
 }
 

@@ -183,7 +183,7 @@ function VendorFields({ mode, vendor }) {
 			    and what follows the click is what differs. README: Checkbox Row. */}
 			<CheckRow id="vendor-favourite" checked={favourite} onChange={setFavourite}
 				label="Favourite"
-				help="Spotlighted at the top of the Vendors page, and leads the vendor list on a new order." />
+				help="Spotlighted at the top of the Vendors page, leads the vendor list on a new order, and appears in Home's Favourite vendors card." />
 		</FormPage>
 	)
 }

@@ -221,7 +221,7 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 										groups={[{ heading: 'Sort', options: listSorts.map(s => ({ id: s.id, label: s.label })) }]} />
 								</Field>
 								<Field label="Entries per card" group
-									help="How many rows a card on Home fills with: the latest orders, the top vendors, the favourite categories.">
+									help="How many rows a card on Home fills with: the latest orders, the top vendors, the favourites.">
 									<Segmented options={cardRowOptions.map(String)}
 										value={String(local.cardRows)}
 										onChange={v => change({ cardRows: Number(v) }, 'Entries per card saved.')}

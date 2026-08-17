@@ -164,9 +164,9 @@ function Hero({ month }) {
    rather than assumed. Both the arcs and the rows are drawn from the folded array, so the ring
    still adds up to the figure printed in its middle however few rows the card has room for.
    README: Home, Charts. */
-function BreakdownCard({ period, categories, hasCategories, rows }) {
+function BreakdownCard({ period, monthCategories, hasCategories, rows }) {
 	const [listRef, budget] = useListBudget(rows)
-	const shown = foldForRing(categories, more => `${more} more categories`, budget)
+	const shown = foldForRing(monthCategories, more => `${more} more categories`, budget)
 	/* A ring with no segments is a grey circle claiming a split of nothing -- the same absence
 	   the vendors card one over already answers with an empty state. Which sentence depends on
 	   which absence: a month with nothing bought, or an account with no categories at all.
@@ -224,9 +224,9 @@ function BreakdownCard({ period, categories, hasCategories, rows }) {
    that. Here it is a headline figure and its caption rather than a graphic -- which is the point
    of measuring instead of tabulating chart heights: the card does not have to be told what kind
    of thing is above its rows, or that anything is. */
-function TopVendorsCard({ vendors, rows }) {
+function TopVendorsCard({ topVendors, rows }) {
 	const [listRef, budget] = useListBudget(rows)
-	if (!vendors.length) return (
+	if (!topVendors.length) return (
 		<>
 			<CardHeader title="Top vendors" to="/vendors" label="Top vendors, open Vendors" />
 			<CardDivider />
@@ -242,10 +242,10 @@ function TopVendorsCard({ vendors, rows }) {
 			<CardHeader title="Top vendors" to="/vendors" label="Top vendors, open Vendors" />
 			<CardDivider />
 			<CardBody>
-				<div className="figure-card tabular-figures">{currency(vendors[0].spend, 0)}</div>
-				<span className="card-caption">{vendors[0].name}<Sep />all time</span>
+				<div className="figure-card tabular-figures">{currency(topVendors[0].spend, 0)}</div>
+				<span className="card-caption">{topVendors[0].name}<Sep />all time</span>
 				<div className="entry-list" ref={listRef}>
-					{vendors.slice(0, budget).map(v => (
+					{topVendors.slice(0, budget).map(v => (
 						<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
 							amount={currency(v.spend, 0)} sub={`saved ${currency(v.saved, 0)}`}
 							to={`/orders/all?vendor=${v.id}`} />
@@ -256,16 +256,60 @@ function TopVendorsCard({ vendors, rows }) {
 	)
 }
 
-function FavouriteCategoriesCard({ categories, rows }) {
+/* Top vendors' own question asked of the other thing an order is filed under: not which shop
+   took the money, but what kind of thing it was spent on, over the whole ledger.
+
+   Category breakdown one card over is not this. That one is a ring of *this month*, drawn from
+   the window's own split and adding up to the month's figure; this is the all-time ranking, the
+   same stretch Top vendors covers and the same stretch All categories opens on -- which is why
+   the row keeps its standing "% of expenses" meta, the share All categories prints, rather than
+   the saving the favourites card puts there. Two cards can both be about categories as long as
+   each says which stretch of time it is about, and the caption under the figure says this one.
+   README: Home. */
+function TopCategoriesCard({ topCategories, rows }) {
+	const [listRef, budget] = useListBudget(rows)
+	if (!topCategories.length) return (
+		<>
+			<CardHeader title="Top categories" to="/categories" label="Top categories, open Categories" />
+			<CardDivider />
+			<CardBody>
+				{/* The absence is "no categories", not "nothing spent": this card is all-time, so a
+				    month with nothing bought in it has nothing to do with whether the list is
+				    empty. That is the breakdown card's distinction, one card over. */}
+				<EmptyState>
+					<p>No categories yet. Add one and your spending splits by kind.</p>
+				</EmptyState>
+			</CardBody>
+		</>
+	)
+	return (
+		<>
+			<CardHeader title="Top categories" to="/categories" label="Top categories, open Categories" />
+			<CardDivider />
+			<CardBody>
+				<div className="figure-card tabular-figures">{currency(topCategories[0].spend, 0)}</div>
+				<span className="card-caption">{topCategories[0].name}<Sep />all time</span>
+				<div className="category-rows" ref={listRef}>
+					{topCategories.slice(0, budget).map(c =>
+						/* All time, so no window to pass on -- the row opens the category's whole
+						   history, which is the list the figure beside it adds up. */
+						<CategoryRow key={c.id} category={c} to={`/orders/all?category=${c.id}`} />)}
+				</div>
+			</CardBody>
+		</>
+	)
+}
+
+function FavouriteCategoriesCard({ favouriteCategories, rows }) {
 	const [listRef, budget] = useListBudget(rows)
 	return (
 		<>
 			<CardHeader title="Favourite categories" to="/categories" label="Favourite categories, open Categories" />
 			<CardDivider />
 			<CardBody>
-				{categories.length ? (
+				{favouriteCategories.length ? (
 					<div className="category-rows" ref={listRef}>
-						{categories.slice(0, budget).map(c =>
+						{favouriteCategories.slice(0, budget).map(c =>
 							<CategoryRow key={c.id} category={c} meta={`saved ${currency(c.saved, 0)}`}
 								to={`/orders/all?category=${c.id}`} />)}
 					</div>
@@ -279,16 +323,52 @@ function FavouriteCategoriesCard({ categories, rows }) {
 	)
 }
 
+/* The same card for the other thing this app lets you star. Categories had one and vendors did
+   not, on a dashboard where a favourite is the same standing preference either way -- and the
+   Vendors page already spotlights them, so the asymmetry was the dashboard's alone.
+   README: Home.
+
+   The rows are Top vendors' rows exactly: the same list of the same records, ranked the same
+   way, so the two cards cannot draw one vendor two ways on one screen. No headline figure above
+   them -- that one names the vendor at the top of a ranking, and this list is not a ranking of
+   anything, it is the set the reader chose. */
+function FavouriteVendorsCard({ favouriteVendors, rows }) {
+	const [listRef, budget] = useListBudget(rows)
+	return (
+		<>
+			<CardHeader title="Favourite vendors" to="/vendors" label="Favourite vendors, open Vendors" />
+			<CardDivider />
+			<CardBody>
+				{favouriteVendors.length ? (
+					<div className="entry-list" ref={listRef}>
+						{favouriteVendors.slice(0, budget).map(v => (
+							<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
+								amount={currency(v.spend, 0)} sub={`saved ${currency(v.saved, 0)}`}
+								to={`/orders/all?vendor=${v.id}`} />
+						))}
+					</div>
+				) : (
+					/* The sentence the Vendors page's own Favourites card uses, because it is the
+					   same absence and the same next step. */
+					<EmptyState>
+						<p>No favourites yet. Star a vendor on its own page and it lands here.</p>
+					</EmptyState>
+				)}
+			</CardBody>
+		</>
+	)
+}
+
 
 /* The Orders card's list, under its chart. Its own component so it can measure: the chart, the
    caption above it and this list's own heading are all height the rows do not get, and none of
    those numbers is written down anywhere. */
-function LatestOrders({ orders, rows }) {
+function LatestOrders({ latestOrders, rows }) {
 	const [listRef, budget] = useListBudget(rows)
 	return (
 		<div className="entry-list" ref={listRef}>
 			<div className="list-heading">Latest orders</div>
-			{orders.slice(0, budget).map(order => (
+			{latestOrders.slice(0, budget).map(order => (
 				<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
 					meta={dayMonth(order.date)} amount={currency(order.total)}
 					sub={`saved ${currency(order.saved)}`} to={`/orders/${order.id}`} />
@@ -297,12 +377,15 @@ function LatestOrders({ orders, rows }) {
 	)
 }
 
-/* The six cards the dashboard can hold. Each is the body only -- the <section class="card">
-   around it belongs to DashboardCards, which is what puts the reorder bar inside it. */
+/* The cards the dashboard can hold -- one branch per key in the server's own catalogue
+   (api/src/lib/constants.js), which is what the tray offers and what the PUT validates
+   against. Each is the body only -- the <section class="card"> around it belongs to
+   DashboardCards, which is what puts the reorder bar inside it. */
 function dashboardCard(key, data) {
-	const { period, vendors, categories, favouriteCategories, cardRows } = data
+	const { period, topVendors, monthCategories, topCategories, favouriteCategories,
+		favouriteVendors, hasCategories, cardRows } = data
 	switch (key) {
-		case 'rhythm':
+		case 'spending_rhythm':
 			return (
 				<>
 					<CardHeader title="Spending rhythm" />
@@ -323,14 +406,18 @@ function dashboardCard(key, data) {
 					</CardBody>
 				</>
 			)
-		case 'breakdown':
-			return <BreakdownCard period={period} categories={categories}
-				hasCategories={data.hasCategories} rows={cardRows} />
-		case 'vendors':
-			return <TopVendorsCard vendors={vendors} rows={cardRows} />
-		case 'favcats':
-			return <FavouriteCategoriesCard categories={favouriteCategories} rows={cardRows} />
-		case 'saved':
+		case 'category_breakdown':
+			return <BreakdownCard period={period} monthCategories={monthCategories}
+				hasCategories={hasCategories} rows={cardRows} />
+		case 'top_vendors':
+			return <TopVendorsCard topVendors={topVendors} rows={cardRows} />
+		case 'top_categories':
+			return <TopCategoriesCard topCategories={topCategories} rows={cardRows} />
+		case 'favourite_categories':
+			return <FavouriteCategoriesCard favouriteCategories={favouriteCategories} rows={cardRows} />
+		case 'favourite_vendors':
+			return <FavouriteVendorsCard favouriteVendors={favouriteVendors} rows={cardRows} />
+		case 'saved_vs_retail':
 			return (
 				<>
 					<CardHeader title="Saved vs retail" />
@@ -348,7 +435,7 @@ function dashboardCard(key, data) {
 					</CardBody>
 				</>
 			)
-		case 'pace':
+		case 'monthly_pace':
 			return (
 				<>
 					<CardHeader title="Monthly pace" />
@@ -430,9 +517,9 @@ export default function Home() {
 							<CardBody>
 								{/* A chart is a claim about data points; a flat line at zero with a lone
 								    marker on it makes that claim about an account with no orders at all.
-								    The same absence dashboard-card('vendors') already guards against,
+								    The same absence dashboard-card('top_vendors') already guards against,
 								    one card over. */}
-								{data.latest.length ? (
+								{data.latestOrders.length ? (
 									<>
 										<div className="chart-caption">
 											<div className="chart-caption-label">Spent this month</div>
@@ -466,7 +553,7 @@ export default function Home() {
 										    which is the same pair of figures the other two lists of orders
 										    draw and the only one drawing them the other way round.
 										    README: Data Rows. */}
-										<LatestOrders orders={data.latest} rows={data.cardRows} />
+										<LatestOrders latestOrders={data.latestOrders} rows={data.cardRows} />
 									</>
 								) : (
 									<EmptyState>
@@ -481,7 +568,7 @@ export default function Home() {
 							<CardHeader title="Saved vs retail" to="/stats" label="Saved vs retail, open Statistics" />
 							<CardDivider />
 							<CardBody>
-								{data.latest.length ? (
+								{data.latestOrders.length ? (
 									<>
 										<div className="caption-chip-row">
 											<div className="chart-caption">

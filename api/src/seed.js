@@ -7,13 +7,17 @@
    An account now starts genuinely empty: no vendor, no category, no order until the user adds
    one themselves. */
 
+/* Which of the catalogue's cards a new account opens Home with, in this order. Keys are the
+   catalogue's own (lib/constants.js) -- spelled out in full, for the reason stated there. */
 export const DASHBOARD_CARDS = [
-	{ key: 'rhythm',    on: true },
-	{ key: 'breakdown', on: true },
-	{ key: 'vendors',   on: true },
-	{ key: 'favcats',   on: false },
-	{ key: 'saved',     on: false },
-	{ key: 'pace',      on: false }
+	{ key: 'spending_rhythm',      on: true },
+	{ key: 'category_breakdown',   on: true },
+	{ key: 'top_vendors',          on: true },
+	{ key: 'top_categories',       on: false },
+	{ key: 'favourite_categories', on: false },
+	{ key: 'favourite_vendors',    on: false },
+	{ key: 'saved_vs_retail',      on: false },
+	{ key: 'monthly_pace',         on: false }
 ]
 
 export const DEFAULT_SETTINGS = {
