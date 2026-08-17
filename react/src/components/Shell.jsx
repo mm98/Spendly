@@ -5,6 +5,7 @@ import { Icon } from './Icon.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Waiting } from './Async.jsx'
 import { ToastProvider } from './Toast.jsx'
+import { PullToRefresh } from './PullToRefresh.jsx'
 import { search } from '../api/client.js'
 
 /* The shell every page sits in: the rail, the top bar, the sub-tab band, and the sheet.
@@ -336,18 +337,20 @@ export function AppShell() {
 					    it the sheet was a bare <div> and every card, heading and row on twelve
 					    pages sat in no landmark at all -- 108 of them by axe's count. README: Accessibility. */}
 					<main>
-						<SubTabs tabs={handle.tabs} view={view} setView={setView} />
-						{/* One boundary for every route, because every page is its own chunk --
-						    see routes.jsx. It sits inside <main> and below the sub-tab band so
-						    the title, the rail highlight and the tabs are already right while
-						    the page is still arriving: those come off the route's `handle`,
-						    which is static, and a page that announced itself only once its
-						    JavaScript landed would be the unnamed-page defect again. */}
-						<div className="content-sheet"><div className="content-sheet-inner"><div id="pages">
-							<Suspense fallback={<Waiting label="Loading this page" />}>
-								<Outlet />
-							</Suspense>
-						</div></div></div>
+						<PullToRefresh>
+							<SubTabs tabs={handle.tabs} view={view} setView={setView} />
+							{/* One boundary for every route, because every page is its own chunk --
+							    see routes.jsx. It sits inside <main> and below the sub-tab band so
+							    the title, the rail highlight and the tabs are already right while
+							    the page is still arriving: those come off the route's `handle`,
+							    which is static, and a page that announced itself only once its
+							    JavaScript landed would be the unnamed-page defect again. */}
+							<div className="content-sheet"><div className="content-sheet-inner"><div id="pages">
+								<Suspense fallback={<Waiting label="Loading this page" />}>
+									<Outlet />
+								</Suspense>
+							</div></div></div>
+						</PullToRefresh>
 					</main>
 				</div>
 			</div>
