@@ -1303,6 +1303,9 @@ label.field-shell { cursor:pointer; }
 @media (min-width:2200px) {
 	.app-shell { grid-template-columns:250px minmax(0,1fr); }
 	.content-grid { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
+	/* The list tiles grow with the rail -- one token, so every row family's tile
+	   moves together. */
+	:root { --thumb-size:46px; }
 }
 @media (max-width:1180px) { .order-list-grid { grid-template-columns:minmax(0,1fr); } }
 /* The phone layout is this one block, and it is the last breakpoint in the file so
