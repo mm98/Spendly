@@ -169,3 +169,6 @@ export const today = () => {
    api/src/migrations/006 and 007). The API builds its metas from its own copy of this
    constant in api/src/lib/copy.js; the two state the same character or one of them is wrong. */
 export const sep = ' • '
+
+/** "1 item", "3 items" -- singular below 2 wherever a count is followed by its noun. */
+export const plural = (n, noun, pluralNoun = `${noun}s`) => `${n} ${n === 1 ? noun : pluralNoun}`

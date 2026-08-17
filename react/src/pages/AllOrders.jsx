@@ -13,7 +13,7 @@ import { Pager } from '../components/Pager.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
-import { currencySymbol, dayMonth, parseAmount, percent, sep } from '../api/format.js'
+import { currencySymbol, dayMonth, parseAmount, percent, plural, sep } from '../api/format.js'
 
 /* All orders: the search, the filters, and what they leave.
 
@@ -234,7 +234,7 @@ export default function AllOrders() {
 								onChange={v => setDraft({ ...draft, vendorName: v, vendorId: '' })}
 								onSelect={o => setDraft({ ...draft, vendorName: o.label, vendorId: o.id })}
 								groups={[{ heading: 'All vendors', options: (vendors.data ?? []).map(v =>
-									({ id: v.id, label: v.name, meta: `${v.orders} orders` })) }]} />
+									({ id: v.id, label: v.name, meta: plural(v.orders, 'order') })) }]} />
 						</Field>
 						<FieldPair variant="field-pair-stack-early">
 							<Field label="Category" htmlFor="filter-category">
@@ -294,7 +294,7 @@ export default function AllOrders() {
 
 			<Async state={results} label="Loading orders">{data => (
 				<Card aria-label="Orders">
-					<CardHeader title={`Orders${sep}${data.matched} match`}>
+					<CardHeader title={`Orders${sep}${plural(data.matched, 'match', 'matches')}`}>
 						<span className="field-help">filtered from {data.total}</span>
 					</CardHeader>
 					<CardDivider />

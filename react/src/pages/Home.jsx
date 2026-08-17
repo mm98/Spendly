@@ -15,7 +15,7 @@ import { invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn, saveSettings
 } from '../api/client.js'
-import { currency, dayMonth, percent, sep } from '../api/format.js'
+import { currency, dayMonth, percent, plural, sep } from '../api/format.js'
 
 /* Home.
 
@@ -166,7 +166,7 @@ function Hero({ month }) {
    README: Home, Charts. */
 function BreakdownCard({ period, monthCategories, hasCategories, rows }) {
 	const [listRef, budget] = useListBudget(rows)
-	const shown = foldForRing(monthCategories, more => `${more} more categories`, budget)
+	const shown = foldForRing(monthCategories, more => plural(more, 'more category', 'more categories'), budget)
 	/* A ring with no segments is a grey circle claiming a split of nothing -- the same absence
 	   the vendors card one over already answers with an empty state. Which sentence depends on
 	   which absence: a month with nothing bought, or an account with no categories at all.
@@ -246,7 +246,7 @@ function TopVendorsCard({ topVendors, rows }) {
 				<span className="card-caption">{topVendors[0].name}<Sep />all time</span>
 				<div className="entry-list" ref={listRef}>
 					{topVendors.slice(0, budget).map(v => (
-						<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
+						<EntryRow key={v.id} avatar={v} name={v.name} meta={plural(v.orders, 'order')}
 							amount={currency(v.spend, 0)} sub={`saved ${currency(v.saved, 0)}`}
 							to={`/orders/all?vendor=${v.id}`} />
 					))}
@@ -342,7 +342,7 @@ function FavouriteVendorsCard({ favouriteVendors, rows }) {
 				{favouriteVendors.length ? (
 					<div className="entry-list" ref={listRef}>
 						{favouriteVendors.slice(0, budget).map(v => (
-							<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
+							<EntryRow key={v.id} avatar={v} name={v.name} meta={plural(v.orders, 'order')}
 								amount={currency(v.spend, 0)} sub={`saved ${currency(v.saved, 0)}`}
 								to={`/orders/all?vendor=${v.id}`} />
 						))}
@@ -443,7 +443,7 @@ function dashboardCard(key, data) {
 					<CardBody>
 						<div className="figure-card tabular-figures">{currency(period.projected, 0)}</div>
 						<span className="card-caption">
-							projected for {period.shortLabel}<Sep />{period.daysIn} days in</span>
+							projected for {period.shortLabel}<Sep />{plural(period.daysIn, 'day')} in</span>
 						<Meter className="meter-under-caption"
 							/* projected is 0 exactly when spent is -- nothing bought yet this month --
 							   and 0/0 is NaN, an invalid CSS width the browser drops silently rather

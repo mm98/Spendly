@@ -7,7 +7,7 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getVendors, invalidateVendorData, updateVendor } from '../api/client.js'
-import { currency, dayMonth, fullStop, sep } from '../api/format.js'
+import { currency, dayMonth, fullStop, plural, sep } from '../api/format.js'
 
 /* Vendors, overview.
 
@@ -120,7 +120,7 @@ export default function Vendors() {
 												<CardDivider />
 												<CardBody>
 													<div className="lead-sentence">
-														{vendor.lead ?? `${vendor.orders} orders, ${currency(vendor.spend, 0)}${fullStop()}`}</div>
+														{vendor.lead ?? `${plural(vendor.orders, 'order')}, ${currency(vendor.spend, 0)}${fullStop()}`}</div>
 													<InsetPanel>
 														<ItemRow icon="discount" title="Saved vs retail"
 															meta={`${vendor.name}${sep}all time`} amount={currency(vendor.saved, 0)} />
@@ -130,7 +130,7 @@ export default function Vendors() {
 														    about why. A fact that is not there is still a fact. */}
 														<ItemRow icon="receipt" title="Latest order"
 															meta={vendor.latest
-																? `${dayMonth(vendor.latest.date)}${sep}${vendor.latest.items} items`
+																? `${dayMonth(vendor.latest.date)}${sep}${plural(vendor.latest.items, 'item')}`
 																: `None${sep}all time`}
 															amount={currency(vendor.latest?.total ?? 0, 0)} />
 													</InsetPanel>

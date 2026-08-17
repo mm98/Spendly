@@ -2,7 +2,7 @@ import { forwardRef } from 'react'
 import { Sep } from './Sep.jsx'
 import { Link } from 'react-router'
 import { Icon, ImageOrIcon } from './Icon.jsx'
-import { currency, percent } from '../api/format.js'
+import { currency, percent, plural } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
 /* Every list row in the app.
@@ -119,7 +119,8 @@ export function OrderRow({ order, to }) {
 				<div className="order-row-identity-text">
 					<div className="order-row-vendor">{order.vendor?.name}</div>
 					<div className="order-row-meta">
-						{order.dateLabel}<Sep />{order.itemCount} items<Sep />{order.categories.map(c => c.name).join(', ')}
+						{order.dateLabel}<Sep />{plural(order.itemCount, 'item')}
+						{order.categories.length ? <><Sep />{order.categories.map(c => c.name).join(', ')}</> : null}
 					</div>
 				</div>
 			</div>

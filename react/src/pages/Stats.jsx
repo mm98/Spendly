@@ -10,7 +10,7 @@ import { IconButton } from '../components/Button.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { useApi } from '../api/useApi.js'
 import { getStats, ranges } from '../api/client.js'
-import { currency, fullStop, sep } from '../api/format.js'
+import { currency, fullStop, plural, sep } from '../api/format.js'
 
 /* Statistics.
 
@@ -171,7 +171,7 @@ export default function Stats() {
 							    has to scroll up to date. */}
 							<Card aria-label="Pace">
 								<CardHeader title={`Pace${sep}${view.shortLabel}`}>
-									<span className="field-help">{view.pace.daysIn} days in</span>
+									<span className="field-help">{plural(view.pace.daysIn, 'day')} in</span>
 								</CardHeader>
 								<CardDivider />
 								<CardBody>
@@ -182,7 +182,7 @@ export default function Stats() {
 									<span className="field-help">
 										{view.pace.running
 											? `projected for ${view.label}${sep}${currency(view.spent)} spent so far`
-											: `total for ${view.label}${sep}${view.pace.daysIn} days of records`}</span>
+											: `total for ${view.label}${sep}${plural(view.pace.daysIn, 'day')} of records`}</span>
 									<Meter className="meter-under-caption"
 										/* projected is 0 exactly when spent is -- nothing bought yet this
 										   window -- and 0/0 is NaN, an invalid CSS width the browser drops

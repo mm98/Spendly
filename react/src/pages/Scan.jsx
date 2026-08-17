@@ -25,7 +25,7 @@ import {
 	scanFileUrl, scanThumbnailUrl, spendKinds, vendorByAnyName
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount } from '../api/format.js'
+import { amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, plural } from '../api/format.js'
 
 /* Scan, in three steps.
 
@@ -479,9 +479,9 @@ function ScanReviewForm({ answer }) {
 						: null}
 					groups={[
 						{ heading: 'Favourites', options: (vendors.data ?? []).filter(v => v.favourite)
-							.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders`, star: true })) },
+							.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order'), star: true })) },
 						{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
-							.map(v => ({ id: v.id, label: v.name, meta: `${v.orders} orders` })) }
+							.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order') })) }
 					]}
 					action={aliasHit
 						? { icon: 'check',
@@ -551,7 +551,7 @@ function ScanReviewForm({ answer }) {
 					{draft.remainder?.count ? (
 						<ItemRow icon="dots"
 							iconTone={{ background: '#EFF3EE', color: 'var(--text-muted)' }}
-							title={`${draft.remainder.count} more lines`}
+							title={plural(draft.remainder.count, 'more line', 'more lines')}
 							meta={showAll
 								? 'Kept as read; the document stays attached to the order.'
 								: `${currency(draft.remainder.total)} together`}>
