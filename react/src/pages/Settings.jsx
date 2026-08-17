@@ -12,18 +12,10 @@ import { useToast } from '../components/Toast.jsx'
 import { CURRENCIES, localStamp, setCurrency } from '../api/format.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	cardRowOptions, checkVersion, compressBlobs, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders,
+	cardRowOptions, checkVersion, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders,
 	getOrdersOverview, getSettings, getVendors, getVersion, listSorts, logout, populateDemoData,
 	resetStoredData, saveSettings, sorts, spendKinds
 } from '../api/client.js'
-
-/** 1 KB is 1024, same rounding as the API's own fileSizeLabel (lib/copy.js) that names an
-    attachment's size everywhere else in the app -- a reader comparing the two should never see
-    the same byte count spelled two different ways. */
-const fileSizeLabel = bytes => {
-	const kb = Math.max(1, Math.round((bytes ?? 0) / 1024))
-	return kb > 1024 ? (kb / 1024).toFixed(1).replace('.', ',') + ' MB' : kb + ' KB'
-}
 
 /* Settings.
 
@@ -151,26 +143,6 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 			})
 			.catch(e => toast(failureMessage(e, 'That did not fill.'), 'negative'))
 			.finally(() => setBusy(false))
-	}
-
-	/* One-shot: every attachment and scan upload compresses itself on the way in now, so this
-	   only ever has legacy rows to catch up, and never again once it has -- local.blobBackfillDone
-	   is what makes the card disappear rather than sit there as a button with nothing left to do. */
-	const [compressing, setCompressing] = useState(false)
-	const compressOldReceipts = () => {
-		setCompressing(true)
-		compressBlobs()
-			.then(({ attachments, scanUploads, blobBackfillDone }) => {
-				setLocal(l => ({ ...l, blobBackfillDone }))
-				invalidate(getSettings)
-				const rows = attachments.rows + scanUploads.rows
-				const before = attachments.beforeBytes + scanUploads.beforeBytes
-				const after = attachments.afterBytes + scanUploads.afterBytes
-				toast(rows === 0 ? "Nothing to compress -- your receipts are already caught up."
-					: `Compressed ${rows} file${rows === 1 ? '' : 's'}: ${fileSizeLabel(before)} down to ${fileSizeLabel(after)}.`)
-			})
-			.catch(e => toast(failureMessage(e, 'That did not compress.'), 'negative'))
-			.finally(() => setCompressing(false))
 	}
 
 	return (
@@ -373,28 +345,6 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 						)}
 					</CardBody>
 				</Card>
-
-				{/* One-time only: the button and the card it's on both go away the moment
-				    local.blobBackfillDone is true, which every fresh account already starts as
-				    (seed.js) -- this card exists only for accounts with attachments and scan
-				    uploads from before compression did, and only until it's pressed once. */}
-				{!local.blobBackfillDone ? (
-					<Card aria-label="Storage">
-						<CardHeader title="Storage" />
-						<CardDivider />
-						<CardBody>
-							<p className="card-lead card-lead-flush">
-								Receipts and photos you added before this account's data was compressed
-								can be shrunk in place, with nothing about them changing. This runs once;
-								anything you add from here on compresses itself already.
-							</p>
-							<Button variant="block" icon="receipt" disabled={compressing}
-								onClick={compressOldReceipts}>
-								{compressing ? 'COMPRESSING...' : 'COMPRESS OLD RECEIPTS'}
-							</Button>
-						</CardBody>
-					</Card>
-				) : null}
 
 				<BuildCard />
 			</div>

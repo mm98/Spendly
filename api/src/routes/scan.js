@@ -13,14 +13,11 @@ export const router = Router()
 // multipart filenames as latin1 unless told otherwise, and browsers never say otherwise.
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
 
-// data_checked/thumbnail_checked are hardcoded 1: this row has just been through
-// processAttachment (lib/images.js), which always runs compressBlob on both -- there is no
-// "not yet evaluated" state for an upload created by this statement.
 const insertUpload = db.prepare(`INSERT INTO scan_uploads
-	(id, user_id, name, size, kind, content_type, data, data_is_compressed, data_checked, thumbnail, thumbnail_is_compressed, thumbnail_checked, thumbnail_content_type)
-	VALUES (@id, @userId, @name, @size, @kind, @contentType, @data, @dataCompressed, 1, @thumbnail, @thumbnailCompressed, 1, @thumbnailContentType)`)
+	(id, user_id, name, size, kind, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
+	VALUES (@id, @userId, @name, @size, @kind, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
 const selectUpload = db.prepare(
-	'SELECT id, name, size, kind, content_type, data, data_is_compressed, data_checked, thumbnail, thumbnail_is_compressed, thumbnail_checked, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?'
+	'SELECT id, name, size, kind, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?'
 )
 const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
 const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
@@ -76,18 +73,13 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 	const order = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?').get(req.params.orderId, req.user.id)
 	if (!order) return res.status(404).json({ error: 'No order ' + req.params.orderId })
 
-	/* dataChecked/thumbnailChecked carry the upload row's own flags across rather than being
-	   hardcoded 1: a scan upload can itself predate migrations/007 and not have been backfilled
-	   yet, and copying it into an attachment must not mark it checked when nothing has actually
-	   evaluated it -- that would hide it from every future backfill sweep for good. */
 	db.prepare(`INSERT INTO attachments
-		(id, order_id, name, kind, meta, content_type, size, data, data_is_compressed, data_checked, thumbnail, thumbnail_is_compressed, thumbnail_checked, thumbnail_content_type)
-		VALUES (@id, @orderId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @dataChecked, @thumbnail, @thumbnailCompressed, @thumbnailChecked, @thumbnailContentType)`).run({
+		(id, order_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
+		VALUES (@id, @orderId, @name, @kind, @meta, @contentType, @size, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`).run({
 		id: newId('a'), orderId: order.id, name: upload.name, kind: upload.kind,
 		meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, contentType: upload.content_type, size: upload.size,
-		data: upload.data, dataCompressed: upload.data_is_compressed, dataChecked: upload.data_checked,
-		thumbnail: upload.thumbnail, thumbnailCompressed: upload.thumbnail_is_compressed, thumbnailChecked: upload.thumbnail_checked,
-		thumbnailContentType: upload.thumbnail_content_type
+		data: upload.data, dataCompressed: upload.data_is_compressed,
+		thumbnail: upload.thumbnail, thumbnailCompressed: upload.thumbnail_is_compressed, thumbnailContentType: upload.thumbnail_content_type
 	})
 	deleteUpload.run(upload.id, req.user.id)
 	res.json(getDecoratedOrder(req.user.id, order.id))

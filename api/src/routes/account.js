@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { seedAccountDefaults } from '../seed.js'
 import { populateDemoData } from '../lib/demoData.js'
-import { runBlobBackfill } from '../lib/blobBackfill.js'
 
 export const router = Router()
 
@@ -75,44 +74,3 @@ router.post('/demo-data', (req, res) => {
 		? Math.min(288, Math.floor(askedMonths)) : undefined
 	res.json({ ...replaceWithDemo(req.user.id, seed, orders, months), seed })
 })
-
-/* ---- compress-blobs ----
-   lib/images.js compresses everything on the way in; this is only for attachments and scan
-   uploads written before that existed. Scoped to req.user.id like every route in this file --
-   an account can compress its own receipts, never anyone else's. An attachment belongs to an
-   order directly (order_id) or to one of that order's items (order_item_id) -- never both (see
-   migrations/001's CHECK) -- so both joins are LEFT and exactly one of o.user_id/o2.user_id is
-   non-null per row. */
-const selectUserAttachmentsToCompress = db.prepare(`
-	SELECT a.id, a.data, a.data_is_compressed, a.data_checked, a.thumbnail, a.thumbnail_is_compressed, a.thumbnail_checked
-	FROM attachments a
-	LEFT JOIN orders o ON o.id = a.order_id
-	LEFT JOIN order_items oi ON oi.id = a.order_item_id
-	LEFT JOIN orders o2 ON o2.id = oi.order_id
-	WHERE (o.user_id = @userId OR o2.user_id = @userId)
-	  AND ((a.data IS NOT NULL AND a.data_checked = 0) OR (a.thumbnail IS NOT NULL AND a.thumbnail_checked = 0))
-`)
-const updateAttachmentCompression = db.prepare(
-	'UPDATE attachments SET data = ?, data_is_compressed = ?, data_checked = 1, thumbnail = ?, thumbnail_is_compressed = ?, thumbnail_checked = 1 WHERE id = ?'
-)
-const selectUserScanUploadsToCompress = db.prepare(`
-	SELECT id, data, data_is_compressed, data_checked, thumbnail, thumbnail_is_compressed, thumbnail_checked FROM scan_uploads
-	WHERE user_id = @userId
-	  AND ((data IS NOT NULL AND data_checked = 0) OR (thumbnail IS NOT NULL AND thumbnail_checked = 0))
-`)
-const updateScanUploadCompression = db.prepare(
-	'UPDATE scan_uploads SET data = ?, data_is_compressed = ?, data_checked = 1, thumbnail = ?, thumbnail_is_compressed = ?, thumbnail_checked = 1 WHERE id = ?'
-)
-
-const markBlobBackfillDone = db.prepare('UPDATE settings SET blob_backfill_done = 1 WHERE user_id = ?')
-
-router.post('/compress-blobs', (req, res) => {
-	const attachments = runBlobBackfill(db, selectUserAttachmentsToCompress, updateAttachmentCompression, { userId: req.user.id })
-	const scanUploads = runBlobBackfill(db, selectUserScanUploadsToCompress, updateScanUploadCompression, { userId: req.user.id })
-	// Set unconditionally, even when there was nothing to compress: an account with zero
-	// attachments has trivially caught up, and the button's job -- offering this once -- is done
-	// either way.
-	markBlobBackfillDone.run(req.user.id)
-	res.json({ attachments, scanUploads, blobBackfillDone: true })
-})
-
