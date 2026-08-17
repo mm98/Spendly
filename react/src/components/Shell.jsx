@@ -300,6 +300,10 @@ export function AppShell() {
 	return (
 		<ViewContext.Provider value={value}>
 		<ToastProvider>
+			{/* Pulling down at the top moves the whole page as one -- sidebar/tab-bar, top bar and
+			    content together -- so PullToRefresh wraps the shell itself rather than just the
+			    part below the top bar. README: Chrome. */}
+			<PullToRefresh>
 			<div className="app-shell">
 				<Sidebar navKey={handle.navKey} />
 				<div className="main-panel">
@@ -337,23 +341,22 @@ export function AppShell() {
 					    it the sheet was a bare <div> and every card, heading and row on twelve
 					    pages sat in no landmark at all -- 108 of them by axe's count. README: Accessibility. */}
 					<main>
-						<PullToRefresh>
-							<SubTabs tabs={handle.tabs} view={view} setView={setView} />
-							{/* One boundary for every route, because every page is its own chunk --
-							    see routes.jsx. It sits inside <main> and below the sub-tab band so
-							    the title, the rail highlight and the tabs are already right while
-							    the page is still arriving: those come off the route's `handle`,
-							    which is static, and a page that announced itself only once its
-							    JavaScript landed would be the unnamed-page defect again. */}
-							<div className="content-sheet"><div className="content-sheet-inner"><div id="pages">
-								<Suspense fallback={<Waiting label="Loading this page" />}>
-									<Outlet />
-								</Suspense>
-							</div></div></div>
-						</PullToRefresh>
+						<SubTabs tabs={handle.tabs} view={view} setView={setView} />
+						{/* One boundary for every route, because every page is its own chunk --
+						    see routes.jsx. It sits inside <main> and below the sub-tab band so
+						    the title, the rail highlight and the tabs are already right while
+						    the page is still arriving: those come off the route's `handle`,
+						    which is static, and a page that announced itself only once its
+						    JavaScript landed would be the unnamed-page defect again. */}
+						<div className="content-sheet"><div className="content-sheet-inner"><div id="pages">
+							<Suspense fallback={<Waiting label="Loading this page" />}>
+								<Outlet />
+							</Suspense>
+						</div></div></div>
 					</main>
 				</div>
 			</div>
+			</PullToRefresh>
 		</ToastProvider>
 		</ViewContext.Provider>
 	)

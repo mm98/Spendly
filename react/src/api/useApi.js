@@ -39,20 +39,6 @@ const evict = () => { while (cache.size > MAX_ENTRIES) cache.delete(cache.keys()
 
 const keyOf = (fn, args) => (fn.name || 'anonymous') + ':' + JSON.stringify(args)
 
-/* Pull-to-refresh (components/PullToRefresh.jsx) has no list of what a page has on screen --
-   only every mounted `useApi` knows its own endpoint and arguments. A window event is the one
-   channel that reaches all of them without either side holding a reference to the other:
-   `refreshAll` drops the whole cache and announces it, and every live hook below is listening
-   for exactly that announcement to ask again for what it is currently showing. */
-const REFRESH_EVENT = 'spendly:refresh-all'
-
-/** Empties the cache and tells every mounted `useApi` to re-fetch what it is currently
-    showing. What a pull-to-refresh gesture calls -- see components/PullToRefresh.jsx. */
-export function refreshAll() {
-	invalidate()
-	window.dispatchEvent(new Event(REFRESH_EVENT))
-}
-
 export function useApi(fn, args = [], { enabled = true } = {}) {
 	const key = enabled ? keyOf(fn, args) : null
 	const [state, setState] = useState(() => ({
@@ -107,16 +93,6 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 	const refresh = useCallback(() => {
 		if (key !== null) cache.delete(key)
 		setNonce(n => n + 1)
-	}, [key])
-
-	/* refreshAll() has already cleared this key's cache entry by the time the event reaches
-	   here, so bumping the nonce is all a listener has to do -- the effect above finds no
-	   fresh hit and asks again. */
-	useEffect(() => {
-		if (key === null) return
-		const onRefreshAll = () => setNonce(n => n + 1)
-		window.addEventListener(REFRESH_EVENT, onRefreshAll)
-		return () => window.removeEventListener(REFRESH_EVENT, onRefreshAll)
 	}, [key])
 
 	return { ...state, refresh }
