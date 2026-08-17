@@ -465,7 +465,7 @@ function ScanReviewForm({ answer }) {
 									{answer.checks.map(check => (
 										<ItemRow key={check.id}
 											icon={check.warning ? 'alert' : 'check'}
-											iconTone={check.warning ? { background: '#F6ECD9', color: '#84651E' } : undefined}
+											iconTone={check.warning ? { background: 'var(--bg-warn)', color: 'var(--text-warn)' } : undefined}
 											title={check.title} meta={check.meta} />
 									))}
 								</InsetPanel>
@@ -558,7 +558,7 @@ function ScanReviewForm({ answer }) {
 						) : (
 							<ItemRow key={line.id}
 								icon={line.uncertain ? 'alert' : 'check'}
-								iconTone={line.uncertain ? { background: '#F6ECD9', color: '#84651E' } : undefined}
+								iconTone={line.uncertain ? { background: 'var(--bg-warn)', color: 'var(--text-warn)' } : undefined}
 								title={line.title}
 								meta={line.meta ?? `${line.quantity} × ${currency(line.price)}`}
 								amount={currency(line.price * line.quantity)}>
@@ -571,7 +571,7 @@ function ScanReviewForm({ answer }) {
 					    Opening it is the honest action for it, so SHOW ALL is a button. */}
 					{draft.remainder?.count ? (
 						<ItemRow icon="dots"
-							iconTone={{ background: '#EFF3EE', color: 'var(--text-muted)' }}
+							iconTone={{ background: 'var(--bg-tile)', color: 'var(--text-muted)' }}
 							title={plural(draft.remainder.count, 'more line', 'more lines')}
 							meta={showAll
 								? 'Kept as read; the document stays attached to the order.'

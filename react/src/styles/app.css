@@ -136,6 +136,11 @@
 	--bg-hero:#EDEEE7;
 	/* The glyph on a thumb tile -- field thumb, document thumb. */
 	--thumb-glyph:#7C867E;
+	/* The neutral tile behind a quiet glyph -- the document thumb, and the "more lines"
+	   rows the markup tones inline. One of the three near-identical tile fills; this one
+	   is named because markup has to speak it, the other two stay literal pending the
+	   collapse decision the Color section flags. */
+	--bg-tile:#EFF3EE;
 	/* A control that is off but present: the switch's resting track and the
 	   checkbox's resting border. 3.47:1 on white. */
 	--control-resting:#838C84;
@@ -1024,7 +1029,7 @@ svg.chart { width:100%; display:block; }
 .chip-status::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--green); }
 /* A thumbnail in a list row is the row's tile, so it is the row spec's tile: 36 and
    --radius-compact, not a 44px box of its own. It only ever appears inside .item-row. */
-.document-thumb { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--thumb-glyph); flex:none; background:#EFF3EE; overflow:hidden; font-size:0; }
+.document-thumb { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--thumb-glyph); flex:none; background:var(--bg-tile); overflow:hidden; font-size:0; }
 .document-thumb-img { width:100%; height:100%; object-fit:cover; display:block; }
 .document-thumb-button { border:0; padding:0; cursor:pointer; }
 .document-thumb-button:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
@@ -1747,6 +1752,7 @@ html[data-theme="dark"] {
 	--bg-warn:#3A2F16; --text-warn:#E7B75F;
 	--bg-green-tint:#173829;
 	--control-resting:#5C665E;
+	--bg-tile:var(--bg-control-tint);
 	--shadow-ink:0 0 0;
 }
 
@@ -1766,6 +1772,10 @@ html[data-theme="dark"] .sidebar-nav a { color:var(--text-body); }
 html[data-theme="dark"] .field-thumb,
 html[data-theme="dark"] .document-thumb,
 html[data-theme="dark"] .entry-list .entry-glyph { background:var(--bg-control-tint); }
+/* The line-item icon's default green tile is a light wash no dark ground carries -- on dark
+   it sits on the bar track instead, and the green ink stays the mark. Light keeps the wash:
+   the pair is a component default of the vendor/category kind, data-adjacent, not a token. */
+html[data-theme="dark"] .item-row .item-row-icon { background:var(--bg-bar-track); }
 html[data-theme="dark"] .combobox-option:hover { background:var(--bg-row-hover); }
 html[data-theme="dark"] .combobox-option.combobox-option-highlighted { background:var(--bg-nav-active); }
 html[data-theme="dark"] .chart-ruler i { background:var(--border-control); }
