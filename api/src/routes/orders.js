@@ -10,6 +10,7 @@ import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { MAX_PAGE_SIZE } from '../lib/constants.js'
 import { processAttachment } from '../lib/images.js'
+import { decompressBlob } from '../lib/blobCompression.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 
 export const router = Router()
@@ -331,7 +332,7 @@ router.get('/:id/attachments/:attachmentId/file', (req, res) => {
 	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
 	res.set('Content-Disposition', `inline; filename="${attachment.name.replace(/"/g, '')}"`)
-	res.send(attachment.data)
+	res.send(decompressBlob(attachment.data))
 })
 
 router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
@@ -340,7 +341,7 @@ router.get('/:id/attachments/:attachmentId/thumbnail', (req, res) => {
 	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
 	res.set('Content-Type', attachment.thumbnail_content_type || 'image/jpeg')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // a thumbnail's bytes never change once made
-	res.send(attachment.thumbnail)
+	res.send(decompressBlob(attachment.thumbnail))
 })
 
 /* ---- item attachments ----
@@ -372,7 +373,7 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/file', (req, res) => {
 	if (!attachment || !attachment.data) return res.status(404).json({ error: 'No file stored for that attachment.' })
 	res.set('Content-Type', attachment.content_type || 'application/octet-stream')
 	res.set('Content-Disposition', `inline; filename="${attachment.name.replace(/"/g, '')}"`)
-	res.send(attachment.data)
+	res.send(decompressBlob(attachment.data))
 })
 
 router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) => {
@@ -382,7 +383,7 @@ router.get('/:id/items/:itemId/attachments/:attachmentId/thumbnail', (req, res) 
 	if (!attachment || !attachment.thumbnail) return res.status(404).json({ error: 'No thumbnail for that attachment.' })
 	res.set('Content-Type', attachment.thumbnail_content_type || 'image/jpeg')
 	res.set('Cache-Control', 'private, max-age=31536000, immutable')
-	res.send(attachment.thumbnail)
+	res.send(decompressBlob(attachment.thumbnail))
 })
 
 /* ---- bulk import ----

@@ -6,6 +6,7 @@ import { newId } from '../lib/ids.js'
 import { getDecoratedOrder } from '../lib/decorate.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 import { processAttachment } from '../lib/images.js'
+import { decompressBlob } from '../lib/blobCompression.js'
 
 export const router = Router()
 // See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
@@ -81,7 +82,7 @@ router.get('/documents/:key/thumbnail', (req, res) => {
 	const upload = selectUploadThumbnail.get(req.params.key, req.user.id)
 	if (!upload || !upload.thumbnail) return res.status(404).json({ error: 'No thumbnail for that document.' })
 	res.set('Content-Type', upload.thumbnail_content_type || 'image/jpeg')
-	res.send(upload.thumbnail)
+	res.send(decompressBlob(upload.thumbnail))
 })
 
 /** The full (1600px) display image — for a bigger preview than the 200px thumbnail is worth
@@ -90,7 +91,7 @@ router.get('/documents/:key/file', (req, res) => {
 	const upload = selectUpload.get(req.params.key, req.user.id)
 	if (!upload || !upload.data) return res.status(404).json({ error: 'No file stored for that document.' })
 	res.set('Content-Type', upload.content_type || 'application/octet-stream')
-	res.send(upload.data)
+	res.send(decompressBlob(upload.data))
 })
 
 /** Recently completed scans — the account's own orders that carry an attachment, newest first.
