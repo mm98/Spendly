@@ -178,9 +178,9 @@ function VendorFields({ mode, vendor }) {
 
 			{/* Favourite is a form choice: it lands when SAVE CHANGES runs, and a switch that
 			    needs a save is a checkbox wearing the wrong costume -- the README's own words,
-			    which this row obeyed only after the Import tab did. The switch stays the
-			    control for booleans that act on the flip (Settings). README:
-			    Switch, Checkbox Row. */}
+			    which this row obeyed only after the Import tab did. Every binary option in the
+			    app is this row now, Settings' immediate ones included: one shape to learn,
+			    and what follows the click is what differs. README: Checkbox Row. */}
 			<CheckRow id="vendor-favourite" checked={favourite} onChange={setFavourite}
 				label="Favourite"
 				help="Spotlighted at the top of the Vendors page, and leads the vendor list on a new order." />

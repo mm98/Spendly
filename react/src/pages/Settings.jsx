@@ -6,7 +6,7 @@ import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import {
-	Field, FieldPair, FilterSection, Form, FormActions, Segmented, Switch
+	CheckRow, Field, FieldPair, FilterSection, Form, FormActions, Segmented
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { CURRENCIES, localStamp, setCurrency } from '../api/format.js'
@@ -229,25 +229,24 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 								</Field>
 							</FilterSection>
 
+							{/* The same checkbox rows the Import tab uses, for the same reason a reader
+							    should not have to learn a second shape one tab over: an option is a
+							    named row with its description hanging under the name, whether the act
+							    that reads it is a button or the click itself. These two are read
+							    immediately -- the toast under each is what says so, since the control
+							    no longer does. README: Checkbox Row. */}
 							<FilterSection>
 								<span className="panel-heading">On screen</span>
-								<div className="space-between">
-									<label className="field-help toggle-help" htmlFor="setting-scan-card">
-										Show the scan card on Home. LATER on the card itself turns this off too.
-									</label>
-									<Switch id="setting-scan-card" checked={local.showScanCard} label="Show the scan card on Home"
-										onChange={v => change({ showScanCard: v },
-											v ? 'The scan card is back on Home.' : 'The scan card is off.')} />
-								</div>
-								<div className="space-between">
-									<label className="field-help toggle-help" htmlFor="setting-confirm-delete">
-										Ask before deleting anything: an order, a category, a vendor, a line
-										item, an attachment. With this off, the trash acts straight away.
-									</label>
-									<Switch id="setting-confirm-delete" checked={local.confirmDelete} label="Ask before deleting anything"
-										onChange={v => change({ confirmDelete: v },
-											v ? 'Deleting will ask first.' : 'Deleting will not ask.')} />
-								</div>
+								<CheckRow id="setting-scan-card" checked={local.showScanCard}
+									label="Show the scan card on Home"
+									help="LATER on the card itself turns this off too."
+									onChange={v => change({ showScanCard: v },
+										v ? 'The scan card is back on Home.' : 'The scan card is off.')} />
+								<CheckRow id="setting-confirm-delete" checked={local.confirmDelete}
+									label="Ask before deleting anything"
+									help="An order, a category, a vendor, a line item, an attachment. With this off, the trash acts straight away."
+									onChange={v => change({ confirmDelete: v },
+										v ? 'Deleting will ask first.' : 'Deleting will not ask.')} />
 							</FilterSection>
 						</Form>
 					</CardBody>

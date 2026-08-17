@@ -414,11 +414,13 @@ control's hit area, not a caption near it.
 
 **Every switch names what reads it.** A settings page of switches that change nothing is the decorative-control defect with more surface area — so each one's label says what it controls, and somewhere in the product that thing observably changes.
 
+**No screen draws one today.** The settings that flipped on the spot were the last pair, and they read better as named rows with their descriptions under them than as sentences beside a pill — so every binary option in the product is now a [checkbox row](#checkbox-row). The element stays defined here because the system may want it again; that it is defined is not a reason to reach for it, and the row is the default until a question turns up that the row genuinely answers worse.
+
 ### Checkbox row
 
 The form choice: a 20×20 box in its own column, the option's bold name beside it, the description hanging indented to the name's edge — never under the box, and never a paragraph beside a bare control.
 
-**A checkbox asks, a switch states.** A switch says what is true right now and takes effect on the flip; a checkbox says what the next act should include and is read when that act runs. An option a button will consume — an import, a submit — is a checkbox row; a preference something observably obeys immediately is a switch. One control per question, chosen by which question it is.
+**One shape for every binary option.** An option a button will consume — an import, a submit — and a preference that lands on the click are the same row: box, name, description. What differs is what follows the click, not what is drawn. A preference saves as it is clicked and says so in a toast; an option waits to be read by the act it belongs to, and the button naming that act is the only thing that says when. A reader who has learned one of these rows has learned all of them, which is worth more than a control that encodes its own timing — the timing was never legible from the control anyway, and the confirmation is where it actually shows.
 
 **Both states are drawn, and they differ in three ways at once:** checked is the green fill with the white tick; unchecked is the empty box with the grey edge — the same grey as the off switch track, visible on the card, because 1.4.11 covers a control's states here as it does the switch's. Fill *and* edge *and* glyph move together, for the same reason the switch's states differ three ways.
 

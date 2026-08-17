@@ -1801,3 +1801,34 @@ as there was only one right answer.
 The tell that found both was cheap and worth keeping: switch the account to a currency whose symbol
 is not `kr.`, then grep the rendered page for the old one. Anything still printing `kr.` is a place
 that never asked.
+## Checkbox row — two options on one settings page, drawn as prose beside a control
+
+The Import tab's options had been rebuilt as checkbox rows — box, bold name, description hanging to
+the name's edge — and the two on Settings / Overview, one tab away, were left in the shape that fix
+replaced: a `<div>` holding a grey sentence with a switch pushed to the far right, no name to scan,
+no divider, nothing marking one option from the next. The rows measured **26px and 34.78px** tall at
+1440, padding **0**, the whole option a single 12px/500 `rgb(99,109,100)` sentence; Import's beside
+them were **63.89px and 64.89px**, padding **13px 12px**, name 12px/**600** `rgb(11,15,13)` with the
+description hanging **0px** off its left edge. The same product, two shapes for one question, decided
+by which tab you were on.
+
+What kept them apart was a rule, not an oversight: a switch states what is true now, a checkbox asks
+what a later act should include, and these two save on the click. The rule cost more than it bought.
+The timing it encodes was never legible from the control — nothing about a pill says "this is already
+saved" — while the thing a reader *does* pay for is learning a second row shape for the same kind of
+question. The confirmation is where timing actually shows, and both of these had a toast the whole
+time. So the row is now the one shape for a binary option, and the README rule it defends says the
+difference is in what follows the click.
+
+Measured after, in Blink 141.0.7390.37 (headless), fresh account, both tabs in one run: rows
+**63.89px and 64.89px** — Import's own two numbers to the pixel — `<label>`, 2 tracks with the first
+at **20px**, gap 12px, padding 13px 12px, name 12px/600 `rgb(11,15,13)`, hanging indent **0px**,
+divider **1px `rgb(237,239,234)`** between the rows and none above the first, box **20x20**. Both
+states drawn three ways: fill `rgb(20,172,114)` → `rgb(255,255,255)`, edge `rgb(20,172,114)` →
+`rgb(131,140,132)`, tick present only when checked. The click is the save: clicking the name and
+clicking the description each toggle the box, the server reads back `showScanCard=false`, the toast
+says "The scan card is off." and Home stops drawing the card. On the iPhone 13 descriptor with
+`pointer: coarse` matched, a tap on the description toggles, rows stand **81.28px and 99.67px**, **0**
+document overflow and no overhang past the card. Across nine routes `.toggle-help` and
+`.switch`/`[role=switch]` match **0 elements**; twelve routes open with **0** error cards and **0**
+uncaught page errors. Gecko and WebKit are not installed and were not checked.
