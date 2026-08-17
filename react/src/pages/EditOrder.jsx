@@ -323,9 +323,14 @@ function EditOrderForm({ id, seed }) {
 									))}
 									value={categoryQuery} onChange={setCategoryQuery}
 									onSelect={o => { addCategory(o.label); setCategoryQuery('') }}
-									groups={[{ heading: 'Your categories', options: (categories.data ?? [])
-										.filter(c => !draft.categories.includes(c.name))
-										.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }]}
+									groups={[
+										{ heading: 'Favourites', options: (categories.data ?? [])
+											.filter(c => c.favourite && !draft.categories.includes(c.name))
+											.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses`, star: true })) },
+										{ heading: 'All categories', options: (categories.data ?? [])
+											.filter(c => !c.favourite && !draft.categories.includes(c.name))
+											.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }
+									]}
 									action={categoryQuery.trim()
 										? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
 											onSelect: name => { addCategory(name); setCategoryQuery('') } }
