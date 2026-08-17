@@ -153,13 +153,15 @@ palette and the built one drifted apart — see the defect log.)
 | `--pad-chip` | 11px | The 28px chip family's one inset |
 | `--pad-row-y` | 12px | The dense rows' vertical rhythm; the data row's 10px spec stays its own |
 | `--pad-pager` | 12px, 7px on the phone | The pager buttons' inset |
+| `--pad-bar-y` | 12px | The chrome bars' vertical band — the top bar and the page bar share it |
 | `--gap-cards` | 18px | Between cards, top-level grids |
-| `--gap-row` | 12px | Within a row, between small elements |
+| `--gap-panel` | 16px | Inside a panel, between sections, and across the form grid — one tier, merged from a 14/16 pair whose distinction never carried a decision |
+| `--gap-row` | 12px | Within a row of controls or small elements |
+| `--gap-block` | 12px | A block to the thing that follows it — a chart to its legend, a note to its button, a list to its pager |
 | `--gap-icon` | 6px | Icon to label inside a chip or a compact button; the standard button keeps 8px |
 
-Two documented distances stay bare values rather than tokens: 7px from a label to its field, and
-16px between fields at equal weight — each used in one family, so a token would only move the
-number somewhere harder to find.
+One documented distance stays a bare value rather than a token: 7px from a label to its field —
+used in one family, so a token would only move the number somewhere harder to find.
 
 **A value off the scale is a tuned exception, and it lives beside the reason it is tuned.** The
 segmented control's padding *is* its height, so it is the tier's number, not a spacing decision;

@@ -56,6 +56,14 @@ exactly the predicted property changes — gap 9→8 on 110 field shells, 7→6 
 row padding 11→12 on 44, chip insets to 11px on 40, 22→20 and 26→24 on 31 — plus their knock-on
 geometry, with no other property moving. Gecko and WebKit unverified.
 
+A second run with the same instrument swept what the first left: the shared 12px sites folded onto
+the existing tokens (plus `--gap-block` and `--pad-bar-y`, value-preserving, every site read back at
+its original computed value); then the gap ladder — the 10px control-row tier folded into
+`--gap-row` (gap 10→12 on 105 element-states), the 14px and 16px tiers merged as `--gap-panel:16px`
+(14→16 on 10), the two off-scale strays snapped (sidebar nav 13→14 on 75, brand 11→10 on 30), and
+the last 11px verticals joined 12. The walk decomposed the delta to exactly those changes and their
+knock-on geometry, 0 tag mismatches.
+
 ## Cards — a note and the action under it
 
 The question card's answered state — the green answer, then SEE THOSE ORDERS — drew the button **flush
