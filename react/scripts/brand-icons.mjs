@@ -52,8 +52,25 @@ const need = (re, what, subject = css) => {
 	return m
 }
 
-const markRule = need(/\n\.brand-mark \{([^}]*)\}/, '.brand-mark')[1]
-const glyphRule = need(/\n\.brand-mark svg \{([^}]*)\}/, '.brand-mark svg')[1]
+/* The stylesheet stopped writing colours out where they are used -- every fill, glyph and
+   edge resolves through a token now (README: Color) -- so a rule read out of it may say
+   `var(--text-inverse)` where this script needs the hex. Resolve against the light :root,
+   the first token block in the file, the same way the cascade would at the default theme;
+   the dark theme's block redeclares some of these and must not be the one that answers. */
+const rootBlock = need(/\n:root \{([\s\S]*?)\n\}/, 'the :root token block')[1]
+	.replace(/\/\*[\s\S]*?\*\//g, '') // the block is half prose, and prose names tokens too
+const TOKENS = Object.fromEntries(
+	[...rootBlock.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]))
+const resolve = (value, depth = 0) => {
+	if (depth > 8) throw new Error(`brand-icons: token resolution loop at ${value}`)
+	return value.replace(/var\((--[\w-]+)\)/g, (_, name) => {
+		if (!(name in TOKENS)) throw new Error(`brand-icons: ${name} is not declared in :root`)
+		return resolve(TOKENS[name], depth + 1)
+	})
+}
+
+const markRule = resolve(need(/\n\.brand-mark \{([^}]*)\}/, '.brand-mark')[1])
+const glyphRule = resolve(need(/\n\.brand-mark svg \{([^}]*)\}/, '.brand-mark svg')[1])
 const glyphName = need(/brand-mark"[^>]*>\s*<Icon name="([^"]+)"/, 'the brand glyph name', shell)[1]
 const glyphPath = need(new RegExp(`\\b${glyphName}:\\s*"([^"]+)"`), `the '${glyphName}' path in Icon.jsx`, iconSrc)[1]
 
@@ -77,7 +94,11 @@ const SURFACE = {
 	/* Six digits even where the stylesheet writes three: index.html states the same colour in
 	   a <meta name="theme-color">, and `#fff` here against `#ffffff` there is two spellings of
 	   one value that a reader has to stop and compare. --check asserts they agree. */
-	theme: full(need(/\n\.topbar \{[^}]*background:(#[0-9a-fA-F]{3,6})/, '.topbar background')[1]),
+	/* Lowercased: the committed artifacts spell this one #ffffff because the rule used to
+	   write `#fff`, and the token it resolves through now spells it #FFFFFF -- one colour,
+	   two spellings, and case is spelling. The splash keeps the token's own case, which is
+	   what the manifest has always held for it. */
+	theme: full(need(/#[0-9a-fA-F]{3,6}/, 'a hex in the .topbar background', resolve(need(/\n\.topbar \{[^}]*background:([^;]+);/, '.topbar background')[1]))[0]).toLowerCase(),
 	splash: full(need(/--bg-app:(#[0-9a-fA-F]{3,6})/, '--bg-app')[1]),
 }
 
