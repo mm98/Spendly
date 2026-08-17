@@ -1769,9 +1769,14 @@ rendered when dates were hardcoded; the same source on a box whose ICU default i
 harness now names `en-GB` and `Europe/Copenhagen` — which is the render the shots already hold, so
 pinning it changed nothing and stops the next machine changing everything.
 
-## Language and Formats — the full stop after an amount was written six times and owned by nobody
+## Language and Formats — money was formatted at every site that printed it, and one of them was the server
 
-Six places ended a sentence with an amount. Five wrote a full stop after it and printed
+How an amount looks was decided wherever an amount was printed, and nowhere else — so the product
+held one answer per site and no rule anywhere. That is invisible while there is one currency, which
+is every account the product had until the symbol became a setting: with only one right answer,
+every copy of it agrees.
+
+Six of those sites ended a sentence with an amount. Five wrote a full stop after it and printed
 `1.187,25 kr..`, because `kr.` already carries one. The sixth had exactly that doubling reported
 against it, deleted **its own** full stop, and left the other five — the fix went to the instance in
 the report rather than to the rule, which is the same failure as fixing the one card on screen, and
@@ -1784,23 +1789,22 @@ neither writing the stop nor deleting it can be right in a product with more tha
 it has to be asked. Asking it in one function is also what makes the count checkable: six call
 sites, one rule, and the doubling cannot come back to the sixth after being fixed in five.
 
-## Language and Formats — the server rendered money, and did not know the currency
-
-Three statistics tiles arrived from the API as finished strings — `"1.510 kr."` — built with a
-hardcoded symbol and Danish grouping. That made the server the one place in the product deciding
-how an amount looks, and it is the wrong place twice over: the currency belongs to the account and
-the grammar to the client, and the server was told neither. An account that chose dollars read its
-own averages in kroner on one card and in dollars on the card beside it.
+Three more of the sites were not in the client at all. Those statistics tiles arrived from the API
+as finished strings — `"1.510 kr."` — built with a hardcoded symbol and Danish grouping, which made
+the server the one place in the product deciding how an amount looks. It is the wrong place twice
+over: the currency belongs to the account and the grammar to the client, and the server was told
+neither. An account that chose dollars read its own averages in kroner on one card and in dollars on
+the card beside it.
 
 Eleven money *inputs* had the same defect from the other side, with `kr.` written into the markup as
 the unit label — so a dollars account typed into a field labelled in kroner while the figure it
-rendered underneath said dollars. Neither is visible on a single-currency account, which is every
-account the product had until the setting existed: the defect was latent in the markup for as long
-as there was only one right answer.
+rendered underneath said dollars. The defect was latent in the markup for as long as there was only
+one right answer.
 
-The tell that found both was cheap and worth keeping: switch the account to a currency whose symbol
-is not `kr.`, then grep the rendered page for the old one. Anything still printing `kr.` is a place
-that never asked.
+The tell that found all of them was cheap and worth keeping: switch the account to a currency whose
+symbol is not `kr.`, then grep the rendered page for the old one. Anything still printing `kr.` is a
+place that never asked.
+
 ## Checkbox row — two options on one settings page, drawn as prose beside a control
 
 The Import tab's options had been rebuilt as checkbox rows — box, bold name, description hanging to
