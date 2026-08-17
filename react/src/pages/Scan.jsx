@@ -14,7 +14,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, FormActions, Segmented, TextInput,
+	DateInput, Field, FieldPair, FieldShell, FieldUnit, FormActions, Segmented, SignToggle, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -631,6 +631,7 @@ function LineEditor({ line, onSave, onCancel }) {
 						<TextInput id="line-price" inputMode="decimal" value={form['line-price']}
 							onChange={set('line-price')} aria-label="Price" aria-required="true"
 							invalid={price.invalid} describedBy={price.describedBy} onKeyDown={keys} />
+						<SignToggle value={form['line-price']} onChange={set('line-price')} label="Price" />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>

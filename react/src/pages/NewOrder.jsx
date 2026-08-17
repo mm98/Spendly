@@ -13,7 +13,7 @@ import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Row
 import { useReorder } from '../components/Reorder.jsx'
 import {
 	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection,
-	FormActions, Segmented, TextArea, TextInput,
+	FormActions, Segmented, SignToggle, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -545,6 +545,7 @@ export function NewOrderItems() {
 								aria-required="true" value={form['item-price']}
 								onChange={set('item-price')}
 								invalid={itemPrice.invalid} describedBy={itemPrice.describedBy} />
+							<SignToggle value={form['item-price']} onChange={set('item-price')} label="Price paid" />
 							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>
 					</Field>

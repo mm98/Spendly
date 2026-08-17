@@ -13,7 +13,7 @@ import { useReorder } from '../components/Reorder.jsx'
 import { useRowDelete } from '../components/FormPage.jsx'
 import {
 	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection,
-	Form, FormActions, FormStatus, Segmented, TextArea, TextInput,
+	Form, FormActions, FormStatus, Segmented, SignToggle, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -404,6 +404,7 @@ function EditOrderForm({ id, seed }) {
 											aria-required="true" value={itemForm['item-price']}
 											onChange={setItem('item-price')}
 											invalid={itemPrice.invalid} describedBy={itemPrice.describedBy} />
+										<SignToggle value={itemForm['item-price']} onChange={setItem('item-price')} label="Price paid" />
 										<FieldUnit>{currencySymbol()}</FieldUnit>
 									</FieldShell>
 								</Field>
