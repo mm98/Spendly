@@ -24,7 +24,7 @@ import {
 	vendorByAnyName
 } from '../api/client.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, kr, parseAmount, percent, today, sep } from '../api/format.js'
+import { amount, currency, currencySymbol, fullStop, parseAmount, percent, sep, today } from '../api/format.js'
 
 /* Editing an order, whole.
 
@@ -168,7 +168,7 @@ function EditOrderForm({ id, seed }) {
 	const itemDel = useRowDelete({
 		what: 'item',
 		label: item => `Delete ${item.title}`,
-		detail: item => `${item.title}, ${item.quantity} × ${kr(item.price)}.`,
+		detail: item => `${item.title}, ${item.quantity} × ${currency(item.price)}${fullStop()}`,
 		onDelete: removeItem
 	})
 
@@ -199,7 +199,7 @@ function EditOrderForm({ id, seed }) {
 		update({ items })
 		clearItemForm()
 		const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		toast(`${item.title} ${was ? 'updated' : 'added'}. Items${sep}${items.length}, ${kr(total)}`)
+		toast(`${item.title} ${was ? 'updated' : 'added'}. Items${sep}${items.length}, ${currency(total)}`)
 	}
 
 	/* ---- save, once, for the whole order ---- */
@@ -345,7 +345,7 @@ function EditOrderForm({ id, seed }) {
 											aria-label="Shipping fee" value={draft.shipping}
 											invalid={shippingField.invalid} describedBy={shippingField.describedBy}
 											onChange={set('order-shipping', 'shipping')} />
-										<FieldUnit>kr.</FieldUnit>
+										<FieldUnit>{currencySymbol()}</FieldUnit>
 									</FieldShell>
 								</Field>
 								<Field label="Order reference">
@@ -404,7 +404,7 @@ function EditOrderForm({ id, seed }) {
 											aria-required="true" value={itemForm['item-price']}
 											onChange={setItem('item-price')}
 											invalid={itemPrice.invalid} describedBy={itemPrice.describedBy} />
-										<FieldUnit>kr.</FieldUnit>
+										<FieldUnit>{currencySymbol()}</FieldUnit>
 									</FieldShell>
 								</Field>
 							</FieldPair>
@@ -417,7 +417,7 @@ function EditOrderForm({ id, seed }) {
 											aria-label="Retail price" value={itemForm['item-retail']}
 											onChange={setItem('item-retail')}
 											invalid={itemRetail.invalid} describedBy={itemRetail.describedBy} />
-										<FieldUnit>kr.</FieldUnit>
+										<FieldUnit>{currencySymbol()}</FieldUnit>
 									</FieldShell>
 								</Field>
 								<Field label="Photo"
@@ -468,9 +468,9 @@ function EditOrderForm({ id, seed }) {
 										<ItemRow icon={hasPhoto ? undefined : 'cube'} thumb={hasPhoto ? 'photo' : undefined} thumbSrc={thumbSrc}
 											title={item.title}
 											handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
-											meta={`${item.quantity} × ${kr(item.price)}`
-												+ (item.retail ? `${sep}retail ${kr(item.retail)}` : '')}
-											amount={kr(item.price * item.quantity)}
+											meta={`${item.quantity} × ${currency(item.price)}`
+												+ (item.retail ? `${sep}retail ${currency(item.retail)}` : '')}
+											amount={currency(item.price * item.quantity)}
 											{...reorder.rowProps(item)}>
 											<span className="row-inline row-actions">
 												<IconButton icon="pencil" label={`Edit ${item.title}`}
@@ -509,20 +509,20 @@ function EditOrderForm({ id, seed }) {
 						<div className="summary-row">Categories
 							<span className="summary-row-value">{draft.categories.join(', ') || '—'}</span></div>
 						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
-						<SummaryRow label="Shipping" value={kr(draft.shipping ? parseAmount(draft.shipping) : 0)} />
+						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 						<span className="section-label section-label-break">Items</span>
 						{draft.items.map(item => (
 							<SummaryRow key={item.id} className="summary-row-item"
 								label={`${item.title} × ${item.quantity}`}
-								value={kr(item.price * item.quantity)} />
+								value={currency(item.price * item.quantity)} />
 						))}
 						<div className="card-divider card-divider-tight" />
 						{/* No `estimate` here, and no "est." in the label -- every line above is a
 						    real entry against a real order, not a preview of one still being built. */}
-						<SummaryTotal value={kr(total)} />
+						<SummaryTotal value={currency(total)} />
 						{saved > 0 ? (
 							<span className="field-help summary-saved">
-								saved {kr(saved)} vs retail ({percent(saved / retail * 100)})
+								saved {currency(saved)} vs retail ({percent(saved / retail * 100)})
 							</span>
 						) : null}
 					</CardBody>

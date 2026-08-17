@@ -15,7 +15,7 @@ import { invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn, saveSettings
 } from '../api/client.js'
-import { dayMonth, kr, krRound, percent, sep } from '../api/format.js'
+import { currency, dayMonth, percent, sep } from '../api/format.js'
 
 /* Home.
 
@@ -80,9 +80,9 @@ function Hero({ month }) {
 					    reads as a drawing error. README: Cards. */}
 					<CardBody>
 						<div>
-							<div className="figure-headline tabular-figures">{kr(view.spent)}</div>
+							<div className="figure-headline tabular-figures">{currency(view.spent)}</div>
 							<div className="figure-delta tabular-figures">
-								saved {kr(view.saved)} vs retail ({percent(view.savedPercent)})
+								saved {currency(view.saved)} vs retail ({percent(view.savedPercent)})
 							</div>
 						</div>
 						{/* The callout is a tooltip, drawn on hover or focus by the stylesheet. Both halves of
@@ -118,7 +118,7 @@ function Hero({ month }) {
 							{/* Read off the window's own days. The authored sentence named July's 23rd and a
 							    vendor, and stayed there while the chips moved the chart under it. */}
 							<div className="chart-callout" id={calloutId} role="tooltip">
-								Biggest day was {dayMonth(view.peak.date)}: {kr(view.peak.spend)}
+								Biggest day was {dayMonth(view.peak.date)}: {currency(view.peak.spend)}
 							</div>
 						</div>
 						{/* The window's own marks, not a fixed row of days: the chips move this chart
@@ -142,7 +142,7 @@ function Hero({ month }) {
 								   filters as `none`, the orders with no category at all. It used to open the
 								   unfiltered list, a list of everything under a row naming what is in nothing. */
 								<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
-									amount={krRound(entry.amount)}
+									amount={currency(entry.amount, 0)}
 									/* The month the heading names, carried into the list. The row was a
 									   link to every order in that category since the account was made,
 									   under a card headed "Where it went • Aug" -- a list whose total
@@ -191,8 +191,8 @@ function BreakdownCard({ period, categories, hasCategories, rows }) {
 			<CardBody>
 				<DonutBox>
 					<Donut segments={shown.map(c => ({ share: c.share, colour: c.colour }))}
-						value={krRound(period.spent)} label="Spent this month"
-						ariaLabel={`Category split of ${krRound(period.spent)} this month`} />
+						value={currency(period.spent, 0)} label="Spent this month"
+						ariaLabel={`Category split of ${currency(period.spent, 0)} this month`} />
 				</DonutBox>
 				{/* Every category the ring draws, named -- the rows were once sliced to three under a
 				    ring built from the whole list, so on a real account it drew six colours and named
@@ -242,12 +242,12 @@ function TopVendorsCard({ vendors, rows }) {
 			<CardHeader title="Top vendors" to="/vendors" label="Top vendors, open Vendors" />
 			<CardDivider />
 			<CardBody>
-				<div className="figure-card tabular-figures">{krRound(vendors[0].spend)}</div>
+				<div className="figure-card tabular-figures">{currency(vendors[0].spend, 0)}</div>
 				<span className="card-caption">{vendors[0].name}<Sep />all time</span>
 				<div className="entry-list" ref={listRef}>
 					{vendors.slice(0, budget).map(v => (
 						<EntryRow key={v.id} avatar={v} name={v.name} meta={`${v.orders} orders`}
-							amount={krRound(v.spend)} sub={`saved ${krRound(v.saved)}`}
+							amount={currency(v.spend, 0)} sub={`saved ${currency(v.saved, 0)}`}
 							to={`/orders/all?vendor=${v.id}`} />
 					))}
 				</div>
@@ -266,7 +266,7 @@ function FavouriteCategoriesCard({ categories, rows }) {
 				{categories.length ? (
 					<div className="category-rows" ref={listRef}>
 						{categories.slice(0, budget).map(c =>
-							<CategoryRow key={c.id} category={c} meta={`saved ${krRound(c.saved)}`}
+							<CategoryRow key={c.id} category={c} meta={`saved ${currency(c.saved, 0)}`}
 								to={`/orders/all?category=${c.id}`} />)}
 					</div>
 				) : (
@@ -290,8 +290,8 @@ function LatestOrders({ orders, rows }) {
 			<div className="list-heading">Latest orders</div>
 			{orders.slice(0, budget).map(order => (
 				<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-					meta={dayMonth(order.date)} amount={kr(order.total)}
-					sub={`saved ${kr(order.saved)}`} to={`/orders/${order.id}`} />
+					meta={dayMonth(order.date)} amount={currency(order.total)}
+					sub={`saved ${currency(order.saved)}`} to={`/orders/${order.id}`} />
 			))}
 		</div>
 	)
@@ -311,14 +311,14 @@ function dashboardCard(key, data) {
 					    with the category breakdown, which is as long as the month has categories.
 					    README: Charts. */}
 					<CardBody variant="card-body-fill">
-						<div className="figure-card tabular-figures">{kr(period.averageOrder)}</div>
+						<div className="figure-card tabular-figures">{currency(period.averageOrder)}</div>
 						<span className="card-caption">average order<Sep />{period.shortLabel}</span>
 						<WeekdayBars days={period.weekdays} />
 						<div className="chart-legend-inline">
 							<span className="chart-swatch" />
 							<span className="nowrap">{period.busiestDay} peak</span>
 							<span className="amount tabular-figures nowrap">
-								{krRound(period.busiestDaySpend)}</span>
+								{currency(period.busiestDaySpend, 0)}</span>
 						</div>
 					</CardBody>
 				</>
@@ -336,14 +336,14 @@ function dashboardCard(key, data) {
 					<CardHeader title="Saved vs retail" />
 					<CardDivider />
 					<CardBody>
-						<div className="figure-card tabular-figures">{kr(period.saved)}</div>
+						<div className="figure-card tabular-figures">{currency(period.saved)}</div>
 						<span className="card-caption">saved this month</span>
 						<div className="saving-chip-row">
 							<SavingChip>{percent(period.savedPercent)} under retail</SavingChip>
 						</div>
 						<div className="chart-legend-inline">
 							<span className="chart-swatch" /><span>Retail value</span>
-							<span className="amount tabular-figures">{krRound(period.retail)}</span>
+							<span className="amount tabular-figures">{currency(period.retail, 0)}</span>
 						</div>
 					</CardBody>
 				</>
@@ -354,7 +354,7 @@ function dashboardCard(key, data) {
 					<CardHeader title="Monthly pace" />
 					<CardDivider />
 					<CardBody>
-						<div className="figure-card tabular-figures">{krRound(period.projected)}</div>
+						<div className="figure-card tabular-figures">{currency(period.projected, 0)}</div>
 						<span className="card-caption">
 							projected for {period.shortLabel}<Sep />{period.daysIn} days in</span>
 						<Meter className="meter-under-caption"
@@ -367,10 +367,10 @@ function dashboardCard(key, data) {
 							   track's right edge with nothing to stop it. */
 							fill={period.projected ? Math.round(period.spent / period.projected * 100) : 0}
 							marker={period.projected ? Math.min(100, Math.round(period.previousTotal / period.projected * 100)) : 0}
-							ariaLabel={`Spent ${krRound(period.spent)} of a projected ${krRound(period.projected)}; the marker is where ${period.previousLabel} ended`} />
+							ariaLabel={`Spent ${currency(period.spent, 0)} of a projected ${currency(period.projected, 0)}; the marker is where ${period.previousLabel} ended`} />
 						<div className="chart-legend-inline">
 							<span className="chart-swatch" /><span>{period.previousLabel} ended at</span>
-							<span className="amount tabular-figures">{krRound(period.previousTotal)}</span>
+							<span className="amount tabular-figures">{currency(period.previousTotal, 0)}</span>
 						</div>
 					</CardBody>
 				</>
@@ -436,7 +436,7 @@ export default function Home() {
 									<>
 										<div className="chart-caption">
 											<div className="chart-caption-label">Spent this month</div>
-											<span className="chart-caption-value tabular-figures">{kr(data.period.spent)}</span>
+											<span className="chart-caption-value tabular-figures">{currency(data.period.spent)}</span>
 										</div>
 										<Chart height={110} className="chart-under-caption"
 											label={`Cumulative spend through ${data.period.shortLabel}`}
@@ -486,7 +486,7 @@ export default function Home() {
 										<div className="caption-chip-row">
 											<div className="chart-caption">
 												<div className="chart-caption-label">Total saved</div>
-												<span className="chart-caption-value tabular-figures">{kr(data.period.saved)}</span>
+												<span className="chart-caption-value tabular-figures">{currency(data.period.saved)}</span>
 											</div>
 											<SavingChip>{percent(data.period.savedPercent)}</SavingChip>
 										</div>

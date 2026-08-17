@@ -25,7 +25,7 @@ import {
 	scanFileUrl, scanThumbnailUrl, spendKinds, vendorByAnyName
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { AMOUNT_PATTERN, amount, kr, parseAmount } from '../api/format.js'
+import { amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount } from '../api/format.js'
 
 /* Scan, in three steps.
 
@@ -143,7 +143,7 @@ export function ScanUpload() {
 									<InsetPanel>
 										{scans.map(scan => (
 											<ItemRow key={scan.id} icon="check" title={scan.name} meta={scan.meta}
-												amount={kr(scan.total)} to={`/orders/${scan.orderId}`} />
+												amount={currency(scan.total)} to={`/orders/${scan.orderId}`} />
 										))}
 									</InsetPanel>
 									{/* Says orders, because that is where it goes: a scan becomes an order and
@@ -389,8 +389,8 @@ function ScanReviewForm({ answer }) {
 					</Note>
 				) : (
 					<Note tone="warning" title="Total no longer matches." className="note-lead">
-						The lines now add up to {kr(linesTotal + shipping)}, against the document total
-						of {kr(answer.total)}. Saving keeps what is on screen.
+						The lines now add up to {currency(linesTotal + shipping)}, against the document total
+						of {currency(answer.total)}{fullStop()} Saving keeps what is on screen.
 					</Note>
 				)
 			}
@@ -443,7 +443,7 @@ function ScanReviewForm({ answer }) {
 								</Note>
 								<ItemRow thumb="receipt" to={`/orders/${answer.duplicate.orderId}`}
 									title={answer.duplicate.title} meta={answer.duplicate.meta}
-									amount={kr(answer.duplicate.total)} />
+									amount={currency(answer.duplicate.total)} />
 							</CardBody>
 						</Card>
 					) : null}
@@ -510,7 +510,7 @@ function ScanReviewForm({ answer }) {
 						<TextInput id="order-shipping" inputMode="decimal" value={draft.shipping}
 							onChange={set('order-shipping', 'shipping')} aria-label="Shipping fee"
 							invalid={shippingField.invalid} describedBy={shippingField.describedBy} />
-						<FieldUnit>kr.</FieldUnit>
+						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
 				<Field label="Kind" error={kindField.error} errorId={kindField.errorId} htmlFor="order-kind"
@@ -539,8 +539,8 @@ function ScanReviewForm({ answer }) {
 								icon={line.uncertain ? 'alert' : 'check'}
 								iconTone={line.uncertain ? { background: '#F6ECD9', color: '#84651E' } : undefined}
 								title={line.title}
-								meta={line.meta ?? `${line.quantity} × ${kr(line.price)}`}
-								amount={kr(line.price * line.quantity)}>
+								meta={line.meta ?? `${line.quantity} × ${currency(line.price)}`}
+								amount={currency(line.price * line.quantity)}>
 								<IconButton icon="pencil" label={`Edit ${line.title}`}
 									onClick={() => setEditingLine(line.id)} />
 							</ItemRow>
@@ -554,7 +554,7 @@ function ScanReviewForm({ answer }) {
 							title={`${draft.remainder.count} more lines`}
 							meta={showAll
 								? 'Kept as read; the document stays attached to the order.'
-								: `${kr(draft.remainder.total)} together`}>
+								: `${currency(draft.remainder.total)} together`}>
 							{showAll ? null : (
 								<ButtonLink className="push-end"
 									onClick={() => setShowAll(true)}>SHOW ALL</ButtonLink>
@@ -568,10 +568,10 @@ function ScanReviewForm({ answer }) {
 				) : null}
 			</div>
 
-			<SummaryRow label="Lines subtotal" value={kr(linesTotal)} />
-			<SummaryRow label="Shipping" value={kr(shipping)} />
+			<SummaryRow label="Lines subtotal" value={currency(linesTotal)} />
+			<SummaryRow label="Shipping" value={currency(shipping)} />
 			<div className="card-divider card-divider-tight" />
-			<SummaryTotal value={kr(linesTotal + shipping)} />
+			<SummaryTotal value={currency(linesTotal + shipping)} />
 		</FormPage>
 	)
 }
@@ -631,7 +631,7 @@ function LineEditor({ line, onSave, onCancel }) {
 						<TextInput id="line-price" inputMode="decimal" value={form['line-price']}
 							onChange={set('line-price')} aria-label="Price" aria-required="true"
 							invalid={price.invalid} describedBy={price.describedBy} onKeyDown={keys} />
-						<FieldUnit>kr.</FieldUnit>
+						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
 			</FieldPair>

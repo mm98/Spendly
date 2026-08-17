@@ -12,7 +12,7 @@ import { Pager, paginate } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getSettings } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
-import { krRound, percent, sep } from '../api/format.js'
+import { currency, percent, sep } from '../api/format.js'
 
 /* All categories -- the same split as All vendors and All orders, for the same reasons. The
    rows open the category, because this is where a category is kept right: its budget, its
@@ -93,10 +93,10 @@ export default function AllCategories() {
 										<Icon name={category.icon} path={category.iconPath} /></span>}
 									name={category.name}
 									meta={category.budget
-										? `${percent(category.share)} of expenses${sep}${krRound(category.spend)} of ${krRound(category.budget)} budget`
+										? `${percent(category.share)} of expenses${sep}${currency(category.spend, 0)} of ${currency(category.budget, 0)} budget`
 										: `${percent(category.share)} of expenses${sep}no budget set`}
-									amount={krRound(category.spend)}
-									sub={`saved ${krRound(category.saved)}`}
+									amount={currency(category.spend, 0)}
+									sub={`saved ${currency(category.saved, 0)}`}
 									editTo={`/categories/${category.id}/edit`}
 									ordersTo={`/orders/all?category=${category.id}`}
 									ordersLabel={`Orders in ${category.name}`} />

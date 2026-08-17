@@ -13,7 +13,7 @@ import { Pager } from '../components/Pager.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
-import { dayMonth, parseAmount, percent, sep } from '../api/format.js'
+import { currencySymbol, dayMonth, parseAmount, percent, sep } from '../api/format.js'
 
 /* All orders: the search, the filters, and what they leave.
 
@@ -269,14 +269,14 @@ export default function AllOrders() {
 								<FieldShell>
 									<input id="filter-min-amount" type="text" inputMode="decimal" placeholder="0,00" aria-label="Minimum amount"
 										value={draft.minAmount} onChange={e => setDraft({ ...draft, minAmount: e.target.value })} />
-									<FieldUnit>kr.</FieldUnit>
+									<FieldUnit>{currencySymbol()}</FieldUnit>
 								</FieldShell>
 							</Field>
 							<Field label="Max amount" htmlFor="filter-max-amount">
 								<FieldShell>
 									<input id="filter-max-amount" type="text" inputMode="decimal" placeholder="Any" aria-label="Maximum amount"
 										value={draft.maxAmount} onChange={e => setDraft({ ...draft, maxAmount: e.target.value })} />
-									<FieldUnit>kr.</FieldUnit>
+									<FieldUnit>{currencySymbol()}</FieldUnit>
 								</FieldShell>
 							</Field>
 						</FieldPair>

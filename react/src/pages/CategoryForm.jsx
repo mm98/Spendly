@@ -13,7 +13,7 @@ import { useApi } from '../api/useApi.js'
 import {
 	createCategory, deleteCategory, failureMessage, getCategories, getCategory, invalidateCategoryData, updateCategory
 } from '../api/client.js'
-import { AMOUNT_PATTERN, amountRound, krRound, parseAmount } from '../api/format.js'
+import { AMOUNT_PATTERN, amountRound, currency, currencySymbol, parseAmount } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
 
 /* A category, on its own page.
@@ -132,7 +132,7 @@ function CategoryFields({ mode, category }) {
 
 	const del = useDelete({
 		what: 'category',
-		detail: category ? `${category.name}, ${krRound(category.spend)} this month.` : '',
+		detail: category ? `${category.name}, ${currency(category.spend, 0)} this month.` : '',
 		onDelete: () => deleteCategory(category.id)
 			.then(() => { refresh(); toast(`${category.name} removed.`); navigate('/categories') })
 			/* A category on an order cannot go, or the order points at nothing. The API says so
@@ -183,7 +183,7 @@ function CategoryFields({ mode, category }) {
 						aria-label="Monthly budget"
 						invalid={budgetField.invalid} describedBy={budgetField.describedBy}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
-					<FieldUnit>kr.</FieldUnit>
+					<FieldUnit>{currencySymbol()}</FieldUnit>
 				</FieldShell>
 			</Field>
 
@@ -231,11 +231,11 @@ function CategorySummary({ values, budget, category }) {
 					<span className="summary-row-value">{values.icon}</span></div>
 				<div className="summary-row">Favourite
 					<span className="summary-row-value">{values.favourite ? 'Yes' : 'No'}</span></div>
-				{category ? <SummaryRow label="Spent this month" value={krRound(category.spend)} /> : null}
+				{category ? <SummaryRow label="Spent this month" value={currency(category.spend, 0)} /> : null}
 				<div className="card-divider card-divider-tight" />
 				{/* Rounded, because the row in the Manage list rounds it: two figures for one
 				    budget, differing only in their decimals, read as two budgets. */}
-				<SummaryTotal label="Monthly budget" value={budget ? krRound(budget) : 'None'}
+				<SummaryTotal label="Monthly budget" value={budget ? currency(budget, 0) : 'None'}
 					estimate={!category} />
 				<span className="field-help">
 					The tile is the colour you picked; the glyph on it is inked light or dark from that

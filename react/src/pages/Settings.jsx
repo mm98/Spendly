@@ -9,11 +9,12 @@ import {
 	CheckRow, Field, FieldPair, FilterSection, Form, FormActions, Segmented
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
+import { CURRENCIES, localStamp, setCurrency } from '../api/format.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	cardRowOptions, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
-	getSettings, getVendors, getVersion, listSorts, logout, populateDemoData, resetStoredData, saveSettings,
-	sorts, spendKinds
+	cardRowOptions, checkVersion, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders,
+	getOrdersOverview, getSettings, getVendors, getVersion, listSorts, logout, populateDemoData,
+	resetStoredData, saveSettings, sorts, spendKinds
 } from '../api/client.js'
 
 /* Settings.
@@ -31,7 +32,7 @@ import {
    navigate away. The status line says what happened; the caches that hold a stale copy of
    the answer are dropped in the same breath. */
 
-const PAGE_SIZES = ['5', '10', '25', '50']
+const PAGE_SIZES = ['5', '10', '15', '20', '25', '50', '100']
 
 /* What FILL WITH DEMO DATA writes, chosen before it is pressed. Named counts rather than a
    free field: the point is a ledger big enough to look at, not a number to type, and the
@@ -168,6 +169,23 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 											label="Default status" />
 									</Field>
 								</FieldPair>
+							</FilterSection>
+
+							<FilterSection>
+								<span className="panel-heading">Currency</span>
+								{/* The unit the ledger is kept in, not a conversion: changing it restates what
+								    the figures are called, never what they are worth, and the help says so
+								    because a currency picker that silently revalued a ledger is exactly what a
+								    reader has to be able to rule out. The symbol follows the account
+								    everywhere, so it is set here before the page it changes is left. */}
+								<Field label="Currency" htmlFor="setting-currency"
+									help="What every amount is printed in. This renames your figures, it does not convert them.">
+									<Combobox id="setting-currency" label="Currency"
+										value={(c => (c ? `${c.label} (${c.symbol})` : ''))(CURRENCIES.find(c => c.code === local.currency))}
+										onChange={() => {}}
+										onSelect={o => { setCurrency(o.id); change({ currency: o.id }, 'Currency saved.') }}
+										groups={[{ heading: 'Currency', options: CURRENCIES.map(c => ({ id: c.code, label: `${c.label} (${c.symbol})` })) }]} />
+								</Field>
 							</FilterSection>
 
 							<FilterSection>
@@ -343,6 +361,21 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
    gate for the same reason. */
 function BuildCard() {
 	const version = useApi(getVersion)
+	/* The check is a button, not part of the card's load: it asks the registry over the
+	   network, which is slow, can fail, and answers a question nobody asked on most visits.
+	   The result lands in the card as a sentence, in the server's own words when it refuses
+	   (failureMessage), because "could not read the registry" and "you are behind" are
+	   different facts and only the server knows which one happened. */
+	const [checking, setChecking] = useState(false)
+	const [checked, setChecked] = useState(null)
+	const check = () => {
+		setChecking(true)
+		setChecked(null)
+		checkVersion()
+			.then(setChecked)
+			.catch(e => setChecked({ error: failureMessage(e, 'The registry could not be reached.') }))
+			.finally(() => setChecking(false))
+	}
 	if (!version.data && !version.error) return null
 	const { builtAt, commit } = version.data ?? {}
 	return (
@@ -352,16 +385,26 @@ function BuildCard() {
 			<CardBody>
 				<p className="card-lead card-lead-flush">
 					{builtAt || commit ? (<>
-						Image built {builtAt
-							? new Date(builtAt).toLocaleString('da-DK', { dateStyle: 'long', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
-							: 'at an unrecorded time'}
+						Image built {builtAt ? localStamp(builtAt) : 'at an unrecorded time'}
 						{commit ? <> from commit <code>{commit.slice(0, 7)}</code></> : null}.
-						If the newest commit on the repository is different, the container is
-						running an older image: pull and restart to catch up.
+						{commit ? ' Checking asks the registry whether the published image is still this one.' : null}
 					</>) : (
 						'No build stamp: this server is not running from the Docker image, so what you see is whatever is on disk right now.'
 					)}
 				</p>
+				{commit ? (<>
+					{checked ? (
+						<p className={'field-help' + (checked.error || checked.current === false ? ' danger-note' : '')}>
+							{checked.error ? checked.error
+								: checked.current ? 'Up to date: the newest published image is this build.'
+								: checked.published ? 'Behind: a newer image than this build has been published. Pull and restart to catch up.'
+								: "This build's commit has no published image, so there is nothing to compare it against. It is most likely a local build."}
+						</p>
+					) : null}
+					<Button variant="block" icon="check" disabled={checking} onClick={check}>
+						{checking ? 'CHECKING...' : 'CHECK FOR UPDATES'}
+					</Button>
+				</>) : null}
 			</CardBody>
 		</Card>
 	)

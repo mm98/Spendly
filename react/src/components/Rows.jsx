@@ -2,7 +2,7 @@ import { forwardRef } from 'react'
 import { Sep } from './Sep.jsx'
 import { Link } from 'react-router'
 import { Icon, ImageOrIcon } from './Icon.jsx'
-import { kr, krRound, percent } from '../api/format.js'
+import { currency, percent } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
 /* Every list row in the app.
@@ -63,7 +63,7 @@ export function CategoryRow({ category, meta, to }) {
 				<div className="category-row-title">{category.name}</div>
 				<div className="category-row-meta">{meta ?? `${percent(category.share)} of expenses`}</div>
 			</div>
-			<span className="amount tabular-figures">{krRound(category.spend)}</span>
+			<span className="amount tabular-figures">{currency(category.spend, 0)}</span>
 			{to ? <Chevron /> : null}
 		</Row>
 	)
@@ -130,8 +130,8 @@ export function OrderRow({ order, to }) {
 			    down the list. An absent line is not "nothing saved"; it is a reader wondering
 			    whether this row is missing something. README: Data Rows. */}
 			<div className="order-row-total tabular-figures">
-				{kr(order.total)}
-				<div className="order-row-total-saved">saved {kr(order.saved)}</div>
+				{currency(order.total)}
+				<div className="order-row-total-saved">saved {currency(order.saved)}</div>
 			</div>
 			<span className="order-row-chevron"><Icon name="chevronRight" /></span>
 		</Row>

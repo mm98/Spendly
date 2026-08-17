@@ -10,7 +10,7 @@ import { IconButton } from '../components/Button.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { useApi } from '../api/useApi.js'
 import { getStats, ranges } from '../api/client.js'
-import { kr, krRound, sep } from '../api/format.js'
+import { currency, fullStop, sep } from '../api/format.js'
 
 /* Statistics.
 
@@ -110,7 +110,7 @@ export default function Stats() {
 									onChange={key => show(key, periodId)} />
 							</div>
 							<div className="row-inline">
-								<span className="figure-large tabular-figures">{kr(view.spent)}</span>
+								<span className="figure-large tabular-figures">{currency(view.spent)}</span>
 								{/* Nothing before the oldest window in the store, so nothing to be up
 								    against: no chip beats an invented comparison. Amber is for the ups
 								    only -- spending less is a good down, which is the split the tiles
@@ -175,13 +175,13 @@ export default function Stats() {
 								</CardHeader>
 								<CardDivider />
 								<CardBody>
-									<div className="figure-large tabular-figures">{krRound(view.pace.projected)}</div>
+									<div className="figure-large tabular-figures">{currency(view.pace.projected, 0)}</div>
 									{/* A projection only where there is something left to project: the newest
 									    window is the one still being written, and everywhere else this figure
 									    is the total itself and says so. */}
 									<span className="field-help">
 										{view.pace.running
-											? `projected for ${view.label}${sep}${kr(view.spent)} spent so far`
+											? `projected for ${view.label}${sep}${currency(view.spent)} spent so far`
 											: `total for ${view.label}${sep}${view.pace.daysIn} days of records`}</span>
 									<Meter className="meter-under-caption"
 										/* projected is 0 exactly when spent is -- nothing bought yet this
@@ -196,13 +196,15 @@ export default function Stats() {
 										marker={view.previousTotal != null
 											? Math.min(100, Math.round(view.previousTotal / view.pace.projected * 100))
 											: undefined}
-										ariaLabel={`Spent ${krRound(view.spent)} of ${view.pace.running ? 'a projected ' : ''}${krRound(view.pace.projected)}`
+										ariaLabel={`Spent ${currency(view.spent, 0)} of ${view.pace.running ? 'a projected ' : ''}${currency(view.pace.projected, 0)}`
 											+ (view.previousTotal != null ? `; the marker is where ${view.previousLabel} ended` : '')} />
-									{/* No full stop after the amount: krRound ends in "kr." and this line has been
-									    closing a second one on top of it -- "20.680 kr..". */}
+									{/* fullStop rather than a written "." : the amount closes this sentence, and
+									    whether it needs a stop is the currency's business -- "20.680 kr." carries
+									    one and "$20.680" does not. Written here, it printed "20.680 kr.."; deleted
+									    here, it left every prefix currency unpunctuated. */}
 									{view.previousTotal != null
 										? <span className="field-help field-help-below">
-											The marker is where {view.previousLabel} ended: {krRound(view.previousTotal)}</span>
+											The marker is where {view.previousLabel} ended: {currency(view.previousTotal, 0)}{fullStop()}</span>
 										: null}
 								</CardBody>
 							</Card>
@@ -231,8 +233,8 @@ export default function Stats() {
 									    category totals over a month's legend cannot happen again. */}
 									<SpendGauge segments={view.split.map(entry =>
 										({ share: entry.share, colour: entry.colour }))}
-										value={krRound(view.spent)} label={view.tick}
-										ariaLabel={`Category split of ${krRound(view.spent)} in ${view.label}`} />
+										value={currency(view.spent, 0)} label={view.tick}
+										ariaLabel={`Category split of ${currency(view.spent, 0)} in ${view.label}`} />
 									<div className="chart-legend chart-legend-fill">
 										{view.split.map(entry => (
 											/* The row names a category and states the window's amount for it, so
@@ -241,7 +243,7 @@ export default function Stats() {
 											   "Without category" remainder has a null id and filters as `none` --
 											   the window's orders with no category at all. */
 											<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
-												amount={krRound(entry.amount)}
+												amount={currency(entry.amount, 0)}
 												to={'/orders/all?' + `category=${entry.id ?? 'none'}&`
 													+ `from=${view.from}&to=${view.to}`} />
 										))}

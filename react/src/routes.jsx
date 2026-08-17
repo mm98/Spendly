@@ -3,7 +3,8 @@ import { redirect } from 'react-router'
 import { AppShell } from './components/Shell.jsx'
 import { RouteError } from './components/RouteError.jsx'
 import { Waiting } from './components/Async.jsx'
-import { getCurrentUser } from './api/client.js'
+import { getCurrentUser, getSettings } from './api/client.js'
+import { setCurrency } from './api/format.js'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 
@@ -14,6 +15,16 @@ import Register from './pages/Register.jsx'
 const requireAuth = async () => {
 	try {
 		await getCurrentUser()
+		/* The account's currency, resolved before the first page renders rather than by
+		   whichever page happens to load settings. Every figure in the product is printed in
+		   it, and most pages never read settings at all -- opening /stats directly would
+		   otherwise draw a whole screen of totals in the shipped default before anything
+		   corrected them, or after it, which is worse: a figure that changes currency a
+		   moment after it is read. Here it is one await on a path every page already waits
+		   for. Its own failure is not the shell's: a settings read that falls over should
+		   not send a signed-in reader to the login screen, so the currency stays the default
+		   and the page still renders. */
+		await getSettings().then(s => setCurrency(s?.currency)).catch(() => {})
 		return null
 	} catch (e) {
 		if (e.status === 401) throw redirect('/login')

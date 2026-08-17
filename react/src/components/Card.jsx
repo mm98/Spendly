@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { Icon } from './Icon.jsx'
+import { currency } from '../api/format.js'
 
 /* The card, its header band and the hairline between them.
 
@@ -60,11 +61,15 @@ export const SectionHeader = ({ children, ...rest }) => <div className="section-
     The delta and the note are drawn only when there is one. A tile for the oldest stretch of
     time the records hold has nothing before it to be up or down against, and an arrow with no
     sentence after it is a claim about a comparison that was never made. */
-export function KpiCard({ label, value, delta, trend = 'up', tone = 'neutral', note }) {
+/* A tile carries either `amount` (a figure, printed in the account's currency here) or
+   `value` (already a string, because a count is not money). The server used to send the
+   money ones pre-rendered with a hardcoded "kr.", which made it the one place deciding how
+   an amount looks -- and the wrong one, since the currency belongs to the account. */
+export function KpiCard({ label, value, amount, delta, trend = 'up', tone = 'neutral', note }) {
 	return (
 		<div className="card card-kpi">
 			<span>{label}</span>
-			<span className="card-kpi-value tabular-figures">{value}</span>
+			<span className="card-kpi-value tabular-figures">{amount == null ? value : currency(amount, 0)}</span>
 			{delta ? (
 				<span className={join('delta', 'delta-' + tone)}>
 					{trend === 'level' ? null : <Icon name={trend === 'down' ? 'trendDown' : 'trendUp'} />}

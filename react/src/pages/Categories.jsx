@@ -6,7 +6,7 @@ import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getUncategorised } from '../api/client.js'
-import { krRound, percent, sep } from '../api/format.js'
+import { currency, percent, sep } from '../api/format.js'
 
 /* Categories, overview.
 
@@ -77,8 +77,8 @@ export default function Categories() {
 						<div className="kpi-row">
 							<KpiCard label="Categories" value={String(categories.length)}
 								note={top ? `${top.name} is the largest` : null} />
-							<KpiCard label="Spent" value={krRound(spent)} note="all time" />
-							<KpiCard label="Saved vs retail" value={krRound(saved)}
+							<KpiCard label="Spent" value={currency(spent, 0)} note="all time" />
+							<KpiCard label="Saved vs retail" value={currency(saved, 0)}
 								note={spent > 0 ? `${Math.round((saved / (spent + saved)) * 100)}% under retail` : null} />
 							<KpiCard label="With a budget" value={`${budgeted.length} of ${categories.length}`}
 								note={budgeted.length ? `${over.length} over this month` : 'none set yet'} />
@@ -102,14 +102,14 @@ export default function Categories() {
 										{/* Shares off spend rather than the API's own `share`, so the arcs add up
 										    to the figure in the middle even once the tail is folded into one. */}
 										<Donut segments={split.map(c => ({ share: spent ? (c.spend / spent) * 100 : 0, colour: c.colour }))}
-											value={krRound(spent)} label="Spent, all time"
-											ariaLabel={`Category split of ${krRound(spent)}`} />
+											value={currency(spent, 0)} label="Spent, all time"
+											ariaLabel={`Category split of ${currency(spent, 0)}`} />
 										<div className="chart-legend chart-legend-fill">
 											{split.map(c => (
 												/* The folded row names a count, not a category, so it opens the list
 												   those categories are on rather than a filter for one that has no id. */
 												<LegendRow key={c.id ?? 'more'} colour={c.colour} title={c.name}
-													amount={krRound(c.spend)}
+													amount={currency(c.spend, 0)}
 													to={c.id ? `/orders/all?category=${c.id}` : '/categories/all'} />
 											))}
 										</div>

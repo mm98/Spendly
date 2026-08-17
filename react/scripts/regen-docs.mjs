@@ -93,8 +93,16 @@ async function diff(page, file) {
 	console.log(`${file}:`, r.sizeMismatch ? 'SIZE MISMATCH ' + r.sizeMismatch : `${r.differing} differing of ${r.of}`)
 }
 
+/* Every date and time in the app is rendered by the reader's own locale and zone now, so a
+   context that names neither documents whichever machine ran it: the same source renders
+   "18 July" here and "July 18" on a box whose ICU default is en-US, with nothing in the
+   diff to say which one moved. These two lines are what keep the committed shots a fact
+   about the app. en-GB and Copenhagen because that is what the shots already hold -- the
+   product's own home, and the day-first English the copy is written in. */
+const READER = { locale: 'en-GB', timezoneId: 'Europe/Copenhagen' }
+
 // -- desktop: home + all-orders --
-const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })
+const desktop = await browser.newContext({ ...READER, viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 })
 await freshAccount(desktop)
 const page = await desktop.newPage()
 page.setDefaultTimeout(2000)
@@ -133,7 +141,7 @@ await diff(page, 'all-orders.png')
 await desktop.close()
 
 // -- phone: home --
-const phoneCtx = await browser.newContext({ ...devices['iPhone 13'], deviceScaleFactor: 2 })
+const phoneCtx = await browser.newContext({ ...devices['iPhone 13'], ...READER, deviceScaleFactor: 2 })
 await freshAccount(phoneCtx)
 const phone = await phoneCtx.newPage()
 phone.setDefaultTimeout(2000)

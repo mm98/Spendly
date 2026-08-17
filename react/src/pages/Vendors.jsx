@@ -7,7 +7,7 @@ import { Button, IconButton } from '../components/Button.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getVendors, invalidateVendorData, updateVendor } from '../api/client.js'
-import { dayMonth, krRound, sep } from '../api/format.js'
+import { currency, dayMonth, fullStop, sep } from '../api/format.js'
 
 /* Vendors, overview.
 
@@ -65,8 +65,8 @@ export default function Vendors() {
 						<div className="kpi-row">
 							<KpiCard label="Vendors" value={String(all.length)}
 								note={busiest ? `${busiest.name} is the most frequent` : null} />
-							<KpiCard label="Spent" value={krRound(spend)} note="all time" />
-							<KpiCard label="Saved vs retail" value={krRound(saved)}
+							<KpiCard label="Spent" value={currency(spend, 0)} note="all time" />
+							<KpiCard label="Saved vs retail" value={currency(saved, 0)}
 								note={spend > 0 ? `${Math.round((saved / (spend + saved)) * 100)}% under retail` : null} />
 							<KpiCard label="Orders" value={String(orders)}
 								note={all.length ? `${Math.round(orders / all.length)} per vendor on average` : null} />
@@ -85,15 +85,15 @@ export default function Vendors() {
 								{split.length ? (
 									<>
 										<Donut segments={split.map(v => ({ share: spend ? (v.spend / spend) * 100 : 0, colour: v.colour }))}
-											value={krRound(spend)} label="Spent, all time"
-											ariaLabel={`Vendor split of ${krRound(spend)}`} />
+											value={currency(spend, 0)} label="Spent, all time"
+											ariaLabel={`Vendor split of ${currency(spend, 0)}`} />
 										<div className="chart-legend chart-legend-fill">
 											{split.map(v => (
 												/* The folded row names a count rather than a vendor, so it opens the
 												   list where those vendors actually are instead of an orders filter
 												   for a vendor that does not exist. */
 												<LegendRow key={v.id ?? 'more'} colour={v.colour} title={v.name}
-													amount={krRound(v.spend)}
+													amount={currency(v.spend, 0)}
 													to={v.id ? `/orders/all?vendor=${v.id}` : '/vendors/all'} />
 											))}
 										</div>
@@ -120,10 +120,10 @@ export default function Vendors() {
 												<CardDivider />
 												<CardBody>
 													<div className="lead-sentence">
-														{vendor.lead ?? `${vendor.orders} orders, ${krRound(vendor.spend)}.`}</div>
+														{vendor.lead ?? `${vendor.orders} orders, ${currency(vendor.spend, 0)}${fullStop()}`}</div>
 													<InsetPanel>
 														<ItemRow icon="discount" title="Saved vs retail"
-															meta={`${vendor.name}${sep}all time`} amount={krRound(vendor.saved)} />
+															meta={`${vendor.name}${sep}all time`} amount={currency(vendor.saved, 0)} />
 														{/* The row is always drawn. Dropping it for a vendor with no orders
 														    yet left two cards side by side at different heights, with the
 														    shorter one's buttons floating in the gap -- and it said nothing
@@ -132,7 +132,7 @@ export default function Vendors() {
 															meta={vendor.latest
 																? `${dayMonth(vendor.latest.date)}${sep}${vendor.latest.items} items`
 																: `None${sep}all time`}
-															amount={krRound(vendor.latest?.total ?? 0)} />
+															amount={currency(vendor.latest?.total ?? 0, 0)} />
 													</InsetPanel>
 													<div className="row-inline row-actions entity-actions">
 														<IconButton icon="star" label={`Remove ${vendor.name} from favourites`}
