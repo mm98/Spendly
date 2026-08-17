@@ -69,9 +69,20 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 	   been reordered under it and a cached set of rectangles describes the list as it was.
 
 	   The axis is measured rather than declared: an item list runs down the page and the
-	   dashboard's cards run across it, and the same hook drives both. Two boxes that overlap
-	   vertically are side by side, so the comparison is on x; otherwise it is on y. Hard-coding
-	   y would make the dashboard drag jump to the last card on the first move. */
+	   dashboard's cards run across it, and the same hook drives both. Hard-coding y would make
+	   the dashboard drag jump to the last card on the first move.
+
+	   One axis is not enough, though, and a wrapping grid is what says so. The dashboard's cards
+	   are three across and wrap, so with six of them the list is two axes at once -- and reading
+	   the first two boxes as "these overlap vertically, so this list runs across" then compared x
+	   alone. Every card in a column shares its column's x, so the pointer over position 4 matched
+	   position 1's half of the track and the sixth card snapped to the top row; positions 4 and 5
+	   were not reachable at all, from any pointer position on the page.
+
+	   So the boxes are grouped into the rows they visually make up first, and the answer is the
+	   cell within a row rather than a position along one line. A list that does not wrap comes
+	   back as one band (a row) or as one cell per band (a column), and both of those keep exactly
+	   the single-axis arithmetic they had. */
 	const indexAt = (clientX, clientY) => {
 		/* The held row is out of the flow and pinned to the pointer, so measuring it would be
 		   measuring the cursor. The dashed box stands in its place and is measured instead --
@@ -80,13 +91,36 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 			'[data-reorder-row]:not([data-reorder-held]), [data-reorder-slot]') ?? [])]
 		if (rows.length < 2) return 0
 		const boxes = rows.map(r => r.getBoundingClientRect())
-		const horizontal = boxes[1].top < boxes[0].bottom - 1
+
+		/* A band is one visual row: boxes are in list order, so a new band starts at the first
+		   box that does not overlap the band before it vertically. */
+		const bands = []
 		for (let i = 0; i < boxes.length; i++) {
-			const box = boxes[i]
-			const middle = horizontal ? box.left + box.width / 2 : box.top + box.height / 2
-			if ((horizontal ? clientX : clientY) < middle) return i
+			const band = bands[bands.length - 1]
+			if (band && boxes[i].top < band.bottom - 1) {
+				band.to = i
+				band.bottom = Math.max(band.bottom, boxes[i].bottom)
+			} else bands.push({ from: i, to: i, bottom: boxes[i].bottom })
 		}
-		return boxes.length - 1
+
+		const cellIn = (from, to) => {
+			for (let i = from; i <= to; i++)
+				if (clientX < boxes[i].left + boxes[i].width / 2) return i
+			return to
+		}
+		// One band holding everything: a row. One cell per band: a column. Neither wraps.
+		if (bands.length === 1) return cellIn(0, boxes.length - 1)
+		if (bands.every(b => b.from === b.to)) {
+			for (let i = 0; i < boxes.length; i++)
+				if (clientY < boxes[i].top + boxes[i].height / 2) return i
+			return boxes.length - 1
+		}
+		/* A grid: the band the pointer is inside, then the cell inside that band. The band is
+		   picked by its bottom edge rather than by a midline, because a card is tall -- half of
+		   one is 230px, and a midline would throw the card into the next row while the pointer
+		   was still well inside the row it is over. */
+		const band = bands.find(b => clientY < b.bottom) ?? bands[bands.length - 1]
+		return cellIn(band.from, band.to)
 	}
 
 	/* `move` and `announce` are rebuilt on every render; the listeners below are bound once per

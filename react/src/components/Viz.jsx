@@ -93,13 +93,25 @@ export function useListBudget(rows) {
 			return sharesRow && sideBySide
 		})
 		if (!beside) return setBudget(rows)
-		/* A row, not the first child: an entry list opens with its own heading, so measuring
+		/* A row, not the first *child*: an entry list opens with its own heading, so measuring
 		   `firstElementChild` measures a 15px label and divides the graphic above by that --
 		   the budget then comes out near zero and the card draws one row whatever the setting
-		   says. Take the last child that is not the heading; every one of these lists ends on
-		   a row. */
-		const row = [...list.children].reverse()
-			.find(el => !el.classList.contains('list-heading'))
+		   says. Skip the heading and take the first actual row.
+
+		   The first row, though -- not the last. It used to be the last, and the last row's
+		   identity is not fixed: it is `items[budget - 1]`, so it changes every time this
+		   function changes budget. Two rows of different height is all that takes to close a
+		   loop on itself -- a long name wrapping to two lines where a short one does not is
+		   the ordinary case, not a rare one. Budget 6 can measure off a short last row and ask
+		   for 7; budget 7 can measure off a tall last row and ask back for 6, forever, which is
+		   React's "Maximum update depth exceeded" (error #185) thrown out of exactly this
+		   useLayoutEffect, on an account whose real vendor and category names are not all the
+		   same length -- a condition demo data with short generated names rarely hits and a
+		   resize is not required to trigger, only a width where the two measurements disagree.
+		   The first row is `items[0]`: its identity never depends on the budget being computed
+		   from it, for any budget from 1 up, so there is no value left for the loop to close
+		   on. */
+		const row = [...list.children].find(el => !el.classList.contains('list-heading'))
 		const rowHeight = row?.getBoundingClientRect().height ?? 0
 		if (!rowHeight) return setBudget(rows)
 		const above = list.getBoundingClientRect().top - body.getBoundingClientRect().top
