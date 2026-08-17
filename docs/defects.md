@@ -1919,3 +1919,32 @@ the two rows on Overview, gap **14px → 0px**, divider **1px** on the second ro
 **1291.02px** against the divider's top **1291.02px** — the same number, so the tint ends on the
 line. Import's pair, unchanged by the rule, stays at **0px**. The change is CSS-only and the two
 tabs' 4 check rows are its whole reach.
+
+## Combobox — the panel outgrew the viewport, and nothing could scroll it
+
+Every dropdown in the app is one combobox, and its panel is `position:absolute` — floated on the
+card shadow, out of the document's flow. Out of flow means it adds nothing to the page's height: on
+an account with enough vendors the vendor list ran hundreds of pixels past the viewport's bottom
+edge, the page's own scrollbar never grew to follow it, and the panel had no `overflow` of its own —
+so every option below the fold rendered, and could not be reached, hovered or picked. The category
+list on the same forms was one screen shorter only because the account had fewer categories; the
+defect was the panel's, and every combobox shared it. Reported from a real account's vendor list; a
+fresh demo fill of 12 vendors reproduces it in a 720px-tall viewport.
+
+The panel now caps itself at `min(342px, 60vh)` and scrolls inside, and the create-action at its
+foot is `position:sticky` — the one row that is a promise about the foot stays in view while the
+list behind it moves.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, fresh account, demo fill
+`{seed: 1, months: 12, orders: 220}` (12 vendors), 1280x720:
+
+| | before | after |
+| --- | --- | --- |
+| vendor panel `clientHeight` | 551px (whole list) | **340px** |
+| `scrollHeight` against it | equal — nothing to scroll | **551px**, scrolls 211px |
+| last option (*Zalando*) | below the viewport, unreachable | scrolled to, clicked, field reads **Zalando** |
+| create-action, scrolled to either end | — | inside the panel both ends, gap 1px / 7px |
+
+The category panel on the same page reads the same cap (340px against 472px of content) with no rule
+of its own, which is the point: the fix is the component's, so no list a combobox is given can
+outgrow reach again.

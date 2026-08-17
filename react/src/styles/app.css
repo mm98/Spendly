@@ -1040,7 +1040,10 @@ svg.chart { width:100%; display:block; }
 .combobox > .combobox-panel { display:none; }
 .combobox.is-open > .combobox-panel { display:block; }
 .combobox.is-open > .field-shell .chevron-icon { transform:rotate(180deg); }
-.combobox-panel { position:absolute; top:calc(100% + 6px); left:0; right:0; background:var(--bg-card); border:1px solid var(--border-control); border-radius:14px; box-shadow:0 18px 44px rgb(var(--shadow-ink) / .14); padding:6px; z-index:6; }
+/* Capped and scrolling, because the panel is out of flow: an absolutely positioned list adds
+   nothing to the document's height, so however far past the viewport it grows, no page scroll
+   ever reaches the rows below the fold -- they render, and cannot be picked. */
+.combobox-panel { position:absolute; top:calc(100% + 6px); left:0; right:0; max-height:min(342px, 60vh); overflow-y:auto; background:var(--bg-card); border:1px solid var(--border-control); border-radius:14px; box-shadow:0 18px 44px rgb(var(--shadow-ink) / .14); padding:6px; z-index:6; }
 .combobox-group { padding:8px 4px 3px; }
 .combobox-group-heading { font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--text-muted); font-weight:600; padding:2px 10px 4px; }
 .combobox-option { display:flex; align-items:center; padding:10px var(--pad-inset); border-radius:var(--radius-compact); font-size:13.5px; color:var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
@@ -1061,7 +1064,10 @@ svg.chart { width:100%; display:block; }
 /* A star that reads as filled is filled. Both instances set fill and stroke
    inline, which is a paint mode, not a per-record value. */
 .combobox-option-star svg.icon { width:14px; height:14px; fill:currentColor; stroke:none; }
-.combobox-action { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:8px; margin-top:4px; padding:12px var(--pad-inset); border-top:1px solid var(--border-divider); font-size:12px; font-weight:600; letter-spacing:.05em; color:var(--text); cursor:pointer; }
+/* Sticky at the foot: the panel scrolls now, and "create from the foot" is a promise the foot
+   keeps only if it stays in view while the list behind it moves. bottom:-6px eats the panel's
+   own padding so the row sits flush on the panel edge; its background covers what slides under. */
+.combobox-action { position:sticky; bottom:-6px; background:var(--bg-card); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:8px; margin-top:4px; padding:12px var(--pad-inset); border-top:1px solid var(--border-divider); font-size:12px; font-weight:600; letter-spacing:.05em; color:var(--text); cursor:pointer; }
 /* A placeholder truncates, it never wraps. Wrapping also knocks the control off
    its geometry tier (SS5): the search field grew to two lines and stood taller
    than the FILTERS and Sort controls sharing its row. Trailing bits (unit, key

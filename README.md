@@ -417,6 +417,8 @@ A searchable dropdown for picking one thing from a list.
 
 **States:** `.is-open` on the wrapper is the one open state — panel shown, field edge darkened, chevron rotated. Closed, the field shows the selected *name*.
 
+**The panel scrolls itself, because the page cannot.** The panel floats out of the document's flow, so it adds nothing to the page's height and page scroll can never reach an option past the viewport's bottom edge. It caps its own height and scrolls inside, and the create-action stays pinned at its foot while the list moves — a foot promise is kept by the foot staying in view. ([`docs/defects.md`](docs/defects.md#combobox--the-panel-outgrew-the-viewport-and-nothing-could-scroll-it))
+
 **A combobox displays a name, never an id.** Links arrive carrying ids (`vendor=bilka`); the field resolves the id through the same lookup the chips use before showing anything. Two controls describing one filter may not disagree — the field is the one a user edits, so what it claims is what the next APPLY is made from.
 
 ### Segmented Control
