@@ -426,6 +426,8 @@ The form choice: a 20×20 box in its own column, the option's bold name beside i
 
 **The row is the target.** The whole row is the label: name, description and the space between all toggle the box, so the phone-sized target needs no phone-only rule. Rows stack with a divider between them and a hover fill over each, the same line and fill the data lists use — a stack of options reads as rows, not prose. The accessible name is the bold name alone; the description is the control's description, not part of its name.
 
+**A stack is contiguous, whatever the container spaces its children by.** The divider is the whole of the separation between two rows, so the hover fill has to reach it: with a gapped container above them the lit band stopped short of the line, leaving a strip of bare card between fill and divider and making one stack read as two boxes. A row that follows another takes the container's gap back out, and a container that spaces nothing subtracts nothing.
+
 ### Stepper
 
 The two-step form's header: one cell per step, each with an icon tile, a progress bar and a label.
@@ -597,6 +599,10 @@ Two-step flow for creating or editing an order:
 
 Same form for create and edit. Editing loads the order in. The two steps share one draft — leaving and coming back loses nothing.
 
+**A record's own page is where its orders are reached from, and the summary rail is where it says so.** A vendor and a category each stand for a pile of orders, and that pile is a real destination — but it is one control, on the page that already holds every other action on the record, sitting under the figure it is the orders behind: a full-width block button, the same one every card ending in a link into a longer list uses. It is not a second link at the end of every row in the list. A row has one destination — the record — the way an order row opens the order; an unlabelled glyph repeated down a list, offering a destination no other list row offers, buys a click at the cost of a row that means two things.
+
+**The rail's bottom line is the money.** A summary card mirrors the form above it, then states one figure at its foot, and across records it is the same kind of figure: what this record has cost, all time. A limit the form itself sets — a category's monthly budget — is one of the values being mirrored, so it is a row among the others, not the bottom line; two summary cards whose feet answer different questions are two shapes to learn for one card.
+
 **Validation:** Each step validates on its own attempt to continue. A rejected step marks its fields (see [Form Validation](#form-validation)) and states the verdict in its own status line: "Cannot continue — Vendor and Date need fixing." The verdict stays on screen while the form is still wrong, because it names the fields to go and fix.
 
 ### Scan Flow
@@ -665,6 +671,8 @@ Every control here names what reads it, and the page proves it: default kind and
 **A settings page whose switches change nothing is the decorative-control defect with more surface area.** A setting exists here only if something observably reads it.
 
 **Importing is an act, not a preference, so it lives on its own sub-tab.** Settings tabs the way Orders, Vendors and Categories do — Overview and Import, each a real URL that can be linked to and survives a reload. The Overview holds what the account stores and obeys; the Import tab holds the two importing cards, the upload and the reference, which store nothing and act once per file. Mixed among the switches they read as two more preferences, and they are not.
+
+**Two tabs of one page draw their cards one way.** A tab is a view of the same page, not a different page, so a reader who has learned where a card states its name on Overview has learned it on Import: the title is a headline inside the body with its one-line lead under it, and the controls beneath sit in headed sections rather than loose in the card. Import stated its titles in a header band over a divider and stacked its two options bare in the body — every part of that is a shape the tab beside it does not use, and switching tabs re-taught the page.
 
 **One card documents instead of controlling: the import card.** The orders-import endpoint exists for a program, not a form, so the Import tab states its address, its request shape and the rules the server enforces — sign in, post the orders with either credential (the session cookie, or the same token as an `Authorization: Bearer` header — one session row either way), read back what imported and what failed by index. Reference drawn from the validator itself, not a paraphrase of it: the card and `validateOrderDraft` state the same limits or one of them is wrong. It used to open closed to spare the settings page a screenful of reference on every visit; on the Import tab the reference is half of what the tab is for, so it stands open like every other card. And the JSON it shows is a formatter's output, coloured by token, never hand-aligned: annotation columns kept by hand drift on the first edit.
 

@@ -151,35 +151,29 @@ export function LegendRow({ colour, title, amount, to }) {
 	)
 }
 
-/* A vendor or a category in a long list, with two places to go.
+/* A vendor or a category in a long list, with one place to go.
 
    The record itself is the row: the whole band opens it for editing, the way an order row
-   opens the order. Its orders are the other thing anyone wants from a category called Health,
-   and that is a different destination -- so it is a second link at the end of the row rather
-   than a second meaning for the first one.
-
-   Two links, not a link inside a link: Row renders an <a> when it is given `to`, and nesting
-   one anchor in another is invalid and lands the click wherever the browser decides. They are
-   siblings under one bordered strip, which is what makes them read as a single row. */
-export function EntityRow({ mark, name, meta, amount, sub, editTo, ordersTo, ordersLabel }) {
+   opens the order. Its orders used to be a second link at the end of the row -- a 38px glyph
+   with no label on screen, one destination per row that nothing else in the app offers -- and
+   they are now where the rest of the record's own actions are, on the record's page: the
+   summary rail carries a full-width VIEW ORDERS at the foot of the card the figure is on.
+   One row, one destination, and the second one stated in words rather than in a receipt
+   glyph. README: Create and Edit. */
+export function EntityRow({ mark, name, meta, amount, sub, editTo }) {
 	return (
-		<div className="entity-row">
-			<Link className="data-row entity-row-main" to={editTo} data-go={editTo}>
-				{mark}
-				<div className="entity-row-text">
-					<div className="entity-row-name">{name}</div>
-					{meta ? <div className="entity-row-meta">{meta}</div> : null}
-				</div>
-				<div className="entity-row-amount tabular-figures">
-					{amount}
-					{sub ? <div className="entity-row-amount-sub">{sub}</div> : null}
-				</div>
-				<Chevron />
-			</Link>
-			<Link className="entity-row-orders" to={ordersTo} data-go={ordersTo} aria-label={ordersLabel}>
-				<Icon name="receipt" />
-			</Link>
-		</div>
+		<Link className="data-row entity-row" to={editTo} data-go={editTo}>
+			{mark}
+			<div className="entity-row-text">
+				<div className="entity-row-name">{name}</div>
+				{meta ? <div className="entity-row-meta">{meta}</div> : null}
+			</div>
+			<div className="entity-row-amount tabular-figures">
+				{amount}
+				{sub ? <div className="entity-row-amount-sub">{sub}</div> : null}
+			</div>
+			<Chevron />
+		</Link>
 	)
 }
 

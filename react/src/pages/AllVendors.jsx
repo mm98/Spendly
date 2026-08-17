@@ -22,10 +22,12 @@ import { currency, dayMonth, sep } from '../api/format.js'
    chrome to say "Bilka, 34 orders" and does not scan at all past a dozen of them. A list of
    rows does, which is why the orders list has always been one.
 
-   This page is for keeping the record right, so the row opens the vendor. Its orders are a
-   real thing to want and a different destination, so they are the second link at the end of
-   the row rather than a second meaning for the first -- a vendor page whose rows opened the
-   orders list would be the orders list with extra steps.
+   This page is for keeping the record right, so the row opens the vendor -- a vendor page
+   whose rows opened the orders list would be the orders list with extra steps. Its orders are
+   a real thing to want and a different destination, reached from the vendor's own page: the
+   summary rail there ends in a full-width VIEW ORDERS, which is a labelled control on the page
+   that already holds every other action on the record, rather than an unlabelled glyph at the
+   end of every row here.
 
    Every vendor is here, favourites included. They are pinned on Overview as well, and a record
    being somewhere else is not a reason to leave it out of the one list that searches and
@@ -115,9 +117,7 @@ export default function AllVendors() {
 										(vendor.latest ? `${sep}latest ${dayMonth(vendor.latest.date)}` : `${sep}none yet`)}
 									amount={currency(vendor.spend, 0)}
 									sub={`saved ${currency(vendor.saved, 0)}`}
-									editTo={`/vendors/${vendor.id}/edit`}
-									ordersTo={`/orders/all?vendor=${vendor.id}`}
-									ordersLabel={`Orders from ${vendor.name}`} />
+									editTo={`/vendors/${vendor.id}/edit`} />
 							))}
 							{listed.length === 0 ? (
 								/* The system's empty state, not a bare help line -- see All categories. */
