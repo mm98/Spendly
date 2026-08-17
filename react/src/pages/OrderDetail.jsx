@@ -17,7 +17,7 @@ import {
 	invalidateOrderData, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
 	removeAttachment
 } from '../api/client.js'
-import { kr, longDate, percent, shortDate, sep } from '../api/format.js'
+import { currency, fullStop, longDate, percent, sep, shortDate } from '../api/format.js'
 
 /* One order, and everything you can do to it.
 
@@ -53,7 +53,7 @@ export default function OrderDetail() {
 		what: 'order',
 		variant: 'block',
 		detail: state.data
-			? `${state.data.vendor?.name}, ${longDate(state.data.date)}, ${kr(state.data.total)}.`
+			? `${state.data.vendor?.name}, ${longDate(state.data.date)}, ${currency(state.data.total)}${fullStop()}`
 			: '',
 		onDelete: () => deleteOrder(id)
 			.then(() => { invalidateOrder(); navigate('/orders/all') })
@@ -129,7 +129,7 @@ export default function OrderDetail() {
 
 						<Card aria-label="Items">
 							<CardHeader title={`Items${sep}${order.itemCount}`}>
-								<span className="field-help tabular-figures">{kr(order.subtotal)}</span>
+								<span className="field-help tabular-figures">{currency(order.subtotal)}</span>
 							</CardHeader>
 							<CardDivider />
 							<CardBody variant="card-body-tight">
@@ -141,10 +141,10 @@ export default function OrderDetail() {
 										thumbSrc={photo?.hasThumbnail ? itemAttachmentThumbnailUrl(order.id, item.id, photo.id) : undefined}
 										onThumbClick={photo ? () => setOpenPhoto({ item, photo }) : undefined}
 										title={item.title}
-										meta={`${item.quantity} × ${kr(item.price)}`
-											+ (item.retail ? `${sep}retail ${kr(item.retail)}` : '')
+										meta={`${item.quantity} × ${currency(item.price)}`
+											+ (item.retail ? `${sep}retail ${currency(item.retail)}` : '')
 											+ (item.note ? `${sep}${item.note}` : '')}
-										amount={kr(item.price * item.quantity)} />
+										amount={currency(item.price * item.quantity)} />
 									)
 								})}
 								{/* A receipt with more lines than are listed says so rather than letting the
@@ -155,13 +155,13 @@ export default function OrderDetail() {
 										meta="On the receipt, and in the total below." />
 								) : null}
 								<div className="card-divider card-divider-gap" />
-								<SummaryRow label="Items subtotal" value={kr(order.subtotal)} />
-								<SummaryRow label="Shipping" value={kr(order.shipping)} />
+								<SummaryRow label="Items subtotal" value={currency(order.subtotal)} />
+								<SummaryRow label="Shipping" value={currency(order.shipping)} />
 								<div className="card-divider card-divider-tight" />
-								<SummaryTotal value={kr(order.total)} />
+								<SummaryTotal value={currency(order.total)} />
 								{order.saved > 0 ? (
 									<span className="field-help summary-saved">
-										saved {kr(order.saved)} vs retail ({percent(order.savedPercent)})
+										saved {currency(order.saved)} vs retail ({percent(order.savedPercent)})
 									</span>
 								) : null}
 								<Button variant="block" icon="pencil" to={`/orders/${id}/edit`}>EDIT ORDER</Button>
@@ -187,7 +187,7 @@ export default function OrderDetail() {
 								) : null}
 								<div className="summary-row">Saved vs retail
 									<span className="summary-row-value tabular-figures summary-row-value-saving">
-										{kr(order.saved)} ({percent(order.savedPercent)})</span></div>
+										{currency(order.saved)} ({percent(order.savedPercent)})</span></div>
 								{order.note ? (
 									<>
 										<div className="card-divider card-divider-tight" />

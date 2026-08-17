@@ -9,7 +9,7 @@ import {
 	Field, FieldPair, FilterSection, Form, FormActions, Segmented, Switch
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
-import { localStamp } from '../api/format.js'
+import { CURRENCIES, localStamp, setCurrency } from '../api/format.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
 	cardRowOptions, checkVersion, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders,
@@ -169,6 +169,23 @@ function SettingsBody({ settings, set, toast, confirming, setConfirming, refresh
 											label="Default status" />
 									</Field>
 								</FieldPair>
+							</FilterSection>
+
+							<FilterSection>
+								<span className="panel-heading">Currency</span>
+								{/* The unit the ledger is kept in, not a conversion: changing it restates what
+								    the figures are called, never what they are worth, and the help says so
+								    because a currency picker that silently revalued a ledger is exactly what a
+								    reader has to be able to rule out. The symbol follows the account
+								    everywhere, so it is set here before the page it changes is left. */}
+								<Field label="Currency" htmlFor="setting-currency"
+									help="What every amount is printed in. This renames your figures, it does not convert them.">
+									<Combobox id="setting-currency" label="Currency"
+										value={(c => (c ? `${c.label} (${c.symbol})` : ''))(CURRENCIES.find(c => c.code === local.currency))}
+										onChange={() => {}}
+										onSelect={o => { setCurrency(o.id); change({ currency: o.id }, 'Currency saved.') }}
+										groups={[{ heading: 'Currency', options: CURRENCIES.map(c => ({ id: c.code, label: `${c.label} (${c.symbol})` })) }]} />
+								</Field>
 							</FilterSection>
 
 							<FilterSection>

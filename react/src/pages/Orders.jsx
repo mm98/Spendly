@@ -9,7 +9,7 @@ import { Button, ButtonLink } from '../components/Button.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import { getOrdersOverview, ordersIn } from '../api/client.js'
-import { dayMonth, kr, krRound, percent, sep } from '../api/format.js'
+import { currency, dayMonth, percent, sep } from '../api/format.js'
 import { useState } from 'react'
 
 /** How much of the month's total budget has been spent. Categories with no budget set are
@@ -47,7 +47,7 @@ export default function Orders() {
 							{/* No padding-top override here either -- the 2px this card carried put the
 							    first line 4.5px under the hairline, the tightest in the file. README: Cards. */}
 							<CardBody>
-								<div className="figure-large tabular-figures">{kr(data.period.spent)}</div>
+								<div className="figure-large tabular-figures">{currency(data.period.spent)}</div>
 								<div className="chart-series-key">
 									<div className="chart-series-key-row">
 										<div className="chart-series-key-swatch swatch-current" />
@@ -99,8 +99,8 @@ export default function Orders() {
 										<>
 											{data.latest.map(order => (
 												<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
-													meta={dayMonth(order.date)} amount={kr(order.total)}
-													sub={`saved ${kr(order.saved)}`} to={`/orders/${order.id}`} />
+													meta={dayMonth(order.date)} amount={currency(order.total)}
+													sub={`saved ${currency(order.saved)}`} to={`/orders/${order.id}`} />
 											))}
 											<Button variant="block" to="/orders/all">SEE ALL</Button>
 										</>
@@ -163,8 +163,8 @@ export default function Orders() {
 										<>
 											<DonutBox>
 												<Donut segments={data.categories.map(c => ({ share: c.share, colour: c.colour }))}
-													value={krRound(data.period.spent)} label="Spent this month"
-													ariaLabel={`Category split of ${krRound(data.period.spent)} this month`} />
+													value={currency(data.period.spent, 0)} label="Spent this month"
+													ariaLabel={`Category split of ${currency(data.period.spent, 0)} this month`} />
 											</DonutBox>
 											{/* "Without category" carries the `none` sentinel the orders list
 											    filters by: the month's orders with no category at all, the same
@@ -198,7 +198,7 @@ export default function Orders() {
 														to={ordersIn({ category: c.id,
 														from: data.period.from, to: data.period.to })}
 														meta={c.budget
-															? `${krRound(c.spend)} of ${krRound(c.budget)} budget`
+															? `${currency(c.spend, 0)} of ${currency(c.budget, 0)} budget`
 															: 'No budget set'} />
 												))}
 											</div>

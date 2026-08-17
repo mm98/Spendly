@@ -1,0 +1,16 @@
+-- The currency an account keeps its ledger in. A preference, so it sits with the other
+-- preferences rather than on the user row: it is read exactly where page_size and list_sort
+-- are read, and an account that changes it is changing how its own figures print, not who it
+-- is.
+--
+-- Stored as the ISO code alone, never the symbol. The symbol is presentation -- it moves
+-- from side to side between currencies, and three of the ones offered share the same "kr"
+-- while meaning three different amounts of money -- so a column holding "kr." would be a
+-- column that cannot tell Danish kroner from Swedish. The code is the fact; how it prints is
+-- the client's business.
+--
+-- DKK as the default because that is what every existing row already meant: the app printed
+-- "kr." unconditionally before this column existed, so backfilling anything else would
+-- silently restate the amounts already in the ledger as a currency nobody entered them in.
+-- This changes no figure anywhere -- only the three letters the client prints beside it.
+ALTER TABLE settings ADD COLUMN currency TEXT NOT NULL DEFAULT 'DKK';

@@ -242,7 +242,12 @@ const countReturnedEver = db.prepare(`
 
 const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six']
 const countWord = n => COUNT_WORDS[n] ?? String(n)
-const krLabel = n => Math.round(n).toLocaleString('da-DK') + ' kr.'
+/* No money is rendered here any more. These tiles used to arrive as finished strings --
+   "1.510 kr." -- built with a hardcoded symbol and Danish grouping, which made the server the
+   one place in the product that decided how an amount looks. It is the wrong place: the
+   currency is the account's (settings.currency) and the grammar is the client's, so a server
+   that formats is a server that has to be told both, and it was told neither. A USD account
+   read its own averages in kroner. The number travels; the client prints it. */
 
 /* The returns in a window, as records rather than as a sentence about records.
 
@@ -279,14 +284,17 @@ function returnsIn(userId, from, to) {
 
 const KPI_DEFS = [
 	{ label: 'Orders', goodUp: false, of: t => t.orders, value: t => String(t.orders) },
-	{ label: 'Average order', goodUp: false, of: t => t.average, value: t => krLabel(t.average) },
-	{ label: 'Saved vs retail', goodUp: true, of: t => t.saved, value: t => krLabel(t.saved), note: t => `${Math.round(t.savedPercent)}% under retail prices` },
-	{ label: 'Shipping', goodUp: false, of: t => t.shipping, value: t => krLabel(t.shipping), note: t => `${t.shippingShare.toFixed(1).replace('.', ',')}% of spend` }
+	{ label: 'Average order', goodUp: false, of: t => t.average, amount: t => t.average },
+	{ label: 'Saved vs retail', goodUp: true, of: t => t.saved, amount: t => t.saved, note: t => `${Math.round(t.savedPercent)}% under retail prices` },
+	{ label: 'Shipping', goodUp: false, of: t => t.shipping, amount: t => t.shipping, note: t => `${t.shippingShare.toFixed(1).replace('.', ',')}% of spend` }
 ]
 
 function kpisFor(now, was, wasLabel) {
 	return KPI_DEFS.map(kpi => {
-		if (!was) return { label: kpi.label, value: kpi.value(now), delta: null, trend: 'up', tone: 'neutral', note: kpi.note?.(now) ?? null }
+		/* `amount` is a figure for the client to print in the account's currency; `value` is
+		   already a string because a count is not money. Exactly one of the two is set. */
+		const figure = kpi.amount ? { amount: kpi.amount(now) } : { value: kpi.value(now) }
+		if (!was) return { label: kpi.label, ...figure, delta: null, trend: 'up', tone: 'neutral', note: kpi.note?.(now) ?? null }
 		const nowVal = kpi.of(now), wasVal = kpi.of(was)
 		const pct = wasVal ? Math.round((nowVal / wasVal - 1) * 100) : (nowVal ? 100 : 0)
 		const direction = pct === 0 ? 'level' : pct < 0 ? 'down' : 'up'
@@ -302,7 +310,7 @@ function kpisFor(now, was, wasLabel) {
 		   figure that had not moved. */
 		const good = direction === (kpi.goodUp ? 'up' : 'down')
 		return {
-			label: kpi.label, value: kpi.value(now), delta, trend: direction,
+			label: kpi.label, ...figure, delta, trend: direction,
 			tone: direction === 'level' ? 'neutral' : good ? 'good' : 'bad',
 			note: kpi.note?.(now) ?? null
 		}

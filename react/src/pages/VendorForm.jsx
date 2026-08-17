@@ -13,7 +13,7 @@ import { useApi } from '../api/useApi.js'
 import {
 	createVendor, deleteVendor, failureMessage, getVendor, getVendors, invalidateVendorData, updateVendor
 } from '../api/client.js'
-import { krRound, sep } from '../api/format.js'
+import { currency, sep } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
 
 /* A vendor, on its own page -- the same page component as a category and as an order, because
@@ -199,7 +199,7 @@ function VendorSummary({ name, colour, initials, favourite, aliases, vendor }) {
 				<div className="entry-list summary-preview">
 					<EntryRow avatar={{ colour, initials }} name={name || 'Your vendor'}
 						meta={vendor
-							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'}${sep}saved ${krRound(vendor.saved)}`
+							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'}${sep}saved ${currency(vendor.saved, 0)}`
 							: 'no orders yet'} />
 				</div>
 				<div className="summary-row">Name<span className="summary-row-value">{name || '-'}</span></div>
@@ -210,9 +210,9 @@ function VendorSummary({ name, colour, initials, favourite, aliases, vendor }) {
 					<span className="summary-row-value">{favourite ? 'Yes' : 'No'}</span></div>
 				<div className="summary-row">Aliases
 					<span className="summary-row-value">{aliases.length ? aliases.join(', ') : '-'}</span></div>
-				{vendor ? <SummaryRow label="Saved vs retail" value={krRound(vendor.saved)} /> : null}
+				{vendor ? <SummaryRow label="Saved vs retail" value={currency(vendor.saved, 0)} /> : null}
 				<div className="card-divider card-divider-tight" />
-				<SummaryTotal label="Spent all time" value={krRound(vendor?.spend ?? 0)}
+				<SummaryTotal label="Spent all time" value={currency(vendor?.spend ?? 0, 0)}
 					estimate={!vendor} />
 				<span className="field-help">
 					The initials are inked light or dark from the tile colour, so they stay readable

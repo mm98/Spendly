@@ -20,16 +20,19 @@ export const DEFAULT_SETTINGS = {
 	defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10,
 	sort: 'date-desc', showScanCard: true, confirmDelete: true,
 	// Six rows a card, and the vendors and categories lists opening alphabetically.
-	cardRows: 6, listSort: 'name-asc'
+	cardRows: 6, listSort: 'name-asc',
+	// The ledger's unit. DKK because the app printed "kr." unconditionally before this was a
+	// setting, so it is what every existing account's figures already meant.
+	currency: 'DKK'
 }
 
 /** Inserts the settings row and dashboard-card rows every account needs. Runs inside the
     caller's transaction (db.transaction wraps the whole register/reset flow). */
 export function seedAccountDefaults(db, userId) {
 	db.prepare(`INSERT INTO settings (user_id, default_kind, default_status, page_size, sort,
-		show_scan_card, confirm_delete, card_rows, list_sort)
+		show_scan_card, confirm_delete, card_rows, list_sort, currency)
 		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard,
-			@confirmDelete, @cardRows, @listSort)`)
+			@confirmDelete, @cardRows, @listSort, @currency)`)
 		.run({ userId, ...DEFAULT_SETTINGS, showScanCard: DEFAULT_SETTINGS.showScanCard ? 1 : 0,
 			confirmDelete: DEFAULT_SETTINGS.confirmDelete ? 1 : 0 })
 

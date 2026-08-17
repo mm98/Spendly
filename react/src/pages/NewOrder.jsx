@@ -23,7 +23,7 @@ import {
 	getVendors, invalidateOrderData, invalidateVendorData, spendKinds, vendorByAnyName
 } from '../api/client.js'
 import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, kr, parseAmount, percent, shortDate, today, sep } from '../api/format.js'
+import { amount, currency, currencySymbol, fullStop, parseAmount, percent, sep, shortDate, today } from '../api/format.js'
 
 /* New order, in two steps that share one draft.
 
@@ -252,7 +252,7 @@ export function NewOrderDetails() {
 							aria-label="Shipping fee" value={draft.shipping}
 							invalid={shippingField.invalid} describedBy={shippingField.describedBy}
 							onChange={set('order-shipping', 'shipping')} />
-						<FieldUnit>kr.</FieldUnit>
+						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
 				<Field label="Order reference">
@@ -295,7 +295,7 @@ function OrderSummary({ draft, estimate, showItems }) {
 						<div className="summary-row">Categories
 							<span className="summary-row-value">{draft.categories.join(', ') || '-'}</span></div>
 						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
-						<SummaryRow label="Shipping" value={kr(draft.shipping ? parseAmount(draft.shipping) : 0)} />
+						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 					</>
 				)}
 				{showItems ? (
@@ -304,15 +304,15 @@ function OrderSummary({ draft, estimate, showItems }) {
 						{draft.items.map(item => (
 							<SummaryRow key={item.id} className="summary-row-item"
 								label={`${item.title} × ${item.quantity}`}
-								value={kr(item.price * item.quantity)} />
+								value={currency(item.price * item.quantity)} />
 						))}
 					</>
 				) : null}
 				<div className="card-divider card-divider-tight" />
-				<SummaryTotal label="Total est." value={kr(total)} estimate={estimate} />
+				<SummaryTotal label="Total est." value={currency(total)} estimate={estimate} />
 				{showItems && saved > 0 ? (
 					<span className="field-help summary-saved">
-						saved {kr(saved)} vs retail ({percent(saved / retail * 100)})
+						saved {currency(saved)} vs retail ({percent(saved / retail * 100)})
 					</span>
 				) : (
 					<span className="field-help">Items are added in step 2; the total builds as you add them.</span>
@@ -412,7 +412,7 @@ export function NewOrderItems() {
 	const itemDel = useRowDelete({
 		what: 'item',
 		label: item => `Delete ${item.title}`,
-		detail: item => `${item.title}, ${item.quantity} × ${kr(item.price)}.`,
+		detail: item => `${item.title}, ${item.quantity} × ${currency(item.price)}${fullStop()}`,
 		onDelete: removeItem
 	})
 
@@ -443,7 +443,7 @@ export function NewOrderItems() {
 		update({ items })
 		clearForm()
 		const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		toast(`${item.title} ${was ? 'updated' : 'added'}. Items${sep}${items.length}, ${kr(total)}`)
+		toast(`${item.title} ${was ? 'updated' : 'added'}. Items${sep}${items.length}, ${currency(total)}`)
 	}
 
 	const save = () => {
@@ -545,7 +545,7 @@ export function NewOrderItems() {
 								aria-required="true" value={form['item-price']}
 								onChange={set('item-price')}
 								invalid={itemPrice.invalid} describedBy={itemPrice.describedBy} />
-							<FieldUnit>kr.</FieldUnit>
+							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>
 					</Field>
 				</FieldPair>
@@ -558,7 +558,7 @@ export function NewOrderItems() {
 								aria-label="Retail price" value={form['item-retail']}
 								onChange={set('item-retail')}
 								invalid={itemRetail.invalid} describedBy={itemRetail.describedBy} />
-							<FieldUnit>kr.</FieldUnit>
+							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>
 					</Field>
 					{/* The whole shell is the label and the input is its direct child, which is the
@@ -621,9 +621,9 @@ export function NewOrderItems() {
 						<ItemRow icon={pending ? undefined : 'cube'} thumb={pending ? 'photo' : undefined} thumbSrc={thumbSrc}
 							title={item.title}
 							handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
-							meta={`${item.quantity} × ${kr(item.price)}`
-								+ (item.retail ? `${sep}retail ${kr(item.retail)}` : '')}
-							amount={kr(item.price * item.quantity)}
+							meta={`${item.quantity} × ${currency(item.price)}`
+								+ (item.retail ? `${sep}retail ${currency(item.retail)}` : '')}
+							amount={currency(item.price * item.quantity)}
 							{...reorder.rowProps(item)}>
 							<span className="row-inline row-actions">
 								<IconButton icon="pencil" label={`Edit ${item.title}`}

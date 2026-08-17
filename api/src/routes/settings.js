@@ -1,30 +1,31 @@
 import { Router } from 'express'
 import { db } from '../db.js'
-import { MAX_PAGE_SIZE } from '../lib/constants.js'
+import { CURRENCIES, MAX_PAGE_SIZE } from '../lib/constants.js'
 
 export const router = Router()
 
 const selectSettings = db.prepare(`
 	SELECT default_kind, default_status, page_size, sort, show_scan_card, confirm_delete,
-		card_rows, list_sort
+		card_rows, list_sort, currency
 	FROM settings WHERE user_id = ?
 `)
 const upsertSettings = db.prepare(`
 	INSERT INTO settings (user_id, default_kind, default_status, page_size, sort, show_scan_card,
-		confirm_delete, card_rows, list_sort)
+		confirm_delete, card_rows, list_sort, currency)
 	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard, @confirmDelete,
-		@cardRows, @listSort)
+		@cardRows, @listSort, @currency)
 	ON CONFLICT (user_id) DO UPDATE SET
 		default_kind = excluded.default_kind, default_status = excluded.default_status,
 		page_size = excluded.page_size, sort = excluded.sort,
 		show_scan_card = excluded.show_scan_card, confirm_delete = excluded.confirm_delete,
-		card_rows = excluded.card_rows, list_sort = excluded.list_sort
+		card_rows = excluded.card_rows, list_sort = excluded.list_sort,
+		currency = excluded.currency
 `)
 
 const toApi = row => ({
 	defaultKind: row.default_kind, defaultStatus: row.default_status, pageSize: row.page_size,
 	sort: row.sort, showScanCard: Boolean(row.show_scan_card), confirmDelete: Boolean(row.confirm_delete),
-	cardRows: row.card_rows, listSort: row.list_sort
+	cardRows: row.card_rows, listSort: row.list_sort, currency: row.currency
 })
 
 /* A setting is a value something else reads, so the values it can hold are the ones that
@@ -35,6 +36,7 @@ const toApi = row => ({
 export const CARD_ROWS = [1, 2, 4, 6, 8, 10]
 export const ORDER_SORTS = ['date-desc', 'date-asc', 'amount-desc', 'amount-asc', 'vendor-asc']
 export const LIST_SORTS = ['name-asc', 'spend-desc', 'spend-asc', 'saved-desc', 'saved-asc']
+const CURRENCY_CODES = CURRENCIES.map(c => c.code)
 const oneOf = (allowed, asked, fallback) => (allowed.includes(asked) ? asked : fallback)
 
 router.get('/', (req, res) => {
@@ -46,7 +48,7 @@ router.patch('/', (req, res) => {
 	const current = selectSettings.get(req.user.id)
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
-		showScanCard: true, confirmDelete: true, cardRows: 6, listSort: 'name-asc'
+		showScanCard: true, confirmDelete: true, cardRows: 6, listSort: 'name-asc', currency: 'DKK'
 	}
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({
@@ -58,7 +60,10 @@ router.patch('/', (req, res) => {
 		sort: oneOf(ORDER_SORTS, next.sort, currentApi.sort),
 		showScanCard: next.showScanCard ? 1 : 0, confirmDelete: next.confirmDelete ? 1 : 0,
 		cardRows: oneOf(CARD_ROWS, Number(next.cardRows), currentApi.cardRows),
-		listSort: oneOf(LIST_SORTS, next.listSort, currentApi.listSort)
+		listSort: oneOf(LIST_SORTS, next.listSort, currentApi.listSort),
+		/* The code only, upper-cased so 'dkk' from a script is the same preference 'DKK' is.
+		   Nothing here converts a figure: the currency names what the amounts already were. */
+		currency: oneOf(CURRENCY_CODES, String(next.currency ?? '').toUpperCase(), currentApi.currency)
 	})
 	res.json(toApi(selectSettings.get(req.user.id)))
 })

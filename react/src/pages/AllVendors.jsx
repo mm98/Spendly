@@ -12,7 +12,7 @@ import { Pager, paginate } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
 import { getVendors, getSettings } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
-import { dayMonth, krRound, sep } from '../api/format.js'
+import { currency, dayMonth, sep } from '../api/format.js'
 
 /* All vendors.
 
@@ -113,8 +113,8 @@ export default function AllVendors() {
 									name={vendor.name}
 									meta={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}` +
 										(vendor.latest ? `${sep}latest ${dayMonth(vendor.latest.date)}` : `${sep}none yet`)}
-									amount={krRound(vendor.spend)}
-									sub={`saved ${krRound(vendor.saved)}`}
+									amount={currency(vendor.spend, 0)}
+									sub={`saved ${currency(vendor.saved, 0)}`}
 									editTo={`/vendors/${vendor.id}/edit`}
 									ordersTo={`/orders/all?vendor=${vendor.id}`}
 									ordersLabel={`Orders from ${vendor.name}`} />

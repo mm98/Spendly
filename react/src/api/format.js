@@ -9,20 +9,74 @@
 
 const groups = whole => whole.replace(/\B(?=(\d{3})+$)/g, '.')
 
-/** 1187.25 -> "1.187,25" */
-export const amount = n => {
-	const [whole, decimals] = Math.abs(n).toFixed(2).split('.')
-	return (n < 0 ? '-' : '') + groups(whole) + ',' + decimals
+/** 1187.25 -> "1.187,25", and (18420, 0) -> "18.420". */
+export const amount = (n, decimals = 2) => {
+	const [whole, rest] = Math.abs(n).toFixed(decimals).split('.')
+	return (n < 0 ? '-' : '') + groups(whole) + (rest ? ',' + rest : '')
 }
 
-/** 18420 -> "18.420" */
-export const amountRound = n => (n < 0 ? '-' : '') + groups(String(Math.round(Math.abs(n))))
+/** 18420 -> "18.420". Kept as its own name because "rounded" is what the call sites mean. */
+export const amountRound = n => amount(n, 0)
 
-/** 1187.25 -> "1.187,25 kr." */
-export const kr = n => amount(n) + ' kr.'
+/* The currencies an account can keep its ledger in, mirroring the server's CURRENCIES
+   (api/src/lib/constants.js) the way spendKinds mirrors SPEND_KINDS. The code is what is
+   stored; the symbol and the side it sits on are presentation, which is why they live here
+   and not in the column. DKK, SEK and NOK all print "kr" and are three different amounts of
+   money -- the code is what tells them apart.
 
-/** 18420 -> "18.420 kr." */
-export const krRound = n => amountRound(n) + ' kr.'
+   The symbol does not always follow the figure: "1.187,25 kr." but "$1.187,25". */
+export const CURRENCIES = [
+	{ code: 'DKK', symbol: 'kr.', before: false, label: 'Danish kroner' },
+	{ code: 'SEK', symbol: 'kr', before: false, label: 'Swedish kronor' },
+	{ code: 'NOK', symbol: 'kr', before: false, label: 'Norwegian kroner' },
+	{ code: 'EUR', symbol: '€', before: true, label: 'Euro' },
+	{ code: 'USD', symbol: '$', before: true, label: 'US dollars' },
+	{ code: 'GBP', symbol: '£', before: true, label: 'Pounds sterling' }
+]
+
+/* The account's own currency, held here rather than passed through all hundred call sites.
+   It is one value for the whole session -- every figure on every screen belongs to one
+   ledger, so a component asking "which currency" is asking about the account, not about
+   itself, and threading it through would be a parameter that is never once allowed to
+   differ. setCurrency is called where the settings arrive (App.jsx) and where they are
+   saved; until then it is the shipped default, which is also what every pre-existing
+   account's figures already meant. */
+let active = CURRENCIES[0]
+export const setCurrency = code => { active = CURRENCIES.find(c => c.code === code) ?? CURRENCIES[0] }
+export const activeCurrency = () => active
+
+/** Just the symbol, for the unit label sitting beside a money input. Eleven fields wrote
+    "kr." into the markup by hand, so every amount a USD account typed was labelled in
+    kroner by the form that took it -- while the figure it rendered underneath said
+    dollars. */
+export const currencySymbol = () => active.symbol
+
+/** 1187.25 -> "1.187,25 kr.", and (18420, 0) -> "18.420 kr.", in the account's currency.
+
+    `decimals` defaults to 2 rather than 0 deliberately. The two shapes are a claim about
+    precision, not a formatting nit -- the ore where a figure is a total someone could
+    reconcile against a receipt, whole units where it is a summary -- and of the two, the one
+    that is safe to arrive at by forgetting the argument is the exact one. A default of 0
+    would mean a call site that says nothing quietly restates 18.420,49 as 18.420, which is a
+    wrong number rather than a noisy one. Summaries ask for the rounding; totals cannot lose
+    it by omission. */
+export const currency = (n, decimals = 2) => {
+	const figure = amount(n, decimals)
+	if (!active.before) return figure + ' ' + active.symbol
+	/* The minus sits outside the symbol: "-$99,50", never "$-99,50". A prefix currency puts
+	   two characters in front of the digits and they are not interchangeable -- the sign is a
+	   fact about the amount, the symbol about the ledger. Item prices are the one signed money
+	   field here (a receipt line can be a discount), so this renders on any order with one. */
+	return figure.startsWith('-') ? '-' + active.symbol + figure.slice(1) : active.symbol + figure
+}
+
+/** The full stop that closes a sentence ending in an amount, which belongs to the currency
+    rather than to the copy: "kr." carries one already and "$20" does not, so a hardcoded
+    stop renders "99,00 kr.." in kroner and omitting one leaves "$99.00" hanging in dollars.
+    Both halves of that shipped. Five call sites wrote the stop and printed the doubled one;
+    a sixth had the doubling reported, deleted its own full stop, and left the other five
+    -- which is why this is a function and not a note above each of them. */
+export const fullStop = () => (active.symbol.endsWith('.') ? '' : '.')
 
 /** 9.4 -> "9,4%" -- the separator is a comma here too. */
 export const percent = (n, decimals = 1) =>

@@ -4,6 +4,24 @@
 export const SPEND_KINDS = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
 export const ORDER_STATUSES = ['Ordered', 'Delivered', 'Returned']
 
+/* The currencies an account can keep its ledger in (migrations/003_currency.sql). The code
+   is what is stored and validated; the symbol and which side it sits on are presentation,
+   mirrored in the client's own list (react/src/api/format.js) the way spendKinds mirrors
+   SPEND_KINDS. Note that DKK, SEK and NOK all print "kr" -- which is exactly why the column
+   holds the code and not the symbol.
+
+   Nothing here converts. A currency is the unit the figures were always in, not a rate
+   applied to them: changing it restates what the numbers are called, never what they are
+   worth, and an account that switches has not had its ledger revalued. */
+export const CURRENCIES = [
+	{ code: 'DKK', symbol: 'kr.', before: false },
+	{ code: 'SEK', symbol: 'kr', before: false },
+	{ code: 'NOK', symbol: 'kr', before: false },
+	{ code: 'EUR', symbol: '€', before: true },
+	{ code: 'USD', symbol: '$', before: true },
+	{ code: 'GBP', symbol: '£', before: true }
+]
+
 /* The most rows one orders-list page may carry, enforced wherever a page size enters -- the
    list route's query param and the stored settings value. LIMIT is the one place a caller's
    number reaches SQL, and without a ceiling `?pageSize=100000000` (or no pageSize at all, on
