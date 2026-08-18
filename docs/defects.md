@@ -315,6 +315,68 @@ Gecko and WebKit are not installed in this container and were not checked. The c
 flex row and a custom property in a `calc()`, neither of which is engine-shaped — but that is an
 argument, not a render.
 
+## Chrome — the bottom bar landed on the save button of an open line
+
+Reported from a phone: with a line of an order open for correction, the bottom bar conflicts with the
+card. It does, and the card is the one surface on a phone that cannot afford it — the bar is fixed
+chrome across the foot of the screen and the bottom of the card is its SAVE LINE / CANCEL / delete
+row, so the two want the same 65px.
+
+At rest the card fitted, by a margin small enough to be an accident. Editing line 3 of a 5-line order
+on an iPhone 13, the card is **449px** in **596px** of room above the bar, clearing it by **11px** —
+and it clears by exactly that because it scrolls itself there: `scroll-margin-bottom` on the card is
+the bar's own height plus one gutter, applied by the `scrollIntoView` that runs when the card opens.
+That is a one-shot. Nothing reapplies it, so it is a guarantee about the moment the card opens and
+about nothing after it.
+
+**What happens after it is the card growing.** Blank the quantity and press SAVE LINE: the field is
+marked, *How many did you buy?* is drawn under it, and the card goes from 449px to **490px** — 31px
+of it now under the bar, with **all three** action buttons underneath, the deepest cut **16px** into
+a 44px button. The card grows precisely when the reader has been refused and needs the save button
+most, and there is no scroll that recovers it, because the bar is fixed and moves with the viewport.
+The same on the two other phone sizes:
+
+| before | iPhone 13 390x664 | iPhone SE 320x568 | Pixel 5 393x727 |
+| --- | --- | --- | --- |
+| card at rest | 449px | 449px | 449px |
+| clears the bar by | 11px | 12px | 11px |
+| card once the quantity is rejected | 490px | 490px | 490px |
+| under the bar | **-31px** | **-30px** | **-31px** |
+| of the card covered | 9,056px<sup>2</sup> | 6,819px<sup>2</sup> | 9,148px<sup>2</sup> |
+| action buttons covered | **3 of 3** | **3 of 3** | **3 of 3** |
+| deepest cut into a 44px button | 16px | 15px | 16px |
+
+The bar is withdrawn while a line is open now, and every one of those cells is 0 — on all three
+sizes, at rest and after the rejection. The card is not made to fit under the bar, because the row
+above shows what that answer is worth: a clearance applied once cannot hold a card whose height the
+reader controls. What the bar's height was reserving is withdrawn with it, from one value rather
+than three: the sheet's bottom padding goes **79px to 12px** while a line is open and back to 79px
+when it closes, and the same value is what the card scrolls itself clear by (which is why its bottom
+lands 12px above the fold on each of the three, instead of 79px above a bar that is not drawn).
+
+**Both editors, both hosts.** The same card is New order's step 2 and Edit order's items card, and
+Scan review has a line editor of its own — one line of a receipt, opened for correction in the list
+it was read into. It is the same surface with the same row at the bottom of it, so the rule names
+both rather than the one that was reported.
+
+**The inset half is forced, as ever.** With `--safe-bottom` driven to 34px — no engine here reports
+a safe-area inset, so this branch renders nowhere unless the variable is overridden — the sheet's
+padding reads **113px** with the bar and **46px** without it, and the bar is still gone: the clearance
+that is withdrawn is the bar and its gap, never the platform's own strip, which is reserved either way.
+
+Measured in Blink 141.0.7390.37, `devices['iPhone 13' | 'iPhone SE' | 'Pixel 5']` at
+`deviceScaleFactor: 2`, en-GB / Europe/Copenhagen, demo fill `{seed: 1, months: 2, orders: 30}` —
+the descriptors rather than narrow windows, since `pointer: coarse` is what the phone's own field
+rules key off. 13 assertions over four surfaces: Edit order (closed, open, grown by a rejection,
+closed again, and the add card), New order step 2, Scan review, and a 1440x900 desktop, where the
+sidebar reads `display:flex` and the sheet 0px of bottom padding with a card open and without one —
+the rule lives in the phone block and must not reach the rail. Horizontal overflow 0 in every state.
+
+Gecko and WebKit are not installed in this container and were not checked. The change is a
+`display` and a custom property inside the existing phone media query, and the selector that carries
+it -- `:has()` -- is the one already in this stylesheet; neither is engine-shaped, but that is an
+argument, not a render.
+
 ## Charts — the callout was drawn permanently, across the line it annotates
 
 The hero chart's callout — *Quiet week so far. Biggest day was the 23rd: 4.298,00 kr. at Proshop.* —
