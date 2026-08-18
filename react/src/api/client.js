@@ -10,7 +10,7 @@
    The dev server proxies /api to the API process (see vite.config.js), so every path here is
    relative. `credentials: 'include'` carries the session cookie on every request. */
 
-import { dayMonth, parseAmount, sep } from './format.js'
+import { dayMonth, detectLocale, parseAmount, sep } from './format.js'
 import { invalidate } from './useApi.js'
 
 class ApiError extends Error {
@@ -62,10 +62,24 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
    cache trusts its entries now (useApi.js) -- a signed-out account's figures surviving into
    the next sign-in would not be a flash before a refetch, it would be the page. */
 
+/* The locale rides along with the registration rather than being saved by a second request
+   after it: the account's first settings row is written inside the register transaction, so a
+   guess that arrives later is a row updated, a cache to invalidate and a window in which the
+   new account renders in the wrong shape. It is a guess from the browser's timezone and the
+   server treats it as one -- see detectLocale and routes/auth.js. */
 export async function register(email, password, signal) {
-	const user = await request('/api/auth/register', { method: 'POST', body: { email, password }, signal })
+	const user = await request('/api/auth/register',
+		{ method: 'POST', body: { email, password, locale: detectLocale() }, signal })
 	invalidate()
 	return user
+}
+
+/** Marks the settings page as seen, so the one-time detour a new account takes to it
+    (routes.jsx) does not happen again. Fire-and-forget on the page's own mount: a reader who
+    is looking at the page has been shown it whether or not this request lands, and failing to
+    record that is worth one repeated detour, never a page that refuses to render. */
+export async function markSetupSeen(signal) {
+	return request('/api/auth/setup-seen', { method: 'POST', signal })
 }
 
 export async function login(email, password, signal) {
@@ -114,15 +128,44 @@ export async function addVendorAlias(id, name, signal) {
 	return request('/api/vendors/aliases', { method: 'POST', body: { vendorId: id, name }, signal })
 }
 
-/** The client-side twin of the server's string-to-vendor resolution: a vendor matches by its
-    own name or any of its aliases, case-insensitively. The vendor comboboxes use it so that
-    typing an alias and choosing the action row picks the vendor the alias belongs to, rather
-    than offering to create a twin the server would refuse. */
+/* Two questions get asked about a vendor and a string, and they are different questions:
+   *is* this string this vendor (resolution, exact -- what files an order), and *does* this
+   string find this vendor (search, substring -- what fills a list). Both match the name and
+   every alias, and both live here rather than in the pages that ask, because the one time
+   this rule was written out at a call site instead, that call site was the one that forgot
+   it: All vendors searched names only, and answered `No vendor matches "Netto"` to an
+   account filing Netto receipts. A rule spelled out where it is used is a rule the next
+   place has to remember. README: Vendors.
+
+   The server holds the same two answers for its own callers -- findVendorIdByAnyName for
+   resolution, the palette's SQL for search -- and that mirror is deliberate rather than
+   duplication left lying about: this side already has every vendor and its aliases in
+   memory, so filtering here costs no round trip per keystroke, while the palette's query
+   spans orders and categories too and cannot ship a ledger to the browser to do it. Two
+   runtimes, one contract, stated once in the README and twice in code because neither
+   runtime can call the other's copy. */
+
+/** Resolution. The vendor a string *is*: its own name or one of its aliases, exactly,
+    case-insensitively. The vendor comboboxes use it so that typing an alias and choosing the
+    action row picks the vendor the alias belongs to, rather than offering to create a twin
+    the server would refuse. */
 export const vendorByAnyName = (vendors, name) => {
 	const needle = String(name ?? '').trim().toLowerCase()
 	if (!needle) return undefined
 	return vendors.find(v => v.name.toLowerCase() === needle
 		|| (v.aliases ?? []).some(a => a.toLowerCase() === needle))
+}
+
+/** Search. Whether a typed string finds this vendor, and which alias did it -- `alias` is
+    null when the vendor's own name matched, because then there is nothing for a row to
+    explain, and the palette's query returns null in exactly that case for exactly that
+    reason (api/src/routes/search.js). Empty text matches everything: a list with no query
+    is not a search that found nothing. */
+export const vendorTextMatch = (vendor, text) => {
+	const needle = String(text ?? '').trim().toLowerCase()
+	if (!needle || vendor.name.toLowerCase().includes(needle)) return { matches: true, alias: null }
+	const alias = (vendor.aliases ?? []).find(a => a.toLowerCase().includes(needle)) ?? null
+	return { matches: Boolean(alias), alias }
 }
 
 /* There is no getVendorsOverview and no getCategoriesOverview: each was the same GET as the

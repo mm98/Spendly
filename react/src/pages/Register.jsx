@@ -26,8 +26,13 @@ export default function Register() {
 		}
 		setSaving(true)
 		setStatus({ message: '', good: true })
+		/* Straight to the settings page, once, rather than to Home. A new account's ledger is
+		   empty, so Home has nothing to show it; the preferences do, and the date format among
+		   them has just been guessed from the browser's timezone and wants confirming by the
+		   only person who knows. `firstRun` is what tells the page it is being visited for that
+		   reason -- it draws a line saying so and records that the detour has happened. */
 		register(email.trim().toLowerCase(), password)
-			.then(() => navigate('/', { replace: true }))
+			.then(() => navigate('/settings', { replace: true, state: { firstRun: true } }))
 			.catch(err => { setSaving(false)
 				setStatus({ message: failureMessage(err, 'Could not create the account. Try again.'), good: false }) })
 	}

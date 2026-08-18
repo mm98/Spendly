@@ -22,6 +22,24 @@ export const CURRENCIES = [
 	{ code: 'GBP', symbol: '£', before: true }
 ]
 
+/* The locales an account can print its dates and times in (migrations/013_locale.sql), and
+   'auto' -- keep asking the browser -- is one of them rather than the absence of one.
+
+   Only the codes are here, because a code is all the server validates. What each one is
+   called, and what it renders, is the client's business and lives in its own mirrored list
+   (react/src/api/format.js) the way the currency symbols do.
+
+   The span is the span of the currencies above: an account that can keep its ledger in
+   kroner, euros, dollars or pounds can print its dates the way those places write them. That
+   is a line drawn somewhere rather than everywhere -- ICU knows several hundred locales and
+   offering the lot would be a picker nobody can read -- and it moves by adding a code here
+   and its label there, in the same commit or one of the two lists is lying about the other.
+
+   Nothing here translates the product. The copy is English at every setting; a locale
+   decides the shape of a date, the order of its parts and whether the clock runs to 12 or
+   24, which is a different question from what language the sentence around it is in. */
+export const LOCALES = ['auto', 'da-DK', 'sv-SE', 'nb-NO', 'de-DE', 'en-GB', 'en-US']
+
 /* The most rows one orders-list page may carry, enforced wherever a page size enters -- the
    list route's query param and the stored settings value. LIMIT is the one place a caller's
    number reaches SQL, and without a ceiling `?pageSize=100000000` (or no pageSize at all, on

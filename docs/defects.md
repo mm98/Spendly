@@ -1894,6 +1894,47 @@ rendered when dates were hardcoded; the same source on a box whose ICU default i
 harness now names `en-GB` and `Europe/Copenhagen` — which is the render the shots already hold, so
 pinning it changed nothing and stops the next machine changing everything.
 
+## Language and Formats — the browser was asked which language its menus are in
+
+Defends: *Asking the browser is asking a different question, so the reader is offered the answer*,
+and the zone rule beside it.
+
+The settings page told a reader in Copenhagen their build was made "August 18, 2026 at 02:26 PM
+GMT+2". Every part of that is the fix above working as designed — the instant is right, the zone is
+converted, the shape is the browser's — and the sentence is still wrong for the person reading it,
+because `Intl.DateTimeFormat(undefined, ...)` resolves to `navigator.language`, which is the
+language the browser's own menus are in. The regional format a reader writes dates in is a separate
+OS preference, and no web API exposes it: a Dane running an English-language browser is `en-US` to
+every formatter in the product, and the Unicode region override (`en-u-rg-dkzzzz`) that claims to
+fix exactly this is ignored by this ICU — it returned the en-US shapes byte for byte.
+
+So the shape is a setting now: `auto` (keep asking the browser, the shipped behaviour and the
+default) or one of six locales spanning the currencies offered. One guess is made on the reader's
+behalf, at registration, from the only regional fact a browser states plainly — its IANA timezone
+(`Europe/Copenhagen` → `da-DK`, ~24 zones mapped, everything else stays `auto`) — and the guess is
+then *shown*: the new account lands on the settings page once, told which control was set for it.
+The picker's options each carry a sample drawn through the product's own formatter, because "Danish"
+names a shape nobody can see from the label. Two traps under the fix: the formatters are cached per
+locale rather than once, or every date keeps the previous choice until a reload, which reads as a
+setting that did not save; and an unknown code reaching `Intl.DateTimeFormat` throws rather than
+falling back, so the server refuses anything off the list and keeps what is stored — verified by
+PATCHing `nonsense-tag` and reading `da-DK` back.
+
+The stamp also stopped naming its zone. "A converted time with nothing marking its zone cannot be
+told from the raw one" is true of a time that travels; this one is shown to one signed-in reader on
+their own machine, where GMT+2 was a label on their own afternoon.
+
+Measured, in Blink, browser language `en-US` with zone `Europe/Copenhagen` — the reporter's exact
+pair: registration posts `da-DK`; the landing headline reads Welcome to Spendly; the stamp renders
+"18. august 2026 kl. 14.26" at weight 600 over its lead's 500; the seven options render six
+distinct stamps (auto duplicates en-US, as it must on this profile) and the new-order summary date
+follows the same setting (`18.08.2026`, `18/08/2026`, `2026-08-18`, `08/18/2026`); a second sign-in
+lands on Home; nine routes render with no error card and no page errors. `.card-lead b` matches
+exactly one element app-wide. The screenshot harness registers over the API with no locale, so its
+account stores `auto` and keeps the pinned `en-GB` render — the committed shots are unaffected, and
+were not regenerated. Gecko and WebKit unverified — not installed, and nothing here is
+engine-shaped.
+
 ## Language and Formats — money was formatted at every site that printed it, and one of them was the server
 
 How an amount looks was decided wherever an amount was printed, and nowhere else — so the product
@@ -1929,6 +1970,46 @@ one right answer.
 The tell that found all of them was cheap and worth keeping: switch the account to a currency whose
 symbol is not `kr.`, then grep the rendered page for the old one. Anything still printing `kr.` is a
 place that never asked.
+
+## Vendors — the vendors list was the one vendor search that ignored aliases
+
+Defends: *A vendor answers to more names than the one it shows*, and its clause about one match
+rule per runtime.
+
+An account files Netto receipts under Salling Group, with Netto stored as the alias that makes the
+filing automatic. Typing Netto into the vendors list's own search answered `No vendor matches
+"Netto"` — the one screen devoted to vendors refusing a string the order form, the importer, the
+scan review and the command palette all resolve. Enumerating the class instead of fixing the
+instance found a second, worse case: the All orders text filter had the same gap, so
+`/api/orders?query=Netto` returned 0 while `/api/search?query=Netto` returned the order — two pages
+stating the same fact and disagreeing, on one account, in one session, which is the two-pages rule
+exactly.
+
+The cause was structural, not a typo. `lib/textSearch.js` shared the *mechanics* of matching — the
+Unicode fold LIKE cannot do, the `%`/`_` escaping — but "which vendors does this text find" was
+restated at every site that asked: the palette's statement remembered the aliases, the orders
+list's forgot them, and the vendors page's client-side filter never knew. A rule spelled out where
+it is used is a rule the next place has to remember.
+
+So each runtime now states it once, next to the resolution rule it mirrors. The server grew
+`vendorIdsMatching` in `lib/textSearch.js` — name or any alias, one fragment composed into an
+`IN (...)` by both the orders filter and the palette. The client grew `vendorTextMatch` beside
+`vendorByAnyName` in `client.js`: resolution answers what a string *is* (exact), search answers
+what it *finds* (substring), and the vendors list now consumes the answer instead of writing one.
+The row names the alias that matched (`… • also Netto`), since the typed text may appear nowhere in
+the row it returns, and the field's placeholder says "name or alias" because copy that enumerates
+is a contract.
+
+The first cut of the fragment used UNION, and `queries:check` flagged it: the merge sorts both
+sides in temp B-trees, for a dedup that buys nothing inside a membership test. UNION ALL removed
+every sort — 14 findings down to 6 — and the remaining 6 are byte-identical to the walks the old
+statements were already blessed with, carried forward.
+
+Measured, in Blink: on All vendors, the alias returns its parent vendor with the alias named in the
+meta, a partial (`nett`) and a second alias both match, a name match adds no clause, a miss still
+misses, and the header counts `1 of 2`. Over the API, the two routes answer identically for
+`Netto`, `nett`, `Salling`, `zzz` and `føtex` — the last through the non-ASCII fold path. No page
+errors. Gecko and WebKit unverified — not installed, nothing engine-shaped.
 
 ## Checkbox row — two options on one settings page, drawn as prose beside a control
 

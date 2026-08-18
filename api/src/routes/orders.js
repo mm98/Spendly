@@ -12,7 +12,7 @@ import { MAX_PAGE_SIZE } from '../lib/constants.js'
 import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
-import { asciiNeedle, escapeLike } from '../lib/textSearch.js'
+import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
 
 export const router = Router()
 // defParamCharset: busboy (multer's parser) decodes every multipart header as latin1 by
@@ -158,22 +158,21 @@ function buildOrderFilter(userId, q) {
 	   compared as stored -- with % and _ escaped so the needle is the literal text the search
 	   box holds, and a needle carrying a non-ASCII letter (which LIKE cannot case-fold) matched
 	   through contains_fold instead; lib/textSearch.js holds both halves and the numbers. */
+	/* The vendor half composes lib/textSearch.js's one vendor-match fragment rather than
+	   restating it, and that is the fix as much as the mechanics: this clause used to spell
+	   out "vendors whose name matches" by hand, forgot the aliases, and so disagreed with the
+	   palette about the same account -- `Netto` found the order in the finder and zero orders
+	   here. Categories stay inline because a category has one name and nothing else answers
+	   for it; the day that changes, its clause moves to the lib the same way. */
 	const needle = String(q.query ?? '').trim().toLowerCase()
-	if (needle && asciiNeedle(needle)) {
-		params.needle = `%${escapeLike(needle)}%`
+	if (needle) {
+		const match = MATCHERS[asciiNeedle(needle) ? 'ascii' : 'fold']
+		params.needle = asciiNeedle(needle) ? `%${escapeLike(needle)}%` : needle
 		where.push(`(
-			ot.search_text LIKE @needle ESCAPE '\\'
-			OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\')
+			${match('ot.search_text')}
+			OR ot.vendor_id IN (${vendorIdsMatching(match)})
 			OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id
-				WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\')
-		)`)
-	} else if (needle) {
-		params.needle = needle
-		where.push(`(
-			contains_fold(ot.search_text, @needle)
-			OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle))
-			OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id
-				WHERE c.user_id = @userId AND contains_fold(c.name, @needle))
+				WHERE c.user_id = @userId AND ${match('c.name')})
 		)`)
 	}
 
