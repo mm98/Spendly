@@ -80,9 +80,12 @@ function Sidebar({ navKey }) {
    made one, and never a second. Outside the Docker image there is nothing to show and the
    band is the plain line it always was: a tooltip that opens onto "unknown" is worse than no
    tooltip, and a dev server has no build to have been measured. */
+/* No SEO row: the check stopped measuring it (react/scripts/lighthouse.mjs -- a sign-in-gated
+   ledger has no crawler to rank it), so new stamps do not carry the key, and a row reading a
+   key only old stamps hold would render its label over a blank. */
 const SCORES = [
 	['Performance', 'performance'], ['Accessibility', 'accessibility'],
-	['Best practices', 'bestPractices'], ['SEO', 'seo']
+	['Best practices', 'bestPractices']
 ]
 
 function BuildQuality() {

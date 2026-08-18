@@ -10,11 +10,13 @@
    the build's rather than the moment's. The second run is the one reported -- and both are
    printed, so a spread that opens up is visible rather than averaged away.
 
-   The gate is deliberately partial. Accessibility, best practices and SEO are rule checks --
-   the same DOM scores the same way on any machine -- so they hold a floor. Performance is a
+   The gate is deliberately partial. Accessibility and best practices are rule checks -- the
+   same DOM scores the same way on any machine -- so they hold a floor. Performance is a
    stopwatch on a shared CI runner: it moves with whatever else that runner is doing, so it is
    reported and never enforced. A gate that fails for reasons the change did not cause is a
-   gate people learn to re-run rather than read. */
+   gate people learn to re-run rather than read. SEO is not run at all: the app is a personal
+   ledger behind a sign-in, so there is no crawler to rank it and its score is a number
+   nothing reads. */
 
 import { writeFileSync } from 'node:fs'
 
@@ -26,7 +28,7 @@ const RUNS = 2
    them and a one-point audit reshuffle in a Lighthouse upgrade does not. Raise them when the
    build clears a higher number twice in a row -- that is the point at which the higher number
    is a fact about the app rather than a hope. */
-const FLOORS = { accessibility: 90, 'best-practices': 90, seo: 85 }
+const FLOORS = { accessibility: 90, 'best-practices': 90 }
 
 const { default: lighthouse } = await import('lighthouse').catch(() => {
 	console.error('lighthouse is not installed here. `npm i --no-save lighthouse` first (see .github/workflows/ci.yml).')
@@ -42,9 +44,10 @@ try {
 	for (let i = 0; i < RUNS; i++) {
 		// Named rather than left to default to everything: Lighthouse adds categories between
 		// versions (13.4 ships one for agentic browsing), and a run whose contents change on
-		// upgrade costs time nobody asked for and reports numbers nothing here reads.
+		// upgrade costs time nobody asked for and reports numbers nothing here reads. SEO is
+		// left out on the same grounds -- a sign-in-gated ledger has no crawler to rank it.
 		const result = await lighthouse(URL, { port: chrome.port, output: 'json', logLevel: 'error' },
-			{ extends: 'lighthouse:default', settings: { onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'] } })
+			{ extends: 'lighthouse:default', settings: { onlyCategories: ['performance', 'accessibility', 'best-practices'] } })
 		const scores = Object.fromEntries(Object.entries(result.lhr.categories)
 			.map(([key, category]) => [key, Math.round(category.score * 100)]))
 		runs.push({
@@ -74,7 +77,6 @@ const stamp = {
 	performance: warm.scores.performance,
 	accessibility: warm.scores.accessibility,
 	bestPractices: warm.scores['best-practices'],
-	seo: warm.scores.seo,
 	firstContentfulPaintMs: Math.round(warm.firstContentfulPaint),
 	largestContentfulPaintMs: Math.round(warm.largestContentfulPaint),
 	lighthouse: version
