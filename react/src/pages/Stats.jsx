@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -41,16 +40,63 @@ import { currency, fullStop, percent, plural, sep } from '../api/format.js'
     every row in the card, and repeating it wrapped half of them onto a second line. */
 const splitBudgetMeta = entry => (entry.budget ? `${percent(entry.budgetUsed, 0)} of budget` : null)
 
-/** Which width an id was written for, by its own shape -- the client's half of the same four
-    formats the API parses. Only ever used as a guard: the API is what re-anchors an id from one
-    width to another, and this says whether the id in the URL is a window of the width beside
-    it or the one the reader just changed away from. */
-const rangeOfId = id => (
-	/^\d{4}-W\d{2}$/.test(id) ? 'week'
-		: /^\d{4}-\d{2}$/.test(id) ? 'month'
-			: /^\d{4}-Q[1-4]$/.test(id) ? 'quarter'
-				: /^\d{4}$/.test(id) ? 'year'
-					: id === 'all' ? 'all' : null)
+/* Which window a width change lands on, computed here rather than asked for.
+
+   The picker and the pager are one control, so changing the width keeps the window: the new
+   one holds the *last day* of the old one, clamped to today, since a window later than today
+   is one the pager's own forward arrow refuses to reach. The API re-anchors the same way for a
+   link typed by hand -- this is the same rule on the near side of the wire, so the URL the
+   click writes is already the window the answer will be about.
+
+   It was the other way round for one release: the click wrote the id it was leaving, the API
+   converted it, and an effect wrote the answer back over the URL. That effect is what this
+   replaces. Deriving the URL from the rendered answer means the two can disagree for a render
+   -- `useApi` keeps the previous window's data across a refetch -- and every guard against
+   that is a guard on a loop that has the address bar, the router and the fetch in it. A
+   browser locked up hard enough to need killing, on a page whose only fault was that it kept
+   asking. State the reader chose goes into the URL when the reader chooses it, once, and
+   nothing derives it back out. README: Statistics. */
+const DAY_MS = 86400000
+const pad = n => String(n).padStart(2, '0')
+
+const utcOf = iso => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
+const mondayFirst = ms => (new Date(ms).getUTCDay() + 6) % 7
+
+/** ISO week of a day: Monday-first, week 1 is the one holding 4 January. The same arithmetic
+    the API does, because a week is the one width whose id cannot be read off the date. */
+function isoWeekOf(ms) {
+	const thursday = ms + (3 - mondayFirst(ms)) * DAY_MS
+	const year = new Date(thursday).getUTCFullYear()
+	const jan4 = Date.UTC(year, 0, 4)
+	const firstThursday = jan4 + (3 - mondayFirst(jan4)) * DAY_MS
+	return { year, week: Math.round((thursday - firstThursday) / (7 * DAY_MS)) + 1 }
+}
+
+function windowIdAt(range, ms) {
+	const at = new Date(ms)
+	if (range === 'week') { const { year, week } = isoWeekOf(ms); return `${year}-W${pad(week)}` }
+	if (range === 'month') return `${at.getUTCFullYear()}-${pad(at.getUTCMonth() + 1)}`
+	if (range === 'quarter') return `${at.getUTCFullYear()}-Q${Math.floor(at.getUTCMonth() / 3) + 1}`
+	if (range === 'year') return String(at.getUTCFullYear())
+	return 'all'
+}
+
+const todayUtc = () => { const t = new Date(); return Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()) }
+
+/** The window of `width` to open when the picker moves off the window on screen. `to` is that
+    window's last day, inclusive, as the API answers it. */
+function reanchor(view, width) {
+	// 'All time' has one window, so it has nothing to carry in the URL: the id is the width.
+	if (width === 'all') return ''
+	return windowIdAt(width, Math.min(Math.max(todayUtc(), utcOf(view.from)), utcOf(view.to)))
+}
+
+/** The window a width opens with, which is the one id the URL leaves out -- a link to this
+    month is `/stats`, not `/stats?period=2026-08`. Computed here rather than read off the last
+    answer: the answer on screen is the *previous* width's while a change is in flight, so its
+    default belongs to the width being left, and the URL took a redundant parameter every time
+    a picker was clicked from a settled page. */
+const defaultIdFor = width => (width === 'all' ? '' : windowIdAt(width, todayUtc()))
 
 /* The three sentences a budget row can be, and which one it is depends only on how many months
    the window holds. A month is the plain case both sides were already written for; anything
@@ -86,33 +132,11 @@ export default function Stats() {
 	const range = params.get('range') ?? 'month'
 	const periodId = params.get('period') ?? ''
 	const state = useApi(getStats, [range, periodId])
-	const defaultId = state.data?.defaultId
 
 	const show = (width, id, options) => setParams({
 		...(width === 'month' ? {} : { range: width }),
-		...(id && id !== defaultId ? { period: id } : {})
+		...(id && id !== defaultIdFor(width) ? { period: id } : {})
 	}, options)
-
-	/* Changing the width hands the API the id of the width it is changing *from* -- "2022",
-	   asked for as a month -- and the API answers the month that window ended in. So for one
-	   render the URL carries an id of the wrong shape for the width beside it, and a link
-	   copied in that moment re-resolves against whatever "today" it is opened on. Write the
-	   window the page is actually showing back over it, replacing rather than pushing: the
-	   resolution is the same window, not a second one for Back to walk through.
-
-	   Both guards are load-bearing, and the first one cost a paged-back year to find. `useApi`
-	   keeps the last good data across a refetch, so between a click and its answer `shown` is
-	   the *previous* window -- and an effect that rewrites the URL from it undoes the click:
-	   pressing the back arrow to 2025 wrote ?period=2025, and this effect immediately wrote
-	   2026 back over it from the data still on screen. So it fires only where the URL's id
-	   cannot be a window of the width beside it (which is exactly the case it exists for) and
-	   only once the data on screen is that width's. */
-	const shown = state.data?.window
-	useEffect(() => {
-		if (!shown || !periodId || rangeOfId(periodId) === range) return
-		if (shown.range !== range) return
-		show(shown.range, shown.id, { replace: true })
-	})
 
 	return (
 		<Page variant="page-grid">
@@ -170,14 +194,13 @@ export default function Stats() {
 								    back to, and a picker with nothing selected over a month of data is
 								    the URL's claim drawn over the API's. The first click writes a name
 								    that exists. */}
-								{/* The window on screen, not the URL's copy of it: the picker hands the
-								    id it is leaving to the width it is entering, and the API re-anchors it
-								    to the window holding that one's last day. Picking Month while paged
-								    back to 2022 lands on December 2022 rather than on this month -- the
+								{/* The window on screen, converted to the width being picked: Month while
+								    paged back to 2022 opens December 2022 rather than this month -- the
 								    picker and the pager are one control, and moving one used to silently
-								    discard where the other was. */}
+								    discard where the other was. The id written is the one the answer will
+								    carry, so nothing has to correct the URL afterwards. */}
 								<RangeTabs variant="pager" options={ranges} value={view.range}
-									onChange={key => show(key, view.id)} />
+									onChange={key => show(key, reanchor(view, key))} />
 							</div>
 							<div className="row-inline">
 								<span className="figure-large tabular-figures">{currency(view.spent)}</span>
