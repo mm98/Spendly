@@ -2,6 +2,7 @@ import { lazy } from 'react'
 import { redirect } from 'react-router'
 import { AppShell } from './components/Shell.jsx'
 import { RouteError } from './components/RouteError.jsx'
+import { ListState } from './components/ListState.jsx'
 import { Waiting } from './components/Async.jsx'
 import { getCurrentUser, getSettings } from './api/client.js'
 import { setCurrency } from './api/format.js'
@@ -154,7 +155,8 @@ export const routes = [
 
 			{ path: 'orders', handle: { title: 'Orders', navKey: 'orders' }, children: [
 				{ index: true, element: <Orders />, handle: { title: 'Orders', navKey: 'orders', tabs: ORDER_TABS('overview') } },
-				{ path: 'all', element: <AllOrders />, handle: { title: 'Orders', navKey: 'orders', tabs: ORDER_TABS('all') } },
+				{ path: 'all', element: <ListState name="all-orders"><AllOrders /></ListState>,
+					handle: { title: 'Orders', navKey: 'orders', tabs: ORDER_TABS('all') } },
 				{ path: 'new', element: <NewOrderLayout />, handle: { title: 'New order', navKey: 'orders' }, children: [
 					{ index: true, element: <NewOrderDetails />, handle: { title: 'New order', navKey: 'orders' } },
 					{ path: 'items', element: <NewOrderItems />, handle: { title: 'New order', navKey: 'orders' } }
@@ -189,7 +191,7 @@ export const routes = [
 			{ path: 'vendors', children: [
 				{ index: true, element: <Vendors />,
 					handle: { title: 'Vendors', navKey: 'vendors', tabs: VENDOR_TABS('overview') } },
-				{ path: 'all', element: <AllVendors />,
+				{ path: 'all', element: <ListState name="all-vendors"><AllVendors /></ListState>,
 					handle: { title: 'Vendors', navKey: 'vendors', tabs: VENDOR_TABS('all') } },
 				{ path: 'new', element: <VendorForm mode="create" />,
 					handle: { title: 'New vendor', navKey: 'vendors', back: { to: '/vendors', label: 'vendors' } } },
@@ -199,7 +201,7 @@ export const routes = [
 			{ path: 'categories', children: [
 				{ index: true, element: <Categories />,
 					handle: { title: 'Categories', navKey: 'categories', tabs: CATEGORY_TABS('overview') } },
-				{ path: 'all', element: <AllCategories />,
+				{ path: 'all', element: <ListState name="all-categories"><AllCategories /></ListState>,
 					handle: { title: 'Categories', navKey: 'categories', tabs: CATEGORY_TABS('all') } },
 				{ path: 'new', element: <CategoryForm mode="create" />,
 					handle: { title: 'New category', navKey: 'categories', back: { to: '/categories', label: 'categories' } } },

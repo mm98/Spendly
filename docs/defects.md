@@ -2363,3 +2363,54 @@ Desktop is untouched by construction — the whole of it is inside `@media (max-
 and measured anyway: at 1440x900 and at 760x900 all three ring rows still put the legend beside
 the ring (`listSameRow: true`), at the same offsets before and after. Verified in Blink;
 Gecko and WebKit unverified, neither installed here.
+
+## All lists — filtering, opening a row and coming back cleared the filters
+
+Filter All orders, click an order, press Back, return to the list: no filters. Nothing had been
+cleared, and the page reporting it was working exactly as designed — which is what made it read as
+a bug in the filters and is why the first answer to it was wrong.
+
+The state was never lost. All orders holds every filter in the query string, deliberately, so a
+filtered list is a place you can send; the fault is that nothing the app itself links with ever
+says one. The sub-tab is a literal `/orders/all` (`routes.jsx`), the back button off an order
+detail is a fixed `/orders` — the overview tab, not even the list you came from — and SEE ALL, the
+palette entry and the post-delete redirect are bare too. Every route back in was an instruction to
+show everything, so the URL did.
+
+Measured on the running app, Chromium 141, before: arriving at
+`#/orders/all?vendor=<id>&status=Delivered` gave 2 chips over 5 rows; opening a row and pressing
+the app's own Back landed on `/orders`; the *All orders* tab from there gave `/orders/all`, **0
+chips, 30 rows**. After: the same round trip returns `/orders/all?vendor=<id>&status=Delivered`, 2
+chips, 5 rows.
+
+The other two lists were worse and the report had not reached them yet. All vendors and All
+categories put only the *page* in the URL and kept the keyword and the sort in `useState`, so those
+two were lost on any navigation at all and could not be linked in the first place — the same rule
+the README states for paging, obeyed for one field of three. Both now hold `q`, `sort` and `page`
+in the query string like All orders, which is what lets one component remember a list as one
+string.
+
+### Two ways to get the restore wrong, both measured
+
+**Reading the snapshot on every render undoes CLEAR ALL.** "No query string" is not only true on
+arrival — it is true again the instant CLEAR ALL empties one. A live condition therefore read a
+snapshot taken before the click and wrote the cleared filters straight back: the URL sat at
+`/orders/all` for a frame and bounced to `?vendor=<id>&status=Delivered`, the page overruling the
+one control whose entire job is to empty it. The first probe very nearly passed it, printing the
+bare URL in the frame before the bounce and the restored filter one step later, where it read as a
+successful restore. Waiting for the hash to hold still for three polls is what separated them.
+
+**A latch that flips a ref while rendering works in the build and not in the dev server.**
+StrictMode renders every component twice, so `if (!decided.current) { decided.current = true; ... }`
+answers "restore" on the first invocation and "carry on" on the second. Storing the *decision*
+rather than a flag saying a decision was taken makes the second render agree with the first.
+
+Restoring is a redirect during render rather than an effect, so the unfiltered list is never
+requested: an effect fires after the first commit, by which time the page below has asked the API
+for page 1 of everything and painted the answer.
+
+Verified in Blink only — 12 assertions across the three lists on the running app: the round trip on
+each, a deep link overriding the memory (`?status=Returned` stays Returned), CLEAR ALL surviving a
+round trip, a restored page number, a second tab starting clean and the first keeping its own. Plus
+the 16-route smoke, no error card and no page errors. Gecko and WebKit unverified — no binary
+installed, and nothing here is engine-shaped.

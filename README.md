@@ -844,6 +844,10 @@ Long lists page; they do not scroll forever. Continuous scrolling buries the foo
 
 **The pager states the range** ("1–25 of 112"), disables PREVIOUS and NEXT honestly at the ends, and keeps the page in the URL with the rest of the list state. Page size and default sort are settings, read from the same place every list reads them.
 
+**The rest of the list state is in the URL too — keyword and sort as well as the page.** All orders, All vendors and All categories are one list pattern asked one way: a list that can be linked to by page number and not by what it was searching for is the rule obeyed for a third of itself. Every one of the three is a URL you can send.
+
+**A list remembers what it was showing, for the length of the visit.** The state is in the URL, but the app's own way back into these tabs is a bare address every time — the sub-tab is a plain `/orders/all`, the back button off a record goes to the overview, SEE ALL and the palette carry nothing — so filtering a list, opening a row and coming back landed on an unfiltered list without anybody having cleared anything ([the numbers](docs/defects.md#all-lists--filtering-opening-a-row-and-coming-back-cleared-the-filters)). Reaching one of these tabs with no query string restores the last one that tab held. Three things it is not: a link that carries its own filters wins outright, because a category tile means *that* category and never the last thing you looked at; CLEAR ALL is stored as cleared and stays cleared; and it is memory for this visit in this tab, not a preference — it dies with the tab, it does not follow the account to another device, and two tabs open on two different filters each keep their own. What a list opens as on a *first* visit is still [the account's setting](#settings).
+
 ### Loading and Errors
 
 **Data arrives late, and the design owns that.** Every read has latency, so every reading surface has a loading state — a surface designed against instant data is a surface with no loading state, and that is the half that breaks first.
