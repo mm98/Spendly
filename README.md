@@ -645,6 +645,14 @@ Two-step flow for creating or editing an order:
 
 Same form for create and edit. Editing loads the order in. The two steps share one draft — leaving and coming back loses nothing.
 
+**A line is edited where it sits.** The list of lines is the only place a line is shown, so it is the place a line is changed: the row opens into a card at its own index in the list, holding that line's picture and its fields, and closes back into a row when it is saved. There is no form standing above the list. A form above a list is a second place a line can be, and it costs three things at once — it puts the fields a screen away from the row that was pressed, so the page has to say *the form above holds it* about values the reader cannot see; it claims adding is the page's main verb, on a page whose lines already exist and are being corrected; and the distance grows by a row for every line the order has. See [docs/defects.md](docs/defects.md).
+
+**Adding is the same card, opened empty from the end of the list.** One card, one set of fields, one set of rules, for both jobs. A separate add form is a second copy of the validation, and the two agree until the day one of them is fixed ([Form Validation](#form-validation)).
+
+**One card at a time, and opening one moves nothing above it.** The rows above the opened line, the list, and the cards above the list all keep their positions; the card is brought into view only when part of it is outside the viewport, and by the least that fixes that. Leaving a card that holds a valid line saves it on the way out — losing four correct fields to a click on the next row is not something a draft should do. Leaving one that holds an invalid line asks first, and only when something was actually typed. Two cards open at once is two sets of fields with one set of names and no answer to which line the reader is looking at.
+
+**A quantity multiplies; it is never a second price to keep in step by hand.** The line total is derived from quantity and price and read back under them, so changing a quantity never asks the reader to redo the arithmetic. A retail price below the price paid is a fact rather than a mistake: the line saves, and it records no saving — and the card says so under the fields, because a form that refuses a legal value teaches the reader nothing and a form that accepts one in silence teaches less.
+
 **A record's own page is where its orders are reached from, and the summary rail is where it says so.** A vendor and a category each stand for a pile of orders, and that pile is a real destination — but it is one control, on the page that already holds every other action on the record, sitting under the figure it is the orders behind: a full-width block button, the same one every card ending in a link into a longer list uses. It is not a second link at the end of every row in the list. A row has one destination — the record — the way an order row opens the order; an unlabelled glyph repeated down a list, offering a destination no other list row offers, buys a click at the cost of a row that means two things.
 
 **The rail's bottom line is the money.** A summary card mirrors the form above it, then states one figure at its foot, and across records it is the same kind of figure: what this record has cost, all time. A limit the form itself sets — a category's monthly budget — is one of the values being mirrored, so it is a row among the others, not the bottom line; two summary cards whose feet answer different questions are two shapes to learn for one card.
@@ -794,6 +802,8 @@ When a form rejects a value:
 4. The description is set with the message and removed with it — a dangling `aria-describedby` points at nothing
 
 **Why this way:** the message is beside the field (context), the status line gives the scope in one place, and the marking is written *once* — every form that rejects values uses the same one, because two copies agree until the day one is fixed.
+
+**A field is answered when it is left, and re-answered as it is corrected.** Leaving a field runs its rule and marks it either way, so a rejection arrives at the moment the reader finished with the field rather than at the moment they tried to save. Typing is the one time a field is *not* re-judged from scratch: a field that has never been rejected stays unmarked while it is being filled in, because printing "How many did you buy?" over a half-typed answer is a form arguing with someone mid-sentence. Once a field has been rejected, every keystroke re-checks it, so the message clears on the character that fixes it.
 
 **A verdict is not a toast.** Saved / added / removed goes to the transient feedback layer; "cannot continue" stays on the form, beside the fields it names, until they are fixed.
 

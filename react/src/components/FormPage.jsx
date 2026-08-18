@@ -146,6 +146,13 @@ export function useRowDelete({ what, label, detail, onDelete, icon = 'trash' }) 
 			<IconButton icon={icon} label={label(item)} onClick={() => ask(item)}
 				aria-haspopup="dialog" />
 		),
+		/* The same control with its name on it, for a row that has been opened into a card and
+		   has room to say what the button does. Same handler, same setting, same question
+		   underneath -- the pair `useDelete` above already offers, for the same reason. */
+		button: (item, text) => (
+			<Button variant="ghost compact" icon={icon} onClick={() => ask(item)}
+				aria-haspopup="dialog">{text ?? `DELETE ${what.toUpperCase()}`}</Button>
+		),
 		dialog: confirming ? (
 			<DeleteDialog what={what} detail={detail(confirming)}
 				onConfirm={() => { const it = confirming; setConfirming(null); onDelete(it) }}

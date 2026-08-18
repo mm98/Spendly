@@ -1,18 +1,15 @@
-import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
-import { Sep } from '../components/Sep.jsx'
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Combobox } from '../components/Combobox.jsx'
-import { Button, IconButton } from '../components/Button.jsx'
+import { Button } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
-import { Icon } from '../components/Icon.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
-import { useReorder } from '../components/Reorder.jsx'
-import { useRowDelete } from '../components/FormPage.jsx'
+import { ItemLines } from '../components/ItemLines.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection,
+	DateInput, Field, FieldPair, FieldShell, FieldUnit,
 	Form, FormActions, FormStatus, Segmented, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
@@ -23,8 +20,8 @@ import {
 	invalidateOrderData, invalidateVendorData, itemAttachmentThumbnailUrl, spendKinds, updateOrder,
 	vendorByAnyName
 } from '../api/client.js'
-import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, currency, currencySymbol, fullStop, parseAmount, percent, plural, sep, today } from '../api/format.js'
+import { ORDER_FIELDS } from '../api/rules.js'
+import { currency, currencySymbol, parseAmount, percent, plural, sep, today } from '../api/format.js'
 
 /* Editing an order, whole.
 
@@ -39,8 +36,6 @@ import { amount, currency, currencySymbol, fullStop, parseAmount, percent, plura
    The total in the rail is not "Total est." here either. An estimate is a number about to
    change before anything is saved; every kroner on this page already belongs to a real order,
    so the figure is a fact about what was entered, and is printed as one. */
-
-const BLANK_ITEM = { 'item-description': '', 'item-quantity': '', 'item-price': '', 'item-retail': '' }
 
 export default function EditOrder() {
 	const { id } = useParams()
@@ -106,102 +101,42 @@ function EditOrderForm({ id, seed }) {
 		if (clean && !draft.categories.includes(clean)) update({ categories: [...draft.categories, clean] })
 	}
 
-	/* ---- items ---- */
+	/* ---- items ----
+	   The list and the card a line opens into are ItemLines'. What stays here is the one thing
+	   this page knows and that component does not: a line on a saved order can already carry a
+	   photo on the server, so `photoOf` has two sources to answer from and the component has
+	   none of its own. */
 
-	const [itemForm, setItemForm] = useState(BLANK_ITEM)
-	const [itemStatus, setItemStatus] = useState({ message: '', good: true })
-	const [editingId, setEditingId] = useState(null)
-	const [photo, setPhoto] = useState(null)
 	/* Keyed by item id, same as New order's own item step: a photo picked here is only bytes
 	   until save() below has an order to attach it to. See NewOrder.jsx's own note on this. */
 	const [pendingPhotos, setPendingPhotos] = useState({})
-	const nextId = useRef(0)
 
-	const itemErrors = useFieldErrors(ITEM_FIELDS, itemForm)
-	const setItem = name => v => { setItemForm(f => ({ ...f, [name]: v })); itemErrors.recheck(name, v) }
-
-	const clearItemForm = useCallback(() => {
-		setItemForm(BLANK_ITEM)
-		setEditingId(null)
-		setPhoto(null)
-		itemErrors.clear()
-		focusField('item-description')
-	}, [itemErrors])
-
-	const editItem = item => {
-		setEditingId(item.id)
-		setPhoto(pendingPhotos[item.id]?.file ?? null)
-		setItemForm({
-			'item-description': item.title,
-			'item-quantity': String(item.quantity),
-			'item-price': amount(item.price),
-			'item-retail': item.retail != null ? amount(item.retail) : ''
-		})
-		itemErrors.clear()
-		toast(`Editing ${item.title}. The form above holds it.`)
-		focusField('item-description')
-	}
-
-	const reorder = useReorder({
-		items: draft.items,
-		describe: item => item.title,
-		onAnnounce: toast,
-		onReorder: (from, to) => {
-			const items = [...draft.items]
-			const [moved] = items.splice(from, 1)
-			items.splice(to, 0, moved)
-			update({ items })
+	const photoOf = useCallback(item => {
+		const pending = pendingPhotos[item.id]
+		if (pending) return { present: true, src: pending.url }
+		const existing = item.attachments?.[0]
+		if (!existing) return { present: false }
+		return {
+			present: true,
+			src: existing.hasThumbnail ? itemAttachmentThumbnailUrl(id, item.id, existing.id) : undefined
 		}
-	})
+	}, [pendingPhotos, id])
 
-	const removeItem = item => {
-		update({ items: draft.items.filter(i => i.id !== item.id) })
+	const pickPhoto = useCallback((itemId, file) => {
 		setPendingPhotos(prev => {
-			if (!prev[item.id]) return prev
-			URL.revokeObjectURL(prev[item.id].url)
-			const { [item.id]: removed, ...rest } = prev
+			if (prev[itemId]) URL.revokeObjectURL(prev[itemId].url)
+			return { ...prev, [itemId]: { file, url: URL.createObjectURL(file) } }
+		})
+	}, [])
+
+	const clearPhoto = useCallback(itemId => {
+		setPendingPhotos(prev => {
+			if (!prev[itemId]) return prev
+			URL.revokeObjectURL(prev[itemId].url)
+			const { [itemId]: gone, ...rest } = prev
 			return rest
 		})
-		if (editingId === item.id) clearItemForm()
-		toast(`${item.title} removed.`)
-	}
-
-	const itemDel = useRowDelete({
-		what: 'item',
-		label: item => `Delete ${item.title}`,
-		detail: item => `${item.title}, ${item.quantity} × ${currency(item.price)}${fullStop()}`,
-		onDelete: removeItem
-	})
-
-	const submitItem = () => {
-		const failed = itemErrors.check()
-		if (failed.length) {
-			setItemStatus({ message: 'Not added: ' + needFixing(failed), good: false })
-			focusField(failed[0].name)
-			return
-		}
-		const item = {
-			id: editingId ?? 'new-' + (nextId.current++),
-			title: itemForm['item-description'].trim(),
-			quantity: Number(itemForm['item-quantity']),
-			price: parseAmount(itemForm['item-price']),
-			retail: itemForm['item-retail'] ? parseAmount(itemForm['item-retail']) : undefined
-		}
-		if (photo) {
-			setPendingPhotos(prev => {
-				if (prev[item.id]) URL.revokeObjectURL(prev[item.id].url)
-				return { ...prev, [item.id]: { file: photo, url: URL.createObjectURL(photo) } }
-			})
-		}
-		const items = editingId
-			? draft.items.map(i => (i.id === editingId ? item : i))
-			: [...draft.items, item]
-		const was = editingId
-		update({ items })
-		clearItemForm()
-		const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		toast(`${item.title} ${was ? 'updated' : 'added'}. Items${sep}${items.length}, ${currency(total)}`)
-	}
+	}, [])
 
 	/* ---- save, once, for the whole order ---- */
 
@@ -214,7 +149,10 @@ function EditOrderForm({ id, seed }) {
 		}
 		if (!draft.items.length) {
 			setStatus({ message: 'An order needs at least one item.', good: false })
-			focusField('item-description')
+			/* There is no item form to send anyone to any more, and the empty list's own row is
+			   what opens the card that would fix this -- so the verdict points at the control
+			   that acts rather than at a field that is not on the page. */
+			document.querySelector('.line-add-row')?.focus()
 			return
 		}
 		setStatus({ message: '', good: true })
@@ -253,10 +191,6 @@ function EditOrderForm({ id, seed }) {
 	const kindField = orderErrors.propsFor('order-kind')
 	const shippingField = orderErrors.propsFor('order-shipping')
 	const discountField = orderErrors.propsFor('order-discount')
-	const itemDescription = itemErrors.propsFor('item-description')
-	const itemQuantity = itemErrors.propsFor('item-quantity')
-	const itemPrice = itemErrors.propsFor('item-price')
-	const itemRetail = itemErrors.propsFor('item-retail')
 
 	return (
 		<div className="order-list-grid">
@@ -387,130 +321,29 @@ function EditOrderForm({ id, seed }) {
 				</Card>
 
 				<Card aria-label="Items">
-					<CardHeader title={`Items${sep}${draft.items.length}`} />
+					{/* The card band names the list and counts it, the way Order details' own
+					    items card does -- one header, in the shape every other card here uses.
+					    The list is told not to draw a second one: "ITEMS • 4" over "LINES • 4"
+					    was one list named twice, with the number printed twice under it. */}
+					<CardHeader title={`Items${sep}${draft.items.length}`}>
+						{/* The band's right-hand slot, the way Order details' items card puts the
+						    subtotal there. Drawn only when there is more than one line, because
+						    that is when the rows draw a grip at all -- and withdrawn by the
+						    stylesheet while a line is open, for the same reason the grips are. */}
+						{draft.items.length > 1
+							? <span className="field-help">drag the grip to reorder</span>
+							: null}
+					</CardHeader>
 					<CardDivider />
-					<CardBody variant="card-body-tight">
-						<Form>
-						<FilterSection
-							onKeyDown={e => {
-								if (!(e.target instanceof HTMLInputElement)) return
-								if (e.key === 'Enter') { e.preventDefault(); submitItem() }
-								else if (e.key === 'Escape') {
-									e.preventDefault(); e.stopPropagation()
-									clearItemForm(); setItemStatus({ message: '', good: true })
-								}
-							}}>
-							<FormStatus message={itemStatus.message} good={itemStatus.good} />
-							<Field label="Description" error={itemDescription.error} errorId={itemDescription.errorId} htmlFor="item-description">
-								<FieldShell>
-									<TextInput id="item-description" aria-label="Description" aria-required="true"
-										value={itemForm['item-description']} onChange={setItem('item-description')}
-										invalid={itemDescription.invalid}
-										describedBy={itemDescription.describedBy} />
-								</FieldShell>
-							</Field>
-
-							<FieldPair>
-								<Field label="Quantity" error={itemQuantity.error} errorId={itemQuantity.errorId} htmlFor="item-quantity">
-									<FieldShell>
-										<TextInput id="item-quantity" inputMode="numeric" aria-label="Quantity"
-											aria-required="true" value={itemForm['item-quantity']}
-											onChange={setItem('item-quantity')}
-											invalid={itemQuantity.invalid} describedBy={itemQuantity.describedBy} />
-										<FieldUnit>pcs</FieldUnit>
-									</FieldShell>
-								</Field>
-								<Field label="Price paid" error={itemPrice.error} errorId={itemPrice.errorId} htmlFor="item-price">
-									<FieldShell>
-										<TextInput id="item-price" inputMode="decimal" aria-label="Price paid"
-											aria-required="true" value={itemForm['item-price']}
-											onChange={setItem('item-price')}
-											invalid={itemPrice.invalid} describedBy={itemPrice.describedBy} />
-										<FieldUnit>{currencySymbol()}</FieldUnit>
-									</FieldShell>
-								</Field>
-							</FieldPair>
-
-							<FieldPair>
-								<Field label="Retail price" error={itemRetail.error} errorId={itemRetail.errorId} htmlFor="item-retail"
-									help="Optional. Powers the saved-vs-retail figures.">
-									<FieldShell>
-										<TextInput id="item-retail" inputMode="decimal" placeholder="104,95"
-											aria-label="Retail price" value={itemForm['item-retail']}
-											onChange={setItem('item-retail')}
-											invalid={itemRetail.invalid} describedBy={itemRetail.describedBy} />
-										<FieldUnit>{currencySymbol()}</FieldUnit>
-									</FieldShell>
-								</Field>
-								<Field label="Photo"
-									help="Optional. The photo shows on the item row below, not in the form.">
-									<FieldShell as="label">
-										<span className="field-thumb" aria-hidden="true"><Icon name="photo" /></span>
-										<input type="file" accept="image/*" aria-label="Product photo"
-											className="field-file-input"
-											onChange={e => setPhoto(e.target.files?.[0] ?? null)} />
-										<span className="field-file-name">{photo?.name ?? 'Choose a photo...'}</span>
-										{photo ? (
-											<IconButton variant="clear" icon="close" label="Remove photo"
-												onClick={e => { e.preventDefault(); setPhoto(null) }} />
-										) : null}
-									</FieldShell>
-								</Field>
-							</FieldPair>
-
-							<FormActions>
-								<Button variant="caps compact" icon={editingId ? 'check' : 'plus'} onClick={submitItem}>
-									{editingId ? 'SAVE CHANGES' : 'ADD ITEM'}</Button>
-								{editingId
-									? <Button variant="ghost compact" onClick={() => {
-										clearItemForm(); setItemStatus({ message: '', good: true })
-									}}>CANCEL EDIT</Button>
-									: null}
-								<span className="field-help form-actions-note">
-									Enter {editingId ? 'saves' : 'adds'} and keeps the form; Escape clears it.</span>
-							</FormActions>
-						</FilterSection>
-
-						<div>
-							<div className="space-between space-between-tight">
-								<span className="section-label">Lines<Sep />{draft.items.length}</span>
-								<span className="field-help">drag the grip to reorder</span>
-							</div>
-							<InsetPanel {...reorder.listProps}>
-								{draft.items.map((item, i) => {
-									const pending = pendingPhotos[item.id]
-									const existing = item.attachments?.[0]
-									const hasPhoto = Boolean(pending || existing)
-									const thumbSrc = pending ? pending.url
-										: existing?.hasThumbnail ? itemAttachmentThumbnailUrl(id, item.id, existing.id)
-										: undefined
-									return (
-										<Fragment key={item.id}>
-										{reorder.placeholder(item)}
-										<ItemRow icon={hasPhoto ? undefined : 'cube'} thumb={hasPhoto ? 'photo' : undefined} thumbSrc={thumbSrc}
-											title={item.title}
-											handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
-											meta={`${item.quantity} × ${currency(item.price)}`
-												+ (item.retail ? `${sep}retail ${currency(item.retail)}` : '')}
-											amount={currency(item.price * item.quantity)}
-											{...reorder.rowProps(item)}>
-											<span className="row-inline row-actions">
-												<IconButton icon="pencil" label={`Edit ${item.title}`}
-													onClick={() => editItem(item)} />
-												{itemDel.iconButton(item)}
-											</span>
-										</ItemRow>
-										</Fragment>
-									)
-								})}
-								{draft.items.length === 0
-									? <p className="field-help inset-panel-note">
-										No items yet. Add the first one above.</p>
-									: null}
-							</InsetPanel>
-							{itemDel.dialog}
-						</div>
-						</Form>
+					{/* The plain body padding, not `card-body-tight`. That variant lifts the first
+					    line to 6px under the hairline, which is the padding-top override Card.jsx
+					    warns about -- it was there for lists whose rows carry their own leading
+					    space, and this body opens on the recessed panel, which has an edge of its
+					    own to sit against. README: Cards. */}
+					<CardBody>
+						<ItemLines items={draft.items} onItemsChange={items => update({ items })}
+							heading={false} onAnnounce={toast} photoOf={photoOf}
+							onPhotoPick={pickPhoto} onPhotoClear={clearPhoto} />
 					</CardBody>
 				</Card>
 
@@ -556,12 +389,12 @@ function EditOrderForm({ id, seed }) {
 					<CardDivider />
 					<CardBody>
 						<InsetPanel>
+							<ItemRow icon="pencil" title="Edit where it sits"
+								meta="The pencil opens the line into a card, in its own place in the list." />
 							<ItemRow icon="reorder" title="Drag to reorder"
 								meta="Or focus the grip and use the arrow keys." />
-							<ItemRow icon="pencil" title="Edit in place"
-								meta="A line loads back into the form above." />
-							<ItemRow icon="undo" title="Escape cancels"
-								meta="It empties the form and drops the edit." />
+							<ItemRow icon="undo" title="Enter saves, Escape cancels"
+								meta="Cmd/Ctrl+Enter saves and opens the line below." />
 						</InsetPanel>
 					</CardBody>
 				</Card>
