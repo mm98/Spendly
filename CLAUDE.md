@@ -708,6 +708,23 @@ intentions, and the cascade hides it wherever the two happen to agree. Read the 
 (`document.querySelectorAll(sel).length` against the union of the families) and check the survivors
 declare only their differences.
 
+**A value that has a token is written as the token, every time.** The `:root` block is the
+design system's own vocabulary -- radii, gaps, paddings, every colour, the thumb size -- and a
+literal written beside one is a second copy of a decision that is already made somewhere. It
+reads as identical until the token moves, and then the two disagree in whichever place nobody
+looked. So before writing a number or a colour, check whether `:root` already names it:
+`grep -oE '^\s+--[a-z-]+:[^;]*;' react/src/styles/app.css` is the whole list. `12px` is
+`--radius-page`, `6px` between an icon and its label is `--gap-icon`, `#B3261E` is
+`--text-negative` -- and that last one matters twice, because the file has a dark theme that
+redefines the tokens and nothing else. A hardcoded colour is a light-theme colour forever.
+
+Where a value genuinely has no token and is used more than once -- a component's own frame
+size across two rules and a breakpoint -- name it as a custom property on the component's own
+root (`.line-card { --line-photo:128px }`) rather than repeating the literal. The breakpoint
+then overrides one value instead of three. Font sizes are the standing exception: this file
+writes them literally throughout, so match its tally rather than inventing a token for them --
+and match an *existing* size rather than adding a new one.
+
 **A base rule written below the responsive block silently deletes it.** `app.css` is one cascade in
 source order, and every phone override lives in a single `@media (max-width:700px)` block partway
 down it. A new component whose base rules are written *after* that block — next to the feature they

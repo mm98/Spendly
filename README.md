@@ -803,8 +803,6 @@ When a form rejects a value:
 
 **Why this way:** the message is beside the field (context), the status line gives the scope in one place, and the marking is written *once* — every form that rejects values uses the same one, because two copies agree until the day one is fixed.
 
-**A field is answered when it is left, and re-answered as it is corrected.** Leaving a field runs its rule and marks it either way, so a rejection arrives at the moment the reader finished with the field rather than at the moment they tried to save. Typing is the one time a field is *not* re-judged from scratch: a field that has never been rejected stays unmarked while it is being filled in, because printing "How many did you buy?" over a half-typed answer is a form arguing with someone mid-sentence. Once a field has been rejected, every keystroke re-checks it, so the message clears on the character that fixes it.
-
 **A verdict is not a toast.** Saved / added / removed goes to the transient feedback layer; "cannot continue" stays on the form, beside the fields it names, until they are fixed.
 
 **The draft that is submitted is the draft that is validated.** Saving runs the rules over everything the form is about to send, not just the fields on screen: a row an ADD action seeds into the draft is part of the submission from the moment it exists, so saving sweeps every row with the same rules the row's own editor runs, reopens the first one that fails, and names it in the status line. Counting rows is not checking them — see [`docs/defects.md`](docs/defects.md).
