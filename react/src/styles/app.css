@@ -1318,8 +1318,6 @@ label.field-shell { cursor:pointer; }
 .fav-tile-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--gap-panel); }
 .fav-tile { display:flex; flex-direction:column; gap:2px; padding:16px 18px; border:1px solid var(--border-card); border-radius:var(--radius-card); background:var(--bg-card); min-width:0; }
 .fav-tile-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.fav-tile-head .entry-avatar, .fav-tile-head .category-icon { width:28px; height:28px; }
-.fav-tile-head .category-icon svg.icon { width:14px; height:14px; }
 /* The name is the section-label spec -- the tile's own header band -- and it is the way
    into the record's orders, so it underlines on hover the way every text link here does.
    Ellipsed rather than wrapped: a two-line name re-heights the whole row of tiles. */
