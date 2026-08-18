@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
-import { vendorStats } from '../lib/aggregate.js'
+import { vendorStats, vendorStatsFor } from '../lib/aggregate.js'
 import { fromEpoch } from '../lib/dates.js'
 import { colourFor } from '../lib/palette.js'
 
@@ -63,6 +63,15 @@ const writeAliases = db.transaction((userId, vendorId, aliases) => {
 	for (const name of aliases) insertAlias.run(newId('va'), userId, vendorId, name)
 })
 
+/** The vendor row write and its alias rewrite, as one commit. Run separately they committed
+    separately, so a failure between them left a renamed vendor whose old name had not become
+    an alias -- receipts carrying it would stop resolving. writeAliases nests as a savepoint
+    inside this, so it stays callable on its own where nothing else is written. */
+const saveVendor = db.transaction((writeRow, userId, vendorId, aliases) => {
+	writeRow()
+	writeAliases(userId, vendorId, aliases)
+})
+
 const withStats = (vendor, stats, aliases = []) => {
 	const s = stats.get(vendor.id) ?? { orders: 0, spend: 0, saved: 0, latest: null }
 	return {
@@ -104,16 +113,20 @@ router.post('/', (req, res) => {
 		colour: look.colour ?? colourFor(name),
 		favourite: look.favourite ? 1 : 0, lead: look.lead ?? null
 	}
-	insert.run(vendor)
-	writeAliases(req.user.id, vendor.id, cleaned.aliases)
+	saveVendor(() => insert.run(vendor), req.user.id, vendor.id, cleaned.aliases)
 	// Read back rather than echoed, so the answer holds the stored order (alphabetical).
 	res.status(201).json(withStats({ ...vendor, favourite: vendor.favourite }, new Map(), aliasesFor(req.user.id, vendor.id)))
 })
 
+/* One vendor's stats, not vendorStats' whole-account rollup read for one entry -- the map
+   groups all 50,000 of a big account's orders (~25ms) to render a single record this reads
+   in ~2ms from that vendor's own indexed rows (lib/aggregate.js). */
+const statsForOne = (userId, vendorId) => new Map([[vendorId, vendorStatsFor(userId, vendorId)]])
+
 router.get('/:id', (req, res) => {
 	const vendor = selectOne.get(req.params.id, req.user.id)
 	if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
-	res.json(withStats(vendor, vendorStats(req.user.id), aliasesFor(req.user.id, vendor.id)))
+	res.json(withStats(vendor, statsForOne(req.user.id, vendor.id), aliasesFor(req.user.id, vendor.id)))
 })
 
 router.patch('/:id', (req, res) => {
@@ -155,9 +168,9 @@ router.patch('/:id', (req, res) => {
 		favourite: patch.favourite != null ? (patch.favourite ? 1 : 0) : vendor.favourite,
 		lead: patch.lead !== undefined ? patch.lead : vendor.lead
 	}
-	update.run({ ...next, id: vendor.id, userId: req.user.id })
-	writeAliases(req.user.id, vendor.id, cleaned.aliases)
-	res.json(withStats(selectOne.get(vendor.id, req.user.id), vendorStats(req.user.id), aliasesFor(req.user.id, vendor.id)))
+	saveVendor(() => update.run({ ...next, id: vendor.id, userId: req.user.id }),
+		req.user.id, vendor.id, cleaned.aliases)
+	res.json(withStats(selectOne.get(vendor.id, req.user.id), statsForOne(req.user.id, vendor.id), aliasesFor(req.user.id, vendor.id)))
 })
 
 /** Adds one alias -- the scan review's learning path. When a receipt's vendor line said one

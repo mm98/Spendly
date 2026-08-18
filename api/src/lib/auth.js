@@ -26,10 +26,22 @@ export async function verifyPassword(password, stored) {
 	return actual.length === expected.length && timingSafeEqual(actual, expected)
 }
 
+const insertSession = db.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
+const purgeExpiredSessions = db.prepare('DELETE FROM sessions WHERE expires_at <= ?')
+/* The purge rides on session creation because nothing else ever removed an expired row: the
+   lookup below filters them out but leaves them, logout deletes only its own, and no account
+   flow deletes users -- so the table only grew, and requireAuth probes it on every request.
+   Swept here, it stays at roughly the live-session count; one sweep and the insert commit
+   together so a login costs the one fsync it always did. */
+const openSession = db.transaction((id, userId, expiresAt) => {
+	purgeExpiredSessions.run(nowEpoch())
+	insertSession.run(id, userId, expiresAt)
+})
+
 export function createSession(res, userId) {
 	const id = newId('sess')
 	const expiresAt = nowEpoch() + SESSION_TTL_SECONDS
-	db.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)').run(id, userId, expiresAt)
+	openSession(id, userId, expiresAt)
 	setCookie(res, SESSION_COOKIE, id, { maxAgeSeconds: SESSION_TTL_SECONDS })
 	// Returned so login and register can hand the same token back in the body: a script uses
 	// it as `Authorization: Bearer <token>` instead of parsing Set-Cookie. One token, two
@@ -46,9 +58,11 @@ function sessionToken(req) {
 	return readCookie(req, SESSION_COOKIE)
 }
 
+const deleteSession = db.prepare('DELETE FROM sessions WHERE id = ?')
+
 export function destroySession(req, res) {
 	const token = sessionToken(req)
-	if (token) db.prepare('DELETE FROM sessions WHERE id = ?').run(token)
+	if (token) deleteSession.run(token)
 	clearCookie(res, SESSION_COOKIE)
 }
 

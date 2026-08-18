@@ -9,7 +9,11 @@ router.get('/hero', (req, res) => {
 })
 
 const countFavouriteVendors = db.prepare('SELECT COUNT(*) c FROM vendors WHERE user_id = ? AND favourite = 1')
-const countOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE user_id = ?')
+/* EXISTS, not COUNT: the step below asks "has any order", and a COUNT walks the account's
+   whole index to answer a question the first row settles -- all 50,000 entries counted to
+   read `> 0` on a big account. The other two counters stay COUNTs over their dozen-row
+   tables. */
+const hasAnyOrder = db.prepare('SELECT EXISTS(SELECT 1 FROM orders WHERE user_id = ?) c')
 const countCustomDashboard = db.prepare('SELECT COUNT(*) c FROM dashboard_cards WHERE user_id = ?')
 
 /* GET /question is gone, with the question-of-the-day card it existed for.
@@ -27,7 +31,7 @@ const countCustomDashboard = db.prepare('SELECT COUNT(*) c FROM dashboard_cards 
 
 router.get('/onboarding', (req, res) => {
 	const steps = [
-		countOrders.get(req.user.id).c > 0,
+		hasAnyOrder.get(req.user.id).c > 0,
 		countFavouriteVendors.get(req.user.id).c > 0,
 		countCustomDashboard.get(req.user.id).c > 0
 	]

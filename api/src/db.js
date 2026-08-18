@@ -58,3 +58,22 @@ try {
 } finally {
 	db.pragma('foreign_keys = ON')
 }
+
+/* Planner statistics. Without them SQLite ties equal-looking indexes by schema order and
+   cannot see how selective a bound is, and both misfires were measured on a 50,000-order
+   account: an amount-filtered list ran through idx_orders_user_total and re-sorted every
+   matched row (28.9ms for a page that costs 0.3ms with statistics), and any
+   SUM-over-the-account read tie-broke onto whichever user-prefixed index came last, paying a
+   table probe per row. ANALYZE costs ~90ms at that size (bounded by analysis_limit), and is
+   re-run whenever a migration may have changed the schema's shape; `PRAGMA optimize` on the
+   other boots re-analyzes only what SQLite itself flags as stale. The one measured cost of
+   having statistics: the category-filtered list's shallow page plans off the category's own
+   link list and sorts it, ~6ms against ~1ms without -- taken deliberately, because the paths
+   statistics fix are 30-66ms filter-panel controls and the path it taxes stays interactive.
+   maybe_stale keeps a fresh database honest too: statistics gathered over an empty ledger
+   claim every table is tiny, so the first boot after the demo fill (or a big import) must not
+   trust them -- routes/account.js re-runs ANALYZE after the fill for the same reason. */
+db.pragma('analysis_limit = 400')
+const hasStats = db.prepare(`SELECT 1 FROM sqlite_master WHERE name = 'sqlite_stat1'`).get()
+if (pending.length || !hasStats) db.exec('ANALYZE')
+else db.pragma('optimize')

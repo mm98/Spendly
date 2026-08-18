@@ -2,27 +2,47 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { decorateOrderRows } from '../lib/decorate.js'
+import { asciiNeedle, escapeLike } from '../lib/textSearch.js'
 
 export const router = Router()
 
 const MAX_PER_KIND = 8
+
+/* Every statement below exists twice, from one template: the LIKE shape for ASCII needles
+   (with % and _ escaped so the needle is literal text), and a contains_fold shape for a
+   needle carrying a letter LIKE cannot case-fold -- 'æg' never matched a stored 'Æg', in a
+   Danish-market app, because both LIKE and SQLite's lower() fold ASCII only. The route picks
+   per needle; lib/textSearch.js holds the fold function and the numbers. */
+/* No lower() around the column: LIKE is already case-insensitive for ASCII (the needle
+   arrives lowercased), so wrapping the column only re-derives per row what the operator does
+   for free -- measured at +4ms per palette search when it wrapped search_text, a column with
+   50,000 long values on a big account. */
+const MATCHERS = {
+	ascii: col => `${col} LIKE @needle ESCAPE '\\'`,
+	fold: col => `contains_fold(${col}, @needle)`
+}
+const perMatcher = sql => ({
+	ascii: db.prepare(sql(MATCHERS.ascii)),
+	fold: db.prepare(sql(MATCHERS.fold))
+})
 
 /* A vendor is found by any name it answers to -- its own or an alias (vendor_aliases, the
    same set order resolution matches), and the row shown is always the parent vendor. The
    needle may then not appear in the name the row shows, so the matched alias travels along
    for the client to say why the row is here; NULL when the name itself matched, because
    there is nothing to explain. */
-const searchVendors = db.prepare(`
+const searchVendors = perMatcher(match => `
 	SELECT v.id, v.name,
-		CASE WHEN lower(v.name) LIKE @needle THEN NULL
-			ELSE (SELECT a.name FROM vendor_aliases a WHERE a.vendor_id = v.id AND lower(a.name) LIKE @needle LIMIT 1)
+		CASE WHEN ${match('v.name')} THEN NULL
+			ELSE (SELECT a.name FROM vendor_aliases a WHERE a.vendor_id = v.id AND ${match('a.name')} LIMIT 1)
 		END AS alias
 	FROM vendors v
-	WHERE v.user_id = @userId AND (lower(v.name) LIKE @needle OR EXISTS (
-		SELECT 1 FROM vendor_aliases a WHERE a.vendor_id = v.id AND lower(a.name) LIKE @needle))
+	WHERE v.user_id = @userId AND (${match('v.name')} OR EXISTS (
+		SELECT 1 FROM vendor_aliases a WHERE a.vendor_id = v.id AND ${match('a.name')}))
 	ORDER BY v.name LIMIT @limit
 `)
-const searchCategories = db.prepare('SELECT id, name FROM categories WHERE user_id = ? AND lower(name) LIKE ? ORDER BY name LIMIT ?')
+const searchCategories = perMatcher(match =>
+	`SELECT id, name FROM categories WHERE user_id = @userId AND ${match('name')} ORDER BY name LIMIT @limit`)
 /* Whether the account has any uncategorised order at all -- the palette offers the
    "Without category" filter only when there is something behind it, the same honesty rule
    that keeps an action from opening a list with nothing in it. */
@@ -33,12 +53,12 @@ const hasUncategorised = db.prepare('SELECT 1 AS present FROM orders WHERE user_
    common case was a needle matching nothing -- LIMIT 8 never fills, so the old form scanned
    every item of every order before answering [], ~350ms at 50k orders while the user was
    still typing; now ~100ms flat, same rows. */
-const searchOrders = db.prepare(`
+const searchOrders = perMatcher(match => `
 	SELECT ${orderTotalsSelectList('ot')} FROM orders ot
 	WHERE ot.user_id = @userId AND (
-		ot.search_text LIKE @needle
-		OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle)
-		OR ot.vendor_id IN (SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle)
+		${match('ot.search_text')}
+		OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND ${match('name')})
+		OR ot.vendor_id IN (SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND ${match('name')})
 	)
 	ORDER BY ot.date DESC LIMIT @limit
 `)
@@ -49,10 +69,12 @@ const searchOrders = db.prepare(`
 router.get('/', (req, res) => {
 	const needle = String(req.query.query ?? '').trim().toLowerCase()
 	if (!needle) return res.json({ vendors: [], categories: [], orders: [] })
-	const like = `%${needle}%`
+	const shape = asciiNeedle(needle) ? 'ascii' : 'fold'
+	const params = { userId: req.user.id, limit: MAX_PER_KIND,
+		needle: shape === 'ascii' ? `%${escapeLike(needle)}%` : needle }
 
-	const orderRows = searchOrders.all({ userId: req.user.id, needle: like, limit: MAX_PER_KIND })
-	const categories = searchCategories.all(req.user.id, like, MAX_PER_KIND)
+	const orderRows = searchOrders[shape].all(params)
+	const categories = searchCategories[shape].all(params)
 	/* "Without category" is findable by the name its rows carry everywhere else, not only by
 	   arriving on a link. The sentinel id is the filter the client already builds category
 	   results into; matched the same way a category's name is, offered only over orders that
@@ -60,7 +82,7 @@ router.get('/', (req, res) => {
 	if ('without category'.includes(needle) && hasUncategorised.get(req.user.id))
 		categories.push({ id: 'none', name: 'Without category' })
 	res.json({
-		vendors: searchVendors.all({ userId: req.user.id, needle: like, limit: MAX_PER_KIND }),
+		vendors: searchVendors[shape].all(params),
 		categories,
 		orders: decorateOrderRows(orderRows)
 	})
