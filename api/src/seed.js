@@ -27,18 +27,29 @@ export const DEFAULT_SETTINGS = {
 	cardRows: 6, listSort: 'name-asc',
 	// The ledger's unit. DKK because the app printed "kr." unconditionally before this was a
 	// setting, so it is what every existing account's figures already meant.
-	currency: 'DKK'
+	currency: 'DKK',
+	// How dates and times are printed. 'auto' means keep asking the browser, which is what
+	// every account got before the column existed and the right answer wherever a reader's
+	// browser language and their region already agree. Registration overrides it when the
+	// client managed to work out where the reader is (see routes/auth.js).
+	locale: 'auto'
 }
 
 /** Inserts the settings row and dashboard-card rows every account needs. Runs inside the
-    caller's transaction (db.transaction wraps the whole register/reset flow). */
-export function seedAccountDefaults(db, userId) {
+    caller's transaction (db.transaction wraps the whole register/reset flow).
+
+    `overrides` carries the few defaults a caller can know better than this file does -- today
+    just the locale, which registration works out from the browser and a reset deliberately
+    does not, since the account resetting has a reader in front of it who has already been
+    offered the choice. Validated by the caller: what arrives here is written. */
+export function seedAccountDefaults(db, userId, overrides = {}) {
+	const settings = { ...DEFAULT_SETTINGS, ...overrides }
 	db.prepare(`INSERT INTO settings (user_id, default_kind, default_status, page_size, sort,
-		show_scan_card, confirm_delete, card_rows, list_sort, currency)
+		show_scan_card, confirm_delete, card_rows, list_sort, currency, locale)
 		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard,
-			@confirmDelete, @cardRows, @listSort, @currency)`)
-		.run({ userId, ...DEFAULT_SETTINGS, showScanCard: DEFAULT_SETTINGS.showScanCard ? 1 : 0,
-			confirmDelete: DEFAULT_SETTINGS.confirmDelete ? 1 : 0 })
+			@confirmDelete, @cardRows, @listSort, @currency, @locale)`)
+		.run({ userId, ...settings, showScanCard: settings.showScanCard ? 1 : 0,
+			confirmDelete: settings.confirmDelete ? 1 : 0 })
 
 	const insertCard = db.prepare(`INSERT INTO dashboard_cards (user_id, key, position, on_dashboard) VALUES (?, ?, ?, ?)`)
 	DASHBOARD_CARDS.forEach((c, position) => insertCard.run(userId, c.key, position, c.on ? 1 : 0))

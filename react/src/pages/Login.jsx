@@ -22,8 +22,17 @@ export default function Login() {
 		e.preventDefault()
 		setSaving(true)
 		setStatus({ message: '', good: true })
+		/* An account that has never been shown the settings page is sent there once, the same
+		   detour registration takes -- this is the branch that catches someone who registered
+		   and closed the tab before it landed. A `from` in the query wins: that is a reader who
+		   was interrupted on their way somewhere specific, and a welcome that eats the page
+		   they asked for is worse than a welcome they never got. */
 		login(email.trim().toLowerCase(), password)
-			.then(() => navigate(params.get('from') || '/', { replace: true }))
+			.then(user => {
+				const asked = params.get('from')
+				if (!asked && user?.needsSetup) navigate('/settings', { replace: true, state: { firstRun: true } })
+				else navigate(asked || '/', { replace: true })
+			})
 			.catch(err => { setSaving(false)
 				setStatus({ message: failureMessage(err, 'Could not sign in. Try again.'), good: false }) })
 	}

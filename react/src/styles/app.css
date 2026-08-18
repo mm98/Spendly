@@ -586,6 +586,11 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .card-headline { font-size:19px; font-weight:600; letter-spacing:-.01em; }
 .card-subheading { font-size:17px; font-weight:600; letter-spacing:-.01em; margin-bottom:6px; }
 .card-lead { margin:2px 0 18px; font-size:13px; color:var(--text-muted); }
+/* Lifts one fact out of a muted lead. The build stamp is the only answer in its sentence
+   and read at the weight of the words around it; these are the two declarations
+   .build-quality-row b already uses to do the same job, minus the tabular-nums, which
+   aligns a column and there is no column here. */
+.card-lead b { font-weight:600; color:var(--text); }
 /* The stepper card sits tight against the form below it. */
 .card-steps { margin-bottom:2px; }
 

@@ -100,34 +100,128 @@ export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',',
 /* Dates read in the reader's own locale, not in one this file picks.
 
    A date's *shape* is the reader's: 18 July, July 18 and 18.07 are the same day written the
-   way three people expect to see it, and the browser already knows which one is standing in
-   front of it. Money is the other way round and stays Danish below -- an amount's grammar is
-   shared with the field that takes it back, so display and parsing move together or not at
-   all. README: Language and Formats.
+   way three people expect to see it. Money is the other way round and stays Danish above --
+   an amount's grammar is shared with the field that takes it back, so display and parsing
+   move together or not at all. README: Language and Formats.
 
-   Two traps this file has to keep clear of, both of which render a plausible wrong answer
+   Which locale that is used to be `undefined`, meaning "ask the browser", and the browser
+   answers a question nobody asked: `Intl.DateTimeFormat(undefined, ...)` resolves to
+   navigator.language, which is the browser's *UI language*. A reader's regional format is a
+   separate preference, and no web API exposes it. So a reader in Copenhagen running an
+   English-language browser was shown `August 18, 2026 at 02:26 PM` for an instant this file
+   had already converted correctly to 14.26 in their own clock: right value, someone else's
+   shape, and no way to say so. It is now a setting, defaulting to the browser as before.
+
+   Three traps this file has to keep clear of, all of which render a plausible wrong answer
    rather than failing:
 
-   A formatter is expensive to build and these run per row, so they are built once. The
-   locale cannot change without a reload, so there is nothing to invalidate.
+   A formatter is expensive to build and these run per row, so they are built once -- but the
+   locale can now change without a reload, so "once" is once per locale rather than once. A
+   cache that never invalidates would leave every date in the product on the previous choice
+   until the tab was reloaded, which reads as a setting that did not save.
+
+   An unknown locale throws. `new Intl.DateTimeFormat('nonsense')` raises a RangeError rather
+   than falling back, so a stored code that is not a real tag is every date in the product
+   replaced by an error boundary. Only codes from LOCALES are ever passed.
 
    And an ISO date is not an instant. `new Date("2026-07-18")` parses as midnight *UTC*, so
    formatting it anywhere west of UTC renders the 17th -- every date in the product off by
    one, for every reader in the Americas, with no error anywhere. `dateOf` builds from local
    components instead, which is the same calendar day in every zone. Instants (localStamp)
    are the opposite case: they carry a zone and are meant to be converted. */
+
+/* The locales an account can print its dates in, mirroring the server's LOCALES
+   (api/src/lib/constants.js) the way CURRENCIES mirrors its own. The code is what is stored
+   and validated; the label is presentation, which is why it lives here.
+
+   'auto' is a real choice rather than the absence of one: it means keep asking the browser,
+   which is right for every reader whose browser language and region already agree, and it is
+   what every account had before this was a setting. It is first because it is the default,
+   and it is named for what it does rather than for what it resolves to -- a reader who moves
+   or changes their browser keeps getting the right answer without coming back here.
+
+   The labels name the region, not the language, because the region is what the reader is
+   choosing: 'Danish' here means dates written the Danish way, in a product whose copy stays
+   English either way. */
+export const LOCALES = [
+	{ code: 'auto', label: 'Match my browser' },
+	{ code: 'da-DK', label: 'Danish' },
+	{ code: 'sv-SE', label: 'Swedish' },
+	{ code: 'nb-NO', label: 'Norwegian' },
+	{ code: 'de-DE', label: 'German' },
+	{ code: 'en-GB', label: 'English (UK)' },
+	{ code: 'en-US', label: 'English (US)' }
+]
+
+/* The account's chosen locale, held here rather than passed through every call site, for the
+   same reason the currency is: it is one value for the whole session. `undefined` is what
+   Intl takes to mean "the browser's own", so 'auto' resolves to it rather than to a code.
+
+   setLocale is called where the settings arrive (routes.jsx) and where they are saved. */
+let activeLocale
+export const setLocale = code => {
+	activeLocale = LOCALES.some(l => l.code === code) && code !== 'auto' ? code : undefined
+}
+/** What the formatters are actually using: a code, or undefined for the browser's own. */
+export const activeLocaleCode = () => activeLocale
+
+/* Where the reader is, guessed once at registration from the one thing the browser will
+   answer honestly -- its IANA timezone. That is a fact about the machine, not about the
+   browser's UI language, so it is the only signal here that can tell a Dane running an
+   English browser from an American running one.
+
+   It is a guess and it is treated as one: only zones that land on a locale this list already
+   offers are mapped, everything else stays 'auto', and the reader is shown the setting with
+   the answer already selected rather than having it applied behind them. A traveller or a
+   VPN gets one wrong preselection and one click, which is the whole cost of being wrong.
+
+   The table is small because the offer is small -- six regions, so six regions' zones, and it
+   can never need to grow past LOCALES. The United States is the ragged one: its zones name
+   cities rather than the country, so the ones a browser actually reports are listed. */
+const ZONE_LOCALES = new Map(Object.entries({
+	'Europe/Copenhagen': 'da-DK',
+	'Europe/Stockholm': 'sv-SE',
+	'Europe/Oslo': 'nb-NO',
+	'Europe/Berlin': 'de-DE', 'Europe/Busingen': 'de-DE',
+	'Europe/London': 'en-GB',
+	'America/New_York': 'en-US', 'America/Detroit': 'en-US', 'America/Chicago': 'en-US',
+	'America/Denver': 'en-US', 'America/Phoenix': 'en-US', 'America/Los_Angeles': 'en-US',
+	'America/Anchorage': 'en-US', 'America/Adak': 'en-US', 'America/Boise': 'en-US',
+	'America/Juneau': 'en-US', 'America/Nome': 'en-US', 'America/Sitka': 'en-US',
+	'America/Yakutat': 'en-US', 'America/Menominee': 'en-US', 'America/Indiana/Indianapolis': 'en-US',
+	'America/Kentucky/Louisville': 'en-US', 'America/North_Dakota/Center': 'en-US',
+	'Pacific/Honolulu': 'en-US'
+}))
+
+/** The locale to register a new account with: a code from LOCALES, or 'auto' where the
+    browser's zone says nothing this list can offer. Never throws -- resolvedOptions is
+    available everywhere the app runs, but a value read for a guess should not be able to
+    fail a registration. */
+export const detectLocale = () => {
+	try {
+		return ZONE_LOCALES.get(new Intl.DateTimeFormat().resolvedOptions().timeZone) ?? 'auto'
+	} catch {
+		return 'auto'
+	}
+}
+
 const formatter = options => {
-	let built
-	return () => (built ??= new Intl.DateTimeFormat(undefined, options))
+	let built, builtFor
+	return () => {
+		if (built && builtFor === activeLocale) return built
+		builtFor = activeLocale
+		return (built = new Intl.DateTimeFormat(activeLocale, options))
+	}
 }
 const dayMonthFormat = formatter({ day: 'numeric', month: 'long' })
 const dayMonthYearFormat = formatter({ day: 'numeric', month: 'long', year: 'numeric' })
 const longDateFormat = formatter({ day: 'numeric', month: 'long', year: 'numeric' })
 const shortDateFormat = formatter({ day: '2-digit', month: '2-digit', year: 'numeric' })
-const stampFormat = formatter({
-	day: 'numeric', month: 'long', year: 'numeric',
-	hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
-})
+const stampFormat = formatter({ dateStyle: 'long', timeStyle: 'short' })
+/* A date and a time in the shortest shape each locale has, for showing a reader what a
+   locale looks like before they choose it. A picker offering 'Danish' and 'English (UK)' is
+   asking about a rendering nobody can see from the label. */
+const sampleFormat = formatter({ dateStyle: 'short', timeStyle: 'short' })
 
 const dateOf = iso => {
 	const [y, m, d] = String(iso).split('-').map(Number)
@@ -151,17 +245,40 @@ export const longDate = iso => longDateFormat().format(dateOf(iso))
 export const shortDate = iso => shortDateFormat().format(dateOf(iso))
 
 /** An instant -- a stamp that carries its own zone, like "2026-08-12T09:30:00Z" -- read in
-    the clock the reader is standing in: "12 August 2026 at 11:30 CEST" in Copenhagen,
-    "August 12, 2026 at 02:30 AM PDT" in Los Angeles.
+    the clock the reader is standing in: "12. august 2026 kl. 11.30" for a reader in
+    Copenhagen, "August 12, 2026 at 2:30 AM" for one in Los Angeles.
 
     Unlike the dates above, converting is the whole point: a machine records an instant in
-    UTC and a person reads it where they are. The zone is named in the text because a
-    converted time with nothing marking its zone is indistinguishable from the raw one.
-    Spelled in components rather than dateStyle/timeStyle -- those refuse to share an options
-    bag with timeZoneName, and toLocaleString throws rather than ignoring it. */
+    UTC and a person reads it where they are.
+
+    The zone used to be named after the time, on the reasoning that a converted stamp with
+    nothing marking its zone cannot be told from a raw one. That is true of a stamp read by
+    someone who might be in another zone; it is not true of the only stamp this product
+    prints, which is shown to one signed-in reader on their own machine, in their own clock,
+    beside the words "Image built". What it bought there was a reader in Copenhagen being
+    told GMT+2 about their own afternoon.
+
+    dateStyle/timeStyle rather than spelled-out components because the two refuse to share an
+    options bag with timeZoneName, and with the zone gone the pair is available: it is the
+    join each locale actually uses ("kl.", "at", "um") and it drops en-US's misleading
+    zero-padded 12-hour "02:26 PM" for "2:26 PM". */
 export const localStamp = iso => {
 	const at = new Date(iso)
 	return Number.isNaN(at.getTime()) ? null : stampFormat().format(at)
+}
+
+/** What a locale renders, for the picker that offers it: "18.08.2026, 14.26" against
+    "8/18/26, 2:26 PM". Built from a fixed instant so the sample is about the locale rather
+    than about the minute the settings page was opened, and formatted through the same cache
+    every other date in the product goes through, so a sample cannot claim a shape the app
+    does not produce. */
+const SAMPLE_AT = new Date('2026-08-18T12:26:00Z')
+export const localeSample = code => {
+	const was = activeLocale
+	setLocale(code)
+	const shown = sampleFormat().format(SAMPLE_AT)
+	activeLocale = was
+	return shown
 }
 
 /** Today in the input's own YYYY-MM-DD, built from the local clock rather than

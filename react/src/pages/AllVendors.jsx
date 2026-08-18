@@ -9,7 +9,7 @@ import { FieldShell } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { Pager, paginate } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
-import { getVendors, getSettings } from '../api/client.js'
+import { getVendors, getSettings, vendorTextMatch } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
 import { currency, dayMonth, sep } from '../api/format.js'
 
@@ -89,7 +89,10 @@ export default function AllVendors() {
 			<div className="row-inline toolbar">
 				<FieldShell>
 					<Icon name="search" />
-					<input type="search" value={query} placeholder="Search vendor name..."
+					{/* The placeholder names both because the search matches both, and copy that
+					    enumerates is a contract: a field promising only the name would be lying
+					    about what it does. README: Language and Formats, Vendors. */}
+					<input type="search" value={query} placeholder="Search vendor name or alias..."
 						aria-label="Search vendors" onChange={e => search(e.target.value)} />
 				</FieldShell>
 				{/* The same combobox All orders sorts with -- three working lists asked the same
@@ -101,9 +104,14 @@ export default function AllVendors() {
 			</div>
 
 			<Async state={state} label="Loading your vendors">{vendors => {
-				const needle = query.trim().toLowerCase()
+				/* What counts as a match is not this page's to decide -- vendorTextMatch is the
+				   client's one answer, matching the name and every alias the way resolution
+				   and the command palette both already do (api/src/client.js, README: Vendors).
+				   This list spelled the rule out itself and got it wrong: names only, so the
+				   one screen devoted to vendors refused strings every other route resolves. */
 				const listed = vendors
-					.filter(v => !needle || v.name.toLowerCase().includes(needle))
+					.map(v => ({ ...v, ...vendorTextMatch(v, query) }))
+					.filter(v => v.matches)
 					.sort(sort.cmp)
 				const paged = paginate(listed, requestedPage, pageSize)
 
@@ -122,8 +130,13 @@ export default function AllVendors() {
 									mark={<span className="entry-avatar"
 										style={{ background: vendor.colour, color: inkOn(vendor.colour) }}>{vendor.initials}</span>}
 									name={vendor.name}
+									/* The matched alias is named on the row for the reason the finder names
+									   it: the row shows the parent vendor, so the string that was typed may
+									   appear nowhere in it, and a result a reader cannot account for reads
+									   as a bug in the search. */
 									meta={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}` +
-										(vendor.latest ? `${sep}latest ${dayMonth(vendor.latest.date)}` : `${sep}none yet`)}
+										(vendor.latest ? `${sep}latest ${dayMonth(vendor.latest.date)}` : `${sep}none yet`) +
+										(vendor.alias ? `${sep}also ${vendor.alias}` : '')}
 									amount={currency(vendor.spend, 0)}
 									sub={`saved ${currency(vendor.saved, 0)}`}
 									editTo={`/vendors/${vendor.id}/edit`} />

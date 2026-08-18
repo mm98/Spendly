@@ -1,0 +1,12 @@
+-- Whether this account has yet been shown the settings page. Not a preference -- it is a
+-- fact about the account's life, read once and never again -- so it sits on the user row
+-- rather than in settings, which is also what keeps CLEAR STORED DATA from resurrecting it:
+-- that button deletes the settings row and re-seeds it, and a reader pressing it is already
+-- standing on the page the flag would send them to.
+--
+-- Default 0 so every existing account is left alone: they have had the product for as long
+-- as it has existed and a detour to preferences would read as a fault, not a welcome.
+-- Registration names the column explicitly and inserts 1, which is the only way it is ever
+-- set -- a flag whose true state arrives by default is a flag that fires on rows nobody
+-- meant it to.
+ALTER TABLE users ADD COLUMN needs_setup INTEGER NOT NULL DEFAULT 0;

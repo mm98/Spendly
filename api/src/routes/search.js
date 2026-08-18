@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
 import { decorateOrderRows } from '../lib/decorate.js'
-import { asciiNeedle, escapeLike } from '../lib/textSearch.js'
+import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
 
 export const router = Router()
 
@@ -13,14 +13,6 @@ const MAX_PER_KIND = 8
    needle carrying a letter LIKE cannot case-fold -- 'æg' never matched a stored 'Æg', in a
    Danish-market app, because both LIKE and SQLite's lower() fold ASCII only. The route picks
    per needle; lib/textSearch.js holds the fold function and the numbers. */
-/* No lower() around the column: LIKE is already case-insensitive for ASCII (the needle
-   arrives lowercased), so wrapping the column only re-derives per row what the operator does
-   for free -- measured at +4ms per palette search when it wrapped search_text, a column with
-   50,000 long values on a big account. */
-const MATCHERS = {
-	ascii: col => `${col} LIKE @needle ESCAPE '\\'`,
-	fold: col => `contains_fold(${col}, @needle)`
-}
 const perMatcher = sql => ({
 	ascii: db.prepare(sql(MATCHERS.ascii)),
 	fold: db.prepare(sql(MATCHERS.fold))
@@ -37,8 +29,7 @@ const searchVendors = perMatcher(match => `
 			ELSE (SELECT a.name FROM vendor_aliases a WHERE a.vendor_id = v.id AND ${match('a.name')} LIMIT 1)
 		END AS alias
 	FROM vendors v
-	WHERE v.user_id = @userId AND (${match('v.name')} OR EXISTS (
-		SELECT 1 FROM vendor_aliases a WHERE a.vendor_id = v.id AND ${match('a.name')}))
+	WHERE v.user_id = @userId AND v.id IN (${vendorIdsMatching(match)})
 	ORDER BY v.name LIMIT @limit
 `)
 const searchCategories = perMatcher(match =>
@@ -57,8 +48,7 @@ const searchOrders = perMatcher(match => `
 	SELECT ${orderTotalsSelectList('ot')} FROM orders ot
 	WHERE ot.user_id = @userId AND (
 		${match('ot.search_text')}
-		OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND ${match('name')})
-		OR ot.vendor_id IN (SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND ${match('name')})
+		OR ot.vendor_id IN (${vendorIdsMatching(match)})
 	)
 	ORDER BY ot.date DESC LIMIT @limit
 `)

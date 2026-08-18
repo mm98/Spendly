@@ -187,13 +187,18 @@
 				"sqlite_autoindex_dashboard_cards_1"
 			]
 		},
-		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle)) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) )": {
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) )": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
-				"LIST SUBQUERY 1",
+				"LIST SUBQUERY 2",
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
 				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
 				"CREATE BLOOM FILTER",
-				"LIST SUBQUERY 2",
+				"UNION ALL",
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 3",
 				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
 				"CREATE BLOOM FILTER"
@@ -205,16 +210,22 @@
 				"idx_categories_user",
 				"idx_order_categories_cat",
 				"idx_orders_user_discount",
+				"idx_vendor_aliases_user_name",
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\') OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') )": {
+		"SELECT COUNT(*) c FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') )": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
-				"LIST SUBQUERY 1",
+				"LIST SUBQUERY 2",
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
 				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
 				"CREATE BLOOM FILTER",
-				"LIST SUBQUERY 2",
+				"UNION ALL",
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 3",
 				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
 				"CREATE BLOOM FILTER"
@@ -226,6 +237,7 @@
 				"idx_categories_user",
 				"idx_order_categories_cat",
 				"idx_orders_user_discount",
+				"idx_vendor_aliases_user_name",
 				"idx_vendors_user_name"
 			]
 		},
@@ -404,7 +416,7 @@
 				"idx_orders_user_vendor"
 			]
 		},
-		"SELECT default_kind, default_status, page_size, sort, show_scan_card, confirm_delete, card_rows, list_sort, currency FROM settings WHERE user_id = ?": {
+		"SELECT default_kind, default_status, page_size, sort, show_scan_card, confirm_delete, card_rows, list_sort, currency, locale FROM settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
 			],
@@ -746,34 +758,15 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
-		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle)) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) ) ORDER BY ot.date DESC, ot.id DESC LIMIT @limit OFFSET @offset": {
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) ) ORDER BY ot.date DESC LIMIT @limit": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
-				"LIST SUBQUERY 1",
+				"LIST SUBQUERY 2",
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
 				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
 				"CREATE BLOOM FILTER",
-				"LIST SUBQUERY 2",
-				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
-				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
-				"CREATE BLOOM FILTER"
-			],
-			"findings": [
-				"walks one account's orders through non-covering idx_orders_user_date"
-			],
-			"indexes": [
-				"idx_categories_user",
-				"idx_order_categories_cat",
-				"idx_orders_user_date",
-				"idx_vendors_user_name"
-			]
-		},
-		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle)) OR ot.vendor_id IN (SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle)) ) ORDER BY ot.date DESC LIMIT @limit": {
-			"plan": [
-				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
-				"LIST SUBQUERY 1",
-				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
-				"CREATE BLOOM FILTER",
-				"LIST SUBQUERY 2",
+				"UNION ALL",
 				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)",
 				"CREATE BLOOM FILTER"
 			],
@@ -786,13 +779,18 @@
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\') OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') ) ORDER BY ot.date DESC, ot.id DESC LIMIT @limit OFFSET @offset": {
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( contains_fold(ot.search_text, @needle) OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) ) ORDER BY ot.date DESC, ot.id DESC LIMIT @limit OFFSET @offset": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
-				"LIST SUBQUERY 1",
+				"LIST SUBQUERY 2",
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
 				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
 				"CREATE BLOOM FILTER",
-				"LIST SUBQUERY 2",
+				"UNION ALL",
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 3",
 				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
 				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
 				"CREATE BLOOM FILTER"
@@ -804,16 +802,19 @@
 				"idx_categories_user",
 				"idx_order_categories_cat",
 				"idx_orders_user_date",
+				"idx_vendor_aliases_user_name",
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\') OR ot.vendor_id IN (SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\') ) ORDER BY ot.date DESC LIMIT @limit": {
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) ) ORDER BY ot.date DESC LIMIT @limit": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
-				"LIST SUBQUERY 1",
+				"LIST SUBQUERY 2",
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
 				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
 				"CREATE BLOOM FILTER",
-				"LIST SUBQUERY 2",
+				"UNION ALL",
 				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)",
 				"CREATE BLOOM FILTER"
 			],
@@ -821,6 +822,33 @@
 				"walks one account's orders through non-covering idx_orders_user_date"
 			],
 			"indexes": [
+				"idx_orders_user_date",
+				"idx_vendor_aliases_user_name",
+				"idx_vendors_user_name"
+			]
+		},
+		"SELECT ot.id, ot.vendor_id, ot.date, ot.status, ot.kind, ot.shipping, ot.discount, ot.note, ot.reference, ot.refunded, ot.item_count, ot.subtotal, ot.total, ot.saved, ot.saved_percent FROM orders ot WHERE ot.user_id = @userId AND ( ot.search_text LIKE @needle ESCAPE '\\' OR ot.vendor_id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') ) ORDER BY ot.date DESC, ot.id DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=?)",
+				"LIST SUBQUERY 2",
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
+				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
+				"CREATE BLOOM FILTER",
+				"UNION ALL",
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)",
+				"CREATE BLOOM FILTER",
+				"LIST SUBQUERY 3",
+				"SEARCH c USING INDEX idx_categories_user (user_id=?)",
+				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [
+				"walks one account's orders through non-covering idx_orders_user_date"
+			],
+			"indexes": [
+				"idx_categories_user",
+				"idx_order_categories_cat",
 				"idx_orders_user_date",
 				"idx_vendor_aliases_user_name",
 				"idx_vendors_user_name"
@@ -1041,7 +1069,7 @@
 				"idx_vendors_user_name"
 			]
 		},
-		"SELECT u.id, u.email FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?": {
+		"SELECT u.id, u.email, u.needs_setup FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?": {
 			"plan": [
 				"SEARCH s USING INDEX sqlite_autoindex_sessions_1 (id=?)",
 				"SEARCH u USING INDEX sqlite_autoindex_users_1 (id=?)"
@@ -1052,31 +1080,47 @@
 				"sqlite_autoindex_users_1"
 			]
 		},
-		"SELECT v.id, v.name, CASE WHEN contains_fold(v.name, @needle) THEN NULL ELSE (SELECT a.name FROM vendor_aliases a WHERE a.vendor_id = v.id AND contains_fold(a.name, @needle) LIMIT 1) END AS alias FROM vendors v WHERE v.user_id = @userId AND (contains_fold(v.name, @needle) OR EXISTS ( SELECT 1 FROM vendor_aliases a WHERE a.vendor_id = v.id AND contains_fold(a.name, @needle))) ORDER BY v.name LIMIT @limit": {
+		"SELECT v.id, v.name, CASE WHEN contains_fold(v.name, @needle) THEN NULL ELSE (SELECT a.name FROM vendor_aliases a WHERE a.vendor_id = v.id AND contains_fold(a.name, @needle) LIMIT 1) END AS alias FROM vendors v WHERE v.user_id = @userId AND v.id IN ( SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle) UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND contains_fold(name, @needle) ) ORDER BY v.name LIMIT @limit": {
 			"plan": [
 				"SEARCH v USING INDEX sqlite_autoindex_vendors_2 (user_id=?)",
-				"CORRELATED SCALAR SUBQUERY 2",
-				"SEARCH a USING INDEX idx_vendor_aliases_vendor (vendor_id=?)",
+				"LIST SUBQUERY 3",
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
+				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
+				"CREATE BLOOM FILTER",
+				"UNION ALL",
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)",
+				"CREATE BLOOM FILTER",
 				"CORRELATED SCALAR SUBQUERY 1",
 				"SEARCH a USING INDEX idx_vendor_aliases_vendor (vendor_id=?)"
 			],
 			"findings": [],
 			"indexes": [
+				"idx_vendor_aliases_user_name",
 				"idx_vendor_aliases_vendor",
+				"idx_vendors_user_name",
 				"sqlite_autoindex_vendors_2"
 			]
 		},
-		"SELECT v.id, v.name, CASE WHEN v.name LIKE @needle ESCAPE '\\' THEN NULL ELSE (SELECT a.name FROM vendor_aliases a WHERE a.vendor_id = v.id AND a.name LIKE @needle ESCAPE '\\' LIMIT 1) END AS alias FROM vendors v WHERE v.user_id = @userId AND (v.name LIKE @needle ESCAPE '\\' OR EXISTS ( SELECT 1 FROM vendor_aliases a WHERE a.vendor_id = v.id AND a.name LIKE @needle ESCAPE '\\')) ORDER BY v.name LIMIT @limit": {
+		"SELECT v.id, v.name, CASE WHEN v.name LIKE @needle ESCAPE '\\' THEN NULL ELSE (SELECT a.name FROM vendor_aliases a WHERE a.vendor_id = v.id AND a.name LIKE @needle ESCAPE '\\' LIMIT 1) END AS alias FROM vendors v WHERE v.user_id = @userId AND v.id IN ( SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' UNION ALL SELECT vendor_id FROM vendor_aliases WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ) ORDER BY v.name LIMIT @limit": {
 			"plan": [
 				"SEARCH v USING INDEX sqlite_autoindex_vendors_2 (user_id=?)",
-				"CORRELATED SCALAR SUBQUERY 2",
-				"SEARCH a USING INDEX idx_vendor_aliases_vendor (vendor_id=?)",
+				"LIST SUBQUERY 3",
+				"COMPOUND QUERY",
+				"LEFT-MOST SUBQUERY",
+				"SEARCH vendors USING INDEX idx_vendors_user_name (user_id=?)",
+				"CREATE BLOOM FILTER",
+				"UNION ALL",
+				"SEARCH vendor_aliases USING INDEX idx_vendor_aliases_user_name (user_id=?)",
+				"CREATE BLOOM FILTER",
 				"CORRELATED SCALAR SUBQUERY 1",
 				"SEARCH a USING INDEX idx_vendor_aliases_vendor (vendor_id=?)"
 			],
 			"findings": [],
 			"indexes": [
+				"idx_vendor_aliases_user_name",
 				"idx_vendor_aliases_vendor",
+				"idx_vendors_user_name",
 				"sqlite_autoindex_vendors_2"
 			]
 		},
@@ -1227,7 +1271,7 @@
 				"user_id",
 				null
 			],
-			"readers": 3
+			"readers": 9
 		},
 		"idx_vendor_aliases_vendor": {
 			"table": "vendor_aliases",
@@ -1242,7 +1286,7 @@
 				"user_id",
 				"name"
 			],
-			"readers": 10
+			"readers": 12
 		}
 	}
 }

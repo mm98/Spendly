@@ -1,0 +1,20 @@
+-- Which locale the client prints dates and times in. A preference, so it sits with the other
+-- preferences rather than on the user row, and it is read exactly where currency is read.
+--
+-- It exists because the browser cannot answer the question the app was asking it.
+-- Intl.DateTimeFormat(undefined, ...) resolves to navigator.language -- the browser's *UI
+-- language* -- and a reader's regional format is a separate preference the web platform does
+-- not expose at all. So a Dane running an English-language browser was shown American dates
+-- everywhere in the product: "August 18, 2026 at 02:26 PM" for a build stamped 14.26 in the
+-- Copenhagen clock the same page had already converted it to. The zone was right and the
+-- shape was somebody else's.
+--
+-- 'auto' is a real value, not an absent one: it means "keep asking the browser", which is
+-- the right answer for every reader whose UI language and region already agree, and it is
+-- what every existing account was getting before this column existed. Storing the resolved
+-- locale instead would freeze today's browser answer into the row and stop tracking a
+-- reader who later changes it.
+--
+-- The code is stored, never a rendered sample. "18.08.2026" is what da-DK produces this
+-- year, in this ICU; the fact is the locale that produced it.
+ALTER TABLE settings ADD COLUMN locale TEXT NOT NULL DEFAULT 'auto';
