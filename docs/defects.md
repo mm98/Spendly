@@ -2013,3 +2013,54 @@ vendor field:
 | Down, Down | *Coop* — the walk crossed from Favourites into All vendors |
 | Enter | field reads *Coop*, panel closed |
 | type `zzz-new-vendor`, Enter, nothing marked | the vendor is created — the standing rule kept |
+
+---
+
+## Meters and progress — a month's budget was measured against every month there had ever been
+
+*Against budget* on the Categories overview read **6664% of this month's budget used**, with the
+meter under it full end to end, on an account holding one 1.000 kr. budget and a year of orders. The
+caption named the month and the arithmetic named the account: the figure divided each category's
+**all-time** spend by its **monthly** allowance, so it grew with the age of the account and could
+only ever come back down by someone deleting orders. Every neighbour of the number was right — the
+caption, the meter, the help line's category count, the layout — which is why it survived: nothing
+on the card was misdrawn, one of the two numbers behind it was measured over the wrong stretch of
+time.
+
+The same reading sat in three more places, all of them the same rule broken rather than four bugs:
+
+- the KPI note *1 over this month*, counting categories whose all-time spend passed a monthly budget;
+- the same over-count inside the card's own help line (*1 over it*);
+- every All categories row, whose meta printed **1.456.574 kr. of 1.000 kr. budget** — two figures
+  one line apart, of two different periods, neither saying which.
+
+Orders overview draws the same percentage from the same helper and was closer but not right: it fed
+the helper the ring's list, which is cut to categories with spend *this month*, so a budgeted
+category nobody bought from this month dropped out of the **denominator** and the figure read high.
+Two pages printing one fact, disagreeing — and each defensible on its own terms, which is the only
+reason the pair went unread.
+
+The join is one function now (`monthSpend` beside the all-time `spend` on every category record), and
+the two helpers that compare a spend to a budget take `monthSpend` by name, so a caller handing over
+an all-time list gets `undefined`, not a plausible number. The All categories row names its period.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`, fresh
+account, demo fill `{seed: 7, months: 12, orders: 200}` — 9 budgeted categories carrying 11.200 kr.
+of monthly budget between them, 18.890 kr. spent against it this month and 168.965 kr. spent in the
+categories since the account was made:
+
+| what the reader sees | before | after | the API's own figure |
+| --- | --- | --- | --- |
+| Categories, *Against budget* | 1509% | 169% | 168,7% this month |
+| its meter's accessible name | 1509% of budget used | 169% of budget used | — |
+| Categories over budget (KPI and help line) | 9 | 5 | 5 this month, 9 all time |
+| Orders overview, same fact | 178% | 169% | 168,7% |
+| All categories, *Clothing* | 17.835 kr. of 800 kr. budget | 230 kr. of 800 kr. budget this month | 230 kr. this month |
+
+A second account, one category with a 1.000 kr. budget and no orders at all, reads **0%** with the
+help line still counting it as a budget — the branch where a month is genuinely empty, which the
+all-time reading could never produce once an account had any history. All 16 routes were opened
+after the change: no error card, no page errors.
+
+**Not run:** Gecko and WebKit are not installed in this container, and neither is a rendering
+question — every figure above is text read back from the DOM.

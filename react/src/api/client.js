@@ -137,6 +137,42 @@ export async function getCategories(signal) {
 	return request('/api/categories', { signal })
 }
 
+/** How much of a set of categories' total budget has been spent this month. Categories with no
+    budget set are left out of both sides, so an unbudgeted category cannot drag the figure down.
+
+    Takes `monthSpend`, never `spend`: a budget is a monthly allowance (see the category form's
+    "Monthly budget"), and the account's all-time spend divided by one month's allowance is a
+    percentage of nothing -- an account with a 1.000 kr. budget and a year of orders behind it
+    read 6664% of this month's budget used, with the meter beside it full. Every caller compares
+    the two, so the join below is what they read rather than the plain list. */
+export const budgetUsed = categories => {
+	const budgeted = categories.filter(c => c.budget > 0)
+	const allowed = budgeted.reduce((sum, c) => sum + c.budget, 0)
+	return allowed ? (budgeted.reduce((sum, c) => sum + c.monthSpend, 0) / allowed) * 100 : 0
+}
+
+/** Whether a category has spent past its monthly budget. Same reason as above: `monthSpend`. */
+export const overBudget = category => category.budget > 0 && category.monthSpend > category.budget
+
+/** Category records with this month's spend joined on as `monthSpend`, beside the all-time
+    `spend` the list already carries. Two facts of different periods, both named, so a card
+    reading "this month" and a card reading "all time" can be drawn from one answer rather than
+    from one number that has to mean both. `split` is a month window's own category breakdown. */
+export const withMonthSpend = (categories, split) => {
+	const byId = new Map(split.map(s => [s.id, s]))
+	return categories.map(c => ({ ...c, monthSpend: byId.get(c.id)?.amount ?? 0 }))
+}
+
+/** The whole category list, joined. A wrapper with its own cache entry because it is a join of
+    two requests, not a reshape of one -- both category tabs read it, so they share the entry. */
+export async function getCategoriesThisMonth(signal) {
+	const [categories, { window }] = await Promise.all([
+		getCategories(signal),
+		getStatsSummary('month', undefined, signal)
+	])
+	return withMonthSpend(categories, window.split)
+}
+
 /** The account's uncategorised orders, summed -- the all-time "Without category" figures the
     Categories overview draws beside the real records. Not a row in getCategories' list: that
     list is the account's records, and its readers map records into comboboxes and forms. */
@@ -328,9 +364,14 @@ export async function getOrderAsDraft(id, signal) {
 const monthCategoriesFrom = (categories, split) => {
 	const byId = new Map(split.map(s => [s.id, s]))
 	const none = split.find(s => s.id == null)
-	const named = categories.map(c => ({ ...c, spend: byId.get(c.id)?.amount ?? 0, share: byId.get(c.id)?.share ?? 0 }))
+	/* spend is the month's here -- that is what this list is -- and `monthSpend` names the same
+	   number for the shared budget helpers, which take it under that name wherever they are
+	   handed a list whose `spend` is all-time. */
+	const named = categories.map(c => ({ ...c, spend: byId.get(c.id)?.amount ?? 0,
+		monthSpend: byId.get(c.id)?.amount ?? 0, share: byId.get(c.id)?.share ?? 0 }))
 	const rows = none
-		? [...named, { id: 'none', name: none.name, icon: 'tag', colour: none.colour, spend: none.amount, share: none.share }]
+		? [...named, { id: 'none', name: none.name, icon: 'tag', colour: none.colour,
+			spend: none.amount, monthSpend: none.amount, share: none.share }]
 		: named
 	return rows.filter(c => c.spend > 0).sort((a, b) => b.spend - a.spend)
 }
@@ -386,6 +427,11 @@ export async function getOrdersOverview(signal) {
 		   naming as getHomeContent below, so a field does not change meaning between the two
 		   objects that both feed a breakdown card. */
 		latestOrders, period: periodFromWindow(window), monthCategories,
+		/* The budget card's own list, and deliberately not monthCategories: that one is cut to
+		   what has spend this month, so a budgeted category nobody bought from would drop out
+		   of the *denominator* and the same "% of this month's budget used" would read higher
+		   here than on Categories, which sums every budget. Two pages, one fact. */
+		budgetCategories: withMonthSpend(categories, window.split),
 		/* monthCategories is filtered to spend > 0 this month, so its emptiness cannot say
 		   whether the account has categories at all -- and the breakdown card's empty state has
 		   to know which absence it is answering: nothing bought yet, or no categories yet. */
@@ -755,7 +801,8 @@ export function invalidateOrderData() {
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
 	invalidate(getStats)
 	invalidate(getVendors); invalidate(getVendor)
-	invalidate(getCategories); invalidate(getCategory); invalidate(getUncategorised)
+	invalidate(getCategories); invalidate(getCategoriesThisMonth); invalidate(getCategory)
+	invalidate(getUncategorised)
 }
 
 /** A vendor record changed (name, look, favourite) or one was created. Order rows embed the
@@ -769,7 +816,8 @@ export function invalidateVendorData() {
 /** A category record changed (name, look, budget, favourite) or one was created. Same shape
     as vendors, plus the hero: its legend is the month's category split, colours and all. */
 export function invalidateCategoryData() {
-	invalidate(getCategories); invalidate(getCategory); invalidate(getUncategorised)
+	invalidate(getCategories); invalidate(getCategoriesThisMonth); invalidate(getCategory)
+	invalidate(getUncategorised)
 	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
 	invalidate(getStats)
