@@ -18,7 +18,7 @@ import { useApi } from '../api/useApi.js'
 import {
 	addItemAttachments, createVendor, failureMessage, getCategories, getOrderAsDraft, getVendors,
 	invalidateOrderData, invalidateVendorData, itemAttachmentThumbnailUrl, spendKinds, updateOrder,
-	vendorByAnyName
+	vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
 import { currency, currencySymbol, parseAmount, percent, plural, sep, today } from '../api/format.js'
@@ -76,6 +76,19 @@ function EditOrderForm({ id, seed }) {
 	   never creates a twin -- the action row says USE before it is pressed, and this guard
 	   resolves identically if pressed anyway. */
 	const aliasHit = vendorByAnyName(vendors.data ?? [], draft.vendor)
+
+	/* Same rule as New order: the combobox's own filter only matches an option's label, so a
+	   vendor's aliases need a `search` field to be found by, and the matched alias is named in
+	   the meta for the reason All vendors names it -- the typed text may appear nowhere else on
+	   the row it returns. README: Vendors. */
+	const vendorOption = v => {
+		const { alias } = vendorTextMatch(v, draft.vendor)
+		return {
+			id: v.id, label: v.name,
+			meta: plural(v.orders, 'order') + (alias ? `${sep}also ${alias}` : ''),
+			search: [v.name, ...(v.aliases ?? [])].join(' ')
+		}
+	}
 
 	const addVendor = name => {
 		const clean = String(name).trim()
@@ -222,9 +235,9 @@ function EditOrderForm({ id, seed }) {
 									leadingIcon="search"
 									groups={[
 										{ heading: 'Favourites', options: (vendors.data ?? []).filter(v => v.favourite)
-											.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order'), star: true })) },
+											.map(v => ({ ...vendorOption(v), star: true })) },
 										{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
-											.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order') })) }
+											.map(vendorOption) }
 									]}
 									action={aliasHit
 										? { icon: 'check',

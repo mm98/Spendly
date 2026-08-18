@@ -19,7 +19,7 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	addItemAttachments, createOrder, createVendor, failureMessage, getCategories, getOrderDraft,
-	getVendors, invalidateOrderData, invalidateVendorData, spendKinds, vendorByAnyName
+	getVendors, invalidateOrderData, invalidateVendorData, spendKinds, vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
 import { currency, currencySymbol, parseAmount, percent, plural, sep, shortDate, today } from '../api/format.js'
@@ -105,6 +105,19 @@ export function NewOrderDetails() {
 	   never renders -- the combobox hides the action for text matching an option's label. */
 	const aliasHit = vendorByAnyName(vendors.data ?? [], draft.vendor)
 
+	/* The combobox's own filter only ever matches an option's label, and a vendor answers to
+	   more names than the one it shows -- `search` is what typing an alias actually finds, and
+	   the matched alias is named in the meta for the same reason All vendors names it: the row
+	   the search returns may carry the typed text nowhere else on it. README: Vendors. */
+	const vendorOption = v => {
+		const { alias } = vendorTextMatch(v, draft.vendor)
+		return {
+			id: v.id, label: v.name,
+			meta: plural(v.orders, 'order') + (alias ? `${sep}also ${alias}` : ''),
+			search: [v.name, ...(v.aliases ?? [])].join(' ')
+		}
+	}
+
 	const addVendor = name => {
 		const clean = String(name).trim()
 		if (!clean) return
@@ -171,9 +184,9 @@ export function NewOrderDetails() {
 					leadingIcon="search"
 					groups={[
 						{ heading: 'Favourites', options: (vendors.data ?? []).filter(v => v.favourite)
-							.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order'), star: true })) },
+							.map(v => ({ ...vendorOption(v), star: true })) },
 						{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
-							.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order') })) }
+							.map(vendorOption) }
 					]}
 					action={aliasHit
 						? { icon: 'check',
