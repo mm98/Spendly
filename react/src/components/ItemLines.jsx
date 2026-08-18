@@ -425,8 +425,15 @@ function LineCard({
 								<button type="button" className="line-photo-action line-photo-action-remove"
 									onClick={onClearPhoto}>Remove</button>
 							</span>
-						) : null}
-						<span className="field-help line-photo-hint">Drop a file or paste from clipboard</span>
+						) : (
+							/* Only over an empty frame. Dropping and pasting leave no mark on the
+							   screen, so the sentence is the only way anyone finds out they work --
+							   which is worth a line while the frame is empty and the reader is
+							   looking for the way in. Once there is a photo, Replace is a visible
+							   control answering the same question, the two gestures still work, and
+							   the sentence is a third row in a column standing beside the fields. */
+							<span className="field-help line-photo-hint">Drop a file or paste from clipboard</span>
+						)}
 					</span>
 				</div>
 
