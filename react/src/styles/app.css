@@ -618,6 +618,11 @@ svg.chart { width:100%; display:block; }
    title. It is a part with a name now, at the row spec's 13/600. README: Data Rows. */
 .chart-legend-row-title, .card-tray-row-title, .category-row-title,
 .entry-list .entry-name { font-size:13px; font-weight:600; }
+/* The title and its meta line stack; the row itself stays the flex row every other legend
+   entry is, so a row with no meta is unchanged to the pixel. Same 11px muted meta as
+   .category-row-meta -- one shape for "a name with a fact under it", wherever it is drawn. */
+.chart-legend-row-text { display:grid; gap:1px; }
+.chart-legend-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
 .chart-legend .amount { margin-left:auto; font-size:13px; font-weight:600; }
 .chart-legend .chevron { color:var(--text-faint); margin-left:6px; }
 
