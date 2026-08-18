@@ -278,6 +278,25 @@ export function useFieldErrors(fields, values) {
 		})
 	}, [fields])
 
+	/* Blur checks one field and marks it whichever way it goes, where `recheck` above only ever
+	   speaks about a field it has already rejected. The two are not the same question: a field
+	   the user has finished with has earned an answer, and a field they are halfway through
+	   typing into has not. Without this, a line card could only be told it was wrong by pressing
+	   its own save button -- the message arrived after the attempt rather than when the field
+	   was left. README: Form Validation. */
+	const mark = useCallback((name, nextValue) => {
+		const field = fields.find(f => f.name === name)
+		if (!field) return
+		setErrors(prev => {
+			const raw = nextValue !== undefined ? nextValue : valuesRef.current[name]
+			const message = field.check(String(raw ?? '').trim())
+			if ((prev[name] ?? '') === message) return prev
+			const next = { ...prev }
+			if (message) next[name] = message; else delete next[name]
+			return next
+		})
+	}, [fields])
+
 	const clear = useCallback(() => setErrors({}), [])
 
 	/* Everything a Field and its control need in order to draw a rejection identically. */
@@ -288,7 +307,7 @@ export function useFieldErrors(fields, values) {
 		errorId: errorId(name)
 	}), [errors, errorId])
 
-	return { errors, check, recheck, clear, propsFor }
+	return { errors, check, recheck, mark, clear, propsFor }
 }
 
 /** "Quantity and Price paid need fixing", "Vendor, Date and Kind need fixing" -- the status

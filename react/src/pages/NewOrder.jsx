@@ -1,19 +1,18 @@
-import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Sep } from '../components/Sep.jsx'
 import { Outlet, useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
-import { FormPage, useRowDelete } from '../components/FormPage.jsx'
+import { FormPage } from '../components/FormPage.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { AiCard, AiCardMark } from '../components/AiCard.jsx'
-import { Button, IconButton } from '../components/Button.jsx'
+import { Button } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
-import { useReorder } from '../components/Reorder.jsx'
+import { ItemLines } from '../components/ItemLines.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection,
-	FormActions, Segmented, TextArea, TextInput,
+	DateInput, Field, FieldPair, FieldShell, FieldUnit, Segmented, TextArea, TextInput,
 	focusField, needFixing, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -22,8 +21,8 @@ import {
 	addItemAttachments, createOrder, createVendor, failureMessage, getCategories, getOrderDraft,
 	getVendors, invalidateOrderData, invalidateVendorData, spendKinds, vendorByAnyName
 } from '../api/client.js'
-import { ITEM_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, currency, currencySymbol, fullStop, parseAmount, percent, plural, sep, shortDate, today } from '../api/format.js'
+import { ORDER_FIELDS } from '../api/rules.js'
+import { currency, currencySymbol, parseAmount, percent, plural, sep, shortDate, today } from '../api/format.js'
 
 /* New order, in two steps that share one draft.
 
@@ -352,132 +351,49 @@ function OrderSummary({ draft, estimate, showItems }) {
 
 /* ---- step 2 ---- */
 
-const BLANK_ITEM = { 'item-description': '', 'item-quantity': '', 'item-price': '', 'item-retail': '' }
-
 export function NewOrderItems() {
 	const { draft, update } = useOutletContext()
 	const navigate = useNavigate()
-	const [form, setForm] = useState(BLANK_ITEM)
 	const [status, setStatus] = useState({ message: '', good: true })
 	const [saving, setSaving] = useState(false)
-	/* Which line the form is editing, or null when it is adding. One form does both, because
-	   a separate edit form is a second copy of four validation rules. */
-	const [editingId, setEditingId] = useState(null)
-	const [photo, setPhoto] = useState(null)
-	/* A photo is picked against an item that, mid-wizard, may not have a real id yet -- see
-	   save() below, which is what actually uploads these once the order (and so the item) has
-	   been written. Keyed by the item's own id (temporary or real), never sent as part of the
+	/* A photo is picked against an item that, mid-wizard, has no real id yet -- see save()
+	   below, which is what actually uploads these once the order (and so the item) has been
+	   written. Keyed by the item's own id (temporary or real), never sent as part of the
 	   draft's own JSON -- draft.items travels to createOrder as-is, and a File object
 	   serializes to "{}" the moment it touches JSON.stringify. */
 	const [pendingPhotos, setPendingPhotos] = useState({})
 	const toast = useToast()
-	const nextId = useRef(0)
 
-	const { check, recheck, clear, propsFor } = useFieldErrors(ITEM_FIELDS, form)
-	const itemDescription = propsFor('item-description')
-	const itemQuantity = propsFor('item-quantity')
-	const itemPrice = propsFor('item-price')
-	const itemRetail = propsFor('item-retail')
+	/* Step 2 of a brand-new order can only ever hold a photo picked this session: there is no
+	   server copy yet for anything on this list to already have. Edit order answers the same
+	   question from two sources -- see its own photoOf. */
+	const photoOf = useCallback(item => {
+		const pending = pendingPhotos[item.id]
+		return pending ? { present: true, src: pending.url } : { present: false }
+	}, [pendingPhotos])
 
-	const set = name => v => { setForm(f => ({ ...f, [name]: v })); recheck(name, v) }
-
-	const clearForm = useCallback(() => {
-		setForm(BLANK_ITEM)
-		setEditingId(null)
-		setPhoto(null)
-		clear()
-		focusField('item-description')
-	}, [clear])
-
-	/* Editing loads the line into the same four fields. The button below then says SAVE
-	   CHANGES rather than ADD ITEM, because a button that adds and a button that replaces are
-	   two different promises and only one of them is true at a time. */
-	const editItem = item => {
-		setEditingId(item.id)
-		setPhoto(pendingPhotos[item.id]?.file ?? null)
-		setForm({
-			'item-description': item.title,
-			'item-quantity': String(item.quantity),
-			'item-price': amount(item.price),
-			'item-retail': item.retail != null ? amount(item.retail) : ''
-		})
-		clear()
-		toast(`Editing ${item.title}. The form above holds it.`)
-		focusField('item-description')
-	}
-
-	/* Reordering is one control: the grip. It drags with a pointer and moves with the arrow
-	   keys, and it announces where the line landed. The chevron pair that used to do this sat
-	   beside a grip that did nothing -- three controls on every row for one job, two of them
-	   pointing sideways in a list that runs down the page. See Reorder.jsx. */
-	const reorder = useReorder({
-		items: draft.items,
-		describe: item => item.title,
-		onAnnounce: toast,
-		onReorder: (from, to) => {
-			const items = [...draft.items]
-			const [moved] = items.splice(from, 1)
-			items.splice(to, 0, moved)
-			update({ items })
-		}
-	})
-
-	const removeItem = item => {
-		update({ items: draft.items.filter(i => i.id !== item.id) })
+	const pickPhoto = useCallback((itemId, file) => {
 		setPendingPhotos(prev => {
-			if (!prev[item.id]) return prev
-			URL.revokeObjectURL(prev[item.id].url)
-			const { [item.id]: removed, ...rest } = prev
+			if (prev[itemId]) URL.revokeObjectURL(prev[itemId].url)
+			return { ...prev, [itemId]: { file, url: URL.createObjectURL(file) } }
+		})
+	}, [])
+
+	const clearPhoto = useCallback(itemId => {
+		setPendingPhotos(prev => {
+			if (!prev[itemId]) return prev
+			URL.revokeObjectURL(prev[itemId].url)
+			const { [itemId]: gone, ...rest } = prev
 			return rest
 		})
-		if (editingId === item.id) clearForm()
-		toast(`${item.title} removed.`)
-	}
-
-	/* The trash on a row reads the same ask-before-deleting setting as the record deletes --
-	   README: Deletion, one setting read by every delete. `removeItem` stays the plain
-	   action; the hook owns the asking. */
-	const itemDel = useRowDelete({
-		what: 'item',
-		label: item => `Delete ${item.title}`,
-		detail: item => `${item.title}, ${item.quantity} × ${currency(item.price)}${fullStop()}`,
-		onDelete: removeItem
-	})
-
-	const submit = () => {
-		const failed = check()
-		if (failed.length) {
-			setStatus({ message: 'Not added: ' + needFixing(failed), good: false })
-			focusField(failed[0].name)
-			return
-		}
-		const item = {
-			id: editingId ?? 'new-' + (nextId.current++),
-			title: form['item-description'].trim(),
-			quantity: Number(form['item-quantity']),
-			price: parseAmount(form['item-price']),
-			retail: form['item-retail'] ? parseAmount(form['item-retail']) : undefined
-		}
-		if (photo) {
-			setPendingPhotos(prev => {
-				if (prev[item.id]) URL.revokeObjectURL(prev[item.id].url)
-				return { ...prev, [item.id]: { file: photo, url: URL.createObjectURL(photo) } }
-			})
-		}
-		const items = editingId
-			? draft.items.map(i => (i.id === editingId ? item : i))
-			: [...draft.items, item]
-		const was = editingId
-		update({ items })
-		clearForm()
-		const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-		toast(`${item.title} ${was ? 'updated' : 'added'}. Items${sep}${items.length}, ${currency(total)}`)
-	}
+	}, [])
 
 	const save = () => {
 		if (!draft.items.length) {
 			setStatus({ message: 'An order needs at least one item.', good: false })
-			focusField('item-description')
+			/* The row that opens an empty card is the control that fixes this, and since the
+			   form above the list is gone there is no field left to send anyone to. */
+			document.querySelector('.line-add-row')?.focus()
 			return
 		}
 		setSaving(true)
@@ -524,151 +440,21 @@ export function NewOrderItems() {
 						<CardDivider />
 						<CardBody>
 							<InsetPanel>
+								<ItemRow icon="plus" title="Add opens a card"
+									meta="The dashed row at the end of the list; Enter adds and keeps it open for the next line." />
+								<ItemRow icon="pencil" title="Edit where it sits"
+									meta="The pencil opens the line into a card, in its own place in the list." />
 								<ItemRow icon="reorder" title="Drag to reorder"
 									meta="Or focus the grip and use the arrow keys." />
-								<ItemRow icon="pencil" title="Edit in place"
-									meta="A line loads back into the form above." />
-								<ItemRow icon="undo" title="Escape cancels"
-									meta="It empties the form and drops the edit." />
 							</InsetPanel>
 						</CardBody>
 					</Card>
 				</>
 			}>
 
-			{/* The help text beside the button promises both keys, so the section owns them:
-			    Enter adds and keeps the form, Escape empties it. Escape also clears the verdict
-			    -- a red "Not added" over four blank fields describes nothing. */}
-			<FilterSection
-				onKeyDown={e => {
-					if (!(e.target instanceof HTMLInputElement)) return
-					if (e.key === 'Enter') { e.preventDefault(); submit() }
-					else if (e.key === 'Escape') {
-						e.preventDefault(); e.stopPropagation()
-						clearForm(); setStatus({ message: '', good: true })
-					}
-				}}>
-				<Field label="Description" error={itemDescription.error} errorId={itemDescription.errorId} htmlFor="item-description">
-					<FieldShell>
-						<TextInput id="item-description" aria-label="Description" aria-required="true"
-							value={form['item-description']} onChange={set('item-description')}
-							invalid={itemDescription.invalid}
-							describedBy={itemDescription.describedBy} />
-					</FieldShell>
-				</Field>
-
-				<FieldPair>
-					<Field label="Quantity" error={itemQuantity.error} errorId={itemQuantity.errorId} htmlFor="item-quantity">
-						<FieldShell>
-							<TextInput id="item-quantity" inputMode="numeric" aria-label="Quantity"
-								aria-required="true" value={form['item-quantity']}
-								onChange={set('item-quantity')}
-								invalid={itemQuantity.invalid} describedBy={itemQuantity.describedBy} />
-							<FieldUnit>pcs</FieldUnit>
-						</FieldShell>
-					</Field>
-					<Field label="Price paid" error={itemPrice.error} errorId={itemPrice.errorId} htmlFor="item-price">
-						<FieldShell>
-							<TextInput id="item-price" inputMode="decimal" aria-label="Price paid"
-								aria-required="true" value={form['item-price']}
-								onChange={set('item-price')}
-								invalid={itemPrice.invalid} describedBy={itemPrice.describedBy} />
-							<FieldUnit>{currencySymbol()}</FieldUnit>
-						</FieldShell>
-					</Field>
-				</FieldPair>
-
-				<FieldPair>
-					<Field label="Retail price" error={itemRetail.error} errorId={itemRetail.errorId} htmlFor="item-retail"
-						help="Optional. Powers the saved-vs-retail figures.">
-						<FieldShell>
-							<TextInput id="item-retail" inputMode="decimal" placeholder="104,95"
-								aria-label="Retail price" value={form['item-retail']}
-								onChange={set('item-retail')}
-								invalid={itemRetail.invalid} describedBy={itemRetail.describedBy} />
-							<FieldUnit>{currencySymbol()}</FieldUnit>
-						</FieldShell>
-					</Field>
-					{/* The whole shell is the label and the input is its direct child, which is the
-					    prototype's own markup and not an accident: the rule that hides the input is
-					    `.field-shell > .field-file-input`, a child combinator. Wrapping the input
-					    one level deeper -- in an inner label, say -- leaves the rule unmatched and
-					    the browser draws "Browse... No file selected" in the middle of the form. It
-					    did.
-
-					    The name is the file's own rather than a fixed one: a picker that reports
-					    the same filename whatever you choose is telling you it read something else.
-					    The field keeps its height either way. */}
-					<Field label="Photo"
-						help="Optional. The photo shows on the item row below, not in the form.">
-						<FieldShell as="label">
-							<span className="field-thumb" aria-hidden="true"><Icon name="photo" /></span>
-							<input type="file" accept="image/*" aria-label="Product photo"
-								className="field-file-input"
-								onChange={e => setPhoto(e.target.files?.[0] ?? null)} />
-							<span className="field-file-name">{photo?.name ?? 'Choose a photo...'}</span>
-							{photo ? (
-								<IconButton variant="clear" icon="close" label="Remove photo"
-									onClick={e => { e.preventDefault(); setPhoto(null) }} />
-							) : null}
-						</FieldShell>
-					</Field>
-				</FieldPair>
-
-				<FormActions>
-					<Button variant="caps compact" icon={editingId ? 'check' : 'plus'} onClick={submit}>
-						{editingId ? 'SAVE CHANGES' : 'ADD ITEM'}</Button>
-					{editingId
-						? <Button variant="ghost compact" onClick={() => {
-							clearForm(); setStatus({ message: '', good: true })
-						}}>CANCEL EDIT</Button>
-						: null}
-					<span className="field-help form-actions-note">
-						Enter {editingId ? 'saves' : 'adds'} and keeps the form; Escape clears it.</span>
-				</FormActions>
-			</FilterSection>
-
-			<div>
-				<div className="space-between space-between-tight">
-					<span className="section-label">Items<Sep />{draft.items.length}</span>
-					<span className="field-help">drag the grip to reorder</span>
-				</div>
-				<InsetPanel {...reorder.listProps}>
-					{draft.items.map((item, i) => {
-						/* A photo not yet uploaded (picked this session, see submit() above) is the
-						   only kind step 2 of a brand-new order ever holds -- there is no server
-						   copy yet for anything on this list to already have. */
-						const pending = pendingPhotos[item.id]
-						const thumbSrc = pending?.url
-						return (
-						/* The dashed box goes where the row came from; the row itself is lifted out
-						   of the flow and follows the pointer. Both are rendered here so the box
-						   sits at the row's own index and the list keeps its height. */
-						<Fragment key={item.id}>
-						{reorder.placeholder(item)}
-						<ItemRow icon={pending ? undefined : 'cube'} thumb={pending ? 'photo' : undefined} thumbSrc={thumbSrc}
-							title={item.title}
-							handle={draft.items.length > 1 ? reorder.handle(item, i) : null}
-							meta={`${item.quantity} × ${currency(item.price)}`
-								+ (item.retail ? `${sep}retail ${currency(item.retail)}` : '')}
-							amount={currency(item.price * item.quantity)}
-							{...reorder.rowProps(item)}>
-							<span className="row-inline row-actions">
-								<IconButton icon="pencil" label={`Edit ${item.title}`}
-									onClick={() => editItem(item)} />
-								{itemDel.iconButton(item)}
-							</span>
-						</ItemRow>
-						</Fragment>
-						)
-					})}
-					{draft.items.length === 0
-						? <p className="field-help inset-panel-note">
-							No items yet. Add the first one above.</p>
-						: null}
-				</InsetPanel>
-				{itemDel.dialog}
-			</div>
+			<ItemLines items={draft.items} onItemsChange={items => update({ items })}
+				label="Items" onAnnounce={toast} photoOf={photoOf}
+				onPhotoPick={pickPhoto} onPhotoClear={clearPhoto} />
 		</FormPage>
 	)
 }

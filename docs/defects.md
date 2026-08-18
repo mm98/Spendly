@@ -2013,3 +2013,57 @@ vendor field:
 | Down, Down | *Coop* — the walk crossed from Favourites into All vendors |
 | Enter | field reads *Coop*, panel closed |
 | type `zzz-new-vendor`, Enter, nothing marked | the vendor is created — the standing rule kept |
+
+## Create and Edit — the fields for a line stood 587px from the line
+
+Both order forms drew one item form above the item list, permanently, and put a pencil on every
+row that loaded that row's values back into it. The form was the same four fields whichever job
+it was doing, so the only thing on screen saying which was about to happen was the verb on a
+button below the fields — and a toast that read, in as many words, **"Editing Rugbrød. The form
+above holds it."** A screen that has to tell the reader where the answer went is a screen where
+the answer is not where they are looking.
+
+Measured on the demo fill's largest order — five lines — at 1440×900 in Blink 141.0.7390.37
+under Playwright 1.56.1, with the row already on screen before the pencil was pressed:
+
+| | old, form above the list | new, card in the row's place |
+| --- | --- | --- |
+| Description field, relative to the row that was pressed | **587px above it** | **99px below its top**, inside the card that replaced it |
+| distance added per further line | one row, ~56px | none — the card is always at the line's own index |
+| details card / list / rows above, on open | — | **0px, 0px, 0px** moved (document offsets, identical before and after) |
+
+Five lines is the *largest* order the demo fill produces; a real receipt is longer, and the gap
+is the one number in the table that grows with the data. The two figures that do not move are
+what the "opening one moves nothing above it" rule is: opening line 3 of 5 left the details card
+at 93, the list at 1024 and the two rows above it at 1032 and 1088 — the same offsets they held
+before the click. The page itself still scrolls when it has to: the card is 446px where the row
+was 56px, and `block: 'nearest'` moved the viewport 204px to bring the taller box in, which is
+the least that fixes it and 0px when the card already fits.
+
+Driven rather than screenshotted, because none of this is visible in a still: 33 assertions over
+the edit page and the wizard's item step, and 29 more over the half the first pass never touched
+— the photo picked, previewed, replaced and removed; delete from a row and from the open card,
+both through the one ask-before-deleting dialog; the header chevrons walking line to line;
+Cmd/Ctrl+Enter saving and opening the line below; leaving a valid card saving it and leaving an
+invalid one asking first; and the grip still reordering with the arrow keys when no card is open.
+All 62 pass, with no page errors, and the edited and added lines were read back off the order's
+own detail page after the save, so the round trip through the API is in the count. Verified in
+Blink; Gecko and WebKit are not installed here and are unverified.
+
+**What no instrument here would have caught on its own.** The card's own phone rules were written
+into the stylesheet's `@media (max-width:700px)` block, and the base rules they override were
+written *below* it — equal specificity, later wins, so the media block was dead. The build was
+clean, the desktop was correct, and every assertion that did not name a phone passed. On an
+iPhone 13 descriptor the card rendered its photo frame at **128×128** instead of 76×76, its
+fields as a two-column grid at **262 / 123 / 123 / 123px** instead of four stacked at 262, and
+`.line-photo-foot` overhung its column by **45px**. Moving the base rules above the media block
+fixed all three in one edit: 76×76, 262 × 4, and 0 elements past their container, with the
+document at 390 against a 390 client width. The lesson is in `CLAUDE.md`, because it is about
+where a rule is written rather than what it says.
+
+**One rule of the design system was deliberately not taken from the design.** The sketch this was
+built from deletes a line immediately and offers an undo for a few seconds. README: Deletion says
+ask-before-deleting is one setting read by every delete, records and their parts alike, and that
+the asking is a modal dialog — so a line keeps the same question every other delete asks, from
+the row and from the open card alike, and the card's wider button is not a reason to invent a
+quieter delete for it.

@@ -695,6 +695,18 @@ intentions, and the cascade hides it wherever the two happen to agree. Read the 
 (`document.querySelectorAll(sel).length` against the union of the families) and check the survivors
 declare only their differences.
 
+**A base rule written below the responsive block silently deletes it.** `app.css` is one cascade in
+source order, and every phone override lives in a single `@media (max-width:700px)` block partway
+down it. A new component whose base rules are written *after* that block — next to the feature they
+belong to, which is where they read best — beats its own phone rules on equal specificity, and the
+media query becomes a comment. Nothing reports it: the build is clean, the desktop is right, and
+every probe that does not name a phone passes. It cost a card that rendered its 76px photo frame at
+128×128 on an iPhone 13 descriptor, its stacked fields as a two-column grid at 262/123/123/123px,
+and one child hanging 45px past its container — three failures, one cause, fixed by moving the block
+above the media query and changing no declaration. So: base rules go above the responsive section,
+overrides inside it, and a new family's phone behaviour is measured on a device descriptor before it
+is believed. The `@media` block is not the last word in this file; the bottom of the file is.
+
 **A comment that names a value it does not own goes stale silently.** The `.field-pair-stack-early`
 note called it "the 300px sidebar" for the 701 to 900 band; the sidebar is 236px across all of it,
 and the 300px rule sat in the very next block down, under `min-width:2200px`, where it had always
