@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
 import { LegendRow } from '../components/Rows.jsx'
-import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.jsx'
+import { FavouriteTile, FavouriteTileGrid, UnstarDialog } from '../components/FavouriteTiles.jsx'
 import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
@@ -38,6 +39,9 @@ export default function Categories() {
 	const state = useApi(getCategoriesThisMonth)
 	const uncategorised = useApi(getUncategorised)
 	const toast = useToast()
+	/* The category whose star was clicked, held while the dialog asks. The star sits in every
+	   tile's corner, so it is asked for confirmation rather than acted on -- see UnstarDialog. */
+	const [unstarring, setUnstarring] = useState(null)
 
 	/* The same toggle Vendors' spotlight has, because it is the same standing preference on the
 	   other kind of record. Until now the only way out of this list was the category's own edit
@@ -170,7 +174,7 @@ export default function Categories() {
 														tone: category.saved > 0 ? 'positive' : undefined },
 													{ label: 'Budget', value: category.budget > 0 ? currency(category.budget, 0) : '—' }
 												]}
-												onUnstar={() => toggleFavourite(category)}
+												onUnstar={() => setUnstarring(category)}
 												unstarLabel={`Remove ${category.name} from favourites`} />
 										))}
 									</FavouriteTileGrid>
@@ -236,6 +240,12 @@ export default function Categories() {
 								)}
 							</CardBody>
 						</Card>
+
+						{unstarring ? (
+							<UnstarDialog name={unstarring.name}
+								onConfirm={() => { toggleFavourite(unstarring); setUnstarring(null) }}
+								onCancel={() => setUnstarring(null)} />
+						) : null}
 					</>
 				)
 			}}</Async>
