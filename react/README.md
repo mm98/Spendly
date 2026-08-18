@@ -198,8 +198,8 @@ vendor -- and they were five arrangements of the same parts, already drifting: t
 form in a bordered section inside a card body inside a card, which at 390px leaves the fields
 about as wide as their own labels; one paired a 32px CANCEL with a 48px save; two invented
 their own rail. Now each passes its fields in and gets the same card headline, lead sentence,
-verdict line, summary rail and split footer. Measured: one `.card-body-page` per form, one
-`.form`, one `.form-status`, a two-button footer at a matching 38px, on all seven routes.
+fields, summary rail and split footer. Measured: one `.card-body-page` per form, one `.form`,
+a two-button footer at a matching 38px, on all seven routes.
 
 Deleting is the same story one level down. An order asked before it deleted, a category and a
 vendor went the moment the trash was clicked, and only the order read the setting that says

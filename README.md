@@ -296,9 +296,10 @@ When a field rejects a value:
 2. The input gets `aria-invalid="true"`
 3. An error message appears below, with an id
 4. The input gets `aria-describedby` pointing at that message
-5. The form itself states the problem in one sentence
 
-This marking is written once. Every form that rejects values uses the same pattern.
+This marking is written once, and it is the only marking: no summary elsewhere on the page
+repeats it, no toast announces it, and none of it appears before the form has been submitted.
+Every form that rejects values uses the same pattern — see [Form Validation](#form-validation).
 
 ### Cards
 
@@ -667,7 +668,7 @@ Same form for create and edit. Editing loads the order in. The two steps share o
 
 **The rail's bottom line is the money.** A summary card mirrors the form above it, then states one figure at its foot, and across records it is the same kind of figure: what this record has cost, all time. A limit the form itself sets — a category's monthly budget — is one of the values being mirrored, so it is a row among the others, not the bottom line; two summary cards whose feet answer different questions are two shapes to learn for one card.
 
-**Validation:** Each step validates on its own attempt to continue. A rejected step marks its fields (see [Form Validation](#form-validation)) and states the verdict in its own status line: "Cannot continue — Vendor and Date need fixing." The verdict stays on screen while the form is still wrong, because it names the fields to go and fix.
+**Validation:** Each step validates on its own attempt to continue. A rejected step marks its fields and sends focus to the first one (see [Form Validation](#form-validation)); nothing on the page names the fields a second time.
 
 ### Scan Flow
 
@@ -819,17 +820,18 @@ Complex features are hidden until needed: the filter panel behind FILTERS, an it
 
 ### Form Validation
 
-When a form rejects a value:
+There is one way a form rejects a value, and every form that rejects values uses it — no second copy invented beside it, because two copies agree until the day one is fixed:
 1. The field's shell gets the red edge — and it outranks focus, so a focused invalid field still reads invalid
 2. The message appears under its own field, with an id the control's `aria-describedby` points at
-3. The form's own status line names every rejected field in one sentence: "Vendor and Date need fixing"
-4. The description is set with the message and removed with it — a dangling `aria-describedby` points at nothing
+3. The description is set with the message and removed with it — a dangling `aria-describedby` points at nothing
 
-**Why this way:** the message is beside the field (context), the status line gives the scope in one place, and the marking is written *once* — every form that rejects values uses the same one, because two copies agree until the day one is fixed.
+**Nothing names a rejection a second time.** No page-level summary line repeats what is already under the field, and no toast announces it — the message is beside the field it is about, once. Where a rejection has no single field of its own — an order with no lines, a list with nothing on it — it is drawn the same way, beside the control that would fix it, rather than promoted to a summary the rest of the form does not get.
 
-**A verdict is not a toast.** Saved / added / removed goes to the transient feedback layer; "cannot continue" stays on the form, beside the fields it names, until they are fixed.
+**A rejection is shown once the form has been submitted, never before.** Typing into a fresh field draws no message; the first `check()` runs on the attempt to save or continue, and only a field already showing a message is re-checked as its value changes, so a correction clears without waiting for a second submit. Nothing checks on blur.
 
-**The draft that is submitted is the draft that is validated.** Saving runs the rules over everything the form is about to send, not just the fields on screen: a row an ADD action seeds into the draft is part of the submission from the moment it exists, so saving sweeps every row with the same rules the row's own editor runs, reopens the first one that fails, and names it in the status line. Counting rows is not checking them — see [`docs/defects.md`](docs/defects.md).
+**A verdict is not a toast.** Saved / added / removed goes to the transient feedback layer; a rejected field stays on the form, under the field it names, until it is fixed.
+
+**The draft that is submitted is the draft that is validated.** Saving runs the rules over everything the form is about to send, not just the fields on screen: a row an ADD action seeds into the draft is part of the submission from the moment it exists, so saving sweeps every row with the same rules the row's own editor runs, reopens the first one that fails, and marks it there. Counting rows is not checking them — see [`docs/defects.md`](docs/defects.md).
 
 **A refused save says what was refused.** When the API rejects a write, its sentence about the field is the one the feedback layer shows. A rejection flattened into a generic "try again" reports a network blip about a form error, and the reader retries the same rejected draft.
 
@@ -839,7 +841,7 @@ Everything the app says back after an action — saved, added, removed, moved, r
 
 Before the one layer existed, each page printed its result wherever there was room — a removed file was reported a column away from the file, a reorder was announced at the top of a form nobody was looking at. **Feedback nobody sees is feedback that was not given.**
 
-**The line it does not cross:** a form's verdict on its own fields is not a toast. "Cannot continue — Vendor and Date need fixing" stays on the form, beside the fields it names, until they are fixed. Adding a line is a toast; failing to add one is not.
+**The line it does not cross:** a form's verdict on its own fields is not a toast. A rejected field's message stays under that field until it is fixed — see [Form Validation](#form-validation). Adding a line is a toast; failing to add one is not.
 
 ### Deletion
 
@@ -962,7 +964,7 @@ The copy is English and the number grammar is Danish; neither is negotiable per 
 - **No long dash in copy, ever.** The em dash (`—`) and en dash (`–`) never appear in anything the product renders — same reason as the two above: they read as machine-written. A sentence that wants one is rewritten with a colon, a comma, a semicolon or a full stop, and mostly reads better for it. Where a dash is genuinely part of a value — an empty summary cell, a range like `1-9999`, a date span in a chip — it is the plain hyphen (`-`).
 - **Field labels are questions where a question is clearer**: "Who did you buy from?" beats "Vendor" on a form a person fills once.
 - **Back buttons name the destination**, not the direction: "Back to orders", never just "Back".
-- **A rejection names the fields**: "Cannot continue: Vendor and Date need fixing."
+- **A rejection reads as a question or an instruction, under its own field**: "Who did you buy from?", "Describe the item." — never a summary sentence naming several fields at once.
 - **Copy that enumerates is a contract**: if the words say "a PDF, photo or screenshot", each named case works ([Scan Flow](#scan-flow)).
 
 ### Documentation

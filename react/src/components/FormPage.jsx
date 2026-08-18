@@ -4,7 +4,7 @@ import { Async } from './Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from './Card.jsx'
 import { Stepper } from './Stepper.jsx'
 import { Button, IconButton } from './Button.jsx'
-import { Form, FormActions, FormStatus } from './Form.jsx'
+import { Form, FormActions } from './Form.jsx'
 import { ConfirmDialog } from './ConfirmDialog.jsx'
 import { useApi } from '../api/useApi.js'
 import { getSettings } from '../api/client.js'
@@ -19,15 +19,15 @@ import { getSettings } from '../api/client.js'
    once here and every screen passes its fields in.
 
    The shape is the one README: Fields and Forms specifies and the order form already drew: card headline, lead
-   sentence, the form's own verdict line, the fields, and the actions split left/right at the
-   foot. The rail beside it carries the live summary that mirrors the form.
+   sentence, the fields, and the actions split left/right at the foot. The rail beside it
+   carries the live summary that mirrors the form.
 
-   `status` is the form's verdict on its own fields and stays on the page -- it names what the
-   user has to go back and fix, so it may not be a toast that leaves after five seconds. What
+   A rejected field is drawn under itself -- Form.jsx's `Field` and `useFieldErrors` -- and
+   nowhere else on the page: no summary line repeats it and no toast announces it. What
    *happened* -- saved, added, removed -- is a toast. README: Fields and Forms, and Toast.jsx. */
 
 export function FormPage({
-	title, lead, label, steps, notice, status, rail, cancel, submit, children
+	title, lead, label, steps, notice, rail, cancel, submit, children
 }) {
 	return (
 		<Page>
@@ -40,7 +40,6 @@ export function FormPage({
 							{lead ? <p className="card-lead">{lead}</p> : null}
 							{notice}
 							<Form>
-								<FormStatus message={status?.message ?? ''} good={status?.good !== false} />
 								{children}
 								{/* Both buttons at the same height, because they are one pair: the
 								    stylesheet gives `.button-caps` 48px and `.button-compact` 32, and a

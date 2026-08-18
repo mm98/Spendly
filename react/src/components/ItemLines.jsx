@@ -10,7 +10,7 @@ import { useReorder } from './Reorder.jsx'
 import { useRowDelete } from './FormPage.jsx'
 import {
 	Field, FieldPair, FieldShell, FieldUnit, FormActions, TextInput,
-	focusField, needFixing, useFieldErrors
+	focusField, useFieldErrors
 } from './Form.jsx'
 import { ITEM_FIELDS } from '../api/rules.js'
 import { amount, currency, currencySymbol, fullStop, parseAmount, percent, plural, sep } from '../api/format.js'
@@ -66,7 +66,7 @@ const same = (a, b) => ITEM_FIELDS.every(f => (a[f.name] ?? '') === (b[f.name] ?
  *  no opinion about which of those a page can have. New order can only ever have the first;
  *  Edit order has both. */
 export function ItemLines({
-	items, onItemsChange, onAnnounce,
+	items, onItemsChange, onAnnounce, error,
 	photoOf = () => ({}), onPhotoPick, onPhotoClear,
 	label = 'Items', heading = true
 }) {
@@ -124,7 +124,6 @@ export function ItemLines({
 	const build = () => {
 		const failed = errors.check()
 		if (failed.length) {
-			onAnnounce?.('Not saved: ' + needFixing(failed), 'negative')
 			focusField(failed[0].name)
 			return null
 		}
@@ -253,6 +252,16 @@ export function ItemLines({
 						{showGrips
 							? 'drag the grip to reorder'
 							: 'the pencil opens a line where it sits'}</span>
+				</div>
+			) : null}
+
+			{/* No field of its own describes "the list has at least one line", so the rejection
+			    is drawn the way a field's own is -- `.field > span.field-error` -- in a bare
+			    `.field` div rather than a page-level summary. role="status" announces it the
+			    moment it appears, since there is no input for aria-describedby to point at. */}
+			{error ? (
+				<div className="field">
+					<span className="field-error" role="status">{error}</span>
 				</div>
 			) : null}
 

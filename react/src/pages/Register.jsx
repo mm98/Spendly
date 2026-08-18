@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
 import { Card, CardBody } from '../components/Card.jsx'
-import { Field, FieldShell, TextInput, FormActions } from '../components/Form.jsx'
+import { Field, FieldShell, TextInput, FormActions, focusField } from '../components/Form.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { failureMessage, register } from '../api/client.js'
@@ -15,17 +15,18 @@ export default function Register() {
 	const navigate = useNavigate()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
-	const [status, setStatus] = useState({ message: '', good: true })
+	const [error, setError] = useState('')
 	const [saving, setSaving] = useState(false)
 
 	const submit = e => {
 		e.preventDefault()
 		if (password.length < 8) {
-			setStatus({ message: 'Password must be at least 8 characters.', good: false })
+			setError('Password must be at least 8 characters.')
+			focusField('register-password')
 			return
 		}
 		setSaving(true)
-		setStatus({ message: '', good: true })
+		setError('')
 		/* Straight to the settings page, once, rather than to Home. A new account's ledger is
 		   empty, so Home has nothing to show it; the preferences do, and the date format among
 		   them has just been guessed from the browser's timezone and wants confirming by the
@@ -34,7 +35,8 @@ export default function Register() {
 		register(email.trim().toLowerCase(), password)
 			.then(() => navigate('/settings', { replace: true, state: { firstRun: true } }))
 			.catch(err => { setSaving(false)
-				setStatus({ message: failureMessage(err, 'Could not create the account. Try again.'), good: false }) })
+				setError(failureMessage(err, 'Could not create the account. Try again.'))
+				focusField('register-password') })
 	}
 
 	return (
@@ -52,20 +54,19 @@ export default function Register() {
 						<Field label="Email" htmlFor="register-email">
 							<FieldShell>
 								<TextInput id="register-email" type="email" value={email} autoFocus
-									onChange={setEmail} aria-label="Email" aria-required="true" />
+									onChange={v => { setEmail(v); setError('') }}
+									aria-label="Email" aria-required="true" />
 							</FieldShell>
 						</Field>
-						<Field label="Password" htmlFor="register-password" help="At least 8 characters.">
+						<Field label="Password" htmlFor="register-password" help="At least 8 characters."
+							error={error} errorId="register-password-error">
 							<FieldShell>
 								<TextInput id="register-password" type="password" value={password}
-									onChange={setPassword} aria-label="Password" aria-required="true" />
+									onChange={v => { setPassword(v); setError('') }}
+									aria-label="Password" aria-required="true"
+									invalid={Boolean(error)} describedBy="register-password-error" />
 							</FieldShell>
 						</Field>
-						{status.message ? (
-							<p role="alert" className={status.good ? 'form-status' : 'form-status form-status-negative'}>
-								{status.message}
-							</p>
-						) : null}
 						<FormActions>
 							<Button variant="primary" type="submit" disabled={saving}>{saving ? 'CREATING...' : 'CREATE ACCOUNT'}</Button>
 						</FormActions>
