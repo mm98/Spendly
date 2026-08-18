@@ -42,3 +42,28 @@ jobs:
             GIT_SHA=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # One push, one package version. With the default provenance attestation, buildx
+          # pushes an index plus an unreferenced-by-tag attestation manifest, and GHCR lists
+          # that second manifest as its own untagged version -- so "keep the 10 most recent
+          # versions" below would mean five builds, not ten, and half of what it kept would
+          # be attestations. Off, the `latest` and `<sha>` tags are two tags on one version.
+          provenance: false
+
+  # Every push to main adds a `<sha>` tag, and nothing has ever removed one, so the package
+  # grows without bound on a registry whose storage is the repository's. Keep the ten most
+  # recent versions and delete the rest; `latest` always shares a digest with the newest
+  # `<sha>`, so it is inside the kept set by construction and cannot be pruned out from
+  # under a `docker compose pull`. Pull requests do not push, so there is nothing to prune.
+  prune:
+    needs: image
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/delete-package-versions@v5
+        with:
+          owner: ${{ github.repository_owner }}
+          package-name: spendly
+          package-type: container
+          min-versions-to-keep: 10
