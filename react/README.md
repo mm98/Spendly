@@ -473,6 +473,33 @@ bytes rather than re-fetched, so they load in parallel with everything else inst
 the one request that blocks first paint: **41,530 bytes minified, down from 71,911**. `font-display:
 swap` (unchanged) still means text paints in the fallback face rather than waiting on them.
 
+### Source maps ride along with the chunks
+
+Everything above is why a stack trace off this build is unreadable: the minifier renames every
+binding and puts a chunk on one line, so a report from a running container names
+`index-Dn_mor3s.js:1:24817` and stops there. `build.sourcemap: true` in `vite.config.js` writes a
+`<chunk>.js.map` beside every chunk and appends a `sourceMappingURL` comment pointing at it, so
+devtools and any error reporter walk the frame back to `src/`. The maps carry `sourcesContent`, so
+the sources travel with the map and nothing has to be fetched from the repository to read them.
+
+**46 maps, 3,013.93 kB, and none of it on the critical path.** A browser requests a `.map` only
+when devtools is open, so what a visitor actually pays is the comment: **2,092 bytes over the 46
+chunks that carry one**, 45.5 on average — the 47th is Rolldown's own runtime, which gets no map.
+That is the whole of the change to what is served, 2.04 kB inside 1,552.13 kB identity /
+470.64 kB brotli of shipped assets, and the `dist/` table above counts those and not the maps,
+which are the other 3,013.93 kB (631.28 kB brotli) of the directory. `precompress.mjs` already
+listed `.map` among its text extensions, so the maps are gzipped and brotlied like everything
+else and that script needed no change.
+
+The sources being readable from the deployed app is the trade, and it is one this repository has
+already made by being public. `sourcemap: 'hidden'` writes the same maps and omits the comment if
+that ever stops being true.
+
+The stylesheet gets no map: Vite emits none for it here, and the CSS is plain CSS with no
+preprocessor behind it, so a map would only undo the minifier's whitespace. Verified served --
+`GET /assets/index-Dn_mor3s.js.map` answers **200, `application/json`, 199,573 bytes** through
+`vite preview`.
+
 ## What was measured
 
 Chromium 141.0.7390.37 under Playwright 1.56.1, at 1440x900 and on an `iPhone 13` device
