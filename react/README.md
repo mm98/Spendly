@@ -759,13 +759,15 @@ modules one file per import, which is a different application and a meaningless 
 
 It runs the page twice and reports the second, because the first is the machine warming up;
 both lines are printed, so a spread that opens up is visible rather than averaged away. On this
-build the two runs agree: **performance 99, accessibility 93, best practices 96, SEO 90**, FCP
+build the two runs agree: **performance 99, accessibility 93, best practices 96**, FCP
 ~1.66s, TBT 0ms (Lighthouse 13.4.1, headless Chromium).
 
-Accessibility, best practices and SEO hold a floor and fail the run below it — they are rule
-checks, so the same DOM scores the same on any machine. Performance is printed and never gated:
-it is a stopwatch on a shared CI runner, and a gate that fails for reasons the change did not
-cause is one people learn to re-run rather than read.
+Accessibility and best practices hold a floor and fail the run below it — they are rule
+checks, so the same DOM scores the same on any machine. SEO is not measured at all: the app is
+a personal ledger behind a sign-in, so there is no crawler to rank it and its score is a
+number nothing reads. Performance is printed and never gated: it is a stopwatch on a shared CI
+runner, and a gate that fails for reasons the change did not cause is one people learn to
+re-run rather than read.
 
 CI runs it on pushes to `main` only. The image carries its own numbers: `docker.yml` builds the
 image, scores that container, and rebuilds with the result as a build arg (every layer cached,
