@@ -1749,6 +1749,29 @@ label.field-shell { cursor:pointer; }
 	   room to put it -- off outright, rather than left to whether the browser emulates a
 	   hover on tap. display beats the reveal rule's visibility whatever specificity says. */
 	.chart-callout { display:none; }
+	/* A ring beside the legend that names its segments needs the ring's width, a 24px gap and
+	   the legend's 170px floor -- about 326px of the 364px a phone card has, before a single
+	   row of the legend has anything to say. So .ring-row's wrap fired at every phone width and
+	   the two halves of one chart landed as two left-aligned blocks: the ring 96px off the
+	   card's centre on Categories and Vendors, 77px on Statistics' gauge, with its legend
+	   underneath anyway. Home's own breakdown card has never had that problem, because it
+	   stacks by construction -- .donut-box over .category-rows -- so below 700px the three
+	   cards that lay the same chart out across a row take Home's arrangement instead of
+	   falling into it: ring centred at the top, legend full width beneath, the same 6px
+	   lead-in .donut-box gives its ring and the same --gap-block under it .category-rows
+	   uses. The 6px is on the ring rather than the body: written as the body's padding-top
+	   it replaced .card-body's own 14px instead of adding to it, so the ring sat 6px under
+	   the divider against Home's 20 -- a lead-in shorter than the one it was copying.
+	   flex:none on the rings because a column flex resolves shrink against the height, and a
+	   170px gauge with a long legend under it is exactly the item that gets squashed.
+	   README: Charts, Responsive Layout. */
+	.ring-row { flex-direction:column; align-items:stretch; gap:var(--gap-block); }
+	.ring-row > .donut, .ring-row > .spend-gauge { align-self:center; flex:none; margin-top:6px; }
+	/* The legend is the full width of the card now, so the two-column floor is what would
+	   keep it from fitting rather than what makes it fit. Its own 4px lead-in was a spacer
+	   under a chart it used to sit beneath; here the flex gap is the whole distance, and
+	   leaving both stood the legend 16px under the ring against Home's 12. */
+	.ring-row > .chart-legend-fill { min-width:0; margin-top:0; }
 	.figure-headline { font-size:23px; }
 	.range-tabs { flex-wrap:wrap; gap:8px var(--gap-row); }
 	/* The whole band on one row at 390: two 32px arrows, the window's name and five widths, in

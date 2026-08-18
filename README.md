@@ -502,7 +502,7 @@ Small quantitative graphics, each with one job:
 
 **A chart with a mark on it is inset by the mark, not by the line.** The circle paints 5.5px past the point it sits on and a running total peaks on its own last day, so the plotted band is inset 6.5px top and bottom — the same 6.5 everywhere, since it is the same mark. Horizontally the line runs edge to edge and the mark keeps its own circle off the sides.
 
-The app draws a line chart, a donut, weekday bars, meters and progress rings. Eight rules hold them together:
+The app draws a line chart, a donut, weekday bars, meters and progress rings. Nine rules hold them together:
 
 **One user unit is one CSS pixel.** The line chart's viewBox is remapped 1:1 onto the element's pixel box on every resize, so stroke widths hold and text in the chart is never scaled. A chart whose viewBox is a guess renders its 1px grid line at 1.3px on one screen and 0.8px on another.
 
@@ -517,6 +517,8 @@ The app draws a line chart, a donut, weekday bars, meters and progress rings. Ei
 **Chart colors are the data-viz palette** (`--donut-*`), which exists so segments differ from each other. Semantic colors stay out of charts: a slice is not "positive".
 
 **Legends are rows.** A chart legend row is the data-row pattern at chart scale — glyph (swatch), label, value — and a legend row that filters the list navigates like any other row, with `data-go`.
+
+**A ring and its legend stack one way.** Where the two do not fit side by side, the ring centres itself at the top of the card and the legend takes the full width beneath it, at the same lead-in and the same gap wherever it happens — one arrangement, whether the card was built to stack or narrowed into it. A row that is merely allowed to wrap makes the same stack by accident and makes it badly: the ring lands hard against the card's left edge with its legend under it anyway, and a chart whose halves are two left-aligned blocks reads as two things rather than one ([the numbers](docs/defects.md#charts--a-ring-and-its-legend-stacked-two-different-ways-on-a-phone)).
 
 **A callout is a tooltip, so it is asked for.** The sentence that annotates a chart appears while the chart is hovered or focused, and the resting page does not draw it. Left up permanently it is not a tooltip at all — it is a label lying across the middle of the data it describes, and the reader cannot put it away. The chart is what the callout is about, so the chart is the trigger, and being the trigger costs it two things: a tab stop, because a tooltip only a pointer can ask for is one the keyboard never reaches, and the sentence as its own accessible description, because a bubble that is not drawn is out of the accessibility tree and takes its content with it. Under a coarse pointer there is nothing to ask with, so the callout is off entirely rather than left to whether the browser fakes a hover on tap ([the numbers](docs/defects.md#charts--the-callout-was-drawn-permanently-across-the-line-it-annotates)).
 

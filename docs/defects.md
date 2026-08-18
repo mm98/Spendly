@@ -2311,3 +2311,55 @@ list rendered, every control worked, nothing overflowed, and both were reported 
 A rendered heading is not a heading that has been read against the one above it, and a row that
 draws correctly is not a row that lines up with its neighbours — see the standing rule about two
 things drawn to be read together being measured against each other rather than each on its own.
+
+## Charts — a ring and its legend stacked two different ways on a phone
+
+Four cards in the app draw a ring with the list that names its segments. Home's *Category breakdown*
+and Orders overview's build it as a stack — `.donut-box` over `.category-rows` — and the other three
+(Categories' *Breakdown*, Vendors' *Where it goes*, Statistics' *Where it went*) lay it across a row,
+`.ring-row`, which was `display:flex; align-items:center; gap:24px; flex-wrap:wrap`.
+
+On a phone that row cannot hold both. The card body is **364px** wide under `devices['iPhone 13']`,
+and the row asks for the ring, a 24px gap and `.chart-legend-fill`'s `min-width:170px` before the
+legend has printed a single name: 326px for the 132px donut, 364px for the 170px gauge. So the wrap
+fired at every phone width and produced a stack nobody had designed — the ring pinned to the card's
+left edge with the legend under it. Measured as the ring's centre against the body's centre:
+
+| Card | Ring | Off centre, before | Off centre, after |
+|------|------|-------------------:|------------------:|
+| Home — Category breakdown | donut 132px | 0px | 0px |
+| Orders — Category breakdown | donut 132px | 0px | 0px |
+| Categories — Breakdown | donut 132px | **-96px** | 0px |
+| Vendors — Where it goes | donut 132px | **-96px** | 0px |
+| Statistics — Where it went | gauge 170px | **-77px** | 0px |
+
+Every instrument in this repo agreed with it. Nothing overflowed (`documentElement.scrollWidth`
+matched `clientWidth`, and no child's right edge passed its parent's), the ring rendered, the legend
+rendered, and the two are drawn from one array, which is the rule that ring cards are usually caught
+by. The defect is only visible as a comparison between two cards that draw the same chart — the same
+shape as the standing rule about two pages that state one fact, one level down.
+
+Below 700px `.ring-row` now takes Home's arrangement rather than falling into its own: `flex-direction:
+column`, the ring `align-self:center` with `flex:none`, the legend at the body's full width, and the
+two spacings copied off the card they are copying — 6px above the ring, `--gap-block` (12px) between
+ring and legend. Five cards, three routes, one geometry:
+
+| | Home | Orders | Categories | Vendors | Statistics |
+|---|---:|---:|---:|---:|---:|
+| Ring off body centre | 0px | 0px | 0px | 0px | 0px |
+| Ring below the divider | 20px | 20px | 20px | 20px | 20px |
+| List below the ring | 12px | 12px | 12px | 12px | 12px |
+| List width vs body's content box | 0px | 0px | 0px | 0px | 0px |
+
+**Two near misses inside a three-declaration change.** The 6px lead-in was first written as
+`padding-top:6px` on `.ring-row`, which *replaces* `.card-body`'s own 14px rather than adding to it:
+the ring came to 6px under the divider against Home's 20, a lead-in shorter than the one it was
+copying. It belongs on the ring as a margin. And `.chart-legend`'s `margin-top:4px` — a spacer from
+where the legend sits under something else — stacked on top of the new flex gap and stood the legend
+16px below the ring against Home's 12. Both were one number off in a rule whose whole job is to
+match another card; neither is visible without measuring the card being matched.
+
+Desktop is untouched by construction — the whole of it is inside `@media (max-width:700px)` —
+and measured anyway: at 1440x900 and at 760x900 all three ring rows still put the legend beside
+the ring (`listSameRow: true`), at the same offsets before and after. Verified in Blink;
+Gecko and WebKit unverified, neither installed here.
