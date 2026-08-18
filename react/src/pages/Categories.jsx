@@ -2,11 +2,15 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
 import { LegendRow } from '../components/Rows.jsx'
+import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.jsx'
 import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
+import { Icon } from '../components/Icon.jsx'
+import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories, getUncategorised } from '../api/client.js'
-import { currency, percent, sep } from '../api/format.js'
+import { failureMessage, getCategories, getUncategorised, invalidateCategoryData, updateCategory } from '../api/client.js'
+import { currency, percent, plural, sep } from '../api/format.js'
+import { inkOn } from '../api/colour.js'
 
 /* Categories, overview.
 
@@ -36,6 +40,20 @@ export default function Categories() {
 	   when the other lands would show two different splits a beat apart. */
 	const state = useApi(getCategories)
 	const uncategorised = useApi(getUncategorised)
+	const toast = useToast()
+
+	/* The same toggle Vendors' spotlight has, because it is the same standing preference on the
+	   other kind of record. Until now the only way out of this list was the category's own edit
+	   form, which made unpinning a five-click errand for a one-bit change. */
+	const toggleFavourite = category => {
+		updateCategory(category.id, { favourite: !category.favourite })
+			.then(() => {
+				invalidateCategoryData()
+				state.refresh()
+				toast(`${category.name} ${category.favourite ? 'removed from' : 'added to'} favourites.`)
+			})
+			.catch(e => toast(failureMessage(e, 'That did not save.'), 'negative'))
+	}
 	const both = {
 		error: state.error ?? uncategorised.error,
 		loading: state.loading || uncategorised.loading,
@@ -63,6 +81,10 @@ export default function Categories() {
 				/* The records' own superlative -- "Without category" is not a category, so it
 				   cannot be the largest one. */
 				const top = categories.reduce((most, c) => (c.spend > (most?.spend ?? 0) ? c : most), null)
+				/* Favourites are a subset of the same array, favourites included in both:
+				   starring pins a category to the spotlight without removing it from the only
+				   sortable, searchable view of them -- the rule Vendors set. */
+				const favourites = categories.filter(c => c.favourite)
 
 				/* The remainder rides into the fold like any real row: same fields, the same
 				   sentinel id and colour the window splits give it, so the legend row links to
@@ -117,6 +139,58 @@ export default function Categories() {
 								) : (
 									<EmptyState>
 										<p>No categories yet. Add one and your spending splits by kind.</p>
+									</EmptyState>
+								)}
+							</CardBody>
+						</Card>
+
+						{/* The spotlight Vendors has, on this page's own records: the band carries the
+						    list's summary, and each tile is spend, share and the saved/budget pair.
+						    README: Favourites. */}
+						<Card aria-label="Favourites">
+							<CardHeader title={favourites.length
+									? `Favourites${sep}${plural(favourites.length, 'category', 'categories')}, ${currency(favourites.reduce((sum, c) => sum + c.spend, 0), 0)} all time`
+									: 'Favourites'}
+								to={categories.length ? '/categories/all' : undefined}
+								label="Favourites, open all categories" />
+							<CardDivider />
+							<CardBody>
+								{favourites.length ? (
+									<FavouriteTileGrid>
+										{favourites.map(category => (
+											/* Both stats always drawn, "—" where there is nothing yet -- a
+											   tile with a missing line beside a full one reads as broken. */
+											<FavouriteTile key={category.id}
+												mark={<span className="category-icon"
+													style={{ background: category.colour, color: inkOn(category.colour) }}>
+													<Icon name={category.icon} path={category.iconPath} /></span>}
+												name={category.name} to={`/orders/all?category=${category.id}`}
+												linkLabel={`${category.name}, open its orders`}
+												amount={currency(category.spend, 0)}
+												meta={`${percent(category.share)} of expenses`}
+												stats={[
+													{ label: 'Saved', value: category.saved > 0 ? currency(category.saved, 0) : '—',
+														tone: category.saved > 0 ? 'positive' : undefined },
+													{ label: 'Budget', value: category.budget > 0 ? currency(category.budget, 0) : '—' }
+												]}
+												onUnstar={() => toggleFavourite(category)}
+												unstarLabel={`Remove ${category.name} from favourites`} />
+										))}
+									</FavouriteTileGrid>
+								) : (
+									/* Two absences, two answers, the same split every empty state on this
+									   page makes: with categories the sentence names the next step and the
+									   button opens the list the starring happens from; with none there is
+									   nothing to star and neither claim is made. README: Empty states. */
+									<EmptyState>
+										{categories.length ? (
+											<>
+												<p>No favourites yet. Star a category and it shows up here with spend, savings and budget.</p>
+												<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
+											</>
+										) : (
+											<p>No categories to star yet. Add one and your spending splits by kind.</p>
+										)}
 									</EmptyState>
 								)}
 							</CardBody>

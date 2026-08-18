@@ -1,13 +1,15 @@
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
-import { InsetPanel, ItemRow, LegendRow } from '../components/Rows.jsx'
+import { LegendRow } from '../components/Rows.jsx'
+import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.jsx'
 import { Donut, foldForRing } from '../components/Viz.jsx'
-import { Button, IconButton } from '../components/Button.jsx'
+import { Button } from '../components/Button.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getVendors, invalidateVendorData, updateVendor } from '../api/client.js'
-import { currency, dayMonth, fullStop, plural, sep } from '../api/format.js'
+import { currency, plural, sep } from '../api/format.js'
+import { inkOn } from '../api/colour.js'
 
 /* Vendors, overview.
 
@@ -106,44 +108,38 @@ export default function Vendors() {
 							</CardBody>
 						</Card>
 
+						{/* The band carries the list's own summary the way All vendors' band carries its
+						    count: how many are pinned and what they add up to, so the section says what
+						    it holds before a tile is read. */}
 						<Card aria-label="Favourites">
-							<CardHeader title="Favourites" to={all.length ? '/vendors/all' : undefined}
+							<CardHeader title={favourites.length
+									? `Favourites${sep}${plural(favourites.length, 'vendor')}, ${currency(favourites.reduce((sum, v) => sum + v.spend, 0), 0)} all time`
+									: 'Favourites'}
+								to={all.length ? '/vendors/all' : undefined}
 								label="Favourites, open all vendors" />
 							<CardDivider />
 							<CardBody>
 								{favourites.length ? (
-									<div className="spotlight-pair">
+									<FavouriteTileGrid>
 										{favourites.map(vendor => (
-											<Card key={vendor.id}>
-												<CardHeader title={vendor.name} to={`/orders/all?vendor=${vendor.id}`}
-													label={`${vendor.name}, open their orders`} />
-												<CardDivider />
-												<CardBody>
-													<div className="lead-sentence">
-														{vendor.lead ?? `${plural(vendor.orders, 'order')}, ${currency(vendor.spend, 0)}${fullStop()}`}</div>
-													<InsetPanel>
-														<ItemRow icon="discount" title="Saved vs retail"
-															meta={`${vendor.name}${sep}all time`} amount={currency(vendor.saved, 0)} />
-														{/* The row is always drawn. Dropping it for a vendor with no orders
-														    yet left two cards side by side at different heights, with the
-														    shorter one's buttons floating in the gap -- and it said nothing
-														    about why. A fact that is not there is still a fact. */}
-														<ItemRow icon="receipt" title="Latest order"
-															meta={vendor.latest
-																? `${dayMonth(vendor.latest.date)}${sep}${plural(vendor.latest.items, 'item')}`
-																: `None${sep}all time`}
-															amount={currency(vendor.latest?.total ?? 0, 0)} />
-													</InsetPanel>
-													<div className="row-inline row-actions entity-actions">
-														<IconButton icon="star" label={`Remove ${vendor.name} from favourites`}
-															onClick={() => toggleFavourite(vendor)} />
-														<IconButton icon="pencil" label={`Edit ${vendor.name}`}
-															to={`/vendors/${vendor.id}/edit`} />
-													</div>
-												</CardBody>
-											</Card>
+											/* Both stats are always drawn, "—" standing in where there is
+											   nothing yet: a tile with a missing line beside a full one reads
+											   as broken, not as new. A fact that is not there is still a fact. */
+											<FavouriteTile key={vendor.id}
+												mark={<span className="entry-avatar"
+													style={{ background: vendor.colour, color: inkOn(vendor.colour) }}>{vendor.initials}</span>}
+												name={vendor.name} to={`/orders/all?vendor=${vendor.id}`}
+												linkLabel={`${vendor.name}, open their orders`}
+												amount={currency(vendor.spend, 0)} meta={plural(vendor.orders, 'order')}
+												stats={[
+													{ label: 'Saved', value: vendor.saved > 0 ? currency(vendor.saved, 0) : '—',
+														tone: vendor.saved > 0 ? 'positive' : undefined },
+													{ label: 'Latest', value: vendor.latest ? currency(vendor.latest.total, 0) : '—' }
+												]}
+												onUnstar={() => toggleFavourite(vendor)}
+												unstarLabel={`Remove ${vendor.name} from favourites`} />
 										))}
-									</div>
+									</FavouriteTileGrid>
 								) : (
 									/* With vendors, the sentence names the next step and the button opens the
 									   list the starring happens from; with none there is no vendor to star and
