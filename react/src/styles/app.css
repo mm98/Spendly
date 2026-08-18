@@ -1131,6 +1131,11 @@ label.field-shell { cursor:pointer; }
    twice: compact and pill must beat .button's 15px, and the chevron the field-shell's. */
 .button svg.icon, .chevron svg.icon, .item-row .item-row-grip svg.icon,
 .order-row .order-row-chevron svg.icon, .combobox-action svg.icon,
+/* The add row's empty grip column stands in for the grip above it, so it is sized by the
+   grip's own declaration rather than by a copy of it -- the scoped selector beside it reaches
+   into .item-row, which the add row is not, and the icon fell back to the 18px default and
+   left the column 3px wide of every tile and title in the list. */
+.line-add-grip-space svg.icon,
 .ai-suggestion-row button svg.icon { width:15px; height:15px; }
 .topbar .topbar-actions .button svg.icon, .button-compact svg.icon, .icon-button-reorder svg,
 .icon-button-arrow svg.icon, svg.icon.chevron-icon { width:14px; height:14px; }
@@ -1370,16 +1375,18 @@ label.field-shell { cursor:pointer; }
    grouped set of fields in the app already has -- what is added here is the head, the photo
    column and the two-column field grid, which is the only part of it that is new. The green
    edge is the same green the focus ring uses: this is the one row on the list that is open. */
-.line-card { margin:6px 0; background:var(--bg-card); border-color:var(--green); --stack-gap:12px; }
+/* --line-photo is the frame's own edge, named once because two rules and a breakpoint all
+   have to agree about it: the column, the frame, and the phone's smaller header copy. */
+.line-card { --line-photo:128px; margin:6px 0; background:var(--bg-card); border-color:var(--green); }
 .line-card-head { display:flex; align-items:center; gap:var(--gap-row); flex-wrap:wrap; }
-.line-card-title { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--green-deep); }
-.line-card-hint { margin-left:auto; }
+/* The head takes .section-label's own spec in the markup and declares only its difference. */
+.line-card-title { color:var(--green-deep); }
 .line-card-body { display:flex; gap:var(--gap-panel); align-items:flex-start; }
-.line-photo { flex:none; width:128px; display:grid; gap:8px; justify-items:center; }
-.line-photo-frame { font:inherit; font-size:11.5px; width:128px; height:128px; padding:0; border:1px solid var(--border-card); border-radius:12px; background:var(--bg-tile); color:var(--thumb-glyph); display:grid; place-items:center; overflow:hidden; cursor:pointer; }
+.line-photo { flex:none; width:var(--line-photo); display:grid; gap:8px; justify-items:center; }
+.line-photo-frame { font:inherit; font-size:11.5px; width:var(--line-photo); height:var(--line-photo); padding:0; border:1px solid var(--border-card); border-radius:var(--radius-page); background:var(--bg-tile); color:var(--thumb-glyph); display:grid; place-items:center; overflow:hidden; cursor:pointer; }
 .line-photo-frame:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
 .line-photo-img { width:100%; height:100%; object-fit:cover; display:block; }
-.line-photo-mark { display:grid; justify-items:center; gap:6px; }
+.line-photo-mark { display:grid; justify-items:center; gap:var(--gap-icon); }
 .line-photo-mark svg.icon { width:20px; height:20px; }
 .line-photo-foot { display:flex; align-items:center; gap:8px; text-align:center; }
 .line-photo-remove { color:var(--text-negative); }
@@ -1390,17 +1397,28 @@ label.field-shell { cursor:pointer; }
    outcome in the muted weight instead of the field rejecting the value. */
 .line-verdict { grid-column:1 / -1; margin:0; font-size:11.5px; font-weight:600; color:var(--text-positive); }
 .line-verdict.line-verdict-flat { color:var(--text-muted); font-weight:500; }
-.line-card-delete { margin-left:auto; }
-/* The row that adds one. Dashed, because it is the one row in the list that is not a line. */
-.line-add-row { font:inherit; width:100%; margin:6px 0; padding:10px 12px; display:flex; align-items:center; gap:var(--gap-row); text-align:left; color:var(--text); background:none; border:1px dashed var(--border-control); border-radius:var(--radius-compact); cursor:pointer; }
-.line-add-row:hover { border-color:var(--green); }
+/* The row that adds one. It takes .data-row's own padding and gap rather than a box of its
+   own: a bordered box has to pad its content inwards, and 12px of padding plus a 1px edge is
+   12px the rows above it do not have -- measured at 13px right of every tile and title when
+   the list showed no grips, and 14px left of them when it did, because the box also had no
+   grip column to leave empty. What marks it as the one row that is not a line is the dashed
+   rule above it and the dashed tile, neither of which moves anything. */
+.line-add-row { font:inherit; width:100%; padding:10px 0; display:flex; align-items:center; gap:var(--gap-row); text-align:left; color:var(--text); background:none; border:0; border-top:1px dashed var(--border-control); cursor:pointer; }
 .line-add-row:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
-.line-add-glyph { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); background:var(--bg-tile); color:var(--text-muted); display:grid; place-items:center; flex:none; }
+.line-add-glyph { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); border:1px dashed var(--border-control); color:var(--text-muted); display:grid; place-items:center; flex:none; }
 .line-add-glyph svg.icon { width:17px; height:17px; }
+.line-add-row:hover .line-add-glyph { border-color:var(--green); color:var(--green); }
 .line-add-text { display:grid; gap:2px; font-size:13px; font-weight:600; color:var(--text-strong); }
+/* The grip column, left empty. The rows only draw a grip when there is more than one line to
+   move, so the add row only reserves the column when they do. Its width is the grip's icon and
+   nothing else -- both are 0-padding, 0-border boxes around one glyph, and that glyph is sized
+   by the shared 15px rule above, which is the one declaration the two share. It does not wear
+   .item-row-grip: the width would come out the same, and every count of how many grips a list
+   is offering would come back one too many. A stand-in is not the thing. */
+.line-add-grip-space { display:inline-flex; align-items:center; flex:none; visibility:hidden; }
 /* Held for about two seconds after a card collapses, so the row says what just happened to it
    rather than the reader having to find the toast. */
-.line-saved { display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--text-positive); }
+.line-saved { display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-positive); }
 .line-saved svg.icon { width:13px; height:13px; }
 .line-total-row { display:flex; align-items:baseline; justify-content:space-between; gap:var(--gap-row); flex-wrap:wrap; margin-top:10px; font-size:12.5px; font-weight:600; color:var(--text-strong); }
 @media (max-width:900px) { .two-column { grid-template-columns:1fr; } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
@@ -1597,10 +1615,10 @@ label.field-shell { cursor:pointer; }
 	   width. The action row wraps rather than pushing DELETE LINE off the card's right edge. */
 	.line-card-body { flex-direction:column; }
 	.line-photo { width:auto; grid-template-columns:auto 1fr; justify-items:start; align-items:center; }
-	.line-photo-frame { width:76px; height:76px; }
+	.line-card { --line-photo:76px; }
 	.line-card-fields { grid-template-columns:minmax(0,1fr); }
 	.line-card .form-actions { flex-wrap:wrap; }
-	.line-card-delete { margin-left:0; }
+	.line-card .form-actions .push-end { margin-left:0; }
 	/* .global-finder carries the margin-left:auto that pushes the actions right, and it is
 	   hidden here, so .topbar-actions has to take the job over or it sits against the title. */
 	.global-finder { display:none; }

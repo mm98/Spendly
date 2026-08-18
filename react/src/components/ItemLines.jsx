@@ -67,7 +67,7 @@ const same = (a, b) => ITEM_FIELDS.every(f => (a[f.name] ?? '') === (b[f.name] ?
 export function ItemLines({
 	items, onItemsChange, onAnnounce,
 	photoOf = () => ({}), onPhotoPick, onPhotoClear,
-	label = 'Lines'
+	label = 'Items'
 }) {
 	const [openId, setOpenId] = useState(null)      // an item id, 'new', or null
 	const [form, setForm] = useState(BLANK)
@@ -198,6 +198,10 @@ export function ItemLines({
 		}
 	})
 
+	/* Whether the list is showing grips at all. The rows and the add row's empty grip column
+	   read the same value, so the column cannot be reserved on one and not the other. */
+	const showGrips = openId === null && items.length > 1
+
 	const paid = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 	const retail = items.reduce((sum, i) => sum + (i.retail ?? i.price) * i.quantity, 0)
 	const saved = retail - paid
@@ -244,7 +248,7 @@ export function ItemLines({
 								/* No grip while a card is open: the list the drag measures is the list
 								   on screen, and one of its rows is currently a card twice the height
 								   of the rest. A drag is offered when it can be honoured. */
-								handle={openId === null && items.length > 1 ? reorder.handle(item, i) : null}
+								handle={showGrips ? reorder.handle(item, i) : null}
 								meta={`${item.quantity} × ${currency(item.price)}`
 									+ (item.retail ? `${sep}retail ${currency(item.retail)}` : '')}
 								amount={currency(item.price * item.quantity)}
@@ -264,11 +268,19 @@ export function ItemLines({
 
 				{openId === 'new' ? card : (
 					<button type="button" className="line-add-row" onClick={() => go('new')}>
+						{/* The rows above only carry a grip when there is more than one line to move,
+						    so this holds their grip column open on exactly the same condition -- and
+						    holds it with a hidden copy of the grip itself, so the two cannot drift. */}
+						{showGrips
+							? <span className="line-add-grip-space" aria-hidden="true">
+								<Icon name="grip" /></span>
+							: null}
 						<span className="line-add-glyph" aria-hidden="true"><Icon name="plus" /></span>
 						<span className="line-add-text">
 							{items.length ? 'Add item' : 'Add the first item'}
-							<span className="field-help">
-								{items.length ? 'Opens the same card, empty.' : 'An order needs at least one.'}</span>
+							{items.length ? null : (
+								<span className="field-help">An order needs at least one.</span>
+							)}
 						</span>
 					</button>
 				)}
@@ -359,7 +371,7 @@ function LineCard({
 			onDrop={e => { e.preventDefault(); setOver(false); take(e.dataTransfer?.files) }}>
 
 			<div className="line-card-head">
-				<span className="line-card-title">
+				<span className="section-label line-card-title">
 					{isNew ? `New line${sep}${count + 1} of ${count + 1}` : `Editing line ${index + 1} of ${count}`}
 				</span>
 				{isNew ? null : (
@@ -370,7 +382,7 @@ function LineCard({
 							disabled={index >= count - 1} onClick={() => onStep(1)} />
 					</span>
 				)}
-				<span className="field-help line-card-hint">Enter saves<Sep />Escape cancels</span>
+				<span className="field-help push-end">Enter saves<Sep />Escape cancels</span>
 			</div>
 
 			<div className="line-card-body">
@@ -470,7 +482,7 @@ function LineCard({
 						: isNew
 							? 'Enter adds it and keeps the card open for the next one.'
 							: 'Cmd/Ctrl+Enter saves and opens the line below.'}</span>
-				{deleteButton ? <span className="line-card-delete">{deleteButton}</span> : null}
+				{deleteButton ? <span className="push-end">{deleteButton}</span> : null}
 			</FormActions>
 		</div>
 	)

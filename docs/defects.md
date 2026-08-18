@@ -2067,3 +2067,46 @@ ask-before-deleting is one setting read by every delete, records and their parts
 the asking is a modal dialog — so a line keeps the same question every other delete asks, from
 the row and from the open card alike, and the card's wider button is not a reason to invent a
 quieter delete for it.
+
+## Create and Edit — one list, two headers, and an add row that lined up with neither
+
+Three defects in the line list, all of them alignment or naming rather than behaviour, and none
+of them reachable by the assertions that cleared the list itself.
+
+**Two headers over one list.** The Items card drew a `CardHeader` reading `ITEMS • 4` and the list
+under it drew its own section label reading `LINES • 4` — one list, two names for it, and the
+same count printed twice, stacked. The card's header is gone: whatever owns a list owns its name
+and its count, and that is the list. The name is *Items* on both pages now, the word the rules,
+the empty-state sentence and the footer total already use; *Lines* was a third name for the same
+thing, inherited from the section label the old form sat above.
+
+**The add row lined up with nothing.** It was a bordered dashed box, and a box has to pad its
+content inwards. Measured against the first row's tile and title in the panel's own coordinates,
+at 1440×900:
+
+| list | add row's glyph and text, against the rows' tile and title |
+| --- | --- |
+| 1 line, no grips drawn | **+13px** — the box's own 12px padding and 1px edge |
+| 2, 3 and 4 lines, grips drawn | **−14px** — the box also had no grip column to leave empty |
+
+So it lost the box. It takes `.data-row`'s own `padding:10px 0` and gap, and what marks it as the
+one row in the list that is not a line is a dashed rule above it and a dashed tile — neither of
+which moves anything. The grip column is reserved on exactly the condition the rows draw a grip
+on, `showGrips`, read by both so they cannot disagree. All four cases now measure **0px** on both
+the glyph and the text, on desktop and on an iPhone 13 descriptor.
+
+**The stand-in was 3px wide of the thing it stood in for.** The empty grip column was first built
+as a hidden copy of the grip carrying the grip's own class, on the theory that the same class
+cannot drift from itself. It drifted immediately: the rule that sizes that glyph to 15px is
+`.item-row .item-row-grip svg.icon`, scoped to a row the add row is not inside, so the icon fell
+back to the stylesheet's 18px default and every tile and title sat 3px off. The fix is to name
+the stand-in in that same shared declaration rather than to copy the number — and then to take
+the grip's class back off it, because a hidden non-grip wearing `.item-row-grip` makes every
+count of *how many grips is this list offering* come back one too many. That is not hypothetical:
+it is how the defect was caught, by an assertion that counted grips against rows.
+
+Neither the double header nor the misalignment could fail anything that had been written: the
+list rendered, every control worked, nothing overflowed, and both were reported from a screenshot.
+A rendered heading is not a heading that has been read against the one above it, and a row that
+draws correctly is not a row that lines up with its neighbours — see the standing rule about two
+things drawn to be read together being measured against each other rather than each on its own.

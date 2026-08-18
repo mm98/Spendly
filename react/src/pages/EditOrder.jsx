@@ -21,7 +21,7 @@ import {
 	vendorByAnyName
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
-import { currency, currencySymbol, parseAmount, percent, plural, sep, today } from '../api/format.js'
+import { currency, currencySymbol, parseAmount, percent, plural, today } from '../api/format.js'
 
 /* Editing an order, whole.
 
@@ -321,8 +321,10 @@ function EditOrderForm({ id, seed }) {
 				</Card>
 
 				<Card aria-label="Items">
-					<CardHeader title={`Items${sep}${draft.items.length}`} />
-					<CardDivider />
+					{/* No CardHeader: the list states its own name and count, and the two of them
+					    stacked said "ITEMS • 4" over "LINES • 4" -- one list, two names, one
+					    number printed twice. The count belongs to whatever owns the list, and
+					    that is the list. The card keeps its accessible name in aria-label. */}
 					<CardBody variant="card-body-tight">
 						<ItemLines items={draft.items} onItemsChange={items => update({ items })}
 							onAnnounce={toast} photoOf={photoOf}
