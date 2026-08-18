@@ -708,6 +708,17 @@ intentions, and the cascade hides it wherever the two happen to agree. Read the 
 (`document.querySelectorAll(sel).length` against the union of the families) and check the survivors
 declare only their differences.
 
+**When a rule's job is to match another card, measure the card it is matching.** Making three ring
+cards stack the way Home's breakdown card stacks was three declarations, and two of them were a
+number off in a way only the comparison could show. `padding-top:6px` on the flex body *replaced*
+`.card-body`'s own 14px instead of adding to it, so the ring sat 6px under the divider against
+Home's 20; `.chart-legend`'s existing `margin-top:4px` stacked on the new flex gap and stood the
+legend 16px under the ring against Home's 12. Both render plausibly, both pass any check that reads
+one card, and both are found by reading the same three distances off the model and the copy in the
+same run. Copying an arrangement is copying its numbers: name them, read them back from both, and
+require equality -- an arrangement that merely looks the same is the near-miss this section is about,
+wearing a layout.
+
 **A value that has a token is written as the token, every time.** The `:root` block is the
 design system's own vocabulary -- radii, gaps, paddings, every colour, the thumb size -- and a
 literal written beside one is a second copy of a decision that is already made somewhere. It
