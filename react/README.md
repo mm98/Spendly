@@ -491,20 +491,24 @@ which are the other 3,013.93 kB (631.28 kB brotli) of the directory. `precompres
 listed `.map` among its text extensions, so the maps are gzipped and brotlied like everything
 else and that script needed no change.
 
-The sources being readable from the deployed app is the trade, and it is one this repository has
-already made by being public. An install that would rather not make it sets `SPENDLY_SOURCE_MAPS=0`
-in its environment (`docker-compose.yml` carries the line) and the API 404s every `.map` — and the
-`.map.gz` and `.map.br` beside it, or `precompress.mjs`'s own output would be the way around the
-switch. The chunks serve unchanged either way, so what a reader loses is a legible trace and
-nothing else. Measured against the built `dist/`: **maps 200 / chunks 200 unset and at `=1`, maps
-404 / chunks 200 at `=0`**, index and `/api/version` 200 throughout. It is deliberately a serving
-decision and not a build one — the image always carries the maps, so turning them off is a restart
-rather than a rebuild, and turning them back on to read one trace is the same.
+The sources being readable from the deployed app is the other half of that, so the server hands
+the maps out only when told to: `SPENDLY_SOURCE_MAPS=1` serves them, anything else — unset
+included — 404s every `.map`, and the `.map.gz` and `.map.br` beside it, or `precompress.mjs`'s
+own output would be the way around the switch. That is the same default shape as
+`SPENDLY_PLAIN_HTTP`: unset is the closed position and `"1"` is an install asking for the open
+one. The chunks serve unchanged either way, so what is lost while it is off is a legible trace and
+nothing else. Measured against the built `dist/`, over the API's own static mount: **maps 404 /
+chunks 200 unset and at `=0`, maps 200 / chunks 200 at `=1`**, `/` and `/api/version` 200
+throughout. It is deliberately a serving decision and not a build one — the image always carries
+the maps, so turning them on to read one trace is a restart rather than a rebuild, and turning
+them back off is the same.
 
 The stylesheet gets no map: Vite emits none for it here, and the CSS is plain CSS with no
 preprocessor behind it, so a map would only undo the minifier's whitespace. Verified served —
 `GET /assets/index-Dn_mor3s.js.map` answers **200, `application/json`, 199,573 bytes** through
-`vite preview`, and the same file 200s through the API's own `express.static` mount.
+`vite preview`, which serves `dist/` without the gate, and the same through the API's static
+mount with `SPENDLY_SOURCE_MAPS=1`. The gate reads that variable strictly — `=true` is not `=1`
+and 404s, the same way `SPENDLY_PLAIN_HTTP` is tested.
 
 ## What was measured
 
