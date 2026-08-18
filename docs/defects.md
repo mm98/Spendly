@@ -2557,3 +2557,71 @@ each, a deep link overriding the memory (`?status=Returned` stays Returned), CLE
 round trip, a restored page number, a second tab starting clean and the first keeping its own. Plus
 the 16-route smoke, no error card and no page errors. Gecko and WebKit unverified — no binary
 installed, and nothing here is engine-shaped.
+
+## Create and Edit — every line cost two rows so the title could keep a width it never used
+
+On a phone, every line on New and Edit order broke after its title: the price and both action
+buttons dropped to a second line, right-aligned, under a title block using a fraction of its own.
+It cost the short names as much as the long ones — *Towel*, a five-letter line, stood **94px** tall
+with `149,00 kr.` and its two buttons stranded on a line of their own — so the list read as a
+column of half-empty rows rather than as a list of items. Four lines came to **430.1px** of a
+664px screen before the add row was drawn.
+
+This was a decision, not an oversight, and it is already written down
+([*Order Detail — the row's figures dropped to a line of their own*](#order-detail--the-rows-figures-dropped-to-a-line-of-their-own-over-room-they-never-measured)):
+`.item-row-group` was written for exactly this shape, and the line editors were held back from it
+because a grouped title measured **64px** there — a grip, a 36px tile, a nowrap total and two
+buttons leave nothing — and 64px of a compound product name is a mid-word stack nobody asked to
+read. The measurement was right. What was never asked is whether the row had to keep all five.
+
+It did not. The total is the one figure in the row the row already states: the meta beside it reads
+`2 × 39,50 kr.`, so the line total is that arithmetic printed twice, and on every line whose
+quantity is 1 the two are the same number twice over. Hiding it at phone width — scoped to this
+list, not to `.item-row-group`, since Order details' read rows have no card to open and no second
+copy of the figure — pays for the grouping, and the title goes from 64px grouped to **141px**. The
+figure is still drawn on a desktop, where the row has the width for it, and still in the card the
+pencil opens, which prints `Per piece · line total X` under the price as it is typed.
+
+Measured on `devices['iPhone 13']` at `deviceScaleFactor: 2`, Blink 141.0.7390.37, on a fixture of
+four lines chosen to stress it: a 62-character spaced title, a 39-character unspaced one, a line
+carrying a retail price (which is what makes a meta long enough to need its own ellipsis) and a
+one-word line.
+
+| line | before | after |
+| --- | --- | --- |
+| `Bosch Styline MUM5 Stand Mixer…` (62 ch) | 130.47px, 2 flex lines, title wrapped to 3 | 56px, 1 line, title ellipsized |
+| `AA Batteries`, retail priced | 94px, 2 flex lines | 56px, 1 line, **meta** ellipsized |
+| `Kaffemaskineafkalkningsmiddelkoncentrat` | 111.63px, 2 flex lines, broken mid-word | 56px, 1 line, title ellipsized |
+| `Towel` | 94px, 2 flex lines | 56px, 1 line |
+| four lines together | 430.1px | 224px |
+| title block | 221px, on a line of its own | 141px, sharing the line |
+| line total | drawn, 2nd line | `display:none` |
+| overhang past the panel | −14px | −14px |
+| worst child overhang past its row | 0 | 0 |
+| document overflow | 0 | 0 |
+
+Desktop is untouched and was read on both sides to say so: 1440×900 gives the same four row heights
+(73.63 / 56 / 56 / 56), the same title blocks (440.58 / 158 / 313 / 69) and the total still `block`
+on every row — `.item-row-group` is defined only inside the phone media block, so the class the
+markup now states is inert above 700px.
+
+States beyond the one screenshot, since one state is not coverage: a one-line order (no grip column
+reserved, title 168px, still 56px and one flex line); a three-line order (grips on every row, all
+56px); the transient SAVED badge, which is a fifth thing competing for a row that can no longer
+wrap — it squeezes the title to 71px and the row stays 56px, one line, 0 overhang; and New order's
+step 2, the other page this component renders on, walked through step 1 rather than deep-linked
+(its URL alone lands on step 1) — 56px, one line, no error card, no page errors.
+
+Verified in Blink only; Gecko and WebKit are not installed and were not checked. Nothing here is
+engine-shaped — no native control, no prefixed property, no shadow pseudo-element — but that is a
+reading of the diff, not a run. `docs/` is unaffected: its three shots are Home twice and All
+orders, and none of them renders a line list.
+
+Two probes had to be fixed before their numbers meant anything, both of which had first reported a
+clean pass. Counting distinct child `top` values called every row 5 lines, because children of
+different heights centre to different tops on the same line; and once that was fixed the hidden
+total's all-zero rect became a phantom band of its own, so every phone row reported 2 flex lines
+while the desktop reported 1 — the fix is to count only children that are actually laid out. A
+third read the wrong order entirely: `/orders/A/edit` to `/orders/B/edit` changes only the hash, so
+the document never reloads and the form keeps A's draft, and a bare `waitForSelector` was satisfied
+by A's rows. The three-line order came back as one row and would have been recorded as one.
