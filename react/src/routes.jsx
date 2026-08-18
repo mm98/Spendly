@@ -5,6 +5,7 @@ import { RouteError } from './components/RouteError.jsx'
 import { ListState } from './components/ListState.jsx'
 import { Waiting } from './components/Async.jsx'
 import { getCurrentUser, getSettings } from './api/client.js'
+import { cachedFetch } from './api/useApi.js'
 import { setCurrency, setLocale } from './api/format.js'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
@@ -12,10 +13,20 @@ import Register from './pages/Register.jsx'
 /* Every route under the app shell requires a signed-in session — checked once per navigation
    by this loader, rather than by every page guessing at whether its own data will 401. A
    session-less visitor is sent to /login before the shell (sidebar, rail, command palette)
-   ever mounts, so none of that chrome has to handle "no user" as a state of its own. */
+   ever mounts, so none of that chrome has to handle "no user" as a state of its own.
+
+   React Router reruns a matched loader on every navigation, including one that only changes
+   the URL's search params -- a pagination click, a filter -- so this ran on every page turn of
+   All orders and fired /api/auth/me plus /api/settings each time, cache or no cache, because it
+   called the client functions directly rather than through it. `cachedFetch` is the same
+   trusted-within-FRESH_MS cache useApi gives a page (useApi.js): once this account has been
+   checked, a hit here costs nothing until the entry goes stale or a write invalidates it
+   (login, logout and settings-save already do, in client.js), so a reader who is already known
+   to be signed in is not re-asked on every navigation -- only the first one, and then again
+   only after the horizon. */
 const requireAuth = async () => {
 	try {
-		await getCurrentUser()
+		await cachedFetch(getCurrentUser)
 		/* The account's currency and date format, resolved before the first page renders
 		   rather than by whichever page happens to load settings. Every figure and every date
 		   in the product is printed through them, and most pages never read settings at all --
@@ -24,8 +35,10 @@ const requireAuth = async () => {
 		   changes currency, or a date that changes shape, a moment after it is read. Here it
 		   is one await on a path every page already waits for. Its own failure is not the
 		   shell's: a settings read that falls over should not send a signed-in reader to the
-		   login screen, so both stay at their defaults and the page still renders. */
-		await getSettings().then(s => { setCurrency(s?.currency); setLocale(s?.locale) }).catch(() => {})
+		   login screen, so both stay at their defaults and the page still renders. Cached under
+		   the same key useApi(getSettings) uses, so a page that reads settings itself (Settings,
+		   AllOrders, ...) shares this answer instead of asking twice. */
+		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale) }).catch(() => {})
 		return null
 	} catch (e) {
 		if (e.status === 401) throw redirect('/login')
