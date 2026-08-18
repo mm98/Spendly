@@ -98,6 +98,21 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 	return { ...state, refresh }
 }
 
+/** The cache above, for a caller with no component to hook into -- the route loader that
+    guards every page (routes.jsx) runs outside React and needs the same trusted-within-
+    FRESH_MS answer useApi gives a page, not a fresh request on every navigation. Same key, same
+    Map: a hit recorded here is a hit for a page's own useApi(fn) call and back, so the loader's
+    settings read and Settings.jsx's own useApi(getSettings) share one answer instead of two. */
+export async function cachedFetch(fn, args = [], signal) {
+	const key = keyOf(fn, args)
+	const hit = cache.get(key)
+	if (hit && Date.now() - hit.at < FRESH_MS) return hit.data
+	const data = await fn(...args, signal)
+	cache.set(key, { data, at: Date.now() })
+	evict()
+	return data
+}
+
 /** Forgets one endpoint's cached answers, or all of them. Called after a write. */
 export function invalidate(fn) {
 	if (!fn) { cache.clear(); return }
