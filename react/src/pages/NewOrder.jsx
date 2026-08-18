@@ -17,12 +17,13 @@ import {
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
+import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addItemAttachments, createOrder, createVendor, failureMessage, getCategories, getOrderDraft,
-	getVendors, invalidateOrderData, invalidateVendorData, spendKinds, vendorByAnyName, vendorTextMatch
+	addItemAttachments, createOrder, failureMessage, getCategories, getOrderDraft,
+	getVendors, invalidateOrderData, spendKinds
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
-import { currency, currencySymbol, parseAmount, percent, plural, sep, shortDate, today } from '../api/format.js'
+import { currency, currencySymbol, parseAmount, percent, shortDate, today } from '../api/format.js'
 
 /* New order, in two steps that share one draft.
 
@@ -94,50 +95,8 @@ export function NewOrderDetails() {
 
 	const set = (name, key) => v => { update({ [key]: v }); recheck(name, v) }
 
-	/* CREATE VENDOR "..." is the foot of the vendor list, and it creates the vendor rather than
-	   only typing its name into the field: a row labelled with a verb that does not do the
-	   verb is the decorative-control rule inside a dropdown. README: Honest Affordances.
-	   Typed text that is an existing vendor's alias never reaches the create: the action row
-	   swaps to USE <vendor> before it is pressed, and this guard resolves the same way if it
-	   is somehow pressed anyway -- creating a twin is the thing aliases exist to prevent. */
-	/* What the typed text already is, before offering to make it something: a match here on an
-	   alias swaps the action row's label from CREATE to USE. A match on a vendor's own name
-	   never renders -- the combobox hides the action for text matching an option's label. */
-	const aliasHit = vendorByAnyName(vendors.data ?? [], draft.vendor)
-
-	/* The combobox's own filter only ever matches an option's label, and a vendor answers to
-	   more names than the one it shows -- `search` is what typing an alias actually finds, and
-	   the matched alias is named in the meta for the same reason All vendors names it: the row
-	   the search returns may carry the typed text nowhere else on it. README: Vendors. */
-	const vendorOption = v => {
-		const { alias } = vendorTextMatch(v, draft.vendor)
-		return {
-			id: v.id, label: v.name,
-			meta: plural(v.orders, 'order') + (alias ? `${sep}also ${alias}` : ''),
-			search: [v.name, ...(v.aliases ?? [])].join(' ')
-		}
-	}
-
-	const addVendor = name => {
-		const clean = String(name).trim()
-		if (!clean) return
-		const existing = vendorByAnyName(vendors.data ?? [], clean)
-		if (existing) {
-			update({ vendor: existing.name })
-			recheck('order-vendor', existing.name)
-			toast(`"${clean}" is an alias of ${existing.name}, so ${existing.name} is used.`)
-			return
-		}
-		createVendor(clean)
-			.then(vendor => {
-				invalidateVendorData()
-				vendors.refresh()
-				update({ vendor: vendor.name })
-				recheck('order-vendor', vendor.name)
-				toast(`${vendor.name} added to your vendors.`)
-			})
-			.catch(e => toast(failureMessage(e, 'The vendor was not created. Try again.'), 'negative'))
-	}
+	const pickVendor = name => { update({ vendor: name }); recheck('order-vendor', name) }
+	const vendorPicker = useVendorPicker(vendors, draft.vendor, pickVendor, toast)
 
 	const next = () => {
 		const failed = check()
@@ -180,20 +139,10 @@ export function NewOrderDetails() {
 					placeholder="Search vendors..." value={draft.vendor}
 					invalid={vendorField.invalid} describedBy={vendorField.describedBy}
 					onChange={set('order-vendor', 'vendor')}
-					onSelect={o => { update({ vendor: o.label }); recheck('order-vendor', o.label) }}
+					onSelect={o => pickVendor(o.label)}
 					leadingIcon="search"
-					groups={[
-						{ heading: 'Favourites', options: (vendors.data ?? []).filter(v => v.favourite)
-							.map(v => ({ ...vendorOption(v), star: true })) },
-						{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
-							.map(vendorOption) }
-					]}
-					action={aliasHit
-						? { icon: 'check',
-							label: `USE ${aliasHit.name.toUpperCase()}: "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
-							onSelect: addVendor }
-						: { icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
-							onSelect: addVendor }} />
+					groups={vendorPicker.groups}
+					action={vendorPicker.action} />
 			</Field>
 
 			<FieldPair>
