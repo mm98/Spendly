@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { IconButton } from './Button.jsx'
+import { ConfirmDialog } from './ConfirmDialog.jsx'
 
 /* The favourites spotlight both overview pages share: a grid of small stat tiles, three
    across on a wide panel and one per row on a phone, each carrying the record's mark, its
@@ -11,6 +12,17 @@ import { IconButton } from './Button.jsx'
    One tile, fed by both, is the two-pages-one-fact rule made structural. README: Favourites. */
 
 const join = (...parts) => parts.filter(Boolean).join(' ')
+
+/* The unstar-shaped wording of the shared dialog (ConfirmDialog.jsx), the way FormPage's
+   DeleteDialog is its delete-shaped one. The star sits in every tile's corner, so a stray
+   click lands on it easily -- and though unstarring is reversible in principle, the tile it
+   removes takes its own way back with it. The sentence says what is and is not lost, so the
+   reader confirming knows the record survives and only the pin goes. */
+export const UnstarDialog = ({ name, onConfirm, onCancel }) => (
+	<ConfirmDialog title={`Remove ${name} from favourites?`}
+		detail="Only the pin here is removed. The record itself stays, and starring it again brings it back."
+		confirmLabel="REMOVE" onConfirm={onConfirm} onCancel={onCancel} />
+)
 
 export const FavouriteTileGrid = ({ children }) => <div className="fav-tile-grid">{children}</div>
 
