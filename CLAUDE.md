@@ -825,3 +825,30 @@ follow in the meantime, since following them would mean editing a file this repo
   rebasing any unmerged commit onto the new base rather than dropping it), force-with-lease, and say
   in the report that the work needs a new pull request, because the merged one will never carry it.
   A push is not a delivery.
+- **A pull request body carries a before and an after image of everything it changes, and one pair
+  per feature.** A reviewer reading a merge message should not have to check the branch out to see
+  what moved. So every PR that adjusts anything visible ships shots of the state before the change
+  and the state after it, rendered in the same pass that verifies the change. When a branch carries
+  more than one feature, the body is segmented -- one `###` heading per feature, its own before and
+  its own after underneath, never one pooled gallery a reader has to map back onto the diff. A
+  change that renders nothing (a rule about the work, a docs edit, a payload removal with 0
+  differing pixels) says so in the same place, in a sentence, instead of pairing two identical
+  images: "no rendered change -- 0 of 5,184,000 against the unchanged source" is the honest form of
+  this rule, not an exemption from it.
+
+  The mechanics, because the images have to be reachable from GitHub's side and nothing here can
+  drag a file into a text box: render both shots with the same harness `docs/` uses, commit them
+  under `docs/changes/<branch-name>/<feature>-before.png` and `-after.png`, and reference them in
+  the body by raw URL on the pushed branch
+  (`https://raw.githubusercontent.com/<owner>/<repo>/<branch>/docs/changes/...`). They are working
+  artefacts, not baselines -- `docs/home.png`, `docs/all-orders.png` and `docs/phone.png` stay the
+  three documented states and are regenerated under their own rule, above.
+
+  **The "before" is rendered from the unchanged source, not remembered.** Same viewport, same
+  device descriptor, same locale and zone, same seed, same day -- everything the environment section
+  pins, or the pair documents the calendar and the rasteriser rather than the change (`home.png` and
+  `phone.png` move on their own overnight; the numbers are in [Verification](#the-environment-settled----do-not-re-derive-it)).
+  The cheap shape is: `git stash`, render every before, restore, render every after, and say in the
+  report which commit each side came from. And the shot has to hold the state under test -- a
+  control that only breaks when open, filled or focused is documented by a pair driven into that
+  state, per the shot-cannot-document-a-state-it-does-not-hold rule above.
