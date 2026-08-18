@@ -139,12 +139,21 @@ export function OrderRow({ order, to }) {
 	)
 }
 
-/** A chart's key, where each entry is also the way into the orders behind it. */
-export function LegendRow({ colour, title, amount, to }) {
+/** A chart's key, where each entry is also the way into the orders behind it.
+
+    `meta` is a second line under the title, drawn only where there is one to draw: the rows
+    that have nothing to add keep the single-line row every other chart's key is, rather than
+    every legend in the app growing a blank line so one of them can carry a sentence. */
+export function LegendRow({ colour, title, meta, amount, to }) {
 	return (
 		<Row to={to} family="chart-legend-row">
 			<span className="chart-swatch" style={{ background: colour }} />
-			<span className="chart-legend-row-title">{title}</span>
+			{meta ? (
+				<span className="chart-legend-row-text">
+					<span className="chart-legend-row-title">{title}</span>
+					<span className="chart-legend-row-meta">{meta}</span>
+				</span>
+			) : <span className="chart-legend-row-title">{title}</span>}
 			<span className="amount tabular-figures">{amount}</span>
 			{to ? <Chevron /> : null}
 		</Row>

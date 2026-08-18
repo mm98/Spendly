@@ -618,6 +618,14 @@ svg.chart { width:100%; display:block; }
    title. It is a part with a name now, at the row spec's 13/600. README: Data Rows. */
 .chart-legend-row-title, .card-tray-row-title, .category-row-title,
 .entry-list .entry-name { font-size:13px; font-weight:600; }
+/* The title and its meta line stack; the row itself stays the flex row every other legend
+   entry is, so a row with no meta is unchanged to the pixel. Same 11px muted meta as
+   .category-row-meta, and the same one line with an ellipsis .item-row-meta already had --
+   one shape for "a name with a fact under it", wherever it is drawn. min-width:0 is what
+   makes the ellipsis reachable: without it the box never gets shorter than its text.
+   README: Data Rows. */
+.chart-legend-row-text { display:grid; gap:1px; min-width:0; }
+.chart-legend-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .chart-legend .amount { margin-left:auto; font-size:13px; font-weight:600; }
 .chart-legend .chevron { color:var(--text-faint); margin-left:6px; }
 
@@ -703,7 +711,12 @@ svg.chart { width:100%; display:block; }
 .category-row:first-child { border-top:0; }
 .category-icon { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-inverse); flex:none; }
 .category-icon svg.icon { width:17px; height:17px; stroke-width:2; }
-.category-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); }
+/* One line, ellipsis, like every other meta in the app -- it wrapped to two and three lines
+   on a phone, which reads as a broken list rather than as more text, and the row it belongs
+   to has a fixed icon and a fixed amount either side of it. The title above still wraps: it
+   names the thing, so it may not be cut. README: Data Rows. */
+.category-row > div { min-width:0; }
+.category-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .category-row .amount { margin-left:auto; font-weight:600; font-size:13px; }
 
 /* dark AI card */

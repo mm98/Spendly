@@ -300,6 +300,24 @@ its step; page the pager, then read the width. Labels count as the other control
 name was fixed at "Daily spend through July" while the tabs beside it chose the series and the chips
 chose the span, so it announced neither, and a screen reader heard "spend" over a line of order counts.
 
+**A fallback that cannot fail is a discard with better manners.** The width picker on Statistics
+threw away the window the pager was set to -- page back to 2022, pick Month, land on this month --
+and the line that did it reads as defensive programming: an id that does not parse for the width
+asked for falls back to the current window. Every probe here passes over it, because the fallback
+renders a real window, of the right width, correctly, in every engine and every state; what is
+missing is only the thing the reader had already chosen. So wherever a parameter can be *rejected*
+rather than honoured, drive the rejection and name what was lost -- and read the answer's own echo
+of the parameter (`window.id` here) rather than the fact that a page rendered.
+
+**And the answer on screen is not the answer to the request in the URL.** `useApi` keeps the last
+good data across a refetch, deliberately, so for one render the window rendered is the previous
+one. An effect written to keep the URL honest read that stale window and wrote it back over the
+click that had just changed it: the back arrow moved to 2025 and the URL snapped to 2026, which
+looks exactly like a pager that does not work. Anything deriving state *from* rendered data has to
+establish that the data answers the current request first -- and a probe that clicks and then reads
+after a fixed wait cannot see this at all, since both halves settle. Wait on the value changing,
+then read the URL and the heading together.
+
 **Two pages that state the same fact are a probe, and only reading both of them runs it.** Statistics
 listed August's four returns; Orders overview, scoped to the same month, said *No open returns found*
 -- and it said it because the card was markup with no data path behind it, so it would have said it

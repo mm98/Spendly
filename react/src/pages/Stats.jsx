@@ -1,16 +1,17 @@
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
-import { Card, CardBody, CardDivider, CardHeader, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
 import { Chart, ChartScale, RangeTabs, bucketOf, bucketsFor, plotted, sampled, todayMarker } from '../components/Chart.jsx'
 import { Meter, MonthColumns, SpendGauge, WeekdayBars } from '../components/Viz.jsx'
-import { LegendRow } from '../components/Rows.jsx'
+import { CategoryRow, LegendRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
-import { IconButton } from '../components/Button.jsx'
+import { Button, IconButton } from '../components/Button.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { useApi } from '../api/useApi.js'
-import { getStats, ranges } from '../api/client.js'
-import { currency, fullStop, plural, sep } from '../api/format.js'
+import { getStats, ordersIn, ranges } from '../api/client.js'
+import { currency, fullStop, percent, plural, sep } from '../api/format.js'
 
 /* Statistics.
 
@@ -33,6 +34,48 @@ import { currency, fullStop, plural, sep } from '../api/format.js'
    header: it is the pager's own row, it already wraps, and the buttons in it are the size of
    the buttons beside them. README: Cards. */
 
+/** What a slice of the ring says about its own budget, or nothing where the category has none.
+    The percentage is the window's -- the same ratio the card below prints. Which reading it is
+    ("124% of budget" over a year is a different sentence from the same words over August) is
+    said once in the card's header rather than on all ten rows: the qualifier is the same for
+    every row in the card, and repeating it wrapped half of them onto a second line. */
+const splitBudgetMeta = entry => (entry.budget ? `${percent(entry.budgetUsed, 0)} of budget` : null)
+
+/** Which width an id was written for, by its own shape -- the client's half of the same four
+    formats the API parses. Only ever used as a guard: the API is what re-anchors an id from one
+    width to another, and this says whether the id in the URL is a window of the width beside
+    it or the one the reader just changed away from. */
+const rangeOfId = id => (
+	/^\d{4}-W\d{2}$/.test(id) ? 'week'
+		: /^\d{4}-\d{2}$/.test(id) ? 'month'
+			: /^\d{4}-Q[1-4]$/.test(id) ? 'quarter'
+				: /^\d{4}$/.test(id) ? 'year'
+					: id === 'all' ? 'all' : null)
+
+/* The three sentences a budget row can be, and which one it is depends only on how many months
+   the window holds. A month is the plain case both sides were already written for; anything
+   wider averages the spend down to a month; anything narrower cuts the allowance down to the
+   window. `months` is exact -- a quarter is 3 and a week is about 0.23 -- so the "exactly one
+   month" case is a comparison against 1 and not a range check. */
+const isMonth = budgets => Math.abs(budgets.months - 1) < 0.005
+
+const budgetBasis = budgets => (
+	isMonth(budgets) ? 'monthly budgets'
+		: budgets.months > 1 ? `monthly average over ${plural(Math.round(budgets.months), 'month')}`
+			: `${percent(budgets.months * 100, 0)} of a month's budgets`)
+
+/** The figure a row states: the window's own spend, or its monthly average where the window is
+    wider than the budget it is measured against. */
+const budgetFigure = (budgets, entry) => (budgets.months > 1 ? entry.perMonth : entry.spend)
+
+/* One short sentence, the same shape at every width: the percentage and the budget it is a
+   percentage *of*. Which reading that percentage is -- a month's own spend, a monthly average,
+   a window's share -- is the same for every row in the card, so it is said once in the header
+   rather than nine times down the rows: spelled out per row it ran to 44 characters, wrapped
+   all six rows onto two lines at 390px and three on the week, and a meta that wraps reads as a
+   broken list rather than as more text. README: Data Rows. */
+const budgetMeta = entry => `${percent(entry.used, 0)} of a ${currency(entry.budget, 0)} budget`
+
 export default function Stats() {
 	/* Which window is on screen lives in the URL, so a link to a week is a link to a week --
 	   and the browser's own Back walks the pager. The width is a parameter of its own because
@@ -45,9 +88,30 @@ export default function Stats() {
 	const state = useApi(getStats, [range, periodId])
 	const defaultId = state.data?.defaultId
 
-	const show = (width, id) => setParams({
+	const show = (width, id, options) => setParams({
 		...(width === 'month' ? {} : { range: width }),
 		...(id && id !== defaultId ? { period: id } : {})
+	}, options)
+
+	/* Changing the width hands the API the id of the width it is changing *from* -- "2022",
+	   asked for as a month -- and the API answers the month that window ended in. So for one
+	   render the URL carries an id of the wrong shape for the width beside it, and a link
+	   copied in that moment re-resolves against whatever "today" it is opened on. Write the
+	   window the page is actually showing back over it, replacing rather than pushing: the
+	   resolution is the same window, not a second one for Back to walk through.
+
+	   Both guards are load-bearing, and the first one cost a paged-back year to find. `useApi`
+	   keeps the last good data across a refetch, so between a click and its answer `shown` is
+	   the *previous* window -- and an effect that rewrites the URL from it undoes the click:
+	   pressing the back arrow to 2025 wrote ?period=2025, and this effect immediately wrote
+	   2026 back over it from the data still on screen. So it fires only where the URL's id
+	   cannot be a window of the width beside it (which is exactly the case it exists for) and
+	   only once the data on screen is that width's. */
+	const shown = state.data?.window
+	useEffect(() => {
+		if (!shown || !periodId || rangeOfId(periodId) === range) return
+		if (shown.range !== range) return
+		show(shown.range, shown.id, { replace: true })
 	})
 
 	return (
@@ -106,8 +170,14 @@ export default function Stats() {
 								    back to, and a picker with nothing selected over a month of data is
 								    the URL's claim drawn over the API's. The first click writes a name
 								    that exists. */}
+								{/* The window on screen, not the URL's copy of it: the picker hands the
+								    id it is leaving to the width it is entering, and the API re-anchors it
+								    to the window holding that one's last day. Picking Month while paged
+								    back to 2022 lands on December 2022 rather than on this month -- the
+								    picker and the pager are one control, and moving one used to silently
+								    discard where the other was. */}
 								<RangeTabs variant="pager" options={ranges} value={view.range}
-									onChange={key => show(key, periodId)} />
+									onChange={key => show(key, view.id)} />
 							</div>
 							<div className="row-inline">
 								<span className="figure-large tabular-figures">{currency(view.spent)}</span>
@@ -225,7 +295,12 @@ export default function Stats() {
 
 						<div className="two-column">
 							<Card aria-label="Where it went">
-								<CardHeader title={`Where it went${sep}${view.shortLabel}`} />
+								{/* The basis for every "% of budget" in the rows below, said once. */}
+								<CardHeader title={`Where it went${sep}${view.shortLabel}`}>
+									{view.budgets.total
+										? <span className="field-help">{budgetBasis(view.budgets)}</span>
+										: null}
+								</CardHeader>
 								<CardDivider />
 								<CardBody variant="ring-row">
 									{/* The ring and the rows are one list of numbers: the segments are the
@@ -243,6 +318,7 @@ export default function Stats() {
 											   "Without category" remainder has a null id and filters as `none` --
 											   the window's orders with no category at all. */
 											<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
+												meta={splitBudgetMeta(entry)}
 												amount={currency(entry.amount, 0)}
 												to={'/orders/all?' + `category=${entry.id ?? 'none'}&`
 													+ `from=${view.from}&to=${view.to}`} />
@@ -268,6 +344,73 @@ export default function Stats() {
 								</CardBody>
 							</Card>
 						</div>
+
+						{/* The budgets, on the window's own scale.
+
+						    A budget is a monthly allowance and this page draws five widths, so one of
+						    the two has to be converted before they can be printed in one sentence --
+						    and a card that skipped that is the "6664% of this month's budget used" the
+						    README's budget rule is written from, one page over. Longer than a month,
+						    the *spend* comes down to a monthly average, because that is the figure a
+						    monthly budget can be read against without dividing by twelve in your head;
+						    shorter, the *budget* goes down to the window's share of the month, because
+						    scaling four days up to a month is a claim about days that have not
+						    happened. The ratio is the same either way, so the meter and the rows cannot
+						    disagree. README: Meters and progress. */}
+						<Card aria-label="Against budget">
+							<CardHeader title={`Against budget${sep}${view.shortLabel}`}
+								to={view.budgets.total ? '/categories/all' : undefined}
+								label="Against budget, open all categories">
+								{view.budgets.total
+									? <span className="field-help">{budgetBasis(view.budgets)}</span>
+									: null}
+							</CardHeader>
+							<CardDivider />
+							<CardBody variant={view.budgets.total ? 'ring-row' : undefined}>
+								{view.budgets.total ? (
+									<>
+										<SpendGauge segments={[
+											{ share: Math.min(100, view.budgets.used), colour: 'var(--green)' },
+											{ share: Math.max(0, 100 - view.budgets.used), colour: 'var(--bg-meter-track)' }
+										]}
+											value={percent(view.budgets.used, 0)} label="of budget used"
+											ariaLabel={`${percent(view.budgets.used, 0)} of the budget for ${view.label} used`
+												+ `: ${currency(view.budgets.spent, 0)} of ${currency(view.budgets.allowed, 0)}`} />
+										<div className="category-rows chart-legend-fill">
+											{view.budgets.items.map(entry => (
+												/* The row's own amount is the figure its meta line is about -- the
+												   monthly average where that is what is being compared, the window's
+												   spend where it is -- so the number on the right and the sentence
+												   under the name are never two different periods. */
+												<CategoryRow key={entry.id}
+													category={{ ...entry, spend: budgetFigure(view.budgets, entry) }}
+													meta={budgetMeta(entry)}
+													to={ordersIn({ category: entry.id, from: view.from, to: view.to })} />
+											))}
+											{view.budgets.total > view.budgets.items.length
+												? <span className="field-help field-help-below">
+													{view.budgets.total - view.budgets.items.length} more budgeted
+													categor{view.budgets.total - view.budgets.items.length === 1 ? 'y' : 'ies'}
+													{sep}{view.budgets.over
+														? `${view.budgets.over} over budget in ${view.label}`
+														: `none over budget in ${view.label}`}</span>
+												: <span className="field-help field-help-below">
+													{plural(view.budgets.total, 'category', 'categories')} with a budget
+													{sep}{view.budgets.over ? `${view.budgets.over} over it` : 'none over it'}</span>}
+										</div>
+									</>
+								) : (
+									/* No budgets is not no data: the card says where a budget is set rather
+									   than drawing an empty ring against an allowance of nothing.
+									   README: Empty states. */
+									<EmptyState>
+										<p>No budgets set. Give a category a monthly budget and this card measures
+											{' '}{view.label} against it.</p>
+										<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
+									</EmptyState>
+								)}
+							</CardBody>
+						</Card>
 
 						<ReturnsCard title={`Returns${sep}${view.shortLabel}`} span={view.shortLabel}
 							returns={view.returns} />

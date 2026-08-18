@@ -74,13 +74,51 @@ export function windowBounds(userId, range, id) {
 	return { from, to, label: 'All time', shortLabel: 'all time' }
 }
 
-export function currentWindowId(range) {
-	const now = new Date()
-	if (range === 'week') { const { year, week } = isoWeekOf(now.getTime()); return `${year}-W${pad(week)}` }
-	if (range === 'month') return `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`
-	if (range === 'quarter') return `${now.getUTCFullYear()}-Q${Math.floor(now.getUTCMonth() / 3) + 1}`
-	if (range === 'year') return String(now.getUTCFullYear())
+/** The id of the window of `range` that contains a given day (epoch seconds). Every id in this
+    file is built here, so "which month is this" is one answer rather than one per caller. */
+export function windowIdAt(range, at) {
+	const day = new Date(at * 1000)
+	if (range === 'week') { const { year, week } = isoWeekOf(day.getTime()); return `${year}-W${pad(week)}` }
+	if (range === 'month') return `${day.getUTCFullYear()}-${pad(day.getUTCMonth() + 1)}`
+	if (range === 'quarter') return `${day.getUTCFullYear()}-Q${Math.floor(day.getUTCMonth() / 3) + 1}`
+	if (range === 'year') return String(day.getUTCFullYear())
 	return 'all'
+}
+
+export function currentWindowId(range) {
+	return windowIdAt(range, Math.floor(Date.now() / 1000))
+}
+
+/** Which width an id was written for, by its own shape. The four formats do not overlap, so an
+    id carries its range with it and a client changing width can hand back the id it already
+    has. */
+export function rangeOfWindowId(id) {
+	if (/^\d{4}-W\d{2}$/.test(id)) return 'week'
+	if (/^\d{4}-\d{2}$/.test(id)) return 'month'
+	if (/^\d{4}-Q[1-4]$/.test(id)) return 'quarter'
+	if (/^\d{4}$/.test(id)) return 'year'
+	if (id === 'all') return 'all'
+	return null
+}
+
+/** The window of `width` to show when the picker is moved and the id in hand belongs to the
+    width it was moved *from*.
+
+    Changing the width used to drop the window: an id that does not parse as the new width fails
+    `windowBounds` and falls back to the current one, so paging back to 2022 and then asking for
+    a month landed on this month -- the one place on the page where a control silently discards
+    what the control beside it was set to. The two are one control (the pager steps what the
+    picker chose), so moving one keeps where the other is: the new window is the one containing
+    the old window's **last day**, clamped to today, since a window later than today is one the
+    pager itself refuses to reach. Year 2022 -> Month is December 2022; this year -> Month is
+    this month, which is the old behaviour where the old behaviour was right. */
+function reanchorWindowId(userId, width, id) {
+	const was = rangeOfWindowId(id)
+	const bounds = was && windowBounds(userId, was, id)
+	if (!bounds) return currentWindowId(width)
+	const today = Math.floor(Date.now() / 1000 / DAY) * DAY
+	const anchor = Math.min(Math.max(today, bounds.from), bounds.to - DAY)
+	return windowIdAt(width, anchor)
 }
 
 /** The window `delta` steps away (±1), same width — what the pager arrows call. Null for
@@ -181,13 +219,24 @@ const selectSplit = db.prepare(`
     the window. The remainder becomes its own "Without category" row rather than vanishing --
     the ring and the list beside it are drawn from the one list, so nothing here can silently
     add up to less than the total both claim to break down. */
-function splitOver(userId, from, to, trueTotal) {
+function splitOver(userId, from, to, trueTotal, budgets) {
 	const rows = selectSplit.all({ userId, from, to })
 	const categorised = rows.reduce((s, r) => s + r.spend, 0)
 	const total = trueTotal ?? categorised
+	/* The window's budget for this category, where it has one -- the same numbers the budget
+	   card is drawn from, joined here rather than recomputed, because the split is the one list
+	   in the app that is already segmented by category and a reader looking at a category's
+	   share is one question away from "against what". A category with no budget carries nulls
+	   and the row says nothing extra; "Without category" has no id and so never matches.
+	   README: Meters and progress. */
+	const byBudget = budgets ? budgetsById(budgets) : new Map()
 	const split = rows.map((r, i) => ({
 		id: r.id, name: r.name, amount: r.spend, share: total ? (r.spend / total) * 100 : 0,
-		colour: r.colour ?? FALLBACK_SPLIT_COLOURS[Math.min(i, FALLBACK_SPLIT_COLOURS.length - 1)]
+		colour: r.colour ?? FALLBACK_SPLIT_COLOURS[Math.min(i, FALLBACK_SPLIT_COLOURS.length - 1)],
+		budget: byBudget.get(r.id)?.budget ?? null,
+		budgetAllowed: byBudget.get(r.id)?.allowed ?? null,
+		budgetUsed: byBudget.get(r.id)?.used ?? null,
+		perMonth: byBudget.get(r.id)?.perMonth ?? null
 	}))
 	const uncategorised = total - categorised
 	if (uncategorised > 0.005) {
@@ -195,6 +244,86 @@ function splitOver(userId, from, to, trueTotal) {
 			share: total ? (uncategorised / total) * 100 : 0, colour: 'var(--text-faint)' })
 	}
 	return split.sort((a, b) => b.amount - a.amount)
+}
+
+/* Every budgeted category, with the window's spend beside its monthly allowance. Not built
+   from `split` above: split holds what the window actually spent, so a category with a budget
+   and a quiet month drops out of it -- and out of the denominator with it, which is the
+   defect the README's budget rule already names (two screens, one caption, different sets of
+   allowances). Every category carrying a budget is a row here whether it was spent from or
+   not. README: Meters and progress. */
+const selectBudgets = db.prepare(`
+	SELECT c.id, c.name, c.colour, c.icon, c.icon_path AS iconPath, c.budget,
+		COALESCE((
+			SELECT SUM(ot.total * 1.0 / ot.category_count)
+			FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id
+			WHERE oc.category_id = c.id AND ot.user_id = @userId
+				AND ot.date >= @from AND ot.date < @to
+		), 0) AS spend
+	FROM categories c
+	WHERE c.user_id = @userId AND c.budget > 0
+`)
+
+/** How many months a window is, as a real number: every day counts as its own share of its own
+    month, so a calendar month is exactly 1, a quarter exactly 3 and a year exactly 12, and a
+    week is the 0.226 of August it actually is. Not days/30.44 -- that makes February 0.92 of a
+    month and prints a budget nobody set. */
+function monthsIn(from, to) {
+	let months = 0
+	for (let d = from; d < to; d += DAY) {
+		const at = new Date(d * 1000)
+		months += 1 / new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth() + 1, 0)).getUTCDate()
+	}
+	// Thirty-one additions of 1/31 come to 0.9999999999999993, so a whole month is not `=== 1`
+	// and a year is 12.000000000000037. Rounded here, once, where the sum is made: every figure
+	// on the card is derived from this one number, so it is the number that has to be clean
+	// rather than each of them separately.
+	return Math.round(months * 1e6) / 1e6
+}
+
+/** The budget card's numbers for a window.
+
+    A budget is a *monthly* allowance, and this page's window is any of five widths -- so the
+    two are put on one scale before either is printed, and `months` is what does it. The
+    allowance for the window is the monthly budget times the months in it: a quarter is three
+    of them, a year twelve, a week about a fifth of one. `perMonth` is the other direction --
+    the window's spend averaged back down to a month, which is what a year's row states beside
+    a monthly budget, since 148.000 kr. against 4.500 kr. is two periods in one sentence and
+    the reader has to divide by twelve to read it.
+
+    `used` is the same ratio either way (spend/allowance is perMonth/budget), so the card can
+    print the average and the meter can fill by the window without the two disagreeing. */
+function budgetRowsOver(userId, from, to) {
+	const months = monthsIn(from, to)
+	const rows = selectBudgets.all({ userId, from, to }).map(r => ({
+		id: r.id, name: r.name, colour: r.colour, icon: r.icon, iconPath: r.iconPath,
+		budget: r.budget, allowed: r.budget * months, spend: r.spend,
+		perMonth: months ? r.spend / months : 0,
+		used: r.budget && months ? (r.spend / (r.budget * months)) * 100 : 0
+	})).sort((a, b) => b.used - a.used || b.spend - a.spend)
+	return { months, rows }
+}
+
+/** The same rows as the card's summary, keyed by category -- what the ring's legend joins
+    against so a row there can state its share of budget without a second query or a second
+    idea of what a budget covers over this window. */
+const budgetsById = ({ rows }) => new Map(rows.map(r => [r.id, r]))
+
+function budgetSummary({ months, rows }, rowLimit) {
+	const allowed = rows.reduce((sum, r) => sum + r.allowed, 0)
+	const spent = rows.reduce((sum, r) => sum + r.spend, 0)
+	return {
+		/* Exact, not rounded for the caption that prints it: every figure above is derived from
+		   this number, so a rounded copy travelling beside them is a second, slightly different
+		   month count for anyone re-deriving one from the other -- 0.23 of a month against the
+		   0.2258 the allowance was actually computed from. The card rounds when it prints. */
+		months,
+		total: rows.length,
+		over: rows.filter(r => r.spend > r.allowed).length,
+		allowed, spent, used: allowed ? (spent / allowed) * 100 : 0,
+		// The same cut every other card on the page takes, and the count above says what it hid.
+		items: rows.slice(0, rowLimit)
+	}
 }
 
 const selectDailyTotals = db.prepare(`
@@ -442,7 +571,13 @@ function axisFor(range, from, to) {
     Skip what costs; never skip what something renders. README: Empty states. */
 export function getStats(userId, range, windowId, { summary = false } = {}) {
 	const width = ['week', 'month', 'quarter', 'year', 'all'].includes(range) ? range : 'month'
-	const id = windowId && windowBounds(userId, width, windowId) ? windowId : currentWindowId(width)
+	/* 'all' has one window, so it has one id -- windowBounds ignores the id it is handed for
+	   that width, which used to let `?range=all&period=2022-05` keep a month id in the URL of a
+	   window that is not a month. */
+	const id = width === 'all' ? 'all'
+		: !windowId ? currentWindowId(width)
+			: windowBounds(userId, width, windowId) ? windowId
+				: reanchorWindowId(userId, width, windowId)
 	const bounds = windowBounds(userId, width, id)
 
 	const now = totalsOver(userId, bounds.from, bounds.to)
@@ -469,6 +604,10 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 	const olderBounds = olderId ? windowBounds(userId, width, olderId) : null
 	const hasOlder = olderBounds && earliest != null && olderBounds.to > earliest
 
+	// One computation, two readers: the budget card below and the ring's legend beside it. Two
+	// cards on one page stating one fact is the rule that made them share it.
+	const budgetRows = budgetRowsOver(userId, bounds.from, bounds.to)
+
 	return {
 		window: {
 			id, range: width, from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
@@ -489,7 +628,8 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 			   month wrong. Day index, so a bucketed series maps it through its own cut. */
 			todayIndex: todayIn(bounds.from, bounds.to),
 			rhythm: rhythmOver(userId, bounds.from, bounds.to),
-			split: splitOver(userId, bounds.from, bounds.to, now.spent),
+			split: splitOver(userId, bounds.from, bounds.to, now.spent, budgetRows),
+			budgets: budgetSummary(budgetRows, cardRowsFor(userId)),
 			recent: summary ? null : recentColumns(userId, width, id),
 			returns: returnsIn(userId, bounds.from, bounds.to),
 			kpis: kpisFor(now, was, previousBounds?.shortLabel),

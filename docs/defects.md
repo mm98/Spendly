@@ -2016,6 +2016,139 @@ vendor field:
 
 ---
 
+## Statistics — changing the width threw the window away
+
+The picker and the pager are one control, and one half of it discarded the other. Paging back to
+**2022** and then picking *Month* opened **August 2026** — this month, on an account whose reader had
+just spent four clicks walking four years back. Nothing on the page was misdrawn: the URL still said
+`?range=month`, the pager still stepped months, the tiles, the chart and the six cards below were all
+that month's. The window was simply gone.
+
+The discard was a fallback with good manners. A window id is written for its own width (`2022`,
+`2022-Q4`, `2022-12`, `2022-W52`), so the id in hand after a width change never parses as the width
+being changed to — and the API answered the one thing it could not be wrong about, the current
+window:
+
+```js
+const id = windowId && windowBounds(userId, width, windowId) ? windowId : currentWindowId(width)
+```
+
+Every probe written for this page passes over that line. The chips change the chart on every click and
+the arrows move the window on every click, which is the two-controls rule already in this repo; what
+neither can see is that the second control silently resets what the first one was set to, because the
+reset *is* a valid window, correctly drawn, of the width that was asked for.
+
+An id now re-anchors instead of falling back: the new window is the one holding the **last day** of the
+old one, clamped to today. Measured in Blink 141.0.7390.37 under Playwright 1.56.1 against the app at
+`localhost:5173`, fresh account, demo fill `{seed: 7, months: 36, orders: 600}`, `en-GB` /
+`Europe/Copenhagen`, today 2026-08-18 — each row is the API's answer for the id the width before it
+left behind:
+
+| from | id handed over | to | before | after |
+| --- | --- | --- | --- | --- |
+| Year | `2022` | Month | August 2026 | **December 2022** |
+| Year | `2022` | Quarter | Quarter 3, 2026 | **Quarter 4, 2022** |
+| Year | `2022` | Week | Week 34, 2026 | **Week 52, 2022** |
+| Quarter | `2022-Q2` | Month | August 2026 | **June 2022** |
+| Month | `2022-05` | Week | Week 34, 2026 | **Week 22, 2022** |
+| Week | `2022-W20` | Month | August 2026 | **May 2022** |
+| Month | `2022-05` | Year | 2026 | **2022** |
+| All time | `all` | Month | August 2026 | August 2026 |
+| Year | `2026` (this year) | Month | August 2026 | August 2026 |
+
+The last two rows are the clamp, and they are why the anchor is *the last day, but never later than
+today*: the newest window ends in the future, and a picker that walked into September would land on a
+window the pager's own forward arrow refuses to reach.
+
+Driven through the UI — click *Year*, back-arrow twice, then each width in turn — the pager reads
+2026 → 2024 → **December 2024** → **Week 1, 2025** → **Quarter 1, 2025** → **2025**, and the URL
+follows it: `?range=year&period=2024`, `?period=2024-12`, `?range=week&period=2025-W01`,
+`?range=quarter&period=2025-Q1`, `?range=year&period=2025`. (December 2024's last day is 31 December,
+which is in ISO week 1 of 2025 — weeks run across the end of a year because weeks do.) No page errors
+in 18 width changes and 6 pages back.
+
+**The URL is rewritten from the answer, and that rewrite has a race in it.** `useApi` keeps the last
+good data across a refetch — deliberately, so the layout does not collapse — so between a click and
+its answer the window *on screen* is the previous one. An effect that canonicalised the URL from it
+undid the reader's own click: pressing the back arrow to 2025 wrote `?period=2025`, and the effect
+wrote **2026** straight back over it from the data still rendered. It fires now only where the id in
+the URL cannot be a window of the width beside it, and only once the data on screen is that width's.
+
+**Not run:** Gecko and WebKit are not installed in this container. Nothing here is a rendering
+question — every figure above is text read back from the DOM or from the API.
+
+## Statistics — the budgets were defined and never read
+
+A category carries a **monthly budget**, set on its own page, and Statistics — the one screen in the
+app whose whole job is a stretch of time broken down — never mentioned one. *Where it went* named
+each category and its spend for the window and stopped there; there was no budget card at all. The
+figure existed, the form to set it existed, and the page that would have to convert it to say
+anything was the page that did not ask.
+
+Converting is the whole of the problem, and it is why the omission was not a missing card so much as
+an unanswered question: a budget names a month and this page draws five widths. Both directions of
+the conversion are now on screen, and which one is used is decided by which invents nothing —
+
+| width | months in the window | what the card compares |
+| --- | --- | --- |
+| Week 34, 2026 | 0,225806 | the week's spend against 0,23 of each monthly budget |
+| August 2026 | 1 | the month's spend against the budget |
+| Quarter 3, 2026 | 3 | the monthly average against the budget |
+| 2026 | 12 | the monthly average against the budget |
+| All time | 29,580645 | the monthly average against the budget |
+
+`months` is summed a day at a time as each day's share of its own month, so a calendar month is
+exactly 1, a quarter exactly 3 and a year exactly 12 whatever the lengths of the months in them, and
+a week is the fraction of *its own* month it really is. Days over 30,44 makes February 0,92 of a
+month and prints an allowance nobody set.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, app at `localhost:5173`, fresh account,
+demo fill `{seed: 7, months: 36, orders: 600}`, 9 of 10 categories carrying a budget, 11.200 kr. of
+monthly budget between them:
+
+| width | window spend against allowance | the card | recomputed from the category list |
+| --- | --- | --- | --- |
+| Week | 2.223 kr. of 2.529 kr. | 88% | 2.529 kr. |
+| Month | 21.501 kr. of 11.200 kr. | 192% | 11.200 kr. |
+| Quarter | 39.636 kr. of 33.600 kr. | 118% | 33.600 kr. |
+| Year | 148.679 kr. of 134.400 kr. | 111% | 134.400 kr. |
+| All time | 579.187 kr. of 398.503 kr. | 145% | 398.503 kr. |
+
+Every row's own arithmetic was read back the same way: `perMonth × months = spend` and
+`used = spend ÷ (budget × months)` hold to the øre on all five widths, and each row's spend was
+checked against the same window's category split — the second source for that fact, since the ring
+beside it is drawn from one and the card from the other. They agree on every category at every
+width.
+
+**The muted line wrapped, because only one row family in the app had a rule against it.**
+`.item-row-meta` is one line with an ellipsis and says why in its own comment; `.category-row-meta`
+carried no such rule and neither did the legend's new one, so on an iPhone 13 descriptor the budget
+card's six rows all wrapped to two lines and the week's narrowest one to three — 16px of meta drawn
+as 32 and 48, in a list whose rows are otherwise 57px each. Both families follow the item row now
+(one line, ellipsis, `min-width:0` on the wrapper so the box can actually get shorter than its
+text), and the copy was shortened to fit rather than to be cut: every row reads
+`522% of a 400 kr. budget` at every width, since the qualifier that percentage is read under is the
+same for all nine rows and belongs in the card's header. All 15 meta lines on Statistics, 10 on
+Orders overview and 6 on Home are one line at 390px, none of them clipped. Forced past its box the
+rule fails as it should: a 83-character meta stays 16px tall, `scrollWidth > clientWidth`, drawn
+with an ellipsis and 94px inside its row — while a long category *name* still wraps to 57px, since
+the title names the thing and may not be cut.
+
+The rows in *Where it went* carry the same percentages from the same computation (Hobby 522%,
+Clothing 208%, Home office 229% over 2026), which is the point of joining them rather than
+recomputing: the two cards sit one above the other and could not be checked against each other by
+eye if they were two derivations. The qualifier moved to the card header after the first render —
+*monthly average* on each of ten rows wrapped four of them onto a second line, 73px against 57px,
+and the same move shortened the budget card's own rows once the phone was measured.
+
+A fresh account with no categories draws the card's empty state and no ring; the demo account's
+9 budgeted categories are 6 rows and a foot line reading *3 more budgeted categories • 5 over budget
+in 2026*, since the denominator counts every budget whether it was spent from or not. On an iPhone
+13 descriptor at `deviceScaleFactor: 2` the worst element in either card sits 1px inside its card
+and the document does not scroll sideways.
+
+**Not run:** Gecko and WebKit are not installed in this container.
+
 ## Meters and progress — a month's budget was measured against every month there had ever been
 
 *Against budget* on the Categories overview read **6664% of this month's budget used**, with the
