@@ -67,7 +67,7 @@ const same = (a, b) => ITEM_FIELDS.every(f => (a[f.name] ?? '') === (b[f.name] ?
 export function ItemLines({
 	items, onItemsChange, onAnnounce,
 	photoOf = () => ({}), onPhotoPick, onPhotoClear,
-	label = 'Items'
+	label = 'Items', heading = true
 }) {
 	const [openId, setOpenId] = useState(null)      // an item id, 'new', or null
 	const [form, setForm] = useState(BLANK)
@@ -227,13 +227,23 @@ export function ItemLines({
 
 	return (
 		<div className="item-lines">
-			<div className="space-between space-between-tight">
-				<span className="section-label">{label}<Sep />{items.length}</span>
-				<span className="field-help">
-					{openId === null && items.length > 1
-						? 'drag the grip to reorder'
-						: 'the pencil opens a line where it sits'}</span>
-			</div>
+			{/* The name, the count and the hint about how the list is worked, in one row -- or
+			    in none of them, where the host already has a card band to carry the first two.
+			    Edit order's items card names it the way Order details' does, and a section label
+			    under a card header is the same list named twice; the hint would then be left on
+			    its own line between the hairline and the panel, saying something the rail's own
+			    "Good to know" card says beside it. Where the list is a section inside a larger
+			    form -- the wizard's step 2, which has no card of its own -- this row is the only
+			    place it is named, so it draws all three. */}
+			{heading ? (
+				<div className="space-between space-between-tight">
+					<span className="section-label">{label}<Sep />{items.length}</span>
+					<span className="field-help">
+						{showGrips
+							? 'drag the grip to reorder'
+							: 'the pencil opens a line where it sits'}</span>
+				</div>
+			) : null}
 
 			<InsetPanel {...reorder.listProps}>
 				{items.map((item, i) => {

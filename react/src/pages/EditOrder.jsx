@@ -21,7 +21,7 @@ import {
 	vendorByAnyName
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
-import { currency, currencySymbol, parseAmount, percent, plural, today } from '../api/format.js'
+import { currency, currencySymbol, parseAmount, percent, plural, sep, today } from '../api/format.js'
 
 /* Editing an order, whole.
 
@@ -321,13 +321,23 @@ function EditOrderForm({ id, seed }) {
 				</Card>
 
 				<Card aria-label="Items">
-					{/* No CardHeader: the list states its own name and count, and the two of them
-					    stacked said "ITEMS • 4" over "LINES • 4" -- one list, two names, one
-					    number printed twice. The count belongs to whatever owns the list, and
-					    that is the list. The card keeps its accessible name in aria-label. */}
+					{/* The card band names the list and counts it, the way Order details' own
+					    items card does -- one header, in the shape every other card here uses.
+					    The list is told not to draw a second one: "ITEMS • 4" over "LINES • 4"
+					    was one list named twice, with the number printed twice under it. */}
+					<CardHeader title={`Items${sep}${draft.items.length}`}>
+						{/* The band's right-hand slot, the way Order details' items card puts the
+						    subtotal there. Drawn only when there is more than one line, because
+						    that is when the rows draw a grip at all -- and withdrawn by the
+						    stylesheet while a line is open, for the same reason the grips are. */}
+						{draft.items.length > 1
+							? <span className="field-help">drag the grip to reorder</span>
+							: null}
+					</CardHeader>
+					<CardDivider />
 					<CardBody variant="card-body-tight">
 						<ItemLines items={draft.items} onItemsChange={items => update({ items })}
-							onAnnounce={toast} photoOf={photoOf}
+							heading={false} onAnnounce={toast} photoOf={photoOf}
 							onPhotoPick={pickPhoto} onPhotoClear={clearPhoto} />
 					</CardBody>
 				</Card>

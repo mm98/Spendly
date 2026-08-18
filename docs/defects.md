@@ -2125,11 +2125,28 @@ Three defects in the line list, all of them alignment or naming rather than beha
 of them reachable by the assertions that cleared the list itself.
 
 **Two headers over one list.** The Items card drew a `CardHeader` reading `ITEMS • 4` and the list
-under it drew its own section label reading `LINES • 4` — one list, two names for it, and the
-same count printed twice, stacked. The card's header is gone: whatever owns a list owns its name
-and its count, and that is the list. The name is *Items* on both pages now, the word the rules,
-the empty-state sentence and the footer total already use; *Lines* was a third name for the same
+under it drew its own section label reading `LINES • 4` — one list, two names for it, and the same
+count printed twice, stacked. The name is *Items* in both places now, the word the rules, the
+empty-state sentence and the footer total already use; *Lines* was a third name for the same
 thing, inherited from the section label the old form sat above.
+
+Which of the two headers to keep was got wrong first, and the correction is the useful part. The
+card's header was the one deleted, on the reasoning that whatever owns a list owns its name — and
+that reasoning ignored what a `CardHeader` *is*. It is not a label; it is the card's header band,
+45px tall, `14px 20px`, an 11.5px section label in it and a hairline under it, and every other
+card in the app draws one. Replacing it with a bare label inside `card-body-tight` left the Items
+card as the only card on the page without a band, which is what got reported. The band is back,
+built the way Order details' own items card builds it, and the list is told not to draw a second
+one. Measured against a neighbouring card's header: **45px, `14px 20px`, 11.5px** on both, desktop
+and phone. A component that names itself is right up until the host has a place to name it, and
+the place here is a shape the design system already defines.
+
+The hint about dragging rides in the band's right-hand slot, the way that card puts its subtotal
+there, and it goes when the thing it describes goes: opening a line withdraws the grips, so
+`.card:has(.line-card) > .card-header .field-help` withdraws the hint with them. Hidden rather
+than removed, so the band does not change height when a line opens — **45px in both states**, and
+one line with nothing past either edge at 390px. An order with a single line draws no grip and no
+hint at all.
 
 **The add row lined up with nothing.** It was a bordered dashed box, and a box has to pad its
 content inwards. Measured against the first row's tile and title in the panel's own coordinates,

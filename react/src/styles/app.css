@@ -1377,6 +1377,11 @@ label.field-shell { cursor:pointer; }
    edge is the same green the focus ring uses: this is the one row on the list that is open. */
 /* --line-photo is the frame's own edge, named once because two rules and a breakpoint all
    have to agree about it: the column, the frame, and the phone's smaller header copy. */
+/* A card whose list has a line open has no grips in it -- the drag measures the rows on
+   screen and one of them is currently a card -- so the band's hint about dragging goes with
+   them. Hidden rather than removed: the band keeps its height, so opening a line does not
+   reflow the header above the list it just changed. */
+.card:has(.line-card) > .card-header .field-help { visibility:hidden; }
 .line-card { --line-photo:128px; margin:6px 0; background:var(--bg-card); border-color:var(--green); }
 .line-card-head { display:flex; align-items:center; gap:var(--gap-row); flex-wrap:wrap; }
 /* The head takes .section-label's own spec in the markup and declares only its difference. */
