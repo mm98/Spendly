@@ -10,7 +10,7 @@ import { FieldShell } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { Pager, paginate } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories, getSettings } from '../api/client.js'
+import { getCategoriesThisMonth, getSettings } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
 import { currency, percent, sep } from '../api/format.js'
 
@@ -21,7 +21,9 @@ import { currency, percent, sep } from '../api/format.js'
 
    The budget is in the meta line rather than under a bar of its own. It is a fact about the
    row, which is where every other fact about a category goes, and a progress bar per row is a
-   layout this app does not use anywhere else. */
+   layout this app does not use anywhere else. It names its month, because the amount column
+   beside it is all-time and two figures of two periods sitting one line apart is exactly how
+   the same row once read "1.456.574 kr. of 1.000 kr. budget". */
 
 /* Same shape as All vendors' list, with Share as this list's own column. */
 const SORTS = [
@@ -35,7 +37,10 @@ const SORTS = [
 ]
 
 export default function AllCategories() {
-	const state = useApi(getCategories)
+	/* The joined read the overview tab uses, under the same cache key: the budget in each
+	   row's meta is a monthly allowance, so the figure beside it has to be this month's spend
+	   rather than the all-time total the amount column carries. */
+	const state = useApi(getCategoriesThisMonth)
 	const [query, setQuery] = useState('')
 	/* The account's order, not this page's opinion of one. It was hardcoded to Name here and
 	   again on the other list, which is two places to change one answer and two places for the
@@ -93,7 +98,7 @@ export default function AllCategories() {
 										<Icon name={category.icon} path={category.iconPath} /></span>}
 									name={category.name}
 									meta={category.budget
-										? `${percent(category.share)} of expenses${sep}${currency(category.spend, 0)} of ${currency(category.budget, 0)} budget`
+										? `${percent(category.share)} of expenses${sep}${currency(category.monthSpend, 0)} of ${currency(category.budget, 0)} budget this month`
 										: `${percent(category.share)} of expenses${sep}no budget set`}
 									amount={currency(category.spend, 0)}
 									sub={`saved ${currency(category.saved, 0)}`}

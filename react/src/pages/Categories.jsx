@@ -8,7 +8,7 @@ import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
-import { failureMessage, getCategories, getUncategorised, invalidateCategoryData, updateCategory } from '../api/client.js'
+import { budgetUsed, failureMessage, getCategoriesThisMonth, getUncategorised, invalidateCategoryData, overBudget, updateCategory } from '../api/client.js'
 import { currency, percent, plural, sep } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
@@ -24,21 +24,18 @@ import { inkOn } from '../api/colour.js'
    list lives on the other tab or inside a legend, and the maintaining is on the record's own
    page. */
 
-/** How much of the month's total budget has been spent. Categories with no budget set are left
-    out of both sides, so an unbudgeted category cannot drag the figure down. */
-const budgetUsed = categories => {
-	const budgeted = categories.filter(c => c.budget > 0)
-	const allowed = budgeted.reduce((sum, c) => sum + c.budget, 0)
-	return allowed ? (budgeted.reduce((sum, c) => sum + c.spend, 0) / allowed) * 100 : 0
-}
-
 export default function Categories() {
 	/* The same request the All categories tab reads, under the same cache key -- switching
-	   between the two tabs re-uses one answer instead of fetching /api/categories once per
-	   tab name. The uncategorised remainder is its own small read (it is not a record, so it
-	   is not in the list), and the page waits on both: a ring drawn from one and re-drawn
-	   when the other lands would show two different splits a beat apart. */
-	const state = useApi(getCategories)
+	   between the two tabs re-uses one answer instead of fetching it once per tab name. The
+	   uncategorised remainder is its own small read (it is not a record, so it is not in the
+	   list), and the page waits on both: a ring drawn from one and re-drawn when the other
+	   lands would show two different splits a beat apart.
+
+	   It is the joined read rather than the plain list because every card here that names a
+	   budget is a month-scoped claim ("of this month's budget used", "over this month") and a
+	   budget is a monthly allowance, so those compare against `monthSpend`. The all-time
+	   figures on this page go on reading `spend`. */
+	const state = useApi(getCategoriesThisMonth)
 	const uncategorised = useApi(getUncategorised)
 	const toast = useToast()
 
@@ -77,7 +74,7 @@ export default function Categories() {
 				const spent = categories.reduce((sum, c) => sum + c.spend, 0) + none.spend
 				const saved = categories.reduce((sum, c) => sum + c.saved, 0) + none.saved
 				const budgeted = categories.filter(c => c.budget > 0)
-				const over = budgeted.filter(c => c.spend > c.budget)
+				const over = budgeted.filter(overBudget)
 				/* The records' own superlative -- "Without category" is not a category, so it
 				   cannot be the largest one. */
 				const top = categories.reduce((most, c) => (c.spend > (most?.spend ?? 0) ? c : most), null)
