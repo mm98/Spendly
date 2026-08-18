@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -50,7 +49,6 @@ const SORTS = [
 
 export default function AllVendors() {
 	const state = useApi(getVendors)
-	const [query, setQuery] = useState('')
 	/* The account's order, not this page's opinion of one. It was hardcoded to Name here and
 	   again on the other list, which is two places to change one answer and two places for the
 	   answer to drift; it is one setting now, and Name is still what a fresh account gets --
@@ -58,22 +56,33 @@ export default function AllVendors() {
 	   that lets you do that without reading every row. Picking a different order here is for
 	   this visit; the setting is what it opens as. README: Settings. */
 	const settings = useApi(getSettings)
-	const [chosen, setChosen] = useState(null)
-	const sortId = chosen ?? settings.data?.listSort ?? 'name-asc'
-	const sort = SORTS.find(s => s.id === sortId) ?? SORTS[0]
 
-	/* The same paging All orders has, from the same setting -- this list rendered every row
-	   while the setting beside it said ten, which made "Rows per page" a fact about one list
-	   of three. The page is in the URL, per README: Pagination; a new search or sort resets
-	   to page one, because page 4 of a list that just changed shape is a position in the old
-	   answer. README: Settings, Pagination. */
+	/* The whole of this list's state is the query string -- the keyword and the sort as well
+	   as the page. The page was in the URL and the other two were `useState`, which is a rule
+	   obeyed for one field of three: the same list, told the same way twice, was linkable by
+	   page number and not by what it was searching for. README: Pagination says the page is
+	   kept "in the URL with the rest of the list state", and this is the rest of it. It is
+	   also what lets ListState remember the list in one string rather than three. */
 	const [params, setParams] = useSearchParams()
 	const pageSize = settings.data?.pageSize ?? 10
+	const query = params.get('q') ?? ''
+	const sortId = params.get('sort') ?? settings.data?.listSort ?? 'name-asc'
+	const sort = SORTS.find(s => s.id === sortId) ?? SORTS[0]
 	const requestedPage = Number(params.get('page') ?? 1)
-	const setPage = p => setParams(p > 1 ? { page: String(p) } : {}, { replace: true })
 
-	const search = q => { setQuery(q); setPage(1) }
-	const resort = id => { setChosen(id); setPage(1) }
+	/* One writer, so the three cannot disagree about what the URL currently holds. A new
+	   search or sort resets to page one, because page 4 of a list that just changed shape is
+	   a position in the old answer. */
+	const write = (q, id, page) => {
+		const out = {}
+		if (q) out.q = q
+		if (id) out.sort = id
+		if (page > 1) out.page = String(page)
+		setParams(out, { replace: true })
+	}
+	const setPage = p => write(query, params.get('sort'), p)
+	const search = q => write(q, params.get('sort'), 1)
+	const resort = id => write(query, id, 1)
 
 	return (
 		<Page>

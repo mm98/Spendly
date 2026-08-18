@@ -183,6 +183,27 @@ routes are real routes, so a harness navigates by clicking what a user clicks an
 on arrival. The prototype renders the same stylesheet over drawn stand-ins -- useful for a CSS
 question, wrong for anything a control actually does. Where the two disagree, the app is the product.
 
+**The router is a hash router, so every URL a harness types needs the `#`.** `main.jsx` builds
+`createHashRouter`, for the reason the file states -- a built copy has to open from a static host,
+a `file://` URL or an unzipped folder, none of which rewrite paths. So `page.goto(BASE +
+'/orders/all?vendor=x')` does not fail: it serves index.html, the router sees an empty hash and
+renders **Home**, and every assertion after it measures the front page while reading like a broken
+selector. Two runs of it agree with each other perfectly. The address is `BASE + '/#/orders/all?...'`,
+the query string lives *inside* the hash, and `new URL(page.url()).search` is therefore always empty
+-- read `location.hash.split('?')[1]`, or a probe that navigates correctly still reports nothing.
+Printing the page title on arrival, which this file already asks for, is what catches it in one line.
+The API needs `api/` running too (`npm run dev` there): without it every page renders its error state
+and the first `waitForSelector` times out on a 502 nobody printed.
+
+**A redirect renders twice, so a probe that reads after a click reads the frame before it.** State
+restored by a redirect -- the list memory here -- is correct one render later than the click that
+triggered it, so `click(); read()` samples the *old* value and a fixed `waitForTimeout` samples
+whichever one it lands on. It does not fail loudly: it prints a plausible number. The CLEAR ALL bug
+in [`docs/defects.md`](docs/defects.md#all-lists--filtering-opening-a-row-and-coming-back-cleared-the-filters)
+was hidden this way for a whole run -- the bare URL printed one step, the bounced-back filter the
+next, and the two read as "cleared" and "restored" instead of as one defect. Wait for the URL to
+hold still across three polls before reading it, the same shape as the geometry settle above.
+
 **One engine is not coverage.** Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
 button no selector can reach, so ours landed on top of it — and every screenshot taken in Chromium

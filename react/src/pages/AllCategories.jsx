@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -41,7 +40,6 @@ export default function AllCategories() {
 	   row's meta is a monthly allowance, so the figure beside it has to be this month's spend
 	   rather than the all-time total the amount column carries. */
 	const state = useApi(getCategoriesThisMonth)
-	const [query, setQuery] = useState('')
 	/* The account's order, not this page's opinion of one. It was hardcoded to Name here and
 	   again on the other list, which is two places to change one answer and two places for the
 	   answer to drift; it is one setting now, and Name is still what a fresh account gets --
@@ -49,19 +47,26 @@ export default function AllCategories() {
 	   that lets you do that without reading every row. Picking a different order here is for
 	   this visit; the setting is what it opens as. README: Settings. */
 	const settings = useApi(getSettings)
-	const [chosen, setChosen] = useState(null)
-	const sortId = chosen ?? settings.data?.listSort ?? 'name-asc'
-	const sort = SORTS.find(s => s.id === sortId) ?? SORTS[0]
 
-	/* The same paging All orders has, from the same setting -- see All vendors, which pages
-	   for the same reason in the same shape. README: Settings, Pagination. */
+	/* Keyword, sort and page in the query string -- see All vendors, which holds its list
+	   state the same way for the same reasons. README: Settings, Pagination. */
 	const [params, setParams] = useSearchParams()
 	const pageSize = settings.data?.pageSize ?? 10
+	const query = params.get('q') ?? ''
+	const sortId = params.get('sort') ?? settings.data?.listSort ?? 'name-asc'
+	const sort = SORTS.find(s => s.id === sortId) ?? SORTS[0]
 	const requestedPage = Number(params.get('page') ?? 1)
-	const setPage = p => setParams(p > 1 ? { page: String(p) } : {}, { replace: true })
 
-	const search = q => { setQuery(q); setPage(1) }
-	const resort = id => { setChosen(id); setPage(1) }
+	const write = (q, id, page) => {
+		const out = {}
+		if (q) out.q = q
+		if (id) out.sort = id
+		if (page > 1) out.page = String(page)
+		setParams(out, { replace: true })
+	}
+	const setPage = p => write(query, params.get('sort'), p)
+	const search = q => write(q, params.get('sort'), 1)
+	const resort = id => write(query, id, 1)
 
 	return (
 		<Page>
