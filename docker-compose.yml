@@ -1,5 +1,6 @@
 # Spendly for a home server (written for QNAP Container Station, works anywhere Docker does).
 # The bind mount is the database: back that folder up and you have backed the app up.
+
 services:
   spendly:
     # Build locally, or swap these two lines for the CI-built image from GHCR
@@ -17,6 +18,12 @@ services:
       # Sessions over plain http (LAN access by IP). Remove this line if you put the app
       # behind HTTPS (reverse proxy, Tailscale serve), so the cookie goes back to Secure.
       SPENDLY_PLAIN_HTTP: "1"
+      # The bundle ships a source map beside every chunk, so a stack trace off this container
+      # names a file in src/ rather than index-<hash>.js:1:24817. They are fetched only when
+      # devtools is open, so no page load pays for them; the cost is that anyone who can reach
+      # this server can read the app's sources. Set to "0" to serve the chunks and 404 the maps
+      # -- a serving decision, so it takes a restart and not a rebuild.
+      SPENDLY_SOURCE_MAPS: "1"
     volumes:
       # On QNAP, prefer an absolute path on a real share, e.g. /share/Container/spendly:/data
       - ./data:/data

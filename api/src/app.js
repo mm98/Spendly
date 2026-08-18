@@ -147,6 +147,16 @@ app.use('/api/search', searchRouter)
    own default of serving index.html for '/' is the only fallback this needs, not a wildcard
    route for arbitrary paths the way a browser-history router would. */
 const CLIENT_DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'react', 'dist')
+/* The bundle ships a source map beside every chunk, which is what makes a stack trace off a
+   running container name a file in src/ instead of index-<hash>.js:1:24817. They are fetched
+   only when devtools is open, so nobody's page load pays for them; what they do cost is that
+   the app's sources are readable by anyone who can reach this server. An install that would
+   rather not offer them sets SPENDLY_SOURCE_MAPS=0 and the maps 404 while the chunks beside
+   them serve exactly as before. It is a serving decision rather than a build one, so the same
+   image does both and turning them off is a restart, not a rebuild -- and the .gz/.br variants
+   are named here too, or precompress.mjs's output would be the way around the switch. */
+if (process.env.SPENDLY_SOURCE_MAPS === '0') app.use((req, res, next) =>
+	/\.map(\.(gz|br))?$/.test(req.path) ? res.status(404).end() : next())
 if (existsSync(CLIENT_DIST)) app.use(express.static(CLIENT_DIST))
 
 /* Central error handler. A route error.status (400/404/409) is trusted verbatim; anything else
