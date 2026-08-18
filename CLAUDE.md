@@ -166,6 +166,17 @@ box, not about any change.
   and it decodes PNG for free.
 - **Contrast needs no DOM.** The sRGB relative-luminance formula is arithmetic -- run it in plain
   node. Settled: `--green` #14AC72 is **2.93:1** on white, `#838C84` is **3.47:1**.
+- **Lighthouse runs here, and it is the only instrument in this file that measures the wire.**
+  `npm i lighthouse` in a scratch directory, then
+  `CHROME_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx lighthouse <url>
+  --only-categories=performance --output=json --chrome-flags="--headless=new --no-sandbox"` --
+  it drives the same Chromium Playwright does, so nothing extra is downloaded and no engine
+  question is opened. It is noisy on its first run and quiet after: three runs of one build
+  agreed at perf 99/99/99, FCP 1508/1562/1562ms, and three of another at 87/87/87,
+  3057/3063/3066ms, while a single cold run of the first read 95 with 90ms TBT. So run it at
+  least twice a side and report the spread, or the first number is the machine warming up.
+  Point it at a served build (`node api/src/server.js` over `react/dist`), never at the dev
+  server: Vite serves unminified modules one file per import, which is a different application.
 - **Match counts:** `grep -o 'pattern' file | wc -l`, never `grep -c`.
 
 ### When a page can be rendered
@@ -230,6 +241,23 @@ files exactly. The pixel diff was not weak evidence here, it was evidence about 
 and a clean one would have been read as "nothing changed" by anyone who did not first ask whether the
 shot contains the control in the state that breaks. Before trusting a shot to clear a control, put the
 control in the state under test and check the shot actually holds it.
+
+**Nothing here measures the wire, so how a file is served is invisible to all of it.** The
+build wrote a `.br` beside every text asset, reported *78.1% off*, and the server handed out the
+identity file every time -- `express.static` does not read those variants, and the deploy this
+repository ships has no nginx in front of it to do the negotiation the script's own header
+assumed. The stylesheet went out at 62,581 bytes with an 11,338-byte copy of itself in the same
+directory, for as long as both existed. Every instrument in this file passed: the DOM is
+identical byte for byte, the rects are identical, the pixels are identical, the fonts all report
+`loaded`. They have to be -- a response body is the same bytes after the browser decodes it,
+which is the whole point of an encoding, so *the thing being measured is defined to be
+unchanged*. Read the response instead of the document: `curl -sI -H 'Accept-Encoding: gzip, br'`
+for the headers, `performance.getEntriesByType('resource')` for `encodedBodySize` against
+`decodedBodySize` per file in a real load. And treat a build step's own saving report as a claim
+about disk: `precompress.mjs` was right that it had written the bytes and had no way to know
+whether anything served them. Any artefact produced by one process and consumed by another needs
+one probe from the consumer's side, or the producer's log is the only evidence and it is
+measuring the wrong end.
 
 **Payload has no selector, so no instrument here points at it.** A `@font-face` nothing uses renders
 nothing, so the pixel diff is silent; it is not an element, so the walk never records it; it is not a

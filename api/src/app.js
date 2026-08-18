@@ -161,7 +161,94 @@ const CLIENT_DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..'
    be the way around the switch. */
 if (process.env.SPENDLY_SOURCE_MAPS !== '1') app.use((req, res, next) =>
 	/\.map(\.(gz|br))?$/.test(req.path) ? res.status(404).end() : next())
-if (existsSync(CLIENT_DIST)) app.use(express.static(CLIENT_DIST))
+/* The build writes a .br and a .gz beside every text asset (react/scripts/precompress.mjs),
+   and until now nothing read them back: express.static answers with the identity file
+   whatever a request's Accept-Encoding says, and this process is what serves the app in the
+   container. So the render-blocking stylesheet went over the wire at 62,581 bytes with an
+   11,338-byte brotli copy sitting in the same directory, and the entry chunk at 54,521 beside
+   14,973. precompress.mjs's own header assumed an nginx or a Caddy in front doing the
+   negotiation; the deploy this repository ships (Dockerfile, docker-compose.yml) is this
+   server on :4000 with nothing in front of it, so the variants were disk and no wire.
+
+   A stat per request rather than a listing built at boot: dist/ is rebuilt under a running
+   server often enough that a cached index would offer a .br for a chunk the build has since
+   renamed, and one stat off the page cache costs nothing against reading the file after it.
+
+   Vary is set for every negotiable path including the ones that fall through to identity -- a
+   shared cache that stored one encoding under a bare URL would hand brotli to a client that
+   never asked for it. */
+const NEGOTIABLE = /\.(css|js|html|json|svg|txt|map|webmanifest)$/
+const ENCODINGS = [['br', '.br'], ['gzip', '.gz']]
+
+app.use((req, res, next) => {
+	if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+	let pathname
+	try { pathname = decodeURIComponent(req.path) } catch { return next() }
+	// What express.static will end up reading, which for a directory request is its index --
+	// leaving that one out would leave the entry document as the only uncompressed text asset.
+	const file = pathname.endsWith('/') ? pathname + 'index.html' : pathname
+	if (!NEGOTIABLE.test(file) || file.includes('..') || file.includes('\0')) return next()
+	res.vary('Accept-Encoding')
+	/* A Range names bytes of the representation actually sent, so answering one with a
+	   different encoding answers a question about a file the client was not counting. Rare
+	   enough for a stylesheet that identity is the right reply. */
+	if (req.headers.range) return next()
+	const acceptable = new Set(String(req.headers['accept-encoding'] || '').split(',')
+		.map(part => part.trim().split(';'))
+		// br;q=0 is a client naming brotli to refuse it, and a substring test reads it as a yes.
+		.filter(([, q]) => !/^q=0(\.0+)?$/i.test((q || '').trim()))
+		.map(([token]) => token.toLowerCase()))
+	const encoding = ENCODINGS.find(([token, ext]) =>
+		acceptable.has(token) && existsSync(path.join(CLIENT_DIST, file + ext)))
+	if (!encoding) return next()
+	/* express.static would type the response from the extension of the file it actually reads
+	   -- .br, which is nothing -- and send() leaves a Content-Type that is already set alone,
+	   so naming it from the requested path here is what keeps a stylesheet a stylesheet.
+
+	   The read-back is not ceremony: res.type() resolves through mime-types, which answers
+	   false for an extension it does not know, and res.set writes that through as the literal
+	   string "false". All eight extensions NEGOTIABLE names resolve today (.map and
+	   .webmanifest included, to application/json and application/manifest+json), so this
+	   cannot fire now -- it is what stops a ninth added later from serving every one of its
+	   files with a broken Content-Type and no other symptom. */
+	res.type(path.extname(file))
+	if (!String(res.get('Content-Type')).includes('/')) { res.removeHeader('Content-Type'); return next() }
+	res.setHeader('Content-Encoding', encoding[0])
+	req.url = req.path + (pathname.endsWith('/') ? 'index.html' : '') + encoding[1] + req.url.slice(req.path.length)
+	next()
+})
+
+/* Cache-Control. express.static does set one -- `public, max-age=0`, measured, so the claim
+   worth making is not that assets were uncacheable but that every one of them was stale on
+   arrival: a hashed chunk whose name changes whenever its bytes do was revalidated on every
+   single load, one conditional round trip per asset, to be told 304 every time. Three
+   positions instead:
+
+     assets/     everything the build emits -- chunks, the stylesheet and the three woff2 faces
+                 -- content-hashed, so the name changes whenever the bytes do. A year,
+                 immutable, never revalidated. The fonts are in here rather than in the bucket
+                 below because they are imported from src/ for exactly that: an unhashed name
+                 can only ever be cached for as long as you are willing to serve a stale one.
+     index.html  the file that names the current hashes. no-cache is not "do not store": it is
+                 stored and revalidated, so a load after a deploy costs one 304 and picks up
+                 the new chunk names instead of running last week's.
+     everything  what public/ copies through verbatim -- the icons, the manifest. Unhashed, so
+     else        bounded rather than immutable: a replaced favicon reaches an already-open
+                 browser within the week rather than never.
+
+   The path handed in is the file that was read, so it ends in .br or .gz whenever the
+   negotiation above fired; the suffix comes off before the decision, or every compressed
+   response would fall through to the last position. */
+const CACHE_YEAR = 31536000
+const CACHE_WEEK = 604800
+if (existsSync(CLIENT_DIST)) app.use(express.static(CLIENT_DIST, {
+	setHeaders: (res, filePath) => {
+		const name = filePath.replace(/\.(br|gz)$/, '')
+		if (name.includes(`${path.sep}assets${path.sep}`)) res.setHeader('Cache-Control', `public, max-age=${CACHE_YEAR}, immutable`)
+		else if (name.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache')
+		else res.setHeader('Cache-Control', `public, max-age=${CACHE_WEEK}`)
+	}
+}))
 
 /* Central error handler. A route error.status (400/404/409) is trusted verbatim; anything else
    is a bug, logged and reported as a plain 500 rather than leaking a stack to the client. */

@@ -456,22 +456,87 @@ slow to run per request, which is the whole reason to run it once at build:
 | | identity | gzip | brotli |
 | --- | --- | --- | --- |
 | whole `dist/`, 44 files | 1,350.35 kB | 365.65 kB (72.9% off) | **319.15 kB (76.4% off)** |
-| first paint, 5 files | 373.88 kB | — | **98.78 kB** |
+| first paint, 8 files | 416.15 kB | — | **124.70 kB** (70.0% off) |
 
-Serving them is the host's half: nginx wants `gzip_static`/`brotli_static`, Caddy `precompressed
-br gzip`. A host that compresses on the fly ignores the variants and loses nothing, which is why
-they are written unconditionally. The originals stay — content negotiation needs the identity
-encoding to exist.
+Serving them used to be described here as the host's half — nginx `gzip_static`, Caddy
+`precompressed br gzip` — and the deploy this repository actually ships has no such host in
+front of it. `Dockerfile` and `docker-compose.yml` publish one process on `:4000`, and that is
+the API serving `dist/` through `express.static`, which answers with the identity file whatever
+a request's `Accept-Encoding` says. So every variant above was disk and none of it was wire: the
+render-blocking stylesheet went out at its full **62,581 bytes** with an 11,338-byte brotli copy
+of itself sitting in the same directory.
+
+`api/src/app.js` negotiates them now — brotli, then gzip, then identity, one `existsSync` ahead
+of the static mount — and sets `Vary: Accept-Encoding` on every negotiable path including the
+ones that fall through, since a shared cache holding one encoding under a bare URL would hand
+brotli to a client that never asked for it. `Content-Type` is named from the requested path
+rather than the file read, or a stylesheet served as `.br` types as nothing. A `Range` request
+opts out: a range names bytes of the representation actually sent, so answering one in a
+different encoding answers a question the client did not ask. Measured over the built `dist/`,
+per request:
+
+| request | `Accept-Encoding` | on the wire |
+| --- | --- | --- |
+| `/assets/index-*.css` | `gzip, deflate, br, zstd` | **11,338 B**, `Content-Encoding: br` |
+| `/assets/index-*.css` | `gzip, br;q=0` | **12,883 B**, `Content-Encoding: gzip` |
+| `/assets/index-*.css` | *(absent)* | **62,581 B**, no `Content-Encoding` |
+| `/assets/index-*.css` + `Range: bytes=0-99` | `br` | **206**, `bytes 0-99/62581` |
+| `/` | `gzip, deflate, br` | **343 B** of 1,119, `text/html` |
+
+That `br;q=0` row is the reason the header is parsed rather than substring-tested: a client
+naming brotli in order to refuse it reads as a yes to `includes('br')`. `.webmanifest` joined
+`precompress.mjs`'s extension list in the same pass — it is text, it was the one text asset in
+`dist/` still going out raw, and it is 551 bytes against 192.
+
+A host that compresses on the fly still ignores the variants and loses nothing, and the
+originals still stay, since content negotiation needs the identity encoding to exist.
+
+**Cache-Control, which `express.static` sets to `public, max-age=0`.** Not uncacheable, but
+stale on arrival: every asset revalidated on every load, one conditional round trip each, to be
+told 304 every time. Three positions instead — `assets/` is content-hashed, so the name changes
+whenever the bytes do and it can be `max-age=31536000, immutable`; `index.html` is the file that
+names those hashes and is `no-cache`, which is stored-and-revalidated rather than not stored, so
+a load after a deploy costs one 304 and picks up the new chunk names; everything `public/` copies
+through verbatim is unhashed and bounded at a week, so a replaced favicon reaches an open browser
+eventually rather than never.
 
 Loading is already asynchronous where it can be. The entry is `<script type="module">`, which
 defers by definition; the runtime and `vendor` chunks are `modulepreload`ed so they are in flight
 during parse rather than discovered after it; every page and every icon shard is fetched on demand.
 The stylesheet is the one blocking request in the document, and used to carry the three Poppins
 faces as data URIs — 31,493 of what was then 71,911 bytes, 43.8%, re-downloaded whenever any other
-rule in the file changed. They are static files under `public/fonts/` now, decoded from those same
-bytes rather than re-fetched, so they load in parallel with everything else instead of inflating
-the one request that blocks first paint: **41,530 bytes minified, down from 71,911**. `font-display:
-swap` (unchanged) still means text paints in the fallback face rather than waiting on them.
+rule in the file changed. They are files under `src/fonts/` now, decoded from those same bytes
+rather than re-fetched, so they load in parallel with everything else instead of inflating the one
+request that blocks first paint: **41,530 bytes minified, down from 71,911**. `font-display: swap`
+(unchanged) still means text paints in the fallback face rather than waiting on them.
+
+`src/fonts/` and not `public/fonts/`, because a `url()` the build can resolve is a file the build
+content-hashes: `poppins-600.woff2` ships as `assets/poppins-600-zEkxB9Mr.woff2`, which is what
+lets it be cached immutably for a year instead of bounded at a week because the name could not be
+trusted to change. The `@font-face` urls stay relative for that reason — an absolute `/fonts/...`
+is a URL Vite passes through untouched.
+
+They are also `rel="preload"`ed from `index.html`. A `@font-face` url is discoverable only once
+the stylesheet has been fetched *and parsed*, so all three faces sat a link deeper in the critical
+path than they needed to; Lighthouse read the chain as `/` → `css` → `poppins-600` at **172 ms**
+and the whole path at 397 ms on the reporter's own machine. Preloaded, the fonts leave the
+critical path entirely and start with the stylesheet rather than after it — measured at
+`startTime` 22–23 ms against the stylesheet's 23 ms, `initiatorType: "link"`, and the tree one
+level shallower:
+
+```
+before  /  →  /assets/index-*.css  →  /fonts/poppins-600.woff2      (3 deep)
+after   /  →  /assets/index-*.css                                   (2 deep)
+           →  /assets/index-*.js
+```
+
+The preload `href`s name the same source file the `@font-face` urls name, so the build rewrites
+both to the one hashed asset. That matters more than it looks: a preload whose URL misses the
+request it means to cover by one character is a silent second download, and matching two literals
+by hand is what drifts. `crossorigin` is not optional either, same-origin or not — a font is
+fetched in CORS mode, and a preload whose mode does not match the fetch after it downloads twice.
+Verified as **0 duplicate resource entries** and all three faces `loaded`, in the built app and
+under `vite dev` both.
 
 ### Source maps ride along with the chunks
 
@@ -551,8 +616,8 @@ checked.
   committed now is this app's render, which reproduced the previous one at **0 of 1,035,840** with
   the change reverted.
 - **Nothing served is dead weight.** `[...document.fonts]` reports all three Poppins faces
-  `loaded` — 500, 600 and 700 — so all three static files under `public/fonts/` are font the app
-  really draws with. A pass over the 252 class selectors in the stylesheet finds **14 that appear
+  `loaded` — 500, 600 and 700 — so all three files under `src/fonts/` are font the app really
+  draws with. A pass over the 252 class selectors in the stylesheet finds **14 that appear
   in no source file, and all 14 are composed at runtime** (`'button-' + variant`,
   `'note-' + tone`, `'icon-button-' + variant`, the `document-preview-*` kinds, `delta-*`,
   `chip-status-warning`) — there is no unused-CSS tail to strip from `dist/`.
