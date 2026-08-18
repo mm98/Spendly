@@ -1693,7 +1693,15 @@ label.field-shell { cursor:pointer; }
 	   phone the way to the next line is the row you tap. */
 	.line-card-head { display:none; }
 	.line-photo-heading, .line-photo-name { display:block; }
-	.line-photo-name { font-size:14px; font-weight:600; color:var(--text-strong); line-height:1.3; overflow-wrap:anywhere; }
+	/* One line, ellipsed -- the treatment `.item-row-group` gives a row title, for the same
+	   reason: a product name is as long as the vendor felt like making it, and wrapping one
+	   here pushes the frame's own actions down and re-heights the header under it. The full
+	   name is in the Description field two rows below, which is the field that owns it. */
+	.line-photo-name { font-size:14px; font-weight:600; color:var(--text-strong); line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+	/* The track has to be allowed to shrink below its content for that to bite: a bare `1fr`
+	   floors at min-content, and min-content for nowrap text is the whole string. */
+	.line-photo { grid-template-columns:auto minmax(0,1fr); }
+	.line-photo-foot { min-width:0; }
 	.line-photo-foot { gap:4px; text-align:left; }
 	.line-photo-actions { margin-top:3px; }
 	/* No hairline between them here: they sit under a line of text rather than under a frame
