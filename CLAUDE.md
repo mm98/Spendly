@@ -33,6 +33,52 @@ stated twice and obeyed once.
   its numbers to `docs/defects.md`, and how the bug got past us comes here. Do not copy the design
   system into this file; do not copy working procedure into that one; do not narrate a fix in either.
 
+## The API's queries
+
+### `npm run queries:check` is the standing guard, and it is a guard rather than a goal
+
+`api/scripts/check-queries.mjs` captures every SQL statement the API runs -- module-level
+prepares and the SQL the orders list builds per request alike -- against a seeded account, reads
+back the plan SQLite chooses for each, and compares the lot against `api/query-plans.json`. It
+runs in CI on every pull request and takes about a minute. `npm run queries:bless` records the
+current plans as accepted.
+
+**It reports only what changed.** That is the point: a blessed plan is a decision already taken,
+so an untouched query is silent and the reviewer's question is never "are all 96 plans still
+right" but "is this one new plan right" -- which is a question a person can answer. A finding
+appears when a new or changed statement scans a big table, sorts in a temp B-tree, walks one
+account's whole table through an index that does not carry what it selects, or reads a
+per-account table without naming user_id.
+
+**When it flags something, an index is the last option, not the first.** In order:
+
+1. **Is the path hot?** A query behind a rare admin action, at this install's size, does not need
+   a plan at all. Bless it and move on -- that is a decision, not a debt.
+2. **Can the query be rewritten?** The largest wins in the audit that produced this script were
+   rewrites and cost nothing to maintain: a correlated subquery per category became one grouped
+   pass (378ms to 72ms), a card driven from the wrong side of a join was turned around (11ms to
+   0.02ms), and two routes stopped aggregating a whole account to render one row.
+3. **Can the row carry the answer?** `item_count`, `category_count` and the stored totals are
+   this trade already made -- computed once at write time by a trigger, read for free forever.
+4. **Then an index** -- and the script counts them, because it has to. Every index is rewritten
+   whenever a covered column changes, and since the order totals are trigger-maintained, editing
+   one line item rewrites its order row and every index carrying `total`, `saved` or `discount`
+   with it. A new index is a baseline change that has to be argued for in review, and one that
+   loses its last reader fails the check as write cost with nothing reading it.
+
+**The fixture is ten accounts, and that is the real number.** One account with a large ledger and
+nine small neighbours: what grows here is a person's own history, never the tenancy. So an index
+that earns nothing at ten accounts is reported as earning nothing, and a plan is judged at the
+size this install actually reaches -- not at a scale it never will. A single-account fixture
+cannot do this at all: with one user, that user's rows *are* the table, `WHERE user_id = ?`
+matches everything, and every per-account index reports itself unread.
+
+**Stop when the plan is sound, not when it is fastest.** The point of the baseline is that
+optimisation ends: sound plans get blessed and stay blessed, and the check goes quiet. A
+milliseconds figure that no reader is waiting on is not a reason to touch a query -- the script
+prints timings precisely so they can be read and dismissed. Over-optimising costs the same
+review, the same risk and the same write budget as optimising, and buys nothing.
+
 ## Verification
 
 ### Verification is one pass at the end, not a gate on every edit

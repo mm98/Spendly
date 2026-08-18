@@ -6,7 +6,9 @@
 	"description": "Spendly's real API: an Express server over a SQLite database, replacing the phantom in-memory store react/src/api/client.js used to wrap.",
 	"scripts": {
 		"dev": "node --watch src/server.js",
-		"start": "node src/server.js"
+		"start": "node src/server.js",
+		"queries:check": "node scripts/check-queries.mjs",
+		"queries:bless": "node scripts/check-queries.mjs --update"
 	},
 	"dependencies": {
 		"better-sqlite3": "^13.0.3",
