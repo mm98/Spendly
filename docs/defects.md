@@ -2120,11 +2120,26 @@ checked against the same window's category split — the second source for that 
 beside it is drawn from one and the card from the other. They agree on every category at every
 width.
 
+**The muted line wrapped, because only one row family in the app had a rule against it.**
+`.item-row-meta` is one line with an ellipsis and says why in its own comment; `.category-row-meta`
+carried no such rule and neither did the legend's new one, so on an iPhone 13 descriptor the budget
+card's six rows all wrapped to two lines and the week's narrowest one to three — 16px of meta drawn
+as 32 and 48, in a list whose rows are otherwise 57px each. Both families follow the item row now
+(one line, ellipsis, `min-width:0` on the wrapper so the box can actually get shorter than its
+text), and the copy was shortened to fit rather than to be cut: every row reads
+`522% of a 400 kr. budget` at every width, since the qualifier that percentage is read under is the
+same for all nine rows and belongs in the card's header. All 15 meta lines on Statistics, 10 on
+Orders overview and 6 on Home are one line at 390px, none of them clipped. Forced past its box the
+rule fails as it should: a 83-character meta stays 16px tall, `scrollWidth > clientWidth`, drawn
+with an ellipsis and 94px inside its row — while a long category *name* still wraps to 57px, since
+the title names the thing and may not be cut.
+
 The rows in *Where it went* carry the same percentages from the same computation (Hobby 522%,
 Clothing 208%, Home office 229% over 2026), which is the point of joining them rather than
 recomputing: the two cards sit one above the other and could not be checked against each other by
 eye if they were two derivations. The qualifier moved to the card header after the first render —
-*monthly average* on each of ten rows wrapped four of them onto a second line, 73px against 57px.
+*monthly average* on each of ten rows wrapped four of them onto a second line, 73px against 57px,
+and the same move shortened the budget card's own rows once the phone was measured.
 
 A fresh account with no categories draws the card's empty state and no ring; the demo account's
 9 budgeted categories are 6 rows and a foot line reading *3 more budgeted categories • 5 over budget

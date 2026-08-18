@@ -68,17 +68,13 @@ const budgetBasis = budgets => (
     wider than the budget it is measured against. */
 const budgetFigure = (budgets, entry) => (budgets.months > 1 ? entry.perMonth : entry.spend)
 
-/* The meta line describes the amount printed beside it, so it opens by naming which figure
-   that is: a month's own spend needs no qualifier, a monthly average does, and a window
-   narrower than a month is spend against a cut-down allowance. Each of the three names both
-   periods it involves -- the README's budget rule, which is about a row printing "spent of
-   budget" without saying over what. */
-const budgetMeta = (budgets, entry) => (
-	isMonth(budgets)
-		? `${currency(entry.spend, 0)} of ${currency(entry.budget, 0)} budget`
-		: budgets.months > 1
-			? `monthly average${sep}${currency(entry.budget, 0)} budget${sep}${percent(entry.used, 0)} used`
-			: `${percent(entry.used, 0)} of ${currency(entry.allowed, 0)}${sep}this window's share of a ${currency(entry.budget, 0)} monthly budget`)
+/* One short sentence, the same shape at every width: the percentage and the budget it is a
+   percentage *of*. Which reading that percentage is -- a month's own spend, a monthly average,
+   a window's share -- is the same for every row in the card, so it is said once in the header
+   rather than nine times down the rows: spelled out per row it ran to 44 characters, wrapped
+   all six rows onto two lines at 390px and three on the week, and a meta that wraps reads as a
+   broken list rather than as more text. README: Data Rows. */
+const budgetMeta = entry => `${percent(entry.used, 0)} of a ${currency(entry.budget, 0)} budget`
 
 export default function Stats() {
 	/* Which window is on screen lives in the URL, so a link to a week is a link to a week --
@@ -388,7 +384,7 @@ export default function Stats() {
 												   under the name are never two different periods. */
 												<CategoryRow key={entry.id}
 													category={{ ...entry, spend: budgetFigure(view.budgets, entry) }}
-													meta={budgetMeta(view.budgets, entry)}
+													meta={budgetMeta(entry)}
 													to={ordersIn({ category: entry.id, from: view.from, to: view.to })} />
 											))}
 											{view.budgets.total > view.budgets.items.length
