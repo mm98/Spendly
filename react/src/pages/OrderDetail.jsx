@@ -7,6 +7,7 @@ import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { ImageLightbox } from '../components/Viz.jsx'
 import { DropZone, HiddenFileInput } from '../components/FileInput.jsx'
+import { RECEIPT_FILES } from '../components/fileKinds.js'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
@@ -212,7 +213,7 @@ export default function OrderDetail() {
 									const files = [...(e.dataTransfer?.files ?? [])]
 									if (files.length) attach(files)
 								}}>
-								<HiddenFileInput ref={filePicker} multiple accept="image/*,.pdf"
+								<HiddenFileInput ref={filePicker} multiple kind={RECEIPT_FILES}
 									label="Add attachments" onFiles={attach} />
 								{order.attachments.length ? order.attachments.map(file => (
 									<div key={file.id}>
@@ -234,7 +235,7 @@ export default function OrderDetail() {
 										</ItemRow>
 									</div>
 								)) : (
-									<DropZone icon="photo" accept="image/*,.pdf" label="Add attachments"
+									<DropZone icon="photo" kind={RECEIPT_FILES} label="Add attachments"
 										hint="Drop receipts here — as many as you like — or choose them."
 										action="CHOOSE FILES" onFiles={attach} />
 								)}

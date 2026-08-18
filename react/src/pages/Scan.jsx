@@ -9,6 +9,7 @@ import { FormPage, RecordWait } from '../components/FormPage.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview, ProgressBar } from '../components/Viz.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
+import { RECEIPT_FILES } from '../components/fileKinds.js'
 import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
@@ -102,7 +103,7 @@ export function ScanUpload() {
 					onClick={() => picker.current?.click()}>
 					<span aria-hidden="true"><Icon name="receipt" className="icon scan-drop-icon" /></span>
 					<span className="field-shell-placeholder">Drop a receipt here, or click to choose a file...</span>
-					<HiddenFileInput ref={picker} accept="image/*,.pdf" label="Choose a receipt" onFiles={upload} />
+					<HiddenFileInput ref={picker} kind={RECEIPT_FILES} label="Choose a receipt" onFiles={upload} />
 					<IconButton variant="send" icon="upload" label="Choose a receipt to scan"
 						onClick={e => { e.stopPropagation(); picker.current?.click() }} />
 				</div>

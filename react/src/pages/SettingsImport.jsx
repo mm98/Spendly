@@ -5,6 +5,7 @@ import { Button } from '../components/Button.jsx'
 import { CheckRow, FilterSection, FormActions } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
+import { EXPORT_FILES } from '../components/fileKinds.js'
 import { ProgressBar } from '../components/Viz.jsx'
 import { percent } from '../api/format.js'
 import { invalidate } from '../api/useApi.js'
@@ -249,7 +250,7 @@ export default function SettingsImport() {
 							<Button variant="block" icon="upload"
 								onClick={() => importPicker.current?.click()}>CHOOSE A JSON FILE</Button>
 						)}
-						<HiddenFileInput ref={importPicker} accept=".json,application/json"
+						<HiddenFileInput ref={importPicker} kind={EXPORT_FILES}
 							label="Choose a JSON file of orders" onFiles={([file]) => setImportFile(file)} />
 					</CardBody>
 				</Card>
