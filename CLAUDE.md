@@ -934,6 +934,16 @@ follow in the meantime, since following them would mean editing a file this repo
   offered, it is a turn spent asking and a turn spent refusing. If watching is ever wanted it will be
   asked for in those words, and then the PR is subscribed to and driven until it merges. Unasked, the
   report ends at what changed, what was measured and what was left open.
+- **When a run is being waited on, ask the thing that knows, and ask it about every ten
+  seconds.** A `until <check>; do sleep 20; done` loop around a status endpoint is the wrong
+  instrument twice over: the interval is longer than the answer takes to change, so a check
+  that finished at second 3 is reported at second 20 and the wait looks like the work; and the
+  loop keeps the turn open with nothing to show, so a reader watching it cannot tell a slow
+  build from a stuck one. CI here finishes in 20 to 90 seconds -- `build` and `queries` in
+  under 30 -- so ten seconds is the granularity worth having. Better still where it exists: ask
+  the API for the run's state directly and act on the answer, rather than sleeping between
+  guesses. And when someone says the checks are already done, believe them and go look; they
+  are reading the same page.
 - **A follow-up asked for after the pull request merged is a new branch, or it is a commit into
   nothing.** The branch a session pushes to is a PR branch, and a merged PR is finished -- it cannot
   track new work, so anything pushed to that branch afterwards sits outside the default branch
