@@ -4,6 +4,7 @@ import { Button, IconButton } from './Button.jsx'
 import { Icon } from './Icon.jsx'
 import { ConfirmDialog } from './ConfirmDialog.jsx'
 import { HiddenFileInput } from './FileInput.jsx'
+import { PHOTO_FILES } from './fileKinds.js'
 import { InsetPanel, ItemRow } from './Rows.jsx'
 import { useReorder } from './Reorder.jsx'
 import { useRowDelete } from './FormPage.jsx'
@@ -416,7 +417,7 @@ function LineCard({
 								? <span className="line-photo-mark"><Icon name="photo" /></span>
 								: <span className="line-photo-mark"><Icon name="photo" />Add photo</span>}
 					</button>
-					<HiddenFileInput ref={file} accept="image/*" label="Product photo" onFiles={take} />
+					<HiddenFileInput ref={file} kind={PHOTO_FILES} label="Product photo" onFiles={take} />
 					{/* Two plain text actions with a hairline between them, spread to the frame's
 					    own width. They were `ButtonLink`s, which is this app's *caps* text action
 					    -- SEE ALL, CLEAR ALL, SHOW ALL, and every other one of them is caps -- so
