@@ -392,7 +392,8 @@ function LineCard({
 							disabled={index >= count - 1} onClick={() => onStep(1)} />
 					</span>
 				)}
-				<span className="field-help push-end">Enter saves<Sep />Escape cancels</span>
+				{/* Two keys a phone does not have, so a phone does not print them. */}
+				<span className="field-help push-end line-card-keys">Enter saves<Sep />Escape cancels</span>
 			</div>
 
 			<div className="line-card-body">

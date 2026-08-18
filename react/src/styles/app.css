@@ -1393,9 +1393,14 @@ label.field-shell { cursor:pointer; }
 .line-card-title { color:var(--green-deep); }
 .line-card-body { display:flex; gap:var(--gap-panel); align-items:flex-start; }
 .line-photo { flex:none; width:var(--line-photo); display:grid; gap:8px; justify-items:center; }
-.line-photo-frame { font:inherit; font-size:11.5px; width:var(--line-photo); height:var(--line-photo); padding:0; border:1px solid var(--border-card); border-radius:var(--radius-page); background:var(--bg-tile); color:var(--thumb-glyph); display:grid; place-items:center; overflow:hidden; cursor:pointer; }
+/* `position:relative` and an inset image, rather than width/height:100% on a grid item. A
+   percentage height inside a grid whose row is content-sized has no definite box to resolve
+   against, so it falls back to the picture's own ratio: a 300x420 photo came out 74x104 inside
+   a 76px frame, bleeding top and bottom and left to `overflow:hidden` to tidy up. Insetting it
+   gives the image a box that is definite in both axes on every engine. */
+.line-photo-frame { font:inherit; font-size:11.5px; position:relative; width:var(--line-photo); height:var(--line-photo); padding:0; border:1px solid var(--border-card); border-radius:var(--radius-page); background:var(--bg-tile); color:var(--thumb-glyph); display:grid; place-items:center; overflow:hidden; cursor:pointer; }
 .line-photo-frame:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
-.line-photo-img { width:100%; height:100%; object-fit:cover; display:block; }
+.line-photo-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
 .line-photo-mark { display:grid; justify-items:center; gap:var(--gap-icon); }
 .line-photo-mark svg.icon { width:20px; height:20px; }
 /* The frame's own actions, spread to its width so Replace sits under its left edge and Remove
@@ -1643,8 +1648,14 @@ label.field-shell { cursor:pointer; }
 	.line-card { --line-photo:76px; }
 	.line-card-fields { grid-template-columns:minmax(0,1fr); }
 	/* "Drop a file or paste from clipboard" names two gestures a phone does not have; there
-	   the frame is tapped, and a tap target needs no sentence under it. */
-	.line-photo-hint { display:none; }
+	   the frame is tapped, and a tap target needs no sentence under it. Nor does a phone have
+	   the two keys the head names, and that line was taking a row of the head to say so --
+	   title, chevrons and a keyboard hint came to three lines on an iPhone 13. */
+	.line-photo-hint, .line-card-keys { display:none; }
+	/* The photo is a header strip here rather than a column, so its actions sit beside the
+	   frame instead of under it: spreading them to its edges is what lines them up with a
+	   128px frame on a desktop, and beside one it just pushes them apart. */
+	.line-photo-actions { justify-content:flex-start; }
 	.line-card .form-actions { flex-wrap:wrap; }
 	.line-card .form-actions .push-end { margin-left:0; }
 	/* .global-finder carries the margin-left:auto that pushes the actions right, and it is
