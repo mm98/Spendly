@@ -79,12 +79,17 @@ router.patch('/:id', (req, res) => {
 	const category = selectOne.get(req.params.id, req.user.id)
 	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
 	const patch = req.body ?? {}
-	if (patch.name && patch.name.trim().toLowerCase() !== category.name.toLowerCase()) {
-		const clash = selectByNameExists.get(req.user.id, patch.name.trim())
-		if (clash) return res.status(409).json({ error: `You already have a category called ${patch.name.trim()}.` })
+	// Same rule and reason as the vendors PATCH: '' is not nullish, so a whitespace rename
+	// stored an empty category name -- and it slipped past the clash check, whose `patch.name &&`
+	// guard reads '' as "no rename asked".
+	const nextName = patch.name !== undefined ? String(patch.name).trim() : category.name
+	if (!nextName) return res.status(400).json({ error: 'A category needs a name.' })
+	if (nextName.toLowerCase() !== category.name.toLowerCase()) {
+		const clash = selectByNameExists.get(req.user.id, nextName)
+		if (clash) return res.status(409).json({ error: `You already have a category called ${nextName}.` })
 	}
 	const next = {
-		name: patch.name?.trim() ?? category.name,
+		name: nextName,
 		icon: patch.icon ?? category.icon,
 		iconPath: patch.iconPath !== undefined ? patch.iconPath : category.icon_path,
 		colour: patch.colour ?? category.colour,

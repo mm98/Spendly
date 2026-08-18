@@ -9,7 +9,16 @@ export function readCookie(req, name) {
 	for (const part of header.split(';')) {
 		const eq = part.indexOf('=')
 		if (eq < 0) continue
-		if (part.slice(0, eq).trim() === name) return decodeURIComponent(part.slice(eq + 1).trim())
+		if (part.slice(0, eq).trim() === name) {
+			/* Never throw on a value this server did not write: a malformed percent-escape (a
+			   stray '%' set by another app on the same origin, or a corrupted jar) made
+			   decodeURIComponent raise URIError out of requireAuth on every gated request --
+			   including the logout that would have cleared the bad cookie, so the 500 was a
+			   lockout. Returned raw, a real token is unaffected (session ids are URL-safe) and
+			   garbage fails the sessions lookup into the ordinary 401. */
+			const raw = part.slice(eq + 1).trim()
+			try { return decodeURIComponent(raw) } catch { return raw }
+		}
 	}
 	return null
 }

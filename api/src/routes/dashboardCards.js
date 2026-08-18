@@ -27,7 +27,9 @@ router.get('/', (req, res) => {
     on, same shape client.js's saveDashboardCards already sends. */
 router.put('/', (req, res) => {
 	const keys = Array.isArray(req.body) ? req.body : (req.body?.on ?? [])
-	const on = keys.filter(k => knownKeys.has(k))
+	// Deduplicated (first occurrence keeps its position): a key sent twice reached the
+	// (user_id, key) primary key twice and turned a malformed request into a 500.
+	const on = [...new Set(keys)].filter(k => knownKeys.has(k))
 	const off = [...knownKeys].filter(k => !on.includes(k))
 
 	db.transaction(() => {
