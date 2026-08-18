@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
 import { LegendRow } from '../components/Rows.jsx'
-import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.jsx'
+import { FavouriteTile, FavouriteTileGrid, UnstarDialog } from '../components/FavouriteTiles.jsx'
 import { Donut, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -26,6 +27,9 @@ export default function Vendors() {
 	   list split is this page's own reshape of that one answer, below. */
 	const state = useApi(getVendors)
 	const toast = useToast()
+	/* The vendor whose star was clicked, held while the dialog asks. The star sits in every
+	   tile's corner, so it is asked for confirmation rather than acted on -- see UnstarDialog. */
+	const [unstarring, setUnstarring] = useState(null)
 
 	const toggleFavourite = vendor => {
 		updateVendor(vendor.id, { favourite: !vendor.favourite })
@@ -136,7 +140,7 @@ export default function Vendors() {
 														tone: vendor.saved > 0 ? 'positive' : undefined },
 													{ label: 'Latest', value: vendor.latest ? currency(vendor.latest.total, 0) : '—' }
 												]}
-												onUnstar={() => toggleFavourite(vendor)}
+												onUnstar={() => setUnstarring(vendor)}
 												unstarLabel={`Remove ${vendor.name} from favourites`} />
 										))}
 									</FavouriteTileGrid>
@@ -157,6 +161,12 @@ export default function Vendors() {
 								)}
 							</CardBody>
 						</Card>
+
+						{unstarring ? (
+							<UnstarDialog name={unstarring.name}
+								onConfirm={() => { toggleFavourite(unstarring); setUnstarring(null) }}
+								onCancel={() => setUnstarring(null)} />
+						) : null}
 					</>
 				)
 			}}</Async>
