@@ -5,7 +5,7 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
-import { DocumentPreview, ImageLightbox } from '../components/Viz.jsx'
+import { ImageLightbox } from '../components/Viz.jsx'
 import { DropZone, HiddenFileInput } from '../components/FileInput.jsx'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
@@ -40,7 +40,6 @@ export default function OrderDetail() {
 	   so all of it goes to the toast layer. Nothing here is a form verdict about fields the
 	   user has to go back and fix, which is the one kind of message that stays on the page. */
 	const toast = useToast()
-	const [openFile, setOpenFile] = useState(null)
 	const [openPhoto, setOpenPhoto] = useState(null)
 	const filePicker = useRef(null)
 
@@ -79,7 +78,6 @@ export default function OrderDetail() {
 		removeAttachment(id, file.id)
 			.then(() => {
 				invalidateOrder(); state.refresh()
-				if (openFile === file.id) setOpenFile(null)
 				toast(`${file.name} removed.`)
 			})
 			.catch(e => toast(failureMessage(e, 'That did not remove.'), 'negative'))
@@ -218,32 +216,22 @@ export default function OrderDetail() {
 									label="Add attachments" onFiles={attach} />
 								{order.attachments.length ? order.attachments.map(file => (
 									<div key={file.id}>
+										{/* The thumbnail opens the real file in a new tab -- the expanding
+										    preview it replaces only ever showed a raster (page one, for a PDF)
+										    one click deeper, so the picture of the file now goes to the file
+										    itself. Download sits beside it for the same URL saved rather than
+										    read. README: Honest Affordances. */}
 										<ItemRow className="item-row-group" thumb={file.kind === 'pdf' ? 'document' : 'photo'}
 											thumbSrc={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined}
+											thumbHref={attachmentFileUrl(order.id, file.id)}
+											thumbLabel={`Open ${file.name} in a new tab`}
 											title={file.name} meta={file.meta}>
 											<span className="row-inline row-inline-nowrap row-actions push-end">
-												<IconButton icon={openFile === file.id ? 'chevronDown' : 'chevronRight'}
-													label={`${openFile === file.id ? 'Close' : 'Open'} ${file.name}`}
-													aria-expanded={openFile === file.id}
-													onClick={() => setOpenFile(openFile === file.id ? null : file.id)} />
-												{/* The row's own action, not one more click past an expand -- the
-												    preview below is still a raster (page one, for a PDF), so the
-												    real file needs its own control rather than living inside the
-												    state that shows the raster. `download` is what turns the file
-												    endpoint into a save rather than a navigation. README: Honest
-												    Affordances. */}
 												<IconButton icon="download" label={`Download ${file.name}`}
 													href={attachmentFileUrl(order.id, file.id)} download={file.name} />
 												{fileDel.iconButton(file)}
 											</span>
 										</ItemRow>
-										{openFile === file.id ? (
-											<div className="attachment-preview">
-												<DocumentPreview kind={file.kind}
-													src={file.hasThumbnail ? attachmentThumbnailUrl(order.id, file.id) : undefined} />
-												<span className="field-help">{file.name}<Sep />{file.meta}</span>
-											</div>
-										) : null}
 									</div>
 								)) : (
 									<DropZone icon="photo" accept="image/*,.pdf" label="Add attachments"
