@@ -23,3 +23,22 @@ jobs:
       - run: npm run build
       - run: npm run icons:check
       - run: npm run icons:brand:check
+
+  # Every SQL statement the API runs, against the plan SQLite picks for it, compared to the
+  # blessed baseline -- so a query added or edited here arrives with its plan reviewed, and an
+  # index arrives with its write cost counted. Its own job: it needs api/'s dependencies, not
+  # react/'s, and a red plan check should read as a red plan check rather than a failed build.
+  queries:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - run: npm ci
+      - run: npm run queries:check
