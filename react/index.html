@@ -4,6 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Spendly</title>
+<!-- The three faces app.css declares, asked for here rather than waited for. A @font-face
+     url is discoverable only once the stylesheet has been fetched and parsed, so without these
+     the fonts sit one link further down the critical path than they need to: measured at
+     html -> css -> poppins-600, 397ms deep, for three files the preload scanner could have
+     started in its first pass over this document. crossorigin is not optional even though
+     these are same-origin -- a font is fetched in CORS mode, and a preload whose mode does not
+     match the fetch that follows is a second download plus a console warning saying so. A
+     preload that misses the request it means to cover by one character is that same double
+     download, silently -- so these name the source file the @font-face urls name, and the
+     build resolves both: src/fonts/poppins-600.woff2 becomes one hashed asset and every
+     reference to it is rewritten to that one name. Matching by hand is what would drift here;
+     matching by source file cannot, because there is only ever one hash to be rewritten to.
+     Which is also why they are /src/fonts/ and not /fonts/ -- a path Vite can resolve is a
+     file it hashes, and a hashed name is what api/src/app.js caches for a year. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/src/fonts/poppins-500.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/src/fonts/poppins-600.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/src/fonts/poppins-700.woff2">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
