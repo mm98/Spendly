@@ -335,7 +335,12 @@ function EditOrderForm({ id, seed }) {
 							: null}
 					</CardHeader>
 					<CardDivider />
-					<CardBody variant="card-body-tight">
+					{/* The plain body padding, not `card-body-tight`. That variant lifts the first
+					    line to 6px under the hairline, which is the padding-top override Card.jsx
+					    warns about -- it was there for lists whose rows carry their own leading
+					    space, and this body opens on the recessed panel, which has an edge of its
+					    own to sit against. README: Cards. */}
+					<CardBody>
 						<ItemLines items={draft.items} onItemsChange={items => update({ items })}
 							heading={false} onAnnounce={toast} photoOf={photoOf}
 							onPhotoPick={pickPhoto} onPhotoClear={clearPhoto} />
