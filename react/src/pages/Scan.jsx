@@ -20,10 +20,11 @@ import {
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
+import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addVendorAlias, attachScanDocument, createOrder, createVendor, failureMessage, getRecentScans,
+	addVendorAlias, attachScanDocument, createOrder, failureMessage, getRecentScans,
 	getScanDraft, getVendors, invalidateOrderData, invalidateVendorData, putScanDocument,
-	scanFileUrl, scanThumbnailUrl, spendKinds, vendorByAnyName
+	scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import { amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, plural } from '../api/format.js'
@@ -279,33 +280,11 @@ function ScanReviewForm({ answer }) {
 	/* The info card on step 1 promises "Vendor matched to your list, or offered as a new
 	   vendor", and CREATE VENDOR "..." at the foot of the list is the second half of that
 	   promise doing the verb -- the same wiring as New order and Edit order, because create
-	   and scan are two doors to one saved order. README: Honest Affordances. */
-	/* Same rule as New order: typed text that is an existing vendor's alias picks that vendor,
-	   never creates a twin -- the action row says USE before it is pressed, and the guard in
-	   addVendor resolves identically if pressed anyway. A receipt's misspelt-but-known vendor
-	   line is exactly the string aliases exist to catch. */
-	const aliasHit = vendorByAnyName(vendors.data ?? [], draft.vendor)
-
-	const addVendor = name => {
-		const clean = String(name).trim()
-		if (!clean) return
-		const existing = vendorByAnyName(vendors.data ?? [], clean)
-		if (existing) {
-			patch({ vendor: existing.name })
-			recheck('order-vendor', existing.name)
-			toast(`"${clean}" is an alias of ${existing.name}, so ${existing.name} is used.`)
-			return
-		}
-		createVendor(clean)
-			.then(vendor => {
-				invalidateVendorData()
-				vendors.refresh()
-				patch({ vendor: vendor.name })
-				recheck('order-vendor', vendor.name)
-				toast(`${vendor.name} added to your vendors.`)
-			})
-			.catch(e => toast(failureMessage(e, 'The vendor was not created. Try again.'), 'negative'))
-	}
+	   and scan are two doors to one saved order. README: Honest Affordances. A receipt's
+	   misspelt-but-known vendor line is exactly the string aliases exist to catch, so this is
+	   the same useVendorPicker every order form shares. */
+	const pickVendor = name => { patch({ vendor: name }); recheck('order-vendor', name) }
+	const vendorPicker = useVendorPicker(vendors, draft.vendor, pickVendor, toast)
 
 	const saveLine = (id, values) => {
 		patch({ lines: draft.lines.map(l => (l.id === id
@@ -490,23 +469,13 @@ function ScanReviewForm({ answer }) {
 					placeholder="Search vendors..." value={draft.vendor}
 					invalid={vendorField.invalid} describedBy={vendorField.describedBy}
 					onChange={set('order-vendor', 'vendor')}
-					onSelect={o => { patch({ vendor: o.label }); recheck('order-vendor', o.label) }}
+					onSelect={o => pickVendor(o.label)}
 					leadingIcon="search"
 					trail={answer.vendorMatched && draft.vendor === answer.vendor
 						? <StatusChip className="chip-matched">matched</StatusChip>
 						: null}
-					groups={[
-						{ heading: 'Favourites', options: (vendors.data ?? []).filter(v => v.favourite)
-							.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order'), star: true })) },
-						{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
-							.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order') })) }
-					]}
-					action={aliasHit
-						? { icon: 'check',
-							label: `USE ${aliasHit.name.toUpperCase()}: "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
-							onSelect: addVendor }
-						: { icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
-							onSelect: addVendor }} />
+					groups={vendorPicker.groups}
+					action={vendorPicker.action} />
 			</Field>
 
 			<FieldPair>

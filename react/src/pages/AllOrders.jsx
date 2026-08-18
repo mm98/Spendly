@@ -12,7 +12,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { Pager } from '../components/Pager.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
+import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds, vendorTextMatch } from '../api/client.js'
 import { currencySymbol, dayMonth, parseAmount, percent, plural, sep } from '../api/format.js'
 
 /* All orders: the search, the filters, and what they leave.
@@ -237,12 +237,21 @@ export default function AllOrders() {
 						    results, create from the foot. A native <select> here would be a second
 						    dropdown pattern and a hole in the design system. README: Fields and Forms. */}
 						<Field label="Vendor" htmlFor="filter-vendor">
+							{/* Same rule as every order form's own vendor picker: the combobox's filter
+							    only matches an option's label, so this needs the same `search` field
+							    to find a vendor by an alias, not only its own name. README: Vendors. */}
 							<Combobox id="filter-vendor" label="Vendor" placeholder="Any vendor"
 								value={draft.vendorName ?? ''}
 								onChange={v => setDraft({ ...draft, vendorName: v, vendorId: '' })}
 								onSelect={o => setDraft({ ...draft, vendorName: o.label, vendorId: o.id })}
-								groups={[{ heading: 'All vendors', options: (vendors.data ?? []).map(v =>
-									({ id: v.id, label: v.name, meta: plural(v.orders, 'order') })) }]} />
+								groups={[{ heading: 'All vendors', options: (vendors.data ?? []).map(v => {
+									const { alias } = vendorTextMatch(v, draft.vendorName ?? '')
+									return {
+										id: v.id, label: v.name,
+										meta: plural(v.orders, 'order') + (alias ? `${sep}also ${alias}` : ''),
+										search: [v.name, ...(v.aliases ?? [])].join(' ')
+									}
+								}) }]} />
 						</Field>
 						<FieldPair variant="field-pair-stack-early">
 							<Field label="Category" htmlFor="filter-category">
