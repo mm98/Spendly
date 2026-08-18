@@ -54,9 +54,23 @@ app.get('/api/health', (req, res) => res.json({ ok: true }))
    commit against the newest one on GitHub. Outside the image both are null -- a dev server
    has no build to be out of date. Above the auth gate like /api/health: whether the
    container is current is a fact about the deployment, not about any account. */
+/* The Lighthouse scores stamped into the image beside the build stamp (Dockerfile), parsed
+   once at boot rather than per request -- it is a constant for the life of the process, and a
+   malformed value is a deploy-time mistake worth finding at boot instead of turning every
+   version read into a 500. Unset outside the image, which is the same "no build to be measured"
+   the two stamps above answer with. */
+const LIGHTHOUSE = (() => {
+	if (!process.env.SPENDLY_LIGHTHOUSE) return null
+	try { return JSON.parse(process.env.SPENDLY_LIGHTHOUSE) } catch (e) {
+		console.error(`SPENDLY_LIGHTHOUSE is not JSON, so /api/version answers null for it: ${e.message}`)
+		return null
+	}
+})()
+
 app.get('/api/version', (req, res) => res.json({
 	builtAt: process.env.SPENDLY_BUILD_TIME || null,
-	commit: process.env.SPENDLY_BUILD_SHA || null
+	commit: process.env.SPENDLY_BUILD_SHA || null,
+	lighthouse: LIGHTHOUSE
 }))
 
 /* Whether the newest published image is this one, asked of GHCR itself rather than of the

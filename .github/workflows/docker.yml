@@ -30,16 +30,68 @@ jobs:
       - name: Build stamp
         id: stamp
         run: echo "time=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      # A pull request builds the image and stops there, which is the Dockerfile check this
+      # workflow has always been. No measurement: the scores belong to what gets shipped, and a
+      # pull request ships nothing.
       - uses: docker/build-push-action@v7
+        if: github.event_name == 'pull_request'
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          push: false
+          build-args: |
+            BUILD_TIME=${{ steps.stamp.outputs.time }}
+            GIT_SHA=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      # Everything below is the push path: two passes over one build. The first produces the
+      # image locally; Lighthouse scores that container -- the actual artifact, serving its own
+      # bundle through its own API, which is the only honest thing to stamp -- and the second
+      # pass bakes the result in. Every layer is cached from the first pass, so the second
+      # rebuilds the ENV line and nothing else.
+      - uses: docker/build-push-action@v7
+        if: github.event_name != 'pull_request'
+        with:
+          context: .
+          load: true
+          push: false
+          tags: spendly:measuring
+          build-args: |
+            BUILD_TIME=${{ steps.stamp.outputs.time }}
+            GIT_SHA=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+      - uses: actions/setup-node@v5
+        if: github.event_name != 'pull_request'
+        with:
+          node-version: 24
+      - name: Score the image
+        if: github.event_name != 'pull_request'
+        id: lighthouse
+        run: |
+          # SPENDLY_DB into /tmp: the image points it at /data, which only exists once a volume
+          # is mounted over it, and this container is thrown away after the measurement.
+          docker run -d --name spendly-measuring -p 4000:4000 -e SPENDLY_DB=/tmp/lh.sqlite3 spendly:measuring
+          for i in $(seq 1 60); do curl -sf localhost:4000/api/health >/dev/null && break; sleep 0.5; done
+          npm i --no-save lighthouse --prefix react
+          node react/scripts/lighthouse.mjs http://localhost:4000/ --out=lighthouse.json
+          echo "scores=$(cat lighthouse.json)" >> "$GITHUB_OUTPUT"
+          docker rm -f spendly-measuring
+      - uses: docker/build-push-action@v7
+        if: github.event_name != 'pull_request'
+        with:
+          context: .
+          push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/spendly:latest
             ghcr.io/${{ github.repository_owner }}/spendly:${{ github.sha }}
           build-args: |
             BUILD_TIME=${{ steps.stamp.outputs.time }}
             GIT_SHA=${{ github.sha }}
+            LIGHTHOUSE=${{ steps.lighthouse.outputs.scores }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           # One push, one package version. With the default provenance attestation, buildx
