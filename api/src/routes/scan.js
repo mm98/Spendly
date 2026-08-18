@@ -37,8 +37,9 @@ const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND use
 router.post('/documents', upload.single('file'), async (req, res) => {
 	const file = req.file
 	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
-	const kind = file.mimetype === 'application/pdf' || /\.pdf$/i.test(file.originalname) ? 'pdf' : 'image'
-	const processed = await processAttachment(kind, file.buffer, file.mimetype)
+	// The kind the bytes declare, not the one the filename claims -- see lib/fileType.js.
+	const processed = await processAttachment(file.buffer, file.mimetype, file.originalname)
+	const kind = processed.kind
 	const id = newId('su')
 	insertUpload.run({
 		id, userId: req.user.id, name: file.originalname, size: processed.size, kind,

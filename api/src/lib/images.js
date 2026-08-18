@@ -1,11 +1,8 @@
 import sharp from 'sharp'
-import * as mupdf from 'mupdf'
+import { Worker } from 'node:worker_threads'
+import { fileURLToPath } from 'node:url'
 import { compressBlob } from './blobCompression.js'
-
-// A malformed upload (wrong extension, truncated file) is an expected failure here, not an
-// exceptional one — mupdf's own "repairing PDF document" chatter would otherwise spam the
-// server's stdout on every one, ahead of processPdfThumbnail below returning null for it.
-mupdf.setLog(() => {})
+import { detectFileType, detectKind } from './fileType.js'
 
 /* Every image attachment (a manual upload or a scan) is resized on the way in, not stored at
    whatever resolution the source produced — a phone photo is routinely 4000x3000 and several
@@ -59,22 +56,51 @@ export async function processImage(buffer) {
     the display size, not the thumbnail size, despite the column it's still stored in). mupdf's
     WASM objects hold native heap outside JS's GC, so each is explicitly destroyed rather than
     left for the finalizer to get to eventually. */
+const PDF_WORKER = fileURLToPath(new URL('./pdfPage.worker.js', import.meta.url))
+/* A rendering that has not finished by now is not going to be waited for. The worst measured
+   parse is 411ms on a 25MB file -- the largest multer accepts -- so this is two orders of
+   magnitude of headroom, and its job is to bound a pathological file rather than to trim a
+   slow one. On expiry the worker is terminated and the upload keeps its document icon. */
+const PDF_RENDER_TIMEOUT_MS = 15_000
+
+/** The first page of a PDF, rendered to a PNG on a worker thread. Resolves null for anything
+    that cannot be rendered (encrypted, corrupt, zero pages, not a PDF) and for a render that
+    outruns the timeout -- every one of which the caller already handles by falling back to the
+    plain document icon. */
+function renderPdfFirstPage(buffer) {
+	return new Promise(resolve => {
+		let settled = false
+		const finish = value => { if (!settled) { settled = true; clearTimeout(timer); worker.terminate(); resolve(value) } }
+		const worker = new Worker(PDF_WORKER, {
+			workerData: { buffer, longEdge: PDF_RENDER_LONG_EDGE }
+		})
+		const timer = setTimeout(() => finish(null), PDF_RENDER_TIMEOUT_MS)
+		worker.on('message', message => finish(message.png ? Buffer.from(message.png) : null))
+		worker.on('error', () => finish(null))
+		worker.on('exit', () => finish(null))
+	})
+}
+
+/** A DISPLAY_MAX-sized raster of a PDF's first page, or null if it couldn't be rendered
+    (encrypted, corrupt, zero pages) — the caller falls back to the plain document icon exactly
+    the way it already does for an image sharp couldn't decode. The PDF's own bytes are never
+    touched; only a raster of page one is generated, resized down through the same JPEG pipeline
+    a photo's own copies go through (see the PDF_RENDER_LONG_EDGE note above for why this reuses
+    the display size, not the thumbnail size, despite the column it's still stored in).
+
+    The rendering itself happens on a worker thread (pdfPage.worker.js) because mupdf is
+    synchronous WASM and blocked this process for the whole parse; the resize below stays here,
+    since sharp is asynchronous already. */
 export async function processPdfThumbnail(buffer) {
-	let doc, page, pixmap
+	// Not a PDF by its own first bytes: mupdf would spend the whole parse discovering that, and
+	// on a 25MB file that is 411ms of a blocked thread to answer a question four bytes settle.
+	if (detectFileType(buffer)?.type !== 'application/pdf') return null
+	const png = await renderPdfFirstPage(buffer)
+	if (!png) return null
 	try {
-		doc = mupdf.Document.openDocument(buffer, 'application/pdf')
-		if (doc.needsPassword() || doc.countPages() < 1) return null
-		page = doc.loadPage(0)
-		const [x0, y0, x1, y1] = page.getBounds()
-		const scale = PDF_RENDER_LONG_EDGE / Math.max(x1 - x0, y1 - y0, 1)
-		pixmap = page.toPixmap(mupdf.Matrix.scale(scale, scale), mupdf.ColorSpace.DeviceRGB, false, false)
-		const png = Buffer.from(pixmap.asPNG())
-		const thumbnail = await resizeTo(png, DISPLAY_MAX)
-		return { thumbnail, thumbnailContentType: 'image/jpeg' }
+		return { thumbnail: await resizeTo(png, DISPLAY_MAX), thumbnailContentType: 'image/jpeg' }
 	} catch {
 		return null
-	} finally {
-		pixmap?.destroy(); page?.destroy(); doc?.destroy()
 	}
 }
 
@@ -87,11 +113,20 @@ export async function processPdfThumbnail(buffer) {
     (orders.js/scan.js) only has to know how to reverse it, not which upload produced a given
     row. `size` stays the uncompressed byte count: it's what the UI shows as the file's size, and
     that should describe the upload, not how this happened to store it. */
-export async function processAttachment(kind, buffer, mimetype) {
+export async function processAttachment(buffer, mimetype, name) {
+	/* The kind is read off the bytes here rather than taken from the caller, and returned, so
+	   the three upload paths (an attachment, a scan, an import) cannot each arrive at a
+	   different answer for one file -- which they did, from the filename and the mimetype, both
+	   of which the caller writes. lib/fileType.js has the signatures and what it cost.
+
+	   `detected` also gives the stored content type its value: for a PDF that used to be
+	   whatever was claimed, and it is served straight back as a Content-Type header. */
+	const detected = detectFileType(buffer)
+	const kind = detectKind(buffer, mimetype, name)
 	const processed = kind === 'image' ? await processImage(buffer) : await (async () => {
-		const pdfThumb = kind === 'pdf' ? await processPdfThumbnail(buffer) : null
+		const pdfThumb = await processPdfThumbnail(buffer)
 		return {
-			data: buffer, contentType: mimetype ?? null, size: buffer.length,
+			data: buffer, contentType: detected?.type ?? mimetype ?? null, size: buffer.length,
 			thumbnail: pdfThumb?.thumbnail ?? null, thumbnailContentType: pdfThumb?.thumbnailContentType ?? null
 		}
 	})()
@@ -104,6 +139,7 @@ export async function processAttachment(kind, buffer, mimetype) {
 	])
 	return {
 		...processed,
+		kind,
 		data: data.blob, dataCompressed: data.compressed,
 		thumbnail: thumbnail.blob, thumbnailCompressed: thumbnail.compressed
 	}

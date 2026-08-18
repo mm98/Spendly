@@ -350,13 +350,14 @@ async function saveAttachments(files, owner, existingNames) {
 	for (const file of files ?? []) {
 		if (existingNames.has(file.originalname.toLowerCase())) { skipped.push(file.originalname); continue }
 		existingNames.add(file.originalname.toLowerCase())
-		const kind = file.mimetype === 'application/pdf' || /\.pdf$/i.test(file.originalname) ? 'pdf' : 'image'
 		// Images get a display copy and a thumbnail; a PDF's own bytes are kept exactly as
-		// uploaded, with a rendered-first-page thumbnail added where that succeeds (lib/images.js).
-		const processed = await processAttachment(kind, file.buffer, file.mimetype)
+		// uploaded, with a rendered-first-page thumbnail added where that succeeds. The kind is
+		// the one the bytes declare (lib/fileType.js), not the one the filename or the browser's
+		// mimetype claims -- a receipt saved as .jpg is still a PDF and is filed as one.
+		const processed = await processAttachment(file.buffer, file.mimetype, file.originalname)
 		rows.push({
 			id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
-			name: file.originalname, kind,
+			name: file.originalname, kind: processed.kind,
 			meta: `Added today${sep}${fileSizeLabel(processed.size)}`,
 			contentType: processed.contentType ?? file.mimetype, size: processed.size,
 			data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
@@ -461,9 +462,8 @@ async function processImportAttachments(list) {
 	for (const a of list ?? []) {
 		if (!a?.data) continue
 		const buffer = Buffer.from(a.data, 'base64')
-		const kind = a.contentType === 'application/pdf' ? 'pdf' : 'image'
-		const processed = await processAttachment(kind, buffer, a.contentType || 'application/octet-stream')
-		out.push({ name: a.filename || 'attachment', kind, ...processed })
+		const processed = await processAttachment(buffer, a.contentType || 'application/octet-stream', a.filename)
+		out.push({ name: a.filename || 'attachment', ...processed })
 	}
 	return out
 }
