@@ -1429,7 +1429,10 @@ label.field-shell { cursor:pointer; }
 .line-add-row:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
 .line-add-glyph { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); border:1px dashed var(--border-control); color:var(--text-muted); display:grid; place-items:center; flex:none; }
 .line-add-glyph svg.icon { width:17px; height:17px; }
-.line-add-row:hover .line-add-glyph { border-color:var(--green); color:var(--green); }
+/* Grey on hover, not green. Green is what this app paints a *state* with -- a focus ring, an
+   open card's own marks -- and hovering a row is not a state, it is a pointer passing over it.
+   `--control-resting` is the grey every resting control edge already uses. */
+.line-add-row:hover .line-add-glyph { border-color:var(--control-resting); color:var(--text-body); }
 .line-add-text { display:grid; gap:2px; font-size:13px; font-weight:600; color:var(--text-strong); }
 /* The grip column, left empty. The rows only draw a grip when there is more than one line to
    move, so the add row only reserves the column when they do. Its width is the grip's icon and
