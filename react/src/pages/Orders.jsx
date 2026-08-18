@@ -8,17 +8,9 @@ import { ReturnsCard } from '../components/Returns.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
-import { getOrdersOverview, ordersIn } from '../api/client.js'
+import { budgetUsed, getOrdersOverview, ordersIn } from '../api/client.js'
 import { currency, dayMonth, percent, sep } from '../api/format.js'
 import { useState } from 'react'
-
-/** How much of the month's total budget has been spent. Categories with no budget set are
-    left out of both sides, so an unbudgeted category cannot drag the figure down. */
-const budgetUsed = categories => {
-	const budgeted = categories.filter(c => c.budget > 0)
-	const allowed = budgeted.reduce((sum, c) => sum + c.budget, 0)
-	return allowed ? (budgeted.reduce((sum, c) => sum + c.spend, 0) / allowed) * 100 : 0
-}
 
 /* Orders, overview.
 
@@ -183,11 +175,11 @@ export default function Orders() {
 										<>
 											<DonutBox>
 												<Donut segments={[
-													{ share: Math.min(100, budgetUsed(data.monthCategories)), colour: 'var(--green)' },
-													{ share: Math.max(0, 100 - budgetUsed(data.monthCategories)), colour: '#E7EAE5' }
+													{ share: Math.min(100, budgetUsed(data.budgetCategories)), colour: 'var(--green)' },
+													{ share: Math.max(0, 100 - budgetUsed(data.budgetCategories)), colour: '#E7EAE5' }
 												]}
-													value={percent(budgetUsed(data.monthCategories), 0)} label="of budget used"
-													ariaLabel={`${percent(budgetUsed(data.monthCategories), 0)} of this month's budget used`} />
+													value={percent(budgetUsed(data.budgetCategories), 0)} label="of budget used"
+													ariaLabel={`${percent(budgetUsed(data.budgetCategories), 0)} of this month's budget used`} />
 											</DonutBox>
 											{/* The same rows as the Expenses view, saying a different thing in the
 											    meta line. A progress bar under each one would be a layout this app

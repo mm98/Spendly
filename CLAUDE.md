@@ -312,6 +312,19 @@ require them to agree -- this is the two-controls rule one level up, where the d
 pages rather than between controls, and neither side is ever wrong on its own terms. Where they share
 one component, the check is free and the defect cannot recur.
 
+**A ratio is two figures, and a caption can only name one of them.** *Against budget* read 6664% of
+this month's budget used, over a meter drawn full, and every instrument here had nothing to say: it
+renders, it renders identically twice, its rects and computed styles are right, its caption names the
+month and its help line counts the right categories. The stretch of time belonged to the numerator --
+all-time spend over one month's allowance -- and no probe that reads a card reads what period each
+half of its arithmetic was measured over. So for any figure built by dividing, ask the API for both
+readings (the period the caption names, and the one the record's own field happens to hold) and
+require the card to match the first: here 168,7% against 1508,6%, on a fixture whose two readings
+differ by an order of magnitude *because* it holds a year of orders -- a one-month account makes them
+equal and the check cannot fail. The tell that costs nothing, meanwhile, is arithmetic: a percentage
+past 100 that no action can bring back down, or one that grows with the age of the account, is a unit
+mismatch and not a heavy spender.
+
 **Ask what a card would have to be given to be empty, and check it was given it.** The gap above is
 not really about pages -- it is that an empty state, a zero and a "none" are the three renderings that
 look correct when the data never arrived. `returns` was `null` because it sat behind a `summary` flag
