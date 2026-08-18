@@ -12,6 +12,7 @@ import { MAX_PAGE_SIZE } from '../lib/constants.js'
 import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
+import { asciiNeedle, escapeLike } from '../lib/textSearch.js'
 
 export const router = Router()
 // defParamCharset: busboy (multer's parser) decodes every multipart header as latin1 by
@@ -98,18 +99,24 @@ const SORT_SQL = {
 	'vendor-asc': 'v.name COLLATE NOCASE ASC, ot.id ASC'
 }
 
-/* `q.sort` is read here as well as by SORT_SQL below, because one sort narrows the set rather
-   than only ordering it: an order with no discount is not an order "with the lowest discount",
-   it is an order the question does not apply to, so ranking by discount is over discounted
-   orders only. That predicate has to live in this builder and nowhere else -- the COUNT and
-   the page are both built from what it returns, so a row the page drops is a row the "N
-   matching" line above it has already stopped counting. Adding it beside the ORDER BY instead
-   would have filtered the page and left the count claiming rows the reader cannot reach. */
+/* The sort is resolved here as well as ordered on below, because one sort narrows the set
+   rather than only ordering it: an order with no discount is not an order "with the lowest
+   discount", it is an order the question does not apply to, so ranking by discount is over
+   discounted orders only. That predicate has to live in this builder and nowhere else -- the
+   COUNT and the page are both built from what it returns, so a row the page drops is a row
+   the "N matching" line above it has already stopped counting. And the resolution itself
+   happens once, on the key the ORDER BY will actually use: reading raw q.sort here while the
+   ORDER BY fell back to date-desc let an unknown `discount-x` narrow to discounted orders
+   while sorting by date -- two readers of one parameter, disagreeing.
+
+   `filtered` reports whether any clause beyond the account's own was added, so the route can
+   reuse its unconditional COUNT instead of running the identical query twice. */
 function buildOrderFilter(userId, q) {
+	const sortKey = SORT_SQL[q.sort] ? q.sort : 'date-desc'
 	const where = ['ot.user_id = @userId']
 	const params = { userId }
 
-	if (String(q.sort ?? '').startsWith('discount-')) where.push('ot.discount > 0')
+	if (sortKey.startsWith('discount-')) where.push('ot.discount > 0')
 
 	if (q.vendorId) { where.push('ot.vendor_id = @vendorId'); params.vendorId = q.vendorId }
 	if (q.categoryId === 'none') {
@@ -127,10 +134,18 @@ function buildOrderFilter(userId, q) {
 	}
 	if (q.status && q.status !== 'Any') { where.push('ot.status = @status'); params.status = q.status }
 	if (q.kind) { where.push('ot.kind = @kind'); params.kind = q.kind }
-	if (q.from) { where.push('ot.date >= @from'); params.from = toEpoch(q.from) }
-	if (q.to) { where.push('ot.date <= @to'); params.to = toEpoch(q.to) }
-	if (q.minAmount != null && q.minAmount !== '') { where.push('ot.total >= @minAmount'); params.minAmount = Number(q.minAmount) }
-	if (q.maxAmount != null && q.maxAmount !== '') { where.push('ot.total <= @maxAmount'); params.maxAmount = Number(q.maxAmount) }
+
+	/* Finite or absent -- never NaN. better-sqlite3 binds NaN as NULL, and `date >= NULL`
+	   matches nothing, so `?from=2020/01/01` (toEpoch answers NaN for a date it cannot parse,
+	   same for `?minAmount=abc`) silently emptied the whole list while every count read 0. A
+	   bound that does not parse is a bound that was not given. */
+	const from = toEpoch(q.from), to = toEpoch(q.to)
+	const minAmount = q.minAmount != null && q.minAmount !== '' ? Number(q.minAmount) : NaN
+	const maxAmount = q.maxAmount != null && q.maxAmount !== '' ? Number(q.maxAmount) : NaN
+	if (Number.isFinite(from)) { where.push('ot.date >= @from'); params.from = from }
+	if (Number.isFinite(to)) { where.push('ot.date <= @to'); params.to = to }
+	if (Number.isFinite(minAmount)) { where.push('ot.total >= @minAmount'); params.minAmount = minAmount }
+	if (Number.isFinite(maxAmount)) { where.push('ot.total <= @maxAmount'); params.maxAmount = maxAmount }
 
 	/* One LIKE over the order's trigger-maintained search_text (its note and item titles --
 	   see migrations/002) instead of a correlated scan of order_items per order row, plus the
@@ -140,35 +155,55 @@ function buildOrderFilter(userId, q) {
 	   note, vendor and no-match needles; ~660ms -> ~100ms per search at 50k orders. LIKE is
 	   already case-insensitive for ASCII, which is exactly what lower() gave (SQLite's lower()
 	   never folded non-ASCII either), so the needle stays lowercased and the columns are
-	   compared as stored. */
+	   compared as stored -- with % and _ escaped so the needle is the literal text the search
+	   box holds, and a needle carrying a non-ASCII letter (which LIKE cannot case-fold) matched
+	   through contains_fold instead; lib/textSearch.js holds both halves and the numbers. */
 	const needle = String(q.query ?? '').trim().toLowerCase()
-	if (needle) {
-		params.needle = `%${needle}%`
+	if (needle && asciiNeedle(needle)) {
+		params.needle = `%${escapeLike(needle)}%`
 		where.push(`(
-			ot.search_text LIKE @needle
-			OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle)
+			ot.search_text LIKE @needle ESCAPE '\\'
+			OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\')
 			OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id
-				WHERE c.user_id = @userId AND c.name LIKE @needle)
+				WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\')
+		)`)
+	} else if (needle) {
+		params.needle = needle
+		where.push(`(
+			contains_fold(ot.search_text, @needle)
+			OR ot.vendor_id IN (SELECT id FROM vendors WHERE user_id = @userId AND contains_fold(name, @needle))
+			OR ot.id IN (SELECT oc.order_id FROM order_categories oc JOIN categories c ON c.id = oc.category_id
+				WHERE c.user_id = @userId AND contains_fold(c.name, @needle))
 		)`)
 	}
 
-	return { whereSql: where.join(' AND '), params }
+	return { whereSql: where.join(' AND '), params, sortKey, filtered: where.length > 1 }
 }
 
 router.get('/', (req, res) => {
 	const q = req.query
-	const { whereSql, params } = buildOrderFilter(req.user.id, q)
-	const orderSql = SORT_SQL[q.sort] ?? SORT_SQL['date-desc']
+	const { whereSql, params, sortKey, filtered } = buildOrderFilter(req.user.id, q)
+	const orderSql = SORT_SQL[sortKey]
 
-	/* The vendors join exists for exactly one reader: the vendor-name sort. The filter above
+	/* The vendors side exists for exactly one reader: the vendor-name sort. The filter above
 	   never references v (search reaches vendors through its own subquery), so the COUNT is
-	   always index-only on orders, and the page joins only when its ORDER BY needs the name --
-	   an unconditional join cost the COUNT a vendors probe per counted row. */
-	const vendorJoin = orderSql.includes('v.name') ? 'JOIN vendors v ON v.id = ot.vendor_id' : ''
+	   always index-only on orders, and the page brings vendors in only when its ORDER BY needs
+	   the name -- an unconditional join cost the COUNT a vendors probe per counted row. When it
+	   does, vendors leads and CROSS JOIN pins it there: idx_vendors_user_name hands the page
+	   the name order and each vendor's orders come off the widened vendor index, instead of a
+	   temp B-tree re-sorting every one of the account's rows on every page (18.5ms -> 2.9ms a
+	   page at 50,000 orders, identical rows -- and settings.sort can make this sort an
+	   account's every-load default). */
+	const vendorSort = orderSql.includes('v.name')
+	const fromSql = vendorSort ? 'vendors v CROSS JOIN orders ot ON ot.vendor_id = v.id' : 'orders ot'
+	const pageWhereSql = vendorSort ? `v.user_id = @userId AND ${whereSql}` : whereSql
 
-	const matched = db.prepare(`
+	// An unfiltered request's "matched" is the account's own count, already queried below for
+	// `total` on every response -- only a narrowed set is a second question.
+	const total = countAllOrders.get(req.user.id).c
+	const matched = filtered ? db.prepare(`
 		SELECT COUNT(*) c FROM orders ot WHERE ${whereSql}
-	`).get(params).c
+	`).get(params).c : total
 
 	// LIMIT/OFFSET go straight into the query below, so this is the one place a caller-chosen
 	// pageSize has to be made safe before it reaches SQL: SQLite treats any negative LIMIT as
@@ -184,15 +219,15 @@ router.get('/', (req, res) => {
 	const at = Math.min(Math.max(1, Number(q.page) || 1), pages)
 
 	const totalsRows = db.prepare(`
-		SELECT ${orderTotalsSelectList('ot')} FROM orders ot ${vendorJoin}
-		WHERE ${whereSql}
+		SELECT ${orderTotalsSelectList('ot')} FROM ${fromSql}
+		WHERE ${pageWhereSql}
 		ORDER BY ${orderSql}
 		LIMIT @limit OFFSET @offset
 	`).all({ ...params, limit: size, offset: (at - 1) * size })
 
 	res.json({
 		orders: decorateOrderRows(totalsRows),
-		matched, total: countAllOrders.get(req.user.id).c, page: at, pages,
+		matched, total, page: at, pages,
 		from: matched ? (at - 1) * size + 1 : 0,
 		to: Math.min(at * size, matched)
 	})
@@ -304,8 +339,14 @@ router.delete('/:id', (req, res) => {
    place a file becomes a stored row either way; the routes just decide which owner column it
    gets and which existing names it's deduped against. */
 
+/* Processing first, then every row in one transaction -- the same split the import path
+   makes, and for the same two reasons: db.transaction is synchronous so sharp's awaits cannot
+   sit inside it, and inserting per-file as each finished processing committed per-file, so a
+   failure partway stored some of one upload's files while the response reported none of them. */
+const insertAttachmentRows = db.transaction(rows => { for (const row of rows) insertAttachment.run(row) })
+
 async function saveAttachments(files, owner, existingNames) {
-	const added = [], skipped = []
+	const rows = [], skipped = []
 	for (const file of files ?? []) {
 		if (existingNames.has(file.originalname.toLowerCase())) { skipped.push(file.originalname); continue }
 		existingNames.add(file.originalname.toLowerCase())
@@ -313,7 +354,7 @@ async function saveAttachments(files, owner, existingNames) {
 		// Images get a display copy and a thumbnail; a PDF's own bytes are kept exactly as
 		// uploaded, with a rendered-first-page thumbnail added where that succeeds (lib/images.js).
 		const processed = await processAttachment(kind, file.buffer, file.mimetype)
-		const attachment = {
+		rows.push({
 			id: newId('a'), orderId: owner.orderId ?? null, orderItemId: owner.orderItemId ?? null,
 			name: file.originalname, kind,
 			meta: `Added today${sep}${fileSizeLabel(processed.size)}`,
@@ -321,11 +362,10 @@ async function saveAttachments(files, owner, existingNames) {
 			data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
 			thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
 			thumbnailContentType: processed.thumbnailContentType
-		}
-		insertAttachment.run(attachment)
-		added.push({ id: attachment.id, name: attachment.name, kind: attachment.kind, meta: attachment.meta })
+		})
 	}
-	return { added, skipped }
+	insertAttachmentRows(rows)
+	return { added: rows.map(a => ({ id: a.id, name: a.name, kind: a.kind, meta: a.meta })), skipped }
 }
 
 router.post('/:id/attachments', upload.array('files'), async (req, res) => {

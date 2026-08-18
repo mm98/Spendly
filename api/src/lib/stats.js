@@ -36,21 +36,25 @@ const earliestOrderDate = db.prepare('SELECT MIN(date) d FROM orders WHERE user_
 /** The [from, to) epoch bounds of one window, plus display labels. `all` spans the user's own
     order history (or just today, if they have none yet) rather than a fixed demo range. */
 export function windowBounds(userId, range, id) {
+	/* The unit fields are range-checked, not just shape-checked: `?windowId=2026-13` matches
+	   the month pattern, indexes MONTH_NAMES[12] and threw a TypeError -- a 500 for a URL
+	   anyone can type. Out of range answers null like a malformed id does, which is the same
+	   reanchor-to-a-real-window fallback the caller already runs. */
 	if (range === 'week') {
 		const [, y, w] = /^(\d{4})-W(\d{2})$/.exec(id) ?? []
-		if (!y) return null
+		if (!y || Number(w) < 1 || Number(w) > 53) return null
 		const from = mondayOfIsoWeek(Number(y), Number(w))
 		return { from: from / 1000, to: from / 1000 + 7 * DAY, label: `Week ${Number(w)}, ${y}`, shortLabel: `Week ${Number(w)}` }
 	}
 	if (range === 'month') {
 		const [, y, m] = /^(\d{4})-(\d{2})$/.exec(id) ?? []
-		if (!y) return null
+		if (!y || Number(m) < 1 || Number(m) > 12) return null
 		const from = Date.UTC(Number(y), Number(m) - 1, 1) / 1000
 		const to = Date.UTC(Number(y), Number(m), 1) / 1000
 		return { from, to, label: `${MONTH_NAMES[Number(m) - 1]} ${y}`, shortLabel: MONTH_NAMES[Number(m) - 1].slice(0, 3) }
 	}
 	if (range === 'quarter') {
-		const [, y, q] = /^(\d{4})-Q(\d)$/.exec(id) ?? []
+		const [, y, q] = /^(\d{4})-Q([1-4])$/.exec(id) ?? []
 		if (!y) return null
 		const firstMonth = (Number(q) - 1) * 3
 		const from = Date.UTC(Number(y), firstMonth, 1) / 1000
@@ -252,15 +256,24 @@ function splitOver(userId, from, to, trueTotal, budgets) {
    defect the README's budget rule already names (two screens, one caption, different sets of
    allowances). Every category carrying a budget is a row here whether it was spent from or
    not. README: Meters and progress. */
+/* One grouped pass over the window, joined back to the budgeted categories -- not a
+   correlated subquery per category: that shape re-walked the entire date window once per
+   budgeted category (SQLite drives the inner query from idx_orders_user_date, so its cost is
+   windowOrders x budgetedCategories), and this runs on every stats read, summary calls
+   included. Measured on a 50,000-order account with 9 budgeted categories: month 2.0ms ->
+   0.5ms, year 20ms -> 3.9ms, all-time 378ms -> 72ms, identical rows. The LEFT JOIN is what
+   keeps a budgeted category with a quiet window in the result at spend 0, which is this
+   query's whole point (see the comment above budgetRowsOver). */
 const selectBudgets = db.prepare(`
 	SELECT c.id, c.name, c.colour, c.icon, c.icon_path AS iconPath, c.budget,
-		COALESCE((
-			SELECT SUM(ot.total * 1.0 / ot.category_count)
-			FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id
-			WHERE oc.category_id = c.id AND ot.user_id = @userId
-				AND ot.date >= @from AND ot.date < @to
-		), 0) AS spend
+		COALESCE(agg.spend, 0) AS spend
 	FROM categories c
+	LEFT JOIN (
+		SELECT oc.category_id AS category_id, SUM(ot.total * 1.0 / ot.category_count) AS spend
+		FROM orders ot JOIN order_categories oc ON oc.order_id = ot.id
+		WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+		GROUP BY oc.category_id
+	) agg ON agg.category_id = c.id
 	WHERE c.user_id = @userId AND c.budget > 0
 `)
 
@@ -345,21 +358,39 @@ function dailyRowsOver(userId, from, to) {
 	return rows
 }
 
-/** The running-total line a window's chart draws — spend by default, or saved for the savings
-    growth chart, both from the same daily rows. */
-function seriesOver(userId, from, to, key = 'spend') {
+/** The running-total line a window's chart draws, from daily rows already in hand — split
+    from the fetch so getStats reads the window's daily totals once and cumulates spend and
+    saved from the same rows, instead of running the identical GROUP BY twice per request
+    (dailyRowsOver returns both columns either way). */
+function cumulate(rows, key) {
 	const points = []
 	let sum = 0
-	for (const row of dailyRowsOver(userId, from, to)) { sum += row[key]; points.push(sum) }
+	for (const row of rows) { sum += row[key]; points.push(sum) }
 	return points
 }
 
+function seriesOver(userId, from, to, key = 'spend') {
+	return cumulate(dailyRowsOver(userId, from, to), key)
+}
+
+/* LIMIT in the query, not a .slice() after it: the card renders the newest handful, and
+   fetching every returned order in the window materialised 7,648 joined rows to keep 6 on an
+   all-time read (20ms -> 13ms; the count the card also needs is its own query below, an index
+   range read through idx_orders_user_status now that the index carries date). The id tie-break
+   is the same rule the orders list sorts by, and here it also decides which returns survive
+   the cut: dates are day-precise, so without it two runs -- or two plans -- of a window whose
+   newest returns share a day could each keep a different six. */
 const selectReturned = db.prepare(`
 	SELECT ot.id, ot.date, ot.total, ot.saved, ot.refunded,
 		v.name AS vendorName, v.initials AS vendorInitials, v.colour AS vendorColour
 	FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
 	WHERE ot.user_id = @userId AND ot.status = 'Returned' AND ot.date >= @from AND ot.date < @to
-	ORDER BY ot.date DESC
+	ORDER BY ot.date DESC, ot.id DESC
+	LIMIT @limit
+`)
+const countReturnedIn = db.prepare(`
+	SELECT COUNT(*) AS n FROM orders
+	WHERE user_id = @userId AND status = 'Returned' AND date >= @from AND date < @to
 `)
 
 /* The account's returns, not the window's -- what the card's SEE RETURN HISTORY button stands
@@ -395,13 +426,13 @@ const countWord = n => COUNT_WORDS[n] ?? String(n)
    be a second orders list, with its own state, sitting next to the real one.
    README: Data rows. */
 function returnsIn(userId, from, to) {
-	const all = selectReturned.all({ userId, from, to })
+	// Five, once, read here. It is the same kind of card as the latest orders and the top
+	// vendors, so it is the same number -- the account's, not this file's.
+	const items = selectReturned.all({ userId, from, to, limit: cardRowsFor(userId) })
 	return {
-		total: all.length,
+		total: countReturnedIn.get({ userId, from, to }).n,
 		history: countReturnedEver.get(userId).n,
-		// Five, once, written here. It is the same kind of card as the latest orders and the top
-		// vendors, so it is the same number -- the account's, not this file's.
-		items: all.slice(0, cardRowsFor(userId)).map(r => ({
+		items: items.map(r => ({
 			// `saved` because a returned order is listed the way every other order is listed --
 			// its total, and what it saved under it. It was left out while these rows drew the
 			// total alone, and the row was the only list of orders in the app drawing it alone.
@@ -449,7 +480,7 @@ function kpisFor(now, was, wasLabel) {
 /** The last N windows of a range's width, oldest first, for the bar-column card beside the
     chart. A handful of small aggregate queries (N is 6 by default) — fine at this scale, and
     each window's total has to be its own query since a window's bounds aren't a fixed stride. */
-function recentColumns(userId, range, id, count = 6) {
+function recentColumns(userId, range, id, currentSpent, count = 6) {
 	const ids = [id]
 	for (let i = 1; i < count; i++) {
 		const prev = shiftWindowId(range, ids[0], -1)
@@ -458,7 +489,9 @@ function recentColumns(userId, range, id, count = 6) {
 	}
 	const columns = ids.map(windowId => {
 		const bounds = windowBounds(userId, range, windowId)
-		const spend = totalsOver(userId, bounds.from, bounds.to).spent
+		// The current window's total is the one getStats has already aggregated for the page's
+		// own headline; only the prior windows are new questions.
+		const spend = windowId === id ? currentSpent : totalsOver(userId, bounds.from, bounds.to).spent
 		return { id: windowId, label: bounds.shortLabel, spend }
 	})
 	const most = Math.max(...columns.map(c => c.spend), 0)
@@ -608,6 +641,9 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 	// cards on one page stating one fact is the rule that made them share it.
 	const budgetRows = budgetRowsOver(userId, bounds.from, bounds.to)
 
+	// One fetch for both cumulative series below -- the rows carry spend and saved together.
+	const dailyRows = dailyRowsOver(userId, bounds.from, bounds.to)
+
 	return {
 		window: {
 			id, range: width, from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
@@ -630,13 +666,13 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 			rhythm: rhythmOver(userId, bounds.from, bounds.to),
 			split: splitOver(userId, bounds.from, bounds.to, now.spent, budgetRows),
 			budgets: budgetSummary(budgetRows, cardRowsFor(userId)),
-			recent: summary ? null : recentColumns(userId, width, id),
+			recent: summary ? null : recentColumns(userId, width, id, now.spent),
 			returns: returnsIn(userId, bounds.from, bounds.to),
 			kpis: kpisFor(now, was, previousBounds?.shortLabel),
 			series: {
-				current: seriesOver(userId, bounds.from, bounds.to),
+				current: cumulate(dailyRows, 'spend'),
 				previous: previousBounds ? seriesOver(userId, previousBounds.from, previousBounds.to) : null,
-				savedCumulative: seriesOver(userId, bounds.from, bounds.to, 'saved')
+				savedCumulative: cumulate(dailyRows, 'saved')
 			}
 		},
 		defaultId: currentWindowId(width),

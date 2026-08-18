@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
-import { categoryStats, uncategorisedStats } from '../lib/aggregate.js'
+import { categoryStats, categoryStatsFor, uncategorisedStats } from '../lib/aggregate.js'
 
 export const router = Router()
 
@@ -11,7 +11,11 @@ const selectOne = db.prepare(`SELECT ${CATEGORY_COLUMNS} FROM categories WHERE i
 const selectByNameExists = db.prepare('SELECT id FROM categories WHERE user_id = ? AND lower(name) = lower(?)')
 const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon_path, colour, budget, favourite)
 	VALUES (@id, @userId, @name, @icon, @iconPath, @colour, @budget, @favourite)`)
-const countOrders = db.prepare('SELECT COUNT(*) c FROM order_categories oc JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = ? AND o.user_id = ?')
+/* CROSS JOIN so the count is driven from the category's own covering link index
+   (idx_order_categories_cat) with an ownership probe per link -- a plain JOIN let the planner
+   start from the orders side and read all 50,000 of an account's rows to count one category's
+   links: 12.2ms against 1.5ms, same count. */
+const countOrders = db.prepare('SELECT COUNT(*) c FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = ? AND o.user_id = ?')
 const deleteOne = db.prepare('DELETE FROM categories WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, favourite=@favourite WHERE id=@id AND user_id=@userId')
 
@@ -59,10 +63,16 @@ router.post('/', (req, res) => {
 	res.status(201).json(withStats(category, new Map()))
 })
 
+/* One category's stats, not categoryStats' whole-account rollup read for one entry -- the map
+   joins every category link the account has (~105ms at 50,000 orders with the account total
+   beside it) to render a single record this reads in ~5ms from that category's own links
+   (lib/aggregate.js). */
+const statsForOne = (userId, categoryId) => new Map([[categoryId, categoryStatsFor(userId, categoryId)]])
+
 router.get('/:id', (req, res) => {
 	const category = selectOne.get(req.params.id, req.user.id)
 	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
-	res.json(withStats(category, categoryStats(req.user.id)))
+	res.json(withStats(category, statsForOne(req.user.id, category.id)))
 })
 
 router.patch('/:id', (req, res) => {
@@ -82,7 +92,7 @@ router.patch('/:id', (req, res) => {
 		favourite: patch.favourite != null ? (patch.favourite ? 1 : 0) : category.favourite
 	}
 	update.run({ ...next, id: category.id, userId: req.user.id })
-	res.json(withStats(selectOne.get(category.id, req.user.id), categoryStats(req.user.id)))
+	res.json(withStats(selectOne.get(category.id, req.user.id), statsForOne(req.user.id, category.id)))
 })
 
 router.delete('/:id', (req, res) => {

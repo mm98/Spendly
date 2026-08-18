@@ -29,8 +29,17 @@ const wipe = db.transaction(userId => {
     order, vendor and category gone. */
 router.post('/reset', (req, res) => {
 	wipe(req.user.id)
+	refreshStatistics()
 	res.json({ cleared: true })
 })
+
+/* The two routes here are the only ones that rewrite a whole ledger in one request, which is
+   exactly the move that dates the planner statistics db.js gathered at boot: statistics taken
+   over an empty account say every table is tiny, and plans made from those over the 50,000
+   orders a fill just wrote pick the wrong index the same way no statistics did. Re-gathered
+   here, after the transaction commits -- ~90ms at 50,000 orders under the analysis_limit
+   db.js sets, on requests that already spend seconds writing. */
+const refreshStatistics = () => db.exec('ANALYZE')
 
 /* Fills the account with a year of demo orders. Replaces rather than appends: pressed twice,
    appending would double a year of orders and leave every per-month figure quietly wrong,
@@ -72,5 +81,7 @@ router.post('/demo-data', (req, res) => {
 	const askedMonths = Number(req.body?.months)
 	const months = Number.isFinite(askedMonths) && askedMonths > 0
 		? Math.min(288, Math.floor(askedMonths)) : undefined
-	res.json({ ...replaceWithDemo(req.user.id, seed, orders, months), seed })
+	const result = replaceWithDemo(req.user.id, seed, orders, months)
+	refreshStatistics()
+	res.json({ ...result, seed })
 })
