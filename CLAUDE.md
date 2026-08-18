@@ -32,6 +32,11 @@ stated twice and obeyed once.
 - **A fix usually teaches three of them.** The rule goes to the README in general terms, the bug and
   its numbers to `docs/defects.md`, and how the bug got past us comes here. Do not copy the design
   system into this file; do not copy working procedure into that one; do not narrate a fix in either.
+- **A rule already settled in the README is not re-derived from the diff in front of you.** Before
+  adding or touching a form, read README: Fields and Forms and README: Form Validation -- there is one
+  way this app rejects a value (inline, under the field, only once the form has been submitted; no
+  page-level summary, no toast), and it was consolidated onto that one way deliberately after the app
+  had drifted into three. A new form invented from the diff alone is how that drift starts again.
 
 ## The API's queries
 
