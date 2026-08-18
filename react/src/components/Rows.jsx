@@ -71,7 +71,7 @@ export function CategoryRow({ category, meta, to }) {
 
 /** A line on an order, a line read off a receipt, or a fact in an inset panel.
     `tone` recolours the leading tile where the line is a warning rather than a value. */
-export function ItemRow({ icon, iconTone, thumb, thumbSrc, onThumbClick, handle, title, meta, amount, to, children, ...rest }) {
+export function ItemRow({ icon, iconTone, thumb, thumbSrc, onThumbClick, thumbHref, thumbLabel, handle, title, meta, amount, to, children, ...rest }) {
 	return (
 		<Row to={to} family="item-row" {...rest}>
 			{/* The handle is passed in rather than drawn here: a grip is only honest when
@@ -82,12 +82,22 @@ export function ItemRow({ icon, iconTone, thumb, thumbSrc, onThumbClick, handle,
 			{/* thumbSrc is a real preview (a thumbnail the backend generated) for the icon named
 			    by thumb to fall back to — most callers pass thumb alone and never had bytes to
 			    preview in the first place. onThumbClick makes the thumb itself a button that
-			    opens the full image, rather than the whole row -- the row's own title and amount
-			    are not "open this photo", only the photo is. */}
+			    opens the full image, and thumbHref makes it a link to the file, rather than the
+			    whole row -- the row's own title and amount are not "open this photo", only the
+			    photo is. */}
 			{thumb ? (
-				onThumbClick ? (
+				thumbHref ? (
+					/* A thumb that opens the real file is a link, not a button wearing one: the file
+					   lives at a URL, so middle-click, "open in new tab" and the status bar all have
+					   to work. README: Honest Affordances. */
+					<a className="document-thumb document-thumb-button" href={thumbHref}
+						target="_blank" rel="noopener noreferrer"
+						aria-label={thumbLabel ?? `Open ${title ?? 'file'} in a new tab`}>
+						<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
+					</a>
+				) : onThumbClick ? (
 					<button type="button" className="document-thumb document-thumb-button"
-						onClick={onThumbClick} aria-label={`View photo${title ? ` for ${title}` : ''}`}>
+						onClick={onThumbClick} aria-label={thumbLabel ?? `View photo${title ? ` for ${title}` : ''}`}>
 						<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
 					</button>
 				) : (

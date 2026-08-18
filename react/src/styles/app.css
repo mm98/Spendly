@@ -1883,7 +1883,6 @@ label.field-shell { cursor:pointer; }
 .order-subtitle { font-size:12.5px; }
 .order-head-actions { gap:8px; }
 .order-chips { gap:6px; margin-top:var(--gap-block); flex-wrap:wrap; }
-.attachment-preview { padding:0 4px 10px; }
 
 /* Statistics. */
 .stats-toolbar { flex-wrap:wrap; gap:var(--gap-row); padding:2px 2px 0; }
