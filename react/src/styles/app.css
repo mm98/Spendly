@@ -830,11 +830,9 @@ svg.chart { width:100%; display:block; }
    no ellipsis is ever drawn. README: Data Rows, Responsive Layout. */
 .item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .item-row .amount { margin-left:auto; color:var(--text); font-weight:600; font-size:13px; white-space:nowrap; }
-.spotlight-pair .item-row .amount { color:var(--text-positive); }
 .key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid #DFE3DE; background:var(--bg-control-tint); font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
 .chip { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:28px; padding:0 var(--pad-chip); border-radius:var(--radius-compact); border:1px solid #E2E5E1; background:var(--bg-card); font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; }
 .chip svg.icon { width:13px; height:13px; color:var(--chip-glyph); }
-.lead-sentence { font-size:16px; font-weight:600; color:var(--text); letter-spacing:-.01em; line-height:1.4; margin:2px 0 10px; }
 /* Selection may not change a segment's text metrics: the track is width:max-content, so
    a heavier active label resizes the control and everything sharing its row. The pill
    carries the selection alone. README: Segmented Control. */
@@ -1312,10 +1310,34 @@ label.field-shell { cursor:pointer; }
 .ai-prompt-bar > span > svg.icon { width:20px; height:20px; }
 .ai-suggestion-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
 .ai-suggestion-row button { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:34px; padding:0 var(--pad-control-compact); border-radius:var(--radius-compact); border:1px solid #D9DED8; background:var(--bg-card); font-size:12px; font-weight:500; color:var(--text-body); cursor:pointer; }
-.spotlight-pair { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-cards); }
-.spotlight-pair .card .card-body { display:grid; gap:8px; }
+/* The favourites spotlight, on Vendors and Categories both. Three tiles to a row on the
+   wide panel, two from 900 down, one from 700 -- the phone rendering is the same tile,
+   just full-width. Each tile is a small stat card rather than a nested .card: the section
+   already sits inside one, and a card-in-a-card carries a second header band this layout
+   has no use for. */
+.fav-tile-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--gap-panel); }
+.fav-tile { display:flex; flex-direction:column; gap:2px; padding:16px 18px; border:1px solid var(--border-card); border-radius:var(--radius-card); background:var(--bg-card); min-width:0; }
+.fav-tile-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.fav-tile-head .entry-avatar, .fav-tile-head .category-icon { width:28px; height:28px; }
+.fav-tile-head .category-icon svg.icon { width:14px; height:14px; }
+/* The name is the section-label spec -- the tile's own header band -- and it is the way
+   into the record's orders, so it underlines on hover the way every text link here does.
+   Ellipsed rather than wrapped: a two-line name re-heights the whole row of tiles. */
+.fav-tile-name { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); text-decoration:none; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fav-tile-name:hover { text-decoration:underline; }
+.fav-tile-head .icon-button { margin-left:auto; }
+/* .figure-card's spec: the headline number, matching the ring centres and KPI figures. */
+.fav-tile-figure { font-size:21px; font-weight:700; letter-spacing:-.02em; }
+.fav-tile-meta { font-size:10.5px; color:var(--text-muted); }
+/* margin-top:auto, so the stat pair sits on one baseline across a row of tiles however
+   long their names run -- the divider is the flexible joint, not the stats below it. */
+.fav-tile-divider { margin-top:auto; padding-top:12px; margin-bottom:12px; border-bottom:1px solid var(--border-divider); }
+.fav-tile-stats { display:flex; gap:28px; }
+.fav-tile-stat { display:grid; gap:2px; }
+.fav-tile-stat-label { font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
+.fav-tile-stat-value { font-size:13px; font-weight:600; color:var(--text); }
+.fav-tile-stat-positive { color:var(--text-positive); }
 .button.button-ghost { gap:var(--gap-icon); padding:0 var(--pad-control); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; width:max-content; }
-.spotlight-pair .button-ghost { width:100%; margin-top:4px; }
 /* Placed after the variants on purpose: it weighs the same as they do, so it only
    wins by sitting later in the file. Moving it up silently restores the 38px tier. */
 .button.button-compact { height:32px; padding:0 var(--pad-control-compact); font-size:10.5px; border-radius:var(--radius-compact); }
@@ -1344,7 +1366,7 @@ label.field-shell { cursor:pointer; }
 .account-row-text { font-size:12.5px; }
 .card-question .card-question-label { font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--text-muted); text-transform:uppercase; }
 .card-question .card-question-title { font-size:15px; font-weight:700; margin:8px 0 12px; letter-spacing:-.01em; }
-@media (max-width:900px) { .two-column, .spotlight-pair { grid-template-columns:1fr; } }
+@media (max-width:900px) { .two-column { grid-template-columns:1fr; } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
 /* ---------------- responsive ---------------- */
 @media (max-width:1180px) {
@@ -1549,6 +1571,11 @@ label.field-shell { cursor:pointer; }
 	.page-bar { padding:6px var(--gutter-page) 2px; overflow-x:auto; scrollbar-width:none; }
 	.segmented { flex-wrap:nowrap; }
 	.dashboard-cards { grid-template-columns:1fr; }
+	/* One favourite per row, the tile a little tighter: the mark and the star flank the
+	   name at full width, and the headline steps down with the phone's other figures. */
+	.fav-tile-grid { grid-template-columns:1fr; gap:var(--gap-row); }
+	.fav-tile { padding:14px 16px; }
+	.fav-tile-figure { font-size:19px; }
 	/* No hover under a coarse pointer, so there is no way to ask for the tooltip and no
 	   room to put it -- off outright, rather than left to whether the browser emulates a
 	   hover on tap. display beats the reveal rule's visibility whatever specificity says. */
