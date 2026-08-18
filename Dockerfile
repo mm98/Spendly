@@ -48,5 +48,14 @@ ENV SPENDLY_DB=/data/spendly.sqlite3
 ARG BUILD_TIME
 ARG GIT_SHA
 ENV SPENDLY_BUILD_TIME=$BUILD_TIME SPENDLY_BUILD_SHA=$GIT_SHA
+# The Lighthouse scores this exact image was measured at, as the JSON blob
+# react/scripts/lighthouse.mjs writes. Stamped rather than measured at runtime: the numbers
+# describe a build, so they belong to the image the way its commit does, and a container asked
+# to score itself would be measuring the box it happens to be running on. The workflow builds
+# the image, runs Lighthouse against that container, and rebuilds with the result -- every
+# layer above this one is cached, so the second pass is this ENV and nothing else. Unset, the
+# endpoint answers null and the UI says the build was never measured.
+ARG LIGHTHOUSE
+ENV SPENDLY_LIGHTHOUSE=$LIGHTHOUSE
 EXPOSE 4000
 CMD ["node", "api/src/server.js"]

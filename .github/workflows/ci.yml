@@ -42,3 +42,42 @@ jobs:
           cache-dependency-path: api/package-lock.json
       - run: npm ci
       - run: npm run queries:check
+
+  # Lighthouse against the built bundle served by the API process -- the deployed shape, not
+  # the dev server, which serves unminified modules one file per import and scores something
+  # nobody ships. Accessibility, best practices and SEO hold a floor (rule checks, same answer
+  # on any machine); performance is printed and never gated, because a stopwatch on a shared
+  # runner fails for reasons a change did not cause.
+  #
+  # main only. It installs a hundred megabytes of tool, builds, and runs the page twice, which
+  # is minutes on every pull request to re-measure a number that moves a point at a time -- and
+  # the number that matters is the one the shipped image carries, which docker.yml measures
+  # against the image itself when main is pushed. A regression lands on main and is visible
+  # there; nobody is served by paying for it per commit.
+  lighthouse:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: react/package-lock.json
+      - run: npm ci
+        working-directory: react
+      - run: npm run build
+        working-directory: react
+      - run: npm ci --omit=dev
+        working-directory: api
+      # --no-save: Lighthouse is a hundred megabytes of CI-only tool, and adding it to
+      # react/package.json would make every other job install it to run neither.
+      - run: npm i --no-save lighthouse
+        working-directory: react
+      - name: Serve the build
+        run: |
+          SPENDLY_DB="$RUNNER_TEMP/lighthouse.sqlite3" PORT=4000 node api/src/server.js &
+          for i in $(seq 1 60); do curl -sf localhost:4000/api/health >/dev/null && break; sleep 0.5; done
+          curl -sf localhost:4000/ >/dev/null || { echo 'the build is not being served'; exit 1; }
+      - run: node scripts/lighthouse.mjs http://localhost:4000/
+        working-directory: react

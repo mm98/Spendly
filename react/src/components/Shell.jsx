@@ -7,7 +7,8 @@ import { Waiting } from './Async.jsx'
 import { ToastProvider } from './Toast.jsx'
 import { PullToRefresh } from './PullToRefresh.jsx'
 import { UpdateNotice } from './UpdateNotice.jsx'
-import { search } from '../api/client.js'
+import { getVersion, search } from '../api/client.js'
+import { useApi } from '../api/useApi.js'
 
 /* The shell every page sits in: the rail, the top bar, the sub-tab band, and the sheet.
 
@@ -64,8 +65,47 @@ function Sidebar({ navKey }) {
 					)
 				})}
 			</nav>
-			<div className="sidebar-footer"><span>Spendly<Sep />personal ledger</span></div>
+			<div className="sidebar-footer"><BuildQuality /></div>
 		</aside>
+	)
+}
+
+/* The band at the foot of the rail, and what it is hiding: the Lighthouse scores this image
+   was measured at, on hover or focus. Same shape as the chart callout -- not drawn at rest,
+   revealed by asking, `visibility` rather than `display` so the phone rule that hides this
+   whole band stays in charge.
+
+   The scores come from /api/version, which the Settings page already reads, and useApi keys
+   its cache by endpoint -- so the band costs a request only on a load where Settings has not
+   made one, and never a second. Outside the Docker image there is nothing to show and the
+   band is the plain line it always was: a tooltip that opens onto "unknown" is worse than no
+   tooltip, and a dev server has no build to have been measured. */
+const SCORES = [
+	['Performance', 'performance'], ['Accessibility', 'accessibility'],
+	['Best practices', 'bestPractices'], ['SEO', 'seo']
+]
+
+function BuildQuality() {
+	const version = useApi(getVersion)
+	const scores = version.data?.lighthouse
+	if (!scores) return <span>Spendly<Sep />personal ledger</span>
+
+	return (
+		<span className="build-quality">
+			{/* Focusable, or the callout is hover-only and a keyboard never reaches it. */}
+			<span className="build-quality-band" tabIndex={0}>Spendly<Sep />personal ledger</span>
+			<span className="build-quality-callout" role="tooltip">
+				<span className="build-quality-title">This build scored</span>
+				{SCORES.map(([label, key]) => (
+					<span className="build-quality-row" key={key}>
+						{label}<b>{scores[key]}</b>
+					</span>
+				))}
+				<span className="build-quality-meta">
+					Lighthouse {scores.lighthouse ?? '?'}<Sep />FCP {Math.round(scores.firstContentfulPaintMs)} ms
+				</span>
+			</span>
+		</span>
 	)
 }
 
