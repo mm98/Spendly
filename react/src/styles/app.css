@@ -2049,7 +2049,7 @@ html[data-theme="dark"] {
 	--text:#EAEEEB; --text-strong:#EAEEEB;
 	--text-body:#C4CBC6; --text-muted:#9BA59E; --text-faint:#6E7871;
 	--chip-glyph:#7F8981; --thumb-glyph:#8E988F;
-	--bg-app:#0B0F0D; --bg-card:#151A17;
+	--bg-app:#0B0F0D; --bg-card:#151A17; --bg-dark:#3f564b;
 	--bg-nav-active:#1C221E; --bg-row-hover:#191F1B;
 	--bg-positive:#123227; --bg-bar-track:#202923; --bg-meter-track:#202923;
 	--bg-inset:#1C221E; --bg-control-tint:#1E2420; --bg-hero:#1C221E;
