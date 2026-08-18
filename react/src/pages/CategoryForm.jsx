@@ -7,7 +7,7 @@ import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormP
 import { CategoryPreview, ColourPicker, IconPicker } from '../components/Pickers.jsx'
 import { ICONS } from '../components/Icon.jsx'
 import {
-	CheckRow, Field, FieldShell, FieldUnit, TextInput, focusField, needFixing, useFieldErrors
+	CheckRow, Field, FieldShell, FieldUnit, TextInput, focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
@@ -47,7 +47,6 @@ function CategoryFields({ mode, category }) {
 	const toast = useToast()
 	const all = useApi(getCategories)
 	const [values, setValues] = useState(BLANK)
-	const [status, setStatus] = useState({ message: '', good: true })
 	const [saving, setSaving] = useState(false)
 
 	useEffect(() => {
@@ -104,11 +103,9 @@ function CategoryFields({ mode, category }) {
 	const save = () => {
 		const failed = check()
 		if (failed.length) {
-			setStatus({ message: 'Cannot save: ' + needFixing(failed), good: false })
 			focusField(failed[0].name)
 			return
 		}
-		setStatus({ message: '', good: true })
 		setSaving(true)
 		/* The path travels with the name. A category may be any of Tabler's 5,129 outline icons,
 		   and a record that stored only the name would make every list load the catalogue to
@@ -145,7 +142,6 @@ function CategoryFields({ mode, category }) {
 		<FormPage
 			title={mode === 'edit' ? 'Edit category' : 'New category'}
 			lead="What it is called, what it looks like, and what it is allowed each month."
-			status={status}
 			cancel={{ to: '/categories' }}
 			submit={{
 				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD CATEGORY',

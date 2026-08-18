@@ -7,7 +7,7 @@ import { EntryRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { ColourPicker, VENDOR_COLOURS } from '../components/Pickers.jsx'
 import {
-	CheckRow, Field, FieldShell, TextInput, focusField, needFixing, useFieldErrors
+	CheckRow, Field, FieldShell, TextInput, focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
@@ -41,7 +41,6 @@ function VendorFields({ mode, vendor }) {
 	const [favourite, setFavourite] = useState(false)
 	const [aliases, setAliases] = useState([])
 	const [aliasQuery, setAliasQuery] = useState('')
-	const [status, setStatus] = useState({ message: '', good: true })
 	const [saving, setSaving] = useState(false)
 
 	useEffect(() => {
@@ -90,11 +89,9 @@ function VendorFields({ mode, vendor }) {
 	const save = () => {
 		const failed = check()
 		if (failed.length) {
-			setStatus({ message: 'Cannot save: ' + needFixing(failed), good: false })
 			focusField(failed[0].name)
 			return
 		}
-		setStatus({ message: '', good: true })
 		setSaving(true)
 		const patch = { name: name.trim(), colour, initials, favourite, aliases }
 		const written = mode === 'edit' ? updateVendor(vendor.id, patch) : createVendor(patch.name, patch)
@@ -123,7 +120,6 @@ function VendorFields({ mode, vendor }) {
 			lead={mode === 'edit'
 				? 'Its name, the tile its initials sit on, and whether it stays on top.'
 				: 'It joins your list straight away, with no orders on it yet.'}
-			status={status}
 			cancel={{ to: '/vendors' }}
 			submit={{
 				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD VENDOR',

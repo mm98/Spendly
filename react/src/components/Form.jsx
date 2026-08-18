@@ -3,13 +3,13 @@ import { Icon } from './Icon.jsx'
 
 /* Fields, and the one place a rejection is drawn.
 
-   Two forms in this app reject values -- the order form on step 1 of New order and the item
-   form on step 2 -- and a rejection has to look identical on both: the message under its
-   field, the red edge on the shell, aria-invalid and aria-describedby on the input, and one
-   sentence in the form's own status line. That marking is written once, in `Field` and
-   `useFieldErrors` below, and each form owns nothing but its own rules. A second copy of it
-   is the near-miss the uniformity rule is about: the two would agree until the day one of
-   them was fixed. README: Fields and Forms.
+   Every form in this app rejects values the same way, and only one way: the message under
+   its field, the red edge on the shell, aria-invalid and aria-describedby on the input. No
+   form also carries a page-level summary or a toast repeating the same verdict -- a rejection
+   is shown once, where the value was typed, and only once the form has been submitted. That
+   marking is written once, in `Field` and `useFieldErrors` below, and each form owns nothing
+   but its own rules. A second copy of it is the near-miss the uniformity rule is about: the
+   two would agree until the day one of them was fixed. README: Fields and Forms.
 
    aria-describedby is set with the message and removed with it. Left in place it points at
    a hidden span, which is announced by no engine and audited as a dangling reference by
@@ -199,30 +199,6 @@ export const FilterSection = ({ children, id, ...rest }) =>
 export const FilterSectionBody = ({ children, id, hidden }) =>
 	<div className="filter-section-body" id={id} hidden={hidden}>{children}</div>
 
-/* ---- the form's own verdict ----
-   role="status" is on the element, so writing to it announces and shows in one move --
-   there is no second, hidden copy to keep in step.
-
-   A verdict off screen is the defect this line exists to fix, so its position is not left
-   to luck: under the button it sits where an iOS keyboard lands, above the fields it is
-   above the fold whenever the tap had to scroll down to reach the button -- measured at
-   59px below and at -70px in WebKit respectively. `nearest` is a no-op when it is already
-   in view, so nothing jumps in the common case. */
-export function FormStatus({ message, good }) {
-	const ref = useRef(null)
-	const previous = useRef('')
-	if (message && message !== previous.current) {
-		previous.current = message
-		queueMicrotask(() => ref.current?.scrollIntoView({ block: 'nearest' }))
-	}
-	if (!message) previous.current = ''
-	return (
-		<p ref={ref} className={join('form-status', !good && 'form-status-negative')} role="status">
-			{message}
-		</p>
-	)
-}
-
 export const FormActions = ({ split, children }) =>
 	<div className={join('form-actions', split && 'form-actions-split')}>{children}</div>
 
@@ -289,17 +265,6 @@ export function useFieldErrors(fields, values) {
 	}), [errors, errorId])
 
 	return { errors, check, recheck, clear, propsFor }
-}
-
-/** "Quantity and Price paid need fixing", "Vendor, Date and Kind need fixing" -- the status
-    line names the fields rather than repeating the messages already sitting under them,
-    because on a phone the field focus jumps to can be behind the keyboard and this line is
-    the one thing the user can be sure of. */
-export function needFixing(failed) {
-	const names = failed.map(f => f.label)
-	const list = names.length < 2 ? names[0]
-		: names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
-	return list + (names.length > 1 ? ' need' : ' needs') + ' fixing.'
 }
 
 /** Focus the first field that failed. The element is found by the id the form gave it, so a

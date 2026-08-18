@@ -13,7 +13,7 @@ import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Row
 import { ItemLines } from '../components/ItemLines.jsx'
 import {
 	DateInput, Field, FieldPair, FieldShell, FieldUnit, Segmented, TextArea, TextInput,
-	focusField, needFixing, useFieldErrors
+	focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
@@ -81,7 +81,6 @@ export function NewOrderDetails() {
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
 	const toast = useToast()
-	const [status, setStatus] = useState({ message: '', good: true })
 
 	const values = useMemo(() => ({
 		'order-vendor': draft.vendor,
@@ -129,8 +128,7 @@ export function NewOrderDetails() {
 
 	const next = () => {
 		const failed = check()
-		if (!failed.length) { setStatus({ message: '', good: true }); navigate('/orders/new/items'); return }
-		setStatus({ message: 'Cannot continue: ' + needFixing(failed), good: false })
+		if (!failed.length) { navigate('/orders/new/items'); return }
 		focusField(failed[0].name)
 	}
 
@@ -149,7 +147,7 @@ export function NewOrderDetails() {
 	return (
 		<FormPage
 			title="Order details" lead="Where you bought, when, and how it arrived."
-			steps={STEPS(0)} status={status}
+			steps={STEPS(0)}
 			cancel={{ to: '/orders' }}
 			submit={{ label: 'NEXT STEP', onClick: next }}
 			rail={
@@ -354,7 +352,10 @@ function OrderSummary({ draft, estimate, showItems }) {
 export function NewOrderItems() {
 	const { draft, update } = useOutletContext()
 	const navigate = useNavigate()
-	const [status, setStatus] = useState({ message: '', good: true })
+	/* Set only once a save has actually been tried with nothing on the list -- validation
+	   errors show on submit, not while the list is still being built. It clears itself the
+	   moment an item exists, since that is the only fix there is. */
+	const [itemsTried, setItemsTried] = useState(false)
 	const [saving, setSaving] = useState(false)
 	/* A photo is picked against an item that, mid-wizard, has no real id yet -- see save()
 	   below, which is what actually uploads these once the order (and so the item) has been
@@ -390,7 +391,7 @@ export function NewOrderItems() {
 
 	const save = () => {
 		if (!draft.items.length) {
-			setStatus({ message: 'An order needs at least one item.', good: false })
+			setItemsTried(true)
 			/* The row that opens an empty card is the control that fixes this, and since the
 			   form above the list is gone there is no field left to send anyone to. */
 			document.querySelector('.line-add-row')?.focus()
@@ -429,7 +430,7 @@ export function NewOrderItems() {
 		<FormPage
 			title="Add the items"
 			lead="Line by line, with the price you paid and what it would have cost at retail."
-			steps={STEPS(1)} status={status}
+			steps={STEPS(1)}
 			cancel={{ to: '/orders/new', label: 'BACK', icon: 'chevronLeft' }}
 			submit={{ label: saving ? 'SAVING...' : 'SAVE ORDER', onClick: save, disabled: saving }}
 			rail={
@@ -454,6 +455,7 @@ export function NewOrderItems() {
 
 			<ItemLines items={draft.items} onItemsChange={items => update({ items })}
 				label="Items" onAnnounce={toast} photoOf={photoOf}
+				error={itemsTried && !draft.items.length ? 'An order needs at least one item.' : ''}
 				onPhotoPick={pickPhoto} onPhotoClear={clearPhoto} />
 		</FormPage>
 	)

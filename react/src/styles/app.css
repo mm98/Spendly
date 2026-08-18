@@ -1251,15 +1251,6 @@ label.field-shell { cursor:pointer; }
 	}
 }
 .field-help { font-size:12px; color:var(--text-muted); }
-/* What the form just did, said where the button is. The item form announced every
-   add into a .screenreader-only live region and nothing else, so on a phone -- where
-   the list, the count and the summary are all below the fold -- a successful add and
-   a dead button drew the same screen, and the only visible sign was the form going
-   blank, which reads as losing the input rather than banking it. Empty until
-   something happens, so it costs no row in the grid at rest. README: Fields and Forms. */
-.form-status { margin:0; font-size:12px; font-weight:600; color:var(--text-positive); }
-.form-status:empty { display:none; }
-.form-status.form-status-negative { color:var(--text-negative); }
 .form-actions { display:flex; gap:var(--gap-row); margin-top:6px; }
 .form-actions.form-actions-split { justify-content:space-between; }
 .stepper { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
@@ -2001,8 +1992,6 @@ label.field-shell { cursor:pointer; }
 .line-editor { margin:4px 0; }
 
 
-/* Sign in and register. The status line wears the form-status classes the order forms'
-   verdict line already defines -- it is the same line, and it was drawn a third way here. */
 .auth-switch { margin-top:14px; }
 
 /* The record preview on the vendor and category forms. */

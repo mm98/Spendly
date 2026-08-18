@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Sep } from '../components/Sep.jsx'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
@@ -16,7 +16,7 @@ import { StatusChip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import {
 	DateInput, Field, FieldPair, FieldShell, FieldUnit, FormActions, Segmented, TextInput,
-	focusField, needFixing, useFieldErrors
+	focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
@@ -217,7 +217,15 @@ function ScanReviewForm({ answer }) {
 	const vendors = useApi(getVendors)
 	const [showAll, setShowAll] = useState(false)
 	const [saving, setSaving] = useState(false)
-	const [status, setStatus] = useState({ message: '', good: true })
+	/* Set only once SAVE ORDER has actually been tried with an empty line list -- validation
+	   errors show on submit, not while the list is still being built. Clears itself the
+	   moment a line exists. */
+	const [linesTried, setLinesTried] = useState(false)
+	/* The one line SAVE ORDER opened because it failed the same three rules the line editor
+	   itself checks -- marked the instant its card opens, since that open *is* the rejection,
+	   rather than waiting for a second press of SAVE LINE to say so. A line opened by its own
+	   pencil is not this: nothing is wrong with it yet, so nothing is marked until it is. */
+	const [autoCheckLine, setAutoCheckLine] = useState(null)
 	const toast = useToast()
 	/* The draft the review is editing. It starts as what the reader returned and is what SAVE
 	   ORDER writes -- so the fields on this page are the order, rather than a picture of one. */
@@ -241,10 +249,12 @@ function ScanReviewForm({ answer }) {
 		patch({ lines: [...draft.lines, { id, title: '', quantity: 1, price: 0 }] })
 		setNewLineId(id)
 		setEditingLine(id)
+		setAutoCheckLine(null)
 	}
 	const cancelLine = id => {
 		if (id === newLineId) { patch({ lines: draft.lines.filter(l => l.id !== id) }); setNewLineId(null) }
 		setEditingLine(null)
+		setAutoCheckLine(null)
 	}
 
 	/* The same four rules step 1 checks, from the same module. This screen used to check
@@ -322,12 +332,11 @@ function ScanReviewForm({ answer }) {
 	const save = () => {
 		const failed = check()
 		if (failed.length) {
-			setStatus({ message: 'Cannot save: ' + needFixing(failed), good: false })
 			focusField(failed[0].name)
 			return
 		}
 		if (!draft.lines.length) {
-			setStatus({ message: 'An order needs at least one line.', good: false })
+			setLinesTried(true)
 			return
 		}
 		/* The draft is what gets submitted, so the draft is what gets checked. ADD LINE puts its
@@ -343,12 +352,12 @@ function ScanReviewForm({ answer }) {
 			const failedLine = LINE_FIELDS.filter(f => f.check(String(lineValues[f.name] ?? '').trim()))
 			if (failedLine.length) {
 				setEditingLine(line.id)
-				setStatus({ message: 'Cannot save: ' + needFixing(failedLine), good: false })
+				setAutoCheckLine(line.id)
 				focusField(failedLine[0].name)
 				return
 			}
 		}
-		setStatus({ message: '', good: true })
+		setLinesTried(false)
 		setSaving(true)
 		createOrder({
 			vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
@@ -384,7 +393,7 @@ function ScanReviewForm({ answer }) {
 	return (
 		<FormPage
 			title="Review the draft" lead="Every value is editable. Nothing is stored until you save."
-			steps={SCAN_STEPS(2)} status={status}
+			steps={SCAN_STEPS(2)}
 			cancel={{ to: '/scan', label: 'DISCARD' }}
 			submit={{ label: saving ? 'SAVING...' : 'SAVE ORDER', onClick: save, disabled: saving }}
 			notice={
@@ -550,10 +559,19 @@ function ScanReviewForm({ answer }) {
 					<span className="section-label">Lines read<Sep />{answer.linesRead}</span>
 					<span className="field-help">the pencil corrects a line<Sep />ADD LINE for one that wasn't read</span>
 				</div>
+				{/* Same shape as a line's own rejections -- `.field > span.field-error` -- in a
+				    bare `.field` div rather than a page-level summary, since no single field
+				    here describes "the list has at least one line". */}
+				{linesTried && !draft.lines.length ? (
+					<div className="field">
+						<span className="field-error" role="status">An order needs at least one line.</span>
+					</div>
+				) : null}
 				<InsetPanel>
 					{draft.lines.map(line => (
 						editingLine === line.id ? (
 							<LineEditor key={line.id} line={line}
+								autoCheck={autoCheckLine === line.id}
 								onSave={values => saveLine(line.id, values)}
 								onCancel={() => cancelLine(line.id)} />
 						) : (
@@ -564,7 +582,7 @@ function ScanReviewForm({ answer }) {
 								meta={line.meta ?? `${line.quantity} × ${currency(line.price)}`}
 								amount={currency(line.price * line.quantity)}>
 								<IconButton icon="pencil" label={`Edit ${line.title}`}
-									onClick={() => setEditingLine(line.id)} />
+									onClick={() => { setEditingLine(line.id); setAutoCheckLine(null) }} />
 							</ItemRow>
 						)
 					))}
@@ -601,8 +619,12 @@ function ScanReviewForm({ answer }) {
 
 /** A line of the receipt, opened for correction. Three fields, the same three rules the item
     form on New order checks, marked and announced by the same apparatus -- see api/rules.js.
-    Its own three-branch if/else agreed with them until the day one of the two was fixed. */
-function LineEditor({ line, onSave, onCancel }) {
+    Its own three-branch if/else agreed with them until the day one of the two was fixed.
+
+    `autoCheck` is true only when this card was opened *by* a rejected SAVE ORDER, never by its
+    own pencil -- the open is itself the rejection then, so the fields mark themselves the
+    moment the card mounts rather than waiting for a second press of SAVE LINE to say so. */
+function LineEditor({ line, onSave, onCancel, autoCheck = false }) {
 	const [form, setForm] = useState({
 		'line-description': line.title,
 		'line-quantity': String(line.quantity),
@@ -612,6 +634,8 @@ function LineEditor({ line, onSave, onCancel }) {
 	const description = propsFor('line-description')
 	const quantity = propsFor('line-quantity')
 	const price = propsFor('line-price')
+
+	useEffect(() => { if (autoCheck) check() }, [autoCheck, check])
 
 	const set = name => v => { setForm(f => ({ ...f, [name]: v })); recheck(name, v) }
 

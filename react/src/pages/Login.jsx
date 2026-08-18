@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router'
 import { Card, CardBody } from '../components/Card.jsx'
-import { Field, FieldShell, TextInput, FormActions } from '../components/Form.jsx'
+import { Field, FieldShell, TextInput, FormActions, focusField } from '../components/Form.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { failureMessage, login } from '../api/client.js'
@@ -15,13 +15,13 @@ export default function Login() {
 	const [params] = useSearchParams()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
-	const [status, setStatus] = useState({ message: '', good: true })
+	const [error, setError] = useState('')
 	const [saving, setSaving] = useState(false)
 
 	const submit = e => {
 		e.preventDefault()
 		setSaving(true)
-		setStatus({ message: '', good: true })
+		setError('')
 		/* An account that has never been shown the settings page is sent there once, the same
 		   detour registration takes -- this is the branch that catches someone who registered
 		   and closed the tab before it landed. A `from` in the query wins: that is a reader who
@@ -34,7 +34,8 @@ export default function Login() {
 				else navigate(asked || '/', { replace: true })
 			})
 			.catch(err => { setSaving(false)
-				setStatus({ message: failureMessage(err, 'Could not sign in. Try again.'), good: false }) })
+				setError(failureMessage(err, 'Could not sign in. Try again.'))
+				focusField('login-password') })
 	}
 
 	return (
@@ -52,20 +53,19 @@ export default function Login() {
 						<Field label="Email" htmlFor="login-email">
 							<FieldShell>
 								<TextInput id="login-email" type="email" value={email} autoFocus
-									onChange={setEmail} aria-label="Email" aria-required="true" />
+									onChange={v => { setEmail(v); setError('') }}
+									aria-label="Email" aria-required="true" />
 							</FieldShell>
 						</Field>
-						<Field label="Password" htmlFor="login-password">
+						<Field label="Password" htmlFor="login-password"
+							error={error} errorId="login-password-error">
 							<FieldShell>
 								<TextInput id="login-password" type="password" value={password}
-									onChange={setPassword} aria-label="Password" aria-required="true" />
+									onChange={v => { setPassword(v); setError('') }}
+									aria-label="Password" aria-required="true"
+									invalid={Boolean(error)} describedBy="login-password-error" />
 							</FieldShell>
 						</Field>
-						{status.message ? (
-							<p role="alert" className={status.good ? 'form-status' : 'form-status form-status-negative'}>
-								{status.message}
-							</p>
-						) : null}
 						<FormActions>
 							<Button variant="primary" type="submit" disabled={saving}>{saving ? 'SIGNING IN...' : 'SIGN IN'}</Button>
 						</FormActions>

@@ -10,8 +10,8 @@ import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Row
 import { ItemLines } from '../components/ItemLines.jsx'
 import {
 	DateInput, Field, FieldPair, FieldShell, FieldUnit,
-	Form, FormActions, FormStatus, Segmented, TextArea, TextInput,
-	focusField, needFixing, useFieldErrors
+	Form, FormActions, Segmented, TextArea, TextInput,
+	focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
@@ -58,7 +58,10 @@ function EditOrderForm({ id, seed }) {
 	const [draft, setDraft] = useState(seed)
 	const update = useCallback(patch => setDraft(prev => ({ ...prev, ...patch })), [])
 
-	const [status, setStatus] = useState({ message: '', good: true })
+	/* Set only once a save has actually been tried with an empty item list -- validation
+	   errors show on submit, not while the list is still being built. It clears itself the
+	   moment an item exists, since that is the only fix there is. */
+	const [itemsTried, setItemsTried] = useState(false)
 	const [saving, setSaving] = useState(false)
 
 	const orderValues = useMemo(() => ({
@@ -143,19 +146,17 @@ function EditOrderForm({ id, seed }) {
 	const save = () => {
 		const failedOrder = orderErrors.check()
 		if (failedOrder.length) {
-			setStatus({ message: 'Cannot save: ' + needFixing(failedOrder), good: false })
 			focusField(failedOrder[0].name)
 			return
 		}
 		if (!draft.items.length) {
-			setStatus({ message: 'An order needs at least one item.', good: false })
+			setItemsTried(true)
 			/* There is no item form to send anyone to any more, and the empty list's own row is
 			   what opens the card that would fix this -- so the verdict points at the control
 			   that acts rather than at a field that is not on the page. */
 			document.querySelector('.line-add-row')?.focus()
 			return
 		}
-		setStatus({ message: '', good: true })
 		setSaving(true)
 		updateOrder(id, draft)
 			.then(async order => {
@@ -211,7 +212,6 @@ function EditOrderForm({ id, seed }) {
 								{saving ? 'SAVING...' : 'SAVE'}</Button>
 						</div>
 						<p className="card-lead">Update the details, the items, or both; everything saves together.</p>
-						<FormStatus message={status.message} good={status.good} />
 						<Form>
 							<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId} htmlFor="order-vendor">
 								<Combobox id="order-vendor" label="Vendor" required
@@ -343,6 +343,7 @@ function EditOrderForm({ id, seed }) {
 					<CardBody>
 						<ItemLines items={draft.items} onItemsChange={items => update({ items })}
 							heading={false} onAnnounce={toast} photoOf={photoOf}
+							error={itemsTried && !draft.items.length ? 'An order needs at least one item.' : ''}
 							onPhotoPick={pickPhoto} onPhotoClear={clearPhoto} />
 					</CardBody>
 				</Card>
