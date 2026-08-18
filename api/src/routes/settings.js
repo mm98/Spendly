@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { db } from '../db.js'
-import { CURRENCIES, MAX_PAGE_SIZE } from '../lib/constants.js'
+import { CURRENCIES, MAX_PAGE_SIZE, SPEND_KINDS, ORDER_STATUSES } from '../lib/constants.js'
 
 export const router = Router()
 
@@ -55,7 +55,14 @@ router.patch('/', (req, res) => {
 	}
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({
-		userId: req.user.id, defaultKind: next.defaultKind, defaultStatus: next.defaultStatus,
+		userId: req.user.id,
+		/* The same fall-back-to-stored rule every neighbour below already follows, which the
+		   comment above this route has promised all along -- these two were written verbatim, so
+		   'garbage-kind' stored and came back as the in-force default (refused later by every
+		   draft it prefilled), and a non-string JSON value (true, {}) threw at bind time and
+		   answered 500. String() folds those into strings that miss the allowlist. */
+		defaultKind: oneOf(SPEND_KINDS, String(next.defaultKind ?? ''), currentApi.defaultKind),
+		defaultStatus: oneOf(ORDER_STATUSES, String(next.defaultStatus ?? ''), currentApi.defaultStatus),
 		// Same bounds the list route enforces on its own param -- a stored preference outside
 		// them would save, come back, and be clamped by every read anyway; storing what will
 		// actually be obeyed keeps the settings page honest about what is in force.

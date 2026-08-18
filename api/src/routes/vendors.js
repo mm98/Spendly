@@ -133,7 +133,11 @@ router.patch('/:id', (req, res) => {
 	const vendor = selectOne.get(req.params.id, req.user.id)
 	if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
 	const patch = req.body ?? {}
-	const nextName = patch.name?.trim() ?? vendor.name
+	/* The same rule the create door enforces: '' survives `?.trim() ?? fallback` because an
+	   empty string is not nullish, so a whitespace rename stored an empty vendor name that
+	   rendered blank in every list -- and a non-string patch.name threw at .trim into a 500. */
+	const nextName = patch.name !== undefined ? String(patch.name).trim() : vendor.name
+	if (!nextName) return res.status(400).json({ error: 'A vendor needs a name.' })
 	const currentAliases = aliasesFor(req.user.id, vendor.id)
 	/* Renaming a vendor to one of its own aliases swaps the two: the alias becomes the name,
 	   and the name it had until now is kept as an alias -- the receipts that carry it should

@@ -20,10 +20,20 @@ router.post('/register', async (req, res) => {
 
 	const id = newId('u')
 	const passwordHash = await hashPassword(password)
-	db.transaction(() => {
-		insertUser.run(id, email, passwordHash)
-		seedAccountDefaults(db, id)
-	})()
+	/* The pre-check above stays -- it spares the ~65ms scrypt hash on the common duplicate --
+	   but it cannot be the guarantee: two same-email registrations can both pass it during that
+	   await, and the loser's INSERT then hit the UNIQUE constraint and surfaced as a 500. The
+	   constraint is the real check, so its violation gets the same 409 the serialized case gets. */
+	try {
+		db.transaction(() => {
+			insertUser.run(id, email, passwordHash)
+			seedAccountDefaults(db, id)
+		})()
+	} catch (e) {
+		if (e.code === 'SQLITE_CONSTRAINT_UNIQUE')
+			return res.status(409).json({ error: 'An account with that email already exists.' })
+		throw e
+	}
 
 	const token = createSession(res, id)
 	res.status(201).json({ id, email, token })
