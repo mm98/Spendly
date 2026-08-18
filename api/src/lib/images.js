@@ -95,8 +95,13 @@ export async function processAttachment(kind, buffer, mimetype) {
 			thumbnail: pdfThumb?.thumbnail ?? null, thumbnailContentType: pdfThumb?.thumbnailContentType ?? null
 		}
 	})()
-	const data = compressBlob(processed.data)
-	const thumbnail = compressBlob(processed.thumbnail)
+	/* Each blob compressed against its own content type, so the pipeline's own JPEGs are
+	   recognised as already-compressed and skipped rather than deflated for a loss. Both at
+	   once: they are independent, and the threadpool can take them together. */
+	const [data, thumbnail] = await Promise.all([
+		compressBlob(processed.data, processed.contentType),
+		compressBlob(processed.thumbnail, processed.thumbnailContentType)
+	])
 	return {
 		...processed,
 		data: data.blob, dataCompressed: data.compressed,
