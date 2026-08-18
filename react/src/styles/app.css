@@ -1382,8 +1382,13 @@ label.field-shell { cursor:pointer; }
    them. Hidden rather than removed: the band keeps its height, so opening a line does not
    reflow the header above the list it just changed. */
 .card:has(.line-card) > .card-header .field-help { visibility:hidden; }
-.line-card { --line-photo:128px; margin:6px 0; background:var(--bg-card); border-color:var(--green); }
-.line-card-head { display:flex; align-items:center; gap:var(--gap-row); flex-wrap:wrap; }
+.line-card { --line-photo:128px; margin:6px 0; background:var(--bg-card); }
+/* The head and the actions are banded off from the fields between them, and the rules run the
+   full width of the card rather than stopping at its padding -- so the card reads as three
+   parts, the way the design draws it. `.filter-section` pads 14px 16px, and each band hands
+   that padding back as a negative margin and re-applies it inside the rule. */
+.line-card-head { display:flex; align-items:center; gap:var(--gap-row); flex-wrap:wrap; margin:-14px -16px 0; padding:14px 16px; border-bottom:1px solid var(--border-divider); }
+.line-card .form-actions { margin:0 -16px -14px; padding:14px 16px; border-top:1px solid var(--border-divider); }
 /* The head takes .section-label's own spec in the markup and declares only its difference. */
 .line-card-title { color:var(--green-deep); }
 .line-card-body { display:flex; gap:var(--gap-panel); align-items:flex-start; }
@@ -1393,8 +1398,20 @@ label.field-shell { cursor:pointer; }
 .line-photo-img { width:100%; height:100%; object-fit:cover; display:block; }
 .line-photo-mark { display:grid; justify-items:center; gap:var(--gap-icon); }
 .line-photo-mark svg.icon { width:20px; height:20px; }
-.line-photo-foot { display:flex; align-items:center; gap:8px; text-align:center; }
-.line-photo-remove { color:var(--text-negative); }
+/* The frame's own actions, spread to its width so Replace sits under its left edge and Remove
+   under its right, with a hairline between them. Their own treatment rather than
+   `.button-link`: that one is the caps action (SEE ALL, CLEAR ALL), and these are words. */
+.line-photo-foot { justify-self:stretch; display:grid; gap:6px; text-align:center; }
+.line-photo-actions { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+/* The tap target is grown upwards and downwards only, the padding handed straight back as a
+   negative margin so the row does not move. Not sideways: 2px of horizontal padding on the
+   right-hand action is 2px past the frame it is meant to line up with, which is the whole
+   point of spreading them. */
+.line-photo-action { font:inherit; font-size:12px; font-weight:500; color:var(--text-body); background:none; border:0; padding:4px 0; margin:-4px 0; cursor:pointer; }
+.line-photo-action:hover { text-decoration:underline; text-underline-offset:3px; }
+.line-photo-action:focus-visible { outline:2px solid var(--green); outline-offset:2px; border-radius:4px; }
+.line-photo-action-remove { color:var(--text-negative); }
+.line-photo-sep { font-size:12px; color:var(--border-card); }
 .line-card-fields { flex:1; min-width:0; display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-panel); align-content:start; }
 .line-field-wide { grid-column:1 / -1; }
 /* What the two prices mean together, under both of them. A retail below the price paid is a
@@ -1622,6 +1639,9 @@ label.field-shell { cursor:pointer; }
 	.line-photo { width:auto; grid-template-columns:auto 1fr; justify-items:start; align-items:center; }
 	.line-card { --line-photo:76px; }
 	.line-card-fields { grid-template-columns:minmax(0,1fr); }
+	/* "Drop a file or paste from clipboard" names two gestures a phone does not have; there
+	   the frame is tapped, and a tap target needs no sentence under it. */
+	.line-photo-hint { display:none; }
 	.line-card .form-actions { flex-wrap:wrap; }
 	.line-card .form-actions .push-end { margin-left:0; }
 	/* .global-finder carries the margin-left:auto that pushes the actions right, and it is
@@ -1752,6 +1772,10 @@ label.field-shell { cursor:pointer; }
 /* The reorder grip on item rows. */
 .item-row-grip { font:inherit; background:none; border:0; padding:0; display:inline-flex; align-items:center; flex:none; touch-action:none; cursor:grab; }
 .item-row-grip.is-dragging { cursor:grabbing; }
+/* A grip that is present but cannot be used right now -- a line is open for editing. It keeps
+   its place in the row, because taking the column out shifts every tile and title in the list
+   sideways; it drops the grab cursor and the colour, because a cursor is a promise. */
+.item-row-grip:disabled { cursor:default; opacity:.4; }
 
 /* Order detail. */
 .order-title { font-size:22px; font-weight:600; letter-spacing:-.01em; }

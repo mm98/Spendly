@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Sep } from './Sep.jsx'
-import { Button, ButtonLink, IconButton } from './Button.jsx'
+import { Button, IconButton } from './Button.jsx'
 import { Icon } from './Icon.jsx'
 import { ConfirmDialog } from './ConfirmDialog.jsx'
 import { HiddenFileInput } from './FileInput.jsx'
@@ -198,9 +198,12 @@ export function ItemLines({
 		}
 	})
 
-	/* Whether the list is showing grips at all. The rows and the add row's empty grip column
-	   read the same value, so the column cannot be reserved on one and not the other. */
-	const showGrips = openId === null && items.length > 1
+	/* Whether the list has a grip column at all -- which is a question about how many lines
+	   there are, not about whether one of them is open. A grip that is taken out of the row
+	   while a line is being edited moves every tile and title in the list 27px sideways, so it
+	   stays and goes inert instead. The rows and the add row's empty column read the same
+	   value, so the column cannot be reserved on one and not the other. */
+	const showGrips = items.length > 1
 
 	const paid = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 	const retail = items.reduce((sum, i) => sum + (i.retail ?? i.price) * i.quantity, 0)
@@ -255,10 +258,11 @@ export function ItemLines({
 							<ItemRow icon={photo.present ? undefined : 'cube'}
 								thumb={photo.present ? 'photo' : undefined} thumbSrc={photo.src}
 								title={item.title}
-								/* No grip while a card is open: the list the drag measures is the list
-								   on screen, and one of its rows is currently a card twice the height
-								   of the rest. A drag is offered when it can be honoured. */
-								handle={showGrips ? reorder.handle(item, i) : null}
+								/* Disabled while a card is open rather than removed: the list the drag
+								   measures is the list on screen, and one of its rows is currently a
+								   card, so the index arithmetic would be off by one. A disabled button
+								   never reaches that arithmetic, and the column keeps its width. */
+								handle={showGrips ? reorder.handle(item, i, openId !== null) : null}
 								meta={`${item.quantity} × ${currency(item.price)}`
 									+ (item.retail ? `${sep}retail ${currency(item.retail)}` : '')}
 								amount={currency(item.price * item.quantity)}
@@ -338,10 +342,6 @@ function LineCard({
 	const price = errors.propsFor('item-price')
 	const retailField = errors.propsFor('item-retail')
 
-	/* Every field is checked when it is left, so a rejection arrives at the moment the reader
-	   finished with the field rather than at the moment they tried to save the card. */
-	const blur = name => () => errors.mark(name)
-
 	const take = list => {
 		const image = [...(list ?? [])].find(f => f.type.startsWith('image/'))
 		if (image) onPick(image)
@@ -407,15 +407,25 @@ function LineCard({
 								: <span className="line-photo-mark"><Icon name="photo" />Add photo</span>}
 					</button>
 					<HiddenFileInput ref={file} accept="image/*" label="Product photo" onFiles={take} />
+					{/* Two plain text actions with a hairline between them, spread to the frame's
+					    own width. They were `ButtonLink`s, which is this app's *caps* text action
+					    -- SEE ALL, CLEAR ALL, SHOW ALL, and every other one of them is caps -- so
+					    sentence-case words came out bold, letter-spaced and underlined. These are
+					    their own thing: 12px, medium, no underline until hovered.
+
+					    The line under them names two gestures a phone does not have, so the phone
+					    does not print it -- there the frame is tapped, which needs no sentence. */}
 					<span className="line-photo-foot">
 						{photo.present ? (
-							<>
-								<ButtonLink onClick={() => file.current?.click()}>Replace</ButtonLink>
-								<ButtonLink className="line-photo-remove" onClick={onClearPhoto}>Remove</ButtonLink>
-							</>
-						) : (
-							<span className="field-help">Drop a file, paste one, or tap to pick.</span>
-						)}
+							<span className="line-photo-actions">
+								<button type="button" className="line-photo-action"
+									onClick={() => file.current?.click()}>Replace</button>
+								<span className="line-photo-sep" aria-hidden="true">|</span>
+								<button type="button" className="line-photo-action line-photo-action-remove"
+									onClick={onClearPhoto}>Remove</button>
+							</span>
+						) : null}
+						<span className="field-help line-photo-hint">Drop a file or paste from clipboard</span>
 					</span>
 				</div>
 
@@ -425,7 +435,6 @@ function LineCard({
 						<FieldShell>
 							<TextInput id="item-description" aria-label="Description" aria-required="true"
 								value={form['item-description']} onChange={set('item-description')}
-								onBlur={blur('item-description')}
 								invalid={description.invalid} describedBy={description.describedBy} />
 						</FieldShell>
 					</Field>
@@ -435,7 +444,7 @@ function LineCard({
 						<FieldShell>
 							<TextInput id="item-quantity" inputMode="numeric" aria-label="Quantity"
 								aria-required="true" value={form['item-quantity']}
-								onChange={set('item-quantity')} onBlur={blur('item-quantity')}
+								onChange={set('item-quantity')}
 								invalid={quantity.invalid} describedBy={quantity.describedBy} />
 							<FieldUnit>pcs</FieldUnit>
 						</FieldShell>
@@ -449,7 +458,7 @@ function LineCard({
 						<FieldShell>
 							<TextInput id="item-price" inputMode="decimal" aria-label="Price paid"
 								aria-required="true" value={form['item-price']}
-								onChange={set('item-price')} onBlur={blur('item-price')}
+								onChange={set('item-price')}
 								invalid={price.invalid} describedBy={price.describedBy} />
 							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>
@@ -461,7 +470,7 @@ function LineCard({
 						<FieldShell>
 							<TextInput id="item-retail" inputMode="decimal" placeholder="104,95"
 								aria-label="Retail price" value={form['item-retail']}
-								onChange={set('item-retail')} onBlur={blur('item-retail')}
+								onChange={set('item-retail')}
 								invalid={retailField.invalid} describedBy={retailField.describedBy} />
 							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>

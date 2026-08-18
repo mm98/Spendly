@@ -282,8 +282,16 @@ export function useReorder({ items, onReorder, describe, onAnnounce }) {
 	    button is not a rule the shared stylesheet should carry. The `touch-action` is not
 	    cosmetic: without it the first move gesture scrolls the page and the drag never
 	    starts. */
-	const handle = (item, index) => (
-		<button type="button" data-reorder-handle={item.id}
+	/* `disabled` is for a list that still has rows but cannot reorder them for a moment -- a
+	   line opened for editing, say. The grip stays in the row rather than being taken out of
+	   it: a column that appears and disappears moves every tile and title in the list sideways
+	   the instant something is opened, which is a layout shift charged for a control that was
+	   only meant to be unavailable. A disabled button cannot be pressed, cannot be focused and
+	   fires neither handler below, so the index arithmetic those handlers depend on -- which
+	   assumes the rows on screen are the items in the list -- is never reached while the two
+	   disagree. */
+	const handle = (item, index, disabled = false) => (
+		<button type="button" data-reorder-handle={item.id} disabled={disabled || undefined}
 			className={['item-row-grip', draggingId === item.id && 'is-dragging'].filter(Boolean).join(' ')}
 			aria-label={`Reorder ${describe(item)}, ${index + 1} of ${items.length}. Drag, or use the arrow keys.`}
 			onPointerDown={e => onPointerDown(e, index, item)}
