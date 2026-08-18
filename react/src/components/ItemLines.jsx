@@ -225,7 +225,14 @@ export function ItemLines({
 			}}
 			onCancel={() => (dirty ? setLeaving({ target: null }) : seed(null))}
 			onStep={step => { const to = items[openIndex + step]; if (to) go(to.id) }}
-			deleteButton={openItem ? itemDel.button(openItem, 'DELETE LINE') : null} />
+			/* The words go on a phone, where the footer has three controls and room for two --
+			   see the stylesheet. The accessible name keeps them either way, and keeps them
+			   first, so what the button is called does not change with the viewport. */
+			deleteButton={openItem
+				? itemDel.button(openItem,
+					<span className="line-delete-label">DELETE LINE</span>,
+					`Delete line, ${openItem.title}`)
+				: null} />
 	)
 
 	return (
@@ -362,6 +369,10 @@ function LineCard({
 		if (e.metaKey || e.ctrlKey) onSaveAndNext(); else onSave()
 	}
 
+	const heading = isNew
+		? `New line${sep}${count + 1} of ${count + 1}`
+		: `Editing line ${index + 1} of ${count}`
+
 	/* The three figures the fields imply, recomputed as either number is typed. A quantity is a
 	   multiplier and never a second price to keep in step by hand, so the line total is read
 	   back rather than asked for. */
@@ -381,9 +392,7 @@ function LineCard({
 			onDrop={e => { e.preventDefault(); setOver(false); take(e.dataTransfer?.files) }}>
 
 			<div className="line-card-head">
-				<span className="section-label line-card-title">
-					{isNew ? `New line${sep}${count + 1} of ${count + 1}` : `Editing line ${index + 1} of ${count}`}
-				</span>
+				<span className="section-label line-card-title">{heading}</span>
 				{isNew ? null : (
 					<span className="row-inline row-actions">
 						<IconButton icon="chevronLeft" label="Edit the line above"
@@ -392,7 +401,8 @@ function LineCard({
 							disabled={index >= count - 1} onClick={() => onStep(1)} />
 					</span>
 				)}
-				<span className="field-help push-end">Enter saves<Sep />Escape cancels</span>
+				{/* Two keys a phone does not have, so a phone does not print them. */}
+				<span className="field-help push-end line-card-keys">Enter saves<Sep />Escape cancels</span>
 			</div>
 
 			<div className="line-card-body">
@@ -415,7 +425,15 @@ function LineCard({
 
 					    The line under them names two gestures a phone does not have, so the phone
 					    does not print it -- there the frame is tapped, which needs no sentence. */}
+					{/* On a phone the head is not drawn at all -- the design puts what it says
+					    beside the frame instead, with the line's own name under it, and that is
+					    the whole header. Both are hidden on a desktop, where the head is real.
+					    The string is built once above and rendered twice rather than written
+					    twice: two copies of a sentence agree until the day one is edited. */}
 					<span className="line-photo-foot">
+						<span className="section-label line-card-title line-photo-heading">{heading}</span>
+						<span className="line-photo-name">
+							{form['item-description'].trim() || 'Untitled line'}</span>
 						{photo.present ? (
 							<span className="line-photo-actions">
 								<button type="button" className="line-photo-action"
@@ -424,8 +442,15 @@ function LineCard({
 								<button type="button" className="line-photo-action line-photo-action-remove"
 									onClick={onClearPhoto}>Remove</button>
 							</span>
-						) : null}
-						<span className="field-help line-photo-hint">Drop a file or paste from clipboard</span>
+						) : (
+							/* Only over an empty frame. Dropping and pasting leave no mark on the
+							   screen, so the sentence is the only way anyone finds out they work --
+							   which is worth a line while the frame is empty and the reader is
+							   looking for the way in. Once there is a photo, Replace is a visible
+							   control answering the same question, the two gestures still work, and
+							   the sentence is a third row in a column standing beside the fields. */
+							<span className="field-help line-photo-hint">Drop a file or paste from clipboard</span>
+						)}
 					</span>
 				</div>
 
@@ -439,7 +464,7 @@ function LineCard({
 						</FieldShell>
 					</Field>
 
-					<Field label="Quantity" htmlFor="item-quantity"
+					<Field className="line-field-qty" label="Quantity" htmlFor="item-quantity"
 						error={quantity.error} errorId={quantity.errorId}>
 						<FieldShell>
 							<TextInput id="item-quantity" inputMode="numeric" aria-label="Quantity"
@@ -464,7 +489,7 @@ function LineCard({
 						</FieldShell>
 					</Field>
 
-					<Field label="Retail price" htmlFor="item-retail"
+					<Field className="line-field-retail" label="Retail price" htmlFor="item-retail"
 						error={retailField.error} errorId={retailField.errorId}
 						help="Optional. Powers the saved-vs-retail figures.">
 						<FieldShell>
