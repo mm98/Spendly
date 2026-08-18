@@ -261,6 +261,15 @@ was hidden this way for a whole run -- the bare URL printed one step, the bounce
 next, and the two read as "cleared" and "restored" instead of as one defect. Wait for the URL to
 hold still across three polls before reading it, the same shape as the geometry settle above.
 
+**Two records of the same route are one document, so `goto` between them changes nothing but the
+hash.** `page.goto(BASE + '/#/orders/A/edit')` then `.../orders/B/edit` never reloads the document,
+and a form that seeded its draft on mount goes on showing A -- so a `waitForSelector` for the row
+class is satisfied instantly by A's rows and every number after it is A's, filed under B. A
+three-line order was measured as one row and would have been reported that way. Wait on a value
+that must differ between the two (the row count, a title) rather than on a selector both states
+satisfy, and where the app has no in-product path from one record to the other, `reload()` rather
+than invent one -- arriving from the list is what a reader actually does, and it remounts.
+
 **One engine is not coverage.** Blink is the easiest thing to render and the least representative.
 Date fields carried two calendar icons in Firefox for as long as they existed — Gecko draws a picker
 button no selector can reach, so ours landed on top of it — and every screenshot taken in Chromium
@@ -522,6 +531,29 @@ all seven were the right size in the wrong place and the measurement had no opin
 box sits. Any check on a box's dimension needs its edge too -- assert the bar's bottom against the
 track's bottom, the row's left against its container's left -- and look at the render, because
 "correct height, wrong baseline" is invisible to arithmetic and obvious to an eye.
+
+**A measurement that rules an option out has ruled it out for the row as it stands, and a row is
+not a fixed set of parts.** The line editors were held back from the one-line row treatment by an
+honest number: grouped, with a grip, a tile, a total and two buttons in the row, the title came to
+64px, which is a mid-word stack nobody should read. That measurement was correct, it was written
+down, and it settled the question it was asked -- *can this row be grouped* -- for two years. The
+question never asked was *must this row keep all five*, and the answer was no: the total sat beside
+a meta reading `2 x 39,50 kr.`, so it was that arithmetic printed twice and, at quantity 1, the
+same number twice. Dropping it took the grouped title from 64px to 141px and the list from 430px to
+224px. So when a measurement closes a door, record what was in the room at the time -- and before
+citing it later, re-read the inventory rather than the verdict, because the verdict is a fact about
+a composition and compositions are the cheapest thing in the file to change.
+
+**A `display:none` child still answers `getBoundingClientRect`, with zeros.** A probe that groups a
+row's children into flex lines by their vertical bands invented an extra band for the one element
+the change had just hidden -- every phone row reported two flex lines against the desktop's one, on
+rows whose whole point was that they can no longer wrap. It reads as the change having failed. The
+same zeros poison a `Math.min` of lefts, a bounding box built by hand, and any "is this the topmost
+element" test. Filter children to the ones actually laid out (`width > 0 || height > 0`) before
+measuring position, and be suspicious of any geometry result that changes when an element is hidden
+rather than moved. Two probes in a row here reported clean and were wrong: the first counted
+distinct child `top` values and called a one-line row five lines, because children of different
+heights centre to different tops on one line.
 
 **Deleting a component is a claim about how many elements used it, and the count is cheap.**
 Removing two cards took their component and their CSS with them, and three of those rules were

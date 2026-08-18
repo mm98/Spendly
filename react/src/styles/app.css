@@ -1683,9 +1683,12 @@ label.field-shell { cursor:pointer; }
 	   own content: the content width is what decided the line break, so the slot went to a
 	   third row and hung off the end of it. README: All Orders. */
 	.toolbar > .toolbar-sort { flex:1 1 0; }
-	/* The item row carries an icon, a drag handle, a nowrap price and two action
-	   buttons. On a phone those fixed widths leave the description nothing, so the
-	   row wraps and the description keeps a majority basis. */
+	/* An item row carries a tile, a nowrap figure and often a trailing control. On a
+	   phone those fixed widths leave the title nothing, so the row wraps and the title
+	   keeps a majority basis. This is the default and no longer the common case: the
+	   rows that still take it are Scan review's -- a read line, its total and a pencil,
+	   with no card of their own to move a figure into -- and the help rows that carry
+	   no figure at all. Everything that reads as one line states .item-row-group below. */
 	.item-row { flex-wrap:wrap; row-gap:6px; }
 	/* 64%, not 60%. The basis decides where the row breaks, and at 60% it was deciding
 	   it by 1%: the description's basis came to 175.2px of a 292px row against the
@@ -1703,18 +1706,31 @@ label.field-shell { cursor:pointer; }
 	   dropped to their own line whatever the title's actual length. A grouped row
 	   keeps them beside the title and gives the title what is left. On the pages
 	   that took it -- Order details' items and attachments -- that is 199px and
-	   160px of a 390px phone, plenty for the names those rows carry. The rows
-	   that keep the wrap are the New/Edit order line editors: a grip, a tile, a
-	   price and two buttons leave a grouped title 64px there, measured, which is
-	   a mid-word stack no one asked to read. README: Responsive Layout. */
+	   160px of a 390px phone, plenty for the names those rows carry.
+	   README: Responsive Layout. */
 	.item-row.item-row-group { flex-wrap:nowrap; }
 	.item-row.item-row-group > div:has(.item-row-title) { flex:1 1 auto; }
 	/* Truncate, don't stack: overflow-wrap:anywhere breaks a long single word --
 	   a filename, a compound product name -- into a narrow column mid-word once
 	   the row is grouped. The grouped title takes the meta's own treatment
-	   instead, one line with an ellipsis; the attachment's full name is in the
-	   preview under the row, and an item's on the order's edit page. */
+	   instead, one line with an ellipsis. The full name is reachable from every
+	   row that does this: the attachment's in the preview under the row, and an
+	   item's in the Description field of the card its own pencil opens. */
 	.item-row.item-row-group .item-row-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+	/* The line editors group too, and this is what pays for it. Grouped with the
+	   total still in the row they were measured at a 64px title -- a mid-word stack
+	   no one asked to read -- which is why they carried the wrap instead, and the
+	   wrap is what put the price and both buttons on a line of their own under a
+	   title using a third of its own. The total is the figure to spend, because it
+	   is the one the row already states: the meta beside it reads `2 × 39,50 kr.`,
+	   so the line total is that arithmetic done twice, and where the quantity is 1
+	   -- most lines -- the two are the same number printed twice. It is still drawn
+	   on a desktop, where the row has the width, and still in the card the pencil
+	   opens, which prints `Per piece · line total X` under the price as it is typed.
+	   Scoped to this list rather than written on .item-row-group: Order details'
+	   read rows have no card to open and no second copy of the figure, so a total
+	   hidden there would be a total nowhere. README: Data Rows. */
+	.item-lines .item-row .amount { display:none; }
 	/* The open line card: the photo stops being a left column and becomes the card's header
 	   strip, which is the only way 128px of frame plus two fields side by side fits 390px. The
 	   fields stack for the same reason -- a 1fr 1fr grid puts Quantity and Price paid at about

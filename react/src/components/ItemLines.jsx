@@ -263,7 +263,13 @@ export function ItemLines({
 					return (
 						<Fragment key={item.id}>
 							{reorder.placeholder(item)}
-							<ItemRow icon={photo.present ? undefined : 'cube'}
+							{/* Grouped, so a phone reads the row as one line: title left, actions right,
+							    and nothing dropping to a second line under a title using a fraction of
+							    its own. Grouping is a claim the title can afford, and here it can only
+							    afford it because the line total is hidden at that width -- the two are
+							    one decision, and the stylesheet states the other half of it. */}
+							<ItemRow className="item-row-group"
+								icon={photo.present ? undefined : 'cube'}
 								thumb={photo.present ? 'photo' : undefined} thumbSrc={photo.src}
 								title={item.title}
 								/* Disabled while a card is open rather than removed: the list the drag
