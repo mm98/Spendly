@@ -15,13 +15,13 @@ import {
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
+import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addItemAttachments, createVendor, failureMessage, getCategories, getOrderAsDraft, getVendors,
-	invalidateOrderData, invalidateVendorData, itemAttachmentThumbnailUrl, spendKinds, updateOrder,
-	vendorByAnyName
+	addItemAttachments, failureMessage, getCategories, getOrderAsDraft, getVendors,
+	invalidateOrderData, itemAttachmentThumbnailUrl, spendKinds, updateOrder
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
-import { currency, currencySymbol, parseAmount, percent, plural, sep, today } from '../api/format.js'
+import { currency, currencySymbol, parseAmount, percent, sep, today } from '../api/format.js'
 
 /* Editing an order, whole.
 
@@ -72,31 +72,8 @@ function EditOrderForm({ id, seed }) {
 	const orderErrors = useFieldErrors(ORDER_FIELDS, orderValues)
 	const set = (name, key) => v => { update({ [key]: v }); orderErrors.recheck(name, v) }
 
-	/* Same rule as New order: typed text that is an existing vendor's alias picks that vendor,
-	   never creates a twin -- the action row says USE before it is pressed, and this guard
-	   resolves identically if pressed anyway. */
-	const aliasHit = vendorByAnyName(vendors.data ?? [], draft.vendor)
-
-	const addVendor = name => {
-		const clean = String(name).trim()
-		if (!clean) return
-		const existing = vendorByAnyName(vendors.data ?? [], clean)
-		if (existing) {
-			update({ vendor: existing.name })
-			orderErrors.recheck('order-vendor', existing.name)
-			toast(`"${clean}" is an alias of ${existing.name}, so ${existing.name} is used.`)
-			return
-		}
-		createVendor(clean)
-			.then(vendor => {
-				invalidateVendorData()
-				vendors.refresh()
-				update({ vendor: vendor.name })
-				orderErrors.recheck('order-vendor', vendor.name)
-				toast(`${vendor.name} added to your vendors.`)
-			})
-			.catch(e => toast(failureMessage(e, 'The vendor was not created. Try again.'), 'negative'))
-	}
+	const pickVendor = name => { update({ vendor: name }); orderErrors.recheck('order-vendor', name) }
+	const vendorPicker = useVendorPicker(vendors, draft.vendor, pickVendor, toast)
 
 	const [categoryQuery, setCategoryQuery] = useState('')
 	const addCategory = name => {
@@ -218,20 +195,10 @@ function EditOrderForm({ id, seed }) {
 									placeholder="Search vendors..." value={draft.vendor}
 									invalid={vendorField.invalid} describedBy={vendorField.describedBy}
 									onChange={set('order-vendor', 'vendor')}
-									onSelect={o => { update({ vendor: o.label }); orderErrors.recheck('order-vendor', o.label) }}
+									onSelect={o => pickVendor(o.label)}
 									leadingIcon="search"
-									groups={[
-										{ heading: 'Favourites', options: (vendors.data ?? []).filter(v => v.favourite)
-											.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order'), star: true })) },
-										{ heading: 'All vendors', options: (vendors.data ?? []).filter(v => !v.favourite)
-											.map(v => ({ id: v.id, label: v.name, meta: plural(v.orders, 'order') })) }
-									]}
-									action={aliasHit
-										? { icon: 'check',
-											label: `USE ${aliasHit.name.toUpperCase()}: "${draft.vendor.trim().toUpperCase()}" IS ITS ALIAS`,
-											onSelect: addVendor }
-										: { icon: 'plus', label: `CREATE VENDOR "${draft.vendor.toUpperCase()}"`,
-											onSelect: addVendor }} />
+									groups={vendorPicker.groups}
+									action={vendorPicker.action} />
 							</Field>
 
 							<FieldPair>

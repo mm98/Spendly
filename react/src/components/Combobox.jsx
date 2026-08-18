@@ -96,10 +96,13 @@ export function Combobox({
 	   list sat as far below the fold as ever. A value that names an option exactly is the
 	   resting selection rather than a search -- filtering by it would shrink the reopened list
 	   to the one row already chosen -- so the full list returns the moment a choice lands. A
-	   group filtered empty gives up its heading too, Favourites included. */
+	   group filtered empty gives up its heading too, Favourites included. An option answers to
+	   more than its own label wherever the caller says so -- `search` is what the typed text is
+	   matched against when present, `label` is only ever what gets drawn and marked. */
 	const searching = Boolean(typed) && !typedMatches
 	const shown = (searching
-		? groups.map(g => ({ ...g, options: g.options.filter(o => o.label.toLowerCase().includes(typed.toLowerCase())) }))
+		? groups.map(g => ({ ...g, options: g.options.filter(o =>
+			(o.search ?? o.label).toLowerCase().includes(typed.toLowerCase())) }))
 		: groups
 	).filter(g => g.options.length)
 	const noMatch = searching && shown.length === 0

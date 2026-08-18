@@ -2011,6 +2011,45 @@ misses, and the header counts `1 of 2`. Over the API, the two routes answer iden
 `Netto`, `nett`, `Salling`, `zzz` and `føtex` — the last through the non-ASCII fold path. No page
 errors. Gecko and WebKit unverified — not installed, nothing engine-shaped.
 
+## Vendors — the order forms' own vendor picker was three more copies of the same gap
+
+Defends: *A vendor answers to more names than the one it shows*, the same clause the entry above
+defends, against the same rule breaking the same way at sites that entry never reached.
+
+An account with COOP filed under the alias `cop` typed `cop` into New order's vendor field and
+found nothing — the dropdown never opened the action row, never listed COOP, nothing. The fix
+above added `vendorTextMatch` (name-or-alias, substring) and wired it into All vendors' own
+search field, the orders list's server-side filter, and the command palette. It never reached the
+combobox every order form's vendor field is built from: `Combobox.jsx`'s own filter matched an
+option's `label` and nothing else, so a vendor's aliases were invisible to it regardless of what
+any other page already knew how to find. Three call sites carried the identical hand-copied
+block — resolve the typed text against `vendorByAnyName` for the CREATE/USE action row, build one
+combobox option per vendor — and all three inherited the same blind spot, because the block itself
+predates `vendorTextMatch` and nothing after it went back to update the copies.
+
+Grepping every `getVendors` call site rather than trusting the two just fixed (New order, Edit
+order) found a third: Scan's vendor field is the same wizard step with a different save path, and
+carried the same block verbatim. A fourth site was a different shape of the same gap rather than a
+missing action row — All orders' vendor filter has no create-a-vendor flow, so it was never a
+candidate for the New order fix's copy-paste, but its combobox options were still built from
+`v.name` alone.
+
+`Combobox.jsx` grew one optional field: `search`, which the component's own filter matches against
+when a caller supplies it, falling back to `label` when it does not — every other combobox in the
+app (categories, sort orders, settings pickers) passes no `search` and is untouched. New order,
+Edit order and Scan's shared block became `useVendorPicker` (`react/src/api/useVendorPicker.js`),
+one hook wrapping `vendorByAnyName` for the action row and `vendorTextMatch` for the option list's
+`search` field and its `also <alias>` meta clause, so a fourth order-form vendor field gets both
+for free. All orders' filter has no action row to share, so it calls `vendorTextMatch` directly for
+its `search` field the same way All vendors' search box already did — a second consumer of the
+same function, not a second copy of the matching rule.
+
+The tell worth keeping: fixing the two reported call sites and stopping there would have left Scan
+and the orders filter exactly as broken as they were before the report, silently, because neither
+was mentioned in the bug and neither renders anywhere near New order. `grep -rln getVendors
+react/src/pages` and reading what each result actually matched on took under a minute and found
+both.
+
 ## Checkbox row — two options on one settings page, drawn as prose beside a control
 
 The Import tab's options had been rebuilt as checkbox rows — box, bold name, description hanging to
