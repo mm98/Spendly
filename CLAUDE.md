@@ -244,6 +244,19 @@ changed width when the selection moved, because the active segment was bolder an
 a control has (selected/resting, empty/filled, open/closed, wrapped/unwrapped) and compare geometry
 across them.
 
+**A clearance that runs on open is a fact about opening, not about the surface.** The line card sat
+11px clear of the floating tab bar on an iPhone 13, and every instrument here read that as a fit. It
+was not a fit: it is a `scroll-margin-bottom` spent once by the `scrollIntoView` that opens the card,
+so the number measured the one state the opening code exists to make correct, and every state after
+it was unmeasured. Blank the quantity and press SAVE LINE -- the card grows by the error line the form
+has just drawn, 449px to 490px, and all three of its action buttons are under the bar, 16px deep,
+with no scroll that recovers them. So where a layout is held by something that fires on an event,
+fire the event and then *change the thing*: grow it by a rejection, fill its optional row, type a name
+that wraps. A one-shot and a standing guarantee render identically until something moves, and the
+state to move it into first is the one the product's own copy promises -- a form that validates is a
+form that will be refused, so a form measured only while it is valid is measured in the state it
+spends the least time in.
+
 **A declaration that is redundant in one viewport is not a redundant declaration.** Dropping each
 remaining inline declaration, reading the computed value back and restoring it found 8 that changed
 nothing — a clean, mechanical proof, run at 1440 only. Three of the 8 were phone overrides: the

@@ -1534,6 +1534,14 @@ label.field-shell { cursor:pointer; }
 		--tabbar-gap:16px;
 		--tabbar-gap-bottom:3px;
 		--tabbar-height:64px;
+		/* What the bottom of the screen is spoken for: the bar, the gap under it, the
+		   platform's own inset, and the 12px gutter between the bar and whatever it
+		   floats over. Three surfaces have to clear exactly this -- the sheet pads by
+		   it, the update bar sits on it, an opening line card scrolls itself above it
+		   -- and they were three copies of one expression agreeing by hand. One token
+		   is also what makes the withdrawn branch below a single line rather than
+		   three. */
+		--tabbar-clearance:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px);
 		/* The phone values of the spacing tokens, in one place instead of one rule per
 		   surface: README: Grids and Breakpoints names one 12px gutter below 700px, and
 		   the topbar, the page bar and the content sheet each used to restate it. The
@@ -1568,11 +1576,36 @@ label.field-shell { cursor:pointer; }
 	   this actually beats it -- an untinted box-shadow with no fill under it rendered
 	   as a stray rectangle behind the active icon. */
 	.sidebar .sidebar-nav a.is-on { box-shadow:none; }
-	.main-panel { padding-bottom:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px); }
+	.main-panel { padding-bottom:var(--tabbar-clearance); }
 	/* The update bar clears the floating tab bar the same way the sheet above it does -- the
-	   same expression, off the same tokens, rather than a number that resembles the bar's
-	   height and stops agreeing with it the day the bar moves. */
-	.update-notice { bottom:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px); }
+	   same token, rather than a number that resembles the bar's height and stops agreeing
+	   with it the day the bar moves. */
+	.update-notice { bottom:var(--tabbar-clearance); }
+
+	/* ---- a line opened for correction withdraws the bar ----
+
+	   A line card is the one surface on a phone that is an editing session rather than a
+	   page: it opens over the list, it owns the keyboard for as long as it is open, and it
+	   ends at its own SAVE LINE / CANCEL / delete row. The floating bar is 65px of fixed
+	   chrome over the foot of the screen, and that row is what it lands on -- measured on a
+	   card whose quantity had just been rejected: 490px of card against 596px of room on an
+	   iPhone 13, with all three action buttons underneath it (9,176px of card covered; 6,780
+	   on an iPhone SE, 9,269 on a Pixel 5). The card's own scroll-margin clears the bar when
+	   it opens and cannot help afterwards -- it is a one-shot on `scrollIntoView`, and what
+	   moves the row down is the card growing in place, by an error line the reader has just
+	   been given or a verdict the retail field has just earned.
+
+	   So the bar goes while a line is open, rather than the card being made to fit under it:
+	   nothing in the card is navigation, the way out is the card's own two buttons, and the
+	   list underneath comes back with the bar the moment it closes. Both editors are named
+	   because both are the same thing -- ItemLines' card on New/Edit order, and Scan review's
+	   line editor. README: Chrome, Create and Edit. */
+	:root:has(.line-card, .line-editor) {
+		/* The bar is gone, so the three surfaces above clear the platform's inset and the
+		   gutter, and nothing else. */
+		--tabbar-clearance:calc(var(--safe-bottom) + 12px);
+	}
+	:root:has(.line-card, .line-editor) .sidebar { display:none; }
 	.topbar { flex-wrap:wrap; }
 	.topbar h1 { font-size:16px; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but
@@ -1718,11 +1751,12 @@ label.field-shell { cursor:pointer; }
 	   announces is unchanged: it is on the button as aria-label, not in the markup hidden
 	   here. The note goes with them; there is no row left for it and the words on the save
 	   button are the answer to what happens next. */
-	/* The bar floats over the sheet, so anything scrolled flush to the bottom of the viewport
-	   lands under it -- and this card scrolls itself into view when it opens. The same
-	   expression `.main-panel` pads with and `.update-notice` sits above, so the three cannot
-	   drift: the card is never parked where its own save button cannot be tapped. */
-	.line-card { scroll-margin-bottom:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px); }
+	/* The bar is withdrawn while this card is open (see the rule above), so this is what the
+	   card scrolls itself clear of once there is no bar: the platform's inset and the gutter.
+	   It reads the same token `.main-panel` pads by and `.update-notice` sits on, so the
+	   three cannot drift, and it follows the bar out rather than reserving room for one that
+	   is not drawn. */
+	.line-card { scroll-margin-bottom:var(--tabbar-clearance); }
 	.line-card .form-actions { flex-wrap:nowrap; gap:8px; }
 	.line-card .form-actions .button { height:44px; }
 	.line-card .form-actions .button-caps { flex:1; }
