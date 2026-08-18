@@ -45,6 +45,21 @@ export default defineConfig({
 		proxy: { '/api': { target: process.env.SPENDLY_API_URL ?? 'http://localhost:4000', changeOrigin: true } }
 	},
 	build: {
+		/* A stack trace off the built bundle names `index-<hash>.js:1:24817` and nothing else --
+		   the minifier renamed everything and put the whole app on one line, so a report from a
+		   running container is unreadable without the map that undoes it. This writes
+		   `<chunk>.js.map` beside each chunk and a `sourceMappingURL` comment pointing at it, so
+		   a browser's devtools and any error reporter resolve frames back to src/. The maps are
+		   fetched only when devtools is open, so no visitor pays for them; the cost is disk and
+		   that the sources are readable from the deployed app -- which they already are, this
+		   being a public repository.
+
+		   Whether a given install *offers* them is not decided here: the maps are always built,
+		   and `SPENDLY_SOURCE_MAPS=0` makes the server 404 them (api/src/app.js). That way the
+		   same image does both and turning them off is a restart rather than a rebuild.
+		   precompress.mjs already counts `.map` among the text extensions it gzips and brotlis,
+		   so the files are covered without touching it. */
+		sourcemap: true,
 		rolldownOptions: {
 			output: {
 				// React, the DOM renderer and the router are the half of the entry chunk this
