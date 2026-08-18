@@ -1417,6 +1417,8 @@ label.field-shell { cursor:pointer; }
 .line-photo-action:focus-visible { outline:2px solid var(--green); outline-offset:2px; border-radius:4px; }
 .line-photo-action-remove { color:var(--text-negative); }
 .line-photo-sep { font-size:12px; color:var(--border-card); }
+/* Drawn only on a phone, where the head is not -- see the responsive section. */
+.line-photo-heading, .line-photo-name { display:none; }
 .line-card-fields { flex:1; min-width:0; display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-panel); align-content:start; }
 .line-field-wide { grid-column:1 / -1; }
 /* What the two prices mean together, under both of them. A retail below the price paid is a
@@ -1644,9 +1646,25 @@ label.field-shell { cursor:pointer; }
 	   145px each here, and a price with a thousands separator in it does not read at that
 	   width. The action row wraps rather than pushing DELETE LINE off the card's right edge. */
 	.line-card-body { flex-direction:column; }
-	.line-photo { width:auto; grid-template-columns:auto 1fr; justify-items:start; align-items:center; }
+	/* Top-aligned beside the frame, not centred against it: the actions are one 17px line and
+	   the frame is 76px, so centring hangs them in the middle of nothing. */
+	.line-photo { width:auto; grid-template-columns:auto 1fr; justify-items:start; align-items:start; }
 	.line-card { --line-photo:76px; }
-	.line-card-fields { grid-template-columns:minmax(0,1fr); }
+	/* Quantity and Price paid share a row, the way the design draws the phone card: a
+	   quantity is one or two characters and does not want half a screen, and pairing them
+	   saves a row in a card that is already tall. Retail takes the width back. */
+	.line-card-fields { grid-template-columns:92px minmax(0,1fr); }
+	.line-field-retail { grid-column:1 / -1; }
+	/* No help text under the fields here. Each line of it is a row in a card that is already
+	   the tallest thing on the screen, and what they say is either recoverable (the line total
+	   is on the row the card came out of) or a standing note about a field whose label already
+	   says what it is. A rejection is not help text and still draws: `.field-error` is its own
+	   element, and hiding advice is not the same as hiding an answer. */
+	.line-card-fields .field-help { display:none; }
+	/* Only the quantity's. "pcs" beside a two-character number in a 92px box is the box's own
+	   width spent on a word the label above it already says -- where the currency on the two
+	   money fields is the unit their figures are actually in, and those fields have the room. */
+	.line-field-qty .field-unit { display:none; }
 	/* "Drop a file or paste from clipboard" names two gestures a phone does not have; there
 	   the frame is tapped, and a tap target needs no sentence under it. Nor does a phone have
 	   the two keys the head names, and that line was taking a row of the head to say so --
@@ -1655,8 +1673,41 @@ label.field-shell { cursor:pointer; }
 	/* The photo is a header strip here rather than a column, so its actions sit beside the
 	   frame instead of under it: spreading them to its edges is what lines them up with a
 	   128px frame on a desktop, and beside one it just pushes them apart. */
-	.line-photo-actions { justify-content:flex-start; }
-	.line-card .form-actions { flex-wrap:wrap; }
+	.line-photo-actions { justify-content:flex-start; gap:12px; }
+	/* The header, on a phone: the frame, and beside it what the head would have said, the
+	   line's own name, and the frame's actions. The head itself is not drawn -- its chevrons
+	   step between lines, which is a pointer convenience beside a keyboard shortcut, and on a
+	   phone the way to the next line is the row you tap. */
+	.line-card-head { display:none; }
+	.line-photo-heading, .line-photo-name { display:block; }
+	.line-photo-name { font-size:14px; font-weight:600; color:var(--text-strong); line-height:1.3; overflow-wrap:anywhere; }
+	.line-photo-foot { gap:4px; text-align:left; }
+	.line-photo-actions { margin-top:3px; }
+	/* No hairline between them here: they sit under a line of text rather than under a frame
+	   they are lining up with, so the gap is what separates them. */
+	.line-photo-sep { display:none; }
+	/* The saving becomes a tinted note rather than a line of green text: on a phone it is the
+	   one thing in the card that is an outcome rather than a field, and the fields around it
+	   are all full-width boxes. */
+	.line-verdict { background:var(--bg-green-tint); color:var(--green-deep); border-radius:var(--radius-compact); padding:10px 12px; }
+	.line-verdict.line-verdict-flat { background:var(--bg-tile); color:var(--text-muted); }
+	/* One row of three: save takes the width it can, cancel takes its words, delete keeps
+	   its trash and gives up its own -- which is what lets them sit together instead of the
+	   note being pushed alongside the delete and reading as its label. The name the delete
+	   announces is unchanged: it is on the button as aria-label, not in the markup hidden
+	   here. The note goes with them; there is no row left for it and the words on the save
+	   button are the answer to what happens next. */
+	/* The bar floats over the sheet, so anything scrolled flush to the bottom of the viewport
+	   lands under it -- and this card scrolls itself into view when it opens. The same
+	   expression `.main-panel` pads with and `.update-notice` sits above, so the three cannot
+	   drift: the card is never parked where its own save button cannot be tapped. */
+	.line-card { scroll-margin-bottom:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px); }
+	.line-card .form-actions { flex-wrap:nowrap; gap:8px; }
+	.line-card .form-actions .button { height:44px; }
+	.line-card .form-actions .button-caps { flex:1; }
+	.line-card .form-actions .form-actions-note { display:none; }
+	.line-delete-label { display:none; }
+	.line-card .form-actions .push-end .button { width:44px; padding:0; }
 	.line-card .form-actions .push-end { margin-left:0; }
 	/* .global-finder carries the margin-left:auto that pushes the actions right, and it is
 	   hidden here, so .topbar-actions has to take the job over or it sits against the title. */

@@ -148,10 +148,16 @@ export function useRowDelete({ what, label, detail, onDelete, icon = 'trash' }) 
 		),
 		/* The same control with its name on it, for a row that has been opened into a card and
 		   has room to say what the button does. Same handler, same setting, same question
-		   underneath -- the pair `useDelete` above already offers, for the same reason. */
-		button: (item, text) => (
+		   underneath -- the pair `useDelete` above already offers, for the same reason.
+
+		   `ariaLabel` is for a caller that hides the words at some width: the accessible name
+		   then has to carry them, and it has to *contain* the visible text or the button reads
+		   as one thing and announces another -- which axe flags as label-content-name-mismatch
+		   and a speech-recognition user experiences as a control they cannot say the name of. */
+		button: (item, text, ariaLabel) => (
 			<Button variant="ghost compact" icon={icon} onClick={() => ask(item)}
-				aria-haspopup="dialog">{text ?? `DELETE ${what.toUpperCase()}`}</Button>
+				aria-haspopup="dialog" aria-label={ariaLabel}>
+				{text ?? `DELETE ${what.toUpperCase()}`}</Button>
 		),
 		dialog: confirming ? (
 			<DeleteDialog what={what} detail={detail(confirming)}
