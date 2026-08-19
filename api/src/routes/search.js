@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
-import { decorateOrderRows } from '../lib/decorate.js'
+import { decorateOrderSearchRows } from '../lib/decorate.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
 
 export const router = Router()
@@ -74,6 +74,6 @@ router.get('/', (req, res) => {
 	res.json({
 		vendors: searchVendors[shape].all(params),
 		categories,
-		orders: decorateOrderRows(orderRows)
+		orders: decorateOrderSearchRows(orderRows)
 	})
 })

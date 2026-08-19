@@ -43,9 +43,11 @@ const mapItem = (i, itemAttachments) => ({
 	attachments: (itemAttachments?.get(i.id) ?? []).map(mapAttachment)
 })
 
-/** Turns one orders row plus its already-fetched child rows into the shape the frontend
-    expects from client.js. Pure — callers decide how the child rows were fetched (one order at
-    a time, or batched for a whole page, see decorateOrderRows below). */
+/** Turns one orders row plus its already-fetched child rows into the full order shape a
+    single-order reader needs (the order detail/edit page — the one place every field here is
+    read). A list of orders never wants this whole shape; see decorateOrderListRows,
+    decorateOrderSummaryRows and decorateOrderSearchRows below for the leaner ones each list
+    actually renders. */
 export function decorateOrder(totals, { items, attachments, itemAttachments, categories, vendor }) {
 	return {
 		id: totals.id,
@@ -73,8 +75,8 @@ export function decorateOrder(totals, { items, attachments, itemAttachments, cat
 
 /** One order, fully decorated. Scoped to the owning user so an id from another account can
     never be read. Returns null if missing. Six small indexed queries — fine for a single
-    record; decorateOrderRows below is the batched version a list of many orders should use
-    instead of calling this in a loop. */
+    record; the batched decorators below are what a list of many orders should use instead of
+    calling this in a loop. */
 export function getDecoratedOrder(userId, id) {
 	const totals = selectTotals.get(id, userId)
 	if (!totals) return null
@@ -87,18 +89,12 @@ export function getDecoratedOrder(userId, id) {
 	})
 }
 
-const selectItemsFor = db.prepare(`
-	SELECT order_id, id, title, quantity, price, retail, note FROM order_items
+// id and title only -- what the command palette's item-line search matches against and links
+// from (routes/search.js). No quantity, price, retail, note or attachments: a list of orders
+// never wants a whole order's worth of item detail for a row it only searches and links from.
+const selectItemTitlesFor = db.prepare(`
+	SELECT order_id, id, title FROM order_items
 	WHERE order_id IN (SELECT value FROM json_each(?)) ORDER BY order_id, position
-`)
-const selectAttachmentsFor = db.prepare(`
-	SELECT id, order_id, name, kind, meta, (thumbnail IS NOT NULL) AS has_thumbnail
-	FROM attachments WHERE order_id IN (SELECT value FROM json_each(?))
-`)
-const selectItemAttachmentsFor = db.prepare(`
-	SELECT oi.order_id, a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail
-	FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id
-	WHERE oi.order_id IN (SELECT value FROM json_each(?))
 `)
 // Same ordering as selectCategories above, or one order reads differently in a list than it
 // does on its own page -- the batched query is the list's and the single one is the record's.
@@ -122,9 +118,10 @@ const groupBy = (rows, key) => {
 /** The row shape All orders actually renders (see OrderRow, components/Rows.jsx): id, date,
     status, vendor, categories, itemCount, total, saved — no items, no attachments, no per-order
     detail fields (kind, shipping, discount, note, reference, refunded, categoryIds, subtotal,
-    savedPercent) nobody on that list reads. Two batched child queries instead of
-    decorateOrderRows' four: a list row never shows an order's items or receipts, so fetching
-    them for every row on the page was bandwidth and DB work spent on data the page discards. */
+    savedPercent) nobody on that list reads. Two batched child queries (categories, vendors)
+    instead of getDecoratedOrder's five: a list row never shows an order's items or receipts, so
+    fetching them for every row on the page was bandwidth and DB work spent on data the page
+    discards. */
 export function decorateOrderListRows(totalsRows) {
 	if (!totalsRows.length) return []
 	const ids = JSON.stringify(totalsRows.map(t => t.id))
@@ -148,25 +145,49 @@ export function decorateOrderListRows(totalsRows) {
 	})
 }
 
-/** Decorates many orders rows (a page of the order list) in a fixed 4 queries total,
-    instead of the 4-per-order it would cost to call getDecoratedOrder in a loop — the same N+1
-    a page of 20 orders would otherwise turn into 80 round trips for. */
-export function decorateOrderRows(totalsRows) {
+/** The row shape a "latest orders" card renders (Home.jsx LatestOrders, Orders.jsx overview,
+    both via EntryRow): id, date, vendor (for its avatar and name) and the two figures the row
+    shows. No status, no categories, no item count, no items, no attachments -- one batched
+    query (vendor) instead of getDecoratedOrder's five. */
+export function decorateOrderSummaryRows(totalsRows) {
+	if (!totalsRows.length) return []
+	const vendorIds = JSON.stringify([...new Set(totalsRows.map(t => t.vendor_id))])
+	const vendorById = new Map(selectVendorsFor.all(vendorIds).map(v => [v.id, v]))
+
+	return totalsRows.map(totals => {
+		const vendor = vendorById.get(totals.vendor_id)
+		return {
+			id: totals.id,
+			date: fromEpoch(totals.date),
+			vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,
+			total: totals.total,
+			saved: totals.saved
+		}
+	})
+}
+
+/** The row shape the command palette's search matches against and links from (api/client.js
+    search(), driven by routes/search.js): id, date, total, vendor name, the note text and each
+    item's id/title. No status, no categories, no attachments, no item quantity/price/retail --
+    a search result never shows or matches on any of them. One item query (titles only) and one
+    vendor query instead of getDecoratedOrder's five. */
+export function decorateOrderSearchRows(totalsRows) {
 	if (!totalsRows.length) return []
 	const ids = JSON.stringify(totalsRows.map(t => t.id))
 	const vendorIds = JSON.stringify([...new Set(totalsRows.map(t => t.vendor_id))])
 
-	const itemsByOrder = groupBy(selectItemsFor.all(ids), 'order_id')
-	const attachmentsByOrder = groupBy(selectAttachmentsFor.all(ids), 'order_id')
-	const itemAttachmentsByOrder = groupBy(selectItemAttachmentsFor.all(ids), 'order_id')
-	const categoriesByOrder = groupBy(selectCategoriesFor.all(ids), 'order_id')
+	const itemsByOrder = groupBy(selectItemTitlesFor.all(ids), 'order_id')
 	const vendorById = new Map(selectVendorsFor.all(vendorIds).map(v => [v.id, v]))
 
-	return totalsRows.map(totals => decorateOrder(totals, {
-		items: (itemsByOrder.get(totals.id) ?? []).map(({ order_id, ...i }) => i),
-		attachments: (attachmentsByOrder.get(totals.id) ?? []).map(mapAttachment),
-		itemAttachments: groupBy(itemAttachmentsByOrder.get(totals.id) ?? [], 'order_item_id'),
-		categories: (categoriesByOrder.get(totals.id) ?? []).map(({ order_id, ...c }) => c),
-		vendor: vendorById.get(totals.vendor_id)
-	}))
+	return totalsRows.map(totals => {
+		const vendor = vendorById.get(totals.vendor_id)
+		return {
+			id: totals.id,
+			date: fromEpoch(totals.date),
+			note: totals.note,
+			total: totals.total,
+			vendor: vendor ? { name: vendor.name } : null,
+			items: (itemsByOrder.get(totals.id) ?? []).map(i => ({ id: i.id, title: i.title }))
+		}
+	})
 }
