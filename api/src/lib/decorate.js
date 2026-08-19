@@ -119,6 +119,35 @@ const groupBy = (rows, key) => {
 	return map
 }
 
+/** The row shape All orders actually renders (see OrderRow, components/Rows.jsx): id, date,
+    status, vendor, categories, itemCount, total, saved — no items, no attachments, no per-order
+    detail fields (kind, shipping, discount, note, reference, refunded, categoryIds, subtotal,
+    savedPercent) nobody on that list reads. Two batched child queries instead of
+    decorateOrderRows' four: a list row never shows an order's items or receipts, so fetching
+    them for every row on the page was bandwidth and DB work spent on data the page discards. */
+export function decorateOrderListRows(totalsRows) {
+	if (!totalsRows.length) return []
+	const ids = JSON.stringify(totalsRows.map(t => t.id))
+	const vendorIds = JSON.stringify([...new Set(totalsRows.map(t => t.vendor_id))])
+
+	const categoriesByOrder = groupBy(selectCategoriesFor.all(ids), 'order_id')
+	const vendorById = new Map(selectVendorsFor.all(vendorIds).map(v => [v.id, v]))
+
+	return totalsRows.map(totals => {
+		const vendor = vendorById.get(totals.vendor_id)
+		return {
+			id: totals.id,
+			date: fromEpoch(totals.date),
+			status: totals.status,
+			vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,
+			categories: (categoriesByOrder.get(totals.id) ?? []).map(({ order_id, ...c }) => c),
+			itemCount: totals.item_count,
+			total: totals.total,
+			saved: totals.saved
+		}
+	})
+}
+
 /** Decorates many orders rows (a page of the order list) in a fixed 4 queries total,
     instead of the 4-per-order it would cost to call getDecoratedOrder in a loop — the same N+1
     a page of 20 orders would otherwise turn into 80 round trips for. */
