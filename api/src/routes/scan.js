@@ -11,7 +11,7 @@ import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
 import { toEpoch, fromEpoch } from '../lib/dates.js'
-import { msUntilNextMidnight } from '../lib/backup.js'
+import { msUntilEndOfDay } from '../lib/backup.js'
 
 export const router = Router()
 // See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
@@ -36,8 +36,10 @@ const deleteExpiredUploads = db.prepare('DELETE FROM scan_uploads WHERE created_
    week-long retention window means most uploads in the table are still well within it on any
    given write, so sweeping on every upload would mostly re-run a DELETE that matches nothing.
    Same shape as scheduleDailyBackups (lib/backup.js): a sweep at startup catches up a container
-   that was stopped over a day boundary, then one timer fires at the next local midnight and
-   re-arms itself every 24 hours after that. */
+   that was stopped over a day boundary, then one timer fires just before local midnight and
+   re-arms itself every 24 hours after that -- the exact second doesn't carry any meaning here
+   the way it does for the backup's date-stamped filename, but sharing msUntilEndOfDay keeps the
+   app's two daily jobs on one clock instead of two. */
 function cleanupExpiredUploads() {
 	deleteExpiredUploads.run(Math.floor((Date.now() - RETENTION_MS) / 1000))
 }
@@ -46,7 +48,7 @@ export function scheduleDailyUploadCleanup() {
 	const timer = setTimeout(function runAndReschedule() {
 		cleanupExpiredUploads()
 		setInterval(cleanupExpiredUploads, 24 * 60 * 60 * 1000).unref()
-	}, msUntilNextMidnight())
+	}, msUntilEndOfDay())
 	timer.unref()
 	return timer
 }

@@ -7,8 +7,8 @@ const BACKUP_DIR = path.join(path.dirname(DB_PATH), 'backup')
 const MAX_BACKUPS = 5
 
 function todayStamp(date = new Date()) {
-	// Local date, not UTC -- has to agree with the local midnight scheduleDailyBackups() fires on,
-	// or the stamp can roll over hours away from the backup that's supposed to trigger it.
+	// Local date, not UTC -- has to agree with the local time scheduleDailyBackups() fires at
+	// (see msUntilEndOfDay below), or the stamp names a different day than the one just backed up.
 	const y = date.getFullYear()
 	const m = String(date.getMonth() + 1).padStart(2, '0')
 	const d = String(date.getDate()).padStart(2, '0')
@@ -62,17 +62,23 @@ function pruneOldBackups() {
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
-export function msUntilNextMidnight(now = new Date()) {
-	const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)
-	return next.getTime() - now.getTime()
+/* One second before local midnight, not on it -- firing at 00:00:00.000 backs up the database
+   at the very start of the new day but stamps the file with that new day's date, which names it
+   a day ahead of the data it actually holds (todayStamp() reads the clock at the moment the
+   backup runs). Firing at 23:59:59.000 instead means the stamp and the day being backed up are
+   the same day, off by the same one second everywhere -- a difference nothing here can observe. */
+export function msUntilEndOfDay(now = new Date()) {
+	const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 0)
+	if (target <= now) target.setDate(target.getDate() + 1)
+	return target.getTime() - now.getTime()
 }
 
 /* The app runs as one long-lived process with no cron alongside it (docker-compose.yml is a
    single container), so this is the cron job: a backup taken once at startup -- catching up a
    container that was stopped over a day boundary, where nothing else would ever trigger that
-   day's backup -- then one timer that fires at the next local midnight and re-arms itself every
+   day's backup -- then one timer that fires just before local midnight and re-arms itself every
    24 hours after that. backupDatabase()'s same-day check keeps the startup catch-up and the
-   first midnight run from ever taking two backups for one day. */
+   first end-of-day run from ever taking two backups for one day. */
 export function scheduleDailyBackups() {
 	backupDatabase().catch(err => console.error('Daily backup failed:', err))
 
@@ -82,7 +88,7 @@ export function scheduleDailyBackups() {
 			backupDatabase().catch(err => console.error('Daily backup failed:', err))
 		}, ONE_DAY_MS)
 		next.unref()
-	}, msUntilNextMidnight())
+	}, msUntilEndOfDay())
 	timer.unref()
 	return timer
 }
