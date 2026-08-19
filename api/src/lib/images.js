@@ -70,14 +70,24 @@ const PDF_RENDER_TIMEOUT_MS = 15_000
 function renderPdfFirstPage(buffer) {
 	return new Promise(resolve => {
 		let settled = false
-		const finish = value => { if (!settled) { settled = true; clearTimeout(timer); worker.terminate(); resolve(value) } }
+		const settle = value => { if (!settled) { settled = true; clearTimeout(timer); resolve(value) } }
 		const worker = new Worker(PDF_WORKER, {
 			workerData: { buffer, longEdge: PDF_RENDER_LONG_EDGE }
 		})
-		const timer = setTimeout(() => finish(null), PDF_RENDER_TIMEOUT_MS)
-		worker.on('message', message => finish(message.png ? Buffer.from(message.png) : null))
-		worker.on('error', () => finish(null))
-		worker.on('exit', () => finish(null))
+		/* A worker that has already posted its result is left to exit on its own rather than
+		   force-terminated here. mupdf's own module has a top-level await (WASM instantiation),
+		   and calling worker.terminate() in the same turn as its 'message' event races V8's
+		   still-settling async-module bookkeeping for that import -- not the postMessage, which
+		   has already completed by the time this fires. Losing that race doesn't fail the
+		   render; it kills the whole process with a "Check failed: (location_) != nullptr"
+		   fatal error in AsyncModuleExecutionFulfilled, taking every other request on the box
+		   down with it. A worker that already sent its message exits by itself within
+		   milliseconds regardless, so nothing here is actually waiting on the terminate() that
+		   used to run. Only a genuinely hung worker -- the timeout below -- still needs it. */
+		const timer = setTimeout(() => { worker.terminate(); settle(null) }, PDF_RENDER_TIMEOUT_MS)
+		worker.on('message', message => settle(message.png ? Buffer.from(message.png) : null))
+		worker.on('error', () => settle(null))
+		worker.on('exit', () => settle(null))
 	})
 }
 
