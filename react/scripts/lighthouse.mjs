@@ -94,17 +94,8 @@ const { version } = await import('lighthouse/package.json', { with: { type: 'jso
 	.then(m => m.default).catch(() => ({ version: null }))
 /* The flat fields are the warm run, kept exactly as Shell.jsx's build-quality callout already
    reads them (react/src/components/Shell.jsx) -- adding fields here is safe, renaming or
-   dropping one is not. `runs` is every run this script actually made, cold one included: the
-   file comment above says the first run is the machine warming up and only the second is
-   reported, and that claim is worth being able to check against the numbers that backed it
-   rather than trusting the prose. */
-const toRun = r => ({
-	scores: r.scores,
-	firstContentfulPaintMs: Math.round(r.firstContentfulPaint),
-	largestContentfulPaintMs: Math.round(r.largestContentfulPaint),
-	totalBlockingTimeMs: Math.round(r.totalBlockingTime),
-	formFactor: r.formFactor
-})
+   dropping one is not. Only the warm run is stamped: the cold run's job is to be compared
+   against it in the console output above, not to be carried in the image. */
 const stamp = {
 	performance: warm.scores.performance,
 	accessibility: warm.scores.accessibility,
@@ -113,8 +104,7 @@ const stamp = {
 	largestContentfulPaintMs: Math.round(warm.largestContentfulPaint),
 	totalBlockingTimeMs: Math.round(warm.totalBlockingTime),
 	formFactor: warm.formFactor,
-	lighthouse: version,
-	runs: runs.map(toRun)
+	lighthouse: version
 }
 if (OUT) { writeFileSync(OUT, JSON.stringify(stamp)); console.log(`wrote ${OUT}`) }
 else console.log(JSON.stringify(stamp))
