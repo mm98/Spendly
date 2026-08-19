@@ -1230,6 +1230,14 @@
 			],
 			"readers": 0
 		},
+		"idx_scan_uploads_user_hash": {
+			"table": "scan_uploads",
+			"columns": [
+				"user_id",
+				"sha256"
+			],
+			"readers": 0
+		},
 		"idx_sessions_user": {
 			"table": "sessions",
 			"columns": [
