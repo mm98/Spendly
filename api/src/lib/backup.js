@@ -62,7 +62,7 @@ function pruneOldBackups() {
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
-function msUntilNextMidnight(now = new Date()) {
+export function msUntilNextMidnight(now = new Date()) {
 	const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)
 	return next.getTime() - now.getTime()
 }
