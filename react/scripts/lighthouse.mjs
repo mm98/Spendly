@@ -166,7 +166,15 @@ const stamp = {
 	largestContentfulPaintMs: Math.round(warm.largestContentfulPaint),
 	totalBlockingTimeMs: Math.round(warm.totalBlockingTime),
 	formFactor: warm.formFactor,
-	lighthouse: version
+	lighthouse: version,
+	// When this run happened, not when the image was built -- the two usually coincide (the
+	// image build is what invokes this script) but don't have to (a stamp re-measured against a
+	// build that already exists). Same shape as builtAt (Dockerfile's `date -u
+	// +%Y-%m-%dT%H:%M:%SZ`), seconds only, so the two read the same way side by side.
+	// /api/version answers it as-is for a reader checking the score isn't stale; Shell.jsx's
+	// build-quality callout only destructures the fields above, so an added field here is safe
+	// and stays out of the UI on its own.
+	testedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
 }
 if (OUT) { writeFileSync(OUT, JSON.stringify(stamp)); console.log(`wrote ${OUT}`) }
 else console.log(JSON.stringify(stamp))
