@@ -51,8 +51,12 @@ services:
     depends_on:
       - ollama
     volumes:
-      # On QNAP, prefer an absolute path on a real share, e.g. /share/Container/spendly:/data
-      - ./data:/data
+      # Absolute path, deliberately -- a relative one (./data) resolves against wherever this
+      # file itself happens to sit, so moving or re-fetching docker-compose.yaml silently points
+      # the app at a fresh, empty directory instead of the real data. An absolute path can't drift
+      # like that. On QNAP, prefer an absolute path on a real share the same way, e.g.
+      # /share/Container/spendly:/data
+      - /spendly:/data
 
   # The vision model Scan reads receipts with, bundled so `docker compose up` needs nothing
   # installed on the host. CPU-only by default -- works, but a multi-second-per-scan read is
