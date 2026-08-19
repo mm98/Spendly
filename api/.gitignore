@@ -2,3 +2,4 @@ node_modules/
 spendly.sqlite3
 spendly.sqlite3-shm
 spendly.sqlite3-wal
+backup/
