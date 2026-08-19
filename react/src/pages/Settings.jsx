@@ -344,29 +344,22 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 				{/* Demo data is asked for, never given. A fresh account used to arrive holding a
 				    stranger's shopping, which reads as a leak rather than a demo, so nothing
 				    populates itself -- this is the door, and it is behind a confirm because it
-				    replaces whatever is already here. */}
-				<Card aria-label="Demo data">
-					<CardHeader title="Demo data" />
-					<CardDivider />
-					<CardBody>
-						<p className="card-lead card-lead-flush">
-							Fill the account with made-up orders so the lists and charts have something
-							in them to look at: as many as you choose, reaching as far back as you
-							choose, every vendor and category its own colour. A different ledger
-							every time: the orders, their days and their totals are rolled fresh on
-							each fill.
-						</p>
-						{/* Only offered on an empty account: a fill replaces the ledger outright, and
-						    that is a decision a stray click should never be able to make on real
-						    orders. Locked rather than hidden, so the reason is on screen -- CLEAR
-						    STORED DATA, right below, is what unlocks it. */}
-						{hasOrders ? (
-							<p className="field-help danger-note">
-								This account already has orders in it. Clear your stored data first if
-								you want to start over with demo orders instead.
+				    replaces whatever is already here. Offered only on an empty account: a fill
+				    replaces the ledger outright, so once real orders exist the door is gone
+				    rather than propped open and disabled -- CLEAR STORED DATA, right below, is
+				    what brings it back. */}
+				{hasOrders ? null : (
+					<Card aria-label="Demo data">
+						<CardHeader title="Demo data" />
+						<CardDivider />
+						<CardBody>
+							<p className="card-lead card-lead-flush">
+								Fill the account with made-up orders so the lists and charts have something
+								in them to look at: as many as you choose, reaching as far back as you
+								choose, every vendor and category its own colour. A different ledger
+								every time: the orders, their days and their totals are rolled fresh on
+								each fill.
 							</p>
-						) : null}
-						<div className={hasOrders ? 'demo-data-controls demo-data-controls-locked' : 'demo-data-controls'}>
 							<Field label="How many orders" htmlFor="demo-order-count" className="demo-count-field"
 								help="Spread across the whole period. More orders take longer to write.">
 								<Combobox id="demo-order-count" label="Orders to create"
@@ -398,12 +391,12 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 									</FormActions>
 								</>
 							) : (
-								<Button variant="block" icon="sparkles" disabled={hasOrders}
+								<Button variant="block" icon="sparkles"
 									onClick={() => setFilling(true)}>FILL WITH DEMO DATA</Button>
 							)}
-						</div>
-					</CardBody>
-				</Card>
+						</CardBody>
+					</Card>
+				)}
 
 				<Card aria-label="Stored data">
 					<CardHeader title="Your data" />
