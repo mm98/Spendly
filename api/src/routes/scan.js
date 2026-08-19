@@ -7,6 +7,9 @@ import { getDecoratedOrder } from '../lib/decorate.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
+import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
+import { parseReceipt } from '../lib/scanParse.js'
+import { toEpoch, fromEpoch } from '../lib/dates.js'
 
 export const router = Router()
 // See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
@@ -29,6 +32,21 @@ const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compres
 const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
 const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM settings WHERE user_id = ?')
 const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
+// Everything parseReceipt needs (the bytes) plus everything the draft response needs (name,
+// size, kind, thumbnail) plus the cached read, in one row -- the draft handler either has an
+// AI read already or is about to go make one, and both branches want the same row.
+const selectUploadForRead = db.prepare(`SELECT id, name, size, kind, content_type, data, data_is_compressed,
+	(thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json FROM scan_uploads WHERE id = ? AND user_id = ?`)
+const saveAiRead = db.prepare('UPDATE scan_uploads SET ai_read_json = @json WHERE id = @id AND user_id = @userId')
+const selectVendorName = db.prepare('SELECT name FROM vendors WHERE id = ? AND user_id = ?')
+/* A possible duplicate: the same vendor, within two weeks either side of the read date -- close
+   enough to catch a receipt scanned twice, or a paper copy of an order already entered by hand,
+   without flagging every other order from a vendor the account buys from often. Nearest date
+   first, since that is the likeliest actual duplicate when more than one falls in the window. */
+const selectPossibleDuplicate = db.prepare(`
+	SELECT id, date, item_count, total FROM orders
+	WHERE user_id = @userId AND vendor_id = @vendorId AND date BETWEEN @from AND @to
+	ORDER BY ABS(date - @target) ASC LIMIT 1`)
 
 /** A dropped receipt, kept until review turns it into an order. There is no OCR behind this —
     see getDraft below — so nothing here reads the file's contents beyond resizing it (an image
@@ -51,26 +69,97 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 	res.status(201).json({ key: id, name: file.originalname, kind, meta: `${kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(processed.size)}` })
 })
 
-/** The review step's starting point. Honest about not having read the file: no vendor guess,
-    no invented line items — just today's date and the account's own defaults, the same draft a
-    manual "New order" opens on, with the upload attached for reference. Real receipt parsing
-    would replace this function's body; nothing else in the review flow would need to change,
-    since it already edits whatever draft this returns. */
-router.get('/draft/:key', (req, res) => {
-	const upload = selectUploadMeta.get(req.params.key, req.user.id)
+/** The review step's starting point. Reads the document once via Claude's vision
+    (lib/scanParse.js) and caches the result on the upload row, so a reload of step 2 or 3 --
+    both fetch this for the same key -- never pays for a second read. Falls back to the same
+    honest blank draft this route always returned when no ANTHROPIC_API_KEY is configured, or
+    when the read fails: today's date, the account's own defaults, no invented vendor or lines,
+    same as a manual "New order" opens on, with the upload attached for reference. */
+router.get('/draft/:key', async (req, res) => {
+	const upload = selectUploadForRead.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
 	const settings = selectDraftDefaults.get(req.user.id)
+
+	const hadCachedRead = upload.ai_read_json != null
+	let read = hadCachedRead ? JSON.parse(upload.ai_read_json) : await parseReceipt(upload)
+	if (!hadCachedRead) saveAiRead.run({ id: upload.id, userId: req.user.id, json: JSON.stringify(read) })
+
+	const file = {
+		key: upload.id, name: upload.name, kind: upload.kind, hasThumbnail: Boolean(upload.has_thumbnail),
+		meta: `${upload.kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(upload.size)}`
+	}
+
+	if (!read) {
+		return res.json({
+			documentKey: upload.id, file,
+			vendor: '', vendorMatched: false, date: new Date().toISOString().slice(0, 10),
+			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
+			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: 0,
+			reconciled: process.env.ANTHROPIC_API_KEY
+				? 'This document could not be read automatically. Add the line items and totals below yourself.'
+				: 'This document has not been read automatically. Add the line items and totals below yourself.',
+			checks: [], duplicate: null
+		})
+	}
+
+	const vendorId = findVendorIdByAnyName(req.user.id, read.vendor)
+	const vendorMatched = Boolean(vendorId)
+	const vendorName = vendorId ? selectVendorName.get(vendorId, req.user.id)?.name : null
+
+	let duplicate = null
+	if (vendorId && read.date) {
+		const target = toEpoch(read.date)
+		const row = selectPossibleDuplicate.get({
+			userId: req.user.id, vendorId, target, from: target - 14 * 86400, to: target + 14 * 86400
+		})
+		if (row) duplicate = {
+			orderId: row.id, title: fromEpoch(row.date),
+			meta: `${row.item_count} item${row.item_count === 1 ? '' : 's'}`, total: row.total
+		}
+	}
+
+	const linesTotal = read.lines.reduce((sum, l) => sum + l.price * l.quantity, 0)
+	const total = read.total ?? (linesTotal + read.shipping - read.discount)
+
 	res.json({
-		documentKey: upload.id,
-		file: {
-			key: upload.id, name: upload.name, kind: upload.kind, hasThumbnail: Boolean(upload.has_thumbnail),
-			meta: `${upload.kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(upload.size)}`
-		},
-		vendor: '', vendorMatched: false, date: new Date().toISOString().slice(0, 10),
+		documentKey: upload.id, file,
+		vendor: read.vendor, vendorMatched, date: read.date ?? new Date().toISOString().slice(0, 10),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
-		shipping: 0, linesRead: 0, lines: [], remainder: null, total: 0,
-		reconciled: 'This document has not been read automatically. Add the line items and totals below yourself.',
-		checks: [], duplicate: null
+		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
+		lines: read.lines.map(l => ({
+			id: newId('l'), title: l.title, quantity: l.quantity, price: l.price,
+			uncertain: l.uncertain, meta: l.uncertain ? 'Not clearly printed -- check this line.' : undefined
+		})),
+		remainder: null, total,
+		reconciled: read.total != null
+			? 'Matched against the document’s own printed total.'
+			: 'No printed total was found on the document to check the lines against.',
+		checks: [
+			{
+				id: 'vendor', warning: !vendorMatched,
+				title: vendorMatched ? `Matched to ${vendorName}` : 'New vendor — will be created',
+				meta: read.vendor
+			},
+			{
+				id: 'total', warning: read.total == null,
+				title: read.total != null ? 'Printed total found' : 'No printed total found',
+				meta: read.total != null ? undefined : 'The lines below are all that was read.'
+			},
+			// pricesAsPrintedIncludeVat is a fact about the source document, not a decision
+			// about the numbers above -- those are always VAT-inclusive already, converted by
+			// the model itself (lib/scanParse.js). null means it couldn't tell either way,
+			// which is worth a warning: nothing here converted a figure that may have needed it.
+			read.pricesAsPrintedIncludeVat === null
+				? { id: 'vat', warning: true, title: 'Could not tell if VAT was included',
+					meta: 'Check the line prices against the document.' }
+				: {
+					id: 'vat', warning: false,
+					title: read.pricesAsPrintedIncludeVat
+						? 'Prices already included VAT'
+						: `Converted from ex-VAT prices${read.vatRate != null ? ` at ${read.vatRate}%` : ''}`
+				}
+		],
+		duplicate
 	})
 })
 
