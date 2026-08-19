@@ -646,8 +646,15 @@ function ScanReviewForm({ answer }) {
 								title={line.title}
 								meta={line.meta ?? `${line.quantity} × ${currency(line.price)}`}
 								amount={currency(line.price * line.quantity)}>
-								<IconButton icon="pencil" label={`Edit ${line.title}`}
-									onClick={() => { setEditingLine(line.id); setAutoCheckLine(null) }} />
+								{/* Pencil and trash side by side, the same pair ItemLines.jsx draws on a
+								    saved order's own item rows -- a line read off a receipt is corrected
+								    or removed the same two ways one typed by hand is, not a lesser set
+								    just because nothing here has been saved yet. */}
+								<span className="row-inline row-actions">
+									<IconButton icon="pencil" label={`Edit ${line.title}`}
+										onClick={() => { setEditingLine(line.id); setAutoCheckLine(null) }} />
+									{lineDel.iconButton(line)}
+								</span>
 							</ItemRow>
 						)
 					))}
