@@ -9,7 +9,7 @@ import { sep, fileSizeLabel } from '../lib/copy.js'
 import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
-import { parseReceipt } from '../lib/scanParse.js'
+import { parseReceipt, activeProvider } from '../lib/scanParse.js'
 import { toEpoch, fromEpoch } from '../lib/dates.js'
 
 export const router = Router()
@@ -106,12 +106,13 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 	})
 })
 
-/** The review step's starting point. Reads the document once via Claude's vision
-    (lib/scanParse.js) and caches the result on the upload row, so a reload of step 2 or 3 --
-    both fetch this for the same key -- never pays for a second read. Falls back to the same
-    honest blank draft this route always returned when no ANTHROPIC_API_KEY is configured, or
-    when the read fails: today's date, the account's own defaults, no invented vendor or lines,
-    same as a manual "New order" opens on, with the upload attached for reference. */
+/** The review step's starting point. Reads the document once via whichever vision provider is
+    configured (lib/scanParse.js -- Anthropic or a local Ollama model) and caches the result on
+    the upload row, so a reload of step 2 or 3 -- both fetch this for the same key -- never pays
+    for a second read. Falls back to the same honest blank draft this route always returned when
+    no provider is configured, or when the read fails: today's date, the account's own defaults,
+    no invented vendor or lines, same as a manual "New order" opens on, with the upload attached
+    for reference. */
 router.get('/draft/:key', async (req, res) => {
 	const upload = selectUploadForRead.get(req.params.key, req.user.id)
 	if (!upload) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
@@ -132,7 +133,7 @@ router.get('/draft/:key', async (req, res) => {
 			vendor: '', vendorMatched: false, date: new Date().toISOString().slice(0, 10),
 			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
 			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: 0,
-			reconciled: process.env.ANTHROPIC_API_KEY
+			reconciled: activeProvider()
 				? 'This document could not be read automatically. Add the line items and totals below yourself.'
 				: 'This document has not been read automatically. Add the line items and totals below yourself.',
 			checks: [], duplicate: null
