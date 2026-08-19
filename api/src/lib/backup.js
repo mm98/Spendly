@@ -24,18 +24,22 @@ function todayStamp(date = new Date()) {
    itself is written with no WAL of its own -- one plain .sqlite3 file goes into the zip, never a
    trio of .sqlite3/-wal/-shm -- and the temp-file cleanup below removes any -wal/-shm the snapshot
    connection might leave beside it, so nothing but that one consistent file can reach the archive.
-   Idempotent: a zip already sitting under `backup/` for today is left alone rather than retaken, so
-   a restart or a second scheduled tick the same day is a no-op. */
+   Only the zip's own filename carries the date; the file inside it keeps the database's actual
+   name (spendly.sqlite3, or whatever SPENDLY_DB names it) so restoring is a straight unzip-and-
+   rename-back rather than a rename to match. Idempotent: a zip already sitting under `backup/` for
+   today is left alone rather than retaken, so a restart or a second scheduled tick the same day is
+   a no-op. */
 export async function backupDatabase() {
 	const stamp = todayStamp()
 	const zipPath = path.join(BACKUP_DIR, `database-${stamp}.zip`)
 	if (existsSync(zipPath)) return zipPath
 
 	mkdirSync(BACKUP_DIR, { recursive: true })
-	const snapshotPath = path.join(BACKUP_DIR, `.database-${stamp}.sqlite3`)
+	const dbName = path.basename(DB_PATH)
+	const snapshotPath = path.join(BACKUP_DIR, `.${stamp}-${dbName}`)
 	try {
 		await db.backup(snapshotPath)
-		const zip = zipSingleFile(`database-${stamp}.sqlite3`, readFileSync(snapshotPath))
+		const zip = zipSingleFile(dbName, readFileSync(snapshotPath))
 		writeFileSync(zipPath, zip)
 	} finally {
 		rmSync(snapshotPath, { force: true })
