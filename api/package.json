@@ -11,6 +11,7 @@
 		"queries:bless": "node scripts/check-queries.mjs --update"
 	},
 	"dependencies": {
+		"@anthropic-ai/sdk": "^0.117.1",
 		"better-sqlite3": "^13.0.3",
 		"express": "5.1.0",
 		"multer": "^2.2.0",

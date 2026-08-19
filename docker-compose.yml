@@ -24,6 +24,10 @@ services:
       # they are served, anyone who can reach this app can read its sources. Uncomment to hand
       # them out; it is a serving decision, so it takes a restart and not a rebuild:
       # SPENDLY_SOURCE_MAPS: "1"
+      # Optional: lets Scan actually read a dropped receipt (vendor, date, line items, totals)
+      # instead of only storing it for you to fill in by hand. Get a key at
+      # https://console.anthropic.com/ -- Scan works either way, just without the reading.
+      # ANTHROPIC_API_KEY: sk-ant-...
     volumes:
       # On QNAP, prefer an absolute path on a real share, e.g. /share/Container/spendly:/data
       - ./data:/data

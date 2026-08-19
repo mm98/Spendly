@@ -23,7 +23,7 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addVendorAlias, attachScanDocument, createOrder, failureMessage, getRecentScans,
+	addVendorAlias, attachScanDocument, createOrder, failureMessage, getCurrentUser, getRecentScans,
 	getScanDraft, getVendors, invalidateOrderData, invalidateVendorData, putScanDocument,
 	scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
@@ -66,6 +66,11 @@ const useDocumentKey = () => useSearchParams()[0].get('doc') ?? 'photo'
 
 export function ScanUpload() {
 	const recent = useApi(getRecentScans)
+	// Cached by the route loader already (react/src/routes.jsx), so this costs nothing extra --
+	// it just reads back whether the server this account is talking to can actually read a
+	// document (ANTHROPIC_API_KEY set) or only store one, so the hero and the checklist below
+	// don't promise a read this install cannot do. README: Honest Affordances.
+	const aiEnabled = useApi(getCurrentUser).data?.scanAiEnabled ?? false
 	const navigate = useNavigate()
 	const picker = useRef(null)
 	const [over, setOver] = useState(false)
@@ -92,8 +97,10 @@ export function ScanUpload() {
 	return (
 		<Page>
 			<div className="hero hero-column">
-				<h2>Receipts read at your fingertips.</h2>
-				<p>Drop a PDF, photo or screenshot. The AI drafts the order; you review every value before it is saved.</p>
+				<h2>{aiEnabled ? 'Receipts read at your fingertips.' : 'Attach a receipt to an order.'}</h2>
+				<p>{aiEnabled
+					? 'Drop a PDF, photo or screenshot. The AI drafts the order; you review every value before it is saved.'
+					: 'Drop a PDF, photo or screenshot, then fill in the order yourself. Nothing here reads the file for you.'}</p>
 				<div className={'ai-prompt-bar scan-drop' + (over ? ' is-dragover' : '')}
 					onDragOver={e => { e.preventDefault(); setOver(true) }}
 					onDragEnter={e => { e.preventDefault(); setOver(true) }}
@@ -120,20 +127,35 @@ export function ScanUpload() {
 
 			<div className="two-column scan-info-row">
 				<div className="card card-question">
-					<span className="card-question-label">What the AI checks</span>
+					<span className="card-question-label">{aiEnabled ? 'What the AI checks' : 'What happens next'}</span>
 					<div className="card-question-title">Nothing is stored until you approve it</div>
-					<div className="account-row">
-						<span><Icon name="check" className="icon scan-check-icon" /></span>
-						<span className="account-row-text">Totals reconciled against the printed total, incl. 25% VAT</span>
-					</div>
-					<div className="account-row">
-						<span><Icon name="eye" className="icon scan-info-icon" /></span>
-						<span className="account-row-text">Possible duplicates flagged with date and amount to compare</span>
-					</div>
-					<div className="account-row">
-						<span><Icon name="tag" className="icon scan-info-icon" /></span>
-						<span className="account-row-text">Vendor matched to your list, or offered as a new vendor</span>
-					</div>
+					{aiEnabled ? (
+						<>
+							<div className="account-row">
+								<span><Icon name="check" className="icon scan-check-icon" /></span>
+								<span className="account-row-text">Totals reconciled against the printed total, incl. VAT</span>
+							</div>
+							<div className="account-row">
+								<span><Icon name="eye" className="icon scan-info-icon" /></span>
+								<span className="account-row-text">Possible duplicates flagged with date and amount to compare</span>
+							</div>
+							<div className="account-row">
+								<span><Icon name="tag" className="icon scan-info-icon" /></span>
+								<span className="account-row-text">Vendor matched to your list, or offered as a new vendor</span>
+							</div>
+						</>
+					) : (
+						<>
+							<div className="account-row">
+								<span><Icon name="pencil" className="icon scan-info-icon" /></span>
+								<span className="account-row-text">You fill in the vendor, date and line items yourself</span>
+							</div>
+							<div className="account-row">
+								<span><Icon name="receipt" className="icon scan-info-icon" /></span>
+								<span className="account-row-text">The file is kept and attached to the order for reference</span>
+							</div>
+						</>
+					)}
 				</div>
 
 				<Card aria-label="Recent scans">
@@ -233,7 +255,7 @@ function ScanReviewForm({ answer }) {
 	   ORDER writes -- so the fields on this page are the order, rather than a picture of one. */
 	const [draft, setDraft] = useState(() => ({
 		vendor: answer.vendor, date: answer.date, status: answer.status,
-		kind: answer.kind, shipping: amount(answer.shipping), discount: '',
+		kind: answer.kind, shipping: amount(answer.shipping), discount: answer.discount ? amount(answer.discount) : '',
 		lines: answer.lines.map(l => ({ ...l, quantity: l.quantity ?? 1, price: l.price ?? l.amount })),
 		remainder: answer.remainder
 	}))
