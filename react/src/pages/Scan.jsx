@@ -41,11 +41,10 @@ import { amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount
    in for a file -- so the document the next two steps name is always one the reader actually
    chose, with its own format and its own size.
 
-   There is no OCR behind any of it when no vision provider is configured server-side (neither
-   ANTHROPIC_API_KEY nor OLLAMA_MODEL) -- the draft is the same honest blank in that case, today's
-   date and the account's own defaults, nothing read from the file. Where one is set, the draft is
-   a real read (lib/scanParse.js on the server); either way this page does not know which
-   provider, and renders the same three steps. README: Scan Flow. */
+   There is no OCR behind any of it when ANTHROPIC_API_KEY is unset -- the draft is the same
+   honest blank in that case, today's date and the account's own defaults, nothing read from
+   the file. Where it is set, the draft is a real read (lib/scanParse.js on the server); either
+   way this page does not know which, and renders the same three steps. README: Scan Flow. */
 
 const SCAN_STEPS = at => [
 	{ label: 'Upload', icon: 'upload', done: at > 0, on: at === 0 },
@@ -71,8 +70,8 @@ export function ScanUpload() {
 	const recent = useApi(getRecentScans)
 	// Cached by the route loader already (react/src/routes.jsx), so this costs nothing extra --
 	// it just reads back whether the server this account is talking to can actually read a
-	// document (a vision provider configured) or only store one, so the hero and the checklist
-	// below don't promise a read this install cannot do. README: Honest Affordances.
+	// document (ANTHROPIC_API_KEY set) or only store one, so the hero and the checklist below
+	// don't promise a read this install cannot do. README: Honest Affordances.
 	const aiEnabled = useApi(getCurrentUser).data?.scanAiEnabled ?? false
 	const navigate = useNavigate()
 	const picker = useRef(null)
