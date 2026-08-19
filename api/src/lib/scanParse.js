@@ -174,9 +174,8 @@ async function readWithOllama(bytes) {
    either way). PROVIDER_PRECEDENCE is the order activeProvider() picks between two configured at
    once, local-first: setting OLLAMA_MODEL is a deliberate choice to run fully local, so it wins
    over an ANTHROPIC_API_KEY that might just be left over from before. Ollama has no document/PDF
-   content type, so an emailed PDF invoice is outside what a local model here can read at all --
-   supportsPdf: false is what sends those straight to the null fallback rather than mailing a
-   PDF's raw bytes to a model as if they were an image. */
+   content type, so supportsPdf: false is what tells parseReceipt below to hand it the rendered
+   first-page image instead of the PDF's own bytes -- see the comment there. */
 const PROVIDERS = {
 	ollama: { configured: () => Boolean(process.env.OLLAMA_MODEL), supportsPdf: false, read: readWithOllama },
 	anthropic: { configured: () => Boolean(process.env.ANTHROPIC_API_KEY), supportsPdf: true, read: readWithAnthropic }
@@ -194,17 +193,33 @@ export function activeProvider() {
 /** Reads a stored upload's own bytes (the same `data` column routes/scan.js's own /file route
     serves) via whichever provider is configured, and returns the normalised fields above, or
     null on any failure. `upload` is a full row from scan_uploads -- data, data_is_compressed,
-    content_type, kind. */
+    content_type, kind, plus thumbnail, thumbnail_is_compressed, thumbnail_content_type. */
 export async function parseReceipt(upload) {
 	const name = activeProvider()
 	if (!name || !upload.data) return null
 	const provider = PROVIDERS[name]
-	if (upload.kind === 'pdf' && !provider.supportsPdf) return null
-	const bytes = decompressBlob(upload.data, upload.data_is_compressed)
+
+	let bytes, effectiveUpload = upload
+	if (upload.kind === 'pdf' && !provider.supportsPdf) {
+		/* A provider with no document/PDF content type reads the same rendered first-page image
+		   the review screen's own expanded attachment preview shows (lib/images.js's
+		   processPdfThumbnail -- despite the column name, a DISPLAY_MAX/1600px JPEG, not a
+		   200px icon) rather than being skipped outright. `kind`/`content_type` are overridden to
+		   match what is actually being sent -- an image, not a PDF -- so a provider's own read()
+		   never has to know this substitution happened. Only page one: a receipt that spans
+		   several pages is read from its first page alone, same as the review screen's own
+		   preview already only ever shows page one. A PDF that failed to render at all
+		   (encrypted, corrupt) has no such image either, and stays unreadable by these providers. */
+		if (!upload.thumbnail) return null
+		bytes = decompressBlob(upload.thumbnail, upload.thumbnail_is_compressed)
+		effectiveUpload = { ...upload, kind: 'image', content_type: upload.thumbnail_content_type || 'image/jpeg' }
+	} else {
+		bytes = decompressBlob(upload.data, upload.data_is_compressed)
+	}
 	if (!bytes?.length) return null
 
 	try {
-		const input = await provider.read(bytes, upload)
+		const input = await provider.read(bytes, effectiveUpload)
 		return input ? normalise(input) : null
 	} catch {
 		// No network, a bad key/host, a rate limit, a file the model refuses -- every one of
