@@ -39,7 +39,7 @@ export default function Login() {
 	}
 
 	return (
-		<div className="auth-page">
+		<main className="auth-page">
 			<Card className="auth-card" aria-label="Sign in">
 				<CardBody>
 					<div className="auth-heading">
@@ -75,6 +75,6 @@ export default function Login() {
 					</p>
 				</CardBody>
 			</Card>
-		</div>
+		</main>
 	)
 }
