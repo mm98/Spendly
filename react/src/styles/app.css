@@ -1040,6 +1040,14 @@ svg.chart { width:100%; display:block; }
 .image-lightbox::backdrop { background:rgb(var(--shadow-ink) / .5); }
 .image-lightbox-img { display:block; max-width:calc(100vw - 48px); max-height:calc(100vh - 48px); border-radius:var(--radius-card); box-shadow:0 14px 44px rgb(var(--shadow-ink) / .3); }
 .image-lightbox-close { position:absolute; top:-16px; right:-16px; background:var(--bg-card); box-shadow:0 4px 14px rgb(var(--shadow-ink) / .25); }
+/* The parsed-read popup behind a scan's "JSON" button -- same mechanics as .image-lightbox
+   above, sized for a block of text rather than a photo: a fixed ceiling with its own scroll,
+   since a receipt's own read can run past what the viewport holds. */
+.json-dialog { border:0; padding:0; background:transparent; width:min(640px, calc(100vw - 48px)); max-height:calc(100vh - 48px); }
+.json-dialog::backdrop { background:rgb(var(--shadow-ink) / .5); }
+.json-dialog-card { display:flex; flex-direction:column; max-height:calc(100vh - 48px); background:var(--bg-card); border-radius:var(--radius-card); box-shadow:0 14px 44px rgb(var(--shadow-ink) / .3); }
+.json-dialog-header { display:flex; align-items:center; justify-content:space-between; gap:var(--gap-row); padding:14px var(--pad-card); border-bottom:1px solid var(--border-divider); }
+.json-dialog-body { flex:1; margin:0; border-radius:0 0 var(--radius-card) var(--radius-card); overflow:auto; }
 .progress-bar { height:6px; border-radius:3px; background:var(--bg-meter-track); overflow:hidden; }
 .progress-bar-fill { height:100%; width:72%; background:var(--green); border-radius:3px; }
 .progress-bar.progress-bar-indeterminate .progress-bar-fill { width:38%; animation:pslide 1.5s ease-in-out infinite; }
@@ -1617,15 +1625,16 @@ label.field-shell { cursor:pointer; }
 
 	   So the bar goes while a line is open, rather than the card being made to fit under it:
 	   nothing in the card is navigation, the way out is the card's own two buttons, and the
-	   list underneath comes back with the bar the moment it closes. Both editors are named
-	   because both are the same thing -- ItemLines' card on New/Edit order, and Scan review's
-	   line editor. README: Chrome, Create and Edit. */
-	:root:has(.line-card, .line-editor) {
+	   list underneath comes back with the bar the moment it closes. One selector rather than
+	   two now that Scan review's own line editor is this same card (`.line-card`) rather than a
+	   second, plainer editor with its own class to keep in step. README: Chrome, Create and
+	   Edit. */
+	:root:has(.line-card) {
 		/* The bar is gone, so the three surfaces above clear the platform's inset and the
 		   gutter, and nothing else. */
 		--tabbar-clearance:calc(var(--safe-bottom) + 12px);
 	}
-	:root:has(.line-card, .line-editor) .sidebar { display:none; }
+	:root:has(.line-card) .sidebar { display:none; }
 	.topbar { flex-wrap:wrap; }
 	.topbar h1 { font-size:16px; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but
@@ -2006,7 +2015,6 @@ label.field-shell { cursor:pointer; }
 .note-lead { margin-bottom:16px; }
 .note-above-row { margin-bottom:10px; }
 .chip-matched { height:24px; font-size:10.5px; }
-.line-editor { margin:4px 0; }
 
 
 .auth-switch { margin-top:14px; }
