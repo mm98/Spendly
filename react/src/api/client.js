@@ -703,6 +703,13 @@ export async function attachScanDocument(documentKey, orderId, signal) {
 	return request(`/api/scan/documents/${documentKey}/attach/${orderId}`, { method: 'POST', signal })
 }
 
+/** Discards a pending upload outright, cached AI read included -- so re-uploading the same file
+    afterwards is read fresh instead of handing back a misparsed draft the dedup lookup would
+    otherwise keep serving for a day. */
+export async function deleteScanDocument(documentKey, signal) {
+	return request(`/api/scan/documents/${documentKey}`, { method: 'DELETE', signal })
+}
+
 export const scanThumbnailUrl = documentKey => `/api/scan/documents/${documentKey}/thumbnail`
 export const scanFileUrl = documentKey => `/api/scan/documents/${documentKey}/file`
 
