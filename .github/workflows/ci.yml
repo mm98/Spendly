@@ -1,8 +1,12 @@
 name: CI
 
+# Every commit on main arrives by squash-merging a PR, so a push-to-main run of this same
+# workflow re-checks a tree the PR's own run already checked -- same code, same result, paid
+# for twice, Lighthouse's ~90s included. The one thing it would catch -- a push that skipped
+# review -- isn't a path this repo uses; if that ever changes, add `push: branches: [main]`
+# back. docker.yml's own main-triggered build (and its Lighthouse run against the shipped
+# image) is unrelated and keeps running regardless -- it measures the artifact, not the diff.
 on:
-  push:
-    branches: [main]
   pull_request:
 
 jobs:
