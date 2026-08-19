@@ -40,7 +40,7 @@ export default function Register() {
 	}
 
 	return (
-		<div className="auth-page">
+		<main className="auth-page">
 			<Card className="auth-card" aria-label="Create an account">
 				<CardBody>
 					<div className="auth-heading">
@@ -76,6 +76,6 @@ export default function Register() {
 					</p>
 				</CardBody>
 			</Card>
-		</div>
+		</main>
 	)
 }
