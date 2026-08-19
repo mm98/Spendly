@@ -24,32 +24,10 @@ services:
       # they are served, anyone who can reach this app can read its sources. Uncomment to hand
       # them out; it is a serving decision, so it takes a restart and not a rebuild:
       # SPENDLY_SOURCE_MAPS: "1"
-      # Lets Scan actually read a dropped receipt (vendor, date, line items, totals) instead of
-      # only storing it for you to fill in by hand. Scan works either way, just without the
-      # reading. Enabled by default against the bundled `ollama` service below -- fully local, no
-      # per-scan cost, nothing to install yourself. First start still needs the ollama-pull
-      # service (below) to finish downloading the model (a few GB) before reads actually work;
-      # until then, and on any other failure, a scan read just falls back to the same blank draft
-      # as having no provider configured at all -- nothing here blocks Spendly itself starting.
-      OLLAMA_MODEL: qwen2.5vl:7b
-      OLLAMA_HOST: http://ollama:11434
-      # To point at Ollama running somewhere else instead (already-installed on this host, a NAS,
-      # another machine) rather than the bundled container: comment out the ollama and
-      # ollama-pull services below, keep OLLAMA_MODEL, and change OLLAMA_HOST to that host's
-      # address -- from inside this container "localhost" means this container, not your host, so
-      # a same-machine Ollama needs host.docker.internal:11434 (11434 is Ollama's own default
-      # port), which needs the commented extra_hosts entry below to resolve on plain Linux Docker
-      # Engine (Docker Desktop on Mac/Windows resolves it already).
-      # OLLAMA_HOST: http://host.docker.internal:11434
-      #
-      # Or use Anthropic's cloud API instead of Ollama entirely (reads PDFs as well as images,
-      # costs per scan) -- get a key at https://console.anthropic.com/. Both can be set at once;
-      # OLLAMA_MODEL wins unless SCAN_AI_PROVIDER names one explicitly.
+      # Optional: lets Scan actually read a dropped receipt (vendor, date, line items, totals)
+      # instead of only storing it for you to fill in by hand. Get a key at
+      # https://console.anthropic.com/ -- Scan works either way, just without the reading.
       # ANTHROPIC_API_KEY: sk-ant-...
-    # extra_hosts:
-    #   - "host.docker.internal:host-gateway"
-    depends_on:
-      - ollama
     volumes:
       # Absolute path, deliberately -- a relative one (./data) resolves against wherever this
       # file itself happens to sit, so moving or re-fetching docker-compose.yaml silently points
@@ -57,39 +35,3 @@ services:
       # like that. On QNAP, prefer an absolute path on a real share the same way, e.g.
       # /share/Container/spendly:/data
       - /spendly:/data
-
-  # The vision model Scan reads receipts with, bundled so `docker compose up` needs nothing
-  # installed on the host. CPU-only by default -- works, but a multi-second-per-scan read is
-  # normal without a GPU. For an NVIDIA GPU (needs the NVIDIA Container Toolkit on the host),
-  # uncomment the deploy block below.
-  ollama:
-    image: ollama/ollama:latest
-    container_name: spendly-ollama
-    restart: unless-stopped
-    volumes:
-      - ollama_data:/root/.ollama
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
-
-  # Runs once, pulls the model named by spendly's OLLAMA_MODEL into the ollama service above, and
-  # exits -- Scan's reads work as soon as this finishes (a few GB, so first start is the slow
-  # one). Safe to leave running on every `docker compose up`: `ollama pull` is a no-op once the
-  # model is already there.
-  ollama-pull:
-    image: ollama/ollama:latest
-    container_name: spendly-ollama-pull
-    depends_on:
-      - ollama
-    environment:
-      OLLAMA_HOST: http://ollama:11434
-    entrypoint: ["/bin/sh", "-c"]
-    command: ["until ollama list >/dev/null 2>&1; do sleep 2; done; ollama pull qwen2.5vl:7b"]
-    restart: "no"
-
-volumes:
-  ollama_data:
