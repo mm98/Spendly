@@ -22,15 +22,21 @@ const THUMBNAIL_MAX = 200
 const PDF_RENDER_LONG_EDGE = DISPLAY_MAX
 
 /** Resizes to fit within max x max (never upscales), auto-orients from EXIF (a sideways phone
-    photo would otherwise stay sideways), and re-encodes as JPEG — which also strips EXIF, so a
+    photo would otherwise stay sideways), and re-encodes as WebP — smaller than JPEG at the same
+    quality for the flat colour and text a receipt actually is, and it also strips EXIF, so a
     photo's embedded GPS coordinates don't travel into the database as a side effect of nobody
-    asking for them to. Returns null (falls back to storing the original) if the buffer isn't a
-    decodable image at all, rather than failing the whole upload over it. */
+    asking for them to. Whatever format a browser or a phone camera handed the upload -- PNG,
+    HEIC, a screenshot -- this is the one format every stored image ends up as; nothing downstream
+    branches by source format again. `effort: 6` (max) spends more CPU on the encode in exchange
+    for a smaller file at the *same* quality setting -- it doesn't trade against quality the way
+    lowering the quality number would, so there's no reason not to max it for a one-shot,
+    once-per-upload encode. Returns null (falls back to storing the original) if the buffer isn't
+    a decodable image at all, rather than failing the whole upload over it. */
 async function resizeTo(buffer, max) {
 	return sharp(buffer)
 		.rotate()
 		.resize(max, max, { fit: 'inside', withoutEnlargement: true })
-		.jpeg({ quality: max === THUMBNAIL_MAX ? 70 : 85 })
+		.webp({ quality: max === THUMBNAIL_MAX ? 70 : 85, effort: 6 })
 		.toBuffer()
 }
 
@@ -40,7 +46,7 @@ async function resizeTo(buffer, max) {
 export async function processImage(buffer) {
 	try {
 		const [display, thumbnail] = await Promise.all([resizeTo(buffer, DISPLAY_MAX), resizeTo(buffer, THUMBNAIL_MAX)])
-		return { data: display, contentType: 'image/jpeg', size: display.length, thumbnail, thumbnailContentType: 'image/jpeg' }
+		return { data: display, contentType: 'image/webp', size: display.length, thumbnail, thumbnailContentType: 'image/webp' }
 	} catch {
 		// Not a decodable image (a mislabeled file, a format sharp doesn't read) — keep the
 		// original bytes rather than losing the upload over a thumbnail that couldn't be made.
@@ -94,7 +100,7 @@ function renderPdfFirstPage(buffer) {
 /** A DISPLAY_MAX-sized raster of a PDF's first page, or null if it couldn't be rendered
     (encrypted, corrupt, zero pages) — the caller falls back to the plain document icon exactly
     the way it already does for an image sharp couldn't decode. The PDF's own bytes are never
-    touched; only a raster of page one is generated, resized down through the same JPEG pipeline
+    touched; only a raster of page one is generated, resized down through the same WebP pipeline
     a photo's own copies go through (see the PDF_RENDER_LONG_EDGE note above for why this reuses
     the display size, not the thumbnail size, despite the column it's still stored in).
 
@@ -108,7 +114,7 @@ export async function processPdfThumbnail(buffer) {
 	const png = await renderPdfFirstPage(buffer)
 	if (!png) return null
 	try {
-		return { thumbnail: await resizeTo(png, DISPLAY_MAX), thumbnailContentType: 'image/jpeg' }
+		return { thumbnail: await resizeTo(png, DISPLAY_MAX), thumbnailContentType: 'image/webp' }
 	} catch {
 		return null
 	}

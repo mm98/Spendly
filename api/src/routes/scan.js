@@ -11,6 +11,7 @@ import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
 import { toEpoch, fromEpoch } from '../lib/dates.js'
+import { msUntilEndOfDay } from '../lib/backup.js'
 
 export const router = Router()
 // See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
@@ -21,13 +22,36 @@ const insertUpload = db.prepare(`INSERT INTO scan_uploads
 	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
 	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
 /* A pending upload nobody came back to (DISCARD, or a tab just closed) used to sit forever --
-   nothing ever deleted a scan_uploads row except attaching it to an order. The window below is
-   the same one the dedup lookup trusts a hash match inside, so a row is kept for exactly as
-   long as it can still save a reader a second AI read, never longer. Swept opportunistically on
-   the write path that grows the table, rather than needing a scheduler this app doesn't have
-   one of elsewhere. */
+   nothing ever deleted a scan_uploads row except attaching it to an order. The dedup lookup
+   below trusts a hash match for a day -- long enough to catch a second click on the same file
+   or a re-export from the camera roll, without matching a receipt from last week that just
+   happens to be identical. Deletion is a separate, longer window (RETENTION_MS): a review draft
+   left open overnight, or a browser tab nobody got back to before the weekend, still has to
+   find its upload there on Monday, so a row survives well past the point it can still save a
+   second AI read. */
 const DEDUP_WINDOW_MS = 24 * 60 * 60 * 1000
+const RETENTION_MS = 7 * 24 * 60 * 60 * 1000
 const deleteExpiredUploads = db.prepare('DELETE FROM scan_uploads WHERE created_at < ?')
+/* Swept once a day rather than opportunistically on the write path that grows the table -- a
+   week-long retention window means most uploads in the table are still well within it on any
+   given write, so sweeping on every upload would mostly re-run a DELETE that matches nothing.
+   Same shape as scheduleDailyBackups (lib/backup.js): a sweep at startup catches up a container
+   that was stopped over a day boundary, then one timer fires just before local midnight and
+   re-arms itself every 24 hours after that -- the exact second doesn't carry any meaning here
+   the way it does for the backup's date-stamped filename, but sharing msUntilEndOfDay keeps the
+   app's two daily jobs on one clock instead of two. */
+function cleanupExpiredUploads() {
+	deleteExpiredUploads.run(Math.floor((Date.now() - RETENTION_MS) / 1000))
+}
+export function scheduleDailyUploadCleanup() {
+	cleanupExpiredUploads()
+	const timer = setTimeout(function runAndReschedule() {
+		cleanupExpiredUploads()
+		setInterval(cleanupExpiredUploads, 24 * 60 * 60 * 1000).unref()
+	}, msUntilEndOfDay())
+	timer.unref()
+	return timer
+}
 /* The same bytes, uploaded again inside the window -- a second click on the same file, a photo
    re-exported from the camera roll under a new name, a receipt dropped twice by habit. The
    existing row is the answer: same id, same cached ai_read_json if the first upload's draft was
@@ -73,9 +97,6 @@ const selectPossibleDuplicate = db.prepare(`
 router.post('/documents', upload.single('file'), async (req, res) => {
 	const file = req.file
 	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
-
-	// Opportunistic, on the path that grows the table -- see the comment on the statement above.
-	deleteExpiredUploads.run(Math.floor((Date.now() - DEDUP_WINDOW_MS) / 1000))
 
 	// The source bytes' own hash, before any resizing -- two uploads of the same file hash the
 	// same regardless of what processAttachment below would make of either.
@@ -236,7 +257,7 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 router.get('/documents/:key/thumbnail', (req, res) => {
 	const upload = selectUploadThumbnail.get(req.params.key, req.user.id)
 	if (!upload || !upload.thumbnail) return res.status(404).json({ error: 'No thumbnail for that document.' })
-	res.set('Content-Type', upload.thumbnail_content_type || 'image/jpeg')
+	res.set('Content-Type', upload.thumbnail_content_type || 'image/webp')
 	res.send(decompressBlob(upload.thumbnail, upload.thumbnail_is_compressed))
 })
 
