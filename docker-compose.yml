@@ -38,7 +38,7 @@ services:
       # Enables the update API.
       WATCHTOWER_HTTP_API_UPDATE: "true"
       # API bearer token -- change before exposing port 8085 beyond the LAN.
-      WATCHTOWER_HTTP_API_TOKEN: "sp-9f3kX2mQv8LzT4wRb6Nd"
+      WATCHTOWER_HTTP_API_TOKEN: "change-this-demo-key"
       # Keeps the schedule below running alongside the API.
       WATCHTOWER_HTTP_API_PERIODIC_POLLS: "true"
     volumes:
