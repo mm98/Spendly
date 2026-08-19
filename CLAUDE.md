@@ -252,7 +252,7 @@ box, not about any change.
 - **Lighthouse runs here, and it is the only instrument in this file that measures the wire.**
   `npm i lighthouse` in a scratch directory, then
   `CHROME_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npx lighthouse <url>
-  --only-categories=performance --output=json --chrome-flags="--headless=new --no-sandbox"` --
+  --only-categories=performance --preset=desktop --output=json --chrome-flags="--headless=new --no-sandbox"` --
   it drives the same Chromium Playwright does, so nothing extra is downloaded and no engine
   question is opened. It is noisy on its first run and quiet after: three runs of one build
   agreed at perf 99/99/99, FCP 1508/1562/1562ms, and three of another at 87/87/87,
@@ -260,6 +260,18 @@ box, not about any change.
   least twice a side and report the spread, or the first number is the machine warming up.
   Point it at a served build (`node api/src/server.js` over `react/dist`), never at the dev
   server: Vite serves unminified modules one file per import, which is a different application.
+
+  **`--preset=desktop`, always, unless a phone number is specifically what's being asked for.**
+  Lighthouse's own default is a *mobile* profile -- simulated slow-4G and a 4x CPU slowdown --
+  which is the wrong lens on an app whose own baseline is 1440x900 (the screenshot section
+  above) and whose entry payload is genuinely small. The gap it opens is not subtle: Home's
+  logged-out load measured FCP **1550-1660ms** under the default mobile profile and **365-366ms**
+  under `--preset=desktop`, reproduced twice each side, off a network-dependency-tree trace whose
+  longest real chain -- document to JS entry to CSS -- was **52ms** end to end. The mobile numbers
+  above (1508-3066ms) predate this and were never wrong as *mobile* numbers; they were being read
+  as the app's numbers, which they are not. A number that looks slow against a payload that
+  small is a preset question before it is a code question -- check which profile ran before
+  chasing what looks like a render-blocking defect.
 - **Match counts:** `grep -o 'pattern' file | wc -l`, never `grep -c`.
 
 ### When a page can be rendered
