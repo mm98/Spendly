@@ -50,13 +50,12 @@ jobs:
   # it; performance is printed and never gated, because a stopwatch on a shared runner fails
   # for reasons a change did not cause.
   #
-  # main only. It installs a hundred megabytes of tool, builds, and runs the page twice, which
-  # is minutes on every pull request to re-measure a number that moves a point at a time -- and
-  # the number that matters is the one the shipped image carries, which docker.yml measures
-  # against the image itself when main is pushed. A regression lands on main and is visible
-  # there; nobody is served by paying for it per commit.
+  # Runs on every push and pull request now, not main only: the script itself (registering an
+  # account, filling it with demo data, driving Chrome through puppeteer-core) has moved parts
+  # that a push-to-main-only gate never exercises before landing, and a break in it -- the kind
+  # #173 shipped, caught only after merge -- is exactly what a PR run is for. The floor is what
+  # still matters on every commit; the score itself stays a number to read, not a merge blocker.
   lighthouse:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
