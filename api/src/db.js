@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DB_PATH = process.env.SPENDLY_DB ?? path.join(__dirname, '..', 'spendly.sqlite3')
+export const DB_PATH = process.env.SPENDLY_DB ?? path.join(__dirname, '..', 'spendly.sqlite3')
 
 export const db = new Database(DB_PATH)
 db.pragma('journal_mode = WAL')       // readers don't block the writer, writer doesn't block readers
