@@ -6,7 +6,7 @@ import { Async, Waiting } from '../components/Async.jsx'
 import { SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, Note } from '../components/Card.jsx'
 import { Stepper } from '../components/Stepper.jsx'
-import { FormPage, RecordWait, useRowDelete } from '../components/FormPage.jsx'
+import { FormPage, RecordWait } from '../components/FormPage.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview, ProgressBar } from '../components/Viz.jsx'
 import { JsonDialog } from '../components/Json.jsx'
@@ -331,16 +331,14 @@ function ScanReviewForm({ answer }) {
 		setAutoCheckLine(null)
 		toast(`${line.title || 'Line'} removed.`)
 	}
-	/* Same question, same setting, same dialog every other row delete in the app asks --
-	   README: Deletion. A line read off a receipt is as much a part of this draft as one typed
-	   by hand on New order, so it does not get a quieter delete just because nothing has been
-	   saved yet. */
-	const lineDel = useRowDelete({
-		what: 'line',
-		label: line => `Delete ${line.title || 'this line'}`,
-		detail: line => `${line.title || 'This line'}, ${line.quantity} × ${currency(line.price)}${fullStop()}`,
-		onDelete: removeLine
-	})
+	/* No confirmation here, unlike every other row delete in the app (README: Deletion normally
+	   asks). Nothing on this screen is saved yet -- SAVE ORDER is the one commit -- so removing
+	   a misread line is exactly as reversible as never having typed it, and DISCARD already
+	   throws away the whole draft with no question asked either. */
+	const removeLineButton = line => (
+		<IconButton icon="trash" label={`Delete ${line.title || 'this line'}`}
+			onClick={() => removeLine(line)} />
+	)
 
 	/* The same four rules step 1 checks, from the same module. This screen used to check
 	   nothing at all: a receipt whose vendor line came back blank saved an order with no
@@ -636,9 +634,13 @@ function ScanReviewForm({ answer }) {
 								autoCheck={autoCheckLine === line.id}
 								onSave={values => saveLine(line.id, values)}
 								onCancel={() => cancelLine(line.id)}
-								deleteButton={line.id === newLineId ? null : lineDel.button(line,
-									<span className="line-delete-label">DELETE LINE</span>,
-									`Delete line, ${line.title || 'this line'}`)} />
+								deleteButton={line.id === newLineId ? null : (
+									<Button variant="ghost compact" icon="trash"
+										aria-label={`Delete line, ${line.title || 'this line'}`}
+										onClick={() => removeLine(line)}>
+										<span className="line-delete-label">DELETE LINE</span>
+									</Button>
+								)} />
 						) : (
 							<ItemRow key={line.id}
 								icon={line.uncertain ? 'alert' : 'check'}
@@ -653,7 +655,7 @@ function ScanReviewForm({ answer }) {
 								<span className="row-inline row-actions">
 									<IconButton icon="pencil" label={`Edit ${line.title}`}
 										onClick={() => { setEditingLine(line.id); setAutoCheckLine(null) }} />
-									{lineDel.iconButton(line)}
+									{removeLineButton(line)}
 								</span>
 							</ItemRow>
 						)
@@ -678,7 +680,6 @@ function ScanReviewForm({ answer }) {
 					<Button variant="ghost compact" icon="plus" className="panel-cta"
 						onClick={addLine}>ADD LINE</Button>
 				) : null}
-				{lineDel.dialog}
 			</div>
 
 			{jsonOpen ? (
