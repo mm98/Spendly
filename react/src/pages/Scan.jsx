@@ -6,9 +6,10 @@ import { Async, Waiting } from '../components/Async.jsx'
 import { SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, Note } from '../components/Card.jsx'
 import { Stepper } from '../components/Stepper.jsx'
-import { FormPage, RecordWait } from '../components/FormPage.jsx'
+import { FormPage, RecordWait, useRowDelete } from '../components/FormPage.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview, ProgressBar } from '../components/Viz.jsx'
+import { JsonDialog } from '../components/Json.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
 import { RECEIPT_FILES } from '../components/fileKinds.js'
 import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
@@ -28,7 +29,7 @@ import {
 	scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, plural } from '../api/format.js'
+import { amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, plural, sep } from '../api/format.js'
 
 /* Scan, in three steps.
 
@@ -297,6 +298,7 @@ function ScanReviewForm({ answer }) {
 	const [editingLine, setEditingLine] = useState(null)
 	const [newLineId, setNewLineId] = useState(null)
 	const [sourceOpen, setSourceOpen] = useState(false)
+	const [jsonOpen, setJsonOpen] = useState(false)
 
 	/* There is no OCR behind this review yet (see api/scan/draft/:key on the server) — a
 	   freshly uploaded document reads back with no lines at all, and the only way this form
@@ -304,7 +306,15 @@ function ScanReviewForm({ answer }) {
 	   below already knows how to save; cancelling a line that was never saved removes it again
 	   rather than leaving an empty row behind. */
 	const addLine = () => {
-		const id = 'l-new-' + crypto.randomUUID()
+		/* crypto.randomUUID only exists in a secure context (HTTPS, or localhost) -- opening the
+		   app over plain HTTP from another machine on the network throws here rather than
+		   returning a string, and this id is a React key and a scratch draft value only: the
+		   server never trusts a client-supplied item id (routes/orders.js generates its own for
+		   anything that isn't already a real saved item), so nothing downstream needs it to be
+		   cryptographically random, only unique for this render. */
+		const id = 'l-new-' + (typeof crypto?.randomUUID === 'function'
+			? crypto.randomUUID()
+			: Math.random().toString(36).slice(2) + Date.now().toString(36))
 		patch({ lines: [...draft.lines, { id, title: '', quantity: 1, price: 0 }] })
 		setNewLineId(id)
 		setEditingLine(id)
@@ -315,6 +325,22 @@ function ScanReviewForm({ answer }) {
 		setEditingLine(null)
 		setAutoCheckLine(null)
 	}
+	const removeLine = line => {
+		patch({ lines: draft.lines.filter(l => l.id !== line.id) })
+		setEditingLine(null)
+		setAutoCheckLine(null)
+		toast(`${line.title || 'Line'} removed.`)
+	}
+	/* Same question, same setting, same dialog every other row delete in the app asks --
+	   README: Deletion. A line read off a receipt is as much a part of this draft as one typed
+	   by hand on New order, so it does not get a quieter delete just because nothing has been
+	   saved yet. */
+	const lineDel = useRowDelete({
+		what: 'line',
+		label: line => `Delete ${line.title || 'this line'}`,
+		detail: line => `${line.title || 'This line'}, ${line.quantity} × ${currency(line.price)}${fullStop()}`,
+		onDelete: removeLine
+	})
 
 	/* The same four rules step 1 checks, from the same module. This screen used to check
 	   nothing at all: a receipt whose vendor line came back blank saved an order with no
@@ -453,6 +479,7 @@ function ScanReviewForm({ answer }) {
 				<>
 					<Card aria-label="Source document">
 						<CardHeader title="Source">
+							<span className="row-inline">
 							{/* The preview under this button is a thumbnail; OPEN is what makes it big
 							    enough to read from. It says which state it is in, and it says CLOSE when
 							    it would close -- a toggle labelled the same in both states is a control
@@ -472,6 +499,13 @@ function ScanReviewForm({ answer }) {
 									aria-expanded={sourceOpen} aria-controls="scan-source-preview"
 									onClick={() => setSourceOpen(o => !o)}>{sourceOpen ? 'CLOSE' : 'OPEN'}</button>
 							)}
+							{/* What the source's own OPEN shows is the document; this is the other half --
+							    what the review screen is actually built from, in the same formatted-JSON
+							    shape Settings > Import already teaches a reader to read, rather than a
+							    screen's worth of labelled fields standing in for it. */}
+							<button type="button" className="button button-pill"
+								aria-haspopup="dialog" onClick={() => setJsonOpen(true)}>JSON</button>
+							</span>
 						</CardHeader>
 						<CardDivider />
 						<CardBody>
@@ -595,12 +629,16 @@ function ScanReviewForm({ answer }) {
 					</div>
 				) : null}
 				<InsetPanel>
-					{draft.lines.map(line => (
+					{draft.lines.map((line, index) => (
 						editingLine === line.id ? (
-							<LineEditor key={line.id} line={line}
+							<LineEditor key={line.id} line={line} index={index} count={draft.lines.length}
+								isNew={line.id === newLineId}
 								autoCheck={autoCheckLine === line.id}
 								onSave={values => saveLine(line.id, values)}
-								onCancel={() => cancelLine(line.id)} />
+								onCancel={() => cancelLine(line.id)}
+								deleteButton={line.id === newLineId ? null : lineDel.button(line,
+									<span className="line-delete-label">DELETE LINE</span>,
+									`Delete line, ${line.title || 'this line'}`)} />
 						) : (
 							<ItemRow key={line.id}
 								icon={line.uncertain ? 'alert' : 'check'}
@@ -633,7 +671,12 @@ function ScanReviewForm({ answer }) {
 					<Button variant="ghost compact" icon="plus" className="panel-cta"
 						onClick={addLine}>ADD LINE</Button>
 				) : null}
+				{lineDel.dialog}
 			</div>
+
+			{jsonOpen ? (
+				<JsonDialog value={answer} title="Parsed data" onClose={() => setJsonOpen(false)} />
+			) : null}
 
 			<SummaryRow label="Lines subtotal" value={currency(linesTotal)} />
 			{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
@@ -648,10 +691,16 @@ function ScanReviewForm({ answer }) {
     form on New order checks, marked and announced by the same apparatus -- see api/rules.js.
     Its own three-branch if/else agreed with them until the day one of the two was fixed.
 
+    The card itself is ItemLines.jsx's own `.line-card` -- the header band, the green title, the
+    Enter/Escape hint, the bottom-divided action row -- so a line corrected here looks like a
+    line corrected on New or Edit order, rather than a second, plainer editor the design system
+    never drew. No photo and no retail price: a scanned line has neither, so the card is the
+    same header and field grid without the parts that have nothing to hold.
+
     `autoCheck` is true only when this card was opened *by* a rejected SAVE ORDER, never by its
     own pencil -- the open is itself the rejection then, so the fields mark themselves the
     moment the card mounts rather than waiting for a second press of SAVE LINE to say so. */
-function LineEditor({ line, onSave, onCancel, autoCheck = false }) {
+function LineEditor({ line, index, count, isNew, onSave, onCancel, autoCheck = false, deleteButton }) {
 	const [form, setForm] = useState({
 		'line-description': line.title,
 		'line-quantity': String(line.quantity),
@@ -676,42 +725,59 @@ function LineEditor({ line, onSave, onCancel, autoCheck = false }) {
 		})
 	}
 
+	/* Escape works from anywhere in the card, matching ItemLines' own line card -- one editing
+	   session, one set of shortcuts, wherever a line happens to be open. */
 	const keys = e => {
-		if (e.key === 'Enter') { e.preventDefault(); submit() }
-		else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onCancel() }
+		if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onCancel(); return }
+		if (e.key !== 'Enter' || !(e.target instanceof HTMLInputElement)) return
+		e.preventDefault()
+		submit()
 	}
 
+	const heading = isNew ? 'New line' : `Editing line ${index + 1} of ${count}`
+	const qty = Number(form['line-quantity'])
+	const paid = parseAmount(form['line-price'])
+	const figures = Number.isFinite(qty) && qty > 0 && Number.isFinite(paid)
+
 	return (
-		<div className="filter-section line-editor">
-			<Field label="Line" error={description.error} errorId={description.errorId} htmlFor="line-description">
-				<FieldShell>
-					<TextInput id="line-description" value={form['line-description']} autoFocus
-						onChange={set('line-description')} aria-label="Line description"
-						aria-required="true" invalid={description.invalid}
-						describedBy={description.describedBy} onKeyDown={keys} />
-				</FieldShell>
-			</Field>
-			<FieldPair>
+		<div className="filter-section line-card" onKeyDown={keys}>
+			<div className="line-card-head">
+				<span className="section-label line-card-title">{heading}</span>
+				<span className="field-help push-end line-card-keys">Enter saves<Sep />Escape cancels</span>
+			</div>
+			<div className="line-card-fields">
+				<Field className="line-field-wide" label="Line" error={description.error} errorId={description.errorId} htmlFor="line-description">
+					<FieldShell>
+						<TextInput id="line-description" value={form['line-description']} autoFocus
+							onChange={set('line-description')} aria-label="Line description"
+							aria-required="true" invalid={description.invalid}
+							describedBy={description.describedBy} />
+					</FieldShell>
+				</Field>
 				<Field label="Quantity" error={quantity.error} errorId={quantity.errorId} htmlFor="line-quantity">
 					<FieldShell>
 						<TextInput id="line-quantity" inputMode="numeric" value={form['line-quantity']}
 							onChange={set('line-quantity')} aria-label="Quantity" aria-required="true"
-							invalid={quantity.invalid} describedBy={quantity.describedBy} onKeyDown={keys} />
+							invalid={quantity.invalid} describedBy={quantity.describedBy} />
 						<FieldUnit>pcs</FieldUnit>
 					</FieldShell>
 				</Field>
-				<Field label="Price" error={price.error} errorId={price.errorId} htmlFor="line-price">
+				<Field label="Price" error={price.error} errorId={price.errorId} htmlFor="line-price"
+					help={figures && qty > 1
+						? `Per piece${sep}line total ${currency(paid * qty)}`
+						: 'What one piece cost.'}>
 					<FieldShell>
 						<TextInput id="line-price" inputMode="decimal" value={form['line-price']}
 							onChange={set('line-price')} aria-label="Price" aria-required="true"
-							invalid={price.invalid} describedBy={price.describedBy} onKeyDown={keys} />
+							invalid={price.invalid} describedBy={price.describedBy} />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
-			</FieldPair>
+			</div>
 			<FormActions>
 				<Button variant="caps compact" icon="check" onClick={submit}>SAVE LINE</Button>
 				<Button variant="ghost compact" onClick={onCancel}>CANCEL</Button>
+				{deleteButton ? <span className="push-end">{deleteButton}</span> : null}
 			</FormActions>
 		</div>
 	)

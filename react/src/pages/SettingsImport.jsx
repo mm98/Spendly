@@ -7,6 +7,7 @@ import { useToast } from '../components/Toast.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
 import { EXPORT_FILES } from '../components/fileKinds.js'
 import { ProgressBar } from '../components/Viz.jsx'
+import { tokenizeJson } from '../components/Json.jsx'
 import { percent } from '../api/format.js'
 import { invalidate } from '../api/useApi.js'
 import { failureMessage, importOrders } from '../api/client.js'
@@ -34,22 +35,6 @@ const IMPORT_EXAMPLE = {
 		}],
 		attachments: [{ filename: 'receipt.pdf', contentType: 'application/pdf', data: '<base64>' }]
 	}]
-}
-
-const tokenizeJson = (text, prefix) => {
-	const pattern = /("(?:[^"\\]|\\.)*")(\s*:)?|-?\d+(?:\.\d+)?|[{}[\],]/g
-	const out = []
-	let last = 0, n = 0, m
-	while ((m = pattern.exec(text))) {
-		if (m.index > last) out.push(text.slice(last, m.index))
-		const key = `${prefix}-${n++}`
-		if (m[1] != null) out.push(<span key={key} className={m[2] ? 'tok-key' : 'tok-str'}>{m[1]}</span>, m[2] ?? '')
-		else if (/^[{}[\],]$/.test(m[0])) out.push(<span key={key} className="tok-pun">{m[0]}</span>)
-		else out.push(<span key={key} className="tok-num">{m[0]}</span>)
-		last = m.index + m[0].length
-	}
-	out.push(text.slice(last))
-	return out
 }
 
 /* Three boxes, each holding only the request or response itself; what each one means is
