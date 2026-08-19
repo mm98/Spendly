@@ -1,9 +1,10 @@
-import { mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync, rmSync, existsSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { db, DB_PATH } from '../db.js'
 import { zipSingleFile } from './zip.js'
 
 const BACKUP_DIR = path.join(path.dirname(DB_PATH), 'backup')
+const MAX_BACKUPS = 5
 
 function todayStamp(date = new Date()) {
 	// Local date, not UTC -- has to agree with the local midnight scheduleDailyBackups() fires on,
@@ -41,7 +42,18 @@ export async function backupDatabase() {
 		rmSync(`${snapshotPath}-wal`, { force: true })
 		rmSync(`${snapshotPath}-shm`, { force: true })
 	}
+	pruneOldBackups()
 	return zipPath
+}
+
+const BACKUP_NAME = /^database-\d{4}-\d{2}-\d{2}\.zip$/
+
+/* database-YYYY-MM-DD.zip sorts the same lexically as chronologically, so the oldest are just
+   the ones off the front of a plain sort -- no date parsing needed to find them. */
+function pruneOldBackups() {
+	const files = readdirSync(BACKUP_DIR).filter(f => BACKUP_NAME.test(f)).sort()
+	for (const stale of files.slice(0, Math.max(0, files.length - MAX_BACKUPS)))
+		rmSync(path.join(BACKUP_DIR, stale), { force: true })
 }
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
