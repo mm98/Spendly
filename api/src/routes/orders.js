@@ -4,7 +4,7 @@ import { db } from '../db.js'
 import { cardRowsFor } from '../lib/prefs.js'
 import { newId } from '../lib/ids.js'
 import { toEpoch } from '../lib/dates.js'
-import { getDecoratedOrder, decorateOrderRows } from '../lib/decorate.js'
+import { getDecoratedOrder, decorateOrderSummaryRows, decorateOrderListRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
@@ -71,7 +71,10 @@ router.get('/overview', (req, res) => {
 	const totalsRows = selectLatestOrders.all({ userId: req.user.id, count })
 	// `latestOrders`, not `latest`: the two pages that read this each hold four other lists,
 	// and a field whose name is only an adjective is one they all answer to.
-	res.json({ latestOrders: decorateOrderRows(totalsRows), total: countAllOrders.get(req.user.id).c })
+	// decorateOrderSummaryRows, not decorateOrderRows: the card this feeds (Home.jsx
+	// LatestOrders, Orders.jsx overview) draws a vendor, a date and two figures, never an
+	// order's items or attachments.
+	res.json({ latestOrders: decorateOrderSummaryRows(totalsRows), total: countAllOrders.get(req.user.id).c })
 })
 
 router.get('/draft', (req, res) => {
@@ -87,7 +90,7 @@ router.get('/draft', (req, res) => {
    Built as parameterized clauses reused between the COUNT (matched) and the SELECT (page), so
    the two can never disagree about which rows qualify. LIMIT/OFFSET does the paging in SQLite
    rather than in JS, and only the resulting page (not the whole table) is passed to
-   decorateOrderRows for its 4 batched child-row queries. */
+   decorateOrderListRows for its 2 batched child-row queries. */
 
 const SORT_SQL = {
 	'date-desc': 'ot.date DESC, ot.id DESC',
@@ -224,8 +227,11 @@ router.get('/', (req, res) => {
 		LIMIT @limit OFFSET @offset
 	`).all({ ...params, limit: size, offset: (at - 1) * size })
 
+	/* decorateOrderListRows, not decorateOrderRows: the list row (components/Rows.jsx
+	   OrderRow) never shows an order's items or attachments, so this route never fetches
+	   them -- 2 batched child queries (categories, vendors) instead of 4. */
 	res.json({
-		orders: decorateOrderRows(totalsRows),
+		orders: decorateOrderListRows(totalsRows),
 		matched, total, page: at, pages,
 		from: matched ? (at - 1) * size + 1 : 0,
 		to: Math.min(at * size, matched)
