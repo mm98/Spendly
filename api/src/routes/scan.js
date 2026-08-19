@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import multer from 'multer'
+import { createHash } from 'crypto'
 import { db } from '../db.js'
 import { cardRowsFor } from '../lib/prefs.js'
 import { newId } from '../lib/ids.js'
@@ -17,8 +18,25 @@ export const router = Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const insertUpload = db.prepare(`INSERT INTO scan_uploads
-	(id, user_id, name, size, kind, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
-	VALUES (@id, @userId, @name, @size, @kind, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
+	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
+	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
+/* A pending upload nobody came back to (DISCARD, or a tab just closed) used to sit forever --
+   nothing ever deleted a scan_uploads row except attaching it to an order. The window below is
+   the same one the dedup lookup trusts a hash match inside, so a row is kept for exactly as
+   long as it can still save a reader a second AI read, never longer. Swept opportunistically on
+   the write path that grows the table, rather than needing a scheduler this app doesn't have
+   one of elsewhere. */
+const DEDUP_WINDOW_MS = 24 * 60 * 60 * 1000
+const deleteExpiredUploads = db.prepare('DELETE FROM scan_uploads WHERE created_at < ?')
+/* The same bytes, uploaded again inside the window -- a second click on the same file, a photo
+   re-exported from the camera roll under a new name, a receipt dropped twice by habit. The
+   existing row is the answer: same id, same cached ai_read_json if the first upload's draft was
+   already opened, no second resize and no second model call for a document this account has
+   already paid to read once. */
+const selectUploadByHash = db.prepare(`
+	SELECT id, kind, size, (thumbnail IS NOT NULL) AS has_thumbnail
+	FROM scan_uploads WHERE user_id = ? AND sha256 = ? AND created_at >= ?
+	ORDER BY created_at DESC LIMIT 1`)
 /* Split by what each reader draws, like attachments' own statements in routes/orders.js: the
    draft screen wants the row's facts and whether a thumbnail exists, the file route wants the
    display bytes, the thumbnail route its own -- one shared SELECT pulled both BLOBs (display
@@ -55,18 +73,37 @@ const selectPossibleDuplicate = db.prepare(`
 router.post('/documents', upload.single('file'), async (req, res) => {
 	const file = req.file
 	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
+
+	// Opportunistic, on the path that grows the table -- see the comment on the statement above.
+	deleteExpiredUploads.run(Math.floor((Date.now() - DEDUP_WINDOW_MS) / 1000))
+
+	// The source bytes' own hash, before any resizing -- two uploads of the same file hash the
+	// same regardless of what processAttachment below would make of either.
+	const sha256 = createHash('sha256').update(file.buffer).digest('hex')
+	const existing = selectUploadByHash.get(req.user.id, sha256, Math.floor((Date.now() - DEDUP_WINDOW_MS) / 1000))
+	if (existing) {
+		return res.status(200).json({
+			key: existing.id, name: file.originalname, kind: existing.kind,
+			hasThumbnail: Boolean(existing.has_thumbnail),
+			meta: `${existing.kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(existing.size)}`
+		})
+	}
+
 	// The kind the bytes declare, not the one the filename claims -- see lib/fileType.js.
 	const processed = await processAttachment(file.buffer, file.mimetype, file.originalname)
 	const kind = processed.kind
 	const id = newId('su')
 	insertUpload.run({
-		id, userId: req.user.id, name: file.originalname, size: processed.size, kind,
+		id, userId: req.user.id, name: file.originalname, size: processed.size, kind, sha256,
 		contentType: processed.contentType ?? file.mimetype,
 		data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
 		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
 		thumbnailContentType: processed.thumbnailContentType
 	})
-	res.status(201).json({ key: id, name: file.originalname, kind, meta: `${kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(processed.size)}` })
+	res.status(201).json({
+		key: id, name: file.originalname, kind, hasThumbnail: Boolean(processed.thumbnail),
+		meta: `${kind === 'pdf' ? 'PDF' : 'Image'}${sep}${fileSizeLabel(processed.size)}`
+	})
 })
 
 /** The review step's starting point. Reads the document once via Claude's vision
@@ -123,7 +160,13 @@ router.get('/draft/:key', async (req, res) => {
 
 	res.json({
 		documentKey: upload.id, file,
-		vendor: read.vendor, vendorMatched, date: read.date ?? new Date().toISOString().slice(0, 10),
+		// The document's own spelling once reached the review screen even when the vendor
+		// matched -- a receipt printing "BILKA" against a vendor named "Bilka" showed the
+		// document's casing on a field the picker's "matched" chip claimed was already right.
+		// A match means the vendor record is the answer; the scanned string only speaks where
+		// there was no vendor to match it to.
+		vendor: vendorMatched ? vendorName : read.vendor, vendorMatched,
+		date: read.date ?? new Date().toISOString().slice(0, 10),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
 		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
 		lines: read.lines.map(l => ({
