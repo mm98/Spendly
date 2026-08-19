@@ -29,10 +29,19 @@ services:
       # without the reading. Two ways to enable it, and only one is needed:
       #  - Anthropic (cloud, reads PDFs and images): get a key at https://console.anthropic.com/
       # ANTHROPIC_API_KEY: sk-ant-...
-      #  - Ollama (fully local, images only): point at a vision model served by `ollama serve`
-      #    on the host or another container -- e.g. OLLAMA_HOST: http://host.docker.internal:11434
+      #  - Ollama (fully local, images only): point at a vision model served by `ollama serve`.
+      #    11434 is Ollama's own default port. "localhost" from inside this container is this
+      #    container, not your host -- if Ollama runs on the host machine (the common case), use
+      #    host.docker.internal instead, which the extra_hosts entry below makes resolvable here.
+      #    If Ollama runs as its own container on this same compose network, use its service name
+      #    instead of host.docker.internal (e.g. http://ollama:11434) and drop extra_hosts.
       # OLLAMA_MODEL: qwen2.5vl:7b
-      # OLLAMA_HOST: http://localhost:11434
+      # OLLAMA_HOST: http://host.docker.internal:11434
+    extra_hosts:
+      # Makes host.docker.internal resolve on plain Linux Docker Engine (Docker Desktop on
+      # Mac/Windows already resolves it without this). Harmless to leave in when OLLAMA_HOST is
+      # unused -- it is just a hosts-file entry, not a running connection.
+      - "host.docker.internal:host-gateway"
     volumes:
       # On QNAP, prefer an absolute path on a real share, e.g. /share/Container/spendly:/data
       - ./data:/data
