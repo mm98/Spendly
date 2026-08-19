@@ -6,7 +6,7 @@ import { Async, Waiting } from '../components/Async.jsx'
 import { SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, Note } from '../components/Card.jsx'
 import { Stepper } from '../components/Stepper.jsx'
-import { FormPage, RecordWait } from '../components/FormPage.jsx'
+import { FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DocumentPreview, ProgressBar } from '../components/Viz.jsx'
 import { JsonDialog } from '../components/Json.jsx'
@@ -24,8 +24,8 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addVendorAlias, attachScanDocument, createOrder, failureMessage, getCurrentUser, getRecentScans,
-	getScanDraft, getVendors, invalidateOrderData, invalidateVendorData, putScanDocument,
+	addVendorAlias, attachScanDocument, createOrder, deleteScanDocument, failureMessage, getCurrentUser,
+	getRecentScans, getScanDraft, getVendors, invalidateOrderData, invalidateVendorData, putScanDocument,
 	scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
@@ -300,6 +300,19 @@ function ScanReviewForm({ answer }) {
 	const [sourceOpen, setSourceOpen] = useState(false)
 	const [jsonOpen, setJsonOpen] = useState(false)
 
+	/* The escape hatch for a document the model read wrong: DISCARD below only abandons this
+	   form's edits, and re-uploading the same file afterwards would still hit the server's
+	   hash-dedup lookup and hand back the very same misread draft (routes/scan.js) for as long
+	   as it stays cached. Deleting the upload outright, not just this draft, is what lets a
+	   retry actually retry. Same asking, same setting as every other delete (README: Deletion). */
+	const documentDel = useDelete({
+		what: 'document', variant: 'pill', icon: false, label: 'DELETE',
+		detail: 'The AI read is discarded too, so this file reads fresh if you upload it again.',
+		onDelete: () => deleteScanDocument(answer.documentKey)
+			.then(() => { invalidate(getRecentScans); navigate('/scan') })
+			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
+	})
+
 	/* There is no OCR behind this review yet (see api/scan/draft/:key on the server) — a
 	   freshly uploaded document reads back with no lines at all, and the only way this form
 	   could edit a line was to already have one. ADD LINE opens a blank one the same editor
@@ -503,8 +516,10 @@ function ScanReviewForm({ answer }) {
 							    screen's worth of labelled fields standing in for it. */}
 							<button type="button" className="button button-pill"
 								aria-haspopup="dialog" onClick={() => setJsonOpen(true)}>JSON</button>
+							{documentDel.button}
 							</span>
 						</CardHeader>
+						{documentDel.dialog}
 						<CardDivider />
 						<CardBody>
 							<DocumentPreview kind={answer.file.kind} id="scan-source-preview"

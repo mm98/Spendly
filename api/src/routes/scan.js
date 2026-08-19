@@ -127,6 +127,17 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 	})
 })
 
+/** Discards a pending upload outright, cached AI read included -- the escape hatch for a
+    document the model read wrong. Re-uploading the identical file afterwards used to hit
+    selectUploadByHash above and hand back the very same misread draft; with the row gone, the
+    next upload of those bytes gets a fresh id and a fresh parseReceipt call instead of the
+    cached one. */
+router.delete('/documents/:key', (req, res) => {
+	const result = deleteUpload.run(req.params.key, req.user.id)
+	if (!result.changes) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
+	res.status(204).end()
+})
+
 /** The review step's starting point. Reads the document once via Claude's vision
     (lib/scanParse.js) and caches the result on the upload row, so a reload of step 2 or 3 --
     both fetch this for the same key -- never pays for a second read. Falls back to the same
