@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Sep } from '../components/Sep.jsx'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
-import { Async } from '../components/Async.jsx'
+import { Async, Waiting } from '../components/Async.jsx'
 import { SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, Note } from '../components/Card.jsx'
 import { Stepper } from '../components/Stepper.jsx'
@@ -33,16 +33,17 @@ import { amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount
 /* Scan, in three steps.
 
    The hero says the app takes "a PDF, photo or screenshot" and four entry buttons name the
-   formats one by one -- and all four used to land on a review screen reading
-   kvittering-bilka.jpg, 2,1 MB, drawn with a receipt glyph. Nothing could catch it: one
-   document was the only document, so every screenshot, every walk and all three engines
-   agreed with each other about the wrong thing.
+   formats one by one -- they used to each carry their own fixed key ('invoice', 'photo', ...)
+   straight to step 2, so a click needed no document at all: the reading step then asked the
+   server for a draft of a document that had never been uploaded, which 404s. All four are
+   entries to the *same* picker now -- they describe what the app accepts, they do not stand
+   in for a file -- so the document the next two steps name is always one the reader actually
+   chose, with its own format and its own size.
 
-   So the choice travels: the entry names the document, the URL carries it, and both steps
-   after it render what was actually picked. The format is the file's, which is why a page
-   count belongs to the PDFs and to nothing else. There is no OCR behind any of it -- the
-   draft underneath is the same honest blank in every case, today's date and the account's
-   own defaults, nothing read from the file. README: Scan Flow. */
+   There is no OCR behind any of it when ANTHROPIC_API_KEY is unset -- the draft is the same
+   honest blank in that case, today's date and the account's own defaults, nothing read from
+   the file. Where it is set, the draft is a real read (lib/scanParse.js on the server); either
+   way this page does not know which, and renders the same three steps. README: Scan Flow. */
 
 const SCAN_STEPS = at => [
 	{ label: 'Upload', icon: 'upload', done: at > 0, on: at === 0 },
@@ -75,7 +76,6 @@ export function ScanUpload() {
 	const picker = useRef(null)
 	const [over, setOver] = useState(false)
 	const toast = useToast()
-	const go = key => navigate('/scan/reading?doc=' + key)
 
 	/* The hero says "Drop a receipt here, or click to choose a file" and now it does both. A
 	   dropped file is the document the next two steps name, with its own format and its own
@@ -88,7 +88,14 @@ export function ScanUpload() {
 		/* The upload is a write to the recent-scans list this very page draws -- walking back
 		   here has to show the document that was just dropped. */
 		putScanDocument(file)
-			.then(({ key }) => { invalidate(getRecentScans); go(key) })
+			.then(({ key, name, kind, meta, hasThumbnail }) => {
+				invalidate(getRecentScans)
+				/* The thumbnail already exists server-side the moment this response comes back --
+				   handing its facts down as navigation state lets the reading step draw it straight
+				   away, instead of waiting on the document read (which can take several seconds) to
+				   learn what the upload itself already knows. README: Scan Flow. */
+				navigate('/scan/reading?doc=' + key, { state: { documentKey: key, name, kind, meta, hasThumbnail } })
+			})
 			/* A dropped file that fails to upload used to do nothing at all -- no navigation and
 			   no sentence, which reads as the drop not registering. README: Feedback. */
 			.catch(e => toast(failureMessage(e, 'The upload failed. Try again.'), 'negative'))
@@ -116,9 +123,13 @@ export function ScanUpload() {
 					<IconButton variant="send" icon="upload" label="Choose a receipt to scan"
 						onClick={e => { e.stopPropagation(); picker.current?.click() }} />
 				</div>
+				{/* Each of these names a format the drop zone above already takes -- there is one
+				    picker, filtered the same way for all four, since a chip is a description of
+				    what the app accepts and not a second way to start a scan without a document.
+				    README: Scan Flow. */}
 				<div className="ai-suggestion-row">
 					{ENTRIES.map(entry => (
-						<button key={entry.key} type="button" onClick={() => go(entry.key)}>
+						<button key={entry.key} type="button" onClick={() => picker.current?.click()}>
 							<Icon name={entry.icon} />{entry.label}
 						</button>
 					))}
@@ -195,31 +206,55 @@ export function ScanUpload() {
 
 export function ScanReading() {
 	const key = useDocumentKey()
+	const navigate = useNavigate()
+	const location = useLocation()
 	// Same fetch ScanReview makes for the same key — useApi caches it, so this doesn't cost a
 	// second round trip once step 3 opens.
 	const draft = useApi(getScanDraft, [key])
 
+	/* Handed down from the upload itself (ScanUpload's navigate call) -- the thumbnail and the
+	   file's own facts exist the moment the upload responds, well before the read behind
+	   `draft` above has anything to say. Only trusted for the document this render is actually
+	   showing: a reload of this URL, or a second scan whose route hasn't remounted yet, carries
+	   no state (or a stale one) and falls back to what the draft response itself names. */
+	const uploaded = location.state?.documentKey === key ? location.state : null
+	const file = uploaded ?? draft.data?.file
+
+	/* The read finishes behind this same card, so once it has there is nothing left for a
+	   button to open -- OPEN THE REVIEW used to sit here regardless, asking the reader to
+	   confirm a wait that was already over. The progress bar now runs for exactly as long as
+	   the read actually takes, and review opens the moment it does. */
+	useEffect(() => {
+		if (draft.data && !draft.loading) navigate(`/scan/review?doc=${key}`, { replace: true })
+	}, [draft.data, draft.loading, key, navigate])
+
 	return (
 		<Page>
 			<Stepper steps={SCAN_STEPS(1)} />
-			<Async state={draft} label="Loading the document">{answer => {
-				const file = answer.file
-				return (
-					<Card aria-label="Reading the document" aria-busy="true">
-						<CardBody variant="card-body-centered">
-							<DocumentPreview kind={file.kind} className="scan-reading-preview"
-								src={file.hasThumbnail ? scanThumbnailUrl(key) : undefined} />
-							<div>
-								<div className="card-headline">Reading {file.name}</div>
-								<span className="field-help">
-									This usually takes a few seconds. Nothing is stored until you approve the review.</span>
-							</div>
-							<ProgressBar className="scan-reading-progress" label="Reading progress" />
-							<ButtonLink to={`/scan/review?doc=${key}`}>OPEN THE REVIEW</ButtonLink>
-						</CardBody>
-					</Card>
-				)
-			}}</Async>
+			{draft.error ? (
+				<Card>
+					<CardBody>
+						<EmptyState icon="alert">
+							<p>{draft.error.status === 404 ? 'Nothing here.' : 'That did not load.'} {draft.error.message}</p>
+						</EmptyState>
+					</CardBody>
+				</Card>
+			) : !file ? (
+				<Waiting label="Loading the document" />
+			) : (
+				<Card aria-label="Reading the document" aria-busy="true">
+					<CardBody variant="card-body-centered">
+						<DocumentPreview kind={file.kind} className="scan-reading-preview"
+							src={file.hasThumbnail ? scanThumbnailUrl(key) : undefined} />
+						<div>
+							<div className="card-headline">Reading {file.name}</div>
+							<span className="field-help">
+								This usually takes a few seconds. Nothing is stored until you approve the review.</span>
+						</div>
+						<ProgressBar className="scan-reading-progress" label="Reading progress" />
+					</CardBody>
+				</Card>
+			)}
 		</Page>
 	)
 }
