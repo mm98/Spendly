@@ -12,7 +12,7 @@ import { detectFileType, detectKind } from './fileType.js'
    mupdf (a WASM build: no native compile step and no system binary like poppler to install
    outside npm, unlike the other two common ways to rasterize a PDF in Node). */
 
-const DISPLAY_MAX = 1600
+const DISPLAY_MAX = 1000
 const THUMBNAIL_MAX = 200
 // A PDF has no separate "display" bytes the way an image does -- the /file download is always
 // the original PDF, so its one raster (the "thumbnail" column) is the only preview that will
