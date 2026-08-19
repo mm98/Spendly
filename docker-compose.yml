@@ -7,7 +7,7 @@ services:
     # (docker login ghcr.io first if the repo is private):
     image: ghcr.io/mm98/spendly:latest
     #   build: .
-    # A local build stamps no build time or commit into Settings > This build unless told:
+    # Local build: stamp a build time and commit into Settings > This build:
     #   docker compose build --build-arg BUILD_TIME=$(date -u +%FT%TZ) --build-arg GIT_SHA=$(git rev-parse HEAD)
     container_name: spendly
     restart: unless-stopped
@@ -15,37 +15,34 @@ services:
       - "4000:4000"
     environment:
       SPENDLY_DB: /data/spendly.sqlite3
-      # Sessions over plain http (LAN access by IP). Remove this line if you put the app
-      # behind HTTPS (reverse proxy, Tailscale serve), so the cookie goes back to Secure.
+      # Plain-http sessions (LAN by IP). Remove if behind HTTPS.
       SPENDLY_PLAIN_HTTP: "1"
-      # The bundle ships a source map beside every chunk, so a stack trace off this container
-      # names a file in src/ rather than index-<hash>.js:1:24817. They are in the image either
-      # way and cost no page load -- a browser fetches one only with devtools open -- but while
-      # they are served, anyone who can reach this app can read its sources. Uncomment to hand
-      # them out; it is a serving decision, so it takes a restart and not a rebuild:
+      # Serves source maps for stack traces. Readable by anyone who can reach the app.
       # SPENDLY_SOURCE_MAPS: "1"
-      # Optional: lets Scan actually read a dropped receipt (vendor, date, line items, totals)
-      # instead of only storing it for you to fill in by hand. Get a key at
-      # https://console.anthropic.com/ -- Scan works either way, just without the reading.
+      # Optional: lets Scan read receipts automatically. Get a key at console.anthropic.com.
       # ANTHROPIC_API_KEY: sk-ant-...
     volumes:
-      # Absolute path, deliberately -- a relative one (./data) resolves against wherever this
-      # file itself happens to sit, so moving or re-fetching docker-compose.yaml silently points
-      # the app at a fresh, empty directory instead of the real data. An absolute path can't drift
-      # like that. On QNAP, prefer an absolute path on a real share the same way, e.g. /share/Container/spendly:/data
+      # Absolute path -- a relative one breaks if this file moves. On QNAP: /share/Container/spendly:/data
       - /share/Container/spendly:/data
 
+  # Auto-updates the spendly container when a new image lands on GHCR.
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
     restart: unless-stopped
     ports:
+      # HTTP API for on-demand updates, below.
       - "8085:8080"
     environment:
       TZ: "Europe/Copenhagen"
+      # Enables the update API.
       WATCHTOWER_HTTP_API_UPDATE: "true"
-      WATCHTOWER_HTTP_API_TOKEN: "sp-9f3kX2mQv8LzT4wRb6Nd"
+      # API bearer token -- change before exposing port 8085 beyond the LAN.
+      WATCHTOWER_HTTP_API_TOKEN: "change-this-demo-key"
+      # Keeps the schedule below running alongside the API.
       WATCHTOWER_HTTP_API_PERIODIC_POLLS: "true"
     volumes:
+      # Required for watchtower to see and repull images.
       - /var/run/docker.sock:/var/run/docker.sock
+    # Every 15 min: pull, restart spendly if updated, clean up the old image.
     command: --schedule "0 */15 * * * *" --cleanup spendly
