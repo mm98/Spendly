@@ -35,17 +35,33 @@ services:
       # like that. On QNAP, prefer an absolute path on a real share the same way, e.g. /share/Container/spendly:/data
       - /share/Container/spendly:/data
 
+  # Watches the spendly container and repulls it from GHCR when a new image is pushed --
+  # what turns `image: ghcr.io/mm98/spendly:latest` above into an app that actually updates
+  # itself. Not needed for a local `build: .` setup, where there is no registry to poll.
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
     restart: unless-stopped
     ports:
+      # Exposes the HTTP API below so an update can also be triggered on demand (see the
+      # WATCHTOWER_HTTP_API_UPDATE line), rather than only on the --schedule below.
       - "8085:8080"
     environment:
       TZ: "Europe/Copenhagen"
+      # Turns on the HTTP endpoint (POST /v1/update) that lets an update be requested
+      # immediately instead of waiting for the next scheduled poll.
       WATCHTOWER_HTTP_API_UPDATE: "true"
+      # Bearer token the HTTP API above requires. Change this before exposing port 8085
+      # beyond the LAN -- anyone holding it can trigger an update on demand.
       WATCHTOWER_HTTP_API_TOKEN: "sp-9f3kX2mQv8LzT4wRb6Nd"
+      # Keeps the --schedule below running on its own timer even though the HTTP API is on;
+      # without this, enabling the API turns off the periodic poll entirely.
       WATCHTOWER_HTTP_API_PERIODIC_POLLS: "true"
     volumes:
+      # Lets watchtower see and repull other containers' images -- this is how it works,
+      # not a mount to change.
       - /var/run/docker.sock:/var/run/docker.sock
+    # Polls every 15 minutes and, after pulling a newer image, restarts spendly and removes
+    # the stale image it replaced. Scoped to the one container by name, so watchtower does
+    # not also update itself.
     command: --schedule "0 */15 * * * *" --cleanup spendly
