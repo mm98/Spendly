@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { Sep } from '../components/Sep.jsx'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { Chart, ChartScale, plotted, todayMarker } from '../components/Chart.jsx'
 import { Donut, DonutBox, Meter, WeekdayBars, foldForRing, useListBudget } from '../components/Viz.jsx'
@@ -31,6 +32,28 @@ import { currency, dayMonth, percent, plural, sep } from '../api/format.js'
    rather than two numbers that happen to look right. */
 const HERO_HEIGHT = 130
 const HERO_INSET = 12
+/* The chart itself is HERO_HEIGHT, but the card also carries a figure, a delta line and a
+   category legend below it -- 582px measured whole on a demo account. The skeleton is one
+   panel standing in for all of it, not just the chart, so it needs the card's height, not the
+   chart's. */
+const HERO_SKELETON_HEIGHT = 450
+
+/* The dashboard's own cards load after everything else on the page (a separate request,
+   getDashboardCards), and how many of them there will be is exactly what that request is
+   answering -- so this can only approximate the count, not the actual set. Three matches a
+   fresh account's own default (seed.js DASHBOARD_CARDS), and only one of the three needs a
+   real height: `.dashboard-cards` is an implicit-row CSS grid, so every card in it stretches
+   to the tallest one's height the same way the loaded cards do (measured at 418px each, all
+   three, on a demo account -- one grid row, default `align-items:stretch`). This skeleton's
+   own 330px panel lands the row within about the same margin dropping the one-line "Loading..."
+   card here cost: 0.386 CLS on Lighthouse, almost all of it this region. */
+const DashboardCardsSkeleton = () => (
+	<div className="dashboard-cards" aria-hidden="true">
+		<SkeletonCard lines={2} bodyHeight={330} />
+		<SkeletonCard bodyHeight={200} />
+		<SkeletonCard bodyVariant="entry-list card-body-tight" lines={4} />
+	</div>
+)
 
 /* The chart's own sentence. It was fixed at "daily spend through July" once, naming a series the
    tabs above it changed and a span the chips changed -- a label describing a state its controls
@@ -44,7 +67,8 @@ function Hero({ month }) {
 	const state = useApi(getHomeHero)
 
 	return (
-		<Async state={state} label="Loading your spending">{view => {
+		<Async state={state} label="Loading your spending"
+			skeleton={<SkeletonCard lines={2} bodyHeight={HERO_SKELETON_HEIGHT} />}>{view => {
 			/* Both series, drawn together rather than one at a time behind a pair of tabs.
 			   Spending and what it saved are the same story told twice, and a control that
 			   showed one or the other made the reader hold the first in their head to compare
@@ -484,14 +508,26 @@ export default function Home() {
 
 	return (
 		<Page variant="content-grid">
-			<Async state={content} label="Loading your month">{data => (
+			<Async state={content} label="Loading your month"
+				skeleton={<>
+					<div className="content-column-main">
+						<SkeletonCard lines={2} bodyHeight={HERO_SKELETON_HEIGHT} />
+						<DashboardCardsSkeleton />
+					</div>
+					<div className="content-column-side">
+						<SkeletonCard lines={2} bodyHeight={520} />
+						<SkeletonCard lines={2} bodyHeight={150} />
+					</div>
+				</>}>{data => (
 				<>
 					<div className="content-column-main">
 						<Hero month={data.period} />
 
-						<Async state={cards} label="Loading your cards">{({ all, on }) => (
-							<DashboardCards all={all} initial={on} render={key => dashboardCard(key, data)} />
-						)}</Async>
+						<Async state={cards} label="Loading your cards" skeleton={<DashboardCardsSkeleton />}>
+							{({ all, on }) => (
+								<DashboardCards all={all} initial={on} render={key => dashboardCard(key, data)} />
+							)}
+						</Async>
 					</div>
 
 					<div className="content-column-side">

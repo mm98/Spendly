@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { Button } from '../components/Button.jsx'
@@ -42,7 +43,16 @@ export default function EditOrder() {
 	const state = useApi(getOrderAsDraft, [id])
 	return (
 		<Page>
-			<Async state={state} label="Loading the order">
+			<Async state={state} label="Loading the order"
+				skeleton={<div className="order-list-grid" aria-hidden="true">
+					<div className="order-list-column">
+						<SkeletonCard lines={4} />
+						<SkeletonCard bodyVariant="card-body-tight" lines={5} />
+					</div>
+					<div className="order-list-column">
+						<SkeletonCard lines={3} />
+					</div>
+				</div>}>
 				{seed => <EditOrderForm id={id} seed={seed} />}
 			</Async>
 		</Page>

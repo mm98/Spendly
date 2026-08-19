@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
@@ -107,7 +108,12 @@ export default function Settings() {
 
 	return (
 		<Page>
-			<Async state={state} label="Loading your settings">{settings => (
+			<Async state={state} label="Loading your settings"
+				skeleton={<>
+					<SkeletonCard lines={4} />
+					<SkeletonCard lines={3} />
+					<SkeletonCard lines={2} />
+				</>}>{settings => (
 				<SettingsBody settings={settings} set={set} toast={toast} firstRun={firstRun}
 					confirming={confirming} setConfirming={setConfirming} refresh={refresh}
 					filling={filling} setFilling={setFilling}

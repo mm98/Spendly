@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { EntityRow } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
@@ -82,7 +83,8 @@ export default function AllCategories() {
 					groups={[{ heading: 'Sort by', options: SORTS.map(s => ({ id: s.id, label: s.label })) }]} />
 			</div>
 
-			<Async state={state} label="Loading your categories">{categories => {
+			<Async state={state} label="Loading your categories" skeleton={<SkeletonCard><SkeletonRows count={6} /></SkeletonCard>}>
+				{categories => {
 				const needle = query.trim().toLowerCase()
 				const listed = categories
 					.filter(c => !needle || c.name.toLowerCase().includes(needle))

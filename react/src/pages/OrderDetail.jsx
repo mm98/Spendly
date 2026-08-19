@@ -3,6 +3,7 @@ import { Sep } from '../components/Sep.jsx'
 import { useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
 import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { ImageLightbox } from '../components/Viz.jsx'
@@ -96,7 +97,17 @@ export default function OrderDetail() {
 
 	return (
 		<Page>
-			<Async state={state} label="Loading the order">{order => (
+			<Async state={state} label="Loading the order"
+				skeleton={<div className="order-list-grid" aria-hidden="true">
+					<div className="order-list-column">
+						<SkeletonCard title={false} lines={2} />
+						<SkeletonCard bodyVariant="card-body-tight"><SkeletonRows count={3} /></SkeletonCard>
+					</div>
+					<div className="order-list-column">
+						<SkeletonCard lines={3} />
+						<SkeletonCard lines={1} />
+					</div>
+				</div>}>{order => (
 				<>
 				<div className="order-list-grid">
 					<div className="order-list-column">

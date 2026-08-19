@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonBlock, SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
 import { Chart, ChartScale, RangeTabs, bucketOf, bucketsFor, plotted, sampled, todayMarker } from '../components/Chart.jsx'
 import { Meter, MonthColumns, SpendGauge, WeekdayBars } from '../components/Viz.jsx'
@@ -140,7 +141,12 @@ export default function Stats() {
 
 	return (
 		<Page variant="page-grid">
-			<Async state={state} label="Loading your statistics">{({ window: view, newer, older }) => {
+			<Async state={state} label="Loading your statistics"
+				skeleton={<>
+					<SkeletonBlock width={180} height={34} style={{ margin: '4px 0 18px' }} />
+					<SkeletonKpiRow />
+					<SkeletonCard bodyHeight={210} />
+				</>}>{({ window: view, newer, older }) => {
 				/* One scale for both lines, and the running total the figure above the chart
 				   states is the line itself -- a chart drawn from other numbers than the ones
 				   printed beside it cannot fail visibly. README: Charts. */

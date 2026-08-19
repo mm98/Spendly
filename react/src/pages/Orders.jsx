@@ -1,5 +1,6 @@
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { Chart, ChartScale, plotted, todayMarker } from '../components/Chart.jsx'
 import { Donut, DonutBox } from '../components/Viz.jsx'
@@ -24,7 +25,19 @@ export default function Orders() {
 
 	return (
 		<Page>
-			<Async state={state} label="Loading your orders">{data => {
+			<Async state={state} label="Loading your orders"
+				skeleton={<div className="order-list-grid" aria-hidden="true">
+					<div className="order-list-column">
+						<SkeletonCard bodyHeight={250} />
+						<div className="two-column">
+							<SkeletonCard bodyVariant="entry-list card-body-tight"><SkeletonRows count={3} /></SkeletonCard>
+							<SkeletonCard bodyHeight={120} />
+						</div>
+					</div>
+					<div className="order-list-column">
+						<SkeletonCard bodyHeight={280} />
+					</div>
+				</div>}>{data => {
 				/* One scale for both lines, shared rather than each drawn to its own peak --
 				   the smaller one would otherwise read as though it reached as high as the
 				   larger. README: Buttons. */
