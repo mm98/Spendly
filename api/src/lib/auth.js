@@ -8,7 +8,11 @@ import { readCookie, setCookie, clearCookie, SESSION_COOKIE } from './cookies.js
 const scryptAsync = promisify(scrypt)
 
 const SCRYPT_N = 16384, SCRYPT_R = 8, SCRYPT_P = 1, KEY_LEN = 64
-const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60   // 30 days
+const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60   // 7 days
+// Sliding sessions renew on use, but not on every request -- only once the session is more than
+// a day past its last renewal, so an active user never re-writes the row (and re-sends the
+// cookie) more than once a day, while an idle one still expires 7 days after their last request.
+const SESSION_RENEW_AFTER_SECONDS = 24 * 60 * 60
 
 /** Self-describing so the cost parameters can change later without breaking existing hashes. */
 export async function hashPassword(password) {
@@ -67,18 +71,30 @@ export function destroySession(req, res) {
 }
 
 const selectSessionUser = db.prepare(`
-	SELECT u.id, u.email, u.needs_setup FROM sessions s
+	SELECT u.id, u.email, u.needs_setup, s.expires_at FROM sessions s
 	JOIN users u ON u.id = s.user_id
 	WHERE s.id = ? AND s.expires_at > ?
 `)
+const renewSession = db.prepare('UPDATE sessions SET expires_at = ? WHERE id = ?')
 
 /** Loads req.user from the session token — Authorization: Bearer or the session cookie — or
     responds 401. Every data route sits behind this: a route never trusts a userId from the
-    request body or params, only from here. */
+    request body or params, only from here.
+
+    Sliding expiration: a session used within SESSION_RENEW_AFTER_SECONDS of its last renewal is
+    left alone; past that, both the row and the cookie are pushed out another SESSION_TTL_SECONDS
+    from now, so an active session never expires mid-use and an idle one still expires 7 days
+    after the last request that touched it. */
 export function requireAuth(req, res, next) {
 	const token = sessionToken(req)
-	const user = token ? selectSessionUser.get(token, nowEpoch()) : null
+	const now = nowEpoch()
+	const user = token ? selectSessionUser.get(token, now) : null
 	if (!user) return res.status(401).json({ error: 'Not signed in.' })
+	if (user.expires_at - now < SESSION_TTL_SECONDS - SESSION_RENEW_AFTER_SECONDS) {
+		const expiresAt = now + SESSION_TTL_SECONDS
+		renewSession.run(expiresAt, token)
+		setCookie(res, SESSION_COOKIE, token, { maxAgeSeconds: SESSION_TTL_SECONDS })
+	}
 	req.user = user
 	next()
 }
