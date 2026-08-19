@@ -50,10 +50,13 @@ const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compres
 const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
 const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM settings WHERE user_id = ?')
 const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
-// Everything parseReceipt needs (the bytes) plus everything the draft response needs (name,
-// size, kind, thumbnail) plus the cached read, in one row -- the draft handler either has an
-// AI read already or is about to go make one, and both branches want the same row.
+// Everything parseReceipt needs (the bytes, and -- for a PDF read by a provider that can't read
+// PDFs natively -- the rendered first-page thumbnail bytes too) plus everything the draft
+// response needs (name, size, kind, thumbnail) plus the cached read, in one row -- the draft
+// handler either has an AI read already or is about to go make one, and both branches want the
+// same row.
 const selectUploadForRead = db.prepare(`SELECT id, name, size, kind, content_type, data, data_is_compressed,
+	thumbnail, thumbnail_is_compressed, thumbnail_content_type,
 	(thumbnail IS NOT NULL) AS has_thumbnail, ai_read_json FROM scan_uploads WHERE id = ? AND user_id = ?`)
 const saveAiRead = db.prepare('UPDATE scan_uploads SET ai_read_json = @json WHERE id = @id AND user_id = @userId')
 const selectVendorName = db.prepare('SELECT name FROM vendors WHERE id = ? AND user_id = ?')
