@@ -63,10 +63,15 @@ const { default: lighthouse } = await import('lighthouse').catch(() => {
    CLI; importing it rather than hand-copying its throttling/emulation settings means an
    upgrade that changes what "desktop" means changes here too, automatically. */
 const { default: desktopConfig } = await import('lighthouse/core/config/desktop-config.js')
-// Ships as one of Lighthouse's own dependencies, so `npm i --no-save lighthouse` already
-// leaves it installed. Driving the audited page ourselves -- rather than handing Lighthouse a
-// bare `port` and letting it open its own tab -- is what lets a session cookie be set before
-// navigation.
+// chrome-launcher is what actually finds a Chrome binary: on a bare `npm i --no-save
+// lighthouse`, with no CHROME_PATH set, it searches the OS's standard install locations and
+// is what let this script's older, port-only invocation work unmodified on both a workstation
+// and a GitHub-hosted runner. puppeteer-core has no such search -- launching through it
+// directly demands an explicit executablePath/channel and throws without one, which is what
+// broke CI here. So chrome-launcher still does the launching; puppeteer-core only connects to
+// the instance it already found, which is the minimum needed to open a page and set a cookie
+// on it before Lighthouse navigates.
+const { launch } = await import('chrome-launcher')
 const { default: puppeteer } = await import('puppeteer-core')
 
 // A throwaway account, registered fresh against the build under test, so the run measures a
@@ -96,11 +101,11 @@ if (!demoRes.ok) {
 	process.exit(2)
 }
 
-const browser = await puppeteer.launch({
-	headless: true,
-	executablePath: process.env.CHROME_PATH || undefined,
-	args: ['--no-sandbox', '--disable-dev-shm-usage']
+const chrome = await launch({
+	chromeFlags: ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage'],
+	chromePath: process.env.CHROME_PATH || undefined
 })
+const browser = await puppeteer.connect({ browserURL: `http://127.0.0.1:${chrome.port}` })
 
 const runs = []
 try {
@@ -126,7 +131,12 @@ try {
 		})
 	}
 } finally {
-	await browser.close()
+	// browser.disconnect() rather than browser.close(): this puppeteer instance only connected
+	// to chrome-launcher's Chrome, it didn't launch it, and close() on a connected browser can
+	// still race chrome-launcher's own idea of whether the process is alive. chrome.kill() is
+	// the one call that owns the process and is guaranteed to end it.
+	browser.disconnect()
+	await chrome.kill()
 }
 
 for (const [i, run] of runs.entries())
