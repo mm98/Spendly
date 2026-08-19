@@ -1913,6 +1913,10 @@ label.field-shell { cursor:pointer; }
 .form-actions-note { align-self:center; }
 /* The demo card's order-count and period fields, sitting between the lead and the fill button. */
 .demo-count-field { margin-bottom:14px; }
+/* Locked once the account already holds real orders -- same .45 the pager and item-row grip
+   already fade a disabled control to, plus pointer-events off since the comboboxes it wraps
+   have no disabled state of their own to fall back on. */
+.demo-data-controls-locked { opacity:.45; pointer-events:none; }
 .async-live { display:contents; }
 
 /* Skeleton.jsx: what a region looks like before its data lands, shaped like what it becomes.
