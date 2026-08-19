@@ -24,19 +24,25 @@ services:
       # they are served, anyone who can reach this app can read its sources. Uncomment to hand
       # them out; it is a serving decision, so it takes a restart and not a rebuild:
       # SPENDLY_SOURCE_MAPS: "1"
-      # Optional: lets Scan actually read a dropped receipt (vendor, date, line items, totals)
-      # instead of only storing it for you to fill in by hand. Scan works either way, just
-      # without the reading. Two ways to enable it, and only one is needed:
-      #  - Anthropic (cloud, reads PDFs and images): get a key at https://console.anthropic.com/
+      # Lets Scan actually read a dropped receipt (vendor, date, line items, totals) instead of
+      # only storing it for you to fill in by hand. Scan works either way, just without the
+      # reading. Enabled by default against Ollama -- fully local, no per-scan cost -- on the
+      # assumption you already run `ollama serve` with a vision model pulled (e.g.
+      # `ollama pull qwen2.5vl:7b`). If nothing is actually listening on OLLAMA_HOST, a scan read
+      # just fails and falls back to the same blank draft as having neither provider configured
+      # -- nothing here breaks a deploy with no Ollama, it just does not read documents.
+      # 11434 is Ollama's own default port. "localhost" from inside this container is this
+      # container, not your host -- host.docker.internal is the host machine instead, and the
+      # extra_hosts entry below is what makes that hostname resolve on plain Linux Docker Engine
+      # (Docker Desktop on Mac/Windows already resolves it). If Ollama runs as its own container
+      # on this same compose network instead, use its service name here (e.g. http://ollama:11434)
+      # and the extra_hosts entry becomes unnecessary.
+      OLLAMA_MODEL: qwen2.5vl:7b
+      OLLAMA_HOST: http://host.docker.internal:11434
+      # Comment out the two lines above and set this instead to use Anthropic's cloud API (reads
+      # PDFs as well as images, costs per scan) -- get a key at https://console.anthropic.com/.
+      # Both can be set at once; OLLAMA_MODEL wins unless SCAN_AI_PROVIDER names one explicitly.
       # ANTHROPIC_API_KEY: sk-ant-...
-      #  - Ollama (fully local, images only): point at a vision model served by `ollama serve`.
-      #    11434 is Ollama's own default port. "localhost" from inside this container is this
-      #    container, not your host -- if Ollama runs on the host machine (the common case), use
-      #    host.docker.internal instead, which the extra_hosts entry below makes resolvable here.
-      #    If Ollama runs as its own container on this same compose network, use its service name
-      #    instead of host.docker.internal (e.g. http://ollama:11434) and drop extra_hosts.
-      # OLLAMA_MODEL: qwen2.5vl:7b
-      # OLLAMA_HOST: http://host.docker.internal:11434
     extra_hosts:
       # Makes host.docker.internal resolve on plain Linux Docker Engine (Docker Desktop on
       # Mac/Windows already resolves it without this). Harmless to leave in when OLLAMA_HOST is
