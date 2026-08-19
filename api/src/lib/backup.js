@@ -15,10 +15,16 @@ function todayStamp(date = new Date()) {
 }
 
 /* One backup per day, named for the day it was taken. SQLite's online backup API (better-sqlite3's
-   db.backup()) copies a live WAL database to a consistent snapshot without blocking readers or
-   writers, so this never needs the app to pause. Idempotent: a zip already sitting under
-   `backup/` for today is left alone rather than retaken, so a restart or a second scheduled tick
-   the same day is a no-op. */
+   db.backup()) walks the live database page by page over its own connection, which reads through
+   the WAL the same way any other reader on that connection would -- so a row committed but not yet
+   checkpointed out of spendly.sqlite3-wal is already in the snapshot, not left behind in a file the
+   zip never looks at. Confirmed directly: a row inserted and left uncheckpointed (WAL file still
+   present, main file still without it) came back from a backup taken in the same run. The snapshot
+   itself is written with no WAL of its own -- one plain .sqlite3 file goes into the zip, never a
+   trio of .sqlite3/-wal/-shm -- and the temp-file cleanup below removes any -wal/-shm the snapshot
+   connection might leave beside it, so nothing but that one consistent file can reach the archive.
+   Idempotent: a zip already sitting under `backup/` for today is left alone rather than retaken, so
+   a restart or a second scheduled tick the same day is a no-op. */
 export async function backupDatabase() {
 	const stamp = todayStamp()
 	const zipPath = path.join(BACKUP_DIR, `database-${stamp}.zip`)
@@ -32,6 +38,8 @@ export async function backupDatabase() {
 		writeFileSync(zipPath, zip)
 	} finally {
 		rmSync(snapshotPath, { force: true })
+		rmSync(`${snapshotPath}-wal`, { force: true })
+		rmSync(`${snapshotPath}-shm`, { force: true })
 	}
 	return zipPath
 }
