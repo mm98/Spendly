@@ -19,7 +19,7 @@ import { useApi } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
 	addItemAttachments, failureMessage, getCategories, getOrderAsDraft, getVendors,
-	invalidateOrderData, itemAttachmentThumbnailUrl, spendKinds, updateOrder
+	invalidateOrderData, itemAttachmentThumbnailUrl, removeItemAttachment, spendKinds, updateOrder
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
 import { currency, currencySymbol, parseAmount, percent, sep, today } from '../api/format.js'
@@ -100,24 +100,37 @@ function EditOrderForm({ id, seed }) {
 	/* Keyed by item id, same as New order's own item step: a photo picked here is only bytes
 	   until save() below has an order to attach it to. See NewOrder.jsx's own note on this. */
 	const [pendingPhotos, setPendingPhotos] = useState({})
+	/* Keyed by item id, holding the attachment id of a photo that was already on the server
+	   when the card was opened. Picking a replacement or clearing the photo both mean the same
+	   thing for that attachment -- it must not survive the save -- so both stage it here rather
+	   than only the pending upload, which is the only thing the old code deleted. */
+	const [removedAttachments, setRemovedAttachments] = useState({})
 
 	const photoOf = useCallback(item => {
 		const pending = pendingPhotos[item.id]
 		if (pending) return { present: true, src: pending.url }
+		if (removedAttachments[item.id]) return { present: false }
 		const existing = item.attachments?.[0]
 		if (!existing) return { present: false }
 		return {
 			present: true,
 			src: existing.hasThumbnail ? itemAttachmentThumbnailUrl(id, item.id, existing.id) : undefined
 		}
-	}, [pendingPhotos, id])
+	}, [pendingPhotos, removedAttachments, id])
+
+	const stageRemoval = itemId => setRemovedAttachments(prev => {
+		if (prev[itemId]) return prev
+		const existing = draft.items.find(i => i.id === itemId)?.attachments?.[0]
+		return existing ? { ...prev, [itemId]: existing.id } : prev
+	})
 
 	const pickPhoto = useCallback((itemId, file) => {
 		setPendingPhotos(prev => {
 			if (prev[itemId]) URL.revokeObjectURL(prev[itemId].url)
 			return { ...prev, [itemId]: { file, url: URL.createObjectURL(file) } }
 		})
-	}, [])
+		stageRemoval(itemId)
+	}, [draft.items])
 
 	const clearPhoto = useCallback(itemId => {
 		setPendingPhotos(prev => {
@@ -126,7 +139,8 @@ function EditOrderForm({ id, seed }) {
 			const { [itemId]: gone, ...rest } = prev
 			return rest
 		})
-	}, [])
+		stageRemoval(itemId)
+	}, [draft.items])
 
 	/* ---- save, once, for the whole order ---- */
 
@@ -149,14 +163,20 @@ function EditOrderForm({ id, seed }) {
 			.then(async order => {
 				invalidateOrderData()
 
-				const uploads = draft.items
-					.map((item, i) => [pendingPhotos[item.id], order.items[i]])
-					.filter(([pending, savedItem]) => pending && savedItem)
-					.map(([pending, savedItem]) => addItemAttachments(order.id, savedItem.id, [pending.file]))
-				if (uploads.length) {
-					await Promise.allSettled(uploads).then(results => {
+				const photoOps = draft.items.flatMap((item, i) => {
+					const savedItem = order.items[i]
+					if (!savedItem) return []
+					const removedId = removedAttachments[item.id]
+					const pending = pendingPhotos[item.id]
+					return [
+						...(removedId ? [removeItemAttachment(order.id, savedItem.id, removedId)] : []),
+						...(pending ? [addItemAttachments(order.id, savedItem.id, [pending.file])] : [])
+					]
+				})
+				if (photoOps.length) {
+					await Promise.allSettled(photoOps).then(results => {
 						if (results.some(r => r.status === 'rejected'))
-							toast('Order saved, but a photo did not attach.', 'negative')
+							toast('Order saved, but a photo change did not apply.', 'negative')
 					})
 				}
 
