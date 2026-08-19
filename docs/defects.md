@@ -2664,3 +2664,42 @@ while the desktop reported 1 — the fix is to count only children that are actu
 third read the wrong order entirely: `/orders/A/edit` to `/orders/B/edit` changes only the hash, so
 the document never reloads and the form keeps A's draft, and a bare `waitForSelector` was satisfied
 by A's rows. The three-line order came back as one row and would have been recorded as one.
+
+## Loading and Errors — the loading state was one line, whatever the content behind it
+
+Every `Async` region drew the same one-line "Loading..." card while its data was in flight, sized
+for its own sentence and nothing about the content it was about to become. On Home, authenticated
+with a year of demo data, the swap from that card to the dashboard-cards grid — three cards
+stretching to 418px each in one CSS-grid row — measured **0.386** cumulative layout shift on
+Lighthouse (0.25 is "poor"), almost all of it one region:
+`div.async-live > div.content-column-main > div.async-live > div.dashboard-cards` going from a few
+words tall to over a thousand pixels in a single frame, with the reader's cursor typically sitting
+right where the jump landed. The performance score read **79**, with every other metric (FCP 1.7s,
+LCP 2.5s, TBT 60ms) unremarkable — CLS was carrying the whole deficit on its own.
+
+Skeletons shaped like their content (`Skeleton.jsx`: a shimmering block, and `SkeletonCard`/
+`SkeletonRow(s)`/`SkeletonKpiRow` built from the real `Card`/`CardHeader`/`CardBody` components and
+the real `.data-row`/`.kpi-row` classes, not a second copy of their metrics) replaced the one-line
+card everywhere `Async` is used. Where the eventual shape is genuinely unknown — the dashboard's
+own cards load from a separate request that decides how many there will be — the skeleton
+approximates the account's own default (three) rather than guessing at zero, and the CSS grid that
+stretches every card in a row to the tallest one (`.dashboard-cards`' own default
+`align-items:stretch`) does the rest: one skeleton card sized close to a real card's measured
+height (418px, three cards, a demo account) carries the other two along with it.
+
+**Instrument:** Lighthouse (performance category only) against a served production build
+(`react/dist` via `api/src/server.js`), authenticated, a year of demo data (80 orders, 12 months),
+Chromium 141.0.7390.37 under the 1.56.1 Playwright bundle. Two runs each side.
+
+| | before | after |
+| --- | --- | --- |
+| CLS | 0.386 / 0.386 | 0.0014 / 0.0014 |
+| Performance score | 79 / 79 | 97 / 97 |
+| FCP | 1658 / 1653ms | 1569 / 1656ms |
+| TBT | 61 / 12ms | 79 / 26ms |
+
+FCP and TBT move a little run to run, the way any timing does; CLS did not move at all within
+either side, and it and the score built from it are what the change actually moved. Verified in
+Blink only; Gecko and WebKit are not installed and were not checked, and nothing about a
+shimmering `<span>` and a CSS grid stretch reads as engine-shaped enough to expect a difference,
+but that is a reading of the diff, not a run.

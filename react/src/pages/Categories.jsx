@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
 import { LegendRow } from '../components/Rows.jsx'
 import { FavouriteTile, FavouriteTileGrid, UnstarDialog } from '../components/FavouriteTiles.jsx'
@@ -70,7 +71,11 @@ export default function Categories() {
 				<Button variant="caps" to="/categories/new">ADD CATEGORY</Button>
 			</div>
 
-			<Async state={both} label="Loading your categories">{({ categories, none }) => {
+			<Async state={both} label="Loading your categories"
+				skeleton={<>
+					<SkeletonKpiRow />
+					<SkeletonCard bodyHeight={260} />
+				</>}>{({ categories, none }) => {
 				/* Spent and saved are the account's, not the categorised part of it: the ring
 				   centre and the KPI carry the same figure, and both used to leave the
 				   uncategorised remainder out -- an all-time total that disagreed with every

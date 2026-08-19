@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { OrderRow } from '../components/Rows.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
@@ -309,7 +310,9 @@ export default function AllOrders() {
 				</CardBody>
 			</Card>
 
-			<Async state={results} label="Loading orders">{data => (
+			<Async state={results} label="Loading orders"
+				skeleton={<SkeletonCard bodyVariant="card-body-tight"><SkeletonRows count={6} /></SkeletonCard>}>
+				{data => (
 				<Card aria-label="Orders">
 					<CardHeader title={`Orders${sep}${plural(data.matched, 'match', 'matches')}`}>
 						<span className="field-help">filtered from {data.total}</span>

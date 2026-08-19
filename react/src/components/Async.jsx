@@ -18,7 +18,12 @@ export const Waiting = ({ label = 'Loading' }) => (
 	</Card>
 )
 
-export function Async({ state, children, label = 'Loading' }) {
+/** `skeleton` is what shows while state.data is still undefined, in place of the plain
+    Waiting card -- a region shaped like its own eventual content rather than one generic
+    line, so the swap from "loading" to "loaded" doesn't move everything under it. See
+    Skeleton.jsx. Optional: a region with no good approximation to show (a one-off page,
+    a small fixed-size card) falls back to Waiting exactly as before. */
+export function Async({ state, children, label = 'Loading', skeleton }) {
 	if (state.error) {
 		return (
 			<Card>
@@ -30,7 +35,10 @@ export function Async({ state, children, label = 'Loading' }) {
 			</Card>
 		)
 	}
-	if (state.data === undefined) return <Waiting label={label} />
+	if (state.data === undefined) {
+		if (!skeleton) return <Waiting label={label} />
+		return <div className="async-live" aria-busy="true" aria-label={`${label}...`}>{skeleton}</div>
+	}
 	/* Data is present. A refetch in the background keeps the last good render on screen
 	   rather than collapsing the layout, and says so on the region for anything listening. */
 	return <div aria-busy={state.loading || undefined} className="async-live">{children(state.data)}</div>

@@ -866,6 +866,7 @@ Long lists page; they do not scroll forever. Continuous scrolling buries the foo
 
 **Data arrives late, and the design owns that.** Every read has latency, so every reading surface has a loading state — a surface designed against instant data is a surface with no loading state, and that is the half that breaks first.
 
+- **A first load is shaped like what it is about to become.** A loading state sized for one line of text and then swapped for a page of cards and charts is a layout shift the reader feels, not just a number an audit catches — the cursor is usually sitting right where the jump lands. The loading state's footprint is a claim about the content's footprint: a card stays a card-shaped block, a list stays rows, a grid stays a grid, each holding roughly the space its real content will, so the swap from loading to loaded moves as little of the page as possible under the reader.
 - **Known data stays up during a refetch.** Walking back to a page paints what is known rather than flashing a skeleton at values that have not changed, and the layout does not collapse under the user while newer data lands.
 - **A slow answer may not overwrite a fast one** that arrived after it — reads are cancellable, and a stale response is dropped, not drawn.
 - **An error is an answer.** A failed read says so; a missing record says "Nothing here." An empty frame that looks like a slow frame is a lie with a spinner.

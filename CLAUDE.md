@@ -84,6 +84,38 @@ milliseconds figure that no reader is waiting on is not a reason to touch a quer
 prints timings precisely so they can be read and dismissed. Over-optimising costs the same
 review, the same risk and the same write budget as optimising, and buys nothing.
 
+## The API's responses
+
+### A single-record endpoint returns the record. A list, overview or search result returns only what its own consumers read -- never the shape a detail page happens to have.
+
+`GET /api/orders/:id` (and its equivalents for vendors and categories) is a detail or edit page's
+read, and that page genuinely uses most of what the record holds -- decorating it in full is
+right there, and not a thing to trim. `GET /api/orders` (the paginated list), `GET
+/api/orders/overview` (the "latest orders" card) and `GET /api/search` (the command palette) are
+not that: they used to share that same full decorator, so a page of list rows carried every
+order's items -- each with its own attachments -- the order's own attachments, categories,
+shipping, discount, note, reference, refunded, kind, subtotal and savedPercent, for a row that
+draws a vendor, a date, a status and two figures. That is bandwidth spent on data the page
+discards, and DB work to match: the full decorator runs four batched child queries (items,
+attachments, item-attachments, categories) whether or not a single row on the page reads any of
+them.
+
+**The test is "is it read anywhere," not "might it be handy."** Before a list-shaped route
+returns a field, grep every consumer of that endpoint in `react/src` and check the field is
+actually rendered or branched on -- not just present in the destructured response. A field that
+rides along because a detail endpoint's decorator was reused for convenience is the default way
+this drifts back in; a route with more than one real shape (a full record and a row) gets its own
+decorator per shape, each built from only the child queries that shape needs, the same way
+`api/src/lib/decorate.js` now has `decorateOrderListRows` (the All orders row: two child queries,
+not four), `decorateOrderSummaryRows` (the latest-orders card: one) and `decorateOrderSearchRows`
+(the palette: one item-title query instead of the full item and attachment set) beside the single-
+record `decorateOrder`.
+
+**A field used by more than one consumer is not "used enough to keep everywhere."** Each list
+shape gets what *its own* consumers read, not the union of every consumer any endpoint on the
+route has ever had -- the point is that a row endpoint's shape is decided by its own readers, not
+inherited from a detail endpoint's.
+
 ## Verification
 
 ### Verification is one pass at the end, not a gate on every edit

@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { EntityRow } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
@@ -103,7 +104,8 @@ export default function AllVendors() {
 					groups={[{ heading: 'Sort by', options: SORTS.map(s => ({ id: s.id, label: s.label })) }]} />
 			</div>
 
-			<Async state={state} label="Loading your vendors">{vendors => {
+			<Async state={state} label="Loading your vendors" skeleton={<SkeletonCard><SkeletonRows count={6} /></SkeletonCard>}>
+				{vendors => {
 				/* What counts as a match is not this page's to decide -- vendorTextMatch is the
 				   client's one answer, matching the name and every alias the way resolution
 				   and the command palette both already do (api/src/client.js, README: Vendors).

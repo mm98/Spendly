@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Page } from './Shell.jsx'
 import { Async } from './Async.jsx'
+import { SkeletonCard } from './Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from './Card.jsx'
 import { Stepper } from './Stepper.jsx'
 import { Button, IconButton } from './Button.jsx'
@@ -70,7 +71,7 @@ export function FormPage({
 export const RecordWait = ({ state, label, steps }) => (
 	<Page>
 		{steps ? <Stepper steps={steps} /> : null}
-		<Async state={state} label={label}>{() => null}</Async>
+		<Async state={state} label={label} skeleton={<SkeletonCard lines={6} />}>{() => null}</Async>
 	</Page>
 )
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
 import { LegendRow } from '../components/Rows.jsx'
 import { FavouriteTile, FavouriteTileGrid, UnstarDialog } from '../components/FavouriteTiles.jsx'
@@ -49,7 +50,12 @@ export default function Vendors() {
 				<Button variant="caps" to="/vendors/new">ADD VENDOR</Button>
 			</div>
 
-			<Async state={state} label="Loading your vendors">{all => {
+			<Async state={state} label="Loading your vendors"
+				skeleton={<>
+					<SkeletonKpiRow />
+					<SkeletonCard bodyHeight={220} />
+					<SkeletonCard bodyHeight={160} />
+				</>}>{all => {
 				/* `favourites` is drawn from the same array it is a subset of, favourites
 				   included in both: starring a vendor pins it to the spotlight without removing
 				   it from the only searchable, sortable view of them. A favourite is drawn

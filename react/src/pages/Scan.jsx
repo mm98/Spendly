@@ -3,6 +3,7 @@ import { Sep } from '../components/Sep.jsx'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
+import { SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, Note } from '../components/Card.jsx'
 import { Stepper } from '../components/Stepper.jsx'
 import { FormPage, RecordWait } from '../components/FormPage.jsx'
@@ -139,7 +140,7 @@ export function ScanUpload() {
 					<CardHeader title="Recent scans" />
 					<CardDivider />
 					<CardBody variant="card-body-tight">
-						<Async state={recent} label="Loading recent scans">{scans => (
+						<Async state={recent} label="Loading recent scans" skeleton={<SkeletonRows count={3} />}>{scans => (
 							scans.length ? (
 								<>
 									<InsetPanel>
