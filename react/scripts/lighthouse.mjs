@@ -5,11 +5,21 @@
    dev server -- Vite serves unminified modules one file per import, which is a different
    application and a meaningless score.
 
+   Signed in, not the anonymous root: the app's own route loader calls GET /api/auth/me on
+   every navigation and treats its 401 as "not signed in, redirect to /login" -- correct,
+   deliberate behaviour (react/src/routes.jsx). Auditing the anonymous root used to mean
+   Lighthouse's errors-in-console audit caught that 401 (Chrome logs any non-2xx network
+   response to the console whether or not the page handles it) and scored best-practices 96
+   for a browser log line that was never a bug. A throwaway account is registered against the
+   served build before each run, filled with a year of demo orders at a fixed seed, and its
+   session cookie is handed to the audited page -- so the run measures Home the way a real
+   reader with a real ledger sees it, not an empty account's lightest-possible render, and a
+   genuine console error now has nothing to hide behind either state.
+
    Two runs, because the first one is the machine warming up: locally, run 1 and run 2 agreed
-   closely (100/93/96 both runs, FCP 373ms then 381ms), and that agreement is the evidence the
-   number is the build's rather than the moment's. The second run is the one reported -- and
-   both are printed (and both kept in the stamp's own `runs`), so a spread that opens up is
-   visible rather than averaged away.
+   closely, and that agreement is the evidence the number is the build's rather than the
+   moment's. The second run is the one reported -- both are printed, so a spread that opens up
+   is visible rather than averaged away.
 
    Desktop, not Lighthouse's own mobile default: this app's baseline is 1440x900 and its entry
    payload is small, and the default profile's simulated slow-4G plus 4x CPU slowdown answered
@@ -27,21 +37,24 @@
 
 import { writeFileSync } from 'node:fs'
 
-const URL = process.argv[2] ?? 'http://localhost:4000/'
+const ORIGIN = new URL(process.argv[2] ?? 'http://localhost:4000/').origin
 const OUT = process.argv.find(a => a.startsWith('--out='))?.slice(6)
 const RUNS = 2
+// Matches api/src/lib/cookies.js's SESSION_COOKIE. Not imported -- react/ and api/ are
+// separate packages and nothing else here crosses that line -- so a rename on that side has
+// to be echoed on this one.
+const SESSION_COOKIE = 'spendly_session'
 
 /* Floors, not targets. Set just under what the build scores today, so a real regression trips
    them and a one-point audit reshuffle in a Lighthouse upgrade does not. Raise them when the
    build clears a higher number twice in a row -- that is the point at which the higher number
    is a fact about the app rather than a hope. */
-const FLOORS = { accessibility: 90, 'best-practices': 90 }
+const FLOORS = { accessibility: 95, 'best-practices': 95 }
 
 const { default: lighthouse } = await import('lighthouse').catch(() => {
 	console.error('lighthouse is not installed here. `npm i --no-save lighthouse` first (see .github/workflows/ci.yml).')
 	process.exit(2)
 })
-const { launch } = await import('chrome-launcher')
 /* Lighthouse's own default profile is mobile: simulated slow-4G and a 4x CPU slowdown, the
    wrong lens on an app whose baseline is 1440x900 (the screenshot section of CLAUDE.md) and
    whose entry payload is genuinely small. Under that default, Home's logged-out FCP measured
@@ -50,19 +63,58 @@ const { launch } = await import('chrome-launcher')
    CLI; importing it rather than hand-copying its throttling/emulation settings means an
    upgrade that changes what "desktop" means changes here too, automatically. */
 const { default: desktopConfig } = await import('lighthouse/core/config/desktop-config.js')
+// Ships as one of Lighthouse's own dependencies, so `npm i --no-save lighthouse` already
+// leaves it installed. Driving the audited page ourselves -- rather than handing Lighthouse a
+// bare `port` and letting it open its own tab -- is what lets a session cookie be set before
+// navigation.
+const { default: puppeteer } = await import('puppeteer-core')
 
-const CHROME_FLAGS = ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage']
-const chrome = await launch({ chromeFlags: CHROME_FLAGS, chromePath: process.env.CHROME_PATH || undefined })
+// A throwaway account, registered fresh against the build under test, so the run measures a
+// signed-in reader's Home rather than the anonymous root.
+const email = `lighthouse-${Math.round(performance.now() * 1000)}@example.invalid`
+const registerRes = await fetch(`${ORIGIN}/api/auth/register`, {
+	method: 'POST', headers: { 'content-type': 'application/json' },
+	body: JSON.stringify({ email, password: 'lighthouse-probe-account' })
+})
+if (!registerRes.ok) {
+	console.error(`could not register a throwaway account for the run: ${registerRes.status} ${await registerRes.text()}`)
+	process.exit(2)
+}
+const { token } = await registerRes.json()
+
+// A brand-new ledger renders Home's empty state, which is lighter than what most signed-in
+// readers actually see -- no chart, no card rows, none of the data-shaped work the page
+// exists to do. Filled with a year of demo orders instead, at a fixed seed so this run's
+// dataset -- and so its FCP/LCP -- is the same on every invocation and a real regression
+// isn't lost in a fixture that reshuffles itself every time.
+const demoRes = await fetch(`${ORIGIN}/api/demo-data`, {
+	method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+	body: JSON.stringify({ seed: 424242 })
+})
+if (!demoRes.ok) {
+	console.error(`could not fill the throwaway account with demo data: ${demoRes.status} ${await demoRes.text()}`)
+	process.exit(2)
+}
+
+const browser = await puppeteer.launch({
+	headless: true,
+	executablePath: process.env.CHROME_PATH || undefined,
+	args: ['--no-sandbox', '--disable-dev-shm-usage']
+})
 
 const runs = []
 try {
 	for (let i = 0; i < RUNS; i++) {
+		const page = await browser.newPage()
+		await page.setCookie({ name: SESSION_COOKIE, value: token, url: ORIGIN })
 		// Named rather than left to default to everything: Lighthouse adds categories between
 		// versions (13.4 ships one for agentic browsing), and a run whose contents change on
 		// upgrade costs time nobody asked for and reports numbers nothing here reads. SEO is
 		// left out on the same grounds -- a sign-in-gated ledger has no crawler to rank it.
-		const result = await lighthouse(URL, { port: chrome.port, output: 'json', logLevel: 'error' },
-			{ ...desktopConfig, settings: { ...desktopConfig.settings, onlyCategories: ['performance', 'accessibility', 'best-practices'] } })
+		const result = await lighthouse(`${ORIGIN}/#/`, { output: 'json', logLevel: 'error' },
+			{ ...desktopConfig, settings: { ...desktopConfig.settings, onlyCategories: ['performance', 'accessibility', 'best-practices'] } },
+			page)
+		await page.close()
 		const scores = Object.fromEntries(Object.entries(result.lhr.categories)
 			.map(([key, category]) => [key, Math.round(category.score * 100)]))
 		runs.push({
@@ -74,7 +126,7 @@ try {
 		})
 	}
 } finally {
-	await chrome.kill()
+	await browser.close()
 }
 
 for (const [i, run] of runs.entries())
@@ -94,17 +146,8 @@ const { version } = await import('lighthouse/package.json', { with: { type: 'jso
 	.then(m => m.default).catch(() => ({ version: null }))
 /* The flat fields are the warm run, kept exactly as Shell.jsx's build-quality callout already
    reads them (react/src/components/Shell.jsx) -- adding fields here is safe, renaming or
-   dropping one is not. `runs` is every run this script actually made, cold one included: the
-   file comment above says the first run is the machine warming up and only the second is
-   reported, and that claim is worth being able to check against the numbers that backed it
-   rather than trusting the prose. */
-const toRun = r => ({
-	scores: r.scores,
-	firstContentfulPaintMs: Math.round(r.firstContentfulPaint),
-	largestContentfulPaintMs: Math.round(r.largestContentfulPaint),
-	totalBlockingTimeMs: Math.round(r.totalBlockingTime),
-	formFactor: r.formFactor
-})
+   dropping one is not. Only the warm run is stamped: the cold run's job is to be compared
+   against it in the console output above, not to be carried in the image. */
 const stamp = {
 	performance: warm.scores.performance,
 	accessibility: warm.scores.accessibility,
@@ -113,8 +156,7 @@ const stamp = {
 	largestContentfulPaintMs: Math.round(warm.largestContentfulPaint),
 	totalBlockingTimeMs: Math.round(warm.totalBlockingTime),
 	formFactor: warm.formFactor,
-	lighthouse: version,
-	runs: runs.map(toRun)
+	lighthouse: version
 }
 if (OUT) { writeFileSync(OUT, JSON.stringify(stamp)); console.log(`wrote ${OUT}`) }
 else console.log(JSON.stringify(stamp))
