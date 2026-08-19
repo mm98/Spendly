@@ -4,6 +4,7 @@ import { newId } from '../lib/ids.js'
 import { hashPassword, verifyPassword, createSession, destroySession, requireAuth } from '../lib/auth.js'
 import { LOCALES } from '../lib/constants.js'
 import { seedAccountDefaults } from '../seed.js'
+import { activeProvider } from '../lib/scanParse.js'
 
 export const router = Router()
 
@@ -77,11 +78,12 @@ router.get('/me', requireAuth, (req, res) => {
 	res.json({
 		id: req.user.id, email: req.user.email, needsSetup: Boolean(req.user.needs_setup),
 		// An install fact, not an account one -- whether this server can actually read a
-		// scanned document (lib/scanParse.js needs ANTHROPIC_API_KEY) or only store it. Scan
-		// itself works either way; this is what lets the page stop promising a read it can't
-		// do. Carried on the one request every page already makes before it renders
-		// (react/src/routes.jsx's route loader) rather than a second fetch Scan alone would pay for.
-		scanAiEnabled: Boolean(process.env.ANTHROPIC_API_KEY)
+		// scanned document (lib/scanParse.js needs ANTHROPIC_API_KEY or a local OLLAMA_MODEL) or
+		// only store it. Scan itself works either way; this is what lets the page stop promising
+		// a read it can't do. Carried on the one request every page already makes before it
+		// renders (react/src/routes.jsx's route loader) rather than a second fetch Scan alone
+		// would pay for.
+		scanAiEnabled: Boolean(activeProvider())
 	})
 })
 

@@ -4,24 +4,32 @@ import { decompressBlob } from './blobCompression.js'
 /* The one place a scanned document's bytes are actually read. Everything in routes/scan.js
    around this stayed an honest blank draft until now -- see that route's own comment, and the
    one on Scan.jsx -- because nothing behind GET /scan/draft/:key looked at the file at all. This
-   does, via Claude's vision: the same bytes lib/images.js already stores for the review screen's
+   does, via a vision model: the same bytes lib/images.js already stores for the review screen's
    own preview (a PDF's original bytes, or an image's resized display copy) go to the model as a
-   document or image content block, and a forced tool call is what gets a receipt's loose,
+   document or image, and a forced structured response is what gets a receipt's loose,
    inconsistent layout back as the fixed shape the review form already knows how to edit.
 
-   No API key configured is a real, supported state -- not every install runs one -- so this
-   never throws into its caller. It returns null for that, for a request failure, for a timeout,
-   and for a response the model declined to fill in; routes/scan.js's fallback is exactly the
-   draft this app shipped with before any of this existed. */
+   More than one provider can be reachable, keyed in the PROVIDERS registry below. Each entry is
+   just three things: whether it is configured, whether it can read a PDF (as opposed to images
+   only), and a read(bytes, upload) that returns the model's raw structured answer (shaped like
+   READ_RECEIPT_TOOL's schema) or null. Adding a further provider (OpenAI, Gemini, ...) is adding
+   one entry and one line in PROVIDER_PRECEDENCE -- activeProvider() and parseReceipt() below stay
+   unchanged, since neither one names a provider by hand.
 
-const MODEL = 'claude-sonnet-4-5-20250929'
+   Nothing configured is a real, supported state -- not every install runs one -- so this never
+   throws into its caller. It returns null for that, for a request failure, for a timeout, and for
+   a response the model declined to fill in; routes/scan.js's fallback is exactly the draft this
+   app shipped with before any of this existed. */
+
+const ANTHROPIC_MODEL = 'claude-sonnet-4-5-20250929'
 const REQUEST_TIMEOUT_MS = 45_000
+const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434'
 
-let client
-function getClient() {
+let anthropicClient
+function getAnthropicClient() {
 	if (!process.env.ANTHROPIC_API_KEY) return null
-	if (!client) client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: REQUEST_TIMEOUT_MS })
-	return client
+	if (!anthropicClient) anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: REQUEST_TIMEOUT_MS })
+	return anthropicClient
 }
 
 /* This app stores every money figure VAT-inclusive -- the amount that was actually paid --
@@ -105,51 +113,102 @@ function normalise(input) {
 	return { vendor, date, currency, pricesAsPrintedIncludeVat, vatRate, shipping, discount, total, lines }
 }
 
+const READ_RECEIPT_PROMPT = 'Read this receipt, invoice or order confirmation and report its contents. '
+	+ 'Report only what is actually printed on the document -- never invent '
+	+ 'a vendor, a line or a total that is not there, and mark a line uncertain rather than '
+	+ 'guessing at a figure you cannot read. Every amount you report (line prices, shipping, '
+	+ 'discount, total) must include VAT -- the amount actually payable. If the document '
+	+ 'prints its line prices net of VAT with the tax added separately near the total (common '
+	+ 'on an emailed invoice), convert every one of them using the rate the document states; '
+	+ 'if none is stated, use the rate implied by the stated VAT amount against the net total; '
+	+ 'only fall back to 25% if the document is clearly Danish/EU and states neither.'
+
 function contentBlockFor(bytes, contentType, kind) {
 	const base64 = bytes.toString('base64')
 	if (kind === 'pdf') return { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
 	return { type: 'image', source: { type: 'base64', media_type: contentType || 'image/jpeg', data: base64 } }
 }
 
+async function readWithAnthropic(bytes, upload) {
+	const anthropic = getAnthropicClient()
+	const response = await anthropic.messages.create({
+		model: ANTHROPIC_MODEL,
+		max_tokens: 4096,
+		tool_choice: { type: 'tool', name: READ_RECEIPT_TOOL.name },
+		tools: [READ_RECEIPT_TOOL],
+		messages: [{
+			role: 'user',
+			content: [contentBlockFor(bytes, upload.content_type, upload.kind), { type: 'text', text: READ_RECEIPT_PROMPT }]
+		}]
+	})
+	const call = response.content.find(b => b.type === 'tool_use' && b.name === READ_RECEIPT_TOOL.name)
+	return call?.input ?? null
+}
+
+/** Same read, aimed at a local Ollama install instead of the Anthropic API -- a vision-capable
+    model (e.g. qwen2.5vl, llama3.2-vision) served on OLLAMA_HOST, asked for a response shaped by
+    READ_RECEIPT_TOOL's own schema via Ollama's structured-output `format`, since Ollama's tool
+    calling is not reliable across vision models the way a forced tool choice is on Anthropic's
+    API. */
+async function readWithOllama(bytes) {
+	const res = await fetch(`${OLLAMA_HOST}/api/chat`, {
+		method: 'POST',
+		signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			model: process.env.OLLAMA_MODEL,
+			stream: false,
+			format: READ_RECEIPT_TOOL.input_schema,
+			messages: [{ role: 'user', content: READ_RECEIPT_PROMPT, images: [bytes.toString('base64')] }]
+		})
+	})
+	if (!res.ok) return null
+	const data = await res.json()
+	const text = data?.message?.content
+	if (!text) return null
+	try { return JSON.parse(text) } catch { return null }
+}
+
+/* The registry: name -> { configured, supportsPdf, read }. `read(bytes, upload)` returns the raw
+   structured answer (or null/throws on failure -- parseReceipt below normalises and catches
+   either way). PROVIDER_PRECEDENCE is the order activeProvider() picks between two configured at
+   once, local-first: setting OLLAMA_MODEL is a deliberate choice to run fully local, so it wins
+   over an ANTHROPIC_API_KEY that might just be left over from before. Ollama has no document/PDF
+   content type, so an emailed PDF invoice is outside what a local model here can read at all --
+   supportsPdf: false is what sends those straight to the null fallback rather than mailing a
+   PDF's raw bytes to a model as if they were an image. */
+const PROVIDERS = {
+	ollama: { configured: () => Boolean(process.env.OLLAMA_MODEL), supportsPdf: false, read: readWithOllama },
+	anthropic: { configured: () => Boolean(process.env.ANTHROPIC_API_KEY), supportsPdf: true, read: readWithAnthropic }
+}
+const PROVIDER_PRECEDENCE = ['ollama', 'anthropic']
+
+/** Which vision provider reads a document, if any. SCAN_AI_PROVIDER names one explicitly when
+    more than one happens to be configured at once; left unset, PROVIDER_PRECEDENCE decides. */
+export function activeProvider() {
+	const forced = process.env.SCAN_AI_PROVIDER
+	if (forced) return PROVIDERS[forced]?.configured() ? forced : null
+	return PROVIDER_PRECEDENCE.find(name => PROVIDERS[name].configured()) ?? null
+}
+
 /** Reads a stored upload's own bytes (the same `data` column routes/scan.js's own /file route
-    serves) via Claude, and returns the normalised fields above, or null on any failure. `upload`
-    is a full row from scan_uploads -- data, data_is_compressed, content_type, kind. */
+    serves) via whichever provider is configured, and returns the normalised fields above, or
+    null on any failure. `upload` is a full row from scan_uploads -- data, data_is_compressed,
+    content_type, kind. */
 export async function parseReceipt(upload) {
-	const anthropic = getClient()
-	if (!anthropic || !upload.data) return null
+	const name = activeProvider()
+	if (!name || !upload.data) return null
+	const provider = PROVIDERS[name]
+	if (upload.kind === 'pdf' && !provider.supportsPdf) return null
 	const bytes = decompressBlob(upload.data, upload.data_is_compressed)
 	if (!bytes?.length) return null
 
 	try {
-		const response = await anthropic.messages.create({
-			model: MODEL,
-			max_tokens: 4096,
-			tool_choice: { type: 'tool', name: READ_RECEIPT_TOOL.name },
-			tools: [READ_RECEIPT_TOOL],
-			messages: [{
-				role: 'user',
-				content: [
-					contentBlockFor(bytes, upload.content_type, upload.kind),
-					{
-						type: 'text',
-						text: 'Read this receipt, invoice or order confirmation and report its contents with the '
-							+ 'read_receipt tool. Report only what is actually printed on the document -- never invent '
-							+ 'a vendor, a line or a total that is not there, and mark a line uncertain rather than '
-							+ 'guessing at a figure you cannot read. Every amount you report (line prices, shipping, '
-							+ 'discount, total) must include VAT -- the amount actually payable. If the document '
-							+ 'prints its line prices net of VAT with the tax added separately near the total (common '
-							+ 'on an emailed invoice), convert every one of them using the rate the document states; '
-							+ 'if none is stated, use the rate implied by the stated VAT amount against the net total; '
-							+ 'only fall back to 25% if the document is clearly Danish/EU and states neither.'
-					}
-				]
-			}]
-		})
-		const call = response.content.find(b => b.type === 'tool_use' && b.name === READ_RECEIPT_TOOL.name)
-		return call ? normalise(call.input) : null
+		const input = await provider.read(bytes, upload)
+		return input ? normalise(input) : null
 	} catch {
-		// No network, a bad key, a rate limit, a file the model refuses -- every one of these
-		// is the same "could not read it" to the caller, which already has a fallback for that.
+		// No network, a bad key/host, a rate limit, a file the model refuses -- every one of
+		// these is the same "could not read it" to the caller, which already has a fallback for it.
 		return null
 	}
 }

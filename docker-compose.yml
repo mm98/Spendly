@@ -25,9 +25,14 @@ services:
       # them out; it is a serving decision, so it takes a restart and not a rebuild:
       # SPENDLY_SOURCE_MAPS: "1"
       # Optional: lets Scan actually read a dropped receipt (vendor, date, line items, totals)
-      # instead of only storing it for you to fill in by hand. Get a key at
-      # https://console.anthropic.com/ -- Scan works either way, just without the reading.
+      # instead of only storing it for you to fill in by hand. Scan works either way, just
+      # without the reading. Two ways to enable it, and only one is needed:
+      #  - Anthropic (cloud, reads PDFs and images): get a key at https://console.anthropic.com/
       # ANTHROPIC_API_KEY: sk-ant-...
+      #  - Ollama (fully local, images only): point at a vision model served by `ollama serve`
+      #    on the host or another container -- e.g. OLLAMA_HOST: http://host.docker.internal:11434
+      # OLLAMA_MODEL: qwen2.5vl:7b
+      # OLLAMA_HOST: http://localhost:11434
     volumes:
       # On QNAP, prefer an absolute path on a real share, e.g. /share/Container/spendly:/data
       - ./data:/data
