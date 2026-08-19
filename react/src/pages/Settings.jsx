@@ -71,6 +71,12 @@ const DEMO_PERIODS = [
 
 export default function Settings() {
 	const state = useApi(getSettings)
+	/* Whether FILL WITH DEMO DATA may be pressed at all -- it replaces the account outright, so
+	   an account that already holds real orders locks the card rather than risking a stray
+	   click undoing someone's own entries. `total` is the same count CLEAR STORED DATA's own
+	   card is warning about. */
+	const orders = useApi(getOrders, [{ pageSize: 1 }])
+	const hasOrders = Boolean(orders.data?.total)
 	const toast = useToast()
 	/* Set by the one-time detour a new account takes here (pages/Register.jsx, pages/Login.jsx).
 	   Read from navigation state rather than fetched, because the two places that send a reader
@@ -119,6 +125,7 @@ export default function Settings() {
 					filling={filling} setFilling={setFilling}
 					demoCount={demoCount} setDemoCount={setDemoCount}
 					demoPeriod={demoPeriod} setDemoPeriod={setDemoPeriod}
+					hasOrders={hasOrders} refreshOrders={orders.refresh}
 					reload={state.refresh} />
 			)}</Async>
 		</Page>
@@ -126,7 +133,7 @@ export default function Settings() {
 }
 
 function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirming, refresh, reload,
-	filling, setFilling, demoCount, setDemoCount, demoPeriod, setDemoPeriod }) {
+	filling, setFilling, demoCount, setDemoCount, demoPeriod, setDemoPeriod, hasOrders, refreshOrders }) {
 	const navigate = useNavigate()
 	const signOut = () => logout().then(() => navigate('/login', { replace: true }))
 	/* The controls are driven from the stored value, so what is on screen is what is saved --
@@ -144,6 +151,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 				   survives it -- the bare call clears everything, not a list of endpoints. */
 				invalidate()
 				reload()
+				refreshOrders()
 				setConfirming(false)
 				toast('Everything stored in this browser was cleared.')
 			})
@@ -160,6 +168,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 				// A whole replaced ledger, same as the reset above: everything goes.
 				invalidate()
 				reload()
+				refreshOrders()
 				setFilling(false)
 				// The span in the unit it was chosen in: years when it is whole years, months when not.
 				const span = months % 12 === 0 ? plural(months / 12, 'year') : plural(months, 'month')
@@ -347,40 +356,52 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 							every time: the orders, their days and their totals are rolled fresh on
 							each fill.
 						</p>
-						<Field label="How many orders" htmlFor="demo-order-count" className="demo-count-field"
-							help="Spread across the whole period. More orders take longer to write.">
-							<Combobox id="demo-order-count" label="Orders to create"
-								value={DEMO_ORDER_COUNTS.find(o => o.id === demoCount)?.label ?? ''}
-								onChange={() => {}}
-								onSelect={o => setDemoCount(o.id)}
-								groups={[{ heading: 'Orders', options: DEMO_ORDER_COUNTS }]} />
-						</Field>
-						<Field label="Over how long" htmlFor="demo-period" className="demo-count-field"
-							help="How far back the orders reach, ending today.">
-							<Combobox id="demo-period" label="Period to create orders over"
-								value={DEMO_PERIODS.find(p => p.id === demoPeriod)?.label ?? ''}
-								onChange={() => {}}
-								onSelect={p => setDemoPeriod(p.id)}
-								groups={[{ heading: 'Period', options: DEMO_PERIODS }]} />
-						</Field>
-						{filling ? (
-							<>
-								<p className="field-help danger-note">
-									This replaces what is here now. Every order, vendor and category you have
-									added is removed first, and the demo year is written in its place.
-								</p>
-								<FormActions>
-									<Button variant="caps compact" disabled={busy} onClick={fill}>
-										{busy ? 'FILLING...' : 'YES, FILL IT'}
-									</Button>
-									<Button variant="ghost compact" disabled={busy}
-										onClick={() => setFilling(false)}>CANCEL</Button>
-								</FormActions>
-							</>
-						) : (
-							<Button variant="block" icon="sparkles"
-								onClick={() => setFilling(true)}>FILL WITH DEMO DATA</Button>
-						)}
+						{/* Only offered on an empty account: a fill replaces the ledger outright, and
+						    that is a decision a stray click should never be able to make on real
+						    orders. Locked rather than hidden, so the reason is on screen -- CLEAR
+						    STORED DATA, right below, is what unlocks it. */}
+						{hasOrders ? (
+							<p className="field-help danger-note">
+								This account already has orders in it. Clear your stored data first if
+								you want to start over with demo orders instead.
+							</p>
+						) : null}
+						<div className={hasOrders ? 'demo-data-controls demo-data-controls-locked' : 'demo-data-controls'}>
+							<Field label="How many orders" htmlFor="demo-order-count" className="demo-count-field"
+								help="Spread across the whole period. More orders take longer to write.">
+								<Combobox id="demo-order-count" label="Orders to create"
+									value={DEMO_ORDER_COUNTS.find(o => o.id === demoCount)?.label ?? ''}
+									onChange={() => {}}
+									onSelect={o => setDemoCount(o.id)}
+									groups={[{ heading: 'Orders', options: DEMO_ORDER_COUNTS }]} />
+							</Field>
+							<Field label="Over how long" htmlFor="demo-period" className="demo-count-field"
+								help="How far back the orders reach, ending today.">
+								<Combobox id="demo-period" label="Period to create orders over"
+									value={DEMO_PERIODS.find(p => p.id === demoPeriod)?.label ?? ''}
+									onChange={() => {}}
+									onSelect={p => setDemoPeriod(p.id)}
+									groups={[{ heading: 'Period', options: DEMO_PERIODS }]} />
+							</Field>
+							{filling ? (
+								<>
+									<p className="field-help danger-note">
+										This replaces what is here now. Every order, vendor and category you have
+										added is removed first, and the demo year is written in its place.
+									</p>
+									<FormActions>
+										<Button variant="caps compact" disabled={busy} onClick={fill}>
+											{busy ? 'FILLING...' : 'YES, FILL IT'}
+										</Button>
+										<Button variant="ghost compact" disabled={busy}
+											onClick={() => setFilling(false)}>CANCEL</Button>
+									</FormActions>
+								</>
+							) : (
+								<Button variant="block" icon="sparkles" disabled={hasOrders}
+									onClick={() => setFilling(true)}>FILL WITH DEMO DATA</Button>
+							)}
+						</div>
 					</CardBody>
 				</Card>
 
