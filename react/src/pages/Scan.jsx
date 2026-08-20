@@ -29,7 +29,9 @@ import {
 	scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
-import { amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, plural, sep } from '../api/format.js'
+import {
+	amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, plural, sanitizeAmount, sep
+} from '../api/format.js'
 
 /* Scan, in three steps.
 
@@ -600,7 +602,7 @@ function ScanReviewForm({ answer }) {
 					help="Any discount taken off the whole order.">
 					<FieldShell>
 						<TextInput id="order-discount" inputMode="decimal" value={draft.discount}
-							onChange={set('order-discount', 'discount')} aria-label="Discount"
+							onChange={v => set('order-discount', 'discount')(sanitizeAmount(v))} aria-label="Discount"
 							placeholder="0,00"
 							invalid={discountField.invalid} describedBy={discountField.describedBy} />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
@@ -610,7 +612,7 @@ function ScanReviewForm({ answer }) {
 					help="Not on the receipt; add it if the order was delivered.">
 					<FieldShell>
 						<TextInput id="order-shipping" inputMode="decimal" value={draft.shipping}
-							onChange={set('order-shipping', 'shipping')} aria-label="Shipping fee"
+							onChange={v => set('order-shipping', 'shipping')(sanitizeAmount(v))} aria-label="Shipping fee"
 							invalid={shippingField.invalid} describedBy={shippingField.describedBy} />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>

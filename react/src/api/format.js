@@ -97,6 +97,14 @@ export const AMOUNT_PATTERN = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
 export const WHOLE_NUMBER_PATTERN = /^\d+$/
 export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',', '.'))
 
+/* No money field a user types is signed, and AMOUNT_PATTERN above is built only from digits, a
+   thousands dot and a decimal comma -- so anything else (a minus included) is dropped as it is
+   typed rather than typed and then rejected. The field cannot show a value the app never
+   accepts. */
+export const sanitizeAmount = v => v.replace(/[^0-9.,]/g, '')
+/* WHOLE_NUMBER_PATTERN above is digits only -- a quantity is pieces, never signed or fractional. */
+export const sanitizeWholeNumber = v => v.replace(/[^0-9]/g, '')
+
 /* Dates read in the reader's own locale, not in one this file picks.
 
    A date's *shape* is the reader's: 18 July, July 18 and 18.07 are the same day written the
