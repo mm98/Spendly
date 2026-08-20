@@ -928,6 +928,8 @@ The phone layout is 700px and narrower. Below that:
 
 **A control in a row is sized by the row, not by its own content.** An input's intrinsic width belongs to the engine, and it is the wrong number in any case: it is what one field wants, decided without reference to what shares the line. So a control on a toolbar states the width it takes, gives it back under pressure, and never refuses to shrink. A control that refuses hangs off the end of the row, and hides there — see below.
 
+**A column in a multi-column row is a fraction of the row, not a pixel count.** Every split like this in the app — the two-column sections, the shell's own content grid — is written in `fr` units against the space there actually is, so it grows with the window the way its neighbour does. A fixed width is the one column that stops growing past whatever point it was measured at, which reads as fine at the width it was checked and wrong at every other one. See `docs/defects.md`, *Responsive Layout*.
+
 **The test:** every page renders at 390px with no horizontal overflow — `scrollWidth` equals `clientWidth` on the document element — **and no element extends past the box that holds it**. The second half is not implied by the first: the main panel clips, so a control hanging 38px off a card leaves the document exactly as wide as it was and the overflow test reads clean. Compare each element's right edge against its container's, not just the document's. See `docs/defects.md`, *Responsive Layout*.
 
 ---

@@ -538,8 +538,8 @@ export async function saveDashboardCards(keys, signal) {
 
 /* ---- statistics / home ---- */
 
-export async function getStats(range, windowId, signal) {
-	return request('/api/stats' + qs({ range, windowId }), { signal })
+export async function getStats(range, windowId, compare, signal) {
+	return request('/api/stats' + qs({ range, windowId, compare: compare === 'year' ? 'year' : undefined }), { signal })
 }
 
 /** The lighter form getOrdersOverview/getHomeContent build their "period" summary from —

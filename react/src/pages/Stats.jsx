@@ -2,13 +2,14 @@ import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonBlock, SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
-import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
-import { Chart, ChartScale, RangeTabs, bucketOf, bucketsFor, plotted, sampled, todayMarker } from '../components/Chart.jsx'
+import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
+import { Chart, ChartScale, bucketOf, bucketsFor, plotted, sampled, todayMarker } from '../components/Chart.jsx'
+import { Segmented } from '../components/Form.jsx'
+import { Combobox } from '../components/Combobox.jsx'
 import { Meter, MonthColumns, SpendGauge, WeekdayBars } from '../components/Viz.jsx'
 import { CategoryRow, LegendRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
-import { StatusChip } from '../components/Chip.jsx'
 import { useApi } from '../api/useApi.js'
 import { getStats, ordersIn, ranges } from '../api/client.js'
 import { currency, fullStop, percent, plural, sep } from '../api/format.js'
@@ -42,6 +43,15 @@ import { currency, fullStop, percent, plural, sep } from '../api/format.js'
     said once in the card's header rather than on all ten rows: the qualifier is the same for
     every row in the card, and repeating it wrapped half of them onto a second line. */
 const splitBudgetMeta = entry => (entry.budget ? `${percent(entry.budgetUsed, 0)} of budget` : 'No budget set')
+
+/* What every delta on the page is measured against: the window right before this one, or the
+   same stretch of calendar a year back. One switch, not one per card -- the KPI tiles, the
+   Overview chart's dashed line and the Pace marker all read the same `was` window the API
+   picked, so there is nowhere on the page a second control could disagree with this one about
+   what "compared to" means. README: two controls that describe one thing must not disagree. */
+const COMPARE_LABEL = { year: 'Last year', previous: 'Prev. period' }
+const COMPARE_CODE = Object.fromEntries(Object.entries(COMPARE_LABEL).map(([code, label]) => [label, code]))
+const COMPARE_OPTIONS = Object.values(COMPARE_LABEL)
 
 /* Which window a width change lands on, computed here rather than asked for.
 
@@ -134,12 +144,27 @@ export default function Stats() {
 	const [params, setParams] = useSearchParams()
 	const range = params.get('range') ?? 'month'
 	const periodId = params.get('period') ?? ''
-	const state = useApi(getStats, [range, periodId])
+	// 'all' has one window and nothing before it to compare against, so the URL cannot hold a
+	// choice that width has no use for -- the same reason 'previous', not 'year', is the one
+	// that never appears in the address bar.
+	// Named compareMode, not compare: the render callback below already has its own `compare`
+	// (the chart's sampled previous-window series), and shadowing it silently broke the
+	// switch's own selected state -- neither button ever matched a value that was actually the
+	// chart's series array, not 'previous'/'year'.
+	const compareMode = params.get('compare') === 'year' ? 'year' : 'previous'
+	const state = useApi(getStats, [range, periodId, compareMode])
 
 	const show = (width, id, options) => setParams({
 		...(width === 'month' ? {} : { range: width }),
-		...(id && id !== defaultIdFor(width) ? { period: id } : {})
+		...(id && id !== defaultIdFor(width) ? { period: id } : {}),
+		...(compareMode !== 'previous' && width !== 'all' ? { compare: compareMode } : {})
 	}, options)
+
+	const setCompare = mode => setParams({
+		...(range === 'month' ? {} : { range }),
+		...(periodId ? { period: periodId } : {}),
+		...(mode !== 'previous' ? { compare: mode } : {})
+	})
 
 	return (
 		<Page variant="page-grid">
@@ -157,16 +182,27 @@ export default function Stats() {
 				const compare = view.series.previous && sampled(view.series.previous, buckets)
 				const ceiling = Math.max(view.spent, compare ? view.series.previous.at(-1) : 0)
 
+				/* The window's own read on itself, in one sentence: what it's measured against
+				   (nothing to say for the oldest window there is), how many orders, how much of
+				   the window has records. Every one of the three used to be said somewhere
+				   else on the page on its own -- the delta as a chip beside the total, the
+				   order count nowhere at all, the day count as the Pace card's own header --
+				   which is what let four separate KPI tiles each repeat "vs Aug" beside their
+				   own figure. Stated once here, the tiles below only ever need a bare percent. */
+				const daysNote = view.pace.running
+					? `${plural(view.pace.daysIn, 'day')} in`
+					: `${plural(view.pace.daysIn, 'day')} of records`
+				const heroCaption = [
+					view.deltaLabel ? `${view.deltaLabel} vs ${view.previousLabel}` : null,
+					plural(view.orders, 'order'),
+					daysNote
+				].filter(Boolean).join(sep)
+
 				return (
 					<>
-						<div className="space-between stats-toolbar">
-							<div className="row-inline">
-								{/* The arrows and the name they step hold a width, so the picker beside
-								    them does not slide when the name changes length: Year to Quarter is
-								    2026 to Quarter 3, 2026, and that moved every width button 87px --
-								    a different width under the pointer that had just clicked one. The
-								    number it holds is in the stylesheet, on `.stats-window`. */}
-								<div className="row-inline stats-window">
+						<div className="stats-hero-row">
+							<section className="card card-ai stats-hero" aria-label="This window">
+								<div className="stats-hero-pager">
 									{/* A real pager over the windows the chosen width offers. Each arrow is
 									    disabled only at its own end, which is the one honest reason to disable
 									    a control -- the prototype disabled the right-hand one permanently and
@@ -178,14 +214,7 @@ export default function Stats() {
 										disabled={!older} className="pager-arrow"
 										onClick={() => older && show(view.range, older)} />
 									{/* One name at any width, drawn and announced. Both forms are in the markup
-									    and the stylesheet renders exactly one -- the unit written out wherever
-									    the band has room for it, and W31 2026 on a phone, where the row it
-									    shares with the arrows and the five widths has about 96px for a name
-									    that wants 128.6. What made the short form a defect before was the
-									    long one being announced *beside* it, which is a label a reader could
-									    not read and a second copy to keep in step; `display:none` is not
-									    announced, so there is one string here either way. The days the window
-									    covers are on the card below, over the chart. */}
+									    and the stylesheet renders exactly one. */}
 									<span className="panel-heading pager-heading">
 										<span className="pager-wide">{view.label}</span>
 										<span className="pager-narrow">{view.abbr}</span></span>
@@ -193,44 +222,38 @@ export default function Stats() {
 										label={newer ? `Next ${view.unit}` : `No later ${view.unit}`}
 										disabled={!newer} className="pager-arrow"
 										onClick={() => newer && show(view.range, newer)} />
+									{/* The five widths, as a picker rather than five buttons -- the pager and
+									    the width it steps are one control, and the window on screen converts
+									    straight to whichever width is picked: Month while paged back to 2022
+									    opens December 2022 rather than this month, so moving one never
+									    silently discards where the other was. The one dropdown pattern in the
+									    app (README: Combobox) rather than a second kind of picker; nothing
+									    here is typed into, so onChange is a no-op and onSelect is the only
+									    thing that ever moves the window. */}
+									<Combobox className="stats-window-select" label="Window width"
+										value={ranges.find(r => r.key === view.range)?.label ?? ''}
+										onChange={() => {}}
+										onSelect={o => show(o.id, reanchor(view, o.id))}
+										groups={[{ heading: '', options: ranges.map(r => ({ id: r.key, label: r.label })) }]} />
 								</div>
-								{/* The widths, beside the arrows that step them, in the same box the
-								    arrows are drawn in. Selected is whichever width the window on
-								    screen actually is, not whatever the URL asked for -- a link
-								    carrying a width this app no longer has, `?range=3M` from before
-								    these were named after their units, is served as the month it falls
-								    back to, and a picker with nothing selected over a month of data is
-								    the URL's claim drawn over the API's. The first click writes a name
-								    that exists. */}
-								{/* The window on screen, converted to the width being picked: Month while
-								    paged back to 2022 opens December 2022 rather than this month -- the
-								    picker and the pager are one control, and moving one used to silently
-								    discard where the other was. The id written is the one the answer will
-								    carry, so nothing has to correct the URL afterwards. */}
-								<RangeTabs variant="pager" options={ranges} value={view.range}
-									onChange={key => show(key, reanchor(view, key))} />
-							</div>
-							<div className="row-inline">
-								<span className="figure-large tabular-figures">{currency(view.spent)}</span>
-								{/* Nothing before the oldest window in the store, so nothing to be up
-								    against: no chip beats an invented comparison. Amber is for the ups
-								    only -- spending less is a good down, which is the split the tiles
-								    below already make. */}
-								{view.deltaLabel
-									? <StatusChip tone={view.deltaUp ? 'warning' : undefined}>{view.deltaLabel}</StatusChip>
+								<div className="stats-hero-total tabular-figures">{currency(view.spent)}</div>
+								<p className="stats-hero-caption">{heroCaption}</p>
+								{/* 'All time' has no earlier window and no same-time-last-year to hold itself
+								    against -- every delta on the page is already null for it -- so the switch
+								    that picks between the two would offer a choice this width cannot answer. */}
+								{view.range !== 'all'
+									? <Segmented options={COMPARE_OPTIONS} value={COMPARE_LABEL[compareMode]}
+										onChange={label => setCompare(COMPARE_CODE[label])}
+										label="Compare statistics to" />
 									: null}
-							</div>
-						</div>
+							</section>
 
-						{/* The tiles are the window's -- every one of the four is derived from the
-						    same days the figure above is -- so the heading names the window rather
-						    than a month it may only be part of. 23 orders under a seven-day heading
-						    is a wrong number rather than a missing one. */}
-						<SectionHeader>
-							<SectionLabel>{view.label} in numbers</SectionLabel>
-						</SectionHeader>
-						<div className="kpi-row">
-							{view.kpis.map(kpi => <KpiCard key={kpi.label} {...kpi} />)}
+							{/* The tiles are the window's -- every one of the four is derived from the
+							    same days the total above is. Each carries a bare percentage now, not a
+							    repeat of what it's compared to: that sentence is the hero's, said once. */}
+							<div className="kpi-row">
+								{view.kpis.map(kpi => <KpiCard key={kpi.label} {...kpi} />)}
+							</div>
 						</div>
 
 						<Card aria-label="Overview">

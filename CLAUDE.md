@@ -862,6 +862,16 @@ control is drawn rather than built, its width, its height and its wrapping are a
 layout rule the stand-in satisfies is a rule that has not been tested. Render whatever runs the real
 control, or say the layout is verified on the stand-in only.
 
+**A number in a design reference's caption is a measurement of it, not a spec for it.** A mockup
+captioned "376 px wide" for a card sharing a row with a KPI grid was built as a literal
+`grid-template-columns: 376px 1fr` -- and it was exactly right, at the one window width the mockup
+happened to be drawn at, and wrong at every other one, because every other multi-column split on the
+page is a fraction of the row and this was the one column that stopped growing. The px number was
+what a proportional split rendered as there, not a value to build from. Before building a column's
+width off a reference, ask what produced the number: if the rest of the page splits multi-column
+rows by fraction (`fr`, `%`), a reference's px caption is one sample of that fraction at one width,
+and the thing to match is the fraction, not the sample. README: Responsive Layout.
+
 **A test whose failure is clipped is not a test.** The phone check is `scrollWidth` against
 `clientWidth`, and it read 0 the whole time that control hung off its card, because `.main-panel` sets
 `overflow:hidden` and a clipped overhang never widens the document. The measurement was correct and the
