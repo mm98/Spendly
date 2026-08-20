@@ -1989,7 +1989,14 @@ label.field-shell { cursor:pointer; }
    (content box 343px) is exactly the border case the 320px floor is: 380px leaves it, and the
    floor, comfortably on the short form's side, and only a card past roughly 1470px wide gets the
    long name and the margin (100px+) that makes it safe. */
-.stats-hero { display:flex; flex-direction:column; gap:14px; container-type:inline-size; container-name:stats-hero; }
+/* justify-content:space-between, not just a gap: the card stretches to match the taller KPI
+   grid beside it (Grid's own default -- see .stats-hero-row above), and its own four rows don't
+   grow to fill that height, so the slack has to go somewhere. Packed at the top with a fixed
+   gap, it collected as one bare stripe below the compare switch; space-between spreads it evenly
+   between the four rows instead, so the card still reads as one thing at every height rather
+   than content sitting in the top half of a taller box. 14px is the floor -- rows never sit
+   closer than that -- not the fixed distance between them. */
+.stats-hero { display:flex; flex-direction:column; gap:14px; justify-content:space-between; container-type:inline-size; container-name:stats-hero; }
 @container stats-hero (max-width:380px) {
 	.stats-hero-pager .pager-wide { display:none; }
 	.stats-hero-pager .pager-narrow { display:inline; }
