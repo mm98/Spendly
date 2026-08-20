@@ -190,7 +190,7 @@ function CategoryFields({ mode, category }) {
 					label="Category colour" />
 			</Field>
 
-			<Field label="Icon" group help="Icons already used by a category, or search for more.">
+			<Field label="Icon" group>
 				<IconPicker value={values.icon} usedIcons={usedIcons}
 					onChange={(icon, iconPath) => setValues(v => ({
 						...v, icon, iconPath: ICONS[icon] ? undefined : iconPath
