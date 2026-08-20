@@ -467,20 +467,20 @@ function BuildCard() {
 						    rather than left at the weight of the sentence carrying it. It is written
 						    in this account's own date format, in this reader's own clock, and names
 						    no zone: it is their afternoon, on their machine. */}
-						Image built <b>{builtAt ? localStamp(builtAt) : 'at an unrecorded time'}</b>
-						{commit ? <> from commit <code>{commit.slice(0, 7)}</code></> : null}.
-						{commit ? ' Checking asks the registry whether the published image is still this one.' : null}
+						You're running the version installed on <b>{builtAt ? localStamp(builtAt) : 'an unrecorded date'}</b>
+						{commit ? <> <span title={commit}>({commit.slice(0, 7)})</span></> : null}.
+						{commit ? ' Checking looks online for a newer version.' : null}
 					</>) : (
-						'No build stamp: this server is not running from the Docker image, so what you see is whatever is on disk right now.'
+						"This server isn't running a packaged version, so it always shows the latest code on this machine."
 					)}
 				</p>
 				{commit ? (<>
 					{checked ? (
 						<p className={'field-help' + (checked.error || checked.current === false ? ' danger-note' : '')}>
 							{checked.error ? checked.error
-								: checked.current ? 'Up to date: the newest published image is this build.'
-								: checked.published ? 'Behind: a newer image than this build has been published. Pull and restart to catch up.'
-								: "This build's commit has no published image, so there is nothing to compare it against. It is most likely a local build."}
+								: checked.current ? "You're up to date — this is the newest version."
+								: checked.published ? 'A newer version is available. Ask whoever manages this server to update it.'
+								: "There's no published version to compare this one to, so it's probably a custom build made on this machine."}
 						</p>
 					) : null}
 					<Button variant="block" icon="check" disabled={checking} onClick={check}>

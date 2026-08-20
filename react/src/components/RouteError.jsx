@@ -15,7 +15,7 @@ export function RouteError() {
 		<Card>
 			<CardBody>
 				<EmptyState icon="alert">
-					<p>Something went wrong loading this page.</p>
+					<p>Something went wrong loading this page. Reloading usually fixes it.</p>
 					<Button variant="outline" onClick={() => window.location.reload()}>Reload</Button>
 				</EmptyState>
 			</CardBody>
