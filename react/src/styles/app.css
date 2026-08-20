@@ -1976,7 +1976,25 @@ label.field-shell { cursor:pointer; }
    four-across tiles, sharing the same .kpi-row class, are untouched. */
 .stats-hero-row .kpi-row { grid-template-columns:repeat(2, minmax(0,1fr)); }
 
-.stats-hero { display:flex; flex-direction:column; gap:14px; }
+/* A container query, not another viewport one -- this card's own width is a fraction of the
+   row (see .stats-hero-row above), independent of how wide the window is, so "is there room for
+   the long month name" is a question about the card, never about the viewport. Measured at the
+   grid's own 320px floor: the pager's content needs the full 284px available there with the
+   auto-margin already at 0 -- no slack left for a longer month name, a wider font stack, or a
+   browser at other than 100% zoom to push it over into the neighbour column.
+
+   A container query matches against the card's *content* box, after its 18px padding each side
+   -- not the 320-628px getBoundingClientRect reports for the card itself, which is 36px wider.
+   The wide form's own content needs ~344px of that content box, so an ordinary 1440px desktop
+   (content box 343px) is exactly the border case the 320px floor is: 380px leaves it, and the
+   floor, comfortably on the short form's side, and only a card past roughly 1470px wide gets the
+   long name and the margin (100px+) that makes it safe. */
+.stats-hero { display:flex; flex-direction:column; gap:14px; container-type:inline-size; container-name:stats-hero; }
+@container stats-hero (max-width:380px) {
+	.stats-hero-pager .pager-wide { display:none; }
+	.stats-hero-pager .pager-narrow { display:inline; }
+	.stats-hero .pager-heading { width:72px; }
+}
 .stats-hero-pager { display:flex; align-items:center; gap:8px; }
 /* Fixed and centred, not just sized to fit -- the two arrows either side of this read as one
    pager, and a heading that grows and shrinks with its own text walks the right arrow sideways
