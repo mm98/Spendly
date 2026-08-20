@@ -3,7 +3,7 @@ import { memo, useState } from 'react'
 /* Every glyph in the app, in one registry.
 
    The prototype repeats each path wherever the icon appears -- the chevron 30 times, the
-   receipt 13 -- which is the drift the uniformity rule is about: 39 distinct paths spread
+   receipt 13 -- which is the drift the uniformity rule is about: 40 distinct paths spread
    over 200-odd copies, where fixing one means finding them all. Naming them here makes the
    count a fact you can read off this object, and <Icon name> the only way to draw one.
 

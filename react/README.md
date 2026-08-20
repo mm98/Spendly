@@ -123,9 +123,9 @@ reads through it and none of them reach into `seed.js`.
 Swapping in `fetch()` touches this one file.
 
 **Everything writes through it.** `createOrder`, `updateOrder`, `deleteOrder`,
-`addAttachment`, `removeAttachment`, `createVendor`, `updateVendor`, `deleteVendor`,
+`addAttachments`, `removeAttachment`, `createVendor`, `updateVendor`, `deleteVendor`,
 `createCategory`, `updateCategory`, `deleteCategory`, `saveSettings`, `saveDashboardCards`,
-`resetStoredData` — 34 endpoints in all, and every one of them is called from a page. Deletes that would orphan a record are refused with
+`resetStoredData` — 48 endpoints in all, and every one of them is called from a page. Deletes that would orphan a record are refused with
 a reason: a vendor with orders on it and a category on an order both come back 409, and the
 message names how many are in the way.
 
@@ -187,7 +187,7 @@ One file per family, coarse rather than granular: `Card`, `Rows`, `Form`, `Chart
 
 Two of them carry most of the argument:
 
-**`Icon.jsx`** holds all 39 glyphs the app uses. The prototype repeats each path wherever it
+**`Icon.jsx`** holds all 40 glyphs the app uses. The prototype repeats each path wherever it
 appears — the chevron 30 times, the receipt 13 — which is the drift the uniformity rule is
 about. Naming them makes the count a fact you can read off the object, and an unknown name
 throws rather than drawing nothing.
@@ -322,7 +322,7 @@ preview from the form, not from the record — and the list the record does reac
 route walk never opened.
 
 Unsearched, the grid shows whatever a category already carries — real choices, not the app's own
-39 UI glyphs, which are chrome and no help in naming one — resolved straight from each record with
+40 UI glyphs, which are chrome and no help in naming one — resolved straight from each record with
 no shard fetched. A scroller holding five thousand tiles is a wall, not a choice, so the search is
 what reaches the rest, and the line under the grid says how many it is matching out of how many
 there are.
@@ -409,7 +409,7 @@ page count that belongs to the PDFs and to nothing else.
 
 ## What the build ships
 
-Vite 8.1.5 (Rolldown), `@vitejs/plugin-react` 6.0.4, React 19.2.8, `react-router-dom` 7.18.2.
+Vite 8.1.5 (Rolldown), `@vitejs/plugin-react` 6.0.4, React 19.2.8, `react-router` 8.3.0.
 The build used to end on Rolldown's own warning — *some chunks are larger than 500 kB after
 minification* — and it was right twice over: the icon catalogue was one 919.61 kB chunk, and
 the app was one 455.89 kB chunk that held every page whether or not you opened it.
@@ -581,6 +581,11 @@ Chromium 141.0.7390.37 under Playwright 1.56.1, at 1440x900 and on an `iPhone 13
 profile at `deviceScaleFactor: 2`. Gecko and WebKit are not installed here and were not
 checked.
 
+The phone profile named throughout this section is the one this pass actually ran under.
+The standing convention has since moved to iPhone 15 (`../CLAUDE.md`), so any figure below
+tied to the iPhone 13 viewport's exact pixels is a record of that pass, not a claim about
+the app under the current profile, until it is re-run.
+
 - **Every route renders, at both widths.** Correct page title, correct sub-tabs, correct rail
   highlight, no console errors, no page errors, no horizontal overflow, every chart measured
   non-zero. Re-run against the split build: **18 routes at 1440 and on an iPhone 13 profile, 0
@@ -611,10 +616,11 @@ checked.
   cannot move with a rule inside `@media (max-width:700px)`: at 701 and 1440 the bar, the sheet's
   bottom padding and the tab-bar custom property are identical either side of it. `all-orders.png`
   is still the state the page reaches by clicking FILTERS, measured at **0 of 5,184,000** the last
-  time that state was driven in full. `phone.png` does hold the bar, so it moved with it — **35,026
-  differing pixels of 1,035,840, every one in rows 1168–1312**, the bar's own band — and the file
-  committed now is this app's render, which reproduced the previous one at **0 of 1,035,840** with
-  the change reverted.
+  time that state was driven in full. `phone.png` did hold the bar at the time, so it moved with
+  it — **35,026 differing pixels of 1,035,840, every one in rows 1168–1312**, the bar's own band.
+  `phone.png` was later re-rendered under a different device profile (`../CLAUDE.md`: iPhone 15),
+  so that pixel count and total describe the file as it stood then, not the one committed now —
+  unverified against the current shot until it is diffed again.
 - **Nothing served is dead weight.** `[...document.fonts]` reports all three Poppins faces
   `loaded` — 500, 600 and 700 — so all three files under `src/fonts/` are font the app really
   draws with. A pass over the 252 class selectors in the stylesheet finds **14 that appear
@@ -683,9 +689,11 @@ checked.
   except `color-contrast-enhanced`. AA contrast is clean: **0 violations against 2,138 passing
   elements** across 32 states. The AAA findings are the prototype's palette, which
   `../README.md` documents as an AA-level system — `--green` is 2.93:1 on white by design.
-- **Pixels.** This container reproduces all three committed shots in `../docs/` from the
-  prototype at 0 differing pixels, so it is a valid baseline. Against it, this app's phone
-  render is **0 of 1,035,840** — identical.
+- **Pixels.** This container reproduced all three committed shots in `../docs/` from the
+  prototype at 0 differing pixels at the time, so it was a valid baseline; against it, this
+  app's phone render measured **0 of 1,035,840** — identical. `docs/phone.png` is a different
+  file now (iPhone 15, `../CLAUDE.md`), so this comparison is unverified against the current
+  shot until it is re-run.
 
 Sixteen defects were found by these runs and fixed rather than reported:
 
