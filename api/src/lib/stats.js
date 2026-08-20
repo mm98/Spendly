@@ -471,12 +471,14 @@ function kpisFor(now, was) {
 		const nowVal = kpi.of(now), wasVal = kpi.of(was)
 		const pct = wasVal ? Math.round((nowVal / wasVal - 1) * 100) : (nowVal ? 100 : 0)
 		const direction = pct === 0 ? 'level' : pct < 0 ? 'down' : 'up'
-		/* A bare signed percentage, not "12% up vs Aug" -- what it's measured against is said
-		   once, in the hero card above the tiles, not repeated on every one of four tiles. That
-		   repetition is what wrapped to two lines the moment the comparison crossed a year
-		   ("100% up vs Sep 2024"); a four-tile grid has no room to spare for a sentence four
-		   tiles are each allowed to say a quarter of. */
-		const delta = pct === 0 ? '0%' : `${pct > 0 ? '+' : ''}${pct}%`
+		/* "X% up/down", not "X% up vs Aug" -- what it's measured against is said once, in the
+		   hero card above the tiles, not repeated on every one of four tiles. That repetition is
+		   what wrapped to two lines the moment the comparison crossed a year ("100% up vs Sep
+		   2024"); a four-tile grid has no room to spare for a sentence four tiles are each allowed
+		   to say a quarter of. The word stays rather than becoming a math sign: the trend arrow
+		   already carries the direction, and a signed number on top of it read as its own thing to
+		   parse instead of the same fact stated twice. */
+		const delta = direction === 'level' ? 'level' : `${Math.abs(pct)}% ${direction}`
 		/* Three tones, one per thing a delta can mean. It used to be two: anything that was not
 		   the good direction came back 'neutral', so a tile that moved the wrong way was printed
 		   in the same grey as a tile with nothing to be up or down against -- opposite messages,
