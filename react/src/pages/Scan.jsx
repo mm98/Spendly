@@ -11,7 +11,7 @@ import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Row
 import { DocumentPreview, ProgressBar } from '../components/Viz.jsx'
 import { JsonDialog } from '../components/Json.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
-import { RECEIPT_FILES } from '../components/fileKinds.js'
+import { PHOTO_FILES, RECEIPT_FILES } from '../components/fileKinds.js'
 import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
@@ -24,13 +24,14 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi, invalidate } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addVendorAlias, attachScanDocument, createOrder, deleteScanDocument, failureMessage, getCurrentUser,
-	getRecentScans, getScanDraft, getVendors, invalidateOrderData, invalidateVendorData, putScanDocument,
-	scanFileUrl, scanThumbnailUrl, spendKinds
+	addItemAttachments, addVendorAlias, attachScanDocument, createOrder, deleteScanDocument, failureMessage,
+	getCurrentUser, getRecentScans, getScanDraft, getVendors, invalidateOrderData, invalidateVendorData,
+	putScanDocument, scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
 import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
 import {
-	amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, plural, sanitizeAmount, sep
+	amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, percent, plural,
+	sanitizeAmount, sanitizeWholeNumber, sep
 } from '../api/format.js'
 
 /* Scan, in three steps.
@@ -303,6 +304,12 @@ function ScanReviewForm({ answer }) {
 	const [newLineId, setNewLineId] = useState(null)
 	const [sourceOpen, setSourceOpen] = useState(false)
 	const [jsonOpen, setJsonOpen] = useState(false)
+	/* A photo picked against a line that, this early, has no real item id yet -- see save()
+	   below, which is what actually uploads these once the order (and so the item) has been
+	   written. Keyed by the line's own id, never sent as part of the draft: a File object
+	   serializes to "{}" the moment it touches JSON.stringify. Same pattern as New order's own
+	   step 2 (NewOrder.jsx) -- a scanned line is no less able to carry one than a typed one. */
+	const [pendingPhotos, setPendingPhotos] = useState({})
 
 	/* The escape hatch for a document the model read wrong: DISCARD below only abandons this
 	   form's edits, and re-uploading the same file afterwards would still hit the server's
@@ -346,7 +353,23 @@ function ScanReviewForm({ answer }) {
 		patch({ lines: draft.lines.filter(l => l.id !== line.id) })
 		setEditingLine(null)
 		setAutoCheckLine(null)
+		clearPhoto(line.id)
 		toast(`${line.title || 'Line'} removed.`)
+	}
+
+	const pickPhoto = (lineId, file) => {
+		setPendingPhotos(prev => {
+			if (prev[lineId]) URL.revokeObjectURL(prev[lineId].url)
+			return { ...prev, [lineId]: { file, url: URL.createObjectURL(file) } }
+		})
+	}
+	const clearPhoto = lineId => {
+		setPendingPhotos(prev => {
+			if (!prev[lineId]) return prev
+			URL.revokeObjectURL(prev[lineId].url)
+			const { [lineId]: gone, ...rest } = prev
+			return rest
+		})
 	}
 	/* No confirmation here, unlike every other row delete in the app (README: Deletion normally
 	   asks). Nothing on this screen is saved yet -- SAVE ORDER is the one commit -- so removing
@@ -387,7 +410,7 @@ function ScanReviewForm({ answer }) {
 
 	const saveLine = (id, values) => {
 		patch({ lines: draft.lines.map(l => (l.id === id
-			? { ...l, title: values.title, quantity: values.quantity, price: values.price,
+			? { ...l, title: values.title, quantity: values.quantity, price: values.price, retail: values.retail,
 				uncertain: false, meta: undefined, amount: undefined }
 			: l)) })
 		const wasNew = id === newLineId
@@ -420,12 +443,13 @@ function ScanReviewForm({ answer }) {
 		/* The draft is what gets submitted, so the draft is what gets checked. ADD LINE puts its
 		   blank row into the draft the moment the editor opens, so a line abandoned mid-edit --
 		   editor still open, or left behind by opening another line's pencil -- reaches this
-		   button as an item the server rejects. The same three rules the line editor runs, over
+		   button as an item the server rejects. The same four rules the line editor runs, over
 		   the values the editor would have been given. */
 		for (const line of draft.lines) {
 			const lineValues = {
 				'line-description': line.title, 'line-quantity': String(line.quantity),
-				'line-price': amount(line.price)
+				'line-price': amount(line.price),
+				'line-retail': line.retail != null ? amount(line.retail) : ''
 			}
 			const failedLine = LINE_FIELDS.filter(f => f.check(String(lineValues[f.name] ?? '').trim()))
 			if (failedLine.length) {
@@ -440,12 +464,29 @@ function ScanReviewForm({ answer }) {
 		createOrder({
 			vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
 			categories: [], shipping: draft.shipping, discount: draft.discount,
-			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price }))
+			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price, retail: l.retail }))
 		})
 			/* The order is saved either way -- navigation proceeds -- but a receipt that quietly
 			   failed to attach is the one claim this flow exists to keep, so the failure is said. */
 			.then(order => attachScanDocument(answer.documentKey, order.id).then(() => order)
 				.catch(() => { toast('Order saved, but the receipt did not attach.', 'negative'); return order }))
+			.then(async order => {
+				/* A photo was picked against a draft line that did not have a real item id yet --
+				   this is the first point one exists to attach it to. createOrder writes items in
+				   the submitted order and reads them back the same way, so draft.lines[i]'s pending
+				   photo belongs to order.items[i], position for position -- the same pairing New
+				   order's own step 2 uses (NewOrder.jsx). */
+				const uploads = draft.lines
+					.map((line, i) => [pendingPhotos[line.id], order.items[i]])
+					.filter(([pending, saved]) => pending && saved)
+					.map(([pending, saved]) => addItemAttachments(order.id, saved.id, [pending.file]))
+				if (uploads.length) {
+					const results = await Promise.allSettled(uploads)
+					if (results.some(r => r.status === 'rejected'))
+						toast('Order saved, but a photo did not attach.', 'negative')
+				}
+				return order
+			})
 			.then(order => {
 				/* The document's vendor line said one string and the order was just filed under
 				   another -- the correction is the mapping, so it is kept: the scanned string
@@ -653,6 +694,9 @@ function ScanReviewForm({ answer }) {
 								autoCheck={autoCheckLine === line.id}
 								onSave={values => saveLine(line.id, values)}
 								onCancel={() => cancelLine(line.id)}
+								photo={pendingPhotos[line.id] ? { present: true, src: pendingPhotos[line.id].url } : {}}
+								onPick={file => pickPhoto(line.id, file)}
+								onClearPhoto={() => clearPhoto(line.id)}
 								deleteButton={line.id === newLineId ? null : (
 									<Button variant="ghost compact" icon="trash"
 										aria-label={`Delete line, ${line.title || 'this line'}`}
@@ -662,10 +706,13 @@ function ScanReviewForm({ answer }) {
 								)} />
 						) : (
 							<ItemRow key={line.id}
-								icon={line.uncertain ? 'alert' : 'check'}
-								iconTone={line.uncertain ? { background: 'var(--bg-warn)', color: 'var(--text-warn)' } : undefined}
+								icon={pendingPhotos[line.id] ? undefined : (line.uncertain ? 'alert' : 'check')}
+								iconTone={!pendingPhotos[line.id] && line.uncertain ? { background: 'var(--bg-warn)', color: 'var(--text-warn)' } : undefined}
+								thumb={pendingPhotos[line.id] ? 'photo' : undefined}
+								thumbSrc={pendingPhotos[line.id]?.url}
 								title={line.title}
-								meta={line.meta ?? `${line.quantity} × ${currency(line.price)}`}
+								meta={(line.meta ?? `${line.quantity} × ${currency(line.price)}`)
+									+ (line.retail ? `${sep}retail ${currency(line.retail)}` : '')}
 								amount={currency(line.price * line.quantity)}>
 								{/* Pencil and trash side by side, the same pair ItemLines.jsx draws on a
 								    saved order's own item rows -- a line read off a receipt is corrected
@@ -725,29 +772,36 @@ function ScanReviewForm({ answer }) {
 	)
 }
 
-/** A line of the receipt, opened for correction. Three fields, the same three rules the item
-    form on New order checks, marked and announced by the same apparatus -- see api/rules.js.
-    Its own three-branch if/else agreed with them until the day one of the two was fixed.
+/** A line of the receipt, opened for correction. The same four fields and the same rules the
+    item form on New and Edit order checks, marked and announced by the same apparatus -- see
+    api/rules.js.
 
-    The card itself is ItemLines.jsx's own `.line-card` -- the header band, the green title, the
-    Enter/Escape hint, the bottom-divided action row -- so a line corrected here looks like a
-    line corrected on New or Edit order, rather than a second, plainer editor the design system
-    never drew. No photo and no retail price: a scanned line has neither, so the card is the
-    same header and field grid without the parts that have nothing to hold.
+    The card itself is ItemLines.jsx's own `.line-card` -- the photo frame, the header band, the
+    green title, the Enter/Escape hint, the bottom-divided action row -- so a line corrected here
+    looks like, and can hold everything, a line corrected on New or Edit order. A scanned line
+    starts with neither a photo nor a retail price because nothing read off a receipt carries
+    either, but the reader adding one by hand is exactly what this card is for.
 
     `autoCheck` is true only when this card was opened *by* a rejected SAVE ORDER, never by its
     own pencil -- the open is itself the rejection then, so the fields mark themselves the
     moment the card mounts rather than waiting for a second press of SAVE LINE to say so. */
-function LineEditor({ line, index, count, isNew, onSave, onCancel, autoCheck = false, deleteButton }) {
+function LineEditor({
+	line, index, count, isNew, onSave, onCancel, autoCheck = false, deleteButton,
+	photo = {}, onPick, onClearPhoto
+}) {
 	const [form, setForm] = useState({
 		'line-description': line.title,
 		'line-quantity': String(line.quantity),
-		'line-price': amount(line.price)
+		'line-price': amount(line.price),
+		'line-retail': line.retail != null ? amount(line.retail) : ''
 	})
 	const { check, recheck, propsFor } = useFieldErrors(LINE_FIELDS, form)
 	const description = propsFor('line-description')
 	const quantity = propsFor('line-quantity')
 	const price = propsFor('line-price')
+	const retailField = propsFor('line-retail')
+	const file = useRef(null)
+	const [over, setOver] = useState(false)
 
 	useEffect(() => { if (autoCheck) check() }, [autoCheck, check])
 
@@ -756,11 +810,18 @@ function LineEditor({ line, index, count, isNew, onSave, onCancel, autoCheck = f
 	const submit = () => {
 		const failed = check()
 		if (failed.length) { focusField(failed[0].name); return }
+		const retail = form['line-retail'].trim()
 		onSave({
 			title: form['line-description'].trim(),
 			quantity: Number(form['line-quantity']),
-			price: parseAmount(form['line-price'])
+			price: parseAmount(form['line-price']),
+			retail: retail ? parseAmount(retail) : undefined
 		})
+	}
+
+	const take = list => {
+		const image = [...(list ?? [])].find(f => f.type.startsWith('image/'))
+		if (image) onPick(image)
 	}
 
 	/* Escape works from anywhere in the card, matching ItemLines' own line card -- one editing
@@ -775,42 +836,100 @@ function LineEditor({ line, index, count, isNew, onSave, onCancel, autoCheck = f
 	const heading = isNew ? 'New line' : `Editing line ${index + 1} of ${count}`
 	const qty = Number(form['line-quantity'])
 	const paid = parseAmount(form['line-price'])
+	const retail = form['line-retail'].trim() ? parseAmount(form['line-retail']) : null
 	const figures = Number.isFinite(qty) && qty > 0 && Number.isFinite(paid)
+	const savedEach = retail != null && Number.isFinite(retail) ? retail - paid : null
 
 	return (
-		<div className="filter-section line-card" onKeyDown={keys}>
+		<div className={'filter-section line-card' + (over ? ' is-dragover' : '')} onKeyDown={keys}
+			onPaste={e => take(e.clipboardData?.files)}
+			onDragOver={e => { e.preventDefault(); setOver(true) }}
+			onDragLeave={() => setOver(false)}
+			onDrop={e => { e.preventDefault(); setOver(false); take(e.dataTransfer?.files) }}>
 			<div className="line-card-head">
 				<span className="section-label line-card-title">{heading}</span>
 				<span className="field-help push-end line-card-keys">Enter saves<Sep />Escape cancels</span>
 			</div>
-			<div className="line-card-fields">
-				<Field className="line-field-wide" label="Line" error={description.error} errorId={description.errorId} htmlFor="line-description">
-					<FieldShell>
-						<TextInput id="line-description" value={form['line-description']} autoFocus
-							onChange={set('line-description')} aria-label="Line description"
-							aria-required="true" invalid={description.invalid}
-							describedBy={description.describedBy} />
-					</FieldShell>
-				</Field>
-				<Field label="Quantity" error={quantity.error} errorId={quantity.errorId} htmlFor="line-quantity">
-					<FieldShell>
-						<TextInput id="line-quantity" inputMode="numeric" value={form['line-quantity']}
-							onChange={set('line-quantity')} aria-label="Quantity" aria-required="true"
-							invalid={quantity.invalid} describedBy={quantity.describedBy} />
-						<FieldUnit>pcs</FieldUnit>
-					</FieldShell>
-				</Field>
-				<Field label="Price" error={price.error} errorId={price.errorId} htmlFor="line-price"
-					help={figures && qty > 1
-						? `Per piece${sep}line total ${currency(paid * qty)}`
-						: 'What one piece cost.'}>
-					<FieldShell>
-						<TextInput id="line-price" inputMode="decimal" value={form['line-price']}
-							onChange={set('line-price')} aria-label="Price" aria-required="true"
-							invalid={price.invalid} describedBy={price.describedBy} />
-						<FieldUnit>{currencySymbol()}</FieldUnit>
-					</FieldShell>
-				</Field>
+			<div className="line-card-body">
+				<div className="line-photo">
+					<button type="button" className="line-photo-frame"
+						onClick={() => file.current?.click()}
+						aria-label={photo.present ? 'Replace the photo' : 'Add a photo'}>
+						{photo.src
+							? <img className="line-photo-img" src={photo.src} alt="" />
+							: photo.present
+								? <span className="line-photo-mark"><Icon name="photo" /></span>
+								: <span className="line-photo-mark"><Icon name="photo" />Add photo</span>}
+					</button>
+					<HiddenFileInput ref={file} kind={PHOTO_FILES} label="Line photo" onFiles={take} />
+					<span className="line-photo-foot">
+						<span className="section-label line-card-title line-photo-heading">{heading}</span>
+						<span className="line-photo-name">
+							{form['line-description'].trim() || 'Untitled line'}</span>
+						{photo.present ? (
+							<span className="line-photo-actions">
+								<button type="button" className="line-photo-action"
+									onClick={() => file.current?.click()}>Replace</button>
+								<span className="line-photo-sep" aria-hidden="true">|</span>
+								<button type="button" className="line-photo-action line-photo-action-remove"
+									onClick={onClearPhoto}>Remove</button>
+							</span>
+						) : (
+							<span className="field-help line-photo-hint">Drop a photo here, or paste one you copied</span>
+						)}
+					</span>
+				</div>
+
+				<div className="line-card-fields">
+					<Field className="line-field-wide" label="Line" error={description.error} errorId={description.errorId} htmlFor="line-description">
+						<FieldShell>
+							<TextInput id="line-description" value={form['line-description']} autoFocus
+								onChange={set('line-description')} aria-label="Line description"
+								aria-required="true" invalid={description.invalid}
+								describedBy={description.describedBy} />
+						</FieldShell>
+					</Field>
+					<Field className="line-field-qty" label="Quantity" error={quantity.error} errorId={quantity.errorId} htmlFor="line-quantity">
+						<FieldShell>
+							<TextInput id="line-quantity" inputMode="numeric" value={form['line-quantity']}
+								onChange={v => set('line-quantity')(sanitizeWholeNumber(v))} aria-label="Quantity" aria-required="true"
+								invalid={quantity.invalid} describedBy={quantity.describedBy} />
+							<FieldUnit>pcs</FieldUnit>
+						</FieldShell>
+					</Field>
+					<Field label="Price" error={price.error} errorId={price.errorId} htmlFor="line-price"
+						help={figures && qty > 1
+							? `Per piece${sep}line total ${currency(paid * qty)}`
+							: 'What one piece cost.'}>
+						<FieldShell>
+							<TextInput id="line-price" inputMode="decimal" value={form['line-price']}
+								onChange={v => set('line-price')(sanitizeAmount(v))} aria-label="Price" aria-required="true"
+								invalid={price.invalid} describedBy={price.describedBy} />
+							<FieldUnit>{currencySymbol()}</FieldUnit>
+						</FieldShell>
+					</Field>
+					<Field className="line-field-retail" label="Retail price" htmlFor="line-retail"
+						error={retailField.error} errorId={retailField.errorId}
+						help="Optional. Used to work out how much you saved compared to the retail price.">
+						<FieldShell>
+							<TextInput id="line-retail" inputMode="decimal" placeholder="104,95"
+								aria-label="Retail price" value={form['line-retail']}
+								onChange={v => set('line-retail')(sanitizeAmount(v))}
+								invalid={retailField.invalid} describedBy={retailField.describedBy} />
+							<FieldUnit>{currencySymbol()}</FieldUnit>
+						</FieldShell>
+					</Field>
+
+					{figures && savedEach != null && Number.isFinite(savedEach) ? (
+						<p className={'line-verdict' + (savedEach <= 0 ? ' line-verdict-flat' : '')} role="status">
+							{savedEach > 0
+								? `Saved ${currency(savedEach * qty)}${sep}${percent(savedEach / retail * 100)} off retail`
+								: savedEach === 0
+									? 'Retail matches what was paid — no saving recorded.'
+									: 'Retail is below what was paid — no saving recorded.'}
+						</p>
+					) : null}
+				</div>
 			</div>
 			<FormActions>
 				<Button variant="caps compact" icon="check" onClick={submit}>SAVE LINE</Button>
