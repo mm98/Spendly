@@ -198,7 +198,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 			<FieldShell>
 				<Icon name="search" />
 				<input type="search" value={query}
-					placeholder={total ? `Search ${total.toLocaleString('da-DK')} icons...` : 'Search icons...'}
+					placeholder="Search icons..."
 					aria-label="Search icons" onChange={e => setQuery(e.target.value)} />
 			</FieldShell>
 			<div role="radiogroup" className="icon-picker-grid" aria-label={label} aria-busy={waiting || undefined}>
@@ -228,14 +228,15 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 			</div>
 			{/* What the grid is showing, since it is a window on to five thousand and not the
 			    whole set: a count that says "6 of 5,129" is the difference between a short list
-			    and a broken one. */}
+			    and a broken one. Before a search runs, that same number names nothing the reader
+			    can act on -- it was cut there and kept only where a query has narrowed the list. */}
 			<span className="field-help">
 				{query.trim()
 					? `${names.length}${hits.capped ? '+' : ''} of ${(total ?? 0).toLocaleString('da-DK')} ${names.length === 1 && !hits.capped ? 'icon matches' : 'icons match'}.`
 					: names.length === 0
 						? null
 						: total
-							? `${names.length} already used by a category. Search all ${total.toLocaleString('da-DK')}.`
+							? `${names.length} already used by a category. Search for more.`
 							: `${names.length} already used by a category. Loading the rest...`}
 			</span>
 		</div>

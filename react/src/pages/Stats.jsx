@@ -34,12 +34,14 @@ import { currency, fullStop, percent, plural, sep } from '../api/format.js'
    header: it is the pager's own row, it already wraps, and the buttons in it are the size of
    the buttons beside them. README: Cards. */
 
-/** What a slice of the ring says about its own budget, or nothing where the category has none.
-    The percentage is the window's -- the same ratio the card below prints. Which reading it is
+/** What a slice of the ring says about its own budget, or that it has none. Every row in the
+    list gets a second line either way -- a category with a budget above one without would
+    grow the row it sits in, and the rows would stop lining up at the same height. The
+    percentage is the window's -- the same ratio the card below prints. Which reading it is
     ("124% of budget" over a year is a different sentence from the same words over August) is
     said once in the card's header rather than on all ten rows: the qualifier is the same for
     every row in the card, and repeating it wrapped half of them onto a second line. */
-const splitBudgetMeta = entry => (entry.budget ? `${percent(entry.budgetUsed, 0)} of budget` : null)
+const splitBudgetMeta = entry => (entry.budget ? `${percent(entry.budgetUsed, 0)} of budget` : 'No budget set')
 
 /* Which window a width change lands on, computed here rather than asked for.
 
