@@ -949,6 +949,14 @@ svg.chart { width:100%; display:block; }
 .delta.delta-good { color:var(--text-positive); }
 .delta.delta-bad { color:var(--text-negative); }
 .delta.delta-neutral { color:var(--text-body); }
+/* The delta's own text, wrapped in its own span so the phone rule below can ellipsis it without
+   also clipping the icon, is the same problem this section's own comment already names -- just
+   one element deeper. `.card-kpi span` matches this span directly (it is one), and a rule that
+   wins by matching the element beats one merely inherited from its parent, tone or no tone: every
+   delta rendered this span in --text-muted grey regardless of .delta-good/.delta-bad, on desktop
+   as much as on the phone width the ellipsis rule was written for. color:inherit hands it back to
+   whichever of the three tones above actually applies. */
+.card-kpi .delta-text { color:inherit; }
 .meter { position:relative; height:10px; border-radius:5px; background:var(--bg-meter-track); }
 .meter-fill { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--green); }
 .meter-marker { position:absolute; top:-4px; bottom:-4px; width:2.5px; border-radius:2px; background:var(--text); }
