@@ -262,6 +262,25 @@ Unlike the sort control above, this one is the case the README's stated test doe
 absolute, so no ancestor's `overflow:hidden` clips it, and the document really is wider than the
 window. `scrollWidth` against `clientWidth` read it at every width, on the first run.
 
+## Responsive Layout — the Statistics summary card stayed 376px past the width it was measured at
+
+A design reference for the card's layout carried its own caption: "376 px wide." Built as
+`grid-template-columns: 376px 1fr`, that is exactly what it measured at the window the reference was
+made at and everywhere past it too — **379px at 1440px wide, still 379px at 1800px, still 379px at
+2200px** — while the KPI grid beside it, on `1fr`, took every pixel the window gained. Every other
+multi-column split on the page (`.two-column`, the app's own content grid) is written in fractions and
+grows with the window; this was the one column that did not, and it read as correct at 1440px, which
+is where it happened to be checked.
+
+The reference's number was a measurement of a rendered fraction, not a value to build from — a
+caption stating what one instance of a proportional split came out to, mistaken for a caption stating
+a fixed spec. Fixed to `minmax(320px, 1fr) 2fr`: the KPI grid's `2fr` against the card's `1fr` holds
+an exact third from the width the floor stops binding. **Instrument:** Playwright, Blink 141.0.7390.37,
+`.stats-hero`'s own `getBoundingClientRect().width` read across six viewports on one page load. Before
+the fix, 320px from 901px to 1200px (the floor), then flat at 376–379px through 2200px. After: 320px
+through 1200px, then **379px at 1440, 499px at 1800, 628px at 2200** — a ratio of hero to (hero + KPI
+grid) width of exactly 0.333 at every width from 1440px up.
+
 ## Chrome — the bottom bar sat in the corner of a rounded screen, and the sheet ran under it
 
 Reported from an iPhone: the bottom bar is too slim and too close to the bottom of the screen. The
