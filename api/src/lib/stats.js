@@ -148,6 +148,19 @@ export function shiftWindowId(range, id, delta) {
 	return String(Number(id) + delta)
 }
 
+/** The window a comparison reads against: the one right before it (the default), or the one
+    holding the same day one calendar year earlier — same width either way, so a month compares
+    to a month and a week to a week. 'all' has neither: there is nothing to hold a whole
+    history's worth of orders up against. */
+function comparisonWindowId(userId, range, id, compare) {
+	if (range === 'all') return null
+	if (compare !== 'year') return shiftWindowId(range, id, -1)
+	const bounds = windowBounds(userId, range, id)
+	const at = new Date(bounds.from * 1000)
+	const yearAgo = Date.UTC(at.getUTCFullYear() - 1, at.getUTCMonth(), at.getUTCDate()) / 1000
+	return windowIdAt(range, yearAgo)
+}
+
 const selectWindowTotals = db.prepare(`
 	SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spent, COALESCE(SUM(saved), 0) AS saved,
 		COALESCE(SUM(shipping), 0) AS shipping, COALESCE(SUM(retail), 0) AS retail
@@ -602,7 +615,7 @@ function axisFor(range, from, to) {
     expensive work, so hanging a card's only data source on it meant Orders overview asked for
     a summary, got `returns: null`, and drew a permanent empty state over a month that had four.
     Skip what costs; never skip what something renders. README: Empty states. */
-export function getStats(userId, range, windowId, { summary = false } = {}) {
+export function getStats(userId, range, windowId, { summary = false, compare = 'previous' } = {}) {
 	const width = ['week', 'month', 'quarter', 'year', 'all'].includes(range) ? range : 'month'
 	/* 'all' has one window, so it has one id -- windowBounds ignores the id it is handed for
 	   that width, which used to let `?range=all&period=2022-05` keep a month id in the URL of a
@@ -614,13 +627,21 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 	const bounds = windowBounds(userId, width, id)
 
 	const now = totalsOver(userId, bounds.from, bounds.to)
-	const previousId = shiftWindowId(width, id, -1)
+	const previousId = comparisonWindowId(userId, width, id, compare)
 	const previousBounds = previousId ? windowBounds(userId, width, previousId) : null
 	const was = previousBounds ? totalsOver(userId, previousBounds.from, previousBounds.to) : null
+	/* The window's own short label ("Aug") is unambiguous against the *adjacent* window's --
+	   different months read as different words. Against the same month a year back it is the
+	   same word, so "vs Aug" would read as this window compared to itself. The abbreviated form
+	   carries its year for exactly this case; the adjacent comparison keeps the shorter word it
+	   already had, since two different months never needed one. */
+	const previousShortLabel = previousBounds
+		? (compare === 'year' ? abbrFor(width, previousId) : previousBounds.shortLabel)
+		: null
 
 	const deltaPct = was && was.spent ? Math.round((now.spent / was.spent - 1) * 100) : null
 	const deltaLabel = was
-		? (deltaPct === 0 ? `level with ${previousBounds.shortLabel}` : `${Math.abs(deltaPct)}% ${deltaPct < 0 ? 'down' : 'up'} vs ${previousBounds.shortLabel}`)
+		? (deltaPct === 0 ? `level with ${previousShortLabel}` : `${Math.abs(deltaPct)}% ${deltaPct < 0 ? 'down' : 'up'} vs ${previousShortLabel}`)
 		: null
 
 	const spanName = width === 'all' ? 'the records' : bounds.shortLabel
@@ -648,14 +669,14 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 		window: {
 			id, range: width, from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
 			label: bounds.label, shortLabel: bounds.shortLabel, spanName,
-			unit: unitOf(width), tick: tickFor(width, id), abbr: abbrFor(width, id),
+			unit: unitOf(width), tick: tickFor(width, id), abbr: abbrFor(width, id), compare,
 			axis: axisFor(width, bounds.from, bounds.to),
 			spent: now.spent, deltaLabel, deltaUp: deltaPct != null && deltaPct > 0,
 			// Raw totals, not just the formatted kpis/deltaLabel strings above — a caller
 			// composing its own presentation (Home's dashboard cards) needs the numbers.
 			saved: now.saved, shipping: now.shipping, retail: now.saved + now.spent - now.shipping,
 			orders: now.orders, average: now.average, savedPercent: now.savedPercent,
-			previousTotal: was?.spent ?? null, previousLabel: previousBounds?.shortLabel ?? null,
+			previousTotal: was?.spent ?? null, previousLabel: previousShortLabel,
 			pace: paceFor(width, bounds.from, bounds.to, now.spent),
 			/* Which point on the chart is today, or null when the window is entirely in the past
 			   or entirely ahead. Every line chart in the app draws a marker there and none of
@@ -668,7 +689,7 @@ export function getStats(userId, range, windowId, { summary = false } = {}) {
 			budgets: budgetSummary(budgetRows, cardRowsFor(userId)),
 			recent: summary ? null : recentColumns(userId, width, id, now.spent),
 			returns: returnsIn(userId, bounds.from, bounds.to),
-			kpis: kpisFor(now, was, previousBounds?.shortLabel),
+			kpis: kpisFor(now, was, previousShortLabel),
 			series: {
 				current: cumulate(dailyRows, 'spend'),
 				previous: previousBounds ? seriesOver(userId, previousBounds.from, previousBounds.to) : null,

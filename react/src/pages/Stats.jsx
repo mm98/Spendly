@@ -4,6 +4,7 @@ import { Async } from '../components/Async.jsx'
 import { SkeletonBlock, SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, SectionHeader, SectionLabel } from '../components/Card.jsx'
 import { Chart, ChartScale, RangeTabs, bucketOf, bucketsFor, plotted, sampled, todayMarker } from '../components/Chart.jsx'
+import { Segmented } from '../components/Form.jsx'
 import { Meter, MonthColumns, SpendGauge, WeekdayBars } from '../components/Viz.jsx'
 import { CategoryRow, LegendRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
@@ -42,6 +43,15 @@ import { currency, fullStop, percent, plural, sep } from '../api/format.js'
     said once in the card's header rather than on all ten rows: the qualifier is the same for
     every row in the card, and repeating it wrapped half of them onto a second line. */
 const splitBudgetMeta = entry => (entry.budget ? `${percent(entry.budgetUsed, 0)} of budget` : 'No budget set')
+
+/* What every delta on the page is measured against: the window right before this one, or the
+   same stretch of calendar a year back. One switch, not one per card -- the KPI tiles, the
+   Overview chart's dashed line and the Pace marker all read the same `was` window the API
+   picked, so there is nowhere on the page a second control could disagree with this one about
+   what "compared to" means. README: two controls that describe one thing must not disagree. */
+const COMPARE_LABEL = { previous: 'Previous period', year: 'Same period last year' }
+const COMPARE_CODE = Object.fromEntries(Object.entries(COMPARE_LABEL).map(([code, label]) => [label, code]))
+const COMPARE_OPTIONS = Object.values(COMPARE_LABEL)
 
 /* Which window a width change lands on, computed here rather than asked for.
 
@@ -134,12 +144,23 @@ export default function Stats() {
 	const [params, setParams] = useSearchParams()
 	const range = params.get('range') ?? 'month'
 	const periodId = params.get('period') ?? ''
-	const state = useApi(getStats, [range, periodId])
+	// 'all' has one window and nothing before it to compare against, so the URL cannot hold a
+	// choice that width has no use for -- the same reason 'previous', not 'year', is the one
+	// that never appears in the address bar.
+	const compare = params.get('compare') === 'year' ? 'year' : 'previous'
+	const state = useApi(getStats, [range, periodId, compare])
 
 	const show = (width, id, options) => setParams({
 		...(width === 'month' ? {} : { range: width }),
-		...(id && id !== defaultIdFor(width) ? { period: id } : {})
+		...(id && id !== defaultIdFor(width) ? { period: id } : {}),
+		...(compare !== 'previous' && width !== 'all' ? { compare } : {})
 	}, options)
+
+	const setCompare = mode => setParams({
+		...(range === 'month' ? {} : { range }),
+		...(periodId ? { period: periodId } : {}),
+		...(mode !== 'previous' ? { compare: mode } : {})
+	})
 
 	return (
 		<Page variant="page-grid">
@@ -228,6 +249,14 @@ export default function Stats() {
 						    is a wrong number rather than a missing one. */}
 						<SectionHeader>
 							<SectionLabel>{view.label} in numbers</SectionLabel>
+							{/* 'All time' has no earlier window and no same-time-last-year to hold itself
+							    against -- every delta below is already null for it -- so the switch that
+							    picks between the two would offer a choice this width cannot answer. */}
+							{view.range !== 'all'
+								? <Segmented options={COMPARE_OPTIONS} value={COMPARE_LABEL[compare]}
+									onChange={label => setCompare(COMPARE_CODE[label])}
+									label="Compare statistics to" />
+								: null}
 						</SectionHeader>
 						<div className="kpi-row">
 							{view.kpis.map(kpi => <KpiCard key={kpi.label} {...kpi} />)}

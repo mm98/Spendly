@@ -1298,7 +1298,14 @@ label.field-shell { cursor:pointer; }
    longest name they can reach: "Quarter 2, 2026" measures 128.61px, plus two 32px buttons and
    the row's two 10px gaps, so 212.61px. Held, because the width picker sits directly after it
    -- and without this, choosing Quarter after Year moved every width button 87px sideways and
-   put a different width under the pointer that had just clicked one. README: Statistics. */
+   put a different width under the pointer that had just clicked one. README: Statistics.
+
+   This floor is not what keeps the *right arrow* still, though it reads as if it should be --
+   min-width only stops the row from going narrower than 213px, and a flex row with slack packs
+   its children to the start by default, so the slack lands after the right arrow, not between
+   the heading and it. Measured: "May 2025" left the right arrow at x=397.7, "September 2025" at
+   x=453.8, a 56px swing this rule did nothing to prevent, on a page that pages by clicking that
+   exact arrow. `.pager-heading` below is what actually pins it -- see the comment there. */
 .row-inline > .stats-window { min-width:213px; }
 /* The disclosure's label is the same string in both states and the chevron turns
    instead. The toolbar is nowrap around a flex:1 search field, so a wider "HIDE
@@ -1862,6 +1869,10 @@ label.field-shell { cursor:pointer; }
 	.row-inline > .stats-window { min-width:0; gap:6px; }
 	.space-between > .row-inline { gap:6px; }
 	.stats-window .panel-heading { font-size:14px; }
+	/* The same fixed-width pin as the desktop heading, resized to what the short form actually
+	   needs at 14px: "Nov 2025" and "Dec 2025" are the widest of it, both 68.9px. The desktop
+	   140px would otherwise survive down to this width and force the band back onto two rows. */
+	.stats-window .pager-heading { width:72px; }
 	/* The band's two halves at either end of their row: the arrows and the name they step on the
 	   left, the widths they step by on the right, with the slack between them rather than after
 	   them. The row takes the full width to do it, which is what puts the total and its chip on
@@ -1978,7 +1989,19 @@ label.field-shell { cursor:pointer; }
 
 /* Statistics. */
 .stats-toolbar { flex-wrap:wrap; gap:var(--gap-row); padding:2px 2px 0; }
-.pager-heading { font-size:16px; letter-spacing:-.01em; }
+/* The compare switch sits beside the section label rather than under it, but "October 2026 in
+   numbers" plus two segmented buttons naming "Same period last year" is wider than a phone has --
+   this wraps to a second line there rather than running the switch off the edge of the card. Scoped
+   to a header that actually holds one, so every other .section-header on the page (none yet, but the
+   component is shared) is untouched. */
+.section-header:has(.segmented) { flex-wrap:wrap; row-gap:6px; }
+/* Fixed and centred, not just sized to fit -- the two arrows either side of this read as one
+   pager, and a heading that grows and shrinks with its own text walks the right arrow sideways
+   under the pointer that just clicked it (measured: 397.7px to 453.8px across five widths, see
+   .row-inline > .stats-window above). 140px clears the longest label this ever holds --
+   "September 2025" at 135.8px -- with a few px to spare; a year past 9999 or a locale that
+   writes a longer month name is the one input this floor does not cover. */
+.pager-heading { font-size:16px; letter-spacing:-.01em; display:inline-block; width:140px; text-align:center; }
 .figure-unit { font-weight:500; font-size:14px; color:var(--text-muted); }
 .rhythm-bars { min-height:86px; }
 
