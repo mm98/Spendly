@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { useLocation } from 'react-router'
 import { Sep } from '../components/Sep.jsx'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -389,6 +390,7 @@ function FavouriteVendorsCard({ favouriteVendors, rows }) {
    caption above it and this list's own heading are all height the rows do not get, and none of
    those numbers is written down anywhere. */
 function LatestOrders({ latestOrders, rows }) {
+	const location = useLocation()
 	const [listRef, budget] = useListBudget(rows)
 	return (
 		<div className="entry-list" ref={listRef}>
@@ -396,7 +398,8 @@ function LatestOrders({ latestOrders, rows }) {
 			{latestOrders.slice(0, budget).map(order => (
 				<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
 					meta={dayMonth(order.date)} amount={currency(order.total)}
-					sub={`saved ${currency(order.saved)}`} to={`/orders/${order.id}`} />
+					sub={`saved ${currency(order.saved)}`} to={`/orders/${order.id}`}
+					state={{ from: location.pathname + location.search }} />
 			))}
 		</div>
 	)

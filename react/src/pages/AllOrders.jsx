@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { useLocation, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
@@ -79,6 +79,7 @@ const paramsFromFilters = (filters, query, sort, page) => {
 }
 
 export default function AllOrders() {
+	const location = useLocation()
 	const [params, setParams] = useSearchParams()
 	const filters = useMemo(() => filtersFromParams(params), [params])
 	const query = params.get('q') ?? ''
@@ -321,6 +322,7 @@ export default function AllOrders() {
 					<CardBody variant="card-body-tight">
 						{data.orders.length ? data.orders.map(order => (
 							<OrderRow key={order.id} to={`/orders/${order.id}`}
+								state={{ from: location.pathname + location.search }}
 								order={{ ...order, dateLabel: dayMonth(order.date) }} />
 						)) : data.total === 0 ? (
 							/* Nothing to filter is not "nothing matches": on an account with no orders

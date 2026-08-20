@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
@@ -20,6 +21,7 @@ import { useState } from 'react'
    and is not is the same defect as a control that looks live and does nothing. README: Honest Affordances. */
 
 export default function Orders() {
+	const location = useLocation()
 	const state = useApi(getOrdersOverview)
 	const [breakdown, setBreakdown] = useState('Expenses')
 
@@ -105,7 +107,8 @@ export default function Orders() {
 											{data.latestOrders.map(order => (
 												<EntryRow key={order.id} avatar={order.vendor} name={order.vendor.name}
 													meta={dayMonth(order.date)} amount={currency(order.total)}
-													sub={`saved ${currency(order.saved)}`} to={`/orders/${order.id}`} />
+													sub={`saved ${currency(order.saved)}`} to={`/orders/${order.id}`}
+													state={{ from: location.pathname + location.search }} />
 											))}
 											<Button variant="block" to="/orders/all">SEE ALL</Button>
 										</>

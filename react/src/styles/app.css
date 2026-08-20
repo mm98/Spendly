@@ -767,10 +767,20 @@ svg.chart { width:100%; display:block; }
 	background:var(--bg-inverse-soft); }
 .progress-ring::before { content:""; position:absolute; inset:4px; border-radius:50%; background:var(--bg-dark); }
 .progress-ring-value { position:absolute; inset:0; display:grid; place-items:center; font-size:10px; font-weight:600; z-index:1; }
+/* An example swap for the ring above: a fixed mark naming the card's own feature (scanning
+   text with AI) rather than a fraction of onboarding steps that has nothing to do with it and
+   reads "done" long before the card stops asking to finish setting up. */
+.ai-card-icon { width:40px; height:40px; border-radius:50%; flex:none; display:grid; place-items:center;
+	background:var(--bg-inverse-soft); color:var(--text-inverse); }
+.ai-card-icon svg.icon { width:20px; height:20px; }
 .ai-card-title-text { font-size:13.5px; font-weight:700; }
 .ai-card-title-meta { font-style:normal; font-size:11.5px; color:var(--text-on-dark); }
 .ai-card-header .chevron { margin-left:auto; color:var(--text-on-dark); }
-.ai-card-headline { font-size:16px; font-weight:700; letter-spacing:-.01em; margin:2px 0 8px; }
+/* Top margin matches .ai-card-actions' own gap-block below the body, rather than the 2px it
+   used to carry -- that value sat the headline almost flush under the header's meta line, so
+   the two read as one merged block while the card's 18px padding and 12px action gap around
+   them stayed generous. One rhythm for the space inside the card, not two. */
+.ai-card-headline { font-size:16px; font-weight:700; letter-spacing:-.01em; margin:var(--gap-block) 0 8px; }
 .ai-card-body { font-size:12.5px; color:var(--text-on-dark); line-height:1.55; margin:0; }
 .ai-card-actions { display:flex; align-items:center; gap:18px; margin-top:var(--gap-block); }
 /* White on the dark card, rather than a button of its own. */
@@ -1677,13 +1687,13 @@ label.field-shell { cursor:pointer; }
 	/* minmax(0,1fr), not 1fr: 1fr is minmax(auto,1fr) and inflates on a nowrap price
 	   or a fixed chip, which is the clipping this layout keeps hitting. README: Responsive Layout. */
 	.order-list-grid { grid-template-columns:minmax(0,1fr); }
-	/* The order row's fixed columns (auto + 150px + 26px + gaps) cannot fit a phone,
-	   so it stacks: identity and chevron on top, status and total beneath. */
-	.order-row { grid-template-columns:minmax(0,1fr) auto auto; grid-template-areas:"m m c" "s t t"; row-gap:8px; column-gap:var(--gap-row); }
-	.order-row > *:first-child { grid-area:m; }
-	.order-row > .chip-status { grid-area:s; justify-self:start; }
-	.order-row > .order-row-total { grid-area:t; }
-	.order-row > .order-row-chevron { grid-area:c; }
+	/* The order row's fixed columns (auto + 150px + 26px + gaps) cannot fit a phone
+	   with the status chip in the row too, and stacking it under the identity to make
+	   room was the old fix -- it wrapped the row onto two lines while every other row
+	   in this list stays one and truncates. The chip drops on phone instead, and
+	   identity, total and chevron stay one line, truncating like the rest. */
+	.order-row { grid-template-columns:minmax(0,1fr) auto auto; column-gap:var(--gap-row); }
+	.order-row > .chip-status { display:none; }
 	.row-inline { flex-wrap:wrap; }
 	.space-between { flex-wrap:wrap; }
 	/* Wrapping needs height:auto, but the buttons have no vertical padding to fall
