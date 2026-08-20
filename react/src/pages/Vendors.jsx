@@ -1,15 +1,13 @@
-import { useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
 import { LegendRow } from '../components/Rows.jsx'
-import { FavouriteTile, FavouriteTileGrid, UnstarDialog } from '../components/FavouriteTiles.jsx'
+import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.jsx'
 import { Donut, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
-import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
-import { failureMessage, getVendors, invalidateVendorData, updateVendor } from '../api/client.js'
+import { getVendors } from '../api/client.js'
 import { currency, plural, sep } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
@@ -27,20 +25,6 @@ export default function Vendors() {
 	/* The same request the All vendors tab reads, under the same cache key -- the spotlight/
 	   list split is this page's own reshape of that one answer, below. */
 	const state = useApi(getVendors)
-	const toast = useToast()
-	/* The vendor whose star was clicked, held while the dialog asks. The star sits in every
-	   tile's corner, so it is asked for confirmation rather than acted on -- see UnstarDialog. */
-	const [unstarring, setUnstarring] = useState(null)
-
-	const toggleFavourite = vendor => {
-		updateVendor(vendor.id, { favourite: !vendor.favourite })
-			.then(() => {
-				invalidateVendorData()
-				state.refresh()
-				toast(`${vendor.name} ${vendor.favourite ? 'removed from' : 'added to'} favourites.`)
-			})
-			.catch(e => toast(failureMessage(e, 'That did not save.'), 'negative'))
-	}
 
 	return (
 		<Page variant="page-grid">
@@ -146,33 +130,27 @@ export default function Vendors() {
 														tone: vendor.saved > 0 ? 'positive' : undefined },
 													{ label: 'Latest', value: vendor.latest ? currency(vendor.latest.total, 0) : '—' }
 												]}
-												onUnstar={() => setUnstarring(vendor)}
-												unstarLabel={`Remove ${vendor.name} from favourites`} />
+												editTo={`/vendors/${vendor.id}/edit`}
+												editLabel={`Edit ${vendor.name}`} />
 										))}
 									</FavouriteTileGrid>
 								) : (
 									/* With vendors, the sentence names the next step and the button opens the
-									   list the starring happens from; with none there is no vendor to star and
-									   nothing for the button to show, so neither claim is made. */
+									   list a favourite is turned on from; with none there is no vendor to
+									   favourite and nothing for the button to show, so neither claim is made. */
 									<EmptyState>
 										{all.length ? (
 											<>
-												<p>No favourites yet. Star a vendor on its own page and it appears here.</p>
+												<p>No favourites yet. Turn on Favourite when editing a vendor and it appears here.</p>
 												<Button variant="block" to="/vendors/all">ALL VENDORS</Button>
 											</>
 										) : (
-											<p>No vendors to star yet. Your first order creates its vendor.</p>
+											<p>No vendors to favourite yet. Your first order creates its vendor.</p>
 										)}
 									</EmptyState>
 								)}
 							</CardBody>
 						</Card>
-
-						{unstarring ? (
-							<UnstarDialog name={unstarring.name}
-								onConfirm={() => { toggleFavourite(unstarring); setUnstarring(null) }}
-								onCancel={() => setUnstarring(null)} />
-						) : null}
 					</>
 				)
 			}}</Async>

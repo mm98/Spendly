@@ -3,7 +3,7 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { EntityRow } from '../components/Rows.jsx'
+import { EntityRow, EntityMark } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { FieldShell } from '../components/Form.jsx'
@@ -100,9 +100,11 @@ export default function AllCategories() {
 						<CardBody>
 							{paged.rows.map(category => (
 								<EntityRow key={category.id}
-									mark={<span className="category-icon"
-										style={{ background: category.colour, color: inkOn(category.colour) }}>
-										<Icon name={category.icon} path={category.iconPath} /></span>}
+									mark={<EntityMark favourite={category.favourite}>
+										<span className="category-icon"
+											style={{ background: category.colour, color: inkOn(category.colour) }}>
+											<Icon name={category.icon} path={category.iconPath} /></span>
+									</EntityMark>}
 									name={category.name}
 									meta={category.budget
 										? `${percent(category.share)} of expenses${sep}${currency(category.monthSpend, 0)} of ${currency(category.budget, 0)} budget this month`
