@@ -15,7 +15,7 @@
    - home.png        1440x900 dSF2, Home
    - all-orders.png  1440x900 dSF2, /orders/all?vendor=bilka&status=Delivered&from=2026-07-01&to=2026-07-31,
                      FILTERS panel open, finder open with 'bil' typed. 3 matching.
-   - phone.png       iPhone 13 descriptor, dSF overridden to 2, Home. 780x1328.
+   - phone.png       iPhone 15 descriptor, dSF overridden to 2, Home. 786x1318.
    Account: fresh, demo fill {seed: 1, months: 2, orders: 30} -- the dataset is a function of
    (seed, today), so the params are re-picked on a render day to give the all-orders state its
    3 July Bilka Delivered matches; today seed 1 does. */
@@ -141,7 +141,7 @@ await diff(page, 'all-orders.png')
 await desktop.close()
 
 // -- phone: home --
-const phoneCtx = await browser.newContext({ ...devices['iPhone 13'], ...READER, deviceScaleFactor: 2 })
+const phoneCtx = await browser.newContext({ ...devices['iPhone 15'], ...READER, deviceScaleFactor: 2 })
 await freshAccount(phoneCtx)
 const phone = await phoneCtx.newPage()
 phone.setDefaultTimeout(2000)
