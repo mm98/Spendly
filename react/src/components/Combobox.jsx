@@ -84,6 +84,18 @@ export function Combobox({
 	   a shared top edge, so both fields still start on the same line. README: Combobox. */
 	const wrapping = Boolean(chips)
 
+	/* The shell is the whole clickable field -- the border, the chevron, the padding around
+	   the text -- not just the input inside it. Without this, only the input's own onClick
+	   opened the list, so the chevron and the rest of the box did nothing, which reads as a
+	   dead control everywhere the input doesn't fill the shell (the width picker, every
+	   toolbar sort). A click already on a real button here -- a chip's own remove -- keeps
+	   its own effect and does not also reopen the list. */
+	const onShellClick = e => {
+		if (e.target.closest('button')) return
+		input.current?.focus()
+		setOpen(true)
+	}
+
 	/* The action row is "create what was typed," so there is nothing to create until something
 	   is typed -- CREATE VENDOR "" offered a vendor with no name. And typing the name of one
 	   that already exists should pick it, not offer a second one of the same name, which is
@@ -169,7 +181,7 @@ export function Combobox({
 	   rather than sitting in a wrapper div holding an inline width. */
 	return (
 		<div className={join('combobox', open && 'is-open', className)} ref={wrapper}>
-			<div className={join('field-shell', wrapping && 'field-shell-chips')}>
+			<div className={join('field-shell', wrapping && 'field-shell-chips')} onClick={onShellClick}>
 				{leadingIcon ? <Icon name={leadingIcon} /> : null}
 				{chips}
 				{inputEl}
