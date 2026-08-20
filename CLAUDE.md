@@ -12,7 +12,7 @@ still mentions it, that is history: react/ is the one place the system is built.
 `README.md` is the design system the app implements; `docs/` holds the screenshots that document shows
 and the defect log its rules link to.
 
-## The user is not technical
+## The user is not technical, and English is not their first language
 
 Write anything the user reads — chat replies, and app copy alike — in plain language. No jargon,
 no framework or implementation words, no phrasing that assumes the reader knows how software is
@@ -22,6 +22,14 @@ engineer's mental model of a deploy, not a sentence written for someone using th
 something a non-technical person reads once and immediately understands what will happen and what
 they might lose. The same care applies to explanations in chat: say what changed and what to do
 about it, not how the mechanism works underneath.
+
+The user is Danish, reading in a second language, so a sentence can clear the jargon bar above and
+still fail: "Reloading loads it now" is not a technical word in sight and is still hard to parse,
+because it is circular rather than idiomatic — the same trap a non-native reader hits from the
+other direction. Prefer short, literal sentences over idiom, phrasal verbs, or a clause that
+doubles back on its own subject ("reloading" ... "loads"). Say the plain action and the plain
+consequence, in that order: what happens, then what you lose. When in doubt, read the sentence as
+if translating it word for word — if it stops making sense translated, rewrite it before it ships.
 
 ## Division of labour
 
