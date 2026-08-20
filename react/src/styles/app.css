@@ -1955,8 +1955,13 @@ label.field-shell { cursor:pointer; }
    above the KPI tiles. README: Statistics, Cards. Beside it rather than under it once there is
    room: the tiles are what the card is about, so they read as its neighbour, not as a section
    that starts two controls and a caption later. Below 900px there isn't room for a 376px card
-   plus a two-tile-wide grid without squeezing one of them, so the row stacks instead. */
-.stats-hero-row { display:grid; grid-template-columns:1fr; gap:var(--gap-cards); align-items:start; }
+   plus a two-tile-wide grid without squeezing one of them, so the row stacks instead.
+
+   No align-items override: Grid's own default is stretch, the same one .two-column relies on
+   to keep Pace and Weekly rhythm the same height as each other. Written here once as start, the
+   hero card stopped short of the taller KPI grid beside it and left a bare gap under the card
+   before Overview started -- a gap under the short card's *side*, not the row's actual spacing. */
+.stats-hero-row { display:grid; grid-template-columns:1fr; gap:var(--gap-cards); }
 @media (min-width:901px) {
 	.stats-hero-row { grid-template-columns:376px 1fr; }
 }
@@ -1967,14 +1972,22 @@ label.field-shell { cursor:pointer; }
 .stats-hero-row .kpi-row { grid-template-columns:repeat(2, minmax(0,1fr)); }
 
 .stats-hero { display:flex; flex-direction:column; gap:14px; }
-.stats-hero-pager { display:flex; align-items:center; gap:var(--gap-row); }
+.stats-hero-pager { display:flex; align-items:center; gap:8px; }
 /* Fixed and centred, not just sized to fit -- the two arrows either side of this read as one
    pager, and a heading that grows and shrinks with its own text walks the right arrow sideways
    under the pointer that just clicked it (measured: 397.7px to 453.8px across five widths before
    this was fixed-width). 140px clears the longest label this ever holds -- "September 2025" at
    135.8px -- with a few px to spare; a year past 9999 or a locale that writes a longer month name
-   is the one input this floor does not cover. */
-.pager-heading { font-size:16px; letter-spacing:-.01em; display:inline-block; width:140px; text-align:center; }
+   is the one input this floor does not cover.
+
+   flex-shrink:0, on this and the two arrows below: a flex row that runs a few px over its
+   container by default shrinks its flexible children to fit, and 140px that can shrink is not
+   actually fixed -- it shrank to 133.6px the moment the width picker's own box grew a few px
+   (matching the chevrons' height), which was under the 135.8px "September 2025" needs and wrapped
+   it to two lines. Fixed means never smaller than 140px; the row overflows if it must, rather
+   than silently un-fixing the one measurement this rule exists to hold. */
+.pager-heading { font-size:16px; letter-spacing:-.01em; display:inline-block; width:140px; flex-shrink:0; text-align:center; white-space:nowrap; }
+.stats-hero-pager .pager-arrow { flex-shrink:0; }
 /* .icon-button paints itself a white card with a border -- correct on the sheets it was written
    for, a stray white chip on this dark card -- so the pager arrows here give both up for the
    same translucent-on-dark treatment the rest of the card's own chrome uses. */
@@ -1985,7 +1998,12 @@ label.field-shell { cursor:pointer; }
    Combobox -- the app's one dropdown pattern): typing still filters its five rows, Escape still
    closes it, only its trigger's skin and the panel's width and side are its own. */
 .stats-window-select { margin-left:auto; flex:none; }
-.stats-window-select .field-shell { width:auto; height:28px; padding:0 10px; border:0; border-radius:999px; background:rgb(255 255 255 / .1); gap:4px; }
+/* The app's own chip -- .chip in this file -- rather than a shape invented for this one
+   trigger: --pad-chip on each side, --radius-compact corners, same as every other compact
+   control with a chevron. 32px tall rather than the chip's usual 28px, to match the two arrow
+   buttons it shares a row with -- three controls of different heights in one pager reads as
+   two rows pretending to be one. Only the colours are its own, for sitting on a dark card. */
+.stats-window-select .field-shell { width:auto; height:32px; padding:0 var(--pad-chip); gap:var(--gap-icon); border:1px solid rgb(255 255 255 / .18); border-radius:var(--radius-compact); background:rgb(255 255 255 / .1); }
 /* The base rule (.field-shell > input) sizes the input to fill whatever room a full-width form
    field gives it -- flex:1, width:100% -- which is exactly wrong for a five-word pill sitting in
    a flex row with real estate to spare: on a phone, where the pager row has most of the card's
