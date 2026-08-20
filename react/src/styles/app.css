@@ -455,7 +455,14 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    dark bar -- so it gives both up and carries the muted ink the dark surface already defines. */
 .update-notice .icon-button-clear { background:transparent; border-color:transparent; color:var(--text-on-dark); }
 .content-grid { display:grid; grid-template-columns:minmax(0,1.78fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
-.content-column-main, .content-column-side { display:grid; gap:var(--gap-cards); min-width:0; }
+/* No grid-template-columns used to be set here, so each was an implicit single-column grid
+   sized `auto` -- the same min-content floor as a bare `1fr` track, just with no fraction
+   written down to give it away. A long vendor name in a card here sized the column to the
+   name's own full width and overflowed the 366px the outer .content-grid track actually
+   grants it, `min-width:0` on this element notwithstanding: that stops *this* box from being
+   pushed by its own content, not its column track from being sized by its content.
+   README: Responsive Layout. */
+.content-column-main, .content-column-side { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); min-width:0; }
 
 /* card */
 /* Elevation rule: flat surfaces carry a border, never a shadow.
@@ -468,7 +475,10 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    rather than the token, so --radius-card only moved three of the four. They are
    variants now: class="card card-kpi". */
 .card { background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-card); }
-.card.card-kpi { padding:16px 18px; display:grid; gap:2px; }
+/* minmax(0,1fr), not the implicit auto column no grid-template-columns leaves behind: a
+   note naming the busiest vendor or category ("X is the most frequent") is otherwise sized
+   to that name's own full width rather than the tile's. README: Responsive Layout. */
+.card.card-kpi { padding:16px 18px; display:grid; grid-template-columns:minmax(0,1fr); gap:2px; }
 /* The pale prompt card. One user left: the scan page's "What the AI checks" panel, which
    writes the markup itself. The QuestionCard component that also drew it is gone with the
    question-of-the-day cards, and these three rules nearly went with it -- a match count is
@@ -498,7 +508,10 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    sat anywhere else wrote the spec out by hand -- at 11px against the 11.5px
    the CSS gives the other 39. */
 .section-label { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); }
-.card-caption { font-size:10.5px; color:var(--text-muted); }
+/* Block, not the bare span's own inline: text-overflow has no effect on an inline box, and a
+   vendor or category name inside this caption (Top vendors, Top categories) is as long as
+   whoever named it made it, with no truncate anywhere in the chain to catch it. */
+.card-caption { display:block; font-size:10.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .card-header .chevron { color:var(--text-body); }
 .chevron { display:inline-flex; align-items:center; color:var(--text-faint); }
 /* Icon size is the container's business, not the markup's. svg.icon is 18px and
@@ -632,8 +645,14 @@ svg.chart { width:100%; display:block; }
 /* The label was a bare text node taking 12.5px off the row, which is how the one list
    with no element around its own label ended up half a point under every other list's
    title. It is a part with a name now, at the row spec's 13/600. README: Data Rows. */
+/* min-width:0 on the title itself, not just on wrappers that happen to carry it: a
+   LegendRow with no meta line renders this title as a bare flex child of the row with no
+   .chart-legend-row-text around it to hold the min-width:0 the wrapped case relies on, and a
+   flex item's automatic minimum is its content width otherwise -- the truncate above never
+   engaged and a long vendor or category name pushed the row past the card. README: Data Rows,
+   Responsive Layout. */
 .chart-legend-row-title, .card-tray-row-title, .category-row-title,
-.entry-list .entry-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.entry-list .entry-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 /* The title and its meta line stack; the row itself stays the flex row every other legend
    entry is, so a row with no meta is unchanged to the pixel. Same 11px muted meta as
    .category-row-meta, and the same one line with an ellipsis .item-row-meta already had --
@@ -720,7 +739,10 @@ svg.chart { width:100%; display:block; }
 .donut .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:1px; z-index:1; text-align:center; }
 .donut .ring-centre-value { font-size:16.5px; font-weight:700; letter-spacing:-.01em; }
 .donut .ring-centre-label { font-style:normal; font-size:9.5px; color:var(--text-muted); }
-.category-rows { margin-top:var(--gap-block); display:grid; }
+/* Same implicit-column trap as .content-column-side above: with no grid-template-columns of
+   its own, this was an auto-sized single column that floored at the widest category name's
+   own width rather than the card's. README: Responsive Layout. */
+.category-rows { margin-top:var(--gap-block); display:grid; grid-template-columns:minmax(0,1fr); }
 .card-body > .category-rows:first-child { margin-top:0; }
 .category-row { border-top:1px solid var(--border-divider); }
 .category-row:first-child { border-top:0; }
@@ -860,15 +882,20 @@ svg.chart { width:100%; display:block; }
 .item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .item-row .amount { margin-left:auto; color:var(--text); font-weight:600; font-size:13px; white-space:nowrap; }
 .key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid var(--border-control); background:var(--bg-control-tint); font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
-.chip { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:28px; padding:0 var(--pad-chip); border-radius:var(--radius-compact); border:1px solid var(--border-control); background:var(--bg-card); font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; }
-.chip svg.icon { width:13px; height:13px; color:var(--chip-glyph); }
+.chip { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:28px; max-width:100%; padding:0 var(--pad-chip); border-radius:var(--radius-compact); border:1px solid var(--border-control); background:var(--bg-card); font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; }
+.chip svg.icon { width:13px; height:13px; flex:none; color:var(--chip-glyph); }
+/* A category or an alias names itself, so this is as long as whoever named it made it. The
+   chip wraps to a new line rather than widening past its field (.field-shell-chips already
+   wraps), but a single chip longer than the field on its own still needs a floor -- this is
+   it: the chip stops at its container's width and cuts the name, not the icons beside it. */
+.chip-label { min-width:0; overflow:hidden; text-overflow:ellipsis; }
 /* Selection may not change a segment's text metrics: the track is width:max-content, so
    a heavier active label resizes the control and everything sharing its row. The pill
    carries the selection alone. README: Segmented Control. */
 .segmented button { font:inherit; white-space:nowrap; padding:9px 19px; border-radius:11px; font-size:13px; font-weight:500; color:var(--text-body); cursor:pointer; border:0; background:transparent; }
 .segmented button.is-on { background:var(--bg-dark); color:var(--text-inverse); }
 .page-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
-.two-column { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-cards); }
+.two-column { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--gap-cards); }
 .button.button-block { display:flex; width:100%; height:44px; padding:0; gap:var(--gap-icon); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; margin-top:var(--gap-block); }
 .button-link { font:inherit; background:none; border:0; padding:0; display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-decoration:underline; text-underline-offset:3px; color:var(--text); cursor:pointer; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
@@ -926,7 +953,11 @@ svg.chart { width:100%; display:block; }
 .form { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-panel); max-width:640px; }
 .form-wide { max-width:none; }
 .form > * { min-width:0; }
-.field { display:grid; gap:7px; align-content:start; min-width:0; }
+/* Same implicit-column trap as .content-column-side and .category-rows above: with no
+   grid-template-columns of its own this was an auto-sized single column, and a field holding a
+   chips list (a category name per chip) sized the column to the widest chip's own max-content
+   -- 497px of column inside a 324px field. README: Responsive Layout. */
+.field { display:grid; grid-template-columns:minmax(0,1fr); gap:7px; align-content:start; min-width:0; }
 .field > span { font-size:13px; font-weight:600; color:var(--text); }
 .field > span.field-help { font-size:12px; font-weight:500; color:var(--text-muted); }
 /* The rejection message, under the field it rejects. Same specificity trap as
@@ -939,7 +970,7 @@ svg.chart { width:100%; display:block; }
 .kpi-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--gap-panel); }
 .card-kpi span { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); font-weight:600; }
 .card-kpi .card-kpi-value { font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.02em; text-transform:none; font-weight:700; }
-.card-kpi .card-kpi-label { font-size:12px; color:var(--text-muted); letter-spacing:normal; text-transform:none; font-weight:500; }
+.card-kpi .card-kpi-label { display:block; font-size:12px; color:var(--text-muted); letter-spacing:normal; text-transform:none; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .delta { display:inline-flex; align-items:center; gap:var(--gap-icon); font-size:12px; font-weight:600; }
 /* Three tones, because a delta has three things to say and only ever had two colours for them.
    Neutral used to carry both "moved the wrong way" and "there is nothing to compare against",
@@ -1267,7 +1298,11 @@ label.field-shell { cursor:pointer; }
 .stepper-step.stepper-step-done .stepper-bar { background:var(--green); }
 .stepper-step.stepper-step-done .stepper-step-label { color:var(--text); }
 .summary-row { display:flex; justify-content:space-between; gap:var(--gap-row); padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); font-size:13px; color:var(--text-muted); }
-.summary-row-value { font-weight:600; color:var(--text); text-align:right; }
+/* Every other value here is a fixed-width figure, so this never needed to shrink until the
+   order summary started putting the vendor name and every category name in it -- a name is as
+   long as whoever typed it made it, and the row had nothing to stop it pushing the card wide.
+   flex:1 min-width:0 so it can actually give up the width, not just be told to. */
+.summary-row-value { flex:1; min-width:0; font-weight:600; color:var(--text); text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .summary-row-value-saving { color:var(--text-positive); }
 /* The rule is "last in its run", and the run ends three different ways across
    the six lists -- at the end of the card body, at a .card-divider before the
@@ -1469,15 +1504,15 @@ label.field-shell { cursor:pointer; }
 .line-saved { display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-positive); }
 .line-saved svg.icon { width:13px; height:13px; }
 .line-total-row { display:flex; align-items:baseline; justify-content:space-between; gap:var(--gap-row); flex-wrap:wrap; margin-top:10px; font-size:12.5px; font-weight:600; color:var(--text-strong); }
-@media (max-width:900px) { .two-column { grid-template-columns:1fr; } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:900px) { .two-column { grid-template-columns:minmax(0,1fr); } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
 /* ---------------- responsive ---------------- */
 @media (max-width:1180px) {
-	.content-grid { grid-template-columns:1fr; }
+	.content-grid { grid-template-columns:minmax(0,1fr); }
 	.dashboard-cards { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
 @media (max-width:900px) {
-	.dashboard-cards { grid-template-columns:1fr 1fr; }
+	.dashboard-cards { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
 	/* The phone layout starts at 700, so from 701 to 900 the 236px sidebar is still
 	   standing while the panel is still two columns, and a vendor or category name
 	   is down to 165px -- a phone in landscape (844) sits inside that band. This row
@@ -1801,7 +1836,7 @@ label.field-shell { cursor:pointer; }
 	   first card below the fold, and the tabs are a set you scan, not a paragraph. */
 	.page-bar { padding:6px var(--gutter-page) 2px; overflow-x:auto; scrollbar-width:none; }
 	.segmented { flex-wrap:nowrap; }
-	.dashboard-cards { grid-template-columns:1fr; }
+	.dashboard-cards { grid-template-columns:minmax(0,1fr); }
 	/* One favourite per row, the tile a little tighter: the mark and the star flank the
 	   name at full width, and the headline steps down with the phone's other figures. */
 	.fav-tile-grid { grid-template-columns:1fr; gap:var(--gap-row); }
@@ -1827,7 +1862,14 @@ label.field-shell { cursor:pointer; }
 	   flex:none on the rings because a column flex resolves shrink against the height, and a
 	   170px gauge with a long legend under it is exactly the item that gets squashed.
 	   README: Charts, Responsive Layout. */
-	.ring-row { flex-direction:column; align-items:stretch; gap:var(--gap-block); }
+	/* nowrap, not the row layout's own wrap: the base rule's flex-wrap:wrap existed to break
+	   the ring and the legend onto two lines when they no longer fit side by side, and it is
+	   still set here because nothing had unset it. With only these two items and a column
+	   direction, that wrap turns the single line's cross size (width) content-based rather
+	   than stretched to the card -- a long vendor or category name in the legend then sized
+	   the legend to its own text instead of to the 364px the card actually has, 569px against
+	   a card that fits 364. README: Charts, Responsive Layout. */
+	.ring-row { flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:var(--gap-block); }
 	.ring-row > .donut, .ring-row > .spend-gauge { align-self:center; flex:none; margin-top:6px; }
 	/* The legend is the full width of the card now, so the two-column floor is what would
 	   keep it from fitting rather than what makes it fit. Its own 4px lead-in was a spacer
@@ -1964,7 +2006,12 @@ label.field-shell { cursor:pointer; }
 .item-row-grip:disabled { cursor:default; opacity:.4; }
 
 /* Order detail. */
-.order-title { font-size:22px; font-weight:600; letter-spacing:-.01em; }
+/* min-width:0 on the wrapper, truncate on the title: a vendor name is as long as the vendor
+   picked it, this heading sits in a flex row beside the edit and delete buttons, and neither
+   of those buttons is width to spend. The full name stays one action away on the edit page's
+   own vendor field. README: Order Detail, Responsive Layout. */
+.order-head-text { min-width:0; }
+.order-title { font-size:22px; font-weight:600; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .order-subtitle { font-size:12.5px; }
 .order-head-actions { gap:8px; }
 .order-chips { gap:6px; margin-top:var(--gap-block); flex-wrap:wrap; }

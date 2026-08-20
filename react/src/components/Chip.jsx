@@ -15,7 +15,7 @@ const join = (...parts) => parts.filter(Boolean).join(' ')
 export function Chip({ children, onRemove, label, icon, className, ...rest }) {
 	const content = (
 		<>
-			{children}
+			<span className="chip-label">{children}</span>
 			{icon ? <Icon name={icon} /> : null}
 			{onRemove ? <Icon name="close" /> : null}
 		</>

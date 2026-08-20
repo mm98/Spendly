@@ -114,7 +114,7 @@ export default function OrderDetail() {
 						<Card aria-label="Order">
 							<CardBody variant="card-body-page">
 								<div className="space-between space-between-top">
-									<div>
+									<div className="order-head-text">
 										<div className="order-title">
 											{order.vendor?.name}</div>
 										<div className="field-help order-subtitle">
