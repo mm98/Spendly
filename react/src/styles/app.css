@@ -633,12 +633,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .chart-callout { position:absolute; left:34%; top:26%; background:var(--bg-card); border-radius:var(--radius-page); box-shadow:0 2px 6px rgb(var(--shadow-ink) / .06), 0 14px 34px rgb(var(--shadow-ink) / .12); padding:10px 14px; font-size:11px; color:var(--text-body); max-width:264px; line-height:1.5; visibility:hidden; }
 .chart-callout { border-radius:16px; }
 .chart-wrap:hover .chart-callout, .chart-wrap:focus-within .chart-callout { visibility:visible; }
-.compare-tabs { display:flex; margin-top:6px; box-shadow:inset 0 -1px 0 var(--border-divider); }
-.compare-tabs button { flex:1; font:inherit; background:none; border:0; text-align:center; padding:10px 4px 12px; cursor:pointer; border-bottom:2px solid transparent; }
-.compare-tabs .compare-tabs-value { display:block; font-size:13px; font-weight:600; color:var(--text); }
-.compare-tabs .compare-tabs-label, .chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
-.compare-tabs button.is-on { border-bottom-color:var(--text); }
-.compare-tabs button:not(.is-on) .compare-tabs-value { color:var(--text-muted); }
+.chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
 .chart-legend { margin-top:4px; }
 .chart-legend-row { border-top:1px solid var(--border-divider); }
 .chart-legend-row:first-child { border-top:0; }
@@ -674,8 +669,6 @@ svg.chart { width:100%; display:block; }
 /* dashboard card row */
 .dashboard-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--gap-cards); }
 .figure-card { font-size:21px; font-weight:700; letter-spacing:-.02em; }
-/* The vendor cards ride in a horizontal scroller and take the smaller figure. */
-.vendor-grid .figure-card { font-size:17px; }
 
 /* card personalisation.
    Reordering is button-driven, never drag-only: a keyboard has to be able to do
@@ -1389,16 +1382,6 @@ label.field-shell { cursor:pointer; }
 /* Placed after the variants on purpose: it weighs the same as they do, so it only
    wins by sitting later in the file. Moving it up silently restores the 38px tier. */
 .button.button-compact { height:32px; padding:0 var(--pad-control-compact); font-size:10.5px; border-radius:var(--radius-compact); }
-/* padding-bottom is the band the horizontal scrollbar sits in, not decoration -- at 4px a
-   classic 15px bar is drawn hard against the cards' bottom border and reads as covering
-   them. It is the same 14px as the gap between the cards, so the bar gets a lane of its
-   own. README: Views. */
-/* Wraps rather than scrolls sideways. It was one row of columns with overflow-x:auto, which
-   put every vendor past the fourth behind a horizontal scrollbar -- fine for the five the API
-   used to answer with, and a filing cabinet on its side once it answers with all of them.
-   auto-fill lets the row take as many as fit, so the count follows the width instead of a
-   number written here: four across the desktop column, fewer as it narrows, one on a phone. */
-.vendor-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:var(--gap-panel); }
 /* A ring beside the rows that name its segments. Was .spend-gauge-row, which named the one
    ring that happened to use it first -- Categories' Breakdown ring needs the same arrangement
    and has no gauge on the page, so the class is named for the arrangement instead. */
@@ -2040,13 +2023,9 @@ label.field-shell { cursor:pointer; }
 .tok-num { color:var(--blue); }
 .tok-pun { color:var(--text-muted); }
 .tok-req { color:var(--text); font-weight:700; }
-.tok-note { color:var(--text-muted); }
 .import-caption { display:block; margin:0 0 16px; }
 .import-rules { margin:0 0 16px; padding-left:16px; display:grid; gap:6px; font-size:12px; color:var(--text-muted); }
 .import-rules code, .card-body .field-help code { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; color:var(--text-body); background:var(--bg-inset); padding:1px 4px; border-radius:4px; }
-
-/* Vendor overview's per-card actions. */
-.entity-actions { margin-top:10px; }
 
 /* Reduced motion calms the interface but must never freeze a busy indicator:
    a stopped spinner reads as a hung app. Progress keeps moving, just slower. */
