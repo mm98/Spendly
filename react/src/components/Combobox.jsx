@@ -37,9 +37,16 @@ const isSelected = (label, query) => {
 	return Boolean(needle) && label.toLowerCase() === needle.toLowerCase()
 }
 
+/* `pickOnly`: Sort by, a currency, a date format -- every list here that is chosen from
+   rather than typed into. The field is still a real `<input>`, because everything about
+   opening and walking the list is the same either way, but without this it looks editable:
+   a click drops a blinking caret in it and invites the letters that `onChange={() => {}}`
+   then quietly discards. `readOnly` on the input is what removes the caret and the mobile
+   keyboard along with it, while leaving the click, the arrow keys and Enter exactly as they
+   were -- none of those go through `onChange`. README: Combobox. */
 export function Combobox({
 	value, onChange, onSelect, groups = [], action, placeholder, label, required,
-	leadingIcon, id, invalid, describedBy, children, chips, trail, className
+	leadingIcon, id, invalid, describedBy, children, chips, trail, className, pickOnly
 }) {
 	const [open, setOpen] = useState(false)
 	const wrapper = useRef(null)
@@ -136,8 +143,8 @@ export function Combobox({
 	}, [active, activeOption, panelId])
 
 	const inputEl = (
-		<input ref={input} type="text" id={id} role="combobox"
-			aria-expanded={open} aria-controls={panelId} aria-autocomplete="list"
+		<input ref={input} type="text" id={id} role="combobox" readOnly={pickOnly}
+			aria-expanded={open} aria-controls={panelId} aria-autocomplete={pickOnly ? 'none' : 'list'}
 			aria-label={label} aria-required={required || undefined}
 			aria-invalid={invalid ? 'true' : undefined}
 			aria-describedby={invalid ? describedBy : undefined}
