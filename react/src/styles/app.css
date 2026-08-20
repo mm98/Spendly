@@ -1974,7 +1974,7 @@ label.field-shell { cursor:pointer; }
    this was fixed-width). 140px clears the longest label this ever holds -- "September 2025" at
    135.8px -- with a few px to spare; a year past 9999 or a locale that writes a longer month name
    is the one input this floor does not cover. */
-.pager-heading { font-size:16px; letter-spacing:-.01em; display:inline-block; width:140px; text-align:center; border-bottom:1px dashed rgb(255 255 255 / .32); padding-bottom:2px; }
+.pager-heading { font-size:16px; letter-spacing:-.01em; display:inline-block; width:140px; text-align:center; }
 /* .icon-button paints itself a white card with a border -- correct on the sheets it was written
    for, a stray white chip on this dark card -- so the pager arrows here give both up for the
    same translucent-on-dark treatment the rest of the card's own chrome uses. */
