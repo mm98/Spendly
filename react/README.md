@@ -409,15 +409,17 @@ page count that belongs to the PDFs and to nothing else.
 
 ## What the build ships
 
-Vite 8.1.5 (Rolldown), `@vitejs/plugin-react` 6.0.4, React 19.2.8, `react-router` 8.3.0.
+Vite, on Rolldown, with `@vitejs/plugin-react` and `react-router` — see `package.json` for the
+versions actually installed; they change independently of this file and are not restated here.
 The build used to end on Rolldown's own warning — *some chunks are larger than 500 kB after
 minification* — and it was right twice over: the icon catalogue was one 919.61 kB chunk, and
 the app was one 455.89 kB chunk that held every page whether or not you opened it.
 
 Nothing here raises `chunkSizeWarningLimit`. Three changes moved the bytes instead, and the
-first paint is what they are judged on:
+first paint is what they were judged on. The table is the pass that made the split — a record
+of that fix, not a live build number; `npm run build` prints the current ones.
 
-| | before | after |
+| | before | after (at the time of the split) |
 | --- | --- | --- |
 | first paint | 3 files, 528.67 kB (170.67 kB gzipped) | **13 files, 434.67 kB (149.02 kB gzipped)** |
 | first picker open | 919.61 kB (217.99 kB gzipped) | **68.59 kB (19.25 kB gzipped)**, plus a shard per search |
@@ -441,11 +443,14 @@ first paint is what they are judged on:
 ### Minified, then actually compressed
 
 Vite strips the comments and collapses the whitespace: **0 `/*` left in any JS chunk and 0 in the
-stylesheet**, which goes out as one 41,530-byte line from 88,890 bytes of source. It does not touch
-the HTML, so the entry document shipped its two source tripwires — the doctype and charset notes,
-519 of its 1,060 bytes — to every visitor. A `transformIndexHtml` in `vite.config.js` removes them
-from the built copy only, leaving `<!--[if` alone so nothing eats a conditional comment: **1,060
-bytes to 522**.
+stylesheet**, which goes out as one line — 65,687 bytes from 175,980 bytes of source, as of this
+pass; both grow with the design system, so treat the ratio as the claim rather than either byte
+count. It does not touch the HTML, so the source's own comments — including the block explaining
+the font preloads, above — would otherwise ship to every visitor. A `transformIndexHtml` in
+`vite.config.js` strips every HTML comment from the built copy except `<!--[if`, so nothing eats
+a conditional comment: the shipped `dist/index.html` is 1,119 bytes, comment-free, at last
+measurement — `npm run build` and `wc -c dist/index.html` reprices it in a few seconds if the
+exact figure matters.
 
 Minifying is not compressing, and the `gzip: 32.39 kB` in the build log is a number Vite computes
 and discards — nothing in `dist/` was compressed. `scripts/precompress.mjs` runs as `postbuild` and
@@ -453,10 +458,13 @@ writes `.gz` and `.br` beside every text asset, skipping any file that does not 
 variant larger than the original is one a server will still prefer. Brotli at quality 11 is far too
 slow to run per request, which is the whole reason to run it once at build:
 
+Grows with the app; re-run `scripts/precompress.mjs`'s own numbers (`npm run build`) rather than
+trust the row below past this pass:
+
 | | identity | gzip | brotli |
 | --- | --- | --- | --- |
-| whole `dist/`, 44 files | 1,350.35 kB | 365.65 kB (72.9% off) | **319.15 kB (76.4% off)** |
-| first paint, 8 files | 416.15 kB | — | **124.70 kB** (70.0% off) |
+| whole `dist/`, 62 files (excluding source maps) | 1,578.46 kB | 402.52 kB (74.5% off) | **352.33 kB (77.7% off)** |
+| first paint, 8 files | 416.15 kB | — | **124.70 kB** (70.0% off) — unverified against the file set above; not re-derived this pass |
 
 Serving them used to be described here as the host's half — nginx `gzip_static`, Caddy
 `precompressed br gzip` — and the deploy this repository actually ships has no such host in
@@ -475,13 +483,16 @@ opts out: a range names bytes of the representation actually sent, so answering 
 different encoding answers a question the client did not ask. Measured over the built `dist/`,
 per request:
 
-| request | `Accept-Encoding` | on the wire |
+Byte counts below move with the stylesheet's own size; the negotiation they demonstrate — brotli
+before gzip before identity, `Range` opting out — does not, and is the point of the table.
+
+| request | `Accept-Encoding` | on the wire, at last measurement |
 | --- | --- | --- |
-| `/assets/index-*.css` | `gzip, deflate, br, zstd` | **11,338 B**, `Content-Encoding: br` |
-| `/assets/index-*.css` | `gzip, br;q=0` | **12,883 B**, `Content-Encoding: gzip` |
-| `/assets/index-*.css` | *(absent)* | **62,581 B**, no `Content-Encoding` |
-| `/assets/index-*.css` + `Range: bytes=0-99` | `br` | **206**, `bytes 0-99/62581` |
-| `/` | `gzip, deflate, br` | **343 B** of 1,119, `text/html` |
+| `/assets/index-*.css` | `gzip, deflate, br, zstd` | **11,686 B**, `Content-Encoding: br` |
+| `/assets/index-*.css` | `gzip, br;q=0` | **13,277 B**, `Content-Encoding: gzip` |
+| `/assets/index-*.css` | *(absent)* | **65,687 B**, no `Content-Encoding` |
+| `/assets/index-*.css` + `Range: bytes=0-99` | `br` | **206**, `bytes 0-99/65687` |
+| `/` | `gzip, deflate, br` | **344 B** of 1,119, `text/html` |
 
 That `br;q=0` row is the reason the header is parsed rather than substring-tested: a client
 naming brotli in order to refuse it reads as a yes to `includes('br')`. `.webmanifest` joined
@@ -547,12 +558,15 @@ binding and puts a chunk on one line, so a report from a running container names
 devtools and any error reporter walk the frame back to `src/`. The maps carry `sourcesContent`, so
 the sources travel with the map and nothing has to be fetched from the repository to read them.
 
-**46 maps, 3,013.93 kB, and none of it on the critical path.** A browser requests a `.map` only
-when devtools is open, so what a visitor actually pays is the comment: **2,092 bytes over the 46
-chunks that carry one**, 45.5 on average — the 47th is Rolldown's own runtime, which gets no map.
-That is the whole of the change to what is served, 2.04 kB inside 1,552.13 kB identity /
-470.64 kB brotli of shipped assets, and the `dist/` table above counts those and not the maps,
-which are the other 3,013.93 kB (631.28 kB brotli) of the directory. `precompress.mjs` already
+**48 maps, 3,158.90 kB at last count, and none of it on the critical path.** A browser requests a
+`.map` only when devtools is open, so what a visitor actually pays is the comment: **2,190 bytes
+over the 48 chunks that carry one**, 45.6 on average — the runtime chunk Rolldown emits is the one
+JS file that gets no map. Both totals grow with the chunk count; the shape (one comment per chunk,
+tens of bytes each, no map fetched unless devtools is open) is what's load-bearing, not the digits.
+That is the whole of the change to what is served, 2.19 kB inside 1,578.46 kB identity /
+352.33 kB brotli of shipped assets, and the `dist/` table above counts those and not the maps,
+which are the other 3,158.90 kB (667.75 kB brotli) of the directory — both pairs at last count,
+same caveat as above. `precompress.mjs` already
 listed `.map` among its text extensions, so the maps are gzipped and brotlied like everything
 else and that script needed no change.
 
@@ -766,9 +780,11 @@ Sixteen defects were found by these runs and fixed rather than reported:
 modules one file per import, which is a different application and a meaningless number.
 
 It runs the page twice and reports the second, because the first is the machine warming up;
-both lines are printed, so a spread that opens up is visible rather than averaged away. On this
-build the two runs agree: **performance 99, accessibility 93, best practices 96**, FCP
-~1.66s, TBT 0ms (Lighthouse 13.4.1, headless Chromium).
+both lines are printed, so a spread that opens up is visible rather than averaged away. Re-run
+against the current build: **performance 100, accessibility 100, best practices 100**, FCP
+380ms, TBT 0ms (Lighthouse 13.4.1, headless Chromium) — re-run this with `node
+scripts/lighthouse.mjs <url>` against a served build rather than trust these past a code change
+that could plausibly move them.
 
 Accessibility and best practices hold a floor and fail the run below it — they are rule
 checks, so the same DOM scores the same on any machine. SEO is not measured at all: the app is
