@@ -1559,7 +1559,8 @@ label.field-shell { cursor:pointer; }
 		position:fixed;
 		inset:auto calc(var(--tabbar-gap) + var(--safe-right)) calc(var(--tabbar-gap-bottom) + var(--safe-bottom)) calc(var(--tabbar-gap) + var(--safe-left));
 		height:auto; z-index:30; flex-direction:row; align-items:center;
-		padding:8px 10px; gap:0; border:none;
+		padding:8px 10px; gap:0;
+		border:1px solid var(--border-card);
 		border-radius:var(--radius-float);
 		background:var(--bg-card);
 		box-shadow:var(--shadow);
