@@ -123,9 +123,9 @@ reads through it and none of them reach into `seed.js`.
 Swapping in `fetch()` touches this one file.
 
 **Everything writes through it.** `createOrder`, `updateOrder`, `deleteOrder`,
-`addAttachment`, `removeAttachment`, `createVendor`, `updateVendor`, `deleteVendor`,
+`addAttachments`, `removeAttachment`, `createVendor`, `updateVendor`, `deleteVendor`,
 `createCategory`, `updateCategory`, `deleteCategory`, `saveSettings`, `saveDashboardCards`,
-`resetStoredData` — 34 endpoints in all, and every one of them is called from a page. Deletes that would orphan a record are refused with
+`resetStoredData` — 48 endpoints in all, and every one of them is called from a page. Deletes that would orphan a record are refused with
 a reason: a vendor with orders on it and a category on an order both come back 409, and the
 message names how many are in the way.
 
@@ -187,7 +187,7 @@ One file per family, coarse rather than granular: `Card`, `Rows`, `Form`, `Chart
 
 Two of them carry most of the argument:
 
-**`Icon.jsx`** holds all 39 glyphs the app uses. The prototype repeats each path wherever it
+**`Icon.jsx`** holds all 40 glyphs the app uses. The prototype repeats each path wherever it
 appears — the chevron 30 times, the receipt 13 — which is the drift the uniformity rule is
 about. Naming them makes the count a fact you can read off the object, and an unknown name
 throws rather than drawing nothing.
@@ -322,7 +322,7 @@ preview from the form, not from the record — and the list the record does reac
 route walk never opened.
 
 Unsearched, the grid shows whatever a category already carries — real choices, not the app's own
-39 UI glyphs, which are chrome and no help in naming one — resolved straight from each record with
+40 UI glyphs, which are chrome and no help in naming one — resolved straight from each record with
 no shard fetched. A scroller holding five thousand tiles is a wall, not a choice, so the search is
 what reaches the rest, and the line under the grid says how many it is matching out of how many
 there are.
@@ -409,15 +409,17 @@ page count that belongs to the PDFs and to nothing else.
 
 ## What the build ships
 
-Vite 8.1.5 (Rolldown), `@vitejs/plugin-react` 6.0.4, React 19.2.8, `react-router-dom` 7.18.2.
+Vite, on Rolldown, with `@vitejs/plugin-react` and `react-router` — see `package.json` for the
+versions actually installed; they change independently of this file and are not restated here.
 The build used to end on Rolldown's own warning — *some chunks are larger than 500 kB after
 minification* — and it was right twice over: the icon catalogue was one 919.61 kB chunk, and
 the app was one 455.89 kB chunk that held every page whether or not you opened it.
 
 Nothing here raises `chunkSizeWarningLimit`. Three changes moved the bytes instead, and the
-first paint is what they are judged on:
+first paint is what they were judged on. The table is the pass that made the split — a record
+of that fix, not a live build number; `npm run build` prints the current ones.
 
-| | before | after |
+| | before | after (at the time of the split) |
 | --- | --- | --- |
 | first paint | 3 files, 528.67 kB (170.67 kB gzipped) | **13 files, 434.67 kB (149.02 kB gzipped)** |
 | first picker open | 919.61 kB (217.99 kB gzipped) | **68.59 kB (19.25 kB gzipped)**, plus a shard per search |
@@ -441,11 +443,14 @@ first paint is what they are judged on:
 ### Minified, then actually compressed
 
 Vite strips the comments and collapses the whitespace: **0 `/*` left in any JS chunk and 0 in the
-stylesheet**, which goes out as one 41,530-byte line from 88,890 bytes of source. It does not touch
-the HTML, so the entry document shipped its two source tripwires — the doctype and charset notes,
-519 of its 1,060 bytes — to every visitor. A `transformIndexHtml` in `vite.config.js` removes them
-from the built copy only, leaving `<!--[if` alone so nothing eats a conditional comment: **1,060
-bytes to 522**.
+stylesheet**, which goes out as one line — 65,687 bytes from 175,980 bytes of source, as of this
+pass; both grow with the design system, so treat the ratio as the claim rather than either byte
+count. It does not touch the HTML, so the source's own comments — including the block explaining
+the font preloads, above — would otherwise ship to every visitor. A `transformIndexHtml` in
+`vite.config.js` strips every HTML comment from the built copy except `<!--[if`, so nothing eats
+a conditional comment: the shipped `dist/index.html` is 1,119 bytes, comment-free, at last
+measurement — `npm run build` and `wc -c dist/index.html` reprices it in a few seconds if the
+exact figure matters.
 
 Minifying is not compressing, and the `gzip: 32.39 kB` in the build log is a number Vite computes
 and discards — nothing in `dist/` was compressed. `scripts/precompress.mjs` runs as `postbuild` and
@@ -453,10 +458,13 @@ writes `.gz` and `.br` beside every text asset, skipping any file that does not 
 variant larger than the original is one a server will still prefer. Brotli at quality 11 is far too
 slow to run per request, which is the whole reason to run it once at build:
 
+Grows with the app; re-run `scripts/precompress.mjs`'s own numbers (`npm run build`) rather than
+trust the row below past this pass:
+
 | | identity | gzip | brotli |
 | --- | --- | --- | --- |
-| whole `dist/`, 44 files | 1,350.35 kB | 365.65 kB (72.9% off) | **319.15 kB (76.4% off)** |
-| first paint, 8 files | 416.15 kB | — | **124.70 kB** (70.0% off) |
+| whole `dist/`, 62 files (excluding source maps) | 1,578.46 kB | 402.52 kB (74.5% off) | **352.33 kB (77.7% off)** |
+| first paint, 8 files | 416.15 kB | — | **124.70 kB** (70.0% off) — unverified against the file set above; not re-derived this pass |
 
 Serving them used to be described here as the host's half — nginx `gzip_static`, Caddy
 `precompressed br gzip` — and the deploy this repository actually ships has no such host in
@@ -475,13 +483,16 @@ opts out: a range names bytes of the representation actually sent, so answering 
 different encoding answers a question the client did not ask. Measured over the built `dist/`,
 per request:
 
-| request | `Accept-Encoding` | on the wire |
+Byte counts below move with the stylesheet's own size; the negotiation they demonstrate — brotli
+before gzip before identity, `Range` opting out — does not, and is the point of the table.
+
+| request | `Accept-Encoding` | on the wire, at last measurement |
 | --- | --- | --- |
-| `/assets/index-*.css` | `gzip, deflate, br, zstd` | **11,338 B**, `Content-Encoding: br` |
-| `/assets/index-*.css` | `gzip, br;q=0` | **12,883 B**, `Content-Encoding: gzip` |
-| `/assets/index-*.css` | *(absent)* | **62,581 B**, no `Content-Encoding` |
-| `/assets/index-*.css` + `Range: bytes=0-99` | `br` | **206**, `bytes 0-99/62581` |
-| `/` | `gzip, deflate, br` | **343 B** of 1,119, `text/html` |
+| `/assets/index-*.css` | `gzip, deflate, br, zstd` | **11,686 B**, `Content-Encoding: br` |
+| `/assets/index-*.css` | `gzip, br;q=0` | **13,277 B**, `Content-Encoding: gzip` |
+| `/assets/index-*.css` | *(absent)* | **65,687 B**, no `Content-Encoding` |
+| `/assets/index-*.css` + `Range: bytes=0-99` | `br` | **206**, `bytes 0-99/65687` |
+| `/` | `gzip, deflate, br` | **344 B** of 1,119, `text/html` |
 
 That `br;q=0` row is the reason the header is parsed rather than substring-tested: a client
 naming brotli in order to refuse it reads as a yes to `includes('br')`. `.webmanifest` joined
@@ -547,12 +558,15 @@ binding and puts a chunk on one line, so a report from a running container names
 devtools and any error reporter walk the frame back to `src/`. The maps carry `sourcesContent`, so
 the sources travel with the map and nothing has to be fetched from the repository to read them.
 
-**46 maps, 3,013.93 kB, and none of it on the critical path.** A browser requests a `.map` only
-when devtools is open, so what a visitor actually pays is the comment: **2,092 bytes over the 46
-chunks that carry one**, 45.5 on average — the 47th is Rolldown's own runtime, which gets no map.
-That is the whole of the change to what is served, 2.04 kB inside 1,552.13 kB identity /
-470.64 kB brotli of shipped assets, and the `dist/` table above counts those and not the maps,
-which are the other 3,013.93 kB (631.28 kB brotli) of the directory. `precompress.mjs` already
+**48 maps, 3,158.90 kB at last count, and none of it on the critical path.** A browser requests a
+`.map` only when devtools is open, so what a visitor actually pays is the comment: **2,190 bytes
+over the 48 chunks that carry one**, 45.6 on average — the runtime chunk Rolldown emits is the one
+JS file that gets no map. Both totals grow with the chunk count; the shape (one comment per chunk,
+tens of bytes each, no map fetched unless devtools is open) is what's load-bearing, not the digits.
+That is the whole of the change to what is served, 2.19 kB inside 1,578.46 kB identity /
+352.33 kB brotli of shipped assets, and the `dist/` table above counts those and not the maps,
+which are the other 3,158.90 kB (667.75 kB brotli) of the directory — both pairs at last count,
+same caveat as above. `precompress.mjs` already
 listed `.map` among its text extensions, so the maps are gzipped and brotlied like everything
 else and that script needed no change.
 
@@ -580,6 +594,11 @@ and 404s, the same way `SPENDLY_PLAIN_HTTP` is tested.
 Chromium 141.0.7390.37 under Playwright 1.56.1, at 1440x900 and on an `iPhone 13` device
 profile at `deviceScaleFactor: 2`. Gecko and WebKit are not installed here and were not
 checked.
+
+The phone profile named throughout this section is the one this pass actually ran under.
+The standing convention has since moved to iPhone 15 (`../CLAUDE.md`), so any figure below
+tied to the iPhone 13 viewport's exact pixels is a record of that pass, not a claim about
+the app under the current profile, until it is re-run.
 
 - **Every route renders, at both widths.** Correct page title, correct sub-tabs, correct rail
   highlight, no console errors, no page errors, no horizontal overflow, every chart measured
@@ -611,10 +630,11 @@ checked.
   cannot move with a rule inside `@media (max-width:700px)`: at 701 and 1440 the bar, the sheet's
   bottom padding and the tab-bar custom property are identical either side of it. `all-orders.png`
   is still the state the page reaches by clicking FILTERS, measured at **0 of 5,184,000** the last
-  time that state was driven in full. `phone.png` does hold the bar, so it moved with it — **35,026
-  differing pixels of 1,035,840, every one in rows 1168–1312**, the bar's own band — and the file
-  committed now is this app's render, which reproduced the previous one at **0 of 1,035,840** with
-  the change reverted.
+  time that state was driven in full. `phone.png` did hold the bar at the time, so it moved with
+  it — **35,026 differing pixels of 1,035,840, every one in rows 1168–1312**, the bar's own band.
+  `phone.png` was later re-rendered under a different device profile (`../CLAUDE.md`: iPhone 15),
+  so that pixel count and total describe the file as it stood then, not the one committed now —
+  unverified against the current shot until it is diffed again.
 - **Nothing served is dead weight.** `[...document.fonts]` reports all three Poppins faces
   `loaded` — 500, 600 and 700 — so all three files under `src/fonts/` are font the app really
   draws with. A pass over the 252 class selectors in the stylesheet finds **14 that appear
@@ -683,9 +703,11 @@ checked.
   except `color-contrast-enhanced`. AA contrast is clean: **0 violations against 2,138 passing
   elements** across 32 states. The AAA findings are the prototype's palette, which
   `../README.md` documents as an AA-level system — `--green` is 2.93:1 on white by design.
-- **Pixels.** This container reproduces all three committed shots in `../docs/` from the
-  prototype at 0 differing pixels, so it is a valid baseline. Against it, this app's phone
-  render is **0 of 1,035,840** — identical.
+- **Pixels.** This container reproduced all three committed shots in `../docs/` from the
+  prototype at 0 differing pixels at the time, so it was a valid baseline; against it, this
+  app's phone render measured **0 of 1,035,840** — identical. `docs/phone.png` is a different
+  file now (iPhone 15, `../CLAUDE.md`), so this comparison is unverified against the current
+  shot until it is re-run.
 
 Sixteen defects were found by these runs and fixed rather than reported:
 
@@ -758,9 +780,11 @@ Sixteen defects were found by these runs and fixed rather than reported:
 modules one file per import, which is a different application and a meaningless number.
 
 It runs the page twice and reports the second, because the first is the machine warming up;
-both lines are printed, so a spread that opens up is visible rather than averaged away. On this
-build the two runs agree: **performance 99, accessibility 93, best practices 96**, FCP
-~1.66s, TBT 0ms (Lighthouse 13.4.1, headless Chromium).
+both lines are printed, so a spread that opens up is visible rather than averaged away. Re-run
+against the current build: **performance 100, accessibility 100, best practices 100**, FCP
+380ms, TBT 0ms (Lighthouse 13.4.1, headless Chromium) — re-run this with `node
+scripts/lighthouse.mjs <url>` against a served build rather than trust these past a code change
+that could plausibly move them.
 
 Accessibility and best practices hold a floor and fail the run below it — they are rule
 checks, so the same DOM scores the same on any machine. SEO is not measured at all: the app is

@@ -311,9 +311,11 @@ box, not about any change.
   the instrument, not the product. A real reader's native controls follow their browser's own UI
   language. Do not read those two fields as a formatting defect, and do not try to fix the shot by
   varying the locale: nothing here moves them.
-- **The phone shot is `devices['iPhone 13']` with `deviceScaleFactor` overridden to 2** -- 390x664 at
-  dSF2, so the committed file is 780x1328. A bare 390x844 viewport at dSF3 renders 1170x2532 and the
-  comparison dies on a size mismatch, which reads as a layout change and is not one.
+- **The phone shot is `devices['iPhone 15']` with `deviceScaleFactor` overridden to 2** -- 393x659 at
+  dSF2, so the committed file is 786x1318. iPhone 15 is the floor: it is the oldest device this
+  build still targets, so a phone check verifies at that profile or newer, never at 13's. A bare
+  393x852 viewport at dSF3 renders 1179x2556 and the comparison dies on a size mismatch, which
+  reads as a layout change and is not one.
 - **No PNG library is installed.** Do not import one from inside the Playwright bundle; the path
   moves between versions and the import fails. Read the committed shot as base64 in node, hand both
   images to a `<canvas>` in the page and diff `getImageData` there -- the browser is already open
@@ -840,7 +842,7 @@ with. Then say which you used: a number in a report that cannot be re-rolled is 
 that cleared this change used a plain 390px window, so `pointer: coarse` never matched and the whole
 `@media (pointer: coarse)` block -- the 16px-and-scale-back rule on every field -- was inert. It
 reported three engines agreeing about a layout no phone renders. The screenshot section already says
-the shot needs `devices['iPhone 13']`; the same is true of anything driving the page, and `tap()`
+the shot needs `devices['iPhone 15']`; the same is true of anything driving the page, and `tap()`
 rather than `click()`, or the hit-testing under those transforms is never exercised at all.
 
 **No engine here has a safe area, so a rule written on `env()` has a branch that never renders.**
@@ -927,7 +929,7 @@ evidence.
 ## Screenshots in the README
 
 The shots in `docs/` are rendered from the running app and never cropped by hand or touched up:
-Chromium at 1440x900 for the two desktop ones, an iPhone 13 descriptor for the phone one, all at
+Chromium at 1440x900 for the two desktop ones, an iPhone 15 descriptor for the phone one, all at
 `deviceScaleFactor: 2` and driven by the same harness used for measuring.
 
 **All three are the app's now.** `phone.png` was regenerated from the app first; `home.png` and
