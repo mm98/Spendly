@@ -635,7 +635,7 @@ function ScanReviewForm({ answer }) {
 			<div>
 				<div className="space-between space-between-tight">
 					<span className="section-label">Lines read<Sep />{answer.linesRead}</span>
-					<span className="field-help">the pencil corrects a line<Sep />ADD LINE for one that wasn't read</span>
+					<span className="field-help">the pencil corrects a line<Sep />Add line for one that wasn't read</span>
 				</div>
 				{/* Same shape as a line's own rejections -- `.field > span.field-error` -- in a
 				    bare `.field` div rather than a page-level summary, since no single field
@@ -694,11 +694,22 @@ function ScanReviewForm({ answer }) {
 							)}
 						</ItemRow>
 					) : null}
+					{/* Same row ItemLines.jsx draws to add a line -- inside the panel, as the
+					    list's own last row, not a button standing apart from it below. A
+					    scanned line is never reordered, so there is no grip column to hold
+					    open here the way ItemLines' add row does for its list. */}
+					{editingLine === null ? (
+						<button type="button" className="line-add-row" onClick={addLine}>
+							<span className="line-add-glyph" aria-hidden="true"><Icon name="plus" /></span>
+							<span className="line-add-text">
+								{draft.lines.length ? 'Add line' : 'Add the first line'}
+								{draft.lines.length ? null : (
+									<span className="field-help">An order needs at least one.</span>
+								)}
+							</span>
+						</button>
+					) : null}
 				</InsetPanel>
-				{editingLine === null ? (
-					<Button variant="ghost compact" icon="plus" className="panel-cta"
-						onClick={addLine}>ADD LINE</Button>
-				) : null}
 			</div>
 
 			{jsonOpen ? (
