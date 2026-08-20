@@ -1390,27 +1390,29 @@ label.field-shell { cursor:pointer; }
    already sits inside one, and a card-in-a-card carries a second header band this layout
    has no use for. */
 .fav-tile-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--gap-panel); }
-.fav-tile { position:relative; display:flex; flex-direction:column; gap:2px; padding:16px 18px; border:1px solid var(--border-card); border-radius:var(--radius-card); background:var(--bg-card); min-width:0; }
-.fav-tile-edit { position:absolute; bottom:14px; right:14px; }
-.fav-tile-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-/* The name is the section-label spec -- the tile's own header band -- and it is the way
-   into the record's orders, so it underlines on hover the way every text link here does.
-   Ellipsed rather than wrapped: a two-line name re-heights the whole row of tiles. */
-.fav-tile-name { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); text-decoration:none; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.fav-tile-name:hover { text-decoration:underline; }
-/* .figure-card's spec: the headline number, matching the ring centres and KPI figures. */
-.fav-tile-figure { font-size:21px; font-weight:700; letter-spacing:-.02em; }
-.fav-tile-meta { font-size:10.5px; color:var(--text-muted); }
-/* margin-top:auto, so the stat pair sits on one baseline across a row of tiles however
-   long their names run -- the divider is the flexible joint, not the stats below it. */
-.fav-tile-divider { margin-top:auto; padding-top:12px; margin-bottom:12px; border-bottom:1px solid var(--border-divider); }
-/* padding-right clears .fav-tile-edit, sitting in the same corner -- without it the second
-   stat's own value ran under the button on a narrow tile. */
-.fav-tile-stats { display:flex; gap:28px; padding-right:40px; }
-.fav-tile-stat { display:grid; gap:2px; }
-.fav-tile-stat-label { font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
-.fav-tile-stat-value { font-size:13px; font-weight:600; color:var(--text); }
-.fav-tile-stat-positive { color:var(--text-positive); }
+/* One row now, not a header row over a stat block: the mark, the name with its order count
+   underneath, and the total with what it saved underneath, side by side. The whole tile is
+   the link (see FavouriteTiles.jsx), so it takes the same hover tint every other row in the
+   app gives a destination -- README: Honest Affordances. */
+.fav-tile { display:flex; align-items:flex-start; gap:10px; padding:16px 18px; border:1px solid var(--border-card); border-radius:var(--radius-card); background:var(--bg-card); min-width:0; text-decoration:none; color:inherit; }
+.fav-tile[data-go]:hover { background:var(--bg-row-hover); }
+/* The name is the section-label spec -- the tile's own header band. Ellipsed rather than
+   wrapped: a two-line name re-heights the whole row of tiles. flex:1 and min-width:0 on the
+   block are what let the name give way to the headline beside it instead of pushing the
+   headline off the row or wrapping onto a second line. */
+.fav-tile-name-block { flex:1; min-width:0; display:grid; gap:1px; }
+.fav-tile-name { display:block; font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fav-tile-meta { font-size:10.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* The total and what it saved, right-aligned beside the name -- the same head-figure-plus-
+   sub shape EntryRow draws everywhere else a record's total appears (README: Data Rows).
+   Never wraps or shrinks -- the name is what gives way to it, not the other way round. */
+.fav-tile-headline { flex:none; padding-left:10px; text-align:right; }
+/* .figure-card's spec, sized down since it shares the row with the mark and name rather
+   than a row of its own. */
+.fav-tile-figure { font-size:16px; font-weight:700; letter-spacing:-.02em; line-height:1.25; white-space:nowrap; }
+/* Same rule as .entry-amount-sub/.entity-row-amount-sub/.order-row-total-saved -- one shared
+   spec for "saved X" under a total, wherever it is drawn. */
+.fav-tile-sub { margin-top:1px; font-size:11px; font-weight:500; color:var(--text-muted); white-space:nowrap; }
 .button.button-ghost { gap:var(--gap-icon); padding:0 var(--pad-control); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; width:max-content; }
 /* Placed after the variants on purpose: it weighs the same as they do, so it only
    wins by sitting later in the file. Moving it up silently restores the 38px tier. */
@@ -1848,11 +1850,11 @@ label.field-shell { cursor:pointer; }
 	.page-bar { padding:6px var(--gutter-page) 2px; overflow-x:auto; scrollbar-width:none; }
 	.segmented { flex-wrap:nowrap; }
 	.dashboard-cards { grid-template-columns:minmax(0,1fr); }
-	/* One favourite per row, the tile a little tighter: the mark and the star flank the
-	   name at full width, and the headline steps down with the phone's other figures. */
+	/* One favourite per row, the tile a little tighter. The total already sits at its own
+	   smaller, inline size on the head row (not a standalone headline figure any more), so
+	   there is no phone-specific step-down left for it to make. */
 	.fav-tile-grid { grid-template-columns:1fr; gap:var(--gap-row); }
 	.fav-tile { padding:14px 16px; }
-	.fav-tile-figure { font-size:19px; }
 	/* No hover under a coarse pointer, so there is no way to ask for the tooltip and no
 	   room to put it -- off outright, rather than left to whether the browser emulates a
 	   hover on tap. display beats the reveal rule's visibility whatever specificity says. */

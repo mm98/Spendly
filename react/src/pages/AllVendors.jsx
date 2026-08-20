@@ -12,7 +12,7 @@ import { Pager, paginate } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
 import { getVendors, getSettings, vendorTextMatch } from '../api/client.js'
 import { inkOn } from '../api/colour.js'
-import { currency, dayMonth, sep } from '../api/format.js'
+import { currency, sep } from '../api/format.js'
 
 /* All vendors.
 
@@ -139,7 +139,6 @@ export default function AllVendors() {
 									   appear nowhere in it, and a result a reader cannot account for reads
 									   as a bug in the search. */
 									meta={`${vendor.orders} order${vendor.orders === 1 ? '' : 's'}` +
-										(vendor.latest ? `${sep}latest ${dayMonth(vendor.latest.date)}` : `${sep}none yet`) +
 										(vendor.alias ? `${sep}also ${vendor.alias}` : '')}
 									amount={currency(vendor.spend, 0)}
 									sub={`saved ${currency(vendor.saved, 0)}`}

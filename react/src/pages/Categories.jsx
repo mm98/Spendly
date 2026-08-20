@@ -145,23 +145,14 @@ export default function Categories() {
 								{favourites.length ? (
 									<FavouriteTileGrid>
 										{favourites.map(category => (
-											/* Both stats always drawn, "—" where there is nothing yet -- a
-											   tile with a missing line beside a full one reads as broken. */
 											<FavouriteTile key={category.id}
 												mark={<span className="category-icon"
 													style={{ background: category.colour, color: inkOn(category.colour) }}>
 													<Icon name={category.icon} path={category.iconPath} /></span>}
 												name={category.name} to={`/orders/all?category=${category.id}`}
 												linkLabel={`${category.name}, open its orders`}
-												amount={currency(category.spend, 0)}
 												meta={`${percent(category.share)} of expenses`}
-												stats={[
-													{ label: 'Saved', value: category.saved > 0 ? currency(category.saved, 0) : '—',
-														tone: category.saved > 0 ? 'positive' : undefined },
-													{ label: 'Budget', value: category.budget > 0 ? currency(category.budget, 0) : '—' }
-												]}
-												editTo={`/categories/${category.id}/edit`}
-												editLabel={`Edit ${category.name}`} />
+												amount={currency(category.spend, 0)} saved={`saved ${currency(category.saved, 0)}`} />
 										))}
 									</FavouriteTileGrid>
 								) : (
