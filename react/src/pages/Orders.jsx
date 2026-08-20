@@ -189,7 +189,7 @@ export default function Orders() {
 											<DonutBox>
 												<Donut segments={[
 													{ share: Math.min(100, budgetUsed(data.budgetCategories)), colour: 'var(--green)' },
-													{ share: Math.max(0, 100 - budgetUsed(data.budgetCategories)), colour: '#E7EAE5' }
+													{ share: Math.max(0, 100 - budgetUsed(data.budgetCategories)), colour: 'var(--border-card)' }
 												]}
 													value={percent(budgetUsed(data.budgetCategories), 0)} label="of budget used"
 													ariaLabel={`${percent(budgetUsed(data.budgetCategories), 0)} of this month's budget used`} />

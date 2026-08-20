@@ -565,7 +565,7 @@ export default function Home() {
 											label={`Cumulative spend through ${data.period.shortLabel}`}
 											gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
 												{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
-											baselines={[{ y: 92, stroke: '#E4E7E2', dash: '3 4' }]}
+											baselines={[{ y: 92, stroke: 'var(--border-control)', dash: '3 4' }]}
 											/* 7px of headroom (plotted()'s 4th arg) is the marker's, not the curve's:
 											   the marker rides the line, a cumulative series peaks on its last day, and
 											   a 4.5px circle with a 2px stroke paints 5.5px past the point it sits on.
@@ -618,7 +618,7 @@ export default function Home() {
 											gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
 												{ offset: 0, color: '#14AC72', opacity: 0.22 },
 												{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
-											baselines={[{ y: 87, stroke: '#E4E7E2', dash: '3 4' }]}
+											baselines={[{ y: 87, stroke: 'var(--border-control)', dash: '3 4' }]}
 											/* 6.5px of inset at both ends, and it is the marker's: a 4.5px circle with
 											   a 2px stroke paints 5.5px past the point it sits on, and a running total
 											   peaks on its own last day, so today's mark on the peak would have half
