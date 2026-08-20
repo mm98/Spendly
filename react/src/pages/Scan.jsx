@@ -307,7 +307,7 @@ function ScanReviewForm({ answer }) {
 	   retry actually retry. Same asking, same setting as every other delete (README: Deletion). */
 	const documentDel = useDelete({
 		what: 'document', variant: 'pill', icon: false, label: 'DELETE',
-		detail: 'The AI read is discarded too, so this file reads fresh if you upload it again.',
+		detail: 'What we read from it goes too, so uploading it again will read it fresh.',
 		onDelete: () => deleteScanDocument(answer.documentKey)
 			.then(() => { invalidate(getRecentScans); navigate('/scan') })
 			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
