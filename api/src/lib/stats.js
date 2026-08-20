@@ -462,7 +462,7 @@ const KPI_DEFS = [
 	{ label: 'Shipping', goodUp: false, of: t => t.shipping, amount: t => t.shipping, note: t => `${t.shippingShare.toFixed(1).replace('.', ',')}% of spend` }
 ]
 
-function kpisFor(now, was, wasLabel) {
+function kpisFor(now, was) {
 	return KPI_DEFS.map(kpi => {
 		/* `amount` is a figure for the client to print in the account's currency; `value` is
 		   already a string because a count is not money. Exactly one of the two is set. */
@@ -471,7 +471,12 @@ function kpisFor(now, was, wasLabel) {
 		const nowVal = kpi.of(now), wasVal = kpi.of(was)
 		const pct = wasVal ? Math.round((nowVal / wasVal - 1) * 100) : (nowVal ? 100 : 0)
 		const direction = pct === 0 ? 'level' : pct < 0 ? 'down' : 'up'
-		const delta = pct === 0 ? `level with ${wasLabel}` : `${Math.abs(pct)}% ${direction} vs ${wasLabel}`
+		/* A bare signed percentage, not "12% up vs Aug" -- what it's measured against is said
+		   once, in the hero card above the tiles, not repeated on every one of four tiles. That
+		   repetition is what wrapped to two lines the moment the comparison crossed a year
+		   ("100% up vs Sep 2024"); a four-tile grid has no room to spare for a sentence four
+		   tiles are each allowed to say a quarter of. */
+		const delta = pct === 0 ? '0%' : `${pct > 0 ? '+' : ''}${pct}%`
 		/* Three tones, one per thing a delta can mean. It used to be two: anything that was not
 		   the good direction came back 'neutral', so a tile that moved the wrong way was printed
 		   in the same grey as a tile with nothing to be up or down against -- opposite messages,
@@ -640,9 +645,11 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 		: null
 
 	const deltaPct = was && was.spent ? Math.round((now.spent / was.spent - 1) * 100) : null
-	const deltaLabel = was
-		? (deltaPct === 0 ? `level with ${previousShortLabel}` : `${Math.abs(deltaPct)}% ${deltaPct < 0 ? 'down' : 'up'} vs ${previousShortLabel}`)
-		: null
+	// "X% up/down" -- what it's up or down against ("vs Aug") is a separate field
+	// (previousLabel), composed onto this client-side, so the hero states it once in its own
+	// caption rather than each of the four KPI tiles repeating the sentence beside their own
+	// bare percentage below.
+	const deltaLabel = was ? `${Math.abs(deltaPct)}% ${deltaPct < 0 ? 'down' : 'up'}` : null
 
 	const spanName = width === 'all' ? 'the records' : bounds.shortLabel
 	const olderId = shiftWindowId(width, id, -1)
@@ -689,7 +696,7 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 			budgets: budgetSummary(budgetRows, cardRowsFor(userId)),
 			recent: summary ? null : recentColumns(userId, width, id, now.spent),
 			returns: returnsIn(userId, bounds.from, bounds.to),
-			kpis: kpisFor(now, was, previousShortLabel),
+			kpis: kpisFor(now, was),
 			series: {
 				current: cumulate(dailyRows, 'spend'),
 				previous: previousBounds ? seriesOver(userId, previousBounds.from, previousBounds.to) : null,

@@ -370,39 +370,3 @@ export function sampled(values, buckets) {
 export const plotted = (values, max, top = 180, bottom = 20) =>
 	values.map(v => top - (top - bottom) * (max ? v / max : 0))
 
-/** The range buttons. aria-pressed is the state, because these choose how much of one series to
-    plot rather than which of several to show -- that is a group of toggles, not a tablist. The
-    list of ranges is passed in rather than held here: on Statistics the same list is what the
-    pager steps by, and a second copy is how a width gets offered that nothing can page.
-
-    Each option carries its own label rather than the button drawing its key, so the key can be
-    what a URL wants and the label what a reader wants without the two drifting apart.
-
-    `variant="pager"` is the same control in Statistics' pager band, where it stands beside the
-    two arrows that step it and takes their geometry rather than the hero card's. One component
-    either way: a second copy of five buttons is a second place for a width to be offered that
-    nothing can page. */
-export function RangeTabs({ options, value, onChange, variant = '' }) {
-	return (
-		<div className={['range-tabs', variant && 'range-tabs-' + variant].filter(Boolean).join(' ')}
-			role="group" aria-label="Range">
-			{/* Both forms of the name are in the markup and exactly one of them is ever rendered
-			    -- the stylesheet swaps them by width, and `display:none` is not announced either,
-			    so the button is drawn and read under one string at any size. An `aria-label`
-			    carrying the long word beside a short drawn one would be the W30 defect again:
-			    two strings for one control, of which the readable one is the one nobody can read.
-			    README: Statistics. */}
-			{options.map(({ key, label, short }) => (
-				<button key={key} type="button" className={key === value ? 'is-on' : undefined}
-					aria-pressed={key === value} onClick={() => onChange(key)}>
-					{short
-						? <>
-							<span className="pager-wide">{label}</span>
-							<span className="pager-narrow">{short}</span>
-						</>
-						: label}
-				</button>
-			))}
-		</div>
-	)
-}

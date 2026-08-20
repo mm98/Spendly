@@ -78,7 +78,7 @@
 	   as literals -- #DFE3DE, #E2E5E1, #E5E7E2 and #D9DED8 were each within a few RGB
 	   values of it (#D9DED8 measured 1.36:1 against white, against this token's
 	   1.28:1 -- not the "deliberately stronger edge" a stale comment here used to
-	   claim) and are gone now; button-outline, range-tabs and ai-suggestion-row all
+	   claim) and are gone now; button-outline and ai-suggestion-row both
 	   read this token directly, and so does its dark-mode re-theme. */
 	--border-card:#E9ECE8;
 	--border-divider:#EDEFEA;
@@ -607,23 +607,9 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 /* hero card */
 .figure-headline { font-size:27px; font-weight:700; letter-spacing:-.02em; margin:2px 0 0; }
 .figure-delta { font-size:11.5px; color:var(--text-positive); font-weight:600; margin-top:2px; }
-.range-tabs { display:flex; gap:var(--gap-panel); align-items:center; margin-top:14px; }
-.range-tabs button { font:inherit; background:none; border:0; font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.02em; cursor:pointer; padding:6px 2px; }
-.range-tabs button.is-on { color:var(--text); border:1px solid var(--border-control); border-radius:9px; padding:6px var(--pad-chip); background:var(--bg-card); }
-/* The same control in Statistics' pager band, where it stands next to the two arrows that step
-   it: every button is the 32px box .icon-button-arrow is, with that button's border and radius,
-   so the row of arrows and widths reads as one control rather than two of different heights.
-   Selection is the fill and nothing else -- the weight is 600 either way, because a bolder
-   selected label is wider than its resting self and the whole row would shift under it every
-   time the selection moved. README: Segmented Control, Statistics. */
-.range-tabs.range-tabs-pager { gap:6px; margin-top:0; }
-.range-tabs-pager button { height:32px; padding:0 var(--pad-pager); border:1px solid var(--border-control); border-radius:var(--radius-compact); background:var(--bg-card); }
-.range-tabs-pager button.is-on { padding:0 var(--pad-pager); border-radius:var(--radius-compact); border-color:var(--bg-dark); background:var(--bg-dark); color:var(--text-inverse); }
-/* The pager band's two forms of a name -- the window's, and each width button's. The long one is
-   what shows everywhere; the phone rule swaps which of the pair is rendered, and since only one
-   of them is ever in the render tree, the string a reader sees is the string a screen reader
-   says. The pair is scoped to this band on purpose: Home's hero carries the same width buttons
-   in a card with room to wrap them, so it keeps the words. README: Statistics. */
+/* The window's two forms of a name -- the long one shows everywhere; the phone rule swaps
+   which of the pair is rendered, and since only one of them is ever in the render tree, the
+   string a reader sees is the string a screen reader says. README: Statistics. */
 .pager-narrow { display:none; }
 .chart-wrap { position:relative; margin-top:8px; }
 /* The callout is a tooltip: it is asked for by hovering or focusing the chart, and it is not
@@ -1289,24 +1275,6 @@ label.field-shell { cursor:pointer; }
    container in the filter panel has to be allowed to shrink. */
 .filter-section { border:1px solid var(--border-card); border-radius:14px; padding:14px 16px; display:grid; --stack-gap:14px; gap:var(--stack-gap); min-width:0; }
 .filter-section > *, .filter-section-body > *, .field-pair > *, .row-inline > * { min-width:0; }
-/* The one row-inline child that holds a width instead of shrinking to fit, written here beside
-   the rule it has to beat rather than up with the rest of the Statistics band -- the general
-   rule is later in the file and wins on order at equal specificity, which is how the first
-   attempt at this computed to min-width:0 and moved nothing.
-
-   It is the pager's two arrows and the window name between them, held wide enough for the
-   longest name they can reach: "Quarter 2, 2026" measures 128.61px, plus two 32px buttons and
-   the row's two 10px gaps, so 212.61px. Held, because the width picker sits directly after it
-   -- and without this, choosing Quarter after Year moved every width button 87px sideways and
-   put a different width under the pointer that had just clicked one. README: Statistics.
-
-   This floor is not what keeps the *right arrow* still, though it reads as if it should be --
-   min-width only stops the row from going narrower than 213px, and a flex row with slack packs
-   its children to the start by default, so the slack lands after the right arrow, not between
-   the heading and it. Measured: "May 2025" left the right arrow at x=397.7, "September 2025" at
-   x=453.8, a 56px swing this rule did nothing to prevent, on a page that pages by clicking that
-   exact arrow. `.pager-heading` below is what actually pins it -- see the comment there. */
-.row-inline > .stats-window { min-width:213px; }
 /* The disclosure's label is the same string in both states and the chevron turns
    instead. The toolbar is nowrap around a flex:1 search field, so a wider "HIDE
    FILTERS" would move the search on every click -- the shift that keeps weight
@@ -1856,31 +1824,16 @@ label.field-shell { cursor:pointer; }
 	   leaving both stood the legend 16px under the ring against Home's 12. */
 	.ring-row > .chart-legend-fill { min-width:0; margin-top:0; }
 	.figure-headline { font-size:23px; }
-	.range-tabs { flex-wrap:wrap; gap:8px var(--gap-row); }
-	/* The whole band on one row at 390: two 32px arrows, the window's name and five widths, in
-	   about 350px of panel. Every part of it gives something up -- the widths are drawn two
-	   letters wide (WK MO QT YR ALL), the window's name takes its short form (W31 2026), the
-	   name's own size drops to 14px, and the desktop hold on .stats-window is released, since
-	   213px of it plus the buttons is the second row this rule exists to remove. Written out,
-	   Quarter 3, 2026 is 128.6px against the ~96px the row can spare it. */
-	.stats-window .pager-wide, .range-tabs-pager .pager-wide { display:none; }
-	.stats-window .pager-narrow, .range-tabs-pager .pager-narrow { display:inline; }
-	.range-tabs.range-tabs-pager { gap:4px; }
-	.row-inline > .stats-window { min-width:0; gap:6px; }
-	.space-between > .row-inline { gap:6px; }
-	.stats-window .panel-heading { font-size:14px; }
+	/* The hero's own name switches to its short form here (W31 2026), the same way it always
+	   has -- both strings are always in the markup and the stylesheet shows exactly one. */
+	.stats-hero-pager .pager-wide { display:none; }
+	.stats-hero-pager .pager-narrow { display:inline; }
+	.stats-hero-pager .panel-heading { font-size:14px; }
 	/* The same fixed-width pin as the desktop heading, resized to what the short form actually
 	   needs at 14px: "Nov 2025" and "Dec 2025" are the widest of it, both 68.9px. The desktop
-	   140px would otherwise survive down to this width and force the band back onto two rows. */
-	.stats-window .pager-heading { width:72px; }
-	/* The compare switch on its own row here (.section-header:has(.segmented) wraps it above), so
-	   it is free to take the row rather than sit content-width and left-aligned under the
-	   section label -- "Previous period" and "Same period last year" are two big targets side by
-	   side, the same full-width, evenly-split shape a segmented control already takes inside a
-	   form field. Content-width stays the desktop default; the two labels next to a heading read
-	   fine as a compact pill there and a full-width one would run past the label's own line. */
-	.section-header .segmented { width:100%; }
-	.section-header .segmented button { flex:1; }
+	   140px would otherwise survive down to this width and force the band onto two rows. */
+	.stats-hero .pager-heading { width:72px; }
+	.space-between > .row-inline { gap:6px; }
 	/* The band's two halves at either end of their row: the arrows and the name they step on the
 	   left, the widths they step by on the right, with the slack between them rather than after
 	   them. The row takes the full width to do it, which is what puts the total and its chip on
@@ -1996,20 +1949,68 @@ label.field-shell { cursor:pointer; }
 .order-chips { gap:6px; margin-top:var(--gap-block); flex-wrap:wrap; }
 
 /* Statistics. */
-.stats-toolbar { flex-wrap:wrap; gap:var(--gap-row); padding:2px 2px 0; }
-/* The compare switch sits beside the section label rather than under it, but "October 2026 in
-   numbers" plus two segmented buttons naming "Same period last year" is wider than a phone has --
-   this wraps to a second line there rather than running the switch off the edge of the card. Scoped
-   to a header that actually holds one, so every other .section-header on the page (none yet, but the
-   component is shared) is untouched. */
-.section-header:has(.segmented) { flex-wrap:wrap; row-gap:6px; }
+
+/* The window's every control in one card -- the pager, the width picker, the total, what it's
+   measured against, and the choice of what to measure it against -- rather than a toolbar row
+   above the KPI tiles. README: Statistics, Cards. Beside it rather than under it once there is
+   room: the tiles are what the card is about, so they read as its neighbour, not as a section
+   that starts two controls and a caption later. Below 900px there isn't room for a 376px card
+   plus a two-tile-wide grid without squeezing one of them, so the row stacks instead. */
+.stats-hero-row { display:grid; grid-template-columns:1fr; gap:var(--gap-cards); align-items:start; }
+@media (min-width:901px) {
+	.stats-hero-row { grid-template-columns:376px 1fr; }
+}
+/* Always two across, whatever the viewport -- the four-across default (.kpi-row's own rule)
+   is right beside a card wide enough to spare it, and wrong squeezed into what's left of a row
+   that starts with a 376px card. Scoped to this row so Categories' and Vendors' own four-across
+   tiles, sharing the same .kpi-row class, are untouched. */
+.stats-hero-row .kpi-row { grid-template-columns:repeat(2, minmax(0,1fr)); }
+
+.stats-hero { display:flex; flex-direction:column; gap:14px; }
+.stats-hero-pager { display:flex; align-items:center; gap:var(--gap-row); }
 /* Fixed and centred, not just sized to fit -- the two arrows either side of this read as one
    pager, and a heading that grows and shrinks with its own text walks the right arrow sideways
-   under the pointer that just clicked it (measured: 397.7px to 453.8px across five widths, see
-   .row-inline > .stats-window above). 140px clears the longest label this ever holds --
-   "September 2025" at 135.8px -- with a few px to spare; a year past 9999 or a locale that
-   writes a longer month name is the one input this floor does not cover. */
-.pager-heading { font-size:16px; letter-spacing:-.01em; display:inline-block; width:140px; text-align:center; }
+   under the pointer that just clicked it (measured: 397.7px to 453.8px across five widths before
+   this was fixed-width). 140px clears the longest label this ever holds -- "September 2025" at
+   135.8px -- with a few px to spare; a year past 9999 or a locale that writes a longer month name
+   is the one input this floor does not cover. */
+.pager-heading { font-size:16px; letter-spacing:-.01em; display:inline-block; width:140px; text-align:center; border-bottom:1px dashed rgb(255 255 255 / .32); padding-bottom:2px; }
+/* .icon-button paints itself a white card with a border -- correct on the sheets it was written
+   for, a stray white chip on this dark card -- so the pager arrows here give both up for the
+   same translucent-on-dark treatment the rest of the card's own chrome uses. */
+.stats-hero .icon-button-arrow { background:rgb(255 255 255 / .08); border-color:rgb(255 255 255 / .16); color:var(--text-inverse); }
+/* The width picker as a compact pill rather than the field-shell Combobox wears everywhere else
+   -- this one names no field, sits in a pager band twelve of the app's other 48px fields never
+   share, and sits on a dark card those fields never do. It is still the same component (README:
+   Combobox -- the app's one dropdown pattern): typing still filters its five rows, Escape still
+   closes it, only its trigger's skin and the panel's width and side are its own. */
+.stats-window-select { margin-left:auto; flex:none; }
+.stats-window-select .field-shell { width:auto; height:28px; padding:0 10px; border:0; border-radius:999px; background:rgb(255 255 255 / .1); gap:4px; }
+/* The base rule (.field-shell > input) sizes the input to fill whatever room a full-width form
+   field gives it -- flex:1, width:100% -- which is exactly wrong for a five-word pill sitting in
+   a flex row with real estate to spare: on a phone, where the pager row has most of the card's
+   width free once the arrows and the fixed-width heading are placed, the pill stretched to fill
+   nearly the whole card. Sized to its own text instead, the same way the trigger's height and
+   radius already are. */
+.stats-window-select .field-shell input { flex:none; width:8ch; min-width:0; color:var(--text-inverse); font-size:11.5px; font-weight:700; letter-spacing:.02em; cursor:pointer; }
+.stats-window-select .field-shell input::placeholder { color:var(--text-inverse); opacity:1; }
+.stats-window-select .chevron-icon { color:var(--text-inverse); width:12px; height:12px; }
+/* Wider than its own trigger and right-aligned under it, rather than the panel's usual
+   left:0;right:0 match to the field it opens from -- a 28px-tall pill has no room for five rows
+   of a light panel's own comfortable padding, so the panel is sized to the list instead of to
+   the pill that opens it. */
+.stats-window-select .combobox-panel { left:auto; right:0; width:180px; }
+.stats-window-select .combobox-group-heading:empty { display:none; }
+
+.stats-hero-total { font-size:30px; font-weight:700; letter-spacing:-.02em; }
+.stats-hero-caption { margin:0; font-size:12px; color:var(--text-on-dark); }
+/* Full width and evenly split -- two big targets stacked in one track, not two buttons that have
+   to line up with anything beside them. The same white-selected, translucent-resting pair the
+   pager arrows above use for their own dark/light swap. */
+.stats-hero .segmented { width:100%; background:rgb(255 255 255 / .1); border-color:rgb(255 255 255 / .16); }
+.stats-hero .segmented button { flex:1; color:var(--text-on-dark); }
+.stats-hero .segmented button.is-on { background:var(--bg-card); color:var(--text); }
+
 .figure-unit { font-weight:500; font-size:14px; color:var(--text-muted); }
 .rhythm-bars { min-height:86px; }
 
