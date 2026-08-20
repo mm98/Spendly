@@ -31,6 +31,15 @@ doubles back on its own subject ("reloading" ... "loads"). Say the plain action 
 consequence, in that order: what happens, then what you lose. When in doubt, read the sentence as
 if translating it word for word — if it stops making sense translated, rewrite it before it ships.
 
+Clear and translatable is not the same as true, and a rewrite can fix one while breaking the
+other: the Sign in page's tagline was rewritten from "Your ledger's just where you left it" to
+"Your ledger has not changed" — shorter, no idiom, translates fine — and it was still wrong,
+because the page asserts it before the reader has signed in. Nothing has been read from the
+server yet at that point, so the sentence is a claim the app has no way to back up: not
+confusing, false. Before a sentence ships, ask what the page actually knows at the moment it is
+shown, not just whether the words are simple — a plain sentence stating something unverified is a
+plain lie.
+
 ## Division of labour
 
 Four documents, one job each. Putting a paragraph in the wrong one is how the same rule ends up
