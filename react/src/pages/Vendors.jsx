@@ -102,13 +102,8 @@ export default function Vendors() {
 							</CardBody>
 						</Card>
 
-						{/* The band carries the list's own summary the way All vendors' band carries its
-						    count: how many are pinned and what they add up to, so the section says what
-						    it holds before a tile is read. */}
 						<Card aria-label="Favourites">
-							<CardHeader title={favourites.length
-									? `Favourites${sep}${plural(favourites.length, 'vendor')}, ${currency(favourites.reduce((sum, v) => sum + v.spend, 0), 0)} all time`
-									: 'Favourites'}
+							<CardHeader title="Favourites"
 								to={all.length ? '/vendors/all' : undefined}
 								label="Favourites, open all vendors" />
 							<CardDivider />
@@ -116,22 +111,13 @@ export default function Vendors() {
 								{favourites.length ? (
 									<FavouriteTileGrid>
 										{favourites.map(vendor => (
-											/* Both stats are always drawn, "—" standing in where there is
-											   nothing yet: a tile with a missing line beside a full one reads
-											   as broken, not as new. A fact that is not there is still a fact. */
 											<FavouriteTile key={vendor.id}
 												mark={<span className="entry-avatar"
 													style={{ background: vendor.colour, color: inkOn(vendor.colour) }}>{vendor.initials}</span>}
 												name={vendor.name} to={`/orders/all?vendor=${vendor.id}`}
 												linkLabel={`${vendor.name}, open their orders`}
-												amount={currency(vendor.spend, 0)} meta={plural(vendor.orders, 'order')}
-												stats={[
-													{ label: 'Saved', value: vendor.saved > 0 ? currency(vendor.saved, 0) : '—',
-														tone: vendor.saved > 0 ? 'positive' : undefined },
-													{ label: 'Latest', value: vendor.latest ? currency(vendor.latest.total, 0) : '—' }
-												]}
-												editTo={`/vendors/${vendor.id}/edit`}
-												editLabel={`Edit ${vendor.name}`} />
+												meta={plural(vendor.orders, 'order')}
+												amount={currency(vendor.spend, 0)} saved={`saved ${currency(vendor.saved, 0)}`} />
 										))}
 									</FavouriteTileGrid>
 								) : (

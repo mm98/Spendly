@@ -10,33 +10,11 @@ const vendorStatsQuery = db.prepare(`
 	GROUP BY vendor_id
 `)
 
-/* The newest order each vendor has. The Vendors page draws a "Latest order" row on every
-   spotlight card and nothing ever answered it, so a vendor with 34 orders read "None • all
-   time — 0 kr." -- the card's own fallback for a vendor that has never been bought from,
-   shown for every vendor there is.
-
-   Driven from the vendors table -- a dozen rows -- with one indexed newest-order probe each
-   (the id breaking the date tie, so two orders on the same day resolve the same way the
-   orders list does). It was ROW_NUMBER() OVER a partition of every order the account has,
-   which numbers all 50,000 rows through a sort to keep 12 of them: 68ms against 0.3ms for
-   the same rows. A vendor with no orders finds no id, so the JOIN drops it -- exactly the
-   rows the window form answered. */
-const vendorLatestQuery = db.prepare(`
-	SELECT o.vendor_id AS vendorId, o.date, o.item_count AS items, o.total
-	FROM vendors v JOIN orders o ON o.id = (
-		SELECT o2.id FROM orders o2 WHERE o2.user_id = v.user_id AND o2.vendor_id = v.id
-		ORDER BY o2.date DESC, o2.id DESC LIMIT 1
-	)
-	WHERE v.user_id = ?
-`)
-
-/** Orders/spend/saved per vendor, keyed by vendor id, plus that vendor's most recent order. A
-    vendor belongs to exactly one order at a time, so the totals are a plain SUM — no splitting
-    question the way categories have. */
+/** Orders/spend/saved per vendor, keyed by vendor id. A vendor belongs to exactly one order
+    at a time, so the totals are a plain SUM — no splitting question the way categories have. */
 export function vendorStats(userId) {
-	const latest = new Map(vendorLatestQuery.all(userId).map(r => [r.vendorId, r]))
 	return new Map(vendorStatsQuery.all(userId).map(r => [r.vendorId, {
-		orders: r.orders, spend: r.spend, saved: r.saved, latest: latest.get(r.vendorId) ?? null
+		orders: r.orders, spend: r.spend, saved: r.saved
 	}]))
 }
 
@@ -95,17 +73,11 @@ const vendorStatsForQuery = db.prepare(`
 	SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spend, COALESCE(SUM(saved), 0) AS saved
 	FROM orders WHERE user_id = ? AND vendor_id = ?
 `)
-const vendorLatestForQuery = db.prepare(`
-	SELECT date, item_count AS items, total FROM orders
-	WHERE user_id = ? AND vendor_id = ? ORDER BY date DESC, id DESC LIMIT 1
-`)
-
-/** One vendor's orders/spend/saved/latest -- the same shape one entry of vendorStats holds. */
+/** One vendor's orders/spend/saved -- the same shape one entry of vendorStats holds. */
 export function vendorStatsFor(userId, vendorId) {
 	const r = vendorStatsForQuery.get(userId, vendorId)
-	if (!r.orders) return { orders: 0, spend: 0, saved: 0, latest: null }
-	return { orders: r.orders, spend: r.spend, saved: r.saved,
-		latest: vendorLatestForQuery.get(userId, vendorId) ?? null }
+	if (!r.orders) return { orders: 0, spend: 0, saved: 0 }
+	return { orders: r.orders, spend: r.spend, saved: r.saved }
 }
 
 /* CROSS JOIN pins the category's own (indexed, covering) link list as the driving side; a

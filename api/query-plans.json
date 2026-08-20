@@ -407,15 +407,6 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT date, item_count AS items, total FROM orders WHERE user_id = ? AND vendor_id = ? ORDER BY date DESC, id DESC LIMIT 1": {
-			"plan": [
-				"SEARCH orders USING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_orders_user_vendor"
-			]
-		},
 		"SELECT default_kind, default_status, page_size, sort, show_scan_card, confirm_delete, card_rows, list_sort, currency, locale FROM settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
@@ -655,20 +646,6 @@
 				"sorts in a temp B-tree"
 			],
 			"indexes": [
-				"sqlite_autoindex_orders_1"
-			]
-		},
-		"SELECT o.vendor_id AS vendorId, o.date, o.item_count AS items, o.total FROM vendors v JOIN orders o ON o.id = ( SELECT o2.id FROM orders o2 WHERE o2.user_id = v.user_id AND o2.vendor_id = v.id ORDER BY o2.date DESC, o2.id DESC LIMIT 1 ) WHERE v.user_id = ?": {
-			"plan": [
-				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
-				"SEARCH o USING INDEX sqlite_autoindex_orders_1 (id=?)",
-				"CORRELATED SCALAR SUBQUERY 1",
-				"SEARCH o2 USING COVERING INDEX idx_orders_user_vendor (user_id=? AND vendor_id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_orders_user_vendor",
-				"idx_vendors_user_name",
 				"sqlite_autoindex_orders_1"
 			]
 		},
@@ -1221,7 +1198,7 @@
 				"date",
 				"id"
 			],
-			"readers": 9
+			"readers": 7
 		},
 		"idx_scan_uploads_user": {
 			"table": "scan_uploads",
@@ -1266,7 +1243,7 @@
 				"user_id",
 				"name"
 			],
-			"readers": 12
+			"readers": 11
 		}
 	}
 }

@@ -131,13 +131,9 @@ export default function Categories() {
 							</CardBody>
 						</Card>
 
-						{/* The spotlight Vendors has, on this page's own records: the band carries the
-						    list's summary, and each tile is spend, share and the saved/budget pair.
-						    README: Favourites. */}
+						{/* The spotlight Vendors has, on this page's own records. README: Favourites. */}
 						<Card aria-label="Favourites">
-							<CardHeader title={favourites.length
-									? `Favourites${sep}${plural(favourites.length, 'category', 'categories')}, ${currency(favourites.reduce((sum, c) => sum + c.spend, 0), 0)} all time`
-									: 'Favourites'}
+							<CardHeader title="Favourites"
 								to={categories.length ? '/categories/all' : undefined}
 								label="Favourites, open all categories" />
 							<CardDivider />
@@ -145,23 +141,14 @@ export default function Categories() {
 								{favourites.length ? (
 									<FavouriteTileGrid>
 										{favourites.map(category => (
-											/* Both stats always drawn, "—" where there is nothing yet -- a
-											   tile with a missing line beside a full one reads as broken. */
 											<FavouriteTile key={category.id}
 												mark={<span className="category-icon"
 													style={{ background: category.colour, color: inkOn(category.colour) }}>
 													<Icon name={category.icon} path={category.iconPath} /></span>}
 												name={category.name} to={`/orders/all?category=${category.id}`}
 												linkLabel={`${category.name}, open its orders`}
-												amount={currency(category.spend, 0)}
 												meta={`${percent(category.share)} of expenses`}
-												stats={[
-													{ label: 'Saved', value: category.saved > 0 ? currency(category.saved, 0) : '—',
-														tone: category.saved > 0 ? 'positive' : undefined },
-													{ label: 'Budget', value: category.budget > 0 ? currency(category.budget, 0) : '—' }
-												]}
-												editTo={`/categories/${category.id}/edit`}
-												editLabel={`Edit ${category.name}`} />
+												amount={currency(category.spend, 0)} saved={`saved ${currency(category.saved, 0)}`} />
 										))}
 									</FavouriteTileGrid>
 								) : (
