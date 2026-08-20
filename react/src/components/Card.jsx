@@ -73,7 +73,7 @@ export function KpiCard({ label, value, amount, delta, trend = 'up', tone = 'neu
 			{delta ? (
 				<span className={join('delta', 'delta-' + tone)}>
 					{trend === 'level' ? null : <Icon name={trend === 'down' ? 'trendDown' : 'trendUp'} />}
-					{delta}
+					<span className="delta-text">{delta}</span>
 				</span>
 			) : null}
 			{note ? <span className="card-kpi-label">{note}</span> : null}

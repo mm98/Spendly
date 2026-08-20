@@ -1824,16 +1824,26 @@ label.field-shell { cursor:pointer; }
 	   leaving both stood the legend 16px under the ring against Home's 12. */
 	.ring-row > .chart-legend-fill { min-width:0; margin-top:0; }
 	.figure-headline { font-size:23px; }
-	/* The hero's own name switches to its short form here (W31 2026), the same way it always
-	   has -- both strings are always in the markup and the stylesheet shows exactly one. */
-	.stats-hero-pager .pager-wide { display:none; }
-	.stats-hero-pager .pager-narrow { display:inline; }
+	/* The hero's own name switching to its short form is the @container rule beside .stats-hero
+	   below, not a rule here -- a phone is well inside that container query's own 380px content-box
+	   floor regardless of viewport, so a second, viewport-keyed copy of the same swap would be a
+	   near-miss of it: right today, and a second place to update if that threshold ever moves.
+	   .stats-hero-pager .panel-heading still needs its own 14px here, though -- font-size isn't
+	   part of what the container query changes. */
 	.stats-hero-pager .panel-heading { font-size:14px; }
-	/* The same fixed-width pin as the desktop heading, resized to what the short form actually
-	   needs at 14px: "Nov 2025" and "Dec 2025" are the widest of it, both 68.9px. The desktop
-	   140px would otherwise survive down to this width and force the band onto two rows. */
-	.stats-hero .pager-heading { width:72px; }
 	.space-between > .row-inline { gap:6px; }
+	/* The KPI tiles' own delta, on a phone: two tiles share a row here, and "167% up vs Mar 2025"
+	   is longer than either has -- wrapping it to two lines is what a full sentence in a fixed
+	   spot does when the spot is this narrow. The icon goes first, since it is the one part of
+	   the line these four tiles could each lose without losing anything a reader needs: the
+	   colour already carries good/bad, and the label above the figure already carries which tile
+	   this is -- the arrow only repeats the direction the sign or the word beside it already
+	   states. Losing it is what buys the text room to run without wrapping; where it still
+	   doesn't fit, it ends in an ellipsis rather than a second line. Desktop keeps the icon --
+	   four tiles across a much wider row have room for it. */
+	.card-kpi .delta svg.icon { display:none; }
+	.card-kpi .delta { min-width:0; }
+	.card-kpi .delta-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
 	/* The band's two halves at either end of their row: the arrows and the name they step on the
 	   left, the widths they step by on the right, with the slack between them rather than after
 	   them. The row takes the full width to do it, which is what puts the total and its chip on
