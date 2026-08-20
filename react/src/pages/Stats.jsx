@@ -230,7 +230,7 @@ export default function Stats() {
 									    app (README: Combobox) rather than a second kind of picker; nothing
 									    here is typed into, so onChange is a no-op and onSelect is the only
 									    thing that ever moves the window. */}
-									<Combobox className="stats-window-select" label="Window width"
+									<Combobox className="stats-window-select" label="Window width" pickOnly
 										value={ranges.find(r => r.key === view.range)?.label ?? ''}
 										onChange={() => {}}
 										onSelect={o => show(o.id, reanchor(view, o.id))}
