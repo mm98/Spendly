@@ -76,14 +76,14 @@ export default function Orders() {
 									   circle off the side edges rather than the line being inset for it.
 									   README: Charts. */
 									series={[
-										{ points: plotted(data.period.series.monthPrevious, chartMax, 243.5, 6.5), kind: 'curve', stroke: '#B9BFF0', strokeWidth: 2 },
-										{ points: plotted(data.period.series.monthCurrent, chartMax, 243.5, 6.5), kind: 'curve', stroke: '#4F5BD5', strokeWidth: 2.6 }
+										{ points: plotted(data.period.series.monthPrevious, chartMax, 243.5, 6.5), kind: 'curve', stroke: 'var(--blue-light)', strokeWidth: 2 },
+										{ points: plotted(data.period.series.monthCurrent, chartMax, 243.5, 6.5), kind: 'curve', stroke: 'var(--blue)', strokeWidth: 2.6 }
 									]}
 									/* Today, on the current month's line only -- the paler line behind it is
 									   last month, whose days are not today's. It was a halo and an oversized
 									   dot here and a plain dot on Home, which is one fact drawn two ways on
 									   two pages; the mark is the same everywhere now. README: Charts. */
-									markers={todayMarker(data.period.todayIndex, { series: 1, colour: '#4F5BD5' })} />
+									markers={todayMarker(data.period.todayIndex, { series: 1, colour: 'var(--blue)' })} />
 								<ChartScale marks={data.period.axis} span={data.period.series.monthCurrent.length} />
 							</CardBody>
 						</Card>

@@ -242,11 +242,11 @@ export default function Stats() {
 								<Chart height={210}
 									label={`Cumulative spend across ${view.shortLabel}${compare ? `, ${view.previousLabel} dashed behind it` : ''}`}
 									gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
-										{ offset: 0, color: '#14AC72', opacity: 0.2 },
-										{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
+										{ offset: 0, color: 'var(--green)', opacity: 0.2 },
+										{ offset: 1, color: 'var(--green)', opacity: 0 }] }]}
 									series={[
 										{ points: plotted(points, ceiling, 203.5, 6.5), kind: 'area', fill: 'gradient:spend' },
-										{ points: plotted(points, ceiling, 203.5, 6.5), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.4 },
+										{ points: plotted(points, ceiling, 203.5, 6.5), kind: 'curve', stroke: 'var(--green)', strokeWidth: 2.4 },
 										...(compare ? [{ points: plotted(compare, ceiling, 203.5, 6.5), kind: 'curve', stroke: '#95ABAA', strokeWidth: 1.6, dash: '4 4' }] : [])
 									]}
 									/* Today, and only where the window holds one: this is the page with a
@@ -258,7 +258,7 @@ export default function Stats() {
 									   README: Charts. */
 									markers={todayMarker(view.todayIndex == null ? null
 										: bucketOf(view.todayIndex, view.series.current.length, buckets),
-									{ series: 1, colour: '#14AC72' })} />
+									{ series: 1, colour: 'var(--green)' })} />
 								<ChartScale marks={view.axis} span={view.series.current.length} buckets={buckets} />
 							</CardBody>
 						</Card>

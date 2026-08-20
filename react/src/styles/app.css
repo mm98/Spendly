@@ -75,9 +75,11 @@
 	   indistinguishable from the card's own edge; .card-divider uses --border-card
 	   directly rather than carrying a second token for the same shade.
 	   --border-control absorbs the other near-identical greys this file used to write
-	   as literals -- #DFE3DE, #E2E5E1 and #E5E7E2 were each within a few RGB values of
-	   it and are gone now; #D9DED8, nine values darker, stays a literal because outline
-	   buttons deliberately draw a stronger edge than a resting control. */
+	   as literals -- #DFE3DE, #E2E5E1, #E5E7E2 and #D9DED8 were each within a few RGB
+	   values of it (#D9DED8 measured 1.36:1 against white, against this token's
+	   1.28:1 -- not the "deliberately stronger edge" a stale comment here used to
+	   claim) and are gone now; button-outline, range-tabs and ai-suggestion-row all
+	   read this token directly, and so does its dark-mode re-theme. */
 	--border-card:#E9ECE8;
 	--border-divider:#EDEFEA;
 	--border-control:#E2E4DF;
@@ -376,7 +378,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 	cursor:pointer; white-space:nowrap; text-decoration:none;
 }
 .button.button-primary { background:var(--bg-dark); color:var(--text-inverse); }
-.button.button-outline { background:var(--bg-card); border-color:#D9DED8; color:var(--text); }
+.button.button-outline { background:var(--bg-card); border-color:var(--border-control); color:var(--text); }
 /* Every button label in this system is caps, and the two topbar actions share one
    spec so neither drifts into its own treatment. That spec is `.button-pill`'s: one
    32px/r10 size serves both the top bar and section actions, at both breakpoints,
@@ -607,7 +609,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .figure-delta { font-size:11.5px; color:var(--text-positive); font-weight:600; margin-top:2px; }
 .range-tabs { display:flex; gap:var(--gap-panel); align-items:center; margin-top:14px; }
 .range-tabs button { font:inherit; background:none; border:0; font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.02em; cursor:pointer; padding:6px 2px; }
-.range-tabs button.is-on { color:var(--text); border:1px solid #D9DED8; border-radius:9px; padding:6px var(--pad-chip); background:var(--bg-card); }
+.range-tabs button.is-on { color:var(--text); border:1px solid var(--border-control); border-radius:9px; padding:6px var(--pad-chip); background:var(--bg-card); }
 /* The same control in Statistics' pager band, where it stands next to the two arrows that step
    it: every button is the 32px box .icon-button-arrow is, with that button's border and radius,
    so the row of arrows and widths reads as one control rather than two of different heights.
@@ -846,7 +848,7 @@ svg.chart { width:100%; display:block; }
 /* ---------------- inner-page patterns from the design system ---------------- */
 .page:not(.is-on) { display:none !important; }
 .page.is-on { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
-.segmented { display:inline-flex; gap:2px; padding:4px; background:#F1F2EE; border:1px solid var(--border-control); border-radius:14px; width:max-content; }
+.segmented { display:inline-flex; gap:2px; padding:4px; background:var(--bg-tile); border:1px solid var(--border-control); border-radius:14px; width:max-content; }
 /* minmax(0,1fr), not the implicit auto column: an auto track sizes to its widest
    item's min-content, and a nowrap meta made one scan3 row 327px of min-content --
    36 tile + 12 gap + 279 of text -- inside a 322.41px panel. The track took the
@@ -883,7 +885,7 @@ svg.chart { width:100%; display:block; }
 .button-link { font:inherit; background:none; border:0; padding:0; display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-decoration:underline; text-underline-offset:3px; color:var(--text); cursor:pointer; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); min-width:0; }
-.entry-list .entry-glyph { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:#F3F5F1; flex:none; }
+.entry-list .entry-glyph { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:var(--bg-inset); flex:none; }
 /* A tight top belongs to the container, not to the row. The row's padding is the box
    the hover tint paints, so the 7px taken off the first row to close the gap under the
    divider is 7px the lit band loses above the text and keeps below it -- ink 2px under
@@ -945,7 +947,7 @@ svg.chart { width:100%; display:block; }
    is what carries the meaning -- the red edge and the red type are both colour,
    and colour alone is not a message (1.4.1). README: Fields and Forms. */
 .field > span.field-error { font-size:12px; font-weight:600; color:var(--text-negative); }
-.field-thumb { width:32px; height:32px; border-radius:8px; background:#F0F2EF; display:grid; place-items:center; color:var(--thumb-glyph); flex:none; }
+.field-thumb { width:32px; height:32px; border-radius:8px; background:var(--bg-app); display:grid; place-items:center; color:var(--thumb-glyph); flex:none; }
 .kpi-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--gap-panel); }
 .card-kpi span { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); font-weight:600; }
 .card-kpi .card-kpi-value { font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.02em; text-transform:none; font-weight:700; }
@@ -1094,7 +1096,7 @@ svg.chart { width:100%; display:block; }
 .combobox-group-heading { font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--text-muted); font-weight:600; padding:2px 10px 4px; }
 .combobox-option { display:flex; align-items:center; padding:10px var(--pad-inset); border-radius:var(--radius-compact); font-size:13.5px; color:var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .combobox-option:hover { background:var(--bg-row-hover); }
-.combobox-option.combobox-option-highlighted { background:#F1F3EE; }
+.combobox-option.combobox-option-highlighted { background:var(--bg-tile); }
 .combobox-option.combobox-option-selected { background:var(--bg-green-tint); font-weight:600; }
 .combobox-option mark { background:var(--bg-green-tint); color:inherit; padding:0 1px; border-radius:3px; font-weight:600; }
 /* The space either side of a matched word renders at 0 width here -- text-overflow:ellipsis
@@ -1352,7 +1354,7 @@ label.field-shell { cursor:pointer; }
 .ai-prompt-bar .field-shell-placeholder { color:var(--text-muted); font-size:13px; flex:1; }
 .ai-prompt-bar > span > svg.icon { width:20px; height:20px; }
 .ai-suggestion-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
-.ai-suggestion-row button { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:34px; padding:0 var(--pad-control-compact); border-radius:var(--radius-compact); border:1px solid #D9DED8; background:var(--bg-card); font-size:12px; font-weight:500; color:var(--text-body); cursor:pointer; }
+.ai-suggestion-row button { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:34px; padding:0 var(--pad-control-compact); border-radius:var(--radius-compact); border:1px solid var(--border-control); background:var(--bg-card); font-size:12px; font-weight:500; color:var(--text-body); cursor:pointer; }
 /* The favourites spotlight, on Vendors and Categories both. Three tiles to a row on the
    wide panel, two from 900 down, one from 700 -- the phone rendering is the same tile,
    just full-width. Each tile is a small stat card rather than a nested .card: the section
@@ -2069,20 +2071,17 @@ html[data-theme="dark"] {
 	--shadow-ink:0 0 0;
 }
 
-/* The one remaining literal's dark-side alias. #D9DED8 is the sole raw grey left
-   outside --border-control (see :root) -- light mode keeps its exact shade, and
-   dark folds it onto the nearest role token rather than inventing a dark alias
-   nobody has chosen yet. Everything else that used to need an alias here now
-   reads --border-control directly and re-themes on its own. */
-html[data-theme="dark"] .button.button-outline,
-html[data-theme="dark"] .range-tabs button.is-on,
-html[data-theme="dark"] .ai-suggestion-row button { border-color:var(--border-control); }
 html[data-theme="dark"] .segmented { background:var(--bg-inset); }
 /* .document-thumb dropped out of this group -- its base rule already reads var(--bg-tile),
    and --bg-tile is aliased to --bg-control-tint above, so the override painted the same
-   value the cascade already gave it. .field-thumb and .entry-glyph stay: their light
-   literals (#F0F2EF, #F3F5F1) are too far from any existing token to fold in without
-   changing what they paint, the same call --border-control's neighbours made. */
+   value the cascade already gave it. .button-outline, .range-tabs button.is-on and
+   .ai-suggestion-row button dropped out the same way once their own #D9DED8 literal
+   was folded into --border-control (see :root) -- the override here painted the same
+   value the base rule already gives every theme. .field-thumb and .entry-glyph stay in
+   this group: their light literals (#F0F2EF, #F3F5F1) measured within 1% pairwise
+   contrast of --bg-app and --bg-inset and are var() references now too (see :root),
+   but the dark override below still paints a different value than either alias
+   resolves to in dark mode, so it is not redundant the way the three above were. */
 html[data-theme="dark"] .field-thumb,
 html[data-theme="dark"] .entry-list .entry-glyph { background:var(--bg-control-tint); }
 /* The line-item icon's default green tile is a light wash no dark ground carries -- on dark
