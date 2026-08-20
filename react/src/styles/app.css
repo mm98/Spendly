@@ -316,7 +316,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .brand-mark svg { width:20px; height:20px; stroke:var(--text-inverse); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .brand-name { font-size:22px; font-weight:700; letter-spacing:-.01em; color:var(--text); }
 .sidebar-nav { display:grid; gap:8px; }
-.sidebar-nav a { display:flex; align-items:center; gap:14px; min-height:48px; padding:0 var(--pad-control); border-radius:14px; text-decoration:none; color:#3C433D; font-size:14.5px; font-weight:500; }
+.sidebar-nav a { display:flex; align-items:center; gap:14px; min-height:48px; padding:0 var(--pad-control); border-radius:14px; text-decoration:none; color:var(--text-body); font-size:14.5px; font-weight:500; }
 .sidebar-nav a svg.icon { width:19px; height:19px; }
 .sidebar-nav a.is-on { background:var(--bg-nav-active); color:var(--text); font-weight:600; }
 .sidebar-nav a.is-on svg.icon { stroke-width:2.1; }
@@ -875,7 +875,7 @@ svg.chart { width:100%; display:block; }
 /* Selection may not change a segment's text metrics: the track is width:max-content, so
    a heavier active label resizes the control and everything sharing its row. The pill
    carries the selection alone. README: Segmented Control. */
-.segmented button { font:inherit; white-space:nowrap; padding:9px 19px; border-radius:11px; font-size:13px; font-weight:500; color:#3E453F; cursor:pointer; border:0; background:transparent; }
+.segmented button { font:inherit; white-space:nowrap; padding:9px 19px; border-radius:11px; font-size:13px; font-weight:500; color:var(--text-body); cursor:pointer; border:0; background:transparent; }
 .segmented button.is-on { background:var(--bg-dark); color:var(--text-inverse); }
 .page-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
 .two-column { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-cards); }
@@ -1093,7 +1093,7 @@ svg.chart { width:100%; display:block; }
 .combobox-empty { padding:10px var(--pad-inset); margin:0; font-size:13px; color:var(--text-muted); }
 .combobox-group-heading { font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--text-muted); font-weight:600; padding:2px 10px 4px; }
 .combobox-option { display:flex; align-items:center; padding:10px var(--pad-inset); border-radius:var(--radius-compact); font-size:13.5px; color:var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
-.combobox-option:hover { background:#F5F7F4; }
+.combobox-option:hover { background:var(--bg-row-hover); }
 .combobox-option.combobox-option-highlighted { background:#F1F3EE; }
 .combobox-option.combobox-option-selected { background:var(--bg-green-tint); font-weight:600; }
 .combobox-option mark { background:var(--bg-green-tint); color:inherit; padding:0 1px; border-radius:3px; font-weight:600; }
@@ -2079,15 +2079,16 @@ html[data-theme="dark"] .button.button-outline,
 html[data-theme="dark"] .range-tabs button.is-on,
 html[data-theme="dark"] .ai-suggestion-row button { border-color:var(--border-control); }
 html[data-theme="dark"] .segmented { background:var(--bg-inset); }
-html[data-theme="dark"] .segmented button { color:var(--text-body); }
-html[data-theme="dark"] .sidebar-nav a { color:var(--text-body); }
+/* .document-thumb dropped out of this group -- its base rule already reads var(--bg-tile),
+   and --bg-tile is aliased to --bg-control-tint above, so the override painted the same
+   value the cascade already gave it. .field-thumb and .entry-glyph stay: their light
+   literals (#F0F2EF, #F3F5F1) are too far from any existing token to fold in without
+   changing what they paint, the same call --border-control's neighbours made. */
 html[data-theme="dark"] .field-thumb,
-html[data-theme="dark"] .document-thumb,
 html[data-theme="dark"] .entry-list .entry-glyph { background:var(--bg-control-tint); }
 /* The line-item icon's default green tile is a light wash no dark ground carries -- on dark
    it sits on the bar track instead, and the green ink stays the mark. Light keeps the wash:
    the pair is a component default of the vendor/category kind, data-adjacent, not a token. */
 html[data-theme="dark"] .item-row .item-row-icon { background:var(--bg-bar-track); }
-html[data-theme="dark"] .combobox-option:hover { background:var(--bg-row-hover); }
 html[data-theme="dark"] .combobox-option.combobox-option-highlighted { background:var(--bg-nav-active); }
 html[data-theme="dark"] .chart-ruler i { background:var(--border-control); }
