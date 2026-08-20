@@ -328,7 +328,7 @@ export default function AllOrders() {
 							   offered to clear them. The answer is the create action, in the words Home's
 							   Orders card already uses. README: Empty states, Honest Affordances. */
 							<EmptyState>
-								<p>No orders yet. Add one and your spending shows up here.</p>
+								<p>No orders yet. Add one and your spending appears here.</p>
 								<ButtonLink to="/orders/new">ADD AN ORDER</ButtonLink>
 							</EmptyState>
 						) : narrowingSort && !chips.length && !query ? (

@@ -191,7 +191,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 						    not left for them to find. Nothing here is required: every setting has a
 						    working default, so the line offers the page rather than gating on it. */}
 						<p className="card-lead">{firstRun
-							? "Nothing here needs changing to get started. Your date and time format was set from your browser's timezone, so it is worth a look, and you can change any of this later."
+							? 'Nothing here needs changing to get started. Your date and time format was guessed from your browser, so check it is right. You can change any of this later.'
 							: 'What a new order starts as, and how your lists behave.'}</p>
 						<Form>
 							<FilterSection>
@@ -224,7 +224,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 								    reader has to be able to rule out. The symbol follows the account
 								    everywhere, so it is set here before the page it changes is left. */}
 								<Field label="Currency" htmlFor="setting-currency"
-									help="What every amount is printed in. This renames your figures, it does not convert them.">
+									help="The currency all amounts are shown in. This renames your figures. It does not convert them.">
 									<Combobox id="setting-currency" label="Currency"
 										value={(c => (c ? `${c.label} (${c.symbol})` : ''))(CURRENCIES.find(c => c.code === local.currency))}
 										onChange={() => {}}
@@ -241,7 +241,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 								    because the browser answers with its UI language, not the reader's
 								    region, and a reader whose two disagree has no other way to say so. */}
 								<Field label="Date and time format" htmlFor="setting-locale"
-									help="How every date and time is written. Times are always shown in your own clock; this is the shape they are written in.">
+									help="How dates and times are written. Times always show in your own clock; this sets the format only.">
 									<Combobox id="setting-locale" label="Date and time format"
 										value={(l => (l ? localeLabel(l) : ''))(LOCALES.find(l => l.code === local.locale))}
 										onChange={() => {}}
@@ -276,7 +276,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 
 							<FilterSection>
 								<span className="panel-heading">Sorting</span>
-								<Field label="Sort orders by" htmlFor="setting-sort" help="What All orders opens sorted by.">
+								<Field label="Sort orders by" htmlFor="setting-sort" help="The order All orders opens with.">
 									<Combobox id="setting-sort" label="Default sort"
 										value={sorts.find(s => s.id === local.sort)?.label ?? ''}
 										onChange={() => {}}
@@ -317,9 +317,9 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 										v ? 'The scan card is back on Home.' : 'The scan card is off.')} />
 								<CheckRow id="setting-confirm-delete" checked={local.confirmDelete}
 									label="Ask before deleting anything"
-									help="An order, a category, a vendor, a line item, an attachment. With this off, the trash acts straight away."
+									help="An order, a category, a vendor, a line item, an attachment. With this off, deleting happens immediately."
 									onChange={v => change({ confirmDelete: v },
-										v ? 'Deleting will ask first.' : 'Deleting will not ask.')} />
+										v ? 'You will be asked before deleting.' : 'You will not be asked before deleting.')} />
 							</FilterSection>
 						</Form>
 					</CardBody>
@@ -333,7 +333,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 					<CardBody>
 						<p className="card-lead card-lead-flush">
 							Sign out on this device. Your orders, vendors, categories and settings stay on
-							the account; signing back in returns you to them.
+							the account. Sign in again to see them.
 						</p>
 						<Button variant="block" onClick={signOut}>
 							SIGN OUT
@@ -355,10 +355,9 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 						<CardBody>
 							<p className="card-lead card-lead-flush">
 								Fill the account with made-up orders so the lists and charts have something
-								in them to look at: as many as you choose, reaching as far back as you
-								choose, every vendor and category its own colour. A different ledger
-								every time: the orders, their days and their totals are rolled fresh on
-								each fill.
+								to show. You choose how many orders, and how far back they go, and each
+								vendor and category gets its own colour. Each fill creates a new, different
+								set of orders.
 							</p>
 							<Field label="How many orders" htmlFor="demo-order-count" className="demo-count-field"
 								help="Spread across the whole period. More orders take longer to write.">
@@ -410,7 +409,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 							<>
 								<p className="field-help danger-note">
 									This removes every order, vendor and category you have added, permanently,
-									and there is no demo data to fall back to. The ledger goes back to empty.
+									and there is no demo data to replace them with. The ledger becomes empty.
 								</p>
 								<FormActions>
 									<Button variant="caps compact" onClick={clear}>YES, CLEAR IT</Button>
@@ -469,18 +468,18 @@ function BuildCard() {
 						    no zone: it is their afternoon, on their machine. */}
 						You're running the version installed on <b>{builtAt ? localStamp(builtAt) : 'an unrecorded date'}</b>
 						{commit ? <> <span title={commit}>({commit.slice(0, 7)})</span></> : null}.
-						{commit ? ' Checking looks online for a newer version.' : null}
+						{commit ? ' This checks online for a newer version.' : null}
 					</>) : (
-						"This server isn't running a packaged version, so it always shows the latest code on this machine."
+						'This server is not running a packaged version, so it always shows the latest code on this machine.'
 					)}
 				</p>
 				{commit ? (<>
 					{checked ? (
 						<p className={'field-help' + (checked.error || checked.current === false ? ' danger-note' : '')}>
 							{checked.error ? checked.error
-								: checked.current ? "You're up to date — this is the newest version."
-								: checked.published ? 'A newer version is available. Ask whoever manages this server to update it.'
-								: "There's no published version to compare this one to, so it's probably a custom build made on this machine."}
+								: checked.current ? 'You have the newest version.'
+								: checked.published ? 'A newer version is available. Someone who manages this server needs to update the server.'
+								: 'There is no published version to compare this build with. It is probably a custom build made on this machine.'}
 						</p>
 					) : null}
 					<Button variant="block" icon="check" disabled={checking} onClick={check}>

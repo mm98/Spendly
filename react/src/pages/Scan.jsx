@@ -105,7 +105,7 @@ export function ScanUpload() {
 	return (
 		<Page>
 			<div className="hero hero-column">
-				<h2>{aiEnabled ? 'Receipts read at your fingertips.' : 'Attach a receipt to an order.'}</h2>
+				<h2>{aiEnabled ? 'Scan a receipt and Spendly reads it for you.' : 'Attach a receipt to an order.'}</h2>
 				<p>{aiEnabled
 					? 'Drop a PDF, photo or screenshot. The AI drafts the order; you review every value before it is saved.'
 					: 'Drop a PDF, photo or screenshot, then fill in the order yourself. Nothing here reads the file for you.'}</p>

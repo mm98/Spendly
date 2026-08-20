@@ -339,7 +339,7 @@ function FavouriteCategoriesCard({ favouriteCategories, rows }) {
 					</div>
 				) : (
 					<EmptyState>
-						<p>No favourites yet. Star a category on its edit page and it lands here.</p>
+						<p>No favourites yet. Star a category on its edit page and it appears here.</p>
 					</EmptyState>
 				)}
 			</CardBody>
@@ -375,7 +375,7 @@ function FavouriteVendorsCard({ favouriteVendors, rows }) {
 					/* The sentence the Vendors page's own Favourites card uses, because it is the
 					   same absence and the same next step. */
 					<EmptyState>
-						<p>No favourites yet. Star a vendor on its own page and it lands here.</p>
+						<p>No favourites yet. Star a vendor on its own page and it appears here.</p>
 					</EmptyState>
 				)}
 			</CardBody>
@@ -593,7 +593,7 @@ export default function Home() {
 									</>
 								) : (
 									<EmptyState>
-										<p>No orders yet. Add one and your spending shows up here.</p>
+										<p>No orders yet. Add one and your spending appears here.</p>
 										<ButtonLink to="/orders/new">ADD AN ORDER</ButtonLink>
 									</EmptyState>
 								)}

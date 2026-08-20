@@ -157,7 +157,7 @@ export default function Vendors() {
 									<EmptyState>
 										{all.length ? (
 											<>
-												<p>No favourites yet. Star a vendor on its own page and it lands here.</p>
+												<p>No favourites yet. Star a vendor on its own page and it appears here.</p>
 												<Button variant="block" to="/vendors/all">ALL VENDORS</Button>
 											</>
 										) : (

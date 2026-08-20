@@ -116,7 +116,7 @@ export default function Orders() {
 										   two cards answer the same absence in the same words.
 										   README: Empty states, Honest Affordances. */
 										<EmptyState>
-											<p>No orders yet. Add one and your spending shows up here.</p>
+											<p>No orders yet. Add one and your spending appears here.</p>
 											<ButtonLink to="/orders/new">ADD AN ORDER</ButtonLink>
 										</EmptyState>
 									)}

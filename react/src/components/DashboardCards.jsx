@@ -71,7 +71,7 @@ export function DashboardCards({ all, initial, render }) {
 
 	const drop = key => {
 		setOn(prev => prev.filter(k => k !== key))
-		toast(`${meta(key).name} removed. You can add it back below.`)
+		toast(`${meta(key).name} removed. You can add it again below.`)
 		queueMicrotask(() =>
 			(container.current?.parentElement?.querySelector(`[data-add="${key}"]`) || doneButton.current)?.focus())
 	}

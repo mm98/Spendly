@@ -246,7 +246,7 @@ export function NewOrderDetails() {
 			</FieldPair>
 			<Field label="Note">
 				<TextArea aria-label="Note" value={draft.note}
-					placeholder="Anything worth remembering about this purchase."
+					placeholder="Add a note about this purchase, if you want one."
 					onChange={v => update({ note: v })} />
 			</Field>
 		</FormPage>
