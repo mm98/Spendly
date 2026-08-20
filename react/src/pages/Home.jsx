@@ -203,8 +203,8 @@ function BreakdownCard({ period, monthCategories, hasCategories, rows }) {
 			<CardBody>
 				<EmptyState>
 					<p>{hasCategories
-						? `Nothing spent in ${period.shortLabel} yet. An order's categories split it here.`
-						: 'No categories yet. Add one and your spending splits by kind.'}</p>
+						? `Nothing spent in ${period.shortLabel} yet. Add categories to an order to see the split here.`
+						: 'No categories yet. Add one and your spending splits by category.'}</p>
 				</EmptyState>
 			</CardBody>
 		</>
@@ -257,7 +257,7 @@ function TopVendorsCard({ topVendors, rows }) {
 			<CardDivider />
 			<CardBody>
 				<EmptyState>
-					<p>No vendors yet. Add an order and its vendor lands here.</p>
+					<p>No vendors yet. Add an order and its vendor appears here.</p>
 				</EmptyState>
 			</CardBody>
 		</>
@@ -468,7 +468,7 @@ function dashboardCard(key, data) {
 					<CardBody>
 						<div className="figure-card tabular-figures">{currency(period.projected, 0)}</div>
 						<span className="card-caption">
-							projected for {period.shortLabel}<Sep />{plural(period.daysIn, 'day')} in</span>
+							projected for {period.shortLabel}<Sep />{plural(period.daysIn, 'day')} into the month</span>
 						<Meter className="meter-under-caption"
 							/* projected is 0 exactly when spent is -- nothing bought yet this month --
 							   and 0/0 is NaN, an invalid CSS width the browser drops silently rather
@@ -645,7 +645,7 @@ export default function Home() {
 									</>
 								) : (
 									<EmptyState>
-										<p>Nothing saved yet. Buying below retail is what fills this in.</p>
+										<p>Nothing saved yet. Buy below retail price and your savings appear here.</p>
 									</EmptyState>
 								)}
 							</CardBody>

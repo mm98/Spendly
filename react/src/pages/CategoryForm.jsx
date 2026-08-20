@@ -141,7 +141,7 @@ function CategoryFields({ mode, category }) {
 	return (
 		<FormPage
 			title={mode === 'edit' ? 'Edit category' : 'New category'}
-			lead="What it is called, what it looks like, and what it is allowed each month."
+			lead="Its name, its look, and how much it can spend each month."
 			cancel={{ to: '/categories' }}
 			submit={{
 				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD CATEGORY',
@@ -152,8 +152,8 @@ function CategoryFields({ mode, category }) {
 					<CategorySummary values={values} budget={budget} category={category} />
 					{mode === 'edit' ? (
 						<DeleteCard what="category" del={del}>
-							Removing a category leaves its orders alone; a category still on an order
-							cannot be removed at all.
+							Removing a category does not remove its orders. A category still used by
+							an order cannot be removed.
 						</DeleteCard>
 					) : null}
 				</>
@@ -185,12 +185,12 @@ function CategoryFields({ mode, category }) {
 			</Field>
 
 			<Field label="Colour" group
-				help="Eight from the palette, or any colour at all from the last swatch.">
+				help="Pick one of the eight colours shown, or choose any colour in the last box.">
 				<ColourPicker value={values.colour} onChange={colour => setValues(v => ({ ...v, colour }))}
 					label="Category colour" />
 			</Field>
 
-			<Field label="Icon" group help="Icons already used by a category, or search all 5,129.">
+			<Field label="Icon" group help="Icons already used by a category, or search for more.">
 				<IconPicker value={values.icon} usedIcons={usedIcons}
 					onChange={(icon, iconPath) => setValues(v => ({
 						...v, icon, iconPath: ICONS[icon] ? undefined : iconPath
@@ -203,7 +203,7 @@ function CategoryFields({ mode, category }) {
 			<CheckRow id="category-favourite" checked={values.favourite}
 				onChange={favourite => setValues(v => ({ ...v, favourite }))}
 				label="Favourite"
-				help="Leads the category list on an order's form, and appears in Home's Favourite categories card." />
+				help="Shown first in the category list on an order's form, and appears in the Favourite categories card on Home." />
 		</FormPage>
 	)
 }
@@ -241,8 +241,8 @@ function CategorySummary({ values, budget, category }) {
 				<SummaryTotal label="Spent all time" value={currency(category?.spend ?? 0, 0)}
 					estimate={!category} />
 				<span className="field-help">
-					The tile is the colour you picked; the glyph on it is inked light or dark from that
-					colour, so it stays readable whatever you choose.
+					The tile uses the colour you picked. The icon on it turns light or dark
+					automatically, so it stays easy to see.
 				</span>
 				{/* Same control, same place, as the vendor summary's. README: Cards, Create and Edit. */}
 				{category ? (

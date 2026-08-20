@@ -90,7 +90,7 @@ export function UpdateNotice() {
 		return (
 			<ConfirmDialog
 				title="An update is available"
-				detail="Refresh to get the latest version. Anything you've typed but not saved will be lost."
+				detail="Reload now to use the new version. Anything typed and not saved will be lost."
 				confirmLabel="RELOAD" cancelLabel="NOT NOW"
 				onConfirm={() => window.location.reload()}
 				onCancel={() => setAsking(false)} />
@@ -106,7 +106,7 @@ export function UpdateNotice() {
 			    inside the app does not have to spend room on. */}
 			<span className="update-notice-text">An update is available.</span>
 			<Button variant="invert" onClick={() => setAsking(true)}>UPDATE</Button>
-			<IconButton variant="clear" icon="close" label="Dismiss until next time"
+			<IconButton variant="clear" icon="close" label="Hide this notice"
 				onClick={() => setDismissed(true)} />
 		</div>
 	)

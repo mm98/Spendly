@@ -34,7 +34,7 @@ import { currency, currencySymbol, parseAmount, percent, sep, today } from '../a
    page is not the wizard with a flag on it: it is its own layout, and it saves everything --
    details and items -- in the one call updateOrder already accepts as one draft.
 
-   The total in the rail is not "Total est." here either. An estimate is a number about to
+   The total in the rail is not "Estimated total" here either. An estimate is a number about to
    change before anything is saved; every kroner on this page already belongs to a real order,
    so the figure is a fact about what was entered, and is printed as one. */
 
@@ -268,7 +268,7 @@ function EditOrderForm({ id, seed }) {
 										: undefined} />
 							</Field>
 							<Field label="Kind" error={kindField.error} errorId={kindField.errorId} htmlFor="order-kind"
-								help="Only expenses count towards your totals.">
+								help="Only expenses are added to your totals.">
 								<Combobox id="order-kind" label="Kind" required placeholder="Expense"
 									value={draft.kind}
 									invalid={kindField.invalid} describedBy={kindField.describedBy}
@@ -281,7 +281,7 @@ function EditOrderForm({ id, seed }) {
 							    as the new order form's. */}
 							<FieldPair>
 								<Field label="Discount" error={discountField.error} errorId={discountField.errorId}
-									help="What was taken off the order.">
+									help="The amount subtracted from the order.">
 									<FieldShell>
 										<TextInput id="order-discount" inputMode="decimal" placeholder="0,00"
 											aria-label="Discount" value={draft.discount}
@@ -328,7 +328,7 @@ function EditOrderForm({ id, seed }) {
 						    that is when the rows draw a grip at all -- and withdrawn by the
 						    stylesheet while a line is open, for the same reason the grips are. */}
 						{draft.items.length > 1
-							? <span className="field-help">drag the grip to reorder</span>
+							? <span className="field-help">drag a line to reorder it</span>
 							: null}
 					</CardHeader>
 					<CardDivider />
@@ -387,10 +387,10 @@ function EditOrderForm({ id, seed }) {
 					<CardDivider />
 					<CardBody>
 						<InsetPanel>
-							<ItemRow icon="pencil" title="Edit where it sits"
-								meta="The pencil opens the line into a card, in its own place in the list." />
+							<ItemRow icon="pencil" title="Edit in place"
+								meta="Select the pencil to edit the line, without moving it in the list." />
 							<ItemRow icon="reorder" title="Drag to reorder"
-								meta="Or focus the grip and use the arrow keys." />
+								meta="Or select a line and move it with the arrow keys." />
 							<ItemRow icon="undo" title="Enter saves, Escape cancels"
 								meta="Cmd/Ctrl+Enter saves and opens the line below." />
 						</InsetPanel>

@@ -44,7 +44,7 @@ export function ReturnsCard({ title, span, returns }) {
 						    count that answers a question nobody asked. */}
 						{returns.total > items.length ? (
 							<span className="field-help entry-list-note">
-								The {items.length} most recent of {returns.total} in {span}.
+								Showing the {items.length} most recent of {returns.total} returns in {span}.
 							</span>
 						) : null}
 					</>

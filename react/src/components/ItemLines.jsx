@@ -250,8 +250,8 @@ export function ItemLines({
 					<span className="section-label">{label}<Sep />{items.length}</span>
 					<span className="field-help">
 						{showGrips
-							? 'drag the grip to reorder'
-							: 'the pencil opens a line where it sits'}</span>
+							? 'drag a line to reorder it'
+							: 'select the pencil to edit a line'}</span>
 				</div>
 			) : null}
 
@@ -328,7 +328,7 @@ export function ItemLines({
 					<span>{plural(items.length, 'item')}<Sep />{currency(paid)} paid</span>
 					{saved > 0 ? (
 						<span className="field-help">
-							saved {currency(saved)} vs retail ({percent(saved / retail * 100)})</span>
+							saved {currency(saved)} compared to retail ({percent(saved / retail * 100)})</span>
 					) : null}
 				</div>
 			) : null}
@@ -337,7 +337,7 @@ export function ItemLines({
 
 			{leaving ? (
 				<ConfirmDialog title="Discard changes to this line?"
-					detail="This line still has something wrong with it, so it cannot be saved. Closing the card leaves the line as it was."
+					detail="This line still has something wrong with it, so it cannot be saved yet. Closing this leaves the line as it was."
 					confirmLabel="DISCARD" cancelLabel="KEEP EDITING"
 					onConfirm={() => { const { target } = leaving; setLeaving(null); seed(target) }}
 					onCancel={() => setLeaving(null)} />
@@ -465,7 +465,7 @@ function LineCard({
 							   looking for the way in. Once there is a photo, Replace is a visible
 							   control answering the same question, the two gestures still work, and
 							   the sentence is a third row in a column standing beside the fields. */
-							<span className="field-help line-photo-hint">Drop a file or paste from clipboard</span>
+							<span className="field-help line-photo-hint">Drop a photo here, or paste one you copied</span>
 						)}
 					</span>
 				</div>
@@ -507,7 +507,7 @@ function LineCard({
 
 					<Field className="line-field-retail" label="Retail price" htmlFor="item-retail"
 						error={retailField.error} errorId={retailField.errorId}
-						help="Optional. Powers the saved-vs-retail figures.">
+						help="Optional. Used to work out how much you saved compared to the retail price.">
 						<FieldShell>
 							<TextInput id="item-retail" inputMode="decimal" placeholder="104,95"
 								aria-label="Retail price" value={form['item-retail']}
@@ -540,7 +540,7 @@ function LineCard({
 					{dirty
 						? 'Unsaved changes'
 						: isNew
-							? 'Enter adds it and keeps the card open for the next one.'
+							? 'Enter adds it and keeps this open for the next one.'
 							: 'Cmd/Ctrl+Enter saves and opens the line below.'}</span>
 				{deleteButton ? <span className="push-end">{deleteButton}</span> : null}
 			</FormActions>

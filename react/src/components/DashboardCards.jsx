@@ -85,7 +85,7 @@ export function DashboardCards({ all, initial, render }) {
 	const start = () => {
 		snapshot.current = on
 		setEditing(true)
-		toast('Editing your cards. Drag a grip to reorder, or move it with the arrow keys.')
+		toast('Editing your cards. Drag a card to reorder it, or select it and use the arrow keys.')
 		queueMicrotask(() => doneButton.current?.focus())
 	}
 
@@ -155,7 +155,7 @@ export function DashboardCards({ all, initial, render }) {
 				))}
 			</div>
 			{on.length === 0
-				? <p className="dashboard-cards-empty">No cards on your dashboard yet. Pick some with EDIT.</p>
+				? <p className="dashboard-cards-empty">No cards on your dashboard yet. Press EDIT to add some.</p>
 				: null}
 
 			{editing ? (

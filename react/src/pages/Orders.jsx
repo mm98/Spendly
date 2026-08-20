@@ -218,11 +218,11 @@ export default function Orders() {
 									<EmptyState>
 										{data.hasCategories ? (
 											<>
-												<p>Nothing spent in {data.period.shortLabel} yet. An order's categories split it here.</p>
+												<p>Nothing spent in {data.period.shortLabel} yet. Add categories to an order to see the split here.</p>
 												<Button variant="block" to="/categories">ALL CATEGORIES</Button>
 											</>
 										) : (
-											<p>No categories yet. Add one and your spending splits by kind.</p>
+											<p>No categories yet. Add one and your spending splits by category.</p>
 										)}
 									</EmptyState>
 								)}

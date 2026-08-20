@@ -316,7 +316,7 @@ export default function Stats() {
 								<CardBody>
 									<div className="figure-large tabular-figures">{view.rhythm.weekendShare}%{' '}
 										<span className="figure-unit">
-											of spend lands on weekends</span></div>
+											of spend happens on weekends</span></div>
 									<WeekdayBars days={view.rhythm.weekdays} className="rhythm-bars" />
 								</CardBody>
 							</Card>
