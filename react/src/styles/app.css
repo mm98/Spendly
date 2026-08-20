@@ -68,12 +68,16 @@
 	   starts from before settling onto it at 55%. */
 	--bg-dark-lift:#12241A;
 
-	/* Three edges, three jobs. --border-divider was --hair, which named the line's
-	   thinness and never what it divided, and read as a synonym for --border-control
-	   two lines away -- a different grey three shades off. --border-control is one of
-	   five near-identical greys here (#E2E4DF x7, #DFE3DE x3, #E2E5E1, #D9DED8 x2,
-	   #E5E7E2); only the dominant one is tokenised, because collapsing the other four
-	   would change what is on screen and that is a design decision, not a rename. */
+	/* --border-divider was --hair, which named the line's thinness and never what it
+	   divided, and read as a synonym for --border-control two lines away -- a
+	   different grey three shades off. --border-card and --border-divider sit only
+	   (4,3,2) apart in RGB, close enough that a divider drawn inside a card is
+	   indistinguishable from the card's own edge; .card-divider uses --border-card
+	   directly rather than carrying a second token for the same shade.
+	   --border-control absorbs the other near-identical greys this file used to write
+	   as literals -- #DFE3DE, #E2E5E1 and #E5E7E2 were each within a few RGB values of
+	   it and are gone now; #D9DED8, nine values darker, stays a literal because outline
+	   buttons deliberately draw a stronger edge than a resting control. */
 	--border-card:#E9ECE8;
 	--border-divider:#EDEFEA;
 	--border-control:#E2E4DF;
@@ -557,7 +561,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
    and pulls away from the border at the top corners, leaving a pale sliver of card
    showing between the two once the header lights up. */
 .card-header[data-go] { border-radius:calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0; }
-.card-divider { height:1px; background:var(--border-divider); margin:0 20px; }
+.card-divider { height:1px; background:var(--border-card); margin:0 20px; }
 .card-divider-tight { margin:4px 0 0; }
 /* The header highlight runs edge to edge, but the rule beneath it is inset to the
    content. Left alone, the lit block ends on two lines a pixel apart and the step
@@ -665,7 +669,7 @@ svg.chart { width:100%; display:block; }
    above and below. So these level up to the control instead of down to the label: one
    header gains air, none overflow, and the three are one height. README: Cards. */
 .section-header { display:flex; align-items:center; justify-content:space-between; gap:var(--gap-row); padding:4px 2px; min-height:40px; }
-.button.button-pill { gap:var(--gap-icon); height:32px; padding:0 var(--pad-control); border-color:#DFE3DE; background:var(--bg-card); color:var(--text); font-size:11px; letter-spacing:.04em; }
+.button.button-pill { gap:var(--gap-icon); height:32px; padding:0 var(--pad-control); border-color:var(--border-control); background:var(--bg-card); color:var(--text); font-size:11px; letter-spacing:.04em; }
 
 /* dashboard card row */
 .dashboard-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--gap-cards); }
@@ -849,7 +853,7 @@ svg.chart { width:100%; display:block; }
 /* ---------------- inner-page patterns from the design system ---------------- */
 .page:not(.is-on) { display:none !important; }
 .page.is-on { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
-.segmented { display:inline-flex; gap:2px; padding:4px; background:#F1F2EE; border:1px solid #E5E7E2; border-radius:14px; width:max-content; }
+.segmented { display:inline-flex; gap:2px; padding:4px; background:#F1F2EE; border:1px solid var(--border-control); border-radius:14px; width:max-content; }
 /* minmax(0,1fr), not the implicit auto column: an auto track sizes to its widest
    item's min-content, and a nowrap meta made one scan3 row 327px of min-content --
    36 tile + 12 gap + 279 of text -- inside a 322.41px panel. The track took the
@@ -872,8 +876,8 @@ svg.chart { width:100%; display:block; }
    no ellipsis is ever drawn. README: Data Rows, Responsive Layout. */
 .item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .item-row .amount { margin-left:auto; color:var(--text); font-weight:600; font-size:13px; white-space:nowrap; }
-.key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid #DFE3DE; background:var(--bg-control-tint); font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
-.chip { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:28px; padding:0 var(--pad-chip); border-radius:var(--radius-compact); border:1px solid #E2E5E1; background:var(--bg-card); font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; }
+.key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid var(--border-control); background:var(--bg-control-tint); font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
+.chip { font:inherit; display:inline-flex; align-items:center; gap:var(--gap-icon); height:28px; padding:0 var(--pad-chip); border-radius:var(--radius-compact); border:1px solid var(--border-control); background:var(--bg-card); font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; }
 .chip svg.icon { width:13px; height:13px; color:var(--chip-glyph); }
 /* Selection may not change a segment's text metrics: the track is width:max-content, so
    a heavier active label resizes the control and everything sharing its row. The pill
@@ -900,7 +904,7 @@ svg.chart { width:100%; display:block; }
    as a flex item it shrinks to content and sits at flex-start -- two empty states rendered
    hard left while every other one centered. README: Empty states. */
 .empty-state { display:grid; justify-items:center; gap:var(--gap-row); padding:24px var(--pad-inset); text-align:center; flex:1; }
-.empty-state .empty-state-icon { width:42px; height:42px; border-radius:var(--radius-page); border:1px solid #DFE3DE; background:var(--bg-control-tint); display:grid; place-items:center; color:var(--text-faint); }
+.empty-state .empty-state-icon { width:42px; height:42px; border-radius:var(--radius-page); border:1px solid var(--border-control); background:var(--bg-control-tint); display:grid; place-items:center; color:var(--text-faint); }
 .empty-state .empty-state-icon svg.icon { width:19px; height:19px; }
 .empty-state p { margin:0; font-size:13.5px; color:var(--text-body); max-width:30ch; }
 .chip-tag { display:inline-flex; align-items:center; gap:var(--gap-icon); height:26px; padding:0 10px; border-radius:8px; font-size:11px; font-weight:600; width:max-content; }
@@ -2087,17 +2091,15 @@ html[data-theme="dark"] {
 	--shadow-ink:0 0 0;
 }
 
-/* The literals' dark-side aliases. Light mode keeps the exact shades; a dark
-   theme folds each onto the nearest role token rather than inventing five dark
-   near-identical greys nobody has chosen yet. */
+/* The one remaining literal's dark-side alias. #D9DED8 is the sole raw grey left
+   outside --border-control (see :root) -- light mode keeps its exact shade, and
+   dark folds it onto the nearest role token rather than inventing a dark alias
+   nobody has chosen yet. Everything else that used to need an alias here now
+   reads --border-control directly and re-themes on its own. */
 html[data-theme="dark"] .button.button-outline,
 html[data-theme="dark"] .range-tabs button.is-on,
-html[data-theme="dark"] .ai-suggestion-row button,
-html[data-theme="dark"] .button.button-pill,
-html[data-theme="dark"] .chip,
-html[data-theme="dark"] .key-cap,
-html[data-theme="dark"] .empty-state .empty-state-icon { border-color:var(--border-control); }
-html[data-theme="dark"] .segmented { background:var(--bg-inset); border-color:var(--border-control); }
+html[data-theme="dark"] .ai-suggestion-row button { border-color:var(--border-control); }
+html[data-theme="dark"] .segmented { background:var(--bg-inset); }
 html[data-theme="dark"] .segmented button { color:var(--text-body); }
 html[data-theme="dark"] .sidebar-nav a { color:var(--text-body); }
 html[data-theme="dark"] .field-thumb,
