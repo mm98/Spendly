@@ -183,7 +183,7 @@ export function ScanUpload() {
 								<>
 									<InsetPanel>
 										{scans.map(scan => (
-											<ItemRow key={scan.id} icon="check" title={scan.name} meta={scan.meta}
+											<ItemRow key={scan.id} className="item-row-group" icon="check" title={scan.name} meta={scan.meta}
 												amount={currency(scan.total)} to={`/orders/${scan.orderId}`}
 												state={{ from: location.pathname + location.search }} />
 										))}
@@ -588,7 +588,7 @@ function ScanReviewForm({ answer }) {
 								<Note tone="warning" title="Check before saving." className="note-above-row">
 									You already have a {answer.vendor} order within 14 days of this date.
 								</Note>
-								<ItemRow thumb="receipt" to={`/orders/${answer.duplicate.orderId}`}
+								<ItemRow className="item-row-group" thumb="receipt" to={`/orders/${answer.duplicate.orderId}`}
 									title={answer.duplicate.title} meta={answer.duplicate.meta}
 									amount={currency(answer.duplicate.total)} />
 							</CardBody>
