@@ -3,7 +3,7 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { EntityRow } from '../components/Rows.jsx'
+import { EntityRow, EntityMark } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { FieldShell } from '../components/Form.jsx'
@@ -129,8 +129,10 @@ export default function AllVendors() {
 						<CardBody>
 							{paged.rows.map(vendor => (
 								<EntityRow key={vendor.id}
-									mark={<span className="entry-avatar"
-										style={{ background: vendor.colour, color: inkOn(vendor.colour) }}>{vendor.initials}</span>}
+									mark={<EntityMark favourite={vendor.favourite}>
+										<span className="entry-avatar"
+											style={{ background: vendor.colour, color: inkOn(vendor.colour) }}>{vendor.initials}</span>
+									</EntityMark>}
 									name={vendor.name}
 									/* The matched alias is named on the row for the reason the finder names
 									   it: the row shows the parent vendor, so the string that was typed may

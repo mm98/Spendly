@@ -237,6 +237,17 @@ Everything from here down is how to run that pass well.
 Re-checking these each session is the waste this heading exists to stop. They are facts about the
 box, not about any change.
 
+- **A rendered account with real records is one flow, always the same one -- driven, not
+  guessed.** There is no seed script and no shortcut route; a fresh account starts genuinely
+  empty (`react/src/pages/Register.jsx`'s own note: a populated account on first login read as
+  someone else's data). Getting one with orders, vendors and categories in it -- favourites
+  included -- is: register at `#/register` (not `#/signup` -- the route is named after the page,
+  `react/src/routes.jsx`), which lands on `#/settings` with `firstRun` set; open the "Demo data"
+  card there and click FILL WITH DEMO DATA; that swaps the button for a confirm step (`YES, FILL
+  IT` / `CANCEL`) rather than filling on the first click, so a probe has to click twice. Demo data
+  seeds two favourite vendors and three favourite categories every time (`api/src/lib/demoData.js`),
+  which is what a check on the Favourites spotlight or the favourite mark needs, without hand-editing
+  a record first.
 - **Chromium is the default engine and the only one installed. Do not reach for the other two
   unless asked.** `/opt/pw-browsers` holds `chromium`, `chromium_headless_shell` and `ffmpeg`, and
   nothing else, under the globally installed Playwright 1.56.1

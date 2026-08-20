@@ -179,6 +179,19 @@ export function LegendRow({ colour, title, meta, amount, to }) {
    summary rail carries a full-width VIEW ORDERS at the foot of the card the figure is on.
    One row, one destination, and the second one stated in words rather than in a receipt
    glyph. README: Create and Edit. */
+/** Wraps a vendor or category's own tile with the small favourite mark, on All vendors and
+    All categories only. `children` is the tile at its own size (`.entry-avatar` or
+    `.category-icon`); the mark overlaps its corner rather than growing it. A favourite is
+    turned on and off from the record's own edit page -- nothing here removes it. */
+export function EntityMark({ favourite, children }) {
+	return (
+		<span className="entity-mark">
+			{children}
+			{favourite ? <span className="entity-mark-fav" aria-hidden="true"><Icon name="starFilled" /></span> : null}
+		</span>
+	)
+}
+
 export function EntityRow({ mark, name, meta, amount, sub, editTo }) {
 	return (
 		<Link className="data-row entity-row" to={editTo} data-go={editTo}>

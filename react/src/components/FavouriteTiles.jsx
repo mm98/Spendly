@@ -1,6 +1,5 @@
 import { Link } from 'react-router'
 import { IconButton } from './Button.jsx'
-import { ConfirmDialog } from './ConfirmDialog.jsx'
 
 /* The favourites spotlight both overview pages share: a grid of small stat tiles, three
    across on a wide panel and one per row on a phone, each carrying the record's mark, its
@@ -9,33 +8,29 @@ import { ConfirmDialog } from './ConfirmDialog.jsx'
    Vendors and Categories each used to draw their own spotlight (a pair of nested cards on
    Vendors, nothing at all on Categories), so the same standing preference rendered two
    different ways -- or not at all -- depending on which kind of record it was pinned to.
-   One tile, fed by both, is the two-pages-one-fact rule made structural. README: Favourites. */
+   One tile, fed by both, is the two-pages-one-fact rule made structural. README: Favourites.
+
+   The tile used to carry its own star, a shortcut back out of the list with a confirm dialog
+   behind it -- a stray click landed on it easily, so it asked before acting. A favourite is
+   a form choice now (VendorForm and CategoryForm's own Favourite row), turned off the same
+   way it is turned on. What the tile offers instead is the way to that row: a plain edit
+   icon in its own corner, the same pencil and the same destination Vendors' and Categories'
+   own record pages use everywhere else. */
 
 const join = (...parts) => parts.filter(Boolean).join(' ')
-
-/* The unstar-shaped wording of the shared dialog (ConfirmDialog.jsx), the way FormPage's
-   DeleteDialog is its delete-shaped one. The star sits in every tile's corner, so a stray
-   click lands on it easily -- and though unstarring is reversible in principle, the tile it
-   removes takes its own way back with it. The sentence says what is and is not lost, so the
-   reader confirming knows the record survives and only the pin goes. */
-export const UnstarDialog = ({ name, onConfirm, onCancel }) => (
-	<ConfirmDialog title={`Remove ${name} from favourites?`}
-		detail="Only the star is removed. Nothing else changes, and starring it again brings it back."
-		confirmLabel="REMOVE" onConfirm={onConfirm} onCancel={onCancel} />
-)
 
 export const FavouriteTileGrid = ({ children }) => <div className="fav-tile-grid">{children}</div>
 
 /** One favourite. `mark` is the record's own tile (avatar or category icon), `stats` is the
     labelled pair under the hairline -- `tone: 'positive'` prints a value as savings green.
-    The name is the way into the record's orders; the star is the way back out of the list. */
-export function FavouriteTile({ mark, name, to, linkLabel, amount, meta, stats, onUnstar, unstarLabel }) {
+    The name is the way into the record's orders; `editTo` is the way into the record itself,
+    where its Favourite row lives. */
+export function FavouriteTile({ mark, name, to, linkLabel, amount, meta, stats, editTo, editLabel }) {
 	return (
 		<article className="fav-tile">
 			<div className="fav-tile-head">
 				{mark}
 				<Link className="fav-tile-name" to={to} data-go={to} aria-label={linkLabel}>{name}</Link>
-				<IconButton icon="starFilled" label={unstarLabel} onClick={onUnstar} />
 			</div>
 			<div className="fav-tile-figure tabular-figures">{amount}</div>
 			<div className="fav-tile-meta">{meta}</div>
@@ -49,6 +44,7 @@ export function FavouriteTile({ mark, name, to, linkLabel, amount, meta, stats, 
 					</div>
 				))}
 			</div>
+			<IconButton className="fav-tile-edit" icon="pencil" label={editLabel} to={editTo} />
 		</article>
 	)
 }

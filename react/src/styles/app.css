@@ -1025,6 +1025,14 @@ svg.chart { width:100%; display:block; }
 .entity-row .entity-row-meta { font-size:11.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .entity-row .entity-row-amount { text-align:right; font-weight:600; font-size:13.5px; color:var(--text); }
 
+/* The favourite mark on All vendors and All categories -- a small filled circle overlapping
+   the tile's corner. It sits at position:absolute, so it costs no layout width: the tile
+   stays exactly --thumb-size and no row shifts to make room for it. Nowhere else draws it --
+   a favourite only marks the tile on the two lists that carry every record. README: Favourites. */
+.entity-mark { position:relative; flex:none; }
+.entity-mark-fav { position:absolute; top:-4px; right:-4px; width:15px; height:15px; border-radius:50%; background:var(--donut-yellow); display:grid; place-items:center; box-shadow:0 0 0 2px var(--bg-card); }
+.entity-mark-fav svg.icon { width:9px; height:9px; fill:var(--text-warn); stroke:none; }
+
 .order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); }
 .order-row .order-row-identity { display:flex; align-items:center; gap:var(--gap-row); min-width:0; }
 .order-row .order-row-identity-text { min-width:0; }
@@ -1382,21 +1390,23 @@ label.field-shell { cursor:pointer; }
    already sits inside one, and a card-in-a-card carries a second header band this layout
    has no use for. */
 .fav-tile-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--gap-panel); }
-.fav-tile { display:flex; flex-direction:column; gap:2px; padding:16px 18px; border:1px solid var(--border-card); border-radius:var(--radius-card); background:var(--bg-card); min-width:0; }
+.fav-tile { position:relative; display:flex; flex-direction:column; gap:2px; padding:16px 18px; border:1px solid var(--border-card); border-radius:var(--radius-card); background:var(--bg-card); min-width:0; }
+.fav-tile-edit { position:absolute; bottom:14px; right:14px; }
 .fav-tile-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
 /* The name is the section-label spec -- the tile's own header band -- and it is the way
    into the record's orders, so it underlines on hover the way every text link here does.
    Ellipsed rather than wrapped: a two-line name re-heights the whole row of tiles. */
 .fav-tile-name { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text); text-decoration:none; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .fav-tile-name:hover { text-decoration:underline; }
-.fav-tile-head .icon-button { margin-left:auto; }
 /* .figure-card's spec: the headline number, matching the ring centres and KPI figures. */
 .fav-tile-figure { font-size:21px; font-weight:700; letter-spacing:-.02em; }
 .fav-tile-meta { font-size:10.5px; color:var(--text-muted); }
 /* margin-top:auto, so the stat pair sits on one baseline across a row of tiles however
    long their names run -- the divider is the flexible joint, not the stats below it. */
 .fav-tile-divider { margin-top:auto; padding-top:12px; margin-bottom:12px; border-bottom:1px solid var(--border-divider); }
-.fav-tile-stats { display:flex; gap:28px; }
+/* padding-right clears .fav-tile-edit, sitting in the same corner -- without it the second
+   stat's own value ran under the button on a narrow tile. */
+.fav-tile-stats { display:flex; gap:28px; padding-right:40px; }
 .fav-tile-stat { display:grid; gap:2px; }
 .fav-tile-stat-label { font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
 .fav-tile-stat-value { font-size:13px; font-weight:600; color:var(--text); }

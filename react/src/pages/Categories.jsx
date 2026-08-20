@@ -1,16 +1,14 @@
-import { useState } from 'react'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
 import { LegendRow } from '../components/Rows.jsx'
-import { FavouriteTile, FavouriteTileGrid, UnstarDialog } from '../components/FavouriteTiles.jsx'
+import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.jsx'
 import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
-import { budgetUsed, failureMessage, getCategoriesThisMonth, getUncategorised, invalidateCategoryData, overBudget, updateCategory } from '../api/client.js'
+import { budgetUsed, getCategoriesThisMonth, getUncategorised, overBudget } from '../api/client.js'
 import { currency, percent, plural, sep } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
@@ -39,23 +37,6 @@ export default function Categories() {
 	   figures on this page go on reading `spend`. */
 	const state = useApi(getCategoriesThisMonth)
 	const uncategorised = useApi(getUncategorised)
-	const toast = useToast()
-	/* The category whose star was clicked, held while the dialog asks. The star sits in every
-	   tile's corner, so it is asked for confirmation rather than acted on -- see UnstarDialog. */
-	const [unstarring, setUnstarring] = useState(null)
-
-	/* The same toggle Vendors' spotlight has, because it is the same standing preference on the
-	   other kind of record. Until now the only way out of this list was the category's own edit
-	   form, which made unpinning a five-click errand for a one-bit change. */
-	const toggleFavourite = category => {
-		updateCategory(category.id, { favourite: !category.favourite })
-			.then(() => {
-				invalidateCategoryData()
-				state.refresh()
-				toast(`${category.name} ${category.favourite ? 'removed from' : 'added to'} favourites.`)
-			})
-			.catch(e => toast(failureMessage(e, 'That did not save.'), 'negative'))
-	}
 	const both = {
 		error: state.error ?? uncategorised.error,
 		loading: state.loading || uncategorised.loading,
@@ -179,23 +160,23 @@ export default function Categories() {
 														tone: category.saved > 0 ? 'positive' : undefined },
 													{ label: 'Budget', value: category.budget > 0 ? currency(category.budget, 0) : '—' }
 												]}
-												onUnstar={() => setUnstarring(category)}
-												unstarLabel={`Remove ${category.name} from favourites`} />
+												editTo={`/categories/${category.id}/edit`}
+												editLabel={`Edit ${category.name}`} />
 										))}
 									</FavouriteTileGrid>
 								) : (
 									/* Two absences, two answers, the same split every empty state on this
 									   page makes: with categories the sentence names the next step and the
-									   button opens the list the starring happens from; with none there is
-									   nothing to star and neither claim is made. README: Empty states. */
+									   button opens the list a favourite is turned on from; with none there
+									   is nothing to favourite and neither claim is made. README: Empty states. */
 									<EmptyState>
 										{categories.length ? (
 											<>
-												<p>No favourites yet. Star a category and it appears here with spend, savings and budget.</p>
+												<p>No favourites yet. Turn on Favourite when editing a category and it appears here with spend, savings and budget.</p>
 												<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
 											</>
 										) : (
-											<p>No categories to star yet. Add one and your spending splits by category.</p>
+											<p>No categories to favourite yet. Add one and your spending splits by category.</p>
 										)}
 									</EmptyState>
 								)}
@@ -245,12 +226,6 @@ export default function Categories() {
 								)}
 							</CardBody>
 						</Card>
-
-						{unstarring ? (
-							<UnstarDialog name={unstarring.name}
-								onConfirm={() => { toggleFavourite(unstarring); setUnstarring(null) }}
-								onCancel={() => setUnstarring(null)} />
-						) : null}
 					</>
 				)
 			}}</Async>
