@@ -139,7 +139,7 @@ export function NewOrderDetails() {
 			}>
 
 			<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId} htmlFor="order-vendor"
-				help="Every dropdown is this combobox: type to search, grouped results, create from the foot.">
+				help="Type to search. If the vendor isn't in the list, you can add it without leaving this field.">
 				<Combobox id="order-vendor" label="Vendor" required
 					placeholder="Search vendors..." value={draft.vendor}
 					invalid={vendorField.invalid} describedBy={vendorField.describedBy}
