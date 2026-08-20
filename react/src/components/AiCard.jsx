@@ -1,6 +1,5 @@
 import { Link } from 'react-router'
 import { Icon } from './Icon.jsx'
-import { ProgressRing } from './Viz.jsx'
 
 /* The dark card that offers the scan flow.
 
@@ -17,7 +16,9 @@ export function AiCard({ header, headline, body, children, ...rest }) {
 		<section className="card card-ai" {...rest}>
 			{header ? (
 				<Link className="ai-card-header" to={header.to} data-go={header.to}>
-					{header.progress ? <ProgressRing done={header.progress.done} total={header.progress.total} /> : null}
+					{header.progress ? (
+						<span className="ai-card-icon"><Icon name="textScanAi" /></span>
+					) : null}
 					<div className="ai-card-title">
 						<div className="ai-card-title-text">{header.title}</div>
 						<span className="ai-card-title-meta">{header.meta}</span>

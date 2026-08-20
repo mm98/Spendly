@@ -29,9 +29,9 @@ function Row({ to, family, children, className, ...rest }) {
 const Chevron = () => <span className="chevron"><Icon name="chevronRight" /></span>
 
 /** Vendor and order rows: a mark on the left, two lines of text, an amount on the right. */
-export function EntryRow({ avatar, glyph, name, meta, amount, sub, to, children }) {
+export function EntryRow({ avatar, glyph, name, meta, amount, sub, to, children, ...rest }) {
 	return (
-		<Row to={to} family="entry-list-row">
+		<Row to={to} family="entry-list-row" {...rest}>
 			{/* The initials are inked from the tile they sit on. The stylesheet says #fff, which is
 			    right for the palette that shipped and wrong for any colour the user picks. */}
 			{avatar ? (
@@ -118,9 +118,9 @@ export function ItemRow({ icon, iconTone, thumb, thumbSrc, onThumbClick, thumbHr
 }
 
 /** The All orders row: vendor, what was in it, where it got to, what it cost. */
-export function OrderRow({ order, to }) {
+export function OrderRow({ order, to, ...rest }) {
 	return (
-		<Row to={to} family="order-row">
+		<Row to={to} family="order-row" {...rest}>
 			<div className="order-row-identity">
 				{order.vendor ? (
 					<span className="entry-avatar"

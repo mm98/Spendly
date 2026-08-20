@@ -354,9 +354,15 @@ export function AppShell() {
 				<div className="main-panel">
 					<header className="topbar">
 						{handle.back ? (
+							/* A row that opens this page passes where it was opened from as
+							   navigation state (see components/Rows.jsx) -- so leaving closes the
+							   same place it was opened from, rather than a fixed page picked at
+							   route-definition time. `handle.back.to` is only the fallback, for
+							   whoever arrives with no such marker: a reload, a pasted link, a
+							   bookmark. README: Accessibility. */
 							<button type="button" className="icon-button icon-button-arrow"
-								aria-label={'Back to ' + handle.back.label}
-								onClick={() => navigate(handle.back.to)}>
+								aria-label={location.state?.from ? 'Back' : 'Back to ' + handle.back.label}
+								onClick={() => navigate(location.state?.from ?? handle.back.to)}>
 								<Icon name="chevronLeft" />
 							</button>
 						) : null}

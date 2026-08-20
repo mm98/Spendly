@@ -67,6 +67,7 @@ const useDocumentKey = () => useSearchParams()[0].get('doc') ?? 'photo'
 /* ---- step 1 ---- */
 
 export function ScanUpload() {
+	const location = useLocation()
 	const recent = useApi(getRecentScans)
 	// Cached by the route loader already (react/src/routes.jsx), so this costs nothing extra --
 	// it just reads back whether the server this account is talking to can actually read a
@@ -180,7 +181,8 @@ export function ScanUpload() {
 									<InsetPanel>
 										{scans.map(scan => (
 											<ItemRow key={scan.id} icon="check" title={scan.name} meta={scan.meta}
-												amount={currency(scan.total)} to={`/orders/${scan.orderId}`} />
+												amount={currency(scan.total)} to={`/orders/${scan.orderId}`}
+												state={{ from: location.pathname + location.search }} />
 										))}
 									</InsetPanel>
 									{/* Says orders, because that is where it goes: a scan becomes an order and

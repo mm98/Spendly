@@ -176,7 +176,11 @@ export const routes = [
 				] },
 				{ path: ':id', children: [
 					{ index: true, element: <OrderDetail />,
-						handle: { title: 'Order details', navKey: 'orders', back: { to: '/orders', label: 'orders' } } },
+						/* The fallback for a reader who opened this order some other way -- a
+						   bookmark, a reload, a link pasted in -- with no page behind it to return
+						   to. Whoever navigated here from a list passes where they came from
+						   (see components/Rows.jsx), and AppShell reads that over this default. */
+						handle: { title: 'Order details', navKey: 'orders', back: { to: '/orders/all', label: 'all orders' } } },
 					/* New order stays a two-step wizard: a brand-new draft has no items yet, so
 					   step 1 gathers the facts the item form needs and step 2 is the only place
 					   they can be added. An edit starts from an order that already has both --

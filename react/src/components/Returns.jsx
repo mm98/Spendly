@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from './Card.jsx'
 import { EntryRow } from './Rows.jsx'
 import { Button } from './Button.jsx'
@@ -24,6 +25,7 @@ import { currency, dayMonth, sep } from '../api/format.js'
    a second orders list, with its own state, sitting next to the real one.
    README: Data rows. */
 export function ReturnsCard({ title, span, returns }) {
+	const location = useLocation()
 	const items = returns?.items ?? []
 	return (
 		<Card aria-label="Returns">
@@ -37,7 +39,8 @@ export function ReturnsCard({ title, span, returns }) {
 								<EntryRow key={r.id} avatar={r.vendor} name={r.vendor.name}
 									meta={`${dayMonth(r.date)}${r.refunded ? `${sep}refunded in full` : ''}`}
 									amount={currency(r.total)} sub={`saved ${currency(r.saved)}`}
-									to={`/orders/${r.id}`} />
+									to={`/orders/${r.id}`}
+									state={{ from: location.pathname + location.search }} />
 							))}
 						</div>
 						{/* Said only when some are missing: "5 of 5" on a card showing all five is a
