@@ -40,6 +40,38 @@ confusing, false. Before a sentence ships, ask what the page actually knows at t
 shown, not just whether the words are simple — a plain sentence stating something unverified is a
 plain lie.
 
+### A comment describes the code to the next reader of the code. It must never become the copy.
+
+A code comment is allowed a vocabulary a user-facing string is not: it can name a component, a
+pattern, a data shape, because the reader is another developer. That gap is exactly how the
+Vendor field's help text ended up reading "Every dropdown is this combobox: type to search,
+grouped results, create from the foot" — the sentence is `components/Combobox.jsx`'s own doc
+comment, copied verbatim into a `help=` prop. "This combobox" and "the foot" (the bottom of a
+dropdown panel) are the file talking to the next programmer who opens it, not to someone buying
+groceries, and grep-for-known-bad-words passes had already run twice without catching it, because
+neither idiom nor jargon was the right search term for a sentence describing the UI to itself.
+
+The same shape kept recurring once looked for directly, always as one of the app's own internal
+names standing in for a plain description of what the reader sees: "grip" (the drag-handle icon's
+own name in the code) for "drag this," "the card" (a component's own name) for "this," "palette"
+and "swatch" (design-tool vocabulary) for "the colours shown," "JSON" and "array" and "object"
+(data-format vocabulary) on a button and in error toasts a regular user hits by picking the wrong
+file. None of these are idioms and none needed translating to fail — a Danish reader and an
+English-only reader are equally lost by a word that names a piece of the code rather than a thing
+on the screen. Before a string ships, ask not just "is this plain" and "does this translate" but a
+third question: **could this word be pasted into a comment in the file that renders it, unchanged,
+and mean the same thing?** If yes, it is describing the implementation, not the experience, and it
+has to be rewritten in terms of what is actually drawn — a line, a colour, a file, this — rather
+than what the code that draws it happens to be called.
+
+A raw number is the same failure without a word attached to it: a category's icon field once said
+"search all 5,129" — the exact size of the bundled icon library, true, and useless to the person
+reading it, since it names nothing they can act on. The question to ask is not "is this number
+accurate" but "does knowing this number change what the reader does next" — the live match count
+shown while actually searching ("6 of 5,129 icons match") passes, because it tells a searcher
+their query narrowed the list rather than broke it; the static count shown before any search ever
+runs does not, and was cut rather than merely reworded.
+
 ## Division of labour
 
 Four documents, one job each. Putting a paragraph in the wrong one is how the same rule ends up
