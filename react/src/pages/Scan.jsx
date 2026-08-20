@@ -833,7 +833,9 @@ function LineEditor({
 		submit()
 	}
 
-	const heading = isNew ? 'New line' : `Editing line ${index + 1} of ${count}`
+	const heading = isNew
+		? `New line${sep}${count + 1} of ${count + 1}`
+		: `Editing line ${index + 1} of ${count}`
 	const qty = Number(form['line-quantity'])
 	const paid = parseAmount(form['line-price'])
 	const retail = form['line-retail'].trim() ? parseAmount(form['line-retail']) : null
@@ -881,10 +883,10 @@ function LineEditor({
 				</div>
 
 				<div className="line-card-fields">
-					<Field className="line-field-wide" label="Line" error={description.error} errorId={description.errorId} htmlFor="line-description">
+					<Field className="line-field-wide" label="Description" error={description.error} errorId={description.errorId} htmlFor="line-description">
 						<FieldShell>
 							<TextInput id="line-description" value={form['line-description']} autoFocus
-								onChange={set('line-description')} aria-label="Line description"
+								onChange={set('line-description')} aria-label="Description"
 								aria-required="true" invalid={description.invalid}
 								describedBy={description.describedBy} />
 						</FieldShell>
@@ -897,13 +899,13 @@ function LineEditor({
 							<FieldUnit>pcs</FieldUnit>
 						</FieldShell>
 					</Field>
-					<Field label="Price" error={price.error} errorId={price.errorId} htmlFor="line-price"
+					<Field label="Price paid" error={price.error} errorId={price.errorId} htmlFor="line-price"
 						help={figures && qty > 1
 							? `Per piece${sep}line total ${currency(paid * qty)}`
 							: 'What one piece cost.'}>
 						<FieldShell>
 							<TextInput id="line-price" inputMode="decimal" value={form['line-price']}
-								onChange={v => set('line-price')(sanitizeAmount(v))} aria-label="Price" aria-required="true"
+								onChange={v => set('line-price')(sanitizeAmount(v))} aria-label="Price paid" aria-required="true"
 								invalid={price.invalid} describedBy={price.describedBy} />
 							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>
