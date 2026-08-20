@@ -13,7 +13,10 @@ import {
 	focusField, useFieldErrors
 } from './Form.jsx'
 import { ITEM_FIELDS } from '../api/rules.js'
-import { amount, currency, currencySymbol, fullStop, parseAmount, percent, plural, sep } from '../api/format.js'
+import {
+	amount, currency, currencySymbol, fullStop, parseAmount, percent, plural, sanitizeAmount,
+	sanitizeWholeNumber, sep
+} from '../api/format.js'
 
 /* The lines on an order, edited where they sit.
 
@@ -485,7 +488,7 @@ function LineCard({
 						<FieldShell>
 							<TextInput id="item-quantity" inputMode="numeric" aria-label="Quantity"
 								aria-required="true" value={form['item-quantity']}
-								onChange={set('item-quantity')}
+								onChange={v => set('item-quantity')(sanitizeWholeNumber(v))}
 								invalid={quantity.invalid} describedBy={quantity.describedBy} />
 							<FieldUnit>pcs</FieldUnit>
 						</FieldShell>
@@ -499,7 +502,7 @@ function LineCard({
 						<FieldShell>
 							<TextInput id="item-price" inputMode="decimal" aria-label="Price paid"
 								aria-required="true" value={form['item-price']}
-								onChange={set('item-price')}
+								onChange={v => set('item-price')(sanitizeAmount(v))}
 								invalid={price.invalid} describedBy={price.describedBy} />
 							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>
@@ -511,7 +514,7 @@ function LineCard({
 						<FieldShell>
 							<TextInput id="item-retail" inputMode="decimal" placeholder="104,95"
 								aria-label="Retail price" value={form['item-retail']}
-								onChange={set('item-retail')}
+								onChange={v => set('item-retail')(sanitizeAmount(v))}
 								invalid={retailField.invalid} describedBy={retailField.describedBy} />
 							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>

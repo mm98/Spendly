@@ -23,7 +23,7 @@ import {
 	getVendors, invalidateOrderData, spendKinds
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
-import { currency, currencySymbol, parseAmount, percent, shortDate, today } from '../api/format.js'
+import { currency, currencySymbol, parseAmount, percent, shortDate, sanitizeAmount, today } from '../api/format.js'
 
 /* New order, in two steps that share one draft.
 
@@ -227,7 +227,7 @@ export function NewOrderDetails() {
 						<TextInput id="order-discount" inputMode="decimal" placeholder="0,00"
 							aria-label="Discount" value={draft.discount}
 							invalid={discountField.invalid} describedBy={discountField.describedBy}
-							onChange={set('order-discount', 'discount')} />
+							onChange={v => set('order-discount', 'discount')(sanitizeAmount(v))} />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
@@ -236,7 +236,7 @@ export function NewOrderDetails() {
 						<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
 							aria-label="Shipping fee" value={draft.shipping}
 							invalid={shippingField.invalid} describedBy={shippingField.describedBy}
-							onChange={set('order-shipping', 'shipping')} />
+							onChange={v => set('order-shipping', 'shipping')(sanitizeAmount(v))} />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>

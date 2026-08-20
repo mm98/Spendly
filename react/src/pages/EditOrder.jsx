@@ -22,7 +22,7 @@ import {
 	invalidateOrderData, itemAttachmentThumbnailUrl, removeItemAttachment, spendKinds, updateOrder
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
-import { currency, currencySymbol, parseAmount, percent, sep, today } from '../api/format.js'
+import { currency, currencySymbol, parseAmount, percent, sep, sanitizeAmount, today } from '../api/format.js'
 
 /* Editing an order, whole.
 
@@ -286,7 +286,7 @@ function EditOrderForm({ id, seed }) {
 										<TextInput id="order-discount" inputMode="decimal" placeholder="0,00"
 											aria-label="Discount" value={draft.discount}
 											invalid={discountField.invalid} describedBy={discountField.describedBy}
-											onChange={set('order-discount', 'discount')} />
+											onChange={v => set('order-discount', 'discount')(sanitizeAmount(v))} />
 										<FieldUnit>{currencySymbol()}</FieldUnit>
 									</FieldShell>
 								</Field>
@@ -295,7 +295,7 @@ function EditOrderForm({ id, seed }) {
 										<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
 											aria-label="Shipping fee" value={draft.shipping}
 											invalid={shippingField.invalid} describedBy={shippingField.describedBy}
-											onChange={set('order-shipping', 'shipping')} />
+											onChange={v => set('order-shipping', 'shipping')(sanitizeAmount(v))} />
 										<FieldUnit>{currencySymbol()}</FieldUnit>
 									</FieldShell>
 								</Field>
