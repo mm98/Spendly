@@ -19,7 +19,7 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addItemAttachments, createOrder, failureMessage, getCategories, getOrderDraft,
+	addItemAttachments, createOrder, failureMessage, getCategories, getCurrentUser, getOrderDraft,
 	getVendors, invalidateOrderData, spendKinds
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
@@ -81,6 +81,9 @@ export function NewOrderDetails() {
 	const navigate = useNavigate()
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
+	// Cached by the route loader already (react/src/routes.jsx), so this costs nothing extra --
+	// see Scan.jsx's own use of it. README: Honest Affordances.
+	const aiEnabled = useApi(getCurrentUser).data?.scanAiEnabled ?? false
 	const toast = useToast()
 
 	const values = useMemo(() => ({
@@ -125,8 +128,10 @@ export function NewOrderDetails() {
 			rail={
 				<>
 					<OrderSummary draft={draft} estimate />
-					<AiCard headline="Have the receipt? Skip the form."
-						body="A photo or PDF fills every field for you; you only review it.">
+					<AiCard headline={aiEnabled ? 'Have the receipt? Skip the form.' : 'Have the receipt? Attach it instead.'}
+						body={aiEnabled
+							? 'A photo or PDF fills every field for you; you only review it.'
+							: 'A photo or PDF attaches to the order. You still fill in the fields yourself.'}>
 						<Button variant="invert" to="/scan">SCAN A RECEIPT</Button>
 						<AiCardMark size={34} />
 					</AiCard>
@@ -246,7 +251,7 @@ export function NewOrderDetails() {
 			</FieldPair>
 			<Field label="Note">
 				<TextArea aria-label="Note" value={draft.note}
-					placeholder="Anything worth remembering about this purchase."
+					placeholder="Add a note about this purchase, if you want one."
 					onChange={v => update({ note: v })} />
 			</Field>
 		</FormPage>

@@ -154,7 +154,7 @@ export default function SettingsImport() {
 			const said = e.message === 'import-not-json' ? 'That file is not valid JSON.'
 				: e.message === 'import-no-orders' ? 'No orders in that file. It needs an "orders" array.'
 					: failureMessage(e, 'That did not import.')
-			toast(imported ? `${said} ${imported} made it in before it stopped.` : said, 'negative')
+			toast(imported ? `${said} ${imported} were imported before the import stopped.` : said, 'negative')
 		} finally {
 			setProgress(null)
 		}
@@ -190,13 +190,13 @@ export default function SettingsImport() {
 						    the card body there holds no bare control, and two tabs of one page
 						    stacking their options two ways is a shape to learn per tab. */}
 						<FilterSection>
-							<span className="panel-heading">What comes along</span>
+							<span className="panel-heading">What is included</span>
 							<CheckRow id="import-attachments" checked={withAttachments}
 								onChange={setWithAttachments} label="Import attachments"
-								help="The receipt file riding on an order. With this off, orders import without their attachments." />
+								help="The receipt file attached to an order. With this off, orders import without their attachments." />
 							<CheckRow id="import-images" checked={withImages}
 								onChange={setWithImages} label="Import images"
-								help="The photo riding on a line item. With this off, items import without their images." />
+								help="The photo attached to a line item. With this off, items import without their images." />
 						</FilterSection>
 						{importFile ? (
 							<>

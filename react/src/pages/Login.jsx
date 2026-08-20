@@ -46,7 +46,7 @@ export default function Login() {
 						<span className="brand-mark" aria-hidden="true"><Icon name="receipt" /></span>
 						<div>
 							<h1>Sign in</h1>
-							<p className="auth-tagline">Welcome back. Your ledger's just where you left it.</p>
+							<p className="auth-tagline">Welcome back. Sign in to see your orders and spending.</p>
 						</div>
 					</div>
 					<form className="form" onSubmit={submit}>

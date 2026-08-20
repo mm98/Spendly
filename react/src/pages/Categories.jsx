@@ -191,7 +191,7 @@ export default function Categories() {
 									<EmptyState>
 										{categories.length ? (
 											<>
-												<p>No favourites yet. Star a category and it shows up here with spend, savings and budget.</p>
+												<p>No favourites yet. Star a category and it appears here with spend, savings and budget.</p>
 												<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
 											</>
 										) : (

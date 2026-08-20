@@ -119,7 +119,7 @@ function VendorFields({ mode, vendor }) {
 			title={mode === 'edit' ? 'Edit vendor' : 'New vendor'}
 			lead={mode === 'edit'
 				? 'Its name, the tile its initials sit on, and whether it stays on top.'
-				: 'It joins your list straight away, with no orders on it yet.'}
+				: 'It is added to your list immediately, with no orders yet.'}
 			cancel={{ to: '/vendors' }}
 			submit={{
 				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD VENDOR',

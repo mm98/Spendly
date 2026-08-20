@@ -105,7 +105,7 @@ export function ScanUpload() {
 	return (
 		<Page>
 			<div className="hero hero-column">
-				<h2>{aiEnabled ? 'Receipts read at your fingertips.' : 'Attach a receipt to an order.'}</h2>
+				<h2>{aiEnabled ? 'Scan a receipt and Spendly reads it for you.' : 'Attach a receipt to an order.'}</h2>
 				<p>{aiEnabled
 					? 'Drop a PDF, photo or screenshot. The AI drafts the order; you review every value before it is saved.'
 					: 'Drop a PDF, photo or screenshot, then fill in the order yourself. Nothing here reads the file for you.'}</p>
@@ -307,7 +307,7 @@ function ScanReviewForm({ answer }) {
 	   retry actually retry. Same asking, same setting as every other delete (README: Deletion). */
 	const documentDel = useDelete({
 		what: 'document', variant: 'pill', icon: false, label: 'DELETE',
-		detail: 'What we read from it goes too, so uploading it again will read it fresh.',
+		detail: 'This also deletes what was read from it. Uploading it again reads it again, from the start.',
 		onDelete: () => deleteScanDocument(answer.documentKey)
 			.then(() => { invalidate(getRecentScans); navigate('/scan') })
 			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
