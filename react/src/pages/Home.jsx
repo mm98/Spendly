@@ -14,7 +14,8 @@ import { SavingChip } from '../components/Chip.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn, saveSettings
+	failureMessage, getCurrentUser, getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn,
+	saveSettings
 } from '../api/client.js'
 import { currency, dayMonth, percent, plural, sep } from '../api/format.js'
 
@@ -494,6 +495,9 @@ function dashboardCard(key, data) {
 export default function Home() {
 	const content = useApi(getHomeContent)
 	const cards = useApi(getDashboardCards)
+	// Cached by the route loader already (react/src/routes.jsx), so this costs nothing extra --
+	// see Scan.jsx's own use of it. README: Honest Affordances.
+	const aiEnabled = useApi(getCurrentUser).data?.scanAiEnabled ?? false
 	const toast = useToast()
 
 	/* LATER is a preference, not a state that lives until the next reload. It writes the same
@@ -534,12 +538,15 @@ export default function Home() {
 						{data.showScanCard ? (
 							<AiCard
 								header={{
-									to: '/scan', title: 'Get receipts read for you',
+									to: '/scan',
+									title: aiEnabled ? 'Get receipts read for you' : 'Attach a receipt to an order',
 									meta: 'Finish setting up Spendly', destination: 'Scan receipt',
 									progress: data.onboarding
 								}}
-								headline="Scan receipts, skip typing"
-								body="A PDF, photo or screenshot becomes a draft order. You review every value before it is saved.">
+								headline={aiEnabled ? 'Scan receipts, skip typing' : 'Attach a receipt to an order'}
+								body={aiEnabled
+									? 'A PDF, photo or screenshot becomes a draft order. You review every value before it is saved.'
+									: 'A PDF, photo or screenshot attaches to the order. Nothing here reads it for you.'}>
 								<Button variant="invert" to="/scan">SCAN A RECEIPT</Button>
 								{/* The card held the focus, so dismissing it hands focus to the heading. */}
 								<ButtonLink className="button-link-invert" onClick={dismissScanCard}>LATER</ButtonLink>
