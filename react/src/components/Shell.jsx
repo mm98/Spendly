@@ -6,7 +6,7 @@ import { Button, IconButton } from './Button.jsx'
 import { Waiting } from './Async.jsx'
 import { ToastProvider } from './Toast.jsx'
 import { PullToRefresh } from './PullToRefresh.jsx'
-import { UpdateNotice } from './UpdateNotice.jsx'
+import { UpdateNoticeProvider } from './UpdateNotice.jsx'
 import { getVersion, search } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 
@@ -344,6 +344,7 @@ export function AppShell() {
 	return (
 		<ViewContext.Provider value={value}>
 		<ToastProvider>
+		<UpdateNoticeProvider>
 			{/* Pulling down at the top moves the whole page as one -- sidebar/tab-bar, top bar and
 			    content together -- so PullToRefresh wraps the shell itself rather than just the
 			    part below the top bar. README: Chrome. */}
@@ -401,10 +402,11 @@ export function AppShell() {
 				</div>
 			</div>
 			</PullToRefresh>
-			{/* Outside PullToRefresh on purpose: it is fixed to the viewport, and a transformed
+			{/* The bar and its dialog render inside UpdateNoticeProvider itself, outside
+			    PullToRefresh on purpose: it is fixed to the viewport, and a transformed
 			    ancestor would make it resolve against that element instead -- so a pull would
 			    drag it down the screen with the page. */}
-			<UpdateNotice />
+		</UpdateNoticeProvider>
 		</ToastProvider>
 		</ViewContext.Provider>
 	)
