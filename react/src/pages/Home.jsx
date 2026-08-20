@@ -564,7 +564,7 @@ export default function Home() {
 										<Chart height={110} className="chart-under-caption"
 											label={`Cumulative spend through ${data.period.shortLabel}`}
 											gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
-												{ offset: 0, color: '#4F5BD5' }, { offset: 1, color: '#A5B4FC' }] }]}
+												{ offset: 0, color: 'var(--blue)' }, { offset: 1, color: '#A5B4FC' }] }]}
 											baselines={[{ y: 92, stroke: 'var(--border-control)', dash: '3 4' }]}
 											/* 7px of headroom (plotted()'s 4th arg) is the marker's, not the curve's:
 											   the marker rides the line, a cumulative series peaks on its last day, and
@@ -582,7 +582,7 @@ export default function Home() {
 											   first order landed later than the 2nd, a claim about a day the
 											   curve has nothing to say about. daysIn is the same count Statistics'
 											   own pace reads its "N days of records" from. */
-											markers={todayMarker(data.period.todayIndex, { colour: '#4F5BD5' })} />
+											markers={todayMarker(data.period.todayIndex, { colour: 'var(--blue)' })} />
 										<ChartScale marks={data.period.axis} span={data.period.series.cumulative.length} />
 										{/* The total, in the slot the total goes in -- this list held the
 										    saving there and the total in the meta line beneath the vendor,
@@ -616,8 +616,8 @@ export default function Home() {
 										<Chart height={90} className="chart-under-caption"
 											label={`Savings growth through ${data.period.shortLabel}`}
 											gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
-												{ offset: 0, color: '#14AC72', opacity: 0.22 },
-												{ offset: 1, color: '#14AC72', opacity: 0 }] }]}
+												{ offset: 0, color: 'var(--green)', opacity: 0.22 },
+												{ offset: 1, color: 'var(--green)', opacity: 0 }] }]}
 											baselines={[{ y: 87, stroke: 'var(--border-control)', dash: '3 4' }]}
 											/* 6.5px of inset at both ends, and it is the marker's: a 4.5px circle with
 											   a 2px stroke paints 5.5px past the point it sits on, and a running total
@@ -631,9 +631,9 @@ export default function Home() {
 												{ points: plotted(data.period.series.savingsGrowth,
 													Math.max(...data.period.series.savingsGrowth), 83.5, 6.5), kind: 'area', fill: 'gradient:savings' },
 												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 83.5, 6.5), kind: 'curve', stroke: '#14AC72', strokeWidth: 2.2 }
+													Math.max(...data.period.series.savingsGrowth), 83.5, 6.5), kind: 'curve', stroke: 'var(--green)', strokeWidth: 2.2 }
 											]}
-											markers={todayMarker(data.period.todayIndex, { series: 1, colour: '#14AC72' })} />
+											markers={todayMarker(data.period.todayIndex, { series: 1, colour: 'var(--green)' })} />
 										<ChartScale marks={data.period.axis} span={data.period.series.savingsGrowth.length} />
 									</>
 								) : (
