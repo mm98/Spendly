@@ -62,7 +62,7 @@ export const ITEM_FIELDS = [
 ]
 
 /** A line corrected on the scan review is an item under a different name, so it takes the
-    item's own three rules rather than a fourth copy of them. */
+    item's own four rules rather than a fourth copy of them -- retail included, now that a
+    scanned line can carry one the same way a typed one does. */
 export const LINE_FIELDS = ITEM_FIELDS
-	.filter(f => f.name !== 'item-retail')
 	.map(f => ({ ...f, name: f.name.replace('item-', 'line-') }))
