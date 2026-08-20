@@ -312,7 +312,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 								<span className="panel-heading">On screen</span>
 								<CheckRow id="setting-scan-card" checked={local.showScanCard}
 									label="Show the scan card on Home"
-									help="LATER on the card itself turns this off too."
+									help="Pressing LATER on that card also turns this off."
 									onChange={v => change({ showScanCard: v },
 										v ? 'The scan card is back on Home.' : 'The scan card is off.')} />
 								<CheckRow id="setting-confirm-delete" checked={local.confirmDelete}
@@ -468,7 +468,6 @@ function BuildCard() {
 						    no zone: it is their afternoon, on their machine. */}
 						You're running the version installed on <b>{builtAt ? localStamp(builtAt) : 'an unrecorded date'}</b>
 						{commit ? <> <span title={commit}>({commit.slice(0, 7)})</span></> : null}.
-						{commit ? ' This checks online for a newer version.' : null}
 					</>) : (
 						'This server is not running a packaged version, so it always shows the latest code on this machine.'
 					)}
@@ -481,7 +480,9 @@ function BuildCard() {
 								: checked.published ? 'A newer version is available. Someone who manages this server needs to update the server.'
 								: 'There is no published version to compare this build with. It is probably a custom build made on this machine.'}
 						</p>
-					) : null}
+					) : (
+						<p className="field-help">Press the button below to check online for a newer version.</p>
+					)}
 					<Button variant="block" icon="check" disabled={checking} onClick={check}>
 						{checking ? 'CHECKING...' : 'CHECK FOR UPDATES'}
 					</Button>

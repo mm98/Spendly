@@ -66,8 +66,8 @@ export default function Categories() {
 	return (
 		<Page variant="page-grid">
 			<div className="hero hero-panel">
-				<h2>Where the money actually goes.</h2>
-				<p>Categories split every order's total, so the same spend can be read by kind rather than by shop.</p>
+				<h2>See how you spend your money.</h2>
+				<p>Categories divide each order's total, so you can see your spending by category instead of by shop.</p>
 				<Button variant="caps" to="/categories/new">ADD CATEGORY</Button>
 			</div>
 
@@ -195,7 +195,7 @@ export default function Categories() {
 												<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
 											</>
 										) : (
-											<p>No categories to star yet. Add one and your spending splits by kind.</p>
+											<p>No categories to star yet. Add one and your spending splits by category.</p>
 										)}
 									</EmptyState>
 								)}
@@ -235,7 +235,7 @@ export default function Categories() {
 									<EmptyState>
 										{categories.length ? (
 											<>
-												<p>No budgets set. Open a category and give it one to see this fill up.</p>
+												<p>No budgets set yet. Add a budget to a category to see progress here.</p>
 												<Button variant="block" to="/categories/all">ALL CATEGORIES</Button>
 											</>
 										) : (

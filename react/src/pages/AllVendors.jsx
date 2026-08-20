@@ -93,7 +93,7 @@ export default function AllVendors() {
 					{/* The placeholder names both because the search matches both, and copy that
 					    enumerates is a contract: a field promising only the name would be lying
 					    about what it does. README: Language and Formats, Vendors. */}
-					<input type="search" value={query} placeholder="Search vendor name or alias..."
+					<input type="search" value={query} placeholder="Search by vendor name or other name..."
 						aria-label="Search vendors" onChange={e => search(e.target.value)} />
 				</FieldShell>
 				{/* The same combobox All orders sorts with -- three working lists asked the same

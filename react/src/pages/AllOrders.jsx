@@ -170,7 +170,7 @@ export default function AllOrders() {
 		return out
 	}, [filters, vendors.data, categories.data])
 
-	const countSentence = n => n ? n + (n === 1 ? ' filter still active.' : ' filters still active.') : 'No filters left.'
+	const countSentence = n => n ? n + (n === 1 ? ' filter still active.' : ' filters still active.') : 'No filters are set.'
 
 	const removeChip = useCallback((chip, index) => {
 		const rest = chips.length - 1

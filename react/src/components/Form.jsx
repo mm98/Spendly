@@ -49,6 +49,8 @@ export const FieldShell = ({ variant, children, className, as: Tag = 'div', ...r
 export const FieldPair = ({ variant, children }) =>
 	<div className={join('field-pair', variant)}>{children}</div>
 
+/** A short unit suffix beside a field, e.g. "pcs" next to a quantity. Always the shorthand
+    form, never spelled out ("pieces") -- deliberate, not an oversight caught by a copy pass. */
 export const FieldUnit = ({ children }) => <span className="field-unit">{children}</span>
 
 /** The plain text input. Nothing here is input[type=number] and nothing should be: Danish

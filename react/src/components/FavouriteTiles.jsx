@@ -20,7 +20,7 @@ const join = (...parts) => parts.filter(Boolean).join(' ')
    reader confirming knows the record survives and only the pin goes. */
 export const UnstarDialog = ({ name, onConfirm, onCancel }) => (
 	<ConfirmDialog title={`Remove ${name} from favourites?`}
-		detail="Only the pin here is removed. The record itself stays, and starring it again brings it back."
+		detail="Only the star is removed. Nothing else changes, and starring it again brings it back."
 		confirmLabel="REMOVE" onConfirm={onConfirm} onCancel={onCancel} />
 )
 

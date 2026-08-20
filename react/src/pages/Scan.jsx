@@ -145,7 +145,7 @@ export function ScanUpload() {
 						<>
 							<div className="account-row">
 								<span><Icon name="check" className="icon scan-check-icon" /></span>
-								<span className="account-row-text">Totals reconciled against the printed total, incl. VAT</span>
+								<span className="account-row-text">Totals checked against the printed total, including VAT</span>
 							</div>
 							<div className="account-row">
 								<span><Icon name="eye" className="icon scan-info-icon" /></span>
@@ -481,7 +481,7 @@ function ScanReviewForm({ answer }) {
 					</Note>
 				) : (
 					<Note tone="warning" title="Total no longer matches." className="note-lead">
-						The lines now add up to {currency(orderTotal)}, against the document total
+						The lines now total {currency(orderTotal)}, against the document total
 						of {currency(answer.total)}{fullStop()} Saving keeps what is on screen.
 					</Note>
 				)
@@ -515,7 +515,7 @@ function ScanReviewForm({ answer }) {
 							    shape Settings > Import already teaches a reader to read, rather than a
 							    screen's worth of labelled fields standing in for it. */}
 							<button type="button" className="button button-pill"
-								aria-haspopup="dialog" onClick={() => setJsonOpen(true)}>JSON</button>
+								aria-haspopup="dialog" onClick={() => setJsonOpen(true)}>DETAILS</button>
 							{documentDel.button}
 							</span>
 						</CardHeader>
@@ -597,7 +597,7 @@ function ScanReviewForm({ answer }) {
 
 			<FieldPair>
 				<Field label="Discount" error={discountField.error} errorId={discountField.errorId} htmlFor="order-discount"
-					help="Any rabat taken off the whole order.">
+					help="Any discount taken off the whole order.">
 					<FieldShell>
 						<TextInput id="order-discount" inputMode="decimal" value={draft.discount}
 							onChange={set('order-discount', 'discount')} aria-label="Discount"
@@ -682,7 +682,7 @@ function ScanReviewForm({ answer }) {
 							iconTone={{ background: 'var(--bg-tile)', color: 'var(--text-muted)' }}
 							title={plural(draft.remainder.count, 'more line', 'more lines')}
 							meta={showAll
-								? 'Kept as read; the document stays attached to the order.'
+								? 'Not reviewed one by one. The document stays attached to the order.'
 								: `${currency(draft.remainder.total)} together`}>
 							{showAll ? null : (
 								<ButtonLink className="push-end"
@@ -698,7 +698,7 @@ function ScanReviewForm({ answer }) {
 			</div>
 
 			{jsonOpen ? (
-				<JsonDialog value={answer} title="Parsed data" onClose={() => setJsonOpen(false)} />
+				<JsonDialog value={answer} title="What Spendly read from the file" onClose={() => setJsonOpen(false)} />
 			) : null}
 
 			<SummaryRow label="Lines subtotal" value={currency(linesTotal)} />

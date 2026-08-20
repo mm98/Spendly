@@ -139,7 +139,7 @@ export default function SettingsImport() {
 					   for a request all by itself, since slices are cut under the cap; no
 					   re-slicing helps it, so it is reported by row and the rest carry on. */
 					if (e.status === 400 && e.body?.failed) failed.push(...e.body.failed.map(f => ({ ...f, index: f.index + batch.offset })))
-					else if (e.status === 413) failed.push({ index: batch.offset, error: 'This one order is bigger than the 50 MB the server takes in a request.' })
+					else if (e.status === 413) failed.push({ index: batch.offset, error: 'This one order is too big. Spendly can only accept files up to 50 MB at a time.' })
 					else throw e
 				}
 				setProgress(p => p && ({ ...p, done: p.done + 1, doneBytes: p.doneBytes + batch.bytes, sliceBytes: 0, sentFrac: 0, rowsFrac: 0 }))
@@ -151,8 +151,8 @@ export default function SettingsImport() {
 		} catch (e) {
 			// A transport failure mid-run: what landed stays landed, and the report says so.
 			if (imported) invalidate()
-			const said = e.message === 'import-not-json' ? 'That file is not valid JSON.'
-				: e.message === 'import-no-orders' ? 'No orders in that file. It needs an "orders" array.'
+			const said = e.message === 'import-not-json' ? 'That file could not be read. Choose a file exported from Spendly or the same kind of tracker.'
+				: e.message === 'import-no-orders' ? 'No orders were found in that file.'
 					: failureMessage(e, 'That did not import.')
 			toast(imported ? `${said} ${imported} were imported before the import stopped.` : said, 'negative')
 		} finally {
@@ -176,9 +176,9 @@ export default function SettingsImport() {
 					<CardBody variant="card-body-page">
 						<div className="card-headline">Import orders</div>
 						<p className="card-lead">
-							Bring orders in from a JSON file: an object holding an{' '}
-							<code>orders</code> array, the shape the reference card documents. Each
-							order imports on its own, so one bad row fails alone.
+							Add orders from a JSON file with an{' '}
+							<code>orders</code> list in it, the same shape the reference card below
+							shows. Each order is added on its own, so one bad row fails alone.
 						</p>
 						{/* Checkbox rows, not switches: these are form choices, read once when
 						    IMPORT runs, and nothing observably changes on toggle -- a switch

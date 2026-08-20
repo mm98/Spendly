@@ -301,7 +301,7 @@ function OrderSummary({ draft, estimate, showItems }) {
 					</>
 				) : null}
 				<div className="card-divider card-divider-tight" />
-				<SummaryTotal label="Total est." value={currency(total)} estimate={estimate} />
+				<SummaryTotal label="Estimated total" value={currency(total)} estimate={estimate} />
 				{showItems && saved > 0 ? (
 					<span className="field-help summary-saved">
 						saved {currency(saved)} vs retail ({percent(saved / retail * 100)})
@@ -408,12 +408,12 @@ export function NewOrderItems() {
 						<CardDivider />
 						<CardBody>
 							<InsetPanel>
-								<ItemRow icon="plus" title="Add opens a card"
-									meta="The dashed row at the end of the list; Enter adds and keeps it open for the next line." />
-								<ItemRow icon="pencil" title="Edit where it sits"
-									meta="The pencil opens the line into a card, in its own place in the list." />
+								<ItemRow icon="plus" title="Add a line"
+									meta="The dashed row at the end of the list. Press Enter to add it, and the row stays open so you can add another." />
+								<ItemRow icon="pencil" title="Edit in place"
+									meta="Select the pencil to edit the line, without moving it in the list." />
 								<ItemRow icon="reorder" title="Drag to reorder"
-									meta="Or focus the grip and use the arrow keys." />
+									meta="Or select a line and move it with the arrow keys." />
 							</InsetPanel>
 						</CardBody>
 					</Card>

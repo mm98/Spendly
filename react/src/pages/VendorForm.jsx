@@ -153,9 +153,9 @@ function VendorFields({ mode, vendor }) {
 			    points at the first chip's remove button and a tap anywhere in the field that is
 			    not itself a control deletes an alias. */}
 			<Field label="Aliases" htmlFor="vendor-aliases"
-				help={'Other names this vendor goes by: the name it had before a rename, or the '
-					+ 'shortened form an invoice prints. An order or scanned receipt naming one files '
-					+ 'under this vendor. Type one and press Enter; an alias must differ from the name.'}>
+				help={'Other names for this vendor: the name it had before a rename, or the short '
+					+ 'form an invoice prints. An order or scanned receipt with one of these names is '
+					+ 'filed under this vendor. Type a name and press Enter; it must be different from the vendor\'s name.'}>
 				<FieldShell className="field-shell-chips field-shell-no-chevron">
 					{aliases.map(a => (
 						<Chip key={a} label={`Remove alias ${a}`}
@@ -168,7 +168,7 @@ function VendorFields({ mode, vendor }) {
 			</Field>
 
 			<Field label="Colour" group
-				help="Eight from the palette, or any colour at all from the last swatch.">
+				help="Pick one of the eight colours shown, or choose any colour in the last box.">
 				<ColourPicker value={colour} onChange={setColour} colours={VENDOR_COLOURS}
 					label="Vendor colour" />
 			</Field>
