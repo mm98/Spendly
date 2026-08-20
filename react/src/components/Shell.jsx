@@ -91,12 +91,12 @@ const SCORES = [
 function BuildQuality() {
 	const version = useApi(getVersion)
 	const scores = version.data?.lighthouse
-	if (!scores) return <span>Spendly<Sep />personal ledger</span>
+	if (!scores) return <span>Spendly<Sep />your spending</span>
 
 	return (
 		<span className="build-quality">
 			{/* Focusable, or the callout is hover-only and a keyboard never reaches it. */}
-			<span className="build-quality-band" tabIndex={0}>Spendly<Sep />personal ledger</span>
+			<span className="build-quality-band" tabIndex={0}>Spendly<Sep />your spending</span>
 			<span className="build-quality-callout" role="tooltip">
 				<span className="build-quality-title">This build scored</span>
 				{SCORES.map(([label, key]) => (
