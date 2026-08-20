@@ -64,6 +64,17 @@ and mean the same thing?** If yes, it is describing the implementation, not the 
 has to be rewritten in terms of what is actually drawn — a line, a colour, a file, this — rather
 than what the code that draws it happens to be called.
 
+The method, stated the other way round: write from the reader's side of the screen, not the
+code's. Name what they see and what they can do to it, never the name the file that draws it
+gave the thing. "Drag the grip to reorder" names an icon; "drag a line to reorder it" names the
+thing the reader's hand is actually on. "Closing the card leaves the line as it was" names a
+component; "closing this leaves the line as it was" names nothing but points at what is in front
+of the reader, which is all the sentence needs. "Eight from the palette, or any colour from the
+last swatch" names two design-tool objects; "pick one of the eight colours shown, or choose any
+colour in the last box" names two things on the screen. Every one of these rewrites is shorter or
+the same length as the original — plain is not verbose, it just refuses to reach for the word the
+codebase already had lying around for the same thing.
+
 A raw number is the same failure without a word attached to it: a category's icon field once said
 "search all 5,129" — the exact size of the bundled icon library, true, and useless to the person
 reading it, since it names nothing they can act on. The question to ask is not "is this number
