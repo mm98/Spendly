@@ -123,7 +123,7 @@ function CategoryFields({ mode, category }) {
 			.then(saved => {
 				refresh()
 				toast(`${saved.name} ${mode === 'edit' ? 'saved' : 'added'}.`)
-				navigate('/categories')
+				navigate('/categories/all')
 			})
 			.catch(e => { setSaving(false); toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
@@ -132,7 +132,7 @@ function CategoryFields({ mode, category }) {
 		what: 'category',
 		detail: category ? `${category.name}, ${currency(category.spend, 0)} this month.` : '',
 		onDelete: () => deleteCategory(category.id)
-			.then(() => { refresh(); toast(`${category.name} removed.`); navigate('/categories') })
+			.then(() => { refresh(); toast(`${category.name} removed.`); navigate('/categories/all') })
 			/* A category on an order cannot go, or the order points at nothing. The API says so
 			   with a 409 naming how many orders are in the way. */
 			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
@@ -142,7 +142,7 @@ function CategoryFields({ mode, category }) {
 		<FormPage
 			title={mode === 'edit' ? 'Edit category' : 'New category'}
 			lead="Its name, its look, and how much it can spend each month."
-			cancel={{ to: '/categories' }}
+			cancel={{ to: '/categories/all' }}
 			submit={{
 				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD CATEGORY',
 				onClick: save, disabled: saving

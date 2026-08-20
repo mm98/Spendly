@@ -99,7 +99,7 @@ function VendorFields({ mode, vendor }) {
 			.then(saved => {
 				refresh()
 				toast(`${saved.name} ${mode === 'edit' ? 'saved' : 'added'}.`)
-				navigate('/vendors')
+				navigate('/vendors/all')
 			})
 			.catch(e => { setSaving(false); toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
@@ -108,7 +108,7 @@ function VendorFields({ mode, vendor }) {
 		what: 'vendor',
 		detail: vendor ? `${vendor.name}, ${vendor.orders} order${vendor.orders === 1 ? '' : 's'}.` : '',
 		onDelete: () => deleteVendor(vendor.id)
-			.then(() => { refresh(); toast(`${vendor.name} removed.`); navigate('/vendors') })
+			.then(() => { refresh(); toast(`${vendor.name} removed.`); navigate('/vendors/all') })
 			/* A vendor with orders on it cannot go: the orders would point at nothing. The API
 			   refuses with a 409 that names the reason rather than failing silently. */
 			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
@@ -120,7 +120,7 @@ function VendorFields({ mode, vendor }) {
 			lead={mode === 'edit'
 				? 'Its name, the tile its initials sit on, and whether it stays on top.'
 				: 'It is added to your list immediately, with no orders yet.'}
-			cancel={{ to: '/vendors' }}
+			cancel={{ to: '/vendors/all' }}
 			submit={{
 				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD VENDOR',
 				onClick: save, disabled: saving
