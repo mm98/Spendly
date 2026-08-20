@@ -10,6 +10,7 @@ import {
 	CheckRow, Field, FieldPair, FilterSection, Form, FormActions, Segmented
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
+import { useUpdateCheck } from '../components/UpdateNotice.jsx'
 import {
 	CURRENCIES, LOCALES, localStamp, localeSample, plural, setCurrency, setLocale
 } from '../api/format.js'
@@ -438,6 +439,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
    gate for the same reason. */
 function BuildCard() {
 	const version = useApi(getVersion)
+	const checkUpdate = useUpdateCheck()
 	/* The check is a button, not part of the card's load: it asks the registry over the
 	   network, which is slow, can fail, and answers a question nobody asked on most visits.
 	   The result lands in the card as a sentence, in the server's own words when it refuses
@@ -448,6 +450,12 @@ function BuildCard() {
 	const check = () => {
 		setChecking(true)
 		setChecked(null)
+		/* This asks the registry whether the *server* is behind. It says nothing about this
+		   tab -- the server can be fully current while this tab is still running whatever it
+		   loaded before the server's last update, so the same press also asks that question,
+		   and opens the reload prompt immediately if the answer is yes rather than leaving it
+		   to the next background check. */
+		checkUpdate()
 		checkVersion()
 			.then(setChecked)
 			.catch(e => setChecked({ error: failureMessage(e, 'The registry could not be reached.') }))

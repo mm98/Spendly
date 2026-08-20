@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Button, IconButton } from './Button.jsx'
 import { ConfirmDialog } from './ConfirmDialog.jsx'
 import { getVersion } from '../api/client.js'
@@ -36,13 +36,46 @@ const EVERY_MS = 15 * 60 * 1000
    app and back fires the same event, so an answer this recent is reused rather than re-fetched. */
 const QUIET_MS = 60 * 1000
 
-export function UpdateNotice() {
+/* The bar and the registry check in Settings answer different questions -- one server has
+   updated, the other has not -- so a reader who presses CHECK FOR UPDATES and hears "you have
+   the newest version" has only heard about the server. This tab could still be running
+   whatever it loaded days ago. `useUpdateCheck` is how that button also asks the tab's own
+   question, on demand, instead of waiting for the next quarter-hour poll. */
+const UpdateCheckContext = createContext(() => Promise.resolve(false))
+
+/** Runs the same tab-vs-server comparison the background poll runs, right now. Resolves
+    `true` when it opened the reload prompt, `false` otherwise -- including when there is
+    nothing to compare, so a caller can tell "current" from "unknown" if it ever needs to. */
+export const useUpdateCheck = () => useContext(UpdateCheckContext)
+
+export function UpdateNoticeProvider({ children }) {
 	const [behind, setBehind] = useState(false)
 	/* Asked once, the moment it is known. Declining drops to the bar and never re-opens this on
 	   its own -- being asked twice about the same build is the nagging the bar exists to avoid. */
 	const [asking, setAsking] = useState(true)
 	const [dismissed, setDismissed] = useState(false)
 	const lastAsked = useRef(0)
+
+	const ask = useCallback(() => {
+		if (!BUNDLE_COMMIT || document.hidden) return Promise.resolve(false)
+		lastAsked.current = Date.now()
+		return getVersion()
+			.then(v => {
+				if (!v?.commit || v.commit === BUNDLE_COMMIT) return false
+				setBehind(true)
+				setAsking(true)
+				return true
+			})
+			/* A background check nobody asked for does not get to report its own failure.
+			   The server being briefly unreachable is exactly what a restart looks like from
+			   here, and the next ask is a quarter of an hour away. */
+			.catch(() => false)
+	}, [])
+
+	/* A press of CHECK FOR UPDATES is a question asked on purpose, so it skips the quiet
+	   window the background poll uses to avoid hammering the server on every tab-switch --
+	   that throttle is for polling nobody asked for, not for a button someone just pressed. */
+	const checkNow = useCallback(() => ask(), [ask])
 
 	useEffect(() => {
 		/* Nothing to compare, or the answer is already known: either way there is no question
@@ -51,27 +84,31 @@ export function UpdateNotice() {
 		if (!BUNDLE_COMMIT || behind) return
 		let live = true
 
-		const ask = () => {
-			if (!live || document.hidden) return
+		const poll = () => {
+			if (!live) return
 			if (Date.now() - lastAsked.current < QUIET_MS) return
-			lastAsked.current = Date.now()
-			getVersion()
-				.then(v => { if (live && v?.commit && v.commit !== BUNDLE_COMMIT) setBehind(true) })
-				/* A background check nobody asked for does not get to report its own failure.
-				   The server being briefly unreachable is exactly what a restart looks like from
-				   here, and the next ask is a quarter of an hour away. */
-				.catch(() => {})
+			ask()
 		}
 
-		const timer = setInterval(ask, EVERY_MS)
-		document.addEventListener('visibilitychange', ask)
+		const timer = setInterval(poll, EVERY_MS)
+		document.addEventListener('visibilitychange', poll)
 		return () => {
 			live = false
 			clearInterval(timer)
-			document.removeEventListener('visibilitychange', ask)
+			document.removeEventListener('visibilitychange', poll)
 		}
-	}, [behind])
+	}, [behind, ask])
 
+	return (
+		<UpdateCheckContext.Provider value={checkNow}>
+			{children}
+			<UpdateNotice behind={behind} asking={asking} setAsking={setAsking}
+				dismissed={dismissed} setDismissed={setDismissed} />
+		</UpdateCheckContext.Provider>
+	)
+}
+
+function UpdateNotice({ behind, asking, setAsking, dismissed, setDismissed }) {
 	if (!behind) return null
 
 	/* Two stages, and the reason for both is the same: the reader may be halfway through an
