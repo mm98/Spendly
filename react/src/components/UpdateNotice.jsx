@@ -89,8 +89,8 @@ export function UpdateNotice() {
 	if (asking) {
 		return (
 			<ConfirmDialog
-				title="A new version is ready"
-				detail="Reloading loads it now. Anything typed on this page and not yet saved will be lost."
+				title="An update is available"
+				detail="Refresh to get the latest version. Anything you've typed but not saved will be lost."
 				confirmLabel="RELOAD" cancelLabel="NOT NOW"
 				onConfirm={() => window.location.reload()}
 				onCancel={() => setAsking(false)} />
@@ -104,7 +104,7 @@ export function UpdateNotice() {
 			{/* Short enough to stay on one line at 390px beside both controls -- "A new version of
 			    Spendly is ready" wrapped to two, and the app's own name is the one word a notice
 			    inside the app does not have to spend room on. */}
-			<span className="update-notice-text">A new version is ready.</span>
+			<span className="update-notice-text">An update is available.</span>
 			<Button variant="invert" onClick={() => setAsking(true)}>UPDATE</Button>
 			<IconButton variant="clear" icon="close" label="Dismiss until next time"
 				onClick={() => setDismissed(true)} />

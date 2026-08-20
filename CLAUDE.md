@@ -12,6 +12,17 @@ still mentions it, that is history: react/ is the one place the system is built.
 `README.md` is the design system the app implements; `docs/` holds the screenshots that document shows
 and the defect log its rules link to.
 
+## The user is not technical
+
+Write anything the user reads — chat replies, and app copy alike — in plain language. No jargon,
+no framework or implementation words, no phrasing that assumes the reader knows how software is
+built or shipped. "A new version is ready. Reloading loads it now. Anything typed on this page and
+not yet saved will be lost." is the kind of text to catch before it ships: it reads like an
+engineer's mental model of a deploy, not a sentence written for someone using the app. Prefer
+something a non-technical person reads once and immediately understands what will happen and what
+they might lose. The same care applies to explanations in chat: say what changed and what to do
+about it, not how the mechanism works underneath.
+
 ## Division of labour
 
 Four documents, one job each. Putting a paragraph in the wrong one is how the same rule ends up
