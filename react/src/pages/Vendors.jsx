@@ -102,13 +102,8 @@ export default function Vendors() {
 							</CardBody>
 						</Card>
 
-						{/* The band carries the list's own summary the way All vendors' band carries its
-						    count: how many are pinned and what they add up to, so the section says what
-						    it holds before a tile is read. */}
 						<Card aria-label="Favourites">
-							<CardHeader title={favourites.length
-									? `Favourites${sep}${plural(favourites.length, 'vendor')}, ${currency(favourites.reduce((sum, v) => sum + v.spend, 0), 0)} all time`
-									: 'Favourites'}
+							<CardHeader title="Favourites"
 								to={all.length ? '/vendors/all' : undefined}
 								label="Favourites, open all vendors" />
 							<CardDivider />

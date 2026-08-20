@@ -131,13 +131,9 @@ export default function Categories() {
 							</CardBody>
 						</Card>
 
-						{/* The spotlight Vendors has, on this page's own records: the band carries the
-						    list's summary, and each tile is spend, share and the saved/budget pair.
-						    README: Favourites. */}
+						{/* The spotlight Vendors has, on this page's own records. README: Favourites. */}
 						<Card aria-label="Favourites">
-							<CardHeader title={favourites.length
-									? `Favourites${sep}${plural(favourites.length, 'category', 'categories')}, ${currency(favourites.reduce((sum, c) => sum + c.spend, 0), 0)} all time`
-									: 'Favourites'}
+							<CardHeader title="Favourites"
 								to={categories.length ? '/categories/all' : undefined}
 								label="Favourites, open all categories" />
 							<CardDivider />
