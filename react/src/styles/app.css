@@ -1963,12 +1963,17 @@ label.field-shell { cursor:pointer; }
    before Overview started -- a gap under the short card's *side*, not the row's actual spacing. */
 .stats-hero-row { display:grid; grid-template-columns:1fr; gap:var(--gap-cards); }
 @media (min-width:901px) {
-	.stats-hero-row { grid-template-columns:376px 1fr; }
+	/* A third of the row, not a fixed 376px -- every other multi-column split on this page
+	   (.two-column, the app's own content grid) is fractions of the space there is, so this is
+	   the one column that stayed the same width whether the window was 901px or 2200px wide.
+	   minmax(320px, 1fr) keeps the card from being squeezed thinner than its own pager needs
+	   (two 32px arrows, the 140px name and the width picker) at the narrow end of that range. */
+	.stats-hero-row { grid-template-columns:minmax(320px, 1fr) 2fr; }
 }
 /* Always two across, whatever the viewport -- the four-across default (.kpi-row's own rule)
    is right beside a card wide enough to spare it, and wrong squeezed into what's left of a row
-   that starts with a 376px card. Scoped to this row so Categories' and Vendors' own four-across
-   tiles, sharing the same .kpi-row class, are untouched. */
+   that starts with a third-of-the-row card. Scoped to this row so Categories' and Vendors' own
+   four-across tiles, sharing the same .kpi-row class, are untouched. */
 .stats-hero-row .kpi-row { grid-template-columns:repeat(2, minmax(0,1fr)); }
 
 .stats-hero { display:flex; flex-direction:column; gap:14px; }
