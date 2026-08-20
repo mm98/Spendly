@@ -462,7 +462,7 @@ const KPI_DEFS = [
 	{ label: 'Shipping', goodUp: false, of: t => t.shipping, amount: t => t.shipping, note: t => `${t.shippingShare.toFixed(1).replace('.', ',')}% of spend` }
 ]
 
-function kpisFor(now, was) {
+function kpisFor(now, was, wasLabel) {
 	return KPI_DEFS.map(kpi => {
 		/* `amount` is a figure for the client to print in the account's currency; `value` is
 		   already a string because a count is not money. Exactly one of the two is set. */
@@ -471,14 +471,7 @@ function kpisFor(now, was) {
 		const nowVal = kpi.of(now), wasVal = kpi.of(was)
 		const pct = wasVal ? Math.round((nowVal / wasVal - 1) * 100) : (nowVal ? 100 : 0)
 		const direction = pct === 0 ? 'level' : pct < 0 ? 'down' : 'up'
-		/* "X% up/down", not "X% up vs Aug" -- what it's measured against is said once, in the
-		   hero card above the tiles, not repeated on every one of four tiles. That repetition is
-		   what wrapped to two lines the moment the comparison crossed a year ("100% up vs Sep
-		   2024"); a four-tile grid has no room to spare for a sentence four tiles are each allowed
-		   to say a quarter of. The word stays rather than becoming a math sign: the trend arrow
-		   already carries the direction, and a signed number on top of it read as its own thing to
-		   parse instead of the same fact stated twice. */
-		const delta = direction === 'level' ? 'level' : `${Math.abs(pct)}% ${direction}`
+		const delta = pct === 0 ? `level with ${wasLabel}` : `${Math.abs(pct)}% ${direction} vs ${wasLabel}`
 		/* Three tones, one per thing a delta can mean. It used to be two: anything that was not
 		   the good direction came back 'neutral', so a tile that moved the wrong way was printed
 		   in the same grey as a tile with nothing to be up or down against -- opposite messages,
@@ -698,7 +691,7 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 			budgets: budgetSummary(budgetRows, cardRowsFor(userId)),
 			recent: summary ? null : recentColumns(userId, width, id, now.spent),
 			returns: returnsIn(userId, bounds.from, bounds.to),
-			kpis: kpisFor(now, was),
+			kpis: kpisFor(now, was, previousShortLabel),
 			series: {
 				current: cumulate(dailyRows, 'spend'),
 				previous: previousBounds ? seriesOver(userId, previousBounds.from, previousBounds.to) : null,
