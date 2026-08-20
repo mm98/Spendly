@@ -1873,6 +1873,14 @@ label.field-shell { cursor:pointer; }
 	   needs at 14px: "Nov 2025" and "Dec 2025" are the widest of it, both 68.9px. The desktop
 	   140px would otherwise survive down to this width and force the band back onto two rows. */
 	.stats-window .pager-heading { width:72px; }
+	/* The compare switch on its own row here (.section-header:has(.segmented) wraps it above), so
+	   it is free to take the row rather than sit content-width and left-aligned under the
+	   section label -- "Previous period" and "Same period last year" are two big targets side by
+	   side, the same full-width, evenly-split shape a segmented control already takes inside a
+	   form field. Content-width stays the desktop default; the two labels next to a heading read
+	   fine as a compact pill there and a full-width one would run past the label's own line. */
+	.section-header .segmented { width:100%; }
+	.section-header .segmented button { flex:1; }
 	/* The band's two halves at either end of their row: the arrows and the name they step on the
 	   left, the widths they step by on the right, with the slack between them rather than after
 	   them. The row takes the full width to do it, which is what puts the total and its chip on

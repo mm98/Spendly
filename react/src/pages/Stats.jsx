@@ -147,13 +147,17 @@ export default function Stats() {
 	// 'all' has one window and nothing before it to compare against, so the URL cannot hold a
 	// choice that width has no use for -- the same reason 'previous', not 'year', is the one
 	// that never appears in the address bar.
-	const compare = params.get('compare') === 'year' ? 'year' : 'previous'
-	const state = useApi(getStats, [range, periodId, compare])
+	// Named compareMode, not compare: the render callback below already has its own `compare`
+	// (the chart's sampled previous-window series), and shadowing it silently broke the
+	// switch's own selected state -- neither button ever matched a value that was actually the
+	// chart's series array, not 'previous'/'year'.
+	const compareMode = params.get('compare') === 'year' ? 'year' : 'previous'
+	const state = useApi(getStats, [range, periodId, compareMode])
 
 	const show = (width, id, options) => setParams({
 		...(width === 'month' ? {} : { range: width }),
 		...(id && id !== defaultIdFor(width) ? { period: id } : {}),
-		...(compare !== 'previous' && width !== 'all' ? { compare } : {})
+		...(compareMode !== 'previous' && width !== 'all' ? { compare: compareMode } : {})
 	}, options)
 
 	const setCompare = mode => setParams({
@@ -253,7 +257,7 @@ export default function Stats() {
 							    against -- every delta below is already null for it -- so the switch that
 							    picks between the two would offer a choice this width cannot answer. */}
 							{view.range !== 'all'
-								? <Segmented options={COMPARE_OPTIONS} value={COMPARE_LABEL[compare]}
+								? <Segmented options={COMPARE_OPTIONS} value={COMPARE_LABEL[compareMode]}
 									onChange={label => setCompare(COMPARE_CODE[label])}
 									label="Compare statistics to" />
 								: null}
