@@ -1,0 +1,37 @@
+name: Design pages
+
+# Publishes design/ (the static Claude Design mockups) to GitHub Pages. The folder is plain
+# HTML/JS with no build step, so this only packages it as-is and hands it to Pages' own deploy
+# action -- no compile, no dependency install.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - design/**
+      - .github/workflows/design-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: design
+      - id: deployment
+        uses: actions/deploy-pages@v4
