@@ -1,13 +1,13 @@
 # Working in this repo
 
-Spendly is an application and its documentation. **`src/react/` is the source.** The app is what runs,
+Spendly is an application and its documentation. **`react/` is the source.** The app is what runs,
 what a change is made in and what a claim is measured against: `npm install && npm run dev` in that
 directory, and the pages are real ones with the controls wired.
 
 `spendly.html` is the prototype the design system was first drawn in. It is no longer synced or
-checked against `src/react/src/styles/app.css`, and no fix needs to reach it — it stays in the repo only
+checked against `react/src/styles/app.css`, and no fix needs to reach it — it stays in the repo only
 as a frozen, historical artifact, not a document this file has rules about. Where anything below
-still mentions it, that is history: src/react/ is the one place the system is built.
+still mentions it, that is history: react/ is the one place the system is built.
 
 `README.md` is the design system the app implements; `docs/` holds the screenshots that document shows
 and the defect log its rules link to.
@@ -96,7 +96,7 @@ stated twice and obeyed once.
   instrument and the engine. A README rule that looks arbitrary without its history links here. This
   is not a changelog: entries are keyed to the section they defend, never to a date.
 - **The app's own README is the app's own business** — its framework, its build, its chunking, its
-  measurements. `src/react/README.md` today; something else tomorrow, since the design system outlives
+  measurements. `react/README.md` today; something else tomorrow, since the design system outlives
   whatever renders it. Nothing in it is a rule about the product.
 - **This file holds rules about the work** — how to verify, what counts as done, what may be claimed.
   Nothing here describes the UI.
@@ -113,9 +113,9 @@ stated twice and obeyed once.
 
 ### `npm run queries:check` is the standing guard, and it is a guard rather than a goal
 
-`src/api/scripts/check-queries.mjs` captures every SQL statement the API runs -- module-level
+`api/scripts/check-queries.mjs` captures every SQL statement the API runs -- module-level
 prepares and the SQL the orders list builds per request alike -- against a seeded account, reads
-back the plan SQLite chooses for each, and compares the lot against `src/api/query-plans.json`. It
+back the plan SQLite chooses for each, and compares the lot against `api/query-plans.json`. It
 runs in CI on every pull request and takes about a minute. `npm run queries:bless` records the
 current plans as accepted.
 
@@ -172,12 +172,12 @@ attachments, item-attachments, categories) whether or not a single row on the pa
 them.
 
 **The test is "is it read anywhere," not "might it be handy."** Before a list-shaped route
-returns a field, grep every consumer of that endpoint in `src/react/src` and check the field is
+returns a field, grep every consumer of that endpoint in `react/src` and check the field is
 actually rendered or branched on -- not just present in the destructured response. A field that
 rides along because a detail endpoint's decorator was reused for convenience is the default way
 this drifts back in; a route with more than one real shape (a full record and a row) gets its own
 decorator per shape, each built from only the child queries that shape needs, the same way
-`src/api/src/lib/decorate.js` now has `decorateOrderListRows` (the All orders row: two child queries,
+`api/src/lib/decorate.js` now has `decorateOrderListRows` (the All orders row: two child queries,
 not four), `decorateOrderSummaryRows` (the latest-orders card: one) and `decorateOrderSearchRows`
 (the palette: one item-title query instead of the full item and attachment set) beside the single-
 record `decorateOrder`.
@@ -239,13 +239,13 @@ box, not about any change.
 
 - **A rendered account with real records is one flow, always the same one -- driven, not
   guessed.** There is no seed script and no shortcut route; a fresh account starts genuinely
-  empty (`src/react/src/pages/Register.jsx`'s own note: a populated account on first login read as
+  empty (`react/src/pages/Register.jsx`'s own note: a populated account on first login read as
   someone else's data). Getting one with orders, vendors and categories in it -- favourites
   included -- is: register at `#/register` (not `#/signup` -- the route is named after the page,
-  `src/react/src/routes.jsx`), which lands on `#/settings` with `firstRun` set; open the "Demo data"
+  `react/src/routes.jsx`), which lands on `#/settings` with `firstRun` set; open the "Demo data"
   card there and click FILL WITH DEMO DATA; that swaps the button for a confirm step (`YES, FILL
   IT` / `CANCEL`) rather than filling on the first click, so a probe has to click twice. Demo data
-  seeds two favourite vendors and three favourite categories every time (`src/api/src/lib/demoData.js`),
+  seeds two favourite vendors and three favourite categories every time (`api/src/lib/demoData.js`),
   which is what a check on the Favourites spotlight or the favourite mark needs, without hand-editing
   a record first.
 - **Chromium is the default engine and the only one installed. Do not reach for the other two
@@ -293,7 +293,7 @@ box, not about any change.
   (`input[aria-label="Search everything"]`) has `bil` typed into it, open. Render it closed or drop
   any one of the three and the comparison reads like a rasterisation-floor mismatch and is not one --
   drive each shot into the state it holds before believing the number, in either direction.
-  `src/react/scripts/regen-docs.mjs` drives all three shots into their states and is the canonical
+  `react/scripts/regen-docs.mjs` drives all three shots into their states and is the canonical
   record of how. Two traps it already steps around: the server filters by `vendorId` (an exact,
   per-account generated id -- read it back from `/api/vendors`; it ignores an unknown `vendor=`
   param, so a hand-built `?vendor=bilka` URL quietly matches nothing), and the demo fill is a
@@ -342,7 +342,7 @@ box, not about any change.
   agreed at perf 99/99/99, FCP 1508/1562/1562ms, and three of another at 87/87/87,
   3057/3063/3066ms, while a single cold run of the first read 95 with 90ms TBT. So run it at
   least twice a side and report the spread, or the first number is the machine warming up.
-  Point it at a served build (`node src/api/src/server.js` over `src/react/dist`), never at the dev
+  Point it at a served build (`node api/src/server.js` over `react/dist`), never at the dev
   server: Vite serves unminified modules one file per import, which is a different application.
 
   **`--preset=desktop`, always, unless a phone number is specifically what's being asked for.**
@@ -368,7 +368,7 @@ When that pass runs, the README's standard is its floor: render the app, screens
 390px, and say what was measured rather than that it looks right. Three axes it does not name have
 each shipped a bug, so a requested run covers them too.
 
-**Render the app, not the copy.** `npm run dev` in `src/react/` and drive `http://localhost:5173/`; the
+**Render the app, not the copy.** `npm run dev` in `react/` and drive `http://localhost:5173/`; the
 routes are real routes, so a harness navigates by clicking what a user clicks and reads the title back
 on arrival. The prototype renders the same stylesheet over drawn stand-ins -- useful for a CSS
 question, wrong for anything a control actually does. Where the two disagree, the app is the product.
@@ -382,26 +382,26 @@ selector. Two runs of it agree with each other perfectly. The address is `BASE +
 the query string lives *inside* the hash, and `new URL(page.url()).search` is therefore always empty
 -- read `location.hash.split('?')[1]`, or a probe that navigates correctly still reports nothing.
 Printing the page title on arrival, which this file already asks for, is what catches it in one line.
-The API needs `src/api/` running too (`npm run dev` there): without it every page renders its error state
+The API needs `api/` running too (`npm run dev` there): without it every page renders its error state
 and the first `waitForSelector` times out on a 502 nobody printed.
 
 **The exact commands that work, so this stops getting re-derived each session.** `npm ci` in
-`src/api/` and `npm install` in `src/react/` the first time (`node_modules` is not committed); after
+`api/` and `npm install` in `react/` the first time (`node_modules` is not committed); after
 that:
 
 ```bash
-# src/api/ -- PORT 4000 is not a suggestion: src/react/vite.config.js's dev proxy hard-codes
+# api/ -- PORT 4000 is not a suggestion: react/vite.config.js's dev proxy hard-codes
 # 'http://localhost:4000' as its default target, so the app's fetch('/api/...') calls 404
 # against Vite itself on any other port unless SPENDLY_API_URL is also set to match.
 # SPENDLY_DB to a scratch path keeps a verification run off the real database.
-cd src/api && SPENDLY_DB=/tmp/<scratch>/spendly.sqlite3 PORT=4000 npm run dev
+cd api && SPENDLY_DB=/tmp/<scratch>/spendly.sqlite3 PORT=4000 npm run dev
 
-# src/react/ -- plain `npm run dev`, no env needed; it proxies /api to :4000 by default.
-cd src/react && npm run dev
+# react/ -- plain `npm run dev`, no env needed; it proxies /api to :4000 by default.
+cd react && npm run dev
 ```
 
 Both `cd`s matter: a `node`/`npm` command run from the wrong directory fails on a missing
-`package.json` or resolves the wrong `node_modules`, and this repo's `src/api/` and `src/react/` are two
+`package.json` or resolves the wrong `node_modules`, and this repo's `api/` and `react/` are two
 separate installs with two separate lockfiles -- there is no root `node_modules` either one falls
 back to.
 
@@ -411,8 +411,8 @@ globally installed 1.56.1 the environment bullets above already describe, at
 `node` needs either `NODE_PATH=/opt/node22/lib/node_modules node script.mjs` or an explicit
 `import pkg from '/opt/node22/lib/node_modules/playwright/index.js'; const { chromium } = pkg`
 (a bare named import fails: `SyntaxError: Named export 'chromium' not found` on a CJS module) --
-plain `import { chromium } from 'playwright'` resolves nothing on its own from outside `src/react/`
-or `src/api/`, since neither installs it locally either.
+plain `import { chromium } from 'playwright'` resolves nothing on its own from outside `react/`
+or `api/`, since neither installs it locally either.
 
 **A redirect renders twice, so a probe that reads after a click reads the frame before it.** State
 restored by a redirect -- the list memory here -- is correct one render later than the click that
@@ -646,7 +646,7 @@ previous reply had discussed, so *Vendor, Z to A* came out of All orders while *
 on rendering on two toolbars and in Settings -- and the user had to come back and point at it, which
 is this rule failing in a sentence instead of a screenshot. A request phrased against a label is a
 request against every element carrying it: grep the label app-wide first (`grep -rn 'Z to A'
-src/react/src` returned all four in under a second), and either take the whole class out or say in the
+react/src` returned all four in under a second), and either take the whole class out or say in the
 reply which instances stayed and why. Narrowing a general instruction to its nearest instance is the
 same mistake as fixing the one card on screen, made while reading instead of while coding.
 
@@ -978,7 +978,7 @@ app for `home.png`, 440,582 for `all-orders.png` once the app was actually drive
 file holds (see the environment bullet above), neither number the change under test, both the app
 and the prototype drawing the same pages slightly differently. Both were re-rendered from the app on
 2026-07-31, reproduced twice in a row at 0 differing pixels, and `spendly.html` is no longer a
-baseline for either: src/react/ is the one place the system is built, so a shot is the app's render or
+baseline for either: react/ is the one place the system is built, so a shot is the app's render or
 it is out of date, with nothing left to reconcile against a second file.
 
 The phone shot needs that descriptor rather than a 390px window. `pointer: coarse` is what the iOS
@@ -1020,7 +1020,7 @@ Before adding a variant, grep for the pattern and match the tally, not the one n
 `README` states this as a principle; in practice it means counting first —
 
 ```bash
-grep -c 'the-pattern' src/react/src/styles/app.css    # then match the majority, or change all of them
+grep -c 'the-pattern' react/src/styles/app.css    # then match the majority, or change all of them
 ```
 
 Four date fields existed and only three carried the glyph, which is exactly how the fourth kept a bare
@@ -1054,7 +1054,7 @@ design system's own vocabulary -- radii, gaps, paddings, every colour, the thumb
 literal written beside one is a second copy of a decision that is already made somewhere. It
 reads as identical until the token moves, and then the two disagree in whichever place nobody
 looked. So before writing a number or a colour, check whether `:root` already names it:
-`grep -oE '^\s+--[a-z-]+:[^;]*;' src/react/src/styles/app.css` is the whole list. `12px` is
+`grep -oE '^\s+--[a-z-]+:[^;]*;' react/src/styles/app.css` is the whole list. `12px` is
 `--radius-page`, `6px` between an icon and its label is `--gap-icon`, `#B3261E` is
 `--text-negative` -- and that last one matters twice, because the file has a dark theme that
 redefines the tokens and nothing else. A hardcoded colour is a light-theme colour forever.
@@ -1117,7 +1117,7 @@ exists; the reach and the rank are separate decisions, and one selector was carr
 
 ## spendly.html is frozen
 
-It no longer gets edited: src/react/ is the one place the design system is built, and there is no sync
+It no longer gets edited: react/ is the one place the design system is built, and there is no sync
 step left to carry a fix anywhere else. The constraints this section used to state — one file, no
 dependency, no build step, no network request, no external asset, tabs indenting and spaces only
 aligning a comment's continuation — were about editing it directly, which nothing does now. They

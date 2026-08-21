@@ -14,14 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: src/react
+        working-directory: react
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: src/react/package-lock.json
+          cache-dependency-path: react/package-lock.json
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run build
@@ -30,20 +30,20 @@ jobs:
 
   # Every SQL statement the API runs, against the plan SQLite picks for it, compared to the
   # blessed baseline -- so a query added or edited here arrives with its plan reviewed, and an
-  # index arrives with its write cost counted. Its own job: it needs src/api/'s dependencies, not
-  # src/react/'s, and a red plan check should read as a red plan check rather than a failed build.
+  # index arrives with its write cost counted. Its own job: it needs api/'s dependencies, not
+  # react/'s, and a red plan check should read as a red plan check rather than a failed build.
   queries:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: src/api
+        working-directory: api
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: src/api/package-lock.json
+          cache-dependency-path: api/package-lock.json
       - run: npm ci
       - run: npm run queries:check
 
@@ -67,21 +67,21 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: src/react/package-lock.json
+          cache-dependency-path: react/package-lock.json
       - run: npm ci
-        working-directory: src/react
+        working-directory: react
       - run: npm run build
-        working-directory: src/react
+        working-directory: react
       - run: npm ci --omit=dev
-        working-directory: src/api
+        working-directory: api
       # --no-save: Lighthouse is a hundred megabytes of CI-only tool, and adding it to
-      # src/react/package.json would make every other job install it to run neither.
+      # react/package.json would make every other job install it to run neither.
       - run: npm i --no-save lighthouse
-        working-directory: src/react
+        working-directory: react
       - name: Serve the build
         run: |
-          SPENDLY_DB="$RUNNER_TEMP/lighthouse.sqlite3" PORT=4000 node src/api/src/server.js &
+          SPENDLY_DB="$RUNNER_TEMP/lighthouse.sqlite3" PORT=4000 node api/src/server.js &
           for i in $(seq 1 60); do curl -sf localhost:4000/api/health >/dev/null && break; sleep 0.5; done
           curl -sf localhost:4000/ >/dev/null || { echo 'the build is not being served'; exit 1; }
       - run: node scripts/lighthouse.mjs http://localhost:4000/
-        working-directory: src/react
+        working-directory: react

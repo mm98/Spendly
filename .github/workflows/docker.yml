@@ -76,8 +76,8 @@ jobs:
           # is mounted over it, and this container is thrown away after the measurement.
           docker run -d --name spendly-measuring -p 4000:4000 -e SPENDLY_DB=/tmp/lh.sqlite3 spendly:measuring
           for i in $(seq 1 60); do curl -sf localhost:4000/api/health >/dev/null && break; sleep 0.5; done
-          npm i --no-save lighthouse --prefix src/react
-          node src/react/scripts/lighthouse.mjs http://localhost:4000/ --out=lighthouse.json
+          npm i --no-save lighthouse --prefix react
+          node react/scripts/lighthouse.mjs http://localhost:4000/ --out=lighthouse.json
           echo "scores=$(cat lighthouse.json)" >> "$GITHUB_OUTPUT"
           docker rm -f spendly-measuring
       - uses: docker/build-push-action@v7
