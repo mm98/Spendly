@@ -2,7 +2,8 @@
 src/react/dist
 design
 docs
-spendly.html
+*.html
+*.md
 *.sqlite3
 data
 .git
