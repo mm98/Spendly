@@ -703,7 +703,7 @@ WebKit at 1440, and **259.1 / 242.9 / 243.1** on the phone, inside the same **32
 every engine at both widths, so the narrowest margin any of them leaves is **64.9px**. The longest
 pager label, *Quarter 3, 2026*, is **128.6px** in Blink and **121.8 / 121.9** in the other two.
 
-The window counts `react/README.md` states were walked to both ends rather than read off the API, in
+The window counts `src/react/README.md` states were walked to both ends rather than read off the API, in
 each engine and both viewports: **14** windows at Week (oldest *Week 18, 2026*), **3** at Month (*May
 2026*), **2** at Quarter (*Quarter 2, 2026*), **1** at Year and **1** at All. Browser Back walks the
 pager in all three — forward *Week 31 → 30 → 29*, Back to *Week 30* then *Week 31*.
@@ -1666,7 +1666,7 @@ outline offsets; Settings' three block buttons at an inline 8px above the lead w
 order forms already define, at 13.5px/500 with a `var(--red, #C0392B)` whose token does not
 exist, so the fallback was the colour. Each is now the one value, under the one name.
 
-**The conversion.** Every fixed layout value moved into `react/src/styles/app.css` under a
+**The conversion.** Every fixed layout value moved into `src/react/src/styles/app.css` under a
 named class — shared names where the pattern repeats (`.card-lead-flush` ×4, `.summary-saved`
 ×3, `.chart-legend-fill` ×3, `.row-actions`, `.push-end`, `.is-dragover`), component names
 where it does not. What stays inline is the data speaking: record colours, chart shares and
@@ -1742,7 +1742,7 @@ every client export against what pages import, then every API-side export agains
 importers. Dead and now gone: `GET /api/orders/:id/draft` (the client has always composed the
 edit draft from `GET /api/orders/:id` itself), `GET /api/scan/documents` and its client
 wrapper (the scan flow goes upload → review with the key in hand; no screen lists raw
-uploads), `react/src/api/seed.js` (the phantom store's 376-line dataset, imported by nothing
+uploads), `src/react/src/api/seed.js` (the phantom store's 376-line dataset, imported by nothing
 since the API port), the API-side `SORTS` and `RANGES` constants (dead copies of option lists
 only the client reads — a copy imported by nothing is drift waiting to happen), and the
 `selectUploads` statement and `defaultCardRows` export those left behind. Kept deliberately:
@@ -2056,7 +2056,7 @@ candidate for the New order fix's copy-paste, but its combobox options were stil
 `Combobox.jsx` grew one optional field: `search`, which the component's own filter matches against
 when a caller supplies it, falling back to `label` when it does not — every other combobox in the
 app (categories, sort orders, settings pickers) passes no `search` and is untouched. New order,
-Edit order and Scan's shared block became `useVendorPicker` (`react/src/api/useVendorPicker.js`),
+Edit order and Scan's shared block became `useVendorPicker` (`src/react/src/api/useVendorPicker.js`),
 one hook wrapping `vendorByAnyName` for the action row and `vendorTextMatch` for the option list's
 `search` field and its `also <alias>` meta clause, so a fourth order-form vendor field gets both
 for free. All orders' filter has no action row to share, so it calls `vendorTextMatch` directly for
@@ -2066,7 +2066,7 @@ same function, not a second copy of the matching rule.
 The tell worth keeping: fixing the two reported call sites and stopping there would have left Scan
 and the orders filter exactly as broken as they were before the report, silently, because neither
 was mentioned in the bug and neither renders anywhere near New order. `grep -rln getVendors
-react/src/pages` and reading what each result actually matched on took under a minute and found
+src/react/src/pages` and reading what each result actually matched on took under a minute and found
 both.
 
 ## Checkbox row — two options on one settings page, drawn as prose beside a control
@@ -2707,7 +2707,7 @@ stretches every card in a row to the tallest one (`.dashboard-cards`' own defaul
 height (418px, three cards, a demo account) carries the other two along with it.
 
 **Instrument:** Lighthouse (performance category only) against a served production build
-(`react/dist` via `api/src/server.js`), authenticated, a year of demo data (80 orders, 12 months),
+(`src/react/dist` via `src/api/src/server.js`), authenticated, a year of demo data (80 orders, 12 months),
 Chromium 141.0.7390.37 under the 1.56.1 Playwright bundle. Two runs each side.
 
 | | before | after |

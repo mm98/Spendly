@@ -1,5 +1,5 @@
 **/node_modules
-react/dist
+src/react/dist
 docs
 spendly.html
 *.sqlite3
