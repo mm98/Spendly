@@ -12,6 +12,12 @@ The change that started it: on the order edit screen the order header used to si
 
 Target repo: `mm98/Spendly`, branch `main`. The mockups live at `design/` there. Existing React source referenced through this document is under `react/src`.
 
+## If the files will not open
+
+`offline/` holds every screen bundled as a single self-contained file — React, the preview runtime and the Poppins webfont all inlined. They open from disk with no network access and no sibling files, which is what a sandboxed agent needs. Same filenames, same screen ids, and the relative links between them still work, so `offline/index.html` navigates the whole set.
+
+Use `design/` when you have a normal browser and want the smaller files; use `offline/` otherwise. They are the same designs — the bundling changes nothing about the markup.
+
 ## About the design files
 
 Three documents, read in this order:
