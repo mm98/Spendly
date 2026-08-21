@@ -1,11 +1,12 @@
 # Design mockups — Spendly order flows
 
-Static HTML mockups, one file per area. Open any file directly in a browser; `support.js` must sit beside them.
+Static HTML mockups, one file per area. Open `index.html` for a linked overview; `Home.dc.html` is the app start page. Open any file directly in a browser; `support.js` must sit beside them.
 
 Each screen carries a visible id badge (`1a`, `2b`, …) so it can be referred to in review. Ids are unique across the whole folder.
 
 | File | Screens | Covers |
 | --- | --- | --- |
+| `Home.dc.html` | 10a | The start page: this month against the limits, receipt capture, what needs a look, recent orders |
 | `Navigation shell.dc.html` | 9a, 9b | The frame every page sits in: sidebar areas, locked top bar, collapsed rail, ⌘K search palette |
 | `Order editing layouts.dc.html` | 1a–1d | Order read view; editing an item in place incl. its photo; mobile edit screens and the item sheet; the edit screen itself (details in the right rail, attachments under the items, drag to reorder) |
 | `Order list.dc.html` | 2a–2c | Bulk actions (set status, add category); rows list with facet rail, search and filter chips; cards view |
