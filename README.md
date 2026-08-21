@@ -978,6 +978,7 @@ Three documents, one job each — because a rule stated in two places is obeyed 
 - **[`docs/defects.md`](docs/defects.md)** holds the evidence — the defect a rule cost, the numbers that settled it, the instrument that measured it. Entries are keyed to the section they defend, by name, never to a date. It is not a changelog.
 - **[`docs/porting.md`](docs/porting.md)** holds what an implementation has to build and the traps that belong to targets rather than to the design. A port's own README documents that port.
 - **The screenshots are renders of the running app, and they are current or they are wrong.** Nothing in them is cropped by hand or touched up, and each one holds a named state — a page, a viewport, and whatever is open or typed into it. A shot that no longer matches the app is the one claim a reader believes without checking, so a change that moves one regenerates it; three of them once drifted through two changes at 226,194, 41,303 and 319,255 differing pixels ([the numbers](docs/defects.md#documentation--three-committed-screenshots-had-drifted-from-the-app)).
+- **[`design/`](design/) holds proposed layouts, not the current truth.** Where a mockup and the code disagree, the code wins — the mockup is the proposal. Browsable at [mm98.github.io/Spendly](https://mm98.github.io/Spendly/).
 
 **How a change lands:** the rule goes here, in the section that owns it; the bug and its numbers go to the defect log; anything implementation-shaped goes to the porting notes. A fix that teaches nothing writes nothing.
 
