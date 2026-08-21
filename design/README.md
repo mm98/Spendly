@@ -250,7 +250,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 
 ## Screens
 
-### 9a / 9b — Navigation shell
+### 9a / 9b / 9c — Navigation shell
 File: `Navigation shell.dc.html` · Code: `App.jsx`, `components/Nav.jsx`, `components/Shell.jsx`
 
 **Purpose:** the frame every page renders inside.
@@ -264,6 +264,10 @@ File: `Navigation shell.dc.html` · Code: `App.jsx`, `components/Nav.jsx`, `comp
 **Collapsed rail (in 9b):** `68px` wide, icons only, centred, labels appear as tooltips on hover. Toggle persists per user.
 
 **Command palette (in 9b):** ⌘K / Ctrl-K. Centred overlay `560px` wide, radius `14px`, shadow `0 14px 32px rgba(27,26,23,0.14)`, scrim `rgba(27,26,23,0.35)`. A search field at top, then grouped results — Orders, Vendors, Actions — each row showing icon, primary label 14px, secondary meta 12px `#8b8a82`. Arrow keys move, Enter opens, Esc closes.
+
+**Account menu (9c):** the chevron on the account block opens a 232px popover upward, aligned to the block's left edge, radius `12px`, shadow `0 6px 16px rgba(27,26,23,0.08)`, light surface like every other popover. Four rows: a header repeating name and **email** (which appears nowhere else in the shell, and is how you confirm which account you are in), **Account and profile** deep-linking to `/settings/account` — not a new screen, but Settings (11a) with that section selected in the left nav, scrolled to the card, and focus on its heading (no highlight flash, no auto-focused field), **Keyboard shortcuts** (its only entry point besides pressing `?`), and **Sign out** — the reason the menu exists, being the one action that should not be buried in a settings page.
+
+Deliberately absent: a theme switch (the toggle is directly above it — two controls for one preference is how they drift), org or account switching, and any upgrade prompt. The chevron points down when closed and up when open, and is the only thing on the block that changes. Standard menu semantics: `aria-haspopup="menu"` + `aria-expanded` on the trigger, `role="menu"` on the panel, arrow keys between items, Esc closes and returns focus. Sign out confirms only when there are unsaved changes, naming what would be lost. On the collapsed rail the block is the avatar alone, the chevron disappears, and the menu opens to the right.
 
 **Top bar:** locked. Breadcrumb and page title only.
 
@@ -354,7 +358,7 @@ The fixed vendor column is a deliberate correction: an earlier version placed th
 
 **Cards view (2c):** grid, `minmax(280px, 1fr)`, `16px` gap. Card radius `12px`, `1px solid #e6e4dc`, `16px` padding: vendor 15px/600 top-left, status pill top-right, date and item count 12px `#8b8a82`, then up to three item thumbnails at 44px, then the amount 20px/700 and the category chip on the footer line.
 
-**Bulk actions (in 2a):** selecting rows reveals a bar above the list — "4 selected", then Set status and Add category as buttons, then Clear. Both open a small popover anchored to the button: Set status is a radio list of the five statuses; Add category is a searchable list with the category icon tile and name, multi-select, and a "Create category" row at the bottom. Applying shows the count in a toast with Undo.
+**Bulk actions (in 2a):** selecting rows reveals a bar above the list — "4 selected", then Set status and Add category as buttons, then Clear. Both open a small popover anchored to the button: Set status is a single-select list of the five statuses (the Combobox in pick-only mode — there is no Radio component; see 14d); Add category is a searchable list with the category icon tile and name, multi-select, and a "Create category" row at the bottom. Applying shows the count in a toast with Undo.
 
 **Pagination:** page size select and prev/next at the bottom; the total reflects the filter.
 
@@ -647,6 +651,44 @@ Also below 640px: buttons in a sheet go full width and stacked (the only correct
 
 ---
 
+### 16a–16c — Actions inventory
+File: `Actions inventory.dc.html`
+
+**The completeness check.** Compiled by walking every mockup rather than from memory: each control drawn, what it does, and what the user observes afterwards. Use it as the checklist when a screen is built — if a control on the screen isn't in this table, its behaviour was never decided.
+
+Two rules the audit confirmed hold across the whole set, and which are worth enforcing in review:
+- **Every destructive action has exactly one dialog; every reversible one has exactly one toast.** Nothing has both, nothing has neither. Dialogs: delete order, bulk delete, merge, discard scan. Toasts: line delete, status change, category add, archive, import.
+- **Every "See X" link is a filter handoff, not a new view.** See in Statistics, Open in orders, the Needs-a-look rows and the monthly summary rows all carry state into a screen that already exists. No screen is reachable through only one link.
+
+Also stated here: **global actions live in the shell, page actions do not.** Scan receipt and New order sit in the top bar because they belong to the app, not to the open page — that is not an exception to the locked-shell rule, which is that a page may not put *its own* actions there.
+
+**16b — ten controls that were drawn with no behaviour described anywhere.** Seven are resolved outright:
+
+| Control | Resolution |
+| --- | --- |
+| Export CSV / Export | Appeared on four screens meaning four things. One behaviour: exports **the current filter or drill state**, never the page and never the account, with the count in the button label. Same column set the importer reads, so export/import round-trips. |
+| Save current | Saved views store query + facets + sort under a name, listed above the facet rail. Stores **the filter, not the result**. Never shared — one user. |
+| Archive (vendor/category) | The middle option between keeping and deleting, and the answer to 5c's "no orders in 12 months". Hides it from lists and pickers; orders, totals and history untouched. Reversible, so toast + Undo. |
+| Duplicate last order (Home) | 8a's duplicate applied to the most recent order without opening it. Same rules (no date, status or attachments), opens unsaved. Hidden when there are no orders. |
+| Reuse mapping | Applies a previous import's mapping to the new file by column name. Always lands on the **mapping step** with rows pre-filled, never straight to preview — same headers can still mean different data. Unmatched columns are flagged. |
+| Change password | A dialog (current / new / confirm), not inline fields, so it is never half-filled in a card that saves other things. Success is a toast; **other sessions stay signed in**. |
+| Open full size (scan review) | The 12b viewer with the receipt as its only file, so small print is readable without leaving review. Panel edits untouched. |
+
+Three needed a product answer and are drawn as proposals in 16c: **See theirs** (the two-tab conflict), **duplicate name** (warn vs block), and **export format** (recommend CSV only, UTF-8 with BOM so Excel opens Danish characters, user's number format).
+
+**16c — the six that needed layout**, all composed from existing parts:
+
+1. **Saved views** — above the facets, because a view *is* a filter. Live counts. Editing filters while a view is active drops the highlight and offers **Update view** beside Save current, so a view is never silently rewritten. Save prompts for a name pre-filled from the active chips.
+2. **Archived state** — an "Archived" toggle with a count in the search row; archived rows render at 62% with a badge (same reasoning as dark-mode image tiles: present, not competing). The panel footer states plainly that the orders survive, since "archive" reads easily as "delete quietly". Restore is one click, no confirm. A category keeps its limit while archived and drops out of the limits card.
+3. **Change password dialog** — 260px, reveal control on the current-password field only, strength advisory and **not gating the button**.
+4. **Export popover** — states the scope in words ("128 orders · 412 lines" plus the active filters named). Row shape is a **Segmented** (one item line / a whole order), matching 11b's identical control. Line-per-item is the default because it round-trips through Import.
+5. **See theirs** (proposal) — lists **only the differing fields**, with a count in the sentence above and a "saved" row (yours: unsaved, 2 min of edits; theirs: 4 min ago) so the choice is informed. Lines collapse to a count; the totals row is what tells you which version is right. **Keep mine** is primary — you are the one looking at the screen and your edits are the unsaved ones. No third button, no field-level merge.
+6. **Duplicate name** (proposal) — amber, field **not** in an error state, Save never disabled: two vendors can genuinely share a name, and a tracker that refuses to record reality is worse than one holding a near-duplicate. Shows the existing vendor's order count and last-used date, which is what makes the choice decidable. Fires on blur on the same rule as duplicate detection (normalised similarity above 0.85); creating anyway surfaces the pair in 5c's possible-duplicates list.
+
+**There is no Radio component** (14d). Every either/or is a Segmented (2–3 options) or a Combobox (more). Anything drawn as a radio anywhere in the set is a bug.
+
+---
+
 ## Interactions summary
 
 | Trigger | Result |
@@ -775,6 +817,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 | `13-typography.png` | 13a |
 | `14-input-types.png` | 14a–14d |
 | `15-layout-rules.png` | 15a, 15b |
+| `16-actions-inventory.png` | 16a–16c |
 
 Full-page PNG at 2× device pixels (roughly 4100px wide; `14-input-types.png` is the one exception, capped at 1.44× because the page is 8300px tall), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
 
@@ -790,7 +833,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `BEHAVIOUR.md` | Edge cases, precise rules, open questions |
 | `index.html` | Linked overview of everything below — start here |
 | `Home.dc.html` | 10a |
-| `Navigation shell.dc.html` | 9a, 9b |
+| `Navigation shell.dc.html` | 9a, 9b, 9c |
 | `Order editing layouts.dc.html` | 1a, 1b, 1c, 1d |
 | `Order list.dc.html` | 2a, 2b, 2c |
 | `Order create.dc.html` | 3a |
@@ -804,6 +847,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Typography.dc.html` | 13a |
 | `Input types.dc.html` | 14a, 14b, 14c, 14d |
 | `Layout rules.dc.html` | 15a, 15b |
+| `Actions inventory.dc.html` | 16a, 16b, 16c |
 | `support.js` | Preview runtime for the files above — not part of the product |
 | `screenshots/` | Full-page capture of each file (see above) |
 
@@ -820,4 +864,4 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 8. Settings (11a) and Import (11b) — Settings is small once the token layer exists; Import is the largest single piece in the set and depends on nothing else.
 9. Dark mode (12a) last as a token pass, not a rebuild — if it needs component changes, the token layer was not clean. Do it before shipping, not after; retrofitting a theme is far more work than building against one.
 
-The foundation files (13a, 14a–14d, 15a–15b) are not steps — they are what every step is built against. Read 14d and 15a before writing any component; they are the two that stop the same decision being made differently on each screen. Typography (13a) and the image viewer (12b) are likewise not steps — 13a is the reference you build every screen against, and 12b is a shared component that steps 2 and 5 both need.
+The foundation files (13a, 14a–14d, 15a–15b) are not steps — they are what every step is built against. Read 14d and 15a before writing any component; they are the two that stop the same decision being made differently on each screen. Use 16a as the per-screen checklist as you build — a control not in that table is one whose behaviour was never decided. Typography (13a) and the image viewer (12b) are likewise not steps — 13a is the reference you build every screen against, and 12b is a shared component that steps 2 and 5 both need.
