@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { db, DB_PATH } from '../db.js'
 import { zipSingleFile } from './zip.js'
@@ -65,30 +65,24 @@ export function msUntilEndOfDay(now = new Date()) {
 	return target.getTime() - now.getTime()
 }
 
-const ONE_HOUR_MS = 60 * 60 * 1000
+function backupExistsToday() {
+	return existsSync(path.join(BACKUP_DIR, `database-${todayStamp()}.zip`))
+}
 
 /* The app runs as one long-lived process with no cron alongside it (docker-compose.yml is a
-   single container), so this is the cron job: a backup taken once at startup -- catching up a
-   container that was stopped over a day boundary, where nothing else would ever trigger that
-   day's backup -- then one timer that fires just before local midnight and re-arms itself every
-   24 hours after that.
+   single container), so this is the cron job: one timer that fires just before local midnight
+   and re-arms itself every 24 hours after that -- the only time a backup is meant to be taken.
 
-   That midnight timer only survives as long as the process does, and this process does not stay
-   up for a full day at a stretch: watchtower (docker-compose.yml) polls for a new image every 15
-   minutes and restarts the container the moment one lands, which throws away whatever setTimeout
-   was waiting for 23:59:59 and starts a fresh one from the new startup time. On an actively
-   developed install that redeploys several times a day, the exact-midnight timer routinely never
-   gets a full day of uptime to fire in, and the only backup a day actually gets is the startup
-   catch-up above -- which makes it look like backups only happen when something happens to
-   restart the container, rather than on a schedule.
-
-   The hourly tick below is the fix: on every hour that the process happens to be up, it retakes
-   today's backup, so any restart anywhere in the day (not just one lucky enough to still be
-   running at 23:59:59) leaves that day covered. backupDatabase() overwriting today's zip each
-   time rather than skipping it means this costs nothing extra to run often -- the file on disk is
-   just the most recent snapshot of the day, however many times it got retaken. */
+   That timer only survives as long as the process does, and watchtower (docker-compose.yml)
+   restarts the container the moment a new image lands, which throws away whatever setTimeout
+   was waiting for 23:59:59 and starts a fresh one from the new startup time. So a startup check
+   below stands in for the days that timer never got a chance to fire on -- but it only takes a
+   backup when today does not already have one, specifically so a restart that lands mid-day (a
+   deploy, a crash) does nothing: no new file, no overwrite, nothing to notice. It only ever
+   fires for real on the rare day the exact-midnight timer was skipped over entirely -- a
+   container stopped across the day boundary, with nothing else left to cover that day. */
 export function scheduleDailyBackups() {
-	backupDatabase().catch(err => console.error('Daily backup failed:', err))
+	if (!backupExistsToday()) backupDatabase().catch(err => console.error('Daily backup failed:', err))
 
 	const timer = setTimeout(function runAndReschedule() {
 		backupDatabase().catch(err => console.error('Daily backup failed:', err))
@@ -98,11 +92,6 @@ export function scheduleDailyBackups() {
 		next.unref()
 	}, msUntilEndOfDay())
 	timer.unref()
-
-	const hourly = setInterval(() => {
-		backupDatabase().catch(err => console.error('Hourly backup catch-up failed:', err))
-	}, ONE_HOUR_MS)
-	hourly.unref()
 
 	return timer
 }
