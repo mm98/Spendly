@@ -1,7 +1,7 @@
 import { SPEND_KINDS, ORDER_STATUSES } from './constants.js'
+import { todayIso } from './dates.js'
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
-const todayIso = () => new Date().toISOString().slice(0, 10)
 
 /* Ports react/src/api/rules.js's ORDER_FIELDS/ITEM_FIELDS, adapted for the JSON the API
    receives (already-parsed numbers) rather than the comma-formatted strings a human types into

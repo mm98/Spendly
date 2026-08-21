@@ -3,7 +3,7 @@ import multer from 'multer'
 import { db } from '../db.js'
 import { cardRowsFor } from '../lib/prefs.js'
 import { newId } from '../lib/ids.js'
-import { toEpoch } from '../lib/dates.js'
+import { toEpoch, todayIso } from '../lib/dates.js'
 import { getDecoratedOrder, decorateOrderSummaryRows, decorateOrderListRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
@@ -80,7 +80,7 @@ router.get('/overview', (req, res) => {
 router.get('/draft', (req, res) => {
 	const settings = selectDraftDefaults.get(req.user.id)
 	res.json({
-		vendor: '', date: new Date().toISOString().slice(0, 10),
+		vendor: '', date: todayIso(),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
 		categories: [], shipping: 0, discount: 0, reference: '', note: '', items: []
 	})

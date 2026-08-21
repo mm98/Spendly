@@ -10,7 +10,7 @@ import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
-import { toEpoch, fromEpoch } from '../lib/dates.js'
+import { toEpoch, fromEpoch, todayIso } from '../lib/dates.js'
 import { msUntilEndOfDay } from '../lib/backup.js'
 
 export const router = Router()
@@ -161,7 +161,7 @@ router.get('/draft/:key', async (req, res) => {
 	if (!read) {
 		return res.json({
 			documentKey: upload.id, file,
-			vendor: '', vendorMatched: false, date: new Date().toISOString().slice(0, 10),
+			vendor: '', vendorMatched: false, date: todayIso(),
 			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
 			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: 0,
 			reconciled: process.env.ANTHROPIC_API_KEY
@@ -198,7 +198,7 @@ router.get('/draft/:key', async (req, res) => {
 		// A match means the vendor record is the answer; the scanned string only speaks where
 		// there was no vendor to match it to.
 		vendor: vendorMatched ? vendorName : read.vendor, vendorMatched,
-		date: read.date ?? new Date().toISOString().slice(0, 10),
+		date: read.date ?? todayIso(),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
 		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
 		lines: read.lines.map(l => ({

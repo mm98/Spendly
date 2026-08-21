@@ -2,18 +2,10 @@ import { mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync } from 'nod
 import path from 'node:path'
 import { db, DB_PATH } from '../db.js'
 import { zipSingleFile } from './zip.js'
+import { todayIso as todayStamp } from './dates.js'
 
 const BACKUP_DIR = path.join(path.dirname(DB_PATH), 'backup')
 const MAX_BACKUPS = 5
-
-function todayStamp(date = new Date()) {
-	// Local date, not UTC -- has to agree with the local time scheduleDailyBackups() fires at
-	// (see msUntilEndOfDay below), or the stamp names a different day than the one just backed up.
-	const y = date.getFullYear()
-	const m = String(date.getMonth() + 1).padStart(2, '0')
-	const d = String(date.getDate()).padStart(2, '0')
-	return `${y}-${m}-${d}`
-}
 
 /* One backup per day, named for the day it was taken. SQLite's online backup API (better-sqlite3's
    db.backup()) walks the live database page by page over its own connection, which reads through
