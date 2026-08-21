@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spendly — design mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; text-decoration: none; }
+  a:hover { color: #2f7a51; }
+  .card { background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; gap: 18px; align-items: flex-start; transition: border-color .12s ease; }
+  .card:hover { border-color: #1d4d33; }
+  .ids { display: flex; gap: 5px; width: 84px; flex: none; flex-wrap: wrap; }
+  .ids span { background: #1d4d33; color: #fff; border-radius: 5px; padding: 2px 7px; font-size: 11px; font-weight: 600; }
+  .t { font-size: 15px; font-weight: 600; color: #1b1a17; }
+  .d { font-size: 13px; color: #57564f; line-height: 1.5; }
+  .lab { font-size: 12px; letter-spacing: 0.14em; color: #6b6a63; }
+  .rule { background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 5px; }
+  .rule .t { font-size: 14px; }
+</style>
+</head>
+<body>
+<div style="max-width: 980px; margin: 0 auto; padding: 64px 40px 80px; display: flex; flex-direction: column; gap: 40px">
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">SPENDLY · DESIGN MOCKUPS</div>
+    <h1 style="margin: 0; font-size: 36px; font-weight: 600; line-height: 1.15; max-width: 660px; text-wrap: pretty">Order tracking for personal receipts, from capture to what it all added up to.</h1>
+    <p style="margin: 0; font-size: 15px; color: #57564f; max-width: 640px; line-height: 1.55; text-wrap: pretty">Seventeen files, forty-three screens. It started with one problem — the order header took too much room above the items — and grew into the flows around it: the list, creating from a scanned receipt, statistics, vendors and categories, the states in between, and the phone.</p>
+    <p style="margin: 4px 0 0; font-size: 13px; color: #8b8a82">Every screen carries a visible id badge, unique across the whole set, so it can be pointed at in review.</p>
+  </div>
+
+  <div style="height: 1px; background: #dedcd4"></div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">START HERE</div>
+    <a class="card" href="Home.dc.html">
+      <div class="ids"><span>10a</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Home</div>
+        <div class="d">The start page: this month against the limits, receipt capture, what needs a look, recent orders and categories.</div>
+      </div>
+    </a>
+    <a class="card" href="Navigation shell.dc.html">
+      <div class="ids"><span>9a</span><span>9b</span><span>9c</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Navigation shell</div>
+        <div class="d">The frame the pages sit in: sidebar areas with counts, the locked top bar, a collapsed rail, and the ⌘K palette across orders, vendors and actions.</div>
+      </div>
+    </a>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">ORDERS</div>
+    <a class="card" href="Order editing layouts.dc.html">
+      <div class="ids"><span>1a</span><span>1b</span><span>1c</span><span>1d</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Order editing</div>
+        <div class="d">Where it began. The header moved into the right rail so the items own the width: read view, editing an item in place with its photo, the mobile screens, and the edit layout with drag to reorder.</div>
+      </div>
+    </a>
+    <a class="card" href="Order list.dc.html">
+      <div class="ids"><span>2a</span><span>2b</span><span>2c</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Order list</div>
+        <div class="d">Rows with a facet rail, search and filter chips; the cards view; and the bulk actions for setting status or adding a category.</div>
+      </div>
+    </a>
+    <a class="card" href="Order create.dc.html">
+      <div class="ids"><span>3a</span><span>3b</span><span>3c</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Creating an order</div>
+        <div class="d">From a scanned receipt: how to start, reading, checking what was read line by line, created.</div>
+      </div>
+    </a>
+    <a class="card" href="Settings and import.dc.html#11b">
+      <div class="ids"><span>11b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Import a file</div>
+        <div class="d">The bulk path: a spreadsheet or a JSON export, mapped column by column against real rows, checked, then written — with a 24-hour undo.</div>
+      </div>
+    </a>
+    <a class="card" href="Duplicate and alerts.dc.html">
+      <div class="ids"><span>8a</span><span>8b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Duplicating, and budget alerts</div>
+        <div class="d">What carries over when an order is repeated, and the three moments a limit speaks up: as you cross it, on the category, and once a month.</div>
+      </div>
+    </a>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">LIBRARY AND NUMBERS</div>
+    <a class="card" href="Order statistics.dc.html">
+      <div class="ids"><span>4a</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Statistics</div>
+        <div class="d">Headline figures, spend by month, category and status breakdowns, monthly limits, and a drill path down to the orders behind any slice.</div>
+      </div>
+    </a>
+    <a class="card" href="Vendors and categories.dc.html">
+      <div class="ids"><span>5a</span><span>5b</span><span>5c</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Vendors and categories</div>
+        <div class="d">Two lists with a shared panel: vendors with merge for scan duplicates, categories carrying icon, colour and the monthly limit, and the roll-up shown when nothing is selected.</div>
+      </div>
+    </a>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">ACROSS EVERYTHING</div>
+    <a class="card" href="States and confirmations.dc.html">
+      <div class="ids"><span>6a</span><span>6b</span><span>6c</span><span>6d</span><span>6e</span><span>6f</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">States and confirmations</div>
+        <div class="d">Empty states, loading skeletons, validation, confirmations and toasts, and what happens when a scan cannot be read.</div>
+      </div>
+    </a>
+    <a class="card" href="Settings and import.dc.html">
+      <div class="ids"><span>11a</span><span>11b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Settings, and import</div>
+        <div class="d">Account, appearance, currency and format, defaults for a new order, and renaming or reordering statuses — then the file import flow.</div>
+      </div>
+    </a>
+    <a class="card" href="Images and files.dc.html">
+      <div class="ids"><span>17a</span><span>17b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Images and files</div>
+        <div class="d">How upload, replace and delete work in all four places that take a file — the lifecycle, every state drawn, and the shortcuts that lose the user's receipt.</div>
+      </div>
+    </a>
+    <a class="card" href="Actions inventory.dc.html">
+      <div class="ids"><span>16a</span><span>16b</span><span>16c</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Actions inventory</div>
+        <div class="d">Every control in the set, what it does and what the user sees afterwards — plus the ten that had no described behaviour, resolved and the six that needed layout drawn.</div>
+      </div>
+    </a>
+    <a class="card" href="Responsive reference.dc.html">
+      <div class="ids"><span>16a</span><span>16b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Responsive reference</div>
+        <div class="d">The only page here that actually responds: working container-query layouts with the CSS beside them, plus a per-screen table of what changes at 1280, 900 and 640.</div>
+      </div>
+    </a>
+    <a class="card" href="Layout rules.dc.html">
+      <div class="ids"><span>15a</span><span>15b</span><span>15c</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Layout rules</div>
+        <div class="d">The four column shapes, when a field is full width and when it is a fraction, how rows hold their columns, which field groups survive the phone breakpoint, and which pixel values in these files are real versus mockup scaffolding.</div>
+      </div>
+    </a>
+    <a class="card" href="Input types.dc.html">
+      <div class="ids"><span>14a</span><span>14b</span><span>14c</span><span>14d</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Input types</div>
+        <div class="d">Every control with its states, the four button levels, the rule the palette follows when a colour has to be added, and the option list each control needs to exist as a reusable component.</div>
+      </div>
+    </a>
+    <a class="card" href="Typography.dc.html">
+      <div class="ids"><span>13a</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Typography</div>
+        <div class="d">The family and its four weights, the whole scale rendered at size, how it is loaded and what the fallback costs, tabular figures, truncation per role, and six rules.</div>
+      </div>
+    </a>
+    <a class="card" href="Dark mode and image viewer.dc.html">
+      <div class="ids"><span>12a</span><span>12b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Dark mode, and images at full size</div>
+        <div class="d">The warm dark theme as a token map plus three screens in it, and the viewer that opens an attachment or item photo full size.</div>
+      </div>
+    </a>
+    <a class="card" href="Mobile screens.dc.html">
+      <div class="ids"><span>7a</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Mobile</div>
+        <div class="d">The phone as the capture device: orders list, filters as a sheet, checking a scan, and statistics in one column.</div>
+      </div>
+    </a>
+  </div>
+
+  <div style="height: 1px; background: #dedcd4"></div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div class="lab">RULES EVERY SCREEN FOLLOWS</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+      <div class="rule">
+        <div class="t">The top shell is locked</div>
+        <div class="d">No page actions live up there. Everything a page does belongs to the page.</div>
+      </div>
+      <div class="rule">
+        <div class="t">A limit never blocks a save</div>
+        <div class="d">Red blocks, amber informs. A monthly limit is a fact about your month, not a rule.</div>
+      </div>
+      <div class="rule">
+        <div class="t">Nothing saves by itself</div>
+        <div class="d">Scans propose, they never overwrite. A duplicate opens unsaved and can still be abandoned.</div>
+      </div>
+      <div class="rule">
+        <div class="t">Numbers answer the current filter</div>
+        <div class="d">Totals and counts reflect what is on screen, not the whole account.</div>
+      </div>
+      <div class="rule" style="grid-column: span 2">
+        <div class="t">Single user, personal receipts</div>
+        <div class="d">No item catalogue, no shared editing, no permissions. A conflict means two tabs, not two people.</div>
+      </div>
+    </div>
+    <p style="margin: 6px 0 0; font-size: 13px; color: #8b8a82; line-height: 1.55">These are design references, not production code: layout and states only, no data or behaviour. Where a mockup and the code disagree, the code is the current truth — the mockup is the proposal.</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,1007 +1,961 @@
-# Spendly: A Design System
+# Handoff: Spendly order flows
 
-A unified language for building consistent, scalable expense tracking interfaces. This document defines what the product looks like and why—not how to build it.
+> **The frame around a mockup is not part of the design.** The full-shell mockups (9a, 10a) sit inside a rounded, outlined card with a drop shadow at a fixed 1400px width. That card is presentation only — it exists so the mockup reads as a window on the page. In the app the shell fills the browser viewport edge to edge: square corners, no outer border, no shadow, the sidebar running the full window height and the content column meeting the window edge. Any fixed pixel width on a full-page mockup stands in for a viewport.
 
-## What is this?
+## Overview
 
-A design system is a shared language. It prevents the chaos that happens when designs scale: mismatched buttons, contradictory layouts, forgotten decisions, duplicated effort. Spendly's system defines the foundations (color, typography, spacing), the components (buttons, forms, cards), and the patterns (how filters work, how data flows, how users create things). 
+Spendly is personal receipt and order tracking for a single user: capture a receipt, keep the order and its item lines straight, and see what it added up to per month, vendor and category.
 
-**Everything here is framework-agnostic.** It names no React, no Vue, no Web Components. Those are implementation decisions that change. The design system outlives them.
+This package covers the whole surface that work touched: the app shell, the home page, the order list, order read and edit, creating an order from a scanned receipt, statistics with drill-down, the vendor and category library, the states and confirmations that sit across all of it, the phone layouts, settings, file import, the dark theme, the full-size image viewer, and the foundation references — typography, the control set, and the layout rules.
 
-## The problem it solves
+The change that started it: on the order edit screen the order header used to sit above the item list and eat most of the viewport, while the actual work is nearly always adjusting item lines. The header moved into a right rail, so the item list owns the width and starts near the top of the page. Everything else follows that same two-column shape.
 
-Without a system, four button styles ship in four places. A field that rejects values draws error messages three different ways. A total that appears in ten places lives in ten files, and three of them disagree. Decisions get repeated, duplicated, and forgotten.
+Target repo: `mm98/Spendly`, branch `main`. The mockups live at `design/` there. Existing React source referenced through this document is under `react/src`.
 
-With a system:
-- One source of truth: decisions are written once
-- Consistency: every implementation follows the same rules
-- Speed: new screens don't re-solve old problems
-- Confidence: the system catches drift before it ships
+## About the design files
 
-## How this system was made
+Three documents, read in this order:
 
-The system did not arrive first; the product did. The system was extracted from it by audit — taking inventory of every control the UI had, category by category, and counting.
+1. **`README.md`** (this file) — what to build: screens, layout, exact values, tokens.
+2. **`DECISIONS.md`** — why it is this way, and what was rejected. Read before changing anything that looks like it could be simplified; several of the obvious simplifications were tried and rejected for reasons recorded there.
+3. **`BEHAVIOUR.md`** — the precise rules the mockups cannot show: edge cases, facet counting, validation timing, scan failure modes, definitions of every statistic. It also collects **ten open questions** that need a product answer, each with a recommendation. Check those before building the screens they affect.
 
-The inventory is what made the case. Four buttons restated the same block of styles in full and had drifted apart doing it: three gaps, three radii, four font sizes for one control. Four date fields existed and three carried the calendar glyph — the fourth kept a bare native icon nobody had looked at. Five row families each declared their own `display`, `gap` and `padding` for one arrangement. The donut's shares were baked into the stylesheet beside a list computed from different numbers, and nothing rendered could disagree. Nineteen distinct `gap` values were in use, of which six carried the layout and thirteen were drift.
+The HTML files are **design references created in HTML** — prototypes showing intended layout, hierarchy and behaviour. They are not production code and should not be copied into the app.
 
-Every one of those counts turned into a rule, and the loop is still the method:
+The files in this bundle are **design references created in HTML** — prototypes showing intended layout, hierarchy and behaviour. They are not production code and should not be copied into the app.
 
-1. **Audit** — count the instances of a pattern before touching one. The tally decides the scope.
-2. **Extract** — the shared thing becomes an element or a component; survivors keep only their differences.
-3. **Document** — the rule lands here in general terms; the defect and its numbers land in [`docs/defects.md`](docs/defects.md), keyed to the section they defend.
+They are authored as "design components": each `.dc.html` file is a static page with everything styled inline, and `support.js` (included) is the tiny runtime that renders them. `support.js` is a preview harness only — it has no place in the product.
 
-That third file is the audit, kept running. A rule in this document that looks arbitrary has its history there.
+The task is to **recreate these layouts in the existing React codebase** (`react/src`), using its established component set, routing, styling approach and data layer. Where this document names an exact hex value or pixel size, it is describing the intent; where the codebase already has an equivalent token or component, prefer the codebase's version and keep it consistent.
 
-## Contents
+**How to read a mockup:** open the file in a browser. Each screen is one `<section>` with a green id badge in its top-left (`1a`, `2b`, …). Ids are unique across the whole bundle and are the vocabulary used below and in review. `index.html` is a linked overview of all of them, grouped by area.
 
-The system is layered: an element is defined before the component that uses it, a component before the view that composes it, a view before the pattern that repeats across several. Read down for depth.
+Several screens show **states side by side that are never on screen at once** (empty next to loaded, or three stages of a scan). The heading above each column says which state it is. Do not build those as a row of panels.
 
-- **[Foundations](#foundations)** — Color • Elevation and shape • Typography • Sizing • Spacing • Grids and breakpoints
-- **[Components](#components)** — Buttons • Fields and forms • Stepper • Cards • Data rows • Notes • Empty states • Chips • Combobox • Segmented control • Switch • Checkbox row • Charts • Meters and progress • Chrome • Icons
-- **[Views](#views)** — Home • Orders overview • All orders • Order detail • Create and edit • Scan flow • Vendors • Categories • Statistics • Settings
-- **[Patterns](#patterns)** — Filtering • Creation flow • Search • Progressive disclosure • Form validation • Feedback • Deletion • Pagination • Data persistence • Loading and errors • Honest affordances • Accessibility • iOS and WebKit • Responsive layout
-- **[Conventions](#conventions)** — Naming in the markup • Language and formats • Documentation
+## Fidelity
+
+**High-fidelity.** Colours, typography, spacing, radii and copy are final and intentional. Recreate the UI closely, using the codebase's existing primitives where they match. The layouts, the numbers shown, and the copy are the specification; the exact pixel values are given below so nothing has to be measured off a screenshot.
+
+Two caveats:
+- All data is illustrative. Amounts are Danish kroner formatted `486.320 kr.` (period as thousands separator, `kr.` suffix). Keep that format; the numbers themselves come from the API.
+- Icons in the mockups are hand-drawn inline SVG on a 16×16 viewBox, stroke-only, `stroke-width` 1.3–1.6, round caps and joins. Substitute the codebase's icon set at the same optical weight rather than lifting the SVG paths.
 
 ---
 
-## Foundations
+## Design tokens
 
-These are the building blocks. Nothing here is a control. Everything here is what controls are made of.
+### Colour
 
-### Color
+Neutrals — a warm greige family, not grey. This is the surface identity of the app.
 
-Every color is a named token. A hex value written directly into a rule is a decision nobody can find later.
+| Value | Use |
+| --- | --- |
+| `#eceae4` | App background (page canvas behind cards) |
+| `#f2f1eb` | Secondary surface, table header strips |
+| `#f7f6f2` | Tertiary fill: quiet rows, inert chips, skeleton bases |
+| `#f0efe9` | Hover fill on rows and list items |
+| `#ffffff` | Card and panel surface |
+| `#e6e4dc` | Card border, standard 1px hairline |
+| `#dedcd4` | Input border, divider inside cards |
+| `#dcdad2` / `#d6d4ca` | Heavier divider, input border on hover |
+| `#c3c1b8` | Disabled border, drag-handle glyph |
+| `#1b1a17` | Primary text (headings, amounts) |
+| `#3d3c36` | Body text, field labels |
+| `#57564f` | Secondary text, descriptions |
+| `#6b6a63` | Small caps labels, meta |
+| `#8b8a82` | Muted / hint text, placeholders |
+| `#b3b1a9` | Least prominent chart series, inactive icons |
 
-Two kinds of value are exempt, and each for its own reason. **A vendor's or a category's color is
-data, not design** — every record carries its own, so a token would claim a decision the design
-system does not own; the same goes for a component's built-in default of that kind of color. And
-**a family of near-identical values pending a collapse decision stays literal** until the decision
-is made: several borders, inks and tile fills sit one or two shades apart, and merging them changes
-what is on screen, which is a design decision rather than a rename. Everything else — every fill,
-glyph, edge, shadow and backdrop — resolves through a token, and the dark theme is that property
-cashed in: one override block, no light-mode leaks.
+Green — brand and action.
 
-**Dark follows the reader's system preference.** Its canvas is the ink itself (#0B0F0D) with cards
-lifted off it the way the dark card always has been; every text tier is re-tuned and re-measured
-(body 10.66:1, muted 6.94:1 on the card; positive, negative and warning inks all clear 4.5:1 with
-room). Glyphs on vivid fills stay white — a glyph-on-fill and a card fill are different roles even
-where light mode gave them one value, which is why the tokens name the role and not the color. The
-exempt near-identical literals take their nearest token under dark only, so the collapse decision
-they are waiting on stays a light-mode decision. Vendor and category colors are data and render as
-themselves on either ground.
+| Value | Use |
+| --- | --- |
+| `#1d4d33` | Primary: buttons, badges, active state, first chart series, links |
+| `#2f7a51` | Link hover, primary button hover |
+| `#4b7a5e` / `#4f7f63` | Second chart series, avatar fill |
+| `#8caf97` | Third chart series |
+| `#c6d6c9` | Fourth chart series |
+| `#dfe6e0` | Fifth / "other" series, quiet green fill |
+| `#eef1ee` | Chart track, progress bar background |
+| `#e7efe8` | Selected-row tint, success surface |
+| `#a8c6b2` / `#cbd8cd` / `#cfd8d1` | Green mid-tones for sparklines and small fills |
+| `#1f3d2c` | Sidebar active row |
+| `#14261c` | Sidebar background (dark green, not black) |
+| `#c3d2c8` | Sidebar idle text |
+| `#a9bdb1` | Sidebar meta text |
+| `#7d9186` | Sidebar section label |
 
-**Text, in four steps.** Text gets lighter as it gets less important, and the steps are fixed:
+Amber — informational warning. Used for anything about a monthly limit. **Amber never blocks.**
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--text` / `--text-strong` | #0B0F0D | Headings, figures, controls |
-| `--text-body` | #3A423D | Sentences and descriptions |
-| `--text-muted` | #636D64 | Metadata, captions |
-| `--text-faint` | #9AA39D | Placeholders, disabled-looking text |
+| Value | Use |
+| --- | --- |
+| `#fdf8ee` | Surface |
+| `#e8dfcb` | Border |
+| `#e2d3ae` / `#d3b98a` | Fill for badges and bars |
+| `#b58a2b` | Line and marker (the pace marker on progress bars) |
+| `#7a5c23` | Text and icon |
+| `#6b5424` | Text on amber fill |
 
-**Surfaces.** The app canvas is `--bg-app` #EFF1EF; cards float on it as `--bg-card` white. `--bg-row-hover` #F6F7F4 is the tint a navigable row shows under the pointer. `--bg-dark` #0B1A12 and `--bg-dark-lift` #12241A are the dark hero surfaces, with `--text-on-dark` #ADB8AF for their text.
+Red — error and destructive. Used for validation that stops a save, and for delete.
 
-**Borders, in three weights:** `--border-card` #E9ECE8 around surfaces, `--border-divider` #EDEFEA inside them, `--border-control` #E2E4DF on fields — each slightly different because a hairline inside a card must be quieter than the card's own edge.
-
-**Semantics, one job each:**
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--green` | #14AC72 | Positive accents: savings, the answered state, meters |
-| `--text-positive` | #0E7A52 | Positive *text* — darker than `--green` so it reads at small sizes |
-| `--text-negative` | #B3261E | Rejections and negative deltas |
-| `--teal` | #07625E | Focus rings, keyboard navigation — nothing else |
-| `--blue` | #4F5BD5 | The AI/assistant accent |
-
-Green is never an action color and blue is never a success state. When one color means two things, changing it for one job silently changes the other.
-
-**Data viz has its own palette** (`--donut-*`, `--icon-*`: blue, red, yellow, purple, orange) because chart segments need to differ from *each other*, not to carry meaning — a donut slice is not "positive" or "negative".
-
-**Contrast is AA, by design.** `--green` on white is 2.93:1 — fine for a 3px meter, not for text, which is why `--text-positive` exists. Measured values live in [`docs/defects.md`](docs/defects.md).
-
-### Elevation and shape
-
-One shadow: `--shadow`, two soft layers. Everything that floats — cards, the combobox panel — uses it. A second shadow is a second opinion about how high things float.
-
-Three radii, named for what they wrap, not for their pixel count:
-
-| Token | Value | Wraps |
-|-------|-------|-------|
-| `--radius-compact` | 10px | 32px-tier controls |
-| `--radius-page` | 12px | The content sheet, panels |
-| `--radius-card` | 15px | Cards |
+| Value | Use |
+| --- | --- |
+| `#fdf6f5` | Surface |
+| `#f0e6e4` / `#e2d3d1` | Border |
+| `#c98a80` | Fill accent |
+| `#8a4a41` | Text and icon |
 
 ### Typography
 
-One family — Poppins — in exactly three weights: 500, 600, 700.
+`Poppins` (weights 400, 500, 600, 700), falling back to `system-ui, sans-serif`. One family throughout; hierarchy comes from size and weight.
 
-**The base is 14px / 500 / 1.45.** Everything inherits from it; a component states type only where it differs.
+| Role | Size / weight | Notes |
+| --- | --- | --- |
+| Page title | 34–36px / 600 | line-height 1.15, `text-wrap: pretty` |
+| Section heading | 20px / 600 | screen titles in the mockups |
+| Card heading | 15–16px / 600 | |
+| Large amount / KPI | 20–28px / 700 | tabular feel; never below 20px |
+| Body | 14px / 400–600 | 600 for row primaries (vendor, item name) |
+| Secondary | 13px / 400 | descriptions, table cells, colour `#57564f` |
+| Meta / label | 12px / 400–600 | field labels are 12px/600 `#3d3c36` |
+| Small caps label | 11px / 400, `letter-spacing: 0.12em` | uppercase, colour `#6b6a63` — the card eyebrow used everywhere |
+| Sidebar section label | 10px / 400, `letter-spacing: 0.14em` | uppercase, `#7d9186` |
+| Micro hint | 11px / 400 | `#8b8a82` |
 
-| Role | Spec |
-|------|------|
-| Body | 14px / 500 |
-| Section labels | 11.5px / 600, uppercase, .08em letter-spacing |
-| Dense metadata | 11–13px / 500 |
-| Headline figures | 22px / 700, tight letter-spacing |
-| Hero headings | 26–30px / 600–700 |
-
-**Why 500 as the body weight, not 400:** 400 reads too light against these tinted sheets. No rule asks for 400, so the 400 face is not embedded at all — a face nothing requests is pure payload.
-
-**Why weights, not more colors, for hierarchy:** a bolder label beside a muted value gives two axes of hierarchy (weight and color) from one family, and both survive grayscale.
-
-**Numbers are tabular.** Any column of figures uses `font-variant-numeric: tabular-nums` (`.tabular-figures`) so amounts align digit-for-digit. A total that jitters as it changes is a total set in proportional figures.
-
-**Headline sizes are owned by a class, not by each site.** `.figure-large` is 22px/700 — the class exists because the size was once inline per site, and one site drifted to 24px against three at 22px. A size class that does not set a size is a defect wearing a fix.
-
-### Sizing
-
-Control heights come in tiers, and a control joins a tier rather than picking a height:
-
-| Tier | Height | Who lives there |
-|------|--------|-----------------|
-| Chrome | 32px | Top-bar actions, pill buttons, compact buttons, square icon buttons, field thumbs |
-| Standard | 38px | The base button, the toolbar's search field, the global finder |
-| Entry | 48px | Every field in a form, a segmented control used *as* a field, the hero's entry buttons |
-
-44px sits between the last two for exactly one thing: a card's full-width block action. It is not a tier — nothing else may claim it.
-
-**Radius follows the tier**: 32px and 38px controls take `--radius-compact` (10px); the 48px entry tier takes `--radius-page` (12px). A control that picks its own radius breaks the pairing that makes the tiers read as families.
-
-**Icons follow the tier too** — 15px in the standard tier, 14px in the chrome tier — never the call site.
-
-**Why tiers:** a height chosen per control is a height that drifts per page. Four buttons once had four heights for the same job. With tiers, "how big is this control" is answered by asking what kind of control it is, and a new size has to argue for a new *kind*.
-
-**Touch:** under a coarse pointer, entry fields render their text at 16px and scale it back to the design size — the size iOS demands before it stops zooming the page on focus — and segments keep a 38px minimum on the phone. Targets grow by tier, not per control.
+12px and 13px carry most of the interface; 11px is reserved for uppercase labels and hints. Nothing sits below 9px (used only for the tiny status dot label).
 
 ### Spacing
 
-Spacing builds rhythm and hierarchy. Every spacing value is a step on one scale — 2, 4, 6, 8,
-10, 12, 14, 16, 18, 20, 24, 28 — and the load-bearing distances are named tokens, like the radii:
-a distance several components share is declared once, and a breakpoint that changes it changes
-the token, not one rule per surface. (This section once listed a palette instead, and the listed
-palette and the built one drifted apart — see the defect log.)
+4px base. In practice: `4, 5, 6, 8, 10, 11, 12, 14, 16, 18, 20, 24, 32, 40, 48`.
 
-| Token | Value | Job |
-|-------|-------|-----|
-| `--gutter-page` | 24px, 12px on the phone | The sheet's edge to its content — the top bar, the page bar and the sheet share it |
-| `--pad-sheet-top` / `--pad-sheet-bottom` | 18px / 24px, one even 14px on the phone | The sheet's own vertical padding |
-| `--pad-card` | 20px | The card gutter |
-| `--pad-inset` | 12px | The side inset a row-shaped target paints its hover fill to |
-| `--pad-control` / `--pad-control-compact` | 15px / 13px | Control side-insets, standard and compact — by role, not by height tier |
-| `--pad-chip` | 11px | The 28px chip family's one inset |
-| `--pad-row-y` | 12px | The dense rows' vertical rhythm; the data row's 10px spec stays its own |
-| `--pad-pager` | 12px, 7px on the phone | The pager buttons' inset |
-| `--pad-bar-y` | 12px | The chrome bars' vertical band — the top bar and the page bar share it |
-| `--gap-cards` | 18px | Between cards, top-level grids |
-| `--gap-panel` | 16px | Inside a panel, between sections, and across the form grid — one tier, merged from a 14/16 pair whose distinction never carried a decision |
-| `--gap-row` | 12px | Within a row of controls or small elements |
-| `--gap-block` | 12px | A block to the thing that follows it — a chart to its legend, a note to its button, a list to its pager |
-| `--gap-icon` | 6px | Icon to label inside a chip or a compact button; the standard button keeps 8px |
+- Card padding: `16px` (compact), `18px` (standard), `20–24px` (feature cards).
+- Gap inside a card between stacked blocks: `12–14px`. Between label and value: `2–5px`.
+- Gap between cards in a column: `14px`. Between columns: `24px` (in-app), `40px` (mockup comparison).
+- Page padding: `48px` desktop, `20px` mobile.
+- Row vertical padding in lists: `12–14px`.
 
-One documented distance stays a bare value rather than a token: 7px from a label to its field —
-used in one family, so a token would only move the number somewhere harder to find.
+### Radius
 
-**A value off the scale is a tuned exception, and it lives beside the reason it is tuned.** The
-segmented control's padding *is* its height, so it is the tier's number, not a spacing decision;
-a checkbox's optical nudge and a chart's alignment constant belong to their components. An
-exception without a reason next to it is drift, not tuning.
+| Value | Use |
+| --- | --- |
+| `12px` | Cards and panels |
+| `14px` | Feature / modal surfaces |
+| `9px` | Inputs, buttons, list rows, sidebar rows |
+| `10–11px` | Nested containers, icon tiles ≥40px |
+| `8px` | Small buttons, icon tiles, picker cells |
+| `6–7px` | Badges, small icon tiles |
+| `4–5px` | Progress bars, chart bars, colour dots |
+| `999px` | Pills and chips |
+| `50%` | Avatars, count bubbles, status dots |
 
-**The test:** grep the stylesheet. Every spacing value is a scale step, a token, or a defended
-exception — a near-neighbour (a 9 beside an 8, a 26 beside a 24, three insets for one chip
-height) is the drift this section exists to prevent.
+### Shadow
 
-### Grids and Breakpoints
+Used sparingly — flat surfaces with hairline borders are the default. Shadow means "floating above".
 
-The shell is a two-column grid: a fixed 236px sidebar and a fluid content sheet. Pages lay their cards on an 18px-gap grid inside it.
+| Value | Use |
+| --- | --- |
+| `0 4px 14px rgba(27, 26, 23, 0.08)` | Raised card, sticky bar |
+| `0 6px 16px rgba(27, 26, 23, 0.08)` | Dropdown, popover |
+| `0 12px 28px rgba(27, 26, 23, 0.16)` | Dialog |
+| `0 14px 32px rgba(27, 26, 23, 0.14)` | Toast, command palette |
+| `0 20px 44px rgba(27, 26, 23, 0.22)` | Mobile sheet |
+| `0 8px 22px rgba(20, 38, 28, 0.32)` | Primary floating action (green tint) |
 
-**Width breakpoints, from wide to narrow:**
+### Motion
 
-| Breakpoint | What changes |
-|------------|--------------|
-| ≥2200px | The content rail stops growing |
-| ≤1180px | Card grids drop to one column |
-| ≤900px | Two-column page layouts stack |
-| ≤700px | The phone layout: sidebar gone, bottom nav, one 12px gutter |
-
-**Each breakpoint answers one question** — "when does this arrangement stop fitting?" — so they are not a scale, and a new layout must justify a new number rather than reuse one because it is nearby.
-
-**Two breakpoints are not widths:**
-- `pointer: coarse` is what makes a phone a phone. Touch targets grow and fields render at 16px (then scale back) so iOS does not zoom the page on focus. A narrow desktop window is *not* the phone layout.
-- `prefers-reduced-motion: reduce` stops the animations for users who asked for that.
-
-**The document itself has rules.** The doctype is load-bearing — without it the page parses in quirks mode, which once moved 243 elements off their standards-mode geometry. The charset declaration comes first in `<head>`, before any sizable block: a browser stops sniffing for the encoding after 1024 bytes, and an undeclared encoding renders every non-ASCII character wrong.
+- Hover / colour / border transitions: `120ms ease`.
+- Enter (toast, sheet, dropdown): `160–200ms ease-out`, translate 8–12px plus opacity.
+- Drag reorder: `150ms ease` on transform; the dragged row lifts with the raised-card shadow and drops the shadow on release.
+- Skeleton shimmer: 1.4s linear infinite, a light band moving left to right over `#f7f6f2`.
+- Respect `prefers-reduced-motion`: keep opacity changes, drop translation and shimmer.
 
 ---
 
-## Components
-
-Components are functional pieces of the interface. Each one is built from foundations and exists in multiple states.
-
-### Every state is a rule, or it is a hope
-
-A component has as many states as the stylesheet gives it, and no more — a state nobody wrote renders as the resting state, whatever the truth is. What the system defines:
-
-| Component | States it has |
-|-----------|---------------|
-| Field shell | `:focus-within` — dark edge and 1px ring. `:has([aria-invalid="true"])` — red edge, and it outranks focus, so a focused broken field still reads broken |
-| Combobox | `.is-open` on the wrapper: panel shown, field edge darkened, chevron rotated 180° |
-| Data row, card header | `[data-go]:hover` — the tint, keyed on the attribute that navigates, never on the row's class |
-| Segmented, sub-tabs, range tabs, month columns, stepper, sidebar nav | `.is-on` — one selection mechanism for every group of one-of-many |
-| Switch | `:not(:checked)` — grey track, knob left. Both states are written, because the on state was once the only one |
-| Disclosure button | `[aria-expanded="true"]` rotates the chevron; the label never changes |
-| Anything focusable | `:focus-visible` — 2px `--teal`, 2px offset, one rule for the whole document |
-
-**An ARIA attribute is a claim about the pixels, and only the pixels settle it.** Each state attribute above has a stylesheet rule that draws it. A switch whose `aria-checked` flips while both states render identically passes every attribute check and still lies to everyone who looks at it.
-
-**Buttons have no hover, active or disabled rule — a documented gap, not a decision.** See [Buttons](#buttons).
-
-### Buttons
-
-A control that acts in place is a `<button>`. A control that goes somewhere is a `<a>` with `data-go` to identify the destination. That's not pedantry: a link opens in new tabs, a button doesn't. A link fires click on Enter, a button doesn't. They're not the same.
-
-**One base, then variants.** `.button` owns the shape every button shares: 38px tall, 12.5px/600 caps label, compact radius, a 1px edge (transparent until a variant colors it). Four buttons once restated that block in full and drifted apart doing it — three gaps, three radii and four font sizes for one control — which is why the shape lives in the base now.
-
-A variant is never written alone. It is always `class="button button-primary"`, because the variant owns only its *difference*:
-
-| Variant | Difference |
-|---------|-----------|
-| `button-primary` | Dark surface, white label — the one main action on a surface |
-| `button-outline` | White surface, visible edge — the alternative beside a primary |
-| `button-ghost` | No fill at all — low emphasis, the quiet second choice |
-| `button-pill` | The 32px tier: top bar and section actions share this one size |
-| `button-block` | Full width, 44px — a card's one big action |
-| `button-caps` | Dark surface, white label at 11.5px caps — the filled action tier. At the base 38px it is the form-page submit and the confirm in a dialog; inside a hero it rises to 48px with wider padding, the entry-button size |
-| `button-link` | Underlined text action (SEE ALL, CLEAR ALL) — no box at all |
-
-**Every button label is caps.** One voice for actions, everywhere.
-
-**A button's icon follows the button's tier, not the call site** — 15px in the 38px tier, 14px in the 32px tier. An icon sized where the button is used is a size that drifts per page.
-
-**States:** the stylesheet defines no hover, active or disabled rule for buttons — a real gap, documented rather than papered over. Where an implementation must show *disabled* (a pager at its last page), it does so honestly and locally until the system settles a rule for all tiers at once.
-
-### Fields and Forms
-
-A field is a label, an input, an error message and help text, in that order.
-
-**The label is a real `<label>`, tied to its control.** Every input, textarea and switch is
-associated with the text that names it -- by `for`/`id` wherever the control has an id, by
-wrapping otherwise -- so clicking the text focuses or toggles the control, exactly as a native
-form does. Text that merely sits near a control is a promise the pointer cannot collect.
-Controls with no visible text (an icon-only search, a hidden file picker behind a button)
-carry an `aria-label` instead; that is the only case a visible label is not required.
-
-```
-Label
-[━━ input ━━]
-error message or help text
-```
-
-**Field shell** (`.field-shell`): The bordered box the input sits in. It can carry:
-- Leading icon (a glyph, read-only)
-- Trailing icon (a button or glyph)
-- Unit (text like "kr" for currency)
-- Chips (tags that sit inside the border with the input)
-
-**Field types:**
-- **Text** (`.field`): Plain text input
-- **Date** (`.field-shell-date`): Date picker with a calendar glyph
-- **Combobox** (`.combobox`): Searchable dropdown
-- **Textarea**: Multi-line text
-
-**Field pairs** (`.field-pair`): Two fields side by side on desktop, stacked on phone. Used for ranges (from/to) and paired choices (first name / last name).
-
-**Validation:**
-When a field rejects a value:
-1. The shell gets a red border
-2. The input gets `aria-invalid="true"`
-3. An error message appears below, with an id
-4. The input gets `aria-describedby` pointing at that message
-
-This marking is written once, and it is the only marking: no summary elsewhere on the page
-repeats it, no toast announces it, and none of it appears before the form has been submitted.
-Every form that rejects values uses the same pattern — see [Form Validation](#form-validation).
-
-### Cards
-
-A card is a section with optional header, content, and divider.
-
-**Card header** (`.card-header`): 
-- Has a title (required)
-- Can be linked (optional, but needs an `aria-label` if so)
-- Gets a chevron when linked
-- Announces as: "{title}, open {destination}"
-
-**Card body** (`.card-body`):
-- 14px top padding inside
-- 20px side padding
-- Never gets a padding-top override, ever. That's how two cards got 2px overrides and put their content at four different distances from the hairline.
-
-**Card divider** (`.card-divider`):
-- 1px line between header and body
-- Inherits text color, so it's darker where text is darker
-
-**Card types:**
-- **Data card**: Static information (orders, vendor details)
-- **KPI card** (`.card-kpi`): Number, label, delta (statistic tiles on Statistics page)
-- **Prompt card** (`.card-question`): A pale panel — small caps label, a title, then whatever it introduces
-
-**A note and the action under it stand 12px apart, set from the note** (`.note + .button`). Set from the button, the gap depends on which variant happens to follow — one variant carries its own margin and another carries none, which is how the same pair once measured 12px on one page and 0 on another. No screen pairs them today; the rule stands for the next one that does. ([`docs/defects.md`](docs/defects.md))
-
-**A card that ends with a link into a longer list ends with the block button.** Six cards do — latest orders, categories twice, vendors, recent scans, returns. The last spent a while as a bare underlined link instead: a different weight, a smaller thing to hit, and 2px of air above it where the other five have 12. One job, one control. ([`docs/defects.md`](docs/defects.md#returns--one-card-said-four-and-the-other-said-none))
-
-### Data Rows
-
-A row displays one record in a list. It is either:
-- Read-only (static text), or
-- Navigable (the whole row is a link to the record, carrying `data-go`)
-
-Editing never happens in the row — a record is edited on its own form page, one way, everywhere.
-
-**Row anatomy:**
-- Left: glyph or avatar
-- Center: one or more text fields (title, subtitle, metadata)
-- Right: optional action (chevron to navigate, delete button, etc.)
-
-All gaps are 12px. If that's wrong for a row type, it needs its own CSS rule.
-
-**An order is listed the same way wherever it is listed.** Four screens draw a list of orders — the latest on Home, the latest on Orders overview, the returns card, and All orders — and the money column is one shape in all four: the total, then what it saved beneath it in the muted tone. They had three shapes between them, and the saved line was drawn only where the figure was positive, so a row that saved nothing had a total where every other row had a total and a line under it. **A zero is a figure, so it is printed**: *saved 0,00 kr.* An absent line is not "nothing saved" — it is a reader wondering what is missing from this row. And the line is one style wherever it appears — muted, regular weight — not muted on one screen and green bold on the next: three row families draw it, and they drew it in two colours and two weights for the same fact ([`docs/defects.md`](docs/defects.md#data-rows--one-saving-three-styles-and-one-question-sorted-three-ways)).
-
-**The money column holds what the row is worth, and its colour is not an argument.** A list of orders shows what each order cost; a list of vendors shows what has been spent there. Two lists of orders once showed the *saving* instead — "+26,04 kr.", in green, in the slot every other list puts the total in — because the slot itself was green by default and the figure was picked to agree with the colour. Green means saved, everywhere, so a slot that is green whatever it holds is a claim about every number put in it. Where a row has both figures to state, the total leads and the saving is the second line under it, in the muted tone, named. ([`docs/defects.md`](docs/defects.md#data-rows--the-money-column-was-green-so-two-lists-showed-the-saving))
-
-**A meta line is one line: it truncates with an ellipsis rather than wrapping.** The title above it names the thing, so it is cut only under the rule below, but the muted line under it is a fact about the record, and a second line of it costs the row about 15px — the list then steps unevenly and reads as broken rather than as more text. It holds for every row family that draws one, not just the one whose rule was written first: the category rows carried no such rule, so a budget sentence spelled out per row wrapped six of six onto two lines on a phone, and three lines on the narrowest window ([the numbers](docs/defects.md#statistics--the-budgets-were-defined-and-never-read)). Truncation is a floor, not a plan — copy that only fits because it is being cut is copy to shorten, and a qualifier that is the same on every row in a card belongs in that card's header instead.
-
-**A row that reads as one line pays for it with a figure, not with the title's room.** Where a row's fixed columns — a mark, a figure, a control or two — leave the title too little on a phone, there are two ways out and they are not equally priced. Wrapping keeps everything and charges a second line to *every* row in the list, short ones included: the break is decided by a reserved fraction of the row rather than by the text, so a one-word title costs exactly what a sixty-character one does, and the figures and controls land on a line of their own, right-aligned under empty space — which reads as a list that has come apart rather than as a list with more in it. Grouping keeps the one line and truncates the title instead. Grouping is the better trade only where the row has something to give up, and the thing to give up is a figure the row already states: a line total printed beside *2 × 39,50 kr.* is that arithmetic done twice, and on every line whose quantity is 1 — most of them — it is the unit price printed twice. Drop that, and the width it held goes to the name. A figure that appears nowhere else is not available for this, and a row holding one takes the wrap ([`docs/defects.md`](docs/defects.md#create-and-edit--every-line-cost-two-rows-so-the-title-could-keep-a-width-it-never-used)).
-
-**A title is cut only where the full one is one action away.** Truncation of a name is a promise that the name is still reachable, and the row has to be able to say where: the line's own card, opened from that row, holds it in the field that owns it; an attachment's sits in the preview under the row. Where a row cuts a name with nowhere to send the reader for the rest, it is not truncating, it is losing.
-
-**Hover state:** On desktop with a pointer, rows that navigate show a tint (`[data-go]:hover`). On phone with touch, no hover. The tint bleeds 10px into the card gutter on each side.
-
-**Why `data-go`?** It's what every clickable row carries. It names the destination. So styling is simple: `a[data-go] { color: inherit; text-decoration: none; }`. One rule, every linked row looks like a row, not a link.
-
-### Notes
-
-A note is a tinted callout. It has a tone (positive, warning) and optional title.
-
-```
-[✓ Saved] Orders added to your list.
-```
-
-**Tones:**
-- **Positive** (green): Success, confirmation, good news
-- **Warning** (amber/orange): Caution, attention needed
-
-**Why separate tones:** Color alone doesn't work for colorblind users. The tone is usually the semantic meaning anyway (success, warning).
-
-### Empty states
-
-What a list shows when it holds nothing: a 42px icon tile, then one sentence, centered, capped at 30ch.
-
-**An empty state is an answer, not an absence.** A filtered list with no matches says so under the very filters that caused it — the chips stay, because removing them is how the user gets out. A record that does not exist gets "Nothing here." rather than an empty frame that looks like a slow one.
-
-**The sentence says what would fill it** ("No orders match these filters", not "No data") — the difference between a dead end and a next step. It names the span it is empty *of*, too: "No returns in Aug." over a card headed *Returns • Aug*, so the reader is not left asking which stretch of time was searched.
-
-**An empty state has to be able to fill.** A card that shows the same sentence whatever the records hold is not answering — it is a picture of an answer, and on the day the list really is empty it is indistinguishable from a working one. *Returns this month* said "No open returns found" over a month holding four returns, and would have said it over a month holding four hundred. ([`docs/defects.md`](docs/defects.md#returns--one-card-said-four-and-the-other-said-none))
-
-**Its words have to be ones the product can make true.** "No open returns" promises a difference between an open return and a closed one; a return is closed when its refund lands, and nothing in the app can record that a refund landed. A sentence naming a state the product cannot reach is the [decorative control](#honest-affordances) defect written in prose.
-
-**It sits where the full list would, centered.** One empty state per shape, wherever it appears: the same icon tile, the same centered sentence, filling the card body whatever layout a full list would have used. Two of them shrank to their own content and sat hard left inside a body laid out for a ring beside its legend, while every other one centered — the same answer drawn in two places on one page ([`docs/defects.md`](docs/defects.md#empty-states--two-sat-left-and-the-actions-offered-lists-with-nothing-in-them)).
-
-**An action that opens a list exists only while the list has rows.** SEE ALL, ALL CATEGORIES, SEE RETURN HISTORY and a card header's own chevron each promise records on the other side; over an absence they open a page whose answer is the same absence, one click later. When the records do not exist, the action is not drawn and the empty state's sentence answers instead — and what an empty account *is* offered is the create action, since adding a record is the one act that can make any of those lists worth opening. The same honesty binds the sentence: a list empty because the account is empty may not blame filters nobody set, and an instruction may only name a step that exists — "open a category and give it one" is not an answer on an account with no category to open ([`docs/defects.md`](docs/defects.md#empty-states--two-sat-left-and-the-actions-offered-lists-with-nothing-in-them)).
-
-### Chips
-
-A chip is a small label, usually removable. Used for filters, tags, and selections.
-
-```
-[Vendor: Bilka ×]  [Status: Delivered ×]
-```
-
-**Chip types:**
-- **Filter chip** (`.chip`): Shows an active filter. Clicking × removes the filter.
-- **Status chip** (`.chip-status`): Shows the status of something. Not removable.
-- **Tag chip** (`.chip-tag`): Labels for the record. Removable.
-- **Saving chip** (`.chip-saving`): How much is saved on a purchase.
-
-**The rule:** The chips are the filters, not a picture of them. Removing a chip removes that filter. If a chip sits on the page but removing it does nothing, that's a lie about the interface.
-
-### Combobox
-
-A searchable dropdown for picking one thing from a list.
-
-```
-[Bilka ▼] ─── closed
-  • Bilka
-  • Netto
-  • Rema 1000
-  • Føtex
-```
-
-**Anatomy:**
-- Input: shows the selected value, lets you type to search
-- Chevron: says it expands; rotates 180° while open
-- Panel: the options, floated on the card shadow
-- Selected: current value marked in the list
-
-**States:** `.is-open` on the wrapper is the one open state — panel shown, field edge darkened, chevron rotated. Closed, the field shows the selected *name*.
-
-**Typing filters the list; the selected name does not.** Marking matches without removing the rest leaves a hit on a long list as far below the fold as ever, so what is typed narrows the panel to the options containing it, and a group filtered empty gives up its heading with it. The one string that must not filter is an option's own name standing whole in the field — that is the resting selection, not a search, and reopening the list has to offer every option, not the one already chosen. A search that finds nothing says so in the panel, above whatever create-action the field offers. ([`docs/defects.md`](docs/defects.md#combobox--typing-marked-the-matches-and-moved-none-of-them-closer))
-
-**The keyboard walks the list the panel shows.** Down and Up move a mark through the visible options — the filtered set, across group boundaries, wrapping at either end — and Enter picks the marked row. The mark keeps itself scrolled into view, the input names it in `aria-activedescendant`, and it resets whenever the list under it can have changed, because a mark surviving a re-filter points at a different row than the one the user marked. With nothing marked, Enter keeps its standing rule: an exact name picks the thing named, anything else runs the create-action at the foot. ([`docs/defects.md`](docs/defects.md#combobox--the-list-could-be-searched-and-not-walked))
-
-**The panel scrolls itself, because the page cannot.** The panel floats out of the document's flow, so it adds nothing to the page's height and page scroll can never reach an option past the viewport's bottom edge. It caps its own height and scrolls inside, and the create-action stays pinned at its foot while the list moves — a foot promise is kept by the foot staying in view. ([`docs/defects.md`](docs/defects.md#combobox--the-panel-outgrew-the-viewport-and-nothing-could-scroll-it))
-
-**A combobox displays a name, never an id.** Links arrive carrying ids (`vendor=bilka`); the field resolves the id through the same lookup the chips use before showing anything. Two controls describing one filter may not disagree — the field is the one a user edits, so what it claims is what the next APPLY is made from.
-
-### Segmented Control
-
-A group of tabs where only one can be on. Used for status filters (Ordered / Delivered / Returned), time ranges (Today / Week / Month), view types.
-
-```
-[Ordered] [Delivered] [Returned]
-```
-
-One is always selected. Clicking a different one switches which is selected. All choices are visible—this is not a dropdown.
-
-**Why not a dropdown:** Every choice is one tap. With a dropdown, three choices means tap, wait for menu, tap again. With segmented, it's one tap.
-
-**Selection is a fill, not a weight.** The selected segment gets the dark surface and white text (`.is-on`); its weight stays 500 like its neighbours. A bolder selected label is wider than its resting self, and on a `width:max-content` track the whole control changes width every time the selection moves.
-
-**If the control enumerates a sequence, the order must be true.** Ordered / Delivered / Returned reads left to right in the order it happens. This control once read Delivered / Ordered / Returned in all three places it appears — pixel-perfect in every engine, and wrong.
-
-**One selection mechanism.** `.is-on` marks the selected item here, in the range tabs, the sub-tabs, the month columns and the sidebar nav — one class for every one-of-many group, so a harness (or a reader) checks selection the same way everywhere.
-
-### Switch
-
-The on/off control: 44×26, a round knob on a pill track.
-
-**Both states are drawn, and they differ in three ways at once:** on is the green track with the knob right; off (`:not(:checked)`) is the grey track with the knob left. Track color *and* knob side *and* — where the switch discloses something — the disclosed content itself. Redundancy is the point: this switch once had only its on state written, so it rendered green-and-right whatever the truth was, and no attribute check could see it.
-
-**A switch is a real checkbox, so its label is a real label.** The control is an
-`<input type="checkbox">` styled as the pill, announced as a switch -- which is what lets the
-sentence beside it be a `<label for>` that toggles it natively. The text is part of the
-control's hit area, not a caption near it.
-
-**A switch is a statement, not a request.** Flipping it takes effect immediately — no save button. A switch that needs APPLY is a checkbox wearing the wrong costume.
-
-**Every switch names what reads it.** A settings page of switches that change nothing is the decorative-control defect with more surface area — so each one's label says what it controls, and somewhere in the product that thing observably changes.
-
-**No screen draws one today.** The settings that flipped on the spot were the last pair, and they read better as named rows with their descriptions under them than as sentences beside a pill — so every binary option in the product is now a [checkbox row](#checkbox-row). The element stays defined here because the system may want it again; that it is defined is not a reason to reach for it, and the row is the default until a question turns up that the row genuinely answers worse.
-
-### Checkbox row
-
-The form choice: a 20×20 box in its own column, the option's bold name beside it, the description hanging indented to the name's edge — never under the box, and never a paragraph beside a bare control.
-
-**One shape for every binary option.** An option a button will consume — an import, a submit — and a preference that lands on the click are the same row: box, name, description. What differs is what follows the click, not what is drawn. A preference saves as it is clicked and says so in a toast; an option waits to be read by the act it belongs to, and the button naming that act is the only thing that says when. A reader who has learned one of these rows has learned all of them, which is worth more than a control that encodes its own timing — the timing was never legible from the control anyway, and the confirmation is where it actually shows.
-
-**Both states are drawn, and they differ in three ways at once:** checked is the green fill with the white tick; unchecked is the empty box with the grey edge — the same grey as the off switch track, visible on the card, because 1.4.11 covers a control's states here as it does the switch's. Fill *and* edge *and* glyph move together, for the same reason the switch's states differ three ways.
-
-**The row is the target.** The whole row is the label: name, description and the space between all toggle the box, so the phone-sized target needs no phone-only rule. Rows stack with a divider between them and a hover fill over each, the same line and fill the data lists use — a stack of options reads as rows, not prose. The accessible name is the bold name alone; the description is the control's description, not part of its name.
-
-**A stack is contiguous, whatever the container spaces its children by.** The divider is the whole of the separation between two rows, so the hover fill has to reach it: with a gapped container above them the lit band stopped short of the line, leaving a strip of bare card between fill and divider and making one stack read as two boxes. A row that follows another takes the container's gap back out, and a container that spaces nothing subtracts nothing.
-
-### Stepper
-
-The two-step form's header: one cell per step, each with an icon tile, a progress bar and a label.
-
-**States:** the current step is `.is-on` (green bar, full-weight label); a completed step is done (green tile, green bar); a future step is muted. Three states, all written.
-
-**The stepper is a map, not a control.** It shows where you are; moving between steps is the form's CONTINUE and BACK, which run the validation the jump would skip. A stepper you can click is a promise that arbitrary order is fine, and here it is not.
-
-### Meters and progress
-
-Small quantitative graphics, each with one job:
-
-- **Meter** (10px bar): how much of a budget is used. The fill is `--green`; a 2.5px marker in `--text` shows a reference point (the comparable figure last month). The marker is why it is a meter and not a progress bar — it states *against what*.
-- **Progress bar** (6px): completion of a process, no marker.
-- **Progress ring**: the same, radial, where the number it wraps is the subject.
-- **Month columns**: a column per window, the current one `.is-on`. The bar sits in a track of its own and its height is a percentage of that track — never of a box that also holds the label, or every tall bar shrinks to the same height and the chart stops comparing anything ([the numbers](docs/defects.md#charts--three-bars-of-100-96-and-85-drew-the-same-height)). The track is 150px at its smallest and grows to fill the card, since this chart shares a row with one that is as long as the account has categories.
-- **Weekday bars**: seven bars, one per day, each a share of the busiest. Same track, same rule, same reason — and the share is what the bar is given, never a height in pixels: a figure decided away from the card can only be right for one card. It was, for two, and the taller of them kept 403px of nothing underneath.
-
-**A budget is an allowance for a period, so what is measured against it is that period's spend.** A monthly budget takes this month's total; the account's total since it was opened divided by one month's allowance is a percentage of nothing, and it climbs with the age of the account whatever the reader does. The same holds for every sentence the comparison produces — how many categories are *over*, and any row printing *spent of budget*, which names its period because the figure beside it in the same row may well be all time. Where two screens print one such percentage, they count the same allowances: a denominator quietly cut to the categories with spend this month is a different question with the same caption ([the numbers](docs/defects.md#meters-and-progress--a-months-budget-was-measured-against-every-month-there-had-ever-been)).
-
-**None of these carry text.** The figure they illustrate stands beside them as real text in tabular figures — a number inside a graphic is a number a screen reader loses and a walk cannot compare.
-
-### Charts
-
-**A line that runs through today says so, in one mark.** Every line chart draws the same 4.5px circle in the line's own colour on today's point — and none where today is outside the window, which is a stretch of time that has already finished and a mark reading *you are here* about a day months ago. A comparison line gets none either: it runs through its own days, and today is not among them. Two of the app's five charts drew this and drew it two different ways, one as a haloed disc and one as a dot; three drew nothing.
-
-**A chart with a mark on it is inset by the mark, not by the line.** The circle paints 5.5px past the point it sits on and a running total peaks on its own last day, so the plotted band is inset 6.5px top and bottom — the same 6.5 everywhere, since it is the same mark. Horizontally the line runs edge to edge and the mark keeps its own circle off the sides.
-
-The app draws a line chart, a donut, weekday bars, meters and progress rings. Nine rules hold them together:
-
-**One user unit is one CSS pixel.** The line chart's viewBox is remapped 1:1 onto the element's pixel box on every resize, so stroke widths hold and text in the chart is never scaled. A chart whose viewBox is a guess renders its 1px grid line at 1.3px on one screen and 0.8px on another.
-
-**A chart is drawn from the records the list beside it is drawn from.** The donut's shares and its legend must come from one source. A ring with shares baked into the stylesheet next to a list with its own numbers cannot fail visibly — a ring has no opinion about the list beside it — and the two once disagreed exactly that way.
-
-**Every chart carries a scale, and it is one control: ticks and labels from one set of marks.** An unlabelled line puts its peaks at no date a reader can name, and a tick strip that does not mark the labels is decoration — a comb of evenly repeated lines will agree with an axis by accident and never again once the range moves ([the numbers](docs/defects.md#charts--the-ruler-under-every-chart-was-a-fixed-comb-and-the-marks-were-spread-evenly)).
-
-**A window is marked in its own unit, and drawn in it.** A week is its seven days, a month the 28 to 31 it actually has, a quarter its three months, a year its twelve, and all time the months it spans — the calendar's units, not a fixed set of dates and not a count chosen per range. The marks are the window's own, so a month sends 31 of them whether it holds five orders or five hundred. Where a window is too wide to draw a point per day, the points are cut on the marks themselves: twelve points across a year are its twelve calendar months, because twelve *equal* slices of a year are not, and the months slide against them until two land on one point and one goes unnamed.
-
-**A mark sits over the point the chart plotted for its date** — which is not its position in the list of marks, since the units a scale names are not all the same length. How many marks are drawn is then a question about the width available, not about the range: marks are dropped until each has room for its own label, keeping the first and the last, and the room asked for is measured off the labels rather than reserved for the widest one there could be.
-
-**Chart colors are the data-viz palette** (`--donut-*`), which exists so segments differ from each other. Semantic colors stay out of charts: a slice is not "positive".
-
-**Legends are rows.** A chart legend row is the data-row pattern at chart scale — glyph (swatch), label, value — and a legend row that filters the list navigates like any other row, with `data-go`.
-
-**A ring and its legend stack one way.** Where the two do not fit side by side, the ring centres itself at the top of the card and the legend takes the full width beneath it, at the same lead-in and the same gap wherever it happens — one arrangement, whether the card was built to stack or narrowed into it. A row that is merely allowed to wrap makes the same stack by accident and makes it badly: the ring lands hard against the card's left edge with its legend under it anyway, and a chart whose halves are two left-aligned blocks reads as two things rather than one ([the numbers](docs/defects.md#charts--a-ring-and-its-legend-stacked-two-different-ways-on-a-phone)).
-
-**A callout is a tooltip, so it is asked for.** The sentence that annotates a chart appears while the chart is hovered or focused, and the resting page does not draw it. Left up permanently it is not a tooltip at all — it is a label lying across the middle of the data it describes, and the reader cannot put it away. The chart is what the callout is about, so the chart is the trigger, and being the trigger costs it two things: a tab stop, because a tooltip only a pointer can ask for is one the keyboard never reaches, and the sentence as its own accessible description, because a bubble that is not drawn is out of the accessibility tree and takes its content with it. Under a coarse pointer there is nothing to ask with, so the callout is off entirely rather than left to whether the browser fakes a hover on tap ([the numbers](docs/defects.md#charts--the-callout-was-drawn-permanently-across-the-line-it-annotates)).
-
-### Chrome
-
-The frame around the pages: sidebar, top bar, bottom nav on the phone.
-
-**Sidebar** (236px, desktop only): brand, then navigation. The active item is `.is-on`, the same selection mechanism as every one-of-many group. Icons sit at fixed width so labels align.
-
-**Top bar:** the global search field, and the app-wide actions at 32px (`button-pill` tier). The search prints its shortcut on a key cap — and a key cap is a promise: the shortcut must actually open and focus the search from anywhere.
-
-**Bottom nav** (phone only): the sidebar's destinations as a thumb-reachable bar. Same `.is-on`, same icons, one nav defined per layout — never two navs both rendered and one hidden by luck.
-
-**The bar is 80px, and the row sits 20px up off the bottom edge** — plus whatever the platform reserves below it for a home indicator, which the bar adds to its own padding rather than leaving to the page. A phone screen is a rounded rectangle, so the outermost destinations are the ones the corner curves in under: the nearer the row sits to the edge, the more of the first and last item is inside that arc. The height is padding. The item keeps the 48px entry tier, because a nav item is not a new kind of control ([the numbers](docs/defects.md#chrome--the-bottom-bar-sat-in-the-corner-of-a-rounded-screen-and-the-sheet-ran-under-it)).
-
-**The sheet's bottom padding is the bar's height, not a number that resembles it.** The bar floats over the content, so what the page below has to clear is whatever the bar measures — including the platform inset the bar just added to itself. Written as its own constant it agrees with the bar until the day one of them moves, and the disagreement shows only on the last card of a page.
-
-**A surface that takes the screen over takes the bar with it.** A record opened for correction in place on a phone — a line of an order, in the list it lives in — is an editing session rather than a page: it covers the list it came out of, it holds the keyboard for as long as it is open, and it ends at its own save and cancel. The bar is fixed chrome across the foot of the screen, and the row it lands on is that one. So the bar is withdrawn while such a surface is open and comes back the moment it closes — and everything its height was reserving goes with it, off the one value that measures the bar, or the screen keeps paying for something that is not drawn. Nothing inside the surface is navigation and the way out of it is its own two buttons, so no destination is lost while it is gone. Making the surface fit under the bar instead is the answer that cannot hold: a card that clears the bar when it opens stops clearing it the moment it grows, and a form grows exactly when it has just refused to save ([the numbers](docs/defects.md#chrome--the-bottom-bar-landed-on-the-save-button-of-an-open-line)).
-
-**A waiting update asks, as soon as it knows, and never acts on its own.** When the server begins serving a build newer than the one this session is running, the app raises the question itself rather than parking a hint somewhere and hoping it is noticed — a notice that waits to be found is found a week late. But it asks: a reload discards every field typed and not yet saved, so it goes behind the same confirmation every other irreversible act in this system goes behind, and the safe answer is the one holding focus, because an Enter still in flight from the form underneath must not be the keystroke that discards it.
-
-**Declining is not dismissing.** *Not now* means later, so the question folds down into a persistent bar instead of vanishing — still true, still reachable, and never asked a second time about the same build. The bar is not a toast: a toast reports what just happened and takes itself away after five seconds, while this stays true until it is acted on. Where the running build cannot be identified at all, nothing is claimed — two unknowns matching is not a version check, and a development server has no build to be out of date.
-
-**Settings is chrome, not a page's furniture.** It is reached by one glyph in the top bar, from every screen — what it holds (the order form's defaults, both lists' opening order, how many entries a card holds, whether a trash asks first) belongs to no single page, so no single page owns the way in. It spent a while as a full-width button at the foot of the Orders rail, findable from one tab of one screen and titled for the one part of itself that screen happened to own.
-
-### Icons
-
-The system uses 39 glyphs across the entire app, every one stroke-drawn in the same style and named for its meaning. When a new page needs an icon, it reaches for one of these before inventing a fortieth — a glyph that exists twice in slightly different paths is the drift the uniformity rule exists to stop.
-
-**Sizes are set by the component that carries the icon**, not by the call site: a button's icon follows the button's tier (15px in the 38px tier, 14px in the 32px tier), a row's glyph follows the row family. Sizes run 12–20px; each one belongs to a component's spec.
-
-**Icon buttons** (`.icon-button`) are the square control carrying nothing but a glyph — so the accessible label is mandatory, because there is no text to read.
-
-**The rule:** Use an icon when the meaning is universal (trash = delete, search = find). Never use one alone when the meaning is private to this app — label it.
+## Global rules
+
+These hold on every screen and are the constraints behind several layout decisions. Breaking one is a design change, not an implementation detail.
+
+1. **The top shell is locked.** No page actions may be placed in the top bar. Every page's actions live inside the page. This is a hard constraint from the existing product.
+2. **A monthly limit never blocks a save.** Red blocks, amber informs. Exceeding a category limit is a fact about the month, not a validation error.
+3. **Nothing saves by itself.** Scans propose values, they never overwrite silently. A duplicated order opens unsaved and can be abandoned.
+4. **Numbers answer the current filter.** Totals and counts in a filtered list describe what is on screen, not the whole account.
+5. **Single user, personal receipts.** No item catalogue, no shared editing, no permissions. A conflict means two browser tabs, not two people.
 
 ---
 
-## Views
+## The shell — structure and scroll behaviour
 
-Views are screens. They're composed from foundations and components.
+Read this before building any screen. It is the frame everything else sits in, and none of it is visible in a screenshot.
 
-### Home
-
-The landing screen, top to bottom: the stretch of time being viewed, the hero chart, then a card grid the user owns.
-
-**The hero card is this month, and it is named at the top of itself.** The heading, the total, what it saved against retail and the line under them are all the current month's, and there is no control on the card to make them anything else. It carried the same five widths [Statistics](#statistics) offers for a while, which is two screens where a stretch of time is chosen and only one of them with a pager, a comparison, summary tiles and a returns card to go with it. Home answers *where am I this month*; another month, or a week, or a year, is a question the page built for it answers. What the records only hold per month — the category split under the chart — names that month in its own heading rather than borrowing the card's, exactly as the month-wide cards on Statistics do.
-
-Whatever a card names, the rule the widths were removed *from* still holds: a figure that a control above it cannot move is not a figure that control has an opinion about, and a heading fixed at *Spent this month* while five widths pass under it is the [label describing a state its control has moved on from](#charts) ([the numbers](docs/defects.md#home--the-hero-card-said-spent-this-month-under-every-width-there-was)).
-
-**A card that names a window links to that window.** The hero's header opens Statistics on the month the card is showing — Statistics' own default, so arriving there is a continuation rather than a fresh question — and the total printed on the two pages is the same number, because it is derived from the same days.
-
-**A row that opens a list opens the list its own card is describing.** A card naming a stretch of time is a claim about which orders it counted, so a row inside it that opens "the orders behind this slice" carries that stretch: a category row under *Where it went • Aug* opens August's orders in that category, not every one since the account was made. The check is the figure, not the query string — the row's own amount and the total of the list it lands on are the same number, or the link is wrong however plausible its filters look. A card with no window to pass on, an all-time vendor total or a link into the whole return history, passes none rather than inventing one.
-
-**The dashboard is personal.** Which cards appear, and in what order, is the user's choice: an edit mode exposes a grip per card, cards drag (or move by arrow key, Home and End for the ends), and the arrangement persists. Everyone sees the same Orders page; Home shows what this user chose to see.
-
-**Everything that can be starred can be a card.** A favourite is a standing preference, not a measurement: it does not expire with the month, and a record starred last week with nothing bought from it since still counts. So each kind of record that offers a star offers the dashboard a card of them too, sorted like every other list of that kind and holding what the reader picked rather than what the figures picked — the same set the record's own page spotlights, on the one screen whose job is showing what this user chose to see. A star that is honoured in one place and ignored in the next is a preference the product only half took.
-
-**An order is filed under two things, so a card about one of them has a twin.** Every order names a vendor and lands in categories, and a question worth asking of one is worth asking of the other — which are the biggest, and which ones the reader starred. A dashboard that ranks vendors and not categories has answered half a question and looks like it decided something. The twin names its own subject in full, *Top vendors* beside *Top categories* rather than a bare *Top*, and it says which stretch of time it covers: categories already have a card about this month, and a second one about all time is only honest while both say which they are.
-
-**Cards share a row, so they are filled to the same depth.** A grid row is as tall as its tallest card, and a card that holds three of something beside a card that holds ten is not a shorter card — it is the same card with a hole under it. Every list in the app holds up to the same number of entries — [one setting](#settings), read everywhere a card truncates a list, on every page and not just this one — and is *filled* to it wherever the account has that many; every chart grows into whatever its row gives it rather than standing at a height chosen elsewhere ([the numbers](docs/defects.md#home--three-cards-in-a-row-and-two-of-them-mostly-empty)).
-
-**A card with nothing beside it takes the whole count.** The deduction below exists only to keep a card level with the card next to it, so a card standing alone does not pay it — a shorter card in a row of its own is not a hole, it is just a card, and cutting its list to leave room for a neighbour it does not have costs entries and buys nothing. That is every card on a phone, where the grid is one column.
-
-**What sits above a list is height the list does not get.** A card that spends a donut before its first row and then draws as many rows as its neighbour stands taller than the neighbour by exactly the donut, so a card's entries are the setting less what it drew above them — *rounded*, not rounded up, or a card whose header runs a hair past one row's height gives up two and stands a row short of everything beside it — and that is *measured*, by the list, against the card it is in. A table of "the donut costs three rows, the sparkline two" is a second copy of the layout kept somewhere nothing renders, wrong the day a chart's height or a row's leading changes, and it would have to name every card. Measured, a headline figure, a caption, a chart, a ring or any three together all subtract themselves, and the next thing put above a list needs no rule of its own.
-
-**Running out is allowed; shrinking is not.** A card with four returns in a month that offers room for ten draws four — an invented row is worse than an empty inch — and it keeps the height of the card beside it rather than collapsing, because a grid row of cards at different heights reads as a rendering fault.
-
-**Where the list feeds a graphic, it folds rather than drops.** The category ring is drawn from the same array as the rows under it, so cutting the tail would leave a circle that does not add up to the figure in its own middle. The tail becomes one segment worth the sum of what it holds, with a row that says how many and links to the full list — and that folded entry is a whole record, not a label and a number, because the row it lands in asks it the same questions it asks a real one.
-
-**A drag shows what is moving and where it lands.** The lifted card leaves the flow at the size it had, follows the pointer on a shadow, and a dashed slot of exactly that size travels through the grid. A dimmed card shuffled in place is a drag where the most important thing on screen is the faintest.
-
-**The scan promo card can say LATER** — and LATER writes the same setting the Settings switch writes, so dismissing it here and re-enabling it there are one setting seen twice, not two flags that drift.
-
-### Orders Overview
-
-The month in review: this month against the one before, side by side with the same structure in both columns — same rows, same order, so the eye compares without re-reading. Then the month's two lists of orders side by side — the latest, and the returned — and the category breakdown beside them.
-
-**The returns card is the one on [Statistics](#statistics), at this page's width.** Same rows, same count line, same link — one card, drawn from the window each page is showing, because two copies of it is how one page came to report four returns in August while the other reported none. It sits beside the latest orders, since the two are the same shape reading the same month.
-
-### All Orders
-
-The working list. Top to bottom: sub-tabs (Ordered / Delivered / Returned — the status filter in one tap), the toolbar (search field, FILTERS disclosure, the sort chip), the chip row with the match count over it, the rows, and the pager.
-
-Every piece of that state lives in the URL:
+### Anatomy
 
 ```
-#/orders/all?category=groceries&vendor=bilka&from=2024-01-01
+┌──────────────┬─────────────────────────────────────────┐
+│              │  top bar — LOCKED, 56px, does not scroll│
+│   sidebar    ├─────────────────────────────────────────┤
+│   248px      │                                         │
+│   full       │  page content — the only scroll          │
+│   viewport   │  container on the page                  │
+│   height     │  padding 48px                           │
+│   fixed      │                                         │
+│              │                                         │
+└──────────────┴─────────────────────────────────────────┘
 ```
 
-Arriving at that URL shows a filtered list. The chips reflect the URL, the panel's fields reflect the URL, the count reflects the rows.
+**The page does not scroll. The content column does.** `html, body { height: 100%; overflow: hidden }`; the content column is the single scroll container (`overflow-y: auto`). This is deliberate: the sidebar and the top bar must never move, and a document-level scroll makes both of them either move or need `position: fixed`, which then breaks the sticky save bar inside the content.
 
-**A filtered list is a place, not a mode.** It can be linked to, bookmarked, sent — and it *is* linked to: category tiles, vendor cards and chart legend rows all land here carrying filters. Closing the filter panel doesn't clear the filters; they stay in the URL.
+### The sidebar
 
-**Two controls describing one filter may never disagree** — the sub-tab and the panel's status control are the same filter in two places, and so are a chip and its combobox.
+- **Always full viewport height**, `100dvh` (not `100vh` — on mobile browsers the toolbar makes `vh` wrong). Fixed `248px`, or `68px` collapsed.
+- **It is a flex column**, and it scrolls independently *only if its own content overflows* — which happens on short viewports. It does not scroll with the page.
+- **Three zones, top to bottom:**
+  1. *Brand*, at the top, not scrollable.
+  2. *Navigation*, the flexible middle (`flex: 1`, `overflow-y: auto`, `min-height: 0` — the same automatic-minimum-size rule from 13a applies here, and without it the middle refuses to shrink and pushes the bottom zone off-screen).
+  3. *Bottom zone, pinned:* Settings, the theme toggle, and the account block. These sit below a `flex: 1` spacer, so they rest against the bottom of the viewport whatever the nav length. On a short viewport the nav scrolls and the bottom zone stays put — it is never scrolled away, because switching theme and reaching the account must not depend on scroll position.
+- A `1px rgba(255,255,255,0.07)` divider separates the theme toggle from the nav above it. There is no divider between the toggle and the account block; they read as one bottom group.
+- **The collapse state** persists per user. Collapsed, labels become tooltips on hover; the bottom zone keeps the same order, icons only, and the account block becomes the avatar alone.
+- The sidebar keeps `#14261c` in **both themes** (see 12a) — it is the one element that does not participate in theming, which also means it needs no theme work.
 
-**Every working list sorts with the same control, and its options name the column and the direction — both directions on every column that ranks.** All orders, All vendors and All categories ask one question — "order this list by" — so it is one combobox on all three, not a combobox on one and a segmented control on the others. An option reads *Spend, highest*, never a bare *Spend* that is secretly highest-first: half-named options make the reader press to find out. And each ranking column comes as a pair — *Amount, highest / Amount, lowest*, *Date, newest / Date, oldest* — because a list that can be ranked by a column can be ranked by it both ways, and one list offering pairs while another offers singles is the two-controls defect written into one control's options. An alphabetical column is the exception: the alphabet orders a list for *finding* a record, not for ranking it, and Z to A finds nothing that A to Z cannot — so Vendor on the orders list and Name on the vendors and categories lists offer *A to Z* alone. Each list offers the pairs every list shares plus its own columns', and it opens in [the account's chosen order](#settings), direction included ([`docs/defects.md`](docs/defects.md#data-rows--one-saving-three-styles-and-one-question-sorted-three-ways)).
+### The top bar
 
-**Ranking by a column not every record has is ranking over the records that have it.** An order with no discount is not the order with the lowest discount — it is an order the question does not apply to, so *Discount, lowest* offers the smallest real discount rather than a page of zeroes with the answer buried behind them. The narrowing happens where the filtering happens, so the match count above the list has already stopped counting the rows the list is not showing: a sort that quietly drops rows the count still claims is the two-controls defect between a header and the list under it. And because a sort can now empty a list, the empty state has to be able to say so — "No orders match these filters" over filters nobody set, beside a CLEAR ALL that clears nothing, is the same wrong sentence this page already fixed once for the account with no orders at all. It names the sort instead, and offers the sort as the way out.
+**Locked. No page actions may be placed here** — see global rule 1. It carries the breadcrumb and the page title, nothing else. It does not scroll and it does not change per page beyond its text. Every action a page offers lives inside the page: that is why the edit screen has a sticky save bar at the bottom of its content column, why the order list puts bulk actions in a bar above the list, and why Settings saves per card.
 
-**On a phone the toolbar is two rows, not three.** The search field takes the first row; FILTERS and the sort control are one group and share the second, the sort taking whatever the disclosure leaves. They shape the same list, so they read as a pair — and a row each pushes the first order further down the page for nothing. See `docs/defects.md`, *Responsive Layout*.
+### The content column
 
-### Order Detail
+- One scroll container, `48px` padding (`20px` on mobile).
+- **Scroll position resets to top on navigation**, and is restored when returning to a list via the browser back button — a user who scrolled to order 80, opened it, and came back should land where they were.
+- **Sticky elements inside it** — the save bar on order edit, the bulk-action bar on the list, table headers — are `position: sticky` relative to *this* container, not the viewport. This only works because the container is the scroller; it is the main reason for the layout above.
+- The two-column screens (order edit, order list, the library) lay out **inside** this column: main `1fr` plus a fixed rail, `24px` gap. The rail scrolls with the content, not separately. There is no second scrollbar anywhere in the app.
 
-One order's full record. The header band holds the identity and the actions: vendor, date, edit — and the trash, which follows the [deletion policy](#deletion). Below it: the line items with what each cost and saved, then the attachments card — add a file, open one, remove one (that trash follows the same [deletion policy](#deletion)), with the header counting them. The summary card states the status, kind and total.
+### Breakpoints
 
-**Everything shown is derived from the record.** The subtotal is the lines added up; the total adds shipping and takes the discount off; the saving is retail minus what was paid, the discount counted as part of it. A stored total beside stored lines is two claims that can disagree while both look right.
+| Width | What changes |
+| --- | --- |
+| ≥ 1280px | Full layout. Sidebar expanded by default. |
+| < 1280px | Facet rail on the order list becomes a drawer; sidebar may collapse to the 68px rail. |
+| < 900px | Two-column screens stack: rail content moves above or below the main column per screen (order edit collapses its rail into a summary section; the library switches to list-then-panel navigation). |
+| < 640px | Phone layout. Sidebar becomes a bottom tab bar, the top bar keeps only the title, sheets replace inline expansion, and the capture FAB appears. |
 
-**A discount belongs to the order, not to a line of it.** A rabat has no quantity, no retail price and nothing to photograph, so recording it as a line item makes one row of the list not really a row: the item count counts it, the lines list draws it, and "2 items" over a receipt holding one product and one discount is a count nobody meant. It is an amount on the order beside the shipping fee — the two order-level figures, one adding to the total and one coming off it — and it is entered as what was taken off, so the field carries the sign and the value never does.
+**On mobile the sidebar is not a drawer by default** — the five primary destinations become a bottom tab bar, and Settings and the account move into a "More" destination. A hamburger drawer would put the most-used navigation two taps away on the device where capture matters most.
 
-**The detail page shows; the form page changes.** Status is read here and edited on the edit page like every other field — a status editor drawn on the reading view is the form's control paying rent twice, at a full band's height, and it stood here once.
+### What is global, and lives in the shell rather than any page
 
-**On a phone, this page's rows stay one line: title left, figures and actions grouped right.** An
-item row's total and an attachment row's actions belong beside the name they price and act on, not
-right-aligned under it on a line of their own — the general phone rule that wraps a row exists for
-rows whose fixed columns leave the title nothing, and these rows are not that: their titles fit
-with room to spare. So the row states that it groups, the title yields instead of the line
-breaking — one line, truncated with an ellipsis when a long filename or name asks for more, the
-meta the same — and the full name stays readable where the row already shows it: an attachment's
-in its preview, an item's on the edit page. The line *editors* on Create and Edit keep the wrap,
-because there the fixed columns genuinely leave the title nothing (64px, measured). Desktop is
-untouched either way. ([`docs/defects.md`](docs/defects.md#order-detail--the-rows-figures-dropped-to-a-line-of-their-own-over-room-they-never-measured))
-
-**Why edit is a separate page:** the form has validation, a draft, and two steps. That complexity doesn't belong on the reading view — the detail page shows, the form page changes.
-
-### Create and Edit
-
-Two-step flow for creating or editing an order:
-1. **Step 1**: Basic info (date, vendor, category, kind)
-2. **Step 2**: Items (add, remove, edit quantity and notes)
-
-Same form for create and edit. Editing loads the order in. The two steps share one draft — leaving and coming back loses nothing.
-
-**A line is edited where it sits.** The list of lines is the only place a line is shown, so it is the place a line is changed: the row opens into a card at its own index in the list, holding that line's picture and its fields, and closes back into a row when it is saved. There is no form standing above the list. A form above a list is a second place a line can be, and it costs three things at once — it puts the fields a screen away from the row that was pressed, so the page has to say *the form above holds it* about values the reader cannot see; it claims adding is the page's main verb, on a page whose lines already exist and are being corrected; and the distance grows by a row for every line the order has. See [docs/defects.md](docs/defects.md).
-
-**Adding is the same card, opened empty from the end of the list.** One card, one set of fields, one set of rules, for both jobs. A separate add form is a second copy of the validation, and the two agree until the day one of them is fixed ([Form Validation](#form-validation)).
-
-**One card at a time, and opening one moves nothing above it.** The rows above the opened line, the list, and the cards above the list all keep their positions; the card is brought into view only when part of it is outside the viewport, and by the least that fixes that. On a phone the card is also what the bottom bar gets out of the way for, since the card ends where the bar sits — see [Chrome](#chrome). Leaving a card that holds a valid line saves it on the way out — losing four correct fields to a click on the next row is not something a draft should do. Leaving one that holds an invalid line asks first, and only when something was actually typed. Two cards open at once is two sets of fields with one set of names and no answer to which line the reader is looking at.
-
-**A quantity multiplies; it is never a second price to keep in step by hand.** The line total is derived from quantity and price and read back under them, so changing a quantity never asks the reader to redo the arithmetic. A retail price below the price paid is a fact rather than a mistake: the line saves, and it records no saving — and the card says so under the fields, because a form that refuses a legal value teaches the reader nothing and a form that accepts one in silence teaches less.
-
-**A record's own page is where its orders are reached from, and the summary rail is where it says so.** A vendor and a category each stand for a pile of orders, and that pile is a real destination — but it is one control, on the page that already holds every other action on the record, sitting under the figure it is the orders behind: a full-width block button, the same one every card ending in a link into a longer list uses. It is not a second link at the end of every row in the list. A row has one destination — the record — the way an order row opens the order; an unlabelled glyph repeated down a list, offering a destination no other list row offers, buys a click at the cost of a row that means two things.
-
-**The rail's bottom line is the money.** A summary card mirrors the form above it, then states one figure at its foot, and across records it is the same kind of figure: what this record has cost, all time. A limit the form itself sets — a category's monthly budget — is one of the values being mirrored, so it is a row among the others, not the bottom line; two summary cards whose feet answer different questions are two shapes to learn for one card.
-
-**Validation:** Each step validates on its own attempt to continue. A rejected step marks its fields and sends focus to the first one (see [Form Validation](#form-validation)); nothing on the page names the fields a second time.
-
-### Scan Flow
-
-Entry point for creating orders from receipts:
-1. **Entry**: the hero says the app takes "a PDF, photo or screenshot", and four entry buttons name the formats one by one
-2. **Reading**: shows the document the user chose
-3. **Review**: the extracted lines, editable one by one, saved as a real order
-
-**Why separate:** Reading shows the actual document. Review shows the extracted data. The user sees both and can correct misreads.
-
-**The copy is a contract.** When the product's own words enumerate what it accepts, each entry must carry its own document through — name, size, format glyph, and a page count that belongs to PDFs and nothing else. All four entries once landed on the same `kvittering-bilka.jpg`, and no screenshot could catch it, because one document was the only document.
-
-**Review runs the same rules as the form.** Scan and create are two doors to one saved order, so a value required at one door is required at the other, refused in the same words. The two had once parted company: the review checked nothing, and a receipt with a blank vendor line saved an order with no vendor — through a flow whose twin asks "Who did you buy from?" about that field.
-
-### Vendors
-
-Favourites in the spotlight, every vendor below — **one card, in two sizes**. The pair and the strip once said the same things in two arrangements, one entering through a full-width VIEW ORDERS and the other through its header; now the header band is the way in on both, and the star (favourite) and pencil (edit) sit at the foot of both.
-
-**A linked header may not hold a button.** An action inside a link is two things to activate in one box — the star lives in the card foot, outside the link.
-
-**A vendor answers to more names than the one it shows.** A vendor carries aliases — the name it had before a rename, the shortened form an invoice prints — and anywhere a vendor is resolved from a string (an order named by text, a scanned receipt's vendor line, an import) an alias matches exactly like the name. Aliases are edited on the vendor's own form page, and learned without being asked for: when a scanned document names the vendor one way and the order is saved under another, the document's string is kept as an alias of the chosen vendor, so the next document naming it needs no correction. An alias is always a *different* name — one equal to the vendor's own is refused, and each string belongs to exactly one vendor, name or alias, because resolution must read it back to exactly one. Renaming a vendor to one of its own aliases swaps the two: the alias becomes the name and the old name stays behind as an alias, keeping every document that carries it resolving here. The same resolution reaches every control that takes a vendor as text — the finder, the vendors list's own search field, every dropdown a reader can type a vendor into, and any list written later: search finds a vendor by any name it answers to and shows the vendor itself, naming the alias that matched, since the searched text may appear nowhere in the row. This holds as much for a dropdown offering to create what was typed as it does for a plain search field — a control drawn once for a search box and then hand-copied into every vendor picker is a rule that has to be remembered at each new copy instead of stated once, which is exactly how it went missing from three of them at once ([`docs/defects.md`](docs/defects.md#vendors--the-vendors-list-was-the-one-vendor-search-that-ignored-aliases), [`docs/defects.md`](docs/defects.md#vendors--the-order-forms-own-vendor-picker-was-three-more-copies-of-the-same-gap)). What counts as a match is one rule per runtime, held where the data is read rather than restated at each list, because the one screen that spelled it out for itself is the one that got it wrong; and an offer to create a vendor from typed text that is already an alias is not an offer to create — the action says USE, names the vendor the alias belongs to, and picks it, because creating a twin is the thing aliases exist to prevent.
-
-### Categories
-
-Each category is a tile — its glyph, its color, its month's total and budget meter — and the tile is a door: it opens All Orders filtered to that category. A Manage tab lists the same categories as rows whose job is editing; a row opens the record's own form page.
-
-**Glyph and color are chosen, not assigned.** A generated color is a value the user can see, cannot explain, and could not change. Both are picked on the category's form page, previewed at the size they are used at, and stored on the record — so every surface that draws the category draws it from the record.
-
-### Statistics
-
-A stretch of time in numbers: the window's name between two arrows with the widths beside them in one band, then a four-across summary row (each tile a figure, its delta and its trend arrow — trend and tone are separate, because spending *less* is a good *down*), then the charts, then the cards that break the window down.
-
-**The range control and the pager are one control.** The range chooses how wide the window is; the pager steps by that width. Pick a week and the arrows move a week; pick a quarter and they move a quarter. A pager whose step is fixed while the range moves is paging something the page is not showing, and it says "previous" about a stretch of time nothing on screen names ([the numbers](docs/defects.md#statistics--the-range-chips-drew-a-week-and-the-pager-went-on-stepping-months)). The arrows name the step they take — *previous quarter*, *no later year* — and each disables only at its own end of the data.
-
-**One control is drawn as one.** The two arrows, the name they step and the five widths share a band, and every button in it is the same box — a width button is the size of a paging button, because they are two halves of one control and a row of two heights reads as two. The name between the arrows holds a width wide enough for the longest one the pager can reach, so choosing a width does not slide the picker sideways under the pointer that just clicked one; that is the same rule as *selection is a fill, not a weight* one level out, and it costs about 30px of empty band next to the short names. On a phone the hold is released and the row is what is kept: a band that fits is worth more than a picker that never moves, when the alternative is the picker on a second row.
-
-**Every width is a calendar unit, and it is named as one.** Week, month, quarter, year, and everything there is: *Week 30, 2026* • *July 2026* • *Quarter 2, 2026* • *2026* • *All time*. Not a count of days back from today — a window ninety days wide has no name, cannot be linked as one thing, and cannot be paged to the one before it. A week is an ISO week (Monday to Sunday, week 1 the one holding 4 January), so a week that runs across the end of a month runs across it, because weeks do. Where the records stop mid-unit the window holds the days that exist and says which they are.
-
-**The control that offers the widths calls them what they are** — *Week*, *Month*, *Quarter*, *Year*, *All* — in the chip, in the arrow that steps one, and in the URL that links one. A chip reading *3M* or *YTD* names a duration, and a duration is the one thing this control cannot deliver: what it draws is the quarter the window lands in, which may be a single month of records, and the year, which pages back to whole years that are not to any date ([the numbers](docs/defects.md#statistics--the-chips-named-durations-and-the-windows-were-calendar-units)). A name that has to be decoded against the calendar to be checked is a name nobody checks.
-
-**A unit says what it is, the window says which days.** The pager names the unit; the card over the chart names the days it actually covers — *Overview • 1 May – 30 June* under *Quarter 2, 2026* — because a unit name does not tell you where the records begin and end inside it, and a clipped window would otherwise claim a whole quarter.
-
-**A window is drawn under the name it is announced under.** One string, read by eye and by screen reader. *W30, 2026* was drawn short enough for the band and announced unabbreviated beside it, because a letter, a number and a year says nothing about weeks — one window under two names, of which the readable one was the one nobody could read. Writing the unit out costs about 30px in a band with room for it, and leaves a single name to keep true.
-
-**Where the band has no room, the short name is the whole name.** A phone cannot hold two arrows, *Quarter 3, 2026* and five widths on one row, so there it draws *Q3 2026* and the widths go to two letters — and that shortened string is the one announced too, because only one of the pair is ever rendered. The defect was never brevity; it was a name drawn for the eye with a different one filed beside it for the screen reader. One string at every width, whichever string it is.
-
-**Changing the width keeps the window; it does not go back to today.** The picker and the pager are one control, so moving one cannot throw away where the other is: page back to 2022, pick *Month*, and the window is December 2022 — the month holding the last day of the year that was on screen, never this month. The anchor is that last day rather than the first, and it is clamped to today, so widening from *August 2026* to *Year* and back again is still August: a window later than today is one the pager itself refuses to reach. Every width converts through the same rule, in both directions — a week's month, a month's quarter, a quarter's year — and *All time*, which has one window, resolves to today's when a narrower width is picked from it ([the numbers](docs/defects.md#statistics--changing-the-width-threw-the-window-away)).
-
-**The window is in the URL** — how wide it is and where it sits — so a week can be linked as a week, and the browser's Back walks the pager. A link to a month is still a link to that month. The width is in it under the name the chip carries, `?range=quarter`, so the link says which window it opens. A link naming a width the product no longer has opens the default and says so in the chips — the control shows what is drawn, never what was asked for.
-
-**One control, one answer: every figure on the page covers the window the control names.** The total, the comparison, the chart, the scale under it, the summary tiles — and the cards below them, which is the half this rule was missing. The pace, the weekly rhythm, the category split, the recent-window columns and the returns note were the month's whatever the picker said, so choosing a week moved the tiles and the chart and left five cards reading *July*: a page with one control and two answers to it, of which the frozen one is printed in more places ([the numbers](docs/defects.md#statistics--the-picker-moved-the-tiles-and-the-chart-and-five-cards-went-on-reading-july)). Each card still names its own span *in its own heading*, never borrowing the page's, because a card that names nothing is one the reader has to scroll up to date.
-
-**A window is measured from the days it holds, including what the records only author per month.** Which categories a purchase fell into is a month's fact, not a day's — so it is split across that month's days by what each day cost, the same way a month's savings and shipping already are. A window inside a month then carries that month's proportions scaled to its own spend, and the parts add up to the total printed above the chart instead of to a category's all-time figure.
-
-**A budget is a monthly allowance, so a window of any other width converts before the two are printed together.** The page draws five widths and a budget names one, and which of the two is converted is decided by which direction invents nothing: a window *wider* than a month averages the spend down to a month, because a monthly budget beside a year's spend asks the reader to divide by twelve; a window *narrower* than a month cuts the allowance down to the window's share of it, because scaling four days up to a month is a claim about days that have not happened. The ratio is the same either way, so the card's own figure, its meter and every row in it agree by construction. A month is the plain case and says nothing extra. What a month holds is exact — a quarter is three of them and a year twelve, and a week is the fraction of *its own* month it actually is, never a thirtieth of an average one.
-
-**Where a page is already segmented by category, the budget is read there too.** The category split names each category and its spend, which is one question away from *against what* — so each slice states its own percentage of budget, and the qualifier that percentage is read under (*monthly average over 12 months*) is said once in the card's header rather than on every row. A category with no budget says nothing extra, and the remainder that belongs to no category never says anything at all. The percentages are the same numbers the budget card prints, from one computation, because two cards on one screen stating one fact is how they come to disagree.
-
-**Every budgeted category is in the denominator, spent from or not.** A budget nobody bought against this window is a budget that was kept, and dropping it from the sum turns *how much of the allowance was used* into a different question with the same caption — the defect the budget rule under *Meters and progress* is written from. The card lists as many rows as any other card on the page and says how many it did not draw.
-
-**A projection is only offered where there is something left to project.** The newest window is the one still being written, and it is the only one whose figure is a projection; everywhere else the same figure is the total, and the line under it says which of the two it is. A window clipped by the *start* of the records — three days of a week that began before them — is missing days that already happened, and scaling those three days up to seven is a claim about a past the records do not have.
-
-**The comparison card compares like with like.** Six of whatever width is chosen, the one on screen marked: pick a week and the columns are six weeks. A width with only one window has nothing to stand beside — *All time* is the records entire, and a single year is the only one in them — so it falls back to the months inside the window, and the heading says how many of what it drew.
-
-**Nothing is a direction.** A figure that has not moved says it is *level with* what it is measured against, and draws no arrow: 0% up under a rising arrow is a claim about a change that did not happen, and a window narrow enough to count whole orders lands there often. A figure with nothing before it draws no delta at all — an arrow over a comparison that was never made is worse than a blank.
-
-**The total and the line under it are one series.** The figure printed above a chart is where that chart's line ends, derived from the same numbers, so a window's total and the picture of it cannot drift apart — and a comparison line is drawn on the same scale as the line it is compared with.
-
-### Settings
-
-Every control here names what reads it, and the page proves it: default kind and status (what the order form opens with), rows per page and sort (what All Orders obeys), entries per card and the vendors-and-categories order (what every card and both lists open as), the scan card switch (the same setting Home's LATER writes), ask-before-deleting (what every trash reads), and clear stored data (back to the shipped state, said before it does it).
-
-**A settings page whose switches change nothing is the decorative-control defect with more surface area.** A setting exists here only if something observably reads it.
-
-**Importing is an act, not a preference, so it lives on its own sub-tab.** Settings tabs the way Orders, Vendors and Categories do — Overview and Import, each a real URL that can be linked to and survives a reload. The Overview holds what the account stores and obeys; the Import tab holds the two importing cards, the upload and the reference, which store nothing and act once per file. Mixed among the switches they read as two more preferences, and they are not.
-
-**Two tabs of one page draw their cards one way.** A tab is a view of the same page, not a different page, so a reader who has learned where a card states its name on Overview has learned it on Import: the title is a headline inside the body with its one-line lead under it, and the controls beneath sit in headed sections rather than loose in the card. Import stated its titles in a header band over a divider and stacked its two options bare in the body — every part of that is a shape the tab beside it does not use, and switching tabs re-taught the page.
-
-**One card documents instead of controlling: the import card.** The orders-import endpoint exists for a program, not a form, so the Import tab states its address, its request shape and the rules the server enforces — sign in, post the orders with either credential (the session cookie, or the same token as an `Authorization: Bearer` header — one session row either way), read back what imported and what failed by index. Reference drawn from the validator itself, not a paraphrase of it: the card and `validateOrderDraft` state the same limits or one of them is wrong. It used to open closed to spare the settings page a screenful of reference on every visit; on the Import tab the reference is half of what the tab is for, so it stands open like every other card. And the JSON it shows is a formatter's output, coloured by token, never hand-aligned: annotation columns kept by hand drift on the first edit.
-
-**Settings group by the question they answer, not by the page they affect.** Four controls about lists — two counts and two sort orders — sat in one *Lists* section in the order they were added: count, sort, sort, count. Every one of them was correctly labelled and correctly wired, and the section still read as an undifferentiated stack, because the eye groups by shape and the shapes alternated. Split by the question — *Rows and entries*, then *Sorting* — each section is two controls that share a heading, a shape and a sentence, and the page can be skimmed for the one being looked for. A heading naming the thing controlled ("Lists") gathers everything that touches it; a heading naming the question gathers what a reader is actually asking.
-
-**One question, one control — even where it is asked on two pages.** Vendors and categories are the same kind of list, so the order they open in is one setting and not two: a person who wants one alphabetical wants both. It offers only the orders *both* lists have, since a default naming one list's own column is a preference the other cannot obey — vendors can also sort by order count and categories by share, and those stay on the pages, one click from wherever the setting opens them.
-
-**How dates are written sits with what money is called, because both answer one question: how this account's own figures read.** They were split while the date format was the browser's alone and there was nothing to put beside the currency; a section heading naming only half of what it holds is a heading that will be wrong again the next time something joins it.
-
-**A format picker shows what it renders.** `Danish` and `English (UK)` name a shape nobody can see from the label, so each option carries a sample — and the sample is drawn through the same formatter the product uses, never typed in beside it, because a hand-written example is a claim about a rendering that goes stale without anyone noticing.
-
-**A new account is shown its preferences once, before it is shown a ledger it has not filled.** An empty Home has nothing to say to someone who has just registered, and one preference has by then been chosen on their behalf — the date format, guessed from their browser's timezone — which is exactly the kind of value that should be pointed at rather than left to be discovered. The detour happens once and records that it happened, on arrival rather than on save: a reader who reads the page and closes the tab has been shown it. Nothing on it is required, and the copy says so, because a welcome that gates the product is a form, not a welcome.
-
-**A currency names the figures, it does not convert them, and the control says so.** Choosing one restates what the amounts are called, never what they are worth: no rate is applied and no ledger is revalued. That is the one thing a reader has to be able to rule out before touching the control, so the help text rules it out rather than leaving them to test it on their own books.
-
-**A setting stores only values something obeys.** Anything outside the set a control offers is refused and the stored value stands. A preference that saves, comes back, and is then quietly ignored is worse than no preference, because the settings page goes on saying it is in force.
-
-**Whether this build is current is a question the app can answer, not homework it sets.** The card that names the running build carries a control that asks, and it reports one of three answers in its own words: this is the newest published build, a newer one exists, or the comparison could not be made — this build was never published, or the place that would know could not be reached. Naming a build beside a sentence telling the reader to go and compare it against the newest themselves is the app knowing where the answer lives and sending someone else to fetch it. The check is a press, never part of the page's load: the answer lives outside the app, so it is slow, it can fail, and on most visits nobody asked for it.
+- The toast queue (bottom-centre, one at a time).
+- The dialog layer and its scrim.
+- The command palette (⌘K / Ctrl-K).
+- The theme, applied before first paint from the persisted preference.
+- Keyboard layering: Esc closes the topmost layer — sheet, then dialog, then palette, then an inline edit.
 
 ---
 
-## Patterns
+## Screens
 
-Patterns are common behaviors and flows.
+### 9a / 9b / 9c — Navigation shell
+File: `Navigation shell.dc.html` · Code: `App.jsx`, `components/Nav.jsx`, `components/Shell.jsx`
 
-### Filtering
+**Purpose:** the frame every page renders inside.
 
-**How filters work:**
-1. Click FILTERS to open the panel (collapsed by default)
-2. Set filters using comboboxes, date fields, segmented controls
-3. Click APPLY (or auto-apply on each change)
-4. Chips appear showing active filters
-5. Click × on a chip to remove that filter
-6. URL updates with all filter state
+**Layout:** fixed left sidebar `248px`, content area fills the rest with `48px` page padding. Sidebar background `#14261c`, `20px 14px` padding, column with `4px` between rows.
 
-**The rules:**
-- Filters are in the URL, always. Bookmarking works.
-- Chips show the filters, not a picture of them. Remove a chip, the list updates.
-- Sub-tabs (Ordered / Delivered) are filters too. They must agree with the panel's status control.
-- Opening the filter panel shows the current state, not defaults.
+**Sidebar rows:** `9px 10px` padding, radius `9px`, icon 17px then 14px label, `11px` gap. Idle text `#c3d2c8`; hover fill `rgba(255,255,255,0.05)`; active is fill `#1f3d2c` with `#fff` text. A count sits right-aligned in each row at 11px `#a9bdb1`.
 
-### Creation Flow
+**Order:** Home, then section label `ORDERS` (10px, `0.14em`, `#7d9186`, padding `16px 8px 4px`) with Orders / New order, then `LIBRARY` with Statistics / Vendors / Categories. Settings sits below a spacer, then the account block: fill `#1f3d2c`, radius `9px`, `10px` padding, 28px circular avatar `#4f7f63` with white 12px/700 initials, name 13px/600 `#fff`, org 11px `#a9bdb1`, chevron right.
 
-**Two doors, one saved order.** Records can be created by form or by scan, and the doors converge: a value required at one is required at the other, refused in the same words, because both run the same rules. The two once parted company — the scan review checked nothing, and a receipt with a blank vendor line saved an order with no vendor, through a flow whose twin asks "Who did you buy from?" about that field.
+**Collapsed rail (in 9b):** `68px` wide, icons only, centred, labels appear as tooltips on hover. Toggle persists per user.
 
-**A flow holds a draft.** Moving between steps, or leaving to look something up, loses nothing. The draft is not the record; SAVE is the moment it becomes one.
+**Command palette (in 9b):** ⌘K / Ctrl-K. Centred overlay `560px` wide, radius `14px`, shadow `0 14px 32px rgba(27,26,23,0.14)`, scrim `rgba(27,26,23,0.35)`. A search field at top, then grouped results — Orders, Vendors, Actions — each row showing icon, primary label 14px, secondary meta 12px `#8b8a82`. Arrow keys move, Enter opens, Esc closes.
 
-**Creation lands you on what you made.** Saving opens the record (or the list positioned at it), because the proof that it worked is the thing itself, not a message about it.
+**Account menu (9c):** the chevron on the account block opens a 232px popover upward, aligned to the block's left edge, radius `12px`, shadow `0 6px 16px rgba(27,26,23,0.08)`, light surface like every other popover. Four rows: a header repeating name and **email** (which appears nowhere else in the shell, and is how you confirm which account you are in), **Account and profile** deep-linking to `/settings/account` — not a new screen, but Settings (11a) with that section selected in the left nav, scrolled to the card, and focus on its heading (no highlight flash, no auto-focused field), **Keyboard shortcuts** (its only entry point besides pressing `?`), and **Sign out** — the reason the menu exists, being the one action that should not be buried in a settings page.
 
-**Every create flow is reachable the same way:** ADD opens `/<records>/new`, a row or a pencil opens `/<records>/:id/edit`, and the search palette offers all the creates. One route shape, learned once.
+Deliberately absent: a theme switch (the toggle is directly above it — two controls for one preference is how they drift), org or account switching, and any upgrade prompt. The chevron points down when closed and up when open, and is the only thing on the block that changes. Standard menu semantics: `aria-haspopup="menu"` + `aria-expanded` on the trigger, `role="menu"` on the panel, arrow keys between items, Esc closes and returns focus. Sign out confirms only when there are unsaved changes, naming what would be lost. On the collapsed rail the block is the avatar alone, the chevron disappears, and the menu opens to the right.
 
-### Search
-
-Two surfaces, one promise: typed text finds things.
-
-**The global finder** sits in the top bar and prints its shortcut on a key cap — and a key cap is a promise: the shortcut must open and focus the search from anywhere, or the cap is a decoration lying about the keyboard.
-
-**The palette contract:** results update per keystroke; Up and Down walk them; Enter opens the highlighted one; Escape closes and hands focus back to what had it. It searches the data (orders, vendors, categories, item lines, notes) *and* the commands (every page, every create flow) — so the keyboard reaches everything.
-
-**It is an index, not a script.** A search that ships four hardcoded results for one demo word is right for that word and wrong for every other. If search is drawn, it searches.
-
-### Progressive Disclosure
-
-Complex features are hidden until needed: the filter panel behind FILTERS, an item editor behind its line. Users see what they need now, not everything at once. Three optional fields are not a complex feature: shipping fee, order reference and note are plain rows of the order form, because a control everyone must flip — or a section fencing them off — costs more than the fields themselves.
-
-**The mechanics are fixed:**
-- The disclosure button states its state: `aria-expanded` flips, and the chevron rotates with it. The label never changes — the arrow is what says open or closed.
-- What is closed is `hidden` — actually absent, not visually parked. A panel that is merely transparent still traps focus and still reads to a screen reader.
-- Both states must exist in the stylesheet. The "more details" switch once had a green track and a right-hand knob in *both* states, because nobody wrote the off state — a control with one drawn state renders that state whatever the truth is.
-
-**Closing a disclosure changes what is visible, never what is true.** Collapsing the filter panel does not clear the filters; the chips and the URL still hold them.
-
-### Form Validation
-
-There is one way a form rejects a value, and every form that rejects values uses it — no second copy invented beside it, because two copies agree until the day one is fixed:
-1. The field's shell gets the red edge — and it outranks focus, so a focused invalid field still reads invalid
-2. The message appears under its own field, with an id the control's `aria-describedby` points at
-3. The description is set with the message and removed with it — a dangling `aria-describedby` points at nothing
-
-**Nothing names a rejection a second time.** No page-level summary line repeats what is already under the field, and no toast announces it — the message is beside the field it is about, once. Where a rejection has no single field of its own — an order with no lines, a list with nothing on it — it is drawn the same way, beside the control that would fix it, rather than promoted to a summary the rest of the form does not get.
-
-**A rejection is shown once the form has been submitted, never before.** Typing into a fresh field draws no message; the first `check()` runs on the attempt to save or continue, and only a field already showing a message is re-checked as its value changes, so a correction clears without waiting for a second submit. Nothing checks on blur.
-
-**A verdict is not a toast.** Saved / added / removed goes to the transient feedback layer; a rejected field stays on the form, under the field it names, until it is fixed.
-
-**The draft that is submitted is the draft that is validated.** Saving runs the rules over everything the form is about to send, not just the fields on screen: a row an ADD action seeds into the draft is part of the submission from the moment it exists, so saving sweeps every row with the same rules the row's own editor runs, reopens the first one that fails, and marks it there. Counting rows is not checking them — see [`docs/defects.md`](docs/defects.md).
-
-**A refused save says what was refused.** When the API rejects a write, its sentence about the field is the one the feedback layer shows. A rejection flattened into a generic "try again" reports a network blip about a form error, and the reader retries the same rejected draft.
-
-### Feedback
-
-Everything the app says back after an action — saved, added, removed, moved, refused — goes to **one layer**: top right, under the top bar, a single polite status region. A toast clears itself after five seconds, can be dismissed, stacks newest first, and is capped so the stack cannot wallpaper the screen. The layer never swallows a click meant for what is under it. Inside a toast, the glyph, the sentence and the dismiss share one vertical centre — a toast is one short line, and top-aligning it against a taller dismiss button reads as a misprint.
-
-Before the one layer existed, each page printed its result wherever there was room — a removed file was reported a column away from the file, a reorder was announced at the top of a form nobody was looking at. **Feedback nobody sees is feedback that was not given.**
-
-**The line it does not cross:** a form's verdict on its own fields is not a toast. A rejected field's message stays under that field until it is fixed — see [Form Validation](#form-validation). Adding a line is a toast; failing to add one is not.
-
-### Deletion
-
-One policy, everywhere:
-
-- **Delete lives on the record's own page** — the order's header band, the form's footer — not on list rows, where a miss-tap on a crowded phone row is a record gone.
-- **Ask-before-deleting is one setting, read by every delete** — records and their parts alike: the order, the category, the vendor, a line item, an attachment. A destructive action that asks on one screen and not another is not a setting, it is a coin toss.
-- **Asking is a modal dialog.** The question interrupts above the page — the record named, DELETE and CANCEL, cancel holding focus, Escape declining — never a confirmation unfolded inline into the layout.
-- **A refusal names the reason and the count.** A vendor with orders on it, a category still on orders — both are refused with how many things are in the way, because "cannot delete" without a why is a dead end and with one is a to-do list.
-
-### Pagination
-
-Long lists page; they do not scroll forever. Continuous scrolling buries the footer, breaks "how many are there?", and makes a position unshareable — and this is a ledger, where *how many match* is half the answer.
-
-**The pager states the range** ("1–25 of 112"), disables PREVIOUS and NEXT honestly at the ends, and keeps the page in the URL with the rest of the list state. Page size and default sort are settings, read from the same place every list reads them.
-
-**The rest of the list state is in the URL too — keyword and sort as well as the page.** All orders, All vendors and All categories are one list pattern asked one way: a list that can be linked to by page number and not by what it was searching for is the rule obeyed for a third of itself. Every one of the three is a URL you can send.
-
-**A list remembers what it was showing, for the length of the visit.** The state is in the URL, but the app's own way back into these tabs is a bare address every time — the sub-tab is a plain `/orders/all`, the back button off a record goes to the overview, SEE ALL and the palette carry nothing — so filtering a list, opening a row and coming back landed on an unfiltered list without anybody having cleared anything ([the numbers](docs/defects.md#all-lists--filtering-opening-a-row-and-coming-back-cleared-the-filters)). Reaching one of these tabs with no query string restores the last one that tab held. Three things it is not: a link that carries its own filters wins outright, because a category tile means *that* category and never the last thing you looked at; CLEAR ALL is stored as cleared and stays cleared; and it is memory for this visit in this tab, not a preference — it dies with the tab, it does not follow the account to another device, and two tabs open on two different filters each keep their own. What a list opens as on a *first* visit is still [the account's setting](#settings).
-
-### Loading and Errors
-
-**Data arrives late, and the design owns that.** Every read has latency, so every reading surface has a loading state — a surface designed against instant data is a surface with no loading state, and that is the half that breaks first.
-
-- **A first load is shaped like what it is about to become.** A loading state sized for one line of text and then swapped for a page of cards and charts is a layout shift the reader feels, not just a number an audit catches — the cursor is usually sitting right where the jump lands. The loading state's footprint is a claim about the content's footprint: a card stays a card-shaped block, a list stays rows, a grid stays a grid, each holding roughly the space its real content will, so the swap from loading to loaded moves as little of the page as possible under the reader.
-- **Known data stays up during a refetch.** Walking back to a page paints what is known rather than flashing a skeleton at values that have not changed, and the layout does not collapse under the user while newer data lands.
-- **A slow answer may not overwrite a fast one** that arrived after it — reads are cancellable, and a stale response is dropped, not drawn.
-- **An error is an answer.** A failed read says so; a missing record says "Nothing here." An empty frame that looks like a slow frame is a lie with a spinner.
-
-### Data Persistence
-
-What the user changes persists. Refresh the page, the changes are still there. A "clear stored data" action resets everything to the shipped state, and it says so before it does.
-
-**The rule:** What is stored is the *difference* from the shipped data — an edited record stores which fields changed; a new record is stored whole. A stored *copy* of everything freezes the demo data at the version first seen, so a later fix to the shipped data never reaches anyone who opened the app once.
-
-**Storage being refused is not an error worth surfacing.** The choice still holds for the session; it just does not survive the next one.
-
-### Honest Affordances
-
-A control is a promise. Everything drawn as interactive must do the thing it depicts — this is the pattern most of this system's defects trace back to.
-
-- **A button that does nothing is not drawn.** FILTERS was once rendered complete and toggled nothing. If the behavior isn't built yet, the control isn't either.
-- **A control names its action, and the action must be true.** A grip with `cursor:grab` promises dragging; if rows can't be dragged, the grip lies.
-- **Hover states are earned.** Only elements that navigate get the row tint — it's keyed on `data-go`, the attribute that actually navigates, not on the row's class. A tint on an inert row invites a click that does nothing.
-- **Disabled is shown, not hidden.** A pager at its last page shows NEXT disabled rather than removing it — the control exists, it just can't act right now, and the difference is information.
-- **Copy is a promise too.** If the words enumerate what the product accepts, every named case must work (see [Scan Flow](#scan-flow)).
-- **A control that rebuilds something rebuilds it visibly.** FILL WITH DEMO DATA wiped a year of orders and wrote back the same year — same count, same days, same vendors — so pressing it twice was indistinguishable from pressing it once, and from pressing nothing. Made-up data is made up afresh on every press. ([`docs/defects.md`](docs/defects.md#demo-data--the-button-rebuilt-the-same-year-every-time))
-- **A control that replaces something replaces exactly what it names.** FILL WITH DEMO DATA says every order, vendor and category is removed first — and that is all it removes. Settings and the dashboard layout are preferences, not ledger data, and it once reset them too; CLEAR STORED DATA is the one control that returns preferences to the shipped state, and it says so.
-
-### Accessibility
-
-The system targets WCAG AA, and the pieces are structural, not sprinkled on:
-
-- **One focus rule for the document:** `:focus-visible` draws 2px `--teal` with 2px offset on anything focusable. No control invents its own.
-- **Landmarks:** every element lands inside one — content in `<main>`, navigation in `<nav>` — because "outside any landmark" is invisible to nobody except the people using the landmarks.
-- **Labels are real:** an icon-only control carries an accessible name; a linked card header announces "{title}, open {destination}"; a `<label>` points at its own control explicitly the moment anything labelable sits between them.
-- **State is in attributes and in pixels:** `aria-expanded`, `aria-checked`, `aria-invalid` — and each attribute has a stylesheet rule that draws it, because an ARIA attribute is a claim about the pixels, and only the pixels settle it.
-- **Reduced motion is honored** via `prefers-reduced-motion`.
-- **Contrast:** AA against the palette above. Decorative uses (a 3px meter in `--green`) may sit below text thresholds; text never does — that is what the darker `--text-positive` exists for.
-
-### iOS and WebKit
-
-The one platform whose own chrome the system has to work around. These are not styling choices; each is a workaround for something an engine draws or does uninvited:
-
-- **Native decoration is suppressed everywhere it appears.** Search fields get a circled × from the engine; date fields get a picker button. Both are browser-drawn icons the icon rule does not allow — and suppressing them is engine-shaped: a `-webkit-` prefix names the engine that *invented* the pseudo-element, not one that obeys the property you set on it. What removes a control in one engine can leave it drawn in another; only launching the engine settles it.
-- **Field text is 16px under a coarse pointer, then visually scaled back.** iOS zooms the page on focus of any field below 16px; the scale-back keeps the design's size without the zoom.
-- **Openers must be real.** The date glyph opens the native picker where the platform can (`showPicker`), and binds nothing where it can't — a dead listener swallows the tap the label forwards to the input.
-
-A change touching a native form control is engine-shaped by default: verified in one engine means unverified in the others, and the report says which.
-
-### Responsive Layout
-
-The phone layout is 700px and narrower. Below that:
-- The sidebar is gone; navigation moves to a bottom bar
-- Card grids and column layouts become one column
-- Field pairs stack instead of sitting side by side
-- The page runs on a single 12px gutter
-
-**Touch is not width.** The coarse-pointer rules (bigger targets, 16px field text) key off `pointer: coarse`, not off the viewport — a narrowed desktop window is not a phone, and a phone in landscape still is one.
-
-**The screen is not a rectangle, and its corners and reserved strips are the platform's to declare.** Anything the app pins to an edge reads the platform's safe-area insets and adds them to its own padding — the home indicator below, the notch's side in landscape. Two things follow. Each inset is named once, so the rule that consumes it can be driven to a value in a harness: no desktop engine reports one, so a layout written directly against the platform's own query has a branch that never renders where it is verified. And an inset added to a floating element is added to whatever has to clear it, or the page below ends up under the element by exactly the inset.
-
-**The bottom bar floats clear of the edge rather than filling to it.** Its own panel — colour, radius, shadow — stops short of every side, so the corner and the safe area below it show the page, not the bar. The current page is marked by tinting its icon and label, not by a filled background: a filled pill is the rail's device for sitting on the sidebar's own tint, and reads as a box inside a box once the bar is a panel in its own right.
-
-**A control in a row is sized by the row, not by its own content.** An input's intrinsic width belongs to the engine, and it is the wrong number in any case: it is what one field wants, decided without reference to what shares the line. So a control on a toolbar states the width it takes, gives it back under pressure, and never refuses to shrink. A control that refuses hangs off the end of the row, and hides there — see below.
-
-**A column in a multi-column row is a fraction of the row, not a pixel count.** Every split like this in the app — the two-column sections, the shell's own content grid — is written in `fr` units against the space there actually is, so it grows with the window the way its neighbour does. A fixed width is the one column that stops growing past whatever point it was measured at, which reads as fine at the width it was checked and wrong at every other one. See `docs/defects.md`, *Responsive Layout*.
-
-**The test:** every page renders at 390px with no horizontal overflow — `scrollWidth` equals `clientWidth` on the document element — **and no element extends past the box that holds it**. The second half is not implied by the first: the main panel clips, so a control hanging 38px off a card leaves the document exactly as wide as it was and the overflow test reads clean. Compare each element's right edge against its container's, not just the document's. See `docs/defects.md`, *Responsive Layout*.
+**Top bar:** locked. Breadcrumb and page title only.
 
 ---
 
-## Conventions
+### 10a — Home
+File: `Home.dc.html` · Code: new page (`pages/Home.jsx`)
 
-How the system is written down — in markup, in copy, and in these documents.
+**Purpose:** the start page. Answers "where am I this month, and what needs me?" and offers capture as the primary action.
 
-### Naming in the Markup
+**Layout:** shell sidebar, then content as a two-column grid — main `1fr`, right rail `320px`, `24px` gap.
 
-The class names are the system's public vocabulary, and they follow one grammar:
+**Main column, top to bottom:**
+1. **Greeting + month.** Title 34px/600, subline 14px `#57564f`.
+2. **This month against the limits.** White card, radius `12px`, `20px` padding. Big total 28px/700, then "of X kr. in limits" 13px `#8b8a82`. Progress bar height `10px`, radius `5px`, track `#eef1ee`, fill `#1d4d33`, plus a 2px `#b58a2b` pace marker positioned at `day/daysInMonth`, extending 2px beyond the bar top and bottom. Caption under it explains the marker: 11px `#8b8a82` with a 2px amber swatch inline.
+3. **Capture a receipt.** The prominent action: a dashed drop zone (`1px dashed #dedcd4`, radius `12px`, `24px` padding, fill `#f7f6f2`) with an upload icon, "Drop a receipt, or take a photo", and a primary button. Drag-over state: border `#1d4d33`, fill `#e7efe8`.
+4. **Recent orders.** Compact five-row list; each row vendor 14px/600, date and item count 12px `#8b8a82`, amount right-aligned 14px/600, status pill. Row hover `#f0efe9`. Footer link "All orders".
 
-- **Family prefix, then part**: `card`, `card-header`, `card-body`, `card-divider`. A part's name says whose part it is.
-- **Base plus variant, never variant alone**: `button button-pill`, `note note-warning`. The base owns the shape; the variant owns only its difference. A variant written alone is a control that silently lost its shape.
-- **One state vocabulary**: `.is-on` for every selection, `aria-expanded` for every disclosure, `:checked` for every switch and checkbox, `aria-invalid` for every rejection. State is never a bespoke class per component — a harness, a stylesheet and a reader all check it the same way everywhere.
-- **Attributes are API**: `data-go` names where an element navigates, and it is what the styling and the hover treatment key off — so "looks like it navigates" and "navigates" cannot come apart.
-- **A new selector is a claim about how many elements it matches.** Read the count back and require the number you meant: a rule that renders plausibly is not a rule that matched what you aimed at. Three of thirty rules once reached further than intended, and only the count said so.
-
-### Language and Formats
-
-The copy is English and the number grammar is Danish; neither is negotiable per screen. Dates and times are the exception, and they are not a screen's choice either — they are the reader's, and the browser is asked for them.
-
-- **Money**: a dot groups thousands, a comma separates decimals — `1.187,25 kr.` It is written in exactly two shapes: with the øre (`24.418,57 kr.`) where the figure is a total someone could reconcile against a receipt, and rounded (`18.420 kr.`) where it is a summary. Choosing the shape is choosing a claim about precision, not a formatting nit, and where the choice is not made it falls to the exact one: a summary that is noisier than it needs to be still states the right amount.
-- **The symbol is the account's, the grammar is not.** Which currency the figures are in is a setting; how the digits are grouped is not, and the two are separate decisions. The symbol does not always follow the figure (`1.187,25 kr.` but `$1.187,25`), the minus sits outside it (`-$99,50`, never `$-99,50`), and whether an amount ending a sentence needs a full stop is the currency's business, not the copy's — `kr.` carries one and `$20` does not, so it is asked rather than written, in one place ([`docs/defects.md`](docs/defects.md#language-and-formats--money-was-formatted-at-every-site-that-printed-it-and-one-of-them-was-the-server)).
-- **Percent** uses the comma too: `12,6%`.
-- **Dates and times are the reader's, in shape as well as in value.** `18 July`, `July 18` and `18.07` are one day written three ways, and which one a reader expects is theirs to settle, not a screen's. A date carrying no time of day is a calendar day and stays the same day for every reader; only a stamp that names an instant converts ([`docs/defects.md`](docs/defects.md#language-and-formats--every-date-was-written-in-one-readers-shape)).
-- **Asking the browser is asking a different question, so the reader is offered the answer.** A browser reports the language its own menus are in, never the regional format its reader writes dates in, and the two disagree for anyone running an English-language browser outside the places that write dates the American way. Taking the first as the second is how a reader in Copenhagen is shown `02:26 PM` for their own afternoon. So the shape is a setting, defaulting to the browser as before, and guessed once at registration from the one regional fact a browser will state plainly: its timezone. A guess is offered rather than applied silently — the new account is shown the setting with the guess already selected, so being wrong costs one click ([`docs/defects.md`](docs/defects.md#language-and-formats--the-browser-was-asked-which-language-its-menus-are-in)).
-- **The zone is named where a reader might not be standing in it.** A converted stamp with nothing marking its zone cannot be told from a raw one, which is a real ambiguity for a time that travels. It is not one for a time shown to a signed-in reader on their own machine, in their own clock: naming it there tells someone their own afternoon happened at GMT+2. Where every reader of a stamp is in the zone it was converted to, it goes unmarked.
-- **Money is the exception, and it is not an inconsistency.** An amount's grammar is shared with the field that takes it back, so display and parsing move together or not at all: a reader shown `1,187.25` who types it into a field parsing `1.187,25` has their amount silently changed, which is the one formatting bug that costs money rather than looks wrong. The grammar stays Danish at both ends until both ends move.
-- **Inputs speak the same grammar they display.** An amount field accepts `1.187,25`, gets the numeric keyboard, and treats `89.95` as a typo to name rather than a number to guess at — which is why no money field is a native number input; those reject the comma outright.
-- **No money field a person types is signed.** Every amount — price, retail, shipping, discount — is entered at zero or above, and a field that refuses a minus says so rather than blaming the grammar. A signed field was tried and cost twice: it needed a second number grammar beside the ordinary one, and on a phone it could not be typed at all, because the numeric keypad every mobile browser raises has no minus key. Where an amount has to subtract, the *field* subtracts it, not the value.
-- **Button labels are caps**, and they name the action: SEE THOSE ORDERS, ADD FILE, CLEAR ALL. One voice for every action in the product.
-- **The separator in copy is the bullet** (`•`, U+2022) — `34 orders • latest 12/8`, `Items • 2`, `Image • 1 KB` — never the middle dot (`·`, U+00B7), which reads as machine-written. And it is written once, not sixty times: JSX text joins with the `<Sep />` component, template strings with the `sep` constant it renders (`react/src/api/format.js`; the API's own metas use `api/src/lib/copy.js`), so changing the character is one edit per runtime — plus a migration for stored attachment metas, which bake it in at write time.
-- **An ellipsis is three dots** — `Search vendors...`, `SAVING...` — never the single character (`…`), in copy, placeholders, button states and code alike, now and in everything written later. Same reason as the dot above: it reads as machine-written.
-- **No long dash in copy, ever.** The em dash (`—`) and en dash (`–`) never appear in anything the product renders — same reason as the two above: they read as machine-written. A sentence that wants one is rewritten with a colon, a comma, a semicolon or a full stop, and mostly reads better for it. Where a dash is genuinely part of a value — an empty summary cell, a range like `1-9999`, a date span in a chip — it is the plain hyphen (`-`).
-- **Field labels are questions where a question is clearer**: "Who did you buy from?" beats "Vendor" on a form a person fills once.
-- **Back buttons name the destination**, not the direction: "Back to orders", never just "Back".
-- **A rejection reads as a question or an instruction, under its own field**: "Who did you buy from?", "Describe the item." — never a summary sentence naming several fields at once.
-- **Copy that enumerates is a contract**: if the words say "a PDF, photo or screenshot", each named case works ([Scan Flow](#scan-flow)).
-
-### Documentation
-
-Three documents, one job each — because a rule stated in two places is obeyed in one:
-
-- **This file** holds the rules, in general terms, with the reasoning beside each. It names no framework, no build tool, no storage API: those are decisions downstream of the system, and the system outlives them.
-- **[`docs/defects.md`](docs/defects.md)** holds the evidence — the defect a rule cost, the numbers that settled it, the instrument that measured it. Entries are keyed to the section they defend, by name, never to a date. It is not a changelog.
-- **[`docs/porting.md`](docs/porting.md)** holds what an implementation has to build and the traps that belong to targets rather than to the design. A port's own README documents that port.
-- **The screenshots are renders of the running app, and they are current or they are wrong.** Nothing in them is cropped by hand or touched up, and each one holds a named state — a page, a viewport, and whatever is open or typed into it. A shot that no longer matches the app is the one claim a reader believes without checking, so a change that moves one regenerates it; three of them once drifted through two changes at 226,194, 41,303 and 319,255 differing pixels ([the numbers](docs/defects.md#documentation--three-committed-screenshots-had-drifted-from-the-app)).
-- **[`design/`](design/) holds proposed layouts, not the current truth.** Where a mockup and the code disagree, the code wins — the mockup is the proposal.
-
-**How a change lands:** the rule goes here, in the section that owns it; the bug and its numbers go to the defect log; anything implementation-shaped goes to the porting notes. A fix that teaches nothing writes nothing.
+**Right rail:**
+- **Needs a look.** The same alert list pattern as 5c: rows with a count bubble, a short phrase, and a chevron. Amber-surfaced when it is a limit or a duplicate, neutral `#f7f6f2` otherwise. Each row navigates to the filtered list that contains those records.
+- **Top categories this month.** Category rows with the icon tile, name, amount, and a bar showing share of its limit.
 
 ---
 
-## Ground Rules
+### 1a–1d — Order read, edit, and item editing
+File: `Order editing layouts.dc.html` · Code: `pages/OrderDetail.jsx`, `pages/EditOrder.jsx`, `components/ItemLines.jsx`, `components/Reorder.jsx`, `components/FileInput.jsx`, `components/FormPage.jsx`
 
-**One source of truth:** If a decision lives in two places, they'll disagree eventually. Decisions live here. Implementation lives in the code.
+This is the core of the handoff.
 
-**No hand-waving:** "It looks right" is not evidence. Measurements decide. Element walks. Pixel diffs. Interaction assertions.
+#### Shared two-column shape
 
-**Honest affordances:** If a control can't do something, don't draw it as if it can. A button that doesn't work is a button that shouldn't be drawn yet.
+Main column `1fr` (min `560px`), right rail `360px`, `24px` gap, aligned to top. The item list begins at the top of the main column — no header block above it. The rail scrolls with the page; it is deliberately kept shorter than the item list so the two do not fight (this was an explicit revision: the rail must not become the longest thing on the page).
 
-**Uniformity:** When something repeats, count how many times. If three things do it one way and one does it another, change the one, not the three. Never add a new way.
+**Rail contents, in order:** order details (vendor, order date, status, category, reference), then totals, then notes. Each is its own white card, radius `12px`, `16px` padding, `14px` between cards. Each card opens with an 11px uppercase `0.12em` `#6b6a63` label.
 
-**The stylesheet owns layout.** A layout value — a margin, a gap, a size, a colour that is the system's rather than a record's — lives in the stylesheet under a name. An element carries a style attribute only when the value is the data speaking: a category's colour, a bar's share, a dragged row's size. An inline copy of a system value outranks every rule the stylesheet can write, which is how a phone rule gets written, shipped and never rendered ([`docs/defects.md`](docs/defects.md#the-stylesheet-that-was-being-overruled-by-its-own-pages)).
+**Totals card:** label/value rows 13px, then a `1px #dedcd4` divider, then the grand total at 20px/700.
 
-**Elements before components before views:** An element is defined before the component that uses it. A component before the view that shows it. Reading top to bottom is reading in dependency order.
+#### 1a — Read view
+
+Values render as text, not inputs. Item rows are read-only: thumbnail, name, quantity × unit price, line total. The primary action is Edit; secondary actions Duplicate and Delete sit next to it, inside the page (never in the top bar).
+
+Attachments sit **below** the item list as a horizontal strip of tiles: `96×96`, radius `10px`, `1px solid #e6e4dc`. Images show a cropped thumbnail; PDFs show a rendered first-page thumb with a small `PDF` tag bottom-left (11px, white on `rgba(27,26,23,0.6)`). Filename 11px truncated under each tile. Clicking opens a lightbox.
+
+#### 1b — Editing an item in place
+
+Selecting a row expands it into an editing form **within the list**, pushing the rows below down. It does not open a dialog and does not take over the rail.
+
+Expanded row: fill `#fff`, `1px solid #1d4d33`, radius `10px`, `14px` padding. Contents: the item photo at `80×80` (radius `9px`) with an overlay control on hover, then fields — name (full width), then a `1fr 1fr 1fr` grid of quantity, unit price and line total, where line total is computed and read-only. Below: Cancel (ghost) and Save item (primary) right-aligned, `8px` gap. Esc cancels, ⌘/Ctrl-Enter saves.
+
+**The item photo controls** (the answer to "how do I add, replace or delete a photo"): hovering the 80×80 thumb dims it to `rgba(27,26,23,0.45)` and reveals two 28px round icon buttons — replace (upload glyph) and delete (trash glyph). With no photo the slot is a dashed `#dedcd4` square with a small camera glyph and the label "Add photo"; it accepts drop as well as click. Deleting asks for confirmation only if the photo came from a scan.
+
+**Discoverability of editing** (an explicit revision): a row must never look inert. Each row shows, on hover, a `#f0efe9` fill, a pencil affordance at its right edge, and `cursor: pointer`. On touch, the pencil is always visible. The list header carries a one-line hint: "Tap a line to edit it."
+
+#### 1c — Edit screen with reorder
+
+Same two-column shape with fields in the rail as inputs (`1px solid #dedcd4`, radius `9px`, `10px 12px`, 14px text — 42px tall, the canonical control height (controls that are not text, like the quantity stepper, get `box-sizing: border-box; height: 42px` explicitly rather than sizing to content); focus `1px solid #1d4d33` plus a 3px `rgba(29,77,51,0.12)` ring).
+
+**Reordering item lines.** Two mechanisms, both required:
+- **Drag.** A 6-dot handle (`#c3c1b8`, 16px) at the left of each row, `cursor: grab`. Dragging lifts the row with shadow `0 4px 14px rgba(27,26,23,0.08)` and shows a 2px `#1d4d33` insertion line at the drop position; other rows shift with `150ms ease`.
+- **Keyboard / buttons.** Up and down icon buttons in the row's action cluster, disabled at the ends. These are what makes reorder usable on touch and with a keyboard; the handle alone is not enough.
+
+Order is explicit and persisted as a position field; it is not derived from name or amount.
+
+**Item action buttons** are 28px square icon buttons, radius `8px`, transparent until row hover, then `#f7f6f2` with `#3d3c36` glyphs at `stroke-width: 1.5`. Cluster: move up (chevron up), move down (chevron down), edit (pencil), duplicate (two overlapping sheets), delete (trash, hover text `#8a4a41`, hover fill `#fdf6f5`). Each carries an `aria-label` and a tooltip; icon-only is intentional to keep the row short, so the labels matter.
+
+**Sticky save bar** at the bottom of the main column while dirty: white, top border `#e6e4dc`, shadow `0 4px 14px rgba(27,26,23,0.08)`, "Unsaved changes" 13px `#57564f` left, Discard and Save right.
+
+#### 1d — Mobile edit and the item sheet
+
+See "Mobile" below; 1d holds the phone version of these two screens.
 
 ---
 
-## This system evolves
+### 2a–2c — Order list
+File: `Order list.dc.html` · Code: `pages/Orders.jsx`, `pages/AllOrders.jsx`, `components/Rows.jsx`, `components/ListState.jsx`, `components/Chip.jsx`, `components/Pager.jsx`, `components/Pickers.jsx`
 
-Design systems are living things. They grow with the product. When something doesn't work, it gets fixed. When a new pattern emerges, it gets documented.
+**Purpose:** find orders. Full-text search plus facets, in rows or cards.
 
-The hardest part is getting started. The payoff comes when the third new screen takes a day instead of a week because everything is already solved.
+**Layout:** facet rail `260px` on the left of the content area, list fills the rest, `24px` gap.
+
+**Facet rail:** one white card per facet group — Status, Category, Vendor, Date, Amount. Group label 11px uppercase `0.12em`. Each facet row is a checkbox, a 13px label, and a right-aligned count 12px `#8b8a82`. Groups with many values show the top 6 plus "Show all (24)". Counts update with the other facets applied.
+
+**Above the list:** a search field (full width of the list column, radius `9px`, leading search glyph, placeholder "Search vendor, item, reference or note"), then the active filter chips row: pills radius `999px`, `#e7efe8` fill, `#1d4d33` text, 12px, each with an × ; plus "Clear all" as a text button. Right of that: result count ("128 orders · 486.320 kr."), sort select, and the rows/cards toggle — a segmented control, radius `9px`, `1px solid #dedcd4`, active segment `#1d4d33` on white.
+
+**Rows view (2b):** header strip `#f2f1eb`, 11px uppercase labels. Column order and alignment, left to right: checkbox `36px`; **vendor `200px` fixed**; date `110px`; items (count) `72px`; category (chip) `160px`; status (pill) `120px`; amount right-aligned `120px`; actions `88px`. Row padding `12px 14px`, hairline `#e6e4dc` between rows, hover `#f0efe9`.
+
+The fixed vendor column is a deliberate correction: an earlier version placed the vendor inside a variable-height stack with the item preview, so it landed at a different vertical position on every row. Vendor is first, one line, truncated with ellipsis, and always at the same x and y within its row. Any item preview text sits on a second line under it and never displaces it.
+
+**Cards view (2c):** grid, `minmax(280px, 1fr)`, `16px` gap. Card radius `12px`, `1px solid #e6e4dc`, `16px` padding: vendor 15px/600 top-left, status pill top-right, date and item count 12px `#8b8a82`, then up to three item thumbnails at 44px, then the amount 20px/700 and the category chip on the footer line.
+
+**Bulk actions (in 2a):** selecting rows reveals a bar above the list — "4 selected", then Set status and Add category as buttons, then Clear. Both open a small popover anchored to the button: Set status is a single-select list of the five statuses (the Combobox in pick-only mode — there is no Radio component; see 14d); Add category is a searchable list with the category icon tile and name, multi-select, and a "Create category" row at the bottom. Applying shows the count in a toast with Undo.
+
+**Pagination:** page size select and prev/next at the bottom; the total reflects the filter.
+
+---
+
+### 3a — Creating an order from a receipt
+File: `Order create.dc.html` · Code: `pages/NewOrder.jsx`, `pages/Scan.jsx`, `components/AiCard.jsx`, `components/fileKinds.js`
+
+**Purpose:** get a receipt into the system with as little typing as possible. Four stages, shown side by side in the mockup but sequential in the app.
+
+1. **Start.** Three ways, ranked by frequency: the drop zone with **one** button ("Select a receipt"), then below a divider, "Empty order" and "Copy a previous order" as equal cards. Accepts PDF, JPG, PNG, HEIC; states the size limit.
+
+   **One file button, not two.** Camera versus files is the device's decision, not a design choice — a single input with the right `accept` and `capture` attributes yields a camera option on a phone, the photo library on a tablet, and a plain file dialog on desktop, each in the form that platform's users already know. Separate "Choose file" and "Use camera" buttons duplicate the OS picker's own first screen, and one of the two is always dead weight on whatever device is in hand. Drop needs no button at all on desktop — the zone is the affordance — but the button stays for keyboard users. "Copy a previous order" is hidden when there are no orders yet.
+2. **Reading.** The uploaded file's thumbnail on the left, and on the right a progress card: an animated indeterminate bar, the stage in words ("Reading line items…"), and Cancel. Nothing is written yet.
+3. **Check what was read.** The heart of the flow. Two panes: the receipt preview left (zoomable, page thumbs for multi-page PDFs), the proposed order right. Every proposed value carries a confidence affordance — fields read cleanly look like normal filled fields; uncertain fields get an amber left edge (`2px #b58a2b`) and a "check this" hint. Item lines list with the read values as editable inputs; unmatched vendor or category shows an inline picker with a "Create X" option. A summary line reconciles the totals: if the item lines do not add to the receipt total, that difference is stated plainly in amber, with a "the receipt says" figure beside the computed one. Buttons: Discard, Save as draft, Create order.
+4. **Created.** Confirmation with the order summary, the attachment kept on the order, and two links: open the order, or scan another.
+
+The scan **proposes**; nothing is stored until Create order. The uploaded file always ends up attached to the resulting order.
+
+**3b — Copy a previous order.** The picker the create-screen card opens; the copy itself is 8a's duplicate unchanged. A 462px dialog: a line stating what carries over, search across **vendor and item name** (the thing you remember is often "the order with the oak chairs", not the shop), then two groups — **You order these often** (orders whose vendor and line shape recurred, with the repeat count, since that is the case this exists for) and **Recent**. Same grouped-Combobox behaviour as 14a: arrows cross both groups as one flat list, headers never focusable.
+
+Every row must be identifiable without opening it, so each carries vendor, line count, the first item names and the total — the total does most of the work when a shop has twelve orders. Picking opens the edit screen **unsaved** with 8a's notice; no confirm, because nothing exists yet. Amounts are copied, not re-priced: they are what was paid last time and are editable like any field — nothing looks up a current price.
+
+Three entry points, one dialog: the create-screen card (hidden with no orders), the New order split-button menu, and Home's **Duplicate last order** (which skips the dialog, since "last" needs no picking). The order list's per-row Duplicate is deliberately not one of them — there the source is already chosen, so it goes straight to edit. That is also why this is a dialog and not a list page: browsing with facets is the order list's job, and Duplicate is already waiting there.
+
+**3c — the same receipt scanned twice.** Every upload is hashed (SHA-256 of the bytes as received, stored on the attachment row and indexed). On a match this screen **replaces the reading stage** — a dialog over a progress bar would mean the scan is running behind a question about whether it should, and asking after the proposal exists wastes the read and drops the user into review with a decision they should have made first.
+
+**Cache the reading, not just the hash.** Each scan is a paid API call, so the scan output is stored against the file hash and a repeat upload can produce a full order with no second call. That is the return on the feature: the three legitimate reasons to continue — a repeated purchase on an identical receipt, a re-import after deleting the original, one receipt covering two orders — are all served by the cached reading. **The cost is internal and never appears in the UI:** no amounts, no warnings, no counters — a price tag would ask the user to manage an infrastructure bill they never agreed to. The design carries the intent instead, with **Use the reading** as the primary and **Scan again** as a secondary, the latter being rational only when the cached reading was wrong and the model has since improved.
+
+It shows the matched order in full (vendor, reference, date, line count, total, when it was scanned) with **Open that order**, because "you have already imported this file" without naming the order is a dead end — the user's next question is always *which one*. Amber, and it never blocks: **Scan anyway** is always available and never behind a confirm, because three legitimate reasons exist (a genuinely repeated purchase on an identical receipt, a re-import after deleting the original, and one receipt covering two orders). **Attach it to that order instead** appears only when the matched order lacks this exact file — so after an exact match against that same order it is disabled. Multiple matches list up to three, newest first. The upload is kept for 24 hours either way.
+
+**This is not duplicate-order detection and must not be presented as such.** The hash catches the same file uploaded twice — the common case. It misses a second photo of the same paper receipt, the same PDF re-saved by another reader, or a re-download that changed a byte of metadata; all are different bytes. The fuzzy check on vendor + date + total — behind Import's "2 rows look like orders you already have" and 5c's possible-duplicates list — is the separate mechanism for those, and it runs later, on the proposed order rather than the file. Both can fire on one upload: this screen comes first because it is certain, and the fuzzy warning appears in review only if the user chose to scan anyway.
+
+Scan failure is in 6e: the file is kept, the message says what failed, and the primary action is "Enter it manually" with the file already attached — never a dead end.
+
+---
+
+### 4a — Statistics
+File: `Order statistics.dc.html` · Code: `pages/Stats.jsx`, `components/Chart.jsx`, `components/Viz.jsx`, `components/DashboardCards.jsx`
+
+**Purpose:** the one place for aggregate numbers, with a drill path down to the orders behind any slice.
+
+**Layout:** a period control at the top (year / month / custom range, plus a compare-to-previous toggle), then the drill breadcrumb, then a card grid. Cards are white, radius `12px`, `18px` padding, in a 12-column grid; every card spans a whole number of columns so rows always close — no half-filled row and no gap in the middle (this was a fix; verify at 1280, 1440 and 1920).
+
+**Cards:**
+- **KPI strip:** four cards — total spend, order count, average order, saved vs retail. Label 11px uppercase, value 28px/700, delta 12px with an up/down glyph (green `#1d4d33` for down on spend, amber for up).
+- **Spend by month:** column chart. Bars `#1d4d33`, radius `4px` top corners, track `#eef1ee`. Axis labels 11px `#8b8a82`. Hover tooltip gives the month, total and order count.
+- **By category:** horizontal bars using the five-step green ramp (`#1d4d33`, `#4f7f63`, `#8caf97`, `#c6d6c9`, `#dfe6e0`) with everything beyond the top five collapsed into "Other N categories" at `#dfe6e0`. Each row carries the category icon tile.
+- **By status:** the same bar pattern, five statuses.
+- **Monthly limits:** one row per category with a limit — name, spent, limit, and a bar with the `#b58a2b` pace marker. Over-limit rows fill amber `#e2d3ae` rather than red.
+- **Vendor table:** top vendors with spend, orders, average, and a 60×20 sparkline.
+
+**Drill-down:** clicking any bar, slice or table row pushes a crumb onto the breadcrumb (`2026 ▸ Decor ▸ August`) and re-filters every card on the page to that slice. The final level is a list of the matching orders, from which a row opens the order. Crumbs are individually removable, and the state is URL-encoded so a drilled view can be linked.
+
+**Statistics is the only place with charts.** Vendor and category panels answer the narrow, single-record question locally (see 5a/5b); each carries a "See in Statistics" link that opens this page with the corresponding crumb already applied. Do not duplicate chart cards into those pages — one source, so the numbers cannot disagree.
+
+---
+
+### 5a–5c — Vendors and categories
+File: `Vendors and categories.dc.html` · Code: `pages/Vendors.jsx`, `pages/Categories.jsx`, `pages/CategoryForm.jsx`
+
+**Purpose:** the library behind orders. Two lists that share one layout: list left, panel right (`400px`).
+
+#### 5a — Vendors
+
+List rows: name 14px/600, order count and total 12px `#8b8a82`, chevron. Search above.
+
+Panel for a selected vendor: the vendor form (name, VAT number, website, address, default category, notes), then a small stats card — spend, orders, average order, saved vs retail as a 2×2 grid of 20px/700 values — plus a sparkline and the "See in Statistics" link. No charts.
+
+**Merge** handles scan duplicates: the panel offers "Merge into…", which opens a picker of similar vendors, then a comparison showing which field wins per row and the resulting order count. It is destructive and confirmed explicitly, naming the number of orders that will move.
+
+#### 5b — Categories
+
+List rows: a `26×26` icon tile (radius `8px`) filled with the category colour, glyph in white — or `#3d3c36` when the colour is light — then the name 14px/600, this month's spend, and its limit. The tile replaced a plain colour dot so a category is recognisable at a glance.
+
+Panel: the category form.
+- **Name.** Text field with the current icon tile inline at its left (22px, radius `7px`).
+- **Icon.** The current icon at 44px (radius `11px`, category colour), its name, and a Change control. Open, it is a picker: a search field, then an 8-column grid of `aspect-ratio: 1` cells (radius `8px`, `#f7f6f2`, selected cell `#eef1ee` with a 2px `#1d4d33` outline offset 1px), ending in a "+64" overflow cell. Icons come from a fixed set; the picker never accepts uploads.
+- **Colour.** A row of swatches from the green ramp plus neutrals.
+- **Monthly limit.** A single amount that applies to every month — it is not per-month data. Empty means no limit. Below the field: this month's spend against it, with the pace marker bar.
+- Icon and colour always render together, so the same mark identifies the category in chips, facets and charts.
+
+#### 5c — Roll-up panel (nothing selected)
+
+The panel's default state, matching the detail panel's width and card rhythm but describing the whole list: totals for all vendors (spend, vendors used, saved, average order), a "where the money goes" top-five bar list with "Other N vendors", and a "Needs a look" list — possible scan duplicates, vendors with no orders in 12 months, missing VAT — each an amber or neutral row with a count bubble and a chevron into the filtered list. For categories: the month's spend against the sum of all limits, with the pace marker. Footer hint: "Select a vendor to edit its details."
+
+---
+
+### 8a / 8b — Duplicating an order, and budget alerts
+File: `Duplicate and alerts.dc.html` · Code: `pages/EditOrder.jsx`, `pages/CategoryForm.jsx`
+
+**8a — Duplicate.** "Duplicate" on an order opens a new **unsaved** order prefilled from the original, on the edit screen, with a notice at the top: 13px on `#e7efe8`, radius `9px`, naming the source order and offering "Discard". What carries over is explicit and stated in the notice: vendor, category, reference, notes and all item lines with quantities and prices. What does not: the order date (set to today), the status (reset to the first status), and attachments — a receipt belongs to the order it came from. Leaving without saving discards it, with a confirm.
+
+**8b — Budget alerts.** The same fact surfaced in three places, all amber, none blocking:
+1. **As you cross it, while editing.** A notice appears above the sticky save bar the moment the running total pushes the order's category over its monthly limit: "This puts Decor 1.240 kr. over its 6.000 kr. limit for August." Save is unaffected.
+2. **On the category.** In the category panel (5b) and its list row, the limit bar fills amber `#e2d3ae` past 100% and the row gains a small amber badge.
+3. **Once a month.** A dismissible summary on Home (10a) listing the categories that finished the previous month over their limit, with each row linking to that month's filtered order list.
+
+Wording is factual — the amount over, the limit, the month. No exclamation, no red, no "warning".
+
+---
+
+### 6a–6f — States and confirmations
+File: `States and confirmations.dc.html` · Code: `components/ListState.jsx`, `components/Dialog.jsx`, `components/Toast.jsx`
+
+**6a — Empty states.** Distinguish three: never had any (a real invitation — headline, one line of explanation, primary action, e.g. "No orders yet" / "Scan a receipt"), filtered to nothing ("No orders match these filters" plus "Clear filters"), and search found nothing (echo the query, offer to clear). Centred in the content area, `48px` vertical padding, headline 16px/600, body 13px `#57564f`, no illustration.
+
+**6b — Loading.** Skeletons that match the shape of what is coming: `#f7f6f2` blocks at the real row heights with the shimmer, never a spinner in place of a layout. Row lists show six skeleton rows; cards show three skeleton cards; the panel shows label/value pairs.
+
+**6c — Validation.** Field-level, on blur and on submit. Error field: border `#c98a80`, message below at 12px `#8a4a41` with a small alert glyph. A form-level summary appears above the actions when submit fails, listing the fields as links. Rules implemented: vendor required; order date required and not in the future; at least one item line; quantity > 0; unit price ≥ 0; amounts max two decimals; reference max 64 chars; category limit must be a positive amount or empty. Crossing a monthly limit is **not** an error — it renders as the amber notice from 8b and the save proceeds.
+
+**6d — Confirmations and toasts.** Destructive actions use a dialog: `440px`, radius `14px`, shadow `0 12px 28px rgba(27,26,23,0.16)`, scrim `rgba(27,26,23,0.35)`. Title 16px/600 states the consequence in the user's terms ("Delete this order?"), body 13px names what is lost including attachments, then Cancel (ghost) and the destructive primary (`#8a4a41` fill). Non-destructive success uses a toast instead: bottom-centre, dark `#1b1a17`, white 13px text, radius `9px`, shadow `0 14px 32px rgba(27,26,23,0.14)`, an Undo text button in `#a8c6b2`, auto-dismiss 6s, paused on hover. Undo is the preferred pattern; reserve dialogs for what cannot be undone.
+
+**6e — Scan failure.** As described in 3a: keep the file, say what failed, offer manual entry with the file attached.
+
+---
+
+### 7a / 1d — Mobile
+Files: `Mobile screens.dc.html`, `Order editing layouts.dc.html` (1d) · Same pages at mobile breakpoints
+
+Breakpoint: below `900px` the two columns stack; below `640px` the phone layout applies. Page padding `20px`. **Minimum touch target 44px** everywhere.
+
+**Orders list.** Rows become cards. This was reworked twice because the first version crammed every desktop column into a phone row. What a mobile row shows: vendor 15px/600 on line one with the amount right-aligned at 15px/700; date, item count and status on line two at 12px `#8b8a82`; the category chip on line three. Nothing else. Generous `14px` padding, `12px` between cards. The remaining fields belong to the detail view, not the row.
+
+**Filters** move into a bottom sheet: radius `14px` on the top corners, shadow `0 20px 44px rgba(27,26,23,0.22)`, a drag handle, the facet groups as expandable sections, a sticky "Show 128 orders" primary at the bottom. Entry `200ms ease-out`.
+
+**Order edit (1d).** The details rail becomes a collapsed section above the items, closed by default and labelled with a summary line ("Indbo Møbler · 12 Aug · Received") — the same intent as the desktop change, applied to a single column. Items are full-width rows with the pencil visible (no hover on touch).
+
+**Item editing (1d)** uses a bottom sheet rather than an inline expansion: the photo at 80×80 with its replace/delete controls, the fields stacked full-width, and Cancel / Save pinned to the bottom of the sheet.
+
+**Capture** gets a floating action button, 56px, `#1d4d33`, shadow `0 8px 22px rgba(20,38,28,0.32)`, bottom-right above the tab bar — the phone is the camera, so this is the one action that is always reachable.
+
+**Statistics** goes to one column, charts full-width; the vendor table becomes a stacked list. Drill-down works the same way, with the breadcrumb wrapping.
+
+---
+
+### 11a / 11b — Settings, and importing a file
+File: `Settings and import.dc.html` · Code: new pages (`pages/Settings.jsx`, `pages/Import.jsx`)
+
+#### 11a — Settings
+
+**Layout:** the app sidebar, then a page-level settings nav (`208px`, rows `9px 10px`, radius `9px`, active row white on the canvas) and a single column of cards capped at `640px`. The shell holds a fixed composition — do not let the card column compress below its designed width; the page scrolls instead.
+
+**Five sections, each its own card with its own save.** Only the card you touched goes dirty; the sticky save bar names it ("Unsaved changes in Statuses").
+
+- **Account and profile.** 56px avatar with upload and remove, name, email (read-only), and a password row.
+- **Appearance.** Theme as three preview cards — light, dark, follow system — each a miniature of the shell rather than a swatch. Then row density as a segmented control (comfortable / compact; compact takes list rows from 14px to 8px of vertical padding and leaves item lines alone, so touch targets survive). The theme is also switchable from the sidebar bottom; the two stay in sync.
+- **Currency and format.** Currency, number format, date format, week start, with a live preview strip showing the result. Changing the currency does not convert existing amounts — it changes the symbol only, and the card says so.
+- **Defaults for a new order.** Default category and status, plus a "let a scan override these" toggle: on, a receipt naming a vendor whose default category differs wins; off, your default always applies.
+- **Statuses.** A draggable list, each row a colour dot, the name, the order count on it, and an edit control. Editing expands the row inline to a five-swatch colour picker plus the name field — the same in-place pattern as item lines. Draft is built in and cannot be renamed or removed. A status with orders on it cannot be deleted; reassign first.
+
+#### 11b — Import
+
+**Purpose:** the bulk path — a spreadsheet or a JSON export from another app, as opposed to scanning one receipt (3a). Four stages, sequential in the app, shown side by side in the mockup.
+
+1. **Pick a file.** Drop zone accepting CSV, XLSX and JSON, plus a downloadable template whose columns map themselves. Below it, previous imports with a "reuse mapping" action — the second import of the same monthly export should cost nothing.
+2. **Map the columns.** Each file column on the left showing its **name and three real sample values**, an arrow, and the Spendly field on the right. Mapping against real data is the whole point; a list of field names in the abstract is guessable and wrong. A "don't import" option renders the row dimmed with a dashed target. Two inline resolutions appear where needed: an ambiguous date gets a "read as DD-MM-YYYY" amber strip with a Change control, and a column whose values don't match existing records gets a count and a "match them" link. The footer states the count mapped and which fields are required (vendor, order date, item name).
+   - **"Each row is" — one item line or a whole order.** With *one item line*, rows are grouped by a reference column into multi-line orders. With *a whole order*, the item fields collapse: quantity and unit price leave the mapping (shown struck through, not silently removed), item name becomes an optional Description, and a required **Order total** appears because there is nothing left to sum. Each order then arrives with a single item line carrying the description and the total at quantity 1 — totals stay correct and the order stays editable, but the itemisation is gone and cannot be recovered later. Switching back restores the previous mapping. The order count in step 3 changes with the switch (128 rows → 128 orders instead of 41), which is the fastest signal that the wrong option is selected.
+   - **Matching unknown values.** Every unmatched value gets a row with its occurrence count and a picker. An unresolved row blocks the import: a category invented by an import is worse than one the user chose.
+3. **Check before writing.** Four counts (orders, item lines, new vendors, total), then the advisories: likely duplicates of orders already held (amber, reviewable) and rows that cannot be imported (red, listed). Unimportable rows are **skipped, not repaired** — they come back as a downloadable file to correct and re-import. Then the first five orders rendered as they will be saved, with new vendors flagged in the row. A "bring them in as drafts" toggle lets 41 orders be worked through without counting in Statistics yet.
+4. **Done.** The counts, then three actions: see the imported orders, download the skipped rows, and **undo this import** — which removes exactly what this import wrote, including the vendors it created, for 24 hours.
+
+---
+
+### 12a / 12b — Dark mode, and images at full size
+File: `Dark mode and image viewer.dc.html` · Code: theme layer + `components/Lightbox.jsx`
+
+#### 12a — Dark mode (warm dark)
+
+Not an inversion. The light theme's identity is warmth — a greige canvas, not grey — so the dark theme is a warm brown-black and the greens lift rather than darken. Implement as a single token layer with a role-to-value map per theme; no component should reference a literal.
+
+| Role | Light | Dark |
+| --- | --- | --- |
+| Canvas | `#eceae4` | `#1a1815` |
+| Card surface | `#ffffff` | `#221f1b` |
+| Raised / hover | `#f0efe9` | `#2a2621` |
+| Quiet fill | `#f7f6f2` | `#262320` |
+| Hairline border | `#e6e4dc` | `#38332c` |
+| Input border | `#dedcd4` | `#463f37` |
+| Text primary | `#1b1a17` | `#f2f0ea` |
+| Text body | `#3d3c36` | `#d8d4ca` |
+| Text secondary | `#57564f` | `#a8a29a` |
+| Text muted | `#8b8a82` | `#7d776e` |
+| Green primary | `#1d4d33` | `#5d9b76` |
+| Green surface | `#e7efe8` | `#1f3328` |
+| Chart track | `#eef1ee` | `#2e2b26` |
+| Amber line | `#b58a2b` | `#d9b166` |
+| Amber surface | `#fdf8ee` | `#2c2418` |
+| Red text | `#8a4a41` | `#d99a90` |
+| Red surface | `#fdf6f5` | `#2c1e1c` |
+| Sidebar | `#14261c` | unchanged |
+
+Four rules behind the map:
+- **The sidebar does not change.** It was already dark, and it is the one element anchoring both themes.
+- **Elevation reverses.** Light lifts a surface with shadow; dark lifts it by getting lighter. Cards are lighter than the canvas, dialogs lighter again. Shadows remain, at roughly half the light theme's opacity, and only for layering.
+- **The chart ramp keeps its five steps in the same order, lifted:** `#5d9b76`, `#7fb392`, `#a3c9b0`, `#4a6b57`, `#39443c`.
+- **Amber and red keep their meaning but swap carriers.** On light, the surface is tinted and the text is dark; on dark, the surface is barely tinted and the text carries the colour. The pace marker stays a hairline, lifted to `#d9b166` so it survives against an amber-filled bar.
+
+Primary buttons on dark are `#5d9b76` with `#14261c` text — the green is light enough that white text on it fails contrast. Green text on a dark surface uses `#8fc0a2`, not the button green.
+
+Theme switching lives in Settings (three preview cards) and at the bottom of the sidebar; both write the same preference, which follows the OS when set to system.
+
+#### 12b — Images at full size
+
+One overlay serves both order attachments and item photos, and it always knows the set it belongs to — the order's files — so navigation does not require going back.
+
+**Chrome:** a header with the filename, its context line (vendor and date for an attachment; the item name for a photo), the position in the set ("File 1 of 3"), download, and close. Prev/next as 38px round `rgba(255,255,255,0.12)` buttons over the image edges. A footer strip of the order's other files, the current one outlined in the accent green.
+
+**Multi-page PDFs** get a page rail on the left (`108px`, thumbnails at `aspect-ratio: 0.72`, current page outlined 2px accent) plus a "Page 1 of 3" line. Single-page files show no rail.
+
+**Keyboard:** left/right move within the set, Esc closes, focus is trapped and returns to the tile that opened it.
+
+**The overlay is dark in both themes.** Bright chrome around a bright scan leaves nothing to read the image edge against. What changes with the theme is the scrim — `rgba(27,26,23,0.72)` on light, `rgba(10,9,8,0.82)` on dark.
+
+**Two rules for thumbnails on dark**, and they matter more than they sound: every image thumbnail keeps a `1px #463f37` border, because a white receipt scan with no border floats as a bright edgeless rectangle; and thumbnails render at **90% opacity**, taking the glare off without touching colour accuracy. Full opacity returns on hover and in the viewer, where the image is the subject.
+
+---
+
+### 13a — Typography
+File: `Typography.dc.html`
+
+The specimen is rendered at real size — measure off the file, not a screenshot. Beyond the scale (in the token section above) it fixes four things:
+
+**Loading.** `Poppins, system-ui, sans-serif`, weights 400/500/600/700, latin and latin-ext. No italics anywhere, no 300 or 800 — a missing weight gets synthesised and the amounts stop lining up. **Self-host the four files** rather than calling Google Fonts; the mockups use the CDN for convenience only. `font-display: swap`, preload 400 and 600. The fallback runs narrower, so a swap shifts row content slightly; nothing in the layout is sized to fit text exactly, so that is acceptable.
+
+**Danish characters.** æ ø å appear throughout vendor names, categories and receipt text, uppercase forms included in the small-caps labels. Any substitute family must carry them at all four weights.
+
+**Tabular figures.** Poppins' numerals are proportional, so a column of amounts does not align on the decimal. Every amount in a list, table or total gets `font-variant-numeric: tabular-nums` and is right-aligned. A single amount inside a sentence stays proportional.
+
+**Truncation, assigned per role.** User data — vendor names, item names, filenames — can be any length, and each sits in a cell that must not grow.
+- *One line with ellipsis:* every list row primary, table cell, filename under an attachment tile, sidebar account name. Full text as a `title` on hover and in the detail view.
+- *Two-line clamp:* item names in card views and on mobile, where the row has height to spare and the name is what identifies the line. Two lines, never three, and reserve the height whether or not the text needs it so the grid does not jump.
+- *Never truncated:* amounts, dates, status pills, validation messages, button labels, dialog body. A clipped amount is a wrong amount and a clipped error is worse than none. These take `white-space: nowrap` and `flex: none`; the flexible cell beside them absorbs the shortfall. Category chips truncate the label but keep the icon.
+- *`min-width: 0` on the flex child, not the text.* A flex child's automatic minimum size stops it shrinking below its content, so the ellipsis never fires and the amount is pushed out of the row. The declaration belongs on the **wrapper** that is the flex child — typically the column holding the name and its meta line — not on the truncating element itself, which already escapes the rule by having `overflow: hidden`. Two levels of wrapper means two declarations; grid cells need the same. This is the most common cause of a row overflowing on mobile.
+- `overflow-wrap: anywhere` on notes and references, which can be one unbroken string. Test every list with a 60-character vendor name and a 120-character item name; both occur in real receipts.
+
+Six standing rules: nothing below 10px (sidebar label only; 11px is the floor for anything read, always uppercase or muted); letter-spacing only increases and only on uppercase, never negative; line-height follows length (1.15 titles, 1.5–1.55 multi-line, 1 for standalone figures) with `text-wrap: pretty` on every heading and paragraph; weight carries emphasis, not colour — 600 is the strongest thing in a row, and bold plus a colour change on the same word is doubling up; mobile keeps these sizes and drops fields instead (row primaries go up to 15px, nothing goes down); and on dark, drop one step of weight where you can, since light-on-dark reads heavier.
+
+---
+
+### 14a–14d — Input types, buttons, palette rule, component API
+File: `Input types.dc.html` · Code: `components/` (the shared control set)
+
+**This is the component specification.** Build these before the screens; every screen composes them.
+
+**14a — Controls and their states.** Text field, amount field, quantity stepper, search, multi-line, the combobox in both modes, segmented, checkbox, toggle, filter chips, drop zone, date, colour and icon pickers. Each shown in every state it has (empty, filled, focus, error, read-only, disabled, loading) with the rule that made it that shape.
+
+Cross-cutting geometry: every text-entry and select control is `1px solid #dedcd4`, radius `9px`, padding `10px 12px`, 14px text — **42px tall, the canonical control height**. Controls that are not text (the stepper, combobox triggers) take `box-sizing: border-box; height: 42px` explicitly rather than sizing to content. Focus is one treatment everywhere: border `#1d4d33` plus a 3px `rgba(29,77,51,0.12)` ring. Labels are always visible at 12px/600 above the control — no floating labels, no placeholder-as-label. Validation fires on blur once touched and on submit, never per keystroke.
+
+Specifics worth not rediscovering: an error state **keeps the value** (the field being corrected is the one that failed); read-only and disabled look deliberately different (read-only keeps full contrast, disabled drops it and its copy says what would enable it); amount fields accept `4190`, `4.190,00`, `4190.00` and `4 190` and reformat on blur, and never use `type="number"`; the stepper's minus disables at 1 rather than deleting the line.
+
+**The combobox is one component with two modes** — this is the largest single piece in the set.
+- *Pick-only* (status, formats): button trigger, no search field, closed option set.
+- *Searchable* (vendor, category): the trigger becomes a text input, and results are grouped **Favourites → Recent → All**, with "Create X" always last quoting exactly what was typed.
+- Group headers are labels: never focusable, never selectable, hidden when their group has no matches. **Arrow keys traverse all groups as one flat list** — visual grouping must not affect traversal.
+- Favourites are explicit (starred from the library, capped at five); Recent is automatic (last three used, excluding anything starred so nothing appears twice).
+- **Nothing is selected by typing alone** — no inline autocomplete, no selection on blur. The user commits with Enter or a click; silent selection is how the wrong vendor lands on an order.
+- Two highlight states with two meanings: the grey row is hover/keyboard focus, the green row with a check is the current value. They can sit on different rows at once. Conflating them is the classic hand-built-dropdown bug.
+- Full keyboard table in the file, plus the ARIA roles (`combobox` + `aria-expanded` + `aria-activedescendant`, `listbox`, `group` per section) and a live region for the filter result count.
+
+**14b — Buttons.** Four levels, chosen by what the action does: primary (one per view), secondary, ghost, destructive. **Destructive only exists inside a confirm dialog** — a red button on a page is always a bug, since the page-level Delete is a secondary that opens the dialog. Confirming action is always rightmost with cancel to its left, 8px gap, everywhere. Loading holds the button width, swaps the label for a spinner plus a verb, and blocks a second submit. Disabled is a last resort — prefer letting the click happen and showing what is wrong. Labels are specific verbs ("Import 41 orders", not "Confirm"). Anything that navigates is an anchor (`as="a"`), so cmd-click keeps working.
+
+**14c — Extending the palette.** The colours follow a rule, stated in OKLCH because it is invisible in hex:
+1. **Four hue families, nothing between them.** Green H 150–158, amber H 81–89, red H 27–29, neutrals H 91–101 at C ≤ 0.012. The neutrals sitting on the amber hue at near-zero chroma is why the canvas reads warm greige rather than grey — and why a true grey dropped in looks dirty beside it.
+2. **Chroma falls as lightness rises.** The green ramp runs L 37.9 → 55.4 → 72.1 → 86.0 → 91.8 with C 0.069 → 0.069 → 0.052 → 0.025 → 0.011. Hold chroma flat while lightening and the pale end turns to mint.
+3. **Chroma is capped at C 0.12**, and that ceiling belongs to one colour — the amber pace marker at `#b58a2b`, which must read as a 2px hairline. Picker swatches stop at C 0.08.
+
+To add a swatch: pick a hue in an existing family or ≥40° from all four; set L in 69–86 and ≥5 L from any swatch on the same hue; derive chroma from that lightness (~0.08 at L 70, ~0.05 at L 80, ~0.025 at L 86); check it as a 26px icon tile with white and with dark ink (the glyph flips above L 75), as a 12px chart bar, and as a chip; and add the dark-theme pair in the same commit (+18 L, same chroma). Never open a free colour picker to users, and never interpolate in hex or HSL.
+
+**14d — Component API.** Thirteen components with the options each needs and what drives them, so nothing is speculative: TextField, AmountField, Stepper, Combobox, SearchInput, Segmented, Checkbox, Toggle, DateField, FileDrop, SwatchPicker, Button, Chip.
+
+- **All share five props** — `label`, `value`, `onChange`, `error`, `disabled` — owned by **one shared field wrapper**, which also owns the label's `htmlFor`, the required marker, the hint/error slot with `aria-describedby`/`aria-invalid`, and the spacing. Each control renders only its own box. **Error and hint share one slot** so a field never changes height when it fails.
+- **Controlled only.** No internal value state, no `defaultValue` — a control holding its own copy is how a field silently disagrees with what gets saved.
+- **No `variant="danger"` on an input.** Error is a boolean plus a message, which makes the red state impossible to apply for decoration.
+- **Deliberately not components:** radio (every either/or here is a Segmented or Combobox), slider (an amount range is two AmountFields — a receipt total is typed, not dragged to), autocomplete / tag input / rich text / native select (all are the Combobox, Chip list, or multiline TextField), and Form (each screen's save behaviour differs, so screens compose the wrapper and controls directly).
+- Build order in the file: wrapper + TextField + Button, then Combobox, then AmountField + Stepper together, then the small four the order list needs at once, then the rest. Each control ships with the states from 14a as its acceptance criteria.
+
+---
+
+### 15a / 15b — Layout rules
+File: `Layout rules.dc.html`
+
+**The rule behind every screen: one fluid column per layout, everything else a fixed pixel width.** The main column is `1fr`; rails, navs and facet columns are fixed. Two fluid columns means neither has a predictable width, nothing inside either can be sized with confidence, truncation stops being predictable, and the first long vendor name reflows the page.
+
+Gaps, not margins, set on the container: `24px` between columns, `14px` between stacked cards, `16px` in a card grid, `12px` between fields.
+
+**Four column shapes cover the whole set:**
+1. **Main + right rail** (1a, 1d, 10a). Rail widths are **320 / 360 / 400** and nothing between — 320 for a read-only summary, 360 for a form rail, 400 for a panel that is itself a form. The rail stays shorter than the main column.
+2. **Left rail + main** (2a, 11a). Facets `260px`, page-level nav `208px`. A left rail is always narrower than a right rail because it holds controls, not content. Below 1280px it becomes a drawer rather than compressing.
+3. **List + panel** (5a, 5b). The panel never collapses — with no selection it shows the roll-up, so the column width is constant whatever is selected. Below 900px they become separate views with a back action, never stacked.
+4. **Card grid** (2c, 4a). Order cards `repeat(auto-fill, minmax(280px, 1fr))`; Statistics on a 12-column grid where every card spans a whole number of columns so rows always close.
+
+**Fields — full width or a fraction.** The test is the content, not the importance: full width when the content has no predictable length (vendor, item name, reference, notes, search, drop zones); halves when two *bounded* values are read together (date + status, currency + format); **thirds exactly once** — quantity × unit price = line total, because the row is an equation; never four in a row (each cell falls under 80px in a 360px rail). A control with an intrinsic width takes `flex: none` at its own size and the field beside it takes the remainder with `min-width: 0`.
+
+**Always full width of its container:** tables and item lists, drop zones, progress bars, the sticky save bar and bulk-action bar (full width of the *main column*, not the page), and cards. **Never full width on desktop:** buttons, body text (capped 640px prose / 900px description), a form column (Settings caps at 640px even at 1920px), segmented controls / chips / steppers / swatch rows (intrinsic width, `align-self: flex-start`), and dialogs (440px) and popovers (560px).
+
+**Rows:** height from padding (12–14px, 8px compact), never a fixed height. Columns fixed except one — vendor 200px, date 110px, items 72px, category 160px, status 120px, amount 120px right-aligned — with one fluid cell absorbing the slack, which is what keeps every value at the same x down the list. Second lines never displace the first. One grid definition shared with the header, declared once. An expanding row pushes, never overlays.
+
+**15b — Fields on mobile.** A four-step test, in order: (1) is it one calculation or one object? keep it grouped; (2) would any part fall under 100px? stack it regardless — three fields at 375px is 105px each before gaps, the hard floor, and why nothing keeps thirds on a phone; (3) does one part have an intrinsic width? fixed + fluid, not halves; (4) otherwise full width, which is the right answer for most fields.
+
+What survives the breakpoint is short enough to name: the item equation (as fixed + fluid, with the computed third becoming a **total line** rather than a field — a read-only box on a phone is a target that does nothing), the photo row with its controls, and the icon-plus-name field. Control padding goes from `10px 12px` to `12px`, taking the height from 42px to 46px without changing type size; field gap goes 12px → 14px.
+
+Also below 640px: buttons in a sheet go full width and stacked (the only correct full-width button); dialogs become bottom sheets; comboboxes become full-screen sheets with search at the top above the keyboard; segmented controls may go full width; the save bar spans the viewport respecting the safe-area inset; labels stay above their fields at every width.
+
+**15c — which numbers are real.** A mockup has to be *some* width to be drawn, so these files carry pixel values that are scaffolding, not specification. **Do not lift widths off the mockups.**
+
+*Real, build to these:* the fixed rail widths (320/360/400 right, 260 facets, 208 page nav, 248 sidebar, 68 collapsed); control and row geometry (42px control height, 46 on touch, 12–14px row padding, 8 compact, 44px minimum target); the table column widths (vendor 200, date 110, items 72, category 160, status 120, amount 120); all gaps and paddings; all radii, type sizes, borders and shadows; the caps (640 prose and form columns, 900 description, 440 dialog, 560 popover, 232 account menu); and the minimums (560 main column, 280 order card, 100 mobile field floor, 80 desktop equation cell).
+
+*Mockup only, ignore:* the **1400px shell frame** on 9a and 10a (a stand-in for a viewport, and the source of the rounded corners and shadow that are also not part of the design); **every card width on the reference pages** — 430, 470, 520, 560, 620, 700 — which exist so annotations sit beside their subject; fixed heights on demonstration boxes; **side-by-side comparison columns**, where states shown in a row are sequential in the app and never share a screen; the 375px phone frames (representative, not a target — the phone layout must hold 320→430); the 1180px Settings shell and 1320px inventory tables; and all review furniture (id badges, annotation rules, state headings).
+
+**The test:** does the number describe a thing, or the space around it? A rail is 360px because a form needs 360px — that travels. A card is 430px in these files because two of them plus a gap fit the page being drawn on — that does not. Put differently: **every fixed width in the app is on something that holds controls** (a rail, a nav, a dialog, a table column); everything that holds *content* is fluid, with a minimum and sometimes a maximum.
+
+**How to write it:** `min-width`, not `width` (the main column is `1fr` with `min-width: 560px` and never has a width of its own); `repeat(auto-fill, minmax(280px, 1fr))` rather than a column count — nothing anywhere says "three across"; `max-width` for reading as a ceiling, not a size; **container queries over viewport breakpoints** for anything inside a column, so a field grid stacks because *its column* got narrow rather than because the window did (that is what lets the same form work in a 360px rail and a 640px page); and height from content and padding, with no fixed heights outside the deliberate 42px control.
+
+**Verify at 1920, 1440, 1280, 1024, 900, 768, 430, 375, 320** — each crosses a breakpoint, a rail's disappearance, or a minimum. The two that catch the most: **1024**, where the facet rail has gone but the two-column layout has not, and **320**, where the mobile field floor bites. Also check **1920 with the sidebar collapsed** — the widest the main column ever gets, where a missing max-width shows up as a 1700px line of 13px text.
+
+**Both breakpoint tables share one principle: every step removes or relocates something. Nothing is scaled down.** A compressed facet rail, a four-column equation at 300px, and a desktop table squeezed into a phone row are the same mistake.
+
+---
+
+### 16a–16c — Actions inventory
+File: `Actions inventory.dc.html`
+
+**The completeness check.** Compiled by walking every mockup rather than from memory: each control drawn, what it does, and what the user observes afterwards. Use it as the checklist when a screen is built — if a control on the screen isn't in this table, its behaviour was never decided.
+
+Two rules the audit confirmed hold across the whole set, and which are worth enforcing in review:
+- **Every destructive action has exactly one dialog; every reversible one has exactly one toast.** Nothing has both, nothing has neither. Dialogs: delete order, bulk delete, merge, discard scan. Toasts: line delete, status change, category add, archive, import.
+- **Every "See X" link is a filter handoff, not a new view.** See in Statistics, Open in orders, the Needs-a-look rows and the monthly summary rows all carry state into a screen that already exists. No screen is reachable through only one link.
+
+Also stated here: **global actions live in the shell, page actions do not.** Scan receipt and New order sit in the top bar because they belong to the app, not to the open page — that is not an exception to the locked-shell rule, which is that a page may not put *its own* actions there.
+
+**16b — ten controls that were drawn with no behaviour described anywhere.** Seven are resolved outright:
+
+| Control | Resolution |
+| --- | --- |
+| Export CSV / Export | Appeared on four screens meaning four things. One behaviour: exports **the current filter or drill state**, never the page and never the account, with the count in the button label. Same column set the importer reads, so export/import round-trips. |
+| Save current | Saved views store query + facets + sort under a name, listed above the facet rail. Stores **the filter, not the result**. Never shared — one user. |
+| Archive (vendor/category) | The middle option between keeping and deleting, and the answer to 5c's "no orders in 12 months". Hides it from lists and pickers; orders, totals and history untouched. Reversible, so toast + Undo. |
+| Duplicate last order (Home) | 8a's duplicate applied to the most recent order without opening it. Same rules (no date, status or attachments), opens unsaved. Hidden when there are no orders. |
+| Reuse mapping | Applies a previous import's mapping to the new file by column name. Always lands on the **mapping step** with rows pre-filled, never straight to preview — same headers can still mean different data. Unmatched columns are flagged. |
+| Change password | A dialog (current / new / confirm), not inline fields, so it is never half-filled in a card that saves other things. Success is a toast; **other sessions stay signed in**. |
+| Open full size (scan review) | The 12b viewer with the receipt as its only file, so small print is readable without leaving review. Panel edits untouched. |
+
+Three needed a product answer and are drawn as proposals in 16c: **See theirs** (the two-tab conflict), **duplicate name** (warn vs block), and **export format** (recommend CSV only, UTF-8 with BOM so Excel opens Danish characters, user's number format).
+
+**16c — the six that needed layout**, all composed from existing parts:
+
+1. **Saved views** — above the facets, because a view *is* a filter. Live counts. Editing filters while a view is active drops the highlight and offers **Update view** beside Save current, so a view is never silently rewritten. Save prompts for a name pre-filled from the active chips.
+2. **Archived state** — an "Archived" toggle with a count in the search row; archived rows render at 62% with a badge (same reasoning as dark-mode image tiles: present, not competing). The panel footer states plainly that the orders survive, since "archive" reads easily as "delete quietly". Restore is one click, no confirm. A category keeps its limit while archived and drops out of the limits card.
+3. **Change password dialog** — 260px, reveal control on the current-password field only, strength advisory and **not gating the button**.
+4. **Export popover** — states the scope in words ("128 orders · 412 lines" plus the active filters named). Row shape is a **Segmented** (one item line / a whole order), matching 11b's identical control. Line-per-item is the default because it round-trips through Import.
+5. **See theirs** (proposal) — lists **only the differing fields**, with a count in the sentence above and a "saved" row (yours: unsaved, 2 min of edits; theirs: 4 min ago) so the choice is informed. Lines collapse to a count; the totals row is what tells you which version is right. **Keep mine** is primary — you are the one looking at the screen and your edits are the unsaved ones. No third button, no field-level merge.
+6. **Duplicate name** (proposal) — amber, field **not** in an error state, Save never disabled: two vendors can genuinely share a name, and a tracker that refuses to record reality is worse than one holding a near-duplicate. Shows the existing vendor's order count and last-used date, which is what makes the choice decidable. Fires on blur on the same rule as duplicate detection (normalised similarity above 0.85); creating anyway surfaces the pair in 5c's possible-duplicates list.
+
+**There is no Radio component** (14d). Every either/or is a Segmented (2–3 options) or a Combobox (more). Anything drawn as a radio anywhere in the set is a bug.
+
+---
+
+### 17a / 17b — Images and files
+File: `Images and files.dc.html` · Code: `components/FileInput.jsx`, `components/fileKinds.js`
+
+**Four places take a file — item photo (one per line), order attachments (many), receipt scan (one), avatar (one) — and they are one FileDrop component with different `accept`, `multiple` and `compact` settings.** Do not write four uploaders.
+
+**Lifecycle.** Validate in the browser first (extension *and* sniffed magic bytes, then size; rejection renders inline on the zone, which stays usable). Show the tile immediately from a local object URL, before the network is touched — the progress ring is drawn over that preview, never over a grey box. Upload to **staging**, which returns an id; the order draft holds the id and nothing is attached to a record yet. The server derives EXIF-corrected orientation, a metadata-stripped copy, a thumbnail, and a first-page render for PDFs; HEIC is converted for display and the original kept as uploaded. **Saving the order commits the ids**; files uploaded to a draft that is never saved become orphans, cleaned after 24 hours.
+
+That 24-hour window is what makes immediate upload safe, and it is also why Undo on a delete always works — removing a file from a draft only drops the id, so nothing was actually deleted yet.
+
+**Replace uploads first, then swaps the reference, then releases the old file.** If the upload fails the old image is still there and the tile says so. During a replace the tile shows the **old** image dimmed under the progress ring, not an empty slot — the user must be able to abandon the page mid-replace and still have their original.
+
+**Delete.** An item photo the user added: removes at once, toast + Undo, no dialog. An item photo or attachment that came from a scan: confirms first, because it is evidence the user did not create and cannot re-take. Deleting the order: the dialog names the attachment count.
+
+**Three shortcuts that fail, called out because they are the tempting ones:**
+1. *Uploading on save.* A 12 MB receipt on hotel wifi turns Save into a thirty-second freeze with no feedback, and a failure there loses the whole form, not just the file.
+2. *Attaching straight to the record on drop.* Writes to an order the user may abandon, and gives an unsaved order server state. The staged-id approach gets the immediate upload without the write.
+3. *Replace as delete-then-upload.* Turns a non-destructive action destructive whenever the network hiccups.
+
+**Attachments have no replace — only add and delete.** A receipt is evidence of one purchase, and swapping the file behind an unchanged filename is how a record starts lying. Item photos *do* replace, because a photo is illustration.
+
+**Source menu** (17b). Clicking an empty item-photo slot, or Replace, opens a menu: **Take a photo**, **Choose a photo**, and a separated **Use the receipt** which opens a page picker so a crop of an existing attachment can become the item photo. Dropping a file bypasses the menu. The menu **adapts rather than branches**: Take a photo is absent (not disabled) where there is no camera; Use the receipt appears only when the order has an attachment; and with one source available the menu is skipped and the picker opens directly — so on desktop with no attachment, clicking the slot opens the file picker with no menu at all.
+
+**One picker entry, not two.** "Choose a photo" and "Choose a document" would be the same dialog on desktop, and an item photo accepts images only. On mobile the single entry opens the photo library. The attachment strip is the opposite case — it accepts PDFs, so its picker entry opens the file browser. The `accept` list decides which; a second menu row never does.
+
+**States drawn in 17b:** empty, filled at rest, hover with replace/delete (28px on desktop; permanent 44px labelled buttons on touch, per 15b), the source menu, uploading/replacing, and failed. Plus the attachment strip with mixed states in one row.
+
+**Failure is per file, never per batch.** Drop five with one rejected: four upload, the fifth keeps its tile with the reason and a Remove. The reason is specific — "Too large", "Not a supported type", "Upload failed" — because "Error" does not tell the user whether to retry or pick a different file.
+
+Also everywhere: navigating away mid-upload prompts with the count of uploads in flight (the sticky-save prompt alone does not mention files); a duplicate file on one order warns but does not block, as two photos of one item are legitimate; on dark every thumbnail keeps a `1px #463f37` border at 90% opacity, returning to full on hover and in the viewer; and **never a full-screen blocking overlay for an upload** — progress belongs on the tile and the rest of the form stays editable.
+
+---
+
+### 16a / 16b — Responsive reference
+File: `Responsive reference.dc.html`
+
+**Read this before implementing any layout.** Every other file in this bundle is a static canvas drawn at one width, with fixed pixel values and no queries — nothing about narrow behaviour can be read off them. This page is the exception: the layouts in it genuinely respond, and the CSS is printed beside each one. **Where a static mockup and this page disagree about a narrow layout, this page wins.**
+
+**Container queries, not media queries.** Every rule keys off the width of the element's own container (`container-type: inline-size` on the layout wrapper), not the viewport. The same components sit in a 1fr main column, a 360px rail and a 400px panel — a viewport query gets all three wrong at once. Media queries are correct for exactly two things: the shell breakpoint that turns the sidebar into a tab bar, and print.
+
+**Thresholds are container widths, not viewport widths.** 900 on a main column inside a 248px sidebar plus 48px padding is a viewport around 1244. Don't translate them — put the query on the container and the numbers work out.
+
+**Four thresholds exist in the whole product:** `1280` (a left rail leaves the layout), `900` (two columns become one), `640` (rows become cards, dialogs become sheets, field grids collapse), and the shell's own `640` viewport query. A fifth threshold is a design change, not an implementation detail.
+
+**16a — working layouts with their CSS.** Four demos, each in its own container: main + right rail, left rail + main, the row table, and the field grids. Points that only a working example makes clear:
+- `order: -1` moves the collapsed rail **above** the item list, not below. A form appended under forty item lines is somewhere nobody scrolls to.
+- The rail collapses to a **summary line that states its own contents** ("Indbo Møbler · 12 Aug · Received") — same element, two children, one shown at a time.
+- `minmax(560px, 1fr)` on the main column is deliberate: it refuses to go under 560 and overflows instead, surfacing the problem in development rather than silently crushing the rows.
+- The list's two thresholds are **independent** — at 1000px the facets are a drawer but the table is still a table. Chaining them into one breakpoint produces the cramped intermediate state.
+- **One row markup, two presentations.** Desktop cells carry `.hide-m`, phone lines carry `.m2`, both always in the DOM. Two separate row components drift apart within a sprint.
+- The computed third of the item equation is **replaced, not moved**: the read-only field hides and a total line shows. A box you cannot type into is a target that does nothing.
+- Only padding changes for touch — `10px 12px` → `12px`, taking 42px to 46px. Type sizes never change between desktop and phone.
+
+**16b — per-screen table.** One row per screen, three columns (at 1280 / at 900 / at 640), with an empty cell meaning the layout is identical to the column on its left. Covers the shell, order read and edit, the list, create, statistics, the library, home, settings, import, the viewer, dialogs and the combobox.
+
+Two places horizontal scroll is allowed, both named in the table: the import dry-run preview table, and the attachment strip. Nowhere else.
+
+**Acceptance, per screen.** At each of `1440 · 1280 · 1024 · 900 · 768 · 640 · 390`: no horizontal scroll except those two, no text under 11px, every target ≥44px below 640, no overlap, and the sticky save bar reachable without the keyboard covering it. The two widths that catch the most problems are **1024** (a rail has left but the table has not yet become cards) and **390** (the narrowest phone that matters).
+
+**Build the four container-query wrappers first**, as four layout components. Every screen then picks one and fills it — screens that hand-roll their own grid are how a fifth threshold appears.
+
+**Side-by-side panels in the other files are annotation, not layout.** Columns headed "1 — pick a file", "empty" / "loaded", or "light" / "dark" are never on screen together. Don't build a responsive row out of them.
+
+---
+
+## Interactions summary
+
+| Trigger | Result |
+| --- | --- |
+| Click an item row | Expands into inline edit (desktop) / opens a sheet (mobile) |
+| Esc in item edit | Cancels, reverts that line |
+| ⌘/Ctrl-Enter in item edit | Saves the line |
+| Drag handle, or up/down buttons | Reorders lines; position persisted explicitly |
+| Hover an item row | Fill `#f0efe9`, action cluster and pencil appear |
+| Any change on the edit screen | Sticky save bar appears; navigation away prompts |
+| ⌘K / Ctrl-K | Command palette |
+| Facet or search change | List, counts, result total and URL all update |
+| Click a chart bar / table row in Statistics | Pushes a drill crumb, re-filters every card |
+| "See in Statistics" in a panel | Opens Statistics with that crumb applied |
+| Drop a file on the capture zone | Starts the scan flow |
+| Bulk Set status / Add category | Popover, then toast with Undo |
+| Delete anything | Dialog naming the consequence |
+| Crossing a category limit | Amber notice; the save proceeds |
+| Switching "each row is" in import mapping | Item fields collapse or return; the order count changes |
+| An unmatched value left unresolved in import | Import is blocked until it is picked or created |
+| Import finishes | Skipped rows downloadable; whole import undoable for 24h |
+| Theme switch (Settings or sidebar) | Both controls write one preference; system follows the OS |
+| Click an attachment tile or item photo | Viewer opens on the order's file set |
+| Left / right in the viewer | Moves within the set; Esc closes, focus returns to the tile |
+
+## State
+
+Per screen, roughly what needs to exist:
+
+- **List:** query string, selected facets (multi-value per group), sort, page and size, view mode (rows/cards), selection set. All except selection belong in the URL so a filtered list is linkable and survives reload; view mode also persists per user.
+- **Order edit:** the order draft, a dirty flag, `editingLineId`, the line order array, per-field validation errors, and pending file uploads. Autosave is deliberately absent — saving is explicit.
+- **Scan:** stage (`idle` / `uploading` / `reading` / `review` / `created` / `failed`), the file reference, the proposal with per-field confidence, and the user's overrides — kept separate from the proposal so "what the scan said" is still available in review.
+- **Statistics:** period, compare flag, and the drill crumb stack; all URL-encoded.
+- **Library:** selected record id (null shows the roll-up), the form draft, and the merge target.
+- **Settings:** per-card draft and dirty flag (never one form-wide dirty state), and the status list's order.
+- **Import:** stage, the parsed file, the column map, the row-shape choice, unresolved value matches, the dry-run result, and the import id that makes undo possible.
+- **Viewer:** the file set, index within it, and page index for a paged file.
+- **Global:** toast queue, dialog, command palette open state, sidebar collapsed, and the theme preference (light / dark / system).
+
+Data needed: orders with item lines and attachments, vendors, categories (with icon, colour and monthly limit), and aggregate endpoints for statistics that accept the same filter shape as the list.
+
+## The shell — structure and scroll behaviour
+
+Read this before building any screen. It is the frame everything else sits in, and none of it is visible in a screenshot.
+
+### Anatomy
+
+```
+┌──────────────┬─────────────────────────────────────────┐
+│              │  top bar — LOCKED, 56px, does not scroll│
+│   sidebar    ├─────────────────────────────────────────┤
+│   248px      │                                         │
+│   full       │  page content — the only scroll          │
+│   viewport   │  container on the page                  │
+│   height     │  padding 48px                           │
+│   fixed      │                                         │
+│              │                                         │
+└──────────────┴─────────────────────────────────────────┘
+```
+
+**The page does not scroll. The content column does.** `html, body { height: 100%; overflow: hidden }`; the content column is the single scroll container (`overflow-y: auto`). This is deliberate: the sidebar and the top bar must never move, and a document-level scroll makes both of them either move or need `position: fixed`, which then breaks the sticky save bar inside the content.
+
+### The sidebar
+
+- **Always full viewport height**, `100dvh` (not `100vh` — on mobile browsers the toolbar makes `vh` wrong). Fixed `248px`, or `68px` collapsed.
+- **It is a flex column**, and it scrolls independently *only if its own content overflows* — which happens on short viewports. It does not scroll with the page.
+- **Three zones, top to bottom:**
+  1. *Brand*, at the top, not scrollable.
+  2. *Navigation*, the flexible middle (`flex: 1`, `overflow-y: auto`, `min-height: 0` — the same automatic-minimum-size rule from 13a applies here, and without it the middle refuses to shrink and pushes the bottom zone off-screen).
+  3. *Bottom zone, pinned:* Settings, the theme toggle, and the account block. These sit below a `flex: 1` spacer, so they rest against the bottom of the viewport whatever the nav length. On a short viewport the nav scrolls and the bottom zone stays put — it is never scrolled away, because switching theme and reaching the account must not depend on scroll position.
+- A `1px rgba(255,255,255,0.07)` divider separates the theme toggle from the nav above it. There is no divider between the toggle and the account block; they read as one bottom group.
+- **The collapse state** persists per user. Collapsed, labels become tooltips on hover; the bottom zone keeps the same order, icons only, and the account block becomes the avatar alone.
+- The sidebar keeps `#14261c` in **both themes** (see 12a) — it is the one element that does not participate in theming, which also means it needs no theme work.
+
+### The top bar
+
+**Locked. No page actions may be placed here** — see global rule 1. It carries the breadcrumb and the page title, nothing else. It does not scroll and it does not change per page beyond its text. Every action a page offers lives inside the page: that is why the edit screen has a sticky save bar at the bottom of its content column, why the order list puts bulk actions in a bar above the list, and why Settings saves per card.
+
+### The content column
+
+- One scroll container, `48px` padding (`20px` on mobile).
+- **Scroll position resets to top on navigation**, and is restored when returning to a list via the browser back button — a user who scrolled to order 80, opened it, and came back should land where they were.
+- **Sticky elements inside it** — the save bar on order edit, the bulk-action bar on the list, table headers — are `position: sticky` relative to *this* container, not the viewport. This only works because the container is the scroller; it is the main reason for the layout above.
+- The two-column screens (order edit, order list, the library) lay out **inside** this column: main `1fr` plus a fixed rail, `24px` gap. The rail scrolls with the content, not separately. There is no second scrollbar anywhere in the app.
+
+### Breakpoints
+
+| Width | What changes |
+| --- | --- |
+| ≥ 1280px | Full layout. Sidebar expanded by default. |
+| < 1280px | Facet rail on the order list becomes a drawer; sidebar may collapse to the 68px rail. |
+| < 900px | Two-column screens stack: rail content moves above or below the main column per screen (order edit collapses its rail into a summary section; the library switches to list-then-panel navigation). |
+| < 640px | Phone layout. Sidebar becomes a bottom tab bar, the top bar keeps only the title, sheets replace inline expansion, and the capture FAB appears. |
+
+**On mobile the sidebar is not a drawer by default** — the five primary destinations become a bottom tab bar, and Settings and the account move into a "More" destination. A hamburger drawer would put the most-used navigation two taps away on the device where capture matters most.
+
+### What is global, and lives in the shell rather than any page
+
+- The toast queue (bottom-centre, one at a time).
+- The dialog layer and its scrim.
+- The command palette (⌘K / Ctrl-K).
+- The theme, applied before first paint from the persisted preference.
+- Keyboard layering: Esc closes the topmost layer — sheet, then dialog, then palette, then an inline edit.
+
+---
+
+## Screenshots
+
+`screenshots/` holds a full-page capture of each file, numbered to match the id prefixes:
+
+| Image | Contents |
+| --- | --- |
+| `00-overview.png` | The linked overview page |
+| `01-order-editing.png` | 1a–1d |
+| `02-order-list.png` | 2a–2c |
+| `03-order-create.png` | 3a |
+| `04-statistics.png` | 4a |
+| `05-vendors-categories.png` | 5a–5c |
+| `06-states-confirmations.png` | 6a–6f |
+| `07-mobile.png` | 7a |
+| `08-duplicate-alerts.png` | 8a, 8b |
+| `09-navigation-shell.png` | 9a, 9b |
+| `10-home.png` | 10a |
+| `11-settings-import.png` | 11a, 11b |
+| `12-dark-mode-viewer.png` | 12a, 12b |
+| `13-typography.png` | 13a |
+| `14-input-types.png` | 14a–14d |
+| `15-layout-rules.png` | 15a–15c |
+| `16-actions-inventory.png` | 16a–16c |
+| `17-images-and-files.png` | 17a, 17b |
+
+Full-page PNG at 2× device pixels (roughly 4100px wide; `14-input-types.png` is the one exception, capped at 1.44× because the page is 8300px tall), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
+
+## Assets
+
+No external assets. All icons are inline SVG drawn for these mockups on a 16×16 viewBox, stroke-only — replace with the codebase's icon set at matching weight. Photo and attachment thumbnails are placeholder blocks; the real ones come from uploads. `Poppins` is loaded from Google Fonts in the mockups; use however the app already loads fonts.
+
+## Files in this bundle
+
+| File | Screens |
+| --- | --- |
+| `DECISIONS.md` | Rationale and rejected alternatives |
+| `BEHAVIOUR.md` | Edge cases, precise rules, open questions |
+| `index.html` | Linked overview of everything below — start here |
+| `Home.dc.html` | 10a |
+| `Navigation shell.dc.html` | 9a, 9b, 9c |
+| `Order editing layouts.dc.html` | 1a, 1b, 1c, 1d |
+| `Order list.dc.html` | 2a, 2b, 2c |
+| `Order create.dc.html` | 3a |
+| `Order statistics.dc.html` | 4a |
+| `Vendors and categories.dc.html` | 5a, 5b, 5c |
+| `States and confirmations.dc.html` | 6a–6f |
+| `Mobile screens.dc.html` | 7a |
+| `Duplicate and alerts.dc.html` | 8a, 8b |
+| `Settings and import.dc.html` | 11a, 11b |
+| `Dark mode and image viewer.dc.html` | 12a, 12b |
+| `Typography.dc.html` | 13a |
+| `Input types.dc.html` | 14a, 14b, 14c, 14d |
+| `Layout rules.dc.html` | 15a, 15b, 15c |
+| `Actions inventory.dc.html` | 16a, 16b, 16c |
+| `Images and files.dc.html` | 17a, 17b |
+| `support.js` | Preview runtime for the files above — not part of the product |
+| `screenshots/` | Full-page capture of each file (see above) |
+
+## Suggested order of work
+
+0. Answer the open questions in `BEHAVIOUR.md` that affect the screens you are starting with — 1, 2 and 3 for order edit; 5 and 6 for statistics.
+1. Shell and tokens (9a) — everything else sits inside it, and the token set is small enough to land in one pass.
+2. Order edit and inline item editing (1b, 1c) — the original problem, and the highest-traffic screen.
+3. Order list with facets (2b, 2a) — unblocks navigation to everything else.
+4. States and confirmations (6a–6d) as shared components, before they get reinvented per page.
+5. Scan flow (3a, 6e).
+6. Library (5a–5c), then Statistics (4a), then Home (10a), which mostly composes pieces the earlier steps produced.
+7. Mobile passes (7a, 1d) alongside each screen rather than at the end.
+8. Settings (11a) and Import (11b) — Settings is small once the token layer exists; Import is the largest single piece in the set and depends on nothing else.
+9. Dark mode (12a) last as a token pass, not a rebuild — if it needs component changes, the token layer was not clean. Do it before shipping, not after; retrofitting a theme is far more work than building against one.
+
+The foundation files (13a, 14a–14d, 15a–15b) are not steps — they are what every step is built against. Read 16a before writing any layout and 14d before any component; they are the two that stop the same decision being made differently on each screen. Use 16a as the per-screen checklist as you build — a control not in that table is one whose behaviour was never decided. Typography (13a) and the image viewer (12b) are likewise not steps — 13a is the reference you build every screen against, and 12b is a shared component that steps 2 and 5 both need.
