@@ -298,6 +298,22 @@ One menu component. Take a photo is **absent** where there is no camera, not dis
 
 **No notification centre.** A notification is for something that happened while you were not looking. In a single-user product where you caused every event, a bell with a history is a list of your own recent clicks. The three real background cases — a scan finishing after you navigated away, the monthly over-limit summary, a long import completing — already have homes in surfaces that exist.
 
+## 37. The duplicate-file check is exact, and separate from duplicate-order detection
+
+**The decision.** Hash every upload (SHA-256), look it up before reading, and interrupt with 3c on a match. Keep it entirely separate from the fuzzy vendor + date + total check.
+
+**Why two mechanisms.** They answer different questions with different confidence. The hash answers "is this the same file" with certainty, on the file, before any work is done. The fuzzy check answers "is this probably the same purchase" with a guess, on a proposed order, after reading. Merging them produces a warning that is sometimes certain and sometimes not, which the user cannot calibrate against — and which would have to be either advisory (wasting the certainty) or blocking (wrong for the guess).
+
+**Why it replaces the reading stage.** A dialog over the progress bar means the scan runs behind a question about whether it should. Asking after the proposal exists wastes the read and puts the user in review holding a decision that belonged earlier.
+
+**Why the reading is cached, not just the hash.** Scanning is a paid per-call operation. Storing the scan output against the hash means every legitimate repeat — a repeated purchase on an identical receipt, a re-import after deleting the original order, one receipt covering two orders — is served without a second call. Detecting the duplicate and then re-scanning anyway would spend the money the check was meant to save.
+
+**The cost stays out of the UI.** It is our bill, not the user's. A per-action price tag or a usage counter asks them to manage infrastructure economics they never agreed to, and they cannot act on the figure anyway. The design expresses the preference structurally instead: Use the reading is the primary button, Scan again is a secondary. Same outcome, no leaked internals.
+
+**Why it never blocks.** Re-reading is rational when the cached reading was wrong and the model has improved since, so Scan again is always one click, never behind a confirm.
+
+**It must not be labelled duplicate detection.** The hash misses a second photo of the same paper receipt and the same PDF re-saved by another reader. Calling it duplicate detection would teach the user to trust it for something it cannot do.
+
 ---
 
 ## Where the design is intentionally silent

@@ -70,7 +70,7 @@
           <div style="width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 5px; background: #fff; flex: none"></div>
           <div style="font-size: 13px; color: #57564f">3 attachments</div>
           <div style="flex: 1"></div>
-          <div style="font-size: 12px; color: #8b8a82">receipt belongs to the old order</div>
+          <div style="font-size: 12px; color: #8b8a82">not copied</div>
         </div>
         <div style="display: flex; align-items: center; gap: 11px; background: #f7f6f2; border-radius: 9px; padding: 11px 12px">
           <div style="width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 5px; background: #fff; flex: none"></div>
@@ -185,6 +185,13 @@
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">A limit is only useful if it speaks up. Three moments, in order of usefulness: while you are adding the order that crosses it, on the pages that show the category, and once a month as a summary. All of it derives from the limit already on the category — no new settings beyond how loudly to be told.</div>
 
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A limit is a fact about the month, not a validation rule.</b> Crossing one never disables Save and never routes through the validation layer — keep the check out of that code path entirely, or it eventually starts blocking. Amber informs; red blocks.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The over-limit chip travels.</b> The same dot renders wherever the category appears — list rows, facet lists and order details — so the state is recognisable without reading the number.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Attachments do not follow a duplicate</b> because a receipt is evidence of one specific purchase; copying it to another order makes the record lie. Items, vendor, category, reference and notes do carry over.</div>
+  </div>
+
   <div style="display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap">
     <div style="width: 520px; display: flex; flex-direction: column; gap: 14px">
       <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">1 · AS YOU CROSS IT</div>
@@ -205,7 +212,7 @@
           <div style="flex: 1; text-align: center; border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #57564f">CANCEL</div>
           <div style="flex: 1; text-align: center; background: #1d4d33; border-radius: 9px; padding: 11px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #fff">SAVE ANYWAY</div>
         </div>
-        <div style="font-size: 11px; color: #8b8a82">A limit never blocks a save. It is a fact about your month, not a rule.</div>
+        <div style="font-size: 11px; color: #8b8a82">You can still save. Nothing is blocked.</div>
       </div>
 
       <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">2 · WHERE THE CATEGORY APPEARS</div>
@@ -224,7 +231,7 @@
             <span style="width: 8px; height: 8px; border-radius: 2px; background: #1d4d33"></span>Decor
             <span style="width: 6px; height: 6px; border-radius: 50%; background: #8a4a41"></span>
           </span>
-          <span style="font-size: 12px; color: #8b8a82">the chip carries a dot wherever it appears — list rows, facets, order details</span>
+          <span style="font-size: 12px; color: #8b8a82">over limit</span>
         </div>
       </div>
 

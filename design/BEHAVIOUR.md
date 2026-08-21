@@ -80,6 +80,10 @@ Conventions: amounts are DKK, formatted `1.234,50 kr.` (period thousands, comma 
 
 **⚠ CONFIRM — scan timeout.** Recommendation: 45s, then `failed` with the manual-entry handoff. Long enough for a multi-page PDF, short enough not to feel abandoned.
 
+**Duplicate file check.** SHA-256 of the uploaded bytes, computed and looked up **before reading**. A match interrupts with 3c instead of proceeding to `reading`. Runs on every upload path, including Import and the item-photo slot. Never blocks. **The scan result is cached against the hash**, so "Use the reading" builds a full proposal with no API call and is the primary action; "Scan again" re-invokes the scanner and is a secondary. Cost is internal — never surface amounts, counters or usage warnings in the UI. The upload is retained for 24 hours whichever branch is taken. Multiple matches: show up to three orders, newest first, with a count beyond that.
+
+**Hash vs fuzzy duplicate detection are separate mechanisms and must stay separate.** The hash is exact and certain, runs on the file, and fires before reading. The fuzzy check (vendor + date + total) is advisory, runs on the proposed order, and fires in review. When both would fire on one upload, the hash screen comes first; the fuzzy warning appears in review only if the user chose to scan anyway.
+
 **Review** is the only stage where data is editable and the only stage where anything can be created.
 
 - **Per-field confidence.** Two visual levels only: clean (looks like a normal filled field) and uncertain (2px `#b58a2b` left edge plus a check hint). Recommendation for the threshold: below 0.85 is uncertain. A third level tested as noise.
@@ -392,4 +396,5 @@ Answer these before the affected screen is built. Recommendations are in the sec
 | 13 | Can an import update existing orders, or create only? (recommend create only) | 11b |
 | 14 | Is zoom needed in the image viewer? (recommend later, and no rotate) | 12b |
 | 15 | Is a Radio component ever needed, or is Segmented/Combobox always right? (recommend not building it until a screen needs it) | 14d |
+| 17 | Should the hash check also match against **deleted** orders (soft-deleted, if question 3 goes that way)? Recommendation: yes, and say so in the message — "this was on an order you deleted" is exactly when Scan anyway is the right choice. | 3c |
 | 16 | Does any category need a colour outside the four hue families? (recommend no — labels already distinguish them) | 14c, 5b |

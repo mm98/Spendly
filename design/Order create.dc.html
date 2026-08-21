@@ -607,6 +607,120 @@
     </div>
   </div>
 </section>
+
+<section style="display: flex; flex-direction: column; gap: 20px; padding: 0 48px 64px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; align-items: baseline; gap: 12px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">3c</span>
+      <span style="font-size: 20px; font-weight: 600">This receipt has been scanned before</span>
+    </div>
+    <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">The file's SHA-256 matches one already stored, so this receipt has been read before. It interrupts between upload and reading because the reading is cached — the answer is already in the database, and re-running the scanner on the same bytes buys nothing. The user never sees a cost; they see that reusing the saved reading is simply the faster path.</div>
+  </div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 620px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">STAGE 2, REPLACED</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+
+        <div style="display: flex; gap: 14px; align-items: flex-start">
+          <div style="width: 34px; height: 34px; border-radius: 10px; background: #e2d3ae; color: #7a5c23; display: grid; place-items: center; flex: none">
+            <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 10.6a3.2 3.2 0 0 1 0-4.5l1.4-1.4a3.2 3.2 0 0 1 4.5 4.5l-.5.5"></path><path d="M10.6 5.4a3.2 3.2 0 0 1 0 4.5l-1.4 1.4a3.2 3.2 0 0 1-4.5-4.5l.5-.5"></path></svg>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 17px; font-weight: 600">You have scanned this receipt before</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">It is the same file, byte for byte, as the one on the order below. Nothing has been read or created yet.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 14px; background: #f7f6f2; border-radius: 11px; padding: 14px">
+          <div style="width: 72px; height: 90px; border-radius: 7px; background: #fff; border: 1px solid #e6e4dc; position: relative; overflow: hidden; flex: none">
+            <div style="position: absolute; left: 5px; bottom: 5px; font-size: 9px; font-weight: 600; color: #fff; background: rgba(27,26,23,0.6); border-radius: 3px; padding: 1px 5px">PDF</div>
+          </div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: baseline; gap: 10px">
+              <div style="font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; flex: none">7.635,00</div>
+            </div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5">SPENDLY-447 · 12 Aug 2026 · 4 lines · Received</div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="font-size: 11px; color: #8b8a82">Scanned 12 Aug, 14:32</div>
+              <div style="width: 1px; height: 11px; background: #dcdad2"></div>
+              <div style="font-size: 11px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">kvittering-indbo-12082026.pdf</div>
+            </div>
+            <div style="display: flex; gap: 8px; padding-top: 2px">
+              <div style="font-size: 12px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 8px; padding: 8px 13px">Open that order</div>
+              <div style="font-size: 12px; font-weight: 600; color: #1d4d33; border: 1px solid #dedcd4; border-radius: 8px; padding: 8px 13px">Compare the files</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height: 1px; background: #dedcd4"></div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">IF THAT IS NOT WHAT YOU MEANT</div>
+          <div style="display: flex; align-items: flex-start; gap: 11px; border: 1px solid #1d4d33; background: #f7faf8; border-radius: 10px; padding: 12px 13px">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 1px"><path d="M3.4 4.2h6.2l3 3v6.6h-9.2z"></path><path d="M9.6 4.2v3h3"></path><path d="M5.8 9.4h4.4"></path><path d="M5.8 11.2h2.8"></path></svg>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600">New order from the saved reading</div>
+              <div style="font-size: 11px; color: #57564f; line-height: 1.45">Starts a new order with the same lines, ready for you to check and change.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 8px; padding: 8px 12px; white-space: nowrap; flex: none">Use the reading</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 11px; border: 1px solid #e6e4dc; border-radius: 10px; padding: 12px 13px">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 1px"><path d="M13.2 8a5.2 5.2 0 1 1-1.6-3.7"></path><path d="M13.4 3v2.6h-2.6"></path></svg>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600">Read it again</div>
+              <div style="font-size: 11px; color: #8b8a82; line-height: 1.45">Use this if the lines came out wrong last time.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33; border: 1px solid #dedcd4; border-radius: 8px; padding: 8px 12px; white-space: nowrap; flex: none">Scan again</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 11px; border: 1px solid #e6e4dc; border-radius: 10px; padding: 12px 13px">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 1px"><path d="M2.8 4.4h10.4v8.2H2.8z"></path><path d="M2.8 7.2h10.4"></path><path d="M6.4 2.6v1.8"></path><path d="M9.6 2.6v1.8"></path></svg>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600">Attach it to that order instead</div>
+              <div style="font-size: 11px; color: #8b8a82; line-height: 1.45">Adds the file to SPENDLY-447 without creating another order.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #b3b1a9; border: 1px solid #e6e4dc; border-radius: 8px; padding: 8px 12px; white-space: nowrap; flex: none">Attach</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #dedcd4; padding-top: 14px">
+          <div style="font-size: 12px; color: #8b8a82">The upload is kept for 24 hours either way.</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 13px; font-weight: 600; color: #57564f; padding: 8px 12px">Discard the upload</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 20px">
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Hash on upload, before reading.</b> SHA-256 of the bytes as received, stored on the attachment row and indexed. The check is a single lookup and costs nothing, so it runs on every upload — including the ones that arrive through Import and through the item-photo slot.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">It replaces the reading stage rather than covering it.</b> A dialog over a progress bar would mean the scan is running behind a question about whether it should. And asking after the proposal exists wastes the read and puts the user in review with a decision they should have made first.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Store the reading, not just the hash.</b> The scan output is cached against the file hash, so a repeat upload can produce a full order without a second API call. This is the whole return on the feature: the three legitimate reasons to continue — a repeated purchase on an identical receipt, a re-import after deleting the original, and one receipt covering two orders — are all served for free by the cached reading. None of them needs the scanner to look at the same bytes twice.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The cost is ours, so it stays out of the UI.</b> Each scan is a paid API call, which is the reason this screen exists — but a per-action price tag would make the user manage our infrastructure bill, and they cannot act on a figure they did not agree to. The design carries the intent instead: reusing the reading is the primary button and reads as the obvious choice, re-reading is a secondary. No amounts, no warnings, no counters.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Never blocks.</b> Re-reading is legitimate when the cached reading was wrong and the model has improved since — the one case where a second call is worth making. It stays one click.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Show the matched order, not just the fact.</b> Vendor, reference, date, line count, total, and when it was scanned. "You have already imported this file" without the order is a dead end — the user's next question is always <i>which one</i>, and answering it here saves a trip to the list.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Compare the files</b> opens both in the viewer (12b) side by side. Rarely needed for an exact hash match, but it is the only way to be sure the stored file is what you think it is — and it costs one link.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Attach instead</b> is shown disabled here on purpose: the matched order already holds this exact file, so there is nothing to add. It is enabled when the hash matches a file sitting on a <i>different</i> order — you scanned this receipt for order A and now want it on order B. When disabled, the tooltip says why ("SPENDLY-447 already has this file"); the row is not hidden, because its absence would leave the user wondering whether attaching is possible at all.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Multiple matches</b> list up to three orders, newest first, with a count if there are more. Each row carries its own "Open that order".</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHAT THE HASH DOES AND DOES NOT CATCH</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Catches:</b> the same file uploaded twice — the common case, where a receipt was already forwarded once and lands in the uploads folder again, or a phone photo is re-picked from the library.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Misses:</b> a second photo of the same paper receipt, the same PDF re-saved by a different reader, or a re-download that changed one byte of metadata. All are different bytes and therefore a different hash.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">So this is <b>not</b> duplicate-order detection, and must not be presented as such. The fuzzy check on vendor plus date plus total — the one behind "2 rows look like orders you already have" in Import (11b) and the possible-duplicates list in 5c — is the separate mechanism that catches those, and it runs later, on the proposed order rather than on the file.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Both can fire on one upload. When they do, this screen comes first — it is certain, and it is the only one of the two that can run before the scanner is called at all.</div>
+      </div>
+    </div>
+  </div>
+</section>
 </x-dc>
 </body>
 </html>
