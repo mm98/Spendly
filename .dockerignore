@@ -1,5 +1,6 @@
 **/node_modules
 src/react/dist
+design
 docs
 spendly.html
 *.sqlite3
