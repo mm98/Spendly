@@ -453,7 +453,7 @@ Wording is factual — the amount over, the limit, the month. No exclamation, no
 
 ---
 
-### 6a–6e — States and confirmations
+### 6a–6f — States and confirmations
 File: `States and confirmations.dc.html` · Code: `components/ListState.jsx`, `components/Dialog.jsx`, `components/Toast.jsx`
 
 **6a — Empty states.** Distinguish three: never had any (a real invitation — headline, one line of explanation, primary action, e.g. "No orders yet" / "Scan a receipt"), filtered to nothing ("No orders match these filters" plus "Clear filters"), and search found nothing (echo the query, offer to clear). Centred in the content area, `48px` vertical padding, headline 16px/600, body 13px `#57564f`, no illustration.
@@ -859,7 +859,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 | `03-order-create.png` | 3a |
 | `04-statistics.png` | 4a |
 | `05-vendors-categories.png` | 5a–5c |
-| `06-states-confirmations.png` | 6a–6e |
+| `06-states-confirmations.png` | 6a–6f |
 | `07-mobile.png` | 7a |
 | `08-duplicate-alerts.png` | 8a, 8b |
 | `09-navigation-shell.png` | 9a, 9b |
@@ -892,7 +892,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Order create.dc.html` | 3a |
 | `Order statistics.dc.html` | 4a |
 | `Vendors and categories.dc.html` | 5a, 5b, 5c |
-| `States and confirmations.dc.html` | 6a–6e |
+| `States and confirmations.dc.html` | 6a–6f |
 | `Mobile screens.dc.html` | 7a |
 | `Duplicate and alerts.dc.html` | 8a, 8b |
 | `Settings and import.dc.html` | 11a, 11b |

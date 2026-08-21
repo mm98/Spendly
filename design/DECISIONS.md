@@ -290,6 +290,14 @@ One menu component. Take a photo is **absent** where there is no camera, not dis
 
 **One picker entry, never two.** "Choose a photo" and "Choose a document" are the same dialog on desktop, and an item photo accepts images only. The `accept` list decides whether the entry opens the photo library or the file browser. A second row for the same picker is padding.
 
+## 36. Five surfaces, chosen by a fixed test — and no notifications
+
+**The decision.** Inline, section notice, popover, dialog, toast. The choice is not a judgement call per screen: about one field → inline; already happened → toast if undoable, section notice if not; picking from a set → popover; would lose something → dialog. Earliest answer wins, because the order runs from least interrupting to most.
+
+**Why write it down.** Every one of these was drawn somewhere in the set, and a developer choosing per screen will pick differently on each — usually reaching for a toast, which is the easiest to implement and the wrongest for errors, since it takes the description of the problem away with it.
+
+**No notification centre.** A notification is for something that happened while you were not looking. In a single-user product where you caused every event, a bell with a history is a list of your own recent clicks. The three real background cases — a scan finishing after you navigated away, the monthly over-limit summary, a long import completing — already have homes in surfaces that exist.
+
 ---
 
 ## Where the design is intentionally silent
