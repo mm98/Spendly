@@ -647,6 +647,18 @@ What survives the breakpoint is short enough to name: the item equation (as fixe
 
 Also below 640px: buttons in a sheet go full width and stacked (the only correct full-width button); dialogs become bottom sheets; comboboxes become full-screen sheets with search at the top above the keyboard; segmented controls may go full width; the save bar spans the viewport respecting the safe-area inset; labels stay above their fields at every width.
 
+**15c — which numbers are real.** A mockup has to be *some* width to be drawn, so these files carry pixel values that are scaffolding, not specification. **Do not lift widths off the mockups.**
+
+*Real, build to these:* the fixed rail widths (320/360/400 right, 260 facets, 208 page nav, 248 sidebar, 68 collapsed); control and row geometry (42px control height, 46 on touch, 12–14px row padding, 8 compact, 44px minimum target); the table column widths (vendor 200, date 110, items 72, category 160, status 120, amount 120); all gaps and paddings; all radii, type sizes, borders and shadows; the caps (640 prose and form columns, 900 description, 440 dialog, 560 popover, 232 account menu); and the minimums (560 main column, 280 order card, 100 mobile field floor, 80 desktop equation cell).
+
+*Mockup only, ignore:* the **1400px shell frame** on 9a and 10a (a stand-in for a viewport, and the source of the rounded corners and shadow that are also not part of the design); **every card width on the reference pages** — 430, 470, 520, 560, 620, 700 — which exist so annotations sit beside their subject; fixed heights on demonstration boxes; **side-by-side comparison columns**, where states shown in a row are sequential in the app and never share a screen; the 375px phone frames (representative, not a target — the phone layout must hold 320→430); the 1180px Settings shell and 1320px inventory tables; and all review furniture (id badges, annotation rules, state headings).
+
+**The test:** does the number describe a thing, or the space around it? A rail is 360px because a form needs 360px — that travels. A card is 430px in these files because two of them plus a gap fit the page being drawn on — that does not. Put differently: **every fixed width in the app is on something that holds controls** (a rail, a nav, a dialog, a table column); everything that holds *content* is fluid, with a minimum and sometimes a maximum.
+
+**How to write it:** `min-width`, not `width` (the main column is `1fr` with `min-width: 560px` and never has a width of its own); `repeat(auto-fill, minmax(280px, 1fr))` rather than a column count — nothing anywhere says "three across"; `max-width` for reading as a ceiling, not a size; **container queries over viewport breakpoints** for anything inside a column, so a field grid stacks because *its column* got narrow rather than because the window did (that is what lets the same form work in a 360px rail and a 640px page); and height from content and padding, with no fixed heights outside the deliberate 42px control.
+
+**Verify at 1920, 1440, 1280, 1024, 900, 768, 430, 375, 320** — each crosses a breakpoint, a rail's disappearance, or a minimum. The two that catch the most: **1024**, where the facet rail has gone but the two-column layout has not, and **320**, where the mobile field floor bites. Also check **1920 with the sidebar collapsed** — the widest the main column ever gets, where a missing max-width shows up as a 1700px line of 13px text.
+
 **Both breakpoint tables share one principle: every step removes or relocates something. Nothing is scaled down.** A compressed facet rail, a four-column equation at 300px, and a desktop table squeezed into a phone row are the same mistake.
 
 ---
@@ -848,7 +860,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 | `12-dark-mode-viewer.png` | 12a, 12b |
 | `13-typography.png` | 13a |
 | `14-input-types.png` | 14a–14d |
-| `15-layout-rules.png` | 15a, 15b |
+| `15-layout-rules.png` | 15a–15c |
 | `16-actions-inventory.png` | 16a–16c |
 | `17-images-and-files.png` | 17a, 17b |
 
@@ -879,7 +891,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Dark mode and image viewer.dc.html` | 12a, 12b |
 | `Typography.dc.html` | 13a |
 | `Input types.dc.html` | 14a, 14b, 14c, 14d |
-| `Layout rules.dc.html` | 15a, 15b |
+| `Layout rules.dc.html` | 15a, 15b, 15c |
 | `Actions inventory.dc.html` | 16a, 16b, 16c |
 | `Images and files.dc.html` | 17a, 17b |
 | `support.js` | Preview runtime for the files above — not part of the product |

@@ -382,6 +382,75 @@
   </div>
 </section>
 
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">15c</span>
+    <span style="font-size: 20px; font-weight: 600">Which numbers are real</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">A mockup has to be <i>some</i> width to be drawn, so these files are full of pixel values that are scaffolding rather than specification. Read the wrong ones as spec and you get an app that is pixel-perfect at 1400px and broken at every other size. This says which is which.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 620px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 10px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+        <div>REAL — BUILD TO THESE</div><div>MOCKUP ONLY — IGNORE</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">Fixed rail widths</b> — 320 / 360 / 400 right, 260 facets, 208 page nav, 248 sidebar, 68 collapsed.</div>
+        <div style="color: #8b8a82; line-height: 1.6"><b style="color: #57564f">The 1400px shell frame</b> on 9a and 10a. That is a stand-in for a viewport, and it carries the rounded corners and shadow that are not part of the design either.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">Control and row geometry</b> — 42px control height (46 on touch), 12–14px row padding, 8px compact, 44px minimum target.</div>
+        <div style="color: #8b8a82; line-height: 1.6"><b style="color: #57564f">Every card width on these reference pages</b> — 430, 470, 520, 560, 620, 700. They exist so annotations sit beside their subject on a canvas. No app card has a fixed width.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">Table column widths</b> — vendor 200, date 110, items 72, category 160, status 120, amount 120. These are the point of the fixed-column rule.</div>
+        <div style="color: #8b8a82; line-height: 1.6"><b style="color: #57564f">Fixed heights on demonstration boxes</b> — the 116px column diagrams, the 460px viewer, the 240px photo pane. Illustrative only.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">Gaps and paddings</b> — 24 between columns, 14 stacked cards, 16 card grid, 12 fields, 16/18/20 card padding, 48 page (20 mobile).</div>
+        <div style="color: #8b8a82; line-height: 1.6"><b style="color: #57564f">Side-by-side comparison columns.</b> Where a page shows three states in a row, that is a canvas layout for review — those states are sequential in the app and never share a screen.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">Radii, type sizes, borders, shadows</b> — all final, all in the token tables.</div>
+        <div style="color: #8b8a82; line-height: 1.6"><b style="color: #57564f">Phone frames at 375px.</b> A representative width, not a target. The phone layout has to hold from 320 to 430.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">Caps</b> — 640 prose and form columns, 900 description lines, 440 dialog, 560 palette and popover, 232 account menu.</div>
+        <div style="color: #8b8a82; line-height: 1.6"><b style="color: #57564f">The 1180px Settings shell</b> and the 1320px inventory tables. Both are canvas widths chosen so the content composes for reading.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">Minimums</b> — 560 main column on order edit, 280 order card, 100 mobile field floor, 80 desktop equation cell.</div>
+        <div style="color: #8b8a82; line-height: 1.6"><b style="color: #57564f">The id badges, the annotation rules, the small-caps state headings.</b> Review furniture. None of it ships.</div>
+      </div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 20px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THE TEST</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Does the number describe a thing, or the space around it?</b> A rail is 360px because a form needs 360px — that travels. A card is 430px in these files because two of them plus a gap fit the page I was drawing on — that does not.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Put differently: <b>every fixed width in the app is on something that holds controls</b> — a rail, a nav, a dialog, a table column. Everything that holds <i>content</i> is fluid, with a minimum and sometimes a maximum.</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">HOW TO WRITE IT INSTEAD</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">min-width, not width.</b> The main column is <span style="white-space: nowrap">1fr</span> with <span style="white-space: nowrap">min-width: 560px</span> — it never has a width of its own.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">auto-fill, not a column count.</b> Order cards are <span style="white-space: nowrap">repeat(auto-fill, minmax(280px, 1fr))</span>. Nothing anywhere says "three across".</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">max-width for reading, not width.</b> A 640px cap on a form column is a ceiling, not a size — at 500px available it is 500px wide.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Container queries over viewport breakpoints</b> for anything inside a column. A field grid should stack because <i>its column</i> got narrow, not because the window did — that is what makes the same form work in a 360px rail and a 640px page.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Height from content and padding.</b> No fixed heights outside the deliberate ones in 14a (the 42px control) — a row with a 26px icon tile must grow, not clip.</div>
+      </div>
+
+      <div style="background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #7a5c23">CHECK IT AT THESE WIDTHS</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>1920, 1440, 1280, 1024, 900, 768, 430, 375, 320.</b> Not because they are devices, but because each one crosses something: a breakpoint, a rail's disappearance, or a minimum. A layout correct at all nine is correct everywhere between them.</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55">The two that catch the most: <b>1024</b>, where the facet rail has gone but the two-column layout has not, and <b>320</b>, where the mobile field floor actually bites.</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55">And check <b>1920 with the sidebar collapsed</b> — the widest the main column ever gets, and where a missing max-width shows up as a 1700px line of 13px text.</div>
+      </div>
+    </div>
+  </div>
+</section>
 </x-dc>
 </body>
 </html>
