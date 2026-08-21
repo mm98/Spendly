@@ -689,6 +689,38 @@ Three needed a product answer and are drawn as proposals in 16c: **See theirs** 
 
 ---
 
+### 17a / 17b — Images and files
+File: `Images and files.dc.html` · Code: `components/FileInput.jsx`, `components/fileKinds.js`
+
+**Four places take a file — item photo (one per line), order attachments (many), receipt scan (one), avatar (one) — and they are one FileDrop component with different `accept`, `multiple` and `compact` settings.** Do not write four uploaders.
+
+**Lifecycle.** Validate in the browser first (extension *and* sniffed magic bytes, then size; rejection renders inline on the zone, which stays usable). Show the tile immediately from a local object URL, before the network is touched — the progress ring is drawn over that preview, never over a grey box. Upload to **staging**, which returns an id; the order draft holds the id and nothing is attached to a record yet. The server derives EXIF-corrected orientation, a metadata-stripped copy, a thumbnail, and a first-page render for PDFs; HEIC is converted for display and the original kept as uploaded. **Saving the order commits the ids**; files uploaded to a draft that is never saved become orphans, cleaned after 24 hours.
+
+That 24-hour window is what makes immediate upload safe, and it is also why Undo on a delete always works — removing a file from a draft only drops the id, so nothing was actually deleted yet.
+
+**Replace uploads first, then swaps the reference, then releases the old file.** If the upload fails the old image is still there and the tile says so. During a replace the tile shows the **old** image dimmed under the progress ring, not an empty slot — the user must be able to abandon the page mid-replace and still have their original.
+
+**Delete.** An item photo the user added: removes at once, toast + Undo, no dialog. An item photo or attachment that came from a scan: confirms first, because it is evidence the user did not create and cannot re-take. Deleting the order: the dialog names the attachment count.
+
+**Three shortcuts that fail, called out because they are the tempting ones:**
+1. *Uploading on save.* A 12 MB receipt on hotel wifi turns Save into a thirty-second freeze with no feedback, and a failure there loses the whole form, not just the file.
+2. *Attaching straight to the record on drop.* Writes to an order the user may abandon, and gives an unsaved order server state. The staged-id approach gets the immediate upload without the write.
+3. *Replace as delete-then-upload.* Turns a non-destructive action destructive whenever the network hiccups.
+
+**Attachments have no replace — only add and delete.** A receipt is evidence of one purchase, and swapping the file behind an unchanged filename is how a record starts lying. Item photos *do* replace, because a photo is illustration.
+
+**Source menu** (17b). Clicking an empty item-photo slot, or Replace, opens a menu: **Take a photo**, **Choose a photo**, and a separated **Use the receipt** which opens a page picker so a crop of an existing attachment can become the item photo. Dropping a file bypasses the menu. The menu **adapts rather than branches**: Take a photo is absent (not disabled) where there is no camera; Use the receipt appears only when the order has an attachment; and with one source available the menu is skipped and the picker opens directly — so on desktop with no attachment, clicking the slot opens the file picker with no menu at all.
+
+**One picker entry, not two.** "Choose a photo" and "Choose a document" would be the same dialog on desktop, and an item photo accepts images only. On mobile the single entry opens the photo library. The attachment strip is the opposite case — it accepts PDFs, so its picker entry opens the file browser. The `accept` list decides which; a second menu row never does.
+
+**States drawn in 17b:** empty, filled at rest, hover with replace/delete (28px on desktop; permanent 44px labelled buttons on touch, per 15b), the source menu, uploading/replacing, and failed. Plus the attachment strip with mixed states in one row.
+
+**Failure is per file, never per batch.** Drop five with one rejected: four upload, the fifth keeps its tile with the reason and a Remove. The reason is specific — "Too large", "Not a supported type", "Upload failed" — because "Error" does not tell the user whether to retry or pick a different file.
+
+Also everywhere: navigating away mid-upload prompts with the count of uploads in flight (the sticky-save prompt alone does not mention files); a duplicate file on one order warns but does not block, as two photos of one item are legitimate; on dark every thumbnail keeps a `1px #463f37` border at 90% opacity, returning to full on hover and in the viewer; and **never a full-screen blocking overlay for an upload** — progress belongs on the tile and the rest of the form stays editable.
+
+---
+
 ## Interactions summary
 
 | Trigger | Result |
@@ -818,6 +850,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 | `14-input-types.png` | 14a–14d |
 | `15-layout-rules.png` | 15a, 15b |
 | `16-actions-inventory.png` | 16a–16c |
+| `17-images-and-files.png` | 17a, 17b |
 
 Full-page PNG at 2× device pixels (roughly 4100px wide; `14-input-types.png` is the one exception, capped at 1.44× because the page is 8300px tall), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
 
@@ -848,6 +881,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Input types.dc.html` | 14a, 14b, 14c, 14d |
 | `Layout rules.dc.html` | 15a, 15b |
 | `Actions inventory.dc.html` | 16a, 16b, 16c |
+| `Images and files.dc.html` | 17a, 17b |
 | `support.js` | Preview runtime for the files above — not part of the product |
 | `screenshots/` | Full-page capture of each file (see above) |
 

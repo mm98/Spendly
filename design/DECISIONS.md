@@ -264,6 +264,32 @@ Full width when the content has no predictable length. A fraction when it is a b
 
 **On mobile the test is: one calculation or one object, and no part under 100px.** Three fields at 375px is 105px each before gaps, which is the floor, and why nothing keeps thirds on a phone. The item equation survives as fixed + fluid, with the computed third becoming a **total line** rather than a field — a read-only box on a phone is a target that does nothing.
 
+## 32. Files upload on drop, to staging — not on save
+
+**The decision.** A dropped file uploads immediately and returns an id. The draft holds ids; saving the order commits them. Abandoned drafts leave orphans, cleaned after 24 hours.
+
+**Rejected: upload on save.** Makes the draft self-contained, and makes Save a long silent operation that can fail — losing the whole form, not just the file. A receipt tracker used on a phone in a shop cannot have a Save that takes thirty seconds with no feedback.
+
+**Rejected: attach straight to the record.** Gives an unsaved order server state, and writes to something the user may abandon. Staging gets the immediate upload without the premature write.
+
+**The 24-hour window is load-bearing.** It is why removing a file from a draft can just drop the id, which is why Undo on a delete always works.
+
+## 33. Replace is upload, swap, release — in that order
+
+Never delete-then-upload. A failed upload in that order leaves the user with nothing, from an action that was never destructive. During the replace the tile shows the **old** image dimmed under the progress ring, so abandoning the page mid-replace keeps the original.
+
+## 34. Attachments cannot be replaced; item photos can
+
+**The decision.** The attachment strip offers add and delete only. Item photos offer replace.
+
+**Why.** A receipt is evidence of one specific purchase. Swapping the file behind an unchanged filename and timestamp is how a record starts lying, and there is no way to tell afterwards. An item photo is illustration — replacing a bad photo of a chair with a better one changes nothing about the truth of the record.
+
+## 35. The source menu adapts rather than branching
+
+One menu component. Take a photo is **absent** where there is no camera, not disabled. Use the receipt appears only when the order has an attachment. With a single source available the menu is skipped entirely and the picker opens — so on desktop with no attachment, clicking an empty slot opens the file picker with no menu.
+
+**One picker entry, never two.** "Choose a photo" and "Choose a document" are the same dialog on desktop, and an item photo accepts images only. The `accept` list decides whether the entry opens the photo library or the file browser. A second row for the same picker is padding.
+
 ---
 
 ## Where the design is intentionally silent

@@ -325,6 +325,32 @@ Conventions: amounts are DKK, formatted `1.234,50 kr.` (period thousands, comma 
 
 ---
 
+## Files and images (17a, 17b)
+
+**Validation order:** extension, then sniffed magic bytes, then size. All client-side, before upload. Rejection renders inline on the drop zone; the zone stays usable.
+
+**Upload:** tile appears immediately from a local object URL; upload goes to staging and returns an id; the draft holds ids. Order save commits them. Orphans cleaned after 24 hours.
+
+**Server derives:** EXIF-corrected orientation, a copy stripped of GPS and camera metadata, a thumbnail, and page-1 render for PDFs. HEIC converted for display, original retained as uploaded.
+
+**Replace:** upload new → swap reference → release old. Never the reverse. Old image stays visible, dimmed, under the progress ring. Failure leaves the original in place with the tile reporting the failed replace.
+
+**Delete:** user-added item photo → immediate + toast/Undo. Scan-sourced photo or attachment → confirm first. Order delete → dialog names the attachment count. Draft removal drops the id only; storage cleanup is the 24-hour job.
+
+**Failure is per file.** One rejected file in a batch of five does not roll back the other four. The failed tile persists with a specific reason ("Too large", "Not a supported type", "Upload failed") and a Remove; retry re-uploads without re-picking.
+
+**Source menu:** opens from an empty item-photo slot and from Replace. Rows: Take a photo (only where a camera exists — omitted, not disabled), Choose a photo (opens the library on mobile; the file dialog on desktop), and Use the receipt (only when the order has an attachment; opens a page picker for cropping). Skipped entirely when only one source is available. Drop bypasses it.
+
+**Navigating away mid-upload** prompts with the count in flight ("2 files are still uploading") — the dirty-form prompt alone does not mention files.
+
+**Duplicate file on one order** (same name and size) warns, does not block.
+
+**No full-screen blocking overlay** for uploads. Progress lives on the tile; the form stays editable.
+
+**⚠ CONFIRM — attachment limits** (also question 2): recommendation 10 files per order, 20 MB each, and a 30-day orphan retention if 24 hours is too aggressive for your storage.
+
+---
+
 ## Cross-cutting
 
 **Toasts** queue, showing one at a time, bottom-centre, 6s, paused on hover. Undo is available for the toast's lifetime and its action is idempotent. A toast dismissed early keeps the action applied — Undo is an offer, not a pending state.
