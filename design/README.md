@@ -1,5 +1,7 @@
 # Handoff: Spendly order flows
 
+> **The frame around a mockup is not part of the design.** The full-shell mockups (9a, 10a) sit inside a rounded, outlined card with a drop shadow at a fixed 1400px width. That card is presentation only — it exists so the mockup reads as a window on the page. In the app the shell fills the browser viewport edge to edge: square corners, no outer border, no shadow, the sidebar running the full window height and the content column meeting the window edge. Any fixed pixel width on a full-page mockup stands in for a viewport.
+
 ## Overview
 
 Spendly is personal receipt and order tracking for a single user: capture a receipt, keep the order and its item lines straight, and see what it added up to per month, vendor and category.
