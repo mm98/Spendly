@@ -25,6 +25,14 @@
     <span style="font-size: 20px; font-weight: 600">Order — read view</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">Same 2fr / 1fr skeleton as the edit screen, so switching between reading and editing moves nothing. Row actions and Add item drop away, fields become label and value rows, status becomes a pill in the items header, and the rail ends with Duplicate, Delete and Edit order.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Intent</b> — The read view exists so the common case — looking something up — costs nothing. It shares the edit screen's grid exactly, so entering edit changes controls, never positions. Build both from one layout component.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Watch out</b> — Do not render inputs as disabled fields here. Values are text. A page full of greyed-out inputs reads as broken permissions, and it doubles the DOM for no gain.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Desktop vs mobile</b> — Below 900px the rail moves under the item list. Attachments stay a horizontal filmstrip on both — it is the one place sideways scroll is correct, because a receipt strip has no meaningful order.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Easy to get wrong</b> — Edit, Duplicate and Delete belong in the page, never the top bar (global rule 1). The top shell is shared and locked.</div>
+  </div>
+
 
   <div style="width: 1240px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden">
     <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e6e4dc">
@@ -165,6 +173,15 @@
     <span style="font-size: 20px; font-weight: 600">Desktop — edit an item in place</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">The pencil turns the row into a form without moving it in the list. Same fields as the mobile sheet: quantity stepper, unit price, retail price, line total. Enter saves, Escape cancels, Cmd/Ctrl+Enter saves and opens the line below. The photo lives in the open row: the camera badge opens upload / take / paste / pick / remove, and a file can be dropped straight onto the thumbnail. Lines with no photo show a dashed tile.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Intent</b> — Editing a line happens next to its neighbours because that is what makes the edit correct — you fix a quantity by reading the line above it. The row becomes a form and does not move.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Watch out</b> — Only one row is open at a time; opening another closes the first and keeps its changes in the order draft. The line is never saved to the server on its own — the order save is the only write.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Watch out</b> — Line total is computed and read-only. Do not make it editable "for convenience" — two sources for one number is how totals start disagreeing with receipts.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Desktop vs mobile</b> — This inline expansion is desktop only. On a phone the same fields open in a bottom sheet (1c), because in one column "expands in place" and "takes over the screen" are the same thing. Same fields, same order, same validation — one form component, two containers.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Easy to get wrong</b> — Discoverability. A row must never look inert: pointer cursor, hover fill, and a pencil at the right edge. On touch there is no hover, so the pencil is permanently visible. All three, not one.</div>
+  </div>
+
 
   <div style="width: 812px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
     <div style="display: flex; align-items: center; gap: 12px">
@@ -312,6 +329,15 @@
     <span style="font-size: 20px; font-weight: 600">Mobile</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">The rail becomes the bottom of the page. Items lead, attachments scroll sideways, details collapse into one folded section. Total and Save live in a fixed bar so they're reachable without scrolling.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Intent</b> — The phone is the capture device, so this layout assumes one hand and a receipt in the other. Items lead because that is the work; details fold away.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Watch out</b> — The details section is collapsed by default with a summary line ("Indbo Møbler · 12 Aug · Received"). Collapsed must still tell you what is inside, or it reads as an empty accordion.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Watch out</b> — 44px minimum on every target, including the row itself and the sheet buttons. Row density in Settings does not apply here — compact affects list rows on desktop only.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Desktop vs mobile</b> — This is not the desktop layout at a smaller width. Fields were removed, not shrunk: vendor and amount on line one, date/items/status on line two, category on line three. Anything else lives one level deeper. Do not reintroduce columns to "use the space".</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Easy to get wrong</b> — Sticky save on iOS. The save bar must sit above the keyboard and the home indicator — use dynamic viewport units and safe-area insets, or it ends up under both.</div>
+  </div>
+
 
   <div style="display: flex; gap: 32px; align-items: flex-start">
     <div style="display: flex; flex-direction: column; gap: 10px">
@@ -616,6 +642,16 @@
     <span style="font-size: 20px; font-weight: 600">Edit order</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">Details and totals in the 1/3 rail, items and attachments in the wide column. Attachments grow sideways as a filmstrip, so the rail never out-runs the items list.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Intent</b> — The screen this whole exercise produced. The header moved into the rail so the item list starts at the top of the page and owns the width; nearly every session is adjusting lines.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Watch out</b> — The rail must stay shorter than the item list. If it grows past it, the page scrolls for the rail's benefit and the original problem is back in a new form. Attachments are below the items for exactly this reason — anything new in the rail has to displace something, not extend it.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Watch out</b> — Reorder needs both the drag handle and the up/down buttons. Drag is unusable with a keyboard and awkward on touch inside a scrolling list; the buttons are the accessible path. Order persists as an explicit position field, never derived from a sort.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Watch out</b> — Crossing a category limit shows the amber notice and the save proceeds. Keep that check out of the validation layer entirely — once it shares a code path with required fields, it eventually starts blocking.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Desktop vs mobile</b> — Below 900px this becomes 1c: rail collapses to a section above the items, inline expansion becomes a sheet. The sticky save bar survives the transition and is the one element that must never be scrolled away.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Easy to get wrong</b> — Sticky positioning here is relative to the content column, which is the page's only scroll container — not the viewport. Get the shell right first (see the README) or every sticky element in the app misbehaves.</div>
+  </div>
+
 
   <div style="width: 1240px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden">
     <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e6e4dc">

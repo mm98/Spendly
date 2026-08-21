@@ -181,6 +181,71 @@ These hold on every screen and are the constraints behind several layout decisio
 
 ---
 
+## The shell — structure and scroll behaviour
+
+Read this before building any screen. It is the frame everything else sits in, and none of it is visible in a screenshot.
+
+### Anatomy
+
+```
+┌──────────────┬─────────────────────────────────────────┐
+│              │  top bar — LOCKED, 56px, does not scroll│
+│   sidebar    ├─────────────────────────────────────────┤
+│   248px      │                                         │
+│   full       │  page content — the only scroll          │
+│   viewport   │  container on the page                  │
+│   height     │  padding 48px                           │
+│   fixed      │                                         │
+│              │                                         │
+└──────────────┴─────────────────────────────────────────┘
+```
+
+**The page does not scroll. The content column does.** `html, body { height: 100%; overflow: hidden }`; the content column is the single scroll container (`overflow-y: auto`). This is deliberate: the sidebar and the top bar must never move, and a document-level scroll makes both of them either move or need `position: fixed`, which then breaks the sticky save bar inside the content.
+
+### The sidebar
+
+- **Always full viewport height**, `100dvh` (not `100vh` — on mobile browsers the toolbar makes `vh` wrong). Fixed `248px`, or `68px` collapsed.
+- **It is a flex column**, and it scrolls independently *only if its own content overflows* — which happens on short viewports. It does not scroll with the page.
+- **Three zones, top to bottom:**
+  1. *Brand*, at the top, not scrollable.
+  2. *Navigation*, the flexible middle (`flex: 1`, `overflow-y: auto`, `min-height: 0` — the same automatic-minimum-size rule from 13a applies here, and without it the middle refuses to shrink and pushes the bottom zone off-screen).
+  3. *Bottom zone, pinned:* Settings, the theme toggle, and the account block. These sit below a `flex: 1` spacer, so they rest against the bottom of the viewport whatever the nav length. On a short viewport the nav scrolls and the bottom zone stays put — it is never scrolled away, because switching theme and reaching the account must not depend on scroll position.
+- A `1px rgba(255,255,255,0.07)` divider separates the theme toggle from the nav above it. There is no divider between the toggle and the account block; they read as one bottom group.
+- **The collapse state** persists per user. Collapsed, labels become tooltips on hover; the bottom zone keeps the same order, icons only, and the account block becomes the avatar alone.
+- The sidebar keeps `#14261c` in **both themes** (see 12a) — it is the one element that does not participate in theming, which also means it needs no theme work.
+
+### The top bar
+
+**Locked. No page actions may be placed here** — see global rule 1. It carries the breadcrumb and the page title, nothing else. It does not scroll and it does not change per page beyond its text. Every action a page offers lives inside the page: that is why the edit screen has a sticky save bar at the bottom of its content column, why the order list puts bulk actions in a bar above the list, and why Settings saves per card.
+
+### The content column
+
+- One scroll container, `48px` padding (`20px` on mobile).
+- **Scroll position resets to top on navigation**, and is restored when returning to a list via the browser back button — a user who scrolled to order 80, opened it, and came back should land where they were.
+- **Sticky elements inside it** — the save bar on order edit, the bulk-action bar on the list, table headers — are `position: sticky` relative to *this* container, not the viewport. This only works because the container is the scroller; it is the main reason for the layout above.
+- The two-column screens (order edit, order list, the library) lay out **inside** this column: main `1fr` plus a fixed rail, `24px` gap. The rail scrolls with the content, not separately. There is no second scrollbar anywhere in the app.
+
+### Breakpoints
+
+| Width | What changes |
+| --- | --- |
+| ≥ 1280px | Full layout. Sidebar expanded by default. |
+| < 1280px | Facet rail on the order list becomes a drawer; sidebar may collapse to the 68px rail. |
+| < 900px | Two-column screens stack: rail content moves above or below the main column per screen (order edit collapses its rail into a summary section; the library switches to list-then-panel navigation). |
+| < 640px | Phone layout. Sidebar becomes a bottom tab bar, the top bar keeps only the title, sheets replace inline expansion, and the capture FAB appears. |
+
+**On mobile the sidebar is not a drawer by default** — the five primary destinations become a bottom tab bar, and Settings and the account move into a "More" destination. A hamburger drawer would put the most-used navigation two taps away on the device where capture matters most.
+
+### What is global, and lives in the shell rather than any page
+
+- The toast queue (bottom-centre, one at a time).
+- The dialog layer and its scrim.
+- The command palette (⌘K / Ctrl-K).
+- The theme, applied before first paint from the persisted preference.
+- Keyboard layering: Esc closes the topmost layer — sheet, then dialog, then palette, then an inline edit.
+
+---
+
 ## Screens
 
 ### 9a / 9b — Navigation shell
@@ -553,6 +618,71 @@ Per screen, roughly what needs to exist:
 
 Data needed: orders with item lines and attachments, vendors, categories (with icon, colour and monthly limit), and aggregate endpoints for statistics that accept the same filter shape as the list.
 
+## The shell — structure and scroll behaviour
+
+Read this before building any screen. It is the frame everything else sits in, and none of it is visible in a screenshot.
+
+### Anatomy
+
+```
+┌──────────────┬─────────────────────────────────────────┐
+│              │  top bar — LOCKED, 56px, does not scroll│
+│   sidebar    ├─────────────────────────────────────────┤
+│   248px      │                                         │
+│   full       │  page content — the only scroll          │
+│   viewport   │  container on the page                  │
+│   height     │  padding 48px                           │
+│   fixed      │                                         │
+│              │                                         │
+└──────────────┴─────────────────────────────────────────┘
+```
+
+**The page does not scroll. The content column does.** `html, body { height: 100%; overflow: hidden }`; the content column is the single scroll container (`overflow-y: auto`). This is deliberate: the sidebar and the top bar must never move, and a document-level scroll makes both of them either move or need `position: fixed`, which then breaks the sticky save bar inside the content.
+
+### The sidebar
+
+- **Always full viewport height**, `100dvh` (not `100vh` — on mobile browsers the toolbar makes `vh` wrong). Fixed `248px`, or `68px` collapsed.
+- **It is a flex column**, and it scrolls independently *only if its own content overflows* — which happens on short viewports. It does not scroll with the page.
+- **Three zones, top to bottom:**
+  1. *Brand*, at the top, not scrollable.
+  2. *Navigation*, the flexible middle (`flex: 1`, `overflow-y: auto`, `min-height: 0` — the same automatic-minimum-size rule from 13a applies here, and without it the middle refuses to shrink and pushes the bottom zone off-screen).
+  3. *Bottom zone, pinned:* Settings, the theme toggle, and the account block. These sit below a `flex: 1` spacer, so they rest against the bottom of the viewport whatever the nav length. On a short viewport the nav scrolls and the bottom zone stays put — it is never scrolled away, because switching theme and reaching the account must not depend on scroll position.
+- A `1px rgba(255,255,255,0.07)` divider separates the theme toggle from the nav above it. There is no divider between the toggle and the account block; they read as one bottom group.
+- **The collapse state** persists per user. Collapsed, labels become tooltips on hover; the bottom zone keeps the same order, icons only, and the account block becomes the avatar alone.
+- The sidebar keeps `#14261c` in **both themes** (see 12a) — it is the one element that does not participate in theming, which also means it needs no theme work.
+
+### The top bar
+
+**Locked. No page actions may be placed here** — see global rule 1. It carries the breadcrumb and the page title, nothing else. It does not scroll and it does not change per page beyond its text. Every action a page offers lives inside the page: that is why the edit screen has a sticky save bar at the bottom of its content column, why the order list puts bulk actions in a bar above the list, and why Settings saves per card.
+
+### The content column
+
+- One scroll container, `48px` padding (`20px` on mobile).
+- **Scroll position resets to top on navigation**, and is restored when returning to a list via the browser back button — a user who scrolled to order 80, opened it, and came back should land where they were.
+- **Sticky elements inside it** — the save bar on order edit, the bulk-action bar on the list, table headers — are `position: sticky` relative to *this* container, not the viewport. This only works because the container is the scroller; it is the main reason for the layout above.
+- The two-column screens (order edit, order list, the library) lay out **inside** this column: main `1fr` plus a fixed rail, `24px` gap. The rail scrolls with the content, not separately. There is no second scrollbar anywhere in the app.
+
+### Breakpoints
+
+| Width | What changes |
+| --- | --- |
+| ≥ 1280px | Full layout. Sidebar expanded by default. |
+| < 1280px | Facet rail on the order list becomes a drawer; sidebar may collapse to the 68px rail. |
+| < 900px | Two-column screens stack: rail content moves above or below the main column per screen (order edit collapses its rail into a summary section; the library switches to list-then-panel navigation). |
+| < 640px | Phone layout. Sidebar becomes a bottom tab bar, the top bar keeps only the title, sheets replace inline expansion, and the capture FAB appears. |
+
+**On mobile the sidebar is not a drawer by default** — the five primary destinations become a bottom tab bar, and Settings and the account move into a "More" destination. A hamburger drawer would put the most-used navigation two taps away on the device where capture matters most.
+
+### What is global, and lives in the shell rather than any page
+
+- The toast queue (bottom-centre, one at a time).
+- The dialog layer and its scrim.
+- The command palette (⌘K / Ctrl-K).
+- The theme, applied before first paint from the persisted preference.
+- Keyboard layering: Esc closes the topmost layer — sheet, then dialog, then palette, then an inline edit.
+
+---
+
 ## Screenshots
 
 `screenshots/` holds a full-page capture of each file, numbered to match the id prefixes:
@@ -574,7 +704,7 @@ Data needed: orders with item lines and attachments, vendors, categories (with i
 | `12-dark-mode-viewer.png` | 12a, 12b |
 | `13-typography.png` | 13a |
 
-They are for orientation and review only. Measure nothing off them — the values in this document and the HTML files are the source.
+Full-page PNG at 2× device pixels (roughly 4100px wide, up to 7900px tall), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
 
 ## Assets
 
