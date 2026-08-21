@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { decompressBlob } from './blobCompression.js'
+import { todayIso } from './dates.js'
 
 /* The one place a scanned document's bytes are actually read. Everything in routes/scan.js
    around this stayed an honest blank draft until now -- see that route's own comment, and the
@@ -78,7 +79,7 @@ function normalise(input) {
 	const vendor = String(input.vendor ?? '').trim()
 	if (!vendor) return null
 
-	const date = ISO_DATE.test(input.date) && input.date <= new Date().toISOString().slice(0, 10)
+	const date = ISO_DATE.test(input.date) && input.date <= todayIso()
 		? input.date : null
 	const currency = typeof input.currency === 'string' && /^[A-Z]{3}$/.test(input.currency) ? input.currency : null
 	const shipping = isFiniteNumber(input.shipping) && input.shipping >= 0 ? input.shipping : 0

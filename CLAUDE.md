@@ -385,6 +385,35 @@ Printing the page title on arrival, which this file already asks for, is what ca
 The API needs `api/` running too (`npm run dev` there): without it every page renders its error state
 and the first `waitForSelector` times out on a 502 nobody printed.
 
+**The exact commands that work, so this stops getting re-derived each session.** `npm ci` in
+`api/` and `npm install` in `react/` the first time (`node_modules` is not committed); after
+that:
+
+```bash
+# api/ -- PORT 4000 is not a suggestion: react/vite.config.js's dev proxy hard-codes
+# 'http://localhost:4000' as its default target, so the app's fetch('/api/...') calls 404
+# against Vite itself on any other port unless SPENDLY_API_URL is also set to match.
+# SPENDLY_DB to a scratch path keeps a verification run off the real database.
+cd api && SPENDLY_DB=/tmp/<scratch>/spendly.sqlite3 PORT=4000 npm run dev
+
+# react/ -- plain `npm run dev`, no env needed; it proxies /api to :4000 by default.
+cd react && npm run dev
+```
+
+Both `cd`s matter: a `node`/`npm` command run from the wrong directory fails on a missing
+`package.json` or resolves the wrong `node_modules`, and this repo's `api/` and `react/` are two
+separate installs with two separate lockfiles -- there is no root `node_modules` either one falls
+back to.
+
+Playwright itself is not a project dependency (neither `package.json` lists it) -- it is the
+globally installed 1.56.1 the environment bullets above already describe, at
+`/opt/node22/lib/node_modules/playwright`, a CommonJS package. A driving script run with plain
+`node` needs either `NODE_PATH=/opt/node22/lib/node_modules node script.mjs` or an explicit
+`import pkg from '/opt/node22/lib/node_modules/playwright/index.js'; const { chromium } = pkg`
+(a bare named import fails: `SyntaxError: Named export 'chromium' not found` on a CJS module) --
+plain `import { chromium } from 'playwright'` resolves nothing on its own from outside `react/`
+or `api/`, since neither installs it locally either.
+
 **A redirect renders twice, so a probe that reads after a click reads the frame before it.** State
 restored by a redirect -- the list memory here -- is correct one render later than the click that
 triggered it, so `click(); read()` samples the *old* value and a fixed `waitForTimeout` samples
