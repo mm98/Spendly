@@ -4,7 +4,7 @@
 
 Spendly is personal receipt and order tracking for a single user: capture a receipt, keep the order and its item lines straight, and see what it added up to per month, vendor and category.
 
-This package covers the whole surface that work touched: the app shell, the home page, the order list, order read and edit, creating an order from a scanned receipt, statistics with drill-down, the vendor and category library, the states and confirmations that sit across all of it, the phone layouts, settings, file import, the dark theme, the full-size image viewer, and the typography reference.
+This package covers the whole surface that work touched: the app shell, the home page, the order list, order read and edit, creating an order from a scanned receipt, statistics with drill-down, the vendor and category library, the states and confirmations that sit across all of it, the phone layouts, settings, file import, the dark theme, the full-size image viewer, and the foundation references — typography, the control set, and the layout rules.
 
 The change that started it: on the order edit screen the order header used to sit above the item list and eat most of the viewport, while the actual work is nearly always adjusting item lines. The header moved into a right rail, so the item list owns the width and starts near the top of the page. Everything else follows that same two-column shape.
 
@@ -317,7 +317,7 @@ Expanded row: fill `#fff`, `1px solid #1d4d33`, radius `10px`, `14px` padding. C
 
 #### 1c — Edit screen with reorder
 
-Same two-column shape with fields in the rail as inputs (`1px solid #dedcd4`, radius `9px`, `10px 12px`, 14px text; focus `1px solid #1d4d33` plus a 3px `rgba(29,77,51,0.12)` ring).
+Same two-column shape with fields in the rail as inputs (`1px solid #dedcd4`, radius `9px`, `10px 12px`, 14px text — 42px tall, the canonical control height (controls that are not text, like the quantity stepper, get `box-sizing: border-box; height: 42px` explicitly rather than sizing to content); focus `1px solid #1d4d33` plus a 3px `rgba(29,77,51,0.12)` ring).
 
 **Reordering item lines.** Two mechanisms, both required:
 - **Drag.** A 6-dot handle (`#c3c1b8`, 16px) at the left of each row, `cursor: grab`. Dragging lifts the row with shadow `0 4px 14px rgba(27,26,23,0.08)` and shows a 2px `#1d4d33` insertion line at the drop position; other rows shift with `150ms ease`.
@@ -577,6 +577,74 @@ Six standing rules: nothing below 10px (sidebar label only; 11px is the floor fo
 
 ---
 
+### 14a–14d — Input types, buttons, palette rule, component API
+File: `Input types.dc.html` · Code: `components/` (the shared control set)
+
+**This is the component specification.** Build these before the screens; every screen composes them.
+
+**14a — Controls and their states.** Text field, amount field, quantity stepper, search, multi-line, the combobox in both modes, segmented, checkbox, toggle, filter chips, drop zone, date, colour and icon pickers. Each shown in every state it has (empty, filled, focus, error, read-only, disabled, loading) with the rule that made it that shape.
+
+Cross-cutting geometry: every text-entry and select control is `1px solid #dedcd4`, radius `9px`, padding `10px 12px`, 14px text — **42px tall, the canonical control height**. Controls that are not text (the stepper, combobox triggers) take `box-sizing: border-box; height: 42px` explicitly rather than sizing to content. Focus is one treatment everywhere: border `#1d4d33` plus a 3px `rgba(29,77,51,0.12)` ring. Labels are always visible at 12px/600 above the control — no floating labels, no placeholder-as-label. Validation fires on blur once touched and on submit, never per keystroke.
+
+Specifics worth not rediscovering: an error state **keeps the value** (the field being corrected is the one that failed); read-only and disabled look deliberately different (read-only keeps full contrast, disabled drops it and its copy says what would enable it); amount fields accept `4190`, `4.190,00`, `4190.00` and `4 190` and reformat on blur, and never use `type="number"`; the stepper's minus disables at 1 rather than deleting the line.
+
+**The combobox is one component with two modes** — this is the largest single piece in the set.
+- *Pick-only* (status, formats): button trigger, no search field, closed option set.
+- *Searchable* (vendor, category): the trigger becomes a text input, and results are grouped **Favourites → Recent → All**, with "Create X" always last quoting exactly what was typed.
+- Group headers are labels: never focusable, never selectable, hidden when their group has no matches. **Arrow keys traverse all groups as one flat list** — visual grouping must not affect traversal.
+- Favourites are explicit (starred from the library, capped at five); Recent is automatic (last three used, excluding anything starred so nothing appears twice).
+- **Nothing is selected by typing alone** — no inline autocomplete, no selection on blur. The user commits with Enter or a click; silent selection is how the wrong vendor lands on an order.
+- Two highlight states with two meanings: the grey row is hover/keyboard focus, the green row with a check is the current value. They can sit on different rows at once. Conflating them is the classic hand-built-dropdown bug.
+- Full keyboard table in the file, plus the ARIA roles (`combobox` + `aria-expanded` + `aria-activedescendant`, `listbox`, `group` per section) and a live region for the filter result count.
+
+**14b — Buttons.** Four levels, chosen by what the action does: primary (one per view), secondary, ghost, destructive. **Destructive only exists inside a confirm dialog** — a red button on a page is always a bug, since the page-level Delete is a secondary that opens the dialog. Confirming action is always rightmost with cancel to its left, 8px gap, everywhere. Loading holds the button width, swaps the label for a spinner plus a verb, and blocks a second submit. Disabled is a last resort — prefer letting the click happen and showing what is wrong. Labels are specific verbs ("Import 41 orders", not "Confirm"). Anything that navigates is an anchor (`as="a"`), so cmd-click keeps working.
+
+**14c — Extending the palette.** The colours follow a rule, stated in OKLCH because it is invisible in hex:
+1. **Four hue families, nothing between them.** Green H 150–158, amber H 81–89, red H 27–29, neutrals H 91–101 at C ≤ 0.012. The neutrals sitting on the amber hue at near-zero chroma is why the canvas reads warm greige rather than grey — and why a true grey dropped in looks dirty beside it.
+2. **Chroma falls as lightness rises.** The green ramp runs L 37.9 → 55.4 → 72.1 → 86.0 → 91.8 with C 0.069 → 0.069 → 0.052 → 0.025 → 0.011. Hold chroma flat while lightening and the pale end turns to mint.
+3. **Chroma is capped at C 0.12**, and that ceiling belongs to one colour — the amber pace marker at `#b58a2b`, which must read as a 2px hairline. Picker swatches stop at C 0.08.
+
+To add a swatch: pick a hue in an existing family or ≥40° from all four; set L in 69–86 and ≥5 L from any swatch on the same hue; derive chroma from that lightness (~0.08 at L 70, ~0.05 at L 80, ~0.025 at L 86); check it as a 26px icon tile with white and with dark ink (the glyph flips above L 75), as a 12px chart bar, and as a chip; and add the dark-theme pair in the same commit (+18 L, same chroma). Never open a free colour picker to users, and never interpolate in hex or HSL.
+
+**14d — Component API.** Thirteen components with the options each needs and what drives them, so nothing is speculative: TextField, AmountField, Stepper, Combobox, SearchInput, Segmented, Checkbox, Toggle, DateField, FileDrop, SwatchPicker, Button, Chip.
+
+- **All share five props** — `label`, `value`, `onChange`, `error`, `disabled` — owned by **one shared field wrapper**, which also owns the label's `htmlFor`, the required marker, the hint/error slot with `aria-describedby`/`aria-invalid`, and the spacing. Each control renders only its own box. **Error and hint share one slot** so a field never changes height when it fails.
+- **Controlled only.** No internal value state, no `defaultValue` — a control holding its own copy is how a field silently disagrees with what gets saved.
+- **No `variant="danger"` on an input.** Error is a boolean plus a message, which makes the red state impossible to apply for decoration.
+- **Deliberately not components:** radio (every either/or here is a Segmented or Combobox), slider (an amount range is two AmountFields — a receipt total is typed, not dragged to), autocomplete / tag input / rich text / native select (all are the Combobox, Chip list, or multiline TextField), and Form (each screen's save behaviour differs, so screens compose the wrapper and controls directly).
+- Build order in the file: wrapper + TextField + Button, then Combobox, then AmountField + Stepper together, then the small four the order list needs at once, then the rest. Each control ships with the states from 14a as its acceptance criteria.
+
+---
+
+### 15a / 15b — Layout rules
+File: `Layout rules.dc.html`
+
+**The rule behind every screen: one fluid column per layout, everything else a fixed pixel width.** The main column is `1fr`; rails, navs and facet columns are fixed. Two fluid columns means neither has a predictable width, nothing inside either can be sized with confidence, truncation stops being predictable, and the first long vendor name reflows the page.
+
+Gaps, not margins, set on the container: `24px` between columns, `14px` between stacked cards, `16px` in a card grid, `12px` between fields.
+
+**Four column shapes cover the whole set:**
+1. **Main + right rail** (1a, 1d, 10a). Rail widths are **320 / 360 / 400** and nothing between — 320 for a read-only summary, 360 for a form rail, 400 for a panel that is itself a form. The rail stays shorter than the main column.
+2. **Left rail + main** (2a, 11a). Facets `260px`, page-level nav `208px`. A left rail is always narrower than a right rail because it holds controls, not content. Below 1280px it becomes a drawer rather than compressing.
+3. **List + panel** (5a, 5b). The panel never collapses — with no selection it shows the roll-up, so the column width is constant whatever is selected. Below 900px they become separate views with a back action, never stacked.
+4. **Card grid** (2c, 4a). Order cards `repeat(auto-fill, minmax(280px, 1fr))`; Statistics on a 12-column grid where every card spans a whole number of columns so rows always close.
+
+**Fields — full width or a fraction.** The test is the content, not the importance: full width when the content has no predictable length (vendor, item name, reference, notes, search, drop zones); halves when two *bounded* values are read together (date + status, currency + format); **thirds exactly once** — quantity × unit price = line total, because the row is an equation; never four in a row (each cell falls under 80px in a 360px rail). A control with an intrinsic width takes `flex: none` at its own size and the field beside it takes the remainder with `min-width: 0`.
+
+**Always full width of its container:** tables and item lists, drop zones, progress bars, the sticky save bar and bulk-action bar (full width of the *main column*, not the page), and cards. **Never full width on desktop:** buttons, body text (capped 640px prose / 900px description), a form column (Settings caps at 640px even at 1920px), segmented controls / chips / steppers / swatch rows (intrinsic width, `align-self: flex-start`), and dialogs (440px) and popovers (560px).
+
+**Rows:** height from padding (12–14px, 8px compact), never a fixed height. Columns fixed except one — vendor 200px, date 110px, items 72px, category 160px, status 120px, amount 120px right-aligned — with one fluid cell absorbing the slack, which is what keeps every value at the same x down the list. Second lines never displace the first. One grid definition shared with the header, declared once. An expanding row pushes, never overlays.
+
+**15b — Fields on mobile.** A four-step test, in order: (1) is it one calculation or one object? keep it grouped; (2) would any part fall under 100px? stack it regardless — three fields at 375px is 105px each before gaps, the hard floor, and why nothing keeps thirds on a phone; (3) does one part have an intrinsic width? fixed + fluid, not halves; (4) otherwise full width, which is the right answer for most fields.
+
+What survives the breakpoint is short enough to name: the item equation (as fixed + fluid, with the computed third becoming a **total line** rather than a field — a read-only box on a phone is a target that does nothing), the photo row with its controls, and the icon-plus-name field. Control padding goes from `10px 12px` to `12px`, taking the height from 42px to 46px without changing type size; field gap goes 12px → 14px.
+
+Also below 640px: buttons in a sheet go full width and stacked (the only correct full-width button); dialogs become bottom sheets; comboboxes become full-screen sheets with search at the top above the keyboard; segmented controls may go full width; the save bar spans the viewport respecting the safe-area inset; labels stay above their fields at every width.
+
+**Both breakpoint tables share one principle: every step removes or relocates something. Nothing is scaled down.** A compressed facet rail, a four-column equation at 300px, and a desktop table squeezed into a phone row are the same mistake.
+
+---
+
 ## Interactions summary
 
 | Trigger | Result |
@@ -703,8 +771,10 @@ Read this before building any screen. It is the frame everything else sits in, a
 | `11-settings-import.png` | 11a, 11b |
 | `12-dark-mode-viewer.png` | 12a, 12b |
 | `13-typography.png` | 13a |
+| `14-input-types.png` | 14a–14d |
+| `15-layout-rules.png` | 15a, 15b |
 
-Full-page PNG at 2× device pixels (roughly 4100px wide, up to 7900px tall), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
+Full-page PNG at 2× device pixels (roughly 4100px wide; `14-input-types.png` is the one exception, capped at 1.44× because the page is 8300px tall), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
 
 ## Assets
 
@@ -730,6 +800,8 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Settings and import.dc.html` | 11a, 11b |
 | `Dark mode and image viewer.dc.html` | 12a, 12b |
 | `Typography.dc.html` | 13a |
+| `Input types.dc.html` | 14a, 14b, 14c, 14d |
+| `Layout rules.dc.html` | 15a, 15b |
 | `support.js` | Preview runtime for the files above — not part of the product |
 | `screenshots/` | Full-page capture of each file (see above) |
 
@@ -746,4 +818,4 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 8. Settings (11a) and Import (11b) — Settings is small once the token layer exists; Import is the largest single piece in the set and depends on nothing else.
 9. Dark mode (12a) last as a token pass, not a rebuild — if it needs component changes, the token layer was not clean. Do it before shipping, not after; retrofitting a theme is far more work than building against one.
 
-Typography (13a) and the image viewer (12b) are not steps — 13a is the reference you build every screen against, and 12b is a shared component that steps 2 and 5 both need.
+The foundation files (13a, 14a–14d, 15a–15b) are not steps — they are what every step is built against. Read 14d and 15a before writing any component; they are the two that stop the same decision being made differently on each screen. Typography (13a) and the image viewer (12b) are likewise not steps — 13a is the reference you build every screen against, and 12b is a shared component that steps 2 and 5 both need.

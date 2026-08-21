@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 24px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">15a</span>
+    <span style="font-size: 20px; font-weight: 600">Columns, rows, and what goes full width</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every screen in the set uses one of four column shapes, and every field is either full width or a fraction for a reason that can be stated. Written down here because it was consistent across the designs but never explicit — and an undocumented grid is the first thing to drift.</div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">THE ONE RULE BEHIND ALL OF IT</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One fluid column per layout. Everything else is a fixed pixel width.</b> The main column takes <b>1fr</b>; rails, navs and facet columns are fixed. Two fluid columns means neither has a predictable width, so nothing inside either can be sized with confidence — and the first long vendor name changes the whole page.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Gaps, not margins.</b> <b>24px</b> between columns, <b>14px</b> between stacked cards, <b>16px</b> in a card grid, <b>12px</b> between fields. Set on the container, never per child, so reordering and deleting stay safe.</div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 0 48px 28px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">THE FOUR COLUMN SHAPES</div>
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 15px; font-weight: 600">1 — Main plus right rail</div>
+        <div style="font-size: 11px; color: #8b8a82">1a, 1d, 10a</div>
+      </div>
+      <div style="display: flex; gap: 10px; height: 116px">
+        <div style="flex: 1; background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+          <div style="font-size: 12px; font-weight: 600">1fr</div>
+          <div style="font-size: 10px; color: #8b8a82">min 560px</div>
+        </div>
+        <div style="width: 104px; background: #e7efe8; border: 1px solid #cfd8d1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; flex: none">
+          <div style="font-size: 12px; font-weight: 600; color: #1d4d33">360px</div>
+          <div style="font-size: 10px; color: #4f7f63">fixed</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">The default for a record: the thing you work on takes the fluid column, its metadata takes the rail. <b>Rail widths are 320 / 360 / 400</b> — 320 for read-only summaries (Home), 360 for a form rail (order edit), 400 for a panel that is itself a form (the library). Nothing in between; three values is already generous.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The rail stays shorter than the main column.</b> Once it is the longest thing on the page, the page scrolls for the rail's sake — which is the problem the whole redesign started from. Anything added to a rail has to displace something.</div>
+    </div>
+
+    <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 15px; font-weight: 600">2 — Left rail plus main</div>
+        <div style="font-size: 11px; color: #8b8a82">2a, 11a</div>
+      </div>
+      <div style="display: flex; gap: 10px; height: 116px">
+        <div style="width: 80px; background: #e7efe8; border: 1px solid #cfd8d1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; flex: none">
+          <div style="font-size: 12px; font-weight: 600; color: #1d4d33">260px</div>
+          <div style="font-size: 10px; color: #4f7f63">facets</div>
+        </div>
+        <div style="flex: 1; background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+          <div style="font-size: 12px; font-weight: 600">1fr</div>
+          <div style="font-size: 10px; color: #8b8a82">the list</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Controls on the left, results on the right — the reading order matches the causal order. <b>260px</b> for facets, <b>208px</b> for a page-level nav (Settings). A left rail is always narrower than a right rail, because it holds controls rather than content.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Below <b>1280px</b> this rail becomes a drawer or a sheet rather than compressing. A facet list at 180px is unusable, so it leaves the layout instead.</div>
+    </div>
+
+    <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 15px; font-weight: 600">3 — List plus panel</div>
+        <div style="font-size: 11px; color: #8b8a82">5a, 5b</div>
+      </div>
+      <div style="display: flex; gap: 10px; height: 116px">
+        <div style="flex: 1; background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+          <div style="font-size: 12px; font-weight: 600">1fr</div>
+          <div style="font-size: 10px; color: #8b8a82">the list</div>
+        </div>
+        <div style="width: 118px; background: #e7efe8; border: 1px solid #cfd8d1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; flex: none">
+          <div style="font-size: 12px; font-weight: 600; color: #1d4d33">400px</div>
+          <div style="font-size: 10px; color: #4f7f63">form</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Shape 1 with a wider rail, because the rail is a form rather than a summary. <b>The panel never collapses to nothing</b> — with no selection it shows the roll-up (5c), so the column width is constant whatever is selected. A layout that changes width on selection makes the list jump under the cursor.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Below <b>900px</b> the two become separate views: list, then panel, with a back action. Not stacked — a form below a long list is unreachable.</div>
+    </div>
+
+    <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 15px; font-weight: 600">4 — Card grid</div>
+        <div style="font-size: 11px; color: #8b8a82">2c, 4a</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; height: 116px">
+        <div style="background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px"></div>
+        <div style="background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px"></div>
+        <div style="background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px"></div>
+        <div style="background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px"></div>
+        <div style="background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px"></div>
+        <div style="background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px"></div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">No rail at all. Order cards use <b>repeat(auto-fill, minmax(280px, 1fr))</b> and reflow freely. Statistics uses a <b>12-column grid</b> where every card spans a whole number of columns, so rows always close — no half-filled row, no gap in the middle. Verify at 1280, 1440 and 1920.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Cards in a grid row share a height, cards in a column do not.</b> Grid handles the first automatically; don't fight it with fixed heights.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 0 48px 28px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">FIELDS — FULL WIDTH, OR A FRACTION</div>
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 560px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 13px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The test is the content, not the importance.</b> A field goes full width when what it holds has no predictable length. It takes a fraction when its content is a bounded token — a date, a status, a number — where a wide box is just empty space that makes the value look lost.</div>
+
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">FULL WIDTH — UNBOUNDED CONTENT</div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Item name</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px">Egetræsbord med sortmalet stålstel</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Notes</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; line-height: 1.5; min-height: 62px; color: #3d3c36">Delivery moved to week 34.</div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">Vendor, item name, reference, notes, search, and every drop zone. Also: a field in error keeps its width — the message wraps beneath rather than the box growing.</div>
+      </div>
+
+      <div style="height: 1px; background: #f0efe9"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">HALVES — TWO BOUNDED VALUES THAT BELONG TOGETHER</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Order date</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px">12 Aug 2026</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Status</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px; display: flex; align-items: center">Received<div style="flex: 1"></div><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">Date and status, currency and format, name and email. Two halves are only right when the pair is read together — otherwise stack them, because a half-width field beside empty space reads as a layout accident.</div>
+      </div>
+
+      <div style="height: 1px; background: #f0efe9"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THIRDS — A CALCULATION READ LEFT TO RIGHT</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Quantity</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px; font-variant-numeric: tabular-nums">2</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Unit price</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px; font-variant-numeric: tabular-nums">4.190,00</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Line total</div>
+            <div style="border: 1px solid #e6e4dc; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px; color: #57564f; background: #f7f6f2; font-variant-numeric: tabular-nums">8.380,00</div>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">Thirds exist once: quantity × unit price = line total, in that order, because the row is an equation. <b>Never four in a row</b> — at a 360px rail width each cell falls under 80px and the numbers stop being readable.</div>
+      </div>
+
+      <div style="height: 1px; background: #f0efe9"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">MIXED — FIXED PLUS FLUID</div>
+        <div style="display: flex; gap: 10px; align-items: flex-end">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Quantity</div>
+            <div style="display: flex; align-items: stretch; border: 1px solid #dedcd4; border-radius: 9px; overflow: hidden; width: 132px; box-sizing: border-box; height: 42px">
+              <div style="width: 38px; display: grid; place-items: center; background: #f7f6f2; border-right: 1px solid #dedcd4"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h8"></path></svg></div>
+              <div style="flex: 1; display: grid; place-items: center; font-size: 14px; font-variant-numeric: tabular-nums">2</div>
+              <div style="width: 38px; display: grid; place-items: center; background: #f7f6f2; border-left: 1px solid #dedcd4"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.8" stroke-linecap="round"><path d="M8 4v8"></path><path d="M4 8h8"></path></svg></div>
+            </div>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Item name</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Egetræsbord med stålstel</div>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">A control with an intrinsic width — the stepper, an icon tile, a currency suffix — takes <b>flex: none</b> at its own size, and the text field beside it takes the remainder with <b>min-width: 0</b>. The fixed one never stretches to fill; a 400px-wide stepper is absurd.</div>
+      </div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 20px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ALWAYS FULL WIDTH OF ITS CONTAINER</div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #1d4d33; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Tables and item lists.</b> A table narrower than its column leaves the row-hover band ending in mid-air.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #1d4d33; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Drop zones.</b> The target should be as large as the space allows.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #1d4d33; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Progress bars and their pace markers.</b> The bar is a proportion, so its full width has to mean the limit.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #1d4d33; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">The sticky save bar and the bulk-action bar.</b> Full width of the main column, not the page — they belong to the content, not the shell.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #1d4d33; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Cards.</b> A card always fills its column; its <i>column</i> is what varies.</div></div>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">NEVER FULL WIDTH ON DESKTOP</div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #c3c1b8; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Buttons.</b> Sized to their label, right-aligned in a group. Full width only inside a mobile sheet, where there is one action and the thumb is the pointer.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #c3c1b8; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Body text.</b> Capped at <b>640px</b> for prose, <b>900px</b> for a description line. A 1200px line of 13px text can't be read back to its own start.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #c3c1b8; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">A form column.</b> Settings caps its cards at <b>640px</b> even on a 1920px screen — a 42px-tall input stretched to 1200px looks like an error.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #c3c1b8; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Segmented controls, chips, steppers, swatch rows.</b> Intrinsic width, <b>align-self: flex-start</b>. Stretching them adds nothing and hides which is selected.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #c3c1b8; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Dialogs and popovers.</b> 440px and 560px respectively, centred — never a proportion of the viewport.</div></div>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ROWS</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A list row is one line by default.</b> Height comes from padding — 12–14px vertical, 8px in compact — never from a fixed height, so a row with a 26px icon tile grows correctly instead of clipping it.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Columns in a row are fixed except one.</b> Vendor 200px, date 110px, items 72px, category 160px, status 120px, amount 120px right-aligned — and the one fluid cell absorbs the slack. This is what keeps every value at the same x position down the list.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Second lines never displace the first.</b> An item preview or a meta line sits below the primary, inside its cell. Nothing is allowed to move the vendor name.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Rows in a table share one grid definition</b> with the header — declared once on a shared class or a CSS variable, not repeated per row, or the header drifts out of alignment the first time a column changes.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">An expanding row pushes, never overlays.</b> Item editing (1b) grows the row and moves the rest down; nothing floats above its neighbours.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 0 48px 64px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">WHAT HAPPENS AS THE WINDOW NARROWS</div>
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 700px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+      <div style="display: grid; grid-template-columns: 120px 1fr; gap: 14px; background: #f2f1eb; padding: 10px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+        <div>WIDTH</div><div>WHAT CHANGES</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="font-weight: 600">≥ 1440px</div>
+        <div style="color: #57564f; line-height: 1.6">Nothing. The fluid column absorbs everything above this — rails stay at their fixed width and the main column simply gets wider. No layout has a maximum width except the caps listed above.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="font-weight: 600">1280px</div>
+        <div style="color: #57564f; line-height: 1.6">The facet rail becomes a drawer, and the sidebar may collapse to its 68px icon rail. Both give width back to the fluid column rather than shrinking themselves.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="font-weight: 600">900px</div>
+        <div style="color: #57564f; line-height: 1.6">Two columns become one, and each screen decides how: order edit folds its rail into a collapsed section <i>above</i> the items; the library splits into list-then-panel as separate views; Statistics stacks its cards. A rail is never simply appended below a long list, because that puts a form somewhere nobody scrolls to.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 120px 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="font-weight: 600">640px</div>
+        <div style="color: #57564f; line-height: 1.6">Phone layout. Page padding drops to 20px, the sidebar becomes a bottom tab bar, table rows become cards, filters move to a sheet, and inline expansion becomes a sheet. Field grouping changes too — see below.</div>
+      </div>
+    </div>
+
+    <div style="width: 430px; background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #7a5c23">THE TWO THINGS THAT GO WRONG</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>Shrinking instead of removing.</b> Every breakpoint here removes or relocates something. Nothing is scaled down: a compressed facet rail, a four-column equation at 300px, or a table squeezed into a phone row are all the same mistake.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>A second fluid column.</b> The moment two columns are both <b>1fr</b>, nothing inside either can be sized, truncation stops being predictable, and the first long vendor name reflows the page. One fluid column, always.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">15b</span>
+    <span style="font-size: 20px; font-weight: 600">Fields on mobile — what stays grouped</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Below 640px most fields go full width, but not all of them — and the exceptions aren't arbitrary. A group survives the breakpoint when splitting it would break something the user reads as one thing.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 340px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">STACKS — MOST PAIRS DO</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Two halves holding unrelated values become two full-width fields. Date and status read together on desktop as a convenience, not because they belong to one another.</div>
+      <div style="border: 1px solid #dedcd4; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: #f7f6f2">
+        <div style="font-size: 10px; letter-spacing: 0.1em; color: #8b8a82">375px</div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Order date</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 12px; font-size: 14px; background: #fff; display: flex; align-items: center">12 Aug 2026<div style="flex: 1"></div><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Status</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 12px; font-size: 14px; background: #fff; display: flex; align-items: center; gap: 9px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1d4d33; flex: none"></span>Received<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Padding goes from <b>10px 12px</b> to <b>12px</b>, taking the control from 42px to 46px — over the 44px minimum without changing the type size. Field gap goes from 12px to <b>14px</b>: more separation, because a thumb is less precise than a cursor.</div>
+    </div>
+
+    <div style="width: 340px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">STAYS GROUPED — ONE CALCULATION</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">The item equation keeps its row. Split across three lines, the user loses the relationship — and the line total, which is the whole point of the row, ends up furthest from the numbers producing it.</div>
+      <div style="border: 1px solid #dedcd4; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: #f7f6f2">
+        <div style="font-size: 10px; letter-spacing: 0.1em; color: #8b8a82">375px</div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Item</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 12px; font-size: 14px; background: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Egetræsbord med stålstel</div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: flex-end">
+          <div style="display: flex; flex-direction: column; gap: 5px; flex: none">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Qty</div>
+            <div style="display: flex; align-items: stretch; border: 1px solid #dedcd4; border-radius: 9px; overflow: hidden; width: 116px; height: 46px; box-sizing: border-box; background: #fff">
+              <div style="width: 36px; display: grid; place-items: center; background: #f7f6f2; border-right: 1px solid #dedcd4"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h8"></path></svg></div>
+              <div style="flex: 1; display: grid; place-items: center; font-size: 14px; font-variant-numeric: tabular-nums">2</div>
+              <div style="width: 36px; display: grid; place-items: center; background: #f7f6f2; border-left: 1px solid #dedcd4"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.8" stroke-linecap="round"><path d="M8 4v8"></path><path d="M4 8h8"></path></svg></div>
+            </div>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Unit price</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 12px; font-size: 14px; background: #fff; height: 46px; box-sizing: border-box; display: flex; align-items: center; font-variant-numeric: tabular-nums">4.190,00</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: baseline; border-top: 1px solid #dedcd4; padding-top: 11px">
+          <div style="font-size: 12px; color: #57564f">Line total</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums">8.380,00</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Thirds become <b>fixed + fluid</b>, and the computed third stops being a field at all — it becomes a total line, which is what it always was. A read-only box on a phone is a target that does nothing.</div>
+    </div>
+
+    <div style="width: 340px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">STAYS GROUPED — ONE OBJECT</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">A control and the thing it acts on stay on one line: the photo with its replace and delete buttons, the icon tile beside the name it belongs to. These aren't two fields that happen to be adjacent.</div>
+      <div style="border: 1px solid #dedcd4; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; background: #f7f6f2">
+        <div style="font-size: 10px; letter-spacing: 0.1em; color: #8b8a82">375px</div>
+        <div style="display: flex; gap: 12px; align-items: center">
+          <div style="width: 64px; height: 64px; border-radius: 10px; background: #e2ddd4; border: 1px solid #dcdad2; flex: none"></div>
+          <div style="display: flex; flex-direction: column; gap: 7px; min-width: 0">
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33; border: 1px solid #dedcd4; border-radius: 9px; padding: 11px 13px; background: #fff; text-align: center">Replace</div>
+            <div style="font-size: 12px; font-weight: 600; color: #8a4a41; border: 1px solid #e2d3d1; border-radius: 9px; padding: 11px 13px; background: #fff; text-align: center">Delete</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Category</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 11px 12px; font-size: 14px; background: #fff; display: flex; align-items: center; gap: 9px; height: 46px; box-sizing: border-box">
+            <span style="width: 24px; height: 24px; border-radius: 7px; background: #1d4d33; display: grid; place-items: center; color: #fff; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h3l-.6 2.4A4 4 0 0 1 11.5 9c0 2.5-1.6 4.5-3.5 4.5S4.5 11.5 4.5 9a4 4 0 0 1 2.6-4.1z"></path></svg></span>
+            Decor
+            <div style="flex: 1"></div>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Hover-revealed controls become permanent and full-size — the 28px overlay icons on desktop become 46px labelled buttons here, because there is no hover and an icon over a photo is an unmarked target.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 520px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THE TEST, IN ORDER</div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; gap: 10px">
+          <div style="width: 20px; height: 20px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">1</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Is it one calculation or one object?</b> Keep it grouped. Quantity × price, photo + its controls, icon + its name.</div>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <div style="width: 20px; height: 20px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">2</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Would each part fall under 100px?</b> Stack it, whatever the answer to 1 was. Three fields at 375px minus padding is 105px each before gaps — that is the hard floor, and it is why nothing keeps thirds on a phone.</div>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <div style="width: 20px; height: 20px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">3</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Does one part have an intrinsic width?</b> Fixed plus fluid, not halves. A stepper and a name field, an amount and its currency.</div>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <div style="width: 20px; height: 20px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">4</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Otherwise, full width.</b> The default, and the right answer for most fields.</div>
+        </div>
+      </div>
+      <div style="border-top: 1px solid #dedcd4; padding-top: 12px; font-size: 12px; color: #57564f; line-height: 1.55">Implementation: a single container query or breakpoint that flips the field grid from <b>1fr 1fr</b> to <b>1fr</b>, with the groups that survive marked explicitly rather than each screen re-deciding. The exceptions are few enough to name — the item equation, the photo row, and the icon-plus-name field.</div>
+    </div>
+
+    <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ALSO CHANGES BELOW 640px</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Buttons in a sheet go full width</b>, stacked, primary on top — the only place a full-width button is correct. In a page they stay right-aligned.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Dialogs become sheets</b>, anchored to the bottom, radius on the top corners only.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Comboboxes become full-screen sheets</b> with the search field at the top, above the keyboard — not a 200px popover under a field the keyboard is covering.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Segmented controls may go full width</b> — the one exception to their intrinsic-width rule, because two thumb targets side by side want the room.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The sticky save bar spans the viewport</b> and respects the safe-area inset, sitting above the keyboard rather than under it.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Labels stay above their fields.</b> No inline or left-aligned labels at any width — the vertical rhythm is the same on both, only the column count changes.</div>
+    </div>
+  </div>
+</section>
+
+</x-dc>
+</body>
+</html>

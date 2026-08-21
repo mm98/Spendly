@@ -264,6 +264,67 @@ Conventions: amounts are DKK, formatted `1.234,50 kr.` (period thousands, comma 
 
 ---
 
+## Controls (14a–14d)
+
+**Shared contract.** Every control is controlled: `value` + `onChange`, no internal value state, no `defaultValue`. `label`, `error`, `disabled`, `id`, `name` and `required` live on the shared field wrapper, which owns `htmlFor`, `aria-describedby`, `aria-invalid` and the hint/error slot. Error and hint occupy the same slot, so a field's height never changes when it fails.
+
+**Validation.** On blur once touched, and on submit. Never per keystroke. An error clears on the next valid blur, not the first character typed. The value is preserved through the error — never cleared.
+
+**Amount parsing.** Accept `4190`, `4.190,00`, `4190.00`, `4 190`, and a leading/trailing currency symbol. Reformat to the user's number format on blur. Two decimals half-up (quantity: three). `inputmode="decimal"`, never `type="number"`.
+
+**Stepper.** `min` defaults to 1 and disables the minus button; it never deletes the line. No `onDelete` prop — deletion is a separate control by design. The numeric middle stays typable.
+
+**Combobox — normative behaviour.**
+- Modes: `searchable` false is a button trigger with no filter field; true turns the trigger into a text input.
+- Groups render in fixed order — favourites, recent, all. Headers are non-focusable labels and are hidden when their group has no matches. The count on a header is post-filter.
+- Favourites: user-starred, capped at 5. Recent: last 3 used, excluding starred entries so nothing appears twice.
+- **Options are a flat traversal list.** Arrows cross group boundaries and skip headers; Home/End reach the true first and last. Build the flat list, then render headers into it.
+- Filtering is accent-insensitive on word prefixes, matching inside compound and hyphenated names (`mob` → `Møbler`). Matches are highlighted.
+- `onCreate` present adds a final row quoting the query verbatim, reachable by keyboard like any other option. Creation is name-only.
+- Highlight (hover/keyboard) and selection (current value) are separate states and may be on different rows.
+- **No selection without an explicit commit.** Esc restores the previous value. Tab commits the highlight only if the user typed nothing.
+- Panel caps at 320px and scrolls, keeping the highlighted row in view by nearest-edge scrolling — never centring. Flips above the trigger when there is no room below. Below 640px it is a full-screen sheet with search at the top.
+- ARIA: `combobox` + `aria-expanded` + `aria-activedescendant` on the trigger, `listbox` on the panel, `group` + `aria-labelledby` per section, and the result count in a live region.
+
+**SearchInput.** 300ms debounce. The clear affordance exists only when there is a query. `resultCount` is announced in a live region.
+
+**Checkbox.** `indeterminate` is a real third state used by "select all" over a partial selection; clicking it selects all. The whole row is the hit target, 44px on touch.
+
+**Toggle.** Applies immediately, never has a Save, and has no pending state. If a setting needs a save, it is not a toggle.
+
+**Button.** `loading` holds the rendered width, swaps the label for a spinner plus a verb, and disables the button so a double-click cannot double-submit. `iconOnly` requires an `aria-label`. `as="a"` for anything that navigates. `level="destructive"` is only valid inside a Dialog. Full width only inside a mobile sheet.
+
+**FileDrop.** Validates type and size client-side before upload starts. Per-file progress and per-file error; a failed file keeps its row with the reason plus retry and remove. `capture` opens the camera on mobile. The zone is keyboard-focusable with the standard focus ring, and a file button is always present alongside the drop target.
+
+**SwatchPicker.** Two-dimensional arrow navigation. Every item carries an accessible name — a colour with no name is unusable without sight. Selection renders as an outline, never a check overlaying the item.
+
+**Adding a palette colour.** Derive, don't judge: hue in an existing family or ≥40° from all four; L in 69–86 and ≥5 L from any same-hue swatch; C from L (≈0.08 at L 70, ≈0.05 at L 80, ≈0.025 at L 86), never above 0.08; glyph flips to dark ink above L 75; dark-theme pair in the same commit at +18 L, same C. Never interpolate in hex or HSL.
+
+---
+
+## Layout (15a, 15b)
+
+**One fluid column per layout.** Main column `1fr`; every other column a fixed px width. Right rails 320/360/400, facets 260, page nav 208. Never two `1fr` columns in one layout.
+
+**Gaps on the container**, not margins on children: 24 between columns, 14 between stacked cards, 16 in a card grid, 12 between fields (14 on mobile).
+
+**Table columns** are fixed except one: vendor 200, date 110, items 72, category 160, status 120, amount 120 right-aligned. One grid definition shared with the header, declared once. Row height from padding (12–14px; 8px compact), never fixed. A second line sits inside its cell and never displaces the primary.
+
+**Sticky elements** are `position: sticky` relative to the content column, which is the page's only scroll container — not the viewport.
+
+**Statistics grid:** 12 columns, every card spanning a whole number of them. Verify rows close at 1280, 1440 and 1920.
+
+**Breakpoints remove or relocate; they never scale.**
+- 1280: facet rail → drawer; sidebar may collapse to the 68px rail.
+- 900: two columns → one, per screen (order edit folds its rail into a collapsed section *above* the items; the library becomes list-then-panel as separate views; Statistics stacks). A rail is never appended below a long list.
+- 640: phone layout — 20px padding, bottom tab bar, rows → cards, filters → sheet, inline expansion → sheet, capture FAB.
+
+**Mobile field grouping**, applied in order: one calculation or one object → keep grouped; any part under 100px → stack regardless; one part with intrinsic width → fixed + fluid; otherwise full width. The surviving groups are exactly three: the item equation, the photo-plus-controls row, and the icon-plus-name field. Control padding 10px 12px → 12px (42px → 46px). The computed third of the item equation becomes a total line, not a field.
+
+**Below 640px also:** sheet buttons full width and stacked, primary on top; dialogs → bottom sheets; comboboxes → full-screen sheets with search above the keyboard; segmented controls may go full width; the save bar spans the viewport and respects the safe-area inset; labels stay above fields at every width.
+
+---
+
 ## Cross-cutting
 
 **Toasts** queue, showing one at a time, bottom-centre, 6s, paused on hover. Undo is available for the toast's lifetime and its action is idempotent. A toast dismissed early keeps the action applied — Undo is an offer, not a pending state.
@@ -304,3 +365,5 @@ Answer these before the affected screen is built. Recommendations are in the sec
 | 12 | Row cap per import (recommend 5.000) | 11b |
 | 13 | Can an import update existing orders, or create only? (recommend create only) | 11b |
 | 14 | Is zoom needed in the image viewer? (recommend later, and no rotate) | 12b |
+| 15 | Is a Radio component ever needed, or is Segmented/Combobox always right? (recommend not building it until a screen needs it) | 14d |
+| 16 | Does any category need a colour outside the four hue families? (recommend no — labels already distinguish them) | 14c, 5b |
