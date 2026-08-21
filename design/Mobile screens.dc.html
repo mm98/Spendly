@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 12px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">7a</span>
+    <span style="font-size: 20px; font-weight: 600">Mobile — list, filters, scan, statistics</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px">Phone is the capture device: scanning a receipt in the shop is the reason the app is on the phone at all, so it owns the primary action. Filters become a sheet instead of a rail, statistics drops to one column with the same drill crumbs, and the tab bar carries the four areas.</div>
+
+  <div style="display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">ORDERS</div>
+      <div style="width: 390px; height: 844px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; position: relative">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 22px 4px; font-size: 13px; font-weight: 600">
+          <span>9:41</span>
+          <span style="color: #6b6a63">▮▮▮</span>
+        </div>
+        <div style="background: #fff; border-bottom: 1px solid #e6e4dc; padding: 8px 16px 12px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div style="font-size: 20px; font-weight: 600">Orders</div>
+            <div style="flex: 1"></div>
+            <div style="width: 34px; height: 34px; border: 1px solid #dedcd4; border-radius: 10px; display: grid; place-items: center; color: #57564f">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+            </div>
+            <div style="width: 34px; height: 34px; border: 1px solid #1d4d33; border-radius: 10px; display: grid; place-items: center; color: #1d4d33; position: relative">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.5 4.5h11"></path><path d="M4.5 8h7"></path><path d="M6.5 11.5h3"></path></svg>
+              <div style="position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: #1d4d33; color: #fff; font-size: 10px; font-weight: 700; display: grid; place-items: center">2</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 7px; overflow-x: auto; margin: 0 -16px; padding: 0 16px">
+            <div style="display: flex; align-items: center; gap: 6px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; white-space: nowrap; flex: none">This year<span style="color: #4b7a5e">×</span></div>
+            <div style="display: flex; align-items: center; gap: 6px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; white-space: nowrap; flex: none">Delivered<span style="color: #4b7a5e">×</span></div>
+            <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 6px 12px; font-size: 12px; color: #57564f; white-space: nowrap; flex: none">Clear</div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 8px">
+            <div style="font-size: 13px; font-weight: 600">18 orders</div>
+            <div style="font-size: 13px; color: #6b6a63">61.480,00 kr.</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; color: #2f7a51; font-weight: 600">saved 28,3%</div>
+          </div>
+        </div>
+
+        <div style="flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px">
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 13px; display: flex; align-items: center; gap: 13px">
+            <div style="width: 52px; height: 52px; border-radius: 9px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 15px; font-weight: 600; white-space: nowrap">3.980,00</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 12px; color: #6b6a63; white-space: nowrap">08/08 · 4 items</div>
+                <div style="flex: 1"></div>
+                <div style="background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 600">Delivered</div>
+              </div>
+            </div>
+            <div style="color: #8b8a82; flex: none">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+            </div>
+          </div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 13px; display: flex; align-items: center; gap: 13px">
+            <div style="width: 52px; height: 52px; border-radius: 9px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 15px; font-weight: 600; white-space: nowrap">7.240,00</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 12px; color: #6b6a63; white-space: nowrap">02/08 · 2 items</div>
+                <div style="flex: 1"></div>
+                <div style="background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 600">Delivered</div>
+              </div>
+            </div>
+            <div style="color: #8b8a82; flex: none">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+            </div>
+          </div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 13px; display: flex; align-items: center; gap: 13px">
+            <div style="width: 52px; height: 52px; border-radius: 9px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 15px; font-weight: 600; white-space: nowrap">14.910,00</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 12px; color: #6b6a63; white-space: nowrap">28/07 · 8 items</div>
+                <div style="flex: 1"></div>
+                <div style="background: #f3ede1; color: #7a5c23; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 600">Ordered</div>
+              </div>
+            </div>
+            <div style="color: #8b8a82; flex: none">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+            </div>
+          </div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 13px; display: flex; align-items: center; gap: 13px">
+            <div style="width: 52px; height: 52px; border-radius: 9px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Ferm Living</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 15px; font-weight: 600; white-space: nowrap">2.630,00</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 12px; color: #6b6a63; white-space: nowrap">11/07 · 6 items</div>
+                <div style="flex: 1"></div>
+                <div style="background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 600">Delivered</div>
+              </div>
+            </div>
+            <div style="color: #8b8a82; flex: none">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+            </div>
+          </div>
+        </div>
+
+        <div style="position: absolute; right: 18px; bottom: 96px; display: flex; align-items: center; gap: 9px; background: #1d4d33; border-radius: 999px; padding: 14px 20px; box-shadow: 0 8px 22px rgba(20, 38, 28, 0.32); color: #fff">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.6h2.2l1-1.6h4.6l1 1.6h2.2v7.2h-11z"></path><circle cx="8" cy="9" r="2.2"></circle></svg>
+          <div style="font-size: 13px; font-weight: 600">Scan</div>
+        </div>
+
+        <div style="background: #fff; border-top: 1px solid #e6e4dc; padding: 8px 8px 22px; display: grid; grid-template-columns: repeat(4, 1fr)">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; color: #1d4d33">
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 4.4h10.4v8.4H2.8z"></path><path d="M5.6 4.4V2.9h4.8v1.5"></path><path d="M5.6 7.6h4.8"></path></svg>
+            <div style="font-size: 11px; font-weight: 600">Orders</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; color: #8b8a82">
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 12.8V6.4l5.4-3.6 5.4 3.6v6.4z"></path><path d="M6.4 12.8V8.8h3.2v4"></path></svg>
+            <div style="font-size: 11px">Vendors</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; color: #8b8a82">
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="2.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="8.6" y="2.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="2.6" y="8.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="8.6" y="8.6" width="4.8" height="4.8" rx="1.2"></rect></svg>
+            <div style="font-size: 11px">Categories</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; color: #8b8a82">
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 11.4l3.4-3.4 2.4 2.1 4.6-4.5"></path><path d="M9.8 5.6h3.4V9"></path></svg>
+            <div style="font-size: 11px">Stats</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">FILTER SHEET</div>
+      <div style="width: 390px; height: 844px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; position: relative">
+        <div style="position: absolute; inset: 0; display: flex; flex-direction: column">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 22px 4px; font-size: 13px; font-weight: 600">
+            <span>9:41</span>
+            <span style="color: #6b6a63">▮▮▮</span>
+          </div>
+          <div style="background: #fff; border-bottom: 1px solid #e6e4dc; padding: 8px 16px 12px; font-size: 20px; font-weight: 600">Orders</div>
+          <div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 10px">
+            <div style="height: 78px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px"></div>
+            <div style="height: 78px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px"></div>
+          </div>
+        </div>
+        <div style="position: absolute; inset: 0; background: rgba(27, 26, 23, 0.38)"></div>
+        <div style="position: relative; background: #fff; border-radius: 22px 22px 28px 28px; padding: 12px 16px 22px; display: flex; flex-direction: column; gap: 16px; max-height: 88%">
+          <div style="width: 40px; height: 4px; border-radius: 2px; background: #dedcd4; align-self: center"></div>
+          <div style="display: flex; align-items: center">
+            <div style="font-size: 17px; font-weight: 600">Filters</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; color: #57564f">Reset</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Period</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); background: #eef1ee; border-radius: 10px; padding: 3px; font-size: 12px; text-align: center">
+              <div style="padding: 9px 0; color: #57564f">30 d</div>
+              <div style="padding: 9px 0; color: #57564f">Quarter</div>
+              <div style="padding: 9px 0; background: #1d4d33; color: #fff; border-radius: 8px; font-weight: 600">Year</div>
+              <div style="padding: 9px 0; color: #57564f">Custom</div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Status</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <div style="background: #1d4d33; color: #fff; border-radius: 999px; padding: 9px 15px; font-size: 13px; font-weight: 600">Delivered 176</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 9px 15px; font-size: 13px; color: #57564f">Ordered 54</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 9px 15px; font-size: 13px; color: #57564f">Returned 18</div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor</div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="display: flex; align-items: center; gap: 11px; padding: 4px 0">
+                <div style="width: 20px; height: 20px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; color: #fff; flex: none">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg>
+                </div>
+                <div style="font-size: 14px">Indbo Møbler</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 12px; color: #8b8a82">38</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 11px; padding: 4px 0">
+                <div style="width: 20px; height: 20px; border: 1px solid #d6d4ca; border-radius: 5px; background: #fff; flex: none"></div>
+                <div style="font-size: 14px">Hay</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 12px; color: #8b8a82">27</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 11px; padding: 4px 0">
+                <div style="width: 20px; height: 20px; border: 1px solid #d6d4ca; border-radius: 5px; background: #fff; flex: none"></div>
+                <div style="font-size: 14px">Muuto</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 12px; color: #8b8a82">21</div>
+              </div>
+              <div style="font-size: 13px; font-weight: 600; color: #1d4d33; padding-top: 2px">Show 39 more</div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Categories</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <div style="background: #1d4d33; color: #fff; border-radius: 999px; padding: 9px 15px; font-size: 13px; font-weight: 600">Decor</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 9px 15px; font-size: 13px; color: #57564f">Seating</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 9px 15px; font-size: 13px; color: #57564f">Lighting</div>
+            </div>
+          </div>
+
+          <div style="background: #1d4d33; border-radius: 12px; padding: 16px 0; text-align: center; font-size: 13px; letter-spacing: 0.06em; font-weight: 600; color: #fff">SHOW 18 ORDERS</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">SCAN · CHECK WHAT WAS READ</div>
+      <div style="width: 390px; height: 844px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 28px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 22px 4px; font-size: 13px; font-weight: 600">
+          <span>9:41</span>
+          <span style="color: #6b6a63">▮▮▮</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px 12px; background: #fff; border-bottom: 1px solid #e6e4dc">
+          <div style="width: 34px; height: 34px; border: 1px solid #dedcd4; border-radius: 9px; display: grid; place-items: center; color: #57564f">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"></path></svg>
+          </div>
+          <div style="display: flex; flex-direction: column">
+            <div style="font-size: 16px; font-weight: 600">Check the reading</div>
+            <div style="font-size: 12px; color: #6b6a63">faktura-indbo-4471.pdf</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; padding: 11px 16px; background: #f3ede1; border-bottom: 1px solid #e8dfcb">
+          <div style="width: 20px; height: 20px; border-radius: 50%; background: #e2d3ae; color: #7a5c23; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none">!</div>
+          <div style="font-size: 12px; color: #6b5424">2 values need a look</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; font-weight: 600; color: #6b5424">Next</div>
+        </div>
+
+        <div style="flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 12px">
+            <div style="width: 46px; height: 60px; border: 1px solid #e6e4dc; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; flex: none">
+              <div style="width: 24px; height: 34px; background: #fff; border: 1px solid #dedcd4; border-radius: 2px; background-image: repeating-linear-gradient(#eceae4 0 1px, transparent 1px 4px); background-position: 0 5px; background-size: 100% 4px; background-repeat: repeat-y"></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; flex: 1">
+              <div style="font-size: 13px; font-weight: 600">Receipt, 2 pages</div>
+              <div style="font-size: 12px; color: #1d4d33; font-weight: 600">Tap to compare side by side</div>
+            </div>
+          </div>
+
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ORDER DETAILS</div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 12px; font-size: 14px">Indbo Møbler</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Date</div>
+                <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 12px; font-size: 14px">08/08/2026</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <div style="display: flex; align-items: center; gap: 6px">
+                  <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Shipping</div>
+                  <div style="font-size: 10px; color: #7a5c23; font-weight: 600">check</div>
+                </div>
+                <div style="border: 1px solid #b58a2b; background: #fdf8ee; border-radius: 10px; padding: 12px; font-size: 14px">149,00</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: center">
+              <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">LINES FOUND · 4</div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 11px; color: #8b8a82">untick to skip</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; background: #f2f1eb; border-radius: 10px; padding: 11px">
+              <div style="width: 20px; height: 20px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; color: #fff; flex: none">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0">
+                <div style="font-size: 14px; font-weight: 600; line-height: 1.25">Vitra — Nuage Céramique</div>
+                <div style="font-size: 12px; color: #6b6a63">1 × 330,00 kr.</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; background: #f2f1eb; border-radius: 10px; padding: 11px">
+              <div style="width: 20px; height: 20px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; color: #fff; flex: none">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0">
+                <div style="font-size: 14px; font-weight: 600; line-height: 1.25">Hay — Palissade chair</div>
+                <div style="font-size: 12px; color: #6b6a63">2 × 890,00 kr.</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; background: #fdf8ee; border: 1px solid #b58a2b; border-radius: 10px; padding: 10px">
+              <div style="width: 20px; height: 20px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; color: #fff; flex: none">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0">
+                <div style="font-size: 14px; font-weight: 600; line-height: 1.25">Muuto — Ambit rail lamp</div>
+                <div style="font-size: 12px; color: #7a5c23; font-weight: 600">price unclear — check it</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: #fff; border-top: 1px solid #e6e4dc; padding: 12px 16px 22px; display: flex; align-items: center; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <div style="font-size: 18px; font-weight: 700">4.129,00 kr.</div>
+            <div style="font-size: 11px; color: #2f7a51; font-weight: 600">matches the receipt</div>
+          </div>
+          <div style="flex: 1"></div>
+          <div style="background: #1d4d33; border-radius: 10px; padding: 13px 20px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #fff">CREATE</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">STATISTICS</div>
+      <div style="width: 390px; height: 844px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 28px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 22px 4px; font-size: 13px; font-weight: 600">
+          <span>9:41</span>
+          <span style="color: #6b6a63">▮▮▮</span>
+        </div>
+        <div style="background: #fff; border-bottom: 1px solid #e6e4dc; padding: 8px 16px 12px; display: flex; flex-direction: column; gap: 10px">
+          <div style="font-size: 20px; font-weight: 600">Statistics</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); background: #eef1ee; border-radius: 9px; padding: 3px; font-size: 12px; text-align: center">
+            <div style="padding: 7px 0; color: #57564f">30 d</div>
+            <div style="padding: 7px 0; color: #57564f">Qtr</div>
+            <div style="padding: 7px 0; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Year</div>
+            <div style="padding: 7px 0; color: #57564f">Custom</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 7px; overflow-x: auto; margin: 0 -16px; padding: 0 16px">
+            <div style="font-size: 12px; color: #8b8a82; white-space: nowrap; flex: none">2026</div>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#b3b1a9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M6 3l5 5-5 5"></path></svg>
+            <div style="display: flex; align-items: center; gap: 6px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600; white-space: nowrap; flex: none">August<span style="color: #4b7a5e">×</span></div>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#b3b1a9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M6 3l5 5-5 5"></path></svg>
+            <div style="display: flex; align-items: center; gap: 6px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600; white-space: nowrap; flex: none">Decor<span style="color: #4b7a5e">×</span></div>
+          </div>
+        </div>
+
+        <div style="flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: baseline; gap: 10px">
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <div style="font-size: 12px; color: #57564f">Spend, August</div>
+                <div style="font-size: 24px; font-weight: 700">24.100 kr.</div>
+              </div>
+              <div style="flex: 1"></div>
+              <div style="background: #f0e6e4; color: #8a4a41; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 600">2.100 over</div>
+            </div>
+            <div style="height: 10px; border-radius: 5px; background: #eef1ee; display: flex; overflow: hidden; position: relative">
+              <div style="width: 91%; height: 100%; background: #8a4a41"></div>
+              <div style="width: 9%; height: 100%; background: #c98a80"></div>
+              <div style="position: absolute; left: 65%; top: -2px; bottom: -2px; width: 2px; background: #b58a2b"></div>
+            </div>
+            <div style="font-size: 11px; color: #8b8a82">Limit 22.000 kr. per month · day 20 of 31</div>
+          </div>
+
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; align-items: center">
+              <div style="font-size: 13px; font-weight: 600">Spend by month</div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 11px; color: #8b8a82">tap a bar to drill</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; height: 130px; align-items: end">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                <div style="width: 100%; height: 52px; background: #dfe6e0; border-radius: 4px"></div>
+                <div style="font-size: 10px; color: #8b8a82">J</div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                <div style="width: 100%; height: 44px; background: #dfe6e0; border-radius: 4px"></div>
+                <div style="font-size: 10px; color: #8b8a82">F</div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                <div style="width: 100%; height: 66px; background: #dfe6e0; border-radius: 4px"></div>
+                <div style="font-size: 10px; color: #8b8a82">M</div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                <div style="width: 100%; height: 58px; background: #dfe6e0; border-radius: 4px"></div>
+                <div style="font-size: 10px; color: #8b8a82">A</div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                <div style="width: 100%; height: 78px; background: #dfe6e0; border-radius: 4px"></div>
+                <div style="font-size: 10px; color: #8b8a82">M</div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                <div style="width: 100%; height: 70px; background: #dfe6e0; border-radius: 4px"></div>
+                <div style="font-size: 10px; color: #8b8a82">J</div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                <div style="width: 100%; height: 92px; background: #dfe6e0; border-radius: 4px"></div>
+                <div style="font-size: 10px; color: #8b8a82">J</div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+                <div style="width: 100%; height: 104px; background: #1d4d33; border-radius: 4px"></div>
+                <div style="font-size: 10px; color: #1d4d33; font-weight: 600">A</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 11px">
+            <div style="font-size: 13px; font-weight: 600">Top vendors, August</div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="display: flex; align-items: baseline; font-size: 13px"><span style="font-weight: 600">Indbo Møbler</span><span style="flex: 1"></span><span style="font-weight: 600">24.310</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 100%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="display: flex; align-items: baseline; font-size: 13px"><span>Hay</span><span style="flex: 1"></span><span style="font-weight: 600">16.980</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 70%; height: 100%; border-radius: 4px; background: #4f7f63"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="display: flex; align-items: baseline; font-size: 13px"><span>Muuto</span><span style="flex: 1"></span><span style="font-weight: 600">11.240</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 46%; height: 100%; border-radius: 4px; background: #8caf97"></div></div>
+            </div>
+          </div>
+
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px">
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <div style="font-size: 13px; font-weight: 600">7 orders in this slice</div>
+              <div style="font-size: 12px; color: #6b6a63">24.310,00 kr. · saved 25,1%</div>
+            </div>
+            <div style="flex: 1"></div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

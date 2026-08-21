@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 12px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">6a</span>
+    <span style="font-size: 20px; font-weight: 600">Empty states</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px">Each one names what is missing and offers the single action that fixes it. First run gets the scan route since that is the fastest way to a real order; a filtered list that returns nothing offers to loosen the filter rather than start over.</div>
+
+  <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start">
+    <div style="width: 604px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 40px 28px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
+      <div style="width: 54px; height: 54px; border-radius: 15px; background: #e7efe8; color: #1d4d33; display: grid; place-items: center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h14v17l-3.5-2-3.5 2-3.5-2-3.5 2z"></path><path d="M8.5 8h7"></path><path d="M8.5 12h7"></path></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px">
+        <div style="font-size: 18px; font-weight: 600">No orders yet</div>
+        <div style="font-size: 14px; color: #57564f; max-width: 380px">Drop a receipt and the vendor, date and lines are filled in for you. Or start an empty order and type it yourself.</div>
+      </div>
+      <div style="display: flex; gap: 10px; padding-top: 6px">
+        <div style="background: #1d4d33; border-radius: 10px; padding: 11px 20px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #fff">SCAN A RECEIPT</div>
+        <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 11px 20px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #1d4d33">EMPTY ORDER</div>
+      </div>
+    </div>
+
+    <div style="width: 604px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid #e6e4dc; flex-wrap: wrap">
+        <div style="display: flex; align-items: center; gap: 7px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; white-space: nowrap">Returned<span style="color: #4b7a5e">×</span></div>
+        <div style="display: flex; align-items: center; gap: 7px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; white-space: nowrap">Ferm Living<span style="color: #4b7a5e">×</span></div>
+        <div style="display: flex; align-items: center; gap: 7px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; white-space: nowrap">30 days<span style="color: #4b7a5e">×</span></div>
+      </div>
+      <div style="padding: 36px 28px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+        <div style="font-size: 17px; font-weight: 600">No orders match these filters</div>
+        <div style="font-size: 14px; color: #57564f; max-width: 400px">Ferm Living has 14 orders, but none returned in the last 30 days. Widening the period finds 2.</div>
+        <div style="display: flex; gap: 10px; padding-top: 4px">
+          <div style="background: #1d4d33; border-radius: 10px; padding: 10px 18px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #fff">SEARCH THIS YEAR</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 10px 18px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #57564f">CLEAR FILTERS</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ATTACHMENTS · 0</div>
+      <div style="border: 1px dashed #d6d4ca; border-radius: 10px; padding: 26px 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+        <div style="font-size: 14px; font-weight: 600; color: #1d4d33">Add files</div>
+        <div style="font-size: 12px; color: #8b8a82">Receipts, delivery notes or product photos. Images or PDF.</div>
+      </div>
+    </div>
+
+    <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITEMS · 0</div>
+      <div style="border: 1px dashed #d6d4ca; border-radius: 10px; padding: 22px 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+        <div style="font-size: 14px; font-weight: 600; color: #1d4d33">Add the first item</div>
+        <div style="font-size: 12px; color: #8b8a82">An order needs at least one line before it can be saved.</div>
+      </div>
+    </div>
+
+    <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">CATEGORIES</div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 8px; text-align: center">
+        <div style="font-size: 14px; font-weight: 600">No categories yet</div>
+        <div style="font-size: 12px; color: #8b8a82">Categories group your spend and carry the monthly limit. Scanning creates them as it goes, or add one now.</div>
+        <div style="background: #1d4d33; border-radius: 9px; padding: 9px 16px; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #fff; margin-top: 4px">NEW CATEGORY</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 12px 48px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">6b</span>
+    <span style="font-size: 20px; font-weight: 600">Loading</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px">Skeletons match the real layout so nothing jumps when data lands: same row height, same column positions, same card heights. Counts and totals hold their place as short bars rather than zeros, which would read as real values.</div>
+
+  <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start">
+    <div style="width: 810px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #e6e4dc">
+        <div style="width: 82px; height: 13px; border-radius: 4px; background: #eceae4"></div>
+        <div style="width: 116px; height: 13px; border-radius: 4px; background: #f2f1eb"></div>
+        <div style="flex: 1"></div>
+        <div style="width: 74px; height: 13px; border-radius: 4px; background: #f2f1eb"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 2.1fr 104px 1.2fr 78px 118px 150px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: #f2f1eb; flex: none"></div>
+          <div style="display: flex; flex-direction: column; gap: 6px; flex: 1">
+            <div style="width: 62%; height: 12px; border-radius: 4px; background: #eceae4"></div>
+            <div style="width: 44%; height: 10px; border-radius: 4px; background: #f2f1eb"></div>
+          </div>
+        </div>
+        <div style="width: 70px; height: 11px; border-radius: 4px; background: #f2f1eb"></div>
+        <div style="width: 58px; height: 18px; border-radius: 6px; background: #f2f1eb"></div>
+        <div style="width: 18px; height: 11px; border-radius: 4px; background: #f2f1eb; margin-left: auto"></div>
+        <div style="width: 76px; height: 22px; border-radius: 999px; background: #f2f1eb"></div>
+        <div style="width: 88px; height: 13px; border-radius: 4px; background: #eceae4; margin-left: auto"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 2.1fr 104px 1.2fr 78px 118px 150px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: #f2f1eb; flex: none"></div>
+          <div style="display: flex; flex-direction: column; gap: 6px; flex: 1">
+            <div style="width: 48%; height: 12px; border-radius: 4px; background: #eceae4"></div>
+            <div style="width: 36%; height: 10px; border-radius: 4px; background: #f2f1eb"></div>
+          </div>
+        </div>
+        <div style="width: 70px; height: 11px; border-radius: 4px; background: #f2f1eb"></div>
+        <div style="width: 74px; height: 18px; border-radius: 6px; background: #f2f1eb"></div>
+        <div style="width: 18px; height: 11px; border-radius: 4px; background: #f2f1eb; margin-left: auto"></div>
+        <div style="width: 76px; height: 22px; border-radius: 999px; background: #f2f1eb"></div>
+        <div style="width: 74px; height: 13px; border-radius: 4px; background: #eceae4; margin-left: auto"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 2.1fr 104px 1.2fr 78px 118px 150px; gap: 12px; align-items: center; padding: 12px 16px">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: #f2f1eb; flex: none"></div>
+          <div style="display: flex; flex-direction: column; gap: 6px; flex: 1">
+            <div style="width: 55%; height: 12px; border-radius: 4px; background: #eceae4"></div>
+            <div style="width: 30%; height: 10px; border-radius: 4px; background: #f2f1eb"></div>
+          </div>
+        </div>
+        <div style="width: 70px; height: 11px; border-radius: 4px; background: #f2f1eb"></div>
+        <div style="width: 46px; height: 18px; border-radius: 6px; background: #f2f1eb"></div>
+        <div style="width: 18px; height: 11px; border-radius: 4px; background: #f2f1eb; margin-left: auto"></div>
+        <div style="width: 76px; height: 22px; border-radius: 999px; background: #f2f1eb"></div>
+        <div style="width: 92px; height: 13px; border-radius: 4px; background: #eceae4; margin-left: auto"></div>
+      </div>
+    </div>
+
+    <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+      <div style="width: 96px; height: 11px; border-radius: 4px; background: #eceae4"></div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="width: 60px; height: 10px; border-radius: 4px; background: #f2f1eb"></div>
+          <div style="width: 104px; height: 20px; border-radius: 5px; background: #eceae4"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="width: 70px; height: 10px; border-radius: 4px; background: #f2f1eb"></div>
+          <div style="width: 44px; height: 20px; border-radius: 5px; background: #eceae4"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="width: 76px; height: 10px; border-radius: 4px; background: #f2f1eb"></div>
+          <div style="width: 96px; height: 20px; border-radius: 5px; background: #eceae4"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="width: 64px; height: 10px; border-radius: 4px; background: #f2f1eb"></div>
+          <div style="width: 82px; height: 20px; border-radius: 5px; background: #eceae4"></div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 3px; height: 40px">
+        <div style="flex: 1; height: 40%; background: #f2f1eb; border-radius: 2px"></div>
+        <div style="flex: 1; height: 56%; background: #f2f1eb; border-radius: 2px"></div>
+        <div style="flex: 1; height: 46%; background: #f2f1eb; border-radius: 2px"></div>
+        <div style="flex: 1; height: 68%; background: #f2f1eb; border-radius: 2px"></div>
+        <div style="flex: 1; height: 60%; background: #f2f1eb; border-radius: 2px"></div>
+        <div style="flex: 1; height: 82%; background: #f2f1eb; border-radius: 2px"></div>
+        <div style="flex: 1; height: 74%; background: #f2f1eb; border-radius: 2px"></div>
+        <div style="flex: 1; height: 96%; background: #eceae4; border-radius: 2px"></div>
+      </div>
+    </div>
+
+    <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px">
+      <span style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid #cfd8d1; border-top-color: #1d4d33; display: inline-block; flex: none"></span>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <div style="font-size: 13px; font-weight: 600">Recalculating totals…</div>
+        <div style="font-size: 12px; color: #8b8a82">Your changes are saved. The totals will update in a moment.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 12px 48px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">6c</span>
+    <span style="font-size: 20px; font-weight: 600">Validation</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px">Validation happens where the value is, on leaving the field, and Save stays clickable — pressing it moves focus to the first problem instead of greying out with no explanation. Messages say what to do, not what went wrong. Amber is a warning you may pass; red blocks the save.</div>
+
+  <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start">
+    <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ORDER DETAILS</div>
+        <div style="flex: 1"></div>
+        <div style="display: flex; align-items: center; gap: 6px; background: #f6e9e7; color: #8a4a41; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 600">2 to fix</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px">
+        <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor</div>
+        <div style="border: 1px solid #8a4a41; background: #fdf6f5; border-radius: 9px; padding: 9px 11px; font-size: 13px; color: #8b8a82">Choose a vendor</div>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8a4a41; font-weight: 600">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v4"></path><path d="M8 11h0.01"></path></svg>
+          A vendor is required. Pick one or create it here.
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Date</div>
+          <div style="border: 1px solid #b58a2b; background: #fdf8ee; border-radius: 9px; padding: 9px 11px; font-size: 13px">14/11/2026</div>
+          <div style="font-size: 11px; color: #7a5c23; font-weight: 600">That is in the future. Keep it if the order is pre-booked.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Kind</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 9px 11px; font-size: 13px">Expense</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px">
+        <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Shipping fee</div>
+        <div style="border: 1px solid #8a4a41; background: #fdf6f5; border-radius: 9px; padding: 9px 11px; font-size: 13px">12,5.0</div>
+        <div style="font-size: 11px; color: #8a4a41; font-weight: 600">Use digits and one comma, like 125,00.</div>
+      </div>
+      <div style="display: flex; gap: 10px; padding-top: 2px">
+        <div style="flex: 1; text-align: center; border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #57564f">CANCEL</div>
+        <div style="flex: 1; text-align: center; background: #1d4d33; border-radius: 9px; padding: 11px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #fff">SAVE</div>
+      </div>
+    </div>
+
+    <div style="width: 604px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITEMS · 2</div>
+        <div style="flex: 1"></div>
+        <div style="font-size: 12px; color: #8a4a41">1 line needs attention</div>
+      </div>
+      <div style="background: #fff; border: 1px solid #8a4a41; border-radius: 10px; padding: 13px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div style="width: 44px; height: 44px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+          <div style="font-size: 14px; font-weight: 600; flex: 1">Hay — Palissade chair</div>
+          <div style="display: flex; flex-direction: column; gap: 5px; width: 120px">
+            <div style="font-size: 11px; font-weight: 600; color: #3d3c36">Quantity</div>
+            <div style="border: 1px solid #8a4a41; background: #fdf6f5; border-radius: 9px; padding: 8px 10px; font-size: 14px; text-align: center">0</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px; width: 130px">
+            <div style="font-size: 11px; font-weight: 600; color: #3d3c36">Unit price</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 8px 10px; font-size: 14px">890,00</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8a4a41; font-weight: 600">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v4"></path><path d="M8 11h0.01"></path></svg>
+          Quantity must be at least 1. Remove the line instead of setting it to zero.
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px; background: #f2f1eb; border-radius: 10px; padding: 12px 14px">
+        <div style="width: 44px; height: 44px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+        <div style="display: flex; flex-direction: column; gap: 3px">
+          <div style="font-size: 14px; font-weight: 600">Vitra — Nuage Céramique</div>
+          <div style="font-size: 12px; color: #6b6a63">1 × 330,00 kr.</div>
+        </div>
+        <div style="flex: 1"></div>
+        <div style="font-size: 14px; font-weight: 600">330,00 kr.</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; background: #fdf8ee; border: 1px solid #b58a2b; border-radius: 10px; padding: 12px 14px">
+        <div style="width: 22px; height: 22px; border-radius: 50%; background: #e2d3ae; color: #7a5c23; display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none">!</div>
+        <div style="font-size: 13px; color: #6b5424">Lines total <strong style="font-weight: 600">330,00 kr.</strong> but the receipt says <strong style="font-weight: 600">1.220,00 kr.</strong> — a line may be missing.</div>
+        <div style="flex: 1"></div>
+        <div style="font-size: 12px; font-weight: 600; color: #6b5424; white-space: nowrap">Compare</div>
+      </div>
+    </div>
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 14px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DUPLICATE NAME</div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Category name</div>
+          <div style="border: 1px solid #b58a2b; background: #fdf8ee; border-radius: 9px; padding: 9px 11px; font-size: 13px">decor</div>
+          <div style="font-size: 11px; color: #7a5c23; font-weight: 600">“Decor” already exists with 64 orders. Use it instead?</div>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 8px 14px; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #57564f">KEEP BOTH</div>
+          <div style="background: #1d4d33; border-radius: 9px; padding: 9px 14px; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #fff">USE DECOR</div>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">LIMIT SANITY CHECK</div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Monthly limit</div>
+          <div style="border: 1px solid #b58a2b; background: #fdf8ee; border-radius: 9px; padding: 9px 11px; font-size: 13px; display: flex; align-items: center">
+            <span>4.000</span>
+            <div style="flex: 1"></div>
+            <span style="font-size: 12px; color: #8b8a82">kr. / month</span>
+          </div>
+          <div style="font-size: 11px; color: #7a5c23; font-weight: 600">Decor averaged 19.480 kr. over the last 12 months. This limit will be passed most months.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 12px 48px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">6d</span>
+    <span style="font-size: 20px; font-weight: 600">Confirmations</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px">Reversible things get a toast with Undo and no dialog. A dialog appears only when the effect reaches beyond what you can see — deleting an order with attachments, merging two vendors, discarding a scan. Each one names the consequence in numbers and puts the destructive verb on the button, never “OK”. Every specimen below is labelled with the surface it is, because two of them are easy to mistake for a third: the offline message is a toast that carries no Undo, and the two-tab conflict is a section notice rather than a toast, since it has to stay until it is answered. <a href="#6f">6f</a> is the rule for choosing between them.</div>
+
+  <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 10px; letter-spacing: 0.14em; color: #6b6a63">DIALOG</span><span style="font-size: 11px; color: #8b8a82">irreversible · names the numbers</span></div>
+    <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 14px; box-shadow: 0 14px 32px rgba(27, 26, 23, 0.14); padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div style="width: 34px; height: 34px; border-radius: 10px; background: #f6e9e7; color: #8a4a41; display: grid; place-items: center; flex: none">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.2h11"></path><path d="M6.2 4.2V2.8h3.6v1.4"></path><path d="M4 4.2l.6 8.4a1 1 0 0 0 1 .9h4.8a1 1 0 0 0 1-.9L12 4.2"></path></svg>
+        </div>
+        <div style="font-size: 16px; font-weight: 600">Delete this order?</div>
+      </div>
+      <div style="font-size: 13px; color: #57564f">SPENDLY-447 from Indbo Møbler, 3.980,00 kr. Its 4 lines and 3 attachments go with it, and the August total drops by 3.980,00 kr.</div>
+      <div style="background: #f7f6f2; border-radius: 9px; padding: 11px 12px; font-size: 12px; color: #57564f">This cannot be undone after the toast disappears.</div>
+      <div style="display: flex; gap: 10px">
+        <div style="flex: 1; text-align: center; border: 1px solid #dedcd4; border-radius: 9px; padding: 11px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #57564f">KEEP IT</div>
+        <div style="flex: 1; text-align: center; background: #8a4a41; border-radius: 9px; padding: 12px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #fff">DELETE ORDER</div>
+      </div>
+    </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 10px; letter-spacing: 0.14em; color: #6b6a63">DIALOG</span><span style="font-size: 11px; color: #8b8a82">irreversible · carries one option</span></div>
+    <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 14px; box-shadow: 0 14px 32px rgba(27, 26, 23, 0.14); padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div style="width: 34px; height: 34px; border-radius: 10px; background: #f3ede1; color: #7a5c23; display: grid; place-items: center; flex: none">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h4l2 3h4"></path><path d="M11 5.5l2 2-2 2"></path><path d="M3 11.5h4l2-3"></path></svg>
+        </div>
+        <div style="font-size: 16px; font-weight: 600">Merge into Indbo Møbler?</div>
+      </div>
+      <div style="font-size: 13px; color: #57564f">2 orders move from “Indbo Moebler A/S” to Indbo Møbler, which then has 40 orders and 146.620,00 kr. of spend. The old vendor disappears from pickers and statistics.</div>
+      <div style="display: flex; align-items: center; gap: 10px; background: #f7f6f2; border-radius: 9px; padding: 11px 12px">
+        <div style="width: 16px; height: 16px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg>
+        </div>
+        <div style="font-size: 12px; color: #57564f">Keep “Indbo Moebler A/S” as an alias, so scans match it next time</div>
+      </div>
+      <div style="display: flex; gap: 10px">
+        <div style="flex: 1; text-align: center; border: 1px solid #dedcd4; border-radius: 9px; padding: 11px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #57564f">CANCEL</div>
+        <div style="flex: 1; text-align: center; background: #1d4d33; border-radius: 9px; padding: 12px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #fff">MERGE VENDORS</div>
+      </div>
+    </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 10px; letter-spacing: 0.14em; color: #6b6a63">DIALOG</span><span style="font-size: 11px; color: #8b8a82">irreversible · says what survives</span></div>
+    <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 14px; box-shadow: 0 14px 32px rgba(27, 26, 23, 0.14); padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 16px; font-weight: 600">Discard this scan?</div>
+      <div style="font-size: 13px; color: #57564f">The receipt was read and 4 lines are waiting to be checked. Discarding throws away the reading, not the file — faktura-indbo-4471.pdf stays in your uploads.</div>
+      <div style="display: flex; gap: 10px">
+        <div style="flex: 1; text-align: center; border: 1px solid #dedcd4; border-radius: 9px; padding: 11px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #57564f">KEEP CHECKING</div>
+        <div style="flex: 1; text-align: center; background: #8a4a41; border-radius: 9px; padding: 12px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #fff">DISCARD</div>
+      </div>
+    </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 10px; letter-spacing: 0.14em; color: #6b6a63">DIALOG</span><span style="font-size: 11px; color: #8b8a82">irreversible · typed confirmation</span></div>
+    <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 14px; box-shadow: 0 14px 32px rgba(27, 26, 23, 0.14); padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 16px; font-weight: 600">Delete 12 orders?</div>
+      <div style="font-size: 13px; color: #57564f">Selected from the current filter: 12 orders, 48.310,00 kr., 9 of them with attachments. Two are in this month, so August drops to 13.170,00 kr.</div>
+      <div style="display: flex; flex-direction: column; gap: 5px">
+        <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Type the number to confirm</div>
+        <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; color: #8b8a82">12</div>
+      </div>
+      <div style="display: flex; gap: 10px">
+        <div style="flex: 1; text-align: center; border: 1px solid #dedcd4; border-radius: 9px; padding: 11px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #57564f">CANCEL</div>
+        <div style="flex: 1; text-align: center; background: #d3c3bf; border-radius: 9px; padding: 12px 0; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #fff">DELETE 12 ORDERS</div>
+      </div>
+    </div>
+    </div>
+
+    <div style="width: 540px; display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; align-items: baseline; gap: 8px; padding-top: 4px"><span style="font-size: 10px; letter-spacing: 0.14em; color: #6b6a63">TOAST</span><span style="font-size: 11px; color: #8b8a82">reversible · Undo for 6s</span></div>
+      <div style="background: #1b1a17; border-radius: 11px; padding: 13px 16px; display: flex; align-items: center; gap: 12px">
+        <div style="color: #a8c6b2; flex: none">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg>
+        </div>
+        <div style="font-size: 13px; color: #fff">Line removed from SPENDLY-447</div>
+        <div style="flex: 1"></div>
+        <div style="font-size: 12px; font-weight: 600; color: #a8c6b2">Undo</div>
+        <div style="font-size: 12px; color: #7d7b74">6s</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 8px; padding-top: 4px"><span style="font-size: 10px; letter-spacing: 0.14em; color: #6b6a63">TOAST</span><span style="font-size: 11px; color: #8b8a82">reversible · plural, one line</span></div>
+      <div style="background: #1b1a17; border-radius: 11px; padding: 13px 16px; display: flex; align-items: center; gap: 12px">
+        <div style="color: #a8c6b2; flex: none">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg>
+        </div>
+        <div style="font-size: 13px; color: #fff">Status set to Delivered on 2 orders</div>
+        <div style="flex: 1"></div>
+        <div style="font-size: 12px; font-weight: 600; color: #a8c6b2">Undo</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 8px; padding-top: 4px"><span style="font-size: 10px; letter-spacing: 0.14em; color: #6b6a63">TOAST · ERROR</span><span style="font-size: 11px; color: #8b8a82">no Undo — it did not happen; offers Retry</span></div>
+      <div style="background: #4a2f2a; border-radius: 11px; padding: 13px 16px; display: flex; align-items: center; gap: 12px">
+        <div style="color: #e8b3ab; flex: none">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v4"></path><path d="M8 11h0.01"></path></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <div style="font-size: 13px; color: #fff">Could not save — you are offline</div>
+          <div style="font-size: 12px; color: #d8b8b2">Your changes are kept and will be sent when the connection returns.</div>
+        </div>
+        <div style="flex: 1"></div>
+        <div style="font-size: 12px; font-weight: 600; color: #f0cdc7; white-space: nowrap">Retry now</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 8px; padding-top: 4px"><span style="font-size: 10px; letter-spacing: 0.14em; color: #6b6a63">SECTION NOTICE</span><span style="font-size: 11px; color: #8b8a82">not a toast — it stays until answered</span></div>
+      <div style="background: #fff; border: 1px solid #b58a2b; border-radius: 11px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+        <div style="width: 24px; height: 24px; border-radius: 50%; background: #e2d3ae; color: #7a5c23; display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none">!</div>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <div style="font-size: 13px; font-weight: 600">This order changed in another tab</div>
+          <div style="font-size: 12px; color: #6b5424">The status was set to Returned there. Your line edits are safe.</div>
+        </div>
+        <div style="flex: 1"></div>
+        <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 8px 13px; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #57564f; white-space: nowrap">SEE THEIRS</div>
+        <div style="background: #7a5c23; border-radius: 9px; padding: 9px 13px; font-size: 11px; letter-spacing: 0.08em; font-weight: 600; color: #fff; white-space: nowrap">KEEP MINE</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 12px 48px 48px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">6e</span>
+    <span style="font-size: 20px; font-weight: 600">When the scan fails</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px">The one error worth designing carefully, because it is common and the user has already done work. Never a dead end: the file is kept, what was read is offered, and the manual route is one click away.</div>
+
+  <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start">
+    <div style="width: 720px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 20px; display: flex; gap: 20px; align-items: flex-start">
+      <div style="width: 96px; height: 124px; border: 1px solid #e6e4dc; border-radius: 10px; background: #f7f6f2; display: grid; place-items: center; position: relative; flex: none">
+        <div style="width: 52px; height: 70px; background: #fff; border: 1px solid #dedcd4; border-radius: 3px; background-image: repeating-linear-gradient(#eceae4 0 1px, transparent 1px 5px); background-position: 0 8px; background-size: 100% 5px; background-repeat: repeat-y"></div>
+        <div style="position: absolute; bottom: 7px; right: 7px; background: #8a4a41; color: #fff; font-size: 9px; font-weight: 600; padding: 2px 5px; border-radius: 4px">JPG</div>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: baseline; gap: 10px">
+          <div style="font-size: 15px; font-weight: 600">Could not read this receipt</div>
+          <div style="font-size: 12px; color: #8b8a82">foto-2026-08-08.jpg · 3,1 MB</div>
+        </div>
+        <div style="font-size: 13px; color: #57564f">The photo is too blurred to pick out the lines. The vendor and date came through, so the order is started with those.</div>
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #57564f">
+            <span style="color: #2f7a51"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg></span>
+            Vendor: Indbo Møbler · Date: 08/08/2026
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #8a4a41; font-weight: 600">
+            <span><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8"></path><path d="M12 4l-8 8"></path></svg></span>
+            No lines and no total could be read
+          </div>
+        </div>
+        <div style="background: #f7f6f2; border-radius: 9px; padding: 11px 12px; font-size: 12px; color: #57564f">A flatter photo in better light usually works. The file stays attached either way.</div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap">
+          <div style="background: #1d4d33; border-radius: 10px; padding: 11px 18px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #fff">CONTINUE MANUALLY</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 11px 18px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #1d4d33">TRY ANOTHER PHOTO</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 11px 18px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #57564f">DISCARD</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width: 420px; display: flex; flex-direction: column; gap: 14px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; align-items: flex-start; gap: 12px">
+        <div style="width: 30px; height: 30px; border-radius: 9px; background: #f6e9e7; color: #8a4a41; display: grid; place-items: center; flex: none">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8"></path><path d="M12 4l-8 8"></path></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 3px">
+          <div style="font-size: 13px; font-weight: 600">File is 34 MB — too large</div>
+          <div style="font-size: 12px; color: #57564f">Up to 20 MB per file. A PDF export or a smaller photo will go through.</div>
+        </div>
+      </div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px">
+        <div style="display: flex; align-items: flex-start; gap: 12px">
+          <div style="width: 30px; height: 30px; border-radius: 9px; background: #f3ede1; color: #7a5c23; display: grid; place-items: center; flex: none">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v4"></path><path d="M8 11h0.01"></path></svg>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <div style="font-size: 13px; font-weight: 600">.docx is not supported</div>
+            <div style="font-size: 12px; color: #57564f">Images and PDF only. The file was not attached.</div>
+          </div>
+        </div>
+      </div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; align-items: flex-start; gap: 12px">
+        <div style="width: 30px; height: 30px; border-radius: 9px; background: #f3ede1; color: #7a5c23; display: grid; place-items: center; flex: none">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 5.4a7.6 7.6 0 0 1 10.8 0"></path><path d="M5 8a4.4 4.4 0 0 1 6 0"></path><path d="M8 11h0.01"></path></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 3px">
+          <div style="font-size: 13px; font-weight: 600">Reading is taking longer than usual</div>
+          <div style="font-size: 12px; color: #57564f">You can leave this page — the order appears in the list when it is done.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 12px 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="6f">6f</span>
+    <span style="font-size: 20px; font-weight: 600">Which surface, and when</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">The pages above draw each surface but never say how to choose between them. Five surfaces, and the choice comes down to two questions: does the message belong to one field or to the whole action, and must the user answer it before anything continues.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 700px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+      <div style="display: grid; grid-template-columns: 124px 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 10px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+        <div>SURFACE</div><div>USE IT WHEN</div><div>WHICH ONES, HERE</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 124px 1fr 1fr; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="font-weight: 600; font-size: 13px">Inline</div>
+          <div style="border: 1px solid #c98a80; border-radius: 7px; padding: 6px 8px; font-size: 11px; color: #8a4a41">Vendor is required</div>
+        </div>
+        <div style="color: #57564f; line-height: 1.55">The message belongs to <b>one field</b> and the user is already looking at it. Never shifts the layout — error and hint share one slot, so the row height is the same either way.</div>
+        <div style="color: #8b8a82; line-height: 1.55">Field validation (6c) · the amber over-limit notice (8b) · uncertain scan fields (3a) · the duplicate-name warning (16c) · per-file upload errors (17b)</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 124px 1fr 1fr; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="font-weight: 600; font-size: 13px">Section notice</div>
+          <div style="background: #e7efe8; border-radius: 7px; padding: 6px 8px; font-size: 11px; color: #1d4d33">Copied from 12 Aug</div>
+        </div>
+        <div style="color: #57564f; line-height: 1.55">The message is about <b>the whole screen's state</b> rather than one field, and has to stay visible while the user works. Top of the content column, and it scrolls with the page.</div>
+        <div style="color: #8b8a82; line-height: 1.55">The duplicate notice (8a) · scan failed (6e) · totals reconciliation in review (3a) · the monthly over-limit summary on Home (8b)</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 124px 1fr 1fr; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="font-weight: 600; font-size: 13px">Popover</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 7px; padding: 6px 8px; font-size: 11px; color: #3d3c36; box-shadow: 0 4px 10px rgba(27,26,23,0.06)">Set status ▾</div>
+        </div>
+        <div style="color: #57564f; line-height: 1.55">The user needs to <b>choose something, anchored to what they clicked</b>. It takes nothing away, so Esc or a click outside just closes it. Never carries a message — only choices.</div>
+        <div style="color: #8b8a82; line-height: 1.55">Set status and Add category (2a) · Export (16c) · the account menu (9c) · every combobox panel · the icon picker (5b)</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 124px 1fr 1fr; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="font-weight: 600; font-size: 13px">Dialog</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 7px; padding: 6px 8px; font-size: 11px; color: #8a4a41; box-shadow: 0 6px 14px rgba(27,26,23,0.1)">Delete this order?</div>
+        </div>
+        <div style="color: #57564f; line-height: 1.55">The action <b>cannot be undone</b>, or the user must answer before anything continues. Modal, focus-trapped, scrim behind. If it can be undone, this is the wrong surface.</div>
+        <div style="color: #8b8a82; line-height: 1.55">Delete order · bulk delete · vendor merge · discard scan · leave-while-dirty · change password (16c) · see-theirs conflict (16c)</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 124px 1fr 1fr; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="font-weight: 600; font-size: 13px">Toast</div>
+          <div style="background: #1b1a17; border-radius: 7px; padding: 6px 8px; font-size: 11px; color: #fff; display: flex; gap: 8px"><span>Line removed</span><span style="color: #a8c6b2; font-weight: 600">Undo</span></div>
+        </div>
+        <div style="color: #57564f; line-height: 1.55">It <b>already happened and can be undone</b>. Confirms rather than asks, so it never blocks and never needs acknowledging. One at a time, bottom-centre, 6s.</div>
+        <div style="color: #8b8a82; line-height: 1.55">Line delete · status change · category add · archive (16c) · import complete · order saved</div>
+      </div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 20px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THE TEST, IN ORDER</div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; gap: 10px">
+            <div style="width: 20px; height: 20px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">1</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Is it about one field?</b> Inline. This catches most messages in the app.</div>
+          </div>
+          <div style="display: flex; gap: 10px">
+            <div style="width: 20px; height: 20px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">2</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Has it already happened?</b> Toast if it can be undone. Section notice if it cannot and the user needs to keep seeing it.</div>
+          </div>
+          <div style="display: flex; gap: 10px">
+            <div style="width: 20px; height: 20px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">3</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Is the user picking from a set?</b> Popover, anchored to the trigger.</div>
+          </div>
+          <div style="display: flex; gap: 10px">
+            <div style="width: 20px; height: 20px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">4</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Would proceeding lose something?</b> Dialog. Only here.</div>
+          </div>
+        </div>
+        <div style="border-top: 1px solid #dedcd4; padding-top: 12px; font-size: 12px; color: #57564f; line-height: 1.55">If two answers fit, take the earliest — the order runs from least interrupting to most.</div>
+      </div>
+
+      <div style="background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #7a5c23">NEVER</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>A toast for an error the user must fix.</b> It disappears, taking the only description of the problem with it. Errors are inline, next to their cause.</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>A dialog for something reversible.</b> It taxes every use to prevent a cheap mistake. Undo taxes only the mistakes.</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>Both surfaces for one action.</b> A dialog followed by a toast means it was confirmed twice; the dialog closing <i>is</i> the confirmation.</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>A popover carrying a message.</b> If there is nothing to choose, it is a notice or a toast.</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>A toast for a limit being crossed.</b> That is a fact about the month, not an event — inline, amber, and it stays.</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHEN THEY STACK</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Esc closes the topmost layer only, in this order: sheet, dialog, popover, inline edit. A dialog opened from a popover closes the popover first.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Toasts sit above everything and are never blocked by a dialog — a background action finishing must not be swallowed by whatever is open in front of it.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Only one dialog at a time. A dialog that needs to open another means the first asked the wrong question.</div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

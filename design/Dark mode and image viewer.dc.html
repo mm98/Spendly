@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 12px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">12a</span>
+    <span style="font-size: 20px; font-weight: 600">Dark mode — warm dark</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Not an inversion. The light theme's identity is warmth — a greige canvas, not grey — so the dark theme is a warm brown-black, and the greens lift rather than darken so they still read as the accent. Every token maps one-to-one, so a component references a role and never a literal.</div>
+
+  <div style="display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 520px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">TOKEN MAP</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; background: #f2f1eb; padding: 9px 14px; font-size: 11px; letter-spacing: 0.08em; color: #6b6a63">
+          <div>ROLE</div><div>LIGHT</div><div>DARK</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Canvas</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #eceae4; border: 1px solid #dcdad2; flex: none"></span>#eceae4</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #1a1815; flex: none"></span>#1a1815</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Card surface</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #ffffff; border: 1px solid #dcdad2; flex: none"></span>#ffffff</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #221f1b; flex: none"></span>#221f1b</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Raised / hover</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #f0efe9; border: 1px solid #dcdad2; flex: none"></span>#f0efe9</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #2a2621; flex: none"></span>#2a2621</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Quiet fill</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #f7f6f2; border: 1px solid #dcdad2; flex: none"></span>#f7f6f2</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #262320; flex: none"></span>#262320</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Hairline border</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #e6e4dc; border: 1px solid #dcdad2; flex: none"></span>#e6e4dc</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #38332c; flex: none"></span>#38332c</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Input border</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #dedcd4; border: 1px solid #dcdad2; flex: none"></span>#dedcd4</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #463f37; flex: none"></span>#463f37</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Text primary</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #1b1a17; flex: none"></span>#1b1a17</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #f2f0ea; flex: none"></span>#f2f0ea</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Text body</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #3d3c36; flex: none"></span>#3d3c36</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #d8d4ca; flex: none"></span>#d8d4ca</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Text secondary</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #57564f; flex: none"></span>#57564f</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #a8a29a; flex: none"></span>#a8a29a</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Text muted</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #8b8a82; flex: none"></span>#8b8a82</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #7d776e; flex: none"></span>#7d776e</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Green primary</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #1d4d33; flex: none"></span>#1d4d33</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #5d9b76; flex: none"></span>#5d9b76</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Green surface</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #e7efe8; border: 1px solid #dcdad2; flex: none"></span>#e7efe8</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #1f3328; flex: none"></span>#1f3328</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Chart track</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #eef1ee; border: 1px solid #dcdad2; flex: none"></span>#eef1ee</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #2e2b26; flex: none"></span>#2e2b26</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Amber line</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #b58a2b; flex: none"></span>#b58a2b</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #d9b166; flex: none"></span>#d9b166</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Amber surface</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #fdf8ee; border: 1px solid #dcdad2; flex: none"></span>#fdf8ee</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #2c2418; flex: none"></span>#2c2418</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Red text</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #8a4a41; flex: none"></span>#8a4a41</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #d99a90; flex: none"></span>#d99a90</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Red surface</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #fdf6f5; border: 1px solid #dcdad2; flex: none"></span>#fdf6f5</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #2c1e1c; flex: none"></span>#2c1e1c</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; padding: 9px 14px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="font-weight: 600">Sidebar</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #14261c; flex: none"></span>#14261c</div>
+          <div style="display: flex; align-items: center; gap: 7px"><span style="width: 15px; height: 15px; border-radius: 4px; background: #14261c; flex: none"></span>unchanged</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 4px">Four rules behind the mapping: the sidebar does not change, because it was already dark and is the one thing that anchors the two themes. Elevation reverses — a light theme lifts a surface by shadow, a dark theme lifts it by getting lighter, so cards are lighter than the canvas and dialogs lighter again. Shadows stay but only for layering, at half the opacity of the light theme. And the chart ramp keeps its five steps in the same order, lifted: <span style="white-space: nowrap">#5d9b76</span>, <span style="white-space: nowrap">#7fb392</span>, <span style="white-space: nowrap">#a3c9b0</span>, <span style="white-space: nowrap">#4a6b57</span>, <span style="white-space: nowrap">#39443c</span>.</div>
+    </div>
+
+    <div style="width: 620px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">ORDER EDIT (1c) IN DARK</div>
+      <div style="background: #1a1815; border-radius: 12px; padding: 18px; display: flex; gap: 16px">
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">ITEM LINES · 4</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 11px; color: #7d776e">Tap a line to edit it</div>
+          </div>
+          <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; overflow: hidden">
+            <div style="display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-bottom: 1px solid #2e2b26">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="#5a534a"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg>
+              <div style="width: 34px; height: 34px; border-radius: 8px; background: #2e2b26; border: 1px solid #38332c; flex: none"></div>
+              <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                <div style="font-size: 13px; font-weight: 600; color: #f2f0ea">Nordal vase, large</div>
+                <div style="font-size: 11px; color: #7d776e">1 × 349,00</div>
+              </div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 13px; font-weight: 600; color: #f2f0ea">349,00</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-bottom: 1px solid #2e2b26; background: #2a2621">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="#5a534a"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg>
+              <div style="width: 34px; height: 34px; border-radius: 8px; background: #2e2b26; border: 1px solid #463f37; flex: none"></div>
+              <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                <div style="font-size: 13px; font-weight: 600; color: #f2f0ea">Stol — eg</div>
+                <div style="font-size: 11px; color: #7d776e">2 × 1.299,00</div>
+              </div>
+              <div style="flex: 1"></div>
+              <div style="display: flex; gap: 3px">
+                <div style="width: 26px; height: 26px; border-radius: 8px; background: #38332c; display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#d8d4ca" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.6l4-4 4 4"></path></svg></div>
+                <div style="width: 26px; height: 26px; border-radius: 8px; background: #38332c; display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#d8d4ca" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.4l4 4 4-4"></path></svg></div>
+                <div style="width: 26px; height: 26px; border-radius: 8px; background: #38332c; display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#d8d4ca" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.8V9.6l7-7 3.2 3.2-7 7z"></path></svg></div>
+                <div style="width: 26px; height: 26px; border-radius: 8px; background: #38332c; display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#d99a90" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5h9.2"></path><path d="M4.6 5v8h6.8V5"></path></svg></div>
+              </div>
+              <div style="font-size: 13px; font-weight: 600; color: #f2f0ea">2.598,00</div>
+            </div>
+            <div style="margin: 10px 12px; background: #262320; border: 1px solid #5d9b76; border-radius: 10px; padding: 13px; display: flex; flex-direction: column; gap: 11px">
+              <div style="display: flex; gap: 12px">
+                <div style="width: 72px; height: 72px; border-radius: 9px; background: #2e2b26; border: 1px solid #463f37; flex: none; position: relative; overflow: hidden">
+                  <div style="position: absolute; inset: 0; background: rgba(20,18,16,0.55); display: flex; align-items: center; justify-content: center; gap: 6px">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.14); display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#f2f0ea" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10.4V3.4"></path><path d="M5.6 5.6L8 3.2l2.4 2.4"></path><path d="M3.4 10.6v1.6h9.2v-1.6"></path></svg></div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.14); display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#f2f0ea" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5h9.2"></path><path d="M4.6 5v8h6.8V5"></path></svg></div>
+                  </div>
+                </div>
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px">
+                  <div style="font-size: 11px; font-weight: 600; color: #d8d4ca">Item</div>
+                  <div style="border: 1px solid #463f37; border-radius: 9px; padding: 9px 11px; font-size: 13px; color: #f2f0ea; background: #221f1b">Bord — sortmalet</div>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px">
+                <div style="display: flex; flex-direction: column; gap: 5px">
+                  <div style="font-size: 11px; font-weight: 600; color: #d8d4ca">Quantity</div>
+                  <div style="border: 1px solid #5d9b76; box-shadow: 0 0 0 3px rgba(93,155,118,0.18); border-radius: 9px; padding: 9px 11px; font-size: 13px; color: #f2f0ea; background: #221f1b">1</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px">
+                  <div style="font-size: 11px; font-weight: 600; color: #d8d4ca">Unit price</div>
+                  <div style="border: 1px solid #463f37; border-radius: 9px; padding: 9px 11px; font-size: 13px; color: #f2f0ea; background: #221f1b">4.190,00</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px">
+                  <div style="font-size: 11px; font-weight: 600; color: #d8d4ca">Line total</div>
+                  <div style="border: 1px solid #38332c; border-radius: 9px; padding: 9px 11px; font-size: 13px; color: #a8a29a; background: #1f1c19">4.190,00</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="flex: 1"></div>
+                <div style="font-size: 12px; font-weight: 600; color: #a8a29a; padding: 7px 11px">Cancel</div>
+                <div style="font-size: 12px; font-weight: 600; background: #5d9b76; color: #14261c; border-radius: 8px; padding: 8px 14px">Save item</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 11px 13px">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="#5a534a"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg>
+              <div style="width: 34px; height: 34px; border-radius: 8px; background: #2e2b26; border: 1px solid #38332c; flex: none"></div>
+              <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                <div style="font-size: 13px; font-weight: 600; color: #f2f0ea">Pude, uld</div>
+                <div style="font-size: 11px; color: #7d776e">2 × 249,00</div>
+              </div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 13px; font-weight: 600; color: #f2f0ea">498,00</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.3)">
+            <div style="font-size: 12px; color: #a8a29a">Unsaved changes</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #a8a29a; padding: 7px 11px">Discard</div>
+            <div style="font-size: 12px; font-weight: 600; background: #5d9b76; color: #14261c; border-radius: 8px; padding: 8px 15px">Save</div>
+          </div>
+        </div>
+
+        <div style="width: 216px; flex: none; display: flex; flex-direction: column; gap: 10px">
+          <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">ORDER DETAILS</div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="font-size: 11px; font-weight: 600; color: #d8d4ca">Vendor</div>
+              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 8px 10px; font-size: 13px; color: #f2f0ea">Indbo Møbler</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="font-size: 11px; font-weight: 600; color: #d8d4ca">Order date</div>
+              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 8px 10px; font-size: 13px; color: #f2f0ea">12 Aug 2026</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="font-size: 11px; font-weight: 600; color: #d8d4ca">Category</div>
+              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 7px 10px; font-size: 13px; color: #f2f0ea; display: flex; align-items: center; gap: 8px">
+                <span style="width: 20px; height: 20px; border-radius: 6px; background: #5d9b76; display: grid; place-items: center; color: #14261c; flex: none"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h3l-.6 2.4A4 4 0 0 1 11.5 9c0 2.5-1.6 4.5-3.5 4.5S4.5 11.5 4.5 9a4 4 0 0 1 2.6-4.1z"></path></svg></span>
+                Decor
+              </div>
+            </div>
+          </div>
+          <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">TOTALS</div>
+            <div style="display: flex; font-size: 12px; color: #d8d4ca"><span>4 lines</span><span style="flex: 1"></span><span>7.635,00</span></div>
+            <div style="height: 1px; background: #38332c"></div>
+            <div style="display: flex; align-items: baseline"><span style="font-size: 12px; color: #a8a29a">Total</span><span style="flex: 1"></span><span style="font-size: 18px; font-weight: 700; color: #f2f0ea">7.635,00</span></div>
+          </div>
+          <div style="background: #2c2418; border: 1px solid #463a24; border-radius: 10px; padding: 11px 12px; font-size: 12px; color: #d9b166; line-height: 1.5">This puts Decor 1.240 kr. over its 6.000 kr. limit for August.</div>
+        </div>
+      </div>
+
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63; padding-top: 6px">ORDER LIST (2b) AND STATISTICS (4a) IN DARK</div>
+      <div style="background: #1a1815; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; overflow: hidden">
+          <div style="display: grid; grid-template-columns: 1.6fr 0.9fr 0.5fr 1fr 0.9fr 0.8fr; gap: 10px; background: #262320; padding: 9px 13px; font-size: 11px; letter-spacing: 0.08em; color: #a8a29a">
+            <div>VENDOR</div><div>DATE</div><div>ITEMS</div><div>CATEGORY</div><div>STATUS</div><div style="text-align: right">AMOUNT</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1.6fr 0.9fr 0.5fr 1fr 0.9fr 0.8fr; gap: 10px; padding: 11px 13px; font-size: 13px; align-items: center">
+            <div style="font-weight: 600; color: #f2f0ea; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+            <div style="color: #a8a29a">12 Aug</div><div style="color: #a8a29a">4</div>
+            <div><span style="font-size: 11px; background: #1f3328; color: #8fc0a2; border-radius: 999px; padding: 3px 8px">Decor</span></div>
+            <div><span style="font-size: 11px; background: #2e2b26; color: #d8d4ca; border-radius: 999px; padding: 3px 8px">Received</span></div>
+            <div style="text-align: right; font-weight: 600; color: #f2f0ea">7.635</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1.6fr 0.9fr 0.5fr 1fr 0.9fr 0.8fr; gap: 10px; padding: 11px 13px; font-size: 13px; align-items: center; border-top: 1px solid #2e2b26; background: #2a2621">
+            <div style="font-weight: 600; color: #f2f0ea; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
+            <div style="color: #a8a29a">3 Aug</div><div style="color: #a8a29a">2</div>
+            <div><span style="font-size: 11px; background: #1f3328; color: #8fc0a2; border-radius: 999px; padding: 3px 8px">Seating</span></div>
+            <div><span style="font-size: 11px; background: #2e2b26; color: #d8d4ca; border-radius: 999px; padding: 3px 8px">Ordered</span></div>
+            <div style="text-align: right; font-weight: 600; color: #f2f0ea">3.240</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1.6fr 0.9fr 0.5fr 1fr 0.9fr 0.8fr; gap: 10px; padding: 11px 13px; font-size: 13px; align-items: center; border-top: 1px solid #2e2b26">
+            <div style="font-weight: 600; color: #f2f0ea; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto</div>
+            <div style="color: #a8a29a">1 Aug</div><div style="color: #a8a29a">3</div>
+            <div><span style="font-size: 11px; background: #1f3328; color: #8fc0a2; border-radius: 999px; padding: 3px 8px">Lighting</span></div>
+            <div><span style="font-size: 11px; background: #2c1e1c; color: #d99a90; border-radius: 999px; padding: 3px 8px">Returned</span></div>
+            <div style="text-align: right; font-weight: 600; color: #f2f0ea">5.120</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+          <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">SPEND BY MONTH</div>
+            <div style="display: flex; align-items: flex-end; gap: 7px; height: 92px">
+              <div style="flex: 1; height: 38%; background: #5d9b76; border-radius: 4px 4px 0 0"></div>
+              <div style="flex: 1; height: 56%; background: #5d9b76; border-radius: 4px 4px 0 0"></div>
+              <div style="flex: 1; height: 44%; background: #5d9b76; border-radius: 4px 4px 0 0"></div>
+              <div style="flex: 1; height: 72%; background: #5d9b76; border-radius: 4px 4px 0 0"></div>
+              <div style="flex: 1; height: 61%; background: #5d9b76; border-radius: 4px 4px 0 0"></div>
+              <div style="flex: 1; height: 88%; background: #7fb392; border-radius: 4px 4px 0 0"></div>
+              <div style="flex: 1; height: 46%; background: #2e2b26; border-radius: 4px 4px 0 0"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: #7d776e"><span>Feb</span><span>Apr</span><span>Jun</span><span>Aug</span></div>
+          </div>
+          <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 11px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">MONTHLY LIMITS</div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="display: flex; align-items: baseline; font-size: 12px; color: #d8d4ca"><span>Decor</span><span style="flex: 1"></span><span style="color: #d9b166; font-weight: 600">7.240 / 6.000</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #2e2b26; position: relative; overflow: hidden"><div style="width: 100%; height: 100%; background: #d3b98a"></div><div style="position: absolute; left: 65%; top: -2px; bottom: -2px; width: 2px; background: #d9b166"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="display: flex; align-items: baseline; font-size: 12px; color: #d8d4ca"><span>Seating</span><span style="flex: 1"></span><span>3.240 / 8.000</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #2e2b26; position: relative; overflow: hidden"><div style="width: 41%; height: 100%; background: #5d9b76"></div><div style="position: absolute; left: 65%; top: -2px; bottom: -2px; width: 2px; background: #d9b166"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="display: flex; align-items: baseline; font-size: 12px; color: #d8d4ca"><span>Textiles</span><span style="flex: 1"></span><span>890 / 2.000</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #2e2b26; position: relative; overflow: hidden"><div style="width: 45%; height: 100%; background: #5d9b76"></div><div style="position: absolute; left: 65%; top: -2px; bottom: -2px; width: 2px; background: #d9b166"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Amber and red keep their meaning across themes but swap which token carries it: on light, the surface is tinted and the text is dark; on dark, the surface is barely tinted and the text carries the colour. The pace marker stays a hairline — on dark it lifts to #d9b166 so it survives against an amber-filled bar.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 20px 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">12b</span>
+    <span style="font-size: 20px; font-weight: 600">Images at full size</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Clicking an attachment tile or an item photo opens the viewer. It is one overlay for both, and it always knows the set it belongs to — the order's files — so you can move through them without going back. Three controls only: previous and next, page thumbnails when the file has pages, and download.</div>
+
+  <div style="display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 700px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">A PDF RECEIPT, THREE PAGES</div>
+      <div style="border-radius: 12px; overflow: hidden; background: #262320; box-shadow: 0 12px 28px rgba(27, 26, 23, 0.16)">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(0,0,0,0.25)">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="#d8d4ca" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2.6h5l3 3v7.8H4z"></path><path d="M9 2.6v3h3"></path></svg>
+          <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+            <div style="font-size: 13px; font-weight: 600; color: #f2f0ea; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">kvittering-indbo-12082026.pdf</div>
+            <div style="font-size: 11px; color: #a8a29a">Indbo Møbler · 12 Aug 2026 · 1.2 MB</div>
+          </div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; color: #a8a29a">File 1 of 3</div>
+          <div style="width: 1px; height: 18px; background: rgba(255,255,255,0.14)"></div>
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #f2f0ea; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 7px 12px">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.2v6.4"></path><path d="M5.4 7.2L8 9.8l2.6-2.6"></path><path d="M3.4 11.4v1.4h9.2v-1.4"></path></svg>
+            Download
+          </div>
+          <div style="width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.1); display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#f2f0ea" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8"></path><path d="M12 4l-8 8"></path></svg></div>
+        </div>
+
+        <div style="display: flex; align-items: stretch; height: 460px">
+          <div style="width: 108px; flex: none; background: rgba(0,0,0,0.2); padding: 12px 10px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 10px; letter-spacing: 0.1em; color: #7d776e; padding-bottom: 1px">PAGES</div>
+            <div style="border: 2px solid #5d9b76; border-radius: 7px; padding: 2px">
+              <div style="aspect-ratio: 0.72; background: #f2f0ea; border-radius: 5px; display: flex; flex-direction: column; gap: 3px; padding: 6px">
+                <div style="height: 4px; width: 60%; background: #c3c1b8; border-radius: 1px"></div>
+                <div style="height: 3px; width: 88%; background: #dcdad2; border-radius: 1px"></div>
+                <div style="height: 3px; width: 80%; background: #dcdad2; border-radius: 1px"></div>
+                <div style="height: 3px; width: 84%; background: #dcdad2; border-radius: 1px"></div>
+                <div style="flex: 1"></div>
+                <div style="height: 4px; width: 45%; background: #c3c1b8; border-radius: 1px; align-self: flex-end"></div>
+              </div>
+            </div>
+            <div style="border: 1px solid transparent; border-radius: 7px; padding: 2px">
+              <div style="aspect-ratio: 0.72; background: #d8d4ca; border-radius: 5px; display: flex; flex-direction: column; gap: 3px; padding: 6px">
+                <div style="height: 3px; width: 80%; background: #b3b1a9; border-radius: 1px"></div>
+                <div style="height: 3px; width: 72%; background: #b3b1a9; border-radius: 1px"></div>
+                <div style="height: 3px; width: 78%; background: #b3b1a9; border-radius: 1px"></div>
+              </div>
+            </div>
+            <div style="border: 1px solid transparent; border-radius: 7px; padding: 2px">
+              <div style="aspect-ratio: 0.72; background: #d8d4ca; border-radius: 5px; display: flex; flex-direction: column; gap: 3px; padding: 6px">
+                <div style="height: 3px; width: 55%; background: #b3b1a9; border-radius: 1px"></div>
+                <div style="height: 3px; width: 40%; background: #b3b1a9; border-radius: 1px"></div>
+              </div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 10px; color: #7d776e; line-height: 1.4">Page 1 of 3</div>
+          </div>
+
+          <div style="flex: 1; min-width: 0; position: relative; display: grid; place-items: center; padding: 20px">
+            <div style="width: 300px; background: #f7f6f2; border-radius: 4px; box-shadow: 0 8px 26px rgba(0,0,0,0.35); padding: 26px 24px; display: flex; flex-direction: column; gap: 12px">
+              <div style="display: flex; align-items: baseline; gap: 8px">
+                <div style="font-size: 14px; font-weight: 700; color: #1b1a17">Indbo Møbler</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 10px; color: #8b8a82">12.08.2026</div>
+              </div>
+              <div style="height: 1px; background: #dcdad2"></div>
+              <div style="display: flex; flex-direction: column; gap: 7px">
+                <div style="display: flex; font-size: 10px; color: #3d3c36"><span>Nordal vase, large</span><span style="flex: 1"></span><span>349,00</span></div>
+                <div style="display: flex; font-size: 10px; color: #3d3c36"><span>Stol — eg × 2</span><span style="flex: 1"></span><span>2.598,00</span></div>
+                <div style="display: flex; font-size: 10px; color: #3d3c36"><span>Bord — sortmalet</span><span style="flex: 1"></span><span>4.190,00</span></div>
+                <div style="display: flex; font-size: 10px; color: #3d3c36"><span>Pude, uld × 2</span><span style="flex: 1"></span><span>498,00</span></div>
+              </div>
+              <div style="height: 1px; background: #dcdad2"></div>
+              <div style="display: flex; align-items: baseline"><span style="font-size: 11px; font-weight: 600; color: #1b1a17">I alt</span><span style="flex: 1"></span><span style="font-size: 13px; font-weight: 700; color: #1b1a17">7.635,00</span></div>
+              <div style="font-size: 9px; color: #8b8a82; padding-top: 24px">CVR 12345678 · Tak for handlen</div>
+            </div>
+
+            <div style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.12); display: grid; place-items: center"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="#f2f0ea" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 3.4L5 8l4.6 4.6"></path></svg></div>
+            <div style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.12); display: grid; place-items: center"><svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="#f2f0ea" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 3.4L11 8l-4.6 4.6"></path></svg></div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; padding: 11px 16px; background: rgba(0,0,0,0.25)">
+          <div style="display: flex; gap: 7px">
+            <div style="width: 40px; height: 40px; border-radius: 8px; background: #f2f0ea; border: 2px solid #5d9b76; flex: none; display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.3"><path d="M4 2.6h5l3 3v7.8H4z"></path><path d="M9 2.6v3h3"></path></svg></div>
+            <div style="width: 40px; height: 40px; border-radius: 8px; background: #4a453e; flex: none"></div>
+            <div style="width: 40px; height: 40px; border-radius: 8px; background: #4a453e; flex: none"></div>
+          </div>
+          <div style="font-size: 11px; color: #a8a29a">3 files on this order</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Arrow keys move between the order's files, Esc closes, and focus returns to the tile that opened it. The overlay is the same in both themes — a viewer is dark regardless, because a bright chrome around a bright scan leaves nothing to read the edges against. What changes with the theme is the tiles behind it (12b, right) and the scrim: <span style="white-space: nowrap">rgba(27,26,23,0.72)</span> on light, <span style="white-space: nowrap">rgba(10,9,8,0.82)</span> on dark.</div>
+    </div>
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">A PHOTO, AND WHERE THE VIEWER OPENS FROM</div>
+      <div style="border-radius: 12px; overflow: hidden; background: #262320; box-shadow: 0 12px 28px rgba(27, 26, 23, 0.16)">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: rgba(0,0,0,0.25)">
+          <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+            <div style="font-size: 12px; font-weight: 600; color: #f2f0ea; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">stol-eg.jpg</div>
+            <div style="font-size: 11px; color: #a8a29a">Item photo · Stol — eg</div>
+          </div>
+          <div style="flex: 1"></div>
+          <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,0.1); display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#f2f0ea" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.2v6.4"></path><path d="M5.4 7.2L8 9.8l2.6-2.6"></path><path d="M3.4 11.4v1.4h9.2v-1.4"></path></svg></div>
+          <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,0.1); display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#f2f0ea" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8"></path><path d="M12 4l-8 8"></path></svg></div>
+        </div>
+        <div style="height: 240px; position: relative; display: grid; place-items: center; padding: 18px">
+          <div style="width: 190px; height: 190px; border-radius: 3px; background: #4a453e; box-shadow: 0 8px 26px rgba(0,0,0,0.35); display: grid; place-items: center">
+            <div style="font-size: 11px; color: #8f887e">photo</div>
+          </div>
+          <div style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.12); display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#f2f0ea" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 3.4L5 8l4.6 4.6"></path></svg></div>
+          <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.12); display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#f2f0ea" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 3.4L11 8l-4.6 4.6"></path></svg></div>
+        </div>
+        <div style="padding: 10px 14px; background: rgba(0,0,0,0.25); font-size: 11px; color: #a8a29a">Photo 2 of 4 on this order</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THE TILES IT OPENS FROM — LIGHT</div>
+        <div style="display: flex; gap: 10px">
+          <div style="width: 84px; display: flex; flex-direction: column; gap: 5px">
+            <div style="width: 84px; height: 84px; border-radius: 10px; border: 1px solid #e6e4dc; background: #f0efe9; position: relative; overflow: hidden">
+              <div style="position: absolute; left: 6px; bottom: 6px; font-size: 10px; font-weight: 600; color: #fff; background: rgba(27,26,23,0.6); border-radius: 4px; padding: 2px 6px">PDF</div>
+            </div>
+            <div style="font-size: 10px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">kvittering…pdf</div>
+          </div>
+          <div style="width: 84px; display: flex; flex-direction: column; gap: 5px">
+            <div style="width: 84px; height: 84px; border-radius: 10px; border: 1px solid #e6e4dc; background: #e2ddd4"></div>
+            <div style="font-size: 10px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">stol-eg.jpg</div>
+          </div>
+          <div style="width: 84px; display: flex; flex-direction: column; gap: 5px">
+            <div style="width: 84px; height: 84px; border-radius: 10px; border: 1px dashed #dedcd4; display: grid; place-items: center; color: #8b8a82">
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 4v8"></path><path d="M4 8h8"></path></svg>
+            </div>
+            <div style="font-size: 10px; color: #8b8a82">Add a file</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #1a1815; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">THE SAME TILES — DARK</div>
+        <div style="display: flex; gap: 10px">
+          <div style="width: 84px; display: flex; flex-direction: column; gap: 5px">
+            <div style="width: 84px; height: 84px; border-radius: 10px; border: 1px solid #463f37; background: #d8d4ca; position: relative; overflow: hidden; opacity: 0.9">
+              <div style="position: absolute; left: 6px; bottom: 6px; font-size: 10px; font-weight: 600; color: #f2f0ea; background: rgba(10,9,8,0.72); border-radius: 4px; padding: 2px 6px">PDF</div>
+            </div>
+            <div style="font-size: 10px; color: #7d776e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">kvittering…pdf</div>
+          </div>
+          <div style="width: 84px; display: flex; flex-direction: column; gap: 5px">
+            <div style="width: 84px; height: 84px; border-radius: 10px; border: 1px solid #463f37; background: #b8b2a8; opacity: 0.9"></div>
+            <div style="font-size: 10px; color: #7d776e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">stol-eg.jpg</div>
+          </div>
+          <div style="width: 84px; display: flex; flex-direction: column; gap: 5px">
+            <div style="width: 84px; height: 84px; border-radius: 10px; border: 1px dashed #463f37; display: grid; place-items: center; color: #7d776e">
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 4v8"></path><path d="M4 8h8"></path></svg>
+            </div>
+            <div style="font-size: 10px; color: #7d776e">Add a file</div>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: #a8a29a; line-height: 1.5">Two things happen to images on dark. Every thumbnail keeps a <span style="white-space: nowrap">1px #463f37</span> border, because a white receipt scan with no border floats as a bright rectangle with no edge. And thumbnails render at 90% opacity, taking the glare off without touching colour accuracy — full opacity returns on hover and in the viewer, where the image is the subject.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+</body>
+</html>

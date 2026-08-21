@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 20px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">16a</span>
+    <span style="font-size: 20px; font-weight: 600">Actions inventory</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every control drawn in the mockups, what it does, and what the user sees afterwards. Compiled by walking each file rather than from memory, so this is what is actually on the pages — including ten controls that had no described behaviour anywhere. Those are resolved at the end, in 16b.</div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">HOW TO READ THIS</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">"After" is the observable result</b>, because that is what the user judges. <b>toast + Undo</b> means the change applies immediately and is reversible for the toast's life. <b>dialog</b> means it cannot be undone and is confirmed first. Nothing in this document contradicts that pairing — if an action is reversible it does not get a dialog, and if it is not, it does not get a toast.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Global actions live in the shell; page actions do not.</b> Scan receipt and New order sit in the top bar because they belong to the app, not to whatever page is open. That is not an exception to the locked-shell rule — the rule is that a page may not put <i>its own</i> actions up there.</div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px; padding: 0 48px 20px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">SHELL — 9a, 9b, 9c</div>
+  <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 9px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Search field / ⌘K</div><div style="color: #57564f; line-height: 1.55">Opens the palette over the page. Empty query lists what you last touched; typing searches orders, vendors and actions.</div><div style="color: #8b8a82; line-height: 1.55">Enter navigates and closes. Esc closes, focus returns to the page.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Scan receipt</div><div style="color: #57564f; line-height: 1.55">Opens the capture flow (3a) at stage one. Global, available on every page.</div><div style="color: #8b8a82; line-height: 1.55">Leaves the current page. Prompts first if there are unsaved changes.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">New order</div><div style="color: #57564f; line-height: 1.55">Opens a blank order in edit. Split control: the chevron offers Scan a receipt and Import a file.</div><div style="color: #8b8a82; line-height: 1.55">Unsaved until Save. Leaving discards, with a confirm.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Nav item</div><div style="color: #57564f; line-height: 1.55">Navigates. The count on the right is live and is part of the link, not a separate target.</div><div style="color: #8b8a82; line-height: 1.55">Active row fills <b>#1f3d2c</b>. Scroll position resets; returning by Back restores it.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Collapse rail</div><div style="color: #57564f; line-height: 1.55">Toggles the sidebar between 248px and the 68px icon rail.</div><div style="color: #8b8a82; line-height: 1.55">Persists per user. Labels become hover tooltips.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Dark mode toggle</div><div style="color: #57564f; line-height: 1.55">Switches theme immediately. Writes the same preference as the Settings cards.</div><div style="color: #8b8a82; line-height: 1.55">No confirm, no toast. Set to <b>system</b> in Settings, the toggle reflects the OS and switching it pins the choice.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Account block ▾</div><div style="color: #57564f; line-height: 1.55">Opens the account menu (9c): the email, Account and profile, Keyboard shortcuts, Sign out.</div><div style="color: #8b8a82; line-height: 1.55">Chevron flips up. Esc closes and returns focus. Sign out confirms only when there are unsaved changes.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px; padding: 0 48px 20px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">HOME — 10a</div>
+  <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 9px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Drop zone / Choose file</div><div style="color: #57564f; line-height: 1.55">Accepts a receipt by drop or picker and starts the scan. On a phone, offers the camera.</div><div style="color: #8b8a82; line-height: 1.55">Goes straight to stage two of 3a. Drag-over: border <b>#1d4d33</b>, fill <b>#e7efe8</b>.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Duplicate last order</div><div style="color: #57564f; line-height: 1.55">Shortcut for the recurring purchase: applies 8a's duplicate to the most recent order, without opening it first.</div><div style="color: #8b8a82; line-height: 1.55">Opens an unsaved copy in edit, naming the source. Identical rules to 8a — no date, no status, no attachments.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Needs-a-look row</div><div style="color: #57564f; line-height: 1.55">Each row is a link to the filtered list holding those records — not a dismissible notice.</div><div style="color: #8b8a82; line-height: 1.55">Lands on the list with the filter chips already applied and removable.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Review / Merge</div><div style="color: #57564f; line-height: 1.55">On the duplicate-vendors row: Review opens the candidate list in the library; Merge is only offered when there is a single obvious pair.</div><div style="color: #8b8a82; line-height: 1.55">Merge still goes through 5a's comparison and its dialog. Never one-click.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Recent order row</div><div style="color: #57564f; line-height: 1.55">Opens the order's read view (1a). The whole row is the target.</div><div style="color: #8b8a82; line-height: 1.55">Cmd-click opens a new tab. "See orders" goes to the unfiltered list.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Category row (limits)</div><div style="color: #57564f; line-height: 1.55">Opens that category in the library (5b), where the limit is editable.</div><div style="color: #8b8a82; line-height: 1.55">The bar itself is not a control.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px; padding: 0 48px 20px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">ORDER READ AND EDIT — 1a–1d</div>
+  <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 9px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Edit order</div><div style="color: #57564f; line-height: 1.55">Navigates to <b>/orders/:id/edit</b> — a route, not a mode toggle, so Back works.</div><div style="color: #8b8a82; line-height: 1.55">Same layout, values become inputs. Nothing moves.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Duplicate</div><div style="color: #57564f; line-height: 1.55">Opens an unsaved copy (8a): vendor, category, reference, notes and all lines. Not the date, status or attachments.</div><div style="color: #8b8a82; line-height: 1.55">Green notice names the source and offers Discard.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Delete order</div><div style="color: #57564f; line-height: 1.55">Opens the confirm dialog, which names the item count and the attachments that go with it.</div><div style="color: #8b8a82; line-height: 1.55">Dialog, not a toast — it cannot be undone from the UI. Returns to the list.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Item row</div><div style="color: #57564f; line-height: 1.55">Expands into the inline form, pushing rows below down. One at a time.</div><div style="color: #8b8a82; line-height: 1.55">Opening another closes the first, keeping its edits in the draft. Esc reverts that line; ⌘/Ctrl-Enter closes it keeping changes.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Save line / Cancel</div><div style="color: #57564f; line-height: 1.55">Closes the expanded row. Neither touches the server — the order's Save is the only write.</div><div style="color: #8b8a82; line-height: 1.55">The sticky save bar appears the moment anything is dirty.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Item photo controls</div><div style="color: #57564f; line-height: 1.55">On hover over the 80px thumb: replace (opens the picker, accepts drop) and delete.</div><div style="color: #8b8a82; line-height: 1.55">Delete confirms only if the photo came from a scan. Empty slot is a dashed "Add photo" target.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Move up / down</div><div style="color: #57564f; line-height: 1.55">Reorders one position. Disabled at the ends. The keyboard and touch path for what the handle does with a mouse.</div><div style="color: #8b8a82; line-height: 1.55">Marks the order dirty; position saves with the order, never on its own.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Drag handle</div><div style="color: #57564f; line-height: 1.55">Drags the row; a 2px <b>#1d4d33</b> line shows the drop position.</div><div style="color: #8b8a82; line-height: 1.55">Row lifts with the raised shadow and drops it on release.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Duplicate / delete line</div><div style="color: #57564f; line-height: 1.55">Copies the line below itself, or removes it.</div><div style="color: #8b8a82; line-height: 1.55">Delete is a toast + Undo, no dialog — it is cheap to restore.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Add item</div><div style="color: #57564f; line-height: 1.55">Appends an empty line, opens it, focuses the name.</div><div style="color: #8b8a82; line-height: 1.55">An empty line never filled is dropped silently on save.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Add files</div><div style="color: #57564f; line-height: 1.55">Adds order attachments. Upload starts on drop, shown as a tile with a progress ring.</div><div style="color: #8b8a82; line-height: 1.55">A failed upload keeps its tile with a retry control rather than vanishing.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Attachment tile</div><div style="color: #57564f; line-height: 1.55">Opens the viewer (12b) with the order's files as the set.</div><div style="color: #8b8a82; line-height: 1.55">Arrow keys move between files, Esc closes. "Download all" zips the order's attachments.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Save / Discard</div><div style="color: #57564f; line-height: 1.55">One request with the whole order and its lines. Discard reverts to the loaded values.</div><div style="color: #8b8a82; line-height: 1.55">Success: toast, and you stay on the screen. Server validation maps to fields and scrolls the first error in.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px; padding: 0 48px 20px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">ORDER LIST — 2a–2c</div>
+  <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 9px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Facet checkbox</div><div style="color: #57564f; line-height: 1.55">Filters. Within a group values OR; across groups they AND.</div><div style="color: #8b8a82; line-height: 1.55">List, counts, total and URL all update. Page resets to 1; selection clears.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Show N more</div><div style="color: #57564f; line-height: 1.55">Expands a facet group beyond its top six. Over 20 values it also gains a filter field.</div><div style="color: #8b8a82; line-height: 1.55">Scrolls within the group at 240px. Purely local — no request.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Filter chip ×</div><div style="color: #57564f; line-height: 1.55">Removes that one value. "Clear all" removes every filter and the query.</div><div style="color: #8b8a82; line-height: 1.55">Same refresh as a facet change.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Rows / Cards</div><div style="color: #57564f; line-height: 1.55">Switches presentation. Same data, same filters.</div><div style="color: #8b8a82; line-height: 1.55">Persists per user in local storage, deliberately not in the URL — a shared link renders in the recipient's preference.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Row checkbox</div><div style="color: #57564f; line-height: 1.55">Selects for bulk action. Header checkbox selects the page; if the filter matches more, a second explicit "Select all N matching" appears.</div><div style="color: #8b8a82; line-height: 1.55">Selection is per page and clears on any filter, sort or page change, without warning — it is no longer meaningful.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Set status</div><div style="color: #57564f; line-height: 1.55">Popover with the statuses as a radio list. Applies to the selection.</div><div style="color: #8b8a82; line-height: 1.55">Optimistic: rows update at once, toast + Undo. Partial failure reports both counts.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Add category</div><div style="color: #57564f; line-height: 1.55">Searchable multi-select popover with a "Create X" row quoting what was typed.</div><div style="color: #8b8a82; line-height: 1.55">Same optimistic pattern. Creating a category from here names it only — colour and icon get defaults, editable in 5b.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Bulk delete</div><div style="color: #57564f; line-height: 1.55">Dialog naming the count, as in 6d ("Delete 12 orders?").</div><div style="color: #8b8a82; line-height: 1.55">Dialog, no undo. Selection clears on success.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Sort</div><div style="color: #57564f; line-height: 1.55">Date (default, newest first), amount, vendor, item count.</div><div style="color: #8b8a82; line-height: 1.55">In the URL. Ties break on order id descending so paging stays stable.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Save current</div><div style="color: #57564f; line-height: 1.55">Saves the filter set, query and sort as a named view, listed above the facets.</div><div style="color: #8b8a82; line-height: 1.55">See 16b — this needed defining. A view stores the filter, never the result.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Export CSV</div><div style="color: #57564f; line-height: 1.55">Exports the current filter, not the page and not the account.</div><div style="color: #8b8a82; line-height: 1.55">See 16b.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Row / row actions</div><div style="color: #57564f; line-height: 1.55">The row opens the order. The action cluster and the checkbox stop propagation.</div><div style="color: #8b8a82; line-height: 1.55">Cmd-click opens a new tab.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px; padding: 0 48px 20px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">SCAN AND CREATE — 3a, 6e</div>
+  <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 9px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Drop / Choose file</div><div style="color: #57564f; line-height: 1.55">Validates type and size client-side, then uploads and starts reading.</div><div style="color: #8b8a82; line-height: 1.55">Rejection is inline on the zone, which stays usable.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Copy a previous order</div><div style="color: #57564f; line-height: 1.55">The third way to start: pick a recent order and duplicate it, instead of scanning or typing.</div><div style="color: #8b8a82; line-height: 1.55">Hands off to 8a's duplicate rules exactly.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Cancel (reading)</div><div style="color: #57564f; line-height: 1.55">Abandons the scan and deletes the upload.</div><div style="color: #8b8a82; line-height: 1.55">Nothing was written, so nothing to undo. Back to stage one.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Uncertain field</div><div style="color: #57564f; line-height: 1.55">Editable like any field. Touching it clears the uncertain marker whether or not the value changed — the user has looked at it.</div><div style="color: #8b8a82; line-height: 1.55">Amber left edge disappears. The scan's original reading is still held separately.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Open full size</div><div style="color: #57564f; line-height: 1.55">Opens the receipt in the viewer (12b) while reviewing, for the lines too small to read in the preview pane.</div><div style="color: #8b8a82; line-height: 1.55">Closing returns to review with edits intact.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Create order</div><div style="color: #57564f; line-height: 1.55">Validates fully and writes. The uploaded file is attached to the new order.</div><div style="color: #8b8a82; line-height: 1.55">Confirmation with the summary, then open-the-order or scan-another. A totals mismatch does not block it.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Save as draft / Discard</div><div style="color: #57564f; line-height: 1.55">Draft keeps the proposal and the file without full validation. Discard confirms, then deletes both.</div><div style="color: #8b8a82; line-height: 1.55">Discard is 6d's dialog, because the upload goes with it.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Retry now / Continue manually</div><div style="color: #57564f; line-height: 1.55">On failure (6e): retry the read, or go to manual entry with the file already attached.</div><div style="color: #8b8a82; line-height: 1.55">The file is never lost to an error state. Manual entry is the primary action.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px; padding: 0 48px 20px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">STATISTICS — 4a · LIBRARY — 5a–5c · ALERTS — 8b</div>
+  <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 9px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Period / compare</div><div style="color: #57564f; line-height: 1.55">Year, month or custom range; compare against the preceding period of equal length.</div><div style="color: #8b8a82; line-height: 1.55">URL-encoded. Deltas suppress to "—" when the base is zero.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Chart bar / table row</div><div style="color: #57564f; line-height: 1.55">Pushes a drill crumb and re-filters every card to that slice. "Other N categories" is a real crumb, not inert.</div><div style="color: #8b8a82; line-height: 1.55">Crumbs are individually removable; Reset clears them all. The last level is a list of matching orders.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Open in orders</div><div style="color: #57564f; line-height: 1.55">Carries the current crumbs to the order list as filters.</div><div style="color: #8b8a82; line-height: 1.55">Leaves Statistics. The reverse of "See in Statistics".</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Edit on category</div><div style="color: #57564f; line-height: 1.55">From the limits card, opens that category's form (5b) — the one place a limit is editable.</div><div style="color: #8b8a82; line-height: 1.55">Statistics never edits data; it links to where the data lives.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">List row (library)</div><div style="color: #57564f; line-height: 1.55">Loads that record into the panel. Deselecting returns the roll-up (5c).</div><div style="color: #8b8a82; line-height: 1.55">Unsaved panel changes prompt before switching. Column width never changes.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">New vendor / New category</div><div style="color: #57564f; line-height: 1.55">Opens an empty form in the panel with the name focused.</div><div style="color: #8b8a82; line-height: 1.55">A category gets a default colour and icon, both immediately editable.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Merge into…</div><div style="color: #57564f; line-height: 1.55">Picker of similar records, then a field-by-field comparison showing which value wins and how many orders move.</div><div style="color: #8b8a82; line-height: 1.55">Dialog naming the order count. Not reversible; the source is deleted.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Archive</div><div style="color: #57564f; line-height: 1.55">Hides a vendor from the pickers while keeping its orders and history intact. The answer to "no orders in 12 months" that isn't deletion.</div><div style="color: #8b8a82; line-height: 1.55">See 16b — reversible, toast + Undo.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Icon Change</div><div style="color: #57564f; line-height: 1.55">Opens the searchable 8-column picker. Fixed set; never accepts uploads.</div><div style="color: #8b8a82; line-height: 1.55">Selection previews immediately in the tile; the card's Save commits it.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Save anyway / Adjust</div><div style="color: #57564f; line-height: 1.55">On the over-limit notice (8b): Save anyway proceeds; Adjust returns focus to the lines.</div><div style="color: #8b8a82; line-height: 1.55">Amber never blocks. Save is not disabled at any point.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Monthly summary</div><div style="color: #57564f; line-height: 1.55">Dismissible. Each row links to that month's filtered list.</div><div style="color: #8b8a82; line-height: 1.55">Dismissal is remembered for that month.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px; padding: 0 48px 20px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">SETTINGS AND IMPORT — 11a, 11b · VIEWER — 12b · MOBILE — 7a</div>
+  <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 9px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+      <div>CONTROL</div><div>DOES</div><div>AFTER</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Settings card Save</div><div style="color: #57564f; line-height: 1.55">Each card saves independently; only the card you touched goes dirty.</div><div style="color: #8b8a82; line-height: 1.55">One sticky bar naming the section ("Unsaved changes in Statuses").</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Upload / Remove photo</div><div style="color: #57564f; line-height: 1.55">Avatar image. Remove falls back to the initials block.</div><div style="color: #8b8a82; line-height: 1.55">Applies with the card's Save, like every other field there.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Change password</div><div style="color: #57564f; line-height: 1.55">Opens a dialog: current password, new, confirm. Not inline fields on the card.</div><div style="color: #8b8a82; line-height: 1.55">See 16b. Success is a toast; other sessions are unaffected.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Status rename / reorder / delete</div><div style="color: #57564f; line-height: 1.55">Renaming is free — orders reference the id. Order is drag or arrow keys. A status with orders cannot be deleted.</div><div style="color: #8b8a82; line-height: 1.55">Delete is disabled with a tooltip saying to reassign first. Draft is built in and never deletable.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Download template</div><div style="color: #57564f; line-height: 1.55">An XLSX whose columns map themselves, so the mapping step can be skipped.</div><div style="color: #8b8a82; line-height: 1.55">Plain download, no state change.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Reuse mapping</div><div style="color: #57564f; line-height: 1.55">Applies a previous import's column mapping to the file just picked, matching on column name.</div><div style="color: #8b8a82; line-height: 1.55">See 16b. Lands on the mapping step with rows pre-filled, never skipping straight to preview.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Match them / Pick or create</div><div style="color: #57564f; line-height: 1.55">Resolves unmatched values one row at a time. An unresolved row blocks the import.</div><div style="color: #8b8a82; line-height: 1.55">Nothing is guessed silently — a category invented by an import is worse than one you chose.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Import N orders</div><div style="color: #57564f; line-height: 1.55">Writes. Unimportable rows are skipped, not fixed.</div><div style="color: #8b8a82; line-height: 1.55">Skipped rows come back as a downloadable file. Undo removes exactly what the import wrote, including created vendors, for 24 hours.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Viewer controls</div><div style="color: #57564f; line-height: 1.55">Prev/next across the order's files, page thumbs for multi-page PDFs, download, close.</div><div style="color: #8b8a82; line-height: 1.55">Arrows move, Esc closes and returns focus to the tile that opened it.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Filter sheet (mobile)</div><div style="color: #57564f; line-height: 1.55">Facets as expandable sections. Reset clears; the sticky primary states the count it will show.</div><div style="color: #8b8a82; line-height: 1.55">Filters apply on "Show N orders", not as you tap — one round trip, not twelve.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; padding: 11px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Capture FAB (mobile)</div><div style="color: #57564f; line-height: 1.55">Opens the camera. The only floating action in the app.</div><div style="color: #8b8a82; line-height: 1.55">Straight into the scan flow with the photo taken.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 8px 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">16b</span>
+    <span style="font-size: 20px; font-weight: 600">Loose ends found, and closed</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Ten controls were drawn with no behaviour described anywhere. Each is resolved below. Three need a product answer rather than a design one and are marked as such.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 640px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">RESOLVED HERE</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Export CSV / Export.</b> Appeared on four screens meaning four things. Now one behaviour: it exports <b>the current filter or drill state</b>, never the page and never the whole account, and the button label carries the count ("Export 128 orders"). One row per item line, with order fields repeated, because that is the shape the import reads back — export and import are the same column set, which is what makes a round trip possible.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Save current (saved views).</b> Stores query, facets and sort under a name, listed above the facet rail. It stores <b>the filter, not the result</b> — opening a view re-runs it. Renameable and deletable from the list; a view is never shared, since there is one user.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Archive (vendor).</b> The middle option between keeping and deleting, and the answer to 5c's "no orders in 12 months". Hides the vendor from pickers and facet lists while its orders, totals and history stay exactly as they are. Reversible, so toast + Undo, and archived vendors are reachable behind a filter in the library.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Duplicate last order (Home).</b> Applies 8a's duplicate to the most recent order without opening it first. Identical rules — no date, no status, no attachments — and it opens unsaved, so the shortcut can't create anything by accident. Hidden when there are no orders.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Reuse mapping.</b> Applies a previous import's column mapping to the newly picked file by matching column names. It always lands on the <b>mapping step</b> with rows pre-filled, never straight on preview: a file with the same headers can still hold different data, and the confirmation step is the point of the flow. Columns that don't match are left unmapped and flagged.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Change password.</b> A dialog — current, new, confirm — not inline fields, so it is never half-filled inside a card that saves other things. Success is a toast; other sessions stay signed in, since signing yourself out of your phone for changing a password on your laptop is a punishment for good hygiene.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Open full size (scan review).</b> Opens the same viewer as 12b, with the receipt as its only file, so the small print can be read without leaving review. Edits in the panel behind it are untouched.</div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 20px">
+      <div style="background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #7a5c23">NEEDS A PRODUCT ANSWER</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>See theirs</b> (6d, the two-tab conflict). Recommendation: it opens the other version read-only beside yours, and the only actions are keep-mine and take-theirs. There is no field-level merge — for one user in two tabs that is more machinery than the problem deserves.</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>Duplicate name</b> (6c). A vendor or category name colliding with an existing one. Recommendation: warn, don't block — offer "use the existing one" as the primary and let the duplicate through as secondary, since two vendors can genuinely share a name.</div>
+        <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>Export format.</b> CSV is drawn. Recommendation: CSV only, UTF-8 with BOM so Excel opens Danish characters correctly, and the user's own number format. XLSX only if someone asks.</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DRAWN IN 16c</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Six of the ten needed layout, not just a sentence. They are below: saved views, the archived state, the password dialog, export, the conflict view and the duplicate-name warning. The other four reuse screens that already exist.</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">TWO PATTERNS THE AUDIT CONFIRMED</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every destructive action has exactly one dialog</b>, and every reversible one has exactly one toast. Nothing in the set has both, and nothing has neither. Delete order, bulk delete, merge and discard-scan are dialogs; line delete, status change, category add, archive and import are toasts.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every "See X" link is a filter handoff, not a new view.</b> See in Statistics, Open in orders, the Needs-a-look rows and the monthly summary rows all carry state into a screen that already exists. No screen in the set is reachable only through one link.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 8px 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">16c</span>
+    <span style="font-size: 20px; font-weight: 600">The six that needed drawing</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Each is small and reuses parts that already exist. The last two are proposals for the open questions in 16b, drawn so there is something concrete to accept or reject rather than a paragraph to imagine.</div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 300px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">1 — SAVED VIEWS</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">VIEWS</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; font-weight: 600; color: #1d4d33">Save current</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 3px">
+          <div style="display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; background: #e7efe8">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 3.6h10.8l-4.2 5v4.8l-2.4-1.2V8.6z"></path></svg>
+            <div style="font-size: 13px; font-weight: 600; color: #1d4d33">Missing receipts</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 11px; color: #4f7f63">12</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 3.6h10.8l-4.2 5v4.8l-2.4-1.2V8.6z"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">This month, over 1.000</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 11px; color: #8b8a82">7</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 3.6h10.8l-4.2 5v4.8l-2.4-1.2V8.6z"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Hay, all time</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 11px; color: #8b8a82">31</div>
+          </div>
+        </div>
+        <div style="height: 1px; background: #f0efe9"></div>
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">STATUS</div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #3d3c36"><span style="width: 14px; height: 14px; border: 1px solid #dedcd4; border-radius: 4px; flex: none"></span>Received<div style="flex: 1"></div><span style="font-size: 12px; color: #8b8a82">84</span></div>
+          <div style="display: flex; align-items: center; gap: 9px; font-size: 13px; color: #3d3c36"><span style="width: 14px; height: 14px; border: 1px solid #dedcd4; border-radius: 4px; flex: none"></span>Ordered<div style="flex: 1"></div><span style="font-size: 12px; color: #8b8a82">31</span></div>
+        </div>
+      </div>
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 13px; display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Sits above the facets, in the rail that already exists — a view <i>is</i> a filter, so it belongs with them rather than in the top bar. Counts are live, which is what makes a view worth keeping.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Saving prompts for a name, pre-filled from the active chips ("Decor, this month"). Right-click or a row menu renames and deletes. No sharing — one user.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Editing filters while a view is active drops the highlight and offers <b>Update view</b> beside Save current, so a view is never silently rewritten.</div>
+      </div>
+    </div>
+
+    <div style="width: 340px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">2 — ARCHIVED VENDOR</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 9px">
+          <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 8px; padding: 7px 10px; flex: 1; color: #8b8a82">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+            <span style="font-size: 12px">Find a vendor…</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 7px; background: #f0efe9; border-radius: 8px; padding: 7px 10px">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 4.4h10.8v2.2H2.6z"></path><path d="M3.6 6.6v6h8.8v-6"></path><path d="M6.4 9h3.2"></path></svg>
+            <span style="font-size: 12px; font-weight: 600; color: #3d3c36">Archived</span>
+            <span style="font-size: 11px; color: #8b8a82">7</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 9px; opacity: 0.62">
+            <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+              <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Bolia</div>
+              <div style="font-size: 11px; color: #8b8a82">3 orders · 4.820 kr. · last 2024</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 10px; letter-spacing: 0.08em; color: #6b6a63; background: #f0efe9; border-radius: 999px; padding: 3px 8px">ARCHIVED</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 9px; opacity: 0.62">
+            <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+              <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Sostrene Grene</div>
+              <div style="font-size: 11px; color: #8b8a82">1 order · 240 kr. · last 2023</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 10px; letter-spacing: 0.08em; color: #6b6a63; background: #f0efe9; border-radius: 999px; padding: 3px 8px">ARCHIVED</div>
+          </div>
+        </div>
+        <div style="height: 1px; background: #f0efe9"></div>
+        <div style="display: flex; align-items: center; gap: 10px; background: #f7f6f2; border-radius: 9px; padding: 11px 12px">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M8 3.4v5.2"></path><path d="M5.6 6.2L8 8.6l2.4-2.4"></path><path d="M3.4 11.4v1.4h9.2v-1.4"></path></svg>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.45">Its 3 orders are untouched and still count in Statistics.</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Restore</div>
+        </div>
+      </div>
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 13px; display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Archived vendors are hidden from the list and from every picker until the <b>Archived</b> toggle is on. Rows render at 62% with a badge — the same treatment the dark theme gives image tiles, and for the same reason: present but not competing.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">The panel's footer states plainly that the orders survive, because "archive" is otherwise easy to read as "delete quietly". Restore is one click, no confirm.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Categories get the same treatment. A category with a monthly limit keeps it, and it stops appearing in the limits card while archived.</div>
+      </div>
+    </div>
+
+    <div style="width: 300px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">3 — CHANGE PASSWORD</div>
+      <div style="background: #f0efe9; border-radius: 12px; padding: 20px; display: grid; place-items: center">
+        <div style="width: 260px; box-sizing: border-box; background: #fff; border-radius: 14px; box-shadow: 0 12px 28px rgba(27, 26, 23, 0.16); padding: 18px; display: flex; flex-direction: column; gap: 13px">
+          <div style="font-size: 15px; font-weight: 600">Change password</div>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Current password</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; box-sizing: border-box; height: 42px; font-size: 14px; color: #8b8a82; display: flex; align-items: center">••••••••<div style="flex: 1"></div><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.6 8S3.8 4.2 8 4.2 14.4 8 14.4 8 12.2 11.8 8 11.8 1.6 8 1.6 8z"></path><circle cx="8" cy="8" r="1.6"></circle></svg></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">New password</div>
+              <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 9px; padding: 10px 12px; box-sizing: border-box; height: 42px; font-size: 14px; display: flex; align-items: center">••••••••••••</div>
+              <div style="display: flex; align-items: center; gap: 7px">
+                <div style="flex: 1; height: 4px; border-radius: 2px; background: #eef1ee; overflow: hidden"><div style="width: 72%; height: 100%; background: #1d4d33"></div></div>
+                <div style="font-size: 11px; color: #57564f">Strong</div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Confirm new password</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; box-sizing: border-box; height: 42px; font-size: 14px; display: flex; align-items: center">••••••••••••</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; color: #57564f; padding: 8px 12px">Cancel</div>
+            <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 9px; padding: 9px 15px">Change it</div>
+          </div>
+        </div>
+      </div>
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 13px; display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">A dialog rather than inline fields, so it can never sit half-filled inside a card that saves other things — and so the card's Save never has to mean two different operations.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">One reveal control on the current-password field only; the two new fields stay masked, which is what the confirm field is for. Strength is advisory and does not gate the button.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Success is a toast. <b>Other sessions stay signed in</b> — logging yourself out of your phone for changing a password on your laptop punishes good hygiene.</div>
+      </div>
+    </div>
+
+    <div style="width: 300px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">4 — EXPORT</div>
+      <div style="background: #f0efe9; border-radius: 12px; padding: 20px; display: grid; place-items: center">
+        <div style="width: 248px; box-sizing: border-box; background: #fff; border-radius: 12px; box-shadow: 0 6px 16px rgba(27, 26, 23, 0.08); padding: 16px; display: flex; flex-direction: column; gap: 13px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">EXPORT</div>
+          <div style="background: #f7f6f2; border-radius: 9px; padding: 11px 12px; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 13px; font-weight: 600">128 orders · 412 lines</div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.45">Matching your filters: This year, Received, Decor</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Each row is</div>
+            <div style="display: flex; border: 1px solid #dedcd4; border-radius: 9px; padding: 3px; gap: 3px">
+              <div style="flex: 1; font-size: 12px; font-weight: 600; background: #1d4d33; color: #fff; padding: 7px 9px; border-radius: 7px; text-align: center">one item line</div>
+              <div style="flex: 1; font-size: 12px; color: #57564f; padding: 7px 9px; border-radius: 7px; text-align: center">a whole order</div>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: #8b8a82; line-height: 1.45">CSV, UTF-8, your number format. The same columns the importer reads.</div>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; color: #57564f; padding: 8px 11px">Cancel</div>
+            <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 9px; padding: 9px 14px">Export</div>
+          </div>
+        </div>
+      </div>
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 13px; display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">A popover, not a dialog — it takes nothing away. Its whole job is to state <b>what is being exported</b>, since the same button on four screens previously implied four scopes.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Naming the active filters in words is the point: an export that quietly covers the whole account is discovered in a spreadsheet, too late.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Line-per-item is the default because it round-trips through Import (11b). Statistics exports the drill state the same way, with the crumbs listed instead of chips.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">The row-shape choice is a <b>Segmented</b>, matching 11b's identical control — and per 14d there is no Radio component, because every either/or in this design is a Segmented (2–3 options) or a Combobox (more). Anything drawn as a radio here is a bug.</div>
+      </div>
+    </div>
+
+    <div style="width: 470px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">5 — SEE THEIRS</div>
+        <div style="font-size: 10px; letter-spacing: 0.08em; color: #7a5c23; background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 999px; padding: 2px 8px">PROPOSAL</div>
+      </div>
+      <div style="background: #f0efe9; border-radius: 12px; padding: 20px; display: grid; place-items: center">
+        <div style="width: 400px; box-sizing: border-box; background: #fff; border-radius: 14px; box-shadow: 0 12px 28px rgba(27, 26, 23, 0.16); padding: 18px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 15px; font-weight: 600">This order changed in another tab</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5">Three fields differ. Pick a version — there is no field-by-field merge, because for one person in two tabs that is more machinery than the problem deserves.</div>
+          </div>
+          <div style="border: 1px solid #e6e4dc; border-radius: 10px; overflow: hidden">
+            <div style="display: grid; grid-template-columns: 96px 1fr 1fr; gap: 10px; background: #f2f1eb; padding: 8px 11px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+              <div>FIELD</div><div>YOURS</div><div>THE OTHER TAB</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 96px 1fr 1fr; gap: 10px; padding: 9px 11px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+              <div style="color: #57564f">Status</div><div style="font-weight: 600">Received</div><div style="color: #57564f">Ordered</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 96px 1fr 1fr; gap: 10px; padding: 9px 11px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+              <div style="color: #57564f">Lines</div><div style="font-weight: 600">4</div><div style="color: #57564f">3</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 96px 1fr 1fr; gap: 10px; padding: 9px 11px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+              <div style="color: #57564f">Total</div><div style="font-weight: 600; font-variant-numeric: tabular-nums">7.635,00</div><div style="color: #57564f; font-variant-numeric: tabular-nums">3.445,00</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 96px 1fr 1fr; gap: 10px; padding: 8px 11px; font-size: 11px; border-top: 1px solid #f0efe9; color: #8b8a82">
+              <div>Saved</div><div>unsaved, 2 min of edits</div><div>4 min ago</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="font-size: 12px; color: #8b8a82">Nothing is written until you choose.</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; color: #1d4d33; border: 1px solid #dedcd4; border-radius: 9px; padding: 9px 13px; white-space: nowrap">Take theirs</div>
+            <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 9px; padding: 9px 14px; white-space: nowrap">Keep mine</div>
+          </div>
+        </div>
+      </div>
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 13px; display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Only the differing fields are listed, with a count in the sentence above — a diff of the whole order buries the three things that matter. Lines collapse to a count; the totals row is what actually tells you which version is right.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b>Keep mine</b> is the primary: you are the one looking at the screen, and your edits are the unsaved ones. <b>Take theirs</b> discards your edits and reloads, and says so. There is no third button.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">The "saved" row exists so the choice is informed rather than a guess about which tab is newer.</div>
+      </div>
+    </div>
+
+    <div style="width: 340px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">6 — DUPLICATE NAME</div>
+        <div style="font-size: 10px; letter-spacing: 0.08em; color: #7a5c23; background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 999px; padding: 2px 8px">PROPOSAL</div>
+      </div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor name</div>
+          <div style="border: 1px solid #d3b98a; border-radius: 9px; padding: 10px 12px; box-sizing: border-box; height: 42px; font-size: 14px; display: flex; align-items: center">Indbo Møbler</div>
+        </div>
+        <div style="background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 9px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; gap: 9px">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#7a5c23" stroke-width="1.5" stroke-linecap="round" style="flex: none; margin-top: 1px"><path d="M8 5.4v3.4"></path><circle cx="8" cy="11.2" r="0.7" fill="#7a5c23" stroke="none"></circle><circle cx="8" cy="8" r="5.4"></circle></svg>
+            <div style="font-size: 12px; color: #6b5424; line-height: 1.5">A vendor with this name already exists — 42 orders, last used 12 Aug.</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="font-size: 12px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 8px; padding: 8px 12px">Use the existing one</div>
+            <div style="font-size: 12px; font-weight: 600; color: #7a5c23; border: 1px solid #d3b98a; border-radius: 8px; padding: 8px 12px">Create anyway</div>
+          </div>
+        </div>
+      </div>
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 13px; display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Amber, not red, and the field is not in an error state — <b>Save is never disabled</b>. Two vendors can genuinely share a name, and a tracker that refuses to record reality is worse than one holding a near-duplicate.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">The order count and last-used date are what make the choice decidable; a bare "already exists" leaves you guessing whether it is the same shop.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Fires on blur, on the same match rule as duplicate detection (normalised similarity above 0.85). Creating anyway means the pair shows up in 5c's "possible duplicates", where merge is one click.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+</body>
+</html>
