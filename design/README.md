@@ -12,6 +12,14 @@ Target repo: `mm98/Spendly`, branch `main`. The mockups live at `design/` there.
 
 ## About the design files
 
+Three documents, read in this order:
+
+1. **`README.md`** (this file) — what to build: screens, layout, exact values, tokens.
+2. **`DECISIONS.md`** — why it is this way, and what was rejected. Read before changing anything that looks like it could be simplified; several of the obvious simplifications were tried and rejected for reasons recorded there.
+3. **`BEHAVIOUR.md`** — the precise rules the mockups cannot show: edge cases, facet counting, validation timing, scan failure modes, definitions of every statistic. It also collects **ten open questions** that need a product answer, each with a recommendation. Check those before building the screens they affect.
+
+The HTML files are **design references created in HTML** — prototypes showing intended layout, hierarchy and behaviour. They are not production code and should not be copied into the app.
+
 The files in this bundle are **design references created in HTML** — prototypes showing intended layout, hierarchy and behaviour. They are not production code and should not be copied into the app.
 
 They are authored as "design components": each `.dc.html` file is a static page with everything styled inline, and `support.js` (included) is the tiny runtime that renders them. `support.js` is a preview harness only — it has no place in the product.
@@ -460,6 +468,8 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 
 | File | Screens |
 | --- | --- |
+| `DECISIONS.md` | Rationale and rejected alternatives |
+| `BEHAVIOUR.md` | Edge cases, precise rules, open questions |
 | `index.html` | Linked overview of everything below — start here |
 | `Home.dc.html` | 10a |
 | `Navigation shell.dc.html` | 9a, 9b |
@@ -476,6 +486,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 
 ## Suggested order of work
 
+0. Answer the open questions in `BEHAVIOUR.md` that affect the screens you are starting with — 1, 2 and 3 for order edit; 5 and 6 for statistics.
 1. Shell and tokens (9a) — everything else sits inside it, and the token set is small enough to land in one pass.
 2. Order edit and inline item editing (1b, 1c) — the original problem, and the highest-traffic screen.
 3. Order list with facets (2b, 2a) — unblocks navigation to everything else.
