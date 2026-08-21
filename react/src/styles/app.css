@@ -67,7 +67,7 @@
     --bg-dark: #194d30;
 	/* The lit end of the AI card's gradient: lighter than --bg-dark, and the stop it
 	   starts from before settling onto it at 55%. */
-	--bg-dark-lift: #2e8756;
+	--bg-dark-lift: red;
 
 	/* --border-divider was --hair, which named the line's thinness and never what it
 	   divided, and read as a synonym for --border-control two lines away -- a
