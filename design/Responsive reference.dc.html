@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+
+  /* The only stylesheet in the whole set. Responsive behaviour cannot be
+     expressed inline, and this page exists to be copied rather than described. */
+
+  .frame { container-type: inline-size; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; overflow: hidden; }
+
+  /* Shape 1 — main + right rail */
+  .shape-rail { display: grid; grid-template-columns: minmax(560px, 1fr) 360px; gap: 24px; align-items: start; }
+  @container (max-width: 900px) {
+    .shape-rail { grid-template-columns: 1fr; gap: 14px; }
+    .shape-rail > .rail { order: -1; }
+    .shape-rail > .rail > .rail-full { display: none; }
+    .shape-rail > .rail > .rail-summary { display: flex; }
+  }
+
+  /* Shape 2 — left rail + main */
+  .shape-facets { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 24px; align-items: start; }
+  @container (max-width: 1280px) {
+    .shape-facets { grid-template-columns: minmax(0, 1fr); }
+    .shape-facets > .facets { display: none; }
+    .shape-facets > .main > .facet-trigger { display: flex; }
+  }
+
+  /* Shape 3 — list + panel */
+  .shape-panel { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 24px; align-items: start; }
+  @container (max-width: 900px) {
+    .shape-panel { grid-template-columns: minmax(0, 1fr); }
+    .shape-panel > .panel { display: none; }
+    .shape-panel > .list > .list-chevrons { display: block; }
+  }
+
+  /* Shape 4 — card grid */
+  .shape-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+  /* Rows → cards */
+  .row-table { display: flex; flex-direction: column; }
+  .row-table .r { display: grid; grid-template-columns: 36px 200px 110px 72px 160px 120px minmax(0, 1fr); gap: 12px; align-items: center; padding: 13px 14px; border-top: 1px solid #f0efe9; font-size: 13px; }
+  .row-table .r .m2 { display: none; }
+  .row-table .head { background: #f2f1eb; border-top: 0; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63; padding: 9px 14px; }
+  @container (max-width: 640px) {
+    .row-table .head { display: none; }
+    .row-table .r { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 14px; border-top: 0; border: 1px solid #e6e4dc; border-radius: 12px; margin-bottom: 12px; }
+    .row-table .r .hide-m { display: none; }
+    .row-table .r .m2 { display: block; grid-column: 1 / -1; font-size: 12px; color: #8b8a82; }
+  }
+
+  /* Field grids */
+  .f-halves { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .f-thirds { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .f-thirds .as-total { display: none; }
+  @container (max-width: 640px) {
+    .f-halves { grid-template-columns: 1fr; gap: 14px; }
+    .f-thirds { grid-template-columns: 132px minmax(0, 1fr); gap: 12px; }
+    .f-thirds .computed { display: none; }
+    .f-thirds .as-total { display: flex; grid-column: 1 / -1; }
+    .ctl { padding: 12px !important; height: 46px !important; }
+  }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 24px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">16a</span>
+    <span style="font-size: 20px; font-weight: 600">Responsive reference — working layouts, not descriptions</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every other page in this set is a static canvas drawn at one width, so there is nothing in them to infer breakpoint behaviour from. This page is the exception: the layouts below genuinely respond, and each one is annotated with the CSS that makes it happen. Read this page as the implementation and the others as the visual target.</div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Container queries, not media queries.</b> Every rule below keys off the width of the element's own container (<b>container-type: inline-size</b> on the layout wrapper), not the viewport. This matters because the same components sit in a 1fr main column, a 360px rail, and a 400px panel — a viewport query gets all three wrong at once. Media queries are correct for exactly two things: the shell breakpoint that turns the sidebar into a tab bar, and the print sheet.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Each demo below is inside its own resizable frame.</b> Drag the canvas narrower, or resize the browser, and each one crosses its own threshold independently — which is the whole point of container queries and impossible to show in a static mockup.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The thresholds are container widths, not viewport widths.</b> 900 on a main column inside a 248px sidebar and 48px padding means a viewport of roughly 1244. Don't translate them — put the query on the container and the numbers work out.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Four thresholds exist in the entire product:</b> <b>1280</b> (a left rail leaves the layout), <b>900</b> (two columns become one), <b>640</b> (phone treatment: rows become cards, dialogs become sheets, field grids collapse), and the shell's own <b>640</b> viewport query. Nothing else. A fifth threshold is a design change, not an implementation detail.</div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px; padding: 0 48px 28px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">SHAPE 1 — MAIN + RIGHT RAIL · ORDER EDIT (1a, 1d), HOME (10a)</div>
+
+  <div class="frame">
+    <div class="shape-rail">
+      <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITEM LINES · 3</div>
+        <div style="border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+          <div style="display: flex; align-items: center; gap: 11px; padding: 12px 13px; border-bottom: 1px solid #f0efe9">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: #f0efe9; flex: none"></div>
+            <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Nordal vase, large</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">349,00</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 11px; padding: 12px 13px; border-bottom: 1px solid #f0efe9">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: #f0efe9; flex: none"></div>
+            <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Stol — eg</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">2.598,00</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 11px; padding: 12px 13px">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: #f0efe9; flex: none"></div>
+            <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Bord — sortmalet</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">4.190,00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rail" style="display: flex; flex-direction: column; gap: 12px; min-width: 0">
+        <div class="rail-summary" style="display: none; align-items: center; gap: 10px; border: 1px solid #e6e4dc; border-radius: 12px; padding: 12px 14px">
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ORDER DETAILS</div>
+            <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler · 12 Aug · Received</div>
+          </div>
+          <div style="flex: 1"></div>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+        </div>
+        <div class="rail-full" style="display: flex; flex-direction: column; gap: 12px">
+          <div style="border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 11px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ORDER DETAILS</div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor</div>
+              <div class="ctl" style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px">Indbo Møbler</div>
+            </div>
+            <div class="f-halves">
+              <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+                <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Order date</div>
+                <div class="ctl" style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px">12 Aug 2026</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+                <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Status</div>
+                <div class="ctl" style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px">Received</div>
+              </div>
+            </div>
+          </div>
+          <div style="border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; align-items: baseline">
+            <div style="font-size: 12px; color: #57564f">Total</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums">7.137,00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 620px; background: #1f1c19; border-radius: 12px; padding: 16px; overflow: auto">
+      <div style="font-size: 10px; letter-spacing: 0.14em; color: #7d776e; padding-bottom: 9px">CSS</div>
+      <div style="font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.7; color: #d8d4ca; white-space: pre">.order-layout <span style="color: #8f887e">{</span>
+  container-type<span style="color: #8f887e">:</span> inline-size<span style="color: #8f887e">;</span>
+  display<span style="color: #8f887e">:</span> grid<span style="color: #8f887e">;</span>
+  grid-template-columns<span style="color: #8f887e">:</span> <span style="color: #8fc0a2">minmax(560px, 1fr) 360px</span><span style="color: #8f887e">;</span>
+  gap<span style="color: #8f887e">:</span> 24px<span style="color: #8f887e">;</span> align-items<span style="color: #8f887e">:</span> start<span style="color: #8f887e">;</span>
+<span style="color: #8f887e">}</span>
+<span style="color: #d9b166">@container</span> (max-width: 900px) <span style="color: #8f887e">{</span>
+  .order-layout <span style="color: #8f887e">{</span> grid-template-columns<span style="color: #8f887e">:</span> 1fr<span style="color: #8f887e">;</span> gap<span style="color: #8f887e">:</span> 14px<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+  .order-layout > .rail <span style="color: #8f887e">{</span> order<span style="color: #8f887e">:</span> <span style="color: #8fc0a2">-1</span><span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+  .rail-full <span style="color: #8f887e">{</span> display<span style="color: #8f887e">:</span> none<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+  .rail-summary <span style="color: #8f887e">{</span> display<span style="color: #8f887e">:</span> flex<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+<span style="color: #8f887e">}</span></div>
+    </div>
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">order: -1 is the whole trick.</b> The rail moves <i>above</i> the item list, not below it. A form appended under a list of forty lines is somewhere nobody scrolls to.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The rail collapses to a summary line</b> rather than staying expanded: same element, two children, one shown at a time. The summary states its own contents ("Indbo Møbler · 12 Aug · Received") so a closed section is never a mystery.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">minmax(560px, 1fr) is deliberate.</b> The main column refuses to go under 560px; the grid overflows its container instead, which surfaces the problem in development rather than silently crushing the item rows.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px; padding: 0 48px 28px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">SHAPE 2 — LEFT RAIL + MAIN · ORDER LIST (2a), SETTINGS (11a)</div>
+
+  <div class="frame">
+    <div class="shape-facets">
+      <div class="facets" style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+        <div style="border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 9px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">STATUS</div>
+          <div style="display: flex; align-items: center; gap: 9px; font-size: 13px"><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #1d4d33; background: #1d4d33; flex: none"></span>Received<div style="flex: 1"></div><span style="font-size: 12px; color: #8b8a82">64</span></div>
+          <div style="display: flex; align-items: center; gap: 9px; font-size: 13px"><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; flex: none"></span>Ordered<div style="flex: 1"></div><span style="font-size: 12px; color: #8b8a82">38</span></div>
+          <div style="display: flex; align-items: center; gap: 9px; font-size: 13px"><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; flex: none"></span>Draft<div style="flex: 1"></div><span style="font-size: 12px; color: #8b8a82">3</span></div>
+        </div>
+      </div>
+      <div class="main" style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+        <div class="facet-trigger" style="display: none; align-items: center; gap: 9px; border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 13px; align-self: flex-start">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round"><path d="M2.6 4.4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.4 11.6h3.2"></path></svg>
+          <span style="font-size: 13px; font-weight: 600">Filters</span>
+          <span style="font-size: 11px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 999px; padding: 2px 7px">1</span>
+        </div>
+        <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 13px; color: #8b8a82; display: flex; align-items: center; gap: 9px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+          Search vendor, item, reference or note
+        </div>
+        <div class="row-table" style="border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+          <div class="r head"><div></div><div>VENDOR</div><div>DATE</div><div>ITEMS</div><div>CATEGORY</div><div>STATUS</div><div style="text-align: right">AMOUNT</div></div>
+          <div class="r">
+            <div class="hide-m"><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; display: block"></span></div>
+            <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+            <div class="hide-m" style="color: #57564f">12 Aug</div>
+            <div class="hide-m" style="color: #57564f">4</div>
+            <div class="hide-m"><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 8px">Decor</span></div>
+            <div class="hide-m"><span style="font-size: 11px; background: #f7f6f2; color: #3d3c36; border-radius: 999px; padding: 3px 8px">Received</span></div>
+            <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">7.635</div>
+            <div class="m2">12 Aug · 4 items · Received</div>
+            <div class="m2"><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 8px">Decor</span></div>
+          </div>
+          <div class="r">
+            <div class="hide-m"><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; display: block"></span></div>
+            <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
+            <div class="hide-m" style="color: #57564f">3 Aug</div>
+            <div class="hide-m" style="color: #57564f">2</div>
+            <div class="hide-m"><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 8px">Seating</span></div>
+            <div class="hide-m"><span style="font-size: 11px; background: #f7f6f2; color: #3d3c36; border-radius: 999px; padding: 3px 8px">Ordered</span></div>
+            <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">3.240</div>
+            <div class="m2">3 Aug · 2 items · Ordered</div>
+            <div class="m2"><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 8px">Seating</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 620px; background: #1f1c19; border-radius: 12px; padding: 16px; overflow: auto">
+      <div style="font-size: 10px; letter-spacing: 0.14em; color: #7d776e; padding-bottom: 9px">CSS — TWO INDEPENDENT THRESHOLDS</div>
+      <div style="font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.7; color: #d8d4ca; white-space: pre"><span style="color: #d9b166">@container</span> (max-width: 1280px) <span style="color: #8f887e">{</span>   <span style="color: #7d776e">/* rail leaves */</span>
+  .list-layout <span style="color: #8f887e">{</span> grid-template-columns<span style="color: #8f887e">:</span> minmax(0, 1fr)<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+  .facets <span style="color: #8f887e">{</span> display<span style="color: #8f887e">:</span> none<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+  .facet-trigger <span style="color: #8f887e">{</span> display<span style="color: #8f887e">:</span> flex<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+<span style="color: #8f887e">}</span>
+<span style="color: #d9b166">@container</span> (max-width: 640px) <span style="color: #8f887e">{</span>    <span style="color: #7d776e">/* rows → cards */</span>
+  .row-table .head <span style="color: #8f887e">{</span> display<span style="color: #8f887e">:</span> none<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+  .row-table .r <span style="color: #8f887e">{</span>
+    grid-template-columns<span style="color: #8f887e">:</span> <span style="color: #8fc0a2">minmax(0, 1fr) auto</span><span style="color: #8f887e">;</span>
+    border<span style="color: #8f887e">:</span> 1px solid <span style="color: #8fc0a2">#e6e4dc</span><span style="color: #8f887e">;</span> border-radius<span style="color: #8f887e">:</span> 12px<span style="color: #8f887e">;</span>
+  <span style="color: #8f887e">}</span>
+  .row-table .r .hide-m <span style="color: #8f887e">{</span> display<span style="color: #8f887e">:</span> none<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+  .row-table .r .m2 <span style="color: #8f887e">{</span> display<span style="color: #8f887e">:</span> block<span style="color: #8f887e">;</span> grid-column<span style="color: #8f887e">:</span> 1 / -1<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+<span style="color: #8f887e">}</span></div>
+    </div>
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The two thresholds are independent.</b> At 1000px the facets are a drawer but the table is still a table. Chaining them into one breakpoint is what produces the cramped intermediate state.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One row markup, two presentations.</b> The desktop cells carry <b>.hide-m</b>; the phone lines carry <b>.m2</b> and are in the DOM the whole time, hidden. Two separate row components drift apart within a sprint.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The phone card keeps vendor and amount on line one</b> — the two the grid still declares. Everything else consolidates into one meta line. Fields are dropped, never shrunk.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px; padding: 0 48px 28px">
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">FIELD GRIDS — HALVES AND THIRDS</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+    <div class="frame" style="width: 420px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63; padding-bottom: 11px">HALVES → STACK</div>
+      <div class="f-halves">
+        <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Order date</div>
+          <div class="ctl" style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px">12 Aug 2026</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Status</div>
+          <div class="ctl" style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px">Received</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame" style="width: 420px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63; padding-bottom: 11px">THIRDS → FIXED + FLUID, COMPUTED BECOMES A TOTAL</div>
+      <div class="f-thirds">
+        <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Quantity</div>
+          <div class="ctl" style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px; font-variant-numeric: tabular-nums">2</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Unit price</div>
+          <div class="ctl" style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px; font-variant-numeric: tabular-nums">4.190,00</div>
+        </div>
+        <div class="computed" style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Line total</div>
+          <div class="ctl" style="border: 1px solid #e6e4dc; border-radius: 9px; padding: 10px 12px; font-size: 14px; box-sizing: border-box; height: 42px; background: #f7f6f2; color: #57564f; font-variant-numeric: tabular-nums">8.380,00</div>
+        </div>
+        <div class="as-total" style="align-items: baseline; border-top: 1px solid #dedcd4; padding-top: 11px">
+          <div style="font-size: 12px; color: #57564f">Line total</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums">8.380,00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 620px; background: #1f1c19; border-radius: 12px; padding: 16px; overflow: auto">
+      <div style="font-size: 10px; letter-spacing: 0.14em; color: #7d776e; padding-bottom: 9px">CSS</div>
+      <div style="font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.7; color: #d8d4ca; white-space: pre"><span style="color: #d9b166">@container</span> (max-width: 640px) <span style="color: #8f887e">{</span>
+  .f-halves <span style="color: #8f887e">{</span> grid-template-columns<span style="color: #8f887e">:</span> 1fr<span style="color: #8f887e">;</span> gap<span style="color: #8f887e">:</span> 14px<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+
+  <span style="color: #7d776e">/* the equation survives; the computed cell does not */</span>
+  .f-thirds <span style="color: #8f887e">{</span> grid-template-columns<span style="color: #8f887e">:</span> <span style="color: #8fc0a2">132px minmax(0, 1fr)</span><span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+  .f-thirds .computed <span style="color: #8f887e">{</span> display<span style="color: #8f887e">:</span> none<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+  .f-thirds .as-total <span style="color: #8f887e">{</span> display<span style="color: #8f887e">:</span> flex<span style="color: #8f887e">;</span> grid-column<span style="color: #8f887e">:</span> 1 / -1<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+
+  <span style="color: #7d776e">/* 42px → 46px, without touching the type size */</span>
+  .ctl <span style="color: #8f887e">{</span> padding<span style="color: #8f887e">:</span> 12px<span style="color: #8f887e">;</span> height<span style="color: #8f887e">:</span> 46px<span style="color: #8f887e">;</span> <span style="color: #8f887e">}</span>
+<span style="color: #8f887e">}</span></div>
+    </div>
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Note which frame crossed the threshold.</b> Both boxes above are 420px wide, and both collapsed — while the shape-1 demo at the top of the page, in the same browser window, did not. That is the container query doing its job: the rail's fields collapse at the rail's width, independent of the page.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The computed cell is replaced, not moved.</b> Two elements, one shown at a time — a read-only field becomes a total line, because a box you cannot type into is a target that does nothing.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Only padding changes for touch.</b> 42px to 46px clears the 44px minimum. Type sizes never change between desktop and phone.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">16b</span>
+    <span style="font-size: 20px; font-weight: 600">Per-screen table — what changes, and at which threshold</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">One row per screen in the set. Everything not listed here does not change at that threshold — an empty cell means the layout is identical to the column on its left.</div>
+
+  <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1400px">
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 10px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+      <div>SCREEN</div><div>AT 1280</div><div>AT 900</div><div>AT 640</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Shell (9a)</div>
+      <div style="color: #57564f; line-height: 1.55">Sidebar may collapse to the 68px icon rail; labels become tooltips.</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Sidebar becomes a bottom tab bar (5 destinations, Settings and account under More). Top bar keeps the title only. <b>Viewport media query</b>, not container.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Order read (1a)</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Rail moves above the items as a collapsed summary. Attachments stay a horizontal strip.</div>
+      <div style="color: #57564f; line-height: 1.55">Actions become a full-width stacked group. Attachment tiles 96px → 80px.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Order edit (1d)</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Same as 1a. Sticky save bar spans the single column.</div>
+      <div style="color: #57564f; line-height: 1.55">Inline row expansion becomes a bottom sheet. Pencil permanently visible. Save bar respects the safe-area inset and sits above the keyboard.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Order list (2a–2c)</div>
+      <div style="color: #57564f; line-height: 1.55">Facet rail becomes a "Filters" trigger with an active count; opens a drawer.</div>
+      <div style="color: #57564f; line-height: 1.55">Bulk-action bar wraps to two lines. Result count moves under the search field.</div>
+      <div style="color: #57564f; line-height: 1.55">Rows become cards (vendor + amount, one meta line, category chip). Filters open a bottom sheet with a sticky "Show 128 orders". Cards view unchanged — it already reflows.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Order create (3a, 3b)</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Review splits: receipt preview collapses to a thumbnail strip above the proposed order.</div>
+      <div style="color: #57564f; line-height: 1.55">Preview becomes a tap-to-open viewer. Drop zone gains "Take a photo" as the primary. Field grids stack.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Statistics (4a)</div>
+      <div style="color: #57564f; line-height: 1.55">12-column grid: cards spanning 3 become 4, 4 become 6. Rows still close.</div>
+      <div style="color: #57564f; line-height: 1.55">Two columns of cards. Vendor table drops its sparkline column.</div>
+      <div style="color: #57564f; line-height: 1.55">One column, charts full width. Vendor table becomes a stacked list. Breadcrumb wraps. Period control becomes a single select.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Library (5a–5c)</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Becomes two views: list, then panel with a back action. <b>Not stacked.</b> The roll-up is the list's own footer card.</div>
+      <div style="color: #57564f; line-height: 1.55">Panel is a full-screen view. Icon picker grid 8 columns → 6.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Home (10a)</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Rail moves below the main column — the exception, because it is a read-only summary rather than a form.</div>
+      <div style="color: #57564f; line-height: 1.55">Capture becomes the FAB (56px, bottom-right above the tab bar) and the drop zone shrinks to a labelled button.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Settings (11a)</div>
+      <div style="color: #57564f; line-height: 1.55">Section nav 208px stays; cards keep their 640px cap.</div>
+      <div style="color: #57564f; line-height: 1.55">Section nav becomes a horizontal scrolling tab strip above the cards.</div>
+      <div style="color: #57564f; line-height: 1.55">Field grids stack. Status rows lose their drag handle in favour of up/down buttons.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Import (11b)</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Mapping rows go from three columns (file · arrow · field) to two stacked pairs; the arrow becomes a downward chevron.</div>
+      <div style="color: #57564f; line-height: 1.55">Preview table scrolls horizontally inside its card — the one place horizontal scroll is allowed, because a dry-run table is read, not tapped.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Image viewer (12b)</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Page thumbnail rail moves from the left side to a bottom strip.</div>
+      <div style="color: #57564f; line-height: 1.55">Full-screen. Prev/next become swipe as well as buttons. Toolbar collapses to filename, download, close.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Dialogs, toasts (6d)</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Dialog (440px) becomes a bottom sheet, radius on top corners only. Buttons full width, stacked, primary on top. Toast spans the width above the tab bar.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 1fr 1fr 1fr; gap: 14px; padding: 12px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600">Combobox (14a)</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #8b8a82">—</div>
+      <div style="color: #57564f; line-height: 1.55">Popover becomes a full-screen sheet with the search field at the top, above the keyboard. Option rows 44px minimum.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 620px; background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #7a5c23">HOW TO USE THIS PAGE WHEN BUILDING</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>Build the container-query wrappers first</b> — the four shapes above, as four layout components. Every screen then picks one and fills it. Screens that hand-roll their own grid are how a fifth threshold appears.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>The static mockups are the visual target at desktop width only.</b> They are drawn at one width with fixed pixel values and no queries, so nothing about narrow behaviour can be read off them. Where a mockup and this page disagree about a narrow layout, this page wins.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>Side-by-side panels in the other files are annotation, not layout.</b> The comparison columns headed "1 — pick a file", "empty" / "loaded", or "light" / "dark" are never on screen together. Don't build a responsive row out of them.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>Test at container widths, not viewport widths.</b> Resize the layout wrapper in isolation — a component that only works at one page width will pass a viewport test and fail in the rail.</div>
+    </div>
+    <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ACCEPTANCE, PER SCREEN</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">At each of <b>1440 · 1280 · 1024 · 900 · 768 · 640 · 390</b>: no horizontal scroll except the two places it is named above; no text under 11px; every target 44px or more below 640; no element overlapping another; and the sticky save bar reachable without the keyboard covering it.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">The two widths that catch the most: <b>1024</b>, where a rail has left but the table has not yet become cards, and <b>390</b>, the narrowest phone that matters.</div>
+    </div>
+  </div>
+</section>
+
+</x-dc>
+</body>
+</html>

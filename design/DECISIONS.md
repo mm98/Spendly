@@ -314,6 +314,28 @@ One menu component. Take a photo is **absent** where there is no camera, not dis
 
 **It must not be labelled duplicate detection.** The hash misses a second photo of the same paper receipt and the same PDF re-saved by another reader. Calling it duplicate detection would teach the user to trust it for something it cannot do.
 
+## 44. Responsive behaviour is specified as working CSS, not as prose
+
+**The problem this solved.** The mockups are static canvases at one width. Rules written as paragraphs ("two columns become one below 900") leave every mechanical decision open: which column goes first, what the collapsed state contains, whether the threshold is viewport or container. Implementation from prose produced guesses.
+
+**The decision.** One page (16a) carries genuinely responsive layouts with their CSS printed beside them, and it outranks the static mockups wherever they disagree about narrow behaviour.
+
+## 45. Container queries, not media queries
+
+**Why.** The same field grid appears in a 1fr main column, a 360px rail and a 400px panel. A viewport query gets all three wrong simultaneously — the rail's fields would collapse based on the window rather than the rail. Container queries make each instance correct independently, and make the components genuinely reusable across shapes.
+
+**The two exceptions** are the shell breakpoint (sidebar → bottom tab bar), which is genuinely about the device, and print.
+
+**Consequence for testing.** Test at container widths by resizing the wrapper in isolation. A component that only works at one page width passes a viewport test and fails in the rail.
+
+## 46. Four thresholds, and a fifth is a design change
+
+1280, 900, 640, plus the shell's own 640 viewport query. Named and closed on purpose: an open set of breakpoints is how intermediate widths end up unowned, which is exactly the cramped state that appears when the facet rail and the row table are chained to one threshold instead of two independent ones.
+
+## 47. One row markup, two presentations
+
+Desktop cells carry `.hide-m`, phone lines carry `.m2`, and both stay in the DOM. A separate mobile row component looks cleaner and drifts within a sprint — the phone version stops getting the field the desktop one gained.
+
 ---
 
 ## Where the design is intentionally silent

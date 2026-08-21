@@ -318,6 +318,8 @@ Conventions: amounts are DKK, formatted `1.234,50 kr.` (period thousands, comma 
 
 **Statistics grid:** 12 columns, every card spanning a whole number of them. Verify rows close at 1280, 1440 and 1920.
 
+**Implement with container queries** (`container-type: inline-size` on each layout wrapper), not media queries — the same components sit in a 1fr column, a 360px rail and a 400px panel. Media queries only for the shell's sidebar → tab bar switch and for print. Thresholds below are **container** widths: 900 on a main column inside a 248px sidebar is a viewport near 1244. Working CSS for all four shapes is in `Responsive reference.dc.html` (16a); the per-screen table of what changes at each threshold is 16b.
+
 **Breakpoints remove or relocate; they never scale.**
 - 1280: facet rail → drawer; sidebar may collapse to the 68px rail.
 - 900: two columns → one, per screen (order edit folds its rail into a collapsed section *above* the items; the library becomes list-then-panel as separate views; Statistics stacks). A rail is never appended below a long list.

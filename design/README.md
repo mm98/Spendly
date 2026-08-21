@@ -749,6 +749,38 @@ Also everywhere: navigating away mid-upload prompts with the count of uploads in
 
 ---
 
+### 16a / 16b — Responsive reference
+File: `Responsive reference.dc.html`
+
+**Read this before implementing any layout.** Every other file in this bundle is a static canvas drawn at one width, with fixed pixel values and no queries — nothing about narrow behaviour can be read off them. This page is the exception: the layouts in it genuinely respond, and the CSS is printed beside each one. **Where a static mockup and this page disagree about a narrow layout, this page wins.**
+
+**Container queries, not media queries.** Every rule keys off the width of the element's own container (`container-type: inline-size` on the layout wrapper), not the viewport. The same components sit in a 1fr main column, a 360px rail and a 400px panel — a viewport query gets all three wrong at once. Media queries are correct for exactly two things: the shell breakpoint that turns the sidebar into a tab bar, and print.
+
+**Thresholds are container widths, not viewport widths.** 900 on a main column inside a 248px sidebar plus 48px padding is a viewport around 1244. Don't translate them — put the query on the container and the numbers work out.
+
+**Four thresholds exist in the whole product:** `1280` (a left rail leaves the layout), `900` (two columns become one), `640` (rows become cards, dialogs become sheets, field grids collapse), and the shell's own `640` viewport query. A fifth threshold is a design change, not an implementation detail.
+
+**16a — working layouts with their CSS.** Four demos, each in its own container: main + right rail, left rail + main, the row table, and the field grids. Points that only a working example makes clear:
+- `order: -1` moves the collapsed rail **above** the item list, not below. A form appended under forty item lines is somewhere nobody scrolls to.
+- The rail collapses to a **summary line that states its own contents** ("Indbo Møbler · 12 Aug · Received") — same element, two children, one shown at a time.
+- `minmax(560px, 1fr)` on the main column is deliberate: it refuses to go under 560 and overflows instead, surfacing the problem in development rather than silently crushing the rows.
+- The list's two thresholds are **independent** — at 1000px the facets are a drawer but the table is still a table. Chaining them into one breakpoint produces the cramped intermediate state.
+- **One row markup, two presentations.** Desktop cells carry `.hide-m`, phone lines carry `.m2`, both always in the DOM. Two separate row components drift apart within a sprint.
+- The computed third of the item equation is **replaced, not moved**: the read-only field hides and a total line shows. A box you cannot type into is a target that does nothing.
+- Only padding changes for touch — `10px 12px` → `12px`, taking 42px to 46px. Type sizes never change between desktop and phone.
+
+**16b — per-screen table.** One row per screen, three columns (at 1280 / at 900 / at 640), with an empty cell meaning the layout is identical to the column on its left. Covers the shell, order read and edit, the list, create, statistics, the library, home, settings, import, the viewer, dialogs and the combobox.
+
+Two places horizontal scroll is allowed, both named in the table: the import dry-run preview table, and the attachment strip. Nowhere else.
+
+**Acceptance, per screen.** At each of `1440 · 1280 · 1024 · 900 · 768 · 640 · 390`: no horizontal scroll except those two, no text under 11px, every target ≥44px below 640, no overlap, and the sticky save bar reachable without the keyboard covering it. The two widths that catch the most problems are **1024** (a rail has left but the table has not yet become cards) and **390** (the narrowest phone that matters).
+
+**Build the four container-query wrappers first**, as four layout components. Every screen then picks one and fills it — screens that hand-roll their own grid are how a fifth threshold appears.
+
+**Side-by-side panels in the other files are annotation, not layout.** Columns headed "1 — pick a file", "empty" / "loaded", or "light" / "dark" are never on screen together. Don't build a responsive row out of them.
+
+---
+
 ## Interactions summary
 
 | Trigger | Result |
@@ -926,4 +958,4 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 8. Settings (11a) and Import (11b) — Settings is small once the token layer exists; Import is the largest single piece in the set and depends on nothing else.
 9. Dark mode (12a) last as a token pass, not a rebuild — if it needs component changes, the token layer was not clean. Do it before shipping, not after; retrofitting a theme is far more work than building against one.
 
-The foundation files (13a, 14a–14d, 15a–15b) are not steps — they are what every step is built against. Read 14d and 15a before writing any component; they are the two that stop the same decision being made differently on each screen. Use 16a as the per-screen checklist as you build — a control not in that table is one whose behaviour was never decided. Typography (13a) and the image viewer (12b) are likewise not steps — 13a is the reference you build every screen against, and 12b is a shared component that steps 2 and 5 both need.
+The foundation files (13a, 14a–14d, 15a–15b) are not steps — they are what every step is built against. Read 16a before writing any layout and 14d before any component; they are the two that stop the same decision being made differently on each screen. Use 16a as the per-screen checklist as you build — a control not in that table is one whose behaviour was never decided. Typography (13a) and the image viewer (12b) are likewise not steps — 13a is the reference you build every screen against, and 12b is a shared component that steps 2 and 5 both need.
