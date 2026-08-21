@@ -206,7 +206,7 @@ Start with step 1 and tell me what you've read before moving on.</div>
    <i>index.html</i> that reads the stored preference and sets a data attribute
    on <i>&lt;html&gt;</i>. Doing it in React costs a flash of the wrong theme.</div>
 
-    <p style="margin: 0; font-size: 12px; color: #8b8a82; max-width: 660px; line-height: 1.55">Written for Vite + React with TypeScript and CSS Modules. If the project uses <code>.jsx</code>, plain CSS or a styling library, keep its conventions — the folder boundaries and naming rules are what matter, not the file suffixes.</p>
+    <p style="margin: 0; font-size: 12px; color: #8b8a82; max-width: 660px; line-height: 1.55">Written for Vite + React. TypeScript and plain JSX are both fine — swap the extensions and keep everything else; with JSX, PropTypes on the thirteen controls in <code>components/</code> is worth adding, since that is where 14d’s contract needs enforcing. Same for styling: CSS Modules, plain CSS or a library. The folder boundaries and naming rules are what matter, not the file suffixes.</p>
 
     <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 10px">
       <div class="lab">WHY IT IS SHAPED THIS WAY</div>
@@ -263,6 +263,62 @@ Start with step 1 and tell me what you've read before moving on.</div>
       </div>
 
       <p style="margin: 0; font-size: 13px; color: #57564f; max-width: 660px; line-height: 1.55; text-wrap: pretty">The through-line is that all six trade a small, immediate convenience for the ability to change things later. That is the right trade here specifically because this is a design handoff — every screen in this index is going to move at least once after it ships.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 14px">
+      <div class="lab">CSS AND CLASS NAMING</div>
+      <p style="margin: 0; font-size: 14px; color: #57564f; max-width: 660px; line-height: 1.55; text-wrap: pretty">With CSS Modules the scoping is already handled, so class names need to say what an element is inside its own component and nothing more. Most of the conventions invented to avoid collisions — BEM prefixes, component names repeated in every class — are solving a problem the tooling already solved.</p>
+
+      <div class="prompt"><b>Class names</b>
+   camelCase, scoped to the component, describing the element's role:
+   <i>.row</i> <i>.rowPrimary</i> <i>.amount</i> <i>.rail</i> <i>.panelHeader</i> <i>.thumb</i>
+   No component prefix — <i>OrderRow.module.css</i> already namespaces it, so
+   <i>.orderRow</i> inside it is <i>styles.orderRow</i> at the call site: stuttering.
+   No BEM: <i>.order-row__amount--large</i> is three mechanisms for scoping,
+   nesting and variance that CSS Modules, nesting and data attributes
+   already provide.
+
+<b>State goes on data attributes, not class names</b>
+   <i>&lt;tr data-selected data-dragging&gt;</i>, styled as <i>.row[data-selected]</i>.
+   State is then visible in devtools, queryable in tests, and readable
+   from the DOM — none of which is true of a hashed <i>.row--selected</i>.
+   Use it for: selected, dragging, expanded, over-limit, uncertain,
+   loading, empty. Booleans get a bare attribute, not <i>="true"</i>.
+
+<b>Variants are props that map to classes</b>
+   <i>level="primary"</i> → <i>styles[level]</i>. One class per value, no
+   concatenated modifier strings — a typo'd variant then fails at the
+   call site instead of silently rendering unstyled.
+
+<b>Tokens are custom properties, defined once</b>
+   <i>styles/tokens.css</i> holds the palette, spacing, radii and shadows on
+   <i>:root</i>; <i>themes.css</i> reassigns the surface and text tokens under
+   <i>[data-theme="dark"]</i>. Components read <i>var(--surface)</i>, never a hex.
+   Name tokens by role, not value: <i>--surface</i>, <i>--surface-raised</i>,
+   <i>--text-muted</i>, <i>--border-hairline</i>, <i>--accent</i> — not <i>--green-700</i>
+   or <i>--grey-3</i>, which stop being true the moment the theme flips.
+   Component-local variables are fine and stay local: <i>--row-height</i>.
+
+<b>One stylesheet per component, beside it</b>
+   <i>OrderRow.tsx</i> + <i>OrderRow.module.css</i>. No shared <i>utilities.css</i>, no
+   global class used from two places — that is the bin problem again.
+   The only global stylesheets are <i>reset.css</i>, <i>tokens.css</i>, <i>themes.css</i>,
+   imported once in <i>main.tsx</i> and never from a component.
+
+<b>Layout containers name their query</b>
+   An element with <i>container-type: inline-size</i> gets a
+   <i>container-name</i> matching the shape it is: <i>main</i>, <i>rail</i>, <i>panel</i>,
+   <i>row</i>. Queries then read <i>@container rail (max-width: 340px)</i>, which
+   says what is narrow instead of leaving a bare number.
+
+<b>Don't write</b>
+   Nesting deeper than two levels · element selectors for styling
+   (<i>div &gt; span</i> breaks when the markup changes) · <i>!important</i> ·
+   ID selectors · a class that exists only to hang a JS query off —
+   use <i>data-testid</i> · <i>:global</i> outside <i>reset.css</i> · magic numbers where
+   a token exists · media queries for anything but the tab bar and print.</div>
+
+      <p style="margin: 0; font-size: 12px; color: #8b8a82; max-width: 660px; line-height: 1.55">If the project uses Tailwind or a CSS-in-JS library instead, the transferable rules are the last four: role-named tokens rather than value-named, state on data attributes, variants as props mapping to one class each, and container queries named after the shape they measure.</p>
     </div>
   </div>
 
