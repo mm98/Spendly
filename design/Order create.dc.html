@@ -49,9 +49,9 @@
           <div style="font-size: 16px; font-weight: 600">Drop receipt here</div>
           <div style="font-size: 13px; color: #6b6a63">PDF, JPG, PNG or HEIC · up to 20 MB</div>
           <div style="display: flex; gap: 10px; padding-top: 6px">
-            <div style="background: #1d4d33; border-radius: 10px; padding: 11px 20px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #fff">CHOOSE FILE</div>
-            <div style="border: 1px solid #dedcd4; background: #fff; border-radius: 10px; padding: 11px 20px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #1d4d33">USE CAMERA</div>
+            <div style="background: #1d4d33; border-radius: 10px; padding: 11px 20px; font-size: 12px; letter-spacing: 0.08em; font-weight: 600; color: #fff">SELECT A RECEIPT</div>
           </div>
+
         </div>
         <div style="display: flex; align-items: center; gap: 14px; width: 100%; max-width: 720px">
           <div style="flex: 1; height: 1px; background: #e6e4dc"></div>
@@ -69,6 +69,12 @@
           </div>
         </div>
       </div>
+    </div>
+    <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+      <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One button for the file, not two.</b> Camera versus files is the device's decision, not a design choice: a single input with the right <b>accept</b> and <b>capture</b> attributes gets a camera option on a phone, a photo library on a tablet, and a plain file dialog on desktop — each in the form that platform's users already know. Offering "Choose file" and "Use camera" as separate buttons duplicates the OS picker's own first screen, and one of the two is always dead weight on whatever device you are holding.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Drop is the desktop path and needs no button</b> — the zone is the affordance. Keep the button anyway for keyboard users and for anyone who does not think to drag.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Three ways to start, ranked by frequency:</b> receipt (the common case, so it gets the whole zone), empty order, copy a previous order. Copy is hidden entirely when there are no orders yet.</div>
     </div>
   </div>
 
@@ -447,6 +453,156 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px; padding: 0 48px 64px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; align-items: baseline; gap: 12px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">3b</span>
+      <span style="font-size: 20px; font-weight: 600">Copy a previous order</span>
+    </div>
+    <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">The third way to start, for the purchase that repeats. The copy itself is 8a's duplicate, unchanged — all this adds is the picker, because starting from the create screen means the source has not been chosen yet.</div>
+  </div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 520px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">THE PICKER</div>
+      <div style="background: #f0efe9; border-radius: 14px; padding: 22px; display: grid; place-items: center">
+        <div style="width: 462px; box-sizing: border-box; background: #fff; border-radius: 14px; box-shadow: 0 12px 28px rgba(27, 26, 23, 0.16); padding: 18px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 15px; font-weight: 600">Copy a previous order</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5">The vendor, category and item lines are copied. The date becomes today, the status resets, and the receipt stays on the original order.</div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 9px; border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; box-sizing: border-box; height: 42px; color: #8b8a82">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+            <span style="font-size: 13px">Search by vendor or item…</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <div style="font-size: 10px; letter-spacing: 0.12em; color: #6b6a63; padding: 2px 2px 5px">YOU ORDER THESE OFTEN</div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 10px 11px; border-radius: 9px; background: #f0efe9">
+              <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+                <div style="font-size: 11px; color: #57564f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">4 lines · Nordal vase, Stol — eg, Bord…</div>
+              </div>
+              <div style="flex: 1"></div>
+              <div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end; flex: none">
+                <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums">7.635,00</div>
+                <div style="font-size: 11px; color: #8b8a82">6 times · last 12 Aug</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 10px 11px; border-radius: 9px">
+              <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Ferm Living</div>
+                <div style="font-size: 11px; color: #57564f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">1 line · Pude, uld</div>
+              </div>
+              <div style="flex: 1"></div>
+              <div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end; flex: none">
+                <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums">890,00</div>
+                <div style="font-size: 11px; color: #8b8a82">4 times · last 28 Jul</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <div style="font-size: 10px; letter-spacing: 0.12em; color: #6b6a63; padding: 2px 2px 5px">RECENT</div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 10px 11px; border-radius: 9px">
+              <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
+                <div style="font-size: 11px; color: #57564f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">2 lines · Stol × 2</div>
+              </div>
+              <div style="flex: 1"></div>
+              <div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end; flex: none">
+                <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums">3.240,00</div>
+                <div style="font-size: 11px; color: #8b8a82">3 Aug</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 10px 11px; border-radius: 9px">
+              <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto</div>
+                <div style="font-size: 11px; color: #57564f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">3 lines · Lampe, Skål, Plakat</div>
+              </div>
+              <div style="flex: 1"></div>
+              <div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end; flex: none">
+                <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums">5.120,00</div>
+                <div style="font-size: 11px; color: #8b8a82">1 Aug</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 10px 11px; border-radius: 9px">
+              <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+                <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Normann</div>
+                <div style="font-size: 11px; color: #57564f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">2 lines · Skål, Lysestage</div>
+              </div>
+              <div style="flex: 1"></div>
+              <div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end; flex: none">
+                <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums">1.640,00</div>
+                <div style="font-size: 11px; color: #8b8a82">21 Jul</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; border-top: 1px solid #dedcd4; padding-top: 13px">
+            <div style="font-size: 12px; color: #8b8a82">Nothing is created until you save.</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; color: #57564f; padding: 8px 12px">Cancel</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHAT YOU LAND ON</div>
+        <div style="border: 1px solid #e6e4dc; border-radius: 10px; padding: 13px; display: flex; flex-direction: column; gap: 11px">
+          <div style="display: flex; align-items: center; gap: 10px; background: #e7efe8; border-radius: 9px; padding: 10px 12px">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><rect x="5.4" y="2.6" width="7.8" height="7.8" rx="1.2"></rect><path d="M10.4 12.4v.8a1.2 1.2 0 0 1-1.2 1.2H3.8a1.2 1.2 0 0 1-1.2-1.2V6.6a1.2 1.2 0 0 1 1.2-1.2h.8"></path></svg>
+            <div style="font-size: 12px; color: #1d4d33; line-height: 1.45">Copied from <b>Indbo Møbler, 12 Aug</b> — the receipt stays on that order.</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Discard</div>
+          </div>
+          <div style="display: flex; gap: 12px">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 5px">
+              <div style="font-size: 11px; letter-spacing: 0.1em; color: #6b6a63">ITEM LINES · 4</div>
+              <div style="border: 1px solid #e6e4dc; border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #3d3c36">Nordal vase, large</div>
+              <div style="border: 1px solid #e6e4dc; border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #3d3c36">Stol — eg × 2</div>
+            </div>
+            <div style="width: 128px; flex: none; display: flex; flex-direction: column; gap: 5px">
+              <div style="font-size: 11px; letter-spacing: 0.1em; color: #6b6a63">DETAILS</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 8px; padding: 8px 10px; font-size: 12px">Today</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #8b8a82">Draft</div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">The ordinary edit screen (1d) with the 8a notice on top. Date is today and status is reset — the two fields most likely to be wrong on a copy are the two that do not carry over.</div>
+      </div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 20px">
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every row has to be identifiable without opening it.</b> Vendor alone is not enough — there may be twelve orders from the same shop. The line count, the first item names and the total are what separate them, and the total does most of the work.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Two groups, not a flat list.</b> <b>You order these often</b> is orders whose vendor and line shape have recurred, with the repeat count — that is the case this feature exists for, so it comes first. <b>Recent</b> is the fallback. Same grouped pattern as the vendor Combobox in 14a: arrow keys cross both groups as one list, headers are never focusable.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Search covers vendor and item name</b>, because the thing you remember is often "the order with the oak chairs" rather than the shop. Same 300ms debounce and prefix matching as every other search.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Picking opens the edit screen unsaved.</b> No confirm — nothing exists yet, and the notice's Discard is the way out. This is the same reason the duplicate in 8a needs no dialog.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The copy rules are 8a's, unchanged.</b> Vendor, category, reference, notes and all lines with quantities and prices carry over; date becomes today, status resets, attachments do not follow. The dialog states this up front, because "copy" otherwise implies the receipt comes with it.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Amounts are copied, not re-priced.</b> They are what you paid last time, and they are editable like any other field. Nothing looks up a current price — this is a record of what happened, not a shopping basket.</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THREE ENTRY POINTS, ONE DIALOG</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Create screen</b> — the third card, hidden when there are no orders yet.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">New order split button</b> — the chevron menu, for starting a copy without passing through the create screen.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Home's Duplicate last order</b> — skips the dialog entirely, since "last" needs no picking.</div>
+        <div style="border-top: 1px solid #dedcd4; padding-top: 12px; font-size: 12px; color: #57564f; line-height: 1.55">The order list's per-row <b>Duplicate</b> is deliberately not one of these: there the source is already chosen, so it goes straight to the edit screen. This dialog exists only for the case where it is not.</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHY A DIALOG RATHER THAN A LIST PAGE</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">The order list already does browsing, and has Duplicate on every row — that is the path for "I know which one". This dialog serves the other case: you are starting an order and want the last one like it, without leaving what you are doing.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">So it stays small and shows five or six rows with search rather than facets and paging. If you need filters to find the source, the order list is the better tool and Duplicate is waiting there.</div>
       </div>
     </div>
   </div>

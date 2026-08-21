@@ -369,12 +369,20 @@ File: `Order create.dc.html` · Code: `pages/NewOrder.jsx`, `pages/Scan.jsx`, `c
 
 **Purpose:** get a receipt into the system with as little typing as possible. Four stages, shown side by side in the mockup but sequential in the app.
 
-1. **Start.** Two paths on one screen: the drop zone (dashed `#dedcd4`, radius `12px`, upload glyph, "Drop a receipt — PDF, JPG or PNG", plus "Take a photo" on mobile), and below a divider, "Or enter it manually" as a secondary button. Accepts PDF, JPG, PNG, HEIC; states the size limit.
+1. **Start.** Three ways, ranked by frequency: the drop zone with **one** button ("Select a receipt"), then below a divider, "Empty order" and "Copy a previous order" as equal cards. Accepts PDF, JPG, PNG, HEIC; states the size limit.
+
+   **One file button, not two.** Camera versus files is the device's decision, not a design choice — a single input with the right `accept` and `capture` attributes yields a camera option on a phone, the photo library on a tablet, and a plain file dialog on desktop, each in the form that platform's users already know. Separate "Choose file" and "Use camera" buttons duplicate the OS picker's own first screen, and one of the two is always dead weight on whatever device is in hand. Drop needs no button at all on desktop — the zone is the affordance — but the button stays for keyboard users. "Copy a previous order" is hidden when there are no orders yet.
 2. **Reading.** The uploaded file's thumbnail on the left, and on the right a progress card: an animated indeterminate bar, the stage in words ("Reading line items…"), and Cancel. Nothing is written yet.
 3. **Check what was read.** The heart of the flow. Two panes: the receipt preview left (zoomable, page thumbs for multi-page PDFs), the proposed order right. Every proposed value carries a confidence affordance — fields read cleanly look like normal filled fields; uncertain fields get an amber left edge (`2px #b58a2b`) and a "check this" hint. Item lines list with the read values as editable inputs; unmatched vendor or category shows an inline picker with a "Create X" option. A summary line reconciles the totals: if the item lines do not add to the receipt total, that difference is stated plainly in amber, with a "the receipt says" figure beside the computed one. Buttons: Discard, Save as draft, Create order.
 4. **Created.** Confirmation with the order summary, the attachment kept on the order, and two links: open the order, or scan another.
 
 The scan **proposes**; nothing is stored until Create order. The uploaded file always ends up attached to the resulting order.
+
+**3b — Copy a previous order.** The picker the create-screen card opens; the copy itself is 8a's duplicate unchanged. A 462px dialog: a line stating what carries over, search across **vendor and item name** (the thing you remember is often "the order with the oak chairs", not the shop), then two groups — **You order these often** (orders whose vendor and line shape recurred, with the repeat count, since that is the case this exists for) and **Recent**. Same grouped-Combobox behaviour as 14a: arrows cross both groups as one flat list, headers never focusable.
+
+Every row must be identifiable without opening it, so each carries vendor, line count, the first item names and the total — the total does most of the work when a shop has twelve orders. Picking opens the edit screen **unsaved** with 8a's notice; no confirm, because nothing exists yet. Amounts are copied, not re-priced: they are what was paid last time and are editable like any field — nothing looks up a current price.
+
+Three entry points, one dialog: the create-screen card (hidden with no orders), the New order split-button menu, and Home's **Duplicate last order** (which skips the dialog, since "last" needs no picking). The order list's per-row Duplicate is deliberately not one of them — there the source is already chosen, so it goes straight to edit. That is also why this is a dialog and not a list page: browsing with facets is the order list's job, and Duplicate is already waiting there.
 
 Scan failure is in 6e: the file is kept, the message says what failed, and the primary action is "Enter it manually" with the file already attached — never a dead end.
 
