@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync, rmSync, existsSync, readdirSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { db, DB_PATH } from '../db.js'
 import { zipSingleFile } from './zip.js'
@@ -26,13 +26,12 @@ function todayStamp(date = new Date()) {
    connection might leave beside it, so nothing but that one consistent file can reach the archive.
    Only the zip's own filename carries the date; the file inside it keeps the database's actual
    name (spendly.sqlite3, or whatever SPENDLY_DB names it) so restoring is a straight unzip-and-
-   rename-back rather than a rename to match. Idempotent: a zip already sitting under `backup/` for
-   today is left alone rather than retaken, so a restart or a second scheduled tick the same day is
-   a no-op. */
+   rename-back rather than a rename to match. A restart or a second scheduled tick the same day
+   retakes and overwrites today's zip rather than skipping it, so the file on disk is always the
+   latest snapshot taken that day, not whichever one happened to be first. */
 export async function backupDatabase() {
 	const stamp = todayStamp()
 	const zipPath = path.join(BACKUP_DIR, `database-${stamp}.zip`)
-	if (existsSync(zipPath)) return zipPath
 
 	mkdirSync(BACKUP_DIR, { recursive: true })
 	const dbName = path.basename(DB_PATH)
@@ -40,6 +39,7 @@ export async function backupDatabase() {
 	try {
 		await db.backup(snapshotPath)
 		const zip = zipSingleFile(dbName, readFileSync(snapshotPath))
+		rmSync(zipPath, { force: true })
 		writeFileSync(zipPath, zip)
 	} finally {
 		rmSync(snapshotPath, { force: true })
@@ -73,12 +73,28 @@ export function msUntilEndOfDay(now = new Date()) {
 	return target.getTime() - now.getTime()
 }
 
+const ONE_HOUR_MS = 60 * 60 * 1000
+
 /* The app runs as one long-lived process with no cron alongside it (docker-compose.yml is a
    single container), so this is the cron job: a backup taken once at startup -- catching up a
    container that was stopped over a day boundary, where nothing else would ever trigger that
    day's backup -- then one timer that fires just before local midnight and re-arms itself every
-   24 hours after that. backupDatabase()'s same-day check keeps the startup catch-up and the
-   first end-of-day run from ever taking two backups for one day. */
+   24 hours after that.
+
+   That midnight timer only survives as long as the process does, and this process does not stay
+   up for a full day at a stretch: watchtower (docker-compose.yml) polls for a new image every 15
+   minutes and restarts the container the moment one lands, which throws away whatever setTimeout
+   was waiting for 23:59:59 and starts a fresh one from the new startup time. On an actively
+   developed install that redeploys several times a day, the exact-midnight timer routinely never
+   gets a full day of uptime to fire in, and the only backup a day actually gets is the startup
+   catch-up above -- which makes it look like backups only happen when something happens to
+   restart the container, rather than on a schedule.
+
+   The hourly tick below is the fix: on every hour that the process happens to be up, it retakes
+   today's backup, so any restart anywhere in the day (not just one lucky enough to still be
+   running at 23:59:59) leaves that day covered. backupDatabase() overwriting today's zip each
+   time rather than skipping it means this costs nothing extra to run often -- the file on disk is
+   just the most recent snapshot of the day, however many times it got retaken. */
 export function scheduleDailyBackups() {
 	backupDatabase().catch(err => console.error('Daily backup failed:', err))
 
@@ -90,5 +106,11 @@ export function scheduleDailyBackups() {
 		next.unref()
 	}, msUntilEndOfDay())
 	timer.unref()
+
+	const hourly = setInterval(() => {
+		backupDatabase().catch(err => console.error('Hourly backup catch-up failed:', err))
+	}, ONE_HOUR_MS)
+	hourly.unref()
+
 	return timer
 }

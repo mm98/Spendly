@@ -15,6 +15,9 @@ services:
       - "4000:4000"
     environment:
       SPENDLY_DB: /data/spendly.sqlite3
+      # Without this the container's clock is UTC, so the nightly backup fires at UTC
+      # 23:59:59 -- 1-2am local, depending on daylight saving -- not local midnight.
+      TZ: "Europe/Copenhagen"
       # Plain-http sessions (LAN by IP). Remove if behind HTTPS.
       SPENDLY_PLAIN_HTTP: "1"
       # Serves source maps for stack traces. Readable by anyone who can reach the app.
