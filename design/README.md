@@ -4,7 +4,7 @@
 
 Spendly is personal receipt and order tracking for a single user: capture a receipt, keep the order and its item lines straight, and see what it added up to per month, vendor and category.
 
-This package covers the whole surface that work touched: the app shell, the home page, the order list, order read and edit, creating an order from a scanned receipt, statistics with drill-down, the vendor and category library, the states and confirmations that sit across all of it, and the phone layouts.
+This package covers the whole surface that work touched: the app shell, the home page, the order list, order read and edit, creating an order from a scanned receipt, statistics with drill-down, the vendor and category library, the states and confirmations that sit across all of it, the phone layouts, settings, file import, the dark theme, the full-size image viewer, and the typography reference.
 
 The change that started it: on the order edit screen the order header used to sit above the item list and eat most of the viewport, while the actual work is nearly always adjusting item lines. The header moved into a right rail, so the item list owns the width and starts near the top of the page. Everything else follows that same two-column shape.
 
@@ -408,6 +408,110 @@ Breakpoint: below `900px` the two columns stack; below `640px` the phone layout 
 
 ---
 
+### 11a / 11b — Settings, and importing a file
+File: `Settings and import.dc.html` · Code: new pages (`pages/Settings.jsx`, `pages/Import.jsx`)
+
+#### 11a — Settings
+
+**Layout:** the app sidebar, then a page-level settings nav (`208px`, rows `9px 10px`, radius `9px`, active row white on the canvas) and a single column of cards capped at `640px`. The shell holds a fixed composition — do not let the card column compress below its designed width; the page scrolls instead.
+
+**Five sections, each its own card with its own save.** Only the card you touched goes dirty; the sticky save bar names it ("Unsaved changes in Statuses").
+
+- **Account and profile.** 56px avatar with upload and remove, name, email (read-only), and a password row.
+- **Appearance.** Theme as three preview cards — light, dark, follow system — each a miniature of the shell rather than a swatch. Then row density as a segmented control (comfortable / compact; compact takes list rows from 14px to 8px of vertical padding and leaves item lines alone, so touch targets survive). The theme is also switchable from the sidebar bottom; the two stay in sync.
+- **Currency and format.** Currency, number format, date format, week start, with a live preview strip showing the result. Changing the currency does not convert existing amounts — it changes the symbol only, and the card says so.
+- **Defaults for a new order.** Default category and status, plus a "let a scan override these" toggle: on, a receipt naming a vendor whose default category differs wins; off, your default always applies.
+- **Statuses.** A draggable list, each row a colour dot, the name, the order count on it, and an edit control. Editing expands the row inline to a five-swatch colour picker plus the name field — the same in-place pattern as item lines. Draft is built in and cannot be renamed or removed. A status with orders on it cannot be deleted; reassign first.
+
+#### 11b — Import
+
+**Purpose:** the bulk path — a spreadsheet or a JSON export from another app, as opposed to scanning one receipt (3a). Four stages, sequential in the app, shown side by side in the mockup.
+
+1. **Pick a file.** Drop zone accepting CSV, XLSX and JSON, plus a downloadable template whose columns map themselves. Below it, previous imports with a "reuse mapping" action — the second import of the same monthly export should cost nothing.
+2. **Map the columns.** Each file column on the left showing its **name and three real sample values**, an arrow, and the Spendly field on the right. Mapping against real data is the whole point; a list of field names in the abstract is guessable and wrong. A "don't import" option renders the row dimmed with a dashed target. Two inline resolutions appear where needed: an ambiguous date gets a "read as DD-MM-YYYY" amber strip with a Change control, and a column whose values don't match existing records gets a count and a "match them" link. The footer states the count mapped and which fields are required (vendor, order date, item name).
+   - **"Each row is" — one item line or a whole order.** With *one item line*, rows are grouped by a reference column into multi-line orders. With *a whole order*, the item fields collapse: quantity and unit price leave the mapping (shown struck through, not silently removed), item name becomes an optional Description, and a required **Order total** appears because there is nothing left to sum. Each order then arrives with a single item line carrying the description and the total at quantity 1 — totals stay correct and the order stays editable, but the itemisation is gone and cannot be recovered later. Switching back restores the previous mapping. The order count in step 3 changes with the switch (128 rows → 128 orders instead of 41), which is the fastest signal that the wrong option is selected.
+   - **Matching unknown values.** Every unmatched value gets a row with its occurrence count and a picker. An unresolved row blocks the import: a category invented by an import is worse than one the user chose.
+3. **Check before writing.** Four counts (orders, item lines, new vendors, total), then the advisories: likely duplicates of orders already held (amber, reviewable) and rows that cannot be imported (red, listed). Unimportable rows are **skipped, not repaired** — they come back as a downloadable file to correct and re-import. Then the first five orders rendered as they will be saved, with new vendors flagged in the row. A "bring them in as drafts" toggle lets 41 orders be worked through without counting in Statistics yet.
+4. **Done.** The counts, then three actions: see the imported orders, download the skipped rows, and **undo this import** — which removes exactly what this import wrote, including the vendors it created, for 24 hours.
+
+---
+
+### 12a / 12b — Dark mode, and images at full size
+File: `Dark mode and image viewer.dc.html` · Code: theme layer + `components/Lightbox.jsx`
+
+#### 12a — Dark mode (warm dark)
+
+Not an inversion. The light theme's identity is warmth — a greige canvas, not grey — so the dark theme is a warm brown-black and the greens lift rather than darken. Implement as a single token layer with a role-to-value map per theme; no component should reference a literal.
+
+| Role | Light | Dark |
+| --- | --- | --- |
+| Canvas | `#eceae4` | `#1a1815` |
+| Card surface | `#ffffff` | `#221f1b` |
+| Raised / hover | `#f0efe9` | `#2a2621` |
+| Quiet fill | `#f7f6f2` | `#262320` |
+| Hairline border | `#e6e4dc` | `#38332c` |
+| Input border | `#dedcd4` | `#463f37` |
+| Text primary | `#1b1a17` | `#f2f0ea` |
+| Text body | `#3d3c36` | `#d8d4ca` |
+| Text secondary | `#57564f` | `#a8a29a` |
+| Text muted | `#8b8a82` | `#7d776e` |
+| Green primary | `#1d4d33` | `#5d9b76` |
+| Green surface | `#e7efe8` | `#1f3328` |
+| Chart track | `#eef1ee` | `#2e2b26` |
+| Amber line | `#b58a2b` | `#d9b166` |
+| Amber surface | `#fdf8ee` | `#2c2418` |
+| Red text | `#8a4a41` | `#d99a90` |
+| Red surface | `#fdf6f5` | `#2c1e1c` |
+| Sidebar | `#14261c` | unchanged |
+
+Four rules behind the map:
+- **The sidebar does not change.** It was already dark, and it is the one element anchoring both themes.
+- **Elevation reverses.** Light lifts a surface with shadow; dark lifts it by getting lighter. Cards are lighter than the canvas, dialogs lighter again. Shadows remain, at roughly half the light theme's opacity, and only for layering.
+- **The chart ramp keeps its five steps in the same order, lifted:** `#5d9b76`, `#7fb392`, `#a3c9b0`, `#4a6b57`, `#39443c`.
+- **Amber and red keep their meaning but swap carriers.** On light, the surface is tinted and the text is dark; on dark, the surface is barely tinted and the text carries the colour. The pace marker stays a hairline, lifted to `#d9b166` so it survives against an amber-filled bar.
+
+Primary buttons on dark are `#5d9b76` with `#14261c` text — the green is light enough that white text on it fails contrast. Green text on a dark surface uses `#8fc0a2`, not the button green.
+
+Theme switching lives in Settings (three preview cards) and at the bottom of the sidebar; both write the same preference, which follows the OS when set to system.
+
+#### 12b — Images at full size
+
+One overlay serves both order attachments and item photos, and it always knows the set it belongs to — the order's files — so navigation does not require going back.
+
+**Chrome:** a header with the filename, its context line (vendor and date for an attachment; the item name for a photo), the position in the set ("File 1 of 3"), download, and close. Prev/next as 38px round `rgba(255,255,255,0.12)` buttons over the image edges. A footer strip of the order's other files, the current one outlined in the accent green.
+
+**Multi-page PDFs** get a page rail on the left (`108px`, thumbnails at `aspect-ratio: 0.72`, current page outlined 2px accent) plus a "Page 1 of 3" line. Single-page files show no rail.
+
+**Keyboard:** left/right move within the set, Esc closes, focus is trapped and returns to the tile that opened it.
+
+**The overlay is dark in both themes.** Bright chrome around a bright scan leaves nothing to read the image edge against. What changes with the theme is the scrim — `rgba(27,26,23,0.72)` on light, `rgba(10,9,8,0.82)` on dark.
+
+**Two rules for thumbnails on dark**, and they matter more than they sound: every image thumbnail keeps a `1px #463f37` border, because a white receipt scan with no border floats as a bright edgeless rectangle; and thumbnails render at **90% opacity**, taking the glare off without touching colour accuracy. Full opacity returns on hover and in the viewer, where the image is the subject.
+
+---
+
+### 13a — Typography
+File: `Typography.dc.html`
+
+The specimen is rendered at real size — measure off the file, not a screenshot. Beyond the scale (in the token section above) it fixes four things:
+
+**Loading.** `Poppins, system-ui, sans-serif`, weights 400/500/600/700, latin and latin-ext. No italics anywhere, no 300 or 800 — a missing weight gets synthesised and the amounts stop lining up. **Self-host the four files** rather than calling Google Fonts; the mockups use the CDN for convenience only. `font-display: swap`, preload 400 and 600. The fallback runs narrower, so a swap shifts row content slightly; nothing in the layout is sized to fit text exactly, so that is acceptable.
+
+**Danish characters.** æ ø å appear throughout vendor names, categories and receipt text, uppercase forms included in the small-caps labels. Any substitute family must carry them at all four weights.
+
+**Tabular figures.** Poppins' numerals are proportional, so a column of amounts does not align on the decimal. Every amount in a list, table or total gets `font-variant-numeric: tabular-nums` and is right-aligned. A single amount inside a sentence stays proportional.
+
+**Truncation, assigned per role.** User data — vendor names, item names, filenames — can be any length, and each sits in a cell that must not grow.
+- *One line with ellipsis:* every list row primary, table cell, filename under an attachment tile, sidebar account name. Full text as a `title` on hover and in the detail view.
+- *Two-line clamp:* item names in card views and on mobile, where the row has height to spare and the name is what identifies the line. Two lines, never three, and reserve the height whether or not the text needs it so the grid does not jump.
+- *Never truncated:* amounts, dates, status pills, validation messages, button labels, dialog body. A clipped amount is a wrong amount and a clipped error is worse than none. These take `white-space: nowrap` and `flex: none`; the flexible cell beside them absorbs the shortfall. Category chips truncate the label but keep the icon.
+- *`min-width: 0` on the flex child, not the text.* A flex child's automatic minimum size stops it shrinking below its content, so the ellipsis never fires and the amount is pushed out of the row. The declaration belongs on the **wrapper** that is the flex child — typically the column holding the name and its meta line — not on the truncating element itself, which already escapes the rule by having `overflow: hidden`. Two levels of wrapper means two declarations; grid cells need the same. This is the most common cause of a row overflowing on mobile.
+- `overflow-wrap: anywhere` on notes and references, which can be one unbroken string. Test every list with a 60-character vendor name and a 120-character item name; both occur in real receipts.
+
+Six standing rules: nothing below 10px (sidebar label only; 11px is the floor for anything read, always uppercase or muted); letter-spacing only increases and only on uppercase, never negative; line-height follows length (1.15 titles, 1.5–1.55 multi-line, 1 for standalone figures) with `text-wrap: pretty` on every heading and paragraph; weight carries emphasis, not colour — 600 is the strongest thing in a row, and bold plus a colour change on the same word is doubling up; mobile keeps these sizes and drops fields instead (row primaries go up to 15px, nothing goes down); and on dark, drop one step of weight where you can, since light-on-dark reads heavier.
+
+---
+
 ## Interactions summary
 
 | Trigger | Result |
@@ -426,6 +530,12 @@ Breakpoint: below `900px` the two columns stack; below `640px` the phone layout 
 | Bulk Set status / Add category | Popover, then toast with Undo |
 | Delete anything | Dialog naming the consequence |
 | Crossing a category limit | Amber notice; the save proceeds |
+| Switching "each row is" in import mapping | Item fields collapse or return; the order count changes |
+| An unmatched value left unresolved in import | Import is blocked until it is picked or created |
+| Import finishes | Skipped rows downloadable; whole import undoable for 24h |
+| Theme switch (Settings or sidebar) | Both controls write one preference; system follows the OS |
+| Click an attachment tile or item photo | Viewer opens on the order's file set |
+| Left / right in the viewer | Moves within the set; Esc closes, focus returns to the tile |
 
 ## State
 
@@ -436,7 +546,10 @@ Per screen, roughly what needs to exist:
 - **Scan:** stage (`idle` / `uploading` / `reading` / `review` / `created` / `failed`), the file reference, the proposal with per-field confidence, and the user's overrides — kept separate from the proposal so "what the scan said" is still available in review.
 - **Statistics:** period, compare flag, and the drill crumb stack; all URL-encoded.
 - **Library:** selected record id (null shows the roll-up), the form draft, and the merge target.
-- **Global:** toast queue, dialog, command palette open state, sidebar collapsed.
+- **Settings:** per-card draft and dirty flag (never one form-wide dirty state), and the status list's order.
+- **Import:** stage, the parsed file, the column map, the row-shape choice, unresolved value matches, the dry-run result, and the import id that makes undo possible.
+- **Viewer:** the file set, index within it, and page index for a paged file.
+- **Global:** toast queue, dialog, command palette open state, sidebar collapsed, and the theme preference (light / dark / system).
 
 Data needed: orders with item lines and attachments, vendors, categories (with icon, colour and monthly limit), and aggregate endpoints for statistics that accept the same filter shape as the list.
 
@@ -457,6 +570,9 @@ Data needed: orders with item lines and attachments, vendors, categories (with i
 | `08-duplicate-alerts.png` | 8a, 8b |
 | `09-navigation-shell.png` | 9a, 9b |
 | `10-home.png` | 10a |
+| `11-settings-import.png` | 11a, 11b |
+| `12-dark-mode-viewer.png` | 12a, 12b |
+| `13-typography.png` | 13a |
 
 They are for orientation and review only. Measure nothing off them — the values in this document and the HTML files are the source.
 
@@ -481,6 +597,9 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `States and confirmations.dc.html` | 6a–6e |
 | `Mobile screens.dc.html` | 7a |
 | `Duplicate and alerts.dc.html` | 8a, 8b |
+| `Settings and import.dc.html` | 11a, 11b |
+| `Dark mode and image viewer.dc.html` | 12a, 12b |
+| `Typography.dc.html` | 13a |
 | `support.js` | Preview runtime for the files above — not part of the product |
 | `screenshots/` | Full-page capture of each file (see above) |
 
@@ -494,3 +613,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 5. Scan flow (3a, 6e).
 6. Library (5a–5c), then Statistics (4a), then Home (10a), which mostly composes pieces the earlier steps produced.
 7. Mobile passes (7a, 1d) alongside each screen rather than at the end.
+8. Settings (11a) and Import (11b) — Settings is small once the token layer exists; Import is the largest single piece in the set and depends on nothing else.
+9. Dark mode (12a) last as a token pass, not a rebuild — if it needs component changes, the token layer was not clean. Do it before shipping, not after; retrofitting a theme is far more work than building against one.
+
+Typography (13a) and the image viewer (12b) are not steps — 13a is the reference you build every screen against, and 12b is a shared component that steps 2 and 5 both need.

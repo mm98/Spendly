@@ -155,6 +155,115 @@ Conventions: amounts are DKK, formatted `1.234,50 kr.` (period thousands, comma 
 
 ---
 
+## Settings (11a)
+
+**Per-card dirty state.** Each section holds its own draft and its own dirty flag. The save bar names the dirty section. Two sections dirty at once is legal and the bar names the count; saving writes both.
+
+**Email is read-only** in this design. Changing it is an identity flow with a verification step, out of scope here.
+
+**Theme** is written to one preference, `light | dark | system`, from either control. `system` follows `prefers-color-scheme` live, without a reload. Persist per user, and apply before first paint to avoid a flash of the wrong theme.
+
+**Density** changes list row padding only (14px → 8px). Item line rows and all touch targets keep their sizes, so the 44px minimum holds in either mode.
+
+**Currency** changes the symbol and nothing else. Amounts already stored are not converted, and the card says so. **⚠ CONFIRM** whether multi-currency is ever needed; if yes, an amount needs a currency of its own and every aggregate needs a conversion policy — a different piece of work.
+
+**Number and date format** are display-only, applied at render. Never stored with the value.
+
+**Statuses.**
+- Draft is built in: not renamable, not deletable, always first.
+- Renaming is free — orders reference a status by id.
+- Reordering persists an explicit position; the order is used everywhere statuses appear (facets, the picker, Statistics).
+- Deleting is blocked while any order carries the status. The dialog states the count and offers reassignment.
+- Colour comes from a fixed five-swatch set, not a free picker.
+- **⚠ CONFIRM** a cap on the number of statuses. Recommendation: 8. Beyond that the facet group and the bulk-action popover stop being scannable.
+
+---
+
+## Import (11b)
+
+**Stages:** `idle → parsing → mapping → resolving → preview → writing → done`, plus `failed` from parsing or writing.
+
+**Accepted:** CSV, XLSX (first sheet unless the user picks another), JSON. **⚠ CONFIRM** a row cap. Recommendation: 5.000 rows per import, with a clear message above it rather than a timeout.
+
+**Parsing.** Delimiter and encoding detected, with the detected pair shown and overridable — Danish exports are frequently semicolon-delimited and Latin-1. The first row is assumed to be headers; a toggle says otherwise. An empty file, a single column, or zero data rows all fail at this stage with a specific message.
+
+**Column mapping.**
+- Auto-mapping matches on normalised header name against a synonym list (Danish and English). A match is applied but visibly marked, never hidden.
+- Sample values are the **first three non-empty distinct values** in that column, truncated for display.
+- One file column maps to at most one field; one field takes at most one column. Selecting a field already in use moves it and clears the previous row.
+- Required: vendor, order date, item name (or description in whole-order mode), and a price field. Preview is disabled until all are mapped.
+- Unmapped columns default to "don't import".
+- **Date format** is inferred from the column's values and shown as an explicit "read as" chip. Where DD-MM and MM-DD are both plausible, the ambiguity is stated rather than resolved — a wrongly-inferred date is silent and permanent.
+- **Number format** is inferred the same way (`1.234,50` vs `1,234.50`) and shown next to the amount field.
+- **Reuse mapping** from a previous import applies the saved map by header name and reports which columns did not match this file.
+
+**Row shape.**
+- *One item line per row:* rows are grouped by the column mapped to reference. Rows with an empty reference each become their own order. Within a group, header fields must agree; where they differ the first row wins and the preview flags it.
+- *A whole order per row:* quantity and unit price are dropped from the map, item name becomes optional Description, Order total becomes required. Each order gets one line: description or "Imported order", quantity 1, unit price = the total.
+- Switching modes preserves both mappings so the switch is free in both directions.
+
+**Value resolution.** Every distinct unmatched vendor or category value gets a row with its occurrence count and a picker offering existing records plus "create it". Fuzzy matches above 0.9 are pre-selected and still shown. **An unresolved row blocks Preview.**
+
+**Preview (dry run).** Computed server-side against real validation, not a client guess. It reports:
+- counts (orders, lines, new vendors, total),
+- **likely duplicates** — an existing order with the same vendor, date and total. Advisory: the row imports unless the user excludes it,
+- **unimportable rows** with the reason per row. Skipped, never repaired, and downloadable as a file with an added reason column,
+- the first five orders as they will be saved.
+
+**Bring them in as drafts** writes every order with the Draft status, overriding both the file and the user's default. Statistics excludes drafts, so a large import can be worked through without disturbing the numbers.
+
+**Writing** is one transaction: either the whole import lands or none of it does. Progress is determinate here — the row count is known. Created vendors and categories are part of the transaction.
+
+**Undo** is available for 24 hours and removes exactly what the import wrote, including created vendors and categories, but **only if nothing else has since referenced them** — an order edited after the import blocks its own removal, and the undo reports what it could not remove rather than failing whole.
+
+**⚠ CONFIRM — can an import update existing orders?** Recommendation: no. Create-only. Matching on a reference column to update in place doubles the surface and makes "duplicate" and "update" the same ambiguous case.
+
+---
+
+## Theme (12a)
+
+**Application.** One token layer, resolved per theme. No component reads a literal. Applied before first paint from the persisted preference.
+
+**`system`** follows `prefers-color-scheme` and reacts to a change live.
+
+**Contrast targets.** Body text and above meet 4.5:1 against their surface in both themes; small-caps labels and hints meet 3:1 as non-essential text. Primary buttons on dark are `#5d9b76` with `#14261c` text — white on that green fails. Green *text* on a dark surface is `#8fc0a2`, not the button green.
+
+**Charts** keep the five-step ramp in the same order, so a legend learned in one theme reads in the other.
+
+**Print** always uses the light theme regardless of preference.
+
+---
+
+## Image viewer (12b)
+
+**Opens from** an attachment tile or an item photo. In both cases the set is the order's files, ordered as they appear on the order, with the clicked file current.
+
+**Controls:** prev/next within the set, page thumbnails for a paged file, download, close. No zoom, rotate or delete in this design — deletion stays where the file lives, so there is one place a file is removed. **⚠ CONFIRM** whether zoom is needed for dense receipts; recommendation: add pinch and scroll-wheel zoom later, but not rotate — a wrongly-oriented scan should be fixed on upload.
+
+**Keyboard:** left/right move within the set, Esc closes, Tab is trapped, focus returns to the originating tile.
+
+**Paged files** show the page rail and remember the page while you move away and back within the session.
+
+**Loading** shows the thumbnail scaled up behind a progress indicator, not an empty frame — the low-resolution version is already in hand.
+
+**A file that cannot be rendered** (an unsupported PDF, a corrupt image) shows the filename, the size, and a download action. Never a broken-image glyph.
+
+**Both themes** render the overlay dark; only the scrim differs (`rgba(27,26,23,0.72)` light, `rgba(10,9,8,0.82)` dark).
+
+---
+
+## Typography and overflow (13a)
+
+**Tabular figures** on every amount in a list, table or total, right-aligned. Proportional inside prose.
+
+**Truncation per role**, as specified in the README. The mechanical rule: `min-width: 0` on the flex child (the wrapper), not on the truncating text — which already escapes the automatic-minimum-size rule through `overflow: hidden`. Grid cells need the same.
+
+**Test data.** Every list must hold with a 60-character vendor name and a 120-character item name, and with a note that is one unbroken 200-character string (`overflow-wrap: anywhere`).
+
+**Full text** for a truncated value is available as a `title` on hover and in full in the detail view. A truncated value is never the only place a value appears.
+
+---
+
 ## Cross-cutting
 
 **Toasts** queue, showing one at a time, bottom-centre, 6s, paused on hover. Undo is available for the toast's lifetime and its action is idempotent. A toast dismissed early keeps the action applied — Undo is an offer, not a pending state.
@@ -190,4 +299,8 @@ Answer these before the affected screen is built. Recommendations are in the sec
 | 7 | Is vendor merge reversible? | 5a |
 | 8 | Can a vendor or category with orders be deleted? | 5a, 5b |
 | 9 | Item-level categories — yes or no? | 5b, 4a, 2a |
-| 10 | Currencies other than DKK | everywhere |
+| 10 | Currencies other than DKK — and whether historical amounts convert | everywhere |
+| 11 | Cap on the number of statuses (recommend 8) | 11a, facets, bulk actions |
+| 12 | Row cap per import (recommend 5.000) | 11b |
+| 13 | Can an import update existing orders, or create only? (recommend create only) | 11b |
+| 14 | Is zoom needed in the image viewer? (recommend later, and no rotate) | 12b |

@@ -130,6 +130,80 @@ Loading states mirror the shape of the content arriving — rows at row height, 
 
 There is no item catalogue, no shared editing, no permissions, no approval flow. An item catalogue page was designed and then removed for this reason — this is receipt tracking, not inventory management. A concurrent-edit conflict means two browser tabs, not two people, so last-write-wins with a warning is sufficient.
 
+## 17. Import maps against real values, not field names
+
+**The decision.** In the import mapping step, every file column shows its name plus three real sample values from the file, beside the Spendly field it will become.
+
+**Why.** "Beløb" means nothing until you see `7.635,00` under it. A mapping UI listing only header names asks the user to remember what their own export contains, and the failure is silent — the import succeeds with the wrong column and the mistake surfaces weeks later in Statistics.
+
+**Rejected: a template-only import.** Download a fixed spreadsheet, fill it, upload. Simpler to build and genuinely faster for a one-off, which is why the template is still offered — but it forces the user to reshape every export by hand, forever. The template covers the easy case; the mapping UI covers the real one.
+
+**Nothing is guessed silently.** A value that doesn't match an existing category or vendor gets a row with its occurrence count and a picker, and an unresolved row blocks the import. A category invented by an import is worse than one the user chose, because nobody remembers creating it.
+
+## 18. "A whole order" per row loses the itemisation, and says so
+
+**The decision.** The import can treat each row as an item line (grouped into orders by a reference column) or as a whole order. In the second mode, quantity and unit price leave the mapping, item name becomes an optional description, and a required Order total appears. Each order arrives with one item line carrying the description and the total at quantity 1.
+
+**Why one line rather than none.** An order with no lines would make the totals unverifiable and the order awkward to edit — every screen assumes at least one line. One synthetic line keeps the data model uniform.
+
+**Why the dropped fields are shown struck through** rather than removed: a mapping that silently loses two columns looks like a bug. Struck through, it reads as a consequence of the choice just made.
+
+**The count is the tell.** Switching modes changes the order count in the preview (128 rows → 128 orders instead of 41). That number is the fastest way to notice the wrong mode, faster than reading any explanation, which is why the preview shows it before anything is written.
+
+## 19. An import is undoable for 24 hours
+
+**The decision.** After an import completes, "Undo this import" removes exactly what it wrote — orders, lines, and the vendors it created — for 24 hours. After that they are ordinary records.
+
+**Why.** An import is the one action that can put a hundred wrong records in at once, and the mistake is usually noticed a minute later, not immediately. Requiring a hundred manual deletes for one wrong mapping is the worst outcome in the product. This is the same preference as decision 12 (undo over confirmation), applied at the scale where it matters most.
+
+**Unimportable rows are skipped, not repaired.** They come back as a downloadable file to correct and re-import. Guessing a missing price is inventing data.
+
+## 20. Settings saves per card, not per page
+
+Each Settings section has its own save, and only the card you touched goes dirty — the save bar names it. One page-wide dirty state would mean a stray click in Appearance blocks a password change, and "Save settings" would hide which of five things actually changed.
+
+**Statuses are user-editable but bounded.** Draft is built in. A status with orders on it cannot be deleted — reassign first. Renaming is free, because the name is a label and orders reference the status by id.
+
+## 21. Dark mode is warm, and the sidebar does not change
+
+**The decision.** A warm brown-black dark theme (`#1a1815` canvas), not a neutral near-black, with the greens lifted rather than darkened. The sidebar keeps `#14261c` in both themes.
+
+**Why warm.** The light theme's identity is warmth — a greige canvas, deliberately not grey. A neutral dark theme would read as a different product with the same layout.
+
+**Why the sidebar is unchanged.** It was already dark. Leaving it fixed gives both themes one shared anchor, and means the shell needs no theme work at all.
+
+**Elevation reverses.** Light lifts a surface with shadow; dark lifts it by getting lighter. Cards sit lighter than the canvas, dialogs lighter again. Shadows stay for layering only, at about half the opacity.
+
+**Rejected: deriving the dark palette by inverting lightness.** It produces a cold grey, muddy greens, and amber that reads brown. Each role was picked by hand and the map is the deliverable.
+
+**Rejected: shipping dark mode later.** Retrofitting a theme means auditing every literal colour in the codebase. Build against the token layer from the start even if dark ships second.
+
+## 22. On dark, image thumbnails get a border and 90% opacity
+
+**The problem.** A receipt scan is mostly white paper. On a dark surface it becomes a bright rectangle with no discernible edge, and a strip of them glares.
+
+**The decision.** Every image thumbnail keeps a `1px #463f37` border, and renders at 90% opacity in the dark theme. Full opacity returns on hover and in the viewer.
+
+**Why opacity rather than a filter.** Dimming with brightness or contrast changes what the image looks like; opacity against a known surface reduces glare without misrepresenting the scan. And it is reversed exactly where the image is the subject.
+
+**The viewer itself is dark in both themes.** Bright chrome around a bright scan leaves nothing to read the image edge against. Only the scrim changes.
+
+## 23. Truncation is decided per role, once
+
+**The decision.** Every text role has one overflow behaviour, fixed across the app: one line with ellipsis for row primaries and table cells, a two-line clamp for item names in cards and on mobile, and never for amounts, dates, validation messages or button labels.
+
+**Why per role rather than per component.** Deciding at the component level means the same vendor name truncates differently in three places, and each new list re-litigates it.
+
+**Amounts never truncate** because a clipped amount is a wrong amount. Validation messages never truncate because a clipped error is worse than no error. Those two are absolute.
+
+**Two lines, never three.** A three-line clamp makes card heights uneven enough to break scanning, which is the only reason the card view exists.
+
+**The mechanical part matters.** `min-width: 0` goes on the flex child — the wrapper holding the name and its meta line — not on the truncating text, which already escapes the automatic-minimum-size rule via `overflow: hidden`. This is the most common cause of a row overflowing on mobile, and it was caught twice during this work.
+
+## 24. Self-host the font
+
+Four weights of Poppins, self-hosted. The mockups call Google Fonts for convenience; the product should not need a third party to render a total. No italics, no 300 or 800 — a missing weight gets synthesised by the browser and the amounts stop lining up.
+
 ---
 
 ## Where the design is intentionally silent
@@ -141,3 +215,5 @@ Not oversights — decisions deferred because they need product input. They are 
 - Whether drafts are a status or a separate state.
 - Currency beyond DKK.
 - Attachment size and count limits.
+- Whether an import can update existing orders rather than only creating new ones.
+- Whether a second currency is ever needed, and if so whether historical amounts convert.
