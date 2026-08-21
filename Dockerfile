@@ -1,5 +1,5 @@
 # Spendly in one container: stage 1 builds the React app, stage 2 runs the Express API,
-# which serves react/dist itself (api/src/app.js) -- the same one-process shape as
+# which serves src/react/dist itself (src/api/src/app.js) -- the same one-process shape as
 # render.yaml, so there is no cross-origin cookie configuration to get right.
 #
 # All persistent state -- orders, accounts, uploaded receipts -- lives in the one SQLite
@@ -8,13 +8,13 @@
 
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
-COPY react/package.json react/package-lock.json react/
+COPY src/react/package.json src/react/package-lock.json react/
 # --include=dev regardless of NODE_ENV: vite is a devDependency and is the build.
 RUN npm --prefix react ci --include=dev
-COPY react react
+COPY src/react react
 # The same commit the final stage stamps into /api/version, given to the bundle as well, so a
 # tab already open can tell that the container has been replaced under it and offer to reload
-# (react/src/components/UpdateNotice.jsx reads it, vite.config.js bakes it in). An ARG is
+# (src/react/src/components/UpdateNotice.jsx reads it, vite.config.js bakes it in). An ARG is
 # per-stage, so the final stage's copy does not reach this one and it is declared twice on
 # purpose. Unset, the bundle stamps null and the notice never fires -- the same "no build to be
 # out of date" the endpoint answers with.
@@ -30,13 +30,13 @@ RUN apt-get update \
 	&& apt-get install -y --no-install-recommends python3 make g++ \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY api/package.json api/package-lock.json api/
+COPY src/api/package.json src/api/package-lock.json api/
 RUN npm --prefix api ci --omit=dev
 
 FROM node:22-bookworm-slim
 ENV NODE_ENV=production
 WORKDIR /app
-COPY api api
+COPY src/api api
 COPY --from=apideps /app/api/node_modules api/node_modules
 COPY --from=build /app/react/dist react/dist
 ENV SPENDLY_DB=/data/spendly.sqlite3
@@ -49,7 +49,7 @@ ARG BUILD_TIME
 ARG GIT_SHA
 ENV SPENDLY_BUILD_TIME=$BUILD_TIME SPENDLY_BUILD_SHA=$GIT_SHA
 # The Lighthouse scores this exact image was measured at, as the JSON blob
-# react/scripts/lighthouse.mjs writes. Stamped rather than measured at runtime: the numbers
+# src/react/scripts/lighthouse.mjs writes. Stamped rather than measured at runtime: the numbers
 # describe a build, so they belong to the image the way its commit does, and a container asked
 # to score itself would be measuring the box it happens to be running on. The workflow builds
 # the image, runs Lighthouse against that container, and rebuilds with the result -- every
