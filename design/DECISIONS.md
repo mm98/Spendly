@@ -16,9 +16,15 @@ Why the design is the way it is. Each entry names what was rejected and the reas
 
 **The constraint that follows.** The rail must stay **shorter than the item list**. Once the rail becomes the longest thing on the page, the page scrolls for the rail's benefit and the original problem returns in a new form — which is exactly what happened when attachments and a notes block were first added to the rail. Attachments moved below the item list for this reason. Anything new in the rail has to displace something, not extend it.
 
-## 2. The top shell holds no page actions
+## 2. The top shell holds no actions — not even global ones
 
-Product constraint, not a preference — the shell is locked and shared. Everything a page does lives inside the page. This is why the edit screen has a sticky save bar at the bottom of its content column rather than Save in the top bar, and why bulk actions appear as a bar above the list.
+Product constraint, not a preference: the shell is locked and shared. It carries the page title and search, and nothing else. Everything the app can do lives inside a page or in the sidebar.
+
+**The rule has no "global action" exception**, and the temptation to invent one is worth naming, because I did: Scan receipt and New order look like they belong to the app rather than to any page, so a shell button for them reads as reasonable. It isn't. The moment the shell accepts one action on that reasoning, the next candidate is also arguably global, and the constraint stops being checkable. Capture is reached from Home and the sidebar, which is where the app's own navigation already lives.
+
+This is also why the edit screen has a sticky save bar at the bottom of its content column rather than Save in the top bar, and why bulk actions appear as a bar above the list.
+
+**Search is not an action.** It sits in the top bar because it opens the ⌘K palette, which navigates. Nothing it does changes a record.
 
 ## 3. Item editing expands in place; it is not a dialog
 
@@ -335,6 +341,22 @@ One menu component. Take a photo is **absent** where there is no camera, not dis
 ## 47. One row markup, two presentations
 
 Desktop cells carry `.hide-m`, phone lines carry `.m2`, and both stay in the DOM. A separate mobile row component looks cleaner and drifts within a sprint — the phone version stops getting the field the desktop one gained.
+
+## 32. Photos on cards sit on a tinted floor
+
+**The problem.** With real data the card grid read as nine different collages. Product photography is mostly shot on white, so a bled image dissolved into the card and the strip became a hole; a dark shot beside it became a slab. One photo filled half the strip, three filled it unevenly, and no two cards shared a composition.
+
+**The decision.** Every cell of the strip is `#f7f6f2` with 10px padding and the image *contained*, not bled. Cells are separated by a 1px `#eceae4` gutter. The whole strip carries `saturate(0.88)` — the light-theme tone treatment from 17b.
+
+**Why the tint rather than a filter.** The variation is structural, not chromatic. Tinting gives every photo a visible edge whatever its own background, and gives an *empty* cell something to be: a one-photo card shows one image and two quiet panels instead of a lopsided band. The rhythm becomes identical across the grid because the cells are identical, not because the images were softened.
+
+**Rejected: blur.** The photos exist so an order is recognisable at a glance. Blurring removes the only thing they contribute.
+
+**Rejected: opacity fade.** A faded control reads as disabled, and these are not disabled — they are the content.
+
+**Rejected: `object-fit: cover`.** Fills every cell, so no gaps, but it crops the product and a white-background shot is still a white block. It solves the shape problem and leaves the dissolving problem.
+
+**Same family as two rules already in the set.** 12a keeps a 1px border on every thumbnail on dark; 15a gives every overlay on a photo its own shadow. All three say the same thing: the lightness behind user-supplied imagery is never knowable, so anything that must read against it carries its own edge.
 
 ---
 

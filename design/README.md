@@ -499,6 +499,8 @@ Selected rows take the documented `#e7efe8` selected-row tint. It does not compe
 
 **Every overlay on a photo carries a shadow: `0 1px 4px rgba(27, 26, 23, 0.28)`.** The card checkbox in both states, and the paperclip badge. The photos are the user's own, so the lightness behind an overlay is never knowable — a white control vanishes on a pale product shot, and the filled green one vanishes on a dark photo. Same reasoning as 12a keeping a border on every thumbnail: a white scan with no edge is not a control, it is a gap.
 
+**Photos sit on a tinted floor, not on the card.** Each cell of the strip is `#f7f6f2` with 10px padding and the image contained (not bled), cells separated by a 1px `#eceae4` gutter, the whole strip under `saturate(0.88)` per 17b. Product photography is mostly shot on white, so a bled image dissolves into the card and the strip reads as a hole. On the tint every photo has a visible edge whatever its own background, and an empty cell becomes a quiet panel rather than a gap — a one-photo card reads as balanced instead of lopsided.
+
 A **selected card** takes a `2px #1d4d33` border in place of its `1px #e6e4dc` hairline — the card's own edge carries the state, since the `#e7efe8` row tint would fight the photo strip. Apply it on the same box (2px border, 1px less padding) so nothing reflows.
 
 The bulk bar is identical in both views, but in rows it **replaces** the summary line, while in cards there is no toolbar so it is **inserted above the grid** as another child of the same 14px column. The container owns the spacing — the bar carries no margin of its own, per 15a: gaps on the container, never margins on children. That is a consequence of the layout, not a separate decision.
@@ -980,7 +982,7 @@ Also everywhere: navigating away mid-upload prompts with the count of uploads in
 | Item photo | 44px | goods | IdentityMark in the category colour |
 | Item photo, editing | 80px | goods | dashed slot, "Add photo" |
 | Order thumbnail | 34px | goods | first item's photo, else the mark |
-| Card photo strip | 116px | goods | up to 3, then "+N" |
+| Card photo strip | 116px | goods | up to 3 on a `#f7f6f2` floor, then "+N" |
 | Attachment tile | 84px | paper | PDF tag bottom-left |
 | Receipt preview | fluid | paper | page 1, zoomable |
 | Page thumbnail | 72px | paper | one per PDF page |
@@ -988,6 +990,8 @@ Also everywhere: navigating away mid-upload prompts with the count of uploads in
 | Vendor mark | 26px | — | initials, always |
 
 Three things this settles. **Goods and paper are different fields**: item photo and card strip show what was bought, attachment tile and receipt preview show the receipt — they share neither a picker nor a viewer. **Every fallback is an IdentityMark**, never a broken-image glyph and never an empty box, so a hatched block in a mockup always resolves to something. And **a vendor never has a photo** — always initials, no logo fetching.
+
+A fourth thing this settles: **an image is never placed directly on a card or a row**. Every position above renders on a surface — the tinted cell in the card strip, the bordered tile for an attachment, the IdentityMark backdrop behind an item photo. Product photography is mostly shot on white, so an image with no floor under it dissolves into whatever it sits on. Same rule as the border on every dark-theme thumbnail (12a) and the shadow on every overlay (15a): the lightness of user-supplied imagery is never knowable.
 
 An image position that is not on this list should not exist.
 
