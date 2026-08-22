@@ -588,22 +588,26 @@
     <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="16d">16d</span>
     <span style="font-size: 20px; font-weight: 600">The row overflow menu</span>
   </div>
-  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every data row in the app ends in the same 88px actions cell: one or two visible buttons for what is used constantly, and a ⋯ holding the rest. What goes in which half is a rule, not a judgement per screen.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">No visible per-row buttons, deliberately.</b> A pencil on every row is a third way to reach somewhere the row click and the menu both already go, and it costs 48px of a column budget 15a keeps tight. The row's own hover fill and pointer are the affordance; the ⋮ is the overflow.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The item line in 1b is the exception, for a different reason.</b> That row expands in place instead of navigating, so there is no address to fall back on and no menu — the pencil is the only signal it is editable. A row that navigates never needs one.</div>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every data row in the app ends in the same <b>40px</b> actions cell, holding the ⋮ and nothing else. What the menu contains is a rule, not a judgement per screen.</div>
 
   <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
 
     <div style="width: 520px; display: flex; flex-direction: column; gap: 14px">
       <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: visible; padding-bottom: 240px">
-        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 88px; gap: 12px; background: #f2f1eb; padding: 9px 14px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 40px; gap: 12px; background: #f2f1eb; padding: 9px 14px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
           <div>VENDOR</div><div>DATE</div><div style="text-align: right">AMOUNT</div><div></div>
         </div>
-        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 88px; gap: 12px; padding: 11px 14px; font-size: 13px; align-items: center; border-top: 1px solid #f0efe9">
+        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 40px; gap: 12px; padding: 11px 14px; font-size: 13px; align-items: center; border-top: 1px solid #f0efe9">
           <div style="font-weight: 600">Hay</div><div style="color: #57564f">9 Aug</div><div style="text-align: right; font-weight: 600">7.240,00</div><div></div>
         </div>
-        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 88px; gap: 12px; padding: 11px 14px; font-size: 13px; align-items: center; border-top: 1px solid #f0efe9; background: #f0efe9; position: relative">
+        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 40px; gap: 12px; padding: 11px 14px; font-size: 13px; align-items: center; border-top: 1px solid #f0efe9; background: #f0efe9; position: relative">
           <div style="font-weight: 600">Indbo Møbler</div><div style="color: #57564f">12 Aug</div><div style="text-align: right; font-weight: 600">3.980,00</div>
           <div style="display: flex; gap: 4px; justify-content: flex-end">
-            <div style="width: 30px; height: 30px; border-radius: 8px; background: #fff; border: 1px solid #e6e4dc; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.8V9.6l7-7 3.2 3.2-7 7z"></path></svg></div>
             <div style="width: 30px; height: 30px; border-radius: 8px; background: #1b1a17; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="#fff"><circle cx="8" cy="3.4" r="1.35"></circle><circle cx="8" cy="8" r="1.35"></circle><circle cx="8" cy="12.6" r="1.35"></circle></svg></div>
           </div>
           <div style="position: absolute; right: 14px; top: 44px; width: 226px; background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27, 26, 23, 0.08); padding: 6px; z-index: 2">
@@ -628,7 +632,7 @@
             </div>
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 88px; gap: 12px; padding: 11px 14px; font-size: 13px; align-items: center; border-top: 1px solid #f0efe9">
+        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 40px; gap: 12px; padding: 11px 14px; font-size: 13px; align-items: center; border-top: 1px solid #f0efe9">
           <div style="font-weight: 600">Muuto</div><div style="color: #57564f">1 Aug</div><div style="text-align: right; font-weight: 600">5.120,00</div><div></div>
         </div>
       </div>
@@ -646,7 +650,7 @@
 
       <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
         <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">BEHAVIOUR</div>
-        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The cluster is 88px and always occupies space</b>, whether or not the row is hovered. Buttons fade in; the column does not appear, or every row shifts on hover.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The cell is 40px and always occupies space</b>, whether or not the row is hovered. The ⋮ fades in; the column does not appear, or every row shifts on hover.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">On touch the buttons are permanently visible</b> at 44px, as with the pencil on item rows.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Opening the menu holds the row in its hover state</b> and inverts the ⋯ button, so it is clear which row the menu belongs to once the pointer has left.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The panel is 226px, radius 10px</b>, shadow <b>0 6px 16px rgba(27,26,23,0.08)</b>, anchored to the button's right edge and flipping above when there is no room below.</div>
@@ -852,7 +856,10 @@
 
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
-    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">What must not trigger the row action.</b> The checkbox, the ⋮, every icon button in the actions cluster, the drag handle, and any link or chip inside the row — all stop propagation. Getting this wrong means every attempt to tick a checkbox navigates away, which is the most common bug in a clickable table.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A clickable row carries <span style="white-space: nowrap">cursor: pointer</span>.</b> On the row itself, not only on the link inside it. The hover fill is a promise that the row is clickable, and a fill without a pointer half-makes it — the hover state then reads as decoration and people go hunting for the real target. This applies to all three kinds, including the facet row and the item line.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The row is the touch target, not the control inside it.</b> A facet checkbox is 19px and an item-line pencil is 28px because they are glyphs; the row around them takes the full <b>44px</b> on touch, with the glyph centred. Sizing the glyph up instead makes the row look like a form and still leaves most of its width dead.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Selection is <b>#e7efe8</b>, hover is <b>#f0efe9</b>, and neither is <b>#f7f6f2</b>.</b> The quiet grey means inert. A selected row tinted with it is indistinguishable from a disabled one, and from its own hover state — which is what makes a list-and-panel layout feel like nothing happened when you click.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">What must not trigger the row action.</b> The checkbox, the ⋮, every icon button in the actions cluster, the drag handle, and any link or chip inside the row — all stop propagation. Getting this wrong means every attempt to tick a checkbox navigates away, which is the most common bug in a clickable table. It matters most where a row is both selectable and navigable: the order row's checkbox selects, and everything else in it navigates.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Where the click navigates, the row is an anchor.</b> An <b>&lt;a&gt;</b> wrapping the row content, or a real <b>href</b> on it — not an onClick with a router push. That is what makes ⌘-click, middle-click, "open in new tab" and the status bar preview work, and all three are free if the element is an anchor and impossible if it is not.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Where it selects, the row is a button.</b> No href, because there is no address for "vendor 4 is showing in the panel" — and offering ⌘-click on something that cannot open in a tab is worse than not offering it.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Keyboard is the same everywhere.</b> Rows are in the tab order, Enter does what a click does, Space toggles the checkbox where the row has one, and the focus ring is the standard 3px <b>rgba(29,77,51,0.12)</b> on the row rather than on something inside it.</div>

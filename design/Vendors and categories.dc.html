@@ -26,6 +26,11 @@
     <span style="font-size: 20px; font-weight: 600">Vendors</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">A vendor is mostly read-only: it earns its numbers from orders. So the list leads with spend and order count, and the panel on the right is the selected vendor — contact details you can edit, its recent orders, and merge for the duplicates that scanning creates.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55">The row menu is drawn open above. <b style="color: #3d3c36">Delete is disabled while the vendor has orders</b>, with the count beside it saying why — merge or archive are the ways out. Enabling it and failing on click teaches nothing; the count is the explanation.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Archive, not delete, is the normal end of a vendor's life.</b> Archived vendors leave the list and the facets but keep their orders, which is why the Active/Archived toggle exists in the toolbar.</div>
+  </div>
 
   <div style="width: 1400px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden">
     <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e6e4dc">
@@ -71,7 +76,7 @@
             <div></div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 2fr 88px 150px 130px 110px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; background: #f7f6f2">
+          <div style="display: grid; grid-template-columns: 2fr 88px 150px 130px 110px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; background: #e7efe8; cursor: pointer; position: relative">
             <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
               <div style="width: 34px; height: 34px; border-radius: 9px; background: #e7efe8; color: #1d4d33; display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none">IM</div>
               <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
@@ -85,6 +90,36 @@
             <div style="font-size: 13px; color: #3d3c36">08/08/2026</div>
             <div style="display: grid; place-items: center; color: #57564f">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg>
+            </div>
+            <div style="position: absolute; right: 10px; top: 46px; width: 232px; background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27, 26, 23, 0.08); padding: 6px; z-index: 3">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; background: #f0efe9">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.8V9.6l7-7 3.2 3.2-7 7z"></path></svg>
+                <span style="font-size: 13px">Edit details</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+                <span style="font-size: 13px">Orders from this vendor</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.6V9.4"></path><path d="M6.4 12.6V5.6"></path><path d="M10 12.6V7.8"></path><path d="M13.4 12.6V3.6"></path></svg>
+                <span style="font-size: 13px">See in Statistics</span>
+              </div>
+              <div style="height: 1px; background: #f0efe9; margin: 5px 8px"></div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 2.8v3.4a3 3 0 0 0 3 3h3.8"></path><path d="M4.6 13.2V9.8"></path><path d="M9.6 6.8l2.6 2.4-2.6 2.4"></path></svg>
+                <span style="font-size: 13px">Merge into…</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 4.4h10.8v2.2H2.6z"></path><path d="M3.6 6.6v6.2h8.8V6.6"></path><path d="M6.4 9h3.2"></path></svg>
+                <span style="font-size: 13px">Archive</span>
+              </div>
+              <div style="height: 1px; background: #f0efe9; margin: 5px 8px"></div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; opacity: 0.45">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5h9.2"></path><path d="M4.6 5v8h6.8V5"></path><path d="M6.4 3h3.2"></path></svg>
+                <span style="font-size: 13px; color: #8a4a41">Delete</span>
+                <div style="flex: 1"></div>
+                <span style="font-size: 11px; color: #8b8a82; white-space: nowrap">38 orders</span>
+              </div>
             </div>
           </div>
 
@@ -314,6 +349,11 @@
     <span style="font-size: 20px; font-weight: 600">Categories</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">Categories carry the monthly limit, so the list is the budget overview: limit, this month against it, and the twelve-month average that tells you whether the limit is realistic. The panel is the category form — name, icon, colour and the limit, which is what Statistics reads. Icon and colour travel together: the icon is picked from a fixed set and rendered in the category colour, so chips, facets and charts stay recognisable.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55">The row menu is drawn open above. <b style="color: #3d3c36">Change monthly limit is a shortcut into the panel field</b>, not a separate dialog — it selects the row and focuses the limit input, because a dialog for one number that already has a home is a second place to maintain.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Delete is disabled while the category is in use.</b> A category cannot be archived — unlike a vendor, it is a label the user invented, so the way out is reassigning its orders.</div>
+  </div>
 
   <div style="width: 1400px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden">
     <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e6e4dc">
@@ -356,7 +396,7 @@
             <div></div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1.6fr 140px 1fr 140px 130px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; background: #f7f6f2">
+          <div style="display: grid; grid-template-columns: 1.6fr 140px 1fr 140px 130px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; background: #e7efe8; cursor: pointer; position: relative">
             <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
               <div style="width: 26px; height: 26px; border-radius: 8px; background: #1d4d33; display: grid; place-items: center; color: #fff; flex: none"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h3l-.6 2.4A4 4 0 0 1 11.5 9c0 2.5-1.6 4.5-3.5 4.5S4.5 11.5 4.5 9a4 4 0 0 1 2.6-4.1z"></path></svg></div>
               <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Decor</div>
@@ -374,6 +414,31 @@
             <div style="font-size: 13px; text-align: right">64</div>
             <div style="display: grid; place-items: center; color: #57564f">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg>
+            </div>
+            <div style="position: absolute; right: 10px; top: 46px; width: 240px; background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27, 26, 23, 0.08); padding: 6px; z-index: 3">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; background: #f0efe9">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.8V9.6l7-7 3.2 3.2-7 7z"></path></svg>
+                <span style="font-size: 13px">Edit category</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 11.4h10.8"></path><path d="M2.6 11.4a5.4 5.4 0 0 1 10.8 0"></path><path d="M8 11.4L10.6 6.8"></path></svg>
+                <span style="font-size: 13px">Change monthly limit</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+                <span style="font-size: 13px">Orders in this category</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.6V9.4"></path><path d="M6.4 12.6V5.6"></path><path d="M10 12.6V7.8"></path><path d="M13.4 12.6V3.6"></path></svg>
+                <span style="font-size: 13px">See in Statistics</span>
+              </div>
+              <div style="height: 1px; background: #f0efe9; margin: 5px 8px"></div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; opacity: 0.45">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5h9.2"></path><path d="M4.6 5v8h6.8V5"></path><path d="M6.4 3h3.2"></path></svg>
+                <span style="font-size: 13px; color: #8a4a41">Delete</span>
+                <div style="flex: 1"></div>
+                <span style="font-size: 11px; color: #8b8a82; white-space: nowrap">64 orders</span>
+              </div>
             </div>
           </div>
 
@@ -748,6 +813,7 @@
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">A receipt rarely prints the name you call a vendor. "INDBO MØBLER A/S", "Indbo Møbler ApS" and a webshop's "indbo.dk" are one vendor, and the aliases are what let a scan land on it without asking. They are also where a merged vendor's old names go, so nothing stops matching after a merge.</div>
 
+
   <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
 
     <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
@@ -849,6 +915,138 @@
     </div>
   </div>
 </section>
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="5e">5e</span>
+    <span style="font-size: 20px; font-weight: 600">Merging two vendors</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Where "Merge into…" from the row menu goes. Scanning creates near-duplicates — "INDBO MØBLER A/S" beside "Indbo Møbler" — and merging is how they become one vendor without losing either name's history. Two steps, and the second one is a confirmation that states what moves.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">1 — CHOOSE WHAT IT MERGES INTO</div>
+      <div style="width: 360px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; box-shadow: 0 12px 28px rgba(27, 26, 23, 0.16); padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="font-size: 16px; font-weight: 600">Merge Indbo Møbler A/S into…</div>
+          <div style="font-size: 13px; color: #57564f; line-height: 1.5">Its 4 orders move to the vendor you pick. This one is then deleted.</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+          <span style="font-size: 13px; color: #b3b1a9">Find a vendor…</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63; padding: 0 10px 4px">LOOKS LIKE THE SAME VENDOR</div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 8px; background: #f0efe9">
+              <span style="width: 28px; height: 28px; border-radius: 8px; background: #e7efe8; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">IM</span>
+              <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+                <div style="font-size: 11px; color: #8b8a82">38 orders · indbo.dk</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 8px">
+              <span style="width: 28px; height: 28px; border-radius: 8px; background: #e7efe8; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">IB</span>
+              <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Bolig</div>
+                <div style="font-size: 11px; color: #8b8a82">2 orders · no website</div>
+              </div>
+            </div>
+          <div style="height: 1px; background: #f0efe9; margin: 6px 8px"></div>
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63; padding: 4px 10px">ALL VENDORS</div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 8px">
+              <span style="width: 28px; height: 28px; border-radius: 8px; background: #e7efe8; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">H</span>
+              <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
+                <div style="font-size: 11px; color: #8b8a82">27 orders · hay.dk</div>
+              </div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #dedcd4; padding-top: 13px">
+          <div style="flex: 1"></div>
+          <div style="font-size: 13px; font-weight: 600; color: #57564f; padding: 8px 12px">Cancel</div>
+          <div style="background: #1d4d33; color: #fff; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 16px; display: flex; align-items: center; font-size: 13px; font-weight: 600">Continue</div>
+        </div>
+      </div>
+      <div style="width: 360px; font-size: 11px; color: #8b8a82; line-height: 1.5">Suggestions come first, under a heading that says why they are there. The order count on every row is the thing that identifies which of two similar names is the real one.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">2 — WHAT WILL HAPPEN</div>
+      <div style="width: 470px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; box-shadow: 0 12px 28px rgba(27, 26, 23, 0.16); padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="font-size: 16px; font-weight: 600">Merge into Indbo Møbler?</div>
+          <div style="font-size: 13px; color: #57564f; line-height: 1.5">4 orders move across. Indbo Møbler A/S is deleted and cannot be restored.</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 116px 1fr 1fr; gap: 12px">
+          <div></div>
+          <div style="font-size: 11px; letter-spacing: 0.1em; color: #1d4d33; font-weight: 600">KEPT</div>
+          <div style="font-size: 11px; letter-spacing: 0.1em; color: #8b8a82">DISCARDED</div>
+        </div>
+        <div style="display: flex; flex-direction: column">
+            <div style="display: grid; grid-template-columns: 116px 1fr 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid #f0efe9; align-items: start">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Name</div>
+              <div style="font-size: 13px; display: flex; align-items: baseline; gap: 7px">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 3px"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+                <span>Indbo Møbler</span>
+              </div>
+              <div style="font-size: 13px; color: #b3b1a9; text-decoration: line-through">Indbo Møbler A/S</div>
+            </div>
+            <div style="font-size: 11px; color: #8b8a82; padding: 0 0 4px 128px; line-height: 1.5">The discarded name is added as an alias, so future scans still match it.</div>
+            <div style="display: grid; grid-template-columns: 116px 1fr 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid #f0efe9; align-items: start">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">VAT number</div>
+              <div style="font-size: 13px; display: flex; align-items: baseline; gap: 7px">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 3px"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+                <span>12345678</span>
+              </div>
+              <div style="font-size: 13px; color: #b3b1a9; text-decoration: line-through">12345678</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 116px 1fr 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid #f0efe9; align-items: start">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Website</div>
+              <div style="font-size: 13px; display: flex; align-items: baseline; gap: 7px">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 3px"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+                <span>indbo.dk</span>
+              </div>
+              <div style="font-size: 13px; color: #b3b1a9; text-decoration: line-through">—</div>
+            </div>
+            <div style="font-size: 11px; color: #8b8a82; padding: 0 0 4px 128px; line-height: 1.5">Empty on one side, so the other wins without a choice.</div>
+            <div style="display: grid; grid-template-columns: 116px 1fr 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid #f0efe9; align-items: start">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Address</div>
+              <div style="font-size: 13px; display: flex; align-items: baseline; gap: 7px">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 3px"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+                <span>Nørregade 4, Aarhus</span>
+              </div>
+              <div style="font-size: 13px; color: #b3b1a9; text-decoration: line-through">Nørregade 4, 8000 Aarhus C</div>
+            </div>
+            <div style="font-size: 11px; color: #8b8a82; padding: 0 0 4px 128px; line-height: 1.5">Both present and different. The target keeps its own.</div>
+            <div style="display: grid; grid-template-columns: 116px 1fr 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid #f0efe9; align-items: start">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Orders</div>
+              <div style="font-size: 13px; display: flex; align-items: baseline; gap: 7px">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 3px"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+                <span>42 after merge</span>
+              </div>
+              <div style="font-size: 13px; color: #b3b1a9; text-decoration: line-through">4 moving</div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #dedcd4; padding-top: 13px">
+          <div style="font-size: 12px; color: #8b8a82">Cannot be undone</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 13px; font-weight: 600; color: #57564f; padding: 8px 12px">Back</div>
+          <div style="background: #1d4d33; color: #fff; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 16px; display: flex; align-items: center; font-size: 13px; font-weight: 600">Merge 4 orders</div>
+        </div>
+      </div>
+      <div style="width: 470px; font-size: 11px; color: #8b8a82; line-height: 1.5">Field-by-field, so nothing is lost silently. The button names the consequence rather than saying Confirm.</div>
+    </div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The target always wins a contested field.</b> No per-field radio buttons: a merge with five choices in it is a form, and the user picked a direction already by choosing what to merge *into*. The comparison exists to show what that direction costs, not to negotiate it.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The discarded name becomes an alias</b> (5d), which is what stops the next scan recreating the vendor that was just merged away. Aliases from the source come across too.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Dialog, not a toast with Undo</b> — this is one of the few genuinely irreversible actions in the app, and step 2 is the reason it is safe to be irreversible. Write an audit record anyway.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Suggestion threshold</b> is normalised-name similarity above 0.85, or an identical VAT number — the same rule as the duplicate list in 5c. Nothing is ever merged automatically.</div>
+  </div>
+</section>
+
 
 </x-dc>
 </body>

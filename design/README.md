@@ -431,7 +431,7 @@ File: `Order list.dc.html` · Code: `pages/Orders.jsx`, `pages/AllOrders.jsx`, `
 
 **Above the list:** a search field (full width of the list column, radius `9px`, leading search glyph, placeholder "Search vendor, item, reference or note"), then the active filter chips row: pills radius `999px`, `#e7efe8` fill, `#1d4d33` text, 12px, each with an × ; plus "Clear all" as a text button. Right of that: result count ("128 orders · 486.320 kr."), sort select, and the rows/cards toggle — a segmented control, radius `9px`, `1px solid #dedcd4`, active segment `#1d4d33` on white.
 
-**Rows view (2b):** header strip `#f2f1eb`, 11px uppercase labels. Column order and alignment, left to right: checkbox `36px`; **vendor `200px` fixed**; date `110px`; items (count) `72px`; category (chip) `160px`; status (pill) `120px`; amount right-aligned `120px`; actions `88px`. Row padding `12px 14px`, hairline `#e6e4dc` between rows, hover `#f0efe9`.
+**Rows view (2b):** header strip `#f2f1eb`, 11px uppercase labels. Column order and alignment, left to right: checkbox `36px`; **vendor `200px` fixed** at `2.1fr`; date `104px`; categories `1.3fr`; items `78px`; status `118px`; amount right-aligned `150px`; actions `40px`. Row padding `12px 14px`, hairline `#e6e4dc` between rows, hover `#f0efe9`.
 
 The fixed vendor column is a deliberate correction: an earlier version placed the vendor inside a variable-height stack with the item preview, so it landed at a different vertical position on every row. Vendor is first, one line, truncated with ellipsis, and always at the same x and y within its row. Any item preview text sits on a second line under it and never displaces it.
 
@@ -932,7 +932,7 @@ Two places horizontal scroll is allowed, both named in the table: the import dry
 
 ### 16d / 16e — Row menus, and hover
 
-**16d — the row overflow menu.** Every data row ends in the same **88px** actions cell: one visible button for what the row is for (Edit on an order, Open on a vendor), and a ⋯ holding the rest. Two visible buttons at most — a third is a menu that has escaped.
+**16d — the row overflow menu.** Every data row ends in the same **40px** actions cell, holding the ⋮ and nothing else. **No visible per-row buttons, deliberately** — a pencil on every row is a third way to reach somewhere the row click and the menu both already go, and it costs column width that 15a keeps tight. The row's own hover fill and pointer are the affordance. The one exception is the **item line in 1b**, which expands in place rather than navigating: no address to fall back on and no menu, so the pencil is the only signal it is editable.
 
 Menu order is fixed: constructive entries, a divider, then the destructive one last and alone. **Destructive is never a visible row button** — Delete 30px from Edit is one slip; behind a menu it takes two deliberate movements and still opens a confirm dialog. Every entry is reachable from the record's own page too: a menu is a shortcut, not the only route. One level of submenu, for Set status only, because that is a value list rather than a set of actions.
 
@@ -971,6 +971,12 @@ On dark, hover lightens rather than darkens (row `#2a2621`, icon button `#38332c
 | Facet row (2a) | Nowhere — it is a control | Toggles the checkbox; whole row is the 44px target |
 
 **Editing is always a second, deliberate action** — the pencil, the menu, or an Edit button. A list where clicking opens a form cannot be browsed without risking a change.
+
+**A clickable row carries `cursor: pointer` on the row itself**, not only on the link inside it. The hover fill is a promise the row is clickable, and a fill without a pointer half-makes it — the hover then reads as decoration and people hunt for the real target. All three kinds, including the facet row and the item line.
+
+**The row is the touch target, not the control inside it.** A facet checkbox is 19px and an item-line pencil 28px because they are glyphs; the row around them takes the full **44px** on touch with the glyph centred. Sizing the glyph up instead makes the row look like a form and still leaves most of its width dead.
+
+**Selection is `#e7efe8`, hover is `#f0efe9`, and neither is `#f7f6f2`.** The quiet grey means inert — a selected row tinted with it is indistinguishable from a disabled one and from its own hover, which is what makes a list-and-panel layout feel like nothing happened on click.
 
 **Where the click navigates, the row is an anchor** — an `<a>` with a real `href`, not an `onClick` with a router push. That is what makes ⌘-click, middle-click, open-in-new-tab and the status-bar preview work; all four are free with an anchor and impossible without one. **Where it selects, the row is a button** with no href, because there is no address for "vendor 4 is showing in the panel".
 
