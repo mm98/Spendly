@@ -83,6 +83,60 @@ finished step 3.
       (6a–6f) as shared components before they get reinvented per page.
    f. Scan flow (3a, 3b), library (5a–5c), statistics (4a), home (10a).
 
+<b>The contract</b>
+   <b>This design set is the only source of truth for the UI.</b> Where it
+   specifies something — a value, a state, a piece of copy, an ordering,
+   a behaviour — implement exactly that. Do not approximate, round,
+   improve or substitute. If two files disagree, ask; do not pick one.
+   <b>Reproduce the markup, as components.</b> The structure, element order,
+   nesting, spacing values, colours and text in each screen are the
+   specification. Lift them, then factor the repeated parts into the
+   components named in 14d — same output, better structure. Do not
+   redraw a screen from a description of it.
+   <b>Where the design states how something works, follow it.</b> Do not
+   propose an alternative, ask whether it is intended, or flag it as a
+   possible improvement. The reasoning is already recorded in
+   DECISIONS.md, including what was rejected and why — read the entry
+   before assuming a rule is an oversight. Rules that look like
+   mistakes and are not: a limit never blocks a save, reorder needs
+   both drag and buttons, thirds appear exactly once, destructive
+   buttons exist only in dialogs, the top bar takes no actions.
+   <b>If something is not specified, stop and ask.</b> A missing state, an
+   unnamed error case, a field with no defined behaviour: these are
+   gaps in the design, not invitations to invent. BEHAVIOUR.md ends
+   with open questions for exactly this reason — add to that list
+   rather than guessing. Ask about silence, never about instructions.
+   <b>The data is fake, the shapes are real.</b> Every vendor, amount, date
+   and category in these files is an example. Wire the real data to the
+   same shapes — do not hardcode "Indbo Møbler", 7.635,00 or 41 orders,
+   and do not treat the sample counts as limits.
+   <b>Copy is final.</b> Button labels, empty-state sentences, dialog titles
+   and hint text are written deliberately, in Danish-market English.
+   Use them verbatim. Do not reword, shorten, or add exclamation marks.
+
+<b>How to build one screen — do this every time</b>
+   Working from the README's description of a screen instead of the
+   screen itself is what produces approximations. The description
+   explains the markup; it is not a substitute for reading it.
+
+   1. Open the .dc.html file and find the section whose badge matches
+      the id. Read the markup for that section top to bottom before
+      writing anything. Every value you need is an inline style there.
+   2. Transcribe, do not estimate. padding: 10px 12px is 10px 12px.
+      #1d4d33 is #1d4d33. If you are about to write a number that is
+      not in the file, stop — you are guessing.
+   3. Copy text is a string literal from the file. Select it, don't
+      retype it from memory.
+   4. Factor into components only after the markup renders correctly.
+      Get it identical first, then extract.
+   5. Diff your result against the screenshot in screenshots/ at the
+      same width. Not "does it look similar" — walk the elements in
+      order and check each one is present, in that order.
+
+   Say which screen id you are implementing before you start it, and
+   list anything the file did not answer. An empty list on a screen
+   you have not read is the failure mode this is written to prevent.
+
 <b>Ground rules</b>
    • The mockups are design references in HTML. Recreate them in the existing
      codebase using its patterns — do not copy the files in. <i>support.js</i> is a
