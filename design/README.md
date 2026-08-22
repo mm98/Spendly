@@ -356,6 +356,10 @@ Arrows traverse all groups as one flat list, skipping headers — same rule as t
 
 **9e — the ORDERS group is the saved views.** The items under ORDERS in the sidebar and the Views card in the facet rail are **one list rendered twice**. Do not give the sidebar its own hardcoded items: "Awaiting delivery" and "Missing receipt" are saved views shipped as defaults for a new account, not navigation the code knows about.
 
+**Every default view must be reproducible from the facets.** `Awaiting delivery` is Status = Ordered; `Missing receipt` is Receipt = Missing. The **Receipt** facet (Attached / Missing) exists for that second one — without it the view could not be rebuilt by a user working the rail, which would make it a hardcoded list pretending to be a saved view, unrecreatable once deleted.
+
+**A newly saved view inserts at position 2** — directly under `All orders`, at the top of the saved list — so the save is visible immediately in both surfaces. Appending to the end would place it in the overflow on any account that already has four views, and saving would appear to do nothing. It stays where it lands until the user drags it in the rail; nothing re-sorts on its own.
+
 Division of labour: the **sidebar is reach** — select and see a live count, from any screen, no menus and no reordering. The **rail is management** — Save current, rename, delete, make default, drag to reorder, and the `edited` chip. The sidebar shows the **first four, then a count** ("2 more in Orders"), because it has a pinned bottom zone and cannot grow without limit; which four is controlled by dragging in the rail, with no separate pin flag. `All orders` is always first and always shown in both, is not a saved view, and has no menu.
 
 Selecting from the sidebar navigates to the order list with that view's URL applied — arriving that way, the rail shows the same row selected. There is no state where the two disagree about which view is active. Counts come from one request and render identically in both.
@@ -459,7 +463,7 @@ File: `Order list.dc.html` · Code: `pages/Orders.jsx`, `pages/AllOrders.jsx`, `
 
 **Layout:** facet rail `260px` on the left of the content area, list fills the rest, `24px` gap.
 
-**Facet rail:** one white card per facet group — Status, Category, Vendor, Date, Amount. Group label 11px uppercase `0.12em`. Each facet row is a checkbox, a 13px label, and a right-aligned count 12px `#8b8a82`. Groups with many values show the top 6 plus "Show all (24)". Counts update with the other facets applied.
+**Facet rail:** one white card per facet group — Date, Status, Receipt, Vendor, Categories, Amount. Group label 11px uppercase `0.12em`. Each facet row is a checkbox, a 13px label, and a right-aligned count 12px `#8b8a82`. Groups with many values show the top 6 plus "Show all (24)". Counts update with the other facets applied.
 
 **Date presets are calendar periods, stored as tokens.** The Date facet offers **This week · This month · This quarter · This year · Custom…**. The four named periods re-evaluate on every load, so a saved view called "This quarter" shows Q3 in September and Q4 in October. Only `Custom…` stores two absolute dates.
 

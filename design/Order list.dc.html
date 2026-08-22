@@ -337,6 +337,23 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Receipt</div>
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <div style="display: flex; align-items: center; gap: 9px; padding: 5px 0">
+                <div style="width: 16px; height: 16px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff; flex: none"></div>
+                <div style="font-size: 13px">Attached</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 12px; color: #8b8a82">236</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 9px; padding: 5px 0">
+                <div style="width: 16px; height: 16px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff; flex: none"></div>
+                <div style="font-size: 13px">Missing</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 12px; color: #8b8a82">12</div>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
             <div style="display: flex; align-items: center">
               <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor</div>
               <div style="flex: 1"></div>
@@ -1599,6 +1616,8 @@
 
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every default view must be reproducible from the facets.</b> The two that ship with a new account are ordinary saved views, not built-in navigation: <b>Awaiting delivery</b> is Status = Ordered, <b>Missing receipt</b> is Receipt = Missing. If a default cannot be rebuilt by a user working the rail, it is a hardcoded list pretending to be a view — and a user who deletes it has no way to recreate it.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A saved view lands at position 2</b> — directly under All orders, at the top of the saved list, in both the rail and the sidebar. Appending to the end would drop it into the sidebar's overflow on any account that already has four views, so saving would appear to do nothing. It stays where it lands until dragged; nothing re-sorts on its own. <a href="Navigation shell.dc.html#9e">9e</a> draws the result in both surfaces.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A view stores the URL, not a result set.</b> Facets, search text, sort and view mode — the same state the URL already carries, which is why a view is also just a link. Selecting one replaces the URL; nothing is cached and the counts are live.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Naming is inline, in the position the row will occupy.</b> The field takes focus with the count already showing, so you can see how many orders you are naming. Enter saves, Esc cancels, and the header action becomes Cancel while the field is open. Blur cancels — an empty name is never saved.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The default name is empty, not generated.</b> A suggested "Hay · Ordered · this month" would be accepted unread, and a rail full of filter strings is no easier to scan than the filters themselves. The active filters are shown as a line below the field instead, so the name can be typed with them in view.</div>
