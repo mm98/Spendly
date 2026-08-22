@@ -459,6 +459,10 @@ File: `Order list.dc.html` · Code: `pages/Orders.jsx`, `pages/AllOrders.jsx`, `
 
 **Facet rail:** one white card per facet group — Status, Category, Vendor, Date, Amount. Group label 11px uppercase `0.12em`. Each facet row is a checkbox, a 13px label, and a right-aligned count 12px `#8b8a82`. Groups with many values show the top 6 plus "Show all (24)". Counts update with the other facets applied.
 
+**Date presets are calendar periods, stored as tokens.** The Date facet offers **This week · This month · This quarter · This year · Custom…**. The four named periods re-evaluate on every load, so a saved view called "This quarter" shows Q3 in September and Q4 in October. Only `Custom…` stores two absolute dates.
+
+**Never resolve a preset to dates at save time.** A view that stored `2026-07-01 → 2026-09-30` when the user picked "This quarter" freezes to that quarter permanently and gives no sign it has stopped rolling. Store `{period: "quarter"}` and resolve at query time. Week starts per the Settings value (Monday by default); quarters are calendar quarters.
+
 **Above the list:** a search field (full width of the list column, radius `9px`, leading search glyph, placeholder "Search vendor, item, reference or note"), then the active filter chips row: pills radius `999px`, `#e7efe8` fill, `#1d4d33` text, 12px, each with an × ; plus "Clear all" as a text button. Right of that: result count ("128 orders · 486.320 kr."), sort select, and the rows/cards toggle — a segmented control, radius `9px`, `1px solid #dedcd4`, active segment `#1d4d33` on white.
 
 **2i draws the row table at every width** — 1280, 1040, 880 and the 420px card, each at its own width so nothing has to be inferred from a rule.

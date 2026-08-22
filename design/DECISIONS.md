@@ -358,6 +358,16 @@ Desktop cells carry `.hide-m`, phone lines carry `.m2`, and both stay in the DOM
 
 **Same family as two rules already in the set.** 12a keeps a 1px border on every thumbnail on dark; 15a gives every overlay on a photo its own shadow. All three say the same thing: the lightness behind user-supplied imagery is never knowable, so anything that must read against it carries its own edge.
 
+## 32. A date preset is a period, not a pair of dates
+
+**The decision.** The four named presets — this week, month, quarter, year — are stored as a period token and resolved when the query runs. Only `Custom…` stores absolute dates.
+
+**Why.** Saved views are the reason. A view named "This quarter" that stored `2026-07-01 → 2026-09-30` at the moment it was saved is silently wrong from October onwards: it still says "This quarter", still appears in the sidebar with a count, and the count is for last quarter. Nothing in the interface can show that, because the view's name and its stored value no longer agree and only one of them is visible.
+
+**Rejected: resolving at save time and re-resolving on edit.** It works until someone saves a view and never opens it again, which is the normal case for a view.
+
+**Consequence.** "30 days" was removed. A rolling window is a genuinely different concept from a calendar period, nothing in the design asked for one, and offering both invites the question of which a saved view stores.
+
 ---
 
 ## Where the design is intentionally silent

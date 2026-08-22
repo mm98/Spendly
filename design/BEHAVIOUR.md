@@ -12,6 +12,10 @@ Conventions: amounts are DKK, formatted `1.234,50 kr.` (period thousands, comma 
 
 **Facet counts** are computed with **all other facet groups applied but the group's own selections ignored**. Selecting "Received" in Status leaves the other status counts showing what you would get if you switched to them, rather than zero. This is the behaviour users expect and the one most often implemented wrong.
 
+**Date presets store a token, never resolved dates.** The Date facet offers `week`, `month`, `quarter`, `year` and `custom`. The four named periods are stored as `{period: "quarter"}` and resolved at query time, so they re-evaluate on every load — a saved view called "This quarter" shows Q3 in September and Q4 in October. Only `custom` stores `{from, to}` as absolute dates.
+
+Resolving a preset at save time freezes the view to that period permanently, with nothing in the UI indicating it has stopped rolling. Week boundaries follow the Settings week-start value (Monday by default); quarters are calendar quarters; all boundaries are inclusive and evaluated in the user's timezone.
+
 **Facets within a group are ORed; groups are ANDed.** Status(Received, Draft) AND Category(Decor).
 
 **Facet ordering** is by count descending, except Status, which is in workflow order (fixed). Groups show the top 6 with "Show all (N)"; expanded, they scroll at `240px` with a filter field if the group has more than 20 values.
