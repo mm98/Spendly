@@ -25,7 +25,7 @@
     <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="2a">2a</span>
     <span style="font-size: 20px; font-weight: 600">Bulk actions — set status, add category</span>
   </div>
-  <div style="font-size: 14px; color: #57564f; max-width: 900px">Both open as popovers from the bulk bar, so the selection stays visible behind them. Set status replaces a single value, so it is a radio list. Add category is additive and multi-select, with a mixed state for categories only some of the selected orders carry. Nothing is applied until Apply.</div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px">The bulk bar is <b>not a permanent toolbar</b> — it replaces the summary line in 2b, in the same place and at the same height, the moment the first row is ticked, and reverts to the summary when the last one is cleared. Nothing shifts. Both menus open as popovers from that bar, so the selection stays visible behind them. Set status replaces a single value, so it is a radio list. Add category is additive and multi-select, with a mixed state for categories only some of the selected orders carry. Nothing is applied until Apply.</div>
 
   <div style="display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start">
 
@@ -201,11 +201,14 @@
 
   <div style="width: 1400px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden">
     <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e6e4dc">
-      <div style="font-size: 16px; font-weight: 600">Orders</div>
-      <div style="flex: 1"></div>
-      <div style="font-size: 11px; letter-spacing: 0.08em; color: #6b6a63">SCAN RECEIPT</div>
-      <div style="font-size: 11px; letter-spacing: 0.08em; color: #6b6a63">NEW ORDER</div>
-    </div>
+        <div style="width: 420px; flex: none; display: flex; align-items: center; gap: 9px; border: 1px solid #dedcd4; border-radius: 10px; padding: 8px 11px; color: #8b8a82">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+          <span style="font-size: 13px">Search orders, vendors, items…</span>
+          <div style="flex: 1"></div>
+          <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #e6e4dc; border-radius: 5px; padding: 2px 6px">⌘K</span>
+        </div>
+        <div style="flex: 1"></div>
+      </div>
 
     <div style="display: grid; grid-template-columns: 268px 1fr; gap: 18px; padding: 18px; align-items: start">
 
@@ -218,22 +221,25 @@
           </div>
           <div style="display: flex; flex-direction: column; gap: 4px">
             <div style="display: flex; align-items: center; gap: 8px; background: #eef1ee; border-radius: 8px; padding: 8px 10px">
-              <div style="font-size: 13px; font-weight: 600; color: #1d4d33">All orders</div>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75"><path d="M2.8 4.4h10.4v8.4H2.8z"></path><path d="M5.6 4.4V2.9h4.8v1.5"></path><path d="M5.6 7.6h4.8"></path><path d="M5.6 10h3.2"></path></svg><div style="font-size: 13px; font-weight: 600; color: #1d4d33">All orders</div>
               <div style="flex: 1"></div>
               <div style="font-size: 12px; color: #1d4d33">248</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px">
-              <div style="font-size: 13px; color: #3d3c36">Awaiting delivery</div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5.2V8l2 1.4"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Awaiting delivery</div>
               <div style="flex: 1"></div>
               <div style="font-size: 12px; color: #8b8a82">31</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px">
-              <div style="font-size: 13px; color: #3d3c36">Missing receipt</div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4.2 2.9h7.6v10.2L8 10.6l-3.8 2.5z"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Missing receipt</div>
               <div style="flex: 1"></div>
-              <div style="font-size: 12px; color: #8b8a82">12</div>
+              <div style="font-size: 12px; font-weight: 600; color: #7a5c23">12</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px">
-              <div style="font-size: 13px; color: #3d3c36">This quarter</div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">This quarter</div>
               <div style="flex: 1"></div>
               <div style="font-size: 12px; color: #8b8a82">64</div>
             </div>
@@ -337,9 +343,9 @@
           <div style="display: flex; flex-direction: column; gap: 8px">
             <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Kind</div>
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; background: #eef1ee; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; font-size: 12px; text-align: center">
-              <div style="padding: 6px 0; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">All</div>
-              <div style="padding: 6px 0; color: #57564f">Expense</div>
-              <div style="padding: 6px 0; color: #57564f">Income</div>
+              <div style="display: grid; place-items: center; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">All</div>
+              <div style="display: grid; place-items: center; color: #57564f">Expense</div>
+              <div style="display: grid; place-items: center; color: #57564f">Income</div>
             </div>
           </div>
 
@@ -446,8 +452,8 @@
             </div>
             <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
               <div style="display: flex; width: 58px; flex: none">
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); margin-left: -14px"></div>
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="align-self: center; margin-left: 6px; font-size: 11px; font-weight: 600; color: #6b6a63; flex: none">+1</div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
                 <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
@@ -504,13 +510,13 @@
               </div>
             </div></div>
 
-          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9">
+          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; cursor: pointer" style-hover="background: #f0efe9">
             <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff">
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg>
             </div>
             <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
               <div style="display: flex; width: 58px; flex: none">
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
                 <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
@@ -533,12 +539,12 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9">
+          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; cursor: pointer" style-hover="background: #f0efe9">
             <div style="width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff"></div>
             <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
               <div style="display: flex; width: 58px; flex: none">
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: #f2f1eb; margin-left: -14px; display: grid; place-items: center; font-size: 11px; font-weight: 600; color: #57564f">+7</div>
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="align-self: center; margin-left: 6px; font-size: 11px; font-weight: 600; color: #6b6a63; flex: none">+7</div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
                 <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
@@ -564,12 +570,12 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9">
+          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; cursor: pointer" style-hover="background: #f0efe9">
             <div style="width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff"></div>
             <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
               <div style="display: flex; width: 58px; flex: none">
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); margin-left: -14px"></div>
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="align-self: center; margin-left: 6px; font-size: 11px; font-weight: 600; color: #6b6a63; flex: none">+1</div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
                 <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto</div>
@@ -591,12 +597,12 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9">
+          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; cursor: pointer" style-hover="background: #f0efe9">
             <div style="width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff"></div>
             <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
               <div style="display: flex; width: 58px; flex: none">
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); margin-left: -14px"></div>
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="align-self: center; margin-left: 6px; font-size: 11px; font-weight: 600; color: #6b6a63; flex: none">+1</div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
                 <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Ferm Living</div>
@@ -622,11 +628,11 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9">
+          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; cursor: pointer" style-hover="background: #f0efe9">
             <div style="width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff; opacity: 0.6"></div>
             <div style="display: flex; align-items: center; gap: 12px; min-width: 0; opacity: 0.6">
               <div style="display: flex; width: 58px; flex: none">
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
                 <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Normann Copenhagen</div>
@@ -648,11 +654,11 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9">
+          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; cursor: pointer" style-hover="background: #f0efe9">
             <div style="width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff"></div>
             <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
               <div style="display: flex; width: 58px; flex: none">
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px dashed #dcdad2; background: #f7f6f2"></div>
+                <div style="width: 36px; height: 36px; box-sizing: border-box; border-radius: 8px; border: 1px dashed #c3c1b8; background: #f7f6f2; flex: none"></div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
                 <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
@@ -673,11 +679,11 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9">
+          <div style="display: grid; grid-template-columns: 34px 2.1fr 104px 1.3fr 78px 118px 150px 40px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0efe9; cursor: pointer" style-hover="background: #f0efe9">
             <div style="width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff"></div>
             <div style="display: flex; align-items: center; gap: 12px; min-width: 0">
               <div style="display: flex; width: 58px; flex: none">
-                <div style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #fff; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
                 <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
@@ -875,6 +881,9 @@
       <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
         <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One control, four settings.</b> The presets and the range are the same facet: picking a preset clears the range, setting a range deselects the presets. They cannot both be active.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The thumbnail cell has exactly three states, and one width.</b> A <b>36px rounded square holding the first item photo</b>; the same square <b>1px dashed #c3c1b8 on #f7f6f2</b> when the order has no photo at all; and either of those followed by a <b>+N count</b> at 11px/600 #6b6a63 when more photos exist. The cell is <b>58px</b> in every case, so the vendor name starts at the same x on every row. Nothing else goes here — no stacked pairs, no ring, no second image.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The diagonal hatch is not a state.</b> It is how these mockups draw a photo they do not have. Anywhere you see it, a real image renders — <b>object-fit: cover</b>, centred. Only the dashed square means "no photo", and it is the one treatment that survives into the build as drawn.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The count is photos, the paperclip is attachments.</b> They are different things and can disagree: an order can have four item photos and no receipt, or a receipt and no photos. The paperclip sits after the reference line and appears only when a file is attached to the order itself.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Draft and Cancelled share the grey pill; the row treatment separates them.</b> They are not two points on one scale — a draft is not finished yet, a cancelled order no longer counts — so a sixth colour would wrongly imply they are comparable. A cancelled row renders every cell at <b>opacity 0.6</b> with the amount <b>struck through</b> in <b>#8b8a82</b>; the pill stays at full contrast, because the label is what distinguishes the two and dimming it would make the state harder to read. Draft rows are entirely normal. Opacity is reinforcement, never the signal — the word is the signal, which is what keeps it working for anyone who cannot separate the tints.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The strikethrough answers a second question.</b> Cancelled orders are excluded from total spend, so a struck amount states that in the row without a legend. The <b>not counted</b> line beneath replaces the saved-percentage line, which has no meaning on an order that did not happen.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">No Apply button.</b> It filters as soon as a valid date is entered, because every other facet applies immediately. From alone means "from that date to today", which is why To carries Today as its placeholder rather than blocking.</div>
@@ -1020,11 +1029,14 @@
 
   <div style="width: 1400px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden">
     <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e6e4dc">
-      <div style="font-size: 16px; font-weight: 600">Orders</div>
-      <div style="flex: 1"></div>
-      <div style="font-size: 11px; letter-spacing: 0.08em; color: #6b6a63">SCAN RECEIPT</div>
-      <div style="font-size: 11px; letter-spacing: 0.08em; color: #6b6a63">NEW ORDER</div>
-    </div>
+        <div style="width: 420px; flex: none; display: flex; align-items: center; gap: 9px; border: 1px solid #dedcd4; border-radius: 10px; padding: 8px 11px; color: #8b8a82">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+          <span style="font-size: 13px">Search orders, vendors, items…</span>
+          <div style="flex: 1"></div>
+          <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #e6e4dc; border-radius: 5px; padding: 2px 6px">⌘K</span>
+        </div>
+        <div style="flex: 1"></div>
+      </div>
     <div style="padding: 18px; display: flex; flex-direction: column; gap: 14px">
       <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
         <div style="font-size: 13px; font-weight: 600">18 orders</div>
@@ -1293,6 +1305,516 @@
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Photos are cropped, never letterboxed</b> — <b>object-fit: cover</b>, centred. Receipt photography is rarely square and a fitted image leaves bars that read as broken.</div>
       </div>
     </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="2g">2g</span>
+    <span style="font-size: 20px; font-weight: 600">Saving a view</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">A view is a name for the filters, search and sort currently applied. Saving one happens inside the Views card — a row appears where the list will be, you type the name over it, and Enter commits. No dialog: the thing being named is the list behind the rail, and covering it to name it makes no sense.</div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">1 — NAMING IT</div>
+        <div style="width: 260px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">VIEWS</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #57564f">Cancel</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 8px; padding: 8px 10px; background: #fff">
+              <div style="font-size: 13px; color: #b3b1a9">Name this view</div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 12px; color: #8b8a82">18</div>
+            </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M2.8 4.4h10.4v8.4H2.8z"></path><path d="M5.6 4.4V2.9h4.8v1.5"></path><path d="M5.6 7.6h4.8"></path><path d="M5.6 10h3.2"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">All orders</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; color: #8b8a82">248</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5.2V8l2 1.4"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Awaiting delivery</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; color: #8b8a82">31</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4.2 2.9h7.6v10.2L8 10.6l-3.8 2.5z"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Missing receipt</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #7a5c23">12</div>
+          </div>
+          </div>
+          <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">Hay · Ordered · this month · newest first</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">2 — SAVED, AND SELECTED</div>
+        <div style="width: 260px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">VIEWS</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Save current</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M2.8 4.4h10.4v8.4H2.8z"></path><path d="M5.6 4.4V2.9h4.8v1.5"></path><path d="M5.6 7.6h4.8"></path><path d="M5.6 10h3.2"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">All orders</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; color: #8b8a82">248</div>
+          </div>
+            <div style="display: flex; align-items: center; gap: 8px; background: #eef1ee; border-radius: 8px; padding: 8px 10px">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75"><path d="M2.8 6.4h10.4v6.4H2.8z"></path><path d="M2.2 6.4l1.2-3h9.2l1.2 3"></path><path d="M6.4 12.8V9.2h3.2v3.6"></path></svg><div style="font-size: 13px; font-weight: 600; color: #1d4d33">Hay this month</div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 12px; color: #1d4d33">18</div>
+            </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5.2V8l2 1.4"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Awaiting delivery</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; color: #8b8a82">31</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4.2 2.9h7.6v10.2L8 10.6l-3.8 2.5z"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Missing receipt</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #7a5c23">12</div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">3 — CHANGED SINCE SAVING</div>
+        <div style="width: 260px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">VIEWS</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Save current</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M2.8 4.4h10.4v8.4H2.8z"></path><path d="M5.6 4.4V2.9h4.8v1.5"></path><path d="M5.6 7.6h4.8"></path><path d="M5.6 10h3.2"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">All orders</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; color: #8b8a82">248</div>
+          </div>
+            <div style="display: flex; align-items: center; gap: 8px; background: #eef1ee; border-radius: 8px; padding: 8px 10px">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75"><path d="M2.8 6.4h10.4v6.4H2.8z"></path><path d="M2.2 6.4l1.2-3h9.2l1.2 3"></path><path d="M6.4 12.8V9.2h3.2v3.6"></path></svg><div style="font-size: 13px; font-weight: 600; color: #1d4d33; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay this month</div>
+              <div style="font-size: 11px; color: #7a5c23; background: #f3ede1; border-radius: 999px; padding: 2px 7px; flex: none">edited</div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 12px; color: #1d4d33">24</div>
+            </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5.2V8l2 1.4"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Awaiting delivery</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; color: #8b8a82">31</div>
+          </div>
+          </div>
+          <div style="display: flex; gap: 8px; border-top: 1px solid #f0efe9; padding-top: 10px">
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33; border: 1px solid #dedcd4; border-radius: 8px; padding: 7px 11px">Update view</div>
+            <div style="font-size: 12px; font-weight: 600; color: #57564f; padding: 7px 9px">Revert</div>
+          </div>
+        </div>
+      </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">4 — THE VIEW'S OWN MENU</div>
+      <div style="width: 260px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; position: relative">
+          <div style="display: flex; align-items: center">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">VIEWS</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Save current</div>
+          </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M2.8 4.4h10.4v8.4H2.8z"></path><path d="M5.6 4.4V2.9h4.8v1.5"></path><path d="M5.6 7.6h4.8"></path><path d="M5.6 10h3.2"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">All orders</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; color: #8b8a82">248</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; background: #f0efe9; border-radius: 8px; padding: 8px 10px">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75"><path d="M2.8 6.4h10.4v6.4H2.8z"></path><path d="M2.2 6.4l1.2-3h9.2l1.2 3"></path><path d="M6.4 12.8V9.2h3.2v3.6"></path></svg><div style="font-size: 13px; font-weight: 600; color: #3d3c36">Hay this month</div>
+            <div style="flex: 1"></div>
+            <div style="width: 22px; height: 22px; border-radius: 6px; background: #dcdad2; display: grid; place-items: center; flex: none">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="#3d3c36"><circle cx="8" cy="3.6" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.4" r="1.15"></circle></svg>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5.2V8l2 1.4"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Awaiting delivery</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; color: #8b8a82">31</div>
+          </div>
+        </div>
+        <div style="position: absolute; right: 10px; top: 74px; width: 178px; background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27, 26, 23, 0.08); padding: 5px; display: flex; flex-direction: column; gap: 1px; z-index: 2">
+          <div style="display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 7px; background: #f0efe9">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.8V9.6l7-7 3.2 3.2-7 7z"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Rename</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 7px">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.8l1.7 3.5 3.8.5-2.7 2.7.6 3.7-3.4-1.8-3.4 1.8.6-3.7L2.5 6.8l3.8-.5z"></path></svg>
+            <div style="font-size: 13px; color: #3d3c36">Make default</div>
+          </div>
+          <div style="height: 1px; background: #f0efe9; margin: 3px 0"></div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 7px">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5h9.2"></path><path d="M4.6 5v8h6.8V5"></path><path d="M6.4 3h3.2"></path></svg>
+            <div style="font-size: 13px; color: #8a4a41">Delete view</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A view stores the URL, not a result set.</b> Facets, search text, sort and view mode — the same state the URL already carries, which is why a view is also just a link. Selecting one replaces the URL; nothing is cached and the counts are live.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Naming is inline, in the position the row will occupy.</b> The field takes focus with the count already showing, so you can see how many orders you are naming. Enter saves, Esc cancels, and the header action becomes Cancel while the field is open. Blur cancels — an empty name is never saved.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The default name is empty, not generated.</b> A suggested "Hay · Ordered · this month" would be accepted unread, and a rail full of filter strings is no easier to scan than the filters themselves. The active filters are shown as a line below the field instead, so the name can be typed with them in view.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Duplicate names are allowed.</b> A view is a personal bookmark; refusing a repeated name costs more than it prevents.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Changing a filter while a view is selected does not silently update it.</b> The row keeps the view name, gains an <b>edited</b> chip, and the card offers Update view or Revert. The list follows the new filters immediately — the chip records that the saved definition and what is on screen have diverged.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">All orders is not a saved view</b> and has no menu. It is the unfiltered list, always first, and cannot be renamed, reordered or deleted. Making a saved view the default changes what Orders opens to; All orders stays where it is.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Deleting confirms, per 6d</b> — a dialog naming the view. It is not undoable via toast, because a deleted view leaves nothing on screen to undo from.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Counts are the live result count for each view's filters</b>, fetched with the list. If a count is not yet known the row shows nothing there rather than a zero — a zero that turns out to be 31 is worse than a brief absence.</div>
+  </div>
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; padding-top: 8px">
+    <div style="width: 520px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHERE THE ICON COMES FROM</div>
+      <div style="font-size: 13px; color: #57564f; line-height: 1.55">It is <b style="color: #3d3c36">derived, never chosen</b>. Saving a view is one field — a name typed over a row — and adding a picker to that would turn a two-second action into a small form. The icon comes from whichever facet the view is mostly about, by a fixed mapping.</div>
+      <div style="border: 1px solid #e6e4dc; border-radius: 10px; overflow: hidden">
+        <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 12px; background: #f2f1eb; padding: 9px 13px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+          <div></div><div>THE VIEW FILTERS ON</div><div>EXAMPLE</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 12px; padding: 10px 13px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5.2V8l2 1.4"></path></svg></div>
+          <div style="color: #3d3c36">Status</div><div style="display: flex; align-items: center; gap: 8px; min-width: 0"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75; color: #57564f"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5.2V8l2 1.4"></path></svg><span style="color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Awaiting delivery</span></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 12px; padding: 10px 13px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg></div>
+          <div style="color: #3d3c36">Date only</div><div style="display: flex; align-items: center; gap: 8px; min-width: 0"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75; color: #57564f"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg><span style="color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">This quarter</span></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 12px; padding: 10px 13px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 6.4h10.4v6.4H2.8z"></path><path d="M2.2 6.4l1.2-3h9.2l1.2 3"></path><path d="M6.4 12.8V9.2h3.2v3.6"></path></svg></div>
+          <div style="color: #3d3c36">One vendor</div><div style="display: flex; align-items: center; gap: 8px; min-width: 0"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75; color: #57564f"><path d="M2.8 6.4h10.4v6.4H2.8z"></path><path d="M2.2 6.4l1.2-3h9.2l1.2 3"></path><path d="M6.4 12.8V9.2h3.2v3.6"></path></svg><span style="color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay this month</span></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 12px; padding: 10px 13px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5v6"></path><path d="M9.6 6.4H7.2a1.2 1.2 0 0 0 0 2.4h1.6a1.2 1.2 0 0 1 0 2.4H6.4"></path></svg></div>
+          <div style="color: #3d3c36">Amount</div><div style="display: flex; align-items: center; gap: 8px; min-width: 0"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75; color: #57564f"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5v6"></path><path d="M9.6 6.4H7.2a1.2 1.2 0 0 0 0 2.4h1.6a1.2 1.2 0 0 1 0 2.4H6.4"></path></svg><span style="color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Over 5.000 kr.</span></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 12px; padding: 10px 13px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="display: grid; place-items: center"><span style="width: 18px; height: 18px; border-radius: 5px; background: #1d4d33; display: grid; place-items: center; color: #fff"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h3l-.6 2.4A4 4 0 0 1 11.5 9c0 2.5-1.6 4.5-3.5 4.5S4.5 11.5 4.5 9a4 4 0 0 1 2.6-4.1z"></path></svg></span></div>
+          <div style="color: #3d3c36">One category</div><div style="color: #8b8a82">Decor this year</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 12px; padding: 10px 13px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+          <div style="display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 2.9h7.6v10.2L8 10.6l-3.8 2.5z"></path></svg></div>
+          <div style="color: #3d3c36">Anything else, or several at once</div><div style="display: flex; align-items: center; gap: 8px; min-width: 0"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; opacity: 0.75; color: #57564f"><path d="M4.2 2.9h7.6v10.2L8 10.6l-3.8 2.5z"></path></svg><span style="color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Missing receipt</span></div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Search text and sort never affect it — a view named for a query is still a saved search, and the bookmark says so.</div>
+    </div>
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 16px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">CATEGORY IS THE ONE EXCEPTION</div>
+        <div style="display: flex; align-items: center; gap: 11px; background: #14261c; border-radius: 9px; padding: 9px 12px">
+          <span style="width: 17px; height: 17px; border-radius: 5px; background: #1d4d33; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h3l-.6 2.4A4 4 0 0 1 11.5 9c0 2.5-1.6 4.5-3.5 4.5S4.5 11.5 4.5 9a4 4 0 0 1 2.6-4.1z"></path></svg></span>
+          <div style="font-size: 14px; color: #c3d2c8">Decor this year</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; color: #7d9186">64</div>
+        </div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">A view filtered to exactly one category borrows that category's IdentityMark, tile and colour intact — the only coloured mark in the sidebar. Everywhere else the glyph is a stroke in the row's own ink, so it sits with Home and Orders rather than competing with them.</div>
+      </div>
+
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Derive at render, not at save.</b> Store the view's filters and nothing else — no icon field. Editing a view's filters then changes its icon, which is correct, and there is no stored value to go stale.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One facet group active means that group's icon;</b> two or more means the bookmark. Date is ignored when deciding, since almost every view carries one — "Hay this month" is a vendor view, not a date view.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Both surfaces derive identically</b> (9e). The rail rows carry the same glyph at 14px in <b>#8b8a82</b>, or <b>#1d4d33</b> on the selected row.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A deleted category</b> takes its view back to the bookmark. Never render a missing mark as an empty box.</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="2h">2h</span>
+    <span style="font-size: 20px; font-weight: 600">Selection — the toolbar's two states</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">One strip above the list, never two. It shows the summary when nothing is selected and the bulk bar when anything is, swapping in place at the same height so no row moves. The header checkbox is the only element present in both.</div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="display: flex; flex-direction: column; gap: 9px; width: 640px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">NOTHING SELECTED — THE RESTING STATE</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid #e6e4dc">
+          <div style="font-size: 13px"><b>18 orders</b> <span style="color: #8b8a82">· 61.480,00 kr.</span> <span style="color: #1d4d33; font-weight: 600">saved 24.310,00 kr.</span></div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; color: #8b8a82">Newest first</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #e6e4dc; font-size: 11px; letter-spacing: 0.1em; color: #8b8a82; align-items: center">
+          <div style="width: 18px; height: 18px; border: 1px solid #c3c1b8; background: #fff; border-radius: 4px; flex: none"></div>
+          <div>VENDOR</div><div>DATE</div><div>STATUS</div><div style="text-align: right">AMOUNT</div><div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #c3c1b8; background: #fff; border-radius: 4px; flex: none"></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-447</div>
+                </div>
+              </div>
+              <div style="color: #57564f">12 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">7.635,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #c3c1b8; background: #fff; border-radius: 4px; flex: none"></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-446</div>
+                </div>
+              </div>
+              <div style="color: #57564f">9 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">3.240,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #c3c1b8; background: #fff; border-radius: 4px; flex: none"></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-441</div>
+                </div>
+              </div>
+              <div style="color: #57564f">3 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">5.120,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 9px; width: 640px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SOME SELECTED — TWO OF EIGHTEEN</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #eef1ee; border-bottom: 1px solid #e6e4dc">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3.5 8h9"></path></svg></div>
+          <div style="font-size: 13px; font-weight: 600; color: #1d4d33">2 selected</div>
+          <div style="flex: 1"></div>
+          <div style="display: flex; gap: 8px">
+            <div style="border: 1px solid #cbd8cd; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Set status</div>
+            <div style="border: 1px solid #cbd8cd; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Add category</div>
+            <div style="border: 1px solid #cbd8cd; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Export</div>
+            <div style="border: 1px solid #e2d3d1; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #8a4a41; white-space: nowrap">Delete</div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #e6e4dc; font-size: 11px; letter-spacing: 0.1em; color: #8b8a82; align-items: center">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3.5 8h9"></path></svg></div>
+          <div>VENDOR</div><div>DATE</div><div>STATUS</div><div style="text-align: right">AMOUNT</div><div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; background: #e7efe8; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-447</div>
+                </div>
+              </div>
+              <div style="color: #57564f">12 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">7.635,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; background: #e7efe8; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-446</div>
+                </div>
+              </div>
+              <div style="color: #57564f">9 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">3.240,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #c3c1b8; background: #fff; border-radius: 4px; flex: none"></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-441</div>
+                </div>
+              </div>
+              <div style="color: #57564f">3 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">5.120,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 9px; width: 640px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">PAGE SELECTED — ALL TWENTY-FIVE ON THIS PAGE</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #eef1ee; border-bottom: 1px solid #e6e4dc">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+          <div style="font-size: 13px; font-weight: 600; color: #1d4d33">25 selected</div>
+          <div style="flex: 1"></div>
+          <div style="display: flex; gap: 8px">
+            <div style="border: 1px solid #cbd8cd; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Set status</div>
+            <div style="border: 1px solid #cbd8cd; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Add category</div>
+            <div style="border: 1px solid #cbd8cd; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Export</div>
+            <div style="border: 1px solid #e2d3d1; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #8a4a41; white-space: nowrap">Delete</div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #e6e4dc; font-size: 11px; letter-spacing: 0.1em; color: #8b8a82; align-items: center">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+          <div>VENDOR</div><div>DATE</div><div>STATUS</div><div style="text-align: right">AMOUNT</div><div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; background: #e7efe8; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-447</div>
+                </div>
+              </div>
+              <div style="color: #57564f">12 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">7.635,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; background: #e7efe8; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-446</div>
+                </div>
+              </div>
+              <div style="color: #57564f">9 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">3.240,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; background: #e7efe8; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-441</div>
+                </div>
+              </div>
+              <div style="color: #57564f">3 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">5.120,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+      </div>
+    </div>
+
+    <div style="width: 640px; display: flex; flex-direction: column; gap: 9px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SELECTING BEYOND THE PAGE</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #eef1ee; border-bottom: 1px solid #e6e4dc">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+          <div style="font-size: 13px; font-weight: 600; color: #1d4d33">25 selected</div>
+          <div style="flex: 1"></div>
+          <div style="display: flex; gap: 8px">
+            <div style="border: 1px solid #cbd8cd; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Set status</div>
+            <div style="border: 1px solid #cbd8cd; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Add category</div>
+            <div style="border: 1px solid #cbd8cd; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Export</div>
+            <div style="border: 1px solid #e2d3d1; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #8a4a41; white-space: nowrap">Delete</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #e7efe8; border-bottom: 1px solid #e6e4dc; font-size: 12px; color: #3d3c36">
+          <span>All 25 orders on this page are selected.</span>
+          <span style="font-weight: 600; color: #1d4d33">Select all 128 matching</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #e6e4dc; font-size: 11px; letter-spacing: 0.1em; color: #8b8a82; align-items: center">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+          <div>VENDOR</div><div>DATE</div><div>STATUS</div><div style="text-align: right">AMOUNT</div><div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; background: #e7efe8; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-447</div>
+                </div>
+              </div>
+              <div style="color: #57564f">12 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">7.635,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; background: #e7efe8; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-446</div>
+                </div>
+              </div>
+              <div style="color: #57564f">9 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">3.240,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+        <div style="display: grid; grid-template-columns: 34px 1.9fr 96px 120px 1fr 40px; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid #f0efe9; background: #e7efe8; font-size: 13px">
+              <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 4px; display: grid; place-items: center; color: #fff; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+                <div style="min-width: 0">
+                  <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto</div>
+                  <div style="font-size: 11px; color: #8b8a82">SPENDLY-441</div>
+                </div>
+              </div>
+              <div style="color: #57564f">3 Aug</div>
+              <div><span style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 3px 9px">Delivered</span></div>
+              <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums">5.120,00</div>
+              <div style="display: grid; place-items: center; color: #b3b1a9"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.4" r="1.15"></circle><circle cx="8" cy="8" r="1.15"></circle><circle cx="8" cy="12.6" r="1.15"></circle></svg></div>
+            </div>
+      </div>
+      <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">A second, explicit action. Ticking the header never reaches past the page — a bulk delete that silently included 103 unseen rows is the kind of mistake nothing undoes well.</div>
+    </div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One strip, two states, swapped in place.</b> Same height (both land at 40px inner), same position, same border below. Do not animate the swap and do not stack the bulk bar above the summary — a list that shifts down when you tick a row makes the next row you wanted move under the cursor.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Only the toolbar changes. The column header never does.</b> Its fill, type and hairline are identical in all four states here and identical to <a href="#2b">2b</a> — no fill, an <b>#e6e4dc</b> hairline below, 11px <b>0.1em</b> in <b>#8b8a82</b>. The column header labels the columns; it says nothing about selection, so nothing about selection may change it. There are exactly three signals that rows are selected — the row tint, the checkbox state, the toolbar swap — and tinting the header adds a fourth that competes with them.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The header checkbox has three states</b>, driven by the page only: <b>empty</b> when none of the 25 rows are selected, <b>dash</b> when some are, <b>tick</b> when all are. Clicking it when empty or dashed selects the page; clicking it when ticked clears the page. That is the whole behaviour — it never reaches other pages.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">"Select all 128 matching" is a separate, explicit action</b>, offered in a strip below the bulk bar only once the page is fully selected. It selects everything the current filter matches. Clearing any part of it drops back to a page-level selection.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Selected rows are tinted <span style="white-space: nowrap">#e7efe8</span></b> — lighter than the <span style="white-space: nowrap">#f0efe9</span> hover, so hovering a selected row still reads as hovered. Selection is not a hover state and the two must be distinguishable when they coincide.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Selection is per page and clears on any filter, search, sort or page change</b>, with no warning — the selection no longer describes anything on screen. It is deliberately not in the URL: a shared link should not carry someone else's pending bulk action.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Shift-click extends</b> from the last ticked row to the clicked one. The checkbox cell stops propagation, so ticking never opens the order (<a href="#16f">16f</a>).</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Cards view has no selection at all.</b> There is no checkbox on a card and no bulk bar above the grid — bulk editing is a table task, and the toggle in <a href="#2c">2c</a> is the way to reach it.</div>
   </div>
 </section>
 </x-dc>

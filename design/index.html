@@ -130,7 +130,7 @@ finished step 3.
    before assuming a rule is an oversight. Rules that look like
    mistakes and are not: a limit never blocks a save, reorder needs
    both drag and buttons, thirds appear exactly once, destructive
-   buttons exist only in dialogs, the top bar takes no actions.
+   buttons exist only in dialogs, the top bar takes no actions at all.
    <b>If something is not specified, stop and ask.</b> A missing state, an
    unnamed error case, a field with no defined behaviour: these are
    gaps in the design, not invitations to invent. BEHAVIOUR.md ends
@@ -183,8 +183,10 @@ finished step 3.
    • Thin-rule "NOTES FOR IMPLEMENTATION" blocks are notes to you, not UI.
    • A monthly limit never blocks a save. Amber informs, red blocks. Keep the
      limit check out of the validation layer entirely.
-   • No page actions in the top bar — it's locked and shared. Every action
-     lives inside the page.
+   • NO actions in the top bar — none, not even global ones. It carries the
+     page title and search only. Every action lives inside a page or in the
+     sidebar. If you find yourself wanting a shell button, that is the rule
+     working, not a gap.
 
 Start with step 1 and tell me what you've read before moving on.</div>
 
@@ -431,10 +433,10 @@ Start with step 1 and tell me what you've read before moving on.</div>
       </div>
     </a>
     <a class="card" href="Navigation shell.dc.html">
-      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>2</b></div><div class="ids" style="width: auto"><span>9a</span><span>9b</span><span>9c</span><span>9d</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>2</b></div><div class="ids" style="width: auto"><span>9a</span><span>9b</span><span>9c</span><span>9d</span><span>9e</span><span>9f</span><span>9g</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Navigation shell</div>
-        <div class="d">The frame the pages sit in: sidebar areas with counts, the locked top bar, a collapsed rail, and the ⌘K palette across orders, vendors and actions.</div>
+        <div class="d">The frame the pages sit in: sidebar areas with counts, the locked top bar and what it may never hold, a collapsed rail, the ⌘K palette, and the truncation rules for every text in the shell.</div>
       </div>
     </a>
   </div>
@@ -449,7 +451,7 @@ Start with step 1 and tell me what you've read before moving on.</div>
       </div>
     </a>
     <a class="card" href="Order list.dc.html">
-      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>4</b></div><div class="ids" style="width: auto"><span>2a</span><span>2b</span><span>2c</span><span>2d</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>4</b></div><div class="ids" style="width: auto"><span>2a</span><span>2b</span><span>2c</span><span>2d</span><span>2e</span><span>2g</span><span>2h</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Order list</div>
         <div class="d">Rows with a facet rail, search and filter chips; the cards view; and the bulk actions for setting status or adding a category.</div>

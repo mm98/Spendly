@@ -739,6 +739,7 @@
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">If it does not respond to a click, it does not hover.</b> Cards, KPI figures, section headers, status pills, the totals card — all inert. This is the rule that keeps hover meaningful.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One fill per depth.</b> A hovered button inside a hovered row uses the lighter <b>#f7f6f2</b>, so the two are distinguishable. Never stack the same fill twice.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Hover never moves anything.</b> No lift, no scale, no shadow appearing, no border thickening — a border going from 1px to 2px reflows the row. Colour and opacity only.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The mockups hover for real.</b> Order rows (2b), saved views (2g), vendor and category rows (5a, 5b), sidebar items (9a) and the statistics drill rows (4a) all carry a live hover fill and <b>cursor: pointer</b> in the files — so what is clickable can be found by pointing at it rather than read off this table. Anything in a mockup that does not respond to the pointer is inert by design, not unfinished.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Selected beats hover.</b> A selected row stays <b>#e7efe8</b> and does not shift on hover; a checked chip does not change. Losing the selection colour to a hover is the same as not showing it.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">120ms ease on the colour</b>, in both directions. Nothing longer — a slow hover on a list feels like lag.</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Focus is not hover.</b> Keyboard focus is always the green ring from 14a, never the hover fill, so the two are never confused. A row can carry both at once.</div>
@@ -865,6 +866,136 @@
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Keyboard is the same everywhere.</b> Rows are in the tab order, Enter does what a click does, Space toggles the checkbox where the row has one, and the focus ring is the standard 3px <b>rgba(29,77,51,0.12)</b> on the row rather than on something inside it.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Hover is the contract.</b> Any row with the #f0efe9 hover fill and a pointer cursor is promising it does something. A row that does nothing gets neither — an inert row that lights up on hover is a broken promise, and it is how a user concludes the app is unreliable.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Double-click is never a separate action.</b> On a navigating row the second click lands on the next page; on a selecting row it is harmless. Nothing anywhere requires a double-click.</div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="16g">16g</span>
+    <span style="font-size: 20px; font-weight: 600">Selecting rows, and the header checkbox</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">One behaviour for every selectable list in the app — orders today, whatever is added later. The header checkbox has three visual states and only two possible outcomes from a click. The awkward part is not the checkbox: it is that a filter usually matches more rows than the page shows, so "all" means two different things and both have to be reachable.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 480px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">THE THREE STATES</div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div style="width: 18px; height: 18px; border: 1px solid #dedcd4; border-radius: 5px; background: #fff; flex: none"></div>
+            <div style="font-size: 13px; font-weight: 600; width: 62px">Empty</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5">Nothing on this page is selected.</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; flex: none">
+              <div style="width: 9px; height: 2px; border-radius: 1px; background: #fff"></div>
+            </div>
+            <div style="font-size: 13px; font-weight: 600; width: 62px">Dash</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5">Some, but not all, of this page is selected.</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; flex: none">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+            </div>
+            <div style="font-size: 13px; font-weight: 600; width: 62px">Check</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5">Every row on this page is selected.</div>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid #dedcd4; padding-top: 14px; display: flex; flex-direction: column; gap: 10px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHAT A CLICK DOES</div>
+          <div style="border: 1px solid #e6e4dc; border-radius: 10px; overflow: hidden">
+            <div style="display: grid; grid-template-columns: 78px 1fr; gap: 12px; background: #f2f1eb; padding: 8px 12px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+              <div>FROM</div><div>RESULT</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 78px 1fr; gap: 12px; padding: 10px 12px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+              <div style="font-weight: 600">Empty</div><div style="color: #57564f">every row on the page selected → <b>Check</b></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 78px 1fr; gap: 12px; padding: 10px 12px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+              <div style="font-weight: 600">Dash</div><div style="color: #57564f">every row on the page selected → <b>Check</b></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 78px 1fr; gap: 12px; padding: 10px 12px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+              <div style="font-weight: 600">Check</div><div style="color: #57564f">selection cleared → <b>Empty</b></div>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Dash selects; it never clears.</b> A partial selection is work already done, and losing it by clicking the box that represents it is the outcome nobody predicts. Clearing is what the Check state does, and the bulk bar carries an explicit Clear as well.</div>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SELECTING SINGLE ROWS</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The checkbox is the only selecting target.</b> Clicking the row navigates instead — 16f. The checkbox and its 44px hit padding stop propagation.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Shift-click selects a range</b> from the last row clicked to this one, in the order currently displayed. Re-sorting does not re-anchor it; the next plain click sets a new anchor.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The count in the bulk bar is authoritative</b>, not the ticks. Every action reads that number. If the two disagree, the number is right and the render is wrong.</div>
+      </div>
+    </div>
+
+    <div style="width: 480px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">WHEN THE FILTER MATCHES MORE THAN THE PAGE</div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #eef1ee; border-bottom: 1px solid #e6e4dc">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; flex: none">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+          </div>
+          <div style="font-size: 13px; font-weight: 600">25 selected</div>
+          <div style="flex: 1"></div>
+          <div style="display: flex; gap: 8px; align-items: center">
+            <div style="border: 1px solid #dedcd4; background: #fff; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; color: #3d3c36">Set status</div>
+            <div style="border: 1px solid #dedcd4; background: #fff; border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; color: #3d3c36">Export</div>
+            <div style="font-size: 12px; font-weight: 600; color: #57564f; padding: 7px 4px">Clear</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 11px 16px; background: #e7efe8; border-bottom: 1px solid #e6e4dc">
+          <div style="font-size: 12px; color: #3d3c36">All 25 on this page are selected.</div>
+          <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Select all 128 matching</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #f0efe9; background: #f7f6f2">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; flex: none">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+          </div>
+          <div style="font-size: 13px; font-weight: 600">Indbo Møbler</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">7.635,00 kr.</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f7f6f2">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; flex: none">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+          </div>
+          <div style="font-size: 13px; font-weight: 600">Hay</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">3.240,00 kr.</div>
+        </div>
+      </div>
+
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55; width: 480px">The header checkbox never reaches past the page. Selecting everything the filter matches is a separate, named action that appears only in the Check state — and it says the number, because 128 is the fact that decides whether you want it.</div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #eef1ee; border-bottom: 1px solid #e6e4dc; flex-wrap: wrap">
+          <div style="width: 18px; height: 18px; border: 1px solid #1d4d33; background: #1d4d33; border-radius: 5px; display: grid; place-items: center; flex: none">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+          </div>
+          <div style="font-size: 13px; font-weight: 600">128 selected</div>
+          <div style="font-size: 12px; color: #57564f">everything matching these filters</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Just this page</div>
+        </div>
+        <div style="padding: 13px 16px; font-size: 12px; color: #8b8a82">Rows stay ticked as you page through, and the count does not change.</div>
+      </div>
+
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55; width: 480px">Once taken, the bar says so in words rather than a number alone, and the way back is the reverse action in the same place.</div>
+
+      <div style="width: 480px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Two shapes of selection, one piece of state.</b> Either a set of ids, or a flag meaning "everything matching the current filter" held alongside that filter. The second is not a list of 128 ids: an action on it sends the filter to the server, not the ids, so it stays correct if a row was added since the click.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Filter, search, sort and page-size changes clear the selection</b> — including the filter-wide one — with no warning, because it no longer describes anything. <b>Paging does not.</b> That is the only case where the two differ, which is why page changes are handled separately from filter changes.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The header box is a real <span style="white-space: nowrap">&lt;input type="checkbox"&gt;</span></b> with <b>indeterminate</b> set from script — it is a property, not an attribute, and cannot be written in markup. Assistive technology reports "mixed" only for a genuine checkbox; a styled div announces nothing.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Its accessible name states the scope</b> — "Select all 25 on this page", updated when the page size changes. "Select all" alone is the ambiguity this section exists to remove.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Destructive bulk actions restate the number and the noun</b> in the dialog: "Delete 128 orders?". A count that arrived from a filter-wide selection is the one a user is most likely to have misread.</div>
+      </div>
+    </div>
   </div>
 </section>
 

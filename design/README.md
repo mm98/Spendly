@@ -20,7 +20,7 @@ Target repo: `mm98/Spendly`, branch `main`. The mockups live at `design/` there.
 
 **When two files disagree, the `.dc.html` markup wins.** The mockup is the design; this document is prose describing it and can drift behind an edit. Report what you found so the prose gets fixed — but build the markup, and don't block on an answer. Two exceptions. `Responsive reference.dc.html` outranks every file on layout that varies with width — it is the only one carrying working responsive CSS, and a static canvas cannot express reflow. And where a file states a rule in prose beside its own markup, the rule governs: the 2c mockup renders four cards across because four fit that canvas, not because the count is four.
 
-**Where the design states how something works, follow it.** Don't propose an alternative, ask whether it was intended, or flag it as a possible improvement. The reasoning is already recorded in `DECISIONS.md`, including what was rejected and why — read the entry before assuming a rule is an oversight. Rules that look like mistakes and are not: a limit never blocks a save, reorder needs both drag and buttons, thirds appear exactly once, destructive buttons exist only inside dialogs, the top bar takes no page actions.
+**Where the design states how something works, follow it.** Don't propose an alternative, ask whether it was intended, or flag it as a possible improvement. The reasoning is already recorded in `DECISIONS.md`, including what was rejected and why — read the entry before assuming a rule is an oversight. Rules that look like mistakes and are not: a limit never blocks a save, reorder needs both drag and buttons, thirds appear exactly once, destructive buttons exist only inside dialogs, the top bar takes no actions at all.
 
 **If something is not specified, stop and ask.** A missing state, an unnamed error case, a field with no defined behaviour — these are gaps in the design, not invitations to invent. `BEHAVIOUR.md` ends with a list of open questions for exactly this reason; add to it rather than guessing. Ask about silence, never about instructions.
 
@@ -211,7 +211,7 @@ Used sparingly — flat surfaces with hairline borders are the default. Shadow m
 
 These hold on every screen and are the constraints behind several layout decisions. Breaking one is a design change, not an implementation detail.
 
-1. **The top shell is locked.** No page actions may be placed in the top bar. Every page's actions live inside the page. This is a hard constraint from the existing product.
+1. **The top shell is locked.** It carries **search only** — no page title, no breadcrumb, and **no actions at all**, page-level or global. Everything the app can do lives inside a page or in the sidebar. This is a hard constraint from the existing product, not a preference: it is why the edit screen has a sticky save bar, the list puts bulk actions above itself, and capture is reached from Home and the sidebar rather than a shell button.
 2. **A monthly limit never blocks a save.** Red blocks, amber informs. Exceeding a category limit is a fact about the month, not a validation error.
 3. **Nothing saves by itself.** Scans propose values, they never overwrite silently. A duplicated order opens unsaved and can be abandoned.
 4. **Numbers answer the current filter.** Totals and counts in a filtered list describe what is on screen, not the whole account.
@@ -254,7 +254,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 
 ### The top bar
 
-**Locked. No page actions may be placed here** — see global rule 1. It carries the breadcrumb and the page title, nothing else. It does not scroll and it does not change per page beyond its text. Every action a page offers lives inside the page: that is why the edit screen has a sticky save bar at the bottom of its content column, why the order list puts bulk actions in a bar above the list, and why Settings saves per card.
+**Locked. No page actions may be placed here** — see global rule 1. There is no page title because the sidebar's active row already names the area, and a record's name is the page's own heading inside the content column. It carries **search only**: one field, 420px fixed, left-aligned and flush with the content column's padding so it sits on the same x as the page content below it. It does not scroll and it does not change per page beyond its text. Every action a page offers lives inside the page: that is why the edit screen has a sticky save bar at the bottom of its content column, why the order list puts bulk actions in a bar above the list, and why Settings saves per card.
 
 ### The content column
 
@@ -270,7 +270,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 | ≥ 1280px | Full layout. Sidebar expanded by default. |
 | < 1280px | Facet rail on the order list becomes a drawer; sidebar may collapse to the 68px rail. |
 | < 900px | Two-column screens stack: rail content moves above or below the main column per screen (order edit collapses its rail into a summary section; the library switches to list-then-panel navigation). |
-| < 640px | Phone layout. Sidebar becomes a bottom tab bar, the top bar keeps only the title, sheets replace inline expansion, and the capture FAB appears. |
+| < 640px | Phone layout. Sidebar becomes a bottom tab bar, the top bar keeps only search, sheets replace inline expansion, and the capture FAB appears. |
 
 **On mobile the sidebar is not a drawer by default** — the five primary destinations become a bottom tab bar, and Settings and the account move into a "More" destination. A hamburger drawer would put the most-used navigation two taps away on the device where capture matters most.
 
@@ -328,9 +328,9 @@ File: `Navigation shell.dc.html` · Code: `App.jsx`, `components/Nav.jsx`, `comp
 
 **Layout:** fixed left sidebar `248px`, content area fills the rest with `48px` page padding. Sidebar background `#14261c`, `20px 14px` padding, column with `4px` between rows.
 
-**Sidebar rows:** `9px 10px` padding, radius `9px`, icon 17px then 14px label, `11px` gap. Idle text `#c3d2c8`; hover fill `rgba(255,255,255,0.05)`; active is fill `#1f3d2c` with `#fff` text. A count sits right-aligned in each row at 11px `#a9bdb1`.
+**Sidebar rows:** `9px 10px` padding, radius `9px`, icon 17px then 14px label, `11px` gap. **The brand row is the same footprint**, so its mark sits on the same vertical line as every nav icon and the active fill's rectangle is the one the brand row occupies. The brand keeps its filled tile: a 26px rounded square with negative side margins, so it centres on the 17px icon column and overhangs evenly rather than pushing the wordmark out of line. Idle text `#c3d2c8`; hover fill `rgba(255,255,255,0.05)`; active is fill `#1f3d2c` with `#fff` text. A count sits right-aligned in each row at 11px `#a9bdb1`.
 
-**Order:** Home, then section label `ORDERS` (10px, `0.14em`, `#7d9186`, padding `16px 8px 4px`) with Orders / New order, then `LIBRARY` with Statistics / Vendors / Categories. Settings sits below a spacer, then the account block: fill `#1f3d2c`, radius `9px`, `10px` padding, 32px circular avatar `#4f7f63` with white 12px/700 initials (the IdentityMark ladder is 22/8, 26/10, 32/12, 40/15, 56/20 — type 2.7× smaller than the mark, or two initials touch the edge), name 13px/600 `#fff`, then the email at 11px `#a9bdb1`, chevron right (`flex: none`). **There is no company name on an account, so line two is the email** — split into two spans so the local part shrinks with `text-overflow: ellipsis` while the `@domain` is `flex: none`. Truncating from the right would hide the part that says which account is signed in: `mikkel.mo…@verylongcompany.dk`, never `mikkel.mortensen@very…`.
+**Order:** Home, then `Scan receipt` (primary green) and `New order`, then section label `ORDERS` (10px, `0.14em`, `#7d9186`, padding `16px 8px 4px`) with Orders / New order, then `LIBRARY` with Statistics / Vendors / Categories. Settings sits below a spacer, then the account block: fill `#1f3d2c`, radius `9px`, `10px` padding, 32px circular avatar `#4f7f63` with white 12px/700 initials (the IdentityMark ladder is 22/8, 26/10, 32/12, 40/15, 56/20 — type 2.7× smaller than the mark, or two initials touch the edge), name 13px/600 `#fff`, then the email at 11px `#a9bdb1`, chevron right (`flex: none`). **There is no company name on an account, so line two is the email** — split into two spans so the local part shrinks with `text-overflow: ellipsis` while the `@domain` is `flex: none`. Truncating from the right would hide the part that says which account is signed in: `mikkel.mo…@verylongcompany.dk`, never `mikkel.mortensen@very…`.
 
 **Collapsed rail (in 9b):** `68px` wide, icons only, centred, labels appear as tooltips on hover. Toggle persists per user.
 
@@ -340,7 +340,7 @@ File: `Navigation shell.dc.html` · Code: `App.jsx`, `components/Nav.jsx`, `comp
 
 Deliberately absent: a theme switch (the toggle is directly above it — two controls for one preference is how they drift), org or account switching, and any upgrade prompt. The chevron points down when closed and up when open, and is the only thing on the block that changes. Standard menu semantics: `aria-haspopup="menu"` + `aria-expanded` on the trigger, `role="menu"` on the panel, arrow keys between items, Esc closes and returns focus. Sign out confirms only when there are unsaved changes, naming what would be lost. On the collapsed rail the block is the avatar alone, the chevron disappears, and the menu opens to the right.
 
-**Top bar:** locked. Breadcrumb and page title only.
+**Top bar:** locked, 56px, does not scroll. Search only — no page title, and no actions of any kind. Search is not an action: it opens the ⌘K palette, which is navigation.
 
 **9d — the command palette.** ⌘K anywhere, or the search field. 560px, centred, top-anchored at 15vh, capped at 60vh with the list scrolling inside. Two states: empty shows "Jump back in" (the last five records opened, stored locally, newest first) then Actions; typing shows results grouped **Orders → Vendors → Items → Actions** in that fixed order, three rows per group plus "See all N in …", with empty groups hidden entirely including their header.
 
@@ -351,6 +351,36 @@ The nine commands: Scan a receipt (S), New order (N), Import a file, Go to each 
 Arrows traverse all groups as one flat list, skipping headers — same rule as the combobox. Actions rank above records only when the query matches a command name. Search is debounced 300ms and cancels in flight, keeping previous results visible so the list never blanks. Matched text highlights in amber including mid-word, since Danish compounds mean the match is often not at the start. Vendor aliases are searched, and a row matched on one shows the canonical name plus "— matched indbo.dk" in muted 12px. Not available below 640px.
 
 ---
+
+**9e — the ORDERS group is the saved views.** The items under ORDERS in the sidebar and the Views card in the facet rail are **one list rendered twice**. Do not give the sidebar its own hardcoded items: "Awaiting delivery" and "Missing receipt" are saved views shipped as defaults for a new account, not navigation the code knows about.
+
+Division of labour: the **sidebar is reach** — select and see a live count, from any screen, no menus and no reordering. The **rail is management** — Save current, rename, delete, make default, drag to reorder, and the `edited` chip. The sidebar shows the **first four, then a count** ("2 more in Orders"), because it has a pinned bottom zone and cannot grow without limit; which four is controlled by dragging in the rail, with no separate pin flag. `All orders` is always first and always shown in both, is not a saved view, and has no menu.
+
+Selecting from the sidebar navigates to the order list with that view's URL applied — arriving that way, the rail shows the same row selected. There is no state where the two disagree about which view is active. Counts come from one request and render identically in both.
+
+**A saved view's icon is derived from its filters, never chosen.** Saving is one field — a name typed over a row in the Views card — and a picker there would turn a two-second action into a small form. Fixed mapping: status → clock, date only → calendar, one vendor → storefront, amount → coin, one category → **that category's IdentityMark, tile and colour intact** (the only coloured mark in the sidebar), anything else or several groups at once → bookmark. Date is ignored when deciding, since almost every view carries one: "Hay this month" is a vendor view. Search text and sort never affect it.
+
+Derive at render, not at save — store the filters and no icon field, so editing a view's filters changes its icon and nothing goes stale. A deleted category takes its view back to the bookmark; never render a missing mark as an empty box. In the rail the same glyph is 14px `#8b8a82`, or `#1d4d33` on the selected row. A view can carry an **attention flag**, honoured by both surfaces. Like status colour, the flag names a **pair** — one ink per surface: `#d3b98a` on the dark sidebar, `#7a5c23` at weight 600 on the rail's white card. Both are authored; the dark tint on white fails contrast, so neither is computed from the other. The flag is a property set when the view is saved, never derived from the number, and a count is never red.
+
+Collapsed (9b), the group shows only `All orders`' icon — individual views are not distinguishable as 17px glyphs. On the phone tab bar, Orders is one destination and views are reached from the rail's sheet.
+
+**9f — the shell contract.** What the shell may hold, and how each part behaves when the text is too long or the screen too narrow.
+
+**Permitted in the top bar:** one search field (420px fixed, left-aligned, flush with the content column's padding, opening ⌘K). Search is permitted because it navigates; nothing it does changes a record.
+
+**Not permitted:** any action, page-level or global — no Save, New order, Scan receipt, export or overflow menu, and **no global-action exception**. Nothing page-specific: no filters, counts, tabs, record names or statuses. No second account block; the account lives at the bottom of the sidebar. **The shell takes no children from a page** — no slot, no portal, no `useTopBarActions` hook, so the constraint holds by construction rather than by review. Where actions go instead: a sticky bar at the bottom of the content column, a bar above the list, a button inside the page, or the sidebar — which holds **exactly two**, `Scan receipt` (primary green, at the top, above the ORDERS group) and `New order`, because they create the thing the whole app is about and must be reachable from every screen. Wanting a *third* sidebar action is the rule working, not a gap.
+
+**Truncation.** Sidebar area name, saved view name, account name: ellipsis, one line. Palette results: ellipsis on the primary, meta drops first. The **account email truncates its local part only** — two spans, local part with `min-width: 0`, domain `flex: none` — because cutting from the right removes the domain, which is what identifies the account. Every truncating text needs `min-width: 0` on its flex parent, the most common cause of a shell that overflows at 1280px but looks fine at 1440px. A count beside a truncating label is `flex: none`: the number is why the row exists. Anything truncated must be readable somewhere else — a tooltip, the palette, or its Settings page.
+
+**By width.** ≥1280: sidebar 248px with Scan receipt and New order above the ORDERS group, search at 420px. <1280: sidebar may collapse to the 68px rail — Scan receipt keeps its green fill as a 44px tile at the top of the icon stack, New order below it as a neutral icon, a hairline separating both from the destinations — and search stops growing. <900: rail stays collapsed, search becomes a 42px icon button opening the palette full-screen. <640: sidebar becomes a **bottom tab bar** — Home, Orders, Statistics, More — with Settings, account and theme under More, and saved views reached from the filter sheet. **Scan receipt leaves the bar** and becomes the 56px floating action button above it (7a): the phone is the camera, so capture stays reachable without spending a tab on it, and New order is reached from the capture screen, which offers manual entry alongside the scan (3a). The tab bar is the one place the shell changes shape rather than size, and it is a **media query**, not a container query. It respects the safe-area inset, and the sticky save bar sits above it.
+
+**9g — the sidebar on a short screen.** The sidebar's content is ~700px and never gets shorter — saved views make it grow, never shrink. A 768px laptop leaves roughly 650px after browser chrome, so this is the common case.
+
+Three tiers, each removing something rather than scaling: **≥720px** nothing changes, slack goes to the spacer. **560–720px** the nav scrolls, bottom zone pinned and complete. **<560px** Settings and the theme toggle move into the account menu (9c), reclaiming 88px; the account block stays because it is how they are reached. Below 640px *wide* this is moot — the sidebar is already a tab bar.
+
+Implementation: a container query on the sidebar's own height, and `100dvh` not `100vh`. The brand is outside the scroll region, as is the bottom zone — a wordmark that scrolls away leaves the sidebar looking like a detached list. The scrolling region is the nav between them only — `flex: 1; min-height: 0; overflow-y: auto`; **without `min-height: 0` the flex child refuses to shrink below its content and pushes the bottom zone off-screen instead of scrolling**, which is the single most likely failure here. The scroll affordance is a 22px `mask-image` fade, shown only when there is more below (a permanent fade reads as a rendering fault); the scrollbar is 6px, `rgba(255,255,255,0.14)`, on hover only — never the platform default, which is the brightest thing on `#14261c`. Scroll the active row into view on load, nearest-edge.
+
+Never: shrink rows (40px is the floor and the touch target depends on it), trim the saved views (the "N more" count would change with the window), or scroll the whole sidebar (the brand scrolling away is disorienting and the account block must stay reachable).
 
 ### 10a — Home
 File: `Home.dc.html` · Code: new page (`pages/Home.jsx`)
@@ -459,6 +489,14 @@ This is the one place item photos are shown at size, which is why the strip is t
 
 **Draft and cancelled rows.** Both use the grey status token — they are not comparable states, so no sixth colour is introduced. A **cancelled** row renders every cell at `opacity: 0.6`, the amount `line-through` in `#8b8a82`, and `not counted` in place of the saved-percentage line; **the pill stays at full contrast**, because the label is what distinguishes it from Draft. A **draft** row is entirely normal — nothing dimmed. Opacity is reinforcement, never the signal. The strikethrough also states that cancelled orders are excluded from total spend, so it applies wherever a cancelled amount renders: list rows, cards, mobile rows, the read view.
 
+**2h draws all of it** — nothing selected, two of eighteen, the whole page, and the "select all matching" strip. **The toolbar has exactly two states.** The summary line ("18 orders · 61.480,00 kr. · saved 24.310,00 kr.") is the resting state, drawn in 2b. Ticking the first row **replaces it in place** with the bulk bar — same position, same height, nothing below it moves — and clearing the last selection reverts it. There is no third state and the bulk bar is never present alongside the summary. The header checkbox is the only element common to both.
+
+**Only the toolbar changes with selection.** The column header strip is identical in every state — no fill, a `#e6e4dc` hairline below, 11px `0.1em` `#8b8a82` — because it labels the columns and says nothing about selection. Tinting it during selection would be a third competing signal alongside the row tint and the toolbar swap. The three signals of selection are: the row tint, the checkbox state, and the toolbar swap. Nothing else moves.
+
+**Selection rules (2h).** The header checkbox has three states driven by the **page only**: empty when none of the 25 rows are selected, dash when some are, tick when all are. Clicking it empty or dashed selects the page; clicking it ticked clears the page. It never reaches other pages. Once the page is fully selected, a separate strip below the bulk bar offers **"Select all 128 matching"** as an explicit second action — a bulk delete that silently included 103 unseen rows is not something undo covers well.
+
+Selected rows take the documented `#e7efe8` selected-row tint. It does not compete with the `#f0efe9` hover because the two differ in hue, not lightness — green means chosen, warm grey means under the cursor, and a hovered selected row reads as both. Shift-click extends from the last ticked row. The checkbox cell stops propagation, so ticking never opens the order (16f). Selection is per page, clears on any filter/search/sort/page change without warning, and is **not** in the URL — a shared link should not carry someone else's pending bulk action. **Cards view has no selection at all**: no checkbox on a card, no bulk bar above the grid.
+
 **Bulk actions (in 2a):** selecting rows reveals a bar above the list — a checkbox in indeterminate state, "N selected" in 13px/600 `#1d4d33`, then four buttons right-aligned with an `8px` gap: **Set status**, **Add category**, **Export**, and **Delete**. All are 12px/600 on white at radius 8px, padding `6px 12px`. Set status carries the accent border `#1d4d33`; Add category and Export take `#cbd8cd`; Delete takes `#e2d3d1` with `#8a4a41` text. Both open a small popover anchored to the button: Set status is a single-select list of the five statuses (the Combobox in pick-only mode — there is no Radio component; see 14d); Add category is a searchable list with the category icon tile and name, multi-select, and a "Create category" row at the bottom. Applying shows the count in a toast with Undo. Delete opens a confirm dialog naming the count; Export downloads the selection.
 
 **Load more, not pagination.** The list ends with a range line and a single button — "Showing 6 of 18" at 13px `#6b6a63`, then LOAD MORE right-aligned (`1px solid #dedcd4`, radius 9px, padding `8px 16px`, 12px/600, `letter-spacing: 0.06em`, `#1d4d33`). Each press appends the next page in place; scroll position does not move and the range line updates. The count reflects the filter, never the account.
@@ -466,6 +504,14 @@ This is the one place item photos are shown at size, which is why the strip is t
 The Pager component in 14e exists for a page-size-and-arrows treatment and is **not used on this screen** — build it only if a screen calls for it.
 
 ---
+
+**2g — saved views.** A view is a name for the filters, search and sort currently applied — it stores the **URL**, not a result set, so a view is also just a link and its count is always live.
+
+Naming happens **inline in the Views card**, in the position the row will occupy: the field takes focus with the result count already beside it, Enter saves, Esc cancels, blur cancels, and the header action reads Cancel while it is open. The default name is **empty, not generated** — a suggested "Hay · Ordered · this month" gets accepted unread, and a rail full of filter strings is no easier to scan than the filters. The active filters render as a line below the field instead. Duplicate names are allowed; a view is a personal bookmark.
+
+Changing a filter while a view is selected **does not silently update it**. The row keeps its name, gains an amber `edited` chip, and the card offers Update view or Revert. The list follows the new filters immediately; the chip only records that the saved definition and what is on screen have diverged.
+
+Each saved view has a `⋮` menu: **Rename**, **Make default**, **Delete view**. Deleting confirms with a dialog naming the view (per 6d) rather than a toast with Undo — a deleted view leaves nothing on screen to undo from. **All orders is not a saved view**: it is the unfiltered list, always first, has no menu, and cannot be renamed, reordered or deleted. Making a saved view the default changes what Orders opens to; All orders stays where it is.
 
 ### 3a — Creating an order from a receipt
 File: `Order create.dc.html` · Code: `pages/NewOrder.jsx`, `pages/Scan.jsx`, `components/AiCard.jsx`, `components/fileKinds.js`
@@ -840,8 +886,6 @@ Two rules the audit confirmed hold across the whole set, and which are worth enf
 - **Every destructive action has exactly one dialog; every reversible one has exactly one toast.** Nothing has both, nothing has neither. Dialogs: delete order, bulk delete, merge, discard scan. Toasts: line delete, status change, category add, archive, import.
 - **Every "See X" link is a filter handoff, not a new view.** See in Statistics, Open in orders, the Needs-a-look rows and the monthly summary rows all carry state into a screen that already exists. No screen is reachable through only one link.
 
-Also stated here: **global actions live in the shell, page actions do not.** Scan receipt and New order sit in the top bar because they belong to the app, not to the open page — that is not an exception to the locked-shell rule, which is that a page may not put *its own* actions there.
-
 **16b — ten controls that were drawn with no behaviour described anywhere.** Seven are resolved outright:
 
 | Control | Resolution |
@@ -1081,71 +1125,6 @@ Per screen, roughly what needs to exist:
 
 Data needed: orders with item lines and attachments, vendors, categories (with icon, colour and monthly limit), and aggregate endpoints for statistics that accept the same filter shape as the list.
 
-## The shell — structure and scroll behaviour
-
-Read this before building any screen. It is the frame everything else sits in, and none of it is visible in a screenshot.
-
-### Anatomy
-
-```
-┌──────────────┬─────────────────────────────────────────┐
-│              │  top bar — LOCKED, 56px, does not scroll│
-│   sidebar    ├─────────────────────────────────────────┤
-│   248px      │                                         │
-│   full       │  page content — the only scroll          │
-│   viewport   │  container on the page                  │
-│   height     │  padding 48px                           │
-│   fixed      │                                         │
-│              │                                         │
-└──────────────┴─────────────────────────────────────────┘
-```
-
-**The page does not scroll. The content column does.** `html, body { height: 100%; overflow: hidden }`; the content column is the single scroll container (`overflow-y: auto`). This is deliberate: the sidebar and the top bar must never move, and a document-level scroll makes both of them either move or need `position: fixed`, which then breaks the sticky save bar inside the content.
-
-### The sidebar
-
-- **Always full viewport height**, `100dvh` (not `100vh` — on mobile browsers the toolbar makes `vh` wrong). Fixed `248px`, or `68px` collapsed.
-- **It is a flex column**, and it scrolls independently *only if its own content overflows* — which happens on short viewports. It does not scroll with the page.
-- **Three zones, top to bottom:**
-  1. *Brand*, at the top, not scrollable.
-  2. *Navigation*, the flexible middle (`flex: 1`, `overflow-y: auto`, `min-height: 0` — the same automatic-minimum-size rule from 13a applies here, and without it the middle refuses to shrink and pushes the bottom zone off-screen).
-  3. *Bottom zone, pinned:* Settings, the theme toggle, and the account block. These sit below a `flex: 1` spacer, so they rest against the bottom of the viewport whatever the nav length. On a short viewport the nav scrolls and the bottom zone stays put — it is never scrolled away, because switching theme and reaching the account must not depend on scroll position.
-- A `1px rgba(255,255,255,0.07)` divider separates the theme toggle from the nav above it. There is no divider between the toggle and the account block; they read as one bottom group.
-- **The collapse state** persists per user. Collapsed, labels become tooltips on hover; the bottom zone keeps the same order, icons only, and the account block becomes the avatar alone.
-- The sidebar keeps `#14261c` in **both themes** (see 12a) — it is the one element that does not participate in theming, which also means it needs no theme work.
-
-### The top bar
-
-**Locked. No page actions may be placed here** — see global rule 1. It carries the breadcrumb and the page title, nothing else. It does not scroll and it does not change per page beyond its text. Every action a page offers lives inside the page: that is why the edit screen has a sticky save bar at the bottom of its content column, why the order list puts bulk actions in a bar above the list, and why Settings saves per card.
-
-### The content column
-
-- One scroll container, `48px` padding (`20px` on mobile).
-- **Scroll position resets to top on navigation**, and is restored when returning to a list via the browser back button — a user who scrolled to order 80, opened it, and came back should land where they were.
-- **Sticky elements inside it** — the save bar on order edit, the bulk-action bar on the list, table headers — are `position: sticky` relative to *this* container, not the viewport. This only works because the container is the scroller; it is the main reason for the layout above.
-- The two-column screens (order edit, order list, the library) lay out **inside** this column: main `1fr` plus a fixed rail, `24px` gap. The rail scrolls with the content, not separately. There is no second scrollbar anywhere in the app.
-
-### Breakpoints
-
-| Width | What changes |
-| --- | --- |
-| ≥ 1280px | Full layout. Sidebar expanded by default. |
-| < 1280px | Facet rail on the order list becomes a drawer; sidebar may collapse to the 68px rail. |
-| < 900px | Two-column screens stack: rail content moves above or below the main column per screen (order edit collapses its rail into a summary section; the library switches to list-then-panel navigation). |
-| < 640px | Phone layout. Sidebar becomes a bottom tab bar, the top bar keeps only the title, sheets replace inline expansion, and the capture FAB appears. |
-
-**On mobile the sidebar is not a drawer by default** — the five primary destinations become a bottom tab bar, and Settings and the account move into a "More" destination. A hamburger drawer would put the most-used navigation two taps away on the device where capture matters most.
-
-### What is global, and lives in the shell rather than any page
-
-- The toast queue (bottom-centre, one at a time).
-- The dialog layer and its scrim.
-- The command palette (⌘K / Ctrl-K).
-- The theme, applied before first paint from the persisted preference.
-- Keyboard layering: Esc closes the topmost layer — sheet, then dialog, then palette, then an inline edit.
-
----
-
 ## Screenshots
 
 `screenshots/` holds a full-page capture of each file, numbered to match the id prefixes:
@@ -1161,7 +1140,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 | `06-states-confirmations.png` | 6a–6f |
 | `07-mobile.png` | 7a |
 | `08-duplicate-alerts.png` | 8a, 8b |
-| `09-navigation-shell.png` | 9a–9d |
+| `09-navigation-shell.png` | 9a–9g |
 | `10-home.png` | 10a |
 | `11-settings-import.png` | 11a, 11b |
 | `12-dark-mode-viewer.png` | 12a, 12b |
