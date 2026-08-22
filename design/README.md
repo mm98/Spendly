@@ -265,6 +265,8 @@ Read this before building any screen. It is the frame everything else sits in, a
 
 ### Breakpoints
 
+**These are viewport widths, and they govern the shell only** — whether the sidebar is expanded, whether the facet rail is a drawer, whether two columns stack, whether the phone layout applies. **They do not govern any table's columns.** A table's columns drop on the width of the column it sits in, which is a different number: at a 1280px viewport with the sidebar expanded and the rail present, the list column is 652px. 2i's widths are list-column widths and are labelled as such; the collision of "1280" meaning two different things is the trap. Shell → media query on the viewport. Everything inside a page → container query on its own column.
+
 | Width | What changes |
 | --- | --- |
 | ≥ 1280px | Full layout. Sidebar expanded by default. |
