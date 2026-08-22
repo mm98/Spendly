@@ -753,7 +753,7 @@ Breakpoint: below `900px` the two columns stack; below `640px` the phone layout 
 
 ---
 
-### 11a / 11b — Settings, and importing a file
+### 11a–11c — Settings, and importing a file
 File: `Settings and import.dc.html` · Code: new pages (`pages/Settings.jsx`, `pages/Import.jsx`)
 
 **Widths.** The 1180px shell drawn around 11a is presentation only — a stand-in for a viewport so the screen reads in context. In the app the shell fills the browser edge to edge (sidebar 248px fixed, content column fluid, per 9a). Inside the content column: section nav **208px fixed**, hairline divider, card column **fluid with a 640px cap**. Past 640px the cards stop growing and the slack falls to their right — a 42px input stretched across 1920px reads as a bug (15a). Below ~900px the section nav becomes a select above the cards and the cap no longer binds.
@@ -799,6 +799,13 @@ Both values are authored. **Do not derive the ink from the surface at runtime** 
 
 ---
 
+
+**11c — Settings in dark mode.** The same screen with 12a's token map applied; every value is a substitution, not a redesign. Four things worth knowing:
+
+- **The section nav's selected row is the card surface, not an accent** — `#fff` on light against the `#eceae4` canvas, `#221f1b` on dark against `#1a1815`. It reads as selected because it is the same material as the card it opens: elevation, not colour. That is why it lifts on dark rather than darkening.
+- **The theme previews do not invert.** The Light card keeps drawing a light interface and the Dark card a dark one, in both themes — a preview showing the theme it sits in rather than the theme it selects is useless. Only its frame and label follow the surrounding tokens.
+- **Status pills keep their pair token**, both halves swapping together (sand `#f3ede1 / #7a5c23` → `#2c2418 / #d9b166`). Never derive the ink from the surface at runtime.
+- **Dividers go to `#463f37`, not to a lighter grey.** A hairline on dark still has to be darker than the surface it divides, or it reads as a highlight.
 ### 12a / 12b — Dark mode, and images at full size
 File: `Dark mode and image viewer.dc.html` · Code: theme layer + `components/Lightbox.jsx`
 
