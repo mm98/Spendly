@@ -15,6 +15,8 @@
   .card { background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; gap: 18px; align-items: flex-start; transition: border-color .12s ease; }
   .card:hover { border-color: #1d4d33; }
   .ids { display: flex; gap: 5px; width: 84px; flex: none; flex-wrap: wrap; }
+  .step { font-size: 10px; letter-spacing: 0.1em; color: #8b8a82; font-weight: 600; }
+  .step b { color: #1d4d33; font-weight: 600; }
   .ids span { background: #1d4d33; color: #fff; border-radius: 5px; padding: 2px 7px; font-size: 11px; font-weight: 600; }
   .t { font-size: 15px; font-weight: 600; color: #1b1a17; }
   .d { font-size: 13px; color: #57564f; line-height: 1.5; }
@@ -33,7 +35,7 @@
   <div style="display: flex; flex-direction: column; gap: 14px">
     <div class="lab">SPENDLY · DESIGN MOCKUPS</div>
     <h1 style="margin: 0; font-size: 36px; font-weight: 600; line-height: 1.15; max-width: 660px; text-wrap: pretty">Order tracking for personal receipts, from capture to what it all added up to.</h1>
-    <p style="margin: 0; font-size: 15px; color: #57564f; max-width: 640px; line-height: 1.55; text-wrap: pretty">Nineteen files, fifty-four screens. It started with one problem — the order header took too much room above the items — and grew into the flows around it: the list, creating from a scanned receipt, statistics, vendors and categories, the states in between, and the phone.</p>
+    <p style="margin: 0; font-size: 15px; color: #57564f; max-width: 640px; line-height: 1.55; text-wrap: pretty">Twenty files, sixty-three screens. It started with one problem — the order header took too much room above the items — and grew into the flows around it: the list, creating from a scanned receipt, statistics, vendors and categories, the states in between, and the phone.</p>
     <p style="margin: 4px 0 0; font-size: 13px; color: #8b8a82">Every screen carries a visible id badge, unique across the whole set, so it can be pointed at in review.</p>
   </div>
 
@@ -61,9 +63,12 @@ finished step 3.
    responsive CSS. Every other file is a static canvas at one width, so
    nothing about narrow behaviour can be inferred from them. <b>Where a static
    mockup and 18a disagree about narrow behaviour, 18a wins.</b>
-   <i>Input types.dc.html</i> (14a–14d) — the control set, the four button levels,
+   <i>Input types.dc.html</i> (14a–14f) — the control set, the four button levels,
    the palette rule, and the component API each control needs.
-   <i>Layout rules.dc.html</i> (15a, 15b) — column shapes and field widths.
+   <i>Layout rules.dc.html</i> (15a–15c) — column shapes and field widths.
+   <i>Actions inventory.dc.html</i> (16a–16f) — every action on every screen, what
+   surface it uses, and what is behind each overflow menu. Read before
+   wiring a screen's actions, or they get invented per page.
    <i>Icon legend.dc.html</i> (19a, 19b) — what every action icon means, its
    tooltip and its aria-label. An icon-only button needs both.
    <i>Typography.dc.html</i> (13a) — the scale, rendered at size.
@@ -73,17 +78,33 @@ finished step 3.
    Don't guess these — several change the data model.
 
 <b>4. Build order</b>
-   a. The four container-query layout wrappers from 18a. Every screen then
-      picks one and fills it; screens that hand-roll their own grid are how
-      a fifth breakpoint appears.
-   b. The shared field wrapper, then TextField and Button (14d).
-   c. Combobox — the largest single piece, and four screens wait on it.
-      Do the keyboard table in 14a before the styling, not after.
-   d. The shell (9a), then order edit and inline item editing (1b, 1d) —
-      the original problem and the highest-traffic screen.
-   e. Order list with facets (2b, 2a), then states and confirmations
-      (6a–6f) as shared components before they get reinvented per page.
-   f. Scan flow (3a, 3b), library (5a–5c), statistics (4a), home (10a).
+   The index page carries a STEP badge on every card, matching this list.
+   Ids are stable names, not an order — 1a is not step one.
+
+   0  Foundations. Read 18a, 14a–14f, 15a–15c, 16a–16f, 13a, 19a. Build the four
+      container-query layout wrappers from 18a first; every screen then
+      picks one and fills it. Screens that hand-roll their own grid are
+      how a fifth breakpoint appears. Then the shared field wrapper,
+      TextField and Button (14d), then Combobox — the largest single
+      piece, with four screens waiting on it. Do the keyboard table in
+      14a before the styling, not after.
+   1  Auth and first run (20a–20e). AuthLayout and the route guards, or
+      there is nothing for an app route to sit behind.
+   2  Navigation shell (9a–9d).
+   3  Order edit and inline item editing (1a–1d). The original problem
+      and the highest-traffic screen.
+   4  Order list with facets (2a–2d).
+   5  States and confirmations (6a–6f) and file handling (17a, 17b),
+      as shared components before they get reinvented per page.
+   6  Order create and the scan flow (3a–3c).
+   7  Vendors and categories (5a–5d).
+   8  Statistics (4a).
+   9  Home (10a) — mostly composes what the earlier steps produced.
+   10 Settings and import (11a, 11b), duplicate and alerts (8a, 8b).
+   11 Dark theme (12a, 12b), once the tokens are in real use.
+
+   Mobile (7a) is not a step. Do each screen's narrow layout with that
+   screen, using 18a — never as a pass at the end.
 
 <b>The contract</b>
    <b>This design set is the only source of truth for the UI.</b> Where it
@@ -394,15 +415,23 @@ Start with step 1 and tell me what you've read before moving on.</div>
 
   <div style="display: flex; flex-direction: column; gap: 14px">
     <div class="lab">START HERE</div>
+    <p style="margin: 0 0 2px; font-size: 13px; color: #57564f; max-width: 660px; line-height: 1.55">Each card shows a <b>STEP</b> number — where it sits in the build order above. The <span style="background: #1d4d33; color: #fff; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600">1a</span> badges are screen ids: stable names for pointing at a screen in review, in the order the screens were drawn. They are deliberately not the build order, because the build order changes and a name that changes breaks every reference to it.</p>
     <a class="card" href="Home.dc.html">
-      <div class="ids"><span>10a</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>9</b></div><div class="ids" style="width: auto"><span>10a</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Home</div>
         <div class="d">The start page: this month against the limits, receipt capture, what needs a look, recent orders and categories.</div>
       </div>
     </a>
+    <a class="card" href="Auth and first run.dc.html">
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>1</b></div><div class="ids" style="width: auto"><span>20a</span><span>20b</span><span>20c</span><span>20d</span><span>20e</span></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Sign in, register, and first run</div>
+        <div class="d">Email and password with open registration, the token link that confirms the address, forgotten-password recovery, lockout, the two questions asked on first run, and which chrome each route renders in.</div>
+      </div>
+    </a>
     <a class="card" href="Navigation shell.dc.html">
-      <div class="ids"><span>9a</span><span>9b</span><span>9c</span><span>9d</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>2</b></div><div class="ids" style="width: auto"><span>9a</span><span>9b</span><span>9c</span><span>9d</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Navigation shell</div>
         <div class="d">The frame the pages sit in: sidebar areas with counts, the locked top bar, a collapsed rail, and the ⌘K palette across orders, vendors and actions.</div>
@@ -413,35 +442,35 @@ Start with step 1 and tell me what you've read before moving on.</div>
   <div style="display: flex; flex-direction: column; gap: 14px">
     <div class="lab">ORDERS</div>
     <a class="card" href="Order editing layouts.dc.html">
-      <div class="ids"><span>1a</span><span>1b</span><span>1c</span><span>1d</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>3</b></div><div class="ids" style="width: auto"><span>1a</span><span>1b</span><span>1c</span><span>1d</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Order editing</div>
         <div class="d">Where it began. The header moved into the right rail so the items own the width: read view, editing an item in place with its photo, the mobile screens, and the edit layout with drag to reorder.</div>
       </div>
     </a>
     <a class="card" href="Order list.dc.html">
-      <div class="ids"><span>2a</span><span>2b</span><span>2c</span><span>2d</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>4</b></div><div class="ids" style="width: auto"><span>2a</span><span>2b</span><span>2c</span><span>2d</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Order list</div>
         <div class="d">Rows with a facet rail, search and filter chips; the cards view; and the bulk actions for setting status or adding a category.</div>
       </div>
     </a>
     <a class="card" href="Order create.dc.html">
-      <div class="ids"><span>3a</span><span>3b</span><span>3c</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>6</b></div><div class="ids" style="width: auto"><span>3a</span><span>3b</span><span>3c</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Creating an order</div>
         <div class="d">From a scanned receipt: how to start, reading, checking what was read line by line, created.</div>
       </div>
     </a>
     <a class="card" href="Settings and import.dc.html#11b">
-      <div class="ids"><span>11b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>10</b></div><div class="ids" style="width: auto"><span>11b</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Import a file</div>
         <div class="d">The bulk path: a spreadsheet or a JSON export, mapped column by column against real rows, checked, then written — with a 24-hour undo.</div>
       </div>
     </a>
     <a class="card" href="Duplicate and alerts.dc.html">
-      <div class="ids"><span>8a</span><span>8b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>10</b></div><div class="ids" style="width: auto"><span>8a</span><span>8b</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Duplicating, and budget alerts</div>
         <div class="d">What carries over when an order is repeated, and the three moments a limit speaks up: as you cross it, on the category, and once a month.</div>
@@ -452,14 +481,14 @@ Start with step 1 and tell me what you've read before moving on.</div>
   <div style="display: flex; flex-direction: column; gap: 14px">
     <div class="lab">LIBRARY AND NUMBERS</div>
     <a class="card" href="Order statistics.dc.html">
-      <div class="ids"><span>4a</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>8</b></div><div class="ids" style="width: auto"><span>4a</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Statistics</div>
         <div class="d">Headline figures, spend by month, category and status breakdowns, monthly limits, and a drill path down to the orders behind any slice.</div>
       </div>
     </a>
     <a class="card" href="Vendors and categories.dc.html">
-      <div class="ids"><span>5a</span><span>5b</span><span>5c</span><span>5d</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>7</b></div><div class="ids" style="width: auto"><span>5a</span><span>5b</span><span>5c</span><span>5d</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Vendors and categories</div>
         <div class="d">Two lists with a shared panel: vendors with merge for scan duplicates, categories carrying icon, colour and the monthly limit, and the roll-up shown when nothing is selected.</div>
@@ -470,77 +499,77 @@ Start with step 1 and tell me what you've read before moving on.</div>
   <div style="display: flex; flex-direction: column; gap: 14px">
     <div class="lab">ACROSS EVERYTHING</div>
     <a class="card" href="States and confirmations.dc.html">
-      <div class="ids"><span>6a</span><span>6b</span><span>6c</span><span>6d</span><span>6e</span><span>6f</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>5</b></div><div class="ids" style="width: auto"><span>6a</span><span>6b</span><span>6c</span><span>6d</span><span>6e</span><span>6f</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">States and confirmations</div>
         <div class="d">Empty states, loading skeletons, validation, confirmations and toasts, and what happens when a scan cannot be read.</div>
       </div>
     </a>
     <a class="card" href="Settings and import.dc.html">
-      <div class="ids"><span>11a</span><span>11b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>10</b></div><div class="ids" style="width: auto"><span>11a</span><span>11b</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Settings, and import</div>
         <div class="d">Account, appearance, currency and format, defaults for a new order, and renaming or reordering statuses — then the file import flow.</div>
       </div>
     </a>
     <a class="card" href="Images and files.dc.html">
-      <div class="ids"><span>17a</span><span>17b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>5</b></div><div class="ids" style="width: auto"><span>17a</span><span>17b</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Images and files</div>
         <div class="d">How upload, replace and delete work in all four places that take a file — the lifecycle, every state drawn, and the shortcuts that lose the user's receipt.</div>
       </div>
     </a>
     <a class="card" href="Actions inventory.dc.html">
-      <div class="ids"><span>16a</span><span>16b</span><span>16c</span><span>16d</span><span>16e</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>16a</span><span>16b</span><span>16c</span><span>16d</span><span>16e</span><span>16f</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Actions inventory</div>
         <div class="d">Every control in the set, what it does and what the user sees afterwards — plus the ten that had no described behaviour, resolved and the six that needed layout drawn.</div>
       </div>
     </a>
     <a class="card" href="Icon legend.dc.html">
-      <div class="ids"><span>19a</span><span>19b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>19a</span><span>19b</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Icon legend</div>
         <div class="d">Every icon that carries an action — what it does, where it appears, its tooltip and its accessible name — plus the rules for drawing and labelling them.</div>
       </div>
     </a>
     <a class="card" href="Responsive reference.dc.html">
-      <div class="ids"><span>18a</span><span>18b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>18a</span><span>18b</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Responsive reference</div>
         <div class="d">The only page here that actually responds: working container-query layouts with the CSS beside them, plus a per-screen table of what changes at 1280, 900 and 640.</div>
       </div>
     </a>
     <a class="card" href="Layout rules.dc.html">
-      <div class="ids"><span>15a</span><span>15b</span><span>15c</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>15a</span><span>15b</span><span>15c</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Layout rules</div>
         <div class="d">The four column shapes, when a field is full width and when it is a fraction, how rows hold their columns, which field groups survive the phone breakpoint, and which pixel values in these files are real versus mockup scaffolding.</div>
       </div>
     </a>
     <a class="card" href="Input types.dc.html">
-      <div class="ids"><span>14a</span><span>14b</span><span>14c</span><span>14d</span><span>14e</span><span>14f</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>14a</span><span>14b</span><span>14c</span><span>14d</span><span>14e</span><span>14f</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Input types</div>
         <div class="d">Every control with its states, the four button levels, the rule the palette follows when a colour has to be added, and the option list each control needs to exist as a reusable component.</div>
       </div>
     </a>
     <a class="card" href="Typography.dc.html">
-      <div class="ids"><span>13a</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>0</b></div><div class="ids" style="width: auto"><span>13a</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Typography</div>
         <div class="d">The family and its four weights, the whole scale rendered at size, how it is loaded and what the fallback costs, tabular figures, truncation per role, and six rules.</div>
       </div>
     </a>
     <a class="card" href="Dark mode and image viewer.dc.html">
-      <div class="ids"><span>12a</span><span>12b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step">STEP <b>11</b></div><div class="ids" style="width: auto"><span>12a</span><span>12b</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Dark mode, and images at full size</div>
         <div class="d">The warm dark theme as a token map plus three screens in it, and the viewer that opens an attachment or item photo full size.</div>
       </div>
     </a>
     <a class="card" href="Mobile screens.dc.html">
-      <div class="ids"><span>7a</span></div>
+      <div style="display: flex; flex-direction: column; gap: 5px; width: 84px; flex: none"><div class="step"><b>ALL</b></div><div class="ids" style="width: auto"><span>7a</span></div></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Mobile</div>
         <div class="d">The phone as the capture device: orders list, filters as a sheet, checking a scan, and statistics in one column.</div>

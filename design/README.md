@@ -286,6 +286,41 @@ Read this before building any screen. It is the frame everything else sits in, a
 
 ## Screens
 
+### 20a–20e — Sign in, register, and first run
+File: `Auth and first run.dc.html` · Code: `features/auth/`
+
+**Registration is open** — anyone can create an account. No invite, no admin approval. The product is single-user personal receipt tracking, so there is nobody to invite you.
+
+**20a — Sign in and register.** Email and password, one card centred on the canvas. Sign in shows one error for a wrong email *or* a wrong password ("That email and password don't match") — naming which was wrong tells an attacker which half to keep. Register asks name, email, password, and **no confirm field**: the reveal toggle does that job, and a second box only catches a typo made twice identically while costing everyone the extra entry. Paste is never blocked — password managers are the main route to a strong password.
+
+**20b — Confirming the address.** Registration lands on a holding page, not Home. The emailed link hits `/confirm/:token` with four states: valid (confirms, goes to first run), already used (says so, offers sign in), expired (offers a resend), malformed (offers a resend). **An unconfirmed account can sign in and look around**, with a banner at the top of the content column — but capture is held, because a scanned receipt attached to an unreachable address is data nobody can recover.
+
+**20c — Forgotten password.** Asks for the email and shows the same message whether or not the account exists. `/reset/:token` has the same four states as confirm, then the password form with the strength meter from 14a. Six wrong sign-in attempts locks for fifteen minutes and says exactly that, with the countdown — a lockout with no stated duration reads as a permanent ban.
+
+**20d — First run, two questions.**
+1. **Currency and number format**, prefilled from browser locale, with a live preview showing `1.234,50 kr.` beside a formatted date. The preview is the point: it shows the consequence of both fields at once, so neither has to be understood in the abstract.
+2. **One category**, as single-select rows with icon tiles, plus "Something else…" which opens the name field and 5b's icon picker. Deliberately one, not a grid — a grid invites picking all of them, and then the facet list is full of empty categories on day one.
+
+Then **Home, day one**: capture is the only prominent action, the month card reads `0,00 kr.` with an empty track and an invitation to set a limit *later*, and the category card echoes what step 2 produced. **The monthly limit is not asked during onboarding** — a limit set before any spending is a guess, and the pace marker against a guessed limit teaches the wrong thing.
+
+Both steps are skippable and say so. Skip keeps the locale currency and creates the suggested category.
+
+**20e — Where these sit in the chrome.** Three levels, and none of them are popups:
+
+| Level | Chrome | Which routes |
+| --- | --- | --- |
+| 1 | None — card centred on the canvas | `/signin`, `/register`, `/confirm`, `/confirm/:token`, `/reset`, `/reset/:token`, `/welcome` |
+| 2 | Full shell; unconfirmed adds a banner | `/` and every other app route |
+| 3 | Dialog over the shell | Session expiry only |
+
+**Two layout components, not one shell with pieces hidden.** An `AuthLayout` and the `AppShell` from 9a. Rendering AppShell with its sidebar suppressed leaves the sidebar's data hooks mounted and fetching for a user who may not exist yet.
+
+**First run uses AuthLayout despite the user being signed in.** A sidebar reading "0 orders · 0 vendors" beside a question about currency is navigation to nowhere, and the currency answer changes how the shell renders every amount.
+
+**Routing rules:** an unauthenticated hit on any app route redirects to sign-in **carrying the intended path**, and lands there afterwards — a receipt link shared to yourself should open that receipt, not Home. A signed-in user hitting `/signin` goes to Home. A signed-in user who has not finished first run is redirected into it from every app route. Session expiry is the one dialog, because there *is* something behind it worth not losing: signing in from the dialog returns to the same route with state intact, and "Later" leaves the app read-only so an in-progress order can be copied out.
+
+---
+
 ### 9a / 9b / 9c — Navigation shell
 File: `Navigation shell.dc.html` · Code: `App.jsx`, `components/Nav.jsx`, `components/Shell.jsx`
 
@@ -704,14 +739,16 @@ Specifics worth not rediscovering: an error state **keeps the value** (the field
 
 To add a swatch: pick a hue in an existing family or ≥40° from all four; set L in 69–86 and ≥5 L from any swatch on the same hue; derive chroma from that lightness (~0.08 at L 70, ~0.05 at L 80, ~0.025 at L 86); check it as a 26px icon tile with white and with dark ink (the glyph flips above L 75), as a 12px chart bar, and as a chip; and add the dark-theme pair in the same commit (+18 L, same chroma). Never open a free colour picker to users, and never interpolate in hex or HSL.
 
-**14d — Component API.** Fourteen components with the options each needs and what drives them, so nothing is speculative: TextField, AmountField, Stepper, Combobox, SearchInput, Segmented, Radio, Checkbox, Toggle, DateField, FileDrop, SwatchPicker, Button, Chip.
+**14d — Component API.** Fourteen components with the options each needs and what drives them, so nothing is speculative: TextField, PasswordField, AmountField, Stepper, Combobox, SearchInput, Segmented, Radio, Checkbox, Toggle, DateField, FileDrop, SwatchPicker, Button, Chip.
 
 **Radio** — `options`, a `meta` slot per option, `rowTarget`. Used by bulk "set status" (2a) and the date presets (2d): one value from a set too long or too annotated for Segmented. Three options minimum. The mark is **16px with `box-sizing: border-box` and `flex: none`** — unselected `1px #d6d4ca` on white, selected `5px #1d4d33` on white leaving a 6px well. Without border-box the selected mark measures 26px and every row shifts as the selection moves. Whole row is the target (44px on touch), selected row `#eef1ee` with its label 600 `#1d4d33`, hover `#f0efe9` so hover and selection stay separable. One tab stop per group; arrows move and select.
 
 - **All share five props** — `label`, `value`, `onChange`, `error`, `disabled` — owned by **one shared field wrapper**, which also owns the label's `htmlFor`, the required marker, the hint/error slot with `aria-describedby`/`aria-invalid`, and the spacing. Each control renders only its own box. **Error and hint share one slot** so a field never changes height when it fails.
 - **Controlled only.** No internal value state, no `defaultValue` — a control holding its own copy is how a field silently disagrees with what gets saved.
 - **No `variant="danger"` on an input.** Error is a boolean plus a message, which makes the red state impossible to apply for decoration.
-- **Deliberately not components:** a two-option radio (that is always a Segmented), slider (an amount range is two AmountFields — a receipt total is typed, not dragged to), autocomplete / tag input / rich text / native select (all are the Combobox, Chip list, or multiline TextField), and Form (each screen's save behaviour differs, so screens compose the wrapper and controls directly).
+- **PasswordField** exists only in the change-password dialog (440px, opened from Settings). Reveal is built in and replaces a confirm field — a second box catches nothing the eye does not, and doubles the work. The meter measures length first, never blocks, and never demands a symbol. Paste is never blocked and `autocomplete="current-password"`/`"new-password"` are always set; both are how a weak password gets chosen instead of a strong one.
+
+**Deliberately not components:** a two-option radio (that is always a Segmented), slider (an amount range is two AmountFields — a receipt total is typed, not dragged to), autocomplete / tag input / rich text / native select (all are the Combobox, Chip list, or multiline TextField), and Form (each screen's save behaviour differs, so screens compose the wrapper and controls directly).
 - Build order in the file: wrapper + TextField + Button, then Combobox, then AmountField + Stepper together, then the small four the order list needs at once, then the rest. Each control ships with the states from 14a as its acceptance criteria.
 
 **14e — controls that appear once.** Six that exist in one place each, which is why they were missing from 14a. A control used once still has to be specified.
@@ -754,7 +791,7 @@ Gaps, not margins, set on the container: `24px` between columns, `14px` between 
 
 **15b — Fields on mobile.** A four-step test, in order: (1) is it one calculation or one object? keep it grouped; (2) would any part fall under 100px? stack it regardless — three fields at 375px is 105px each before gaps, the hard floor, and why nothing keeps thirds on a phone; (3) does one part have an intrinsic width? fixed + fluid, not halves; (4) otherwise full width, which is the right answer for most fields.
 
-What survives the breakpoint is short enough to name: the item equation (as fixed + fluid, with the computed third becoming a **total line** rather than a field — a read-only box on a phone is a target that does nothing), the photo row with its controls, and the icon-plus-name field. Control padding goes from `10px 12px` to `12px`, taking the height from 42px to 46px without changing type size; field gap goes 12px → 14px.
+What survives the breakpoint is short enough to name: the item equation (as fixed + fluid, with the computed third becoming a **total line** rather than a field — a read-only box on a phone is a target that does nothing), the photo row with its controls, and the icon-plus-name field. Control padding goes from `10px 12px` to `12px`, taking the height from 42px to 46px without changing type size, and radius from `9px` to `10px` — radius tracks control size; field gap goes 12px → 14px.
 
 Also below 640px: buttons in a sheet go full width and stacked (the only correct full-width button); dialogs become bottom sheets; comboboxes become full-screen sheets with search at the top above the keyboard; segmented controls may go full width; the save bar spans the viewport respecting the safe-area inset; labels stay above their fields at every width.
 
@@ -920,6 +957,27 @@ On dark, hover lightens rather than darkens (row `#2a2621`, icon button `#38332c
 
 ---
 
+## What clicking a row does (16f)
+
+**A click takes you to wherever that row's detail already lives — and it never opens an edit form.** If the detail is a route, the click navigates; if it is a panel on the same page, it selects; if it is the row itself, it expands. Nothing has to be remembered per screen, because the layout already says which of the three applies.
+
+| Row | Detail lives | A click |
+| --- | --- | --- |
+| Order (2b, 2c) | `/orders/:id` | Navigates to the **read** view, not edit |
+| Vendor (5a) | Panel beside the list | Selects; row takes the `#e7efe8` tint |
+| Category (5b) | Panel beside the list | Selects; the panel is read-to-edit, no mode |
+| Item line (1b, 1d) | Inside the row | Expands in place — the one case a click reaches an editable field |
+| Statistics row (4a) | One level down the drill path | Pushes a crumb, re-filters every card |
+| Facet row (2a) | Nowhere — it is a control | Toggles the checkbox; whole row is the 44px target |
+
+**Editing is always a second, deliberate action** — the pencil, the menu, or an Edit button. A list where clicking opens a form cannot be browsed without risking a change.
+
+**Where the click navigates, the row is an anchor** — an `<a>` with a real `href`, not an `onClick` with a router push. That is what makes ⌘-click, middle-click, open-in-new-tab and the status-bar preview work; all four are free with an anchor and impossible without one. **Where it selects, the row is a button** with no href, because there is no address for "vendor 4 is showing in the panel".
+
+**Stop propagation on:** the checkbox, the ⋮, every icon button in the actions cluster, the drag handle, and any link or chip inside the row. Getting this wrong means every attempt to tick a checkbox navigates away.
+
+**Hover is a contract.** Any row with the `#f0efe9` fill and a pointer cursor is promising it does something; a row that does nothing gets neither. Rows are in the tab order, Enter does what a click does, Space toggles the checkbox where there is one, and the focus ring sits on the row rather than on something inside it. **Nothing anywhere requires a double-click.**
+
 ## Interactions summary
 
 | Trigger | Result |
@@ -1034,24 +1092,25 @@ Read this before building any screen. It is the frame everything else sits in, a
 | --- | --- |
 | `00-overview.png` | The linked overview page |
 | `01-order-editing.png` | 1a–1d |
-| `02-order-list.png` | 2a–2c |
-| `03-order-create.png` | 3a |
+| `02-order-list.png` | 2a–2e |
+| `03-order-create.png` | 3a–3c |
 | `04-statistics.png` | 4a |
-| `05-vendors-categories.png` | 5a–5c |
+| `05-vendors-categories.png` | 5a–5e |
 | `06-states-confirmations.png` | 6a–6f |
 | `07-mobile.png` | 7a |
 | `08-duplicate-alerts.png` | 8a, 8b |
-| `09-navigation-shell.png` | 9a, 9b |
+| `09-navigation-shell.png` | 9a–9d |
 | `10-home.png` | 10a |
 | `11-settings-import.png` | 11a, 11b |
 | `12-dark-mode-viewer.png` | 12a, 12b |
 | `13-typography.png` | 13a |
-| `14-input-types.png` | 14a–14d |
+| `14-input-types.png` | 14a–14f |
 | `15-layout-rules.png` | 15a–15c |
-| `16-actions-inventory.png` | 16a–16c |
+| `16-actions-inventory.png` | 16a–16f |
 | `17-images-and-files.png` | 17a, 17b |
 | `18-responsive-reference.png` | 18a, 18b |
 | `19-icon-legend.png` | 19a, 19b |
+| `20-auth-and-first-run.png` | 20a–20e |
 
 Full-page PNG at 2× device pixels (roughly 3300–4100px wide. Three pages are long enough to be capped below 2× by the pixel budget — `14-input-types.png`, `16-actions-inventory.png` and `00-overview.png`; for those, open the HTML rather than reading the screenshot), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
 
@@ -1067,12 +1126,13 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `BEHAVIOUR.md` | Edge cases, precise rules, open questions |
 | `index.html` | Linked overview of everything below — start here |
 | `Home.dc.html` | 10a |
-| `Navigation shell.dc.html` | 9a, 9b, 9c |
+| `Navigation shell.dc.html` | 9a, 9b, 9c, 9d |
 | `Order editing layouts.dc.html` | 1a, 1b, 1c, 1d |
-| `Order list.dc.html` | 2a, 2b, 2c |
-| `Order create.dc.html` | 3a |
+| `Order list.dc.html` | 2a, 2b, 2c, 2d, 2e |
+| `Order create.dc.html` | 3a, 3b, 3c |
 | `Order statistics.dc.html` | 4a |
-| `Vendors and categories.dc.html` | 5a, 5b, 5c, 5d |
+| `Auth and first run.dc.html` | 20a, 20b, 20c, 20d, 20e |
+| `Vendors and categories.dc.html` | 5a, 5b, 5c, 5d, 5e |
 | `States and confirmations.dc.html` | 6a–6f |
 | `Mobile screens.dc.html` | 7a |
 | `Duplicate and alerts.dc.html` | 8a, 8b |
@@ -1083,22 +1143,49 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Layout rules.dc.html` | 15a, 15b, 15c |
 | `Responsive reference.dc.html` | 18a, 18b |
 | `Icon legend.dc.html` | 19a, 19b |
-| `Actions inventory.dc.html` | 16a, 16b, 16c |
+| `Actions inventory.dc.html` | 16a–16f |
 | `Images and files.dc.html` | 17a, 17b |
 | `support.js` | Preview runtime for the files above — not part of the product |
 | `screenshots/` | Full-page capture of each file (see above) |
 
-## Suggested order of work
+## Screen ids are names, not an order
 
-0. Answer the open questions in `BEHAVIOUR.md` that affect the screens you are starting with — 1, 2 and 3 for order edit; 5 and 6 for statistics.
-1. Shell and tokens (9a) — everything else sits inside it, and the token set is small enough to land in one pass.
-2. Order edit and inline item editing (1b, 1c) — the original problem, and the highest-traffic screen.
-3. Order list with facets (2b, 2a) — unblocks navigation to everything else.
-4. States and confirmations (6a–6d) as shared components, before they get reinvented per page.
-5. Scan flow (3a, 6e).
-6. Library (5a–5c), then Statistics (4a), then Home (10a), which mostly composes pieces the earlier steps produced.
-7. Mobile passes (7a, 1d) alongside each screen rather than at the end.
-8. Settings (11a) and Import (11b) — Settings is small once the token layer exists; Import is the largest single piece in the set and depends on nothing else.
-9. Dark mode (12a) last as a token pass, not a rebuild — if it needs component changes, the token layer was not clean. Do it before shipping, not after; retrofitting a theme is far more work than building against one.
+Every screen carries an id badge — `1a`, `14e`, `20c`. These are **stable identifiers for pointing at a screen**, numbered in the order the screens were drawn. They are not the build order, and `1a` is not step one.
 
-The foundation files (13a, 14a–14d, 15a–15b) are not steps — they are what every step is built against. Read 18a before writing any layout and 14d before any component; they are the two that stop the same decision being made differently on each screen. Use 16a as the per-screen checklist as you build — a control not in that table is one whose behaviour was never decided. Typography (13a) and the image viewer (12b) are likewise not steps — 13a is the reference you build every screen against, and 12b is a shared component that steps 2 and 5 both need.
+They are deliberately left alone: the ids are the review vocabulary, the mockups cross-reference each other by id in about two hundred places, and the build order has already changed twice. A name that encodes a moment in the project's history has to change when that moment passes — which is the same reason the naming rules reject `V2` and `New`.
+
+The build order lives below, and on the index page as a STEP badge on each card.
+
+## Build order
+
+The index page carries a **STEP** badge on every card, matching this list. Screen ids are stable names, not an order — `1a` is not step one.
+
+**Before step 0:** answer the open questions in `BEHAVIOUR.md` that affect what you are starting with. Several change the data model.
+
+**0 — Foundations.** Read 18a, 14a–14f, 15a–15c, 13a and 19a; build nothing from them directly except the shared pieces below. Then, in order: the four container-query layout wrappers from 18a (every screen picks one and fills it — screens that hand-roll their own grid are how a fifth threshold appears), the shared field wrapper with TextField and Button, and then Combobox, which is the largest single control and has four screens waiting on it. Do the keyboard table in 14a before the styling, not after.
+
+**1 — Auth and first run** (20a–20e). AuthLayout and the route guards, or there is nothing for an app route to sit behind.
+
+**2 — Navigation shell** (9a–9d). The frame everything else renders inside.
+
+**3 — Order edit and inline item editing** (1a–1d). The original problem, and the highest-traffic screen.
+
+**4 — Order list with facets** (2a–2d). Unblocks navigation to everything else.
+
+**5 — States, confirmations and file handling** (6a–6f, 17a, 17b). As shared components, before they get reinvented per page.
+
+**6 — Order create and the scan flow** (3a–3c).
+
+**7 — Vendors and categories** (5a–5d).
+
+**8 — Statistics** (4a).
+
+**9 — Home** (10a). Mostly composes what the earlier steps produced.
+
+**10 — Settings and import** (11a, 11b) and **duplicate and alerts** (8a, 8b). Settings is small once the token layer exists; import is the largest single flow in the set and depends on nothing else.
+
+**11 — Dark theme** (12a, 12b). A token pass, not a rebuild — if it needs component changes, the token layer was not clean. Do it before shipping: retrofitting a theme costs far more than building against one.
+
+**Mobile (7a) is not a step.** Do each screen's narrow layout with that screen, using 18a — never as a pass at the end.
+
+The foundation files are not steps; they are what every step is built against. Read 18a before writing any layout, 14d before any component, and 16a–16f when wiring a screen's actions — those are the three that stop the same decision being made differently on each screen.

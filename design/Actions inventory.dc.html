@@ -749,6 +749,118 @@
     </div>
   </div>
 </section>
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="16f">16f</span>
+    <span style="font-size: 20px; font-weight: 600">What clicking a row does</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every list in the app has clickable rows, and they do three different things. The difference is not arbitrary — one rule produces all three.</div>
+
+  <div style="max-width: 900px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+    <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THE RULE</div>
+    <div style="font-size: 15px; font-weight: 600; line-height: 1.45">A click takes you to wherever that row's detail already lives — and it never opens an edit form.</div>
+    <div style="font-size: 13px; color: #57564f; line-height: 1.55">If the detail is a route, the click navigates. If it is a panel on the same page, the click selects. If it is the row itself, the click expands. Nothing has to be remembered per screen, because the layout already says which of the three it is.</div>
+    <div style="font-size: 13px; color: #57564f; line-height: 1.55">The second half matters as much as the first: <b style="color: #3d3c36">a row click always lands you somewhere you can read.</b> Editing is a second, deliberate action — the pencil, the menu, or the Edit button. A list where clicking opens a form is a list you cannot browse without risking a change, and the whole point of a row is to be looked at.</div>
+  </div>
+
+  <div style="display: flex; gap: 20px; align-items: stretch; flex-wrap: wrap">
+      <div style="width: 300px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 11px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <div style="font-size: 14px; font-weight: 600">Order row <span style="font-weight: 400; color: #8b8a82">2b, 2c</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITS DETAIL LIVES</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5">On its own route, <b>/orders/:id</b>.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #f0efe9; padding-top: 11px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SO A CLICK</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5"><b>Navigates</b> to the order, read view. Not the edit screen — 1a exists so looking something up costs nothing.</div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5; border-top: 1px solid #f0efe9; padding-top: 10px">cursor: pointer · hover #f0efe9 · ⌘-click and middle-click open a new tab</div>
+      </div>
+      <div style="width: 300px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 11px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <div style="font-size: 14px; font-weight: 600">Vendor row <span style="font-weight: 400; color: #8b8a82">5a</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITS DETAIL LIVES</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5">In the panel beside the list.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #f0efe9; padding-top: 11px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SO A CLICK</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5"><b>Selects</b> the row and fills the panel. The list stays where it is; the selected row takes the #e7efe8 tint.</div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5; border-top: 1px solid #f0efe9; padding-top: 10px">cursor: pointer · hover #f0efe9 · ⌘-click does nothing — there is no URL to open</div>
+      </div>
+      <div style="width: 300px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 11px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <div style="font-size: 14px; font-weight: 600">Category row <span style="font-weight: 400; color: #8b8a82">5b</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITS DETAIL LIVES</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5">In the panel beside the list.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #f0efe9; padding-top: 11px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SO A CLICK</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5"><b>Selects</b>, same as a vendor. The panel is a form, but it opens read-to-edit — no separate mode.</div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5; border-top: 1px solid #f0efe9; padding-top: 10px">cursor: pointer · hover #f0efe9 · the limit field is focusable straight from the menu</div>
+      </div>
+      <div style="width: 300px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 11px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <div style="font-size: 14px; font-weight: 600">Item line <span style="font-weight: 400; color: #8b8a82">1b, 1d</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITS DETAIL LIVES</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5">Inside the row.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #f0efe9; padding-top: 11px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SO A CLICK</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5"><b>Expands</b> in place into the editing form, pushing the rows below down. The one case where a click does reach an editable field — because the row <i>is</i> the detail.</div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5; border-top: 1px solid #f0efe9; padding-top: 10px">cursor: pointer · hover #f0efe9 · pencil at the right edge, always visible on touch</div>
+      </div>
+      <div style="width: 300px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 11px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <div style="font-size: 14px; font-weight: 600">Statistics table row <span style="font-weight: 400; color: #8b8a82">4a</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITS DETAIL LIVES</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5">One level further down the drill path.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #f0efe9; padding-top: 11px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SO A CLICK</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5"><b>Drills</b> — pushes a crumb and re-filters every card. The final level is a list of orders, and from there a row navigates.</div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5; border-top: 1px solid #f0efe9; padding-top: 10px">cursor: pointer · hover #f0efe9 · the crumb is in the URL, so ⌘-click works</div>
+      </div>
+      <div style="width: 300px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 11px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <div style="font-size: 14px; font-weight: 600">Facet row <span style="font-weight: 400; color: #8b8a82">2a</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITS DETAIL LIVES</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5">Nowhere — it is a control, not a record.</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #f0efe9; padding-top: 11px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SO A CLICK</div>
+          <div style="font-size: 13px; color: #3d3c36; line-height: 1.5"><b>Toggles</b> the checkbox. The whole row is the target, which is what gives it a 44px hit area on touch.</div>
+        </div>
+        <div style="font-size: 11px; color: #8b8a82; line-height: 1.5; border-top: 1px solid #f0efe9; padding-top: 10px">cursor: pointer · hover #f0efe9 · Space toggles when focused</div>
+      </div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">What must not trigger the row action.</b> The checkbox, the ⋮, every icon button in the actions cluster, the drag handle, and any link or chip inside the row — all stop propagation. Getting this wrong means every attempt to tick a checkbox navigates away, which is the most common bug in a clickable table.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Where the click navigates, the row is an anchor.</b> An <b>&lt;a&gt;</b> wrapping the row content, or a real <b>href</b> on it — not an onClick with a router push. That is what makes ⌘-click, middle-click, "open in new tab" and the status bar preview work, and all three are free if the element is an anchor and impossible if it is not.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Where it selects, the row is a button.</b> No href, because there is no address for "vendor 4 is showing in the panel" — and offering ⌘-click on something that cannot open in a tab is worse than not offering it.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Keyboard is the same everywhere.</b> Rows are in the tab order, Enter does what a click does, Space toggles the checkbox where the row has one, and the focus ring is the standard 3px <b>rgba(29,77,51,0.12)</b> on the row rather than on something inside it.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Hover is the contract.</b> Any row with the #f0efe9 hover fill and a pointer cursor is promising it does something. A row that does nothing gets neither — an inert row that lights up on hover is a broken promise, and it is how a user concludes the app is unreliable.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Double-click is never a separate action.</b> On a navigating row the second click lands on the next page; on a selecting row it is harmless. Nothing anywhere requires a double-click.</div>
+  </div>
+</section>
+
 
 
 </x-dc>
