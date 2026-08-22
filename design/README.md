@@ -40,7 +40,7 @@ Working from this document's description of a screen instead of from the screen 
 2. **Transcribe, don't estimate.** `padding: 10px 12px` is 10px 12px. `#1d4d33` is `#1d4d33`. If you are about to write a number that does not appear in the file, stop — that is a guess.
 3. **Copy text is a string literal from the file.** Select it; don't retype it from memory.
 4. **Factor into components after the markup renders correctly**, not before. Get it identical, then extract.
-5. **Diff against `screenshots/` at the same width** — walk the elements in order and confirm each is present, not "does it look similar".
+5. **Diff against the mockup at the same width** — walk the elements in order and confirm each is present, not "does it look similar".
 
 State which screen id you are implementing before starting it, and list what the file did not answer. An empty list on a screen you have not read is the failure this procedure exists to prevent.
 
@@ -1263,36 +1263,6 @@ Per screen, roughly what needs to exist:
 
 Data needed: orders with item lines and attachments, vendors, categories (with icon, colour and monthly limit), and aggregate endpoints for statistics that accept the same filter shape as the list.
 
-## Screenshots
-
-`screenshots/` holds a full-page capture of each file, numbered to match the id prefixes:
-
-| Image | Contents |
-| --- | --- |
-| `00-overview.png` | The linked overview page |
-| `01-order-editing.png` | 1a–1d |
-| `02-order-list.png` | 2a–2e |
-| `03-order-create.png` | 3a–3c |
-| `04-statistics.png` | 4a |
-| `05-vendors-categories.png` | 5a–5f |
-| `06-states-confirmations.png` | 6a–6f |
-| `07-mobile.png` | 7a |
-| `08-duplicate-alerts.png` | 8a, 8b |
-| `09-navigation-shell.png` | 9a–9g |
-| `10-home.png` | 10a |
-| `11-settings-import.png` | 11a, 11b |
-| `12-dark-mode-viewer.png` | 12a, 12b |
-| `13-typography.png` | 13a |
-| `14-input-types.png` | 14a–14f |
-| `15-layout-rules.png` | 15a–15c |
-| `16-actions-inventory.png` | 16a–16f |
-| `17-images-and-files.png` | 17a–17d |
-| `18-responsive-reference.png` | 18a, 18b |
-| `19-icon-legend.png` | 19a, 19b |
-| `20-auth-and-first-run.png` | 20a–20e |
-
-Full-page PNG at 2× device pixels (roughly 3300–4100px wide. Three pages are long enough to be capped below 2× by the pixel budget — `14-input-types.png`, `16-actions-inventory.png` and `00-overview.png`; for those, open the HTML rather than reading the screenshot), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
-
 ## Assets
 
 No external assets. All icons are inline SVG drawn for these mockups on a 16×16 viewBox, stroke-only — replace with the codebase's icon set at matching weight. Photo and attachment thumbnails are placeholder blocks; the real ones come from uploads. `Poppins` is loaded from Google Fonts in the mockups; use however the app already loads fonts.
@@ -1325,7 +1295,6 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Actions inventory.dc.html` | 16a–16h |
 | `Images and files.dc.html` | 17a–17d |
 | `support.js` | Preview runtime for the files above — not part of the product |
-| `screenshots/` | Full-page capture of each file (see above) |
 
 ## Screen ids are names, not an order
 

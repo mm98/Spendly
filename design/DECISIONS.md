@@ -368,6 +368,22 @@ Desktop cells carry `.hide-m`, phone lines carry `.m2`, and both stay in the DOM
 
 **Consequence.** "30 days" was removed. A rolling window is a genuinely different concept from a calendar period, nothing in the design asked for one, and offering both invites the question of which a saved view stores.
 
+## 33. Photos in the card grid are a warm monochrome
+
+**The decision.** `grayscale(1) sepia(0.42) saturate(1.15)` on every photo in the order card grid. Nowhere else.
+
+**The problem.** With photos live, nine cards in a grid carried nine unrelated palettes — a blue cable, gold fittings, white bottles — and the grid read as restless before any of the content had been looked at. The first attempt was a light desaturation (`saturate(0.88)`), which softened nothing: the hues were still nine hues.
+
+**Why sepia rather than grey.** Full grayscale is neutral in a grey interface. In this one it is a foreign temperature, because the entire neutral ramp sits on the amber hue at near-zero chroma (14c) — a grey photo looks as wrong here as a grey surface does. The sepia lands photos in H 75–85, inside that same band, so a photo is neutral *in this palette*.
+
+**Rejected: grey at rest, colour on hover.** The calmest grid available, and useless on touch, where nothing hovers.
+
+**Rejected: partial grayscale.** `grayscale(0.55)` keeps a hint of the original hue, which means it keeps a hint of nine different hues. Halfway solves nothing.
+
+**The cost, accepted.** Colour is a genuine recognition cue and monochrome removes it — a walnut chair and a black one become the same object. Acceptable because a card already names the vendor, the item count and the category, and a photo's job in a *list* is coarse: this is the order with the tall thing in it. That survives monochrome.
+
+**Scope is the constraint that makes it safe.** The viewer, the item photo on an order, and the receipt preview are never filtered. If the treatment ever escapes the browsing grid, the decision is wrong — a user checking what they actually bought must see the real thing.
+
 ---
 
 ## Where the design is intentionally silent
