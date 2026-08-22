@@ -12,6 +12,34 @@ The change that started it: on the order edit screen the order header used to si
 
 Target repo: `mm98/Spendly`, branch `main`. The mockups live at `design/` there. Existing React source referenced through this document is under `react/src`.
 
+## The contract
+
+**This design set is the only source of truth for the UI.** Where it specifies something — a value, a state, a piece of copy, an ordering, a behaviour — implement exactly that. No approximating, rounding, improving or substituting. If two files disagree, ask; don't pick one.
+
+**Reproduce the markup, as components.** The structure, element order, nesting, spacing values, colours and text in each screen are the specification, not a suggestion of one. Lift them, then factor the repeated parts into the components named in 14d — same output, better structure. Don't redraw a screen from a written description of it; the description exists to explain the markup, not to replace it.
+
+**Where the design states how something works, follow it.** Don't propose an alternative, ask whether it was intended, or flag it as a possible improvement. The reasoning is already recorded in `DECISIONS.md`, including what was rejected and why — read the entry before assuming a rule is an oversight. Rules that look like mistakes and are not: a limit never blocks a save, reorder needs both drag and buttons, thirds appear exactly once, destructive buttons exist only inside dialogs, the top bar takes no page actions.
+
+**If something is not specified, stop and ask.** A missing state, an unnamed error case, a field with no defined behaviour — these are gaps in the design, not invitations to invent. `BEHAVIOUR.md` ends with a list of open questions for exactly this reason; add to it rather than guessing. Ask about silence, never about instructions.
+
+**The data is fake, the shapes are real.** Every vendor, amount, date, category and count in these files is illustrative. Wire real data to the same shapes. Don't hardcode "Indbo Møbler", 7.635,00 or 41 orders, and don't treat a sample count as a limit — five facet values shown does not mean five exist.
+
+**Copy is final.** Button labels, empty-state sentences, dialog titles and hint text are written deliberately. Use them verbatim. Don't reword, shorten, expand or add exclamation marks. Where copy is missing for a state, that is an open question, not a writing task.
+
+### How to build one screen
+
+Working from this document's description of a screen instead of from the screen itself is what produces approximations. **The prose here explains the markup; it does not replace it.** Every screen section below tells you which file and which id — go and read that markup.
+
+1. **Open the `.dc.html` and find the section whose badge matches the id.** Read it top to bottom before writing anything. Every value you need is an inline style in that markup.
+2. **Transcribe, don't estimate.** `padding: 10px 12px` is 10px 12px. `#1d4d33` is `#1d4d33`. If you are about to write a number that does not appear in the file, stop — that is a guess.
+3. **Copy text is a string literal from the file.** Select it; don't retype it from memory.
+4. **Factor into components after the markup renders correctly**, not before. Get it identical, then extract.
+5. **Diff against `screenshots/` at the same width** — walk the elements in order and confirm each is present, not "does it look similar".
+
+State which screen id you are implementing before starting it, and list what the file did not answer. An empty list on a screen you have not read is the failure this procedure exists to prevent.
+
+---
+
 ## If the files will not open
 
 `offline/` holds every screen bundled as a single self-contained file — React, the preview runtime and the Poppins webfont all inlined. They open from disk with no network access and no sibling files, which is what a sandboxed agent needs. Same filenames, same screen ids, and the relative links between them still work, so `offline/index.html` navigates the whole set.
@@ -277,6 +305,14 @@ Deliberately absent: a theme switch (the toggle is directly above it — two con
 
 **Top bar:** locked. Breadcrumb and page title only.
 
+**9d — the command palette.** ⌘K anywhere, or the search field. 560px, centred, top-anchored at 15vh, capped at 60vh with the list scrolling inside. Two states: empty shows "Jump back in" (the last five records opened, stored locally, newest first) then Actions; typing shows results grouped **Orders → Vendors → Items → Actions** in that fixed order, three rows per group plus "See all N in …", with empty groups hidden entirely including their header.
+
+The nine commands: Scan a receipt (S), New order (N), Import a file, Go to each destination (G then O/T/V/C/S), Switch to dark/light mode, Add a vendor, Add a category, Orders over limit this month, Drafts, Keyboard shortcuts (?). The last two are saved filters and appear only when they would return something.
+
+**Not in it:** anything destructive (a palette is typed fast and confirmed by reflex), anything acting on the current page (a command whose meaning depends on what is behind the overlay is unpredictable), and Settings values other than theme. The list should stay near nine — a palette listing every action is a menu with worse ergonomics.
+
+Arrows traverse all groups as one flat list, skipping headers — same rule as the combobox. Actions rank above records only when the query matches a command name. Search is debounced 300ms and cancels in flight, keeping previous results visible so the list never blanks. Matched text highlights in amber including mid-word, since Danish compounds mean the match is often not at the start. Vendor aliases are searched, and a row matched on one shows the canonical name plus "— matched indbo.dk" in muted 12px. Not available below 640px.
+
 ---
 
 ### 10a — Home
@@ -432,7 +468,7 @@ File: `Vendors and categories.dc.html` · Code: `pages/Vendors.jsx`, `pages/Cate
 
 List rows: name 14px/600, order count and total 12px `#8b8a82`, chevron. Search above.
 
-Panel for a selected vendor: the vendor form (name, VAT number, website, address, default category, notes), then a small stats card — spend, orders, average order, saved vs retail as a 2×2 grid of 20px/700 values — plus a sparkline and the "See in Statistics" link. No charts.
+Panel for a selected vendor: the vendor form (name, website, **Also matches** — the alias chips from 5d — city, VAT number, default categories, notes), then a small stats card — spend, orders, average order, saved vs retail as a 2×2 grid of 20px/700 values — plus a sparkline and the "See in Statistics" link. No charts.
 
 **Merge** handles scan duplicates: the panel offers "Merge into…", which opens a picker of similar vendors, then a comparison showing which field wins per row and the resulting order count. It is destructive and confirmed explicitly, naming the number of orders that will move.
 
@@ -446,6 +482,18 @@ Panel: the category form.
 - **Colour.** A row of swatches from the green ramp plus neutrals.
 - **Monthly limit.** A single amount that applies to every month — it is not per-month data. Empty means no limit. Below the field: this month's spend against it, with the pace marker bar.
 - Icon and colour always render together, so the same mark identifies the category in chips, facets and charts.
+
+#### 5d — Vendor aliases
+
+A receipt rarely prints the name you call a vendor. "INDBO MØBLER A/S", "Indbo Møbler ApS" and "indbo.dk" are one vendor, and aliases are what let a scan resolve without asking. They are also where a merged vendor's old names go, so nothing stops matching after a merge.
+
+**In the form** the field is labelled **"Also matches"**, not "Aliases" — the label states what it does, so a user adding a name knows they are teaching the scanner. Values are removable chips (14a); to correct one, remove and re-add. A CVR number is an alias like any other but matches exactly rather than fuzzily, and is the strongest signal a scan can find. Names carried over from a merge render in the accent tone so their origin is visible.
+
+**Matching order:** exact CVR → exact alias or name, normalised (case, punctuation, and the suffixes A/S, ApS, IVS, Ltd removed) → fuzzy above 0.9 against names and aliases alike, pre-selected but marked uncertain → nothing, and the picker opens with a Create row. **An alias is never shared** — if a name would match two vendors, reject it on entry naming the vendor that already claims it.
+
+**Learning from a scan:** in review (3a), when the receipt's name differs from the vendor chosen, a checkbox offers "Also match INDBO MØBLER A/S in future", checked by default. Opt-out rather than automatic, because a user who picked the wrong vendor should not silently teach a wrong name. Shown once per distinct name, and written only when the order is created — a discarded scan teaches nothing. Not offered for categories: a category is the user's own classification, not a name printed on paper.
+
+**An alias is never displayed as the vendor.** Orders, lists, charts and the identity mark all use the canonical name. Search matches aliases (order list, vendor combobox, palette); facet counts are unaffected, since one vendor is one facet value whatever it is called. Duplicate detection and file import both read aliases too.
 
 #### 5c — Roll-up panel (nothing selected)
 
@@ -642,6 +690,23 @@ To add a swatch: pick a hue in an existing family or ≥40° from all four; set 
 - **Deliberately not components:** radio (every either/or here is a Segmented or Combobox), slider (an amount range is two AmountFields — a receipt total is typed, not dragged to), autocomplete / tag input / rich text / native select (all are the Combobox, Chip list, or multiline TextField), and Form (each screen's save behaviour differs, so screens compose the wrapper and controls directly).
 - Build order in the file: wrapper + TextField + Button, then Combobox, then AmountField + Stepper together, then the small four the order list needs at once, then the rest. Each control ships with the states from 14a as its acceptance criteria.
 
+**14e — controls that appear once.** Six that exist in one place each, which is why they were missing from 14a. A control used once still has to be specified.
+
+- **Custom date range.** A 300px popover anchored to the "Custom…" chip, holding two DateFields rather than a calendar grid, preset chips, and an explicit Apply. **Either side may be left empty** — From alone means "since", To alone "up to" — which is why it is not a single range picker; open-ended is the common case and most pickers cannot express it. Apply is explicit because a half-typed year would empty the list. On apply the chip becomes the range and "Custom…" returns beside it. Mobile: a sheet with fields stacked and Apply pinned.
+- **Amount range.** A dual-handle RangeSlider **and** two AmountFields — one control, two views, both writing the same pair. The fields are the accurate path (handles snap to a proportional step, typed values do not), which is why the slider alone is not enough. Bounds come from the account's own data, not a constant. Handles cannot cross. Filtering debounces 300ms. Each handle is a real slider input with its own aria-label and arrow-key stepping.
+- **Sort.** A Combobox in pick-only mode keeping the word "Sort" inside the trigger, so it reads as a sentence and needs no label. Radius **10px**, the one control that deviates, because it sits beside the 10px search field. Direction lives in the label — no separate ascending/descending toggle, which would produce "Vendor A–Z, descending".
+- **Pagination.** A range sentence ("1–25 of 128"), a size Combobox and two arrows. Not numbered pages — 6 targets here, 40 at a larger account. 128 is the filtered total and must agree with the count above the list. Arrows disable at the ends rather than disappearing. Changing size keeps the first visible row visible.
+- **Long facet group.** Top 6 by count, then "Show all N"; expanded it scrolls at 240px rather than growing. A filter field appears above 20 values, narrows that group only, and is not part of the query. **Selected values always render**, above the top 6 and regardless of the group filter, so a selection can never be hidden by the control displaying it.
+- **Period and compare** (4a). A Segmented plus a line always stating the resolved dates, so what is measured is never inferred from a word. "Custom" opens the same popover as the date facet — one control, two placements. The compare label names the period it computed, not "previous period".
+
+**14f — identity marks.** One component, three kinds, and **the shape carries the type**: a person is a circle, a vendor a rounded square of initials, a category a rounded square holding its icon. Do not make vendors round to match the account block — a user and a vendor looking alike in one list is the confusion this prevents.
+
+Five sizes — 20, 26, 34, 44, 56 — with radius 6/8/10/12/50% and type at roughly 0.42× the box, weight 700, always two characters. Never below 20px. 20 in a chip or palette row, 26 in a list row, 34 in a card, 44 in a form field, 56 in a profile header.
+
+**Vendor initials:** first letter of the first two words, uppercased; one word gives its first two letters; single characters and non-letters are skipped, so "H&M" is HM. Danish letters are kept as themselves, never transliterated. **Colour is deterministic** — hash the normalised canonical name to an index into the seven picker swatches from 14c. Same vendor, same colour, everywhere and after every reload. Never a generated colour: a hash into an HSL wheel leaves the palette on the first vendor it meets. Ink flips above L 75. The mark is decoration, carries `aria-hidden`, and always sits beside the name — nothing is identified by colour alone. **No logos, ever** — no favicon fetching, no upload.
+
+**Where vendor marks go:** the vendors library, the command palette and vendor comboboxes, order cards, and the order detail rail. **Not** order list rows or mobile order rows — the vendor column is 200px and already first, fixed and left-aligned, so a 26px mark plus its gap takes a sixth of it to repeat the text beside it.
+
 ---
 
 ### 15a / 15b — Layout rules
@@ -787,6 +852,31 @@ Two places horizontal scroll is allowed, both named in the table: the import dry
 
 **Side-by-side panels in the other files are annotation, not layout.** Columns headed "1 — pick a file", "empty" / "loaded", or "light" / "dark" are never on screen together. Don't build a responsive row out of them.
 
+### 16d / 16e — Row menus, and hover
+
+**16d — the row overflow menu.** Every data row ends in the same **88px** actions cell: one visible button for what the row is for (Edit on an order, Open on a vendor), and a ⋯ holding the rest. Two visible buttons at most — a third is a menu that has escaped.
+
+Menu order is fixed: constructive entries, a divider, then the destructive one last and alone. **Destructive is never a visible row button** — Delete 30px from Edit is one slip; behind a menu it takes two deliberate movements and still opens a confirm dialog. Every entry is reachable from the record's own page too: a menu is a shortcut, not the only route. One level of submenu, for Set status only, because that is a value list rather than a set of actions.
+
+The cell **always occupies its 88px** whether hovered or not — buttons fade in, the column does not appear, or every row shifts on hover. On touch the buttons are permanently visible at 44px. Opening the menu holds the row in hover and inverts the ⋯, so the owning row is clear once the pointer leaves. Panel is 226px, radius 10px, shadow `0 6px 16px rgba(27,26,23,0.08)`, anchored right and flipping above when there is no room. **Every button stops propagation** so a click does not also open the row — the most common bug in this pattern. `aria-haspopup="menu"` with a label naming the row ("More actions for Indbo Møbler", not "More"). Right-click on the row opens the same menu at the pointer. **While a selection exists the cluster is hidden** — bulk actions own the rows then.
+
+**16e — hover.** One fill, one meaning: **`#f0efe9` says this responds to a click**, used on everything clickable and nothing else. A decorative hover teaches users to ignore the real ones.
+
+| Surface | Hover |
+| --- | --- |
+| List row, menu row, chart bar, drillable table row | `#f0efe9` (rows full-bleed; menu rows inset 6px, radius 7px) |
+| Icon button | `#f7f6f2` — lighter, because it sits on an already-hovered row |
+| Destructive icon button | `#fdf6f5`, glyph to `#8a4a41` |
+| Primary button | `#2f7a51`; active `#163c28` |
+| Secondary button | `#f7f6f2`, border `#c3c1b8` |
+| Input, combobox, selectable chip | border `#dedcd4` → `#c3c1b8`; fill never changes |
+| Sidebar item | `rgba(255,255,255,0.05)`; the active item does not respond |
+| Attachment tile | border `#1d4d33`; on dark, opacity 90% → 100% |
+
+Rules: **if it does not respond to a click, it does not hover** — cards, KPI figures, section headers, status pills and the totals card are inert, and that is what keeps hover meaningful. **One fill per depth**, so a button inside a hovered row uses the lighter value. **Hover never moves anything** — no lift, scale, shadow or border thickening; colour and opacity only. **Selected beats hover**: a selected row stays `#e7efe8` and does not shift. 120ms ease both directions. **Focus is not hover** — keyboard focus is always the green ring, and a row can carry both at once. Guard everything with `@media (hover: hover)`, or a touch device keeps the fill on the last row tapped and it reads as a selection.
+
+On dark, hover lightens rather than darkens (row `#2a2621`, icon button `#38332c`, selected `#1f3328`), so every value is a token and no component holds a hover literal.
+
 ---
 
 ## Interactions summary
@@ -921,7 +1011,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 | `17-images-and-files.png` | 17a, 17b |
 | `18-responsive-reference.png` | 18a, 18b |
 
-Full-page PNG at 2× device pixels (roughly 4100px wide; `14-input-types.png` is the one exception, capped at 1.44× because the page is 8300px tall), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
+Full-page PNG at 2× device pixels (roughly 3300–4100px wide. Three pages are long enough to be capped below 2× by the pixel budget — `14-input-types.png`, `16-actions-inventory.png` and `00-overview.png`; for those, open the HTML rather than reading the screenshot), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
 
 ## Assets
 
@@ -940,14 +1030,14 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Order list.dc.html` | 2a, 2b, 2c |
 | `Order create.dc.html` | 3a |
 | `Order statistics.dc.html` | 4a |
-| `Vendors and categories.dc.html` | 5a, 5b, 5c |
+| `Vendors and categories.dc.html` | 5a, 5b, 5c, 5d |
 | `States and confirmations.dc.html` | 6a–6f |
 | `Mobile screens.dc.html` | 7a |
 | `Duplicate and alerts.dc.html` | 8a, 8b |
 | `Settings and import.dc.html` | 11a, 11b |
 | `Dark mode and image viewer.dc.html` | 12a, 12b |
 | `Typography.dc.html` | 13a |
-| `Input types.dc.html` | 14a, 14b, 14c, 14d |
+| `Input types.dc.html` | 14a–14f |
 | `Layout rules.dc.html` | 15a, 15b, 15c |
 | `Responsive reference.dc.html` | 18a, 18b |
 | `Actions inventory.dc.html` | 16a, 16b, 16c |

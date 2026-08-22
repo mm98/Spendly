@@ -583,6 +583,174 @@
   </div>
 </section>
 
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">16d</span>
+    <span style="font-size: 20px; font-weight: 600">The row overflow menu</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every data row in the app ends in the same 88px actions cell: one or two visible buttons for what is used constantly, and a ⋯ holding the rest. What goes in which half is a rule, not a judgement per screen.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 520px; display: flex; flex-direction: column; gap: 14px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: visible; padding-bottom: 240px">
+        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 88px; gap: 12px; background: #f2f1eb; padding: 9px 14px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+          <div>VENDOR</div><div>DATE</div><div style="text-align: right">AMOUNT</div><div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 88px; gap: 12px; padding: 11px 14px; font-size: 13px; align-items: center; border-top: 1px solid #f0efe9">
+          <div style="font-weight: 600">Hay</div><div style="color: #57564f">9 Aug</div><div style="text-align: right; font-weight: 600">7.240,00</div><div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 88px; gap: 12px; padding: 11px 14px; font-size: 13px; align-items: center; border-top: 1px solid #f0efe9; background: #f0efe9; position: relative">
+          <div style="font-weight: 600">Indbo Møbler</div><div style="color: #57564f">12 Aug</div><div style="text-align: right; font-weight: 600">3.980,00</div>
+          <div style="display: flex; gap: 4px; justify-content: flex-end">
+            <div style="width: 30px; height: 30px; border-radius: 8px; background: #fff; border: 1px solid #e6e4dc; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.8V9.6l7-7 3.2 3.2-7 7z"></path></svg></div>
+            <div style="width: 30px; height: 30px; border-radius: 8px; background: #1b1a17; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="#fff"><circle cx="8" cy="3.4" r="1.35"></circle><circle cx="8" cy="8" r="1.35"></circle><circle cx="8" cy="12.6" r="1.35"></circle></svg></div>
+          </div>
+          <div style="position: absolute; right: 14px; top: 44px; width: 226px; background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27, 26, 23, 0.08); padding: 6px; z-index: 2">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; background: #f0efe9">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 2.8h7.8v9.4H5.4z"></path><path d="M10.6 12.2v1.2H2.8V4h1.2"></path></svg>
+              <span style="font-size: 13px">Duplicate</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.2v6.4"></path><path d="M5.4 7.2L8 9.8l2.6-2.6"></path><path d="M3.4 11.4v1.4h9.2v-1.4"></path></svg>
+              <span style="font-size: 13px">Download receipt</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.4"></circle><path d="M8 5.4v3.2l2 1.2"></path></svg>
+              <span style="font-size: 13px">Set status</span>
+              <div style="flex: 1"></div>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+            </div>
+            <div style="height: 1px; background: #f0efe9; margin: 5px 8px"></div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5h9.2"></path><path d="M4.6 5v8h6.8V5"></path><path d="M6.4 3h3.2"></path></svg>
+              <span style="font-size: 13px; color: #8a4a41">Delete order</span>
+            </div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1.6fr 0.8fr 0.9fr 88px; gap: 12px; padding: 11px 14px; font-size: 13px; align-items: center; border-top: 1px solid #f0efe9">
+          <div style="font-weight: 600">Muuto</div><div style="color: #57564f">1 Aug</div><div style="text-align: right; font-weight: 600">5.120,00</div><div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width: 420px; display: flex; flex-direction: column; gap: 20px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHAT IS VISIBLE, WHAT IS IN THE MENU</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Visible: the one action that is the row's purpose.</b> Edit on an order, Open on a vendor. One button, two at most — a third is a menu that has escaped.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">In the menu: everything else</b>, in a fixed order — the constructive ones first, then a divider, then the destructive one last and alone.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Destructive is never a visible row button.</b> Delete is one pixel from Edit at 30px apart; behind a menu it needs two deliberate movements, and it still opens a confirm dialog after that.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The menu never holds something unavailable elsewhere.</b> Every entry is reachable from the record's own page too. A menu is a shortcut, not the only route.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">It does not scroll and does not nest twice.</b> One level of submenu, for Set status only, because that is a value list rather than a set of actions.</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">BEHAVIOUR</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The cluster is 88px and always occupies space</b>, whether or not the row is hovered. Buttons fade in; the column does not appear, or every row shifts on hover.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">On touch the buttons are permanently visible</b> at 44px, as with the pencil on item rows.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Opening the menu holds the row in its hover state</b> and inverts the ⋯ button, so it is clear which row the menu belongs to once the pointer has left.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The panel is 226px, radius 10px</b>, shadow <b>0 6px 16px rgba(27,26,23,0.08)</b>, anchored to the button's right edge and flipping above when there is no room below.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Clicks inside the cluster do not open the row.</b> Every button stops propagation — the single most common bug in this pattern.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Keyboard:</b> the ⋯ is in tab order, Enter or Space opens, arrows move, Esc closes and returns focus to the button. It carries <b>aria-haspopup="menu"</b> and an aria-label naming the row — "More actions for Indbo Møbler", not "More".</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Right-clicking the row opens the same menu</b> at the pointer. Same component, same entries.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">While a selection exists the cluster is hidden</b> — bulk actions own the rows then, and a per-row menu next to a checked box is ambiguous about what it applies to.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">16e</span>
+    <span style="font-size: 20px; font-weight: 600">Hover, and what it means</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">One fill, one meaning: <b>#f0efe9</b> says this responds to a click. It is used on everything clickable and on nothing else, which is what makes it informative — a decorative hover teaches users to ignore the real ones.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 520px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; background: #f2f1eb; padding: 9px 15px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+        <div>SURFACE</div><div>HOVER</div><div>NOTE</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">List row</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #f0efe9; border: 1px solid #dcdad2"></span>#f0efe9</div>
+        <div style="color: #8b8a82; line-height: 1.5">Full-bleed to the row's edges, no inset</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Menu / option row</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #f0efe9; border: 1px solid #dcdad2"></span>#f0efe9</div>
+        <div style="color: #8b8a82; line-height: 1.5">Inset 6px, radius 7px, following the panel</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Icon button</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #f7f6f2; border: 1px solid #dcdad2"></span>#f7f6f2</div>
+        <div style="color: #8b8a82; line-height: 1.5">Lighter, because it sits on a row already hovered</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Destructive icon button</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #fdf6f5; border: 1px solid #e2d3d1"></span>#fdf6f5</div>
+        <div style="color: #8b8a82; line-height: 1.5">Glyph goes #8a4a41 at the same time</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Primary button</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #2f7a51"></span>#2f7a51</div>
+        <div style="color: #8b8a82; line-height: 1.5">Lightens; active darkens to #163c28</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Secondary button</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #f7f6f2; border: 1px solid #c3c1b8"></span>#f7f6f2</div>
+        <div style="color: #8b8a82; line-height: 1.5">Border also goes #c3c1b8</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Input / combobox</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #fff; border: 1px solid #c3c1b8"></span>border only</div>
+        <div style="color: #8b8a82; line-height: 1.5">#dedcd4 → #c3c1b8. Fill never changes</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Chip, selectable</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #fff; border: 1px solid #c3c1b8"></span>border only</div>
+        <div style="color: #8b8a82; line-height: 1.5">Selected chips do not change on hover</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Sidebar item</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #1f3d2c"></span>rgba #fff 0.05</div>
+        <div style="color: #8b8a82; line-height: 1.5">The active item does not respond</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Attachment tile</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #fff; border: 1px solid #1d4d33"></span>border #1d4d33</div>
+        <div style="color: #8b8a82; line-height: 1.5">On dark, opacity 90% → 100%</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 1.5fr; gap: 12px; padding: 11px 15px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: center">
+        <div style="font-weight: 600">Chart bar / table row in 4a</div>
+        <div style="display: flex; align-items: center; gap: 7px"><span style="width: 16px; height: 16px; border-radius: 4px; background: #f0efe9; border: 1px solid #dcdad2"></span>#f0efe9</div>
+        <div style="color: #8b8a82; line-height: 1.5">They drill, so they hover like rows</div>
+      </div>
+    </div>
+
+    <div style="width: 420px; display: flex; flex-direction: column; gap: 20px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">RULES</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">If it does not respond to a click, it does not hover.</b> Cards, KPI figures, section headers, status pills, the totals card — all inert. This is the rule that keeps hover meaningful.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One fill per depth.</b> A hovered button inside a hovered row uses the lighter <b>#f7f6f2</b>, so the two are distinguishable. Never stack the same fill twice.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Hover never moves anything.</b> No lift, no scale, no shadow appearing, no border thickening — a border going from 1px to 2px reflows the row. Colour and opacity only.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Selected beats hover.</b> A selected row stays <b>#e7efe8</b> and does not shift on hover; a checked chip does not change. Losing the selection colour to a hover is the same as not showing it.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">120ms ease on the colour</b>, in both directions. Nothing longer — a slow hover on a list feels like lag.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Focus is not hover.</b> Keyboard focus is always the green ring from 14a, never the hover fill, so the two are never confused. A row can carry both at once.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Guard with <span style="white-space: nowrap">@media (hover: hover)</span>.</b> Without it a touch device keeps the hover fill on the last row tapped, which reads as a wrong selection.</div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ON DARK</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Hover lightens rather than darkens, matching the elevation rule in 12a: row hover is <b>#2a2621</b>, icon-button hover <b>#38332c</b>, selected <b>#1f3328</b>. Same meanings, same 120ms.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Every value is a token, so no component contains a hover colour literal — <b>--surface-hover</b> flips with the theme and the component never knows.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 </x-dc>
 </body>
 </html>

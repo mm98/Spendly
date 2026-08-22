@@ -391,6 +391,18 @@
           <div style="width: 18px; height: 18px; border-radius: 5px; background: #1d4d33; display: grid; place-items: center; flex: none"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4.4 8h7.2"></path></svg></div>
           <div style="font-size: 13px">All statuses <span style="color: #8b8a82">— some selected</span></div>
         </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div style="width: 18px; height: 18px; border-radius: 5px; border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); flex: none"></div>
+          <div style="font-size: 13px">Draft</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; color: #8b8a82">3</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div style="width: 18px; height: 18px; border-radius: 5px; border: 1px solid #dcdad2; background: #f7f6f2; flex: none"></div>
+          <div style="font-size: 13px; color: #b3b1a9">Cancelled</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; color: #c3c1b8">0</div>
+        </div>
       </div>
       <div style="height: 1px; background: #f0efe9"></div>
       <div style="display: flex; align-items: flex-start; gap: 11px">
@@ -414,6 +426,7 @@
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A toggle applies immediately and never has a Save.</b> If a setting needs a save, it is not a toggle.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Indeterminate is a real third state</b>, shown as a dash, used by "select all" over a partial selection. Clicking it selects all.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The whole row is the hit target</b>, label and count included, at 44px on touch.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A zero-count facet is disabled, not hidden</b> — it tells you the value exists and this filter excludes it. The one exception: a value currently selected always stays enabled at 0 so it can be deselected.</div>
         </div>
       </sc-if>
     </div>
@@ -434,6 +447,42 @@
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Chips are output, not input.</b> They mirror the facet rail so the active filter is readable without scanning it — removing a chip unchecks its facet.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A range reads as a phrase</b> — "Over 5.000 kr.", not "amount_min: 5000".</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">"Clear all" appears from two chips onward</b>, as a text button so it can't be mistaken for a filter.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 15px; font-weight: 600">Selectable chips</div>
+        <div style="font-size: 11px; color: #8b8a82">facet rail</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px">
+        <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Categories</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <div style="background: #1d4d33; color: #fff; border: 1px solid #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600">Decor 64</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">Seating 41</div>
+          <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">Lighting 33</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">Textiles 22</div>
+          <div style="border: 1px solid #e6e4dc; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #b3b1a9">Storage 0</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px">
+        <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Date</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">30 days</div>
+          <div style="background: #1d4d33; color: #fff; border: 1px solid #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600">This year</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">Custom…</div>
+        </div>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+        <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">These are input; the chips above are output.</b> Same shape, opposite direction — a selectable chip sets a filter, an active-filter chip reports one. The two never appear in the same container.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Chips or checkboxes, per facet group, decided by shape.</b> Chips when the values are short and few enough to wrap in two rows — categories, date ranges. Checkboxes when the list is long, scrolls, or the labels vary in length, because a wrapped chip cloud of thirty vendors has no scannable edge. The two behave identically: multi-select, ORed within the group.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The count is part of the label</b>, not a separate badge — one space, same size, same weight. A badge inside a 26px-tall chip is noise, and the number is read as part of the word.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A zero count disables the chip</b>, as with checkbox facets, unless it is currently selected. Counts respond to the other groups and are recomputed on every change.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Selected is fill, not a check mark.</b> A tick inside a pill costs width and reads as a checkbox that lost its box.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Group semantics, not buttons.</b> Rendered as checkboxes with a visually hidden input, wrapped in a fieldset with the group name as its legend — the appearance is a pill, the semantics stay a checkbox group.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">"Custom…" is not a value.</b> A chip whose label ends in an ellipsis opens something rather than filtering — here, the two date fields. It is never in the selected state; the resulting range becomes its own chip.</div>
         </div>
       </sc-if>
     </div>
@@ -852,14 +901,14 @@
     <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">14d</span>
     <span style="font-size: 20px; font-weight: 600">Component API — the options each control needs</span>
   </div>
-  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">What each control must accept to serve every place it is used in this design, and nothing beyond that. Thirteen components. The right-hand column names what drives each option, so an option with nothing behind it can be cut.</div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">What each control must accept to serve every place it is used in this design, and nothing beyond that. Seventeen components. The right-hand column names what drives each option, so an option with nothing behind it can be cut.</div>
 
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every control takes the same five:</b> <b>label</b>, <b>value</b>, <b>onChange</b>, <b>error</b>, <b>disabled</b> — plus <b>id</b>, <b>name</b> and <b>required</b> passed through. Don't re-declare them per component. One shared field wrapper owns the label, the error message and the spacing; each control renders only its own box.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Controlled only.</b> No internal value state, no defaultValue. The order draft is the single source of truth — a control keeping its own copy is how a field silently disagrees with what gets saved.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">No <span style="white-space: nowrap">variant="danger"</span> on an input.</b> Error is a boolean plus a message, never a visual variant, which makes the red state impossible to apply for decoration.</div>
-    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Resist the extra option.</b> Each row is short on purpose. When a screen needs something not listed, add it here first — that review step is what keeps this at thirteen components rather than forty.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Resist the extra option.</b> Each row is short on purpose. When a screen needs something not listed, add it here first — that review step is what keeps this at seventeen components rather than forty.</div>
   </div>
 
   <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
@@ -940,9 +989,33 @@
     </div>
 
     <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600; font-size: 13px">RangeSlider</div>
+      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">min</b> / <b style="color: #3d3c36">max</b> · <b style="color: #3d3c36">step</b> · <b style="color: #3d3c36">value</b> as a pair · <b style="color: #3d3c36">format</b></div>
+      <div style="color: #8b8a82; line-height: 1.6">Used once, in the amount facet, and never on its own — always above the two AmountFields it mirrors. Both directions bind to the same state</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600; font-size: 13px">SortControl</div>
+      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">options</b> · <b style="color: #3d3c36">value</b> · <b style="color: #3d3c36">onChange</b></div>
+      <div style="color: #8b8a82; line-height: 1.6">A Combobox in pick-only mode with a persistent "Sort" prefix — not a separate component. Listed here because it renders at radius 10px, the one control that does</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600; font-size: 13px">Pager</div>
+      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">page</b> · <b style="color: #3d3c36">pageSize</b> · <b style="color: #3d3c36">total</b> · <b style="color: #3d3c36">sizes</b></div>
+      <div style="color: #8b8a82; line-height: 1.6">Renders the range sentence, the size Combobox and the two arrows. Total is the filtered total, never the account total</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
       <div style="font-weight: 600; font-size: 13px">Chip</div>
-      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">tone</b> (accent / neutral / amber) · <b style="color: #3d3c36">icon</b> · <b style="color: #3d3c36">onRemove</b> · <b style="color: #3d3c36">onClick</b></div>
-      <div style="color: #8b8a82; line-height: 1.6">onRemove makes it a filter chip, onClick a date shortcut, neither a status pill. Same component, three uses</div>
+      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">tone</b> (accent / neutral / amber) · <b style="color: #3d3c36">icon</b> · <b style="color: #3d3c36">count</b> · <b style="color: #3d3c36">selected</b> · <b style="color: #3d3c36">onRemove</b> · <b style="color: #3d3c36">onClick</b></div>
+      <div style="color: #8b8a82; line-height: 1.6">Four roles from one component: <b>onRemove</b> is an active-filter chip, <b>selected</b> + <b>count</b> a facet chip (rendered as a hidden checkbox in a fieldset), <b>onClick</b> alone a date shortcut, neither a status pill. Never <b>onRemove</b> and <b>selected</b> together — output and input in one chip</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600; font-size: 13px">IdentityMark</div>
+      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">kind</b> (person / vendor / category) · <b style="color: #3d3c36">name</b> · <b style="color: #3d3c36">size</b> (20 / 26 / 34 / 44 / 56) · <b style="color: #3d3c36">icon</b> and <b style="color: #3d3c36">colour</b>, category only</div>
+      <div style="color: #8b8a82; line-height: 1.6">Initials and colour are derived inside the component from the canonical <b>name</b>, never passed in — that is what keeps one vendor looking the same in every list. Category is the exception: the user chose its icon and colour, so they are stored on the record. Full rules in 14f</div>
     </div>
   </div>
 
@@ -961,7 +1034,7 @@
     <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
       <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHAT IS NOT A COMPONENT HERE</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Radio.</b> Never used on its own — every either/or in this design is a Segmented or a Combobox. Don't build one until a screen needs it.</div>
-      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Slider.</b> No slider anywhere. An amount range in the facets is two AmountFields, because a receipt total is typed, not dragged to.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A standalone slider.</b> The one range control is the amount facet, and it is a RangeSlider paired with two AmountFields — see 14e. A slider alone is never enough, because a receipt total is usually typed.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Autocomplete, tag input, rich text, native select.</b> All are the Combobox, the Chip list, the multiline TextField, or nothing. Each would be a second implementation of something already here, and the second one is always the one that misses the keyboard support.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Form.</b> No form component. Screens compose the wrapper and the controls directly, because each screen's save behaviour differs — per card in Settings, one sticky bar on order edit, a staged dry run in import.</div>
     </div>
@@ -972,11 +1045,404 @@
       <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>2.</b> Combobox. The largest piece by a distance, and four screens are waiting on it. Do the keyboard table in 14a before the styling, not after.</div>
       <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>3.</b> AmountField and Stepper, together — they share the parsing and formatting.</div>
       <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>4.</b> Checkbox, Segmented, Chip, SearchInput. Small, and the order list needs all four at once.</div>
-      <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>5.</b> FileDrop, DateField, SwatchPicker, Toggle.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>5.</b> IdentityMark, SortControl and Pager — small, and the vendors library and order list need all three.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>6.</b> FileDrop, DateField, SwatchPicker, Toggle.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>7.</b> RangeSlider, last — it is used once, in the amount facet, and only alongside the AmountFields from step 3.</div>
       <div style="font-size: 12px; color: #6b5424; line-height: 1.55">Each one lands with its states from this page as the acceptance criteria — default, filled, focus, error, read-only, disabled, loading where it applies. A control shipped without its error state gets that state invented three times later, differently.</div>
     </div>
   </div>
 </section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">14e</span>
+    <span style="font-size: 20px; font-weight: 600">Controls that appear once</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Six controls that exist in exactly one place each, which is why they were missing from 14a. A control used once still has to be specified — a single unspecified control is a whole screen invented.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 15px; font-weight: 600">Custom date range</div>
+        <div style="font-size: 11px; color: #8b8a82">2a facet rail</div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px">
+        <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">30 days</div>
+        <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">This year</div>
+        <div style="border: 1px solid #1d4d33; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600">Custom…</div>
+      </div>
+      <div style="border: 1px solid #e6e4dc; border-radius: 12px; box-shadow: 0 6px 16px rgba(27, 26, 23, 0.08); padding: 14px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">From</div>
+            <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 9px; padding: 9px 11px; font-size: 13px; box-sizing: border-box; height: 40px; display: flex; align-items: center">01/03/2026</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">To</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 9px 11px; font-size: 13px; box-sizing: border-box; height: 40px; display: flex; align-items: center; color: #8b8a82">dd/mm/yyyy</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <div style="background: #f7f6f2; border-radius: 999px; padding: 5px 10px; font-size: 11px; color: #3d3c36">This month</div>
+          <div style="background: #f7f6f2; border-radius: 999px; padding: 5px 10px; font-size: 11px; color: #3d3c36">Last month</div>
+          <div style="background: #f7f6f2; border-radius: 999px; padding: 5px 10px; font-size: 11px; color: #3d3c36">Last quarter</div>
+          <div style="background: #f7f6f2; border-radius: 999px; padding: 5px 10px; font-size: 11px; color: #3d3c36">2025</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; border-top: 1px solid #f0efe9; padding-top: 11px">
+          <div style="font-size: 11px; color: #8b8a82">Leave one side empty for open-ended</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; font-weight: 600; color: #57564f; padding: 7px 10px">Cancel</div>
+          <div style="font-size: 12px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 8px; padding: 8px 14px">Apply</div>
+        </div>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+        <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A popover anchored to the chip</b>, 300px wide, radius 12px, shadow <b>0 6px 16px rgba(27,26,23,0.08)</b>. It pushes nothing; the facet list below it is covered, not displaced.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Two DateFields, not a calendar grid.</b> The typing rules from 14a apply — <b>12/8</b>, <b>12-08-26</b> and <b>12 aug</b> all parse. A picker is available from each field; the popover does not embed one, because two months side by side does not fit 300px.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Either side may be left empty.</b> From alone means "since", To alone means "up to". This is why it is not a single range picker — an open-ended range is the common case and most pickers cannot express it.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Apply is explicit.</b> The filter does not run on each keystroke; a half-typed year would empty the list. Esc cancels, Enter in either field applies if the range is valid.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">On apply the chip becomes the range</b> — "1 Mar – 20 Aug 2026" — and takes the selected state. "Custom…" returns as an unselected chip beside it, so a second custom range does not require clearing the first.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Validation is inline and blocks Apply:</b> To before From, either date in the future, an unparseable string. The message replaces the hint line rather than adding a row.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Mobile: a sheet, not a popover</b>, with the two fields stacked full width and Apply pinned at the bottom.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 15px; font-weight: 600">Amount range</div>
+        <div style="font-size: 11px; color: #8b8a82">2a facet rail</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: baseline">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Amount</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #8b8a82">0 — 25.000 kr.</div>
+        </div>
+        <div style="height: 4px; border-radius: 2px; background: #e6e4dc; position: relative">
+          <div style="position: absolute; left: 12%; right: 34%; top: 0; bottom: 0; background: #1d4d33; border-radius: 2px"></div>
+          <div style="position: absolute; left: 12%; top: -5px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #fff; border: 2px solid #1d4d33"></div>
+          <div style="position: absolute; left: 66%; top: -5px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #fff; border: 2px solid #1d4d33"></div>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <div style="flex: 1; border: 1px solid #dedcd4; border-radius: 9px; padding: 8px 10px; font-size: 12px">3.000</div>
+          <div style="flex: 1; border: 1px solid #dedcd4; border-radius: 9px; padding: 8px 10px; font-size: 12px">16.500</div>
+        </div>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+        <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Slider and fields are one control, two views.</b> Dragging updates the fields live; typing moves the handles on blur. Neither is a mirror of the other — both write the same pair of values.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The bounds come from the data</b>, not a constant. "0 — 25.000 kr." is the account's own range, rounded up to a sensible step, and it moves as orders are added.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The fields are the accurate path.</b> Handles snap to a step proportional to the range; typed values do not. This is why the slider alone is not enough — 3.000 exactly is typed, not dragged to.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Handles cannot cross.</b> Each stops at the other; they do not swap. Two handles at one position stay draggable — the one last moved keeps priority.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Filtering is debounced 300ms after the last change</b>, whichever input caused it. A drag does not fire a request per pixel.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Each handle is a real slider input</b> with its own aria-label ("Minimum amount"), arrow-key stepping, and Home/End. A pair of divs with a drag handler is not reachable by keyboard.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">On touch the handles grow to 24px</b> hit areas without changing their painted size.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 20px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+        <div style="display: flex; align-items: baseline; gap: 9px">
+          <div style="font-size: 15px; font-weight: 600">Sort</div>
+          <div style="font-size: 11px; color: #8b8a82">2a, 5a</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; padding: 10px 12px; align-self: flex-start">
+          <span style="font-size: 12px; color: #6b6a63">Sort</span>
+          <span style="font-size: 13px; font-weight: 600">Newest first</span>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+        </div>
+        <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+          <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A Combobox in pick-only mode</b> with the word "Sort" kept inside the trigger, so the control reads as a sentence and needs no label above it. Options: Newest first, Oldest first, Amount high to low, Amount low to high, Vendor A–Z, Most items.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Radius 10px, not 9px.</b> The one control that deviates, because it sits beside the 10px search field and matches it rather than the form controls.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Ties break on order id descending</b> so paging stays stable — without it, two orders on the same date can swap between pages.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">No ascending/descending arrow.</b> The direction is inside the label. A separate direction toggle doubles the states and produces "Vendor A–Z, descending".</div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+        <div style="display: flex; align-items: baseline; gap: 9px">
+          <div style="font-size: 15px; font-weight: 600">Pagination</div>
+          <div style="font-size: 11px; color: #8b8a82">2a</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+          <div style="font-size: 13px; color: #57564f">1–25 of 128</div>
+          <div style="flex: 1"></div>
+          <div style="display: flex; align-items: center; gap: 7px">
+            <span style="font-size: 12px; color: #6b6a63">Show</span>
+            <div style="display: flex; align-items: center; gap: 7px; border: 1px solid #dedcd4; border-radius: 9px; padding: 7px 10px; font-size: 13px">25<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+          </div>
+          <div style="display: flex; gap: 6px">
+            <div style="width: 34px; height: 34px; border-radius: 9px; border: 1px solid #e6e4dc; display: grid; place-items: center; background: #f7f6f2"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#c3c1b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 3.4L5 8l4.6 4.6"></path></svg></div>
+            <div style="width: 34px; height: 34px; border-radius: 9px; border: 1px solid #dedcd4; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 3.4L11 8l-4.6 4.6"></path></svg></div>
+          </div>
+        </div>
+        <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+          <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A range sentence, not numbered pages.</b> "1–25 of 128" answers where you are and how much is left in one line. Page numbers would need 6 targets here and 40 at a larger account.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">128 is the filtered total.</b> Never the account total — this is the same number the result count above the list shows, and they must agree.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Arrows disable at the ends</b> rather than disappearing, so the control does not change width. Sizes: 25, 50, 100.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Any filter, search or sort change resets to page 1</b> and clears the selection. Page and size are both in the URL.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Changing the size keeps the first visible row visible</b> — going 25 → 50 on page 3 lands you on page 2, not page 3 of a different pagination.</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 20px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+        <div style="display: flex; align-items: baseline; gap: 9px">
+          <div style="font-size: 15px; font-weight: 600">Long facet group</div>
+          <div style="font-size: 11px; color: #8b8a82">2a</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 11px; color: #8b8a82">42 total</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 9px; padding: 8px 10px; color: #8b8a82">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+            <span style="font-size: 12px">Filter vendors</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 7px">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div style="width: 18px; height: 18px; border-radius: 5px; background: #1d4d33; display: grid; place-items: center; flex: none"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg></div>
+              <div style="font-size: 13px; font-weight: 600">Indbo Møbler</div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 12px; color: #8b8a82">64</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div style="width: 18px; height: 18px; border-radius: 5px; border: 1px solid #dedcd4; flex: none"></div>
+              <div style="font-size: 13px">Hay</div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 12px; color: #8b8a82">41</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div style="width: 18px; height: 18px; border-radius: 5px; border: 1px solid #dedcd4; flex: none"></div>
+              <div style="font-size: 13px">Muuto</div>
+              <div style="flex: 1"></div>
+              <div style="font-size: 12px; color: #8b8a82">33</div>
+            </div>
+          </div>
+          <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Show all 42</div>
+        </div>
+        <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+          <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Top 6 by count, then "Show all N".</b> Expanded, the list scrolls at <b>240px</b> rather than growing — the rail must not become the longest column.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The filter field appears above 20 values.</b> It narrows this group only, is not part of the query, and clears when the group collapses.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Selected values always render</b>, above the top 6 and regardless of the group filter, so a selection can never be hidden by the control that displays it.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">"42 total" is the group's value count</b>, not a result count — it says how much is behind "Show all".</div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+        <div style="display: flex; align-items: baseline; gap: 9px">
+          <div style="font-size: 15px; font-weight: 600">Period and compare</div>
+          <div style="font-size: 11px; color: #8b8a82">4a</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; padding: 3px; gap: 3px; align-self: flex-start">
+            <div style="padding: 7px 14px; font-size: 13px; color: #57564f">Month</div>
+            <div style="padding: 7px 14px; font-size: 13px; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Year</div>
+            <div style="padding: 7px 14px; font-size: 13px; color: #57564f">Custom</div>
+          </div>
+          <div style="font-size: 13px; color: #6b6a63">01/01/2026 — 20/08/2026</div>
+          <div style="display: flex; align-items: center; gap: 9px">
+            <div style="width: 34px; height: 20px; border-radius: 999px; background: #1d4d33; position: relative; flex: none">
+              <div style="position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff"></div>
+            </div>
+            <div style="font-size: 13px">Compare with 2025</div>
+          </div>
+        </div>
+        <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+          <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A Segmented plus a resolved-range line.</b> The line below always states the actual dates, including for Month and Year, so what is being measured is never inferred from a word.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">"Custom" opens the same popover as the date facet.</b> One control, two placements — do not build a second range picker for this screen.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The compare label names the period it computed</b>, not "previous period". It is the immediately preceding span of the same length, so for a custom range it reads as dates.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Compare off hides every delta</b> rather than showing zeros, and a delta against a zero base shows "—", never a percentage.</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">14f</span>
+    <span style="font-size: 20px; font-weight: 600">Identity marks</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">One component, three kinds. A person is a circle, a vendor is a rounded square of initials, a category is a rounded square holding its icon. The shape carries the type, so a mark is identifiable before its content is read.</div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THE THREE KINDS</div>
+      <div style="display: flex; flex-direction: column; gap: 13px">
+        <div style="display: flex; align-items: center; gap: 13px">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: #4f7f63; color: #fff; display: grid; place-items: center; font-size: 15px; font-weight: 700; flex: none">MM</div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <div style="font-size: 13px; font-weight: 600">Person — circle</div>
+            <div style="font-size: 11px; color: #8b8a82">Always <b>#4f7f63</b>. One user, so no colour variation.</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 13px">
+          <div style="width: 40px; height: 40px; border-radius: 11px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; font-size: 14px; font-weight: 700; flex: none">IM</div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <div style="font-size: 13px; font-weight: 600">Vendor — rounded square, initials</div>
+            <div style="font-size: 11px; color: #8b8a82">Colour derived from the name. No logos.</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 13px">
+          <div style="width: 40px; height: 40px; border-radius: 11px; background: #1d4d33; display: grid; place-items: center; color: #fff; flex: none"><svg width="21" height="21" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h3l-.6 2.4A4 4 0 0 1 11.5 9c0 2.5-1.6 4.5-3.5 4.5S4.5 11.5 4.5 9a4 4 0 0 1 2.6-4.1z"></path></svg></div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <div style="font-size: 13px; font-weight: 600">Category — rounded square, icon</div>
+            <div style="font-size: 11px; color: #8b8a82">The chosen icon in the chosen colour (5b).</div>
+          </div>
+        </div>
+      </div>
+      <div style="height: 1px; background: #f0efe9"></div>
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SIZES</div>
+      <div style="display: flex; align-items: flex-end; gap: 14px">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <div style="width: 20px; height: 20px; border-radius: 6px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; font-size: 9px; font-weight: 700">IM</div>
+          <div style="font-size: 10px; color: #8b8a82">20</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <div style="width: 26px; height: 26px; border-radius: 8px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700">IM</div>
+          <div style="font-size: 10px; color: #8b8a82">26</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <div style="width: 34px; height: 34px; border-radius: 10px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; font-size: 13px; font-weight: 700">IM</div>
+          <div style="font-size: 10px; color: #8b8a82">34</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; font-size: 16px; font-weight: 700">IM</div>
+          <div style="font-size: 10px; color: #8b8a82">44</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: #4f7f63; color: #fff; display: grid; place-items: center; font-size: 20px; font-weight: 700">MM</div>
+          <div style="font-size: 10px; color: #8b8a82">56</div>
+        </div>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+        <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Five sizes: 20, 26, 34, 44, 56.</b> Radius scales with the box — 6, 8, 10, 12, and 50% for circles. Type is roughly 0.42 × the box at weight 700, and always two characters.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Where each size goes:</b> 20 inside a chip or a palette row, 26 in a list row, 34 in a card or a wide row, 44 in a form field, 56 in a profile header.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Never below 20px.</b> Two characters at 8px is a smudge; use the text alone instead.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The shape is the type.</b> Circle means person, rounded square means a thing. Do not make vendors round to match the account block — a user and a vendor appearing alike in the same list is the confusion this prevents.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">VENDOR COLOUR AND INITIALS</div>
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="display: flex; align-items: center; gap: 11px">
+          <div style="width: 26px; height: 26px; border-radius: 8px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">IM</div>
+          <div style="font-size: 13px; font-weight: 600">Indbo Møbler</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #8b8a82">two words → two initials</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 11px">
+          <div style="width: 26px; height: 26px; border-radius: 8px; background: #c6d6c9; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">HA</div>
+          <div style="font-size: 13px; font-weight: 600">Hay</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #8b8a82">one word → first two letters</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 11px">
+          <div style="width: 26px; height: 26px; border-radius: 8px; background: #e2d3ae; color: #6b5424; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">FL</div>
+          <div style="font-size: 13px; font-weight: 600">Ferm Living</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #8b8a82">light fill → dark ink</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 11px">
+          <div style="width: 26px; height: 26px; border-radius: 8px; background: #8caf97; color: #1b1a17; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">ØR</div>
+          <div style="font-size: 13px; font-weight: 600">Ørskov &amp; Sønner</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #8b8a82">Æ Ø Å kept, "&amp;" skipped</div>
+        </div>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+        <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Initials:</b> first letter of the first two words, uppercased. One word gives its first two letters. Words of one character, and anything that is not a letter, are skipped — "H&amp;M" is HM, not H&amp;. Danish letters are kept as themselves, never transliterated to OE or AA.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Colour is deterministic, from a fixed list.</b> Hash the normalised name to an index into the seven picker swatches from 14c. Same vendor, same colour, on every screen and after every reload — a mark that changes colour is worse than no mark. Derive from the canonical name, never an alias (5d), or one vendor gets two marks.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Never a random or generated colour.</b> The seven swatches are the whole range, for the reasons in 14c. A hash into an HSL wheel produces colours outside the palette on the first vendor it meets.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Ink flips above L 75</b>, the same threshold as the category tile — light fills take <b>#1b1a17</b> or the family's dark tone, not white.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The mark is decoration, not information.</b> It always sits beside the name it belongs to and carries <b>aria-hidden</b>; nothing is identified by colour alone.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">No logos, ever.</b> No favicon fetching, no upload. A receipt tracker that reaches out to a vendor's website to render a list row is a privacy leak and a broken row when it fails.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="width: 420px; display: flex; flex-direction: column; gap: 20px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHERE VENDOR MARKS GO — AND DO NOT</div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #1d4d33; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Yes — the vendors library (5a).</b> Forty-two rows of one kind, scanned to find one. The mark is the fastest way in.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #1d4d33; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Yes — the command palette (9d)</b> and any combobox listing vendors, where rows are dense and homogeneous.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #1d4d33; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">Yes — order cards (2c)</b> and the order detail rail, where there is room and one vendor to identify.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #c3c1b8; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">No — order list rows (2b).</b> The vendor column is 200px and already first, fixed and left-aligned; a 26px mark plus its gap takes a sixth of it to repeat what the text beside it says. The column exists to be scanned as text.</div></div>
+          <div style="display: flex; gap: 9px"><span style="width: 4px; border-radius: 2px; background: #c3c1b8; flex: none"></span><div style="font-size: 12px; color: #57564f; line-height: 1.5"><b style="color: #3d3c36">No — mobile order rows (7a).</b> Same reasoning, less room. Fields were removed to make those rows readable; a decorative mark does not earn the space back.</div></div>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">IN A ROW, AT 26px</div>
+        <div style="border: 1px solid #e6e4dc; border-radius: 10px; overflow: hidden">
+          <div style="display: flex; align-items: center; gap: 11px; padding: 10px 12px">
+            <div style="width: 26px; height: 26px; border-radius: 8px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">IM</div>
+            <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600">Indbo Møbler</div>
+              <div style="font-size: 11px; color: #8b8a82">64 orders · 142.310 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+          </div>
+          <div style="display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-top: 1px solid #f0efe9; background: #f0efe9">
+            <div style="width: 26px; height: 26px; border-radius: 8px; background: #c6d6c9; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">HA</div>
+            <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600">Hay</div>
+              <div style="font-size: 11px; color: #8b8a82">41 orders · 98.740 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+          </div>
+          <div style="display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-top: 1px solid #f0efe9">
+            <div style="width: 26px; height: 26px; border-radius: 8px; background: #e2d3ae; color: #6b5424; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">FL</div>
+            <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600">Ferm Living</div>
+              <div style="font-size: 11px; color: #8b8a82">22 orders · 38.920 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+          </div>
+        </div>
+        <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+          <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The mark takes <span style="white-space: nowrap">flex: none</span></b> and the text block beside it <b>min-width: 0</b>, so a long name truncates instead of squeezing the mark.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Gap is 11px at 26px</b>, 13px at 34 and above. The mark aligns to the centre of a two-line block, not to the first line.</div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">API</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.6"><b style="color: #3d3c36">IdentityMark</b> — <b>kind</b> (person / vendor / category) · <b>name</b> · <b>size</b> (20 / 26 / 34 / 44 / 56) · <b>icon</b> and <b>colour</b> for category only</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Initials and colour are derived inside the component from <b>name</b>, never passed in — that is what guarantees the same vendor looks the same in every list. Category is the exception: its icon and colour are stored on the record because the user chose them.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Listed in the 14d table as the seventeenth component.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:900},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Annotation&quot;,&quot;label&quot;:&quot;Implementation notes&quot;},&quot;showErrorStates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Annotation&quot;,&quot;label&quot;:&quot;Error states&quot;},&quot;comboVariant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Both modes&quot;,&quot;Pick only&quot;,&quot;Searchable only&quot;],&quot;default&quot;:&quot;Both modes&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Combobox&quot;}}">
 class Component extends DCLogic {
