@@ -16,7 +16,7 @@ Conventions: amounts are DKK, formatted `1.234,50 kr.` (period thousands, comma 
 
 **Facet ordering** is by count descending, except Status, which is in workflow order (fixed). Groups show the top 6 with "Show all (N)"; expanded, they scroll at `240px` with a filter field if the group has more than 20 values.
 
-**A facet value with a count of zero** is hidden, unless it is currently selected — then it stays visible with `0` so it can be deselected.
+**A facet value with a count of zero** is disabled, not hidden — it tells you the value exists and that the current filter excludes it, and it keeps the group a stable length as you filter. The one exception is a value that is currently selected: it stays enabled at `0` so it can be deselected. (Long lists need no special case — zero-count values fall out of the top 6 by count ordering and only appear under "Show all".) Drawn in 14e.
 
 **Result total** ("128 orders · 486.320 kr.") reflects the filter, not the page, and not the account.
 
@@ -357,6 +357,20 @@ Conventions: amounts are DKK, formatted `1.234,50 kr.` (period thousands, comma 
 
 ---
 
+## Cancelled and draft orders
+
+**Both use the grey status token.** They are not comparable states — a draft is unfinished, a cancelled order no longer counts — so no sixth colour is introduced. The distinction is carried by the label and by row treatment.
+
+**A cancelled row:** every cell at `opacity: 0.6`; the amount with `text-decoration: line-through` in `#8b8a82`; the saved-percentage line replaced by `not counted`. **The pill stays at full contrast** — it holds the word that identifies the state, and dimming it makes the state harder to read, not easier.
+
+**A draft row is entirely normal.** Nothing is dimmed: a draft is going to become a real order.
+
+**Opacity is reinforcement, not the signal.** The label is the signal. This is what keeps the distinction working for anyone who cannot separate the two tints, and why the treatment must never be opacity alone.
+
+**The strikethrough is load-bearing.** Cancelled orders are excluded from total spend (open question 5, resolved: excluded from spend, still counted in the order count). A struck amount states that in the row without needing a legend. Applies wherever an amount renders for a cancelled order — list rows, cards, mobile rows, the order read view.
+
+---
+
 ## Cross-cutting
 
 **Toasts** queue, showing one at a time, bottom-centre, 6s, paused on hover. Undo is available for the toast's lifetime and its action is idempotent. A toast dismissed early keeps the action applied — Undo is an offer, not a pending state.
@@ -379,15 +393,15 @@ Conventions: amounts are DKK, formatted `1.234,50 kr.` (period thousands, comma 
 
 ## Open questions, collected
 
-Answer these before the affected screen is built. Recommendations are in the sections above.
+Answer these before the affected screen is built. Struck-out rows have been decided; they are kept so the answer is on record. Recommendations are in the sections above.
 
 | # | Question | Affects |
 | --- | --- | --- |
-| 1 | Do drafts appear in the main order list, or a separate view? | 2b, list model |
+| ~~1~~ | **Resolved:** drafts appear in the main list, marked with the grey pill and an undimmed row. A forgotten draft is worse than a fuller list. Drawn in 2b. | 2b, list model |
 | 2 | Attachment count and size limits | 1a, 3a |
 | 3 | Hard or soft delete for orders | 1a, 6d |
 | 4 | Scan timeout | 3a |
-| 5 | Are cancelled orders excluded from total spend? | 4a, every aggregate |
+| ~~5~~ | **Resolved:** excluded from total spend, still counted in the order count. The struck-through amount in a cancelled row states this without a legend. | 4a, every aggregate |
 | 6 | Does a retail price exist on item lines? (the "saved vs retail" card depends on it) | 4a, 5a, 10a |
 | 7 | Is vendor merge reversible? | 5a |
 | 8 | Can a vendor or category with orders be deleted? | 5a, 5b |
