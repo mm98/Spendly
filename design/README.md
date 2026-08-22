@@ -615,6 +615,20 @@ File: `Settings and import.dc.html` · Code: new pages (`pages/Settings.jsx`, `p
 
 **Five sections, each its own card with its own save.** Only the card you touched goes dirty; the sticky save bar names it ("Unsaved changes in Statuses").
 
+**Status colour is a pair token, not a swatch.** A status stores one of five names — `green`, `sage`, `sand`, `clay`, `grey` — and each names a fixed surface/ink pair:
+
+| token | surface | ink |
+| --- | --- | --- |
+| green | `#e7efe8` | `#1d4d33` |
+| sage | `#eef1ee` | `#4f7f63` |
+| sand | `#f3ede1` | `#7a5c23` |
+| clay | `#f0e6e4` | `#8a4a41` |
+| grey | `#f0efe9` | `#57564f` |
+
+Both values are authored. **Do not derive the ink from the surface at runtime** — at the pale end of the ramp that gets contrast wrong, for the reason in 14c: chroma falls as lightness rises, so a computed dark variant of a near-white tint lands at the wrong hue and the wrong weight.
+
+**The picker shows the pill the list will draw**, not a dot. A dot cannot represent a pair, and that is how the two drifted: the card offered five solid swatches (no clay, though Cancelled used it) while the list rendered tinted pairs, and Ordered's swatch was green while its pill was sand.
+
 - **Account and profile.** 56px avatar with upload and remove, name, email (read-only), and a password row.
 - **Appearance.** Theme as three preview cards — light, dark, follow system — each a miniature of the shell rather than a swatch. Then row density as a segmented control (comfortable / compact; compact takes list rows from 14px to 8px of vertical padding and leaves item lines alone, so touch targets survive). The theme is also switchable from the sidebar bottom; the two stay in sync.
 - **Currency and format.** Currency, number format, date format, week start, with a live preview strip showing the result. Changing the currency does not convert existing amounts — it changes the symbol only, and the card says so.
@@ -930,6 +944,22 @@ Two places horizontal scroll is allowed, both named in the table: the import dry
 
 **Side-by-side panels in the other files are annotation, not layout.** Columns headed "1 — pick a file", "empty" / "loaded", or "light" / "dark" are never on screen together. Don't build a responsive row out of them.
 
+### 16g — Selecting rows, and the header checkbox
+
+**Applies to every selectable list**, not just orders. Three visual states on the header checkbox — empty, dash (some of the page), check (all of the page) — and only two outcomes from a click: **empty and dash both select the whole page; check clears.** Dash selects and never clears, because a partial selection is work already done and losing it by clicking the box that represents it is the outcome nobody predicts.
+
+**The header checkbox never reaches past the page.** When the filter matches more, a named action appears under the bulk bar in the check state only — "Select all 128 matching", stating the number. Once taken, the bar reads "128 selected — everything matching these filters" with "Just this page" as the way back.
+
+Single rows: the checkbox is the only selecting target (clicking the row navigates — 16f), it and its 44px hit padding stop propagation, and shift-click selects a range in the order currently displayed, without re-anchoring on sort.
+
+Implementation:
+- **Two shapes of selection, one piece of state** — a set of ids, or a flag meaning "everything matching the current filter" held with that filter. The second is *not* 128 ids: actions on it send the filter to the server, so it stays correct if a row was added since the click.
+- **Filter, search, sort and page-size changes clear the selection** (including the filter-wide one), with no warning. **Paging does not.** That is the only case where the two differ, which is why page changes are handled separately from filter changes.
+- The header box is a real `<input type="checkbox">` with **`indeterminate` set from script** — a property, not an attribute, unwritable in markup. Assistive tech reports "mixed" only for a genuine checkbox.
+- Its accessible name states the scope: "Select all 25 on this page", updated with page size.
+- Destructive bulk actions restate number and noun: "Delete 128 orders?".
+- The count in the bulk bar is authoritative, not the ticks.
+
 ### 16d / 16e — Row menus, and hover
 
 **16d — the row overflow menu.** Every data row ends in the same **40px** actions cell, holding the ⋮ and nothing else. **No visible per-row buttons, deliberately** — a pencil on every row is a third way to reach somewhere the row click and the menu both already go, and it costs column width that 15a keeps tight. The row's own hover fill and pointer are the affordance. The one exception is the **item line in 1b**, which expands in place rather than navigating: no address to fall back on and no menu, so the pencil is the only signal it is editable.
@@ -1149,7 +1179,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Layout rules.dc.html` | 15a, 15b, 15c |
 | `Responsive reference.dc.html` | 18a, 18b |
 | `Icon legend.dc.html` | 19a, 19b |
-| `Actions inventory.dc.html` | 16a–16f |
+| `Actions inventory.dc.html` | 16a–16g |
 | `Images and files.dc.html` | 17a, 17b |
 | `support.js` | Preview runtime for the files above — not part of the product |
 | `screenshots/` | Full-page capture of each file (see above) |
