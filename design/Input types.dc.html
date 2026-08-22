@@ -207,6 +207,48 @@
           </div>
         </sc-if>
       </div>
+
+      <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+        <div style="display: flex; align-items: baseline; gap: 9px">
+          <div style="font-size: 15px; font-weight: 600">Password</div>
+          <div style="font-size: 11px; color: #8b8a82">11a, change password</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Current password</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px; display: flex; align-items: center; gap: 10px">
+            <span style="font-size: 15px; letter-spacing: 0.16em; color: #3d3c36">••••••••••</span>
+            <div style="flex: 1"></div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.6 8S4 3.8 8 3.8 14.4 8 14.4 8 12 12.2 8 12.2 1.6 8 1.6 8z"></path><circle cx="8" cy="8" r="1.9"></circle></svg>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 12px; font-weight: 600; color: #3d3c36">New password</div>
+          <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px; display: flex; align-items: center; gap: 10px">
+            <span style="font-size: 14px; color: #3d3c36">havfrue-27-kobber</span>
+            <div style="flex: 1"></div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.6 8S4 3.8 8 3.8 14.4 8 14.4 8 12 12.2 8 12.2 1.6 8 1.6 8z"></path><circle cx="8" cy="8" r="1.9"></circle><path d="M2.6 13.4L13.4 2.6"></path></svg>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding-top: 2px">
+            <div style="flex: 1; height: 5px; border-radius: 3px; background: #eef1ee; display: flex; gap: 3px; overflow: hidden">
+              <div style="flex: 1; background: #1d4d33"></div>
+              <div style="flex: 1; background: #1d4d33"></div>
+              <div style="flex: 1; background: #1d4d33"></div>
+              <div style="flex: 1; background: #eef1ee"></div>
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #1d4d33; white-space: nowrap">Strong</div>
+          </div>
+          <div style="font-size: 11px; color: #8b8a82">At least 12 characters. Longer beats complicated.</div>
+        </div>
+        <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+          <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Reveal, not a second confirm field.</b> The eye toggles the whole value visible, so a typo can be seen rather than typed twice. A confirm field catches nothing reveal does not, and doubles the work.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Masked text is 15px with 0.16em tracking</b> so the dot count is countable; revealed text drops to the normal 14px. The field height does not change between the two.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The meter measures length first.</b> Four segments, filling in the green ramp; it never blocks a save and never demands a symbol. The hint says what actually helps.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Never disable paste</b>, and mark the fields <b>autocomplete="current-password"</b> and <b>"new-password"</b> so a manager fills them. Both are how a weak password gets chosen instead of a strong one.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">It is a dialog, not a page.</b> 440px, opened from Change password in 11a, and the only place these fields exist.</div>
+          </div>
+        </sc-if>
+      </div>
     </div>
   </div>
 </section>
@@ -357,16 +399,17 @@
         <div style="font-size: 11px; color: #8b8a82">rows/cards, row shape, density</div>
       </div>
       <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; align-self: flex-start">
-        <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; padding: 7px 15px; border-radius: 7px">Rows</div>
+        <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; padding: 0 15px; display: grid; place-items: center; border-radius: 7px">Rows</div>
         <div style="font-size: 13px; color: #57564f; padding: 7px 15px; border-radius: 7px">Cards</div>
       </div>
       <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; align-self: flex-start">
-        <div style="font-size: 12px; font-weight: 600; background: #1d4d33; color: #fff; padding: 6px 12px; border-radius: 6px">one item line</div>
+        <div style="font-size: 12px; font-weight: 600; background: #1d4d33; color: #fff; padding: 0 12px; display: grid; place-items: center; border-radius: 6px">one item line</div>
         <div style="font-size: 12px; color: #57564f; padding: 6px 12px; border-radius: 6px">a whole order</div>
       </div>
       <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
         <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Two or three options, all visible, applying instantly.</b> No Apply step — the choice is a view, not a value.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Segments fill the track; they do not pad themselves into it.</b> The track is 42px with 3px padding, so each segment is exactly <b>36px</b> — set by <b>display: grid; place-items: center</b>, with horizontal padding only. Vertical padding leaves the label floating a few pixels above centre, which is invisible in isolation and obvious the moment two controls sit side by side.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Labels stay short and never truncate.</b> A label that needs truncating means this should have been a select.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">It is a radio group, styled</b> — arrow keys move between segments, and only one segment is a tab stop.</div>
         </div>
@@ -954,7 +997,7 @@
     <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="14d">14d</span>
     <span style="font-size: 20px; font-weight: 600">Component API — the options each control needs</span>
   </div>
-  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">What each control must accept to serve every place it is used in this design, and nothing beyond that. Seventeen components. The right-hand column names what drives each option, so an option with nothing behind it can be cut.</div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">What each control must accept to serve every place it is used in this design, and nothing beyond that. Nineteen components. The right-hand column names what drives each option, so an option with nothing behind it can be cut.</div>
 
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
@@ -976,6 +1019,12 @@
     </div>
 
     <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="font-weight: 600; font-size: 13px">PasswordField</div>
+        <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">autocomplete</b> (current / new) · <b style="color: #3d3c36">meter</b> · <b style="color: #3d3c36">hint</b></div>
+        <div style="color: #8b8a82; line-height: 1.6">Reveal is built in, never optional. meter only on the new-password field. No confirm variant — reveal replaces it. Paste is never blocked</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
       <div style="font-weight: 600; font-size: 13px">AmountField</div>
       <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">currency</b> · <b style="color: #3d3c36">decimals</b> (2, or 3 for quantity) · <b style="color: #3d3c36">min</b> · <b style="color: #3d3c36">computed</b> (read-only, tinted) · <b style="color: #3d3c36">align</b></div>
       <div style="color: #8b8a82; line-height: 1.6">computed is the line total (1b) and the import total · min 0 blocks negative prices · currency and separators come from Settings, never hardcoded</div>
@@ -1100,7 +1149,7 @@
 
     <div style="width: 430px; background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
       <div style="font-size: 11px; letter-spacing: 0.12em; color: #7a5c23">BUILD ORDER</div>
-      <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>1.</b> The field wrapper, then TextField and Button — between them they unblock every screen.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>1.</b> The field wrapper, then TextField (PasswordField is the same field plus a reveal) and Button — between them they unblock every screen.</div>
       <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>2.</b> Combobox. The largest piece by a distance, and four screens are waiting on it. Do the keyboard table in 14a before the styling, not after.</div>
       <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>3.</b> AmountField and Stepper, together — they share the parsing and formatting.</div>
       <div style="font-size: 12px; color: #6b5424; line-height: 1.6"><b>4.</b> Checkbox, Segmented, Chip, SearchInput. Small, and the order list needs all four at once.</div>
@@ -1177,15 +1226,20 @@
           <div style="flex: 1"></div>
           <div style="font-size: 11px; color: #8b8a82">0 — 25.000 kr.</div>
         </div>
-        <div style="height: 4px; border-radius: 2px; background: #e6e4dc; position: relative">
+        <div style="height: 4px; border-radius: 2px; background: #e6e4dc; position: relative; margin: 0 9px">
           <div style="position: absolute; left: 12%; right: 34%; top: 0; bottom: 0; background: #1d4d33; border-radius: 2px"></div>
-          <div style="position: absolute; left: 12%; top: -5px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #fff; border: 2px solid #1d4d33"></div>
-          <div style="position: absolute; left: 66%; top: -5px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #fff; border: 2px solid #1d4d33"></div>
+          <div style="position: absolute; left: 12%; top: -5px; width: 14px; height: 14px; margin-left: -9px; border-radius: 50%; background: #fff; border: 2px solid #1d4d33"></div>
+          <div style="position: absolute; left: 66%; top: -5px; width: 14px; height: 14px; margin-left: -9px; border-radius: 50%; background: #fff; border: 2px solid #1d4d33"></div>
         </div>
         <div style="display: flex; gap: 8px">
           <div style="flex: 1; border: 1px solid #dedcd4; border-radius: 9px; padding: 8px 10px; font-size: 12px">3.000</div>
           <div style="flex: 1; border: 1px solid #dedcd4; border-radius: 9px; padding: 8px 10px; font-size: 12px">16.500</div>
         </div>
+          <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 13px; display: flex; flex-direction: column; gap: 7px; margin-top: 4px">
+            <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The track is inset by half a thumb, not flush.</b> <b>margin: 0 9px</b> — half of the 18px thumb. The thumb is positioned by its centre, so a track running the container's full width puts the thumb 9px outside it at 0% and at 100%. Inset the track and the thumb's outer edge lands exactly on the container edge, level with the two amount fields below.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55">The 9px is derived, not chosen: <b>14px + 2px border × 2 = 18px</b>, halved. Change the thumb size and this number changes with it. Same reasoning as the overlay-inset rule in 15a — the number comes from the thing it must align with.</div>
+          </div>
       </div>
       <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
         <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
@@ -1305,9 +1359,9 @@
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px">
           <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; align-self: flex-start">
-            <div style="padding: 7px 14px; font-size: 13px; color: #57564f">Month</div>
+            <div style="padding: 0 14px; display: grid; place-items: center; font-size: 13px; color: #57564f">Month</div>
             <div style="padding: 7px 14px; font-size: 13px; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Year</div>
-            <div style="padding: 7px 14px; font-size: 13px; color: #57564f">Custom</div>
+            <div style="padding: 0 14px; display: grid; place-items: center; font-size: 13px; color: #57564f">Custom</div>
           </div>
           <div style="font-size: 13px; color: #6b6a63">01/01/2026 — 20/08/2026</div>
           <div style="display: flex; align-items: center; gap: 9px">
@@ -1429,6 +1483,7 @@
       <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
         <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Initials:</b> first letter of the first two words, uppercased. One word gives its first two letters. Words of one character, and anything that is not a letter, are skipped — "H&amp;M" is HM, not H&amp;. Danish letters are kept as themselves, never transliterated to OE or AA.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Size ladder:</b> 22, 26, 32, 40, 56px, with type at <b>2.7× smaller than the mark</b> — 22/8, 26/10, 32/12, 40/15, 56/20. Two initials in a circle need that ratio; anything tighter and the letters touch the edge. The 28px avatar in early sidebar drafts was 12px type at 2.3× and read as cramped, which is why the sidebar mark is 32px.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Colour is deterministic, from a fixed list.</b> Hash the normalised name to an index into the seven picker swatches from 14c. Same vendor, same colour, on every screen and after every reload — a mark that changes colour is worse than no mark. Derive from the canonical name, never an alias (5d), or one vendor gets two marks.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Never a random or generated colour.</b> The seven swatches are the whole range, for the reasons in 14c. A hash into an HSL wheel produces colours outside the palette on the first vendor it meets.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Ink flips above L 75</b>, the same threshold as the category tile — light fills take <b>#1b1a17</b> or the family's dark tone, not white.</div>
@@ -1493,7 +1548,7 @@
         <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">API</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.6"><b style="color: #3d3c36">IdentityMark</b> — <b>kind</b> (person / vendor / category) · <b>name</b> · <b>size</b> (20 / 26 / 34 / 44 / 56) · <b>icon</b> and <b>colour</b> for category only</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55">Initials and colour are derived inside the component from <b>name</b>, never passed in — that is what guarantees the same vendor looks the same in every list. Category is the exception: its icon and colour are stored on the record because the user chose them.</div>
-        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Listed in the 14d table as the eighteenth component.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Listed in the 14d table as the nineteenth component.</div>
       </div>
     </div>
   </div>
@@ -1516,3 +1571,4 @@ class Component extends DCLogic {
 </script>
 </body>
 </html>
+      

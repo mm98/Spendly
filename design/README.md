@@ -497,6 +497,8 @@ This is the one place item photos are shown at size, which is why the strip is t
 
 Selected rows take the documented `#e7efe8` selected-row tint. It does not compete with the `#f0efe9` hover because the two differ in hue, not lightness — green means chosen, warm grey means under the cursor, and a hovered selected row reads as both. Shift-click extends from the last ticked row. The checkbox cell stops propagation, so ticking never opens the order (16f). Selection is per page, clears on any filter/search/sort/page change without warning, and is **not** in the URL — a shared link should not carry someone else's pending bulk action. **Cards view selects the same way, with one layout difference.** A card shows **no checkbox at rest** — a permanent tick box on every card competes with the photo strip, which is the thing the view exists to show. Hovering reveals it in the strip's top-left over an `rgba(27,26,23,0.35)` circular scrim so it reads against any photo; once **anything** on the page is selected, every card shows its checkbox permanently, ticked or not. Clearing the last selection returns them to hover-only. On touch they are always visible.
 
+**Every overlay on a photo carries a shadow: `0 1px 4px rgba(27, 26, 23, 0.28)`.** The card checkbox in both states, and the paperclip badge. The photos are the user's own, so the lightness behind an overlay is never knowable — a white control vanishes on a pale product shot, and the filled green one vanishes on a dark photo. Same reasoning as 12a keeping a border on every thumbnail: a white scan with no edge is not a control, it is a gap.
+
 A **selected card** takes a `2px #1d4d33` border in place of its `1px #e6e4dc` hairline — the card's own edge carries the state, since the `#e7efe8` row tint would fight the photo strip. Apply it on the same box (2px border, 1px less padding) so nothing reflows.
 
 The bulk bar is identical in both views, but in rows it **replaces** the summary line, while in cards there is no toolbar so it is **inserted above the grid** as another child of the same 14px column. The container owns the spacing — the bar carries no margin of its own, per 15a: gaps on the container, never margins on children. That is a consequence of the layout, not a separate decision.
@@ -854,6 +856,8 @@ File: `Layout rules.dc.html`
 Gaps, not margins, set on the container: `24px` between columns, `14px` between stacked cards, `16px` in a card grid, `12px` between fields.
 
 **An overlay's inset is never a free number.** A control positioned over something — a checkbox on a card, a paperclip badge on a photo strip, a PDF tag on an attachment tile — is inset by *the padding of whatever it lines up with*, not by whatever looks about right. A card's checkbox is 16px in because the bulk bar above it has 16px padding, so the two share an x. Identify the element it aligns against, read that element's padding, use that number.
+
+The same arithmetic applies to a **range slider's track**: inset it by half a thumb (`margin: 0 9px` for the 18px thumb — 14px plus a 2px border each side, halved). The thumb is positioned by its centre, so a full-width track puts it 9px outside the container at 0% and 100%, while the amount fields below sit flush. Change the thumb size and the inset changes with it.
 
 **Four column shapes cover the whole set:**
 1. **Main + right rail** (1a, 1d, 10a). Rail widths are **320 / 360 / 400** and nothing between — 320 for a read-only summary, 360 for a form rail, 400 for a panel that is itself a form. The rail stays shorter than the main column.
