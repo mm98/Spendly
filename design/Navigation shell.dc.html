@@ -305,6 +305,7 @@
 
     <div style="width: 430px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
       <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Two greens, two meanings, and they are not interchangeable.</b> <b>#1d4d33</b> is the primary action — Scan receipt, and the capture tile on the rail. <b>#1f3d2c</b> is the active destination — the row you are currently on, and the account block. Scan receipt is a button, so it is filled on every screen; that is not an active state and it never moves. The account block is filled for the same reason a card has a surface, not because it is selected.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Why each row exists.</b> The header repeats the email, which appears nowhere else in the shell and is how you confirm which account you are in. <b>Account and profile</b> deep-links to that section of Settings rather than duplicating it — the nav's Settings row goes to the page top. <b>Keyboard shortcuts</b> opens the shortcut sheet, and this is its only entry point besides pressing <b>?</b>. <b>Sign out</b> is the reason the menu exists at all: it is the one action that should not be buried in a settings page.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The account block is name over email, and the domain never truncates.</b> There is no company name on an account, so line two is the email. It is split into two spans — the local part shrinks with <b>text-overflow: ellipsis</b>, the <b>@domain</b> is <b>flex: none</b> — because truncating from the right would hide the part that identifies which account is signed in. <b>mikkel.mortensen@verylongcompany.dk</b> renders as <b>mikkel.mo…@verylongcompany.dk</b>, not <b>mikkel.mortensen@very…</b>. The chevron is <b>flex: none</b> for the same reason.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Where "Account and profile" goes.</b> Not a new screen — it is Settings (11a) at <b>/settings/account</b>, whose first card is already that form: avatar with upload and remove, name, read-only email, and Change password. The only difference from the nav's Settings row is arrival state: the section is selected in the left nav, the page is scrolled to that card, and focus lands on the card's heading so a keyboard user knows where they arrived. No highlight flash, no auto-focused field — nothing is being asked for yet.</div>
@@ -792,7 +793,7 @@
           <div style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Home</div>
           
         </div>
-        <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; background: #1f3d2c; color: #fff; flex: none">
+        <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; background: #1d4d33; color: #fff; cursor: pointer; flex: none">
           <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M2.8 5.4h2.1l1-1.4h4.2l1 1.4h2.1v7.2H2.8z"></path><circle cx="8" cy="8.9" r="2.1"></circle></svg>
           <div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Scan receipt</div>
           
@@ -877,7 +878,7 @@
           <div style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Home</div>
           
         </div>
-        <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; background: #1f3d2c; color: #fff; flex: none">
+        <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; background: #1d4d33; color: #fff; cursor: pointer; flex: none">
           <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M2.8 5.4h2.1l1-1.4h4.2l1 1.4h2.1v7.2H2.8z"></path><circle cx="8" cy="8.9" r="2.1"></circle></svg>
           <div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Scan receipt</div>
           
@@ -962,7 +963,7 @@
           <div style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Home</div>
           
         </div>
-        <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; background: #1f3d2c; color: #fff; flex: none">
+        <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; background: #1d4d33; color: #fff; cursor: pointer; flex: none">
           <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M2.8 5.4h2.1l1-1.4h4.2l1 1.4h2.1v7.2H2.8z"></path><circle cx="8" cy="8.9" r="2.1"></circle></svg>
           <div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Scan receipt</div>
           
