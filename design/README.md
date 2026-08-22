@@ -515,7 +515,18 @@ This is the one place item photos are shown at size, which is why the strip is t
 
 **Selection rules (2h).** The header checkbox has three states driven by the **page only**: empty when none of the 25 rows are selected, dash when some are, tick when all are. Clicking it empty or dashed selects the page; clicking it ticked clears the page. It never reaches other pages. Once the page is fully selected, a separate strip below the bulk bar offers **"Select all 128 matching"** as an explicit second action — a bulk delete that silently included 103 unseen rows is not something undo covers well.
 
-Selected rows take the documented `#e7efe8` selected-row tint. It does not compete with the `#f0efe9` hover because the two differ in hue, not lightness — green means chosen, warm grey means under the cursor, and a hovered selected row reads as both. Shift-click extends from the last ticked row. The checkbox cell stops propagation, so ticking never opens the order (16f). Selection is per page, clears on any filter/search/sort/page change without warning, and is **not** in the URL — a shared link should not carry someone else's pending bulk action. **Cards carry the same row menu.** The `⋮` sits at the end of a card's footer line — 44px target, glyph flush at the card's 14px padding edge, aligned with the amount above it — and opens the same six items in the same order as a row: Open order, Duplicate, Download receipt, Set status ›, Add category ›, Delete. The view toggle changes how an order is drawn, not what can be done to it; a card offering a different set would mean the toggle silently changes capability.
+**A row has four fills, and every list in the app uses the same four:**
+
+| State | Light | Dark |
+| --- | --- | --- |
+| Rest | none (card surface) | none |
+| Hover | `#f0efe9` | `#2a2621` |
+| Selected | `#e7efe8` | `#1f3328` |
+| Selected + hover | `#dfe6e0` | `#26402f` |
+
+**Selection outranks hover, and the two never mix.** Hovering a selected row deepens the green; it does not replace it with grey. A selected row that turns grey under the cursor looks deselected at the moment you are about to act on it. Hue carries the meaning — green chosen, warm grey pointed at — and lightness carries the state within a hue.
+
+Order rows and cards, vendors, categories, statuses, item lines and saved views all use these. A list that invents its own hover value is a bug. Transition `120ms ease` on `background-color` only. Shift-click extends from the last ticked row. The checkbox cell stops propagation, so ticking never opens the order (16f). Selection is per page, clears on any filter/search/sort/page change without warning, and is **not** in the URL — a shared link should not carry someone else's pending bulk action. **Cards carry the same row menu.** The `⋮` sits at the end of a card's footer line — 44px target, glyph flush at the card's 14px padding edge, aligned with the amount above it — and opens the same six items in the same order as a row: Open order, Duplicate, Download receipt, Set status ›, Add category ›, Delete. The view toggle changes how an order is drawn, not what can be done to it; a card offering a different set would mean the toggle silently changes capability.
 
 It anchors to the card, not the viewport, opening bottom-right above the footer and flipping upward near the grid's bottom edge. It is on the footer rather than over the photo strip because a control there would land on a photo of unknown lightness and compete with the checkbox and paperclip badge already present. Always visible at `#b3b1a9`, never hover-revealed.
 
