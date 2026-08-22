@@ -455,6 +455,8 @@ The card leads with a **116px photo strip** across the full card width — up to
 
 This is the one place item photos are shown at size, which is why the strip is the card rather than a row of small thumbnails.
 
+**The thumbnail cell — three states, one width.** A 36px rounded square (radius 8px) holding the first item photo, `object-fit: cover`; the same square `1px dashed #c3c1b8` on `#f7f6f2` and empty when the order has no photo; and either followed by a `+N` count at 11px/600 `#6b6a63` when more photos exist. **The cell is 58px in every case**, so the vendor name starts at the same x on every row — the same reasoning as the fixed vendor column. No stacked pairs, no white ring, no second image. **The diagonal hatch in the mockups is not a state** — it is how a photo we do not have is drawn; only the dashed square is literal. The count is *photos*; the paperclip after the reference line is *attachments on the order* — they can disagree, so never derive one from the other. Full spec in 17c.
+
 **Draft and cancelled rows.** Both use the grey status token — they are not comparable states, so no sixth colour is introduced. A **cancelled** row renders every cell at `opacity: 0.6`, the amount `line-through` in `#8b8a82`, and `not counted` in place of the saved-percentage line; **the pill stays at full contrast**, because the label is what distinguishes it from Draft. A **draft** row is entirely normal — nothing dimmed. Opacity is reinforcement, never the signal. The strikethrough also states that cancelled orders are excluded from total spend, so it applies wherever a cancelled amount renders: list rows, cards, mobile rows, the read view.
 
 **Bulk actions (in 2a):** selecting rows reveals a bar above the list — a checkbox in indeterminate state, "N selected" in 13px/600 `#1d4d33`, then four buttons right-aligned with an `8px` gap: **Set status**, **Add category**, **Export**, and **Delete**. All are 12px/600 on white at radius 8px, padding `6px 12px`. Set status carries the accent border `#1d4d33`; Add category and Export take `#cbd8cd`; Delete takes `#e2d3d1` with `#8a4a41` text. Both open a small popover anchored to the button: Set status is a single-select list of the five statuses (the Combobox in pick-only mode — there is no Radio component; see 14d); Add category is a searchable list with the category icon tile and name, multi-select, and a "Create category" row at the bottom. Applying shows the count in a toast with Undo. Delete opens a confirm dialog naming the count; Export downloads the selection.
@@ -700,7 +702,9 @@ One overlay serves both order attachments and item photos, and it always knows t
 
 **The overlay is dark in both themes.** Bright chrome around a bright scan leaves nothing to read the image edge against. What changes with the theme is the scrim — `rgba(27,26,23,0.72)` on light, `rgba(10,9,8,0.82)` on dark.
 
-**Two rules for thumbnails on dark**, and they matter more than they sound: every image thumbnail keeps a `1px #463f37` border, because a white receipt scan with no border floats as a bright edgeless rectangle; and thumbnails render at **90% opacity**, taking the glare off without touching colour accuracy. Full opacity returns on hover and in the viewer, where the image is the subject.
+**Thumbnails are toned on light.** `filter: saturate(0.88)` under a warm `rgba(236, 234, 228, 0.08)` scrim, so photos from unrelated vendors read as one surface rather than fighting a palette built on muted greige and one capped chroma. Subtle by design — a washed-out photo of the user's own purchase reads as a bug, which is the failure mode to avoid. **On dark there is no scrim and no desaturation** — the 90% opacity below does the same job from the other direction, and a warm light scrim over a thumbnail on `#1a1815` would lighten it, working against the glare reduction. One treatment per theme; they do not compose. **The viewer strips the treatment** in both themes: full size is for inspecting the actual thing, so it renders at full fidelity. Both numbers are set against placeholders and need tuning against real photography — judge them on five thumbnails from five vendors, where the test is whether the row reads as one surface.
+
+**Two further rules for thumbnails on dark**, and they matter more than they sound: every image thumbnail keeps a `1px #463f37` border, because a white receipt scan with no border floats as a bright edgeless rectangle; and thumbnails render at **90% opacity**, taking the glare off without touching colour accuracy. Full opacity returns on hover and in the viewer, where the image is the subject.
 
 ---
 
@@ -733,7 +737,7 @@ File: `Input types.dc.html` · Code: `components/` (the shared control set)
 
 **14a — Controls and their states.** Text field, amount field, quantity stepper, search, multi-line, the combobox in both modes, segmented, checkbox, toggle, filter chips, drop zone, date, colour and icon pickers. Each shown in every state it has (empty, filled, focus, error, read-only, disabled, loading) with the rule that made it that shape.
 
-Cross-cutting geometry: every text-entry and select control is `1px solid #dedcd4`, radius `9px`, padding `10px 12px`, 14px text — **42px tall, the canonical control height**. Controls that are not text (the stepper, combobox triggers, segmented controls, solid buttons) take `box-sizing: border-box; height: 42px` explicitly rather than sizing to content, and centre their own content. **Toolbar rows are where this drifts:** left to padding, a segmented control lands at 37px, a solid button at 37px and a bordered field at 42px — three heights in one row, visible only once they are side by side. Focus is one treatment everywhere: border `#1d4d33` plus a 3px `rgba(29,77,51,0.12)` ring. Labels are always visible at 12px/600 above the control — no floating labels, no placeholder-as-label. **Icon side is a rule:** left says what the field holds (search glyph, currency prefix, IdentityMark); right says what clicking does (combobox chevron, and the calendar that opens a date picker). A date field carries its calendar on the right, in the chevron's position. Validation fires on blur once touched and on submit, never per keystroke.
+Cross-cutting geometry: every text-entry and select control is `1px solid #dedcd4`, radius `9px`, padding `10px 12px`, 14px text — **42px tall, the canonical control height**. Controls that are not text (the stepper, combobox triggers, segmented controls, solid buttons) take `box-sizing: border-box; height: 42px` explicitly rather than sizing to content, and centre their own content. **Toolbar rows are where this drifts:** left to padding, a segmented control lands at 37px, a solid button at 37px and a bordered field at 42px — three heights in one row, visible only once they are side by side. Focus is one treatment everywhere: border `#1d4d33` plus a 3px `rgba(29,77,51,0.12)` ring. Labels are always visible at 12px/600 above the control — no floating labels, no placeholder-as-label. **Segments fill their track:** a segmented control is a 42px track with 3px padding, so each segment is exactly 36px, centred with `display: grid; place-items: center` and horizontal padding only — vertical padding leaves the label off-centre. **Icon side is a rule:** left says what the field holds (search glyph, currency prefix, IdentityMark); right says what clicking does (combobox chevron, and the calendar that opens a date picker). A date field carries its calendar on the right, in the chevron's position. Validation fires on blur once touched and on submit, never per keystroke.
 
 Specifics worth not rediscovering: an error state **keeps the value** (the field being corrected is the one that failed); read-only and disabled look deliberately different (read-only keeps full contrast, disabled drops it and its copy says what would enable it); amount fields accept `4190`, `4.190,00`, `4190.00` and `4 190` and reformat on blur, and never use `type="number"`; the stepper's minus disables at 1 rather than deleting the line.
 
@@ -865,7 +869,7 @@ Three needed a product answer and are drawn as proposals in 16c: **See theirs** 
 
 ---
 
-### 17a / 17b — Images and files
+### 17a–17d — Images and files
 File: `Images and files.dc.html` · Code: `components/FileInput.jsx`, `components/fileKinds.js`
 
 **Four places take a file — item photo (one per line), order attachments (many), receipt scan (one), avatar (one) — and they are one FileDrop component with different `accept`, `multiple` and `compact` settings.** Do not write four uploaders.
@@ -894,6 +898,26 @@ That 24-hour window is what makes immediate upload safe, and it is also why Undo
 **Failure is per file, never per batch.** Drop five with one rejected: four upload, the fifth keeps its tile with the reason and a Remove. The reason is specific — "Too large", "Not a supported type", "Upload failed" — because "Error" does not tell the user whether to retry or pick a different file.
 
 Also everywhere: navigating away mid-upload prompts with the count of uploads in flight (the sticky-save prompt alone does not mention files); a duplicate file on one order warns but does not block, as two photos of one item are legitimate; on dark every thumbnail keeps a `1px #463f37` border at 90% opacity, returning to full on hover and in the viewer; and **never a full-screen blocking overlay for an upload** — progress belongs on the tile and the rest of the form stays editable.
+
+**17c — thumbnails in a list row.** An order row's 34px thumbnail shows the **first item's photo**, and falls back to the category IdentityMark rather than a broken-image glyph. The card view's 116px strip shows up to three item photos then "+N". Both count *photos*; the paperclip badge after the reference line counts *attachments on the order*. They are different fields and can legitimately disagree — never derive one from the other.
+
+**17d — what every image position holds.** A closed list of the nine positions in the app, each with its size, what it shows, and what renders when there is nothing there:
+
+| Position | Size | Shows | Empty |
+| --- | --- | --- | --- |
+| Item photo | 44px | goods | IdentityMark in the category colour |
+| Item photo, editing | 80px | goods | dashed slot, "Add photo" |
+| Order thumbnail | 34px | goods | first item's photo, else the mark |
+| Card photo strip | 116px | goods | up to 3, then "+N" |
+| Attachment tile | 84px | paper | PDF tag bottom-left |
+| Receipt preview | fluid | paper | page 1, zoomable |
+| Page thumbnail | 72px | paper | one per PDF page |
+| Account avatar | 32 / 56px | person | initials |
+| Vendor mark | 26px | — | initials, always |
+
+Three things this settles. **Goods and paper are different fields**: item photo and card strip show what was bought, attachment tile and receipt preview show the receipt — they share neither a picker nor a viewer. **Every fallback is an IdentityMark**, never a broken-image glyph and never an empty box, so a hatched block in a mockup always resolves to something. And **a vendor never has a photo** — always initials, no logo fetching.
+
+An image position that is not on this list should not exist.
 
 ---
 
@@ -1145,7 +1169,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 | `14-input-types.png` | 14a–14f |
 | `15-layout-rules.png` | 15a–15c |
 | `16-actions-inventory.png` | 16a–16f |
-| `17-images-and-files.png` | 17a, 17b |
+| `17-images-and-files.png` | 17a–17d |
 | `18-responsive-reference.png` | 18a, 18b |
 | `19-icon-legend.png` | 19a, 19b |
 | `20-auth-and-first-run.png` | 20a–20e |
@@ -1182,7 +1206,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Responsive reference.dc.html` | 18a, 18b |
 | `Icon legend.dc.html` | 19a, 19b |
 | `Actions inventory.dc.html` | 16a–16g |
-| `Images and files.dc.html` | 17a, 17b |
+| `Images and files.dc.html` | 17a–17d |
 | `support.js` | Preview runtime for the files above — not part of the product |
 | `screenshots/` | Full-page capture of each file (see above) |
 
