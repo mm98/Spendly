@@ -33,6 +33,7 @@
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One box, everywhere.</b> Every text-entry and select control is <b>1px solid #dedcd4</b>, radius <b>9px</b>, padding <b>10px 12px</b>, text <b>14px</b> — landing at <b>42px</b> tall. Controls that aren't text, like the stepper, get that height explicitly rather than sized by content, so a row of mixed controls needs no alignment work.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Focus is one treatment</b> — border <b>#1d4d33</b> plus a 3px <b>rgba(29,77,51,0.12)</b> ring, on every focusable control including toggles, checkboxes and drop zones.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Labels always visible</b> — 12px/600 above the control. No floating labels, no placeholder-as-label: both lose the label when the user is typing and needs it.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Which side an icon sits on is a rule, not a choice.</b> <b>Left</b> says what the field holds — the search glyph, a currency prefix, a category's IdentityMark. <b>Right</b> says what clicking does — the combobox chevron, and the calendar that opens a date picker. A date field therefore carries its calendar on the right, in the same place as the chevron, because it does the same kind of thing.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Validation on blur once touched, and on submit.</b> Never per keystroke. An error clears on the next valid blur, not the first character typed.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Touch</b> — 42px is under the 44px minimum, so on mobile vertical padding goes to <b>12px</b> and every control's row carries 44px of hit area.</div>
     </div>
@@ -1065,46 +1066,44 @@
     <div style="width: 400px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
       <div style="display: flex; align-items: baseline; gap: 9px">
         <div style="font-size: 15px; font-weight: 600">Custom date range</div>
-        <div style="font-size: 11px; color: #8b8a82">2a facet rail</div>
+        <div style="font-size: 11px; color: #8b8a82">2d facet rail</div>
       </div>
-      <div style="display: flex; flex-wrap: wrap; gap: 6px">
-        <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">30 days</div>
-        <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">This year</div>
-        <div style="border: 1px solid #1d4d33; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600">Custom…</div>
-      </div>
-      <div style="border: 1px solid #e6e4dc; border-radius: 12px; box-shadow: 0 6px 16px rgba(27, 26, 23, 0.08); padding: 14px; display: flex; flex-direction: column; gap: 12px">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
-          <div style="display: flex; flex-direction: column; gap: 5px">
-            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">From</div>
-            <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 9px; padding: 9px 11px; font-size: 13px; box-sizing: border-box; height: 40px; display: flex; align-items: center">01/03/2026</div>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 5px">
-            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">To</div>
-            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 9px 11px; font-size: 13px; box-sizing: border-box; height: 40px; display: flex; align-items: center; color: #8b8a82">dd/mm/yyyy</div>
-          </div>
-        </div>
+      <div style="border: 1px solid #e6e4dc; border-radius: 10px; padding: 13px; display: flex; flex-direction: column; gap: 11px; background: #fcfbf9">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DATE</div>
         <div style="display: flex; flex-wrap: wrap; gap: 6px">
-          <div style="background: #f7f6f2; border-radius: 999px; padding: 5px 10px; font-size: 11px; color: #3d3c36">This month</div>
-          <div style="background: #f7f6f2; border-radius: 999px; padding: 5px 10px; font-size: 11px; color: #3d3c36">Last month</div>
-          <div style="background: #f7f6f2; border-radius: 999px; padding: 5px 10px; font-size: 11px; color: #3d3c36">Last quarter</div>
-          <div style="background: #f7f6f2; border-radius: 999px; padding: 5px 10px; font-size: 11px; color: #3d3c36">2025</div>
+          <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">30 days</div>
+          <div style="border: 1px solid #dedcd4; color: #57564f; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 400">This year</div>
+          <div style="background: #1d4d33; color: #fff; border: 1px solid #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600">Custom…</div>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px; border-top: 1px solid #f0efe9; padding-top: 11px">
-          <div style="font-size: 11px; color: #8b8a82">Leave one side empty for open-ended</div>
-          <div style="flex: 1"></div>
-          <div style="font-size: 12px; font-weight: 600; color: #57564f; padding: 7px 10px">Cancel</div>
-          <div style="font-size: 12px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 8px; padding: 8px 14px">Apply</div>
+        <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 11px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px; background: #fff">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 11px; font-weight: 600; color: #3d3c36">From</div>
+            <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 9px; box-sizing: border-box; height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 8px">
+              <span style="font-size: 13px; color: #1b1a17">01/03/2026</span>
+              <div style="flex: 1"></div>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 11px; font-weight: 600; color: #3d3c36">To</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 8px">
+              <span style="font-size: 13px; color: #b3b1a9">Today</span>
+              <div style="flex: 1"></div>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#c3c1b8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: #8b8a82; line-height: 1.45">Leave To empty to include everything up to today.</div>
         </div>
       </div>
       <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
         <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
-          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A popover anchored to the chip</b>, 300px wide, radius 12px, shadow <b>0 6px 16px rgba(27,26,23,0.08)</b>. It pushes nothing; the facet list below it is covered, not displaced.</div>
-          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Two DateFields, not a calendar grid.</b> The typing rules from 14a apply — <b>12/8</b>, <b>12-08-26</b> and <b>12 aug</b> all parse. A picker is available from each field; the popover does not embed one, because two months side by side does not fit 300px.</div>
-          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Either side may be left empty.</b> From alone means "since", To alone means "up to". This is why it is not a single range picker — an open-ended range is the common case and most pickers cannot express it.</div>
-          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Apply is explicit.</b> The filter does not run on each keystroke; a half-typed year would empty the list. Esc cancels, Enter in either field applies if the range is valid.</div>
-          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">On apply the chip becomes the range</b> — "1 Mar – 20 Aug 2026" — and takes the selected state. "Custom…" returns as an unselected chip beside it, so a second custom range does not require clearing the first.</div>
-          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Validation is inline and blocks Apply:</b> To before From, either date in the future, an unparseable string. The message replaces the hint line rather than adding a row.</div>
-          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Mobile: a sheet, not a popover</b>, with the two fields stacked full width and Apply pinned at the bottom.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Inline in the rail, not a popover.</b> The fields appear under the presets and push the facet groups below them down. A floating panel would cover the list the range is filtering, which is the one thing the user is watching. Full behaviour is specified in <b>2d</b> — this card is the control, that screen is the rule.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One facet, four settings.</b> The presets are pill chips, and the range is the same facet: choosing a preset clears the range and closes the fields; opening <b>Custom…</b> deselects the other presets. Never a preset and a range at once.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">No Apply button.</b> It filters on the first valid date, like every other facet. From alone means "from that date to today" — which is why To carries <b>Today</b> as its placeholder rather than refusing to filter.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Two DateFields, each with its calendar affordance.</b> Not an embedded calendar grid — The typing rules from 14a apply — <b>12/8</b>, <b>12-08-26</b> and <b>12 aug</b> all parse. Each field offers a picker; the group does not embed one.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">An invalid range holds the last valid results.</b> To before From shows the error inline and the list does not recompute — dropping to zero mid-edit reads as "no orders exist".</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The popover mode belongs to single dates.</b> Same DateField with <b>range={false}</b>, anchored to its own field — the order date on the edit screen. Inline is the range mode; anchored is the single mode.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Mobile:</b> the whole facet rail is already a sheet, so the range is inline within it. The fields stack full width.</div>
         </div>
       </sc-if>
     </div>
