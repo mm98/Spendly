@@ -1500,7 +1500,7 @@
           <div style="display: flex; align-items: center">
             <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">VIEWS</div>
             <div style="flex: 1"></div>
-            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Save current</div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Edit</div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 4px">
           <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
@@ -1566,12 +1566,12 @@
       </div>
 
     <div style="display: flex; flex-direction: column; gap: 10px">
-      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">4 — THE VIEW'S OWN MENU</div>
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">4 — EDITING: RENAME, DELETE, REORDER</div>
       <div style="width: 260px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; position: relative">
           <div style="display: flex; align-items: center">
             <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">VIEWS</div>
             <div style="flex: 1"></div>
-            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Save current</div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Edit</div>
           </div>
         <div style="display: flex; flex-direction: column; gap: 4px">
           <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer" style-hover="background: #f0efe9">
@@ -1615,6 +1615,8 @@
 
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The card has two modes, and one slot.</b> At rest it is read-only — names, icons, counts, no handles — because opening it is nearly always to switch view, not reorganise. The header slot holds <b>Edit</b>; when the current filters differ from the active view it holds <b>Save current</b> instead, since saving concerns the state you are in now and outranks reorganising. In edit mode it holds <b>Done</b>. Never two of them at once. <a href="Navigation shell.dc.html#9e">9e</a> draws both modes.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Handles and the per-row menu exist only in edit mode.</b> Reordering still saves on drop — Done leaves the mode, it is not a save button. <b>All orders</b> renders as locked rather than disappearing, so the list does not reflow when the mode changes.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every default view must be reproducible from the facets.</b> The two that ship with a new account are ordinary saved views, not built-in navigation: <b>Awaiting delivery</b> is Status = Ordered, <b>Missing receipt</b> is Receipt = Missing. If a default cannot be rebuilt by a user working the rail, it is a hardcoded list pretending to be a view — and a user who deletes it has no way to recreate it.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A saved view lands at position 2</b> — directly under All orders, at the top of the saved list, in both the rail and the sidebar. Appending to the end would drop it into the sidebar's overflow on any account that already has four views, so saving would appear to do nothing. It stays where it lands until dragged; nothing re-sorts on its own. <a href="Navigation shell.dc.html#9e">9e</a> draws the result in both surfaces.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A view stores the URL, not a result set.</b> Facets, search text, sort and view mode — the same state the URL already carries, which is why a view is also just a link. Selecting one replaces the URL; nothing is cached and the counts are live.</div>
