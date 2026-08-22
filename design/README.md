@@ -1022,7 +1022,9 @@ Three needed a product answer and are drawn as proposals in 16c: **See theirs** 
 
 ---
 
-**16h — reordering by drag.** Two lists reorder — item lines on the order edit screen, and statuses in Settings — using **one component**. A second implementation is where the keyboard path gets dropped.
+**16h — reordering by drag.** User-ordered lists reorder — item lines on the order edit screen, statuses in Settings, and saved views in the facet rail (edit mode only) — using **one component**. A second implementation is where the keyboard path gets dropped.
+
+**Drag introduces no new colours.** Handle `#c3c1b8`, handle hover `#57564f`, row hover `#f0efe9`, picked-up row `#e7efe8` (the selected-row tint), insertion line `#1d4d33`, lift shadow `0 4px 14px rgba(27,26,23,0.08)` (the raised-card shadow). If a drag state seems to want a colour of its own, it is being made to carry meaning that belongs to the insertion line or the shadow.
 
 The handle is **always visible** at `#c3c1b8`, never hover-revealed: an affordance that only appears under the cursor is invisible on touch. Hover darkens it to `#57564f` with the standard `#f0efe9` row hover and `cursor: grab`. **Only the handle initiates a drag** — dragging from anywhere else would prevent text selection and fight the row click (16f) — but the whole row is a valid drop target, and a **4px threshold** stops an imprecise click registering as a zero-distance drag.
 

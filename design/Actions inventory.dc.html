@@ -1005,7 +1005,7 @@
     <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="16h">16h</span>
     <span style="font-size: 20px; font-weight: 600">Reordering by drag</span>
   </div>
-  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Two lists reorder: item lines on the order edit screen, and statuses in Settings. They use one component and behave identically. Drag is the fast path; the keyboard path beside it is not optional, because drag is unusable without a pointer and awkward on touch inside a scrolling list.</div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Wherever a list is ordered by the user rather than sorted, it uses this component and behaves identically — item lines, statuses, saved views in edit mode (<a href="Order list.dc.html#2g">2g</a>), and anything added later. Drag is the fast path; the keyboard path beside it is not optional, because drag is unusable without a pointer and awkward on touch inside a scrolling list.</div>
 
   <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
 
@@ -1119,7 +1119,7 @@
           <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">1.240,00</div>
         </div>
       </div>
-      <div style="font-size: 12px; color: #57564f; line-height: 1.55">The dragged row lifts out — white, <b>0 4px 14px rgba(27,26,23,0.08)</b>, a <b>0.6°</b> tilt, following the pointer. A <b>2px #1d4d33</b> line marks where it lands, and the rows below shift down by its height over <b>150ms</b>. The row it left behind is <b>removed, not greyed</b>: the list you see is the list you will get.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">The dragged row lifts out — white, carrying the documented <b>raised-card shadow</b> <b>0 4px 14px rgba(27,26,23,0.08)</b> (not a shadow of its own), a <b>0.6°</b> tilt, following the pointer. A <b>2px #1d4d33</b> line marks where it lands, and the rows below shift down by its height over <b>150ms</b>. The row it left behind is <b>removed, not greyed</b>: the list you see is the list you will get.</div>
     </div>
 
     <div style="width: 430px; display: flex; flex-direction: column; gap: 10px">
@@ -1224,7 +1224,8 @@
 
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
-    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One component, two lists.</b> Item lines and statuses differ only in what a row renders and when the change is saved. A second drag implementation is where the keyboard path gets dropped.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every value here is an existing token.</b> Handle <b>#c3c1b8</b>, handle hover <b>#57564f</b>, row hover <b>#f0efe9</b>, picked-up row <b>#e7efe8</b> (the selected-row tint), insertion line <b>#1d4d33</b>, lift shadow <b>0 4px 14px rgba(27,26,23,0.08)</b> (the raised-card shadow). Nothing about dragging needs a colour of its own — if a drag state seems to want one, the state is being made to carry meaning that belongs to the insertion line or the shadow.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One component, however many lists.</b> A host differs only in what a row renders and when the change commits: inside a form the reorder marks it dirty and waits for that form's save; in a card or panel that owns its own save it commits on drop. A second drag implementation is where the keyboard path gets dropped. A second drag implementation is where the keyboard path gets dropped.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Only the handle initiates.</b> Dragging from anywhere else in the row would make text selection impossible and would fight the click that opens the line (16f). The whole row is still a valid drop target.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A 4px threshold before a drag begins.</b> Without it, a slightly imprecise click on the handle registers as a zero-distance drag and the row appears to jump.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Move the row, do not clone it.</b> Rendering a ghost in the old position alongside the lifted row shows the list in a state it will never be in, and the insertion line then has two things to disambiguate.</div>
