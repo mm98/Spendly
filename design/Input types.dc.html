@@ -374,6 +374,58 @@
     </div>
 
     <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
+      <div style="display: flex; align-items: baseline; gap: 9px">
+        <div style="font-size: 15px; font-weight: 600">Radio</div>
+        <div style="font-size: 11px; color: #8b8a82">2a bulk status · 2d date presets</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px">
+          <div style="width: 16px; height: 16px; box-sizing: border-box; flex: none; border-radius: 50%; border: 1px solid #d6d4ca; background: #fff"></div>
+          <div style="font-size: 13px">Ordered</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #8b8a82">1 of 2 today</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; background: #eef1ee">
+          <div style="width: 16px; height: 16px; box-sizing: border-box; flex: none; border-radius: 50%; border: 5px solid #1d4d33; background: #fff"></div>
+          <div style="font-size: 13px; font-weight: 600; color: #1d4d33">Delivered</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #4b7a5e">1 of 2 today</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; background: #f0efe9">
+          <div style="width: 16px; height: 16px; box-sizing: border-box; flex: none; border-radius: 50%; border: 1px solid #d6d4ca; background: #fff"></div>
+          <div style="font-size: 13px">Returned</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #8b8a82">hover</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; opacity: 0.5">
+          <div style="width: 16px; height: 16px; box-sizing: border-box; flex: none; border-radius: 50%; border: 1px solid #d6d4ca; background: #f7f6f2"></div>
+          <div style="font-size: 13px">Cancelled</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #8b8a82">disabled</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px; background: #f7f6f2; border-radius: 9px; padding: 11px 12px">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px">
+          <div style="width: 16px; height: 16px; box-sizing: border-box; flex: none; border-radius: 50%; border: 1px solid #d6d4ca; background: #fff"></div>
+          <div style="font-size: 10px; color: #8b8a82">16px</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 5px">
+          <div style="width: 16px; height: 16px; box-sizing: border-box; flex: none; border-radius: 50%; border: 5px solid #1d4d33; background: #fff"></div>
+          <div style="font-size: 10px; color: #8b8a82">16px</div>
+        </div>
+        <div style="font-size: 11px; color: #57564f; line-height: 1.5">Both states are the same 16px box. The dot is drawn with border width, so without <b>box-sizing: border-box</b> the selected one measures 26px and every row shifts as the selection moves.</div>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+        <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Three options or more.</b> Two mutually exclusive choices are a Segmented. Radio earns its place when the options carry meta — a count, a date — or when the labels are too long to sit in one row.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">16px mark, <b>box-sizing: border-box</b>, <b>flex: none</b>.</b> Unselected is <b>1px #d6d4ca</b> on white; selected is <b>5px #1d4d33</b> on white, leaving a 6px well. Both measure 16px, and the mark never shrinks when the label wraps.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The whole row is the target</b> — 44px on touch — with the selected row on <b>#eef1ee</b> and its label at 600 <b>#1d4d33</b>. Hover is <b>#f0efe9</b>, so hover and selection stay distinguishable, the same separation the combobox keeps.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One tab stop for the group.</b> Arrow keys move between options and select as they go; Tab leaves. A group with nothing selected takes focus on its first option.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="width: 420px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 13px">
       <div style="font-size: 15px; font-weight: 600">Checkbox and toggle</div>
       <div style="display: flex; flex-direction: column; gap: 9px">
         <div style="display: flex; align-items: center; gap: 10px">
@@ -960,6 +1012,12 @@
     </div>
 
     <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600; font-size: 13px">Radio</div>
+      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">options</b> · <b style="color: #3d3c36">meta</b> slot per option · <b style="color: #3d3c36">rowTarget</b></div>
+      <div style="color: #8b8a82; line-height: 1.6">Bulk "set status" (2a) and the date presets (2d) — a single value from a set too long or too annotated for Segmented. meta is the right-aligned count beside each option. Not for two options: that is Segmented</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
       <div style="font-weight: 600; font-size: 13px">Toggle</div>
       <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">description</b></div>
       <div style="color: #8b8a82; line-height: 1.6">All it needs. No size, no colour, no loading state — a toggle that can be pending is not a toggle</div>
@@ -1034,7 +1092,7 @@
 
     <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
       <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHAT IS NOT A COMPONENT HERE</div>
-      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Radio.</b> Never used on its own — every either/or in this design is a Segmented or a Combobox. Don't build one until a screen needs it.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Radio group with two options.</b> Two mutually exclusive choices are a Segmented, always. Radio starts at three, and only when the options carry meta or wrap — otherwise Segmented still wins.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A standalone slider.</b> The one range control is the amount facet, and it is a RangeSlider paired with two AmountFields — see 14e. A slider alone is never enough, because a receipt total is usually typed.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Autocomplete, tag input, rich text, native select.</b> All are the Combobox, the Chip list, the multiline TextField, or nothing. Each would be a second implementation of something already here, and the second one is always the one that misses the keyboard support.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Form.</b> No form component. Screens compose the wrapper and the controls directly, because each screen's save behaviour differs — per card in Settings, one sticky bar on order edit, a staged dry run in import.</div>
@@ -1435,7 +1493,7 @@
         <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">API</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.6"><b style="color: #3d3c36">IdentityMark</b> — <b>kind</b> (person / vendor / category) · <b>name</b> · <b>size</b> (20 / 26 / 34 / 44 / 56) · <b>icon</b> and <b>colour</b> for category only</div>
         <div style="font-size: 12px; color: #57564f; line-height: 1.55">Initials and colour are derived inside the component from <b>name</b>, never passed in — that is what guarantees the same vendor looks the same in every list. Category is the exception: its icon and colour are stored on the record because the user chose them.</div>
-        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Listed in the 14d table as the seventeenth component.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55">Listed in the 14d table as the eighteenth component.</div>
       </div>
     </div>
   </div>
