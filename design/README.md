@@ -523,7 +523,7 @@ It anchors to the card, not the viewport, opening bottom-right above the footer 
 
 **Every overlay on a photo carries a shadow: `0 1px 4px rgba(27, 26, 23, 0.28)`.** The card checkbox in both states, and the paperclip badge. The photos are the user's own, so the lightness behind an overlay is never knowable — a white control vanishes on a pale product shot, and the filled green one vanishes on a dark photo. Same reasoning as 12a keeping a border on every thumbnail: a white scan with no edge is not a control, it is a gap.
 
-**The photo strip is one surface, not a row of boxes.** A single `#f7f6f2` band under `saturate(0.88)`, photos filling it edge to edge, separated only by a **1px gap** that lets the tint show through as a hairline — no padding, no per-photo cell, no border. Product photography is mostly shot on white, so the tint is what gives a pale photo an edge; dividing it into cells adds those edges back as furniture and turns a two-photo card into one image beside an empty panel that reads as a failed load.
+**Photos sit on the canvas, in full colour.** One `#eceae4` band, photos filling it edge to edge with a 1px gap letting the canvas show through as a hairline. No tint, no desaturation, no duotone — colour is what makes an order recognisable at a glance, and the canvas behind gives a white-background product shot an edge.
 
 **Photos in the card grid are a warm monochrome, not full colour.** `grayscale(1) sepia(0.42) saturate(1.15)` lands every photo around H 75–85 at low chroma — the same hue band the neutrals occupy (14c), so a strip of receipts sits inside the palette instead of importing whatever colours the products happened to be. Nine cards then differ by *composition* rather than by hue, which is what made the full-colour grid restless.
 
@@ -533,7 +533,7 @@ It anchors to the card, not the viewport, opening bottom-right above the footer 
 
 **Cells divide by the number of photos, never by three.** One photo fills the strip, two halve it, three third it. There is no such thing as an empty cell.
 
-**No photos means no strip.** The card starts at the vendor name. A 116px placeholder saying "no photos yet" spends the largest element on the card telling the user nothing, and makes the emptiest orders the heaviest things in the grid.
+**No photos still renders the band** — `#eceae4` with a centred image glyph in `#b3b1a9` and the label "No photos". Dropping it would make cards different heights in the grid, and an order with nothing photographed is a normal order, not a broken one.
 
 A **selected card** takes a `2px #1d4d33` border in place of its `1px #e6e4dc` hairline — the card's own edge carries the state, since the `#e7efe8` row tint would fight the photo strip. Apply it on the same box (2px border, 1px less padding) so nothing reflows.
 
