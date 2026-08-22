@@ -678,7 +678,7 @@ The panel is why these tables can shed columns at all: both screens are list-plu
 
 #### 5b — Categories
 
-List rows: a `26×26` icon tile (radius `8px`) filled with the category colour, glyph in white — or `#3d3c36` when the colour is light — then the name 14px/600, this month's spend, and its limit. The tile replaced a plain colour dot so a category is recognisable at a glance.
+List rows: a `34×34` icon tile (radius `9px`) filled with the category colour, glyph in white — or `#3d3c36` when the colour is light — then the name 14px/600, this month's spend, and its limit. The tile replaced a plain colour dot so a category is recognisable at a glance.
 
 Panel: the category form.
 - **Name.** Text field with the current icon tile inline at its left (22px, radius `7px`).
@@ -902,7 +902,7 @@ Specifics worth not rediscovering: an error state **keeps the value** (the field
 2. **Chroma falls as lightness rises.** The green ramp runs L 37.9 → 55.4 → 72.1 → 86.0 → 91.8 with C 0.069 → 0.069 → 0.052 → 0.025 → 0.011. Hold chroma flat while lightening and the pale end turns to mint.
 3. **Chroma is capped at C 0.12**, and that ceiling belongs to one colour — the amber pace marker at `#b58a2b`, which must read as a 2px hairline. Picker swatches stop at C 0.08.
 
-To add a swatch: pick a hue in an existing family or ≥40° from all four; set L in 69–86 and ≥5 L from any swatch on the same hue; derive chroma from that lightness (~0.08 at L 70, ~0.05 at L 80, ~0.025 at L 86); check it as a 26px icon tile with white and with dark ink (the glyph flips above L 75), as a 12px chart bar, and as a chip; and add the dark-theme pair in the same commit (+18 L, same chroma). Never open a free colour picker to users, and never interpolate in hex or HSL.
+To add a swatch: pick a hue in an existing family or ≥40° from all four; set L in 69–86 and ≥5 L from any swatch on the same hue; derive chroma from that lightness (~0.08 at L 70, ~0.05 at L 80, ~0.025 at L 86); check it as a 34px icon tile with white and with dark ink (the glyph flips above L 75), as a 12px chart bar, and as a chip; and add the dark-theme pair in the same commit (+18 L, same chroma). Never open a free colour picker to users, and never interpolate in hex or HSL.
 
 **14d — Component API.** Fourteen components with the options each needs and what drives them, so nothing is speculative: TextField, PasswordField, AmountField, Stepper, Combobox, SearchInput, Segmented, Radio, Checkbox, Toggle, DateField, FileDrop, SwatchPicker, Button, Chip.
 
@@ -1086,7 +1086,7 @@ Also everywhere: navigating away mid-upload prompts with the count of uploads in
 | Receipt preview | fluid | paper | page 1, zoomable |
 | Page thumbnail | 72px | paper | one per PDF page |
 | Account avatar | 32 / 56px | person | initials |
-| Vendor mark | 26px | — | initials, always |
+| Vendor mark | 34px | — | initials, always |
 
 Three things this settles. **Goods and paper are different fields**: item photo and card strip show what was bought, attachment tile and receipt preview show the receipt — they share neither a picker nor a viewer. **Every fallback is an IdentityMark**, never a broken-image glyph and never an empty box, so a hatched block in a mockup always resolves to something. And **a vendor never has a photo** — always initials, no logo fetching.
 
