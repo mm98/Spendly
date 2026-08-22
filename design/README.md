@@ -534,7 +534,7 @@ It anchors to the card, not the viewport, opening bottom-right above the footer 
 
 **Every overlay on a photo carries a shadow: `0 1px 4px rgba(27, 26, 23, 0.28)`.** The card checkbox in both states, and the paperclip badge. The photos are the user's own, so the lightness behind an overlay is never knowable — a white control vanishes on a pale product shot, and the filled green one vanishes on a dark photo. Same reasoning as 12a keeping a border on every thumbnail: a white scan with no edge is not a control, it is a gap.
 
-**Photos sit on the canvas, in full colour.** One `#eceae4` band, photos filling it edge to edge with a 1px gap letting the canvas show through as a hairline. No tint, no desaturation, no duotone — colour is what makes an order recognisable at a glance, and the canvas behind gives a white-background product shot an edge.
+**Photos sit on the canvas at `opacity: 0.5`.** One `#eceae4` band, photos filling it edge to edge with a 1px gap letting the canvas show through as a hairline. Full colour, no filter — the half opacity is what settles them, letting the canvas lift through so the strip sits behind the text rather than competing with it. **Cards only**: the 36px row thumbnail and the item photos in 1a/1b stay fully opaque, where a photo is being identified rather than glanced at.
 
 **Cells divide by the number of photos, never by three.** One photo fills the strip, two halve it, three third it. There is no such thing as an empty cell.
 
