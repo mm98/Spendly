@@ -1553,6 +1553,145 @@
     </div>
   </div>
 </section>
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="14g">14g</span>
+    <span style="font-size: 20px; font-weight: 600">Where an overlay opens, and what it announces</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every overlay in the app uses one positioner and one announcement contract: the combobox panel, the row and card menus, their submenus, the date picker, and the account menu. An overlay that opens off-screen is unusable, and one that opens silently is invisible — both are the positioner's job, not each screen's.</div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ROOM BELOW — OPENS DOWN</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; height: 300px; display: flex; flex-direction: column">
+        <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center; box-sizing: border-box; height: 42px">
+          Vendor<div style="flex: 1"></div>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"></path></svg>
+        </div>
+        <div style="height: 6px"></div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27,26,23,0.08); padding: 6px; display: flex; flex-direction: column; gap: 1px">
+          <div style="font-size: 10px; letter-spacing: 0.1em; color: #8b8a82; padding: 6px 9px 3px">RECENT</div>
+          <div style="background: #f0efe9; border-radius: 7px; padding: 8px 9px; font-size: 13px">Hay</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Indbo Møbler</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Muuto</div>
+        </div>
+        <div style="flex: 1"></div>
+        <div style="font-size: 11px; color: #8b8a82">Preferred side. 6px offset from the trigger.</div>
+      </div>
+    </div>
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">NO ROOM BELOW — FLIPS UP</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; height: 300px; display: flex; flex-direction: column">
+        <div style="flex: 1"></div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27,26,23,0.08); padding: 6px; display: flex; flex-direction: column; gap: 1px">
+          <div style="font-size: 10px; letter-spacing: 0.1em; color: #8b8a82; padding: 6px 9px 3px">RECENT</div>
+          <div style="background: #f0efe9; border-radius: 7px; padding: 8px 9px; font-size: 13px">Hay</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Indbo Møbler</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Muuto</div>
+        </div>
+        <div style="height: 6px"></div>
+        <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center; box-sizing: border-box; height: 42px">
+          Vendor<div style="flex: 1"></div>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Flips only when below has less room than above. The chevron follows the panel — it points at where the list is, not at a fixed direction.</div>
+    </div>
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">NEITHER SIDE FITS — CAPS AND SCROLLS</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; height: 300px; display: flex; flex-direction: column">
+        <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center; box-sizing: border-box; height: 42px">
+          Vendor<div style="flex: 1"></div>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"></path></svg>
+        </div>
+        <div style="height: 6px"></div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27,26,23,0.08); padding: 6px; display: flex; flex-direction: column; gap: 1px; flex: 1; min-height: 0; overflow: hidden; position: relative">
+          <div style="background: #f0efe9; border-radius: 7px; padding: 8px 9px; font-size: 13px">Hay</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Indbo Møbler</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Muuto</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Normann</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Vitra</div>
+          <div style="position: absolute; left: 6px; right: 6px; bottom: 0; height: 22px; background: linear-gradient(rgba(255,255,255,0), #fff)"></div>
+        </div>
+        <div style="height: 8px"></div>
+        <div style="width: 6px; height: 44px; border-radius: 3px; background: #dcdad2; align-self: flex-end"></div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Takes the larger side, caps at the space available less <b>8px</b>, scrolls internally with a fade at the overflowing edge. It never grows past the viewport and it never repositions while open.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">NEAR THE RIGHT EDGE — SHIFTS, NEVER FLIPS</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.6" r="1.3"></circle><circle cx="8" cy="8" r="1.3"></circle><circle cx="8" cy="12.4" r="1.3"></circle></svg>
+        </div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27,26,23,0.08); padding: 6px; width: 200px; display: flex; flex-direction: column; gap: 1px">
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Open order</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Duplicate</div>
+          <div style="padding: 8px 9px; font-size: 13px; color: #8a4a41">Delete order</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Horizontally the panel aligns to the trigger's near edge and <b>shifts</b> to stay inside, keeping <b>8px</b> clear. Flipping horizontally would move the menu across the row it belongs to.</div>
+    </div>
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SUBMENU — FOLLOWS ITS PARENT</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; justify-content: flex-end">
+        <div style="display: flex; align-items: flex-start; gap: 3px">
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27,26,23,0.08); padding: 6px; width: 150px; display: flex; flex-direction: column; gap: 1px">
+            <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Ordered</div>
+            <div style="background: #f0efe9; border-radius: 7px; padding: 8px 9px; font-size: 13px">Delivered</div>
+            <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Returned</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; box-shadow: 0 6px 16px rgba(27,26,23,0.08); padding: 6px; width: 172px; display: flex; flex-direction: column; gap: 1px">
+            <div style="display: flex; align-items: center; gap: 8px; background: #f0efe9; border-radius: 7px; padding: 8px 9px; font-size: 13px">
+              Set status<div style="flex: 1"></div>
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"></path></svg>
+            </div>
+            <div style="padding: 8px 9px; font-size: 13px; color: #3d3c36">Add category</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">A submenu opens on the side with room and its parent's chevron turns to match — pointing left here because the submenu is to the left. Its top aligns with its parent row, shifting up only if it would otherwise overflow.</div>
+    </div>
+
+    <div style="width: 400px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">BELOW 640px — A SHEET, NOT A PANEL</div>
+      <div style="background: #eceae4; border: 1px solid #dcdad2; border-radius: 14px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 236px">
+        <div style="flex: 1"></div>
+        <div style="background: #fff; border-radius: 14px 14px 0 0; box-shadow: 0 -8px 24px rgba(27,26,23,0.12); padding: 8px 10px 12px; display: flex; flex-direction: column; gap: 2px">
+          <div style="width: 34px; height: 4px; border-radius: 2px; background: #dcdad2; align-self: center; margin: 4px 0 8px"></div>
+          <div style="padding: 13px 10px; font-size: 15px; color: #3d3c36">Open order</div>
+          <div style="padding: 13px 10px; font-size: 15px; color: #3d3c36">Duplicate</div>
+          <div style="padding: 13px 10px; font-size: 15px; color: #8a4a41">Delete order</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Anchored positioning is abandoned entirely: a bottom sheet with a 34px grab handle, 46px rows, and the same items in the same order. A 200px popover next to a thumb-sized target, with a keyboard covering half the screen, cannot be made to work by flipping.</div>
+    </div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One positioner, every overlay.</b> Combobox panel, row and card menus, submenus, date picker, account menu. Six implementations of "open below the thing" is six places for an off-screen panel to appear, and the one that gets it wrong is always the one on the last row of a long list.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Decide once, at open.</b> Measure the trigger, measure the panel's natural height, compare against space above and below, then place it. Do not re-measure on scroll — a panel that drifts or re-flips while the user is reaching for an item is worse than one placed imperfectly. Scrolling the container closes the overlay instead.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Render at document level, not inside the row.</b> The list column is a scroll container with <b>overflow: auto</b> (9a), so a panel that is a DOM child of a row is clipped by it. Portal it out and position it with fixed coordinates.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Vertical flips, horizontal shifts.</b> Flipping sideways moves a menu away from the row it acts on and, in a table, over a different row's content. Shift and clamp instead, keeping 8px clear of the viewport.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The chevron reports the decision.</b> A trigger whose glyph always points down is lying half the time. On a combobox the chevron flips with the panel; on a submenu parent it points at the side the submenu opened on.</div>
+
+    <div style="height: 1px; background: #f0efe9; margin: 3px 0"></div>
+
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Announcement — combobox.</b> The trigger is <b>role="combobox"</b> with <b>aria-expanded</b>, <b>aria-controls</b> pointing at the panel, and <b>aria-activedescendant</b> naming the highlighted option. Focus <em>stays in the input</em>; the panel is <b>role="listbox"</b>, each group a <b>role="group"</b> with <b>aria-labelledby</b> on its header, each option <b>role="option"</b> with <b>aria-selected</b>. The filter result count goes to a polite live region — "6 vendors" — because a sighted user sees the list shrink and a screen-reader user is told nothing otherwise.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Announcement — menu.</b> The trigger is <b>aria-haspopup="menu"</b> with <b>aria-expanded</b>, and it needs an <b>aria-label</b> naming its subject, not its shape: <em>"Actions for order SPENDLY-447"</em>, never "More". Fourteen buttons all labelled "More" is a list a screen-reader user cannot navigate. The panel is <b>role="menu"</b>, items <b>role="menuitem"</b>, a submenu parent <b>aria-haspopup="menu"</b> and <b>aria-expanded</b> on itself. Unlike the combobox, focus <em>moves into</em> the menu — first item on Enter or ↓, last item on ↑.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Both:</b> <b>Esc</b> closes and returns focus to the trigger, always. Click outside closes without acting. The overlay is the topmost Esc target (9a), so an open panel inside a dialog takes Esc first. Nothing outside is <b>aria-hidden</b> — these are not modal, and a menu that hides the page from assistive tech while the page is still visible is lying about its own modality.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Reduced motion.</b> The panel appears without the 8px translate; opacity only. Nothing about placement changes.</div>
+  </div>
+</section>
+
 
 
 </x-dc>

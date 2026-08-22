@@ -519,7 +519,17 @@ It anchors to the card, not the viewport, opening bottom-right above the footer 
 
 **Every overlay on a photo carries a shadow: `0 1px 4px rgba(27, 26, 23, 0.28)`.** The card checkbox in both states, and the paperclip badge. The photos are the user's own, so the lightness behind an overlay is never knowable — a white control vanishes on a pale product shot, and the filled green one vanishes on a dark photo. Same reasoning as 12a keeping a border on every thumbnail: a white scan with no edge is not a control, it is a gap.
 
-**Photos sit on a tinted floor, not on the card.** Each cell of the strip is `#f7f6f2` with 10px padding and the image contained (not bled), cells separated by a 1px `#eceae4` gutter, the whole strip under `saturate(0.88)` per 17b. Product photography is mostly shot on white, so a bled image dissolves into the card and the strip reads as a hole. On the tint every photo has a visible edge whatever its own background, and an empty cell becomes a quiet panel rather than a gap — a one-photo card reads as balanced instead of lopsided.
+**The photo strip is one surface, not a row of boxes.** A single `#f7f6f2` band under `saturate(0.88)`, photos filling it edge to edge, separated only by a **1px gap** that lets the tint show through as a hairline — no padding, no per-photo cell, no border. Product photography is mostly shot on white, so the tint is what gives a pale photo an edge; dividing it into cells adds those edges back as furniture and turns a two-photo card into one image beside an empty panel that reads as a failed load.
+
+**Photos in the card grid are a warm monochrome, not full colour.** `grayscale(1) sepia(0.42) saturate(1.15)` lands every photo around H 75–85 at low chroma — the same hue band the neutrals occupy (14c), so a strip of receipts sits inside the palette instead of importing whatever colours the products happened to be. Nine cards then differ by *composition* rather than by hue, which is what made the full-colour grid restless.
+
+**It is a monochrome, not the amber token.** Amber means *informs, never blocks* and belongs to limits and warnings. A photo carries no state, so it must never use the amber surface or ink. The resemblance is that both sit in the same hue band, and that is the point: this treatment is *neutral* in this palette the way grayscale is neutral in a grey one.
+
+**Scope: the browsing grid only.** In the image viewer (12b), on an item photo, and in the receipt preview, photos are never filtered — full colour, no treatment. The cost of monochrome is real (a walnut chair and a black one become the same object) and is accepted only where the card already names the vendor, items and category, and the photo's job is *this is the order with the tall thing in it*.
+
+**Cells divide by the number of photos, never by three.** One photo fills the strip, two halve it, three third it. There is no such thing as an empty cell.
+
+**No photos means no strip.** The card starts at the vendor name. A 116px placeholder saying "no photos yet" spends the largest element on the card telling the user nothing, and makes the emptiest orders the heaviest things in the grid.
 
 A **selected card** takes a `2px #1d4d33` border in place of its `1px #e6e4dc` hairline — the card's own edge carries the state, since the `#e7efe8` row tint would fight the photo strip. Apply it on the same box (2px border, 1px less padding) so nothing reflows.
 
@@ -877,6 +887,18 @@ Five sizes — 20, 26, 34, 44, 56 — with radius 6/8/10/12/50% and type at roug
 **Where vendor marks go:** the vendors library, the command palette and vendor comboboxes, order cards, and the order detail rail. **Not** order list rows or mobile order rows — the vendor column is 200px and already first, fixed and left-aligned, so a 26px mark plus its gap takes a sixth of it to repeat the text beside it.
 
 ---
+
+**14g — where an overlay opens, and what it announces.** One positioner for every overlay: the combobox panel, row and card menus, submenus, the date picker, the account menu. Six implementations of "open below the thing" is six places for an off-screen panel, and the one that gets it wrong is always the last row of a long list.
+
+**Placement.** Prefer below, 6px offset. Flip above only when below has less room than above. If neither side fits, take the larger and cap at the available space less 8px, scrolling internally with a fade at the overflowing edge. **Vertical flips, horizontal shifts** — flipping sideways moves a menu away from the row it acts on and, in a table, over a different row's content; shift and clamp instead, keeping 8px clear.
+
+**Decide once, at open.** Measure trigger, measure the panel's natural height, place it. Never re-measure on scroll — a panel that drifts or re-flips while the user is reaching for an item is worse than one placed imperfectly. Scrolling the container closes it. **Render at document level**: the list column is a scroll container, so a panel that is a DOM child of a row gets clipped by it.
+
+**The chevron reports the decision** — it flips with a combobox panel, and on a submenu parent it points at the side the submenu opened on. A glyph that always points down is lying half the time.
+
+**Announcement.** Combobox: `role="combobox"` + `aria-expanded` + `aria-controls` + `aria-activedescendant`, focus **stays in the input**, panel `role="listbox"`, groups `role="group"` with `aria-labelledby`, options `role="option"` + `aria-selected`, and the filter result count in a polite live region. Menu: `aria-haspopup="menu"` + `aria-expanded`, and an `aria-label` naming the subject — *"Actions for order SPENDLY-447"*, never "More", since fourteen buttons labelled "More" is a list that cannot be navigated; focus **moves into** the menu, first item on Enter or ↓, last on ↑. Both: Esc closes and returns focus to the trigger, click outside closes without acting, and nothing outside is `aria-hidden` — these are not modal.
+
+**Below 640px, anchored positioning is abandoned** — a bottom sheet with a grab handle and 46px rows, same items in the same order. A 200px popover beside a thumb-sized target with a keyboard covering half the screen cannot be fixed by flipping.
 
 ### 15a / 15b — Layout rules
 File: `Layout rules.dc.html`
