@@ -31,6 +31,7 @@
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">THE ONE RULE BEHIND ALL OF IT</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One fluid column per layout. Everything else is a fixed pixel width.</b> The main column takes <b>1fr</b>; rails, navs and facet columns are fixed. Two fluid columns means neither has a predictable width, so nothing inside either can be sized with confidence — and the first long vendor name changes the whole page.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Gaps, not margins.</b> <b>24px</b> between columns, <b>14px</b> between stacked cards, <b>16px</b> in a card grid, <b>12px</b> between fields. Set on the container, never per child, so reordering and deleting stay safe.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">An overlay's inset is never a free number.</b> A control positioned over something — a checkbox on a card, a badge on a thumbnail, a PDF tag on an attachment tile — is inset by <b>the padding of whatever it must line up with</b>, not by whatever looks about right. A card's checkbox sits 16px in because the bulk bar above it has 16px padding, so the two checkboxes share an x. Pick the element it aligns against first, read its padding, use that number.</div>
   </div>
 </section>
 
