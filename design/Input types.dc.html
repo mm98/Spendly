@@ -517,7 +517,9 @@
         <div style="font-size: 13px; color: #57564f">Off</div>
       </div>
       <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-        <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The target is 44px, the square is 18px.</b> A checkbox is the smallest control in the set and almost always sits inside something else clickable — a list row that navigates, a facet row that filters. A 18px target means a near-miss does the <i>other</i> thing: on the order list it opens the order instead of selecting it, and on touch that is the common case, not the edge. The square stays 18px; the hit area is the <b>cell it lives in, stretched to the row's full height and padded out to 44px</b> (44px on touch), and that cell calls <b>stopPropagation</b> so a hit anywhere in it never reaches the row.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A labelled checkbox is not the problem; a bare one is.</b> Where the label belongs to the checkbox — facet rows, settings toggles, the options in a Set status popover — the label <i>is</i> the target, so the square, its text and its count all toggle and the real hit area is already the width of the row. The problem case is a checkbox whose neighbouring text belongs to something else: in a table row the vendor name opens the order, so the checkbox has no label of its own and the bare square is all there is. That is the one that needs a padded cell and <b>stopPropagation</b>. The test is not "table or facet" — it is <b>whether the text beside the checkbox does the same thing the checkbox does</b>.</div>
+<div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Checkbox filters, toggle switches behaviour.</b> A checkbox belongs to a set you are narrowing; a toggle turns one thing on. Never mix them in one group.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A toggle applies immediately and never has a Save.</b> If a setting needs a save, it is not a toggle.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Indeterminate is a real third state</b>, shown as a dash, used by "select all" over a partial selection. Clicking it selects all.</div>
@@ -541,6 +543,7 @@
       <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
         <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Chips are output, not input.</b> They mirror the facet rail so the active filter is readable without scanning it — removing a chip unchecks its facet.</div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A chip in a table cell needs the cell to centre it.</b> A chip is an inline-block, so a bare <b>&lt;span&gt;</b> in a grid cell sits on the text baseline — about 2px below the row's centre, which reads as a chip drifting downwards next to every text cell beside it. The cell must be <b>display: flex; align-items: center</b>; the row's own <b>align-items: center</b> centres the cell, not the inline content inside it. Same for status pills, and for any chip placed in a grid or flex cell rather than in running text.</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A range reads as a phrase</b> — "Over 5.000 kr.", not "amount_min: 5000".</div>
           <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">"Clear all" appears from two chips onward</b>, as a text button so it can't be mistaken for a filter.</div>
         </div>
@@ -1056,8 +1059,8 @@
 
     <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
       <div style="font-weight: 600; font-size: 13px">Checkbox</div>
-      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">indeterminate</b> · <b style="color: #3d3c36">count</b> slot · <b style="color: #3d3c36">rowTarget</b></div>
-      <div style="color: #8b8a82; line-height: 1.6">indeterminate is "select all" over a partial selection · count is the facet number · rowTarget makes the whole row the 44px hit area</div>
+      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">indeterminate</b> · <b style="color: #3d3c36">count</b> slot · <b style="color: #3d3c36">hitArea</b> (cell / row) · <b style="color: #3d3c36">stopPropagation</b></div>
+      <div style="color: #8b8a82; line-height: 1.6">indeterminate is "select all" over a partial selection · count is the facet number · <b>hitArea</b> is the difference between a table row (the checkbox cell, stopping propagation so a near-miss cannot open the order) and a facet row (the whole row toggles, since it does nothing else) — an 18px target is the single most common cause of the wrong action firing on touch</div>
     </div>
 
     <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
