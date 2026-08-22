@@ -33,7 +33,7 @@
   <div style="display: flex; flex-direction: column; gap: 14px">
     <div class="lab">SPENDLY · DESIGN MOCKUPS</div>
     <h1 style="margin: 0; font-size: 36px; font-weight: 600; line-height: 1.15; max-width: 660px; text-wrap: pretty">Order tracking for personal receipts, from capture to what it all added up to.</h1>
-    <p style="margin: 0; font-size: 15px; color: #57564f; max-width: 640px; line-height: 1.55; text-wrap: pretty">Eighteen files, fifty-two screens. It started with one problem — the order header took too much room above the items — and grew into the flows around it: the list, creating from a scanned receipt, statistics, vendors and categories, the states in between, and the phone.</p>
+    <p style="margin: 0; font-size: 15px; color: #57564f; max-width: 640px; line-height: 1.55; text-wrap: pretty">Nineteen files, fifty-four screens. It started with one problem — the order header took too much room above the items — and grew into the flows around it: the list, creating from a scanned receipt, statistics, vendors and categories, the states in between, and the phone.</p>
     <p style="margin: 4px 0 0; font-size: 13px; color: #8b8a82">Every screen carries a visible id badge, unique across the whole set, so it can be pointed at in review.</p>
   </div>
 
@@ -64,6 +64,8 @@ finished step 3.
    <i>Input types.dc.html</i> (14a–14d) — the control set, the four button levels,
    the palette rule, and the component API each control needs.
    <i>Layout rules.dc.html</i> (15a, 15b) — column shapes and field widths.
+   <i>Icon legend.dc.html</i> (19a, 19b) — what every action icon means, its
+   tooltip and its aria-label. An icon-only button needs both.
    <i>Typography.dc.html</i> (13a) — the scale, rendered at size.
 
 <b>3. Ask me the open questions</b>
@@ -93,6 +95,13 @@ finished step 3.
    specification. Lift them, then factor the repeated parts into the
    components named in 14d — same output, better structure. Do not
    redraw a screen from a description of it.
+   <b>When two files disagree, the .dc.html markup wins.</b> The mockup is
+   the design; README.md is prose describing it and can drift behind an
+   edit. Tell me what you found so the prose gets fixed — but build the
+   markup, and do not wait for an answer. This resolves every conflict
+   except one: <i>Responsive reference.dc.html</i> outranks all other files on
+   narrow-width behaviour, because it is the only one with working
+   responsive CSS.
    <b>Where the design states how something works, follow it.</b> Do not
    propose an alternative, ask whether it is intended, or flag it as a
    possible improvement. The reasoning is already recorded in
@@ -411,7 +420,7 @@ Start with step 1 and tell me what you've read before moving on.</div>
       </div>
     </a>
     <a class="card" href="Order list.dc.html">
-      <div class="ids"><span>2a</span><span>2b</span><span>2c</span></div>
+      <div class="ids"><span>2a</span><span>2b</span><span>2c</span><span>2d</span></div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Order list</div>
         <div class="d">Rows with a facet rail, search and filter chips; the cards view; and the bulk actions for setting status or adding a category.</div>
@@ -486,6 +495,13 @@ Start with step 1 and tell me what you've read before moving on.</div>
       <div style="display: flex; flex-direction: column; gap: 4px">
         <div class="t">Actions inventory</div>
         <div class="d">Every control in the set, what it does and what the user sees afterwards — plus the ten that had no described behaviour, resolved and the six that needed layout drawn.</div>
+      </div>
+    </a>
+    <a class="card" href="Icon legend.dc.html">
+      <div class="ids"><span>19a</span><span>19b</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <div class="t">Icon legend</div>
+        <div class="d">Every icon that carries an action — what it does, where it appears, its tooltip and its accessible name — plus the rules for drawing and labelling them.</div>
       </div>
     </a>
     <a class="card" href="Responsive reference.dc.html">

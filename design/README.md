@@ -14,9 +14,11 @@ Target repo: `mm98/Spendly`, branch `main`. The mockups live at `design/` there.
 
 ## The contract
 
-**This design set is the only source of truth for the UI.** Where it specifies something — a value, a state, a piece of copy, an ordering, a behaviour — implement exactly that. No approximating, rounding, improving or substituting. If two files disagree, ask; don't pick one.
+**This design set is the only source of truth for the UI.** Where it specifies something — a value, a state, a piece of copy, an ordering, a behaviour — implement exactly that. No approximating, rounding, improving or substituting. If two files disagree, the markup wins — see the precedence rule below.
 
 **Reproduce the markup, as components.** The structure, element order, nesting, spacing values, colours and text in each screen are the specification, not a suggestion of one. Lift them, then factor the repeated parts into the components named in 14d — same output, better structure. Don't redraw a screen from a written description of it; the description exists to explain the markup, not to replace it.
+
+**When two files disagree, the `.dc.html` markup wins.** The mockup is the design; this document is prose describing it and can drift behind an edit. Report what you found so the prose gets fixed — but build the markup, and don't block on an answer. Two exceptions. `Responsive reference.dc.html` outranks every file on layout that varies with width — it is the only one carrying working responsive CSS, and a static canvas cannot express reflow. And where a file states a rule in prose beside its own markup, the rule governs: the 2c mockup renders four cards across because four fit that canvas, not because the count is four.
 
 **Where the design states how something works, follow it.** Don't propose an alternative, ask whether it was intended, or flag it as a possible improvement. The reasoning is already recorded in `DECISIONS.md`, including what was rejected and why — read the entry before assuming a rule is an oversight. Rules that look like mistakes and are not: a limit never blocks a save, reorder needs both drag and buttons, thirds appear exactly once, destructive buttons exist only inside dialogs, the top bar takes no page actions.
 
@@ -398,11 +400,31 @@ File: `Order list.dc.html` · Code: `pages/Orders.jsx`, `pages/AllOrders.jsx`, `
 
 The fixed vendor column is a deliberate correction: an earlier version placed the vendor inside a variable-height stack with the item preview, so it landed at a different vertical position on every row. Vendor is first, one line, truncated with ellipsis, and always at the same x and y within its row. Any item preview text sits on a second line under it and never displaces it.
 
-**Cards view (2c):** grid, `minmax(280px, 1fr)`, `16px` gap. Card radius `12px`, `1px solid #e6e4dc`, `16px` padding: vendor 15px/600 top-left, status pill top-right, date and item count 12px `#8b8a82`, then up to three item thumbnails at 44px, then the amount 20px/700 and the category chip on the footer line.
+**Cards view (2c):** `repeat(auto-fill, minmax(280px, 1fr))` at a `16px` gap, per 18a — the mockup canvas happens to fit four across, which is a rendering of that rule, not a fixed column count. Card radius `12px`, `1px solid #e6e4dc`, `overflow: hidden`, a column flex.
 
-**Bulk actions (in 2a):** selecting rows reveals a bar above the list — "4 selected", then Set status and Add category as buttons, then Clear. Both open a small popover anchored to the button: Set status is a single-select list of the five statuses (the Combobox in pick-only mode — there is no Radio component; see 14d); Add category is a searchable list with the category icon tile and name, multi-select, and a "Create category" row at the bottom. Applying shows the count in a toast with Undo.
+**Custom date range (2d).** Choosing Custom opens a From/To pair **inside the Date group in the facet rail**, below the presets, not in a popover — a calendar floating over the list hides the results the range is changing. Fields are `40px`, open the platform date picker on click, and accept typing in the Settings date format.
 
-**Pagination:** page size select and prev/next at the bottom; the total reflects the filter.
+The presets and the range are **one facet with four settings**: picking a preset clears the range, setting a range deselects the presets, and they cannot both be active. There is **no Apply** — it filters as soon as a valid date is entered, matching every other facet. From alone means "from that date to today", which is why To shows `Today` as its placeholder rather than blocking. With a range set, the group shows a `92 days · 41 orders` summary line and a Clear.
+
+**An invalid range does not clear the list.** To-before-From turns the field red (`#8a4a41` on `#fdf6f5`) with an inline message, and the results hold at the last valid range — recomputing to zero while someone is mid-edit reads as "no orders exist". The applied range appears above the list as a single chip (`01/06/2026 – 31/08/2026`), and both dates are URL-encoded so it is linkable and survives reload.
+
+**The photo strip is the order's own item photos** — not its attachments. A fixed `116px` band across the top of the card, holding the first three item lines that carry a photo, in item order, as equal flex fractions with a `2px` gap; `object-fit: cover`, centred, never letterboxed. Item lines without a photo are skipped. A `+N` pill (bottom right, `rgba(27,26,23,0.72)`, 11px/600) counts the **remaining photos, not the remaining items**, so seven items with five photos shows three and `+2`; under four photos there is no pill.
+
+Fewer photos means wider ones — one photo fills the strip, two split it. No empty slots and no letterboxing to preserve three columns.
+
+**With no item photos the strip keeps its height** and holds a quiet placeholder — a picture glyph and "No photos yet" in `#8b8a82` on `#f2f1eb` — so the grid stays even. It is deliberately **not** a call to action: photos are added on the item line (17a), and offering an upload from a list card would put a file picker where the user is scanning. The receipt PDF and any other order attachment never appear in the strip; a scan of a receipt is not a picture of what was bought, and a grid of grey paper is useless to browse.
+
+Overlaid on the strip: the selection checkbox top-left, and the attachment-count button top-right when the order has attachments. Both sit on white chips so they survive any photo behind them.
+
+The card leads with a **116px photo strip** across the full card width — up to three item photos side by side at `gap: 2px`, each `flex: 1`. Overlaid on it: a "+N" pill bottom-right (`rgba(27,26,23,0.72)`, white 11px/600, radius 999px, `3px 10px`) when more items exist, the selection checkbox top-left (18px, `1px solid #d6d4ca`, white fill), and a 22px white attachment button top-right. Body below the strip carries vendor, reference, status pill, category tags and the amount.
+
+This is the one place item photos are shown at size, which is why the strip is the card rather than a row of small thumbnails.
+
+**Bulk actions (in 2a):** selecting rows reveals a bar above the list — a checkbox in indeterminate state, "N selected" in 13px/600 `#1d4d33`, then four buttons right-aligned with an `8px` gap: **Set status**, **Add category**, **Export**, and **Delete**. All are 12px/600 on white at radius 8px, padding `6px 12px`. Set status carries the accent border `#1d4d33`; Add category and Export take `#cbd8cd`; Delete takes `#e2d3d1` with `#8a4a41` text. Both open a small popover anchored to the button: Set status is a single-select list of the five statuses (the Combobox in pick-only mode — there is no Radio component; see 14d); Add category is a searchable list with the category icon tile and name, multi-select, and a "Create category" row at the bottom. Applying shows the count in a toast with Undo. Delete opens a confirm dialog naming the count; Export downloads the selection.
+
+**Load more, not pagination.** The list ends with a range line and a single button — "Showing 6 of 18" at 13px `#6b6a63`, then LOAD MORE right-aligned (`1px solid #dedcd4`, radius 9px, padding `8px 16px`, 12px/600, `letter-spacing: 0.06em`, `#1d4d33`). Each press appends the next page in place; scroll position does not move and the range line updates. The count reflects the filter, never the account.
+
+The Pager component in 14e exists for a page-size-and-arrows treatment and is **not used on this screen** — build it only if a screen calls for it.
 
 ---
 
@@ -660,7 +682,7 @@ File: `Input types.dc.html` · Code: `components/` (the shared control set)
 
 **14a — Controls and their states.** Text field, amount field, quantity stepper, search, multi-line, the combobox in both modes, segmented, checkbox, toggle, filter chips, drop zone, date, colour and icon pickers. Each shown in every state it has (empty, filled, focus, error, read-only, disabled, loading) with the rule that made it that shape.
 
-Cross-cutting geometry: every text-entry and select control is `1px solid #dedcd4`, radius `9px`, padding `10px 12px`, 14px text — **42px tall, the canonical control height**. Controls that are not text (the stepper, combobox triggers) take `box-sizing: border-box; height: 42px` explicitly rather than sizing to content. Focus is one treatment everywhere: border `#1d4d33` plus a 3px `rgba(29,77,51,0.12)` ring. Labels are always visible at 12px/600 above the control — no floating labels, no placeholder-as-label. Validation fires on blur once touched and on submit, never per keystroke.
+Cross-cutting geometry: every text-entry and select control is `1px solid #dedcd4`, radius `9px`, padding `10px 12px`, 14px text — **42px tall, the canonical control height**. Controls that are not text (the stepper, combobox triggers, segmented controls, solid buttons) take `box-sizing: border-box; height: 42px` explicitly rather than sizing to content, and centre their own content. **Toolbar rows are where this drifts:** left to padding, a segmented control lands at 37px, a solid button at 37px and a bordered field at 42px — three heights in one row, visible only once they are side by side. Focus is one treatment everywhere: border `#1d4d33` plus a 3px `rgba(29,77,51,0.12)` ring. Labels are always visible at 12px/600 above the control — no floating labels, no placeholder-as-label. Validation fires on blur once touched and on submit, never per keystroke.
 
 Specifics worth not rediscovering: an error state **keeps the value** (the field being corrected is the one that failed); read-only and disabled look deliberately different (read-only keeps full contrast, disabled drops it and its copy says what would enable it); amount fields accept `4190`, `4.190,00`, `4190.00` and `4 190` and reformat on blur, and never use `type="number"`; the stepper's minus disables at 1 rather than deleting the line.
 
@@ -720,7 +742,7 @@ Gaps, not margins, set on the container: `24px` between columns, `14px` between 
 1. **Main + right rail** (1a, 1d, 10a). Rail widths are **320 / 360 / 400** and nothing between — 320 for a read-only summary, 360 for a form rail, 400 for a panel that is itself a form. The rail stays shorter than the main column.
 2. **Left rail + main** (2a, 11a). Facets `260px`, page-level nav `208px`. A left rail is always narrower than a right rail because it holds controls, not content. Below 1280px it becomes a drawer rather than compressing.
 3. **List + panel** (5a, 5b). The panel never collapses — with no selection it shows the roll-up, so the column width is constant whatever is selected. Below 900px they become separate views with a back action, never stacked.
-4. **Card grid** (2c, 4a). Order cards `repeat(auto-fill, minmax(280px, 1fr))`; Statistics on a 12-column grid where every card spans a whole number of columns so rows always close.
+4. **Card grid** (2c, 4a). Order cards `repeat(auto-fill, minmax(280px, 1fr))` at a 16px gap; Statistics on a 12-column grid where every card spans a whole number of columns so rows always close.
 
 **Fields — full width or a fraction.** The test is the content, not the importance: full width when the content has no predictable length (vendor, item name, reference, notes, search, drop zones); halves when two *bounded* values are read together (date + status, currency + format); **thirds exactly once** — quantity × unit price = line total, because the row is an equation; never four in a row (each cell falls under 80px in a 360px rail). A control with an intrinsic width takes `flex: none` at its own size and the field beside it takes the remainder with `min-width: 0`.
 
@@ -742,7 +764,7 @@ Also below 640px: buttons in a sheet go full width and stacked (the only correct
 
 **The test:** does the number describe a thing, or the space around it? A rail is 360px because a form needs 360px — that travels. A card is 430px in these files because two of them plus a gap fit the page being drawn on — that does not. Put differently: **every fixed width in the app is on something that holds controls** (a rail, a nav, a dialog, a table column); everything that holds *content* is fluid, with a minimum and sometimes a maximum.
 
-**How to write it:** `min-width`, not `width` (the main column is `1fr` with `min-width: 560px` and never has a width of its own); `repeat(auto-fill, minmax(280px, 1fr))` rather than a column count — nothing anywhere says "three across"; `max-width` for reading as a ceiling, not a size; **container queries over viewport breakpoints** for anything inside a column, so a field grid stacks because *its column* got narrow rather than because the window did (that is what lets the same form work in a 360px rail and a 640px page); and height from content and padding, with no fixed heights outside the deliberate 42px control.
+**How to write it:** `min-width`, not `width` (the main column is `1fr` with `min-width: 560px` and never has a width of its own); `repeat(auto-fill, minmax(280px, 1fr))` rather than a column count — nothing anywhere says "four across"; `max-width` for reading as a ceiling, not a size; **container queries over viewport breakpoints** for anything inside a column, so a field grid stacks because *its column* got narrow rather than because the window did (that is what lets the same form work in a 360px rail and a 640px page); and height from content and padding, with no fixed heights outside the deliberate 42px control.
 
 **Verify at 1920, 1440, 1280, 1024, 900, 768, 430, 375, 320** — each crosses a breakpoint, a rail's disappearance, or a minimum. The two that catch the most: **1024**, where the facet rail has gone but the two-column layout has not, and **320**, where the mobile field floor bites. Also check **1920 with the sidebar collapsed** — the widest the main column ever gets, where a missing max-width shows up as a 1700px line of 13px text.
 
@@ -817,6 +839,23 @@ That 24-hour window is what makes immediate upload safe, and it is also why Undo
 **Failure is per file, never per batch.** Drop five with one rejected: four upload, the fifth keeps its tile with the reason and a Remove. The reason is specific — "Too large", "Not a supported type", "Upload failed" — because "Error" does not tell the user whether to retry or pick a different file.
 
 Also everywhere: navigating away mid-upload prompts with the count of uploads in flight (the sticky-save prompt alone does not mention files); a duplicate file on one order warns but does not block, as two photos of one item are legitimate; on dark every thumbnail keeps a `1px #463f37` border at 90% opacity, returning to full on hover and in the viewer; and **never a full-screen blocking overlay for an upload** — progress belongs on the tile and the rest of the form stays editable.
+
+---
+
+### 19a / 19b — Icon legend
+File: `Icon legend.dc.html`
+
+**Twenty-eight action icons, each with what it does, where it appears, its tooltip and its accessible name.** The set contains ~119 distinct glyphs; these are the ones that carry behaviour, and no icon-only button ships without both a tooltip and an aria-label.
+
+The mapping is the specification, not the geometry — substitute the codebase's icon set at matching optical weight rather than lifting the paths.
+
+**One icon, one meaning, everywhere.** The paperclip is always *attachments* and never "add a file"; the pencil always edits in place and never opens a new page; the plus always appends a row and never opens a dialog. Where two actions look similar but differ in outcome they get different glyphs — Close (dismisses a layer) and Remove-filter (changes results) are both an × and are drawn differently. **If a new action does not map to an icon in 19a, it gets a text button** — inventing a glyph for a one-off is how an icon set stops being learnable.
+
+**Labelling.** Tooltip on hover *and* keyboard focus, 400ms delay, verb phrasing. The aria-label names the **target**, not just the verb: "Delete" is useless in a list of nine rows, "Delete Stol — eg" is not. Decorative icons take `aria-hidden="true"` and no tooltip; an icon inside an already-labelled button is decorative.
+
+**Drawing.** 16×16 viewBox, stroke only, `stroke-width` 1.5 for actions and 1.3 for decorative glyphs, round caps and joins, no fills except the drag dots and the filled star. Rendered at 17px in a 32px button, 15px in a 28px item-line button, 14px inline beside text. Colour is always `currentColor`, so hover and disabled states carry the icon with them.
+
+**Four prohibitions:** no icon-only destructive action outside a row (bulk delete is a labelled button); no icon carrying meaning by colour alone (the amber and red alerts are the same glyph — the message distinguishes them); no target below 28px on desktop or 44px on touch, however small the glyph; no hover-only icons on touch, which is why the item-line pencil is permanent below 640px.
 
 ---
 
@@ -1010,6 +1049,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 | `16-actions-inventory.png` | 16a–16c |
 | `17-images-and-files.png` | 17a, 17b |
 | `18-responsive-reference.png` | 18a, 18b |
+| `19-icon-legend.png` | 19a, 19b |
 
 Full-page PNG at 2× device pixels (roughly 3300–4100px wide. Three pages are long enough to be capped below 2× by the pixel budget — `14-input-types.png`, `16-actions-inventory.png` and `00-overview.png`; for those, open the HTML rather than reading the screenshot), so panels and 11px labels stay legible when zoomed. Still for orientation and review only — measure nothing off them; the values in this document and the HTML files are the source.
 
@@ -1040,6 +1080,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Input types.dc.html` | 14a–14f |
 | `Layout rules.dc.html` | 15a, 15b, 15c |
 | `Responsive reference.dc.html` | 18a, 18b |
+| `Icon legend.dc.html` | 19a, 19b |
 | `Actions inventory.dc.html` | 16a, 16b, 16c |
 | `Images and files.dc.html` | 17a, 17b |
 | `support.js` | Preview runtime for the files above — not part of the product |

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Icon legend</title>
+<script src="support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#4f7f63"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">19</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 48px 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="19a">19a</span>
+    <span style="font-size: 20px; font-weight: 600">Icon legend</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every icon that carries an action, with what it does, where it appears, its tooltip and its accessible name. An icon-only button with no label is unusable with a screen reader and ambiguous with a mouse, so nothing here ships without both columns filled in. Braces are placeholders for the record’s own values.</div>
+
+  <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
+    <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; background: #f2f1eb; padding: 10px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
+      <div></div><div>NAME</div><div>WHAT IT DOES</div><div>WHERE</div><div>TOOLTIP / ARIA-LABEL</div>
+    </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Chevron down</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Opens a select, combobox or menu below the trigger. Never navigates.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Every select and sort control</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> on the trigger, not the icon</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Chevron right</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Navigates into the row. The whole row is the target; the chevron is an affordance, not a separate button.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">List rows, alert rows, account block</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> row carries the label</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Back</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Returns to the previous view, popping one level. Not browser back.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Mobile detail views, merge flow</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Back</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Back</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Search</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Decorative inside a field. As a button on mobile it opens the search sheet.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Search fields, facet filters, palette</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Search</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Search orders</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">More actions</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Opens the overflow menu for that row or card. Contents are listed per screen in 16a — never a duplicate of visible buttons.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Order rows, cards, item lines, vendor rows</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> More actions</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> More actions for {vendor}, {date}</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5.5L5.8 10.7a1.9 1.9 0 0 0 2.7 2.7l5.2-5.2a3.3 3.3 0 0 0-4.7-4.7L3.6 8.9"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Attachments</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Opens the order’s attachments in the viewer (17b) at the first file. Shown only when the order has attachments; the badge is the count.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Card photo strip, row meta, order header</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> 2 attachments</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Open 2 attachments</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 2.6a1.7 1.7 0 0 1 2.4 2.4L5.6 12.4l-3.1.7.7-3.1z"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Edit</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Opens the row for editing in place. On an item line it expands the row; on a settings row it makes the field editable.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Item lines, status rows, category rows</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Edit</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Edit {item name}</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5h9.2"></path><path d="M4.6 5v8h6.8V5"></path><path d="M6.4 3h3.2"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Delete</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Removes the thing it sits on. Item lines and attachments delete immediately with an Undo toast; orders, vendors and categories open a confirm dialog first.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Item lines, attachments, photo overlay, rows</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Delete</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Delete {item name}</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Add</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Appends a new empty row and focuses its first field. Never opens a dialog.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Add item, add status, add category</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Add an item</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Add an item</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Reorder</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Drag handle. Not clickable — the up/down buttons beside it are the keyboard and touch path, and both write the same position field.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Item lines, status list</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Drag to reorder</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Reorder {item name}, currently position 2 of 4</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Move up</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Swaps the row with the one above and persists position. Disabled on the first row.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Item line action cluster</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Move up</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Move {item name} up</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Move down</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Swaps the row with the one below and persists position. Disabled on the last row.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Item line action cluster</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Move down</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Move {item name} down</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="2.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="8.6" y="2.6" width="4.8" height="4.8" rx="1.2"></rect></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Duplicate</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">On an item line, copies it directly below. On an order, opens a new unsaved order prefilled from it (8a) — attachments and date do not carry over.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Item lines, order actions</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Duplicate</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Duplicate {item name}</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.2v6.4"></path><path d="M5.4 7.2L8 9.8l2.6-2.6"></path><path d="M3.4 11.4v1.4h9.2v-1.4"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Download</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Saves the file as it was uploaded — original resolution, original filename. Not a render or a screenshot.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Viewer toolbar, import skipped rows</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Download</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Download kvittering.pdf</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11V3.2"></path><path d="M5.2 5.8L8 3l2.8 2.8"></path><path d="M3 10.6v1.8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1.8"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Upload</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Opens the file picker. On a photo overlay it replaces the existing photo rather than adding one.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Drop zones, photo overlay</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Replace photo</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Replace photo</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.6h2.2l1-1.6h4.6l1 1.6h2.2v7.2h-11z"></path><circle cx="8" cy="9" r="2.2"></circle></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Take a photo</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Opens the camera on a phone. On desktop this control is not shown — the file picker covers it.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Capture zone, mobile FAB, empty photo slot</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Take a photo</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Take a photo</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l8 8"></path><path d="M12 4l-8 8"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Close</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Dismisses the layer it sits in without applying anything. Esc does the same.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Dialogs, sheets, viewer, toasts</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Close</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Close</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 4.5l7 7"></path><path d="M11.5 4.5l-7 7"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Remove filter</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Removes one active filter and refilters immediately. Distinct from Close — it changes results.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Active filter chips</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Remove filter: Decor</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9"></path><path d="M9 5l3 3-3 3"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Leads to</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Decorative only — shows a mapping or a sequence. Never interactive.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Import mapping, before/after pairs</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> aria-hidden</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 11.4l3.4-3.4 2.4 2.1 4.6-4.5"></path><path d="M9.8 5.6h3.4V9"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Open in Statistics</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Opens Statistics with the current record already applied as a drill crumb. Same tab.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Vendor and category panels</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> See in Statistics</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> See {vendor} in Statistics</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 5"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Selected</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Marks the current value in a list, or a completed step. Not a button.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Combobox options, checkboxes, success states</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> aria-selected on the option</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.4v3.4"></path><circle cx="8" cy="11.2" r="0.7"></circle><path d="M8 2.6l5.4 10.4H2.6z"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Needs attention</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Amber: a limit crossed or a value to check — informational, never blocking. Red: something that stops a save.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Limit notices, validation, scan review</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> aria-hidden; the message carries the meaning</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v4"></path><path d="M8 11h0.01"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Explanation</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Opens a tooltip on hover and focus. Only used where a number needs defining — never for copy that should have been in the label.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Statistic cards, limit bars</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Show definition</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5.2V8l2 1.4"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Recent</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Marks the Recent group in a combobox. Decorative.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Combobox group headers</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> aria-hidden</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.6l1.8 3.7 4 .6-2.9 2.9.7 4-3.6-2-3.6 2 .7-4L2.2 6.9l4-.6z"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Favourite</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Toggles the record into the Favourites group at the top of its picker. Capped at five; filled means on.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Vendor and category rows</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Add to favourites</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Add {vendor} to favourites</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.2"></circle><path d="M8 2.4v1.6"></path><path d="M8 12v1.6"></path><path d="M2.4 8h1.6"></path><path d="M12 8h1.6"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Theme</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Toggles between light and dark, and stays in sync with the Settings control.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Sidebar bottom zone</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> Switch to dark</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> Switch to dark mode</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.4"></rect><path d="M2.4 10.2l3.2-2.8 2.8 2.4 2.4-2 2.8 2.4"></path><circle cx="10.4" cy="6.2" r="0.9"></circle></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">No photo</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Placeholder where a photo would be. Not a button — photos are added on the item line, not from a card.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Empty card strip, empty item thumb</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> aria-hidden</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 44px 128px 1fr 168px 150px; gap: 14px; padding: 13px 16px; border-top: 1px solid #f0efe9; align-items: start">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center; color: #3d3c36">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2.6h5l3 3v7.8H4z"></path><path d="M9 2.6v3h3"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 600; padding-top: 6px">Document</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55; padding-top: 7px">Marks a non-image attachment. Clicking the tile opens the viewer, same as an image.</div>
+        <div style="font-size: 12px; color: #8b8a82; line-height: 1.55; padding-top: 7px">Attachment tiles, import file rows</div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 5px">
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">tip</span> —</div>
+          <div style="font-size: 11px; color: #57564f"><span style="color: #8b8a82">aria</span> aria-hidden</div>
+        </div>
+      </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="19b">19b</span>
+    <span style="font-size: 20px; font-weight: 600">Rules for icons</span>
+  </div>
+
+  <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ONE ICON, ONE MEANING</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">An icon means the same thing on every screen. The paperclip is always attachments and never "add a file"; the pencil always edits in place and never opens a new page; the plus always appends a row and never opens a dialog. Where two actions feel similar but differ in outcome, they get different icons — which is why Close and Remove-filter are drawn differently despite both being an ×.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">A consequence worth stating: <b>if a new action does not map to an icon in 19a, it gets a text button.</b> Inventing a glyph for a one-off is how an icon set stops being learnable.</div>
+    </div>
+
+    <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">EVERY ICON-ONLY BUTTON NEEDS BOTH</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A tooltip</b> on hover and on keyboard focus, after a 400ms delay, naming the action as a verb.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">An aria-label naming the target</b>, not just the verb. "Delete" is useless in a list of nine rows; "Delete Stol — eg" is not. The label is the specific one; the tooltip can stay short because the row is visible.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Decorative icons take <b>aria-hidden="true"</b> and no tooltip. An icon inside a labelled button is decorative — the button already has the name.</div>
+    </div>
+
+    <div style="width: 430px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DRAWING</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">16×16 viewBox, stroke only, <b>stroke-width 1.5</b> for actions and <b>1.3</b> for decorative glyphs, round caps and joins, no fills except the drag dots and the filled star.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Rendered at <b>17px</b> in a 32px button, <b>15px</b> in a 28px item-line button, <b>14px</b> inline beside text. Colour is <b>currentColor</b> always, so a row’s hover and disabled states carry the icon with them.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">These are drawn for the mockups. <b>Substitute the codebase’s icon set</b> at matching optical weight rather than lifting the paths — what matters is the mapping in 19a, not the geometry.</div>
+    </div>
+
+    <div style="width: 430px; background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 11px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #7a5c23">WHAT NOT TO DO</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>No icon-only destructive action outside a row.</b> A bare trash icon in a toolbar acting on a selection is too easy to hit — bulk delete is a labelled button.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>No icon carrying meaning by colour alone.</b> The amber alert and the red alert are the same glyph; the message beside them is what distinguishes them, and it is always present.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>No icon below 28px as a target</b> on desktop, 44px on touch. The glyph can be 14px; the button around it cannot.</div>
+      <div style="font-size: 12px; color: #6b5424; line-height: 1.55"><b>No hover-only icons on touch.</b> Anything revealed on row hover is permanently visible below 640px — the item-line pencil is the case that matters.</div>
+    </div>
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

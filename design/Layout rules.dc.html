@@ -22,7 +22,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 24px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">15a</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="15a">15a</span>
     <span style="font-size: 20px; font-weight: 600">Columns, rows, and what goes full width</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every screen in the set uses one of four column shapes, and every field is either full width or a fraction for a reason that can be stated. Written down here because it was consistent across the designs but never explicit — and an undocumented grid is the first thing to drift.</div>
@@ -108,7 +108,7 @@
         <div style="background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px"></div>
         <div style="background: #f0efe9; border: 1px solid #dcdad2; border-radius: 8px"></div>
       </div>
-      <div style="font-size: 12px; color: #57564f; line-height: 1.55">No rail at all. Order cards use <b>repeat(auto-fill, minmax(280px, 1fr))</b> and reflow freely. Statistics uses a <b>12-column grid</b> where every card spans a whole number of columns, so rows always close — no half-filled row, no gap in the middle. Verify at 1280, 1440 and 1920.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">No rail at all. Order cards use <b>repeat(auto-fill, minmax(280px, 1fr))</b> at a <b>16px</b> gap and reflow freely — the four-across in the 2c mockup is that rule at the canvas width, not a fixed count. Statistics uses a <b>12-column grid</b> where every card spans a whole number of columns, so rows always close — no half-filled row, no gap in the middle. Verify at 1280, 1440 and 1920.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Cards in a grid row share a height, cards in a column do not.</b> Grid handles the first automatically; don't fight it with fixed heights.</div>
     </div>
   </div>
@@ -265,7 +265,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 18px; padding: 0 48px 64px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">15b</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="15b">15b</span>
     <span style="font-size: 20px; font-weight: 600">Fields on mobile — what stays grouped</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Below 640px most fields go full width, but not all of them — and the exceptions aren't arbitrary. A group survives the breakpoint when splitting it would break something the user reads as one thing.</div>
@@ -386,7 +386,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 18px; padding: 0 48px 64px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">15c</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="15c">15c</span>
     <span style="font-size: 20px; font-weight: 600">Which numbers are real</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">A mockup has to be <i>some</i> width to be drawn, so these files are full of pixel values that are scaffolding rather than specification. Read the wrong ones as spec and you get an app that is pixel-perfect at 1400px and broken at every other size. This says which is which.</div>

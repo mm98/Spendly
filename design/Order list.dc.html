@@ -22,7 +22,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 12px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">2a</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="2a">2a</span>
     <span style="font-size: 20px; font-weight: 600">Bulk actions — set status, add category</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">Both open as popovers from the bulk bar, so the selection stays visible behind them. Set status replaces a single value, so it is a radio list. Add category is additive and multi-select, with a mixed state for categories only some of the selected orders carry. Nothing is applied until Apply.</div>
@@ -194,7 +194,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 48px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">2b</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="2b">2b</span>
     <span style="font-size: 20px; font-weight: 600">Orders — list with facets</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">Facet rail on the left with live counts, search and active-filter chips over the table, saved views, sort and density controls, bulk selection, and a running total that reflects the current filter. Same card and colour vocabulary as the edit screen.</div>
@@ -336,7 +336,7 @@
 
           <div style="display: flex; flex-direction: column; gap: 8px">
             <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Kind</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; background: #eef1ee; border-radius: 9px; padding: 3px; font-size: 12px; text-align: center">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; background: #eef1ee; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; font-size: 12px; text-align: center">
               <div style="padding: 6px 0; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">All</div>
               <div style="padding: 6px 0; color: #57564f">Expense</div>
               <div style="padding: 6px 0; color: #57564f">Income</div>
@@ -379,21 +379,21 @@
 
       <div style="display: flex; flex-direction: column; gap: 14px">
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
-          <div style="flex: 1; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; padding: 10px 12px; color: #57564f">
+          <div style="flex: 1; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #57564f">
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
             <span style="font-size: 14px; color: #1b1a17">nuage</span>
             <span style="font-size: 13px; color: #8b8a82">in vendor, item, reference, note</span>
             <div style="flex: 1"></div>
             <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #e6e4dc; border-radius: 5px; padding: 2px 6px; color: #8b8a82">⌘K</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; padding: 10px 12px">
-            <span style="font-size: 12px; color: #6b6a63">Sort</span>
-            <span style="font-size: 13px; font-weight: 600">Newest first</span>
+          <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px">
+            <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+            <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Newest first</span>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; background: #eef1ee; border-radius: 9px; padding: 3px; font-size: 12px; text-align: center">
-            <div style="padding: 7px 12px; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Rows</div>
-            <div style="padding: 7px 12px; color: #57564f">Cards</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; background: #eef1ee; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; font-size: 12px; text-align: center">
+            <div style="padding: 0 12px; display: grid; place-items: center; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Rows</div>
+            <div style="padding: 0 12px; display: grid; place-items: center; color: #57564f">Cards</div>
           </div>
           <div style="width: 38px; height: 38px; border: 1px solid #dedcd4; border-radius: 10px; display: grid; place-items: center; color: #57564f">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.5 4h11"></path><path d="M2.5 8h11"></path><path d="M2.5 12h11"></path><circle cx="5.5" cy="4" r="1.6" fill="#fff"></circle><circle cx="10" cy="8" r="1.6" fill="#fff"></circle><circle cx="6.5" cy="12" r="1.6" fill="#fff"></circle></svg>
@@ -630,12 +630,180 @@
   </div>
 </section>
 
+<section style="display: flex; flex-direction: column; gap: 18px; padding: 12px 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="2d">2d</span>
+    <span style="font-size: 20px; font-weight: 600">Custom date range</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Choosing Custom opens a From and To pair inside the Date group in the facet rail, below the presets rather than in a popover over the list. The presets stay visible, so the range reads as one more setting of the same control.</div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">JUST OPENED</div>
+        <div style="width: 260px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; align-items: center">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">FILTERS</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Clear all</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Date</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+              <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">30 days</div>
+              <div style="border: 1px solid #dedcd4; color: #57564f; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 400">This year</div>
+              <div style="background: #1d4d33; color: #fff; border: 1px solid #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600">Custom…</div>
+            </div>
+            <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 11px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+              <div style="display: flex; flex-direction: column; gap: 4px">
+                <div style="font-size: 11px; font-weight: 600; color: #3d3c36">From</div>
+                <div style="border: 1px solid #1d4d33; box-shadow: 0 0 0 3px rgba(29,77,51,0.12); border-radius: 9px; box-sizing: border-box; height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 8px">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+                  <span style="font-size: 13px; color: #8b8a82">dd/mm/yyyy</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px">
+                <div style="font-size: 11px; font-weight: 600; color: #3d3c36">To</div>
+                <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 8px">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#c3c1b8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+                  <span style="font-size: 13px; color: #b3b1a9">Today</span>
+                </div>
+              </div>
+              <div style="font-size: 11px; color: #8b8a82; line-height: 1.45">Leave To empty to include everything up to today.</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; opacity: 0.45">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Status</div>
+            <div style="display: flex; align-items: center; gap: 9px">
+              <div style="width: 16px; height: 16px; border: 1px solid #dedcd4; border-radius: 4px; flex: none"></div>
+              <div style="font-size: 13px">Delivered</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">RANGE SET</div>
+        <div style="width: 260px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; align-items: center">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">FILTERS</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Clear all</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Date</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+              <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">30 days</div>
+              <div style="border: 1px solid #dedcd4; color: #57564f; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 400">This year</div>
+              <div style="background: #1d4d33; color: #fff; border: 1px solid #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600">Custom…</div>
+            </div>
+            <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 11px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+              <div style="display: flex; flex-direction: column; gap: 4px">
+                <div style="font-size: 11px; font-weight: 600; color: #3d3c36">From</div>
+                <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 8px">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+                  <span style="font-size: 13px; color: #1b1a17">01/06/2026</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px">
+                <div style="font-size: 11px; font-weight: 600; color: #3d3c36">To</div>
+                <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 8px">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+                  <span style="font-size: 13px; color: #1b1a17">31/08/2026</span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; border-top: 1px solid #f0efe9; padding-top: 9px">
+                <div style="font-size: 12px; color: #57564f">92 days · 41 orders</div>
+                <div style="flex: 1"></div>
+                <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Clear</div>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; opacity: 0.45">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Status</div>
+            <div style="display: flex; align-items: center; gap: 9px">
+              <div style="width: 16px; height: 16px; border: 1px solid #dedcd4; border-radius: 4px; flex: none"></div>
+              <div style="font-size: 13px">Delivered</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">TO BEFORE FROM</div>
+        <div style="width: 260px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; align-items: center">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">FILTERS</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Clear all</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Date</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+              <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">30 days</div>
+              <div style="border: 1px solid #dedcd4; color: #57564f; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 400">This year</div>
+              <div style="background: #1d4d33; color: #fff; border: 1px solid #1d4d33; border-radius: 999px; padding: 5px 11px; font-size: 12px; font-weight: 600">Custom…</div>
+            </div>
+            <div style="border: 1px solid #dedcd4; border-radius: 10px; padding: 11px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+              <div style="display: flex; flex-direction: column; gap: 4px">
+                <div style="font-size: 11px; font-weight: 600; color: #3d3c36">From</div>
+                <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 8px">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+                  <span style="font-size: 13px; color: #1b1a17">01/08/2026</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px">
+                <div style="font-size: 11px; font-weight: 600; color: #3d3c36">To</div>
+                <div style="border: 1px solid #8a4a41; background: #fdf6f5; border-radius: 9px; box-sizing: border-box; height: 40px; padding: 0 11px; display: flex; align-items: center; gap: 8px">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
+                  <span style="font-size: 13px; color: #8a4a41">01/06/2026</span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: 6px">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.6" stroke-linecap="round" style="flex: none; margin-top: 2px"><circle cx="8" cy="8" r="5.4"></circle><path d="M8 5.2v3.2"></path><path d="M8 10.8v.2"></path></svg>
+                <div style="font-size: 11px; color: #8a4a41; line-height: 1.45">To must be on or after From. The list keeps the last valid range.</div>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; opacity: 0.45">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Status</div>
+            <div style="display: flex; align-items: center; gap: 9px">
+              <div style="width: 16px; height: 16px; border: 1px solid #dedcd4; border-radius: 4px; flex: none"></div>
+              <div style="font-size: 13px">Delivered</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <div style="width: 300px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">AS AN ACTIVE CHIP</div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <div style="display: flex; align-items: center; gap: 7px; background: #eef1ee; border-radius: 999px; padding: 6px 8px 6px 12px; font-size: 12px; color: #1d4d33; font-weight: 600">
+              01/06/2026 – 31/08/2026
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4.5 4.5l7 7"></path><path d="M11.5 4.5l-7 7"></path></svg>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: #57564f; line-height: 1.55">The range appears above the list as one chip, like any other active filter. Removing it returns the Date group to its presets.</div>
+        </div>
+      </div>
+
+      <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One control, four settings.</b> The presets and the range are the same facet: picking a preset clears the range, setting a range deselects the presets. They cannot both be active.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">No Apply button.</b> It filters as soon as a valid date is entered, because every other facet applies immediately. From alone means "from that date to today", which is why To carries Today as its placeholder rather than blocking.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Inline, not a popover.</b> A calendar floating over the list hides the results the range is changing. Each field opens the platform date picker on click and accepts typing in the Settings date format.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">An invalid range does not clear the list.</b> The field goes red and the results hold at the last valid range — recomputing to zero results while someone is mid-edit reads as "no orders exist".</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Both dates are in the URL</b>, so a custom range is linkable and survives reload like every other facet.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 12px 48px 48px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">2c</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="2c">2c</span>
     <span style="font-size: 20px; font-weight: 600">Cards view</span>
   </div>
-  <div style="font-size: 14px; color: #57564f; max-width: 900px">The same result set behind the Cards switch. Item photos lead, so it suits browsing a vendor or a category; the facet rail, search, chips and bulk selection are unchanged. Checkbox sits on the image, totals and savings stay on a fixed baseline at the card foot.</div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px">The same result set behind the Cards switch. The strip across the top of each card is the order’s own item photos — the first three item lines that have one, in item order, with <b>+N</b> for the rest — so the card is recognisable by what was bought rather than by the vendor name alone. That makes it the better view for browsing a vendor or a category. The facet rail, search, chips and bulk selection are unchanged. Checkbox sits on the strip, totals and savings stay on a fixed baseline at the card foot.</div>
 
   <div style="width: 1400px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden">
     <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e6e4dc">
@@ -650,14 +818,14 @@
         <div style="font-size: 13px; color: #6b6a63">· 61.480,00 kr.</div>
         <div style="font-size: 12px; color: #2f7a51; font-weight: 600">saved 24.310,00 kr. (28,3%)</div>
         <div style="flex: 1"></div>
-        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; padding: 10px 12px">
-          <span style="font-size: 12px; color: #6b6a63">Sort</span>
-          <span style="font-size: 13px; font-weight: 600">Newest first</span>
+        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px">
+          <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+          <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Newest first</span>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; background: #eef1ee; border-radius: 9px; padding: 3px; font-size: 12px; text-align: center">
-          <div style="padding: 7px 12px; color: #57564f">Rows</div>
-          <div style="padding: 7px 12px; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Cards</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; background: #eef1ee; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; font-size: 12px; text-align: center">
+          <div style="padding: 0 12px; display: grid; place-items: center; color: #57564f">Rows</div>
+          <div style="padding: 0 12px; display: grid; place-items: center; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Cards</div>
         </div>
       </div>
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px">
@@ -837,6 +1005,79 @@
         <div style="font-size: 13px; color: #6b6a63">Showing 6 of 18</div>
         <div style="flex: 1"></div>
         <div style="border: 1px solid #dedcd4; background: #fff; border-radius: 9px; padding: 8px 16px; font-size: 12px; letter-spacing: 0.06em; font-weight: 600; color: #1d4d33">LOAD MORE</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 8px">
+    <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">WHAT THE STRIP SHOWS, BY HOW MANY PHOTOS THE ORDER HAS</div>
+    <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+      <div style="width: 260px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SEVEN ITEMS, ALL WITH PHOTOS</div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="height: 116px; display: flex; gap: 2px; position: relative">
+            <div style="flex: 1; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
+            <div style="flex: 1; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
+            <div style="flex: 1; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
+            <div style="position: absolute; right: 10px; bottom: 10px; background: rgba(27, 26, 23, 0.72); color: #fff; border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 600">+4</div>
+            <div style="position: absolute; top: 10px; left: 10px; width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff"></div>
+          </div>
+          <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 14px; font-weight: 600">Normann</div>
+            <div style="font-size: 12px; color: #6b6a63">03/07/2026 · 7 items</div>
+          </div>
+        </div>
+      </div>
+      <div style="width: 260px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">TWO PHOTOS</div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="height: 116px; display: flex; gap: 2px; position: relative">
+            <div style="flex: 1; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
+            <div style="flex: 1; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
+            <div style="position: absolute; top: 10px; left: 10px; width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff"></div>
+          </div>
+          <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 14px; font-weight: 600">Normann</div>
+            <div style="font-size: 12px; color: #6b6a63">03/07/2026 · 4 items</div>
+          </div>
+        </div>
+      </div>
+      <div style="width: 260px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ONE PHOTO</div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="height: 116px; display: flex; gap: 2px; position: relative">
+            <div style="flex: 1; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px)"></div>
+            <div style="position: absolute; top: 10px; left: 10px; width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff"></div>
+          </div>
+          <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 14px; font-weight: 600">Normann</div>
+            <div style="font-size: 12px; color: #6b6a63">03/07/2026 · 2 items</div>
+          </div>
+        </div>
+      </div>
+      <div style="width: 260px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">NO PHOTOS</div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="height: 116px; display: flex; gap: 2px; position: relative">
+            <div style="flex: 1; background: #f2f1eb; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; color: #b3b1a9">
+              <svg width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.4"></rect><path d="M2.4 10.2l3.2-2.8 2.8 2.4 2.4-2 2.8 2.4"></path><circle cx="10.4" cy="6.2" r="0.9"></circle></svg>
+              <div style="font-size: 11px; color: #8b8a82">No photos yet</div>
+            </div>
+            <div style="position: absolute; top: 10px; left: 10px; width: 18px; height: 18px; border: 1px solid #d6d4ca; border-radius: 4px; background: #fff"></div>
+          </div>
+          <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 14px; font-weight: 600">Normann</div>
+            <div style="font-size: 12px; color: #6b6a63">03/07/2026 · 3 items</div>
+          </div>
+        </div>
+      </div>
+      <div style="width: 320px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+        <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Item photos, not attachments.</b> The strip is the photo on each item line. The receipt PDF and anything else attached to the order never appear here — a scan of a receipt is not a picture of what was bought, and cards full of grey paper are useless to browse.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Up to three, in item order.</b> Item lines without a photo are skipped, and the count in <b>+N</b> is the remaining photos, not the remaining items — so an order of seven items with five photos shows three and <b>+2</b>. Below four photos there is no pill.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Fewer photos means wider ones.</b> The cells are equal fractions of a fixed 116px strip, so one photo fills the width and two split it. No empty slots, and no letterboxing to keep three columns.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">No photos is a filled state, not a gap.</b> The strip keeps its height so the grid stays even, and holds a quiet placeholder on <span style="white-space: nowrap">#f2f1eb</span>. It is not a call to action: photos are added on the item, and offering an upload from a list card would put a file picker where the user is scanning.</div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Photos are cropped, never letterboxed</b> — <b>object-fit: cover</b>, centred. Receipt photography is rarely square and a fitted image leaves bars that read as broken.</div>
       </div>
     </div>
   </div>

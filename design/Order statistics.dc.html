@@ -22,7 +22,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 48px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">4a</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="4a">4a</span>
     <span style="font-size: 20px; font-weight: 600">Statistics</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">One period control drives everything on the page. Every chart element is a filter: click a month, a vendor, a category or a status and it becomes a crumb in the drill path, with the order table at the bottom always showing exactly what the current path selects.</div>
@@ -38,11 +38,11 @@
     <div style="display: flex; flex-direction: column; gap: 16px; padding: 18px">
 
       <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); background: #eef1ee; border-radius: 9px; padding: 3px; font-size: 12px; text-align: center">
-          <div style="padding: 7px 14px; color: #57564f">30 days</div>
-          <div style="padding: 7px 14px; color: #57564f">Quarter</div>
-          <div style="padding: 7px 14px; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Year</div>
-          <div style="padding: 7px 14px; color: #57564f">Custom</div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); background: #eef1ee; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; font-size: 12px; text-align: center">
+          <div style="padding: 0 14px; display: grid; place-items: center; color: #57564f">30 days</div>
+          <div style="padding: 0 14px; display: grid; place-items: center; color: #57564f">Quarter</div>
+          <div style="padding: 0 14px; display: grid; place-items: center; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Year</div>
+          <div style="padding: 0 14px; display: grid; place-items: center; color: #57564f">Custom</div>
         </div>
         <div style="font-size: 13px; color: #6b6a63">01/01/2026 — 20/08/2026</div>
         <div style="display: flex; align-items: center; gap: 9px; padding-left: 6px">
@@ -145,7 +145,7 @@
               <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #8caf97"></span>Lighting</span>
               <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #c6d6c9"></span>Other</span>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; background: #eef1ee; border-radius: 9px; padding: 3px; font-size: 12px; text-align: center">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; background: #eef1ee; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; font-size: 12px; text-align: center">
               <div style="padding: 6px 12px; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Stacked</div>
               <div style="padding: 6px 12px; color: #57564f">Total</div>
             </div>

@@ -22,7 +22,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 12px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">5a</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="5a">5a</span>
     <span style="font-size: 20px; font-weight: 600">Vendors</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">A vendor is mostly read-only: it earns its numbers from orders. So the list leads with spend and order count, and the panel on the right is the selected vendor — contact details you can edit, its recent orders, and merge for the duplicates that scanning creates.</div>
@@ -38,20 +38,20 @@
     <div style="display: grid; grid-template-columns: 1fr 400px; gap: 18px; padding: 18px; align-items: start">
       <div style="display: flex; flex-direction: column; gap: 14px">
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
-          <div style="flex: 1; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; padding: 10px 12px; color: #8b8a82">
+          <div style="flex: 1; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #8b8a82">
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
             <span style="font-size: 14px">Find a vendor…</span>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; background: #eef1ee; border-radius: 9px; padding: 3px; font-size: 12px; text-align: center">
-            <div style="padding: 7px 14px; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Active</div>
-            <div style="padding: 7px 14px; color: #57564f">Archived</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; background: #eef1ee; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; font-size: 12px; text-align: center">
+            <div style="padding: 0 14px; display: grid; place-items: center; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Active</div>
+            <div style="padding: 0 14px; display: grid; place-items: center; color: #57564f">Archived</div>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; padding: 10px 12px">
-            <span style="font-size: 12px; color: #6b6a63">Sort</span>
-            <span style="font-size: 13px; font-weight: 600">Spend, high to low</span>
+          <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px">
+            <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+            <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Spend, high to low</span>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
           </div>
-          <div style="background: #1d4d33; border-radius: 10px; padding: 10px 16px; font-size: 12px; letter-spacing: 0.06em; font-weight: 600; color: #fff">NEW VENDOR</div>
+          <div style="background: #1d4d33; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 16px; display: flex; align-items: center; font-size: 12px; letter-spacing: 0.06em; font-weight: 600; color: #fff">NEW VENDOR</div>
         </div>
 
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
@@ -310,7 +310,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 12px 48px 48px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">5b</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="5b">5b</span>
     <span style="font-size: 20px; font-weight: 600">Categories</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">Categories carry the monthly limit, so the list is the budget overview: limit, this month against it, and the twelve-month average that tells you whether the limit is realistic. The panel is the category form — name, icon, colour and the limit, which is what Statistics reads. Icon and colour travel together: the icon is picked from a fixed set and rendered in the category colour, so chips, facets and charts stay recognisable.</div>
@@ -326,7 +326,7 @@
     <div style="display: grid; grid-template-columns: 1fr 400px; gap: 18px; padding: 18px; align-items: start">
       <div style="display: flex; flex-direction: column; gap: 14px">
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
-          <div style="flex: 1; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; padding: 10px 12px; color: #8b8a82">
+          <div style="flex: 1; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #8b8a82">
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
             <span style="font-size: 14px">Find a category…</span>
           </div>
@@ -336,7 +336,7 @@
             </div>
             <div style="font-size: 13px; white-space: nowrap">Only over limit</div>
           </div>
-          <div style="background: #1d4d33; border-radius: 10px; padding: 10px 16px; font-size: 12px; letter-spacing: 0.06em; font-weight: 600; color: #fff">NEW CATEGORY</div>
+          <div style="background: #1d4d33; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 16px; display: flex; align-items: center; font-size: 12px; letter-spacing: 0.06em; font-weight: 600; color: #fff">NEW CATEGORY</div>
         </div>
 
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
@@ -581,7 +581,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 12px 48px 48px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">5c</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="5c">5c</span>
     <span style="font-size: 20px; font-weight: 600">Roll-up panel — nothing selected</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px">What the right column holds before a row is picked: same width and card rhythm as the detail panel, describing the whole list instead of one row. Numbers are the ones the list already shows, summed — nothing new to learn. Picking a row replaces this with that row's form.</div>
@@ -743,7 +743,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">5d</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="5d">5d</span>
     <span style="font-size: 20px; font-weight: 600">Vendor aliases</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">A receipt rarely prints the name you call a vendor. "INDBO MØBLER A/S", "Indbo Møbler ApS" and a webshop's "indbo.dk" are one vendor, and the aliases are what let a scan land on it without asking. They are also where a merged vendor's old names go, so nothing stops matching after a merge.</div>

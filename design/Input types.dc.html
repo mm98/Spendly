@@ -22,7 +22,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 48px 48px 24px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">14a</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="14a">14a</span>
     <span style="font-size: 20px; font-weight: 600">Input types</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every control used across the set, with its states and what is specific about it here. This is the whole vocabulary — a screen needing something that isn't on this page is a signal to reconsider the screen.</div>
@@ -154,7 +154,7 @@
         </div>
         <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
           <div style="border-top: 1px solid #dedcd4; padding-top: 12px; display: flex; flex-direction: column; gap: 9px">
-            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Height is set explicitly to 42px</b>, not left to content. The buttons carry no vertical padding, so without it the stepper comes out shorter than the field beside it — shown above next to unit price, which is how it appears on an item line.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Height is set explicitly to 42px</b>, not left to content. The buttons carry no vertical padding, so without it the stepper comes out shorter than the field beside it — shown above next to unit price, which is how it appears on an item line. <b>Toolbar rows are the usual failure:</b> a segmented control assembled from padded divs comes out at 37px, a solid button at 37px and a bordered field at 42px, and the mismatch is only visible once they sit in one row. Every control in a toolbar takes <b>box-sizing: border-box; height: 42px</b> and centres its own content.</div>
             <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The middle is still typable.</b> Buttons are for 1 → 2; typing is for 1 → 12.</div>
             <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Minus disables at 1, it does not delete the line.</b> Removing a line is the trash button — a stepper that deletes on the last decrement destroys data with a control the user thinks is safe.</div>
             <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The only stepper in the app.</b> Nowhere else is ±1 the common edit.</div>
@@ -355,11 +355,11 @@
         <div style="font-size: 15px; font-weight: 600">Segmented control</div>
         <div style="font-size: 11px; color: #8b8a82">rows/cards, row shape, density</div>
       </div>
-      <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; padding: 3px; gap: 3px; align-self: flex-start">
+      <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; align-self: flex-start">
         <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; padding: 7px 15px; border-radius: 7px">Rows</div>
         <div style="font-size: 13px; color: #57564f; padding: 7px 15px; border-radius: 7px">Cards</div>
       </div>
-      <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; padding: 3px; gap: 3px; align-self: flex-start">
+      <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; align-self: flex-start">
         <div style="font-size: 12px; font-weight: 600; background: #1d4d33; color: #fff; padding: 6px 12px; border-radius: 6px">one item line</div>
         <div style="font-size: 12px; color: #57564f; padding: 6px 12px; border-radius: 6px">a whole order</div>
       </div>
@@ -609,7 +609,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">14b</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="14b">14b</span>
     <span style="font-size: 20px; font-weight: 600">Buttons</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Four levels, and the level is decided by what the action does — not by how much attention the screen wants. One primary per view, always.</div>
@@ -734,7 +734,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">14c</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="14c">14c</span>
     <span style="font-size: 20px; font-weight: 600">Extending the palette</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">The seven picker colours aren't a selection of nice greens — they sit on a rule, and the rule is what lets an eighth be added without a designer. Values are OKLCH, because the rule is only visible in a perceptual space: in hex these look arbitrary, in OKLCH they line up.</div>
@@ -898,7 +898,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">14d</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="14d">14d</span>
     <span style="font-size: 20px; font-weight: 600">Component API — the options each control needs</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">What each control must accept to serve every place it is used in this design, and nothing beyond that. Seventeen components. The right-hand column names what drives each option, so an option with nothing behind it can be cut.</div>
@@ -1055,7 +1055,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">14e</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="14e">14e</span>
     <span style="font-size: 20px; font-weight: 600">Controls that appear once</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Six controls that exist in exactly one place each, which is why they were missing from 14a. A control used once still has to be specified — a single unspecified control is a whole screen invented.</div>
@@ -1149,7 +1149,7 @@
           <div style="font-size: 15px; font-weight: 600">Sort</div>
           <div style="font-size: 11px; color: #8b8a82">2a, 5a</div>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; padding: 10px 12px; align-self: flex-start">
+        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; align-self: flex-start">
           <span style="font-size: 12px; color: #6b6a63">Sort</span>
           <span style="font-size: 13px; font-weight: 600">Newest first</span>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
@@ -1247,7 +1247,7 @@
           <div style="font-size: 11px; color: #8b8a82">4a</div>
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px">
-          <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; padding: 3px; gap: 3px; align-self: flex-start">
+          <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; align-self: flex-start">
             <div style="padding: 7px 14px; font-size: 13px; color: #57564f">Month</div>
             <div style="padding: 7px 14px; font-size: 13px; background: #1d4d33; color: #fff; border-radius: 7px; font-weight: 600">Year</div>
             <div style="padding: 7px 14px; font-size: 13px; color: #57564f">Custom</div>
@@ -1275,7 +1275,7 @@
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
   <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px">14f</span>
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="14f">14f</span>
     <span style="font-size: 20px; font-weight: 600">Identity marks</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">One component, three kinds. A person is a circle, a vendor is a rounded square of initials, a category is a rounded square holding its icon. The shape carries the type, so a mark is identifiable before its content is read.</div>
