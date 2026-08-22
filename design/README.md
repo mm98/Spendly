@@ -536,12 +536,6 @@ It anchors to the card, not the viewport, opening bottom-right above the footer 
 
 **Photos sit on the canvas, in full colour.** One `#eceae4` band, photos filling it edge to edge with a 1px gap letting the canvas show through as a hairline. No tint, no desaturation, no duotone — colour is what makes an order recognisable at a glance, and the canvas behind gives a white-background product shot an edge.
 
-**Photos in the card grid are a warm monochrome, not full colour.** `grayscale(1) sepia(0.42) saturate(1.15)` lands every photo around H 75–85 at low chroma — the same hue band the neutrals occupy (14c), so a strip of receipts sits inside the palette instead of importing whatever colours the products happened to be. Nine cards then differ by *composition* rather than by hue, which is what made the full-colour grid restless.
-
-**It is a monochrome, not the amber token.** Amber means *informs, never blocks* and belongs to limits and warnings. A photo carries no state, so it must never use the amber surface or ink. The resemblance is that both sit in the same hue band, and that is the point: this treatment is *neutral* in this palette the way grayscale is neutral in a grey one.
-
-**Scope: the browsing grid only.** In the image viewer (12b), on an item photo, and in the receipt preview, photos are never filtered — full colour, no treatment. The cost of monochrome is real (a walnut chair and a black one become the same object) and is accepted only where the card already names the vendor, items and category, and the photo's job is *this is the order with the tall thing in it*.
-
 **Cells divide by the number of photos, never by three.** One photo fills the strip, two halve it, three third it. There is no such thing as an empty cell.
 
 **No photos still renders the band** — `#eceae4` with a centred image glyph in `#b3b1a9` and the label "No photos". Dropping it would make cards different heights in the grid, and an order with nothing photographed is a normal order, not a broken one.
@@ -814,8 +808,6 @@ One overlay serves both order attachments and item photos, and it always knows t
 **Keyboard:** left/right move within the set, Esc closes, focus is trapped and returns to the tile that opened it.
 
 **The overlay is dark in both themes.** Bright chrome around a bright scan leaves nothing to read the image edge against. What changes with the theme is the scrim — `rgba(27,26,23,0.72)` on light, `rgba(10,9,8,0.82)` on dark.
-
-**Thumbnails are toned on light.** `filter: saturate(0.88)` under a warm `rgba(236, 234, 228, 0.08)` scrim, so photos from unrelated vendors read as one surface rather than fighting a palette built on muted greige and one capped chroma. Subtle by design — a washed-out photo of the user's own purchase reads as a bug, which is the failure mode to avoid. **On dark there is no scrim and no desaturation** — the 90% opacity below does the same job from the other direction, and a warm light scrim over a thumbnail on `#1a1815` would lighten it, working against the glare reduction. One treatment per theme; they do not compose. **The viewer strips the treatment** in both themes: full size is for inspecting the actual thing, so it renders at full fidelity. Both numbers are set against placeholders and need tuning against real photography — judge them on five thumbnails from five vendors, where the test is whether the row reads as one surface.
 
 **Two further rules for thumbnails on dark**, and they matter more than they sound: every image thumbnail keeps a `1px #463f37` border, because a white receipt scan with no border floats as a bright edgeless rectangle; and thumbnails render at **90% opacity**, taking the glare off without touching colour accuracy. Full opacity returns on hover and in the viewer, where the image is the subject.
 
