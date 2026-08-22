@@ -665,6 +665,8 @@ Breakpoint: below `900px` the two columns stack; below `640px` the phone layout 
 ### 11a / 11b — Settings, and importing a file
 File: `Settings and import.dc.html` · Code: new pages (`pages/Settings.jsx`, `pages/Import.jsx`)
 
+**Widths.** The 1180px shell drawn around 11a is presentation only — a stand-in for a viewport so the screen reads in context. In the app the shell fills the browser edge to edge (sidebar 248px fixed, content column fluid, per 9a). Inside the content column: section nav **208px fixed**, hairline divider, card column **fluid with a 640px cap**. Past 640px the cards stop growing and the slack falls to their right — a 42px input stretched across 1920px reads as a bug (15a). Below ~900px the section nav becomes a select above the cards and the cap no longer binds.
+
 #### 11a — Settings
 
 **Layout:** the app sidebar, then a page-level settings nav (`208px`, rows `9px 10px`, radius `9px`, active row white on the canvas) and a single column of cards capped at `640px`. The shell holds a fixed composition — do not let the card column compress below its designed width; the page scrolls instead.
@@ -690,6 +692,8 @@ Both values are authored. **Do not derive the ink from the surface at runtime** 
 - **Currency and format.** Currency, number format, date format, week start, with a live preview strip showing the result. Changing the currency does not convert existing amounts — it changes the symbol only, and the card says so.
 - **Defaults for a new order.** Default category and status, plus a "let a scan override these" toggle: on, a receipt naming a vendor whose default category differs wins; off, your default always applies.
 - **Statuses.** A draggable list, each row a colour dot, the name, the order count on it, and an edit control. Editing expands the row inline to a five-swatch colour picker plus the name field — the same in-place pattern as item lines. Draft is built in and cannot be renamed or removed. A status with orders on it cannot be deleted; reassign first.
+
+**Leaving edit mode on a status row.** The row carries **Cancel** and **Save** as visible controls — Esc and Enter are shortcuts, not the only way out, since neither exists on touch. Cancel reverts the row to its stored name and colour; Save commits it. Tapping or clicking another row saves the open one first rather than trapping the user, because a name and a colour cannot be half-valid and there is nothing to warn about. An empty name is the one thing Save refuses, with the field in its error state.
 
 #### 11b — Import
 
@@ -920,6 +924,18 @@ Three needed a product answer and are drawn as proposals in 16c: **See theirs** 
 **There is no Radio component** (14d). Every either/or is a Segmented (2–3 options) or a Combobox (more). Anything drawn as a radio anywhere in the set is a bug.
 
 ---
+
+**16h — reordering by drag.** Two lists reorder — item lines on the order edit screen, and statuses in Settings — using **one component**. A second implementation is where the keyboard path gets dropped.
+
+The handle is **always visible** at `#c3c1b8`, never hover-revealed: an affordance that only appears under the cursor is invisible on touch. Hover darkens it to `#57564f` with the standard `#f0efe9` row hover and `cursor: grab`. **Only the handle initiates a drag** — dragging from anywhere else would prevent text selection and fight the row click (16f) — but the whole row is a valid drop target, and a **4px threshold** stops an imprecise click registering as a zero-distance drag.
+
+Dragging lifts the row out: white, `0 4px 14px rgba(27,26,23,0.08)`, a 0.6° tilt, following the pointer. A **2px `#1d4d33` insertion line** marks the landing place and rows below shift by `transform: translateY` over 150ms — never height or margin, which drops frames on exactly the lists that need reordering. **Move the row, do not clone it**: a ghost left in the old position shows a state the list will never be in.
+
+**Keyboard is the same move.** Tab reaches the handle, Space or Enter picks the row up, ↑ ↓ move it one place per press, Space drops, Esc returns it. Each move announces the new position in a live region.
+
+**Touch:** handle widens to 24px, row to 46px (15b), and the drag starts on **touch-and-hold, 200ms** — immediate would steal every scroll gesture beginning on a handle. **Auto-scroll** within 60px of a list edge, 4→18px per frame, bounded by the list; the page never scrolls.
+
+**Position is stored explicitly** as a contiguous integer per row, rewritten on every reorder — never derived from name, date or amount, because receipt lines carry the order they were printed in. Statuses save on drop (the card is its own save scope); item lines mark the order dirty and wait for the sticky bar. **Dropping in the same place is not a change** — no dirty flag, no toast. A failed save restores the previous order and says so.
 
 ### 17a–17d — Images and files
 File: `Images and files.dc.html` · Code: `components/FileInput.jsx`, `components/fileKinds.js`
@@ -1192,7 +1208,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Layout rules.dc.html` | 15a, 15b, 15c |
 | `Responsive reference.dc.html` | 18a, 18b |
 | `Icon legend.dc.html` | 19a, 19b |
-| `Actions inventory.dc.html` | 16a–16g |
+| `Actions inventory.dc.html` | 16a–16h |
 | `Images and files.dc.html` | 17a–17d |
 | `support.js` | Preview runtime for the files above — not part of the product |
 | `screenshots/` | Full-page capture of each file (see above) |

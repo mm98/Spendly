@@ -30,12 +30,12 @@
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">HOW TO READ THIS</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">"After" is the observable result</b>, because that is what the user judges. <b>toast + Undo</b> means the change applies immediately and is reversible for the toast's life. <b>dialog</b> means it cannot be undone and is confirmed first. Nothing in this document contradicts that pairing — if an action is reversible it does not get a dialog, and if it is not, it does not get a toast.</div>
-    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Global actions live in the shell; page actions do not.</b> Scan receipt and New order sit in the top bar because they belong to the app, not to whatever page is open. That is not an exception to the locked-shell rule — the rule is that a page may not put <i>its own</i> actions up there.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Global actions live in the shell; page actions do not.</b> Scan receipt and New order live in the <b>sidebar</b> — at the top of the nav when expanded, as the capture tile and + on the collapsed rail — because they belong to the app, not to whatever page is open. The top bar carries search and nothing else. The rule is not that global actions get a special place up there; it is that a page may not put <i>its own</i> actions in the shell at all.</div>
   </div>
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 14px; padding: 0 48px 20px">
-  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">SHELL — 9a, 9b, 9c</div>
+  <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">SHELL — 9a–9g</div>
   <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden; max-width: 1320px">
     <div style="display: grid; grid-template-columns: 210px 1fr 1fr; gap: 14px; background: #f2f1eb; padding: 9px 16px; font-size: 10px; letter-spacing: 0.08em; color: #6b6a63">
       <div>CONTROL</div><div>DOES</div><div>AFTER</div>
@@ -999,8 +999,240 @@
   </div>
 </section>
 
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 64px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="16h">16h</span>
+    <span style="font-size: 20px; font-weight: 600">Reordering by drag</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Two lists reorder: item lines on the order edit screen, and statuses in Settings. They use one component and behave identically. Drag is the fast path; the keyboard path beside it is not optional, because drag is unusable without a pointer and awkward on touch inside a scrolling list.</div>
 
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
 
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">1 — RESTING</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Vitra — Nuage Céramique</div>
+              <div style="font-size: 11px; color: #8b8a82">1 × 330,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">330,00</div>
+          </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto — Ambit rail lamp</div>
+              <div style="font-size: 11px; color: #8b8a82">1 × 1.240,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">1.240,00</div>
+          </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay — Palissade chair</div>
+              <div style="font-size: 11px; color: #8b8a82">2 × 890,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">1.780,00</div>
+          </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">The handle is always visible at <b>#c3c1b8</b> — not revealed on hover. A reorder affordance that only appears under the cursor is invisible on touch and invisible to anyone scanning for it.</div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">2 — POINTER OVER THE HANDLE</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Vitra — Nuage Céramique</div>
+              <div style="font-size: 11px; color: #8b8a82">1 × 330,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">330,00</div>
+          </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #f0efe9; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#57564f"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto — Ambit rail lamp</div>
+              <div style="font-size: 11px; color: #8b8a82">1 × 1.240,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">1.240,00</div>
+          </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay — Palissade chair</div>
+              <div style="font-size: 11px; color: #8b8a82">2 × 890,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">1.780,00</div>
+          </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Handle darkens to <b>#57564f</b>, row takes the standard <b>#f0efe9</b> hover, cursor is <b>grab</b>. The whole row is the drop target; only the handle starts a drag, so a click anywhere else still opens the line.</div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">3 — DRAGGING</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Vitra — Nuage Céramique</div>
+              <div style="font-size: 11px; color: #8b8a82">1 × 330,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">330,00</div>
+          </div>
+        <div style="height: 2px; background: #1d4d33; border-radius: 1px; margin: 1px 0"></div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay — Palissade chair</div>
+              <div style="font-size: 11px; color: #8b8a82">2 × 890,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">1.780,00</div>
+          </div>
+        <div style="height: 8px"></div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; padding: 11px 13px; box-shadow: 0 4px 14px rgba(27, 26, 23, 0.08); transform: rotate(-0.6deg)">
+          <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#3d3c36"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+          <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <div style="font-size: 13px; font-weight: 600">Muuto — Ambit rail lamp</div>
+            <div style="font-size: 11px; color: #8b8a82">1 × 1.240,00 kr.</div>
+          </div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">1.240,00</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">The dragged row lifts out — white, <b>0 4px 14px rgba(27,26,23,0.08)</b>, a <b>0.6°</b> tilt, following the pointer. A <b>2px #1d4d33</b> line marks where it lands, and the rows below shift down by its height over <b>150ms</b>. The row it left behind is <b>removed, not greyed</b>: the list you see is the list you will get.</div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">4 — KEYBOARD, THE SAME MOVE</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Vitra — Nuage Céramique</div>
+              <div style="font-size: 11px; color: #8b8a82">1 × 330,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">330,00</div>
+          </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #e7efe8; border-radius: 10px; padding: 11px 13px; outline: 2px solid #1d4d33; outline-offset: 1px">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#1d4d33"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Muuto — Ambit rail lamp</div>
+              <div style="font-size: 11px; color: #8b8a82">1 × 1.240,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">1.240,00</div>
+          </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px;">
+            <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+            <div style="width: 32px; height: 32px; border-radius: 7px; background: repeating-linear-gradient(45deg, #dcdad2 0 6px, #e8e6de 6px 12px); flex: none"></div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <div style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay — Palissade chair</div>
+              <div style="font-size: 11px; color: #8b8a82">2 × 890,00 kr.</div>
+            </div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">1.780,00</div>
+          </div>
+        <div style="display: flex; align-items: center; gap: 8px; background: #1b1a17; border-radius: 8px; padding: 8px 11px; margin-top: 2px">
+          <div style="font-size: 12px; color: #f2f0ea">Moved to position 2 of 4</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Tab reaches the handle. <b>Space</b> or <b>Enter</b> picks the row up, <b>↑ ↓</b> move it one place per press, <b>Space</b> drops it, <b>Esc</b> returns it. Each move announces the new position in a live region — without it a screen-reader user has moved something and been told nothing.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THE SAME COMPONENT IN SETTINGS</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px">
+          <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+          <div style="font-size: 11px; background: #f0efe9; color: #57564f; border-radius: 999px; padding: 4px 10px">Draft</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; color: #8b8a82">3 orders</div>
+        </div>
+        <div style="height: 2px; background: #1d4d33; border-radius: 1px; margin: 1px 0"></div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 11px 13px">
+          <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c3c1b8"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+          <div style="font-size: 11px; background: #e7efe8; color: #1d4d33; border-radius: 999px; padding: 4px 10px">Delivered</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; color: #8b8a82">128 orders</div>
+        </div>
+        <div style="height: 8px"></div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; padding: 11px 13px; box-shadow: 0 4px 14px rgba(27, 26, 23, 0.08); transform: rotate(-0.6deg)">
+          <div style="width: 16px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#3d3c36"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+          <div style="font-size: 11px; background: #f3ede1; color: #7a5c23; border-radius: 999px; padding: 4px 10px">Ordered</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; color: #8b8a82">31 orders</div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">Identical mechanics, different payload. Statuses save on drop because the card is its own save scope; item lines mark the order dirty and wait for the sticky bar.</div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ON TOUCH</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 12px; background: #f7f6f2; border-radius: 10px; padding: 13px">
+          <div style="width: 24px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#8b8a82"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <div style="font-size: 14px; font-weight: 600">Vitra — Nuage Céramique</div>
+            <div style="font-size: 12px; color: #8b8a82">1 × 330,00 kr.</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e6e4dc; border-radius: 10px; padding: 13px; box-shadow: 0 4px 14px rgba(27, 26, 23, 0.08)">
+          <div style="width: 24px; display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 16 16" fill="#3d3c36"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg></div>
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <div style="font-size: 14px; font-weight: 600">Muuto — Ambit rail lamp</div>
+            <div style="font-size: 12px; color: #8b8a82">1 × 1.240,00 kr.</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55">The handle widens to <b>24px</b> and the row to <b>46px</b>, per 15b. Dragging starts on <b>touch-and-hold, 200ms</b> — an immediate drag would steal every scroll gesture that began on a handle. A short haptic tick marks the pickup.</div>
+    </div>
+
+    <div style="width: 430px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SCROLLING WHILE DRAGGING</div>
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 12px; color: #57564f; line-height: 1.6">A list longer than the viewport scrolls when the pointer comes within <b>60px</b> of an edge, accelerating from <b>4px</b> to <b>18px</b> per frame across that band. It stops at the list's own bounds — the page never scrolls, only the list.</div>
+        <div style="height: 1px; background: #f0efe9"></div>
+        <div style="font-size: 12px; color: #57564f; line-height: 1.6"><b style="color: #3d3c36">Position is stored explicitly</b> as an integer per row, contiguous from 0, rewritten on every reorder. It is not derived from name, date or amount — receipt lines have a meaningful order, the one they were printed in, and a sort would destroy it.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One component, two lists.</b> Item lines and statuses differ only in what a row renders and when the change is saved. A second drag implementation is where the keyboard path gets dropped.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Only the handle initiates.</b> Dragging from anywhere else in the row would make text selection impossible and would fight the click that opens the line (16f). The whole row is still a valid drop target.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A 4px threshold before a drag begins.</b> Without it, a slightly imprecise click on the handle registers as a zero-distance drag and the row appears to jump.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Move the row, do not clone it.</b> Rendering a ghost in the old position alongside the lifted row shows the list in a state it will never be in, and the insertion line then has two things to disambiguate.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Animate transform, not layout.</b> Rows shift with <b>transform: translateY</b> over 150ms; animating height or margin on a long list drops frames on exactly the lists that need reordering.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Under <span style="white-space: nowrap">prefers-reduced-motion</span></b> the shift is instant and the tilt is dropped. The insertion line and the shadow stay — they carry the information; the motion is decoration.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Dropping in the same place is not a change.</b> No dirty flag, no save, no toast. A user who picks a row up and puts it back has done nothing.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A failed save restores the previous order</b> and says so. An optimistic reorder that silently reverts on the next load is worse than one that never appeared to work.</div>
+  </div>
+</section>
 </x-dc>
 </body>
 </html>
