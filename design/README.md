@@ -147,7 +147,7 @@ Red — error and destructive. Used for validation that stops a save, and for de
 
 | Role | Size / weight | Notes |
 | --- | --- | --- |
-| Page title | 34–36px / 600 | line-height 1.15, `text-wrap: pretty` |
+| Display | 34–36px / 600 | line-height 1.15, `text-wrap: pretty` — greetings and auth/first-run headings only; **there are no page titles** |
 | Section heading | 20px / 600 | screen titles in the mockups |
 | Card heading | 15–16px / 600 | |
 | Large amount / KPI | 20–28px / 700 | tabular feel; never below 20px |
@@ -461,6 +461,12 @@ File: `Order list.dc.html` · Code: `pages/Orders.jsx`, `pages/AllOrders.jsx`, `
 
 **Above the list:** a search field (full width of the list column, radius `9px`, leading search glyph, placeholder "Search vendor, item, reference or note"), then the active filter chips row: pills radius `999px`, `#e7efe8` fill, `#1d4d33` text, 12px, each with an × ; plus "Clear all" as a text button. Right of that: result count ("128 orders · 486.320 kr."), sort select, and the rows/cards toggle — a segmented control, radius `9px`, `1px solid #dedcd4`, active segment `#1d4d33` on white.
 
+**2i draws the row table at every width** — 1280, 1040, 880 and the 420px card, each at its own width so nothing has to be inferred from a rule.
+
+Columns are **dropped whole, never narrowed until their content wraps**. Items leaves at 1040, category at 880; date, status, amount and vendor never leave; the table itself becomes cards at 640. A column leaves when its information is available elsewhere on the same screen, not when it happens to be narrowest — the facet rail already names the categories in view, but nothing else says when an order was placed, which is why date survives to the phone and category does not.
+
+Three implementation points, and the third is what causes wrapping and overlap: **container queries on the list column**, not media queries on the viewport (the same table sits beside a 260px facet rail and, at 1280, without one — the widths are the table's, not the window's); **one grid definition shared by the header and every row**, declared once as a custom property and overridden per breakpoint; and **every fluid cell needs `min-width: 0`** with `overflow: hidden; text-overflow: ellipsis; white-space: nowrap` on every text cell. Without `min-width: 0` a grid child refuses to shrink below its content and the row overflows instead of truncating. Amount, date and status never wrap and never truncate — give them `white-space: nowrap` and a width fitting the longest value the *format* can produce, not the longest in the sample data.
+
 **Rows view (2b):** header strip `#f2f1eb`, 11px uppercase labels. Column order and alignment, left to right: checkbox `36px`; **vendor `200px` fixed** at `2.1fr`; date `104px`; categories `1.3fr`; items `78px`; status `118px`; amount right-aligned `150px`; actions `40px`. Row padding `12px 14px`, hairline `#e6e4dc` between rows, hover `#f0efe9`.
 
 The fixed vendor column is a deliberate correction: an earlier version placed the vendor inside a variable-height stack with the item preview, so it landed at a different vertical position on every row. Vendor is first, one line, truncated with ellipsis, and always at the same x and y within its row. Any item preview text sits on a second line under it and never displaces it.
@@ -588,6 +594,14 @@ List rows: name 14px/600, order count and total 12px `#8b8a82`, chevron. Search 
 Panel for a selected vendor: the vendor form (name, website, **Also matches** — the alias chips from 5d — city, VAT number, default categories, notes), then a small stats card — spend, orders, average order, saved vs retail as a 2×2 grid of 20px/700 values — plus a sparkline and the "See in Statistics" link. No charts.
 
 **Merge** handles scan duplicates: the panel offers "Merge into…", which opens a picker of similar vendors, then a comparison showing which field wins per row and the resulting order count. It is destructive and confirmed explicitly, naming the number of orders that will move.
+
+**5f draws both tables at 1280, 1040, 880 and 420.** Same rule as 2i — columns are dropped whole, never squeezed until they wrap — but which column goes differs, because a vendor list answers *how much and how recently* while a category list answers *what is the limit and how close is this month*.
+
+**Vendors** drop *saved* first (softest number, and the panel states it exactly for the selected vendor), then *orders* — which folds into the name's second line at 880 rather than vanishing, since a vendor with 24 orders and one with 2 are different kinds of vendor. **Spend and last order never leave**: spend is the sort key, and nothing else on screen says when you last bought from someone.
+
+**Categories** drop the *12-month average* first — context for the limit, not the limit itself. **The limit and this month never leave**; they are the pair the page exists to compare, and a category row without both is just a name. The progress bar is a column, not decoration: it stays at every width, goes full width on the phone, and over the limit fills amber with the overage stated in words beneath — a bar pinned at 100% cannot say how far past it went, and on a phone there is no adjacent column to say it.
+
+The panel is why these tables can shed columns at all: both screens are list-plus-panel, so anything dropped is one click away and still exact. Below 900px the panel becomes a separate view, which is the same change that turns the tables into cards. The identity mark never shrinks and never drops — 26px at every width.
 
 #### 5b — Categories
 
@@ -1168,7 +1182,7 @@ Data needed: orders with item lines and attachments, vendors, categories (with i
 | `02-order-list.png` | 2a–2e |
 | `03-order-create.png` | 3a–3c |
 | `04-statistics.png` | 4a |
-| `05-vendors-categories.png` | 5a–5e |
+| `05-vendors-categories.png` | 5a–5f |
 | `06-states-confirmations.png` | 6a–6f |
 | `07-mobile.png` | 7a |
 | `08-duplicate-alerts.png` | 8a, 8b |

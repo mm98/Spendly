@@ -18,7 +18,7 @@ Why the design is the way it is. Each entry names what was rejected and the reas
 
 ## 2. The top shell holds no actions — not even global ones
 
-Product constraint, not a preference: the shell is locked and shared. It carries the page title and search, and nothing else. Everything the app can do lives inside a page or in the sidebar.
+Product constraint, not a preference: the shell is locked and shared. It carries search and nothing else — no page title either, since the sidebar names the area and a record identifies itself in its own content (9f). Everything the app can do lives inside a page or in the sidebar.
 
 **The rule has no "global action" exception**, and the temptation to invent one is worth naming, because I did: Scan receipt and New order look like they belong to the app rather than to any page, so a shell button for them reads as reasonable. It isn't. The moment the shell accepts one action on that reasoning, the next candidate is also arguably global, and the constraint stops being checkable. Capture is reached from Home and the sidebar, which is where the app's own navigation already lives.
 
