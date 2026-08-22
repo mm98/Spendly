@@ -987,7 +987,7 @@ That 24-hour window is what makes immediate upload safe, and it is also why Undo
 
 Also everywhere: navigating away mid-upload prompts with the count of uploads in flight (the sticky-save prompt alone does not mention files); a duplicate file on one order warns but does not block, as two photos of one item are legitimate; on dark every thumbnail keeps a `1px #463f37` border at 90% opacity, returning to full on hover and in the viewer; and **never a full-screen blocking overlay for an upload** — progress belongs on the tile and the rest of the form stays editable.
 
-**17c — thumbnails in a list row.** An order row's 34px thumbnail shows the **first item's photo**, and falls back to the category IdentityMark rather than a broken-image glyph. The card view's 116px strip shows up to three item photos then "+N". Both count *photos*; the paperclip badge after the reference line counts *attachments on the order*. They are different fields and can legitimately disagree — never derive one from the other.
+**17c — thumbnails in a list row.** An order row's 36px thumbnail shows the **first item's photo**, and falls back to the category IdentityMark rather than a broken-image glyph. The card view's 116px strip shows up to three item photos then "+N". Both count *photos*; the paperclip badge after the reference line counts *attachments on the order*. They are different fields and can legitimately disagree — never derive one from the other.
 
 **17d — what every image position holds.** A closed list of the nine positions in the app, each with its size, what it shows, and what renders when there is nothing there:
 
@@ -995,7 +995,7 @@ Also everywhere: navigating away mid-upload prompts with the count of uploads in
 | --- | --- | --- | --- |
 | Item photo | 44px | goods | IdentityMark in the category colour |
 | Item photo, editing | 80px | goods | dashed slot, "Add photo" |
-| Order thumbnail | 34px | goods | first item's photo, else the mark |
+| Order thumbnail | 36px | goods | first item's photo, else the mark |
 | Card photo strip | 116px | goods | up to 3 on a `#f7f6f2` floor, then "+N" |
 | Attachment tile | 84px | paper | PDF tag bottom-left |
 | Receipt preview | fluid | paper | page 1, zoomable |
