@@ -1987,10 +1987,24 @@
     <span style="font-size: 20px; font-weight: 600">The row table at every width</span>
   </div>
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Four designs, each drawn at its own width, so nothing has to be inferred from a rule. Columns are dropped whole — never narrowed until their content wraps. Every text cell truncates with an ellipsis; nothing in a row is allowed to reach a second line.</div>
+  <div style="max-width: 900px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 11px">
+    <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WHAT THE WIDTHS BELOW MEASURE</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55">Every width on this page is the <b>list column</b>, not the window. The shell takes a fixed amount before the table gets any, and the table cannot see the window — only the column it sits in.</div>
+    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-variant-numeric: tabular-nums">
+      <div style="display: flex; gap: 10px"><span style="width: 120px; color: #8b8a82">sidebar</span><span style="width: 60px; text-align: right">248</span><span style="color: #8b8a82">68 collapsed</span></div>
+      <div style="display: flex; gap: 10px"><span style="width: 120px; color: #8b8a82">page padding</span><span style="width: 60px; text-align: right">96</span><span style="color: #8b8a82">48 each side, 20 on the phone</span></div>
+      <div style="display: flex; gap: 10px"><span style="width: 120px; color: #8b8a82">facet rail + gap</span><span style="width: 60px; text-align: right">284</span><span style="color: #8b8a82">260 + 24, or 0 once it is a drawer</span></div>
+      <div style="height: 1px; background: #dedcd4; margin: 2px 0"></div>
+      <div style="display: flex; gap: 10px"><span style="width: 120px; font-weight: 600">list column</span><span style="width: 60px; text-align: right; font-weight: 600">rest</span><span style="color: #57564f">window − whichever of the above are present</span></div>
+    </div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Which is why the rail collapsing is not a small change.</b> At a <b>1280px</b> window with everything present the column is <b>652px</b> — narrower than the CARDS frame's own breakpoint. Send the rail to a drawer and the same window gives <b>936px</b>, enough for CATEGORY DROPS. One decision about the rail moves the table two breakpoints.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">So do not wire these numbers to the viewport.</b> A container query on the list column is correct at any window width and survives the rail opening, the sidebar collapsing and the panel appearing. A media query is right exactly once, for one configuration, and silently wrong for the rest.</div>
+  </div>
+
 
   <div style="display: flex; flex-direction: column; gap: 10px; width: 1280px">
     <div style="display: flex; align-items: baseline; gap: 10px">
-      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">FULL</div>
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">FULL — LIST COLUMN 1280px</div>
       <div style="font-size: 11px; color: #8b8a82; font-variant-numeric: tabular-nums">1280px</div>
     </div>
     <div style="width: 1280px"><div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
@@ -2060,7 +2074,7 @@
 
   <div style="display: flex; flex-direction: column; gap: 10px; width: 1040px">
     <div style="display: flex; align-items: baseline; gap: 10px">
-      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITEMS DROPS</div>
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">ITEMS DROPS — LIST COLUMN 1040px</div>
       <div style="font-size: 11px; color: #8b8a82; font-variant-numeric: tabular-nums">1040px</div>
     </div>
     <div style="width: 1040px"><div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
@@ -2130,7 +2144,7 @@
 
   <div style="display: flex; flex-direction: column; gap: 10px; width: 880px">
     <div style="display: flex; align-items: baseline; gap: 10px">
-      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">CATEGORY DROPS</div>
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">CATEGORY DROPS — LIST COLUMN 880px</div>
       <div style="font-size: 11px; color: #8b8a82; font-variant-numeric: tabular-nums">880px</div>
     </div>
     <div style="width: 880px"><div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
@@ -2201,7 +2215,7 @@
   <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
     <div style="display: flex; flex-direction: column; gap: 10px">
     <div style="display: flex; align-items: baseline; gap: 10px">
-      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">CARDS</div>
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">CARDS — LIST COLUMN 420px</div>
       <div style="font-size: 11px; color: #8b8a82; font-variant-numeric: tabular-nums">420px</div>
     </div>
     <div style="width: 420px"><div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
@@ -2287,6 +2301,8 @@
 
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A column is a header cell and a body cell, dropped together as one unit.</b> Removing the header while the rows still render the cell puts every cell after it one place to the left, and leaves the row with more children than the grid has columns — the surplus wraps to a second line, which is what a <b>⋮</b> appearing underneath a row means. It is not a wrapping bug in the menu; it is a column-count mismatch upstream of it. Write the drop as one conditional covering both, never two.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The check is arithmetic, not visual.</b> Count the header's children and every row's children at each breakpoint and require them equal. A row that is suddenly twice as tall is the symptom; the count is the cause, and it is the only reliable way to catch a cell landing in the wrong column when both happen to hold short text.</div>
       <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A chip's width follows its label, and that is intended.</b> Decor, Seating and Lighting come out 52, 61 and 62px wide; they are left-aligned in the cell, so their left edges stack and only their right edges differ. <b>Do not force them to a common width</b> — a fixed-width chip either truncates a long category name or pads a short one out with dead space, and the category column is fluid precisely so several chips can sit in it. What must be identical is the chip itself: <b>2px 8px</b>, radius <b>6px</b>, 22px tall, 11px text, matching <a href="#2b">2b</a> and every other chip in the app.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Container queries on the list column, not media queries on the viewport.</b> The same table sits beside a 260px facet rail and, at 1280, without one — the widths above are the <i>table's</i> width, not the window's. Measuring the window gets both cases wrong.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One grid definition, shared by the header and every row</b>, declared once as a custom property and overridden per breakpoint. Repeating it per row is how the header drifts out of alignment the first time a column changes.</div>

@@ -483,6 +483,16 @@ File: `Order list.dc.html` · Code: `pages/Orders.jsx`, `pages/AllOrders.jsx`, `
 
 **A chip's width follows its label.** Chips are left-aligned in the category cell, so their left edges stack and only their right edges differ — that is intended, not a misalignment. Do not force a common width: a fixed-width chip truncates a long category name or pads a short one with dead space, and the category column is fluid precisely so several chips can sit in it. What must be identical is the chip itself — `2px 8px`, radius `6px`, 22px tall, 11px text — everywhere it appears.
 
+**A column is a header cell and a body cell, dropped together.** Removing the header while rows still render the cell shifts every cell after it one place left, and leaves the row with more children than the grid has columns — the surplus wraps to a second line. A `⋮` appearing *underneath* a row is that mismatch, not a wrapping bug in the menu. Write the drop as one conditional covering both, never two.
+
+The check is arithmetic: count the header's children and each row's children at every breakpoint and require them equal. A row that is suddenly twice as tall is the symptom; the count is the cause, and it is the only reliable way to catch a cell in the wrong column when both hold short text.
+
+**Every width in 2i is the list column, not the window.** The shell takes a fixed amount first: sidebar 248 (68 collapsed), page padding 96 (48 each side, 20 on the phone), facet rail plus gap 284 (260 + 24, or 0 once it is a drawer). The list column is whatever remains.
+
+Which is why collapsing the rail is not a small change: at a 1280px window with everything present the column is **652px** — narrower than the CARDS breakpoint — while the same window with the rail as a drawer gives **936px**, enough for CATEGORY DROPS. One decision about the rail moves the table two breakpoints.
+
+So do not wire these numbers to the viewport. A container query on the list column is correct at any window width and survives the rail opening, the sidebar collapsing and a panel appearing; a media query is right for exactly one configuration and silently wrong for the rest.
+
 **2b is the table; 2i shows it narrowing.** Where the two disagree on a column's width, name or position, 2b wins — 2i is a reference illustration of 2b, and the same precedence applies as anywhere else: the screen outranks the illustration of it. What 2i owns is the *drop order*, which 2b cannot express at a single width.
 
 The canonical grid at 1280 is `18px 2.1fr 104px 1.3fr 78px 118px 150px 40px` — checkbox, ORDER, DATE, CATEGORIES, ITEMS, STATUS, TOTAL, menu. **CATEGORIES precedes ITEMS**, and both ORDER and CATEGORIES are fractional: an order carries chips, so that cell has to flex with them, while ITEMS is a fixed 78px because it holds one number.
