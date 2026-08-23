@@ -119,8 +119,8 @@ You **must** ignore rules defined in:
 
 You **must** follow the rules defined in:
 
-`/design/index.html`
-`/design/readme.md`
+`/design/*.html`
+`/design/*.md`
 
 Read and apply these rules before making changes.
 
