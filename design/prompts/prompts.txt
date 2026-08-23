@@ -1,4 +1,5 @@
-Use the branch `claude/order-flows-react-layouts-ntm90q` (this exact branch - no pre- or suffix)
+Use **only** the branch: `claude/order-flows-react-layouts-ntm90q` (this exact branch. no pre- or suffix)
+Confirm you've switched to and use branch: `claude/order-flows-react-layouts-ntm90q` 
 
 *ELEMENT: Vendor > New vendor*
 
