@@ -661,7 +661,7 @@ The crumb row appears only when there is at least one crumb — on the resting p
 
 ---
 
-### 5a–5m — Vendors and categories
+### 5a–5n — Vendors and categories
 File: `Vendors and categories.dc.html`
 
 **Purpose:** the library behind orders. Two records, same three screens each — overview, create, edit — plus one section per control that needs more than a single render to be buildable.
@@ -707,6 +707,12 @@ Five states drawn, and every fill named: `#1d4d33` under · `#d3b98a` up to a pa
 **5l — Merge, and moving orders.** Merge is vendors only: orders move to the target, the source's name and aliases become the target's aliases, the source is deleted. **Moving the aliases is the important half.** The comparison shows which value wins per field — the target keeps its own unless the source has one and it does not.
 
 Categories **reassign** rather than merge: there is nothing to combine, so orders are pointed at another category and it becomes deletable. Neither is reversible, and the dialog says so — write an audit record rather than promise a rollback. Suggested merges are advisory at similarity above 0.85 or an identical VAT number, never automatic at any confidence. The count is the last thing in the button: "Merge 2 orders", not "Confirm".
+
+**5n — Default categories.** A vendor can carry categories it usually gets filed under. They do nothing on the vendor page — they exist to be **offered, never applied**, the moment that vendor is chosen on an order.
+
+Choosing a vendor fills the categories field with its defaults and says where they came from; the order stores what is in the field at save, not a reference to the vendor's list. **It fills only when the field is empty** — if the user or a scan already put a category there, the defaults are offered as an add instead. Changing the vendor clears what the *previous* vendor suggested and nothing else, so track which chips arrived as suggestions; a chip added by hand survives every vendor change.
+
+The notice is one muted line under the field, never amber or red, and it disappears the moment the field is edited. **Editing a saved order does not re-suggest** — touching the vendor field months later must not rewrite categories the user settled at the time. And nothing is learnt automatically: filing three orders under Decor does not make Decor a default.
 
 **5m — Both tables at every width.** Drawn at 1280, 1040, 880 and 420. Columns are dropped whole, never squeezed until they wrap, and which one goes differs by table.
 
@@ -1294,7 +1300,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Order create.dc.html` | 3a, 3b, 3c |
 | `Order statistics.dc.html` | 4a–4c |
 | `Auth and first run.dc.html` | 20a, 20b, 20c, 20d, 20e |
-| `Vendors and categories.dc.html` | 5a–5m |
+| `Vendors and categories.dc.html` | 5a–5n |
 | `States and confirmations.dc.html` | 6a–6f |
 | `Mobile screens.dc.html` | 7a |
 | `Duplicate and alerts.dc.html` | 8a, 8b |

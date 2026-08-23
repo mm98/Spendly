@@ -1726,6 +1726,90 @@
   </div>
 </section>
 
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="5n">5n</span>
+    <span style="font-size: 20px; font-weight: 600">Default categories — set here, offered there</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">A vendor can carry categories it usually gets filed under. They do nothing on the vendor page — they exist to be offered on an order the moment that vendor is chosen. Four states, in the order a user meets them.</div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Offered, never applied.</b> Choosing a vendor fills the categories field with the vendor&rsquo;s defaults and says where they came from. The user can remove any of them before saving, and the order stores what is in the field at save — not a reference to the vendor&rsquo;s list.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">It fills only when the field is empty.</b> If the user already picked categories, or a scan read one, choosing a vendor leaves them alone and offers its defaults as an add — a suggestion the user acts on, not a replacement.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Changing the vendor clears what the previous vendor suggested</b>, and nothing else. Track which chips arrived as suggestions; a chip the user added by hand survives every vendor change. Without that flag the only correct behaviour is to leave everything, which strands the wrong categories on the order.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The suggestion notice is not an error, a warning, or a toast.</b> It is one muted line under the field, and it disappears the moment the user edits the field. It never uses amber or red — nothing is wrong, and nothing is blocked.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Editing a saved order does not re-suggest.</b> Defaults apply to the first vendor choice on a new order. Reopening an order months later and touching the vendor field must not quietly rewrite categories the user settled at the time.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Removing a category from the library does not edit past orders.</b> They keep what they were saved with; only the vendor&rsquo;s default list loses it.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Nothing is learnt automatically.</b> Filing three orders under Decor does not make Decor a default. The list is only ever what the user typed on the vendor page — a guess that edits itself is one nobody can predict.</div>
+  </div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+    <div style="display: flex; flex-direction: column; gap: 8px; width: 400px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">1 — ON THE VENDOR PAGE</div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Default categories</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; min-height: 42px; padding: 7px 12px; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap"><span style="border: 1px solid #dedcd4; border-radius: 6px; padding: 2px 8px; font-size: 12px">Decor ×</span> <span style="border: 1px solid #dedcd4; border-radius: 6px; padding: 2px 8px; font-size: 12px">Storage ×</span><div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg></div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">Offered on a new order from this vendor. Nothing is filed automatically.</div>
+          </div>
+        </div>
+      </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; width: 400px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">2 — NEW ORDER, NO VENDOR YET</div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; min-height: 42px; padding: 0 12px; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap"><span style="color: #8b8a82">Where you bought it</span><div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg></div>
+
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Categories</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; min-height: 42px; padding: 0 12px; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap"><span style="color: #8b8a82">none</span><div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg></div>
+
+          </div>
+        </div>
+      </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; width: 400px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">3 — VENDOR CHOSEN, FIELD WAS EMPTY</div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; min-height: 42px; padding: 0 12px; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap">Indbo Møbler<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg></div>
+
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Categories</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; min-height: 42px; padding: 7px 12px; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap"><span style="border: 1px solid #dedcd4; border-radius: 6px; padding: 2px 8px; font-size: 12px">Decor ×</span> <span style="border: 1px solid #dedcd4; border-radius: 6px; padding: 2px 8px; font-size: 12px">Storage ×</span><div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg></div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">Filled from Indbo Møbler. Remove any that do not fit.</div>
+          </div>
+        </div>
+      </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; width: 400px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">4 — VENDOR CHOSEN, FIELD ALREADY HAD ONE</div>
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Vendor</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; min-height: 42px; padding: 0 12px; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap">Indbo Møbler<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg></div>
+
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Categories</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; min-height: 42px; padding: 7px 12px; font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap"><span style="border: 1px solid #dedcd4; border-radius: 6px; padding: 2px 8px; font-size: 12px">Lighting ×</span><div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg></div>
+
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; background: #f7f6f2; border-radius: 9px; padding: 10px 12px; margin-top: -6px">
+            <div style="font-size: 12px; color: #57564f; line-height: 1.5; flex: 1">Indbo Møbler usually gets Decor and Storage.</div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap; flex: none">Add both</div>
+          </div>
+        </div>
+      </div>
+  </div>
+</section>
 </x-dc>
 </body>
 </html>
