@@ -2,7 +2,7 @@
 
 ## Branch
 
-**Confirm the current working branch with me before starting. Do not make any changes until I have confirmed the branch is correct.**
+**Confirm the current working github branch with me before starting. Do not make any changes until I have confirmed the branch is correct.**
 
 ## Task
 
