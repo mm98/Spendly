@@ -385,6 +385,25 @@
           </div>
         </sc-if>
       </div>
+
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; width: 440px">
+          <div style="display: flex; align-items: baseline; gap: 9px">
+            <div style="font-size: 13px; font-weight: 600">Drill crumb</div>
+            <div style="font-size: 11px; color: #8b8a82">statistics only</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+            <div style="display: flex; align-items: center; gap: 7px; border: 1px solid #dedcd4; color: #3d3c36; border-radius: 999px; box-sizing: border-box; height: 30px; padding: 0 11px; font-size: 12px; font-weight: 600">2026</div>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M6 3l5 5-5 5"></path></svg>
+            <div style="display: flex; align-items: center; gap: 7px; border: 1px solid #dedcd4; color: #3d3c36; border-radius: 999px; box-sizing: border-box; height: 30px; padding: 0 11px; font-size: 12px; font-weight: 600"><span style="width: 20px; height: 20px; border-radius: 6px; background: #e7efe8; color: #1d4d33; display: grid; place-items: center; font-size: 9px; font-weight: 700; flex: none">IM</span>Indbo Møbler</div>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M6 3l5 5-5 5"></path></svg>
+            <div style="display: flex; align-items: center; gap: 7px; background: #1d4d33; color: #fff; border-radius: 999px; box-sizing: border-box; height: 30px; padding: 0 11px; font-size: 12px; font-weight: 600">Decor<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex: none; opacity: 0.7"><path d="M4 4l8 8"></path><path d="M12 4l-8 8"></path></svg></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 9px; border-top: 1px solid #f0efe9; padding-top: 12px">
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Not the filter chip.</b> A filter chip is a value you added and can remove; a crumb is a position in a path, so it is a pill at radius 999px, 30px tall, 12px/600 — larger than a chip and shaped differently on purpose. The two never appear in the same row.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Only the last is solid and carries the ×.</b> Earlier ones are bordered and clickable, truncating the path back to that level.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Height is explicit: <code style="font-size: 11px">box-sizing: border-box; height: 30px; padding: 0 11px</code>.</b> No vertical padding. A crumb may carry a 20px identity mark and the last one has a fill instead of a border — sized by padding, those two make three different heights in one row.</div>
+          </div>
+        </div>
     </div>
   </div>
 </section>
@@ -1124,6 +1143,12 @@
     </div>
 
     <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
+      <div style="font-weight: 600; font-size: 13px">DrillCrumb</div>
+      <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">label</b> · <b style="color: #3d3c36">mark</b> · <b style="color: #3d3c36">isLast</b> · <b style="color: #3d3c36">onTruncate</b> · <b style="color: #3d3c36">onRemove</b></div>
+      <div style="color: #8b8a82; line-height: 1.6">Statistics only. isLast switches the fill and reveals the ×; earlier crumbs get onTruncate instead. mark renders an IdentityMark inline. Not a Chip — different shape, different meaning, never in the same row</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 320px; gap: 14px; padding: 13px 16px; font-size: 12px; border-top: 1px solid #f0efe9; align-items: start">
       <div style="font-weight: 600; font-size: 13px">IdentityMark</div>
       <div style="color: #57564f; line-height: 1.6"><b style="color: #3d3c36">kind</b> (person / vendor / category) · <b style="color: #3d3c36">name</b> · <b style="color: #3d3c36">size</b> (20 / 26 / 34 / 44 / 56) · <b style="color: #3d3c36">icon</b> and <b style="color: #3d3c36">colour</b>, category only</div>
       <div style="color: #8b8a82; line-height: 1.6">Initials and colour are derived inside the component from the canonical <b>name</b>, never passed in — that is what keeps one vendor looking the same in every list. Category is the exception: the user chose its icon and colour, so they are stored on the record. Full rules in 14f</div>
@@ -1459,25 +1484,25 @@
       <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">VENDOR COLOUR AND INITIALS</div>
       <div style="display: flex; flex-direction: column; gap: 9px">
         <div style="display: flex; align-items: center; gap: 11px">
-          <div style="width: 26px; height: 26px; border-radius: 8px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">IM</div>
+          <div style="min-width: 26px; height: 26px; border-radius: 8px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; padding: 0 5px; box-sizing: border-box; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none">IM</div>
           <div style="font-size: 13px; font-weight: 600">Indbo Møbler</div>
           <div style="flex: 1"></div>
           <div style="font-size: 11px; color: #8b8a82">two words → two initials</div>
         </div>
         <div style="display: flex; align-items: center; gap: 11px">
-          <div style="width: 26px; height: 26px; border-radius: 8px; background: #c6d6c9; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">HA</div>
+          <div style="min-width: 26px; height: 26px; border-radius: 8px; background: #c6d6c9; color: #1d4d33; display: grid; place-items: center; padding: 0 5px; box-sizing: border-box; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none">HA</div>
           <div style="font-size: 13px; font-weight: 600">Hay</div>
           <div style="flex: 1"></div>
           <div style="font-size: 11px; color: #8b8a82">one word → first two letters</div>
         </div>
         <div style="display: flex; align-items: center; gap: 11px">
-          <div style="width: 26px; height: 26px; border-radius: 8px; background: #e2d3ae; color: #6b5424; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">FL</div>
+          <div style="min-width: 26px; height: 26px; border-radius: 8px; background: #e2d3ae; color: #6b5424; display: grid; place-items: center; padding: 0 5px; box-sizing: border-box; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none">FL</div>
           <div style="font-size: 13px; font-weight: 600">Ferm Living</div>
           <div style="flex: 1"></div>
           <div style="font-size: 11px; color: #8b8a82">light fill → dark ink</div>
         </div>
         <div style="display: flex; align-items: center; gap: 11px">
-          <div style="width: 26px; height: 26px; border-radius: 8px; background: #8caf97; color: #1b1a17; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">ØR</div>
+          <div style="min-width: 26px; height: 26px; border-radius: 8px; background: #8caf97; color: #1b1a17; display: grid; place-items: center; padding: 0 5px; box-sizing: border-box; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none">ØR</div>
           <div style="font-size: 13px; font-weight: 600">Ørskov &amp; Sønner</div>
           <div style="flex: 1"></div>
           <div style="font-size: 11px; color: #8b8a82">Æ Ø Å kept, "&amp;" skipped</div>
@@ -1512,7 +1537,7 @@
         <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">IN A ROW, AT 26px</div>
         <div style="border: 1px solid #e6e4dc; border-radius: 10px; overflow: hidden">
           <div style="display: flex; align-items: center; gap: 11px; padding: 10px 12px">
-            <div style="width: 26px; height: 26px; border-radius: 8px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">IM</div>
+            <div style="min-width: 26px; height: 26px; border-radius: 8px; background: #dfe6e0; color: #1d4d33; display: grid; place-items: center; padding: 0 5px; box-sizing: border-box; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none">IM</div>
             <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
               <div style="font-size: 13px; font-weight: 600">Indbo Møbler</div>
               <div style="font-size: 11px; color: #8b8a82">64 orders · 142.310 kr.</div>
@@ -1521,7 +1546,7 @@
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
           </div>
           <div style="display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-top: 1px solid #f0efe9; background: #f0efe9">
-            <div style="width: 26px; height: 26px; border-radius: 8px; background: #c6d6c9; color: #1d4d33; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">HA</div>
+            <div style="min-width: 26px; height: 26px; border-radius: 8px; background: #c6d6c9; color: #1d4d33; display: grid; place-items: center; padding: 0 5px; box-sizing: border-box; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none">HA</div>
             <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
               <div style="font-size: 13px; font-weight: 600">Hay</div>
               <div style="font-size: 11px; color: #8b8a82">41 orders · 98.740 kr.</div>
@@ -1530,7 +1555,7 @@
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
           </div>
           <div style="display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-top: 1px solid #f0efe9">
-            <div style="width: 26px; height: 26px; border-radius: 8px; background: #e2d3ae; color: #6b5424; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">FL</div>
+            <div style="min-width: 26px; height: 26px; border-radius: 8px; background: #e2d3ae; color: #6b5424; display: grid; place-items: center; padding: 0 5px; box-sizing: border-box; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none">FL</div>
             <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
               <div style="font-size: 13px; font-weight: 600">Ferm Living</div>
               <div style="font-size: 11px; color: #8b8a82">22 orders · 38.920 kr.</div>

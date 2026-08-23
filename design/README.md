@@ -982,6 +982,12 @@ Gaps, not margins, set on the container: `24px` between columns, `14px` between 
 
 **An overlay's inset is never a free number.** A control positioned over something — a checkbox on a card, a paperclip badge on a photo strip, a PDF tag on an attachment tile — is inset by *the padding of whatever it lines up with*, not by whatever looks about right. A card's checkbox is 16px in because the bulk bar above it has 16px padding, so the two share an x. Identify the element it aligns against, read that element's padding, use that number.
 
+**A number never gets a fixed-width box.** Counts, badges and totals change length with the data — 3 today, 438 next month. Use `min-width` at single-digit size plus horizontal padding, so the shape stays a circle at one digit and grows into a pill at three, with `font-variant-numeric: tabular-nums` so width changes only when the digit *count* does.
+
+**If a growing number leads a label, reserve its column.** A widening pill in a flex row pushes its label sideways and the list stops sharing a left edge. Put it in a fixed-width cell — 40px for a 22px pill, 44px for a 26px one — left-aligned inside. Anything else leading the same list (an icon, a status dot) goes in the same cell. Cap at four digits: past 9999, show `9999+`.
+
+**A list of rows is a grid, not a stack of flex rows.** One `grid-template-columns` on the list, read by every row and its header. A flex row with a `flex: 1` spacer places only some of its cells, so each row negotiates its own widths and a wider count in one row shifts that row alone. `44px minmax(0, 1fr) auto` for a leading mark, a label and an action.
+
 The same arithmetic applies to a **range slider's track**: inset it by half a thumb (`margin: 0 9px` for the 18px thumb — 14px plus a 2px border each side, halved). The thumb is positioned by its centre, so a full-width track puts it 9px outside the container at 0% and 100%, while the amount fields below sit flush. Change the thumb size and the inset changes with it.
 
 **Four column shapes cover the whole set:**
