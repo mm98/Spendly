@@ -537,6 +537,231 @@
     </div>
   </div>
 </section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="15e">15e</span>
+    <span style="font-size: 20px; font-weight: 600">The list toolbar</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">One card above every data list. It has been drawn three times in this set and came out slightly different each time — this is the version all of them now use, so there is nothing left to invent.</div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">THE PARTS, AND THEIR ORDER</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Always the same order, left to right:</b> search (fluid) · spacer · optional segmented control · optional Filters · sort. Search is the only fluid item; everything else is <code style="font-size: 11px">flex: none</code>. Nothing is ever centred, and the sort control is always last.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The card is <code style="font-size: 11px">14px 16px</code>, radius 12, on <code style="font-size: 11px">#fff</code> with the hairline border</b> — the same card every other surface uses. It sits <code style="font-size: 11px">14px</code> above the list, from the column&rsquo;s gap, never a margin.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every control inside is 42px tall with radius 10.</b> Not 9 — the controls sit inside a radius-12 card, and 10 is what reads as concentric. This is the one place the input radius differs from 14a&rsquo;s 9px, and it applies to all of them so nothing looks odd next to anything else.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Set the height explicitly on every one of them: <code style="font-size: 11px">box-sizing: border-box; height: 42px</code>.</b> Do not size any of them by padding. A search field is a text box and gets 42px from <code style="font-size: 11px">10px 12px</code> padding; a segmented control is a 3px-padded track holding two centred cells; a sort control is an icon and two labels in a row. Left to their own padding those come out 42, 36 and 38 — the row then aligns on nothing, and the difference is small enough to look like an accident rather than a bug. <b>This has already happened twice in this set.</b></div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Segment cells fill their track with <code style="font-size: 11px">flex: 1</code> and <code style="font-size: 11px">display: grid; place-items: center</code></b> — no vertical padding of their own. Padding inside a fixed-height track leaves the label sitting above centre while the track itself measures correctly, which is the harder version of the same fault to spot.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Check it by measuring, not by looking.</b> Every direct child of the toolbar must report the same height. One value, no exceptions — a 40px control beside a 42px one is invisible in a screenshot and obvious in a row.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Search always carries the <code style="font-size: 11px">⌘K</code> badge</b>, and gains a round clear button to its left once there is a query. The query renders in <code style="font-size: 11px">#1b1a17</code>, the placeholder in <code style="font-size: 11px">#8b8a82</code> — a placeholder that stays visible beside a typed value is not a thing an input does.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Sort shows its label and its value</b>, not a bare value. &ldquo;Sort&rdquo; in 12px <code style="font-size: 11px">#6b6a63</code>, the value in 13px/600 — a control reading only &ldquo;Newest first&rdquo; is a mystery until opened.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The result count is not in the toolbar.</b> It belongs on the list&rsquo;s own header strip, where it sits beside the thing it counts. Putting it here means it competes with the controls for the same row.</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">EVERY COMBINATION IN USE</div>
+    <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 480px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SEARCH AND SORT — THE MINIMUM</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #57564f">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span style="font-size: 14px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Search categories</span>
+              <div style="flex: 1"></div>
+              <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #e6e4dc; border-radius: 5px; padding: 2px 6px; color: #8b8a82; flex: none">⌘K</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+              <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+              <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Name A–Z</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+            </div>
+          </div>
+        </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 640px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WITH A SEGMENTED CONTROL</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #57564f">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span style="font-size: 14px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Search vendors by name, website or alias</span>
+              <div style="flex: 1"></div>
+              <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #e6e4dc; border-radius: 5px; padding: 2px 6px; color: #8b8a82; flex: none">⌘K</span>
+            </div>
+            <div style="display: flex; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; flex: none">
+              <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; display: grid; place-items: center; border-radius: 7px; padding: 0 14px; white-space: nowrap">Active</div>
+              <div style="font-size: 13px; color: #57564f; display: grid; place-items: center; border-radius: 7px; padding: 0 14px; white-space: nowrap">Archived</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+              <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+              <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Spend ↓</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+            </div>
+          </div>
+        </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 560px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">WITH FILTERS, NONE APPLIED</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #57564f">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span style="font-size: 14px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Search vendor, item, reference or note</span>
+              <div style="flex: 1"></div>
+              <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #e6e4dc; border-radius: 5px; padding: 2px 6px; color: #8b8a82; flex: none">⌘K</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" style="flex: none"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+              <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Filters</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+              <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+              <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Newest first</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+            </div>
+          </div>
+        </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 560px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SEARCHING, WITH FILTERS APPLIED</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #57564f">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span style="font-size: 14px; color: #1b1a17; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">nuage</span>
+              <div style="flex: 1"></div>
+              <div style="width: 20px; height: 20px; border-radius: 50%; background: #f0efe9; display: grid; place-items: center; color: #57564f; flex: none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8"></path><path d="M12 4l-8 8"></path></svg></div>
+              <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #e6e4dc; border-radius: 5px; padding: 2px 6px; color: #8b8a82; flex: none">⌘K</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" style="flex: none"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+              <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Filters</span>
+              <span style="font-size: 11px; font-weight: 700; background: #1d4d33; color: #fff; border-radius: 999px; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 5px; flex: none">3</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+              <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+              <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Newest first</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">WHAT IS OPTIONAL, AND WHEN</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Search and sort are never optional.</b> Every list has both, even a nine-row category list — the sort a list opens with is a setting, so the control that changes it has to exist.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A segmented control appears only for a state that partitions the list</b> and is not a filter: Active/Archived on vendors, rows/cards on orders. Two or three options, never four. If it would take four, it is a sort or a filter.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Filters appears when the list has a facet rail that can be hidden</b>, and carries the count of applied facets as a badge. Zero applied means no badge, not a &ldquo;0&rdquo;. Below 1280px the rail becomes a drawer and this button is how it opens; above that it still exists, because a collapsed rail must be reachable at any width.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Nothing else goes in here.</b> No New button — creating lives in the sidebar. No export, no view menu, no bulk actions: the bulk bar replaces the toolbar in place when a row is ticked, which only works because the two are the same height.</div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">AS THE COLUMN NARROWS</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Search shrinks first, to a 160px floor.</b> It is the fluid item, so it absorbs the change — with <code style="font-size: 11px">min-width: 0</code>, or its placeholder holds the row open and the sort control is pushed out.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Then the sort value drops, leaving the label and chevron.</b> Then the <code style="font-size: 11px">⌘K</code> badge goes — it is a hint, and the shortcut still works.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Below 640px the row becomes search on one line, controls on a second.</b> Controls go full width and split the row evenly — the one place a toolbar control stretches. It never wraps mid-row leaving one control alone on a line.</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">THE SAME TOOLBAR AT FOUR CONTAINER WIDTHS</div>
+    <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 560px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">≥ 720px — EVERYTHING</div>
+            <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; align-items: center; gap: 10px">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #57564f">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <span style="font-size: 14px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Search vendor, item, reference or note</span>
+                <div style="flex: 1"></div>
+                <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #e6e4dc; border-radius: 5px; padding: 2px 6px; color: #8b8a82; flex: none">⌘K</span>
+              </div>
+<div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" style="flex: none"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+                <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Filters</span>
+                <span style="font-size: 11px; font-weight: 700; background: #1d4d33; color: #fff; border-radius: 999px; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 5px; flex: none">3</span>
+              </div>
+<div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+                <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+                <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Newest first</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+              </div>
+              </div>
+            </div>
+          </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 420px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">560–720px — ⌘K GONE</div>
+            <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; align-items: center; gap: 10px">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #57564f">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <span style="font-size: 14px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Search vendor, item, reference…</span>
+                <div style="flex: 1"></div>
+              </div>
+<div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" style="flex: none"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+                <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Filters</span>
+                <span style="font-size: 11px; font-weight: 700; background: #1d4d33; color: #fff; border-radius: 999px; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 5px; flex: none">3</span>
+              </div>
+<div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+                <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+                <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Newest first</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+              </div>
+              </div>
+            </div>
+          </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 340px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">440–560px — SORT VALUE GONE</div>
+            <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; align-items: center; gap: 10px">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #57564f">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <span style="font-size: 14px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Search orders…</span>
+                <div style="flex: 1"></div>
+              </div>
+<div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" style="flex: none"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+                <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Filters</span>
+                <span style="font-size: 11px; font-weight: 700; background: #1d4d33; color: #fff; border-radius: 999px; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 5px; flex: none">3</span>
+              </div>
+<div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: none">
+                <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+              </div>
+              </div>
+            </div>
+          </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 420px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">&lt; 440px — TWO ROWS</div>
+            <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; align-items: center; gap: 10px">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #57564f">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <span style="font-size: 14px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Search orders…</span>
+                <div style="flex: 1"></div>
+              </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: 1; justify-content: center">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#3d3c36" stroke-width="1.5" stroke-linecap="round" style="flex: none"><path d="M2.6 4h10.8"></path><path d="M4.6 8h6.8"></path><path d="M6.6 12h2.8"></path></svg>
+                <span style="font-size: 13px; font-weight: 600; white-space: nowrap">Filters</span>
+                <span style="font-size: 11px; font-weight: 700; background: #1d4d33; color: #fff; border-radius: 999px; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 5px; flex: none">3</span>
+              </div>
+<div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; flex: 1; justify-content: center">
+                <span style="font-size: 12px; color: #6b6a63; white-space: nowrap">Sort</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+              </div>
+              </div>
+            </div>
+          </div>
+    </div>
+    <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+      <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">WHAT MOVED, AND IN WHAT ORDER</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">This is a container query on the list column, not a viewport media query.</b> Collapsing the sidebar widens the column without the viewport changing, and the toolbar has to respond to that — the same rule as the tables in <a href="#15d">15d</a>. The one exception is the two-row break, which coincides with the phone layout.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Things leave in order of how little they cost:</b> the <code style="font-size: 11px">⌘K</code> hint (the shortcut still works) · the sort <em>value</em>, leaving its label and chevron · then the row splits. Nothing is ever narrowed to the point of truncating its own label.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Search keeps its placeholder meaningful as it shrinks.</b> The long placeholder is replaced by a shorter one rather than being ellipsised — &ldquo;Search vendor, item, refe…&rdquo; tells the user less than &ldquo;Search orders…&rdquo; does.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Two rows, never a wrap.</b> Search takes the first row alone; every remaining control shares the second with <code style="font-size: 11px">flex: 1</code>. Letting the row wrap naturally leaves one control stranded on a line of its own at some widths, which looks like a bug because it is one.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">This is the only place a toolbar control stretches.</b> Everywhere else they are <code style="font-size: 11px">flex: none</code> at their intrinsic width — see the never-full-width list in <a href="#15a">15a</a>. On the second row they are thumb targets, so the room is worth having.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Below 640px Filters opens a bottom sheet, not a drawer</b>, matching the phone filter pattern. The button itself does not change; only what it opens does.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every control stays 42px at every width.</b> Nothing shrinks vertically — on touch that is already at the 44px floor, so taking height out is the one change that would break usability rather than just looks.</div>
+    </div>
+  </div>
+</section>
 </x-dc>
 </body>
 </html>
