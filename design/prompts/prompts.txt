@@ -120,6 +120,7 @@ You **must** ignore rules defined in:
 You **must** follow the rules defined in:
 
 `/design/*.html`
+`/design/*.dc.html`
 `/design/*.md`
 
 Read and apply these rules before making changes.
