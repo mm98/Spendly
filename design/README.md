@@ -634,7 +634,7 @@ Scan failure is in 6e: the file is kept, the message says what failed, and the p
 
 ---
 
-### 4a — Statistics
+### 4a–4c — Statistics
 File: `Order statistics.dc.html` · Code: `pages/Stats.jsx`, `components/Chart.jsx`, `components/Viz.jsx`, `components/DashboardCards.jsx`
 
 **Purpose:** the one place for aggregate numbers, with a drill path down to the orders behind any slice.
@@ -650,6 +650,12 @@ File: `Order statistics.dc.html` · Code: `pages/Stats.jsx`, `components/Chart.j
 - **Vendor table:** top vendors with spend, orders, average, and a 60×20 sparkline.
 
 **Drill-down:** clicking any bar, slice or table row pushes a crumb onto the breadcrumb (`2026 ▸ Decor ▸ August`) and re-filters every card on the page to that slice. The final level is a list of the matching orders, from which a row opens the order. Crumbs are individually removable, and the state is URL-encoded so a drilled view can be linked.
+
+**4b — arriving from a "See in Statistics" link.** Every vendor and category panel carries one, and it opens this page with that record applied as a crumb — the same state as clicking its bar here, so one code path rather than two. **The link is a URL**, `/statistics?period=2026&crumbs=vendor:indbo`, so it is linkable, survives reload, and browser back returns to the panel.
+
+The crumb row appears only when there is at least one crumb — on the resting page it is absent, not an empty strip. **Every card re-filters, including the KPIs**; a card that cannot express the filter is removed rather than left showing unfiltered numbers. KPI deltas change what they compare against: previous period at rest, the parent inside a crumb ("29% of the year", "+91% vs all vendors"). The order table at the bottom always holds the orders behind exactly what is shown, using the order list's row component unchanged — it is why a user trusts the chart above it. Period and crumbs are independent: switching to Quarter narrows the same vendor rather than dropping it.
+
+**4c — two crumbs deep.** Crumbs are an ordered stack, each narrowing what the last left. **Only the last carries an ×**; earlier ones are clickable to truncate back to that level. Removing a middle crumb keeps the ones after it if still valid and drops those that are not. Drill order is not fixed — vendor then category and the reverse reach the same set, and the row reads in the order the user drilled. **Cards can appear as you drill**, not only disappear: two crumbs in, a category limit becomes meaningful, so the limit-by-month card exists there and not at rest. Depth is capped at three; beyond that the order table is the better answer. The row wraps rather than scrolling, and never truncates a record's name.
 
 **Statistics is the only place with charts.** Vendor and category panels answer the narrow, single-record question locally (see 5a/5b); each carries a "See in Statistics" link that opens this page with the corresponding crumb already applied. Do not duplicate chart cards into those pages — one source, so the numbers cannot disagree.
 
@@ -1286,7 +1292,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Order editing layouts.dc.html` | 1a, 1b, 1c, 1d |
 | `Order list.dc.html` | 2a–2e, 2g–2i |
 | `Order create.dc.html` | 3a, 3b, 3c |
-| `Order statistics.dc.html` | 4a |
+| `Order statistics.dc.html` | 4a–4c |
 | `Auth and first run.dc.html` | 20a, 20b, 20c, 20d, 20e |
 | `Vendors and categories.dc.html` | 5a–5m |
 | `States and confirmations.dc.html` | 6a–6f |
