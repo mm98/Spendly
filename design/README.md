@@ -329,7 +329,7 @@ Both steps are skippable and say so. Skip keeps the locale currency and creates 
 
 ---
 
-### 9a–9g — Navigation shell
+### 9a–9h — Navigation shell
 File: `Navigation shell.dc.html` · Code: `App.jsx`, `components/Nav.jsx`, `components/Shell.jsx`
 
 **Purpose:** the frame every page renders inside.
@@ -1294,7 +1294,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `BEHAVIOUR.md` | Edge cases, precise rules, open questions |
 | `index.html` | Linked overview of everything below — start here |
 | `Home.dc.html` | 10a |
-| `Navigation shell.dc.html` | 9a–9g |
+| `Navigation shell.dc.html` | 9a–9h |
 | `Order editing layouts.dc.html` | 1a, 1b, 1c, 1d |
 | `Order list.dc.html` | 2a–2e, 2g–2i |
 | `Order create.dc.html` | 3a, 3b, 3c |
@@ -1302,7 +1302,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Auth and first run.dc.html` | 20a, 20b, 20c, 20d, 20e |
 | `Vendors and categories.dc.html` | 5a–5n |
 | `States and confirmations.dc.html` | 6a–6f |
-| `Mobile screens.dc.html` | 7a |
+| `Mobile screens.dc.html` | 7a, 7b |
 | `Duplicate and alerts.dc.html` | 8a, 8b |
 | `Settings and import.dc.html` | 11a–11d |
 | `Dark mode and image viewer.dc.html` | 12a, 12b |

@@ -1142,6 +1142,108 @@
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The collapsed rail (9b) has the same three tiers</b> and the same rules — it is shorter per row, so it reaches each threshold later, but nothing about the behaviour differs.</div>
   </div>
 </section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="9h">9h</span>
+    <span style="font-size: 20px; font-weight: 600">The shell below 1280px and below 640px</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Two breakpoints change the shell itself, and they are the only two that do. At <b>1280px</b> the sidebar collapses to the icon rail; at <b>640px</b> it leaves the side of the screen entirely and becomes a tab bar. Frames are drawn at 768px and 390px, but the rule is the threshold, not the device.</div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Below 1280px is the collapsed rail, not a new layout.</b> Same three zones, same order, labels become tooltips. Saved views drop out — they are the one group that cannot be told apart as 19px glyphs. Everything else survives one-to-one.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Below 640px the sidebar is a bottom tab bar, not a drawer.</b> Four destinations — Home, Orders, Statistics, More — with Settings, the theme toggle, the account and saved views inside More. A hamburger drawer puts the most-used navigation two taps away on the device where capture matters most.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Scan receipt becomes the floating action button</b> and is the only FAB in the app. It leaves the nav because the phone is the camera: it is the one action that must be reachable from every screen without a tab change. 56px, bottom right, clear of the tab bar.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The top bar keeps only search</b> at every width. It never gains a title, a hamburger or a back arrow — the tab bar says where you are and the browser says where you came from.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The tab bar and the FAB do not scroll.</b> Content scrolls beneath them, with bottom padding equal to the bar height plus the safe-area inset so the last row is never trapped under it.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">These two are <em>viewport</em> breakpoints, and the only ones in the app.</b> Everything else — which table columns are present, how a toolbar wraps — is a <em>container</em> query on the element itself. Collapsing the sidebar widens the content column without the viewport changing at all, and a table must respond to that.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Use <code style="font-size: 11px">100dvh</code>, not <code style="font-size: 11px">100vh</code>.</b> On a phone the browser toolbar makes <code style="font-size: 11px">vh</code> wrong by exactly the height of the thing you are trying to sit above.</div>
+  </div>
+
+  <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 768px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">< 1280px — THE COLLAPSED RAIL</div>
+        <div style="background: #eceae4; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden; height: 520px; display: flex">
+          <div style="width: 68px; background: #14261c; padding: 12px 0; display: flex; flex-direction: column; align-items: center; gap: 4px; flex: none">
+        <div style="width: 26px; height: 26px; border-radius: 8px; background: #1d4d33; color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; margin-bottom: 8px">S</div>
+        <div style="width: 44px; height: 40px; border-radius: 10px; color: #c3d2c8; display: grid; place-items: center; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
+          <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 12.8V6.4l5.4-3.6 5.4 3.6v6.4z"></path><path d="M6.4 12.8V8.8h3.2v4"></path></svg>
+        </div>
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: #1d4d33; color: #fff; display: grid; place-items: center; cursor: pointer">
+          <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 5.4h2.1l1-1.4h4.2l1 1.4h2.1v7.2H2.8z"></path><circle cx="8" cy="8.9" r="2.1"></circle></svg>
+        </div>
+        <div style="width: 44px; height: 40px; border-radius: 10px; color: #c3d2c8; display: grid; place-items: center; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
+          <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
+        </div>
+        <div style="width: 28px; height: 1px; background: rgba(255,255,255,0.09); margin: 3px 0"></div>
+        <div style="width: 44px; height: 40px; border-radius: 10px; background: #1f3d2c; color: #fff; display: grid; place-items: center; cursor: pointer">
+          <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 4.4h10.4v8.4H2.8z"></path><path d="M5.6 4.4V2.9h4.8v1.5"></path><path d="M5.6 7.6h4.8"></path><path d="M5.6 10h3.2"></path></svg>
+        </div>
+        <div style="width: 44px; height: 40px; border-radius: 10px; color: #c3d2c8; display: grid; place-items: center; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
+          <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 6.4h10.4v6.4H2.8z"></path><path d="M2.2 6.4l1.2-3h9.2l1.2 3"></path><path d="M6.4 12.8V9.2h3.2v3.6"></path></svg>
+        </div>
+        <div style="width: 44px; height: 40px; border-radius: 10px; color: #c3d2c8; display: grid; place-items: center; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
+          <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="2.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="8.6" y="2.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="2.6" y="8.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="8.6" y="8.6" width="4.8" height="4.8" rx="1.2"></rect></svg>
+        </div>
+        <div style="width: 44px; height: 40px; border-radius: 10px; color: #c3d2c8; display: grid; place-items: center; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
+          <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 11.4l3.4-3.4 2.4 2.1 4.6-4.5"></path><path d="M9.8 5.6h3.4V9"></path></svg>
+        </div>
+        <div style="flex: 1; min-height: 16px"></div>
+        <div style="width: 44px; height: 40px; border-radius: 10px; color: #c3d2c8; display: grid; place-items: center; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
+          <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.2"></circle><path d="M8 2.4v1.6"></path><path d="M8 12v1.6"></path><path d="M2.4 8h1.6"></path><path d="M12 8h1.6"></path><path d="M4.1 4.1l1.1 1.1"></path><path d="M10.8 10.8l1.1 1.1"></path><path d="M11.9 4.1l-1.1 1.1"></path><path d="M5.2 10.8l-1.1 1.1"></path></svg>
+        </div>
+        <div style="width: 44px; height: 40px; border-radius: 10px; color: #c3d2c8; display: grid; place-items: center; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
+          <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.6a5.4 5.4 0 1 0 5.4 5.4A4.2 4.2 0 0 1 8 2.6z"></path></svg>
+        </div>
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: #4f7f63; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none; margin-top: 4px; cursor: pointer">MM</div>
+      </div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fff; border-bottom: 1px solid #e6e4dc">
+            <div style="flex: 1; display: flex; align-items: center; gap: 9px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #8b8a82; min-width: 0">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span style="font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Search</span>
+            </div>
+          </div>
+            <div style="flex: 1; min-height: 0px; margin: 16px; border: 1px dashed #dcdad2; border-radius: 12px; display: grid; place-items: center; color: #b3b1a9; font-size: 12px">The page renders here</div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 390px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">< 640px — THE TAB BAR</div>
+        <div style="background: #eceae4; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden; height: 520px; display: flex; flex-direction: column; position: relative">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fff; border-bottom: 1px solid #e6e4dc">
+            <div style="flex: 1; display: flex; align-items: center; gap: 9px; border: 1px solid #dedcd4; border-radius: 10px; box-sizing: border-box; height: 42px; padding: 0 12px; color: #8b8a82; min-width: 0">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex: none"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span style="font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Search</span>
+            </div>
+          </div>
+          <div style="flex: 1; min-height: 0px; margin: 16px; border: 1px dashed #dcdad2; border-radius: 12px; display: grid; place-items: center; color: #b3b1a9; font-size: 12px">The page renders here</div>
+          <div style="position: absolute; right: 16px; bottom: 78px; width: 56px; height: 56px; border-radius: 50%; background: #1d4d33; color: #fff; display: grid; place-items: center; box-shadow: 0 8px 22px rgba(20, 38, 28, 0.32)"><svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 5.4h2.1l1-1.4h4.2l1 1.4h2.1v7.2H2.8z"></path><circle cx="8" cy="8.9" r="2.1"></circle></svg></div>
+      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg></div>
+          <div style="background: #fff; border-top: 1px solid #e6e4dc; display: flex; align-items: stretch; padding: 0 4px 6px">
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #8b8a82; padding: 8px 0">
+              <svg width="21" height="21" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 12.8V6.4l5.4-3.6 5.4 3.6v6.4z"></path><path d="M6.4 12.8V8.8h3.2v4"></path></svg>
+              <div style="font-size: 10px; font-weight: 400">Home</div>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #1d4d33; padding: 8px 0">
+              
+              <div style="font-size: 10px; font-weight: 600">Orders</div>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #8b8a82; padding: 8px 0">
+              <svg width="21" height="21" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 11.4l3.4-3.4 2.4 2.1 4.6-4.5"></path><path d="M9.8 5.6h3.4V9"></path></svg>
+              <div style="font-size: 10px; font-weight: 400">Statistics</div>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #8b8a82; padding: 8px 0">
+              <svg width="21" height="21" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5.4" r="2.4"></circle><path d="M3.4 13c0-2.4 2-4.2 4.6-4.2S12.6 10.6 12.6 13"></path></svg>
+              <div style="font-size: 10px">More</div>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+</section>
 </x-dc>
 </body>
 </html>
