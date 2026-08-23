@@ -25,7 +25,11 @@
     <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="11a">11a</span>
     <span style="font-size: 20px; font-weight: 600">Settings</span>
   </div>
-  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Five sections, one per thing that changes how the rest of the app behaves. A left nav inside the page, a single column of cards on the right. Nothing here saves by itself: each card has its own save, and only the card you touched goes dirty.</div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Six sections, one per thing that changes how the rest of the app behaves. A left nav inside the page, cards in the middle, and the account and data cards in a rail on the right. Nothing here saves by itself: each card has its own save, and only the card you touched goes dirty.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The save bar is sticky to the bottom of the content column.</b> Each card saves on its own, so the bar names which one is dirty — and with six sections the dirty card is usually scrolled off screen by the time you want to save it. A bar that scrolls away leaves the only exit from an edit somewhere the user has to hunt for. It appears when something is dirty and is absent otherwise, matching the edit screen in 1d.</div>
+  </div>
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTE ON THE FRAME</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55">The <b style="color: #3d3c36">1180px shell below is presentation only</b> — a stand-in for a viewport, so the screen reads in context on this page. It is not a width the app has. In the app the shell fills the browser edge to edge: sidebar 248px fixed, content column fluid, exactly as <a href="Navigation shell.dc.html#9a">9a</a> defines it.</div>
@@ -143,10 +147,14 @@
         <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63; padding: 0 10px 10px">SETTINGS</div>
         <div style="font-size: 13px; font-weight: 600; color: #1b1a17; padding: 9px 10px; border-radius: 9px; background: #fff">Account and profile</div>
         <div style="font-size: 13px; color: #57564f; padding: 9px 10px; border-radius: 9px">Appearance</div>
-        <div style="font-size: 13px; color: #57564f; padding: 9px 10px; border-radius: 9px">Currency and format</div>
+        <div style="font-size: 13px; color: #57564f; padding: 9px 10px; border-radius: 9px">Money, dates and times</div>
         <div style="font-size: 13px; color: #57564f; padding: 9px 10px; border-radius: 9px">Defaults</div>
+        <div style="font-size: 13px; color: #57564f; padding: 9px 10px; border-radius: 9px">Lists</div>
         <div style="font-size: 13px; color: #57564f; padding: 9px 10px; border-radius: 9px">Statuses</div>
+        <div style="height: 1px; background: #dedcd4; margin: 7px 10px"></div>
         <div style="font-size: 13px; color: #57564f; padding: 9px 10px; border-radius: 9px">Import</div>
+        <div style="font-size: 13px; color: #57564f; padding: 9px 10px; border-radius: 9px">Demo data</div>
+        <div style="font-size: 13px; color: #57564f; padding: 9px 10px; border-radius: 9px">This build</div>
       </div>
 
       <div style="flex: 1; min-width: 0; padding: 28px; display: flex; flex-direction: column; gap: 14px; max-width: 640px">
@@ -176,7 +184,7 @@
           <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #dedcd4; padding-top: 13px">
             <div style="font-size: 13px; color: #57564f">Password last changed 4 months ago.</div>
             <div style="flex: 1"></div>
-            <div style="font-size: 12px; font-weight: 600; color: #1d4d33; border: 1px solid #dedcd4; border-radius: 8px; padding: 7px 11px">Change password</div>
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33; border: 1px solid #dedcd4; border-radius: 8px; padding: 7px 11px; white-space: nowrap">Change password</div>
           </div>
         </div>
 
@@ -217,58 +225,47 @@
           </div>
           <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #dedcd4; padding-top: 13px">
             <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Row density</div>
-            <div style="display: inline-flex; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; align-self: flex-start">
-              <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; padding: 0 14px; display: grid; place-items: center; border-radius: 7px">Comfortable</div>
-              <div style="font-size: 13px; color: #57564f; padding: 6px 14px; border-radius: 7px">Compact</div>
+            <div style="display: flex; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; max-width: 280px">
+              <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; display: grid; place-items: center; border-radius: 7px; flex: 1">Comfortable</div>
+              <div style="font-size: 13px; color: #57564f; display: grid; place-items: center; border-radius: 7px; flex: 1">Compact</div>
             </div>
             <div style="font-size: 11px; color: #8b8a82">Compact fits more rows on screen.</div>
           </div>
         </div>
 
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
-          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">CURRENCY AND FORMAT</div>
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">MONEY, DATES AND TIMES</div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
             <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Currency</div>
-              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">DKK — Danish krone<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            </div>
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Currency</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px; font-size: 14px; display: flex; align-items: center; max-width: 280px">Danish krone (kr.)<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">The currency all amounts are shown in. This renames your figures. It does not convert them.</div>
+          </div>
             <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Number format</div>
-              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">1.234,50<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Date format</div>
-              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">12 Aug 2026<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Week starts on</div>
-              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">Monday<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            </div>
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Date and time format</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px; font-size: 14px; display: flex; align-items: center; max-width: 280px">Danish (18.08.2026, 14.26)<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">How dates, times and numbers are written. Times always show in your own clock.</div>
+          </div>
           </div>
           <div style="background: #f7f6f2; border-radius: 9px; padding: 11px 13px; display: flex; align-items: center; gap: 12px">
             <div style="font-size: 11px; letter-spacing: 0.1em; color: #6b6a63">PREVIEW</div>
-            <div style="font-size: 15px; font-weight: 700">1.234,50 kr.</div>
+            <div style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">1.234,50 kr.</div>
             <div style="width: 1px; height: 16px; background: #dcdad2"></div>
-            <div style="font-size: 13px; color: #57564f">12 Aug 2026</div>
+            <div style="font-size: 13px; color: #57564f">18.08.2026, 14.26</div>
           </div>
-          <div style="font-size: 11px; color: #8b8a82">Changing the currency does not convert existing amounts. It changes the symbol only — amounts already recorded stay as they were.</div>
         </div>
 
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
           <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DEFAULTS FOR A NEW ORDER</div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
             <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Category</div>
-              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 9px 12px; font-size: 14px; display: flex; align-items: center; gap: 9px">
-                <span style="width: 22px; height: 22px; border-radius: 7px; background: #1d4d33; display: grid; place-items: center; color: #fff; flex: none"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h3l-.6 2.4A4 4 0 0 1 11.5 9c0 2.5-1.6 4.5-3.5 4.5S4.5 11.5 4.5 9a4 4 0 0 1 2.6-4.1z"></path></svg></span>
-                Decor
-                <div style="flex: 1"></div>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
-              </div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Kind</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px; font-size: 14px; display: flex; align-items: center; max-width: 280px">Expense<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">What the Kind field opens with on a new order.</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
               <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Status</div>
-              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">Ordered<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+              <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px; font-size: 14px; display: flex; align-items: center; max-width: 280px">Ordered<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
             </div>
           </div>
           <div style="display: flex; align-items: flex-start; gap: 11px; border-top: 1px solid #dedcd4; padding-top: 13px">
@@ -281,6 +278,33 @@
             </div>
           </div>
         </div>
+
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">LISTS</div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Rows per page</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px; display: flex; align-items: center; gap: 8px">
+              <span style="font-size: 14px; font-variant-numeric: tabular-nums">10</span>
+              <span style="font-size: 13px; color: #8b8a82">rows</span>
+              <div style="flex: 1"></div>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+            </div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">How many rows the order, vendor and category lists show before Load more.</div>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Sort orders by</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">Newest first<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">The order All orders opens with.</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Sort vendors and categories by</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">Name, A to Z<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">What All vendors and All categories open sorted by. Both lists, one order.</div>
+          </div>
+        </div>
+
+        
 
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
           <div style="display: flex; align-items: center">
@@ -333,21 +357,43 @@
               <div style="width: 26px; height: 26px; border-radius: 8px; background: #f7f6f2; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5h9.2"></path><path d="M4.6 5v8h6.8V5"></path><path d="M6.4 3h3.2"></path></svg></div>
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #dedcd4; padding-top: 13px">
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 9px; border-top: 1px solid #dedcd4; padding-top: 13px">
             <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #1d4d33; border: 1px solid #dedcd4; border-radius: 8px; padding: 7px 11px">
               <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
               Add a status
             </div>
-            <div style="font-size: 11px; color: #8b8a82">A status with orders on it cannot be deleted — reassign them first. Editing a row gives it Cancel and Save; Esc cancels and Enter saves, and tapping another row saves the open one first. Its colour is one of five pairs, shown as the pill the list will draw.</div>
+            <div style="font-size: 11px; color: #8b8a82">A status with orders on it cannot be deleted — reassign them first. Its colour is one of five pairs, shown as the pill the list will draw.</div>
+            
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 18px; box-shadow: 0 4px 14px rgba(27, 26, 23, 0.08)">
+        
+
+        
+
+        
+
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DEMO DATA</div>
+          <div style="font-size: 13px; color: #57564f; line-height: 1.55">Fill the account with made-up orders so the lists and charts have something to show. Each fill creates a new, different set.</div>
+          <div style="display: grid; place-items: center; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #1d4d33">FILL WITH DEMO DATA</div>
+        </div>
+
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THIS BUILD</div>
+          <div style="font-size: 13px; color: #57564f; line-height: 1.55">You're running the version installed on <b style="color: #1b1a17">18.08.2026, 09.14</b> <span style="color: #8b8a82">(a3f91c2)</span>.</div>
+          <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">Press the button below to check online for a newer version.</div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #1d4d33"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>CHECK FOR UPDATES</div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 18px; box-shadow: 0 4px 14px rgba(27, 26, 23, 0.08); position: sticky; bottom: 0">
           <div style="font-size: 13px; color: #57564f">Unsaved changes in Statuses</div>
           <div style="flex: 1"></div>
           <div style="font-size: 13px; font-weight: 600; color: #57564f; padding: 8px 13px">Discard</div>
           <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 9px; padding: 9px 16px">Save</div>
         </div>
+      
+
 
       </div>
     </div>
@@ -355,346 +401,7 @@
   </div>
 </section>
 
-<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
-  <div style="display: flex; align-items: baseline; gap: 12px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="11c">11c</span>
-    <span style="font-size: 20px; font-weight: 600">Settings in dark mode</span>
-  </div>
-  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">The same screen as 11a with 12a's token map applied. Every value here is a substitution, not a redesign — the section nav, the card column, the field geometry and the copy are identical.</div>
 
-  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
-    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
-    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The section nav's selected row is the card surface, not an accent.</b> On light it is <b>#fff</b> against the <b>#eceae4</b> canvas; on dark it is <b>#221f1b</b> against <b>#1a1815</b>. The row reads as selected because it is the same material as the card it opens — elevation, not colour. That is why it lifts on dark instead of darkening.</div>
-    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The theme cards are the one thing that does not invert.</b> The Light preview keeps drawing a light interface and the Dark preview a dark one, in both themes — a preview showing the theme it sits in rather than the theme it selects is useless. Only its frame and label follow the surrounding tokens.</div>
-    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Status pills keep their pair token.</b> Each of the five stores a surface and an ink; on dark both halves swap for their dark counterparts (sand <b>#f3ede1 / #7a5c23</b> becomes <b>#2c2418 / #d9b166</b>). Never derive the ink from the surface at runtime — see 14c on chroma falling as lightness rises.</div>
-    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The Change password row's border-top and every card divider</b> move from <b>#dedcd4</b> to <b>#463f37</b>, not to a lighter grey. A hairline on dark still needs to be darker than the surface it divides, or it reads as a highlight.</div>
-    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The sidebar is unchanged</b> apart from Scan receipt lifting to <b>#5d9b76</b>, per 12a. It reads no theme token.</div>
-  </div>
-
-  <div style="background: #1a1815; border-radius: 14px; padding: 20px; overflow-x: auto">
-<div style="display: flex; gap: 0; background: #221f1b; border: 1px solid #38332c; border-radius: 12px; overflow: hidden; width: 1180px; min-width: 1180px">
-    <div style="width: 248px; background: #14261c; display: flex; flex-direction: column; gap: 4px; padding: 20px 14px; flex: none">
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; margin-bottom: 6px">
-        <div style="width: 26px; height: 26px; border-radius: 8px; background: #5d9b76; color: #14261c; display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; margin: -4px -4.5px">S</div>
-        <div style="font-size: 15px; font-weight: 600; color: #fff">Spendly</div>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 12.8V6.4l5.4-3.6 5.4 3.6v6.4z"></path><path d="M6.4 12.8V8.8h3.2v4"></path></svg>
-        <div style="font-size: 14px">Home</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; background: #5d9b76; color: #14261c; cursor: pointer; margin-bottom: 2px" style-hover="background: #2f7a51">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 5.4h2.1l1-1.4h4.2l1 1.4h2.1v7.2H2.8z"></path><circle cx="8" cy="8.9" r="2.1"></circle></svg>
-        <div style="font-size: 14px; font-weight: 600">Scan receipt</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
-        <div style="font-size: 14px">New order</div>
-      </div>
-      <div style="font-size: 10px; letter-spacing: 0.14em; color: #7d9186; padding: 16px 8px 4px">ORDERS</div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 4.4h10.4v8.4H2.8z"></path><path d="M5.6 4.4V2.9h4.8v1.5"></path><path d="M5.6 7.6h4.8"></path><path d="M5.6 10h3.2"></path></svg>
-        <div style="font-size: 14px; font-weight: 600">All orders</div>
-        <div style="flex: 1"></div>
-        <div style="font-size: 12px; color: #a9bdb1">248</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.2"></circle><path d="M8 5.2V8l2 1.4"></path></svg>
-        <div style="font-size: 14px">Awaiting delivery</div>
-        <div style="flex: 1"></div>
-        <div style="font-size: 12px; color: #7d9186">31</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 2.9h7.6v10.2L8 10.6l-3.8 2.5z"></path></svg>
-        <div style="font-size: 14px">Missing receipt</div>
-        <div style="flex: 1"></div>
-        <div style="font-size: 12px; color: #d3b98a">12</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg>
-        <div style="font-size: 14px">This quarter</div>
-        <div style="flex: 1"></div>
-        <div style="font-size: 12px; color: #7d9186">64</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 7px 10px; border-radius: 9px">
-        <div style="width: 17px; flex: none"></div>
-        <div style="font-size: 12px; color: #7d9186">2 more in Orders</div>
-      </div>
-
-      <div style="font-size: 10px; letter-spacing: 0.14em; color: #7d9186; padding: 16px 8px 4px">LIBRARY</div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 12.8V6.4l5.4-3.6 5.4 3.6v6.4z"></path><path d="M6.4 12.8V8.8h3.2v4"></path></svg>
-        <div style="font-size: 14px">Vendors</div>
-        <div style="flex: 1"></div>
-        <div style="font-size: 12px; color: #7d9186">42</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="2.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="8.6" y="2.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="2.6" y="8.6" width="4.8" height="4.8" rx="1.2"></rect><rect x="8.6" y="8.6" width="4.8" height="4.8" rx="1.2"></rect></svg>
-        <div style="font-size: 14px">Categories</div>
-        <div style="flex: 1"></div>
-        <div style="font-size: 12px; color: #7d9186">9</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 11.4l3.4-3.4 2.4 2.1 4.6-4.5"></path><path d="M9.8 5.6h3.4V9"></path></svg>
-        <div style="font-size: 14px">Statistics</div>
-      </div>
-
-      <div style="flex: 1"></div>
-
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; background: #1f3d2c; color: #fff; cursor: pointer" style-hover="background: rgba(255,255,255,0.05)">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.2"></circle><path d="M8 2.4v1.6"></path><path d="M8 12v1.6"></path><path d="M2.4 8h1.6"></path><path d="M12 8h1.6"></path><path d="M4.1 4.1l1.1 1.1"></path><path d="M10.8 10.8l1.1 1.1"></path><path d="M11.9 4.1l-1.1 1.1"></path><path d="M5.2 10.8l-1.1 1.1"></path></svg>
-        <div style="font-size: 14px">Settings</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: #c3d2c8; border-top: 1px solid rgba(255,255,255,0.07); margin-top: 4px; padding-top: 13px">
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.6a5.4 5.4 0 1 0 5.4 5.4A4.2 4.2 0 0 1 8 2.6z"></path></svg>
-        <div style="font-size: 14px">Dark mode</div>
-        <div style="flex: 1"></div>
-        <div style="width: 32px; height: 18px; border-radius: 999px; background: #35513f; position: relative; flex: none">
-          <div style="position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #c3d2c8"></div>
-        </div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 9px; background: #1f3d2c">
-        <div style="width: 32px; height: 32px; border-radius: 50%; background: #4f7f63; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none">MM</div>
-        <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1">
-          <div style="font-size: 13px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Mikkel M.</div>
-          <div style="display: flex; font-size: 11px; color: #a9bdb1; min-width: 0">
-            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">mikkel</span>
-            <span style="flex: none">@lomwas.com</span>
-          </div>
-        </div>
-        
-        
-        <svg width="14" height="14" style="flex: none" viewBox="0 0 16 16" fill="none" stroke="#a9bdb1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
-      </div>
-    </div>
-
-    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; background: #1a1815">
-      <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #221f1b; border-bottom: 1px solid #38332c">
-        <div style="width: 420px; flex: none; display: flex; align-items: center; gap: 9px; border: 1px solid #463f37; border-radius: 10px; padding: 8px 11px; color: #7d776e">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
-          <span style="font-size: 13px">Search orders, vendors, items…</span>
-          <div style="flex: 1"></div>
-          <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #38332c; border-radius: 5px; padding: 2px 6px">⌘K</span>
-        </div>
-        <div style="flex: 1"></div>
-      </div>
-      <div style="flex: 1; min-width: 0; display: flex">
-      <div style="width: 208px; flex: none; padding: 28px 16px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid #463f37">
-        <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a; padding: 0 10px 10px">SETTINGS</div>
-        <div style="font-size: 13px; font-weight: 600; color: #f2f0ea; padding: 9px 10px; border-radius: 9px; background: #221f1b">Account and profile</div>
-        <div style="font-size: 13px; color: #a8a29a; padding: 9px 10px; border-radius: 9px">Appearance</div>
-        <div style="font-size: 13px; color: #a8a29a; padding: 9px 10px; border-radius: 9px">Currency and format</div>
-        <div style="font-size: 13px; color: #a8a29a; padding: 9px 10px; border-radius: 9px">Defaults</div>
-        <div style="font-size: 13px; color: #a8a29a; padding: 9px 10px; border-radius: 9px">Statuses</div>
-        <div style="font-size: 13px; color: #a8a29a; padding: 9px 10px; border-radius: 9px">Import</div>
-      </div>
-
-      <div style="flex: 1; min-width: 0; padding: 28px; display: flex; flex-direction: column; gap: 14px; max-width: 640px">
-
-        <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
-          <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">ACCOUNT AND PROFILE</div>
-          <div style="display: flex; align-items: center; gap: 14px">
-            <div style="width: 56px; height: 56px; border-radius: 50%; background: #4f7f63; color: #221f1b; display: grid; place-items: center; font-size: 20px; font-weight: 700; flex: none">MM</div>
-            <div style="display: flex; flex-direction: column; gap: 6px">
-              <div style="display: flex; gap: 8px">
-                <div style="font-size: 12px; font-weight: 600; color: #5d9b76; border: 1px solid #463f37; border-radius: 8px; padding: 7px 11px">Upload a photo</div>
-                <div style="font-size: 12px; color: #a8a29a; padding: 7px 4px">Remove</div>
-              </div>
-              <div style="font-size: 11px; color: #7d776e">JPG or PNG, at least 128×128.</div>
-            </div>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Name</div>
-              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 10px 12px; font-size: 14px">Mikkel M.</div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Email</div>
-              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 10px 12px; font-size: 14px; color: #a8a29a; background: #262320; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">mikkel@lomwas.com</div>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #463f37; padding-top: 13px">
-            <div style="font-size: 13px; color: #a8a29a">Password last changed 4 months ago.</div>
-            <div style="flex: 1"></div>
-            <div style="font-size: 12px; font-weight: 600; color: #5d9b76; border: 1px solid #463f37; border-radius: 8px; padding: 7px 11px">Change password</div>
-          </div>
-        </div>
-
-        <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
-          <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">APPEARANCE</div>
-          <div style="display: flex; flex-direction: column; gap: 8px">
-            <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Theme</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px">
-              <div style="border: 1px solid #463f37; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
-                <div style="height: 46px; border-radius: 7px; background: #eceae4; border: 1px solid #dcdad2; display: flex; overflow: hidden">
-                  <div style="width: 14px; background: #14261c"></div>
-                  <div style="flex: 1; padding: 5px; display: flex; flex-direction: column; gap: 3px">
-                    <div style="height: 6px; border-radius: 2px; background: #fff"></div>
-                    <div style="height: 6px; border-radius: 2px; background: #fff"></div>
-                  </div>
-                </div>
-                <div style="font-size: 12px; color: #a8a29a; text-align: center">Light</div>
-              </div>
-              <div style="border: 2px solid #5d9b76; border-radius: 10px; padding: 9px; display: flex; flex-direction: column; gap: 8px">
-                <div style="height: 46px; border-radius: 7px; background: #1a1815; border: 1px solid #38332c; display: flex; overflow: hidden">
-                  <div style="width: 14px; background: #14261c"></div>
-                  <div style="flex: 1; padding: 5px; display: flex; flex-direction: column; gap: 3px">
-                    <div style="height: 6px; border-radius: 2px; background: #221f1b"></div>
-                    <div style="height: 6px; border-radius: 2px; background: #221f1b"></div>
-                  </div>
-                </div>
-                <div style="font-size: 12px; font-weight: 600; text-align: center">Dark</div>
-              </div>
-              <div style="border: 1px solid #463f37; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
-                <div style="height: 46px; border-radius: 7px; border: 1px solid #463f37; display: flex; overflow: hidden">
-                  <div style="width: 50%; background: #eceae4"></div>
-                  <div style="width: 50%; background: #1a1815"></div>
-                </div>
-                <div style="font-size: 12px; color: #a8a29a; text-align: center">Follow system</div>
-              </div>
-            </div>
-            <div style="font-size: 11px; color: #7d776e">You can also switch this from the sidebar.</div>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #463f37; padding-top: 13px">
-            <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Row density</div>
-            <div style="display: inline-flex; border: 1px solid #463f37; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 3px; gap: 3px; align-self: flex-start">
-              <div style="font-size: 13px; font-weight: 600; background: #5d9b76; color: #221f1b; padding: 0 14px; display: grid; place-items: center; border-radius: 7px">Comfortable</div>
-              <div style="font-size: 13px; color: #a8a29a; padding: 6px 14px; border-radius: 7px">Compact</div>
-            </div>
-            <div style="font-size: 11px; color: #7d776e">Compact fits more rows on screen.</div>
-          </div>
-        </div>
-
-        <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
-          <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">CURRENCY AND FORMAT</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Currency</div>
-              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">DKK — Danish krone<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#7d776e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Number format</div>
-              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">1.234,50<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#7d776e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Date format</div>
-              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">12 Aug 2026<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#7d776e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Week starts on</div>
-              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">Monday<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#7d776e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            </div>
-          </div>
-          <div style="background: #262320; border-radius: 9px; padding: 11px 13px; display: flex; align-items: center; gap: 12px">
-            <div style="font-size: 11px; letter-spacing: 0.1em; color: #a8a29a">PREVIEW</div>
-            <div style="font-size: 15px; font-weight: 700">1.234,50 kr.</div>
-            <div style="width: 1px; height: 16px; background: #463f37"></div>
-            <div style="font-size: 13px; color: #a8a29a">12 Aug 2026</div>
-          </div>
-          <div style="font-size: 11px; color: #7d776e">Changing the currency does not convert existing amounts. It changes the symbol only — amounts already recorded stay as they were.</div>
-        </div>
-
-        <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
-          <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">DEFAULTS FOR A NEW ORDER</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Category</div>
-              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 9px 12px; font-size: 14px; display: flex; align-items: center; gap: 9px">
-                <span style="width: 22px; height: 22px; border-radius: 7px; background: #5d9b76; display: grid; place-items: center; color: #221f1b; flex: none"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 2.5h3l-.6 2.4A4 4 0 0 1 11.5 9c0 2.5-1.6 4.5-3.5 4.5S4.5 11.5 4.5 9a4 4 0 0 1 2.6-4.1z"></path></svg></span>
-                Decor
-                <div style="flex: 1"></div>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#7d776e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
-              </div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px">
-              <div style="font-size: 12px; font-weight: 600; color: #d8d4ca">Status</div>
-              <div style="border: 1px solid #463f37; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">Ordered<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#7d776e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            </div>
-          </div>
-          <div style="display: flex; align-items: flex-start; gap: 11px; border-top: 1px solid #463f37; padding-top: 13px">
-            <div style="width: 34px; height: 20px; border-radius: 999px; background: #5d9b76; position: relative; flex: none; margin-top: 1px">
-              <div style="position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: #221f1b"></div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 2px">
-              <div style="font-size: 13px; font-weight: 600">Let a scan override these</div>
-              <div style="font-size: 11px; color: #7d776e">When a receipt names a vendor whose default category differs, the scan wins. Off means your default always applies.</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
-          <div style="display: flex; align-items: center">
-            <div style="font-size: 11px; letter-spacing: 0.12em; color: #a8a29a">STATUSES</div>
-            <div style="flex: 1"></div>
-            <div style="font-size: 12px; color: #7d776e">Drag to reorder</div>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 6px">
-            <div style="display: flex; align-items: center; gap: 11px; border: 1px solid #38332c; border-radius: 9px; padding: 9px 11px">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="#5a534a"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg>
-              <span style="background: #2a2621; color: #a8a29a; border-radius: 999px; padding: 4px 11px; font-size: 12px; font-weight: 600; flex: none">Draft</span>
-              <div style="flex: 1"></div>
-              <div style="font-size: 12px; color: #7d776e">3 orders</div>
-              <div style="font-size: 11px; color: #7d776e; background: #262320; border-radius: 999px; padding: 3px 9px">built in</div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 11px; border: 1px solid #38332c; border-radius: 9px; padding: 9px 11px">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="#5a534a"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg>
-              <span style="background: #2c2418; color: #d9b166; border-radius: 999px; padding: 4px 11px; font-size: 12px; font-weight: 600; flex: none">Ordered</span>
-              <div style="flex: 1"></div>
-              <div style="font-size: 12px; color: #7d776e">18 orders</div>
-              <div style="width: 26px; height: 26px; border-radius: 8px; background: #262320; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d8d4ca" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.8V9.6l7-7 3.2 3.2-7 7z"></path></svg></div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 11px; border: 1px solid #5d9b76; border-radius: 9px; padding: 9px 11px; background: #221f1b">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="#5a534a"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg>
-              <div style="flex: 1; border: 1px solid #463f37; border-radius: 8px; padding: 7px 10px; font-size: 14px; min-width: 0">Received</div>
-              <div style="display: flex; gap: 4px; flex: none">
-                <span style="background: #1f3328; color: #5d9b76; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 600; outline: 2px solid #5d9b76; outline-offset: 1px">Aa</span>
-                <span style="background: #2e2b26; color: #4f7f63; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 600">Aa</span>
-                <span style="background: #2c2418; color: #d9b166; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 600">Aa</span>
-                <span style="background: #2c1e1c; color: #d99a90; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 600">Aa</span>
-                <span style="background: #2a2621; color: #a8a29a; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 600">Aa</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 4px; flex: none">
-                <div style="font-size: 12px; font-weight: 600; color: #a8a29a; padding: 7px 11px">Cancel</div>
-                <div style="font-size: 12px; font-weight: 600; background: #5d9b76; color: #221f1b; border-radius: 8px; padding: 7px 13px">Save</div>
-              </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 11px; border: 1px solid #38332c; border-radius: 9px; padding: 9px 11px">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="#5a534a"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg>
-              <span style="background: #2c1e1c; color: #d99a90; border-radius: 999px; padding: 4px 11px; font-size: 12px; font-weight: 600; flex: none">Returned</span>
-              <div style="flex: 1"></div>
-              <div style="font-size: 12px; color: #7d776e">2 orders</div>
-              <div style="width: 26px; height: 26px; border-radius: 8px; background: #262320; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d8d4ca" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.8V9.6l7-7 3.2 3.2-7 7z"></path></svg></div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 11px; border: 1px solid #38332c; border-radius: 9px; padding: 9px 11px">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="#5a534a"><circle cx="6" cy="4" r="1.2"></circle><circle cx="10" cy="4" r="1.2"></circle><circle cx="6" cy="8" r="1.2"></circle><circle cx="10" cy="8" r="1.2"></circle><circle cx="6" cy="12" r="1.2"></circle><circle cx="10" cy="12" r="1.2"></circle></svg>
-              <span style="background: #2a2621; color: #a8a29a; border-radius: 999px; padding: 4px 11px; font-size: 12px; font-weight: 600; flex: none">Cancelled</span>
-              <div style="flex: 1"></div>
-              <div style="font-size: 12px; color: #7d776e">0 orders</div>
-              <div style="width: 26px; height: 26px; border-radius: 8px; background: #262320; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#d99a90" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5h9.2"></path><path d="M4.6 5v8h6.8V5"></path><path d="M6.4 3h3.2"></path></svg></div>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #463f37; padding-top: 13px">
-            <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #5d9b76; border: 1px solid #463f37; border-radius: 8px; padding: 7px 11px">
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 3.4v9.2"></path><path d="M3.4 8h9.2"></path></svg>
-              Add a status
-            </div>
-            <div style="font-size: 11px; color: #7d776e">A status with orders on it cannot be deleted — reassign them first. Editing a row gives it Cancel and Save; Esc cancels and Enter saves, and tapping another row saves the open one first. Its colour is one of five pairs, shown as the pill the list will draw.</div>
-          </div>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 12px; background: #221f1b; border: 1px solid #38332c; border-radius: 12px; padding: 14px 18px; box-shadow: 0 4px 14px rgba(27, 26, 23, 0.08)">
-          <div style="font-size: 13px; color: #a8a29a">Unsaved changes in Statuses</div>
-          <div style="flex: 1"></div>
-          <div style="font-size: 13px; font-weight: 600; color: #a8a29a; padding: 8px 13px">Discard</div>
-          <div style="font-size: 13px; font-weight: 600; background: #5d9b76; color: #221f1b; border-radius: 9px; padding: 9px 16px">Save</div>
-        </div>
-
-      </div>
-    </div>
-      </div>
-  </div>
-  </div>
-</section>
 
 <section style="display: flex; flex-direction: column; gap: 16px; padding: 20px 48px 64px">
   <div style="display: flex; align-items: baseline; gap: 12px">
@@ -854,7 +561,7 @@
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #dedcd4; padding-top: 13px">
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 9px; border-top: 1px solid #dedcd4; padding-top: 13px">
           <div style="font-size: 12px; color: #57564f">7 of 9 columns mapped. Vendor, order date and item name are required.</div>
           <div style="flex: 1"></div>
           <div style="font-size: 13px; font-weight: 600; background: #1d4d33; color: #fff; border-radius: 9px; padding: 9px 16px; white-space: nowrap">Preview</div>
@@ -1046,7 +753,7 @@
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #dedcd4; padding-top: 13px">
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 9px; border-top: 1px solid #dedcd4; padding-top: 13px">
           <div style="font-size: 13px; font-weight: 600; color: #57564f; padding: 8px 4px">Cancel</div>
           <div style="flex: 1"></div>
           <div style="font-size: 13px; font-weight: 600; color: #1d4d33; border: 1px solid #dedcd4; border-radius: 9px; padding: 9px 14px">Back to mapping</div>
@@ -1077,6 +784,159 @@
   </div>
 </section>
 
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="11c">11c</span>
+    <span style="font-size: 20px; font-weight: 600">Demo data — every state</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">The card in Settings shows only the resting state. These are the five it moves through, drawn at the width it occupies in the card column.</div>
+  <div style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">1 — RESTING</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DEMO DATA</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">Fill the account with made-up orders so the lists and charts have something to show. Each fill creates a new, different set.</div>
+            <div style="display: grid; place-items: center; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #1d4d33">FILL WITH DEMO DATA</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">2 — CHOOSING</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DEMO DATA</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">Fill the account with made-up orders so the lists and charts have something to show. Each fill creates a new, different set.</div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">How many orders</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">500 orders<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px">
+              <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Over how long</div>
+              <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">1 year<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
+              <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">How far back the orders reach, ending today.</div>
+            </div>
+            <div style="background: #fdf6f5; border: 1px solid #f0e6e4; border-radius: 9px; padding: 11px 12px; font-size: 12px; color: #8a4a41; line-height: 1.5">This replaces what is here now. Every order, vendor and category you have added is removed first.</div>
+            <div style="display: flex; gap: 8px">
+              <div style="flex: 1; display: grid; place-items: center; background: #1d4d33; color: #fff; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em">YES, FILL IT</div>
+              <div style="display: grid; place-items: center; padding: 0 14px; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #57564f">CANCEL</div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">3 — FILLING</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DEMO DATA</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">Creating 500 orders over the last year.</div>
+            <div style="height: 8px; border-radius: 4px; background: #eef1ee; overflow: hidden"><div style="width: 62%; height: 100%; background: #1d4d33; border-radius: 4px"></div></div>
+            <div style="display: flex; align-items: baseline"><div style="font-size: 12px; color: #8b8a82">312 of 500</div><div style="flex: 1"></div><div style="font-size: 11px; color: #8b8a82">This can take a moment.</div></div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">4 — DONE</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DEMO DATA</div>
+            <div style="display: flex; align-items: center; gap: 9px; background: #e7efe8; border-radius: 9px; padding: 11px 12px">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>
+              <div style="font-size: 12px; color: #1d4d33; line-height: 1.5">500 orders created across 42 vendors and 8 categories.</div>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <div style="flex: 1; display: grid; place-items: center; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #1d4d33">SEE THE ORDERS</div>
+              <div style="display: grid; place-items: center; padding: 0 14px; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #57564f">FILL AGAIN</div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">5 — FAILED</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DEMO DATA</div>
+            <div style="display: flex; flex-direction: column; gap: 3px; background: #fdf6f5; border: 1px solid #f0e6e4; border-radius: 9px; padding: 11px 12px">
+              <div style="font-size: 12px; font-weight: 600; color: #8a4a41">Couldn't finish filling.</div>
+              <div style="font-size: 11px; color: #8a4a41; line-height: 1.5">184 orders were created before it stopped. They are in your lists now.</div>
+            </div>
+            <div style="display: grid; place-items: center; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #1d4d33">TRY AGAIN</div>
+          </div>
+        </div>
+          </div>
+          <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The pickers and the warning are not shown at rest.</b> The card opens as one secondary button. Pressing it reveals the two choices, the warning and the confirm pair — so a destructive action takes two deliberate presses without a dialog, and the settings page never carries a permanent red panel.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Filling is determinate.</b> The count is known before it starts, so the bar shows real progress and a figure. There is no cancel: a half-filled account is the failure state, and stopping on purpose would produce it deliberately.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Done and Failed both say what now exists.</b> Failure keeps the partial rows rather than rolling back, and says how many — the user needs to know what is in their lists, and this is demo data, so a partial set costs nothing.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Red here is correct.</b> This is the one control in Settings that destroys data, which is why the warning is red rather than amber and why the confirm names the consequence instead of saying OK.</div>
+          </div>
+        </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="11d">11d</span>
+    <span style="font-size: 20px; font-weight: 600">This build — every state</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">The update check, drawn at each stage. The card in Settings shows the first of these.</div>
+  <div style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">1 — RESTING</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THIS BUILD</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">You're running the version installed on <b style="color: #1b1a17">18.08.2026, 09.14</b> <span style="color: #8b8a82">(a3f91c2)</span>.</div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">Press the button below to check online for a newer version.</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #1d4d33"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>CHECK FOR UPDATES</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">2 — CHECKING</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THIS BUILD</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">You're running the version installed on <b style="color: #1b1a17">18.08.2026, 09.14</b> <span style="color: #8b8a82">(a3f91c2)</span>.</div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">Press the button below to check online for a newer version.</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #8b8a82"><span style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(29,77,51,0.25); border-top-color: #1d4d33; display: block"></span>CHECKING…</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">3 — UP TO DATE</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THIS BUILD</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">You're running the version installed on <b style="color: #1b1a17">18.08.2026, 09.14</b> <span style="color: #8b8a82">(a3f91c2)</span>.</div>
+            <div style="display: flex; align-items: center; gap: 8px; background: #e7efe8; border-radius: 9px; padding: 10px 12px; font-size: 12px; color: #1d4d33"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>This is the newest version.</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #1d4d33"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>CHECK FOR UPDATES</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">4 — UPDATE AVAILABLE</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THIS BUILD</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">You're running the version installed on <b style="color: #1b1a17">18.08.2026, 09.14</b> <span style="color: #8b8a82">(a3f91c2)</span>.</div>
+            <div style="display: flex; flex-direction: column; gap: 3px; background: #fdf8ee; border: 1px solid #e8dfcb; border-radius: 9px; padding: 10px 12px">
+              <div style="font-size: 12px; font-weight: 600; color: #6b5424">A newer version is available.</div>
+              <div style="font-size: 11px; color: #7a5c23; line-height: 1.5">Installed 22.08.2026, 07.02. Updating reloads the app; nothing you have saved is affected.</div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #1d4d33; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #fff; background: #1d4d33"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.2v6.4"></path><path d="M5.4 7.2L8 9.8l2.6-2.6"></path><path d="M3.4 11.4v1.4h9.2v-1.4"></path></svg>UPDATE AND RELOAD</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">5 — CHECK FAILED</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">THIS BUILD</div>
+            <div style="font-size: 13px; color: #57564f; line-height: 1.55">You're running the version installed on <b style="color: #1b1a17">18.08.2026, 09.14</b> <span style="color: #8b8a82">(a3f91c2)</span>.</div>
+            <div style="display: flex; flex-direction: column; gap: 3px; background: #fdf6f5; border: 1px solid #f0e6e4; border-radius: 9px; padding: 10px 12px">
+              <div style="font-size: 12px; font-weight: 600; color: #8a4a41">Couldn't reach the update server.</div>
+              <div style="font-size: 11px; color: #8a4a41; line-height: 1.5">You can keep using the version you have.</div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #1d4d33"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.4l3 3 6.2-6.6"></path></svg>TRY AGAIN</div>
+          </div>
+        </div>
+          </div>
+          <div style="border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+            <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Five states, one card.</b> Resting shows what is installed and offers the check. Checking disables the button and swaps its label for a verb. Up to date and Update available both answer the question that was asked, so the result sits in the card rather than in a toast — a toast would be gone before the user looked back. Check failed keeps the version line intact, because a failed check says nothing about what is running.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Checking holds for at least 2 seconds</b>, even when the answer arrives sooner. A check that returns in 80ms flashes the spinner and lands on a result the user did not see appear — it reads as the button having done nothing. Hold the state, then swap. The version line and its hint stay in place throughout, so the card keeps its height and nothing below it moves.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Only state 4 has a primary button.</b> Updating is the one action here with a consequence, and it is the only state where the button changes what it does rather than repeating the check.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The result does not persist.</b> States 3 to 5 hold until the card leaves the screen, then the card returns to resting. A stale "up to date" is worse than no answer.</div>
+            <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Amber informs, it does not block.</b> An available update is a fact, not a warning: nothing about the app stops working, and the user may keep the version they have.</div>
+          </div>
+        </div>
+</section>
 </x-dc>
 </body>
 </html>

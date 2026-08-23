@@ -753,10 +753,14 @@ Breakpoint: below `900px` the two columns stack; below `640px` the phone layout 
 
 ---
 
-### 11a–11c — Settings, and importing a file
+### 11a, 11b — Settings, and importing a file
 File: `Settings and import.dc.html` · Code: new pages (`pages/Settings.jsx`, `pages/Import.jsx`)
 
 **Widths.** The 1180px shell drawn around 11a is presentation only — a stand-in for a viewport so the screen reads in context. In the app the shell fills the browser edge to edge (sidebar 248px fixed, content column fluid, per 9a). Inside the content column: section nav **208px fixed**, hairline divider, card column **fluid with a 640px cap**. Past 640px the cards stop growing and the slack falls to their right — a 42px input stretched across 1920px reads as a bug (15a). Below ~900px the section nav becomes a select above the cards and the cap no longer binds.
+
+**The update check holds its Checking state for at least 2 seconds** (11d), even when the answer arrives sooner — a spinner that flashes for 80ms reads as the button having done nothing. The version line stays in place throughout, so the card keeps its height.
+
+**The save bar is sticky to the bottom of the content column.** Each card saves on its own, so the bar names which one is dirty — and with six sections the dirty card is usually scrolled off screen by the time you want to save it. It appears when something is dirty and is absent otherwise, matching the edit screen in 1d.
 
 #### 11a — Settings
 
