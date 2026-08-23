@@ -13,9 +13,12 @@ NOTE: The mockup HTML used example / demo data and some graphs might use a custo
 --------------------------------------------------------------------------
 
 Use **only** the branch: `claude/order-flows-react-layouts-ntm90q` (this exact branch. no pre- or suffix)
-Confirm you've switched to and use branch: `claude/order-flows-react-layouts-ntm90q` 
+
+**Confirm you've switched to and use branch:** `claude/order-flows-react-layouts-ntm90q`
 
 Do not switch branches or modify anything outside this branch.
+
+**Do not commit any changes. Only create a commit if I explicitly ask you to.**
 
 ## Task
 
@@ -47,6 +50,14 @@ Do not make changes in multiple areas at once.
 Do not jump back and forth between components because you notice another difference. **Finish the current area first, then move to the next area.**
 
 After all areas have been completed, perform one final comparison of the **entire `Vendor > New vendor` implementation** against the mockup.
+
+## Screenshots — NOT ALLOWED
+
+**Do not use screenshots for comparison or validation.**
+
+Do not take, generate, inspect, or compare screenshots of the implementation against the mockup.
+
+Use the **mockup HTML and the implementation itself** as the sources for comparison and validation.
 
 ## Visual accuracy
 
@@ -119,7 +130,6 @@ If an existing component does not support functionality required by the mockup, 
 You **must** ignore rules defined in:
 
 `/readme.md`
-
 
 You **must** follow the rules defined in:
 
