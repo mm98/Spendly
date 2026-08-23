@@ -1,0 +1,104 @@
+Use the branch `claude/order-flows-react-layouts-ntm90q` (this exact branch - no pre- or suffix)
+
+*ELEMENT: Vendor > New vendor*
+
+Can you do a mockup HTML compare for this implementation ? ... remember the mockup HTML is the only source of truth and is how it is supposed to look.
+
+I want you to change the implementation, so it matches the mockup. spacing / gaps / font size / font weight / font color all styling. Keep comparing and adjusting, until it matches. Reuse existing components, when/if they exist. Always adhere to the rules defined in `/design/index.html` and `/design/readme.md`
+
+NOTE: The mockup HTML used example / demo data and some graphs might use a custom color defined on the entity (vendors and categories). Read the mockups rules. Only focus on this single task. Do no start adjusting other pages.
+
+
+--------------------------------------------------------------------------
+
+Use **only** the branch: `claude/order-flows-react-layouts-ntm90q` (this exact branch - no pre- or suffix)
+
+Do not switch branches or modify anything outside this branch.
+
+## Task
+
+**Element:** `Vendor > New vendor`
+
+Update the implementation so it **matches the mockup HTML exactly**.
+
+The **mockup HTML is the single source of truth** for the visual implementation.
+
+## Workflow — ONE AREA AT A TIME
+
+The page may contain multiple distinct areas, sections, or components.
+
+**Work on only one area at a time. Do not jump between areas or components.**
+
+For each area:
+
+1. Identify the area/component currently being worked on.
+2. Compare that area against the corresponding area in the mockup HTML.
+3. Identify all visual differences.
+4. Fix those differences.
+5. Compare the implementation against the mockup again.
+6. Continue adjusting until that area matches.
+7. **Only when the current area is finished, move to the next area.**
+
+Do not make changes in multiple areas at once.
+
+Do not jump back and forth between components because you notice another difference. Finish the current area first, then continue sequentially.
+
+After all areas have been completed, do one final comparison of the **entire `Vendor > New vendor` implementation** against the mockup.
+
+## Visual accuracy
+
+Match all relevant styling, including:
+
+* spacing
+* gaps
+* padding and margins
+* dimensions
+* typography
+* font size
+* font weight
+* line height
+* font color
+* borders
+* border radius
+* backgrounds
+* alignment
+* positioning
+* component states
+* other visual details present in the mockup
+
+Do not stop after making an initial pass. **Keep comparing and correcting until there are no meaningful visual differences.**
+
+## Existing components
+
+Reuse existing components whenever they already provide the required functionality or structure.
+
+Do not create duplicate components when an appropriate existing component can be reused.
+
+## Design rules
+
+You **must** follow the rules defined in:
+
+`/design/index.html`
+`/design/readme.md`
+
+Read and apply those rules before making changes.
+
+## Mockup data
+
+The mockup HTML may contain demo/example data.
+
+Do **not** blindly copy demo data into the implementation.
+
+Some graphs may use custom colors defined by the entity (for example, vendors or categories). Follow the mockup rules for how these colors should be handled.
+
+## Scope — STRICT
+
+Work **only** on:
+
+**`Vendor > New vendor`**
+
+Do not modify, refactor, restyle, or "clean up" other pages, components, or flows unless the change is strictly required for this specific implementation.
+
+Do not start work on any other task.
+
+**The goal is simple: make `Vendor > New vendor` visually match the mockup HTML, working through its areas sequentially, one at a time, and nothing else.**
