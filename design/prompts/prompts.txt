@@ -21,7 +21,7 @@ Do not switch branches or modify anything outside this branch.
 
 Update the implementation so it **matches the mockup HTML exactly**.
 
-The **mockup HTML is the single source of truth** for the visual implementation.
+The **mockup HTML is the single source of truth** for both the visual design and the intended functionality of this implementation.
 
 ## Workflow — ONE AREA AT A TIME
 
@@ -33,17 +33,18 @@ For each area:
 
 1. Identify the area/component currently being worked on.
 2. Compare that area against the corresponding area in the mockup HTML.
-3. Identify all visual differences.
-4. Fix those differences.
-5. Compare the implementation against the mockup again.
-6. Continue adjusting until that area matches.
-7. **Only when the current area is finished, move to the next area.**
+3. Identify all differences in **appearance and functionality**.
+4. Implement the required visual changes.
+5. If you discover new or changed functionality, follow the **Functionality** rules below.
+6. Compare the implementation against the mockup again.
+7. Continue adjusting until that area matches.
+8. **Only when the current area is finished, move to the next area.**
 
 Do not make changes in multiple areas at once.
 
-Do not jump back and forth between components because you notice another difference. Finish the current area first, then continue sequentially.
+Do not jump back and forth between components because you notice another difference. **Finish the current area first, then move to the next area.**
 
-After all areas have been completed, do one final comparison of the **entire `Vendor > New vendor` implementation** against the mockup.
+After all areas have been completed, perform one final comparison of the **entire `Vendor > New vendor` implementation** against the mockup.
 
 ## Visual accuracy
 
@@ -68,11 +69,48 @@ Match all relevant styling, including:
 
 Do not stop after making an initial pass. **Keep comparing and correcting until there are no meaningful visual differences.**
 
+## Functionality
+
+The mockup may contain **new functionality that does not exist in the current implementation**.
+
+If the mockup demonstrates functionality that the current implementation does not have, **do not implement it automatically**.
+
+Instead:
+
+1. Identify the functionality that is missing or different.
+2. Clearly explain what the mockup does and how the current implementation differs.
+3. **Ask me whether I want that functionality implemented.**
+4. Wait for my confirmation before making the functionality change.
+
+If I confirm that it should be implemented, implement it so that it matches the mockup.
+
+This applies to, for example:
+
+* interactions
+* controls
+* buttons and actions
+* form behavior
+* validation
+* states
+* filtering
+* selection
+* expanding/collapsing
+* navigation
+* dynamic content
+* graphs/charts
+* other behavior demonstrated or required by the mockup
+
+**Never assume that new functionality shown in the mockup should be implemented without asking first.**
+
+Visual differences should still be fixed normally. The confirmation requirement applies specifically to **new or changed functionality/behavior**.
+
 ## Existing components
 
 Reuse existing components whenever they already provide the required functionality or structure.
 
 Do not create duplicate components when an appropriate existing component can be reused.
+
+If an existing component does not support functionality required by the mockup, **ask before implementing the new functionality**, as described above.
 
 ## Design rules
 
@@ -81,7 +119,7 @@ You **must** follow the rules defined in:
 `/design/index.html`
 `/design/readme.md`
 
-Read and apply those rules before making changes.
+Read and apply these rules before making changes.
 
 ## Mockup data
 
@@ -97,8 +135,8 @@ Work **only** on:
 
 **`Vendor > New vendor`**
 
-Do not modify, refactor, restyle, or "clean up" other pages, components, or flows unless the change is strictly required for this specific implementation.
+Do not modify, refactor, restyle, or "clean up" other pages, components, or flows unless the change is strictly required to make this specific implementation match the mockup.
 
 Do not start work on any other task.
 
-**The goal is simple: make `Vendor > New vendor` visually match the mockup HTML, working through its areas sequentially, one at a time, and nothing else.**
+**The goal is simple: make `Vendor > New vendor` match the mockup in appearance and, where already-supported functionality differs, behavior — working through its areas sequentially, one at a time, and nothing else.**
