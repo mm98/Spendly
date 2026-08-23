@@ -11,7 +11,8 @@ NOTE: The mockup HTML used example / demo data and some graphs might use a custo
 
 --------------------------------------------------------------------------
 
-Use **only** the branch: `claude/order-flows-react-layouts-ntm90q` (this exact branch - no pre- or suffix)
+Use **only** the branch: `claude/order-flows-react-layouts-ntm90q` (this exact branch. no pre- or suffix)
+Confirm you've switched to and use branch: `claude/order-flows-react-layouts-ntm90q` 
 
 Do not switch branches or modify anything outside this branch.
 
