@@ -455,6 +455,88 @@
     </div>
   </div>
 </section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="15d">15d</span>
+    <span style="font-size: 20px; font-weight: 600">Table columns — widths, and the last two</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Every data list in the app is one grid definition shared by its header and its rows. The interesting part is not the widths themselves — it is which column absorbs a resize, and how the amount and the action menu behave when everything else moves.</div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">THE ANATOMY</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Exactly one column is fluid. Everything else is a fixed px width.</b> The fluid one is the name — vendor, category, order. Every resize is absorbed there, so no other column ever changes width and none of them need to be re-measured at a new viewport.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The fluid column is <code style="font-size: 11px">minmax(0, 1fr)</code>, never <code style="font-size: 11px">1fr</code>.</b> A bare <code style="font-size: 11px">1fr</code> has an automatic minimum of its content, so it refuses to shrink below the longest name and the row overflows instead of truncating. This one missing <code style="font-size: 11px">minmax</code> is the single most common cause of a table blowing out of its container.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Fixed columns are sized to the longest value the FORMAT can produce</b>, not the longest in the sample data. A date column is wide enough for <code style="font-size: 11px">31/12/2026</code>; an amount column for the largest number the currency will realistically print, plus its suffix. Data grows; formats do not.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">One definition, declared once.</b> Put the template in a custom property on the table and let the header and every row read it. Two copies means the header drifts from its rows the first time a column changes — and it will be off by exactly one column, which is the hardest kind to see.</div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">THE LAST TWO COLUMNS</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The action column is 40px, fixed, and never leaves.</b> It fits one 32px icon button centred in it. It is not part of the responsive story at all: a row without its menu has no way to reach Duplicate or Delete, at any width.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The amount is the second-to-last column, right-aligned, and also never leaves.</b> Right-aligned so the decimal points stack — that is the whole reason a money column is readable at a glance — with <code style="font-size: 11px">font-variant-numeric: tabular-nums</code> and <code style="font-size: 11px">white-space: nowrap</code>. It never wraps and never truncates; if it does not fit, a different column had to go.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Do not put the action column against the container edge.</b> The row's own <code style="font-size: 11px">14px</code> padding is what separates the kebab from the border. The gap between the amount and the kebab is the grid's ordinary <code style="font-size: 11px">12px</code> — no extra margin, no <code style="font-size: 11px">margin-left: auto</code> on either. The moment one of them is pushed by a margin instead of placed by the grid, the two stop agreeing at some width.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Never <code style="font-size: 11px">justify-content: space-between</code> on a row.</b> It looks identical at one width and diverges at every other, because the free space lands between the last two items instead of inside the fluid column. If a row is a grid, every cell is placed; if it is a flex row with a spacer, only some are.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The menu opens right-aligned to its own column</b>, and flips above the trigger near the bottom of the list — <a href="Input types.dc.html#14g">14g</a> owns that behaviour. It is anchored to the 40px cell, not to the row, so its position does not move when a column is dropped.</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div style="font-size: 12px; letter-spacing: 0.1em; color: #6b6a63">THE SAME TABLE AT THREE CONTAINER WIDTHS</div>
+    <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap">
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 900px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">≥ 1040px — EVERYTHING</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 104px 150px 118px 130px 40px; gap: 12px; padding: 9px 14px; border-bottom: 1px solid #e6e4dc; font-size: 10px; letter-spacing: 0.1em; color: #8b8a82">
+              <div></div><div>VENDOR</div><div>DATE</div><div>CATEGORY</div><div>ITEMS</div><div style="text-align: right">TOTAL</div><div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 104px 150px 118px 130px 40px; gap: 12px; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0efe9; font-size: 13px">
+              <div><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; display: block"></span></div><div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600">Indbo Møbler</div><div style="color: #57564f; white-space: nowrap">12/08/2026</div><div style="display: flex; align-items: center"><span style="background: #e7efe8; color: #1d4d33; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; white-space: nowrap">Decor</span></div><div style="color: #57564f; white-space: nowrap">4 items</div><div style="text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">7.635,00</div><div style="display: grid; place-items: center; color: #57564f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 104px 150px 118px 130px 40px; gap: 12px; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0efe9; font-size: 13px">
+              <div><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; display: block"></span></div><div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600">Hay Danmark ApS</div><div style="color: #57564f; white-space: nowrap">03/08/2026</div><div style="display: flex; align-items: center"><span style="background: #e7efe8; color: #1d4d33; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; white-space: nowrap">Seating</span></div><div style="color: #57564f; white-space: nowrap">2 items</div><div style="text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">3.240,00</div><div style="display: grid; place-items: center; color: #57564f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+          </div>
+        </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 660px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">880–1040px — ITEMS GONE</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 104px 118px 130px 40px; gap: 12px; padding: 9px 14px; border-bottom: 1px solid #e6e4dc; font-size: 10px; letter-spacing: 0.1em; color: #8b8a82">
+              <div></div><div>VENDOR</div><div>DATE</div><div>CATEGORY</div><div style="text-align: right">TOTAL</div><div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 104px 118px 130px 40px; gap: 12px; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0efe9; font-size: 13px">
+              <div><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; display: block"></span></div><div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600">Indbo Møbler</div><div style="color: #57564f; white-space: nowrap">12/08/2026</div><div style="display: flex; align-items: center"><span style="background: #e7efe8; color: #1d4d33; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; white-space: nowrap">Decor</span></div><div style="text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">7.635,00</div><div style="display: grid; place-items: center; color: #57564f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 104px 118px 130px 40px; gap: 12px; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0efe9; font-size: 13px">
+              <div><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; display: block"></span></div><div style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600">Hay Danmark ApS</div><div style="color: #57564f; white-space: nowrap">03/08/2026</div><div style="display: flex; align-items: center"><span style="background: #e7efe8; color: #1d4d33; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; white-space: nowrap">Seating</span></div><div style="text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">3.240,00</div><div style="display: grid; place-items: center; color: #57564f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+          </div>
+        </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 420px">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">&lt; 880px — NAME, TOTAL, MENU</div>
+          <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 130px 40px; gap: 12px; padding: 9px 14px; border-bottom: 1px solid #e6e4dc; font-size: 10px; letter-spacing: 0.1em; color: #8b8a82">
+              <div></div><div>VENDOR</div><div style="text-align: right">TOTAL</div><div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 130px 40px; gap: 12px; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0efe9; font-size: 13px">
+              <div><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; display: block"></span></div><div style="min-width: 0; display: flex; flex-direction: column; gap: 1px"><div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div><div style="font-size: 11px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">12/08 · Decor · 4 items</div></div><div style="text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">7.635,00</div><div style="display: grid; place-items: center; color: #57564f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 130px 40px; gap: 12px; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0efe9; font-size: 13px">
+              <div><span style="width: 15px; height: 15px; border-radius: 4px; border: 1px solid #dedcd4; display: block"></span></div><div style="min-width: 0; display: flex; flex-direction: column; gap: 1px"><div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay Danmark ApS</div><div style="font-size: 11px; color: #8b8a82; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">03/08 · Seating · 2 items</div></div><div style="text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">3.240,00</div><div style="display: grid; place-items: center; color: #57564f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+      <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">WHAT MOVED, AND WHAT DID NOT</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Only the fluid column changed width.</b> Checkbox 18, date 104, category 118, items 130, total 130, actions 40 — identical in all three. Compare any fixed cell across the frames and it lines up.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Columns are dropped whole, in a fixed order</b>, and the header drops the same one in the same step. Items first, then category, then date. What goes last is what nothing else on the screen can tell you.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A dropped column reappears as a second line, not as nothing.</b> At the narrowest width the date, category and count fold under the name as one muted line. The row keeps its meaning; it just stops being a table.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Amount and menu hold their positions relative to the right edge</b> at every width. That is the pair the eye returns to, so it is the pair that must not move.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Hide with the query, not with an inline style.</b> An inline <code style="font-size: 11px">display: flex</code> on a cell beats the stylesheet, so the query&rsquo;s <code style="font-size: 11px">display: none</code> never lands and the row wraps to a second line. Centring belongs in the class; <code style="font-size: 11px">display</code> belongs to the query.</div>
+      <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Verify by counting, not by looking.</b> Header child count must equal every row&rsquo;s child count at every width, and no grid may report a <code style="font-size: 11px">0px</code> first column. Both failures look almost right and read completely wrong.</div>
+    </div>
+  </div>
+</section>
 </x-dc>
 </body>
 </html>

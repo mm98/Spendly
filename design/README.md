@@ -329,7 +329,7 @@ Both steps are skippable and say so. Skip keeps the locale currency and creates 
 
 ---
 
-### 9a / 9b / 9c — Navigation shell
+### 9a–9g — Navigation shell
 File: `Navigation shell.dc.html` · Code: `App.jsx`, `components/Nav.jsx`, `components/Shell.jsx`
 
 **Purpose:** the frame every page renders inside.
@@ -468,7 +468,7 @@ See "Mobile" below; 1d holds the phone version of these two screens.
 
 ---
 
-### 2a–2c — Order list
+### 2a–2i — Order list
 File: `Order list.dc.html` · Code: `pages/Orders.jsx`, `pages/AllOrders.jsx`, `components/Rows.jsx`, `components/ListState.jsx`, `components/Chip.jsx`, `components/Pager.jsx`, `components/Pickers.jsx`
 
 **Purpose:** find orders. Full-text search plus facets, in rows or cards.
@@ -655,55 +655,58 @@ File: `Order statistics.dc.html` · Code: `pages/Stats.jsx`, `components/Chart.j
 
 ---
 
-### 5a–5c — Vendors and categories
-File: `Vendors and categories.dc.html` · Code: `pages/Vendors.jsx`, `pages/Categories.jsx`, `pages/CategoryForm.jsx`
+### 5a–5m — Vendors and categories
+File: `Vendors and categories.dc.html`
 
-**Purpose:** the library behind orders. Two lists that share one layout: list left, panel right (`400px`).
+**Purpose:** the library behind orders. Two records, same three screens each — overview, create, edit — plus one section per control that needs more than a single render to be buildable.
 
-#### 5a — Vendors
+**Editing is a page, not a panel.** `/vendors/new`, `/vendors/:id/edit`, and the same two for categories. Create and edit are **one route component**: same form, same rail, same sticky save bar an order uses. They differ only in the primary label and whether the end-of-life card is present. Building them separately is how they drift.
 
-List rows: name 14px/600, order count and total 12px `#8b8a82`, chevron. Search above.
+Why a page: a 400px panel cannot hold a sticky save bar, so its Save scrolls away — the problem that moved the order header out of the page top. A page is also linkable, and it removes the list-then-panel special case on mobile.
 
-Panel for a selected vendor: the vendor form (name, website, **Also matches** — the alias chips from 5d — city, VAT number, default categories, notes), then a small stats card — spend, orders, average order, saved vs retail as a 2×2 grid of 20px/700 values — plus a sparkline and the "See in Statistics" link. No charts.
+**5a — Vendors, overview.** Toolbar, table, read-only panel. The toolbar is the order list's: white card at `14px 16px`, search field radius 10 with its `⌘K` badge, then an Active/Archived segmented control and sort. Table columns: identity mark + name (fluid), orders, spend, saved, last order, actions 40px. **The panel is read-only** — Edit navigates to the page. Selecting a row is not navigation: it fills the panel and pushes `?vendor=indbo`, so a selection survives reload and can be linked.
 
-**Merge** handles scan duplicates: the panel offers "Merge into…", which opens a picker of similar vendors, then a comparison showing which field wins per row and the resulting order count. It is destructive and confirmed explicitly, naming the number of orders that will move.
+Panel cards, in order: identity header (42px mark, name 16px/600, meta, Edit) · **THIS VENDOR** stats 2×2 with a See-in-Statistics link and an 8-bar sparkline · **RECENT ORDERS**, three rows and See all · the duplicate notice when one applies.
 
-**5f draws both tables at 1280, 1040, 880 and 420.** Same rule as 2i — columns are dropped whole, never squeezed until they wrap — but which column goes differs, because a vendor list answers *how much and how recently* while a category list answers *what is the limit and how close is this month*.
+**5b — Vendors, create.** Name is the only required field; everything else has a working default, so a vendor created mid-scan costs one field. Duplicate names are checked on blur and offered, not blocked — two shops can share a name. Created from a scan, the page carries the return in its route state and the new vendor is selected on arrival back. Aliases **are** here: the receipt name that triggered the create is pre-filled as one, since that is the moment the app knows it. Forcing a trip to the edit page to keep it means the next receipt from the same shop creates another duplicate.
 
-**Vendors** drop *saved* first (softest number, and the panel states it exactly for the selected vendor), then *orders* — which folds into the name's second line at 880 rather than vanishing, since a vendor with 24 orders and one with 2 are different kinds of vendor. **Spend and last order never leave**: spend is the sort key, and nothing else on screen says when you last bought from someone.
+**5c — Vendors, edit.** Adds the aliases card and the end-of-life card. Dirty tracking per field against loaded values; leaving while dirty prompts, including browser back. Save returns to the list with this vendor selected — the panel showing saved values *is* the confirmation, so no toast. **Archive and Delete are different actions**: archive always works and is reversible from the Archived toggle; Delete is enabled only at zero orders.
 
-**Categories** drop the *12-month average* first — context for the limit, not the limit itself. **The limit and this month never leave**; they are the pair the page exists to compare, and a category row without both is just a name. The progress bar is a column, not decoration: it stays at every width, goes full width on the phone, and over the limit fills amber with the overage stated in words beneath — a bar pinned at 100% cannot say how far past it went, and on a phone there is no adjacent column to say it.
+**5d — Categories, overview.** Same three components as 5a with a different record. The panel leads with **THIS MONTH** rather than the year, because a category list asks what the limit is and how close this month is to it. Over the limit fills amber and states the overage in words. A category is never archived — it is a label the user invented, so the way out is reassigning its orders.
 
-The panel is why these tables can shed columns at all: both screens are list-plus-panel, so anything dropped is one click away and still exact. Below 900px the panel becomes a separate view, which is the same change that turns the tables into cards. The identity mark never shrinks and never drops — 26px at every width.
+**5e — Categories, create.** Name only; a default icon and the next unused colour are pre-selected. **The icon is picked, not derived** — the one asymmetry with a vendor. Duplicate names *are* rejected here, unlike vendors: two categories with one name make every chart ambiguous. Created from a picker, the picker reopens with it selected so the order in progress continues.
 
-#### 5b — Categories
+Also carries the **validation state**, which is 6c applied unchanged: field border `#c98a80`, message at 12px `#8a4a41` below it, no summary card, Save stays clickable and moves focus to the first problem.
 
-List rows: a `34×34` icon tile (radius `9px`) filled with the category colour, glyph in white — or `#3d3c36` when the colour is light — then the name 14px/600, this month's spend, and its limit. The tile replaced a plain colour dot so a category is recognisable at a glance.
+**5f — Categories, edit.** The limit card gains this month against the limit. **Changing the limit is retroactive in display only** — bars and notices recompute, nothing saved is re-validated. Renaming breaks nothing, since orders point at an id. Delete stays disabled while orders exist, with the count beside it; **Move orders…** opens 5l.
 
-Panel: the category form.
-- **Name.** Text field with the current icon tile inline at its left (22px, radius `7px`).
-- **Icon.** The current icon at 44px (radius `11px`, category colour), its name, and a Change control. Open, it is a picker: a search field, then an 8-column grid of `aspect-ratio: 1` cells (radius `8px`, `#f7f6f2`, selected cell `#eef1ee` with a 2px `#1d4d33` outline offset 1px), ending in a "+64" overflow cell. Icons come from a fixed set; the picker never accepts uploads.
-- **Colour.** A row of swatches from the green ramp plus neutrals.
-- **Monthly limit.** A single amount that applies to every month — it is not per-month data. Empty means no limit. Below the field: this month's spend against it, with the pace marker bar.
-- Icon and colour always render together, so the same mark identifies the category in chips, facets and charts.
+**5g — The panel with nothing selected.** Not an empty state: it answers a question the user has before selecting anything, which is why the column never collapses and the list never shifts. Every figure is one the list already shows, summed. Each "needs a look" row navigates to the filtered list; a zero count means the row is absent, not shown as "0". Amber rows first, then neutral.
 
-#### 5d — Vendor aliases
+**5h — The identity mark.** One control, two sources. Sizes are fixed, not a scale: **26px** in a chip or field, **34px** in a list row and the summary card, **42px** on a form and the detail header. Glyph is 52% of the tile, type 38%.
 
-A receipt rarely prints the name you call a vendor. "INDBO MØBLER A/S", "Indbo Møbler ApS" and "indbo.dk" are one vendor, and aliases are what let a scan resolve without asking. They are also where a merged vendor's old names go, so nothing stops matching after a merge.
+Vendor initials: first letter of the first two words, uppercased, accents kept (Ø stays Ø); one word gives one letter; digits and punctuation skipped, so "7-Eleven" is E. Vendor colour is a stable hash of the name over the same eight swatches a category uses — so a vendor created twice looks the same — and once a user picks one the hash is never consulted again. **A vendor never has a photo**: no favicons, no logos, however tempting the website field makes it. The glyph flips to `#3d3c36` above L 75, one computed threshold rather than a lookup table. Never shrink a mark to make a row fit — the row drops columns first.
 
-**In the form** the field is labelled **"Also matches"**, not "Aliases" — the label states what it does, so a user adding a name knows they are teaching the scanner. Values are removable chips (14a); to correct one, remove and re-add. A CVR number is an alias like any other but matches exactly rather than fuzzily, and is the strongest signal a scan can find. Names carried over from a merge render in the accent tone so their origin is visible.
+**5i — Aliases.** A vendor has one name you recognise and any number its receipts print. Matching is **normalised**: case-folded, accents stripped, punctuation and legal suffixes removed (A/S, ApS, Ltd, GmbH), whitespace collapsed. One field takes three kinds — a name, a domain, or a VAT number — because the user does not think of them as different.
 
-**Matching order:** exact CVR → exact alias or name, normalised (case, punctuation, and the suffixes A/S, ApS, IVS, Ltd removed) → fuzzy above 0.9 against names and aliases alike, pre-selected but marked uncertain → nothing, and the picker opens with a Create row. **An alias is never shared** — if a name would match two vendors, reject it on entry naming the vendor that already claims it.
+**Aliases are unique across all vendors.** Adding one already claimed shows which vendor holds it and offers to move it; two vendors matching one receipt string is how a scan files things wrongly in silence. Merging moves aliases, which is what stops the duplicate reappearing on the next receipt. Removing one does not touch existing orders — it only changes what future scans match.
 
-**Learning from a scan:** in review (3a), when the receipt's name differs from the vendor chosen, a checkbox offers "Also match INDBO MØBLER A/S in future", checked by default. Opt-out rather than automatic, because a user who picked the wrong vendor should not silently teach a wrong name. Shown once per distinct name, and written only when the order is created — a discarded scan teaches nothing. Not offered for categories: a category is the user's own classification, not a name printed on paper.
+**5j — The monthly limit.** One amount, applied to every month. **Not a series**: no per-month editing, no history. A series invites a calendar, a "copy last month", and a question about which month's limit a historical comparison uses — none of it asked for.
 
-**An alias is never displayed as the vendor.** Orders, lists, charts and the identity mark all use the canonical name. Search matches aliases (order list, vendor combobox, palette); facet counts are unaffected, since one vendor is one facet value whatever it is called. Duplicate detection and file import both read aliases too.
+Empty means no limit; **zero means nothing should be spent here**, and they are different. The pace marker sits at `day / daysInMonth` and exists because a flat limit is unreadable against a partial month — a reference line, never a threshold, never red. **Crossing a limit never blocks a save**; keep the check out of the validation layer entirely.
 
-#### 5c — Roll-up panel (nothing selected)
+Five states drawn, and every fill named: `#1d4d33` under · `#d3b98a` up to a passed limit · `#e2d3ae` for the overage segment, list rows only · bare `#f7f6f2` track for no limit · `#b58a2b` for the marker. A list row splits the amber into two segments so it shows both the limit and how far past it went; a panel has room for the sentence instead. Bars are **8px / radius 4** in a list row, **10px / radius 5** in a panel or form — the only dimension that changes by context.
 
-The panel's default state, matching the detail panel's width and card rhythm but describing the whole list: totals for all vendors (spend, vendors used, saved, average order), a "where the money goes" top-five bar list with "Other N vendors", and a "Needs a look" list — possible scan duplicates, vendors with no orders in 12 months, missing VAT — each an amber or neutral row with a count bubble and a chevron into the filtered list. For categories: the month's spend against the sum of all limits, with the pace marker. Footer hint: "Select a vendor to edit its details."
+**5k — The icon picker.** Categories only. A fixed library, searchable, rendered in the category colour, capped at 460px so its 8-column grid produces sensible tiles. **Never an upload** — every glyph has to survive a 26px tile with white ink, the same with dark ink, a 12px chart bar and a chip. Icons are stored by **stable key**, so reordering the library never changes what a category shows. Search matches synonyms ("sofa" finds seating), without which a fixed library of 80 is unusable. Arrows move in two dimensions; the overflow cell is a count ("+64"), not an ellipsis; selection is an outline, never a check over the glyph.
 
----
+**5l — Merge, and moving orders.** Merge is vendors only: orders move to the target, the source's name and aliases become the target's aliases, the source is deleted. **Moving the aliases is the important half.** The comparison shows which value wins per field — the target keeps its own unless the source has one and it does not.
+
+Categories **reassign** rather than merge: there is nothing to combine, so orders are pointed at another category and it becomes deletable. Neither is reversible, and the dialog says so — write an audit record rather than promise a rollback. Suggested merges are advisory at similarity above 0.85 or an identical VAT number, never automatic at any confidence. The count is the last thing in the button: "Merge 2 orders", not "Confirm".
+
+**5m — Both tables at every width.** Drawn at 1280, 1040, 880 and 420. Columns are dropped whole, never squeezed until they wrap, and which one goes differs by table.
+
+**Vendors** drop *saved* first (softest number, and the panel states it exactly), then *orders* — which folds into the name's second line at 880 rather than vanishing, since a vendor with 24 orders and one with 2 are different kinds of vendor. Spend and last order never leave: spend is the sort key, and nothing else says when you last bought from someone.
+
+**Categories** drop the *12-month average* first — context for the limit, not the limit itself. The limit and this month never leave; they are the pair the page exists to compare. The progress bar is a column, not decoration: it stays at every width and goes full width on the phone.
 
 ### 8a / 8b — Duplicating an order, and budget alerts
 File: `Duplicate and alerts.dc.html` · Code: `pages/EditOrder.jsx`, `pages/CategoryForm.jsx`
@@ -726,7 +729,7 @@ File: `States and confirmations.dc.html` · Code: `components/ListState.jsx`, `c
 
 **6b — Loading.** Skeletons that match the shape of what is coming: `#f7f6f2` blocks at the real row heights with the shimmer, never a spinner in place of a layout. Row lists show six skeleton rows; cards show three skeleton cards; the panel shows label/value pairs.
 
-**6c — Validation.** Field-level, on blur and on submit. Error field: border `#c98a80`, message below at 12px `#8a4a41` with a small alert glyph. A form-level summary appears above the actions when submit fails, listing the fields as links. Rules implemented: vendor required; order date required and not in the future; at least one item line; quantity > 0; unit price ≥ 0; amounts max two decimals; reference max 64 chars; category limit must be a positive amount or empty. Crossing a monthly limit is **not** an error — it renders as the amber notice from 8b and the save proceeds.
+**6c — Validation.** Field-level, on blur and on submit. Error field: border `#c98a80`, message below at 12px `#8a4a41` with a small alert glyph. There is no form-level summary — one place per problem. Save stays clickable and moves focus to the first problem instead of doing nothing. Rules implemented: vendor required; order date required and not in the future; at least one item line; quantity > 0; unit price ≥ 0; amounts max two decimals; reference max 64 chars; category limit must be a positive amount or empty. Crossing a monthly limit is **not** an error — it renders as the amber notice from 8b and the save proceeds.
 
 **6d — Confirmations and toasts.** Destructive actions use a dialog: `440px`, radius `14px`, shadow `0 12px 28px rgba(27,26,23,0.16)`, scrim `rgba(27,26,23,0.35)`. Title 16px/600 states the consequence in the user's terms ("Delete this order?"), body 13px names what is lost including attachments, then Cancel (ghost) and the destructive primary (`#8a4a41` fill). Non-destructive success uses a toast instead: bottom-centre, dark `#1b1a17`, white 13px text, radius `9px`, shadow `0 14px 32px rgba(27,26,23,0.14)`, an Undo text button in `#a8c6b2`, auto-dismiss 6s, paused on hover. Undo is the preferred pattern; reserve dialogs for what cannot be undone.
 
@@ -753,7 +756,7 @@ Breakpoint: below `900px` the two columns stack; below `640px` the phone layout 
 
 ---
 
-### 11a, 11b — Settings, and importing a file
+### 11a–11d — Settings, and importing a file
 File: `Settings and import.dc.html` · Code: new pages (`pages/Settings.jsx`, `pages/Import.jsx`)
 
 **Widths.** The 1180px shell drawn around 11a is presentation only — a stand-in for a viewport so the screen reads in context. In the app the shell fills the browser edge to edge (sidebar 248px fixed, content column fluid, per 9a). Inside the content column: section nav **208px fixed**, hairline divider, card column **fluid with a 640px cap**. Past 640px the cards stop growing and the slack falls to their right — a 42px input stretched across 1920px reads as a bug (15a). Below ~900px the section nav becomes a select above the cards and the cap no longer binds.
@@ -886,7 +889,7 @@ Six standing rules: nothing below 10px (sidebar label only; 11px is the floor fo
 
 ---
 
-### 14a–14d — Input types, buttons, palette rule, component API
+### 14a–14g — Input types, buttons, palette, component API, overlays
 File: `Input types.dc.html` · Code: `components/` (the shared control set)
 
 **This is the component specification.** Build these before the screens; every screen composes them.
@@ -958,7 +961,7 @@ Five sizes — 20, 26, 34, 44, 56 — with radius 6/8/10/12/50% and type at roug
 
 **Below 640px, anchored positioning is abandoned** — a bottom sheet with a grab handle and 46px rows, same items in the same order. A 200px popover beside a thumb-sized target with a keyboard covering half the screen cannot be fixed by flipping.
 
-### 15a / 15b — Layout rules
+### 15a–15d — Layout rules
 File: `Layout rules.dc.html`
 
 **The rule behind every screen: one fluid column per layout, everything else a fixed pixel width.** The main column is `1fr`; rails, navs and facet columns are fixed. Two fluid columns means neither has a predictable width, nothing inside either can be sized with confidence, truncation stops being predictable, and the first long vendor name reflows the page.
@@ -1003,7 +1006,7 @@ Also below 640px: buttons in a sheet go full width and stacked (the only correct
 
 ---
 
-### 16a–16c — Actions inventory
+### 16a–16h — Actions inventory
 File: `Actions inventory.dc.html`
 
 **The completeness check.** Compiled by walking every mockup rather than from memory: each control drawn, what it does, and what the user observes afterwards. Use it as the checklist when a screen is built — if a control on the screen isn't in this table, its behaviour was never decided.
@@ -1279,21 +1282,21 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `BEHAVIOUR.md` | Edge cases, precise rules, open questions |
 | `index.html` | Linked overview of everything below — start here |
 | `Home.dc.html` | 10a |
-| `Navigation shell.dc.html` | 9a, 9b, 9c, 9d |
+| `Navigation shell.dc.html` | 9a–9g |
 | `Order editing layouts.dc.html` | 1a, 1b, 1c, 1d |
-| `Order list.dc.html` | 2a, 2b, 2c, 2d, 2e |
+| `Order list.dc.html` | 2a–2e, 2g–2i |
 | `Order create.dc.html` | 3a, 3b, 3c |
 | `Order statistics.dc.html` | 4a |
 | `Auth and first run.dc.html` | 20a, 20b, 20c, 20d, 20e |
-| `Vendors and categories.dc.html` | 5a, 5b, 5c, 5d, 5e |
+| `Vendors and categories.dc.html` | 5a–5m |
 | `States and confirmations.dc.html` | 6a–6f |
 | `Mobile screens.dc.html` | 7a |
 | `Duplicate and alerts.dc.html` | 8a, 8b |
-| `Settings and import.dc.html` | 11a, 11b |
+| `Settings and import.dc.html` | 11a–11d |
 | `Dark mode and image viewer.dc.html` | 12a, 12b |
 | `Typography.dc.html` | 13a |
-| `Input types.dc.html` | 14a–14f |
-| `Layout rules.dc.html` | 15a, 15b, 15c |
+| `Input types.dc.html` | 14a–14g |
+| `Layout rules.dc.html` | 15a–15d |
 | `Responsive reference.dc.html` | 18a, 18b |
 | `Icon legend.dc.html` | 19a, 19b |
 | `Actions inventory.dc.html` | 16a–16h |

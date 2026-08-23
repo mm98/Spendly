@@ -65,7 +65,7 @@
         <div style="display: flex; flex-direction: column; gap: 13px">
           <div style="display: flex; flex-direction: column; gap: 5px">
             <div style="font-size: 12px; font-weight: 600; color: #8a4a41">Error — left empty</div>
-            <div style="border: 1px solid #c98a80; background: #fdf6f5; border-radius: 9px; padding: 10px 12px; font-size: 14px; color: #b08f89">e.g. Nordal vase, large</div>
+            <div style="border: 1px solid #c98a80; background: #fdf6f5; border-radius: 9px; padding: 10px 12px; font-size: 14px; color: #c98a80">e.g. Nordal vase, large</div>
             <div style="display: flex; align-items: center; gap: 6px">
               <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="5.4"></circle><path d="M8 5.2v3.2"></path><circle cx="8" cy="10.8" r="0.7" fill="#8a4a41" stroke="none"></circle></svg>
               <div style="font-size: 12px; color: #8a4a41">Give the item a name</div>
@@ -112,7 +112,7 @@
         <sc-if value="{{ showErrors }}" hint-placeholder-val="{{ true }}">
           <div style="display: flex; flex-direction: column; gap: 5px">
             <div style="font-size: 12px; font-weight: 600; color: #8a4a41">Error</div>
-            <div style="border: 1px solid #c98a80; background: #fdf6f5; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center; font-variant-numeric: tabular-nums">-120,00<div style="flex: 1"></div><span style="font-size: 13px; color: #b08f89">kr.</span></div>
+            <div style="border: 1px solid #c98a80; background: #fdf6f5; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center; font-variant-numeric: tabular-nums">-120,00<div style="flex: 1"></div><span style="font-size: 13px; color: #c98a80">kr.</span></div>
             <div style="font-size: 12px; color: #8a4a41">A price can't be negative — use the Returned status instead</div>
           </div>
         </sc-if>
@@ -616,7 +616,7 @@
       </div>
       <sc-if value="{{ showErrors }}" hint-placeholder-val="{{ true }}">
         <div style="border: 1px solid #f0e6e4; background: #fdf6f5; border-radius: 10px; padding: 11px 12px; display: flex; align-items: center; gap: 11px">
-          <div style="width: 34px; height: 34px; border-radius: 8px; background: #f7eae8; flex: none; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.6" stroke-linecap="round"><path d="M8 5.4v3.4"></path><circle cx="8" cy="11.2" r="0.7" fill="#8a4a41" stroke="none"></circle><path d="M8 2.6l5.4 10.4H2.6z"></path></svg></div>
+          <div style="width: 34px; height: 34px; border-radius: 8px; background: #f0e6e4; flex: none; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#8a4a41" stroke-width="1.6" stroke-linecap="round"><path d="M8 5.4v3.4"></path><circle cx="8" cy="11.2" r="0.7" fill="#8a4a41" stroke="none"></circle><path d="M8 2.6l5.4 10.4H2.6z"></path></svg></div>
           <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
             <div style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">scan_0042.tiff</div>
             <div style="font-size: 11px; color: #8a4a41">TIFF isn't supported — try PDF, JPG or PNG</div>
@@ -650,7 +650,7 @@
       <sc-if value="{{ showErrors }}" hint-placeholder-val="{{ true }}">
         <div style="display: flex; flex-direction: column; gap: 5px">
           <div style="font-size: 12px; font-weight: 600; color: #8a4a41">Error</div>
-          <div style="border: 1px solid #c98a80; background: #fdf6f5; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">14 Sep 2026<div style="flex: 1"></div><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#b08f89" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg></div>
+          <div style="border: 1px solid #c98a80; background: #fdf6f5; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">14 Sep 2026<div style="flex: 1"></div><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#c98a80" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="10.8" height="9.4" rx="1.4"></rect><path d="M2.6 6.4h10.8"></path></svg></div>
           <div style="font-size: 12px; color: #8a4a41">An order can't be dated in the future</div>
         </div>
       </sc-if>
@@ -1178,7 +1178,7 @@
         <div style="font-size: 15px; font-weight: 600">Custom date range</div>
         <div style="font-size: 11px; color: #8b8a82">2d facet rail</div>
       </div>
-      <div style="border: 1px solid #e6e4dc; border-radius: 10px; padding: 13px; display: flex; flex-direction: column; gap: 11px; background: #fcfbf9">
+      <div style="border: 1px solid #e6e4dc; border-radius: 10px; padding: 13px; display: flex; flex-direction: column; gap: 11px; background: #f7f6f2">
         <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">DATE</div>
         <div style="display: flex; flex-wrap: wrap; gap: 6px">
           <div style="border: 1px solid #dedcd4; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #57564f">30 days</div>
