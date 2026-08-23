@@ -1,24 +1,8 @@
-Use **only** the branch: `claude/order-flows-react-layouts-ntm90q` (this exact branch. no pre- or suffix)
-Confirm you've switched to and use branch: `claude/order-flows-react-layouts-ntm90q` 
-
-*ELEMENT: Vendor > New vendor*
-
-Can you do a mockup HTML compare for this implementation ? ... remember the mockup HTML is the only source of truth and is how it is supposed to look.
-
-I want you to change the implementation, so it matches the mockup. spacing / gaps / font size / font weight / font color all styling. Keep comparing and adjusting, until it matches. Reuse existing components, when/if they exist. Always adhere to the rules defined in `/design/index.html` and `/design/readme.md`
-
-NOTE: The mockup HTML used example / demo data and some graphs might use a custom color defined on the entity (vendors and categories). Read the mockups rules. Only focus on this single task. Do no start adjusting other pages.
-
-
---------------------------------------------------------------------------
-
-Use **only** the branch: `claude/order-flows-react-layouts-ntm90q` (this exact branch. no pre- or suffix)
-
-**Confirm you've switched to and use branch:** `claude/order-flows-react-layouts-ntm90q`
-
-Do not switch branches or modify anything outside this branch.
-
 **Do not commit any changes. Only create a commit if I explicitly ask you to.**
+
+## Branch
+
+**Confirm the current working branch with me before starting. Do not make any changes until I have confirmed the branch is correct.**
 
 ## Task
 
@@ -33,6 +17,8 @@ The **mockup HTML is the single source of truth** for both the visual design and
 The page may contain multiple distinct areas, sections, or components.
 
 **Work on only one area at a time. Do not jump between areas or components.**
+
+**Areas are unique to each mockup. They may look similar to areas in other mockups, but they can contain important differences. Always validate each area against the current mockup. Do not assume that a similar-looking area is identical.**
 
 For each area:
 
