@@ -114,6 +114,11 @@ If an existing component does not support functionality required by the mockup, 
 
 ## Design rules
 
+You **must** ignore rules defined in:
+
+`/readme.md`
+
+
 You **must** follow the rules defined in:
 
 `/design/index.html`
