@@ -28,6 +28,7 @@
   <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Six sections, one per thing that changes how the rest of the app behaves. A left nav inside the page, cards in the middle, and the account and data cards in a rail on the right. Nothing here saves by itself: each card has its own save, and only the card you touched goes dirty.</div>
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px; margin-top: 2px">
     <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Order views in the menu offers 2, 3, 4, 5, 6, 8, 10</b> — same numeric-combobox pattern as Rows per page (tabular figures, unit word beside the value, chevron right). Views beyond the chosen count collapse under More in the sidebar; the count never hides the view currently open.</div>
     <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The save bar is sticky to the bottom of the content column.</b> Each card saves on its own, so the bar names which one is dirty — and with six sections the dirty card is usually scrolled off screen by the time you want to save it. A bar that scrolls away leaves the only exit from an edit somewhere the user has to hunt for. It appears when something is dirty and is absent otherwise, matching the edit screen in 1d.</div>
   </div>
   <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
@@ -282,6 +283,17 @@
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
           <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">LISTS</div>
           <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Order views in the menu</div>
+            <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px; display: flex; align-items: center; gap: 8px">
+              <span style="font-size: 14px; font-variant-numeric: tabular-nums">5</span>
+              <span style="font-size: 13px; color: #8b8a82">views</span>
+              <div style="flex: 1"></div>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M4 6l4 4 4-4"></path></svg>
+            </div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">How many order views the sidebar shows before the rest fold under More.</div>
+          </div>
+          <div style="height: 1px; background: #ebe9e1"></div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
             <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Rows per page</div>
             <div style="border: 1px solid #dedcd4; border-radius: 9px; box-sizing: border-box; height: 42px; padding: 0 12px; display: flex; align-items: center; gap: 8px">
               <span style="font-size: 14px; font-variant-numeric: tabular-nums">10</span>
@@ -291,7 +303,7 @@
             </div>
             <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">How many rows the order, vendor and category lists show before Load more.</div>
           </div>
-          
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
           <div style="display: flex; flex-direction: column; gap: 5px">
             <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Sort orders by</div>
             <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">Newest first<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
@@ -300,7 +312,8 @@
           <div style="display: flex; flex-direction: column; gap: 5px">
             <div style="font-size: 12px; font-weight: 600; color: #3d3c36">Sort vendors and categories by</div>
             <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 10px 12px; font-size: 14px; display: flex; align-items: center">Name, A to Z<div style="flex: 1"></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8b8a82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg></div>
-            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">What All vendors and All categories open sorted by. Both lists, one order.</div>
+            <div style="font-size: 11px; color: #8b8a82; line-height: 1.5">The order both lists open with.</div>
+          </div>
           </div>
         </div>
 

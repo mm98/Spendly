@@ -783,6 +783,8 @@ File: `Settings and import.dc.html` · Code: new pages (`pages/Settings.jsx`, `p
 
 **Five sections, each its own card with its own save.** Only the card you touched goes dirty; the sticky save bar names it ("Unsaved changes in Statuses").
 
+**The Lists card leads with a menu setting, then content settings.** *Order views in the menu* sits directly under the LISTS header with a hairline divider beneath it, because it changes the sidebar rather than any list body. Options: `2, 3, 4, 5, 6, 8, 10` (default 5), same numeric-combobox shape as *Rows per page* — tabular figures, unit word beside the value, chevron right. Views past the count fold under **More**; the view currently open is never hidden. Below the divider: *Rows per page*, then *Sort orders by* and *Sort vendors and categories by* side by side in one two-column row.
+
 **Status colour is a pair token, not a swatch.** A status stores one of five names — `green`, `sage`, `sand`, `clay`, `grey` — and each names a fixed surface/ink pair:
 
 | token | surface | ink |
