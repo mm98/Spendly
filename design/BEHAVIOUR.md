@@ -105,7 +105,17 @@ Resolving a preset at save time freezes the view to that period permanently, wit
 
 ---
 
-## Statistics (4a)
+## Home (0a)
+
+**Every card on Home is capped and none of them expand.** Recent orders shows the newest 4, Categories this month the top 4 by spend, the alert card at most 3 alerts. The cap is a constant, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400.
+
+**Each capped card names its true total in the header link** ("All 248", "All 9") and states what the visible rows are ("newest 4", "top 4 by spend"). No Other row and no Show all here — the link goes to the list or to Statistics, which own the full data. A dashboard card that grows with the data stops being a summary.
+
+**Counts in the header link are the unfiltered totals** for the card's own scope: all orders for Recent orders, all categories with spend in the current month for Categories this month. A zero total renders the label without a link.
+
+---
+
+## Statistics (4a–4e)
 
 **Period** is year, month, or custom range; default: current year. In the URL.
 
@@ -117,7 +127,19 @@ Resolving a preset at save time freezes the view to that period permanently, wit
 
 **The final level** is a list of matching orders, rendered with the same row component as the order list, and clicking one leaves Statistics for that order.
 
-**"Other N categories"** is a real crumb: drilling into it filters to everything outside the top five, rather than being inert.
+**Scale (4d).** Every breakdown card rests at its top 8 rows plus one **Other N** row carrying the summed remainder and its count, so the rows still add to the KPI above them. A footer link ("Show all 200 vendors") expands the same card in place: all rows inside a height-capped scroll region (`max-height: 322px`), the Other row gone, the link reading "Show top 8 only". Expansion is card-local — it does not change the URL, the crumbs or any other card.
+
+**The Other row is inert.** It is not a crumb and not clickable; "192 vendors" has no meaning as a filter. Expanding is the way to reach what is inside it.
+
+**Charts cap at 10 series plus one Other bar**, muted (`#c6d6c9`). The cap is on the chart only; the ranked list below uses the same remainder figure. Charts do not expand.
+
+**The order table loads 25 rows at a time.** Load more appends and preserves scroll position; the footer always reads "Showing N of TOTAL" with the true total. No page numbers, no infinite scroll, no rows-per-page setting — this table is proof of the slice above it, not a list to navigate. (The order list at 2a keeps its own paging.)
+
+**Expanded and loaded state resets** on any change to period, crumbs or the expenses/income filter: every card returns to top 8, the table to 25 rows. The rows answer a query that just changed.
+
+**Expenses / refunds / net (4e).** One single-choice menu, values `expenses` (default), `refunds`, `net`, in the URL as `flow=`. `expenses` selects orders with a positive total, `refunds` returns and credit notes, `net` both summed with sign. It filters the set; it does not change any definition — KPI labels are identical at all three settings. Under `net`, negative rows render with a minus sign in the red token and month bars draw downward from the axis; cards that cannot express a negative (the category donut) are removed at that setting. Budget limit cards and the pace marker are absent under `refunds`. The choice is not a crumb and survives period and crumb changes. **⚠ CONFIRM** whether a partial return is one record with a reduced total or a separate negative record.
+
+**No search or sort inside a breakdown.** It is ranked by the measure the card is about. Finding one named vendor is the vendor list's job.
 
 **Empty period** shows the cards with a zero state inside each rather than hiding them, so the period control stays in place.
 

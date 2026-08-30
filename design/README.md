@@ -405,6 +405,10 @@ File: `Home.dc.html` · Code: new page (`pages/Home.jsx`)
 
 **Purpose:** the start page. Answers "where am I this month, and what needs me?" and offers capture as the primary action.
 
+**Every card is capped at a constant and none expand.** Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. Each card states what it shows next to its title and carries the true total in its header link ("All 248", "All 9"); the link hands off to the list or to Statistics, which own the full data. No Other row here — that pattern belongs to Statistics (4d). A zero total renders the label without a link, and an alert with nothing behind it is absent.
+
+**Every affordance is a route, and the mockup lists them.** The WHERE EACH LINK GOES block on 10a names each link with its destination and the state it lands in — capture, duplicate, the three alert actions, the two card links, order and category rows, the month bars and the sidebar views. Nothing on Home opens a modal, and Home holds no filter state of its own.
+
 **Layout:** shell sidebar, then content as a two-column grid — main `1fr`, right rail `320px`, `24px` gap.
 
 **Main column, top to bottom:**
@@ -634,10 +638,14 @@ Scan failure is in 6e: the file is kept, the message says what failed, and the p
 
 ---
 
-### 4a–4c — Statistics
+### 4a–4e — Statistics
 File: `Order statistics.dc.html` · Code: `pages/Stats.jsx`, `components/Chart.jsx`, `components/Viz.jsx`, `components/DashboardCards.jsx`
 
 **Purpose:** the one place for aggregate numbers, with a drill path down to the orders behind any slice.
+
+**Scale (4d).** Nothing here is an open-ended list. Every breakdown rests at its top 8 rows plus one **Other N** row carrying the summed remainder, so the column still adds to the KPI above it, and a footer link expands the same card in place inside a `322px` scroll region. Charts cap at 10 series plus one muted Other bar. The drill table loads 25 rows at a time and its footer always names the true total. Show all, Show top 8 and Load more are card-local — they do not touch the URL, and any change to period or crumbs collapses everything back. 4d is drawn on a deliberately larger account (year 2029, 1.960 orders, 200 vendors, 34 categories) so the truncation is visible; the other frames use the canonical 2026 dataset.
+
+**The flow filter (4e).** One single-choice menu, `flow=` in the URL: **Expenses only** (default), **Refunds only**, **Net of refunds**. It filters the set and changes no definitions — KPI labels are identical at all three. Under `net`, negative rows carry a minus in the clay ink and month bars draw below the axis; the category donut is removed at that setting rather than drawn with a false slice. Limit cards and the pace marker are absent under `refunds`. The choice is never a crumb and survives period and crumb changes.
 
 **Layout:** a period control at the top (year / month / custom range, plus a compare-to-previous toggle), then the drill breadcrumb, then a card grid. Cards are white, radius `12px`, `18px` padding, in a 12-column grid; every card spans a whole number of columns so rows always close — no half-filled row and no gap in the middle (this was a fix; verify at 1280, 1440 and 1920).
 
@@ -1306,7 +1314,7 @@ No external assets. All icons are inline SVG drawn for these mockups on a 16×16
 | `Order editing layouts.dc.html` | 1a, 1b, 1c, 1d |
 | `Order list.dc.html` | 2a–2e, 2g–2i |
 | `Order create.dc.html` | 3a, 3b, 3c |
-| `Order statistics.dc.html` | 4a–4c |
+| `Order statistics.dc.html` | 4a–4e |
 | `Auth and first run.dc.html` | 20a, 20b, 20c, 20d, 20e |
 | `Vendors and categories.dc.html` | 5a–5n |
 | `States and confirmations.dc.html` | 6a–6f |

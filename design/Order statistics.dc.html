@@ -337,6 +337,9 @@
               <div style="height: 10px; border-radius: 5px; background: #eef1ee"><div style="width: 11%; height: 100%; border-radius: 5px; background: #c6d6c9"></div></div>
             </div>
           </div>
+          <div style="display: flex; align-items: center; border-top: 1px solid #f0efe9; padding-top: 12px">
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Show all 10 vendors</div>
+          </div>
         </div>
 
         <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
@@ -850,6 +853,364 @@
           </div>
       </div>
     </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="4d">4d</span>
+    <span style="font-size: 20px; font-weight: 600">A year with 200 vendors</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">A mature account, three years on: 200 vendors and 34 categories in one year. At that scale a breakdown has hundreds of rows, and a 200-row card is unreadable whether it scrolls or not. Every breakdown rests at its top eight with the remainder carried as one row, and expands in place when asked. Nothing on this page is an open-ended list.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Eight rows, then one Other row, then the link.</b> The Other row carries the summed remainder and its count, so the column still adds to the KPI above it. Without it the card silently understates the total and every percentage on it is wrong.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Expansion happens in the card, not on a new page.</b> The link swaps the eight rows for all of them inside a height-capped scroll region; the card keeps its position in the grid and the crumb state is untouched. A separate ranked page would need its own period control, its own crumbs and its own back behaviour.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The Other row is not clickable, and once expanded it is gone.</b> Drilling into “192 vendors” has no meaning as a crumb; expanded, the remainder is the rows themselves.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Charts cap at ten series plus Other.</b> Beyond ten bars the axis labels collide and the small values fall below a pixel. The cap is on the chart, not the query — the Other bar is the same remainder the ranked list uses.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The order table loads 25 at a time.</b> Load more appends and keeps scroll position; the footer count always names the real total, so the user knows what they have not seen. No page numbers — the table is proof of the slice above it, not something to navigate.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Expanded and loaded state is not persisted.</b> Changing the period or any crumb collapses every card back to eight and the table back to 25, because the rows answer a query that just changed.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">No search or sort inside a breakdown.</b> It is ranked by the measure the card is about. A user looking for one named vendor uses the vendor list or search, which are built for that.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Which of these change the URL.</b> A vendor row does — it appends a crumb (<code style="font-size: 11px">crumbs=vendor:hay</code>) and every card refilters. Show all, Show top 8 and Load more do not: they are card-local view state, so a reload comes back at top 8 and 25 rows. An order row leaves the page for <code style="font-size: 11px">/orders/:id</code>; Open in orders leaves for <code style="font-size: 11px">/orders</code> with the crumbs translated into filter chips. The Other row and the Other bar are inert.</div>
+  </div>
+
+  <div style="width: 1400px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden">
+    <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; background: #fff; border-bottom: 1px solid #e6e4dc">
+      <div style="width: 420px; flex: none; display: flex; align-items: center; gap: 9px; border: 1px solid #dedcd4; border-radius: 10px; padding: 8px 11px; color: #8b8a82">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+        <span style="font-size: 13px">Search orders, vendors, items…</span>
+        <div style="flex: 1"></div>
+        <span style="font-size: 11px; letter-spacing: 0.06em; border: 1px solid #e6e4dc; border-radius: 5px; padding: 2px 6px">⌘K</span>
+      </div>
+      <div style="flex: 1"></div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px; padding: 18px">
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px">
+        <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63; flex: none">SHOWING</div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+          <div style="display: flex; align-items: center; gap: 7px; border: 1px solid #dedcd4; color: #3d3c36; border-radius: 999px; box-sizing: border-box; height: 30px; padding: 0 11px; font-size: 12px; font-weight: 600">2029</div>
+        </div>
+        <div style="flex: 1"></div>
+        <div style="font-size: 12px; color: #8b8a82">1.960 orders · 200 vendors · 34 categories</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start">
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 13px">
+          <div style="display: flex; align-items: baseline">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">BY VENDOR</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 11px; color: #8b8a82">top 8 of 200</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 9px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Indbo Møbler</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">742.310</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 100%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Hay</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">498.400</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 67%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Muuto</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">401.240</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 54%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Ferm Living</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">344.900</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 46%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Normann Copenhagen</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">288.180</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 39%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>&amp;Tradition</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">236.640</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 32%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Skagerak</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">191.310</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 26%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Menu</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">147.050</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 20%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #f0efe9; padding-top: 10px">
+              <div style="display: flex; align-items: baseline; font-size: 12px; color: #6b6a63"><span>Other 192 vendors</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">492.570</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 66%; height: 100%; border-radius: 4px; background: #c6d6c9"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; border-top: 1px solid #f0efe9; padding-top: 12px">
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Show all 200 vendors</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 11px; color: #8b8a82; font-variant-numeric: tabular-nums">3.342.600 kr. total</div>
+          </div>
+        </div>
+
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 13px">
+          <div style="display: flex; align-items: baseline">
+            <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">BY VENDOR</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 11px; color: #8b8a82">expanded · 200 of 200</div>
+          </div>
+          <div style="max-height: 322px; overflow: auto; display: flex; flex-direction: column; gap: 9px; padding-right: 4px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Indbo Møbler</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">742.310</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 100%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Hay</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">498.400</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 67%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Muuto</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">401.240</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 54%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Ferm Living</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">344.900</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 46%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Normann Copenhagen</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">288.180</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 39%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>&amp;Tradition</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">236.640</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 32%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Skagerak</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">191.310</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 26%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Menu</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">147.050</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 20%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Louis Poulsen</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">121.480</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 16%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Frama</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">98.220</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 13%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>String Furniture</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">84.640</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 11%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Gubi</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">71.310</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 10%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; align-items: baseline; font-size: 12px"><span>Bolia</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">62.900</span></div>
+              <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 8%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; border-top: 1px solid #f0efe9; padding-top: 12px">
+            <div style="font-size: 12px; font-weight: 600; color: #1d4d33">Show top 8 only</div>
+            <div style="flex: 1"></div>
+            <div style="font-size: 11px; color: #8b8a82">scrolls inside the card</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: baseline">
+          <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">SPEND BY VENDOR</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 11px; color: #8b8a82">top 10, remainder as one bar</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(11, 1fr); gap: 14px; height: 180px; align-items: end">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 148px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Indbo</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 99px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Hay</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 80px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Muuto</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 69px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Ferm</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 57px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Normann</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 47px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">&amp;Tradition</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 38px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Skagerak</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 29px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Menu</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 24px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Poulsen</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 20px; background: #1d4d33; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Frama</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+            <div style="width: 100%; height: 54px; background: #c6d6c9; border-radius: 5px 5px 0 0"></div>
+            <div style="font-size: 10px; color: #8b8a82; text-align: center">Other 190</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f7f6f2; border-bottom: 1px solid #e6e4dc">
+          <div style="font-size: 13px; font-weight: 600">1.960 orders in this slice</div>
+          <div style="font-size: 13px; color: #6b6a63">· 3.342.600,00 kr.</div>
+          <div style="flex: 1"></div>
+          <div style="font-size: 12px; color: #8b8a82">newest first</div>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 104px 118px 150px 40px; gap: 12px; padding: 9px 16px; border-bottom: 1px solid #e6e4dc; font-size: 10px; letter-spacing: 0.1em; color: #8b8a82">
+          <div>ORDER</div><div>DATE</div><div>CATEGORIES</div><div style="text-align: right">TOTAL</div><div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 104px 118px 150px 40px; gap: 12px; align-items: center; padding: 11px 16px; border-bottom: 1px solid #f0efe9; font-size: 13px">
+          <div style="min-width: 0; display: flex; flex-direction: column; gap: 1px"><div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Indbo Møbler</div><div style="font-size: 11px; color: #8b8a82">SPENDLY-447</div></div>
+          <div style="color: #57564f; white-space: nowrap">12/08/2026</div>
+          <div style="display: flex; align-items: center"><span style="background: #e7efe8; color: #1d4d33; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; white-space: nowrap">Decor</span></div>
+          <div style="text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">7.635,00</div>
+          <div style="display: grid; place-items: center; color: #57564f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 104px 118px 150px 40px; gap: 12px; align-items: center; padding: 11px 16px; border-bottom: 1px solid #f0efe9; font-size: 13px">
+          <div style="min-width: 0; display: flex; flex-direction: column; gap: 1px"><div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Hay</div><div style="font-size: 11px; color: #8b8a82">SPENDLY-446</div></div>
+          <div style="color: #57564f; white-space: nowrap">11/08/2026</div>
+          <div style="display: flex; align-items: center"><span style="background: #e7efe8; color: #1d4d33; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; white-space: nowrap">Seating</span></div>
+          <div style="text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">4.180,00</div>
+          <div style="display: grid; place-items: center; color: #57564f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 104px 118px 150px 40px; gap: 12px; align-items: center; padding: 11px 16px; border-bottom: 1px solid #f0efe9; font-size: 13px">
+          <div style="min-width: 0; display: flex; flex-direction: column; gap: 1px"><div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Louis Poulsen</div><div style="font-size: 11px; color: #8b8a82">SPENDLY-445</div></div>
+          <div style="color: #57564f; white-space: nowrap">09/08/2026</div>
+          <div style="display: flex; align-items: center"><span style="background: #e7efe8; color: #1d4d33; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; white-space: nowrap">Lighting</span></div>
+          <div style="text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">2.940,00</div>
+          <div style="display: grid; place-items: center; color: #57564f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="3.2" r="0.6"></circle><circle cx="8" cy="8" r="0.6"></circle><circle cx="8" cy="12.8" r="0.6"></circle></svg></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 13px 16px">
+          <div style="font-size: 13px; color: #6b6a63">Showing 25 of 1.960</div>
+          <div style="flex: 1"></div>
+          <div style="border: 1px solid #dedcd4; border-radius: 9px; padding: 8px 16px; font-size: 12px; letter-spacing: 0.06em; font-weight: 600; color: #1d4d33">LOAD MORE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 16px; padding: 0 48px 40px">
+  <div style="display: flex; align-items: baseline; gap: 12px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; background: #1d4d33; color: #fff; padding: 4px 9px; border-radius: 6px" id="4e">4e</span>
+    <span style="font-size: 20px; font-weight: 600">The “Expenses only” menu</span>
+  </div>
+  <div style="font-size: 14px; color: #57564f; max-width: 900px; line-height: 1.55">Three options, single choice, because an order is either money out or money back and a user asking about spend means one of three things: what I paid, what came back, or the difference. The control always reads the choice, never the word “Filter”.</div>
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Values:</b> <code style="font-size: 11px">expenses</code> (default) · <code style="font-size: 11px">refunds</code> · <code style="font-size: 11px">net</code>. In the URL as <code style="font-size: 11px">flow=</code>, alongside <code style="font-size: 11px">period</code> and <code style="font-size: 11px">crumbs</code>, so a shared link carries it.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">What each value selects.</b> <code style="font-size: 11px">expenses</code>: orders with a positive total. <code style="font-size: 11px">refunds</code>: returned orders and credit notes — anything whose total is negative. <code style="font-size: 11px">net</code>: both, summed with sign. **⚠ CONFIRM** whether a partially returned order is one record with a reduced total or two records; if two, <code style="font-size: 11px">expenses</code> shows the original and the option list is correct as drawn.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">It filters, it does not change definitions.</b> Average order, saved vs retail and every breakdown recompute over the selected set. Under <code style="font-size: 11px">refunds</code> the KPI labels stay the same and the figures are refund figures — no relabelling, or two screenshots of the page cannot be compared.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Under <code style="font-size: 11px">net</code>, negative values are possible</b> in a breakdown row and in a month bar. Rows render with a minus sign in the red token; bars draw downward from the axis. A card that cannot express a negative (the donut) is removed at that setting rather than drawn with a false slice.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The choice survives crumb and period changes</b> and is not reset by them. It is a lens on the data, not part of the drill path, so it never appears as a crumb.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Budget limits only apply under <code style="font-size: 11px">expenses</code> and <code style="font-size: 11px">net</code>.</b> A limit compared against refunds is meaningless, so the limit cards and the pace marker come out under <code style="font-size: 11px">refunds</code>.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Not a multi-select.</b> Two of three checked is either <code style="font-size: 11px">net</code> or a single value, so checkboxes would offer a state that has no answer.</div>
+  </div>
+
+  <div style="display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #8b8a82">OPEN</div>
+      <div style="width: 620px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; padding: 18px">
+        <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+          <div style="font-size: 13px; color: #6b6a63">01/01/2026 — 20/08/2026</div>
+          <div style="flex: 1"></div>
+          <div style="position: relative">
+            <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #1d4d33; border-radius: 10px; padding: 9px 12px; font-size: 13px; color: #1d4d33; font-weight: 600">
+              Expenses only
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"></path></svg>
+            </div>
+            <div style="position: absolute; top: calc(100% + 6px); right: 0; width: 288px; background: #fff; border: 1px solid #dedcd4; border-radius: 12px; box-shadow: 0 12px 28px rgba(27,26,23,0.14); padding: 6px; display: flex; flex-direction: column; gap: 2px; z-index: 5">
+              <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: start; padding: 9px 10px; border-radius: 8px; background: #f0f4f1">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#1d4d33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 2px"><path d="M3 8.6l3.2 3.2L13 5"></path></svg>
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <div style="font-size: 13px; font-weight: 600">Expenses only</div>
+                  <div style="font-size: 11px; color: #6b6a63">What you paid.</div>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: start; padding: 9px 10px; border-radius: 8px">
+                <div></div>
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <div style="font-size: 13px">Refunds only</div>
+                  <div style="font-size: 11px; color: #6b6a63">Returns and credit notes.</div>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: start; padding: 9px 10px; border-radius: 8px">
+                <div></div>
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <div style="font-size: 13px">Net of refunds</div>
+                  <div style="font-size: 11px; color: #6b6a63">What you paid, less what came back.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="height: 152px"></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #8b8a82">CLOSED, ONE PER CHOICE</div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; padding: 9px 12px; font-size: 13px; color: #57564f; width: fit-content">
+          Expenses only
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; padding: 9px 12px; font-size: 13px; color: #57564f; width: fit-content">
+          Refunds only
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #dedcd4; border-radius: 10px; padding: 9px 12px; font-size: 13px; color: #57564f; width: fit-content">
+          Net of refunds
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#57564f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"></path></svg>
+        </div>
+      </div>
+      <div style="font-size: 11px; letter-spacing: 0.12em; color: #8b8a82; padding-top: 10px">A NEGATIVE ROW AND MONTH, UNDER NET</div>
+      <div style="width: 320px; background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 13px">
+        <div style="display: flex; flex-direction: column; gap: 9px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="display: flex; align-items: baseline; font-size: 12px"><span>Indbo Møbler</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums">128.900</span></div>
+            <div style="height: 8px; border-radius: 4px; background: #eef1ee"><div style="width: 100%; height: 100%; border-radius: 4px; background: #1d4d33"></div></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="display: flex; align-items: baseline; font-size: 12px"><span>Skagerak</span><span style="flex: 1"></span><span style="font-weight: 600; font-variant-numeric: tabular-nums; color: #8a4a41">−4.180</span></div>
+            <div style="height: 8px; border-radius: 4px; background: #eef1ee; display: flex; justify-content: flex-end"><div style="width: 4%; height: 100%; border-radius: 4px; background: #8a4a41"></div></div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 8px; height: 96px; border-bottom: 1px solid #e6e4dc; padding-bottom: 0">
+          <div style="flex: 1; height: 52%; background: #1d4d33; border-radius: 4px 4px 0 0"></div>
+          <div style="flex: 1; height: 70%; background: #1d4d33; border-radius: 4px 4px 0 0"></div>
+          <div style="flex: 1; height: 44%; background: #1d4d33; border-radius: 4px 4px 0 0"></div>
+          <div style="flex: 1; height: 88%; background: #1d4d33; border-radius: 4px 4px 0 0"></div>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 8px; height: 26px; margin-top: -13px">
+          <div style="flex: 1"></div>
+          <div style="flex: 1"></div>
+          <div style="flex: 1; height: 22px; background: #8a4a41; border-radius: 0 0 4px 4px"></div>
+          <div style="flex: 1"></div>
+        </div>
+        <div style="font-size: 11px; color: #6b6a63">March returned more than it bought.</div>
+      </div>
+    </div>
+  </div>
 </section>
 </x-dc>
 </body>

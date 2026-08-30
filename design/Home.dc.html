@@ -32,6 +32,49 @@
     <div style="font-size: 12px; color: #57564f; line-height: 1.55">The rounded corners, the 1px outline and the drop shadow around the shell below are <b style="color: #3d3c36">presentation only</b> — they exist so the mockup reads as a window on this page. In the app the shell fills the browser viewport edge to edge: the sidebar runs the full height with square corners, and the content column meets the window edge with no border and no radius. Same for the fixed 1400px width, which stands in for a viewport.</div>
   </div>
 
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 9px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">NOTES FOR IMPLEMENTATION</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Every card is capped at a constant and none of them expand.</b> Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">The header link carries the true total</b> — “All 248”, “All 9” — and the muted label beside the card name says what the visible rows are. No Other row and no Show all: the link hands off to the order list or to Statistics, which own the full data. A card that grows with the data has stopped being a summary.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Card scopes differ and each says so.</b> Recent orders is all time, newest first. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Alerts are ordered by severity, then recency:</b> over limit, then missing receipt, then possible duplicate vendors. Each row links to the filtered list that resolves it, and the card is absent when there is nothing to say — never a card with a tick in it.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Each card loads independently</b> and shows its own skeleton at its resting height. One slow query does not delay the capture zone, which is the most common reason the page was opened and must be usable first.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">A zero total renders the label without a link.</b> An empty card states the one action that fills it, in the card, at the same height it has when full.</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55"><b style="color: #3d3c36">Nothing on Home is a filter or a drill target.</b> Clicking a category, a month bar or an order leaves Home for the screen that owns it, with the equivalent state applied. Home holds no filter state of its own, so there is nothing to restore when the user comes back.</div>
+  </div>
+
+  <div style="max-width: 900px; border-left: 2px solid #c3c1b8; padding: 2px 0 2px 15px; display: flex; flex-direction: column; gap: 11px">
+    <div style="font-size: 10px; letter-spacing: 0.14em; color: #8b8a82">WHERE EACH LINK GOES</div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55">Every one is a real route, so it middle-clicks, deep-links and comes back with the browser button. Nothing on this screen opens a modal.</div>
+    <div style="display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 7px 18px; font-size: 12px; color: #57564f; line-height: 1.5">
+      <div style="font-weight: 600; color: #3d3c36">Scan receipt · drop zone</div>
+      <div><code style="font-size: 11px">/orders/new?source=scan</code> — order create, scan stage. Dropping a file starts the read with that file already attached.</div>
+      <div style="font-weight: 600; color: #3d3c36">Duplicate last order</div>
+      <div><code style="font-size: 11px">/orders/new?duplicate=447</code> — order create, prefilled from that order, nothing saved yet.</div>
+      <div style="font-weight: 600; color: #3d3c36">See orders (over limit)</div>
+      <div><code style="font-size: 11px">/orders?category=decor&amp;month=2026-08</code> — the order list, filtered, filter chips visible and removable.</div>
+      <div style="font-weight: 600; color: #3d3c36">Review (missing receipt)</div>
+      <div><code style="font-size: 11px">/orders?view=missing-receipt</code> — the saved view, the same one the sidebar entry opens.</div>
+      <div style="font-weight: 600; color: #3d3c36">Merge (duplicate vendors)</div>
+      <div><code style="font-size: 11px">/vendors?flag=possible-duplicate</code> — the vendor list filtered to the flagged pairs, panel closed.</div>
+      <div style="font-weight: 600; color: #3d3c36">All 248</div>
+      <div><code style="font-size: 11px">/orders</code> — unfiltered, default sort.</div>
+      <div style="font-weight: 600; color: #3d3c36">An order row</div>
+      <div><code style="font-size: 11px">/orders/447</code> — the order, read mode.</div>
+      <div style="font-weight: 600; color: #3d3c36">All 9 (categories)</div>
+      <div><code style="font-size: 11px">/categories</code> — the category list, panel closed.</div>
+      <div style="font-weight: 600; color: #3d3c36">A category row</div>
+      <div><code style="font-size: 11px">/statistics?period=2026-08&amp;crumbs=category:decor</code> — statistics for the month the card is about, that category as the crumb.</div>
+      <div style="font-weight: 600; color: #3d3c36">Statistics (last 8 months)</div>
+      <div><code style="font-size: 11px">/statistics?period=2026</code> — the resting page, no crumbs.</div>
+      <div style="font-weight: 600; color: #3d3c36">A month bar</div>
+      <div><code style="font-size: 11px">/statistics?period=2026&amp;crumbs=month:2026-08</code> — that month as the crumb.</div>
+      <div style="font-weight: 600; color: #3d3c36">Sidebar saved views</div>
+      <div><code style="font-size: 11px">/orders?view=&lt;slug&gt;</code> — the order list with the view applied; the badge is that view's live count.</div>
+    </div>
+    <div style="font-size: 12px; color: #57564f; line-height: 1.55">A row whose count is zero is text, not a link — an alert with nothing behind it does not appear at all.</div>
+  </div>
+
   <div style="width: 1400px; background: #f7f6f2; border: 1px solid #dedcd4; border-radius: 14px; overflow: hidden; display: flex">
 
     <div style="width: 248px; background: #14261c; display: flex; flex-direction: column; gap: 4px; padding: 20px 14px; flex: none">
@@ -200,7 +243,7 @@
                 <div style="font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">See orders</div>
               </div>
               <div style="display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 13px 16px; border-bottom: 1px solid #f0efe9">
-                <div style="display: flex; align-items: center"><div style="min-width: 26px; height: 26px; border-radius: 8px; background: #f3ede1; color: #7a5c23; display: grid; place-items: center; padding: 0 6px; box-sizing: border-box; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none">438</div></div>
+                <div style="display: flex; align-items: center"><div style="min-width: 26px; height: 26px; border-radius: 8px; background: #f3ede1; color: #7a5c23; display: grid; place-items: center; padding: 0 6px; box-sizing: border-box; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none">12</div></div>
                 <div style="font-size: 13px; min-width: 0">orders without a receipt attached</div>
                 <div style="font-size: 12px; font-weight: 600; color: #1d4d33; white-space: nowrap">Review</div>
               </div>
@@ -214,6 +257,7 @@
             <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; overflow: hidden">
               <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #e6e4dc">
                 <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">RECENT ORDERS</div>
+                <div style="font-size: 11px; color: #8b8a82; padding-left: 8px">newest 4</div>
                 <div style="flex: 1"></div>
                 <div style="font-size: 12px; font-weight: 600; color: #1d4d33">All 248</div>
               </div>
@@ -272,6 +316,7 @@
             <div style="background: #fff; border: 1px solid #e6e4dc; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 13px">
               <div style="display: flex; align-items: center">
                 <div style="font-size: 11px; letter-spacing: 0.12em; color: #6b6a63">CATEGORIES THIS MONTH</div>
+                <div style="font-size: 11px; color: #8b8a82; padding-left: 8px">top 4 by spend</div>
                 <div style="flex: 1"></div>
                 <div style="font-size: 12px; font-weight: 600; color: #1d4d33">All 9</div>
               </div>

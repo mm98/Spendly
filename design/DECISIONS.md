@@ -397,3 +397,19 @@ Not oversights — decisions deferred because they need product input. They are 
 - Attachment size and count limits.
 - Whether an import can update existing orders rather than only creating new ones.
 - Whether a second currency is ever needed, and if so whether historical amounts convert.
+
+---
+
+## Long breakdowns expand in place, they do not become their own page
+
+A year can hold 200 vendors and 34 categories. Every breakdown card rests at its top 8 with one **Other N** row for the remainder, and a footer link expands all rows inside the card's own height-capped scroll region. Charts cap at 10 series plus an Other bar. The order table loads 25 at a time.
+
+**Rejected:** a full-page ranked list behind the link — it would need its own period control, its own crumb state and its own back behaviour, duplicating the page the user just left. **Rejected:** a fixed-height scroller holding all 200 rows at rest — the top of a breakdown is the answer; 200 rows makes the card a place to hunt rather than something to read. **Rejected:** truncating without an Other row — every percentage on the card would then be wrong against the KPI above it. **Rejected:** search and sort inside breakdown cards — the card is ranked by its own measure, and finding a named vendor belongs to the vendor list. **Rejected:** page numbers on the drill-down table — it is evidence for the numbers above it, not a list to navigate.
+
+---
+
+## Expenses, refunds and net are three values of one control, not a toggle
+
+The statistics page carries one single-choice menu: **Expenses only** (default), **Refunds only**, **Net of refunds**. The control always reads the current choice.
+
+**Rejected:** a two-state toggle — it cannot express net, which is the figure a user comparing years actually wants. **Rejected:** checkboxes over expense and refund — two of three states then mean the same thing as net, and one state means nothing. **Rejected:** relabelling the KPIs under refunds ("Total refunded") — two screenshots of the page would no longer be comparable. **Rejected:** treating the choice as a crumb — it is a lens on the data, not a step in the drill path.
