@@ -201,12 +201,27 @@ function GlobalFinder() {
 	   enough to need that -- Vendors and Categories rows doubled once each row also opened an
 	   edit page, plus the "Show all ..." row under each -- can arrow the highlight straight past
 	   the bottom of it: the class moved, the panel did not, and the highlighted row read as
-	   deselected because it could no longer be seen. 'nearest' is the one block value that does
-	   not scroll when the row is already on screen, so landing in the middle of a visible list
-	   does not jump the panel for no reason. */
+	   deselected because it could no longer be seen.
+
+	   Not scrollIntoView: it reads the scroll container's own edge as the visible bound, and
+	   the sticky "SEARCH ALL ORDERS FOR ..." row (app.css's .combobox-action, position:sticky)
+	   sits opaque over that same edge regardless of scroll position -- a row scrolled flush to
+	   the panel's bottom is still hidden under it. Down never carried the highlight past the
+	   fifth-or-so row for exactly this reason: every row past it was scrolled to a position
+	   scrollIntoView called visible and the sticky bar was covering. The footer's own current
+	   top, not the panel's, is the real reachable bottom, and getBoundingClientRect reads both
+	   in the same viewport pixels a manual scrollTop adjustment can use directly. */
 	useEffect(() => {
 		if (at < 0) return
-		document.getElementById(optionId(at))?.scrollIntoView({ block: 'nearest' })
+		const panel = document.getElementById(panelId)
+		const option = document.getElementById(optionId(at))
+		if (!panel || !option) return
+		const footer = panel.querySelector('.combobox-action')
+		const panelRect = panel.getBoundingClientRect()
+		const optionRect = option.getBoundingClientRect()
+		const visibleBottom = footer ? footer.getBoundingClientRect().top : panelRect.bottom
+		if (optionRect.bottom > visibleBottom) panel.scrollTop += optionRect.bottom - visibleBottom
+		else if (optionRect.top < panelRect.top) panel.scrollTop -= panelRect.top - optionRect.top
 	}, [at])
 
 	/* Too short to search (SEARCH_FROM). Without this the panel shows the starter commands, which
