@@ -21,6 +21,7 @@ const diff = execFileSync("git", ["diff", "--unified=0", `${baseRef}...HEAD`, "-
 let file = null;
 let newLine = 0;
 let run = []; // [{ lineNo, text }] of the current contiguous run of added lines
+let hunkHasDeletion = false; // a hunk that also removes lines is an edit, not a fresh insertion
 let failures = 0;
 
 function isSourceFile(path) {
@@ -29,8 +30,11 @@ function isSourceFile(path) {
 
 // A comment-only run inside the added lines, tracked separately from the raw added-line run:
 // block comments span lines with no per-line marker, so "are we still inside /* */" has to be
-// carried across lines.
-function checkRun() {
+// carried across lines. The length cap only applies to a run added by a pure-insertion hunk --
+// rewriting an existing long comment turns its old lines into removals and its new lines into
+// additions, so a length check blind to that would fail every edit to a comment regardless of
+// whether the result got shorter.
+function checkRun(hadDeletion) {
 	if (!file || !isSourceFile(file) || run.length === 0) return;
 	let inBlock = false;
 	let commentStart = null;
@@ -43,7 +47,7 @@ function checkRun() {
 		if (changelog) {
 			console.error(`${file}:${commentStart}  reads as changelog: "${changelog[0]}"`);
 			failures++;
-		} else if (commentLines.length > MAX_NEW_COMMENT_LINES) {
+		} else if (!hadDeletion && commentLines.length > MAX_NEW_COMMENT_LINES) {
 			console.error(`${file}:${commentStart}  ${commentLines.length} new comment lines, limit ${MAX_NEW_COMMENT_LINES}`);
 			failures++;
 		}
@@ -69,14 +73,15 @@ function checkRun() {
 
 for (const raw of diff.split("\n")) {
 	if (raw.startsWith("+++ b/")) {
-		checkRun();
+		checkRun(hunkHasDeletion);
 		file = raw.slice(6);
 		continue;
 	}
 	if (raw.startsWith("@@")) {
-		checkRun();
+		checkRun(hunkHasDeletion);
 		const m = raw.match(/\+(\d+)/);
 		newLine = m ? Number(m[1]) : 0;
+		hunkHasDeletion = false;
 		continue;
 	}
 	if (raw.startsWith("+") && !raw.startsWith("+++")) {
@@ -84,10 +89,13 @@ for (const raw of diff.split("\n")) {
 		newLine++;
 		continue;
 	}
-	if (raw.startsWith("-") && !raw.startsWith("---")) continue;
-	checkRun();
+	if (raw.startsWith("-") && !raw.startsWith("---")) {
+		hunkHasDeletion = true;
+		continue;
+	}
+	checkRun(hunkHasDeletion);
 }
-checkRun();
+checkRun(hunkHasDeletion);
 
 if (failures) {
 	console.error(`\n${failures} new comment${failures === 1 ? "" : "s"} to trim — see CLAUDE.md's Comments rule.`);
