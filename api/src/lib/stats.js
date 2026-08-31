@@ -40,10 +40,12 @@ export function windowBounds(userId, range, id) {
 	   the month pattern, indexes MONTH_NAMES[12] and threw a TypeError -- a 500 for a URL
 	   anyone can type. Out of range answers null like a malformed id does, which is the same
 	   reanchor-to-a-real-window fallback the caller already runs. */
-	/* shortLabelFull is shortLabel unmeasured: the caption everywhere that draws shortLabel
-	   at more room than a strict abbreviation needs. Only the month branch has one worth
-	   spelling out -- "Aug" -> "August" -- so every other branch's shortLabel already is its
-	   own full form and shortLabelFull just repeats it. */
+	/* shortLabelFull is the unabbreviated form of shortLabel -- Statistics' card header
+	   captions read this one unconditionally rather than shortLabel; the header row never runs
+	   short of room for it (measured against the widest one, "busiest day: Saturday", down to
+	   the narrowest width a card ever reaches, two-column or single). Only the month branch has
+	   one worth spelling out -- "Aug" -> "August" -- so every other branch's shortLabel already
+	   is its own full form and shortLabelFull just repeats it. */
 	if (range === 'week') {
 		const [, y, w] = /^(\d{4})-W(\d{2})$/.exec(id) ?? []
 		if (!y || Number(w) < 1 || Number(w) > 53) return null
@@ -543,9 +545,10 @@ function recentColumns(userId, range, id, currentSpent, count = 6) {
 	return {
 		title: `Last ${countWord(columns.length)} ${range}${columns.length === 1 ? '' : 's'}`,
 		/* top.spend > 0: reduce picks the first all-zero column otherwise, and the note named a
-		   month as "the highest" on an account that had spent nothing at all. */
-		note: columns.length > 1 && top && top.spend > 0 ? `${top.label} is the highest` : null,
-		noteFull: columns.length > 1 && top && top.spend > 0 ? `${top.labelFull} is the highest` : null,
+		   month as "the highest" on an account that had spent nothing at all. Spelled out --
+		   this sits in a card header caption, and Statistics' own header row never runs out of
+		   room for one (see the header caption note above windowBounds). */
+		note: columns.length > 1 && top && top.spend > 0 ? `${top.labelFull} is the highest` : null,
 		columns: columns.map(c => ({
 			label: c.label, labelFull: c.labelFull,
 			height: most ? Math.round((c.spend / most) * 100) : 0, current: c.id === id

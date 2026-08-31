@@ -317,8 +317,9 @@ export const Meter = ({ fill, marker, ariaLabel, className, style }) => (
     resolves against. It used to take a pixel height per day and a `field` naming which of two
     identical copies of that height to read, so the chart was exactly as tall as the API had
     decided and the card around it kept whatever was left. */
-export const WeekdayBars = ({ days, className, style }) => (
-	<div className={['weekday-bars', className].filter(Boolean).join(' ')} style={style} aria-hidden="true">
+export const WeekdayBars = ({ days, className, style, ariaLabel }) => (
+	<div className={['weekday-bars', className].filter(Boolean).join(' ')} style={style}
+		{...(ariaLabel ? { role: 'img', 'aria-label': ariaLabel } : { 'aria-hidden': 'true' })}>
 		{days.map(d => (
 			<div key={d.day}>
 				<div className="weekday-bars-track">
