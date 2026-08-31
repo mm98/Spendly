@@ -5,11 +5,10 @@ import { CATEGORY_PALETTE, VENDOR_PALETTE, nthColour } from './palette.js'
 /* A stretch of plausible ledger — a year by default, up to decades — for looking at the app
    with something in it.
 
-   This is not the demo data a new account used to be seeded with -- that was dropped in
-   df597f3 because an account that registers and immediately shows somebody's shopping reads
-   as a data leak. This is the opposite: nothing arrives unasked, and a signed-in user presses
-   a button to fill their own account. The two are the same rows and completely different
-   promises.
+   Demo data is opt-in only, never auto-seeded onto a new account: nothing arrives unasked, and
+   a signed-in user presses a button to fill their own account. Seeding it automatically would
+   make a fresh account look pre-populated with someone else's orders, which reads as a data
+   leak rather than a demo.
 
    Every vendor and every category is given its colour by index rather than by hashing its
    name, so the set is distinct by construction: a hash is free to hand two vendors the same

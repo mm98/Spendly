@@ -1,8 +1,8 @@
 /* Per-user cache of GET answers, so a read the account just paid for is not recomputed for
    the identical request seconds later. GET /api/categories is a full all-time rollup over
-   every order-category link the account has (lib/aggregate.js) and it was re-run per tab
-   switch; the answer had not changed, because nothing that feeds it can change without a
-   write coming through this same process.
+   every order-category link the account has (lib/aggregate.js), cheap to skip and expensive
+   to redo on every tab switch when nothing that feeds it can change without a write coming
+   through this same process.
 
    That is the invariant the cache leans on: SQLite, one process, every write an HTTP write
    through this app -- so any non-GET from a user flushes that user's entries, wholesale.

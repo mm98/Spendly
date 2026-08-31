@@ -81,9 +81,8 @@ function Hero({ month }) {
 			   draws every wide window squashed into the bottom of the box -- and scaling each
 			   line to its own peak would draw the smaller one as tall as the larger, which is
 			   the defect the Orders overview chart already carries a note about. */
-			/* No bucketing. It existed for the wide windows the chips used to offer -- a year
-			   drawn as 365 points under 12 marks -- and a month is at most 31 days against a
-			   scale that fits 31 marks, so every point is its own day and the axis names it. */
+			/* No bucketing: a month is at most 31 days against a scale that fits 31 marks, so
+			   every point is its own day and the axis names it. */
 			const spend = view.series.spend
 			const saved = view.series.saved
 			const ceiling = Math.max(...spend, ...saved)
@@ -165,8 +164,8 @@ function Hero({ month }) {
 							{month.heroLegend.map(entry => (
 								/* The row names a category, so the link filters by it. "Without category"
 								   is the split's remainder rather than a category -- its id is null, and it
-								   filters as `none`, the orders with no category at all. It used to open the
-								   unfiltered list, a list of everything under a row naming what is in nothing. */
+								   filters as `none`, the orders with no category at all, never the
+								   unfiltered list. */
 								<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
 									amount={currency(entry.amount, 0)}
 									/* The month the heading names, carried into the list. The row was a
@@ -579,10 +578,8 @@ export default function Home() {
 											/* 7px of headroom (plotted()'s 4th arg) is the marker's, not the curve's:
 											   the marker rides the line, a cumulative series peaks on its last day, and
 											   a 4.5px circle with a 2px stroke paints 5.5px past the point it sits on.
-											   It used to be 17 to absorb the old spline's overshoot on the flat-jump-flat
-											   turn a one-order month draws; the curve is monotone now and peaks exactly
-											   at its own maximum, so that 10px was headroom held for a shape that can no
-											   longer be drawn. README: Charts. */
+											   The curve is monotone and peaks exactly at its own maximum, so no extra
+											   headroom is held for overshoot. README: Charts. */
 											series={[{ points: plotted(data.period.series.cumulative,
 												Math.max(...data.period.series.cumulative), 93, 7), kind: 'curve',
 												stroke: 'gradient:spend', strokeWidth: 2.4 }]}

@@ -49,9 +49,8 @@ export function validateOrderDraft(draft) {
 		if (!Number.isInteger(quantity) || quantity < 1 || quantity > 9999)
 			errors[`items.${i}.quantity`] = 'Quantity must be a whole number from 1 to 9999.'
 
-		/* No money field is signed any more. A rabat used to be entered as a line with a
-		   negative price; it is the order's own `discount` column now (migrations/009), so
-		   price joins retail and shipping at zero or above. */
+		/* No money field is signed: a discount is the order's own `discount` column
+		   (migrations/009), so price joins retail and shipping at zero or above. */
 		const price = Number(item.price)
 		if (!Number.isFinite(price))
 			errors[`items.${i}.price`] = 'What did you pay?'

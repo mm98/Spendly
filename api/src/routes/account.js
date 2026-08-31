@@ -7,8 +7,7 @@ export const router = Router()
 
 /* The ledger: what the demo fill replaces. Settings and dashboard cards are preferences, not
    data -- filling the account with demo orders must not hand back someone's page size, sort
-   order or card layout, and it used to: the fill reused the full wipe, so pressing it reset
-   Settings to the defaults alongside the ledger it promised to replace. */
+   order or card layout, so the fill uses this narrower wipe rather than the full one below. */
 const wipeLedger = userId => {
 	// orders first: cascades order_items, order_categories, attachments
 	db.prepare('DELETE FROM orders WHERE user_id = ?').run(userId)
@@ -63,8 +62,8 @@ const replaceWithDemo = db.transaction((userId, seed, orders, months) => {
    year -- same order counts, same days, same vendors -- which reads as a button that did
    nothing, and is the one thing "fill with demo data" must not look like.
 
-   So the seed is chosen here, at random, and passed. A caller that needs the old behaviour
-   sends its own: `{"seed": 424242}` reproduces any dataset exactly, which is what a harness
+   So the seed is chosen here, at random, and passed. A caller may pin the seed for
+   reproducibility: `{"seed": 424242}` reproduces any dataset exactly, which is what a harness
    comparing two runs asks for and what a bug report can carry. */
 router.post('/demo-data', (req, res) => {
 	const asked = Number(req.body?.seed)

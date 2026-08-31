@@ -347,10 +347,9 @@ export default function AllOrders() {
 								<ButtonLink onClick={clearAll}>CLEAR ALL</ButtonLink>
 							</EmptyState>
 						)}
-						{/* A real pager. It was two disabled buttons and a fixed "Showing 1 to 3 of 3";
-						    the numbers are the API's now, and the buttons are disabled only at the ends,
-						    which is the one honest reason to disable a control. Shared with the vendor
-						    and category lists, which page the same way from the same setting.
+						{/* A real pager: the numbers are the API's, and the buttons disable only at the
+						    ends, which is the one honest reason to disable a control. Shared with the
+						    vendor and category lists, which page the same way from the same setting.
 						    README: Honest Affordances, Pagination. */}
 						<Pager from={data.from} to={data.to} matched={data.matched}
 							page={data.page} pages={data.pages} onPage={setPage} />

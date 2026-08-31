@@ -24,10 +24,9 @@ const countCustomDashboard = db.prepare('SELECT COUNT(*) c FROM dashboard_cards 
    somebody has to keep working, a shape somebody has to keep compatible, and a thing the next
    reader has to look up before finding out nothing reads it.
 
-   `/onboarding` stays, and this is why it is separate. The two used to share GET /api/home and
-   every caller took one and threw the other away — Home read `onboarding` and discarded the
-   question, Orders overview and Categories read `question` and discarded three COUNTs. Split,
-   removing one costs nothing; joined, this would have been surgery on a shape Home depends on. */
+   `/onboarding` stays, and this is why it is separate: Home reads only `onboarding`, so removing
+   `/question` costs nothing here -- a shared route would have made it surgery on a shape Home
+   depends on. */
 
 router.get('/onboarding', (req, res) => {
 	const steps = [

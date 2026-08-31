@@ -13,10 +13,9 @@ const deflateAsync = promisify(deflate)
    that is a real win to keep. */
 const ALREADY_COMPRESSED = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])
 
-/* How much smaller the deflated copy has to be before it is worth storing. The gate used to be
-   "any byte at all", which stored a thumbnail that deflated 4.85% -- fifty bytes saved once,
-   against an inflate on every single serve of it forever. A tenth is the point where the saving
-   outlives the cost of unpacking it. */
+/* How much smaller the deflated copy has to be before it is worth storing. Gated at 10% rather
+   than any saving at all: below that, the inflate cost paid on every future serve outweighs the
+   storage saved once. A tenth is the point where the saving outlives the cost of unpacking it. */
 const MIN_SAVING = 0.1
 
 /** Deflates a buffer for storage as a raw zlib (RFC 1950) stream, when that is actually worth

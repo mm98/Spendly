@@ -17,10 +17,10 @@ import { currency, sep } from '../api/format.js'
 /* All vendors.
 
    The list half of the same split All orders has: Overview is what the numbers say, this tab
-   is the records themselves. It used to be a grid of cards on the overview page -- one card
-   per vendor, each with its own header, inset panel and pair of buttons -- which is a lot of
-   chrome to say "Bilka, 34 orders" and does not scan at all past a dozen of them. A list of
-   rows does, which is why the orders list has always been one.
+   is the records themselves. A list of rows, not a grid of cards: a card per vendor, each with
+   its own header, inset panel and pair of buttons, is a lot of chrome to say "Bilka, 34
+   orders" and does not scan at all past a dozen of them, which is why the orders list is a
+   list of rows too.
 
    This page is for keeping the record right, so the row opens the vendor -- a vendor page
    whose rows opened the orders list would be the orders list with extra steps. Its orders are
@@ -58,12 +58,11 @@ export default function AllVendors() {
 	   this visit; the setting is what it opens as. README: Settings. */
 	const settings = useApi(getSettings)
 
-	/* The whole of this list's state is the query string -- the keyword and the sort as well
-	   as the page. The page was in the URL and the other two were `useState`, which is a rule
-	   obeyed for one field of three: the same list, told the same way twice, was linkable by
-	   page number and not by what it was searching for. README: Pagination says the page is
-	   kept "in the URL with the rest of the list state", and this is the rest of it. It is
-	   also what lets ListState remember the list in one string rather than three. */
+	/* The whole of this list's state -- the keyword, the sort and the page -- lives entirely in
+	   the URL, so the list is linkable by what it is searching for and sorted by, not only by
+	   page number. README: Pagination says the page is kept "in the URL with the rest of the
+	   list state", and this is the rest of it. It is also what lets ListState remember the
+	   list in one string rather than three. */
 	const [params, setParams] = useSearchParams()
 	const pageSize = settings.data?.pageSize ?? 10
 	const query = params.get('q') ?? ''
@@ -109,8 +108,8 @@ export default function AllVendors() {
 				/* What counts as a match is not this page's to decide -- vendorTextMatch is the
 				   client's one answer, matching the name and every alias the way resolution
 				   and the command palette both already do (api/src/client.js, README: Vendors).
-				   This list spelled the rule out itself and got it wrong: names only, so the
-				   one screen devoted to vendors refused strings every other route resolves. */
+				   Matching goes through it rather than a rule spelled out here, so the one
+				   screen devoted to vendors can't drift from what every other route resolves. */
 				const listed = vendors
 					.map(v => ({ ...v, ...vendorTextMatch(v, query) }))
 					.filter(v => v.matches)

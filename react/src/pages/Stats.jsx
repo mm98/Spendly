@@ -19,21 +19,20 @@ import { currency, fullStop, percent, plural, sep } from '../api/format.js'
    The width picker and the pager are one control, so they are drawn as one: the two arrows,
    the window's name and the five widths in a single band, every button the same 32px box. The
    picker chooses how wide the window is and the arrows step by that width, so Week pages a
-   week and Month pages a month -- they used to disagree, and a pager that steps something
-   other than what is drawn is a pager for a page nobody is looking at. README: Statistics.
+   week and Month pages a month: the pager always steps exactly what the picker shows, since a
+   pager that steps something other than what is drawn is a pager for a page nobody is looking
+   at. README: Statistics.
 
    Every card on the page is that window's. The pace, the weekly rhythm, the category split,
-   the columns and the returns note used to come off the month record whatever the picker said,
-   so choosing a week moved the tiles and the chart and left five cards reading July -- a page
-   with one control and two answers to it. The charts are the same charts; the days under them
-   are the window's. What a month authors and a day does not is split across that month's days
-   by what each day cost, the same way the tiles already are.
+   the columns and the returns note all read off the same window the picker shows, so choosing
+   a week moves every card, not just the tiles and the chart -- one control, one answer. The
+   charts are the same charts; the days under them are the window's. What a month authors and a
+   day does not is split across that month's days by what each day cost, the same way the tiles
+   already are.
 
-   The picker was in the Overview card's header once, where it was the one right-hand item
-   taller than the band -- five buttons wrapping to two rows and 66px at 390 -- so the header
-   stood at 57.94 and 93.88 against every other header's 44.67. The page band is not a card
-   header: it is the pager's own row, it already wraps, and the buttons in it are the size of
-   the buttons beside them. README: Cards. */
+   The picker sits in the page band rather than a card header: it is the pager's own row, it
+   already wraps at narrow widths, and the buttons in it are the size of the buttons beside
+   them. README: Cards. */
 
 /** What a slice of the ring says about its own budget, or that it has none. Every row in the
     list gets a second line either way -- a category with a budget above one without would
@@ -61,14 +60,12 @@ const COMPARE_OPTIONS = Object.values(COMPARE_LABEL)
    link typed by hand -- this is the same rule on the near side of the wire, so the URL the
    click writes is already the window the answer will be about.
 
-   It was the other way round for one release: the click wrote the id it was leaving, the API
-   converted it, and an effect wrote the answer back over the URL. That effect is what this
-   replaces. Deriving the URL from the rendered answer means the two can disagree for a render
-   -- `useApi` keeps the previous window's data across a refetch -- and every guard against
-   that is a guard on a loop that has the address bar, the router and the fetch in it. A
-   browser locked up hard enough to need killing, on a page whose only fault was that it kept
-   asking. State the reader chose goes into the URL when the reader chooses it, once, and
-   nothing derives it back out. README: Statistics. */
+   The URL is never derived from the rendered answer: `useApi` keeps the previous window's data
+   across a refetch, so a URL written from an effect reacting to that data could disagree with
+   what the reader actually clicked, and every guard against that disagreement is a guard on a
+   loop that has the address bar, the router and the fetch in it. State the reader chose goes
+   into the URL when the reader chooses it, once, and nothing derives it back out. README:
+   Statistics. */
 const DAY_MS = 86400000
 const pad = n => String(n).padStart(2, '0')
 
@@ -184,11 +181,9 @@ export default function Stats() {
 
 				/* The window's own read on itself, in one sentence: what it's measured against
 				   (nothing to say for the oldest window there is), how many orders, how much of
-				   the window has records. Every one of the three used to be said somewhere
-				   else on the page on its own -- the delta as a chip beside the total, the
-				   order count nowhere at all, the day count as the Pace card's own header --
-				   which is what let four separate KPI tiles each repeat "vs Aug" beside their
-				   own figure. Stated once here, the tiles below only ever need a bare percent. */
+				   the window has records. All three are said once, here, so the tiles below
+				   only ever need a bare percent rather than each repeating "vs Aug" beside
+				   their own figure. */
 				const daysNote = view.pace.running
 					? `${plural(view.pace.daysIn, 'day')} in`
 					: `${plural(view.pace.daysIn, 'day')} of records`

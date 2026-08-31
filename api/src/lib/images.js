@@ -88,8 +88,8 @@ function renderPdfFirstPage(buffer) {
 		   render; it kills the whole process with a "Check failed: (location_) != nullptr"
 		   fatal error in AsyncModuleExecutionFulfilled, taking every other request on the box
 		   down with it. A worker that already sent its message exits by itself within
-		   milliseconds regardless, so nothing here is actually waiting on the terminate() that
-		   used to run. Only a genuinely hung worker -- the timeout below -- still needs it. */
+		   milliseconds regardless, so nothing here waits on terminate() for that case. Only a
+		   genuinely hung worker -- the timeout below -- still needs it. */
 		const timer = setTimeout(() => { worker.terminate(); settle(null) }, PDF_RENDER_TIMEOUT_MS)
 		worker.on('message', message => settle(message.png ? Buffer.from(message.png) : null))
 		worker.on('error', () => settle(null))
@@ -135,8 +135,8 @@ export async function processAttachment(buffer, mimetype, name) {
 	   different answer for one file -- which they did, from the filename and the mimetype, both
 	   of which the caller writes. lib/fileType.js has the signatures and what it cost.
 
-	   `detected` also gives the stored content type its value: for a PDF that used to be
-	   whatever was claimed, and it is served straight back as a Content-Type header. */
+	   `detected` also gives the stored content type its value -- the bytes' own type, not
+	   whatever the caller claimed -- and it is served straight back as a Content-Type header. */
 	const detected = detectFileType(buffer)
 	const kind = detectKind(buffer, mimetype, name)
 	const processed = kind === 'image' ? await processImage(buffer) : await (async () => {
