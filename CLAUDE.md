@@ -24,6 +24,11 @@ to `react/src/styles/app.css`, and no fix needs to reach it. It stays only as a 
 `README.md` is the design system the app implements; `docs/` holds the screenshots that document shows
 and the defect log its rules link to.
 
+## Whitespace
+
+Tabs indent, always. Spaces only where something aligns under something else. `.editorconfig`
+says so too, so editors don't undo it.
+
 ## The user is not technical, and English is not their first language
 
 Write anything the user reads — chat replies, and app copy alike — in plain language: no jargon, no
