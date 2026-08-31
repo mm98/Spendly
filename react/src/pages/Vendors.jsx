@@ -7,7 +7,7 @@ import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.j
 import { Donut, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { useApi } from '../api/useApi.js'
-import { getVendors } from '../api/client.js'
+import { chartPeriodPhrase, getVendorChartSplit, getVendors } from '../api/client.js'
 import { currency, plural, sep } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
@@ -25,6 +25,12 @@ export default function Vendors() {
 	/* The same request the All vendors tab reads, under the same cache key -- the spotlight/
 	   list split is this page's own reshape of that one answer, below. */
 	const state = useApi(getVendors)
+	/* The ring's own read, separate from `state` above: it is scoped to settings.chartPeriod,
+	   which the KPI row and the Favourites tiles are not, and joining it into the same gate
+	   would stall both of those on a fetch only the ring needs -- see the Where it goes card
+	   below, which gives it its own Async rather than waiting on it up here. Same split as
+	   Categories.jsx. */
+	const chart = useApi(getVendorChartSplit)
 
 	return (
 		<Page variant="page-grid">
@@ -50,12 +56,6 @@ export default function Vendors() {
 				const orders = all.reduce((sum, v) => sum + v.orders, 0)
 				const busiest = all.reduce((most, v) => (v.orders > (most?.orders ?? 0) ? v : most), null)
 
-				/* The ring and the rows beside it are one list of numbers, drawn from one array --
-				   the rule every other ring in this app already follows. */
-				const split = foldForRing(
-					all.map(v => ({ id: v.id, name: v.name, colour: v.colour, spend: v.spend })),
-					n => `${n} more vendors`)
-
 				return (
 					<>
 						<div className="kpi-row">
@@ -68,39 +68,62 @@ export default function Vendors() {
 								note={all.length ? `${Math.round(orders / all.length)} per vendor on average` : null} />
 						</div>
 
-						{/* Same rule as Categories: the header band and the closing buttons open the
-						    vendors list only while it has rows -- on an empty account each degrades to
-						    its passive form rather than opening a list that answers "No vendors yet".
-						    README: Empty states. */}
-						<Card aria-label="Where it goes">
-							<CardHeader title={`Where it goes${sep}all time`}
-								to={all.length ? '/vendors/all' : undefined}
-								label="Where it goes, open all vendors" />
-							<CardDivider />
-							<CardBody variant="ring-row">
-								{split.length ? (
-									<>
-										<Donut segments={split.map(v => ({ share: spend ? (v.spend / spend) * 100 : 0, colour: v.colour }))}
-											value={currency(spend, 0)} label="Spent, all time"
-											ariaLabel={`Vendor split of ${currency(spend, 0)}`} />
-										<div className="chart-legend chart-legend-fill">
-											{split.map(v => (
-												/* The folded row names a count rather than a vendor, so it opens the
-												   list where those vendors actually are instead of an orders filter
-												   for a vendor that does not exist. */
-												<LegendRow key={v.id ?? 'more'} colour={v.colour} title={v.name}
-													amount={currency(v.spend, 0)}
-													to={v.id ? `/orders/all?vendor=${v.id}` : '/vendors/all'} />
-											))}
-										</div>
-									</>
-								) : (
-									<EmptyState>
-										<p>Nothing spent yet. Your first order creates its vendor.</p>
-									</EmptyState>
-								)}
-							</CardBody>
-						</Card>
+						{/* Its own Async, not folded into the page's outer one above: this card is the
+						    one thing on the page scoped to settings.chartPeriod, so it is the one thing
+						    that waits on that fetch. .async-live is display:contents (app.css), so the
+						    boundary costs no extra box between this Card and the grid it sits in. */}
+						<Async state={chart} label="Loading your vendors' split"
+							skeleton={<SkeletonCard bodyHeight={220} />}>{chartData => {
+							/* The ring and the rows beside it are one list of numbers, drawn from one
+							    array -- the rule every other ring in this app already follows. Renamed
+							    onto foldForRing's own field (`amount` -> `spend`), the one shape it reads. */
+							const split = foldForRing(
+								chartData.split.map(v => ({ id: v.id, name: v.name, colour: v.colour, spend: v.amount })),
+								n => `${n} more vendors`)
+							const periodWord = chartPeriodPhrase(chartData.period)
+							return (
+								/* Same rule as Categories: the header band and the closing buttons open the
+								    vendors list only while it has rows -- on an empty account each degrades to
+								    its passive form rather than opening a list that answers "No vendors yet".
+								    README: Empty states. */
+								<Card aria-label="Where it goes">
+									<CardHeader title={`Where it goes${sep}${periodWord}`}
+										to={all.length ? '/vendors/all' : undefined}
+										label="Where it goes, open all vendors" />
+									<CardDivider />
+									<CardBody variant="ring-row">
+										{split.length ? (
+											<>
+												<Donut segments={split.map(v => ({ share: chartData.spent ? (v.spend / chartData.spent) * 100 : 0, colour: v.colour }))}
+													value={currency(chartData.spent, 0)} label={`Spent, ${periodWord}`}
+													ariaLabel={`Vendor split of ${currency(chartData.spent, 0)}`} />
+												<div className="chart-legend chart-legend-fill">
+													{split.map(v => (
+														/* The folded row names a count rather than a vendor, so it opens
+														   the list where those vendors actually are instead of an
+														   orders filter for a vendor that does not exist. */
+														<LegendRow key={v.id ?? 'more'} colour={v.colour} title={v.name}
+															amount={currency(v.spend, 0)}
+															to={v.id ? `/orders/all?vendor=${v.id}` : '/vendors/all'} />
+													))}
+												</div>
+											</>
+										) : (
+											/* Two absences, two answers, the rule every empty state on this page
+											    already makes: with vendors on record the sentence names the window
+											    that came up empty; with none at all, naming a window answers a
+											    question nobody asked -- the real absence is that no vendor exists
+											    yet. */
+											<EmptyState>
+												<p>{all.length
+													? `Nothing spent ${periodWord}.`
+													: 'Nothing spent yet. Your first order creates its vendor.'}</p>
+											</EmptyState>
+										)}
+									</CardBody>
+								</Card>
+							)
+						}}</Async>
 
 						<Card aria-label="Favourites">
 							<CardHeader title="Favourites"

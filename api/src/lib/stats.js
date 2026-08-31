@@ -263,6 +263,29 @@ function splitOver(userId, from, to, trueTotal, budgets) {
 	return split.sort((a, b) => b.amount - a.amount)
 }
 
+/* A vendor belongs to exactly one order at a time (unlike a category), so this is a plain
+   GROUP BY with no division and no remainder row -- every order's total counts once, toward
+   its one vendor, and the rows already sum to the window's real spend. */
+const selectVendorSplit = db.prepare(`
+	SELECT ot.vendor_id AS id, v.name, v.colour, SUM(ot.total) AS spend
+	FROM orders ot JOIN vendors v ON v.id = ot.vendor_id
+	WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to
+	GROUP BY ot.vendor_id
+	ORDER BY spend DESC
+`)
+
+/** Spend per vendor over a window, the vendor equivalent of `splitOver` above. `vendors.colour`
+    is NOT NULL (every vendor gets one at creation, lib/palette.js), so this never needs the
+    fallback palette a category's nullable colour does. */
+function vendorSplitOver(userId, from, to, trueTotal) {
+	const rows = selectVendorSplit.all({ userId, from, to })
+	const total = trueTotal ?? rows.reduce((s, r) => s + r.spend, 0)
+	return rows.map(r => ({
+		id: r.id, name: r.name, amount: r.spend, share: total ? (r.spend / total) * 100 : 0,
+		colour: r.colour
+	}))
+}
+
 /* Every budgeted category, with the window's spend beside its monthly allowance. Not built
    from `split` above: split holds what the window actually spent, so a category with a budget
    and a quiet month drops out of it -- and out of the denominator with it, which is the
@@ -688,6 +711,11 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 			todayIndex: todayIn(bounds.from, bounds.to),
 			rhythm: rhythmOver(userId, bounds.from, bounds.to),
 			split: splitOver(userId, bounds.from, bounds.to, now.spent, budgetRows),
+			// Vendors overview's own ring reads this the way Categories overview reads `split`
+			// above -- unconditional for the same reason `split` is: a caller that does not
+			// render it (Home, Orders overview) pays one more indexed GROUP BY, and a caller
+			// that does (Vendors overview) is never left with a summary that lacks its window.
+			vendorSplit: vendorSplitOver(userId, bounds.from, bounds.to, now.spent),
 			budgets: budgetSummary(budgetRows, cardRowsFor(userId)),
 			recent: summary ? null : recentColumns(userId, width, id, now.spent),
 			returns: returnsIn(userId, bounds.from, bounds.to),

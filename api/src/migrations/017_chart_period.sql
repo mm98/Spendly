@@ -1,0 +1,13 @@
+-- Which window the Vendors and Categories rings draw their split from. A preference, so it
+-- sits with the other preferences rather than on either page, and it is read exactly where
+-- list_sort is read: one account, one answer, both pages obey it.
+--
+-- The same widths Statistics already offers (week/month/quarter/year/all) -- not a second
+-- vocabulary of periods for the app to carry.
+--
+-- 'month' as the default because it is what both rings already drew before this column
+-- existed: Categories' ring was this month's split (routes/stats.js's window, joined in
+-- api/client.js's getCategoriesThisMonth) and Vendors' was all-time -- so an existing account
+-- keeps the figure it already had on Categories, and Vendors' ring narrows from all-time to
+-- this month, the same change every other account picking 'month' explicitly would choose.
+ALTER TABLE settings ADD COLUMN chart_period TEXT NOT NULL DEFAULT 'month';

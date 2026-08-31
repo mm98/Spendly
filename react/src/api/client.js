@@ -174,6 +174,38 @@ export const vendorTextMatch = (vendor, text) => {
    A wrapper earns a name (and an entry) only when it is a different request or a join of
    several; a reshape of one answer belongs to the page that wants that shape. */
 
+/* ---- chart period ----
+
+   One account setting (settings.chartPeriod), read by both rings: which of Statistics' own
+   widths -- week, month, quarter, year or all, the `ranges` list below, mirrored server-side as
+   CHART_PERIODS (api/src/routes/settings.js) -- Vendors' and Categories' rings currently draw
+   from. This earns its own wrapper under the rule stated above: a join of settings and the
+   window it points at, not a reshape of one list. */
+
+async function chartWindow(signal) {
+	const settings = await getSettings(signal)
+	const period = settings?.chartPeriod ?? 'month'
+	const { window } = await getStatsSummary(period, undefined, signal)
+	return { period, window }
+}
+
+/** Vendors overview's ring: the account's chosen window's own vendor split. `spent` is the
+    window's real total (window.spent), not a resum of `split` -- the same number the ring's
+    centre and the split's own shares were computed from server-side. */
+export async function getVendorChartSplit(signal) {
+	const { period, window } = await chartWindow(signal)
+	return { period, spent: window.spent, split: window.vendorSplit }
+}
+
+/** Categories overview's ring: the same join, over the category split -- "Without category"
+    already folded in by the server (api/src/lib/stats.js's splitOver). Deliberately not built
+    from getCategoriesThisMonth below: that one stays pinned to 'month' for the budget cards
+    beside the ring, which this setting does not touch. */
+export async function getCategoryChartSplit(signal) {
+	const { period, window } = await chartWindow(signal)
+	return { period, spent: window.spent, split: window.split }
+}
+
 /* ---- categories ---- */
 
 export async function getCategories(signal) {
@@ -875,6 +907,14 @@ export const ranges = [
 	{ key: 'all', label: 'All', short: 'ALL' }
 ]
 
+/** "this month", "all time" -- the phrase Vendors' and Categories' card headers state their
+    ring's window in, keyed the same way `ranges` is. Statistics prints a window's own calendar
+    label instead ("August 2026"); these two rings have no pager, always read the current
+    window, and "this X" says that plainly rather than naming a date the reader did not pick. */
+export const chartPeriodPhrase = key => ({
+	week: 'this week', month: 'this month', quarter: 'this quarter', year: 'this year', all: 'all time'
+}[key] ?? 'this month')
+
 /* ---- what a write invalidates ----
 
    The cache trusts its entries until a write drops them (useApi.js), so these lists are
@@ -893,7 +933,7 @@ export const ranges = [
 export function invalidateOrderData() {
 	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
-	invalidate(getStats)
+	invalidate(getStats); invalidate(getVendorChartSplit); invalidate(getCategoryChartSplit)
 	invalidate(getVendors); invalidate(getVendor)
 	invalidate(getCategories); invalidate(getCategoriesThisMonth); invalidate(getCategory)
 	invalidate(getUncategorised)
@@ -905,6 +945,7 @@ export function invalidateVendorData() {
 	invalidate(getVendors); invalidate(getVendor)
 	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getStats)
+	invalidate(getVendorChartSplit)
 }
 
 /** A category record changed (name, look, budget, favourite) or one was created. Same shape
@@ -914,5 +955,5 @@ export function invalidateCategoryData() {
 	invalidate(getUncategorised)
 	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
-	invalidate(getStats)
+	invalidate(getStats); invalidate(getCategoryChartSplit)
 }

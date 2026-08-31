@@ -8,7 +8,9 @@ import { Donut, Meter, foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
-import { budgetUsed, getCategoriesThisMonth, getUncategorised, overBudget } from '../api/client.js'
+import {
+	budgetUsed, chartPeriodPhrase, getCategoriesThisMonth, getCategoryChartSplit, getUncategorised, overBudget
+} from '../api/client.js'
 import { currency, percent, plural, sep } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
@@ -28,8 +30,9 @@ export default function Categories() {
 	/* The same request the All categories tab reads, under the same cache key -- switching
 	   between the two tabs re-uses one answer instead of fetching it once per tab name. The
 	   uncategorised remainder is its own small read (it is not a record, so it is not in the
-	   list), and the page waits on both: a ring drawn from one and re-drawn when the other
-	   lands would show two different splits a beat apart.
+	   list), and the KPI row and the Favourites and Budget cards below wait on both: an
+	   all-time total drawn from one and re-drawn when the other lands would show two different
+	   figures a beat apart.
 
 	   It is the joined read rather than the plain list because every card here that names a
 	   budget is a month-scoped claim ("of this month's budget used", "over this month") and a
@@ -43,6 +46,12 @@ export default function Categories() {
 		data: state.data !== undefined && uncategorised.data !== undefined
 			? { categories: state.data, none: uncategorised.data } : undefined
 	}
+	/* The ring's own read, separate from `both` above: it is scoped to settings.chartPeriod,
+	   which the rest of this page's cards are not, and joining it into the same gate would
+	   stall the KPI row and the Favourites and Budget cards on a fetch only the ring needs
+	   (see the Breakdown card below, which gives it its own Async rather than waiting on it
+	   up here). */
+	const chart = useApi(getCategoryChartSplit)
 
 	return (
 		<Page variant="page-grid">
@@ -57,10 +66,10 @@ export default function Categories() {
 					<SkeletonKpiRow />
 					<SkeletonCard bodyHeight={260} />
 				</>}>{({ categories, none }) => {
-				/* Spent and saved are the account's, not the categorised part of it: the ring
-				   centre and the KPI carry the same figure, and both used to leave the
-				   uncategorised remainder out -- an all-time total that disagreed with every
-				   other all-time total by exactly what no category claimed. */
+				/* Spent and saved are the account's, not the categorised part of it -- both used
+				   to leave the uncategorised remainder out, so the KPI read an all-time total
+				   that disagreed with every other all-time total by exactly what no category
+				   claimed. */
 				const spent = categories.reduce((sum, c) => sum + c.spend, 0) + none.spend
 				const saved = categories.reduce((sum, c) => sum + c.saved, 0) + none.saved
 				const budgeted = categories.filter(c => c.budget > 0)
@@ -72,14 +81,6 @@ export default function Categories() {
 				   starring pins a category to the spotlight without removing it from the only
 				   sortable, searchable view of them -- the rule Vendors set. */
 				const favourites = categories.filter(c => c.favourite)
-
-				/* The remainder rides into the fold like any real row: same fields, the same
-				   sentinel id and colour the window splits give it, so the legend row links to
-				   the none-filtered list the way every other row links to its category's. */
-				const split = foldForRing(
-					[...categories.map(c => ({ id: c.id, name: c.name, colour: c.colour, spend: c.spend })),
-						{ id: 'none', name: 'Without category', colour: 'var(--text-faint)', spend: none.spend }],
-					n => `${n} more categories`)
 
 				return (
 					<>
@@ -93,43 +94,70 @@ export default function Categories() {
 								note={budgeted.length ? `${over.length} over this month` : 'none set yet'} />
 						</div>
 
-						{/* The header opens the list only while the list has rows to show: on an account
-						    with no categories the band is a plain heading, the same degrade the button
-						    below makes. README: Empty states. */}
-						<Card aria-label="Breakdown">
-							<CardHeader title={`Breakdown${sep}all time`}
-								to={categories.length ? '/categories/all' : undefined}
-								label="Breakdown, open all categories" />
-							<CardDivider />
-							{/* The ring and the rows beside it are drawn from one array, which is the rule
-							    the donut's shares and its legend already had to obey. Each row opens the
-							    orders behind its own slice -- the one place on this page where orders are
-							    the useful destination, because the slice is what the reader just clicked. */}
-							<CardBody variant="ring-row">
-								{split.length ? (
-									<>
-										{/* Shares off spend rather than the API's own `share`, so the arcs add up
-										    to the figure in the middle even once the tail is folded into one. */}
-										<Donut segments={split.map(c => ({ share: spent ? (c.spend / spent) * 100 : 0, colour: c.colour }))}
-											value={currency(spent, 0)} label="Spent, all time"
-											ariaLabel={`Category split of ${currency(spent, 0)}`} />
-										<div className="chart-legend chart-legend-fill">
-											{split.map(c => (
-												/* The folded row names a count, not a category, so it opens the list
-												   those categories are on rather than a filter for one that has no id. */
-												<LegendRow key={c.id ?? 'more'} colour={c.colour} title={c.name}
-													amount={currency(c.spend, 0)}
-													to={c.id ? `/orders/all?category=${c.id}` : '/categories/all'} />
-											))}
-										</div>
-									</>
-								) : (
-									<EmptyState>
-										<p>No categories yet. Add one and your spending splits by kind.</p>
-									</EmptyState>
-								)}
-							</CardBody>
-						</Card>
+						{/* Its own Async, not folded into the page's outer one above: this card is the
+						    one thing on the page scoped to settings.chartPeriod, so it is the one thing
+						    that waits on that fetch. .async-live is display:contents (app.css), so the
+						    boundary costs no extra box between this Card and the grid it sits in. */}
+						<Async state={chart} label="Loading your categories' split"
+							skeleton={<SkeletonCard bodyHeight={220} />}>{chartData => {
+							/* The window's own split already carries "Without category" as a real row
+							    (api/src/lib/stats.js's splitOver) -- id null, in the same list, ranked by
+							    spend like every other row -- so nothing here rebuilds a remainder. Renamed
+							    onto foldForRing's own field (`amount` -> `spend`), the one shape it reads. */
+							const split = foldForRing(
+								chartData.split.map(c => ({ id: c.id, name: c.name, colour: c.colour, spend: c.amount })),
+								n => `${n} more categories`)
+							const periodWord = chartPeriodPhrase(chartData.period)
+							return (
+								/* The header opens the list only while the list has rows to show: on an
+								    account with no categories the band is a plain heading, the same degrade
+								    the button below makes. README: Empty states. */
+								<Card aria-label="Breakdown">
+									<CardHeader title={`Breakdown${sep}${periodWord}`}
+										to={categories.length ? '/categories/all' : undefined}
+										label="Breakdown, open all categories" />
+									<CardDivider />
+									{/* The ring and the rows beside it are drawn from one array, which is the
+									    rule the donut's shares and its legend already had to obey. Each row
+									    opens the orders behind its own slice -- the one place on this page
+									    where orders are the useful destination, because the slice is what the
+									    reader just clicked. */}
+									<CardBody variant="ring-row">
+										{split.length ? (
+											<>
+												{/* Shares off spend rather than the API's own `share`, so the arcs
+												    add up to the figure in the middle even once the tail is folded
+												    into one. */}
+												<Donut segments={split.map(c => ({ share: chartData.spent ? (c.spend / chartData.spent) * 100 : 0, colour: c.colour }))}
+													value={currency(chartData.spent, 0)} label={`Spent, ${periodWord}`}
+													ariaLabel={`Category split of ${currency(chartData.spent, 0)}`} />
+												<div className="chart-legend chart-legend-fill">
+													{split.map(c => (
+														/* The folded row names a count, not a category, so it opens the
+														   list those categories are on rather than a filter for one
+														   that has no id. */
+														<LegendRow key={c.id ?? 'more'} colour={c.colour} title={c.name}
+															amount={currency(c.spend, 0)}
+															to={c.id ? `/orders/all?category=${c.id}` : '/categories/all'} />
+													))}
+												</div>
+											</>
+										) : (
+											/* Two absences, two answers, the rule every empty state on this page
+											    already makes: with categories on record the sentence names the
+											    window that came up empty; with none at all, naming a window
+											    answers a question nobody asked -- the real absence is that no
+											    category exists yet. */
+											<EmptyState>
+												<p>{categories.length
+													? `Nothing spent ${periodWord}.`
+													: 'No categories yet. Add one and your spending splits by kind.'}</p>
+											</EmptyState>
+										)}
+									</CardBody>
+								</Card>
+							)
+						}}</Async>
 
 						{/* The spotlight Vendors has, on this page's own records. README: Favourites. */}
 						<Card aria-label="Favourites">
