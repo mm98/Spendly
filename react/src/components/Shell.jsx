@@ -131,12 +131,9 @@ function GlobalFinder() {
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
 	const [groups, setGroups] = useState([])
-	/* -1 is nothing chosen yet, and it is where every new set of results starts. Highlighting
-	   the first row by default made Enter open it, while the line at the foot of the panel went
-	   on offering to search all orders for the typed text -- so the one key it named did the one
-	   thing it did not do, and the row it opened need not even look related to what was typed
-	   (a match can be on an order's note or an item, neither of which the row shows). Nothing is
-	   chosen until the reader chooses it with the arrow keys or the mouse. */
+	/* -1 is nothing chosen, and every new set of results starts there: a row is chosen by the
+	   arrow keys or the mouse, never by arriving. Nothing chosen is what hands Enter to the line
+	   at the foot of the panel, so choosing a row here silently changes what that line does. */
 	const [at, setAt] = useState(-1)
 	const wrapper = useRef(null)
 	const input = useRef(null)
@@ -200,8 +197,8 @@ function GlobalFinder() {
 
 	const optionId = i => `${panelId}-option-${i}`
 
-	/* Below the floor nothing is searched, so the panel says so rather than showing the starter
-	   commands and looking like it simply found none of what was typed. */
+	/* Too short to search (SEARCH_FROM). Without this the panel shows the starter commands, which
+	   reads as a search that found none of what was typed. */
 	const typed = query.trim()
 	const tooShort = typed.length > 0 && typed.length < SEARCH_FROM
 
@@ -233,8 +230,8 @@ function GlobalFinder() {
 							e.preventDefault()
 							if (!open) { setOpen(true); return }
 							if (!flat.length) return
-							/* From "nothing chosen", Down takes the first row and Up takes the last. The
-							   plain modulo step lands on the second-to-last one going up from -1. */
+							/* From "nothing chosen", Down takes the first row and Up the last. The plain
+							   modulo step lands on the second-to-last one going up from -1. */
 							setAt(i => i < 0
 								? (e.key === 'ArrowDown' ? 0 : flat.length - 1)
 								: (i + (e.key === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length)

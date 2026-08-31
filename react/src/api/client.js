@@ -747,16 +747,14 @@ const COMMANDS = [
 	{ id: 'cmd-home', label: 'Home', meta: 'Go to', to: '/', keywords: 'home dashboard cards' }
 ]
 
-/* Two rows per vendor and per category, so a group of three filled the panel on its own and
-   pushed item lines and notes under the fold. Two of each, and a last row to the full list when
-   there are more -- the same bargain the panel's own foot line makes for orders. */
+/* Records, not rows: a vendor and a category are two rows each, so this many of them fills
+   twice as much of the panel. Anything past it is reached through the group's last row. */
 const SHOWN_PER_KIND = 2
 
-/* One letter matches almost every record an account has, so the panel filled with rows nobody
-   meant and a request went out for each one. Two is the floor rather than three because a short
-   name is exactly how a long vendor gets reached -- "cs" for CS Megastore -- and three would
-   cost those searches to save nothing that two does not. Shell.jsx tells the reader to type one
-   more letter, and reads this same number to decide when. */
+/* Shorter than this is not searched at all, here or at the server: one letter matches nearly
+   every record an account has. Three would be too far -- a two-letter name is how a vendor with
+   a long one is reached, "cs" for CS Megastore -- so this number cannot be raised without
+   losing those searches. Shell.jsx reads it to say how many letters it is waiting for. */
 export const SEARCH_FROM = 2
 
 export async function search(query, signal) {
@@ -769,16 +767,13 @@ export async function search(query, signal) {
 	const { vendors, categories, orders } = await request('/api/search' + qs({ query }), { signal })
 	const groups = []
 	const take = (heading, options) => { if (options.length) groups.push({ heading, options }) }
-	/* The last row of a group the server had more rows for than the panel shows. Its label
-	   carries the typed text in quotes, so it goes to highlight with no needle: the first "a"
-	   in `Show all vendors for "a"` is the one in "all", and marking that is worse than
-	   marking nothing. */
+	/* The last row of a group holding more than the panel shows. Its label quotes the typed text,
+	   so it takes no needle: the first "a" in `Show all vendors for "a"` is the one in "all". */
 	const more = (rows, plural, to, meta) => rows.length <= SHOWN_PER_KIND ? []
 		: [{ id: 'more-' + plural, ...highlight(`Show all ${plural} for "${query}"`, ''), meta, to }]
 
-	/* Only the name is searched for the green mark, never the words in front of it. Marking the
-	   whole label put the mark for "a" on the "A" of "All orders by Bilka" -- the first match in
-	   the string, and the one part of it the reader did not type. */
+	/* The mark belongs in the name, so only the name is searched for it. Searching the whole
+	   label puts the mark for "a" on the "A" of "All orders by Bilka". */
 	const named = (prefix, name) => {
 		const found = highlight(name, needle)
 		return { before: prefix + found.before, mark: found.mark, rest: found.rest }
@@ -788,14 +783,10 @@ export async function search(query, signal) {
 		.map(o => ({ id: o.id, ...highlight(`${o.vendor?.name}${sep}${dayMonth(o.date)}`, needle),
 			meta: krLabel(o.total), to: `/orders/${o.id}` })))
 
-	/* Two rows each, because a vendor is two things to do and the panel used to offer one: the
-	   first opens that vendor's orders, the second opens the vendor itself to be changed. There
-	   was no way to reach a vendor's or a category's own page from here at all.
-
-	   Each row is named for what it does rather than for the record it came from. A row reading
-	   "CS Megastore" under a "Vendors" heading looks like it opens the vendor, and it filters
-	   orders instead; the heading and the meta already say what kind of record this is, so the
-	   row itself is free to say where it goes.
+	/* Two rows a vendor: its orders, and the vendor itself to be changed. Each is named for where
+	   it goes rather than for the record it came from -- the heading and the meta already say
+	   what kind of record this is, and a row reading "CS Megastore" under a "Vendors" heading
+	   reads as opening the vendor when it filters orders.
 
 	   A vendor found through an alias shows the parent vendor's row -- the alias is not a
 	   record of its own -- and the meta names the alias that matched, because the needle may
