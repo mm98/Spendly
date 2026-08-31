@@ -2165,12 +2165,9 @@ label.field-shell { cursor:pointer; }
    radius already are. */
 .stats-window-select .field-shell input { flex:none; width:8ch; min-width:0; color:var(--text-inverse); font-size:11.5px; font-weight:700; letter-spacing:.02em; cursor:pointer; }
 .stats-window-select .field-shell input::placeholder { color:var(--text-inverse); opacity:1; }
-/* svg.icon.chevron-icon, not just .chevron-icon: the base .field-shell > svg.icon rule carries
-   an element selector this class-only override didn't, so it outranked white with --text-muted
-   regardless of source order. */
+/* The svg.icon type selector matches .field-shell > svg.icon's own specificity; a class-only
+   selector here loses that fight and falls back to --text-muted. */
 .stats-window-select svg.icon.chevron-icon { color:var(--text-inverse); width:12px; height:12px; }
-/* The base focus/open ring is --text-strong, near-black -- right on a light field, wrong on this
-   card's own translucent-white chrome. */
 .stats-window-select.is-open > .field-shell, .stats-window-select .field-shell:focus-within {
 	border-color:var(--text-inverse); box-shadow:0 0 0 1px var(--text-inverse); }
 /* Wider than its own trigger and right-aligned under it, rather than the panel's usual
