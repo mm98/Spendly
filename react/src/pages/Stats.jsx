@@ -364,7 +364,7 @@ export default function Stats() {
 									    category totals over a month's legend cannot happen again. */}
 									<SpendGauge segments={view.split.map(entry =>
 										({ share: entry.share, colour: entry.colour }))}
-										value={currency(view.spent, 0)} label={view.tick}
+										value={currency(view.spent, 0)} label={view.shortLabelFull}
 										ariaLabel={`Category split of ${currency(view.spent, 0)} in ${view.label}`} />
 									<div className="chart-legend chart-legend-fill">
 										{view.split.map(entry => (

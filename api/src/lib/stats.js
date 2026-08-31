@@ -578,16 +578,6 @@ const MONTH_ABBR = MONTH_NAMES.map(m => m.slice(0, 3))
     has no unit and pages nowhere. */
 const unitOf = range => (range === 'all' ? 'range' : range)
 
-/** The short form (no year) used as a compact caption — the SpendGauge's centre label, and
-    the tick under a bar-chart column elsewhere. */
-function tickFor(range, id) {
-	if (range === 'week') return 'W' + Number(/-W(\d{2})$/.exec(id)[1])
-	if (range === 'month') return MONTH_ABBR[Number(id.slice(5, 7)) - 1]
-	if (range === 'quarter') return 'Q' + id.slice(6)
-	if (range === 'year') return id
-	return 'All'
-}
-
 /** The short form with its year — what the pager band falls back to when it's too narrow for
     the full label ("Week 31, 2026" -> "W31 2026"). */
 function abbrFor(range, id) {
@@ -679,6 +669,16 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 	const previousShortLabel = previousBounds
 		? (compare === 'year' ? abbrFor(width, previousId) : previousBounds.shortLabel)
 		: null
+	/* Spelled out for the header caption and the pace card's prose ("vs July", "the marker is
+	   where July ended") -- both sit in contexts already proven to have the room (the header
+	   caption note above windowBounds), unlike the KPI tiles' own "15% down vs Jul", which stay
+	   on the plain short form above: a KPI tile is a narrower, unmeasured context and this is
+	   not the word that was reported cramped there. Year-compare's own abbreviated "Aug 2025"
+	   is untouched for the same reason -- nobody has asked for that one and it has not been
+	   measured either. */
+	const previousLabelFull = previousBounds
+		? (compare === 'year' ? abbrFor(width, previousId) : previousBounds.shortLabelFull)
+		: null
 
 	const deltaPct = was && was.spent ? Math.round((now.spent / was.spent - 1) * 100) : null
 	// "X% up/down" -- what it's up or down against ("vs Aug") is a separate field
@@ -712,14 +712,14 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 		window: {
 			id, range: width, from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
 			label: bounds.label, shortLabel: bounds.shortLabel, shortLabelFull: bounds.shortLabelFull, spanName,
-			unit: unitOf(width), tick: tickFor(width, id), abbr: abbrFor(width, id), compare,
+			unit: unitOf(width), abbr: abbrFor(width, id), compare,
 			axis: axisFor(width, bounds.from, bounds.to),
 			spent: now.spent, deltaLabel, deltaUp: deltaPct != null && deltaPct > 0,
 			// Raw totals, not just the formatted kpis/deltaLabel strings above — a caller
 			// composing its own presentation (Home's dashboard cards) needs the numbers.
 			saved: now.saved, shipping: now.shipping, retail: now.saved + now.spent - now.shipping,
 			orders: now.orders, average: now.average, savedPercent: now.savedPercent,
-			previousTotal: was?.spent ?? null, previousLabel: previousShortLabel,
+			previousTotal: was?.spent ?? null, previousLabel: previousLabelFull,
 			pace: paceFor(width, bounds.from, bounds.to, now.spent),
 			/* Which point on the chart is today, or null when the window is entirely in the past
 			   or entirely ahead. Every line chart in the app draws a marker there and none of
