@@ -3,16 +3,16 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonBlock, SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
-import { Chart, ChartScale, bucketOf, bucketsFor, plotted, sampled, todayMarker } from '../components/Chart.jsx'
+import { MonthColumns, SpendChart, SpendGauge, WeekdayBars, bucketOf, bucketsFor, sampled } from '../components/Chart.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
-import { Meter, MonthColumns, SpendGauge, WeekdayBars } from '../components/Viz.jsx'
+import { Meter } from '../components/Viz.jsx'
 import { CategoryRow, LegendRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { useApi } from '../api/useApi.js'
 import { getStats, ordersIn, ranges } from '../api/client.js'
-import { currency, fullStop, percent, plural, sep } from '../api/format.js'
+import { compactAmount, currency, currencySymbol, fullStop, percent, plural, sep } from '../api/format.js'
 
 /* Statistics.
 
@@ -177,7 +177,12 @@ export default function Stats() {
 				const buckets = bucketsFor(view.range, view.axis, view.series.current.length)
 				const points = sampled(view.series.current, buckets)
 				const compare = view.series.previous && sampled(view.series.previous, buckets)
-				const ceiling = Math.max(view.spent, compare ? view.series.previous.at(-1) : 0)
+				// Real day offsets, not point index: a bucketed point stands for a whole month,
+				// and its x has to land on the day-numbered line the axis marks below share.
+				const dayOf = Array.isArray(buckets) ? buckets : points.map((_, i) => i)
+				const chartData = points.map((y1, i) => ({ x: dayOf[i], y1, ...(compare ? { y2: compare[i] } : {}) }))
+				const chartToday = view.todayIndex == null ? null
+					: bucketOf(view.todayIndex, view.series.current.length, buckets)
 
 				/* The window's own read on itself, in one sentence: what it's measured against
 				   (nothing to say for the oldest window there is), how many orders, how much of
@@ -259,27 +264,19 @@ export default function Stats() {
 							</CardHeader>
 							<CardDivider />
 							<CardBody variant="card-body-tight">
-								<Chart height={210}
-									label={`Cumulative spend across ${view.shortLabelFull}${compare ? `, ${view.previousLabel} dashed behind it` : ''}`}
-									gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
-										{ offset: 0, color: 'var(--green)', opacity: 0.2 },
-										{ offset: 1, color: 'var(--green)', opacity: 0 }] }]}
+								{/* Today only on the current window's own line, and only where it holds one:
+								    this is the page with a pager, so the same chart draws a month that ended
+								    in March. Never on the dashed line -- that is the window before, whose
+								    days are not today's. README: Charts. */}
+								<SpendChart data={chartData} days={view.series.current.length} from={view.from}
+									marks={view.axis} height={210} todayIndex={chartToday} yFormat={compactAmount}
+									label={`Cumulative spend across ${view.shortLabelFull}${compare ? `, ${view.previousLabel} dashed behind it` : ''}, y-axis in ${currencySymbol()}`}
 									series={[
-										{ points: plotted(points, ceiling, 203.5, 6.5), kind: 'area', fill: 'gradient:spend' },
-										{ points: plotted(points, ceiling, 203.5, 6.5), kind: 'curve', stroke: 'var(--green)', strokeWidth: 2.4 },
-										...(compare ? [{ points: plotted(compare, ceiling, 203.5, 6.5), kind: 'curve', stroke: '#95ABAA', strokeWidth: 1.6, dash: '4 4' }] : [])
-									]}
-									/* Today, and only where the window holds one: this is the page with a
-									   pager, so the same chart draws a month that ended in March. The index
-									   is a day, and this series may be cut into months -- so it goes through
-									   the same cut the points did, or the mark would sit on the 15th point
-									   of twelve rather than in the month it is in. Not on the dashed line:
-									   that is the window before, whose days are not today's.
-									   README: Charts. */
-									markers={todayMarker(view.todayIndex == null ? null
-										: bucketOf(view.todayIndex, view.series.current.length, buckets),
-									{ series: 1, colour: 'var(--green)' })} />
-								<ChartScale marks={view.axis} span={view.series.current.length} buckets={buckets} preferFull />
+										{ key: 'current', dataKey: 'y1', name: view.shortLabelFull, color: 'var(--green)',
+											area: true, strokeWidth: 2.4, today: true },
+										...(compare ? [{ key: 'previous', dataKey: 'y2', name: view.previousLabel,
+											color: '#95ABAA', dash: '4 4', strokeWidth: 1.6 }] : [])
+									]} />
 							</CardBody>
 						</Card>
 

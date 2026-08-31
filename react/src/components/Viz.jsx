@@ -1,29 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Icon, ImageOrIcon } from './Icon.jsx'
+import { ImageOrIcon } from './Icon.jsx'
 import { IconButton } from './Button.jsx'
 
-/* The small visualisations that are drawn in CSS rather than in SVG: the donut, the gauge,
-   the meter, the bar rows and the two progress indicators.
-
-   One thing here is deliberately not a copy of the prototype. Its donut is a conic-gradient
-   written into the stylesheet with the shares baked in -- 13%, 14%, 6%, 10%, 57% -- beside a
-   list of categories that reads 38, 27, 13, 10, 12. Nothing rendered could fail: a ring has
-   no opinion about the list beside it. Here the ring is built from the same records the list
-   is, so the two cannot disagree; the stylesheet keeps its default for anything that does
-   not pass segments. README: Buttons. */
-
-/* The hairline between two segments, as a share of the circle: 0.6% is 2.16°, about 3px of arc
-   on the 170px gauge and 2.5px on the 132px donut. One number for every ring in the app --
-   the gauge carried 2% and the donut carried none at all, so the same split drawn on Home and
-   on Statistics read as two different charts. 2% was 7.2°, which put 43 of the ring's 360
-   degrees into white space and left the smallest category drawing less colour than the gap
-   beside it.
-
-   A gap is a separator between two segments, so with only one segment there is nothing to
-   separate: the "gap after the last" would wrap around the circle and land between that
-   segment and itself, which read as a category that is 100% of the spend somehow not filling
-   its own ring. README: Charts. */
-const RING_GAP = 0.6
+/* The small visualisations drawn in CSS rather than by the chart library: the meter and the
+   two progress indicators, plus the document preview, the lightbox, and the data-shaping
+   helpers the ring cards share. Everything Recharts draws lives in Chart.jsx, so a page that
+   only needs a progress bar or a thumbnail never loads the charts chunk. */
 
 /* A ring's legend is a list, and a list that grows with the account is a list that stops being
    a summary. Past this many the tail is folded into one segment rather than drawn as twenty
@@ -176,193 +158,11 @@ export function foldForRing(entries, foldLabel, max = RING_LEGEND_MAX) {
 	}]
 }
 
-const conic = (segments, gap = 0) => {
-	let at = 0
-	const total = segments.reduce((sum, s) => sum + s.share, 0) || 100
-	const effectiveGap = segments.length > 1 ? gap : 0
-	const stops = segments.flatMap(s => {
-		const from = at
-		const width = (s.share / total) * 100
-		at += width
-		/* The separator is carved out of the segment's own arc, so a gap set as a share of the
-		   whole circle costs every segment the same number of degrees no matter how little it
-		   owns. At the 2% this was, the smallest category on a real month drew 4.46° of colour
-		   with a 7.2° gap beside it -- the separator was wider than the thing it separated, and
-		   a category read as a sliver of a rounding error. Capped at a third of the arc it is
-		   cut from, so a small share stays a share. README: Charts. */
-		const own = Math.min(effectiveGap, width / 3)
-		const to = Math.max(from, at - own)
-		const parts = [`${s.colour} ${from.toFixed(2)}% ${to.toFixed(2)}%`]
-		if (own) parts.push(`var(--bg-card) ${to.toFixed(2)}% ${at.toFixed(2)}%`)
-		return parts
-	})
-	return `conic-gradient(${stops.join(', ')})`
-}
-
-/* The figure in the middle of a ring, shrunk to whatever the hole can actually hold.
-
-   The hole is a circle, so the room a line of text has is not the hole's width -- it is the
-   chord at that line's own height, and the value sits above centre with its label underneath.
-   At the authored 16.5px the Categories ring gave the value 90px of chord and "237.538 kr."
-   measured 91.2px, so the figure this app ships today already runs 1.1px past the white and
-   over the segments; a million takes it 11.8px past, ten million 21.7px. Nothing clips it,
-   because the hole is painted by a ::before that the text sits on top of -- so it does not
-   overflow visibly the way a box would, it just quietly touches the ring.
-
-   Measured rather than guessed at from the string's length: the hole is read off the ring's
-   own ::before inset, the chord is computed at the box's furthest edge from centre, and the
-   size is stepped down until it fits. That way a longer currency suffix, a different face or
-   a ring of another size all stay correct without a second number to keep in step. */
-const RingCentre = ({ value, label }) => {
-	const ref = useRef(null)
-
-	/* The size is written straight onto the node and is never React state. It was both for a
-	   while, and that is a bug with a very quiet failure: the measuring pass has to clear the
-	   inline size to read the stylesheet's own, which is a direct DOM write, and then setting
-	   state to the value it already held made React bail out of re-rendering -- so nothing put
-	   the cleared property back and the figure stayed at its authored size. It measured
-	   correctly on every run and applied on none of them. One writer per property. */
-	const fit = useCallback(() => {
-		const el = ref.current
-		if (!el) return
-		const ring = el.parentElement?.parentElement
-		if (!ring) return
-		const box = ring.getBoundingClientRect()
-		if (!box.width) return
-		const inset = parseFloat(getComputedStyle(ring, '::before').inset) || 0
-		const holeR = box.width / 2 - inset
-		// Start from the stylesheet's own size every time, or a re-fit can only ever shrink.
-		const base = parseFloat(getComputedStyle(el).fontSize)
-		el.style.fontSize = ''
-		const authored = parseFloat(getComputedStyle(el).fontSize) || base
-		const cy = box.top + box.height / 2
-		let next = authored
-		// Shrinking moves the box, which changes the chord it has to fit inside, so the fit is
-		// re-checked rather than solved once. Six steps covers 16.5px down to about 9px.
-		for (let i = 0; i < 6; i++) {
-			el.style.fontSize = next + 'px'
-			const t = el.getBoundingClientRect()
-			const dy = Math.max(Math.abs(t.top - cy), Math.abs(t.bottom - cy))
-			const room = dy >= holeR ? 0 : Math.sqrt(holeR * holeR - dy * dy) * 2
-			if (t.width <= room) break
-			// No room at all means the line is taller than the hole, which is still a reason to
-			// shrink -- breaking out of the loop there would give up in the one case that needs
-			// this most, and leave the figure at its authored size lying across the segments.
-			next = Math.max(9, room ? next * Math.max(0.72, room / t.width) - 0.25 : next * 0.8)
-		}
-		el.style.fontSize = next < authored ? next + 'px' : ''
-	}, [])
-
-	useLayoutEffect(fit, [fit, value, label])
-	useEffect(() => {
-		const ring = ref.current?.parentElement?.parentElement
-		const ro = ring && window.ResizeObserver ? new ResizeObserver(fit) : null
-		ro?.observe(ring)
-		/* A layout effect runs before a webfont has loaded, so the first measurement is of the
-		   fallback face -- which is narrower here, fits, and leaves the figure unshrunk for the
-		   Poppins that swaps in a moment later and does not. The ring's own box never changes
-		   when that happens, so the observer above cannot see it either. Re-fit when the fonts
-		   this page actually uses are ready. */
-		let live = true
-		document.fonts?.ready?.then(() => { if (live) fit() })
-		return () => { live = false; ro?.disconnect() }
-	}, [fit])
-
-	return (
-		<span className="ring-centre">
-			<span ref={ref} className="ring-centre-value tabular-figures">{value}</span>
-			<span className="ring-centre-label">{label}</span>
-		</span>
-	)
-}
-
-/** The 132px ring on Home, Orders and Categories. Same separator as the gauge below: these
-    drew their segments butted straight up against each other while Statistics' ring had
-    hairlines between its, so two rings of the same data read as two different charts. The
-    gap is a share of the circle, so one number gives both rings the same hairline. */
-export const Donut = ({ segments, value, label, ariaLabel }) => (
-	<div className="donut" role="img" aria-label={ariaLabel}
-		style={segments?.length ? { background: conic(segments, RING_GAP) } : undefined}>
-		<RingCentre value={value} label={label} />
-	</div>
-)
-
-export const DonutBox = ({ children, className }) =>
-	<div className={['donut-box', className].filter(Boolean).join(' ')}>{children}</div>
-
-/** Statistics' larger ring, which separates its segments with a hairline of the card colour. */
-export const SpendGauge = ({ segments, value, label, ariaLabel }) => (
-	<div className="spend-gauge" role="img" aria-label={ariaLabel}
-		style={segments?.length ? { background: conic(segments, RING_GAP) } : undefined}>
-		<RingCentre value={value} label={label} />
-	</div>
-)
-
 /** Spend against a projection, with a marker where the previous month ended. */
 export const Meter = ({ fill, marker, ariaLabel, className, style }) => (
 	<div className={['meter', className].filter(Boolean).join(' ')} style={style} role="img" aria-label={ariaLabel}>
 		<span className="meter-fill" style={{ width: fill + '%' }} />
 		{marker != null ? <span className="meter-marker" style={{ left: marker + '%' }} /> : null}
-	</div>
-)
-
-/** Seven bars, one per weekday. The peak days are marked by the filled portion alone; the
-    track is the same --bg-bar-track as every other day. It used to be an inline lighter
-    green, which no theme can reach: a hardcoded style is a light-mode leak, and the dark
-    theme rendered it as a pale slab on the busiest day of both rhythm cards. */
-/** A bar per weekday, each a share of the busiest one, with its name underneath.
-
-    Same shape as MonthColumns below and for the same reason: the bar sits in a track, and the
-    track -- not the column, and not a number chosen in the API -- is the box the percentage
-    resolves against. It used to take a pixel height per day and a `field` naming which of two
-    identical copies of that height to read, so the chart was exactly as tall as the API had
-    decided and the card around it kept whatever was left. */
-export const WeekdayBars = ({ days, className, style, ariaLabel }) => (
-	<div className={['weekday-bars', className].filter(Boolean).join(' ')} style={style}
-		{...(ariaLabel ? { role: 'img', 'aria-label': ariaLabel } : { 'aria-hidden': 'true' })}>
-		{days.map(d => (
-			<div key={d.day}>
-				<div className="weekday-bars-track">
-					<div className="chart-bar" style={{ height: d.share + '%' }}>
-						<div className="chart-bar-fill" style={{ '--f': d.peak ? '55%' : '0%' }} />
-					</div>
-				</div>
-				{/* Both forms travel; app.css picks one. Only the Stats page's own rhythm card
-				    (className="rhythm-bars") ever shows the full one -- Home's copy of this same
-				    component sits in a dashboard-card width that was never measured against it,
-				    so it keeps drawing the short form it always has. */}
-				<span className="weekday-name-short">{d.day}</span>
-				<span className="weekday-name-full">{d.dayFull ?? d.day}</span>
-			</div>
-		))}
-	</div>
-)
-
-/** A column per window, at a fixed scale-height, with its name underneath.
-
-    The bar sits in a track of its own rather than sharing the column's box with the label. It
-    used to be a flex sibling of that label inside a 150px column, so the space a percentage
-    resolved against was 150px while the space a bar could actually occupy was 128.05 -- 150
-    less the 6px gap and the 15.95px line of text -- and flex-shrink quietly took every bar
-    above 85% down to exactly that. 100%, 96% and 85% drew three bars the same height, on a
-    chart whose entire job is comparing heights, and the one that happened to be right was the
-    85. A percentage needs a box that means it. */
-export const MonthColumns = ({ months }) => (
-	<div className="month-columns">
-		{months.map(m => (
-			<div key={m.label} className={m.current ? 'is-on' : undefined}>
-				<div className="month-columns-track">
-					<div className="month-columns-fill" style={{ height: m.height + '%' }} />
-				</div>
-				{/* Both forms travel; app.css picks by this row's own measured width, through its
-				    own @container (a container name only ever resolves to its nearest ancestor
-				    of that name, and this row is not inside its "same shape" neighbour above's
-				    own one). Unconditional, not an opt-in prop the way WeekdayBars needs one:
-				    Stats.jsx is this component's only reader and always has both forms to give. */}
-				<span className="period-full">{m.labelFull ?? m.label}</span>
-				<span className="period-short">{m.label}</span>
-			</div>
-		))}
 	</div>
 )
 

@@ -18,6 +18,14 @@ export const amount = (n, decimals = 2) => {
 /** 18420 -> "18.420". Kept as its own name because "rounded" is what the call sites mean. */
 export const amountRound = n => amount(n, 0)
 
+/** 60000 -> "60k", 2500 -> "2,5k", 500 -> "500" -- a chart axis's own shorthand: a label
+    repeated down a chart's edge cannot carry a total's full grammar without crowding it out. */
+export const compactAmount = n => {
+	if (Math.abs(n) < 1000) return amount(n, 0)
+	const k = n / 1000
+	return (Number.isInteger(k) ? amount(k, 0) : amount(k, 1)) + 'k'
+}
+
 /* The currencies an account can keep its ledger in, mirroring the server's CURRENCIES
    (api/src/lib/constants.js) the way spendKinds mirrors SPEND_KINDS. The code is what is
    stored; the symbol and the side it sits on are presentation, which is why they live here

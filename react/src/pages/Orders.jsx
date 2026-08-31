@@ -3,15 +3,14 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Chart, ChartScale, plotted, todayMarker } from '../components/Chart.jsx'
-import { Donut, DonutBox } from '../components/Viz.jsx'
+import { Donut, DonutBox, SpendChart } from '../components/Chart.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import { budgetUsed, getOrdersOverview, ordersIn } from '../api/client.js'
-import { currency, dayMonth, percent, sep } from '../api/format.js'
+import { compactAmount, currency, dayMonth, percent, sep } from '../api/format.js'
 import { useState } from 'react'
 
 /* Orders, overview.
@@ -40,10 +39,8 @@ export default function Orders() {
 						<SkeletonCard bodyHeight={280} />
 					</div>
 				</div>}>{data => {
-				/* One scale for both lines, shared rather than each drawn to its own peak --
-				   the smaller one would otherwise read as though it reached as high as the
-				   larger. README: Buttons. */
-				const chartMax = Math.max(...data.period.series.monthCurrent, ...data.period.series.monthPrevious)
+				const chartData = data.period.series.monthCurrent.map((y1, i) =>
+					({ x: i, y1, y2: data.period.series.monthPrevious[i] }))
 				return (
 				<div className="order-list-grid">
 					<div className="order-list-column">
@@ -65,28 +62,19 @@ export default function Orders() {
 										{data.period.previousLabel}
 									</div>
 								</div>
-								<Chart height={250} className="chart-under-caption"
+								{/* Today, on the current month's line only -- the paler line behind it is
+								    last month, whose days are not today's. README: Charts. */}
+								<SpendChart data={chartData} days={data.period.series.monthCurrent.length}
+									from={data.period.from} marks={data.period.axis} height={250}
+									className="chart-under-caption" todayIndex={data.period.todayIndex}
+									yFormat={compactAmount}
 									label={`${data.period.shortLabel} against ${data.period.previousLabel}, day by day`}
-									baselines={[{ y: 128, stroke: '#D9DDD8', dash: '5 5' }]}
-									/* 6.5px of vertical inset (plotted()'s 3rd/4th args, not a chart-level pad)
-									   is the marker's room, and it is the same 6.5 on every chart that draws
-									   one: a 4.5px circle with a 2px stroke paints 5.5px past its point, and
-									   a running total peaks on its own last day. It was 17 for a halo of
-									   r=13 that no longer exists, and 17 before that for a spline overshoot
-									   the monotone curve cannot draw -- so the line has 10.5px more height
-									   to use. Horizontally it runs edge to edge; the marker keeps its own
-									   circle off the side edges rather than the line being inset for it.
-									   README: Charts. */
 									series={[
-										{ points: plotted(data.period.series.monthPrevious, chartMax, 243.5, 6.5), kind: 'curve', stroke: 'var(--blue-light)', strokeWidth: 2 },
-										{ points: plotted(data.period.series.monthCurrent, chartMax, 243.5, 6.5), kind: 'curve', stroke: 'var(--blue)', strokeWidth: 2.6 }
-									]}
-									/* Today, on the current month's line only -- the paler line behind it is
-									   last month, whose days are not today's. It was a halo and an oversized
-									   dot here and a plain dot on Home, which is one fact drawn two ways on
-									   two pages; the mark is the same everywhere now. README: Charts. */
-									markers={todayMarker(data.period.todayIndex, { series: 1, colour: 'var(--blue)' })} />
-								<ChartScale marks={data.period.axis} span={data.period.series.monthCurrent.length} />
+										{ key: 'previous', dataKey: 'y2', name: data.period.previousLabel,
+											color: 'var(--blue-light)', strokeWidth: 2 },
+										{ key: 'current', dataKey: 'y1', name: data.period.shortLabel,
+											color: 'var(--blue)', strokeWidth: 2.6, today: true }
+									]} />
 							</CardBody>
 						</Card>
 
