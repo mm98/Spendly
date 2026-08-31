@@ -6,26 +6,27 @@ export const router = Router()
 
 const selectSettings = db.prepare(`
 	SELECT default_kind, default_status, page_size, sort, show_scan_card, confirm_delete,
-		card_rows, list_sort, currency, locale
+		card_rows, list_sort, currency, locale, chart_period
 	FROM settings WHERE user_id = ?
 `)
 const upsertSettings = db.prepare(`
 	INSERT INTO settings (user_id, default_kind, default_status, page_size, sort, show_scan_card,
-		confirm_delete, card_rows, list_sort, currency, locale)
+		confirm_delete, card_rows, list_sort, currency, locale, chart_period)
 	VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard, @confirmDelete,
-		@cardRows, @listSort, @currency, @locale)
+		@cardRows, @listSort, @currency, @locale, @chartPeriod)
 	ON CONFLICT (user_id) DO UPDATE SET
 		default_kind = excluded.default_kind, default_status = excluded.default_status,
 		page_size = excluded.page_size, sort = excluded.sort,
 		show_scan_card = excluded.show_scan_card, confirm_delete = excluded.confirm_delete,
 		card_rows = excluded.card_rows, list_sort = excluded.list_sort,
-		currency = excluded.currency, locale = excluded.locale
+		currency = excluded.currency, locale = excluded.locale, chart_period = excluded.chart_period
 `)
 
 const toApi = row => ({
 	defaultKind: row.default_kind, defaultStatus: row.default_status, pageSize: row.page_size,
 	sort: row.sort, showScanCard: Boolean(row.show_scan_card), confirmDelete: Boolean(row.confirm_delete),
-	cardRows: row.card_rows, listSort: row.list_sort, currency: row.currency, locale: row.locale
+	cardRows: row.card_rows, listSort: row.list_sort, currency: row.currency, locale: row.locale,
+	chartPeriod: row.chart_period
 })
 
 /* A setting is a value something else reads, so the values it can hold are the ones that
@@ -39,6 +40,10 @@ export const ORDER_SORTS = [
 	'discount-desc', 'discount-asc', 'vendor-asc'
 ]
 export const LIST_SORTS = ['name-asc', 'spend-desc', 'spend-asc', 'saved-desc', 'saved-asc']
+/* The same widths Statistics' own picker offers (react/src/api/client.js's `ranges`), 'all'
+   included -- Statistics' picker genuinely offers it as a fifth choice, not just as a range
+   windowBounds happens to understand. */
+export const CHART_PERIODS = ['week', 'month', 'quarter', 'year', 'all']
 const CURRENCY_CODES = CURRENCIES.map(c => c.code)
 const oneOf = (allowed, asked, fallback) => (allowed.includes(asked) ? asked : fallback)
 
@@ -52,7 +57,7 @@ router.patch('/', (req, res) => {
 	const currentApi = current ? toApi(current) : {
 		defaultKind: 'Expense', defaultStatus: 'Delivered', pageSize: 10, sort: 'date-desc',
 		showScanCard: true, confirmDelete: true, cardRows: 6, listSort: 'name-asc', currency: 'DKK',
-		locale: 'auto'
+		locale: 'auto', chartPeriod: 'month'
 	}
 	const next = { ...currentApi, ...req.body }
 	upsertSettings.run({
@@ -83,7 +88,8 @@ router.patch('/', (req, res) => {
 		   locale reaching Intl.DateTimeFormat throws a RangeError rather than falling back,
 		   so a stored value nothing validates is every date in the product replaced by an
 		   error boundary. */
-		locale: oneOf(LOCALES, String(next.locale ?? ''), currentApi.locale)
+		locale: oneOf(LOCALES, String(next.locale ?? ''), currentApi.locale),
+		chartPeriod: oneOf(CHART_PERIODS, next.chartPeriod, currentApi.chartPeriod)
 	})
 	res.json(toApi(selectSettings.get(req.user.id)))
 })

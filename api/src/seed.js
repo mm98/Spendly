@@ -32,7 +32,9 @@ export const DEFAULT_SETTINGS = {
 	// every account got before the column existed and the right answer wherever a reader's
 	// browser language and their region already agree. Registration overrides it when the
 	// client managed to work out where the reader is (see routes/auth.js).
-	locale: 'auto'
+	locale: 'auto',
+	// The window the Vendors and Categories rings both draw from.
+	chartPeriod: 'month'
 }
 
 /** Inserts the settings row and dashboard-card rows every account needs. Runs inside the
@@ -45,9 +47,9 @@ export const DEFAULT_SETTINGS = {
 export function seedAccountDefaults(db, userId, overrides = {}) {
 	const settings = { ...DEFAULT_SETTINGS, ...overrides }
 	db.prepare(`INSERT INTO settings (user_id, default_kind, default_status, page_size, sort,
-		show_scan_card, confirm_delete, card_rows, list_sort, currency, locale)
+		show_scan_card, confirm_delete, card_rows, list_sort, currency, locale, chart_period)
 		VALUES (@userId, @defaultKind, @defaultStatus, @pageSize, @sort, @showScanCard,
-			@confirmDelete, @cardRows, @listSort, @currency, @locale)`)
+			@confirmDelete, @cardRows, @listSort, @currency, @locale, @chartPeriod)`)
 		.run({ userId, ...settings, showScanCard: settings.showScanCard ? 1 : 0,
 			confirmDelete: settings.confirmDelete ? 1 : 0 })
 

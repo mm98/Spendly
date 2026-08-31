@@ -197,6 +197,18 @@ function GlobalFinder() {
 
 	const optionId = i => `${panelId}-option-${i}`
 
+	/* The panel scrolls at a fixed height (app.css's .combobox-panel), and a result list long
+	   enough to need that -- Vendors and Categories rows doubled once each row also opened an
+	   edit page, plus the "Show all ..." row under each -- can arrow the highlight straight past
+	   the bottom of it: the class moved, the panel did not, and the highlighted row read as
+	   deselected because it could no longer be seen. 'nearest' is the one block value that does
+	   not scroll when the row is already on screen, so landing in the middle of a visible list
+	   does not jump the panel for no reason. */
+	useEffect(() => {
+		if (at < 0) return
+		document.getElementById(optionId(at))?.scrollIntoView({ block: 'nearest' })
+	}, [at])
+
 	/* Too short to search (SEARCH_FROM). Without this the panel shows the starter commands, which
 	   reads as a search that found none of what was typed. */
 	const typed = query.trim()

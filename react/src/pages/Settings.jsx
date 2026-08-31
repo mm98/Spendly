@@ -16,9 +16,9 @@ import {
 } from '../api/format.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	cardRowOptions, checkVersion, failureMessage, getCategories, getHomeContent, getOrderDraft, getOrders,
-	getOrdersOverview, getSettings, getVendors, getVersion, listSorts, logout, markSetupSeen,
-	populateDemoData, resetStoredData, saveSettings, sorts, spendKinds
+	cardRowOptions, checkVersion, failureMessage, getCategories, getCategoryChartSplit, getHomeContent,
+	getOrderDraft, getOrders, getOrdersOverview, getSettings, getVendorChartSplit, getVendors, getVersion,
+	listSorts, logout, markSetupSeen, populateDemoData, ranges, resetStoredData, saveSettings, sorts, spendKinds
 } from '../api/client.js'
 
 /* Settings.
@@ -105,6 +105,8 @@ export default function Settings() {
 		// stale as the rest the moment either is saved.
 		invalidate(getOrdersOverview)
 		invalidate(getVendors); invalidate(getCategories)
+		// chartPeriod is baked into both rings' answers the same way.
+		invalidate(getVendorChartSplit); invalidate(getCategoryChartSplit)
 	}, [])
 
 	const set = useCallback((patch, said) => {
@@ -300,6 +302,24 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 										onChange={() => {}}
 										onSelect={o => change({ listSort: o.id }, 'List order saved.')}
 										groups={[{ heading: 'Sort', options: listSorts.map(s => ({ id: s.id, label: s.label })) }]} />
+								</Field>
+							</FilterSection>
+
+							<FilterSection>
+								<span className="panel-heading">Charts</span>
+								{/* The same widths Statistics' own picker offers (react/src/api/client.js's
+								    `ranges`), as a Segmented rather than the Combobox that picker uses: this is a
+								    setting like Rows per page and Entries per card above, not a search. One
+								    setting, both rings -- README: Settings. */}
+								<Field label="Chart period for vendors and categories" group
+									help="What period the Vendors and Categories charts draw from.">
+									<Segmented options={ranges.map(r => r.label)}
+										value={ranges.find(r => r.key === local.chartPeriod)?.label ?? ''}
+										onChange={label => {
+											const period = ranges.find(r => r.label === label)?.key
+											if (period) change({ chartPeriod: period }, 'Chart period saved.')
+										}}
+										label="Chart period" />
 								</Field>
 							</FilterSection>
 
