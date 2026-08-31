@@ -7,10 +7,12 @@ per-incident reasoning, exact numbers, or a story to a rule — that couples the
 and someone then has to maintain the prose every time the details shift. State what to do and, if
 needed, the one-line general reason it matters; leave the evidence to `docs/defects.md`.
 
-The same restraint applies to code comments: a comment earns its place only when it states something
-non-obvious the code itself doesn't already say (a constraint, a reason a choice looks wrong but
-isn't). Don't comment routinely, and don't narrate what a change was or used to be — that's what git
-history is for.
+Comment only what stops someone breaking the code: a non-obvious constraint, a value another rule
+depends on, a deliberate-looking mistake. One or two lines carrying just the constraint, not the
+story around it.
+
+Never write changelog. No "the original did X", no "this used to be Y". Git holds history; the
+file holds the current state.
 
 Spendly is an application and its documentation. **`react/` is the source.** The app is what runs,
 what a change is made in and what a claim is measured against: `npm install && npm run dev` in that
