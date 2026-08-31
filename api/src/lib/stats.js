@@ -40,18 +40,24 @@ export function windowBounds(userId, range, id) {
 	   the month pattern, indexes MONTH_NAMES[12] and threw a TypeError -- a 500 for a URL
 	   anyone can type. Out of range answers null like a malformed id does, which is the same
 	   reanchor-to-a-real-window fallback the caller already runs. */
+	/* shortLabelFull is shortLabel unmeasured: the caption everywhere that draws shortLabel
+	   at more room than a strict abbreviation needs. Only the month branch has one worth
+	   spelling out -- "Aug" -> "August" -- so every other branch's shortLabel already is its
+	   own full form and shortLabelFull just repeats it. */
 	if (range === 'week') {
 		const [, y, w] = /^(\d{4})-W(\d{2})$/.exec(id) ?? []
 		if (!y || Number(w) < 1 || Number(w) > 53) return null
 		const from = mondayOfIsoWeek(Number(y), Number(w))
-		return { from: from / 1000, to: from / 1000 + 7 * DAY, label: `Week ${Number(w)}, ${y}`, shortLabel: `Week ${Number(w)}` }
+		const shortLabel = `Week ${Number(w)}`
+		return { from: from / 1000, to: from / 1000 + 7 * DAY, label: `Week ${Number(w)}, ${y}`, shortLabel, shortLabelFull: shortLabel }
 	}
 	if (range === 'month') {
 		const [, y, m] = /^(\d{4})-(\d{2})$/.exec(id) ?? []
 		if (!y || Number(m) < 1 || Number(m) > 12) return null
 		const from = Date.UTC(Number(y), Number(m) - 1, 1) / 1000
 		const to = Date.UTC(Number(y), Number(m), 1) / 1000
-		return { from, to, label: `${MONTH_NAMES[Number(m) - 1]} ${y}`, shortLabel: MONTH_NAMES[Number(m) - 1].slice(0, 3) }
+		return { from, to, label: `${MONTH_NAMES[Number(m) - 1]} ${y}`,
+			shortLabel: MONTH_NAMES[Number(m) - 1].slice(0, 3), shortLabelFull: MONTH_NAMES[Number(m) - 1] }
 	}
 	if (range === 'quarter') {
 		const [, y, q] = /^(\d{4})-Q([1-4])$/.exec(id) ?? []
@@ -59,12 +65,14 @@ export function windowBounds(userId, range, id) {
 		const firstMonth = (Number(q) - 1) * 3
 		const from = Date.UTC(Number(y), firstMonth, 1) / 1000
 		const to = Date.UTC(Number(y), firstMonth + 3, 1) / 1000
-		return { from, to, label: `Quarter ${q}, ${y}`, shortLabel: `Q${q} ${y}` }
+		const shortLabel = `Q${q} ${y}`
+		return { from, to, label: `Quarter ${q}, ${y}`, shortLabel, shortLabelFull: shortLabel }
 	}
 	if (range === 'year') {
 		if (!/^\d{4}$/.test(id)) return null
 		const y = Number(id)
-		return { from: Date.UTC(y, 0, 1) / 1000, to: Date.UTC(y + 1, 0, 1) / 1000, label: String(y), shortLabel: String(y) }
+		return { from: Date.UTC(y, 0, 1) / 1000, to: Date.UTC(y + 1, 0, 1) / 1000,
+			label: String(y), shortLabel: String(y), shortLabelFull: String(y) }
 	}
 	// 'all': the user's whole order history through today, at least a week wide. Every other
 	// range has a fixed calendar width regardless of how little data is in it, which is what
@@ -75,7 +83,7 @@ export function windowBounds(userId, range, id) {
 	const earliest = earliestOrderDate.get(userId).d
 	const to = Math.floor(Date.now() / 1000 / DAY) * DAY + DAY
 	const from = Math.min(earliest ?? to - DAY, to - 7 * DAY)
-	return { from, to, label: 'All time', shortLabel: 'all time' }
+	return { from, to, label: 'All time', shortLabel: 'all time', shortLabelFull: 'all time' }
 }
 
 /** The id of the window of `range` that contains a given day (epoch seconds). Every id in this
@@ -528,7 +536,7 @@ function recentColumns(userId, range, id, currentSpent, count = 6) {
 		// The current window's total is the one getStats has already aggregated for the page's
 		// own headline; only the prior windows are new questions.
 		const spend = windowId === id ? currentSpent : totalsOver(userId, bounds.from, bounds.to).spent
-		return { id: windowId, label: bounds.shortLabel, spend }
+		return { id: windowId, label: bounds.shortLabel, labelFull: bounds.shortLabelFull, spend }
 	})
 	const most = Math.max(...columns.map(c => c.spend), 0)
 	const top = columns.reduce((best, c) => (c.spend > (best?.spend ?? -1) ? c : best), null)
@@ -537,7 +545,11 @@ function recentColumns(userId, range, id, currentSpent, count = 6) {
 		/* top.spend > 0: reduce picks the first all-zero column otherwise, and the note named a
 		   month as "the highest" on an account that had spent nothing at all. */
 		note: columns.length > 1 && top && top.spend > 0 ? `${top.label} is the highest` : null,
-		columns: columns.map(c => ({ label: c.label, height: most ? Math.round((c.spend / most) * 100) : 0, current: c.id === id }))
+		noteFull: columns.length > 1 && top && top.spend > 0 ? `${top.labelFull} is the highest` : null,
+		columns: columns.map(c => ({
+			label: c.label, labelFull: c.labelFull,
+			height: most ? Math.round((c.spend / most) * 100) : 0, current: c.id === id
+		}))
 	}
 }
 
@@ -696,7 +708,7 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 	return {
 		window: {
 			id, range: width, from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
-			label: bounds.label, shortLabel: bounds.shortLabel, spanName,
+			label: bounds.label, shortLabel: bounds.shortLabel, shortLabelFull: bounds.shortLabelFull, spanName,
 			unit: unitOf(width), tick: tickFor(width, id), abbr: abbrFor(width, id), compare,
 			axis: axisFor(width, bounds.from, bounds.to),
 			spent: now.spent, deltaLabel, deltaUp: deltaPct != null && deltaPct > 0,
