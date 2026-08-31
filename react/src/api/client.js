@@ -747,6 +747,11 @@ const COMMANDS = [
 	{ id: 'cmd-home', label: 'Home', meta: 'Go to', to: '/', keywords: 'home dashboard cards' }
 ]
 
+/* Two rows per vendor and per category, so a group of three filled the panel on its own and
+   pushed item lines and notes under the fold. Two of each, and a last row to the full list when
+   there are more -- the same bargain the panel's own foot line makes for orders. */
+const SHOWN_PER_KIND = 2
+
 export async function search(query, signal) {
 	const needle = query.trim().toLowerCase()
 	if (!needle) {
@@ -757,6 +762,20 @@ export async function search(query, signal) {
 	const { vendors, categories, orders } = await request('/api/search' + qs({ query }), { signal })
 	const groups = []
 	const take = (heading, options) => { if (options.length) groups.push({ heading, options }) }
+	/* The last row of a group the server had more rows for than the panel shows. Its label
+	   carries the typed text in quotes, so it goes to highlight with no needle: the first "a"
+	   in `Show all vendors for "a"` is the one in "all", and marking that is worse than
+	   marking nothing. */
+	const more = (rows, plural, to, meta) => rows.length <= SHOWN_PER_KIND ? []
+		: [{ id: 'more-' + plural, ...highlight(`Show all ${plural} for "${query}"`, ''), meta, to }]
+
+	/* Only the name is searched for the green mark, never the words in front of it. Marking the
+	   whole label put the mark for "a" on the "A" of "All orders by Bilka" -- the first match in
+	   the string, and the one part of it the reader did not type. */
+	const named = (prefix, name) => {
+		const found = highlight(name, needle)
+		return { before: prefix + found.before, mark: found.mark, rest: found.rest }
+	}
 
 	take('Orders', orders.slice(0, 4)
 		.map(o => ({ id: o.id, ...highlight(`${o.vendor?.name}${sep}${dayMonth(o.date)}`, needle),
@@ -775,19 +794,29 @@ export async function search(query, signal) {
 	   record of its own -- and the meta names the alias that matched, because the needle may
 	   not appear anywhere in the name the row shows. */
 	const vendorMeta = v => (v.alias ? `Vendor${sep}${v.alias}` : 'Vendor')
-	take('Vendors', vendors.slice(0, 3).flatMap(v => [
-		{ id: v.id, ...highlight(`All orders by ${v.name}`, needle),
-			meta: vendorMeta(v), to: `/orders/all?vendor=${v.id}` },
-		{ id: 'vendor-edit-' + v.id, ...highlight(`Edit ${v.name}`, needle),
-			meta: vendorMeta(v), to: `/vendors/${v.id}/edit` }
-	]))
+	take('Vendors', [
+		...vendors.slice(0, SHOWN_PER_KIND).flatMap(v => [
+			{ id: v.id, ...named('All orders by ', v.name),
+				meta: vendorMeta(v), to: `/orders/all?vendor=${v.id}` },
+			{ id: 'vendor-edit-' + v.id, ...named('Edit ', v.name),
+				meta: vendorMeta(v), to: `/vendors/${v.id}/edit` }
+		]),
+		...more(vendors, 'vendors', `/vendors/all?q=${encodeURIComponent(query)}`, 'All vendors')
+	])
 
-	take('Categories', categories.slice(0, 3).flatMap(c => [
-		{ id: c.id, ...highlight(`All orders in ${c.name}`, needle),
-			meta: 'Category', to: `/orders/all?category=${c.id}` },
-		{ id: 'category-edit-' + c.id, ...highlight(`Edit ${c.name}`, needle),
-			meta: 'Category', to: `/categories/${c.id}/edit` }
-	]))
+	/* "Without category" is a filter the server offers, not a category anybody owns, so it gets
+	   the row that filters orders and no Edit row -- its id is the sentinel `none`
+	   (api/src/routes/search.js) and there is no page behind /categories/none/edit. */
+	take('Categories', [
+		...categories.slice(0, SHOWN_PER_KIND).flatMap(c => [
+			{ id: c.id, ...named('All orders in ', c.name),
+				meta: 'Category', to: `/orders/all?category=${c.id}` },
+			...(c.id === 'none' ? [] : [{ id: 'category-edit-' + c.id,
+				...named('Edit ', c.name),
+				meta: 'Category', to: `/categories/${c.id}/edit` }])
+		]),
+		...more(categories, 'categories', `/categories/all?q=${encodeURIComponent(query)}`, 'All categories')
+	])
 
 	const lines = []
 	for (const o of orders) {

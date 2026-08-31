@@ -116,7 +116,9 @@ function BuildQuality() {
 
    The top bar prints CTRL K, and a key cap is a promise: Ctrl+K (Cmd+K on a Mac) opens this
    from anywhere and puts the caret in it, Escape closes it and hands focus back to whatever
-   had it, Up and Down walk the results and Enter opens the one that is highlighted.
+   had it, Up and Down walk the results, and Enter opens the one that is highlighted -- or,
+   with none highlighted, searches all orders for the typed text, which is what the line at the
+   foot of the panel says.
 
    It searches orders, vendors, categories, item lines and notes, and it lists the commands
    the app can run -- so it is the one control that reaches every page and every create flow.
@@ -129,7 +131,13 @@ function GlobalFinder() {
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
 	const [groups, setGroups] = useState([])
-	const [at, setAt] = useState(0)
+	/* -1 is nothing chosen yet, and it is where every new set of results starts. Highlighting
+	   the first row by default made Enter open it, while the line at the foot of the panel went
+	   on offering to search all orders for the typed text -- so the one key it named did the one
+	   thing it did not do, and the row it opened need not even look related to what was typed
+	   (a match can be on an order's note or an item, neither of which the row shows). Nothing is
+	   chosen until the reader chooses it with the arrow keys or the mouse. */
+	const [at, setAt] = useState(-1)
 	const wrapper = useRef(null)
 	const input = useRef(null)
 	const returnFocusTo = useRef(null)
@@ -139,13 +147,13 @@ function GlobalFinder() {
 	/* One flat list behind the grouped rendering, because the arrow keys walk results and not
 	   headings. Index into this is what aria-activedescendant names. */
 	const flat = useMemo(() => groups.flatMap(g => g.options), [groups])
-	const current = flat[Math.min(at, flat.length - 1)]
+	const current = at < 0 ? undefined : flat[Math.min(at, flat.length - 1)]
 
 	useEffect(() => {
 		if (!open) return
 		const controller = new AbortController()
 		search(query, controller.signal)
-			.then(r => { setGroups(r.groups); setAt(0) })
+			.then(r => { setGroups(r.groups); setAt(-1) })
 			.catch(e => { if (e.name !== 'AbortError') setGroups([]) })
 		return () => controller.abort()
 	}, [query, open])
@@ -220,7 +228,11 @@ function GlobalFinder() {
 							e.preventDefault()
 							if (!open) { setOpen(true); return }
 							if (!flat.length) return
-							setAt(i => (i + (e.key === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length)
+							/* From "nothing chosen", Down takes the first row and Up takes the last. The
+							   plain modulo step lands on the second-to-last one going up from -1. */
+							setAt(i => i < 0
+								? (e.key === 'ArrowDown' ? 0 : flat.length - 1)
+								: (i + (e.key === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length)
 							return
 						}
 						if (e.key !== 'Enter') return
@@ -228,7 +240,7 @@ function GlobalFinder() {
 						/* Enter opens what is highlighted; with nothing highlighted it does what the
 						   foot of the panel says it does, which is search all orders for the text. */
 						if (current) go(current.to)
-						else go('/orders/all?q=' + encodeURIComponent(query))
+						else if (query.trim()) go('/orders/all?q=' + encodeURIComponent(query))
 					}} />
 				<span className="key-cap key-cap-push">CTRL K</span>
 			</div>
