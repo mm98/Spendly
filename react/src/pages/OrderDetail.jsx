@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { Sep } from '../components/Sep.jsx'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
@@ -17,7 +17,7 @@ import { useApi } from '../api/useApi.js'
 import {
 	addAttachments, attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder,
 	invalidateOrderData, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
-	removeAttachment
+	ordersIn, removeAttachment
 } from '../api/client.js'
 import { currency, fullStop, longDate, percent, plural, sep, shortDate } from '../api/format.js'
 
@@ -187,10 +187,22 @@ export default function OrderDetail() {
 							<CardBody variant="card-body-tight">
 								<div className="summary-row">Status<span className="summary-row-value">{order.status}</span></div>
 								<SummaryRow label="Date" value={shortDate(order.date)} />
-								<div className="summary-row">Vendor<span className="summary-row-value">{order.vendor?.name}</span></div>
+								{/* The vendor and each category open the orders list filtered to themselves --
+								    the name is the link, all time rather than any window, since this card
+								    states the record and names no window of its own. */}
+								<div className="summary-row">Vendor
+									<span className="summary-row-value">
+										{order.vendor ? (
+											<Link className="summary-row-link" to={ordersIn({ vendor: order.vendor.id })}>
+												{order.vendor.name}</Link>
+										) : null}</span></div>
 								<div className="summary-row">Categories
 									<span className="summary-row-value">
-										{order.categories.map(c => c.name).join(', ') || '-'}</span></div>
+										{order.categories.length ? order.categories.map((c, i) => (
+											<Fragment key={c.id}>{i ? ', ' : ''}
+												<Link className="summary-row-link" to={ordersIn({ category: c.id })}>
+													{c.name}</Link></Fragment>
+										)) : '-'}</span></div>
 								<div className="summary-row">Kind<span className="summary-row-value">{order.kind}</span></div>
 								{order.reference ? (
 									<div className="summary-row">Reference

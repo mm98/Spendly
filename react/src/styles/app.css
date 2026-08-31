@@ -1260,6 +1260,10 @@ label.field-shell { cursor:pointer; }
    card wide -- flex:1 min-width:0 so this value can actually give up the width, not
    just be told to. */
 .summary-row-value { flex:1; min-width:0; font-weight:600; color:var(--text); text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* A value that is also a link keeps the value's own colour and weight; the quiet underline is
+   the whole signal, strengthening under the pointer. */
+.summary-row-link { color:inherit; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--text-faint); }
+.summary-row-link:hover { text-decoration-color:currentColor; }
 .summary-row-value-saving { color:var(--text-positive); }
 /* The rule is "last in its run", and the run ends three different ways across
    the six lists -- at the end of the card body, at a .card-divider before the
