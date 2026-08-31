@@ -326,7 +326,12 @@ export const WeekdayBars = ({ days, className, style }) => (
 						<div className="chart-bar-fill" style={{ '--f': d.peak ? '55%' : '0%' }} />
 					</div>
 				</div>
-				<span>{d.day}</span>
+				{/* Both forms travel; app.css picks one. Only the Stats page's own rhythm card
+				    (className="rhythm-bars") ever shows the full one -- Home's copy of this same
+				    component sits in a dashboard-card width that was never measured against it,
+				    so it keeps drawing the short form it always has. */}
+				<span className="weekday-name-short">{d.day}</span>
+				<span className="weekday-name-full">{d.dayFull ?? d.day}</span>
 			</div>
 		))}
 	</div>
