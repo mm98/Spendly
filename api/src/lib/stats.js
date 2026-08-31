@@ -200,7 +200,7 @@ function rhythmOver(userId, from, to) {
 		   pixel height cannot grow into a row it knows nothing about. A share can: the bar is
 		   that percentage of whatever track it is given. */
 		weekdays: WEEKDAY_TICKS.map((day, i) => ({
-			day,
+			day, dayFull: WEEKDAY_NAMES[i],
 			share: most ? Math.round((spend[i] / most) * 1000) / 10 : 0,
 			peak: most > 0 && spend[i] === most
 		})),
@@ -602,7 +602,9 @@ function abbrFor(range, id) {
     so a mark sits over its own day whatever the width does to the series. */
 function axisFor(range, from, to) {
 	const days = Math.round((to - from) / DAY)
-	const mark = (label, d) => ({ label, day: Math.round((d - from) / DAY) })
+	/* fullLabel defaults to label: a day-of-month number ("07") or a bare year ("2026") is
+	   already its own full form, so only the month marks below pass one that differs. */
+	const mark = (label, d, fullLabel = label) => ({ label, fullLabel, day: Math.round((d - from) / DAY) })
 	// A month is the widest window still drawn a day at a time, so 31 is the most marks this can
 	// return in days -- an axis the width can thin, rather than a comb it cannot.
 	if (days <= 31) {
@@ -622,8 +624,9 @@ function axisFor(range, from, to) {
 		const month = at.getUTCMonth()
 		if (month === last) continue
 		last = month
-		marks.push(mark(multiYear && (month === 0 || !marks.length) ? String(at.getUTCFullYear())
-			: MONTH_ABBR[month], d))
+		marks.push(multiYear && (month === 0 || !marks.length)
+			? mark(String(at.getUTCFullYear()), d)
+			: mark(MONTH_ABBR[month], d, MONTH_NAMES[month]))
 	}
 	return marks
 }

@@ -723,7 +723,19 @@ svg.chart { width:100%; display:block; }
    axis, full height and 3px sliver alike. */
 .weekday-bars .chart-bar { width:100%; min-height:3px; border-radius:var(--radius-compact) var(--radius-compact) 0 0; background:var(--bg-bar-track); position:relative; overflow:hidden; }
 .weekday-bars .chart-bar-fill { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact) var(--radius-compact) 0 0; }
-.weekday-bars span { font-size:11px; color:var(--text-muted); font-weight:500; }
+.weekday-bars span { font-size:11px; color:var(--text-muted); font-weight:500; white-space:nowrap; }
+/* Short by default, full only where .rhythm-bars (Stats.jsx's own copy of this component) has
+   proven, by its own measured width rather than the viewport's, that "Wednesday" fits seven
+   times over. Home's plain .weekday-bars sits in a dashboard-card width never covered by this
+   query and keeps the short form, same as always. Rows and entries, not a page, since the card
+   is one half of a two-column grid on desktop -- a viewport breakpoint cannot see that halving,
+   and this one reads the box that actually holds the bars. */
+.weekday-name-full { display:none; }
+.weekday-bars.rhythm-bars { container-type:inline-size; container-name:rhythm-bars; }
+@container rhythm-bars (min-width:460px) {
+	.rhythm-bars .weekday-name-full { display:inline; }
+	.rhythm-bars .weekday-name-short { display:none; }
+}
 .chart-legend-inline { display:flex; align-items:center; gap:8px; margin-top:var(--gap-block); padding-top:10px; border-top:1px solid var(--border-divider); font-size:11.5px; color:var(--text-body); }
 .chart-legend-inline .chart-swatch { width:10px; height:10px; border-radius:3px; background:var(--green); }
 .chart-legend-inline .amount { margin-left:auto; font-weight:600; color:var(--text); }

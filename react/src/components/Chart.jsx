@@ -250,12 +250,18 @@ const at = p => ({ left: p * 100 + '%', transform: `translateX(-${p * 100}%)` })
 /**
  * The scale under a chart: a tick per mark, the mark's own label under it.
  *
- * marks:   the window's own marks, `[{ label, day }]` — the days of a week or a month, the
- *          months of a quarter, a year or all time. `day` indexes the window's daily series.
- * span:    how many days that series holds.
- * buckets: the cut the chart was drawn with (bucketsFor), when it draws fewer points than days.
+ * marks:      the window's own marks, `[{ label, fullLabel, day }]` — the days of a week or a
+ *             month, the months of a quarter, a year or all time. `day` indexes the window's
+ *             daily series. `fullLabel` is the unabbreviated form ("January" for "Jan"); a day
+ *             number or a bare year has none to give, since it is already its own full form.
+ * span:       how many days that series holds.
+ * buckets:    the cut the chart was drawn with (bucketsFor), when it draws fewer points than days.
+ * preferFull: draw fullLabel wherever every mark fits at that length, not just short label.
+ *             Off by default: Home's and Orders overview's own charts sit in dashboard-card
+ *             widths this was never measured against, so only a caller with the room to spend
+ *             asks for it (Stats.jsx's own Overview chart).
  */
-export const ChartScale = ({ marks = [], span, buckets }) => {
+export const ChartScale = ({ marks = [], span, buckets, preferFull = false }) => {
 	const [ref, width] = useMeasuredWidth()
 	const days = span ?? marks.length
 	const total = pointCount(buckets, days)
@@ -266,7 +272,14 @@ export const ChartScale = ({ marks = [], span, buckets }) => {
 		// put every mark but the first somewhere the chart plots a different date.
 		p: total > 1 ? bucketOf(m.day, days, buckets) / (total - 1) : 0
 	}))
-	const shown = fitMarks(placed, width)
+	/* Tried at the full length first, kept only if every mark still fits at it -- fitMarks
+	   dropping even one would leave the axis reading "January Mar May", mixing a spelled-out
+	   month against its neighbours' initials rather than falling back as a whole. The short
+	   run underneath is exactly today's behaviour, so a width too narrow for the long form
+	   costs nothing extra: it draws the same axis it always did. */
+	const full = preferFull ? placed.map(m => ({ ...m, label: m.fullLabel ?? m.label })) : null
+	const shownFull = full ? fitMarks(full, width) : null
+	const shown = shownFull && shownFull.length === full.length ? shownFull : fitMarks(placed, width)
 	if (!shown.length) return null
 
 	return (

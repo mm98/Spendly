@@ -284,7 +284,7 @@ export default function Stats() {
 									markers={todayMarker(view.todayIndex == null ? null
 										: bucketOf(view.todayIndex, view.series.current.length, buckets),
 									{ series: 1, colour: 'var(--green)' })} />
-								<ChartScale marks={view.axis} span={view.series.current.length} buckets={buckets} />
+								<ChartScale marks={view.axis} span={view.series.current.length} buckets={buckets} preferFull />
 							</CardBody>
 						</Card>
 
