@@ -353,7 +353,13 @@ export const MonthColumns = ({ months }) => (
 				<div className="month-columns-track">
 					<div className="month-columns-fill" style={{ height: m.height + '%' }} />
 				</div>
-				<span>{m.label}</span>
+				{/* Both forms travel; app.css picks by this row's own measured width, through its
+				    own @container (a container name only ever resolves to its nearest ancestor
+				    of that name, and this row is not inside its "same shape" neighbour above's
+				    own one). Unconditional, not an opt-in prop the way WeekdayBars needs one:
+				    Stats.jsx is this component's only reader and always has both forms to give. */}
+				<span className="period-full">{m.labelFull ?? m.label}</span>
+				<span className="period-short">{m.label}</span>
 			</div>
 		))}
 	</div>

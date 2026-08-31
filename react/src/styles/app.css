@@ -475,7 +475,19 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    restated this box in full -- one of them with the radius written out as 15px
    rather than the token, so --radius-card only moved three of the four. They are
    variants now: class="card card-kpi". */
-.card { background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-card); }
+.card { background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-card); container-type:inline-size; container-name:card; }
+/* Statistics' card headers spell out a window ("Aug" -> "August") once the card itself, not
+   the viewport, has room -- these sit in a header row with something else on the row's other
+   end ("vs Aug", "busiest day: Saturday"), so a card can be wide while the caption is still
+   cramped in a way a viewport breakpoint cannot see. Short by default; every .card is already
+   a named container above, so this reads whichever one actually holds it. 520px is the
+   Statistics header row's own measured floor for its longest neighbour ("busiest day:
+   Saturday"), not the 460px weekday-bars needed for a bare list with nothing sharing the row. */
+.period-full { display:none; }
+@container card (min-width:520px) {
+	.period-full { display:inline; }
+	.period-short { display:none; }
+}
 /* minmax(0,1fr), not the implicit auto column no grid-template-columns leaves behind: a
    note naming the busiest vendor or category ("X is the most frequent") is otherwise sized
    to that name's own full width rather than the tile's. README: Responsive Layout. */
@@ -1027,7 +1039,18 @@ svg.chart { width:100%; display:block; }
 .month-columns-track { display:flex; align-items:flex-end; width:100%; flex:1; min-height:150px; }
 .month-columns-fill { width:100%; flex:none; border-radius:8px 8px 4px 4px; background:var(--bg-bar-track); }
 .month-columns .is-on .month-columns-fill { background:var(--green); }
-.month-columns span { font-size:11px; color:var(--text-muted); }
+.month-columns span { font-size:11px; color:var(--text-muted); white-space:nowrap; }
+/* Full month names once this row's own measured width proves they fit -- same technique and
+   threshold as .weekday-bars.rhythm-bars above, since both are a flex row of month-or-weekday
+   abbreviations sharing this exact card width tier (Statistics' second two-column pairing).
+   Named apart from that container: an ancestor-named query only ever resolves to its nearest
+   container of that name, and .month-columns sits inside a plain .card here, not inside
+   .rhythm-bars, so it needs its own. */
+.month-columns { container-type:inline-size; container-name:month-columns; }
+@container month-columns (min-width:460px) {
+	.month-columns .period-full { display:inline; }
+	.month-columns .period-short { display:none; }
+}
 @media (max-width:900px) { .kpi-row { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 /* No cursor:pointer here. It sat on the class, so it drew a hand over two rows that
    were <div>s carrying a dead chevron -- the class promising what only [data-go]
