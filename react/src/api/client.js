@@ -747,9 +747,19 @@ const COMMANDS = [
 	{ id: 'cmd-home', label: 'Home', meta: 'Go to', to: '/', keywords: 'home dashboard cards' }
 ]
 
+/* Records, not rows: a vendor and a category are two rows each, so this many of them fills
+   twice as much of the panel. Anything past it is reached through the group's last row. */
+const SHOWN_PER_KIND = 2
+
+/* Shorter than this is not searched at all, here or at the server: one letter matches nearly
+   every record an account has. Three would be too far -- a two-letter name is how a vendor with
+   a long one is reached, "cs" for CS Megastore -- so this number cannot be raised without
+   losing those searches. Shell.jsx reads it to say how many letters it is waiting for. */
+export const SEARCH_FROM = 2
+
 export async function search(query, signal) {
 	const needle = query.trim().toLowerCase()
-	if (!needle) {
+	if (needle.length < SEARCH_FROM) {
 		return { query, groups: [{ heading: 'Commands', options: COMMANDS.slice(0, 5)
 			.map(c => ({ id: c.id, ...highlight(c.label, ''), meta: c.meta, to: c.to })) }] }
 	}
@@ -757,20 +767,54 @@ export async function search(query, signal) {
 	const { vendors, categories, orders } = await request('/api/search' + qs({ query }), { signal })
 	const groups = []
 	const take = (heading, options) => { if (options.length) groups.push({ heading, options }) }
+	/* The last row of a group holding more than the panel shows. Its label quotes the typed text,
+	   so it takes no needle: the first "a" in `Show all vendors for "a"` is the one in "all". */
+	const more = (rows, plural, to, meta) => rows.length <= SHOWN_PER_KIND ? []
+		: [{ id: 'more-' + plural, ...highlight(`Show all ${plural} for "${query}"`, ''), meta, to }]
+
+	/* The mark belongs in the name, so only the name is searched for it. Searching the whole
+	   label puts the mark for "a" on the "A" of "All orders by Bilka". */
+	const named = (prefix, name) => {
+		const found = highlight(name, needle)
+		return { before: prefix + found.before, mark: found.mark, rest: found.rest }
+	}
 
 	take('Orders', orders.slice(0, 4)
 		.map(o => ({ id: o.id, ...highlight(`${o.vendor?.name}${sep}${dayMonth(o.date)}`, needle),
 			meta: krLabel(o.total), to: `/orders/${o.id}` })))
 
-	/* A vendor found through an alias shows the parent vendor's row -- the alias is not a
+	/* Two rows a vendor: its orders, and the vendor itself to be changed. Each is named for where
+	   it goes rather than for the record it came from -- the heading and the meta already say
+	   what kind of record this is, and a row reading "CS Megastore" under a "Vendors" heading
+	   reads as opening the vendor when it filters orders.
+
+	   A vendor found through an alias shows the parent vendor's row -- the alias is not a
 	   record of its own -- and the meta names the alias that matched, because the needle may
 	   not appear anywhere in the name the row shows. */
-	take('Vendors', vendors.slice(0, 3)
-		.map(v => ({ id: v.id, ...highlight(v.name, needle),
-			meta: v.alias ? `Vendor${sep}${v.alias}` : 'Vendor', to: `/orders/all?vendor=${v.id}` })))
+	const vendorMeta = v => (v.alias ? `Vendor${sep}${v.alias}` : 'Vendor')
+	take('Vendors', [
+		...vendors.slice(0, SHOWN_PER_KIND).flatMap(v => [
+			{ id: v.id, ...named('All orders by ', v.name),
+				meta: vendorMeta(v), to: `/orders/all?vendor=${v.id}` },
+			{ id: 'vendor-edit-' + v.id, ...named('Edit ', v.name),
+				meta: vendorMeta(v), to: `/vendors/${v.id}/edit` }
+		]),
+		...more(vendors, 'vendors', `/vendors/all?q=${encodeURIComponent(query)}`, 'All vendors')
+	])
 
-	take('Categories', categories.slice(0, 3)
-		.map(c => ({ id: c.id, ...highlight(c.name, needle), meta: 'Category', to: `/orders/all?category=${c.id}` })))
+	/* "Without category" is a filter the server offers, not a category anybody owns, so it gets
+	   the row that filters orders and no Edit row -- its id is the sentinel `none`
+	   (api/src/routes/search.js) and there is no page behind /categories/none/edit. */
+	take('Categories', [
+		...categories.slice(0, SHOWN_PER_KIND).flatMap(c => [
+			{ id: c.id, ...named('All orders in ', c.name),
+				meta: 'Category', to: `/orders/all?category=${c.id}` },
+			...(c.id === 'none' ? [] : [{ id: 'category-edit-' + c.id,
+				...named('Edit ', c.name),
+				meta: 'Category', to: `/categories/${c.id}/edit` }])
+		]),
+		...more(categories, 'categories', `/categories/all?q=${encodeURIComponent(query)}`, 'All categories')
+	])
 
 	const lines = []
 	for (const o of orders) {

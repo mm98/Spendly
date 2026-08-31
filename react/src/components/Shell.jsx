@@ -7,7 +7,7 @@ import { Waiting } from './Async.jsx'
 import { ToastProvider } from './Toast.jsx'
 import { PullToRefresh } from './PullToRefresh.jsx'
 import { UpdateNoticeProvider } from './UpdateNotice.jsx'
-import { getVersion, search } from '../api/client.js'
+import { getVersion, search, SEARCH_FROM } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 
 /* The shell every page sits in: the rail, the top bar, the sub-tab band, and the sheet.
@@ -116,7 +116,9 @@ function BuildQuality() {
 
    The top bar prints CTRL K, and a key cap is a promise: Ctrl+K (Cmd+K on a Mac) opens this
    from anywhere and puts the caret in it, Escape closes it and hands focus back to whatever
-   had it, Up and Down walk the results and Enter opens the one that is highlighted.
+   had it, Up and Down walk the results, and Enter opens the one that is highlighted -- or,
+   with none highlighted, searches all orders for the typed text, which is what the line at the
+   foot of the panel says.
 
    It searches orders, vendors, categories, item lines and notes, and it lists the commands
    the app can run -- so it is the one control that reaches every page and every create flow.
@@ -129,7 +131,10 @@ function GlobalFinder() {
 	const [query, setQuery] = useState('')
 	const [open, setOpen] = useState(false)
 	const [groups, setGroups] = useState([])
-	const [at, setAt] = useState(0)
+	/* -1 is nothing chosen, and every new set of results starts there: a row is chosen by the
+	   arrow keys or the mouse, never by arriving. Nothing chosen is what hands Enter to the line
+	   at the foot of the panel, so choosing a row here silently changes what that line does. */
+	const [at, setAt] = useState(-1)
 	const wrapper = useRef(null)
 	const input = useRef(null)
 	const returnFocusTo = useRef(null)
@@ -139,13 +144,13 @@ function GlobalFinder() {
 	/* One flat list behind the grouped rendering, because the arrow keys walk results and not
 	   headings. Index into this is what aria-activedescendant names. */
 	const flat = useMemo(() => groups.flatMap(g => g.options), [groups])
-	const current = flat[Math.min(at, flat.length - 1)]
+	const current = at < 0 ? undefined : flat[Math.min(at, flat.length - 1)]
 
 	useEffect(() => {
 		if (!open) return
 		const controller = new AbortController()
 		search(query, controller.signal)
-			.then(r => { setGroups(r.groups); setAt(0) })
+			.then(r => { setGroups(r.groups); setAt(-1) })
 			.catch(e => { if (e.name !== 'AbortError') setGroups([]) })
 		return () => controller.abort()
 	}, [query, open])
@@ -192,6 +197,11 @@ function GlobalFinder() {
 
 	const optionId = i => `${panelId}-option-${i}`
 
+	/* Too short to search (SEARCH_FROM). Without this the panel shows the starter commands, which
+	   reads as a search that found none of what was typed. */
+	const typed = query.trim()
+	const tooShort = typed.length > 0 && typed.length < SEARCH_FROM
+
 	return (
 		<div className={['global-finder', open && 'is-open'].filter(Boolean).join(' ')} ref={wrapper}>
 			<div className="field-shell">
@@ -220,7 +230,11 @@ function GlobalFinder() {
 							e.preventDefault()
 							if (!open) { setOpen(true); return }
 							if (!flat.length) return
-							setAt(i => (i + (e.key === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length)
+							/* From "nothing chosen", Down takes the first row and Up the last. The plain
+							   modulo step lands on the second-to-last one going up from -1. */
+							setAt(i => i < 0
+								? (e.key === 'ArrowDown' ? 0 : flat.length - 1)
+								: (i + (e.key === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length)
 							return
 						}
 						if (e.key !== 'Enter') return
@@ -228,11 +242,17 @@ function GlobalFinder() {
 						/* Enter opens what is highlighted; with nothing highlighted it does what the
 						   foot of the panel says it does, which is search all orders for the text. */
 						if (current) go(current.to)
-						else go('/orders/all?q=' + encodeURIComponent(query))
+						else if (query.trim()) go('/orders/all?q=' + encodeURIComponent(query))
 					}} />
 				<span className="key-cap key-cap-push">CTRL K</span>
 			</div>
 			<div className="combobox-panel" id={panelId} role="listbox" aria-label="Search everything">
+				{tooShort ? (
+					<div className="combobox-group">
+						<div className="combobox-group-heading">Keep typing</div>
+						<div className="combobox-option">Type at least {SEARCH_FROM} letters to search.</div>
+					</div>
+				) : null}
 				{groups.map(group => (
 					<div className="combobox-group" key={group.heading}>
 						<div className="combobox-group-heading">{group.heading}</div>
