@@ -287,8 +287,8 @@ export const SpendGauge = ({ segments, value, label, ariaLabel }) => (
 /* ---- the bar rows ----
 
    WeekdayBars and MonthColumns share one shape: a bar is a share of a fixed [0,100] domain,
-   not a pixel height, so a card that grows still means what its bars say. Neither has a real
-   kr figure behind it (see the two tooltips below), so the Y axis stays hidden. */
+   not a pixel height, so a card that grows still means what its bars say. The real kr figure
+   lives in the tooltip; the bars themselves stay relative, so the Y axis stays hidden. */
 
 const BAR_RADIUS = 10		// matches --radius-compact
 const BAR_MIN_HEIGHT = 3	// px floor so a zero-spend weekday still draws a sliver
@@ -362,18 +362,18 @@ const MonthTick = ({ x, y, width, visibleTicksCount, index, months }) => {
 	)
 }
 
-/* Neither chart has a real kr figure to show (see above), so the tooltip states the same
-   share its bar's own height already draws. */
+/* The kr amount, not the share the bar's own height already draws -- the height against its
+   neighbours is the relative story; the tooltip is where the real figure lives. */
 const WeekdayTooltip = ({ active, payload }) => {
 	if (!active || !payload?.length) return null
 	const d = payload[0].payload
-	return <div className="bar-tooltip"><strong>{d.dayFull ?? d.day}</strong><span>{percent(d.share)}</span></div>
+	return <div className="bar-tooltip"><strong>{d.dayFull ?? d.day}</strong><span className="tabular-figures">{currency(d.spend)}</span></div>
 }
 
 const MonthTooltip = ({ active, payload }) => {
 	if (!active || !payload?.length) return null
 	const m = payload[0].payload
-	return <div className="bar-tooltip"><strong>{m.labelFull ?? m.label}</strong><span>{percent(m.height)}</span></div>
+	return <div className="bar-tooltip"><strong>{m.labelFull ?? m.label}</strong><span className="tabular-figures">{currency(m.spend)}</span></div>
 }
 
 /** A bar per weekday, each a share of the busiest one, with its name underneath.
