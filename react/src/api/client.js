@@ -752,9 +752,16 @@ const COMMANDS = [
    there are more -- the same bargain the panel's own foot line makes for orders. */
 const SHOWN_PER_KIND = 2
 
+/* One letter matches almost every record an account has, so the panel filled with rows nobody
+   meant and a request went out for each one. Two is the floor rather than three because a short
+   name is exactly how a long vendor gets reached -- "cs" for CS Megastore -- and three would
+   cost those searches to save nothing that two does not. Shell.jsx tells the reader to type one
+   more letter, and reads this same number to decide when. */
+export const SEARCH_FROM = 2
+
 export async function search(query, signal) {
 	const needle = query.trim().toLowerCase()
-	if (!needle) {
+	if (needle.length < SEARCH_FROM) {
 		return { query, groups: [{ heading: 'Commands', options: COMMANDS.slice(0, 5)
 			.map(c => ({ id: c.id, ...highlight(c.label, ''), meta: c.meta, to: c.to })) }] }
 	}

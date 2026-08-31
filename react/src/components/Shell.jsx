@@ -7,7 +7,7 @@ import { Waiting } from './Async.jsx'
 import { ToastProvider } from './Toast.jsx'
 import { PullToRefresh } from './PullToRefresh.jsx'
 import { UpdateNoticeProvider } from './UpdateNotice.jsx'
-import { getVersion, search } from '../api/client.js'
+import { getVersion, search, SEARCH_FROM } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 
 /* The shell every page sits in: the rail, the top bar, the sub-tab band, and the sheet.
@@ -200,6 +200,11 @@ function GlobalFinder() {
 
 	const optionId = i => `${panelId}-option-${i}`
 
+	/* Below the floor nothing is searched, so the panel says so rather than showing the starter
+	   commands and looking like it simply found none of what was typed. */
+	const typed = query.trim()
+	const tooShort = typed.length > 0 && typed.length < SEARCH_FROM
+
 	return (
 		<div className={['global-finder', open && 'is-open'].filter(Boolean).join(' ')} ref={wrapper}>
 			<div className="field-shell">
@@ -245,6 +250,12 @@ function GlobalFinder() {
 				<span className="key-cap key-cap-push">CTRL K</span>
 			</div>
 			<div className="combobox-panel" id={panelId} role="listbox" aria-label="Search everything">
+				{tooShort ? (
+					<div className="combobox-group">
+						<div className="combobox-group-heading">Keep typing</div>
+						<div className="combobox-option">Type at least {SEARCH_FROM} letters to search.</div>
+					</div>
+				) : null}
 				{groups.map(group => (
 					<div className="combobox-group" key={group.heading}>
 						<div className="combobox-group-heading">{group.heading}</div>
