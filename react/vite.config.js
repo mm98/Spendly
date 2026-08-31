@@ -66,8 +66,17 @@ export default defineConfig({
 				// repository never edits, and they carry their own version in the hash. Split
 				// out, an edit to a page invalidates the app's chunk and leaves the dependency
 				// cached; left in, every edit re-downloads all of it.
+				/* Recharts and its dependency tree get their own chunk: in vendor they would load
+				   and parse on every page, charts or not, and they are the bulk of node_modules
+				   by weight. Split out, only a route whose module graph reaches recharts fetches
+				   them. Vendor is the explicit list and matches first -- a group also captures
+				   its matches' CommonJS interop wrappers, and react's own wrapper has to live
+				   with react, not wherever a chart dependency first referenced it. */
 				codeSplitting: {
-					groups: [{ name: 'vendor', test: /node_modules/ }]
+					groups: [
+						{ name: 'vendor', test: /node_modules[\\/](react|react-dom|scheduler|react-router|cookie-es)[\\/]/ },
+						{ name: 'charts', test: /node_modules/ }
+					]
 				}
 			}
 		}
