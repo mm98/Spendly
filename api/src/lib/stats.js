@@ -3,8 +3,8 @@ import { cardRowsFor } from './prefs.js'
 import { fromEpoch } from './dates.js'
 
 /* Statistics, computed by real SQL aggregation over the user's own orders — SUM/GROUP BY
-   within a [from, to) window, never a per-order JS loop and never the old phantom store's
-   synthetic "spread a monthly total across days" derivation. A window is a calendar unit
+   within a [from, to) window, never a per-order JS loop and never a synthetic "spread a
+   monthly total across days" derivation. A window is a calendar unit
    (week/month/quarter/year) or the whole of a user's own order history ("all"), addressed by a
    windowId the chips-and-pager UI can page through. All date arithmetic below is UTC, since
    these are calendar dates rather than moments — running them through a local clock would date
@@ -118,14 +118,13 @@ export function rangeOfWindowId(id) {
 /** The window of `width` to show when the picker is moved and the id in hand belongs to the
     width it was moved *from*.
 
-    Changing the width used to drop the window: an id that does not parse as the new width fails
-    `windowBounds` and falls back to the current one, so paging back to 2022 and then asking for
-    a month landed on this month -- the one place on the page where a control silently discards
+    An id that does not parse as the new width would otherwise fail `windowBounds` and fall back
+    to the current window -- the one place on the page where a control would silently discard
     what the control beside it was set to. The two are one control (the pager steps what the
     picker chose), so moving one keeps where the other is: the new window is the one containing
     the old window's **last day**, clamped to today, since a window later than today is one the
     pager itself refuses to reach. Year 2022 -> Month is December 2022; this year -> Month is
-    this month, which is the old behaviour where the old behaviour was right. */
+    this month. */
 function reanchorWindowId(userId, width, id) {
 	const was = rangeOfWindowId(id)
 	const bounds = was && windowBounds(userId, was, id)
@@ -202,12 +201,10 @@ function rhythmOver(userId, from, to) {
 	const total = spend.reduce((s, v) => s + v, 0)
 	const most = Math.max(...spend, 0)
 	return {
-		/* A share of the busiest day, not a height. It used to answer pixels -- 70 of them at
-		   the peak, under two names (`home` and `stats`) carrying the identical number -- which
-		   is a presentation decision taken where the data is, and it pinned both charts to
-		   whatever box 70px happened to suit. The Home card sits in a grid row as tall as the
-		   category breakdown beside it and had 403px of nothing under a 112px chart, because a
-		   pixel height cannot grow into a row it knows nothing about. A share can: the bar is
+		/* A share of the busiest day, not a height: a pixel figure would be a presentation
+		   decision taken where the data is, pinning the chart to whatever box that pixel count
+		   happened to suit, and the Home card sits in a grid row sized by the category
+		   breakdown beside it rather than by its own chart. A share avoids that -- the bar is
 		   that percentage of whatever track it is given. */
 		weekdays: WEEKDAY_TICKS.map((day, i) => ({
 			day, dayFull: WEEKDAY_NAMES[i],
@@ -448,23 +445,14 @@ const countReturnedEver = db.prepare(`
 
 const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six']
 const countWord = n => COUNT_WORDS[n] ?? String(n)
-/* No money is rendered here any more. These tiles used to arrive as finished strings --
-   "1.510 kr." -- built with a hardcoded symbol and Danish grouping, which made the server the
-   one place in the product that decided how an amount looks. It is the wrong place: the
-   currency is the account's (settings.currency) and the grammar is the client's, so a server
-   that formats is a server that has to be told both, and it was told neither. A USD account
-   read its own averages in kroner. The number travels; the client prints it. */
+/* No money is rendered here: figures travel as numbers with a currency code, not as finished
+   strings, because the currency is the account's (settings.currency) and the grammar is the
+   client's -- a server that formats an amount has to be told both. The client prints it. */
 
-/* The returns in a window, as records rather than as a sentence about records.
-
-   This used to answer one string: every return rendered into prose and joined with semicolons,
-   which reads for one return and turns into a CSV line dropped into a paragraph at four --
-   "Four returns in Aug: Proshop on 2026-08-09: 1.510 kr.; Power on 2026-08-07: 669 kr.; ...".
-   Two things were wrong with it beyond the run-on. Dates arrived as raw ISO, where every other
-   list in this app writes "9 August". And a list of vendors with amounts is the data-row shape
-   the design system already has, drawn every other place it appears -- composing it into prose
-   here meant the one card that lists orders could not be scanned, sorted by eye, or clicked
-   through to the order it names.
+/* The returns in a window, as records rather than as a sentence about records: a list of
+   vendors with amounts is the data-row shape the design system already draws every other place
+   it appears, and a structured list lets the card scan, sort by eye, and click through to the
+   order it names, none of which prose can do.
 
    A window can hold a lot of them -- a year held 40, which as one sentence was a wall of text
    and as 40 rows would be a wall of rows. The card is a summary with the full list one click
@@ -480,8 +468,7 @@ function returnsIn(userId, from, to) {
 		history: countReturnedEver.get(userId).n,
 		items: items.map(r => ({
 			// `saved` because a returned order is listed the way every other order is listed --
-			// its total, and what it saved under it. It was left out while these rows drew the
-			// total alone, and the row was the only list of orders in the app drawing it alone.
+			// its total, and what it saved under it.
 			id: r.id, date: fromEpoch(r.date), total: r.total, saved: r.saved, refunded: Boolean(r.refunded),
 			vendor: { name: r.vendorName, initials: r.vendorInitials, colour: r.vendorColour }
 		}))
@@ -505,15 +492,12 @@ function kpisFor(now, was, wasLabel) {
 		const pct = wasVal ? Math.round((nowVal / wasVal - 1) * 100) : (nowVal ? 100 : 0)
 		const direction = pct === 0 ? 'level' : pct < 0 ? 'down' : 'up'
 		const delta = pct === 0 ? `level with ${wasLabel}` : `${Math.abs(pct)}% ${direction} vs ${wasLabel}`
-		/* Three tones, one per thing a delta can mean. It used to be two: anything that was not
-		   the good direction came back 'neutral', so a tile that moved the wrong way was printed
-		   in the same grey as a tile with nothing to be up or down against -- opposite messages,
-		   one colour. 'level' is its own case rather than folded into bad, because holding still
-		   is not a regression.
-
-		   trend stays 'level' too. Mapping it to 'up' made the card's own `trend === 'level'`
-		   branch unreachable, so a tile reading "level with July" drew a rising arrow over a
-		   figure that had not moved. */
+		/* Three tones, one per thing a delta can mean: 'good' or 'bad' for a real move in
+		   either direction, 'neutral' only for 'level' -- a tile that moved the wrong way must
+		   not share the same grey as a tile with nothing to be up or down against. 'level' is
+		   its own case rather than folded into bad, because holding still is not a regression,
+		   and trend stays 'level' too so the card's own `trend === 'level'` branch can draw a
+		   flat state instead of a rising arrow over a figure that has not moved. */
 		const good = direction === (kpi.goodUp ? 'up' : 'down')
 		return {
 			label: kpi.label, ...figure, delta, trend: direction,
@@ -596,8 +580,9 @@ function abbrFor(range, id) {
     How many of those there is room to print is the axis's question and not this one's (see
     fitMarks) — this side says what the marks *are*, the width says how many survive.
 
-    A month used to be marked 01/08/15/22/29: five fixed dates, no unit at all, the same five
-    under February as under July, and the 29 printed under a month that has 28 days.
+    A month is marked by its own unit rather than five fixed dates, so the marks fit whatever
+    length the month actually is instead of printing the same positions under February as under
+    July.
 
     Every mark carries the day it belongs to, as an index into the window's own daily series,
     not just its text. A list of five strings says nothing about where they go, so the axis drew
@@ -641,15 +626,13 @@ function axisFor(range, from, to) {
     bar chart nothing else renders — so callers building a lighter "period" summary (Home,
     Orders overview) do not pay for a chart they throw away.
 
-    `returns` is *not* behind that flag, and used to be. It is one indexed range query, and
-    Orders overview draws the same returns card Statistics does: the flag existed to skip
-    expensive work, so hanging a card's only data source on it meant Orders overview asked for
-    a summary, got `returns: null`, and drew a permanent empty state over a month that had four.
-    Skip what costs; never skip what something renders. README: Empty states. */
+    `returns` is *not* behind that flag: it is one indexed range query, and Orders overview
+    draws the same returns card Statistics does, so it needs `returns` in every summary it
+    gets. Skip what costs; never skip what something renders. README: Empty states. */
 export function getStats(userId, range, windowId, { summary = false, compare = 'previous' } = {}) {
 	const width = ['week', 'month', 'quarter', 'year', 'all'].includes(range) ? range : 'month'
 	/* 'all' has one window, so it has one id -- windowBounds ignores the id it is handed for
-	   that width, which used to let `?range=all&period=2022-05` keep a month id in the URL of a
+	   that width, so a month id left in the URL (`?range=all&period=2022-05`) cannot pin a
 	   window that is not a month. */
 	const id = width === 'all' ? 'all'
 		: !windowId ? currentWindowId(width)
@@ -775,8 +758,6 @@ export function getHomeHero(userId) {
 		   need the stretch: without it a row under "Where it went • Aug" opened every order in
 		   that category since the account was made. */
 		from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
-		// No orderCount: it was the figure on the hero's Orders tab, and both went with the
-		// change that put spend on the chart instead of a count.
 		spent: now.spent, saved: now.saved, savedPercent: now.savedPercent,
 		/* Spend per day, not orders per day. The card's headline is the window's spend and
 		   its chart plotted a count instead, so the biggest number on Home was drawn by a

@@ -14,8 +14,8 @@ import { inkOn } from '../api/colour.js'
 /* Vendors, overview.
 
    Stats about the vendors, not a list of them -- the list is its own tab, the same split All
-   orders has had all along. This page used to be both, and the list half of it was a grid of
-   cards that could not be scanned; what is left here is what the numbers say.
+   orders has. This page is what the numbers say; a list of records belongs on the tab built to
+   scan one.
 
    A vendor page is for two things, and browsing orders is neither: it is for what the spending
    looks like across the shops, and for keeping the records right. So the ring splits spend by

@@ -7,10 +7,9 @@ import { Icon } from '../components/Icon.jsx'
 import { failureMessage, register } from '../api/client.js'
 
 /** Sign-up. A new account starts genuinely empty -- no vendor, no category, no order until
-    the person who owns it adds one. It used to seed a demo dataset so a fresh account opened
-    on a populated app; that read as someone else's real orders staring back at a new user,
-    which is the one impression a personal-finance app can least afford to give. See
-    api/src/seed.js. */
+    the person who owns it adds one: seeded demo data would read as someone else's real orders
+    staring back at a new user, which is the one impression a personal-finance app can least
+    afford to give. See api/src/seed.js. */
 export default function Register() {
 	const navigate = useNavigate()
 	const [email, setEmail] = useState('')

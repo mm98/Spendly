@@ -37,12 +37,9 @@ import {
 /* Scan, in three steps.
 
    The hero says the app takes "a PDF, photo or screenshot" and four entry buttons name the
-   formats one by one -- they used to each carry their own fixed key ('invoice', 'photo', ...)
-   straight to step 2, so a click needed no document at all: the reading step then asked the
-   server for a draft of a document that had never been uploaded, which 404s. All four are
-   entries to the *same* picker now -- they describe what the app accepts, they do not stand
-   in for a file -- so the document the next two steps name is always one the reader actually
-   chose, with its own format and its own size.
+   formats one by one -- all four are entries to the *same* picker: they describe what the app
+   accepts, they do not stand in for a file, so the document the next two steps name is always
+   one the reader actually chose, with its own format and its own size.
 
    There is no OCR behind any of it when ANTHROPIC_API_KEY is unset -- the draft is the same
    honest blank in that case, today's date and the account's own defaults, nothing read from
@@ -101,8 +98,8 @@ export function ScanUpload() {
 				   learn what the upload itself already knows. README: Scan Flow. */
 				navigate('/scan/reading?doc=' + key, { state: { documentKey: key, name, kind, meta, hasThumbnail } })
 			})
-			/* A dropped file that fails to upload used to do nothing at all -- no navigation and
-			   no sentence, which reads as the drop not registering. README: Feedback. */
+			/* A dropped file that fails to upload always says so -- a silent failure reads as the
+			   drop not registering. README: Feedback. */
 			.catch(e => toast(failureMessage(e, 'The upload failed. Try again.'), 'negative'))
 	}
 
@@ -189,10 +186,9 @@ export function ScanUpload() {
 										))}
 									</InsetPanel>
 									{/* Says orders, because that is where it goes: a scan becomes an order and
-									    there is no list of scans to show all of. Inside the branch with rows:
-									    over an empty panel it was a closing action for a list with nothing in
-									    it, under a panel drawn as a bare grey band. README: Empty states,
-									    Honest Affordances. */}
+									    there is no list of scans to show all of. Inside the branch with rows,
+									    not over an empty panel, where it would read as a closing action for a
+									    list with nothing in it. README: Empty states, Honest Affordances. */}
 									<Button variant="block" to="/orders/all">SEE ALL ORDERS</Button>
 								</>
 							) : (
@@ -227,9 +223,8 @@ export function ScanReading() {
 	const file = uploaded ?? draft.data?.file
 
 	/* The read finishes behind this same card, so once it has there is nothing left for a
-	   button to open -- OPEN THE REVIEW used to sit here regardless, asking the reader to
-	   confirm a wait that was already over. The progress bar now runs for exactly as long as
-	   the read actually takes, and review opens the moment it does. */
+	   button to open: the progress bar runs for exactly as long as the read actually takes,
+	   and review opens the moment it does, with no confirm-the-wait button to click through. */
 	useEffect(() => {
 		if (draft.data && !draft.loading) navigate(`/scan/review?doc=${key}`, { replace: true })
 	}, [draft.data, draft.loading, key, navigate])
@@ -380,10 +375,10 @@ function ScanReviewForm({ answer }) {
 			onClick={() => removeLine(line)} />
 	)
 
-	/* The same four rules step 1 checks, from the same module. This screen used to check
-	   nothing at all: a receipt whose vendor line came back blank saved an order with no
-	   vendor on it, through a form whose twin says "Who did you buy from?" about that field.
-	   Create and scan are two doors to one saved order. README: Fields and Forms. */
+	/* The same four rules step 1 checks, from the same module: a receipt whose vendor line
+	   comes back blank cannot save an order with no vendor on it, through a form whose twin
+	   says "Who did you buy from?" about that field. Create and scan are two doors to one
+	   saved order. README: Fields and Forms. */
 	const values = useMemo(() => ({
 		'order-vendor': draft.vendor, 'order-date': draft.date,
 		'order-kind': draft.kind, 'order-shipping': draft.shipping,

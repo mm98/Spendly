@@ -43,10 +43,10 @@ import { currency, currencySymbol, parseAmount, percent, shortDate, sanitizeAmou
    form needs before there is one to add anything to, and step 2 is the only place a first item
    can go -- two real steps, in a real order. Editing an existing order has both halves already
    and does not walk through this: it is its own page, saving details and items in one call. See
-   EditOrder.jsx, and the note on the edit route in routes.jsx. Sharing this wizard's code with
-   an edit was tried and it was the wrong call -- an edit could not save a category without
-   detouring through an item form that had nothing to add, and "Add the items" printed over
-   lines already on the order every time it was read. */
+   EditOrder.jsx, and the note on the edit route in routes.jsx. Not shared with edit: a
+   category can't be saved without the step edit has no analog for -- edit would have to detour
+   through an item form with nothing to add, and "Add the items" would print over lines already
+   on the order every time it was read. */
 
 const STEPS = (at) => [
 	{ label: 'Order details', icon: 'receipt', done: at > 0, on: at === 0 },
@@ -159,10 +159,9 @@ export function NewOrderDetails() {
 				</Field>
 				<Field label="Status" group>
 					{/* Read left to right before shipping one: an order is placed, then delivered,
-					    and only then can it be returned. This control once read Delivered /
-					    Ordered / Returned in all three places it appears -- pixel-perfect in
-					    every engine, and saying an order was delivered before it was placed.
-					    Geometry has no opinion about the order of labels. README: Honest Affordances. */}
+					    and only then can it be returned. The options are listed Ordered /
+					    Delivered / Returned in every place this control appears, matching that
+					    real-world order. README: Honest Affordances. */}
 					<Segmented options={['Ordered', 'Delivered', 'Returned']} value={draft.status}
 						onChange={v => update({ status: v })} label="Status" />
 				</Field>
@@ -213,9 +212,9 @@ export function NewOrderDetails() {
 					groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
 			</Field>
 
-			{/* The optional fields, plain rows of the form like everything above them. They
-			    used to sit behind a More details? switch and then under its heading in a
-			    bordered section; three optional fields cost less on screen than either.
+			{/* The optional fields, plain rows of the form like everything above them, not tucked
+			    behind a More details? switch or a bordered section: three optional fields cost
+			    less on screen than either.
 
 			    Discount and Shipping pair because they are the two order-level amounts, and the
 			    two halves of the same sentence -- in the order the total applies them: the rabat

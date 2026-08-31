@@ -89,10 +89,9 @@ export const percent = (n, decimals = 1) =>
    keyboard; the parsing is ours. A dot groups thousands and never separates decimals,
    which makes 89.95 a typo to name rather than a number to guess at.
 
-   One pattern, because no money field a user types is signed. A rabat used to be a line item
-   with a negative price, which needed a second signed grammar beside this one -- and could not
-   be typed at all on a phone, whose decimal keypad has no minus key. It is the order's own
-   discount field now, entered as the amount taken off. README: Fields and Forms. */
+   One pattern, because no money field a user types is signed: a discount is its own field,
+   entered as the amount taken off, not a negative price -- which also means it can be typed on
+   a phone, whose decimal keypad has no minus key. README: Fields and Forms. */
 export const AMOUNT_PATTERN = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
 export const WHOLE_NUMBER_PATTERN = /^\d+$/
 export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',', '.'))
@@ -112,13 +111,10 @@ export const sanitizeWholeNumber = v => v.replace(/[^0-9]/g, '')
    an amount's grammar is shared with the field that takes it back, so display and parsing
    move together or not at all. README: Language and Formats.
 
-   Which locale that is used to be `undefined`, meaning "ask the browser", and the browser
-   answers a question nobody asked: `Intl.DateTimeFormat(undefined, ...)` resolves to
-   navigator.language, which is the browser's *UI language*. A reader's regional format is a
-   separate preference, and no web API exposes it. So a reader in Copenhagen running an
-   English-language browser was shown `August 18, 2026 at 02:26 PM` for an instant this file
-   had already converted correctly to 14.26 in their own clock: right value, someone else's
-   shape, and no way to say so. It is now a setting, defaulting to the browser as before.
+   `Intl.DateTimeFormat(undefined, ...)` resolves to navigator.language, which is the browser's
+   *UI language*, not the reader's regional format -- a separate preference no web API exposes.
+   Passing `undefined` therefore answers a question nobody asked, so the locale is a setting,
+   passed explicitly, defaulting to the browser only as its initial guess.
 
    Three traps this file has to keep clear of, all of which render a plausible wrong answer
    rather than failing:
@@ -143,10 +139,10 @@ export const sanitizeWholeNumber = v => v.replace(/[^0-9]/g, '')
    and validated; the label is presentation, which is why it lives here.
 
    'auto' is a real choice rather than the absence of one: it means keep asking the browser,
-   which is right for every reader whose browser language and region already agree, and it is
-   what every account had before this was a setting. It is first because it is the default,
-   and it is named for what it does rather than for what it resolves to -- a reader who moves
-   or changes their browser keeps getting the right answer without coming back here.
+   which is right for every reader whose browser language and region already agree. It is first
+   because it is the default, and it is named for what it does rather than for what it resolves
+   to -- a reader who moves or changes their browser keeps getting the right answer without
+   coming back here.
 
    The labels name the region, not the language, because the region is what the reader is
    choosing: 'Danish' here means dates written the Danish way, in a product whose copy stays
@@ -259,12 +255,10 @@ export const shortDate = iso => shortDateFormat().format(dateOf(iso))
     Unlike the dates above, converting is the whole point: a machine records an instant in
     UTC and a person reads it where they are.
 
-    The zone used to be named after the time, on the reasoning that a converted stamp with
-    nothing marking its zone cannot be told from a raw one. That is true of a stamp read by
-    someone who might be in another zone; it is not true of the only stamp this product
-    prints, which is shown to one signed-in reader on their own machine, in their own clock,
-    beside the words "Image built". What it bought there was a reader in Copenhagen being
-    told GMT+2 about their own afternoon.
+    The zone is left unnamed: naming it matters for a stamp that might be read by someone in
+    another zone, but the only stamp this product prints is shown to one signed-in reader on
+    their own machine, in their own clock, beside the words "Image built" -- naming the zone
+    there would only tell a reader in Copenhagen GMT+2 about their own afternoon.
 
     dateStyle/timeStyle rather than spelled-out components because the two refuse to share an
     options bag with timeZoneName, and with the zone gone the pair is available: it is the

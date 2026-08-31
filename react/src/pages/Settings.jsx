@@ -239,10 +239,10 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 								    formatter the product uses, because "Danish" and "English (UK)" name a
 								    shape the reader cannot see from the label -- and a sample typed in by
 								    hand is a claim about ICU that goes stale without anyone noticing.
-								    Default is "Match my browser", which is what the app did before this
-								    control existed; it is offered as a choice rather than left implicit
-								    because the browser answers with its UI language, not the reader's
-								    region, and a reader whose two disagree has no other way to say so. */}
+								    Default is "Match my browser", offered as a choice rather than left
+								    implicit because the browser answers with its UI language, not the
+								    reader's region, and a reader whose two disagree has no other way to
+								    say so. */}
 								<Field label="Date and time format" htmlFor="setting-locale"
 									help="How dates and times are written. Times always show in your own clock; this sets the format only.">
 									<Combobox id="setting-locale" label="Date and time format"
@@ -327,8 +327,8 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 							    should not have to learn a second shape one tab over: an option is a
 							    named row with its description hanging under the name, whether the act
 							    that reads it is a button or the click itself. These two are read
-							    immediately -- the toast under each is what says so, since the control
-							    no longer does. README: Checkbox Row. */}
+							    immediately -- the toast under each is what says so, not the checkbox's
+							    own affordance. README: Checkbox Row. */}
 							<FilterSection>
 								<span className="panel-heading">On screen</span>
 								<CheckRow id="setting-scan-card" checked={local.showScanCard}
@@ -362,8 +362,8 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 					</CardBody>
 				</Card>
 
-				{/* Demo data is asked for, never given. A fresh account used to arrive holding a
-				    stranger's shopping, which reads as a leak rather than a demo, so nothing
+				{/* Demo data is asked for, never given: a fresh account that arrived holding a
+				    stranger's shopping would read as a leak rather than a demo, so nothing
 				    populates itself -- this is the door, and it is behind a confirm because it
 				    replaces whatever is already here. Offered only on an empty account: a fill
 				    replaces the ledger outright, so once real orders exist the door is gone

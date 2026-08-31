@@ -118,9 +118,9 @@ const Stats = page(() => import('./pages/Stats.jsx'))
    in four places, and eleven of twelve pages could render carrying home's title and home's
    tabs without anything failing. See components/Shell.jsx.
 
-   `back.label` is the destination, not the origin. It was a fixed "Back to orders" while two
-   of the three pages it appears on go back to Scan receipt, so it announced the wrong place
-   two times out of three. README: Accessibility. */
+   `back.label` names the actual destination, not a fixed origin -- pages differ in where "back"
+   goes, so a label that doesn't ask each page would announce the wrong place. README:
+   Accessibility. */
 
 const ORDER_TABS = at => [
 	{ label: 'Overview', to: '/orders', on: at === 'overview' },

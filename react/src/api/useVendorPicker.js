@@ -1,10 +1,9 @@
 import { createVendor, failureMessage, invalidateVendorData, vendorByAnyName, vendorTextMatch } from './client.js'
 import { plural, sep } from './format.js'
 
-/** The vendor picker every order form shares -- New order's step 1 and Edit order used to
-    carry their own copy of this, and the alias-search fix landed in one of the two the first
-    time round (README: Vendors, docs/defects.md). One hook now, so the next order form gets
-    it for free instead of needing to be found and fixed again.
+/** The vendor picker every order form shares -- New order's step 1 and Edit order both use this
+    one hook (README: Vendors, docs/defects.md), so a fix to matching can't land in only one
+    copy and the next order form gets it for free.
 
     Typed text that names an existing vendor's alias resolves to that vendor rather than
     offering to create a twin -- the action row reads USE before it is pressed, and `addVendor`

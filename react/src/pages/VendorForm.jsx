@@ -216,8 +216,7 @@ function VendorSummary({ name, colour, initials, favourite, aliases, vendor }) {
 					whatever you pick.
 				</span>
 				{/* The way into the orders the figure above is the sum of, on the page that holds
-				    every other action on this record -- it used to be an unlabelled receipt glyph
-				    at the end of the vendor's row in the list. At the foot, because a card ending
+				    every other action on this record. At the foot, because a card ending
 				    in a link into a longer list ends in the block button, like the six that
 				    already do. README: Cards, Create and Edit. Only when there is a record: a
 				    vendor being created has no orders to list. */}

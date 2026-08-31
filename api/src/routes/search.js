@@ -40,10 +40,9 @@ const searchCategories = perMatcher(match =>
 const hasUncategorised = db.prepare('SELECT 1 AS present FROM orders WHERE user_id = ? AND category_count = 0 LIMIT 1')
 /* The same shape as the orders list's text filter (routes/orders.js): one LIKE over the
    trigger-maintained search_text column instead of a per-order scan of order_items, and the
-   vendor name reached through its own dozen-row table. What made this query's worst case its
-   common case was a needle matching nothing -- LIMIT 8 never fills, so the old form scanned
-   every item of every order before answering [], ~350ms at 50k orders while the user was
-   still typing; now ~100ms flat, same rows. */
+   vendor name reached through its own dozen-row table. Worst case is the common case here: a
+   needle matching nothing, since LIMIT 8 never short-circuits it -- so the query has to stay
+   index-driven end to end rather than falling back to a per-item scan to answer []. */
 const searchOrders = perMatcher(match => `
 	SELECT ${orderTotalsSelectList('ot')} FROM orders ot
 	WHERE ot.user_id = @userId AND (

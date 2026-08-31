@@ -23,26 +23,16 @@
 	/* A colour token is named for the surface it paints, because that is the one
 	   thing its value cannot tell you: --text-* is glyphs, --bg-* is a fill,
 	   --border-* is an edge. Nothing writes "color" -- a token is one. The named
-	   hues below the three families are the exception left standing: fills and chart
-	   series, where no surface prefix is right. --green used to be the argument for
-	   that exception, painting glyphs and fills both at 7 uses against 12, until
-	   contrast split the glyph half off into --text-positive. README: Color. */
+	   hues below the three families are the deliberate exception -- no surface
+	   prefix fits fills and chart series. README: Color. */
 	--text:#0B0F0D;
-	/* The active edge of a field: focus-within, and an open combobox. Referenced in
-	   four places and never declared, so every one of them resolved to unset -- the
-	   border fell back to currentColor, which reads as the body text and hid the
-	   omission, while the 1px ring beside it silently computed to none. Same value
-	   as --text today, kept separate so that edge can be tuned without moving every
-	   heading. */
+	/* The active edge of a field (focus-within, open combobox). Kept apart from
+	   --text so it can be tuned independently. */
 	--text-strong:#0B0F0D;
-	/* The two quiet tiers under --text -- body copy and sidebar items, then the
-	   faintest marks, which is every glyph --text-faint may paint: resting chevrons,
-	   the drag grip, the dashed empty-state edge. Text is not one of them; it held
-	   axis labels and the sidebar footer at 2.59:1 while calling them readable, and
-	   no fourth tier fits between 4.5:1 and body copy, so both moved up a tier.
-	   --text-muted is tuned against #EDEEE7, the darkest surface a muted glyph lands
-	   on -- "4.5:1 on white" was true and left every tint failing. They were --ink-2
-	   and --muted-2, and a digit records only that someone needed a second one.
+	/* Two quiet tiers under --text: body copy and sidebar items, then the faintest
+	   marks --text-faint paints (resting chevrons, the drag grip, the dashed
+	   empty-state edge). --text-muted is tuned against --bg-hero (#EDEEE7), the
+	   darkest surface it lands on, so it clears 4.5:1 everywhere it's used.
 	   README: Color, Accessibility. */
 	--text-body:#3A423D;
 	--text-muted:#636D64;
@@ -69,18 +59,11 @@
 	   starts from before settling onto it at 55%. */
 	--bg-dark-lift: #2e8756;
 
-	/* --border-divider was --hair, which named the line's thinness and never what it
-	   divided, and read as a synonym for --border-control two lines away -- a
-	   different grey three shades off. --border-card and --border-divider sit only
-	   (4,3,2) apart in RGB, close enough that a divider drawn inside a card is
-	   indistinguishable from the card's own edge; .card-divider uses --border-card
-	   directly rather than carrying a second token for the same shade.
-	   --border-control absorbs the other near-identical greys this file used to write
-	   as literals -- #DFE3DE, #E2E5E1, #E5E7E2 and #D9DED8 were each within a few RGB
-	   values of it (#D9DED8 measured 1.36:1 against white, against this token's
-	   1.28:1 -- not the "deliberately stronger edge" a stale comment here used to
-	   claim) and are gone now; button-outline and ai-suggestion-row both
-	   read this token directly, and so does its dark-mode re-theme. */
+	/* --border-divider and --border-card sit close enough in RGB that a divider
+	   drawn inside a card reads as the card's own edge -- .card-divider uses
+	   --border-card directly rather than a separate token for the same shade.
+	   --border-control is the general control edge; button-outline and
+	   ai-suggestion-row read it directly, and so does its dark-mode re-theme. */
 	--border-card:#E9ECE8;
 	--border-divider:#EDEFEA;
 	--border-control:#E2E4DF;
@@ -90,11 +73,11 @@
 	   the 3:1 a stroke-drawn glyph needs, and this lifts it to 5.02:1. The SVG icons
 	   carry these same stops. */
 	--green-deep:#0A7F56;
-	/* Green ink and green fill are not one colour. #14AC72 reads 2.93:1 as text on a
-	   card and 2.65:1 on an inset panel, and eight rules printed savings figures in
-	   it; the three chips that sit on a tint had already been hand-written #0E7A52 to
-	   stay legible, so that value is the token. --green keeps the fills and the one
-	   mark on the dark card, where a darker green would disappear. README: Color, Accessibility. */
+	/* --green paints fills; --text-positive is the ink tier for text on a light
+	   background, since --green itself fails 4.5:1 as text. The chips that sit on
+	   a tint use --text-positive too, to stay legible; --green keeps the fills and
+	   the one mark on the dark card, where a darker green would disappear.
+	   README: Color, Accessibility. */
 	--text-positive:#0E7A52;
 	/* The rejected-value red: message text and the edge of the field it belongs to.
 	   6.54:1 on the white card and 5.91:1 on the inset panel, so the message reads
@@ -103,9 +86,8 @@
 	   error edge is 1.4.11's 3:1 boundary and this clears it either way. README: Accessibility. */
 	--text-negative:#B3261E;
 	--teal:#07625E;
-	/* The July and June series. Both were written out in the markup and the light one
-	   had drifted from its token -- #B9BFF0 on screen against #A5B4FC here -- so the
-	   token now carries what actually renders, and both swatches read it. */
+	/* The July and June series. Both swatches read --blue-light from this token,
+	   so the rendered colour and the value here can't diverge. */
 	--blue:#4F5BD5;
 	--blue-light:#B9BFF0;
 	--donut-blue:#1FA8E0;
@@ -162,10 +144,9 @@
 	--shadow-ink:11 26 18;
 	--shadow-knob:0 1px 2px rgb(0 0 0 / .18);
 
-	/* The radius scale, named after the geometry tiers in README: Elevation and shape rather
-	   than after a pixel count -- --radius-compact is what a 32px control uses, and
-	   the panels that sit on the page share the page tier's 12px. Four surfaces used
-	   to write 15px out by hand, so --radius-card only ever moved three of them. */
+	/* The radius scale, named after the geometry tier (README: Elevation and shape)
+	   rather than a pixel count -- --radius-compact is what a 32px control uses,
+	   and the panels that sit on the page share the page tier's 12px. */
 	--radius-compact:10px;
 	--radius-page:12px;
 	--radius-card:15px;
@@ -181,10 +162,9 @@
 	   A value that appears once stays written where it is used; a token for it would only
 	   move the number somewhere harder to find. README: Spacing.
 
-	   --gutter-page is the only one that is not a constant. It is the distance from the
-	   sheet's edge to its content, and the phone block below narrows it -- so the three
-	   chrome surfaces that used to state 24px and then restate 12px in the phone block
-	   now state neither, and a change of gutter is one line rather than six. */
+	   --gutter-page is the only one that is not a constant: it is the distance from
+	   the sheet's edge to its content, and the phone block below narrows it. It is
+	   the single source of truth for that gutter -- nothing else restates it. */
 	--gutter-page:24px;
 	/* The sheet's own vertical padding, beside the gutter above: 18px over the first
 	   card and 24px under the last at desktop, one even 14px on the phone. */
@@ -199,8 +179,8 @@
 	   nine opinions. The base .button's 0 16px is neither: it is the form grid's 16. */
 	--pad-control:15px;
 	--pad-control-compact:13px;
-	/* One inset for the 28px chip family. It was three: .chip 11px, .chip-status 12px,
-	   .field-unit 10px -- three answers to one question, each one control's own. */
+	/* One inset shared by the 28px chip family: .chip, .chip-status, and
+	   .field-unit all read --pad-chip rather than each keeping their own value. */
 	--pad-chip:11px;
 	/* The dense rows' vertical rhythm -- entity, order, summary, account -- against the
 	   data row's 10px spec. Two of the four sat at 11px, between the families. */
@@ -713,13 +693,10 @@ svg.chart { width:100%; display:block; }
 .weekday-bars { display:flex; align-items:stretch; gap:8px; flex:1; min-height:112px; margin-top:14px; }
 .weekday-bars > div { flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-end; }
 .weekday-bars .weekday-bars-track { display:flex; align-items:flex-end; width:100%; flex:1; }
-/* No align-self here. It used to read `stretch`, which is what spanned the bar across the
-   column back when the bar was a direct child of that column and the cross axis was
-   horizontal. Inside the track the cross axis is vertical, and `stretch` on an item with a
-   definite height resolves to flex-start -- so all seven bars hung from the top of the track
-   instead of standing on its floor. Every bar was still exactly `track x share` tall, which is
-   why the height check passed: it measured the size and said nothing about where it sat. The
-   width comes from the .chart-bar rule below, which already sets 100%. */
+/* No align-self here: the track's cross axis is vertical, and align-self:stretch on an
+   item with a definite height resolves to flex-start, which would hang the bar from the
+   top of the track instead of standing it on the floor. The width comes from the
+   .chart-bar rule below, which already sets 100%. */
 .weekday-bars .chart-bar { flex:none; }
 /* The track is the control's furniture and the height is the data, so a weekday the window
    spent nothing on still draws one: these bars are the chosen window's now, and a Monday-to-
@@ -749,11 +726,9 @@ svg.chart { width:100%; display:block; }
 
 /* donut */
 .donut-box { display:grid; justify-items:center; padding-top:6px; }
-/* No baked-in conic-gradient here: the prototype's own ring drew fixed shares -- 13%, 14%,
-   6%, 10%, 57% -- beside a category list that read different numbers, which is exactly the
-   "nothing rendered could fail" defect the comment atop Viz.jsx is about. Real segments are
-   set inline in JS; an account with no spend to split gets a flat neutral ring, not
-   someone else's category split rendered as its own. */
+/* No baked-in conic-gradient here: segments are set inline in JS from the same data as
+   the category list, so the ring's shares always match the legend's own numbers. An
+   account with no spend to split gets a flat neutral ring, not another account's split. */
 .donut { width:132px; height:132px; border-radius:50%; position:relative; background:var(--border-card); }
 .donut::before { content:""; position:absolute; inset:17px; background:var(--bg-card); border-radius:50%; }
 .donut .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:1px; z-index:1; text-align:center; }
@@ -795,10 +770,8 @@ svg.chart { width:100%; display:block; }
 .ai-card-title-text { font-size:13.5px; font-weight:700; }
 .ai-card-title-meta { font-style:normal; font-size:11.5px; color:var(--text-on-dark); }
 .ai-card-header .chevron { margin-left:auto; color:var(--text-on-dark); }
-/* Top margin matches .ai-card-actions' own gap-block below the body, rather than the 2px it
-   used to carry -- that value sat the headline almost flush under the header's meta line, so
-   the two read as one merged block while the card's 18px padding and 12px action gap around
-   them stayed generous. One rhythm for the space inside the card, not two. */
+/* Top margin matches .ai-card-actions' own gap-block below the body -- one rhythm for
+   the space inside the card, not two. */
 .ai-card-headline { font-size:16px; font-weight:700; letter-spacing:-.01em; margin:var(--gap-block) 0 8px; }
 .ai-card-body { font-size:12.5px; color:var(--text-on-dark); line-height:1.55; margin:0; }
 .ai-card-actions { display:flex; align-items:center; gap:18px; margin-top:var(--gap-block); }
@@ -815,11 +788,9 @@ svg.chart { width:100%; display:block; }
    ChartScale). Each row is its own positioning context and each mark is absolute inside it, so
    a tick and its label share one x and cannot drift apart. */
 .chart-scale { margin-top:8px; }
-/* 1lh, because every label is absolutely positioned and a row of nothing but absolute children
-   collapses to no height at all. One line of this row's own text is exactly what the row used to
-   be when the labels were in flow, so the cards below it do not move: a hardcoded 14px here was
-   1.2px short of the 15.225 the 10.5px text actually occupies, and three charts on Home shifted
-   everything under them by that much three times over. */
+/* height:1lh, because every label is absolutely positioned and a row of nothing but
+   absolute children collapses to no height at all -- 1lh reserves exactly one line of
+   this row's own 10.5px text so the cards below it never shift. */
 .chart-axis { position:relative; height:1lh; font-size:10.5px; color:var(--text-muted); margin-top:4px; }
 .chart-axis span { position:absolute; top:0; white-space:nowrap; }
 /* Key for a two-series chart. Both lines get named -- a swatch that labels one of two
@@ -843,42 +814,29 @@ svg.chart { width:100%; display:block; }
    swatch -- these initials are white at 10px/700, so every value has to clear 4.5:1
    against white. Four of the seven were the donut's chart hues, which are picked to
    separate ring segments and reached 2.24:1 under type. README: Color, Accessibility. */
-/* Unscoped, like .category-icon above it. It was styled only under .entry-list and
-   .order-row-identity, so the mark was a size the parent happened to grant rather than a size
-   the avatar has -- and the first row family to use it outside those two rendered bare
-   initials on a coloured background at whatever the text size was. A component that only
-   looks right inside the parents it has met so far is a trap for the next parent. */
+/* Unscoped, like .category-icon above it: its size and type styling live on the class
+   itself rather than on .entry-list or .order-row-identity, so any row family that uses
+   it renders correctly, not just the ones it has been used in so far. */
 .entry-avatar { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-inverse); font-size:10px; font-weight:700; flex:none; }
 .entry-text { min-width:0; flex:1; }
-/* No line-height here. Pinning the wrapper at 1.45em computed one length off its own
-   inherited 14px -- 20.3px -- and handed it to both lines, so a 13px name and an 11px
-   meta were struck on the same 20.3px leading and the pair stood 40.6px tall. Every
-   other list lets the unitless 1.45 resolve against each line's own size, 18.85 + 15.95
-   = 34.8px, and the 5.8px was the whole of "Latest orders is spaced differently from
-   Category breakdown". The value was inherited from a <br> layout that has been gone
-   since the class-renaming sweep; keeping it kept that layout's leading. README: Data Rows. */
+/* No line-height here: an unset line-height lets the unitless 1.45 resolve against
+   each line's own font-size, so a 13px name and an 11px meta each get their own
+   leading instead of being struck on one shared value. README: Data Rows. */
 .entry-list .entry-meta { font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-/* --text, not --text-positive. Green means one thing in this system -- money saved -- so a
-   slot that is green by default says "saved" about whatever is put in it, and three of the
-   four lists using this family put a total there. Two of them were then written as savings to
-   agree with the colour, which is the tail wagging: *Latest orders* on two pages listed
-   "+26,04 kr." in green where every other list of orders writes what the order cost. The
-   figure inside a two-tone amount used to be overridden back to --text here; with the slot
-   itself neutral, that override said nothing and is gone. README: Color, Data Rows. */
+/* --text, not --text-positive: green means one thing in this system -- money saved --
+   so a slot that defaults to green would claim "saved" about whatever figure lands in
+   it. Only a value that is actually a saving should render in --text-positive.
+   README: Color, Data Rows. */
 .entry-list .amount { margin-left:auto; text-align:right; font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; flex:none; }
-/* The saving under a total is one fact drawn in three row families, so it is one rule: it was
-   muted 500 in one and green 600 in the other two once, and then one spec in three copies.
-   README: Data Rows. */
+/* The saving under a total is one fact drawn in three row families, so it is one rule
+   shared by all three rather than three copies. README: Data Rows. */
 .entry-list .entry-amount-sub, .entity-row .entity-row-amount-sub,
 .order-row .order-row-total-saved { font-style:normal; font-size:11px; color:var(--text-muted); font-weight:500; }
-/* The chevron is a flex item like any other, so the row that navigates spends 26px of
-   its right-hand run on one and lands its figure 26px left of the rows that do not --
-   the money column stepping in on the only row a pointer ever lights up. The rows
-   without a chevron hold the same slot open rather than filling it: a chevron there
-   would buy the column back with a promise the row does not keep. Keyed on a list
-   that mixes the two, because that is what asks for the slot -- the 11 rows in lists
-   where nothing navigates keep their full width. The 15px is the chevron's own; the
-   11px beside it is the row's gap, which the extra item earns by being an item. README: Honest Affordances. */
+/* The chevron is a flex item, so a row with one spends extra width on its right-hand
+   run and its amount sits that much further left than a chevron-less row's. Rows
+   without a chevron hold the same slot open rather than filling it, but only in a list
+   that mixes both kinds -- a list where nothing navigates keeps its full width.
+   README: Honest Affordances. */
 .entry-list:has(.chevron) > .entry-list-row:not(:has(.chevron))::after {
 	content:''; width:15px; flex:none; }
 
@@ -890,25 +848,23 @@ svg.chart { width:100%; display:block; }
 .page.is-on { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
 .segmented { display:inline-flex; gap:2px; padding:4px; background:var(--bg-tile); border:1px solid var(--border-control); border-radius:14px; width:max-content; }
 /* minmax(0,1fr), not the implicit auto column: an auto track sizes to its widest
-   item's min-content, and a nowrap meta made one scan3 row 327px of min-content --
-   36 tile + 12 gap + 279 of text -- inside a 322.41px panel. The track took the
-   327, so the row overhung by 4.59px and the ellipsis it was meant to draw never
-   appeared. README: Responsive Layout. */
+   item's min-content, which lets a nowrap meta overhang the panel and never draws
+   the ellipsis it's meant to. README: Responsive Layout. */
 .inset-panel { background:var(--bg-inset); border-radius:var(--radius-page); padding:8px 14px; display:grid; grid-template-columns:minmax(0,1fr); }
 .item-row > div:has(.item-row-title) { min-width:0; }
 .item-row > span:not(:has(.item-row-title)) { flex:none; }
 .item-row-title { overflow-wrap:anywhere; }
 .item-row .item-row-icon { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); background:#DFF0E6; color:#12A56B; display:grid; place-items:center; font-size:14px; font-weight:700; flex:none; }
-/* The drag handle was a bare <span> styling itself, down to a var(--text-faint,#9AA39B)
-   whose fallback had drifted a digit from the token it falls back to. */
+/* The drag handle is styled by this class rather than as a bare <span> styling itself,
+   so its color always resolves to the --text-faint token rather than a hardcoded
+   fallback that can drift from it. */
 .item-row .item-row-grip { color:var(--text-faint); cursor:grab; }
 .item-row-title { font-size:13px; font-weight:600; color:var(--text-strong); }
-/* The meta ellipses rather than wrapping. A second line here costs the row 14.72px
-   and the step reads as a broken list rather than as more text -- 12 of 28 metas
-   wrapped at one width or another, at 390 and at 1440 alike. The title above still
-   wraps: it names the thing, so it may not be cut. Only narrows because the wrapper
-   carries min-width:0 -- without that the box never gets shorter than the text and
-   no ellipsis is ever drawn. README: Data Rows, Responsive Layout. */
+/* The meta ellipses rather than wrapping: a second line reads as a broken list rather
+   than as more text. The title above still wraps, since it names the thing and may not
+   be cut. Only narrows because the wrapper carries min-width:0 -- without that the box
+   never gets shorter than the text and no ellipsis is ever drawn.
+   README: Data Rows, Responsive Layout. */
 .item-row-meta { font-style:normal; font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .item-row .amount { margin-left:auto; color:var(--text); font-weight:600; font-size:13px; white-space:nowrap; }
 .key-cap { display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:7px; border:1px solid var(--border-control); background:var(--bg-control-tint); font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--text-body); }
@@ -931,13 +887,10 @@ svg.chart { width:100%; display:block; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); min-width:0; }
 .entry-list .entry-glyph { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:var(--bg-inset); flex:none; }
-/* A tight top belongs to the container, not to the row. The row's padding is the box
-   the hover tint paints, so the 7px taken off the first row to close the gap under the
-   divider is 7px the lit band loses above the text and keeps below it -- ink 2px under
-   the band's top edge and 8.3px above its bottom, on the one row in the file that ever
-   lights up. Where a row can light up the body gives up its own 6px instead: the text
-   lands 1px from where it was, the band is even, and the lists whose rows never light
-   up keep the tight top, since nothing there ever draws the box. README: Honest Affordances. */
+/* A tight top belongs to the container, not to the row: the row's padding is the box
+   the hover tint paints, so trimming the row's own padding for a row that can light up
+   would make the lit band uneven. Rows that never light up keep the tight top, since
+   nothing there ever draws the box. README: Honest Affordances. */
 .entry-list:not(:has(.entry-list-row[data-go])) > .entry-list-row:first-child { padding-top:0; }
 .card-body-tight:has(> .entry-list-row[data-go]) { padding-top:0; }
 /* flex:1 is for the flex bodies (.ring-row): a block-level grid fills its card on its own, but
@@ -964,12 +917,9 @@ svg.chart { width:100%; display:block; }
 /* The sort control's slot in a toolbar -- a chip here, a real combobox in an app, so the
    geometry is stated once for the slot rather than twice for what fills it. 38px is the
    standard tier the search field and the FILTERS button already sit on -- README: Sizing.
-   flex:0 1 auto, never flex:none: a combobox is sized by its input's intrinsic width, which
-   belongs to the engine and not to us -- 298px on a fine pointer and 366px once the
-   coarse-pointer rule computes the text at 16px. Refusing to shrink, that hung 38px off a
-   328px phone row, and from 780 down to 701 it crushed the search field to a 28px stub of
-   padding and still overhung by up to 95px. .main-panel clips, so scrollWidth never grew and
-   the phone overflow test read clean through all of it. README: Responsive Layout. */
+   flex:0 1 auto, never flex:none: a combobox is sized by its input's intrinsic width,
+   which belongs to the engine, and that width must be allowed to shrink on narrow
+   viewports rather than force the row to overflow. README: Responsive Layout. */
 .toolbar > .toolbar-sort { flex:0 1 auto; height:38px; }
 /* The chevron rides the slot's right edge, the same as it does inside a field shell. The
    slot stretches on a phone, and a chevron stranded mid-row reads as punctuation. */
@@ -983,10 +933,9 @@ svg.chart { width:100%; display:block; }
 .form { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-panel); max-width:640px; }
 .form-wide { max-width:none; }
 .form > * { min-width:0; }
-/* Same implicit-column trap as .content-column-side and .category-rows above: with no
-   grid-template-columns of its own this was an auto-sized single column, and a field holding a
-   chips list (a category name per chip) sized the column to the widest chip's own max-content
-   -- 497px of column inside a 324px field. README: Responsive Layout. */
+/* grid-template-columns:minmax(0,1fr), not the implicit auto column: an auto track
+   sizes to its widest item's min-content, which would let a field holding a chips list
+   grow past the field's own width. README: Responsive Layout. */
 .field { display:grid; grid-template-columns:minmax(0,1fr); gap:7px; align-content:start; min-width:0; }
 .field > span { font-size:13px; font-weight:600; color:var(--text); }
 .field > span.field-help { font-size:12px; font-weight:500; color:var(--text-muted); }
@@ -1002,23 +951,18 @@ svg.chart { width:100%; display:block; }
 .card-kpi .card-kpi-value { font-size:21px; color:var(--text); font-variant-numeric:tabular-nums; letter-spacing:-.02em; text-transform:none; font-weight:700; }
 .card-kpi .card-kpi-label { display:block; font-size:12px; color:var(--text-muted); letter-spacing:normal; text-transform:none; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .delta { display:inline-flex; align-items:center; gap:var(--gap-icon); font-size:12px; font-weight:600; }
-/* Three tones, because a delta has three things to say and only ever had two colours for them.
-   Neutral used to carry both "moved the wrong way" and "there is nothing to compare against",
-   which are opposite messages in the same body grey -- so a month where spending, average order
-   and shipping all rose read as four unremarkable lines with one green one. --text-negative is
-   the token the colour table already names for a negative delta, and this is the first rule to
-   use it for one; every other use is a form error. Both tones are qualified with .delta because
-   `.card-kpi span` sets a colour and outranks a lone class. README: Color. */
+/* Three tones, one colour each: .delta-good is --text-positive, .delta-bad is
+   --text-negative, .delta-neutral is --text-body -- "moved the wrong way" and "nothing
+   to compare against" are different messages and get different colours. Both tones are
+   qualified with .delta because `.card-kpi span` sets a colour and outranks a lone
+   class. README: Color. */
 .delta.delta-good { color:var(--text-positive); }
 .delta.delta-bad { color:var(--text-negative); }
 .delta.delta-neutral { color:var(--text-body); }
-/* The delta's own text, wrapped in its own span so the phone rule below can ellipsis it without
-   also clipping the icon, is the same problem this section's own comment already names -- just
-   one element deeper. `.card-kpi span` matches this span directly (it is one), and a rule that
-   wins by matching the element beats one merely inherited from its parent, tone or no tone: every
-   delta rendered this span in --text-muted grey regardless of .delta-good/.delta-bad, on desktop
-   as much as on the phone width the ellipsis rule was written for. color:inherit hands it back to
-   whichever of the three tones above actually applies. */
+/* Wrapped in its own span so the phone rule below can ellipsis it without also clipping
+   the icon. `.card-kpi span` matches this span directly, and a rule that wins by
+   matching the element beats one merely inherited from its parent -- so color:inherit
+   is needed to hand control back to whichever of the three .delta tones actually applies. */
 .card-kpi .delta-text { color:inherit; }
 .meter { position:relative; height:10px; border-radius:5px; background:var(--bg-meter-track); }
 .meter-fill { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--green); }
@@ -1035,29 +979,26 @@ svg.chart { width:100%; display:block; }
 .month-columns-fill { width:100%; flex:none; border-radius:8px 8px 4px 4px; background:var(--bg-bar-track); }
 .month-columns .is-on .month-columns-fill { background:var(--green); }
 .month-columns span { font-size:11px; color:var(--text-muted); white-space:nowrap; }
-/* Full month names once this row's own measured width proves they fit -- unlike its "same
-   shape" neighbour .rhythm-bars, this one really does run out of room, at the narrowest real
-   phone width this row ever reaches (single-column Statistics on a small screen): 320px
-   overflowed, 325px did not, measured with six months of full names forced on. 340px is that
-   floor with a working margin. Named apart from .rhythm-bars: an ancestor-named query only
-   ever resolves to its nearest container of that name, and .month-columns sits inside a plain
-   .card, not inside .rhythm-bars. */
+/* Full month names once this row's own measured width proves they fit -- unlike its
+   "same shape" neighbour .rhythm-bars, this one really does run out of room at the
+   narrowest real phone width it reaches. 340px is the measured floor with a working
+   margin. Named apart from .rhythm-bars: a container query only ever resolves to its
+   nearest container of that name, and .month-columns sits inside a plain .card, not
+   inside .rhythm-bars. */
 .month-columns { container-type:inline-size; container-name:month-columns; }
 @container month-columns (min-width:340px) {
 	.month-columns .period-full { display:inline; }
 	.month-columns .period-short { display:none; }
 }
 @media (max-width:900px) { .kpi-row { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-/* No cursor:pointer here. It sat on the class, so it drew a hand over two rows that
-   were <div>s carrying a dead chevron -- the class promising what only [data-go]
-   delivers. Every navigating row already takes the hand from that attribute. README: Honest Affordances. */
+/* No cursor:pointer on the class: only [data-go] gets the hand, so a row can't
+   promise navigation it doesn't deliver. README: Honest Affordances. */
 /* The page's own table, and the one .data-row variant that redraws the box: a fixed
    column grid rather than a flex run, and 12px of padding against the row spec's 10 to
    carry its denser 13.5/11.5 type. gap:12px and align-items:center are not restated --
    they are the identifier's and they already agreed, and a value restated beside the one
    it copies is the near-miss the identifier exists to stop. README: Data Rows. */
-/* One row, one link -- the record. The orders behind it are reached from the record's own
-   page now, so the strip that used to hold a pair of destinations is the destination. */
+/* One row, one link: the record. Orders behind it are reached from the record's own page. */
 .entity-row { padding:var(--pad-row-y) 0; border-radius:8px; border-bottom:1px solid var(--border-divider); }
 .entity-row:last-child { border-bottom:0; }
 .entity-row .entity-row-text { min-width:0; flex:1; }
@@ -1079,11 +1020,9 @@ svg.chart { width:100%; display:block; }
 .order-row .order-row-identity { display:flex; align-items:center; gap:var(--gap-row); min-width:0; }
 .order-row .order-row-identity-text { min-width:0; }
 /* The list's outer edge carries no divider, the same way .category-row clears its
-   first border-top. Written as "no .order-row after me" because :last-of-type
-   counts by tag: the pager div below the rows was the last div, so the rule
-   matched nothing and all three rows kept a trailing hairline -- then the first
-   row became an <a>, the only one of its type, and it was the anchor that lost
-   its border instead. A tag is not what makes this the last row. README: Responsive Layout. */
+   first border-top. Written as "no .order-row after me" rather than :last-of-type,
+   since :last-of-type counts by tag and a tag is not what makes this the last row.
+   README: Responsive Layout. */
 .order-row:not(:has(~ .order-row)) { border-bottom:0; }
 .order-row .order-row-meta { font-size:11.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .order-row .order-row-total { text-align:right; font-weight:600; font-size:13.5px; }
@@ -1140,10 +1079,8 @@ svg.chart { width:100%; display:block; }
 .document-preview-glyph { display:none; }
 .document-preview-image .document-preview-glyph-image,
 .document-preview-pdf .document-preview-glyph-pdf { display:block; }
-/* A filename is data and is as long as it is: ordrebekraeftelse-bilka.pdf wrapped the
-   name row at 390px and took the source card from 328.39px to 359.78px, so the card
-   changed height with the file that was dropped. One line, ellipsis, and the size on
-   the right keeps its width. README: Views. */
+/* A filename is data and is as long as it is: one line, ellipsis, so a long name never
+   changes the card's height. The size on the right keeps its own width. README: Views. */
 .document-name { font-size:12.5px; font-weight:600; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 /* min-width:0 only lets the name shrink on a line that cannot wrap, and .space-between
    wraps at 700 -- so the phone rule has to be overruled here by class count, not by
@@ -1232,10 +1169,9 @@ svg.chart { width:100%; display:block; }
 .field-shell > input[type="search"]::-webkit-search-cancel-button { display:none; }
 /* The file input is presented by the shell: the chosen name renders as text.
    Scoped to beat the generic `.field-shell > input` above, which is one type
-   selector heavier than a lone class -- unscoped, its width:100% won, and an
-   absolute box in a static shell resolves that against the viewport. The input
-   was 1440px wide and invisible, hanging 657px off the right of the only page
-   that carries one and scrolling the document into blank space. README: Responsive Layout. */
+   selector heavier than a lone class -- otherwise its width:100% would win, and an
+   absolute box in a static shell resolves that against the viewport rather than
+   the shell. README: Responsive Layout. */
 .field-file-input, .field-shell > .field-file-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 label.field-shell { cursor:pointer; }
 .field-file-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
@@ -1294,33 +1230,19 @@ label.field-shell { cursor:pointer; }
 /* The one exception: a textarea is meant to wrap. */
 .field-shell-area { height:88px; align-items:flex-start; padding-top:13px; white-space:normal; overflow:auto; }
 
-/* iOS zooms the page whenever a focused control computes under 16px, and every field
-   here is 12.5 or 13.5px. Clamping the viewport does not help -- Safari has ignored
-   maximum-scale and user-scalable since iOS 10, on purpose, so that a reader can
-   always zoom. The computed size is the only lever it actually reads, and it reads
-   the computed one: a transform is a paint operation and does not touch it. So the
-   control computes at 16px and is scaled straight back to the size it already was.
-   Nothing looks bigger, which is the whole point -- raising the size for real is the
-   design, and the design is not the thing to change here.
-   The origin pins the left edge so text starts exactly where it did, and the negative
-   margin hands the layout box back the width the scale took off it. Overshoot is
-   bounded by whatever trailing chip shares the row -- 0.156 x its width, about 4px at
-   worst -- and .field-shell clips, so it stays inside the field. Only the text is visible
-   in any case: the control carries no border or background of its own.
-   Coarse pointers only. Desktop has no such behaviour and keeps the untransformed
-   text, which is also the sharper of the two. */
+/* iOS zooms the page whenever a focused control computes under 16px; Safari ignores
+   maximum-scale and user-scalable on purpose, so 16px is the only way to prevent it.
+   The transform scales the control back down visually without changing the computed
+   font-size iOS reads, so nothing looks bigger. Coarse pointers only -- desktop keeps
+   the untransformed, sharper text. */
 @media (pointer: coarse) {
 	.field-shell > input, .field-shell > textarea {
 		font-size:16px; transform:scale(.84375); transform-origin:left center;
 		margin-right:-18.518%;
 	}
-	/* The negative margin above hands the layout box back to a trailing flex sibling
-	   sharing the same row -- there isn't one here, the chevron is pinned outside the
-	   wrapping flow entirely (see .field-shell-chips above), so the -18.518% instead
-	   ate into the padding-right reserved for it and the scaled-up input overlapped
-	   the chevron on any coarse pointer, invisibly on desktop where this whole block
-	   is inert. Zeroing it here leaves the anti-zoom 16px and the scale-back, just
-	   without a reclaim nothing downstream is waiting to receive. */
+	/* Zeroed here: the negative margin above reclaims width for a trailing flex
+	   sibling, but the chevron in this shell is pinned outside the wrapping flow
+	   (see .field-shell-chips above), so there is no sibling to hand the width to. */
 	.field-shell-chips > input { margin-right:0; }
 	.toolbar .field-shell > input, .global-finder > .field-shell > input {
 		font-size:16px; transform:scale(.78125); transform-origin:left center;
@@ -1348,10 +1270,9 @@ label.field-shell { cursor:pointer; }
 .stepper-step.stepper-step-done .stepper-bar { background:var(--green); }
 .stepper-step.stepper-step-done .stepper-step-label { color:var(--text); }
 .summary-row { display:flex; justify-content:space-between; gap:var(--gap-row); padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); font-size:13px; color:var(--text-muted); }
-/* Every other value here is a fixed-width figure, so this never needed to shrink until the
-   order summary started putting the vendor name and every category name in it -- a name is as
-   long as whoever typed it made it, and the row had nothing to stop it pushing the card wide.
-   flex:1 min-width:0 so it can actually give up the width, not just be told to. */
+/* A name is as long as whoever typed it made it, and nothing else stops it pushing the
+   card wide -- flex:1 min-width:0 so this value can actually give up the width, not
+   just be told to. */
 .summary-row-value { flex:1; min-width:0; font-weight:600; color:var(--text); text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .summary-row-value-saving { color:var(--text-positive); }
 /* The rule is "last in its run", and the run ends three different ways across
@@ -1360,9 +1281,9 @@ label.field-shell { cursor:pointer; }
    follows covers all three; :last-child alone missed two of them. */
 .summary-row:not(:has(+ .summary-row)) { border-bottom:0; }
 .summary-total { display:flex; justify-content:space-between; align-items:baseline; padding-top:14px; font-size:16px; font-weight:600; }
-/* The settled total is the default; green marks the estimate you are still
-   composing. The rule had it the other way round, so both real totals set
-   --text-strong inline to undo it. */
+/* The settled total is the default colour; green marks the estimate you are still
+   composing. .summary-total-value-estimate overrides it back to --text-positive for
+   that one state. */
 .summary-total .summary-total-value { color:var(--text-strong); font-weight:700; font-size:19px; }
 .summary-total .summary-total-value-estimate { color:var(--text-positive); }
 /* Flex/grid children default to min-width:auto, so a long placeholder or a
@@ -1407,11 +1328,9 @@ label.field-shell { cursor:pointer; }
 .field .segmented { width:100%; height:48px; padding:4px; border-radius:var(--radius-page); }
 .field .segmented button { flex:1; min-width:0; display:flex; align-items:center; justify-content:center; padding:0 6px; border-radius:9px; font-size:12.5px; }
 /* A page hero: a heading, one sentence, and the thing you do next. Two exist --
-   the vendors panel and the scan column -- and they had drifted apart on type,
-   26px/700 against 30px/600 and a 13px sentence against 14px. That put the scan
-   one outside the README's Typography rules twice over: headings are 600 there, and 14px is
-   the base size. The type is shared here and only the framing varies, so the
-   next hero cannot invent a third heading size. README: Typography. */
+   the vendors panel and the scan column -- and both share this type, 30px/600 and
+   14px, per README: Typography; only the framing varies. A third hero may not
+   invent its own heading size. README: Typography. */
 .hero h2 { margin:0 0 8px; font-size:30px; font-weight:600; letter-spacing:-.02em; color:var(--text-strong); }
 .hero p { margin:0 0 18px; font-size:14px; color:var(--text-muted); max-width:52ch; }
 .hero .button.button-caps { height:48px; padding:0 24px; font-size:13px; }
@@ -1575,12 +1494,9 @@ label.field-shell { cursor:pointer; }
 	   see .field-pair-keep. README: Fields and Forms, Responsive Layout. */
 	.field-pair.field-pair-stack-early { grid-template-columns:1fr; }
 }
-/* Layout only, which is all the README claims for this breakpoint. It also carried
-   body { font-size:16px }, which no pinned size ever saw -- 126 font-size declarations,
-   all px -- so its whole effect was resizing whichever class had forgotten to state a
-   size: .check-label rendered 16px on wide monitors while every neighbour held, and
-   .panel-heading still does the same silent step. A type scale for wide screens is a
-   rem conversion at the root, not one inherited px value ambushing the unpinned. */
+/* Layout only, which is all the README claims for this breakpoint -- no font-size
+   here. A type scale for wide screens is a rem conversion at the root, not an
+   inherited px value ambushing whichever class forgot to pin its own size. */
 @media (min-width:2200px) {
 	.app-shell { grid-template-columns:250px minmax(0,1fr); }
 	.content-grid { grid-template-columns:minmax(0,1.9fr) minmax(360px,1fr); }
@@ -1590,10 +1506,8 @@ label.field-shell { cursor:pointer; }
 }
 @media (max-width:1180px) { .order-list-grid { grid-template-columns:minmax(0,1fr); } }
 /* The phone layout is this one block, and it is the last breakpoint in the file so
-   its rules win over the wider ones without any of them needing a bump. Split across
-   two blocks it disagreed with itself in silence: the nav was sized 50px/10px here
-   and 48px/9.5px there, and the comment on .topbar .topbar-actions pointed at a .global-finder rule that
-   lived somewhere else entirely. Keep it one block. README: Responsive Layout. */
+   its rules win over the wider ones without any of them needing a bump. Keep it one
+   block. README: Responsive Layout. */
 @media (max-width:700px) {
 	.app-shell { grid-template-columns:1fr; }
 	/* The canvas tint exists to frame the floating white sheet against the sidebar.
@@ -1604,21 +1518,16 @@ label.field-shell { cursor:pointer; }
 	   own shadow and border rather than a tint, having no shared edge left to tint against. */
 	body { background:var(--bg-card); }
 	.main-panel { margin:0; border-radius:0; box-shadow:none; }
-	/* The bar used to fill to the screen edge and push its row up with padding alone,
-	   which left the panel's own colour reaching the corner it was trying to clear —
-	   a flat fill behind the home indicator, on a strip of screen the platform draws
-	   rounded. Floating the panel itself, inset on every side, clears the corner by
-	   leaving it uncovered rather than by padding a fill away from it, and the safe
-	   area no longer has to fit inside the bar's own padding: --tabbar-gap is the
-	   margin around the panel on the left and right, and --tabbar-gap-bottom is the
-	   same margin underneath -- smaller, because the safe-area inset it stacks with
-	   already does most of the work of clearing the corner and the home indicator.
-	   The three insets are the strips iOS reserves -- the home indicator below, the
-	   notch's side in landscape -- named rather than written inline because env() is
-	   0 in every engine that runs here, and overriding the variables is the only way
-	   to render the other branch. --tabbar-height is the panel's own height, kept as
-	   a token because .main-panel's bottom padding has to clear it and a second copy
-	   of the number drifts from it. README: Chrome, Responsive Layout. */
+	/* The panel floats inset on every side rather than filling to the screen edge,
+	   so the platform's rounded corner and home indicator stay uncovered instead of
+	   being padded away from a flush fill. --tabbar-gap is the side margin,
+	   --tabbar-gap-bottom the bottom margin (smaller, since the safe-area inset it
+	   stacks with does most of the corner-clearing work), and --tabbar-height is the
+	   panel's own height, kept as a token because .main-panel's bottom padding has
+	   to clear it. The three insets are the strips iOS reserves -- named rather than
+	   written inline because env() is 0 in every engine that runs here, and
+	   overriding the variables is the only way to render the other branch.
+	   README: Chrome, Responsive Layout. */
 	:root {
 		--safe-bottom:env(safe-area-inset-bottom, 0px);
 		--safe-left:env(safe-area-inset-left, 0px);
@@ -1634,9 +1543,8 @@ label.field-shell { cursor:pointer; }
 		   is also what makes the withdrawn branch below a single line rather than
 		   three. */
 		--tabbar-clearance:calc(var(--tabbar-height) + var(--tabbar-gap-bottom) + var(--safe-bottom) + 12px);
-		/* The phone values of the spacing tokens, in one place instead of one rule per
-		   surface: README: Grids and Breakpoints names one 12px gutter below 700px, and
-		   the topbar, the page bar and the content sheet each used to restate it. The
+		/* The phone values of the spacing tokens, in one place rather than one rule per
+		   surface: README: Grids and Breakpoints names one 12px gutter below 700px. The
 		   sheet's vertical padding evens out to 14px, and the pager buttons narrow so
 		   the row fits beside the range chips. */
 		--gutter-page:12px;
@@ -1677,23 +1585,13 @@ label.field-shell { cursor:pointer; }
 
 	/* ---- a line opened for correction withdraws the bar ----
 
-	   A line card is the one surface on a phone that is an editing session rather than a
-	   page: it opens over the list, it owns the keyboard for as long as it is open, and it
-	   ends at its own SAVE LINE / CANCEL / delete row. The floating bar is 65px of fixed
-	   chrome over the foot of the screen, and that row is what it lands on -- measured on a
-	   card whose quantity had just been rejected: 490px of card against 596px of room on an
-	   iPhone 13, with all three action buttons underneath it (9,176px of card covered; 6,780
-	   on an iPhone SE, 9,269 on a Pixel 5). The card's own scroll-margin clears the bar when
-	   it opens and cannot help afterwards -- it is a one-shot on `scrollIntoView`, and what
-	   moves the row down is the card growing in place, by an error line the reader has just
-	   been given or a verdict the retail field has just earned.
-
-	   So the bar goes while a line is open, rather than the card being made to fit under it:
-	   nothing in the card is navigation, the way out is the card's own two buttons, and the
-	   list underneath comes back with the bar the moment it closes. One selector rather than
-	   two now that Scan review's own line editor is this same card (`.line-card`) rather than a
-	   second, plainer editor with its own class to keep in step. README: Chrome, Create and
-	   Edit. */
+	   A line card is the one surface on a phone that is an editing session rather than
+	   a page, ending at its own SAVE LINE / CANCEL / delete row -- the floating tab bar
+	   would sit over that row. So the bar withdraws while a line is open rather than
+	   the card being made to fit under it: nothing in the card is navigation, the way
+	   out is the card's own two buttons, and the list underneath comes back with the
+	   bar the moment it closes. One selector covers both Scan review and Order
+	   details, since they share this same `.line-card`. README: Chrome, Create and Edit. */
 	:root:has(.line-card) {
 		/* The bar is gone, so the three surfaces above clear the platform's inset and the
 		   gutter, and nothing else. */
@@ -1719,22 +1617,16 @@ label.field-shell { cursor:pointer; }
 	   or a fixed chip, which is the clipping this layout keeps hitting. README: Responsive Layout. */
 	.order-list-grid { grid-template-columns:minmax(0,1fr); }
 	/* The order row's fixed columns (auto + 150px + 26px + gaps) cannot fit a phone
-	   with the status chip in the row too, and stacking it under the identity to make
-	   room was the old fix -- it wrapped the row onto two lines while every other row
-	   in this list stays one and truncates. The chip drops on phone instead, and
-	   identity, total and chevron stay one line, truncating like the rest. */
+	   with the status chip in the row too, so the chip drops on phone: identity, total
+	   and chevron stay one line, truncating like the rest of this list. */
 	.order-row { grid-template-columns:minmax(0,1fr) auto auto; column-gap:var(--gap-row); }
 	.order-row > .chip-status { display:none; }
 	.row-inline { flex-wrap:wrap; }
 	.space-between { flex-wrap:wrap; }
-	/* Wrapping needs height:auto, but the buttons have no vertical padding to fall
-	   back on -- .field .segmented button zeroes it, and it outranks .segmented.segmented-compact
-	   button only by source order, both being two classes and an element. So the
-	   control collapsed to text height: a ~26px strip sitting under 48px inputs.
-	   Height comes from the buttons instead. 38px is what the desktop rule already
-	   gives them -- its 48px minus the 1px borders and the 4px track padding either
-	   side -- so an unwrapped control lands at the same 48px as the inputs above it
-	   and each wrapped row stays the size it is everywhere else. */
+	/* Wrapping needs height:auto, but .field .segmented button has no vertical
+	   padding of its own to fall back on, so height comes from min-height:38px on
+	   the buttons instead -- the desktop rule's 48px minus the 1px borders and the
+	   4px track padding either side, so an unwrapped control still lands at 48px. */
 	.field .segmented { height:auto; flex-wrap:wrap; }
 	.field .segmented button { min-height:38px; }
 	.form-actions { flex-wrap:wrap; }
@@ -1742,11 +1634,10 @@ label.field-shell { cursor:pointer; }
 	   its row on desktop wrap under it rather than shrinking below their tier. */
 	.toolbar { flex-wrap:wrap; }
 	.toolbar .field-shell { flex:1 1 100%; min-width:0; }
-	/* FILTERS and the sort are one group: both shape the list, and a row each spent three
-	   rows on what fits in two -- 134px of toolbar above the first order, against 86px.
-	   The sort takes what the disclosure leaves, which needs flex-basis 0 rather than its
-	   own content: the content width is what decided the line break, so the slot went to a
-	   third row and hung off the end of it. README: All Orders. */
+	/* FILTERS and the sort are one group: both shape the list, and the sort takes
+	   what the disclosure leaves, which needs flex-basis 0 rather than its own
+	   content -- content width would decide the line break and push the slot onto
+	   its own row. README: All Orders. */
 	.toolbar > .toolbar-sort { flex:1 1 0; }
 	/* An item row carries a tile, a nowrap figure and often a trailing control. On a
 	   phone those fixed widths leave the title nothing, so the row wraps and the title
@@ -1755,15 +1646,9 @@ label.field-shell { cursor:pointer; }
 	   with no card of their own to move a figure into -- and the help rows that carry
 	   no figure at all. Everything that reads as one line states .item-row-group below. */
 	.item-row { flex-wrap:wrap; row-gap:6px; }
-	/* 64%, not 60%. The basis decides where the row breaks, and at 60% it was deciding
-	   it by 1%: the description's basis came to 175.2px of a 292px row against the
-	   178px left once a 36px tile, a 54px figure and two gaps were taken out, so the
-	   row broke after the description only while the fixed columns stayed wide enough
-	   to push it over. Shrinking the tile from 40 to 36 took 6px out of that sum, the
-	   row started fitting on one line, and the description dropped to 178px -- which
-	   wrapped a meta to two lines and left the trailing edit button alone on the next
-	   line, flush under the tile. Any value from 62% clears the threshold; 64% clears
-	   it by more than the tile geometry can move. README: Responsive Layout. */
+	/* 64%, not 60%: the basis decides where the row breaks, and 64% is a deliberate,
+	   measured margin above the threshold rather than a value tuned to the edge of it.
+	   README: Responsive Layout. */
 	.item-row > div:has(.item-row-title) { flex:1 1 64%; }
 	/* The opt-out, for rows meant to read as one line: title left, figures and
 	   actions grouped right. The 64% basis above is a reservation, not a
@@ -1782,19 +1667,12 @@ label.field-shell { cursor:pointer; }
 	   row that does this: the attachment's in the preview under the row, and an
 	   item's in the Description field of the card its own pencil opens. */
 	.item-row.item-row-group .item-row-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-	/* The line editors group too, and this is what pays for it. Grouped with the
-	   total still in the row they were measured at a 64px title -- a mid-word stack
-	   no one asked to read -- which is why they carried the wrap instead, and the
-	   wrap is what put the price and both buttons on a line of their own under a
-	   title using a third of its own. The total is the figure to spend, because it
-	   is the one the row already states: the meta beside it reads `2 × 39,50 kr.`,
-	   so the line total is that arithmetic done twice, and where the quantity is 1
-	   -- most lines -- the two are the same number printed twice. It is still drawn
-	   on a desktop, where the row has the width, and still in the card the pencil
-	   opens, which prints `Per piece · line total X` under the price as it is typed.
-	   Scoped to this list rather than written on .item-row-group: Order details'
-	   read rows have no card to open and no second copy of the figure, so a total
-	   hidden there would be a total nowhere. README: Data Rows. */
+	/* The line total is hidden on phone because it duplicates the meta beside it
+	   (`2 × 39,50 kr.`) -- the same arithmetic, printed twice. Still drawn on
+	   desktop, where the row has the width, and in the card the pencil opens, which
+	   states it explicitly. Scoped to this list rather than .item-row-group: Order
+	   details' read rows have no second copy of the figure, so hiding it there
+	   would hide the only one. README: Data Rows. */
 	.item-lines .item-row .amount { display:none; }
 	/* The open line card: the photo stops being a left column and becomes the card's header
 	   strip, which is the only way 128px of frame plus two fields side by side fits 390px. The
@@ -1901,35 +1779,22 @@ label.field-shell { cursor:pointer; }
 	   room to put it -- off outright, rather than left to whether the browser emulates a
 	   hover on tap. display beats the reveal rule's visibility whatever specificity says. */
 	.chart-callout { display:none; }
-	/* A ring beside the legend that names its segments needs the ring's width, a 24px gap and
-	   the legend's 170px floor -- about 326px of the 364px a phone card has, before a single
-	   row of the legend has anything to say. So .ring-row's wrap fired at every phone width and
-	   the two halves of one chart landed as two left-aligned blocks: the ring 96px off the
-	   card's centre on Categories and Vendors, 77px on Statistics' gauge, with its legend
-	   underneath anyway. Home's own breakdown card has never had that problem, because it
-	   stacks by construction -- .donut-box over .category-rows -- so below 700px the three
-	   cards that lay the same chart out across a row take Home's arrangement instead of
-	   falling into it: ring centred at the top, legend full width beneath, the same 6px
-	   lead-in .donut-box gives its ring and the same --gap-block under it .category-rows
-	   uses. The 6px is on the ring rather than the body: written as the body's padding-top
-	   it replaced .card-body's own 14px instead of adding to it, so the ring sat 6px under
-	   the divider against Home's 20 -- a lead-in shorter than the one it was copying.
-	   flex:none on the rings because a column flex resolves shrink against the height, and a
-	   170px gauge with a long legend under it is exactly the item that gets squashed.
-	   README: Charts, Responsive Layout. */
-	/* nowrap, not the row layout's own wrap: the base rule's flex-wrap:wrap existed to break
-	   the ring and the legend onto two lines when they no longer fit side by side, and it is
-	   still set here because nothing had unset it. With only these two items and a column
-	   direction, that wrap turns the single line's cross size (width) content-based rather
-	   than stretched to the card -- a long vendor or category name in the legend then sized
-	   the legend to its own text instead of to the 364px the card actually has, 569px against
-	   a card that fits 364. README: Charts, Responsive Layout. */
+	/* A ring beside the legend that names its segments needs more width than a phone
+	   card has, so below 700px the three cards that lay ring and legend side by side
+	   take Home's own stacked arrangement instead: ring centred at the top, legend
+	   full width beneath, with the same lead-in and gap Home's .donut-box/
+	   .category-rows already use. flex:none on the rings, since a column flex
+	   resolves shrink against height and a tall gauge with a long legend under it
+	   would otherwise get squashed. README: Charts, Responsive Layout. */
+	/* nowrap, not the row layout's own wrap: with a column direction and only these
+	   two items, a wrapped single line sizes its cross axis (width) to content
+	   rather than stretching to the card, which would let a long legend name widen
+	   past the card instead of wrapping inside it. README: Charts, Responsive Layout. */
 	.ring-row { flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:var(--gap-block); }
 	.ring-row > .donut, .ring-row > .spend-gauge { align-self:center; flex:none; margin-top:6px; }
-	/* The legend is the full width of the card now, so the two-column floor is what would
-	   keep it from fitting rather than what makes it fit. Its own 4px lead-in was a spacer
-	   under a chart it used to sit beneath; here the flex gap is the whole distance, and
-	   leaving both stood the legend 16px under the ring against Home's 12. */
+	/* The legend is full width of the card now, so its own min-width floor would only
+	   keep it from fitting. margin-top:0 because the flex gap above is already the
+	   whole distance to the ring. */
 	.ring-row > .chart-legend-fill { min-width:0; margin-top:0; }
 	.figure-headline { font-size:23px; }
 	/* The hero's own name switching to its short form is the @container rule beside .stats-hero
@@ -2112,13 +1977,11 @@ label.field-shell { cursor:pointer; }
    (content box 343px) is exactly the border case the 320px floor is: 380px leaves it, and the
    floor, comfortably on the short form's side, and only a card past roughly 1470px wide gets the
    long name and the margin (100px+) that makes it safe. */
-/* justify-content:space-between, not just a gap: the card stretches to match the taller KPI
-   grid beside it (Grid's own default -- see .stats-hero-row above), and its own four rows don't
-   grow to fill that height, so the slack has to go somewhere. Packed at the top with a fixed
-   gap, it collected as one bare stripe below the compare switch; space-between spreads it evenly
-   between the four rows instead, so the card still reads as one thing at every height rather
-   than content sitting in the top half of a taller box. 14px is the floor -- rows never sit
-   closer than that -- not the fixed distance between them. */
+/* justify-content:space-between, not just a gap: the card stretches to match the
+   taller KPI grid beside it (Grid's own default -- see .stats-hero-row above), and
+   its own four rows don't grow to fill that height, so space-between spreads the
+   slack evenly between them instead of collecting it as one stripe. 14px is the
+   floor -- rows never sit closer than that -- not the fixed distance between them. */
 .stats-hero { display:flex; flex-direction:column; gap:14px; justify-content:space-between; container-type:inline-size; container-name:stats-hero; }
 @container stats-hero (max-width:380px) {
 	.stats-hero-pager .pager-wide { display:none; }
@@ -2126,19 +1989,12 @@ label.field-shell { cursor:pointer; }
 	.stats-hero .pager-heading { width:72px; }
 }
 .stats-hero-pager { display:flex; align-items:center; gap:8px; }
-/* Fixed and centred, not just sized to fit -- the two arrows either side of this read as one
-   pager, and a heading that grows and shrinks with its own text walks the right arrow sideways
-   under the pointer that just clicked it (measured: 397.7px to 453.8px across five widths before
-   this was fixed-width). 140px clears the longest label this ever holds -- "September 2025" at
-   135.8px -- with a few px to spare; a year past 9999 or a locale that writes a longer month name
-   is the one input this floor does not cover.
-
-   flex-shrink:0, on this and the two arrows below: a flex row that runs a few px over its
-   container by default shrinks its flexible children to fit, and 140px that can shrink is not
-   actually fixed -- it shrank to 133.6px the moment the width picker's own box grew a few px
-   (matching the chevrons' height), which was under the 135.8px "September 2025" needs and wrapped
-   it to two lines. Fixed means never smaller than 140px; the row overflows if it must, rather
-   than silently un-fixing the one measurement this rule exists to hold. */
+/* Fixed and centred, not just sized to fit: the two arrows either side read as one
+   pager, and a heading that grows or shrinks with its own text would walk the right
+   arrow sideways under the pointer that just clicked it. 140px clears the longest
+   label this ever holds, "September 2025", with a few px to spare. flex-shrink:0
+   keeps it fixed even when the row runs over its container -- the row overflows
+   rather than silently un-fixing this width. */
 .pager-heading { font-size:16px; letter-spacing:-.01em; display:inline-block; width:140px; flex-shrink:0; text-align:center; white-space:nowrap; }
 .stats-hero-pager .pager-arrow { flex-shrink:0; }
 /* .icon-button paints itself a white card with a border -- correct on the sheets it was written

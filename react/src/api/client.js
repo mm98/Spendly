@@ -1,11 +1,8 @@
-/* The real API client.
-
-   Was a phantom in-memory store (seeded from ./seed.js, persisted as diffs in localStorage);
-   is now a thin fetch() wrapper around the Express + SQLite backend in api/. Every exported
-   function keeps its original name and signature — useApi.js keys its cache off `fn.name`, and
-   every page already calls this module by these names — so nothing above this file changed to
-   make the swap. seed.js is no longer imported: the data it held is now real rows on the
-   server, seeded once per account at registration (api/src/seed.js).
+/* The real API client: a thin fetch() wrapper around the Express + SQLite backend in api/.
+   Every exported function keeps a stable name and signature — useApi.js keys its cache off
+   `fn.name`, and every page calls this module by these names. seed.js is not imported here: the
+   data it describes is real rows on the server, seeded once per account at registration
+   (api/src/seed.js).
 
    The dev server proxies /api to the API process (see vite.config.js), so every path here is
    relative. `credentials: 'include'` carries the session cookie on every request. */
@@ -457,13 +454,12 @@ const periodFromWindow = w => ({
 	from: w.from, to: w.to,
 	// Which point on the charts drawn from this window is today, or null if it holds no today.
 	todayIndex: w.todayIndex,
-	/* The window's own marks. Every chart drawn from this object used to carry a hardcoded
-	   01/08/15/22/29 instead -- five dates that are no unit of anything, printed unchanged under
-	   a February that has 28. The window knows its own bounds; nothing else does. */
+	/* The window's own marks: every chart drawn from this object gets its axis dates from the
+	   real data, not a fixed set of positions -- the window knows its own bounds; nothing else
+	   does. */
 	axis: w.axis,
-	/* The window's returns, as records. Orders overview draws the same card Statistics does,
-	   and used to draw it from nothing at all -- a hardcoded "No open returns found" over a
-	   month holding four. README: Empty states. */
+	/* The window's returns, as records: Orders overview draws the same card Statistics does,
+	   from this real data rather than a fixed empty state. README: Empty states. */
 	returns: w.returns,
 	spent: w.spent, saved: w.saved, savedPercent: w.savedPercent, retail: w.retail,
 	averageOrder: w.average, weekdays: w.rhythm.weekdays,

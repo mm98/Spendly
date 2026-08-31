@@ -61,9 +61,8 @@ const selectLatestOrders = db.prepare(
 /* ---- overview / draft ---- */
 
 /** "Latest N orders" — N defaults to the account's entries-per-card setting, which is what
-    every card holding a list of things is cut to. It used to default to 4 and be passed as 3 by
-    one caller and 4 by the other, so the same card on two pages was two lengths for no reason
-    either page could state. A caller may still ask for a specific count (the scan flow wants a
+    every card holding a list of things is cut to, so the same card reads the same length on
+    every page that shows it. A caller may still ask for a specific count (the scan flow wants a
     handful regardless), and it is clamped so nobody can ask for an unbounded scan. */
 router.get('/overview', (req, res) => {
 	const asked = Number(req.query.count)
@@ -131,7 +130,7 @@ function buildOrderFilter(userId, q) {
 	} else if (q.categoryId) {
 		// IN driven from the category's own (indexed, covering) links rather than an EXISTS
 		// probe per order row: the filter reads the few thousand rows the category actually
-		// has, not every order the account has. 250ms -> 3ms at 50k orders, same rows.
+		// has, not every order the account has.
 		where.push('ot.id IN (SELECT order_id FROM order_categories WHERE category_id = @categoryId)')
 		params.categoryId = q.categoryId
 	}
@@ -154,19 +153,16 @@ function buildOrderFilter(userId, q) {
 	   see migrations/002) instead of a correlated scan of order_items per order row, plus the
 	   two renameable names reached through their own small tables: matching vendors and
 	   categories resolve to id sets first (a dozen rows and ten), and the orders side is an
-	   indexed IN. Byte-identical results to the old four-way OR, measured across item-title,
-	   note, vendor and no-match needles; ~660ms -> ~100ms per search at 50k orders. LIKE is
-	   already case-insensitive for ASCII, which is exactly what lower() gave (SQLite's lower()
-	   never folded non-ASCII either), so the needle stays lowercased and the columns are
-	   compared as stored -- with % and _ escaped so the needle is the literal text the search
-	   box holds, and a needle carrying a non-ASCII letter (which LIKE cannot case-fold) matched
-	   through contains_fold instead; lib/textSearch.js holds both halves and the numbers. */
+	   indexed IN. LIKE is already case-insensitive for ASCII, which is exactly what lower()
+	   gives (SQLite's lower() never folds non-ASCII either), so the needle stays lowercased and
+	   the columns are compared as stored -- with % and _ escaped so the needle is the literal
+	   text the search box holds, and a needle carrying a non-ASCII letter (which LIKE cannot
+	   case-fold) matches through contains_fold instead; lib/textSearch.js holds both halves. */
 	/* The vendor half composes lib/textSearch.js's one vendor-match fragment rather than
-	   restating it, and that is the fix as much as the mechanics: this clause used to spell
-	   out "vendors whose name matches" by hand, forgot the aliases, and so disagreed with the
-	   palette about the same account -- `Netto` found the order in the finder and zero orders
-	   here. Categories stay inline because a category has one name and nothing else answers
-	   for it; the day that changes, its clause moves to the lib the same way. */
+	   restating it: matching must go through that shared vendor-matching logic, or it can
+	   disagree with the palette about the same account. Categories stay inline because a
+	   category has one name and nothing else answers for it; the day that changes, its clause
+	   moves to the lib the same way. */
 	const needle = String(q.query ?? '').trim().toLowerCase()
 	if (needle) {
 		const match = MATCHERS[asciiNeedle(needle) ? 'ascii' : 'fold']
@@ -209,11 +205,10 @@ router.get('/', (req, res) => {
 
 	// LIMIT/OFFSET go straight into the query below, so this is the one place a caller-chosen
 	// pageSize has to be made safe before it reaches SQL: SQLite treats any negative LIMIT as
-	// "no limit at all" (not an error, and not clamped to 1 the way this code used to assume),
-	// so `pageSize=-3` silently returned every matched row while the page/pages fields in the
-	// response still claimed a 3-row page -- the metadata and the data disagreed. The ceiling
-	// bounds the other direction: an oversized ask (or none, which used to mean "everything")
-	// is a whole account decorated into one response, so it pages like any other reader.
+	// "no limit at all", not an error, so a negative or missing pageSize is clamped to at least
+	// 1 here rather than passed through, keeping the page/pages fields honest about the data.
+	// The ceiling bounds the other direction: an oversized ask (or none) is clamped so it pages
+	// like any other reader instead of decorating a whole account into one response.
 	const requestedSize = Number(q.pageSize) || Number(q.limit) || matched || 1
 	const size = Math.min(MAX_PAGE_SIZE, Number.isFinite(requestedSize)
 		? Math.max(1, Math.floor(requestedSize)) : Math.max(1, matched))

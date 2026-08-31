@@ -21,9 +21,9 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 
 const insertUpload = db.prepare(`INSERT INTO scan_uploads
 	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
 	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
-/* A pending upload nobody came back to (DISCARD, or a tab just closed) used to sit forever --
-   nothing ever deleted a scan_uploads row except attaching it to an order. The dedup lookup
-   below trusts a hash match for a day -- long enough to catch a second click on the same file
+/* A pending upload nobody came back to (DISCARD, or a tab just closed) is swept by
+   scheduleDailyUploadCleanup below, not deleted on the spot. The dedup lookup below trusts a
+   hash match for a day -- long enough to catch a second click on the same file
    or a re-export from the camera roll, without matching a receipt from last week that just
    happens to be identical. Deletion is a separate, longer window (RETENTION_MS): a review draft
    left open overnight, or a browser tab nobody got back to before the weekend, still has to
@@ -128,10 +128,9 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 })
 
 /** Discards a pending upload outright, cached AI read included -- the escape hatch for a
-    document the model read wrong. Re-uploading the identical file afterwards used to hit
-    selectUploadByHash above and hand back the very same misread draft; with the row gone, the
-    next upload of those bytes gets a fresh id and a fresh parseReceipt call instead of the
-    cached one. */
+    document the model read wrong. With the row gone, re-uploading the identical file afterwards
+    cannot match selectUploadByHash above, so it gets a fresh id and a fresh parseReceipt call
+    instead of the misread cached one. */
 router.delete('/documents/:key', (req, res) => {
 	const result = deleteUpload.run(req.params.key, req.user.id)
 	if (!result.changes) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })

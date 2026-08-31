@@ -191,12 +191,8 @@ export const Chart = memo(function Chart({ height, label, series = [],
 
 /* ---- the scale under a chart ----
 
-   One component, one array of marks, both rows drawn from it. It used to be two: a
-   `<ChartRuler />` whose ticks were a `repeating-linear-gradient` every 23px, and a
-   `<ChartAxis />` of labels spread by `justify-content:space-between`. Neither knew the other
-   existed, so the ticks were a fixed comb that landed under the dates by coincidence and never
-   again once the range moved -- 14 ticks under 5 labels on a month, the last one nowhere near
-   the 29. A tick strip that does not mark the labels is decoration pretending to be a scale.
+   One component, one array of marks, both rows drawn from it, so tick and label positions
+   cannot drift apart.
 
    Anchoring, and why it is not plain centring: the plotted line runs edge to edge, x=0 to
    x=width (see buildPath), so mark i belongs at p = i/(n-1) of the box -- the first hard against
@@ -226,8 +222,8 @@ const spacing = (a, b) => (String(a.label).length + String(b.label).length) * CH
     By real x, not by counting: the marks are not evenly spaced (months are 28 to 31 days long)
     and a wide window quantises several of them onto one plotted point -- a year drawn as 12
     equal buckets puts Feb and Mar in the same one, and "all time" as 6 puts whole seasons
-    there. Thinning to a count kept both of those and drew them on top of each other. Distance
-    is the thing that decides whether a label has room, so distance is what it now asks. */
+    there. Distance is the thing that decides whether a label has room, so distance is what it
+    asks, rather than a fixed count that can land two labels on top of each other. */
 export function fitMarks(marks, width) {
 	// Before the first measurement there is no width to fit to, and thinning to a guess would
 	// draw a scale that jumps on the next frame. Everything, then the real answer.

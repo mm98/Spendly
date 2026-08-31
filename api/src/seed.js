@@ -1,11 +1,9 @@
 /* What a freshly registered account needs to function, and nothing more -- a settings row and
    a dashboard_cards row per catalogue entry, both read by GET routes that would otherwise have
-   no row to find. This used to also insert a demo dataset (vendors, categories, orders) ported
-   from react/src/api/seed.js, so a fresh login wasn't an empty app -- dropped because a brand
-   new account seeing someone else's-looking orders, vendor names and receipts read as a data
-   leak rather than a demo, the one impression a personal-finance app can least afford to give.
-   An account now starts genuinely empty: no vendor, no category, no order until the user adds
-   one themselves. */
+   no row to find. This does not insert a demo dataset: a brand new account seeing someone
+   else's-looking orders, vendor names and receipts would read as a data leak rather than a
+   demo, the one impression a personal-finance app can least afford to give. An account starts
+   genuinely empty: no vendor, no category, no order until the user adds one themselves. */
 
 /* Which of the catalogue's cards a new account opens Home with, in this order. Keys are the
    catalogue's own (lib/constants.js) -- spelled out in full, for the reason stated there. */
@@ -25,8 +23,8 @@ export const DEFAULT_SETTINGS = {
 	sort: 'date-desc', showScanCard: true, confirmDelete: true,
 	// Six rows a card, and the vendors and categories lists opening alphabetically.
 	cardRows: 6, listSort: 'name-asc',
-	// The ledger's unit. DKK because the app printed "kr." unconditionally before this was a
-	// setting, so it is what every existing account's figures already meant.
+	// The ledger's unit. DKK because every figure in the app is printed as "kr." by default,
+	// so a new account's currency has to match what its own figures already mean.
 	currency: 'DKK',
 	// How dates and times are printed. 'auto' means keep asking the browser, which is what
 	// every account got before the column existed and the right answer wherever a reader's
