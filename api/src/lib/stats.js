@@ -207,7 +207,7 @@ function rhythmOver(userId, from, to) {
 		   breakdown beside it rather than by its own chart. A share avoids that -- the bar is
 		   that percentage of whatever track it is given. */
 		weekdays: WEEKDAY_TICKS.map((day, i) => ({
-			day, dayFull: WEEKDAY_NAMES[i],
+			day, dayFull: WEEKDAY_NAMES[i], spend: spend[i],
 			share: most ? Math.round((spend[i] / most) * 1000) / 10 : 0,
 			peak: most > 0 && spend[i] === most
 		})),
@@ -534,7 +534,7 @@ function recentColumns(userId, range, id, currentSpent, count = 6) {
 		   room for one (see the header caption note above windowBounds). */
 		note: columns.length > 1 && top && top.spend > 0 ? `${top.labelFull} is the highest` : null,
 		columns: columns.map(c => ({
-			label: c.label, labelFull: c.labelFull,
+			label: c.label, labelFull: c.labelFull, spend: c.spend,
 			height: most ? Math.round((c.spend / most) * 100) : 0, current: c.id === id
 		}))
 	}
