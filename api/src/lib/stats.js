@@ -688,6 +688,10 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 	// cards on one page stating one fact is the rule that made them share it.
 	const budgetRows = budgetRowsOver(userId, bounds.from, bounds.to)
 
+	// The account's "Entries per card" setting, sent along so every ring legend drawn from this
+	// window folds to the same length the dashboard's cards already use.
+	const cardRows = cardRowsFor(userId)
+
 	// One fetch for both cumulative series below -- the rows carry spend and saved together.
 	const dailyRows = dailyRowsOver(userId, bounds.from, bounds.to)
 
@@ -717,7 +721,8 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 			// render it (Home, Orders overview) pays one more indexed GROUP BY, and a caller
 			// that does (Vendors overview) is never left with a summary that lacks its window.
 			vendorSplit: vendorSplitOver(userId, bounds.from, bounds.to, now.spent),
-			budgets: budgetSummary(budgetRows, cardRowsFor(userId)),
+			budgets: budgetSummary(budgetRows, cardRows),
+			cardRows,
 			recent: summary ? null : recentColumns(userId, width, id, now.spent),
 			returns: returnsIn(userId, bounds.from, bounds.to),
 			kpis: kpisFor(now, was, previousShortLabel),

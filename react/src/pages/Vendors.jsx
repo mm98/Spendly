@@ -80,7 +80,7 @@ export default function Vendors() {
 							    onto foldForRing's own field (`amount` -> `spend`), the one shape it reads. */
 							const split = foldForRing(
 								chartData.split.map(v => ({ id: v.id, name: v.name, colour: v.colour, spend: v.amount })),
-								n => `${n} more vendors`)
+								chartData.cardRows)
 							const periodWord = chartPeriodPhrase(chartData.period)
 							return (
 								/* Same rule as Categories: the header band and the closing buttons open the
@@ -100,7 +100,7 @@ export default function Vendors() {
 													ariaLabel={`Vendor split of ${currency(chartData.spent, 0)}`} />
 												<div className="chart-legend chart-legend-fill">
 													{split.map(v => (
-														/* The folded row names a count rather than a vendor, so it opens
+														/* The folded row stands for several vendors at once, so it opens
 														   the list where those vendors actually are instead of an
 														   orders filter for a vendor that does not exist. */
 														<LegendRow key={v.id ?? 'more'} colour={v.colour} title={v.name}

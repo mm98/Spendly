@@ -150,7 +150,7 @@ function Hero({ month }) {
    README: Home, Charts. */
 function BreakdownCard({ period, monthCategories, hasCategories, rows }) {
 	const [listRef, budget] = useListBudget(rows)
-	const shown = foldForRing(monthCategories, more => plural(more, 'more category', 'more categories'), budget)
+	const shown = foldForRing(monthCategories, budget)
 	/* A ring with no segments is a grey circle claiming a split of nothing -- the same absence
 	   the vendors card one over already answers with an empty state. Which sentence depends on
 	   which absence: a month with nothing bought, or an account with no categories at all.

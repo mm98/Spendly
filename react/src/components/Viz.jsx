@@ -8,9 +8,9 @@ import { IconButton } from './Button.jsx'
    only needs a progress bar or a thumbnail never loads the charts chunk. */
 
 /* A ring's legend is a list, and a list that grows with the account is a list that stops being
-   a summary. Past this many the tail is folded into one segment rather than drawn as twenty
-   slivers with twenty rows under them -- the full list is its own page, and the fold row says
-   how many it is holding and links there.
+   a summary. Past this many the tail is folded into one "Everything else" segment rather than
+   drawn as twenty slivers with twenty rows under them -- the full list is its own page, and the
+   fold row states the sum of what it is holding and links there.
 
    The folded segment's share is real: it is the sum of everything inside it, so the ring still
    adds up to the figure in its middle. That is the part a cap gets wrong when it simply drops
@@ -127,7 +127,7 @@ export function useListBudget(rows) {
    of preference; the first one not already on screen wins. */
 const FOLD_COLOURS = ['#8A968D', '#5B6660', '#A7B0A8', '#6E7A72']
 
-export function foldForRing(entries, foldLabel, max = RING_LEGEND_MAX) {
+export function foldForRing(entries, max = RING_LEGEND_MAX) {
 	const ranked = entries.filter(e => e.spend > 0).sort((a, b) => b.spend - a.spend)
 	if (ranked.length <= max) return ranked
 	/* `max` is how many rows come back, fold included -- it used to be how many *real* rows came
@@ -153,7 +153,7 @@ export function foldForRing(entries, foldLabel, max = RING_LEGEND_MAX) {
 	   the tag is the neutral glyph a group has, since the categories inside it have several. */
 	const sum = (field) => tail.reduce((total, e) => total + (e[field] ?? 0), 0)
 	return [...head, {
-		id: null, name: foldLabel(tail.length), colour, icon: 'tag', iconPath: null,
+		id: null, name: 'Everything else', colour, icon: 'tag', iconPath: null,
 		spend: sum('spend'), share: sum('share'), saved: sum('saved'), orders: sum('orders')
 	}]
 }
