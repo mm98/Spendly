@@ -762,15 +762,32 @@ export async function search(query, signal) {
 		.map(o => ({ id: o.id, ...highlight(`${o.vendor?.name}${sep}${dayMonth(o.date)}`, needle),
 			meta: krLabel(o.total), to: `/orders/${o.id}` })))
 
-	/* A vendor found through an alias shows the parent vendor's row -- the alias is not a
+	/* Two rows each, because a vendor is two things to do and the panel used to offer one: the
+	   first opens that vendor's orders, the second opens the vendor itself to be changed. There
+	   was no way to reach a vendor's or a category's own page from here at all.
+
+	   Each row is named for what it does rather than for the record it came from. A row reading
+	   "CS Megastore" under a "Vendors" heading looks like it opens the vendor, and it filters
+	   orders instead; the heading and the meta already say what kind of record this is, so the
+	   row itself is free to say where it goes.
+
+	   A vendor found through an alias shows the parent vendor's row -- the alias is not a
 	   record of its own -- and the meta names the alias that matched, because the needle may
 	   not appear anywhere in the name the row shows. */
-	take('Vendors', vendors.slice(0, 3)
-		.map(v => ({ id: v.id, ...highlight(v.name, needle),
-			meta: v.alias ? `Vendor${sep}${v.alias}` : 'Vendor', to: `/orders/all?vendor=${v.id}` })))
+	const vendorMeta = v => (v.alias ? `Vendor${sep}${v.alias}` : 'Vendor')
+	take('Vendors', vendors.slice(0, 3).flatMap(v => [
+		{ id: v.id, ...highlight(`All orders by ${v.name}`, needle),
+			meta: vendorMeta(v), to: `/orders/all?vendor=${v.id}` },
+		{ id: 'vendor-edit-' + v.id, ...highlight(`Edit ${v.name}`, needle),
+			meta: vendorMeta(v), to: `/vendors/${v.id}/edit` }
+	]))
 
-	take('Categories', categories.slice(0, 3)
-		.map(c => ({ id: c.id, ...highlight(c.name, needle), meta: 'Category', to: `/orders/all?category=${c.id}` })))
+	take('Categories', categories.slice(0, 3).flatMap(c => [
+		{ id: c.id, ...highlight(`All orders in ${c.name}`, needle),
+			meta: 'Category', to: `/orders/all?category=${c.id}` },
+		{ id: 'category-edit-' + c.id, ...highlight(`Edit ${c.name}`, needle),
+			meta: 'Category', to: `/categories/${c.id}/edit` }
+	]))
 
 	const lines = []
 	for (const o of orders) {
