@@ -15,7 +15,13 @@ const EXTENSIONS = [".js", ".jsx", ".css"];
 
 const baseRef = process.argv[2] ?? process.env.CHECK_BASE_SHA ?? "origin/main";
 
-const diff = execFileSync("git", ["diff", "--unified=0", `${baseRef}...HEAD`, "--",
+// The merge-base, not baseRef...HEAD: a plain "...HEAD" diff is blind to uncommitted work,
+// which is most of what this script exists to catch before a commit is ever made. Diffing
+// from the merge-base against the working tree sees uncommitted changes locally and is
+// identical to the merge-base comparison in CI, where the tree is already fully committed.
+const mergeBase = execFileSync("git", ["merge-base", baseRef, "HEAD"], { encoding: "utf8" }).trim();
+
+const diff = execFileSync("git", ["diff", "--unified=0", mergeBase, "--",
 	"react/src", "api/src"], { encoding: "utf8", maxBuffer: 1 << 26 });
 
 let file = null;
