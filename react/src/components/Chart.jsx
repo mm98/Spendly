@@ -1,296 +1,423 @@
-import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef } from 'react'
+import {
+	Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, Pie, PieChart, ReferenceDot,
+	ResponsiveContainer, Tooltip, XAxis, YAxis
+} from 'recharts'
+import { currency, dayMonth, percent } from '../api/format.js'
 
-/* The charts.
+/* The pixel height Recharts reserves for the x-axis's own tick row, on top of the plot height
+   a caller asks for -- so the curve keeps its full allotment with the axis drawn inside the box. */
+const X_AXIS_HEIGHT = 20
+const TICK_STYLE = { fontSize: 10.5, fill: 'var(--text-muted)' }
 
-   The viewBox is remapped 1:1 onto the element's real pixel box on every resize, so one
-   user unit is always one CSS pixel. Stroke widths hold, marker circles stay circular, and
-   only the horizontal spacing of the data changes. Scaling a fixed viewBox instead
-   (preserveAspectRatio, or width plus aspect-ratio) zooms the whole drawing, which thickens
-   the line and turns the circles into ellipses. README: Buttons.
-
-   In React that means the width has to be state: the path data is computed from it during
-   render rather than written onto the DOM afterwards, so a re-render never leaves a path
-   drawn for a width the element no longer has. A chart on a route that is not mounted
-   measures nothing at all, which is simpler than the prototype's problem of a chart on a
-   hidden page measuring zero. */
-
-/* The line/curve/area always run edge to edge -- x=0 to x=width -- rather than inset by some
-   guessed-at padding. The one thing that ever needed room was a marker circle landing exactly on
-   the first or last point and getting half clipped by the SVG's own boundary, and that is now the
-   marker's own problem to solve (see the clamp on cx below): most markers sit mid-series and never
-   need the room, so a whole chart being inset on both edges to protect one circle that usually
-   isn't even there was the wrong place to pay for it. A card heading, a ruler, an axis tick, and
-   the plotted line above them all now share the same left and right edge. README: Charts. */
-const buildPath = (points, width, height, kind) => {
-	let n = points.length
-	if (!n) return ''
-	const xAt = i => width * (n > 1 ? i / (n - 1) : 0)
-	let pts = points.map((y, i) => [xAt(i), y])
-	/* A single point has nowhere to draw a line to -- 'M' with no command after it paints
-	   nothing, indistinguishable from an empty series. A window this young (an "all time"
-	   range whose only order was placed today) still has a value to show, so stretch that one
-	   point across the full width instead of leaving the chart blank. */
-	if (n === 1) { pts = [[0, pts[0][1]], [width, pts[0][1]]]; n = 2 }
-
-	if (kind === 'line') return 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1]).join(' L')
-
-	/* Monotone cubic Hermite (Fritsch-Carlson), not a Catmull-Rom tangent -- a Catmull-Rom
-	   segment is only confined to the convex hull of its *own* four control points, which is
-	   no promise at all about the two data points it's actually drawn between: a flat lead-in
-	   that jumps to a total and back is exactly the sharp turn that hull is widest on, so the
-	   curve dips below its own flat run before rising, and overshoots above the total before
-	   settling back to it -- a claim about values the series never held. Clamping the control
-	   points to the chart's [0, height] (the previous fix here) only stopped that overshoot
-	   from being clipped by the SVG edge; it never stopped the overshoot from being drawn.
-
-	   Fritsch-Carlson chooses each point's tangent from the slopes on both sides of it -- zero
-	   at any point where the series turns (the slopes either side disagree in sign, or one is
-	   flat), then rescaled so neither side of a segment can overshoot the pair of values it
-	   connects. The curve is therefore confined to [min(y_i, y_i+1), max(y_i, y_i+1)] on every
-	   segment, which is what "the curve doesn't invent values" actually means -- a stronger
-	   and cheaper guarantee than clamping to the whole chart's height ever was. */
-	const slope = new Array(n - 1)
-	for (let i = 0; i < n - 1; i++) {
-		const dx = pts[i + 1][0] - pts[i][0]
-		slope[i] = dx ? (pts[i + 1][1] - pts[i][1]) / dx : 0
-	}
-	const tangent = new Array(n)
-	tangent[0] = slope[0]
-	tangent[n - 1] = slope[n - 2]
-	for (let i = 1; i < n - 1; i++) {
-		const a = slope[i - 1], b = slope[i]
-		tangent[i] = (a === 0 || b === 0 || (a > 0) !== (b > 0)) ? 0 : (a + b) / 2
-	}
-	for (let i = 0; i < n - 1; i++) {
-		if (slope[i] === 0) { tangent[i] = 0; tangent[i + 1] = 0; continue }
-		const a = tangent[i] / slope[i], b = tangent[i + 1] / slope[i]
-		const s = a * a + b * b
-		if (s > 9) {
-			const tau = 3 / Math.sqrt(s)
-			tangent[i] = tau * a * slope[i]
-			tangent[i + 1] = tau * b * slope[i]
-		}
-	}
-	let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1]
-	for (let i = 0; i < pts.length - 1; i++) {
-		const h = pts[i + 1][0] - pts[i][0]
-		d += ' C' + (pts[i][0] + h / 3).toFixed(1) + ' ' + (pts[i][1] + h * tangent[i] / 3).toFixed(1)
-			+ ' ' + (pts[i + 1][0] - h / 3).toFixed(1) + ' ' + (pts[i + 1][1] - h * tangent[i + 1] / 3).toFixed(1)
-			+ ' ' + pts[i + 1][0].toFixed(1) + ' ' + pts[i + 1][1]
-	}
-	if (kind === 'area') {
-		d += ' L' + pts[pts.length - 1][0].toFixed(1) + ' ' + height
-			+ ' L' + pts[0][0].toFixed(1) + ' ' + height + ' Z'
-	}
-	return d
+/** A real calendar date out of a plotted point's day offset -- UTC, matching the day arithmetic
+    the API's own axis marks are cut on (axisFor in api/src/lib/stats.js). */
+const addDays = (from, n) => {
+	const [y, m, d] = from.split('-').map(Number)
+	return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
 }
 
-/** Measures the element and keeps the measurement in state. Rounded, because a fractional
-    viewBox width buys nothing and re-renders on every sub-pixel wobble. */
-function useMeasuredWidth() {
-	const ref = useRef(null)
-	const [width, setWidth] = useState(0)
-	const measure = useCallback(() => {
-		const el = ref.current
-		if (el) setWidth(w => {
-			const next = Math.round(el.getBoundingClientRect().width)
-			return next === w ? w : next
-		})
-	}, [])
-
-	useLayoutEffect(measure, [measure])
-	useEffect(() => {
-		const el = ref.current
-		if (!el || !window.ResizeObserver) return
-		const ro = new ResizeObserver(measure)
-		ro.observe(el)
-		return () => ro.disconnect()
-	}, [measure])
-
-	return [ref, width]
-}
-
-/* Today, on a line that runs through it.
-
-   Every line chart in the app draws the same mark in the same place, because it answers the same
-   question on all of them -- *where on this line is now*. Two of the five drew one, three did
-   not, and the two that did drew it differently, so the same fact was a halo and a dot on one
-   page, a bare dot on another, and nothing at all on the rest.
-
-   Null where today is outside the window, which is the whole point of taking `todayIndex` from
-   the API rather than reaching for the last point: a month paged back on Statistics has a line
-   that ends at its own last day, and marking that would say "you are here" about a day three
-   months ago. Null again where the chart is a comparison -- the previous window's line runs
-   through its own days, and none of them is today.
-
-   `series` names which line it sits on; `colour` is that line's own stroke, so the mark reads as
-   part of it rather than as a fifth colour on the page. */
-export const todayMarker = (index, { series = 0, colour } = {}) =>
-	(index == null ? [] : [{ index, series, r: 4.5, fill: '#fff', stroke: colour, strokeWidth: 2 }])
-
-/**
- * series:    [{ points, kind: 'line' | 'curve' | 'area', stroke, strokeWidth, fill, dash }]
- * baselines: [{ y, stroke, dash }]
- * markers:   [{ index, series, r, fill, stroke, strokeWidth, opacity }]
- * gradients: [{ key, x1, y1, x2, y2, stops: [{ offset, color, opacity }] }]
- *            reference one as stroke/fill "gradient:<key>"; the id is made unique per
- *            instance, because two charts on a page with the same defs id is a real defect
- *            and an invisible one -- the second silently borrows the first's colours.
- */
-export const Chart = memo(function Chart({ height, label, series = [],
-	baselines = [], markers = [], gradients = [], className, style, ...rest }) {
-	const [ref, width] = useMeasuredWidth()
-	const uid = useId().replace(/:/g, '')
-	const paint = value => (typeof value === 'string' && value.startsWith('gradient:')
-		? `url(#${uid}-${value.slice(9)})` : value)
-
+/** One tooltip for every chart: the date under the pointer, then one row per series actually
+    plotted there. `series` is looked up by dataKey for its swatch colour rather than trusting
+    Recharts' own -- a line painted with a gradient stroke has no single colour to report, and
+    the swatch needs one regardless. */
+function ChartTooltip({ active, payload, series }) {
+	if (!active || !payload?.length) return null
+	const date = payload[0]?.payload?.date
 	return (
-		<svg ref={ref} className={['chart', className].filter(Boolean).join(' ')} viewBox={`0 0 ${width || 1} ${height}`}
-			style={{ height, ...style }} role="img" aria-label={label} {...rest}>
-			{gradients.length ? (
-				<defs>
-					{gradients.map(g => (
-						<linearGradient key={g.key} id={`${uid}-${g.key}`}
-							x1={g.x1 ?? 0} y1={g.y1 ?? 0} x2={g.x2 ?? 0} y2={g.y2 ?? 1}>
-							{g.stops.map((s, i) =>
-								<stop key={i} offset={s.offset} stopColor={s.color} stopOpacity={s.opacity} />)}
-						</linearGradient>
-					))}
-				</defs>
-			) : null}
-
-			{baselines.map((b, i) =>
-				<line key={i} x1={0} x2={width} y1={b.y} y2={b.y} stroke={b.stroke} strokeDasharray={b.dash} />)}
-
-			{series.map((s, i) => (
-				<path key={i} d={buildPath(s.points, width, height, s.kind)}
-					fill={paint(s.fill) ?? 'none'} stroke={paint(s.stroke) ?? 'none'}
-					strokeWidth={s.strokeWidth} strokeDasharray={s.dash} />
+		<div className="chart-tooltip">
+			{date ? <div className="chart-tooltip-date">{dayMonth(date)}</div> : null}
+			{payload.map(entry => (
+				<div className="chart-tooltip-row" key={entry.dataKey}>
+					<span className="chart-tooltip-swatch"
+						style={{ background: series.find(s => s.dataKey === entry.dataKey)?.color }} />
+					<span className="chart-tooltip-name">{entry.name}</span>
+					<span className="chart-tooltip-value tabular-figures">{currency(entry.value)}</span>
+				</div>
 			))}
-
-			{markers.map((m, i) => {
-				const host = series[m.series ?? 0]
-				if (!host?.points.length) return null
-				/* A shorter range means fewer points than the marker was authored against, and
-				   an index past the end writes cx/cy="undefined" and drops the marker. */
-				const n = host.points.length
-				const at = Math.min(m.index, n - 1)
-				const rawCx = width * (n > 1 ? at / (n - 1) : 0)
-				// Clamped into [r, width - r] rather than the path being inset for it: a marker
-				// on the first or last point would otherwise have its own circle cut in half by
-				// the SVG's edge, and that's the only case this ever needs to move it at all --
-				// every other index already lands inside those bounds untouched.
-				const r = m.r ?? 0
-				const cx = Math.max(r, Math.min(width - r, rawCx))
-				return <circle key={i} cx={cx.toFixed(1)} cy={host.points[at]} r={m.r}
-					fill={m.fill} stroke={m.stroke} strokeWidth={m.strokeWidth} opacity={m.opacity} />
-			})}
-		</svg>
-	)
-})
-
-/* ---- the scale under a chart ----
-
-   One component, one array of marks, both rows drawn from it, so tick and label positions
-   cannot drift apart.
-
-   Anchoring, and why it is not plain centring: the plotted line runs edge to edge, x=0 to
-   x=width (see buildPath), so mark i belongs at p = i/(n-1) of the box -- the first hard against
-   the left edge, the last hard against the right. A label centred on either would hang half
-   outside the card. So every mark is placed at `left:p%` and pulled back by p of *its own*
-   width: p=0 leaves it flush left, p=1 pulls it flush right, p=.5 centres it. That is exactly
-   what space-between was already doing to the labels, which is why they have not moved -- but
-   now the tick is placed by the same rule, so the point at fraction p across the tick and the
-   point at fraction p across the label both sit at p x width. They cannot drift apart again,
-   whatever the range or the width, because there is one number behind both.
-
-   Marks come from the window (`window.axis` on the API side), never from a hardcoded month. */
-
-/* Room two marks need between them: half of each label plus daylight, since a label is centred
-   on its own tick. Measured off the label rather than assumed for the widest one -- a flat 34px
-   is what "Jan" needs when it stands next to "2025", and it costs a phone half the months of a
-   year to reserve it for twelve three-letter names that want 26. The axis renders at 10.5px, in
-   a face whose digits are tabular, so a character is about 6.5px wide. */
-const CHAR = 6.5
-const GAP = 7
-const spacing = (a, b) => (String(a.label).length + String(b.label).length) * CHAR / 2 + GAP
-
-/** As many marks as fit, left to right, dropping any that would land too close to the last one
-    kept. A fortnight of days is 14 marks and a year of them would be 365; the axis has to
-    survive both, and a phone has room for a year's twelve months but not for its days.
-
-    By real x, not by counting: the marks are not evenly spaced (months are 28 to 31 days long)
-    and a wide window quantises several of them onto one plotted point -- a year drawn as 12
-    equal buckets puts Feb and Mar in the same one, and "all time" as 6 puts whole seasons
-    there. Distance is the thing that decides whether a label has room, so distance is what it
-    asks, rather than a fixed count that can land two labels on top of each other. */
-export function fitMarks(marks, width) {
-	// Before the first measurement there is no width to fit to, and thinning to a guess would
-	// draw a scale that jumps on the next frame. Everything, then the real answer.
-	if (!width || marks.length < 3) return marks
-	const kept = [marks[0]]
-	for (const m of marks.slice(1)) {
-		if ((m.p - kept.at(-1).p) * width >= spacing(kept.at(-1), m)) kept.push(m)
-	}
-	/* The end of the window is worth naming, so when the final mark was dropped for being close
-	   it takes the place of the one that crowded it out -- otherwise a year's axis stops at Nov
-	   and the last stretch of the line is unlabelled. */
-	const last = marks.at(-1)
-	if (kept.at(-1) !== last && kept.length > 1
-		&& (last.p - kept.at(-2).p) * width >= spacing(kept.at(-2), last)) kept[kept.length - 1] = last
-	return kept
-}
-
-const at = p => ({ left: p * 100 + '%', transform: `translateX(-${p * 100}%)` })
-
-/**
- * The scale under a chart: a tick per mark, the mark's own label under it.
- *
- * marks:      the window's own marks, `[{ label, fullLabel, day }]` — the days of a week or a
- *             month, the months of a quarter, a year or all time. `day` indexes the window's
- *             daily series. `fullLabel` is the unabbreviated form ("January" for "Jan"); a day
- *             number or a bare year has none to give, since it is already its own full form.
- * span:       how many days that series holds.
- * buckets:    the cut the chart was drawn with (bucketsFor), when it draws fewer points than days.
- * preferFull: draw fullLabel wherever every mark fits at that length, not just short label.
- *             Off by default: Home's and Orders overview's own charts sit in dashboard-card
- *             widths this was never measured against, so only a caller with the room to spend
- *             asks for it (Stats.jsx's own Overview chart).
- */
-export const ChartScale = ({ marks = [], span, buckets, preferFull = false }) => {
-	const [ref, width] = useMeasuredWidth()
-	const days = span ?? marks.length
-	const total = pointCount(buckets, days)
-	const placed = marks.map(m => ({
-		...m,
-		// Through the same cut the line was drawn with, not evenly by index: a window's months
-		// are 28 to 31 days apart and not one length, and spreading them as though they were
-		// put every mark but the first somewhere the chart plots a different date.
-		p: total > 1 ? bucketOf(m.day, days, buckets) / (total - 1) : 0
-	}))
-	/* Tried at the full length first, kept only if every mark still fits at it -- fitMarks
-	   dropping even one would leave the axis reading "January Mar May", mixing a spelled-out
-	   month against its neighbours' initials rather than falling back as a whole. The short
-	   run underneath is exactly today's behaviour, so a width too narrow for the long form
-	   costs nothing extra: it draws the same axis it always did. */
-	const full = preferFull ? placed.map(m => ({ ...m, label: m.fullLabel ?? m.label })) : null
-	const shownFull = full ? fitMarks(full, width) : null
-	const shown = shownFull && shownFull.length === full.length ? shownFull : fitMarks(placed, width)
-	if (!shown.length) return null
-
-	return (
-		<div className="chart-scale" ref={ref}>
-			<div className="chart-ruler" aria-hidden="true">
-				{/* Keyed by day, not by label: a span of two years names "Feb" twice, and two
-				    identical keys is React silently drawing one of them. */}
-				{shown.map(m => <i key={m.day} style={at(m.p)} />)}
-			</div>
-			<div className="chart-axis tabular-figures">
-				{shown.map(m => <span key={m.day} style={at(m.p)}>{m.label}</span>)}
-			</div>
 		</div>
 	)
 }
+
+/**
+ * The line/area chart every window in the app draws, over Recharts rather than a hand-rolled
+ * SVG path -- a real value axis and a real tooltip come with it.
+ *
+ * data:       `[{ x, y1, y2?, date }]`. `x` is a real day offset from the window's start, not an
+ *             array index -- a year or "all time" draws one point per *month*, and months are
+ *             not equal lengths, so the axis marks only line up with the plotted points if both
+ *             are positioned on the same day-numbered line. Callers already cut their series
+ *             this way (bucketsFor/sampled/bucketed below); this component only plots the result.
+ * days:       the window's real day span, so the x-axis always runs start to end of the window
+ *             even when only its first day or two has a point to plot.
+ * from:       the window's first day (ISO), for the tooltip's own date label.
+ * marks:      the window's axis marks, `[{ label, day }]` -- the same shape `view.axis` sends.
+ * series:     `[{ key, dataKey: 'y1'|'y2', name, color, area, strokeGradient, dash, strokeWidth,
+ *             today }]`. `area` draws a gradient fill under the line, faded from the series' own
+ *             colour to nothing; `strokeGradient` (a `[from, to]` pair) paints the line itself
+ *             left to right instead of the flat `color`, which still marks the tooltip swatch and
+ *             the today dot. `today` draws the "you are here" dot on that series, only once
+ *             `todayIndex` resolves to a real point.
+ * todayIndex: which point of `data` is today, or null outside the window -- a paged-back window
+ *             on Statistics has none, and a comparison series is never today's regardless.
+ * yFormat:    label formatter for the value axis (e.g. compactAmount).
+ */
+export const SpendChart = memo(function SpendChart({
+	data, days, from, marks, series, todayIndex, yFormat, height, label, className
+}) {
+	const uid = useId().replace(/:/g, '')
+	const domainEnd = Math.max(days - 1, 1)
+
+	// A single point has nowhere to draw a line to, so it is held twice, at both ends of the
+	// domain -- the one value a young window has is still a flat line across it, not a blank chart.
+	const plotData = useMemo(() => {
+		const base = data.length === 1 ? [{ ...data[0], x: 0 }, { ...data[0], x: domainEnd }] : data
+		return base.map(p => ({ ...p, date: addDays(from, p.x) }))
+	}, [data, from, domainEnd])
+
+	const ticks = useMemo(() => marks.map(m => m.day), [marks])
+	const tickLabel = useMemo(() => {
+		const byDay = new Map(marks.map(m => [m.day, m.label]))
+		return day => byDay.get(day) ?? ''
+	}, [marks])
+
+	const todayPoint = todayIndex != null ? plotData[todayIndex] : null
+	const areaSeries = series.filter(s => s.area)
+	const gradientSeries = series.filter(s => s.strokeGradient)
+
+	return (
+		<ResponsiveContainer className={['chart-plot', className].filter(Boolean).join(' ')}
+			width="100%" height={height + X_AXIS_HEIGHT} role="img" aria-label={label}>
+			<ComposedChart data={plotData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} accessibilityLayer={false}>
+				{areaSeries.length || gradientSeries.length ? (
+					<defs>
+						{areaSeries.map(s => (
+							<linearGradient key={s.key} id={`${uid}-${s.key}-area`} x1={0} y1={0} x2={0} y2={1}>
+								<stop offset="0%" stopColor={s.color} stopOpacity={0.2} />
+								<stop offset="100%" stopColor={s.color} stopOpacity={0} />
+							</linearGradient>
+						))}
+						{gradientSeries.map(s => (
+							<linearGradient key={s.key} id={`${uid}-${s.key}-stroke`} x1={0} y1={0} x2={1} y2={0}>
+								<stop offset="0%" stopColor={s.strokeGradient[0]} />
+								<stop offset="100%" stopColor={s.strokeGradient[1]} />
+							</linearGradient>
+						))}
+					</defs>
+				) : null}
+
+				<CartesianGrid horizontal vertical={false} stroke="var(--border-divider)" />
+				<XAxis dataKey="x" type="number" domain={[0, domainEnd]} ticks={ticks}
+					tickFormatter={tickLabel} interval="preserveStartEnd" height={X_AXIS_HEIGHT}
+					tickMargin={6} axisLine={false} tickLine={false} tick={TICK_STYLE} />
+				<YAxis width="auto" domain={[0, 'auto']} allowDecimals={false} tickFormatter={yFormat}
+					axisLine={false} tickLine={false} tick={TICK_STYLE} />
+				<Tooltip content={<ChartTooltip series={series} />} isAnimationActive={false}
+					cursor={{ stroke: 'var(--border-control)' }} />
+
+				{series.map(s => s.area ? (
+					<Area key={s.key} type="monotone" dataKey={s.dataKey} name={s.name} dot={false}
+						stroke={s.color} strokeWidth={s.strokeWidth} fill={`url(#${uid}-${s.key}-area)`}
+						fillOpacity={1} isAnimationActive={false} />
+				) : (
+					<Line key={s.key} type="monotone" dataKey={s.dataKey} name={s.name} dot={false}
+						stroke={s.strokeGradient ? `url(#${uid}-${s.key}-stroke)` : s.color}
+						strokeWidth={s.strokeWidth} strokeDasharray={s.dash} isAnimationActive={false} />
+				))}
+
+				{series.map(s => (s.today && todayPoint ? (
+					<ReferenceDot key={`${s.key}-today`} x={todayPoint.x} y={todayPoint[s.dataKey]}
+						r={4.5} fill="#fff" stroke={s.color} strokeWidth={2} ifOverflow="visible" />
+				) : null))}
+			</ComposedChart>
+		</ResponsiveContainer>
+	)
+})
+
+/* ---- the rings ----
+
+   The ring is built from the same records the list beside it is, so the two cannot disagree;
+   the stylesheet keeps its flat default for anything that does not pass segments. */
+
+/* The hairline between two segments, as a share of the circle: 0.6% is 2.16°, about 3px of arc
+   on the 170px gauge and 2.5px on the 132px donut. One number for every ring in the app, so
+   the same split drawn on Home and on Statistics reads as one chart.
+
+   A gap is a separator between two segments, so with only one segment there is nothing to
+   separate: a "gap after the last" would wrap around the circle and land between that segment
+   and itself, reading as a category that is 100% of the spend not filling its own ring.
+   README: Charts. */
+const RING_GAP = 0.6
+
+/* The figure in the middle of a ring, shrunk to whatever the hole can actually hold.
+
+   The hole is a circle, so the room a line of text has is not the hole's width -- it is the
+   chord at that line's own height, and the value sits above centre with its label underneath.
+   Nothing clips it, because the hole is painted by a ::before that the text sits on top of --
+   so it does not overflow visibly the way a box would, it just quietly touches the ring.
+
+   Measured rather than guessed at from the string's length: the hole is read off the ring's
+   own ::before inset, the chord is computed at the box's furthest edge from centre, and the
+   size is stepped down until it fits. That way a longer currency suffix, a different face or
+   a ring of another size all stay correct without a second number to keep in step. */
+const RingCentre = ({ value, label }) => {
+	const ref = useRef(null)
+
+	/* The size is written straight onto the node and is never React state: the measuring pass
+	   has to clear the inline size to read the stylesheet's own, which is a direct DOM write,
+	   and a state set to the value it already holds makes React bail out of re-rendering --
+	   nothing would put the cleared property back. One writer per property. */
+	const fit = useCallback(() => {
+		const el = ref.current
+		if (!el) return
+		const ring = el.parentElement?.parentElement
+		if (!ring) return
+		const box = ring.getBoundingClientRect()
+		if (!box.width) return
+		const inset = parseFloat(getComputedStyle(ring, '::before').inset) || 0
+		const holeR = box.width / 2 - inset
+		// Start from the stylesheet's own size every time, or a re-fit can only ever shrink.
+		const base = parseFloat(getComputedStyle(el).fontSize)
+		el.style.fontSize = ''
+		const authored = parseFloat(getComputedStyle(el).fontSize) || base
+		const cy = box.top + box.height / 2
+		let next = authored
+		// Shrinking moves the box, which changes the chord it has to fit inside, so the fit is
+		// re-checked rather than solved once. Six steps covers 16.5px down to about 9px.
+		for (let i = 0; i < 6; i++) {
+			el.style.fontSize = next + 'px'
+			const t = el.getBoundingClientRect()
+			const dy = Math.max(Math.abs(t.top - cy), Math.abs(t.bottom - cy))
+			const room = dy >= holeR ? 0 : Math.sqrt(holeR * holeR - dy * dy) * 2
+			if (t.width <= room) break
+			// No room at all means the line is taller than the hole, which is still a reason to
+			// shrink -- breaking out of the loop there would give up in the one case that needs
+			// this most, and leave the figure at its authored size lying across the segments.
+			next = Math.max(9, room ? next * Math.max(0.72, room / t.width) - 0.25 : next * 0.8)
+		}
+		el.style.fontSize = next < authored ? next + 'px' : ''
+	}, [])
+
+	useLayoutEffect(fit, [fit, value, label])
+	useEffect(() => {
+		const ring = ref.current?.parentElement?.parentElement
+		const ro = ring && window.ResizeObserver ? new ResizeObserver(fit) : null
+		ro?.observe(ring)
+		/* A layout effect runs before a webfont has loaded, so the first measurement is of the
+		   fallback face -- which is narrower here, fits, and leaves the figure unshrunk for the
+		   Poppins that swaps in a moment later and does not. The ring's own box never changes
+		   when that happens, so the observer above cannot see it either. Re-fit when the fonts
+		   this page actually uses are ready. */
+		let live = true
+		document.fonts?.ready?.then(() => { if (live) fit() })
+		return () => { live = false; ro?.disconnect() }
+	}, [fit])
+
+	return (
+		<span className="ring-centre">
+			<span ref={ref} className="ring-centre-value tabular-figures">{value}</span>
+			<span className="ring-centre-label">{label}</span>
+		</span>
+	)
+}
+
+/* Recharts sweeps counterclockwise from 3 o'clock, not clockwise from 12 -- 90 has to run
+   backwards a full turn (-270) to point clockwise, not forward to 450. */
+const RING_START = 90
+const RING_END = -270
+const RING_GAP_DEG = RING_GAP / 100 * 360
+
+/* Must match .donut in app.css: a 132px ring, its ::before hole inset 17px. */
+const DONUT_SIZE = 132
+const DONUT_OUTER = DONUT_SIZE / 2
+const DONUT_INNER = DONUT_OUTER - 17
+
+/* Must match .spend-gauge in app.css: a 170px ring, its ::before hole inset 22px. */
+const GAUGE_SIZE = 170
+const GAUGE_OUTER = GAUGE_SIZE / 2
+const GAUGE_INNER = GAUGE_OUTER - 22
+
+/* paddingAngle is one flat degree for every gap, not capped to the segment it separates --
+   a sliver smaller than RING_GAP's own width can draw more separator than fill. */
+const RingTooltip = ({ active, payload }) => {
+	if (!active || !payload?.length) return null
+	return <span className="ring-tooltip">{percent(payload[0].payload.share, 0)}</span>
+}
+
+/* RingCentre sits as this div's own direct child, so its ::before/getBoundingClientRect
+   lookup still resolves the ring; Recharts' own SVG stays aria-hidden, role/name live here. */
+const Ring = ({ className, segments, value, label, ariaLabel, size, outerRadius, innerRadius }) => (
+	<div className={className} role="img" aria-label={ariaLabel}
+		/* The SVG's transparent gaps must show the card colour, matching the centre hole -- the
+		   class's own flat background is the empty-state grey and would show through otherwise. */
+		style={segments?.length ? { background: 'var(--bg-card)' } : undefined}>
+		{segments?.length ? (
+			<div aria-hidden="true">
+				<PieChart width={size} height={size} margin={{ top: 0, right: 0, bottom: 0, left: 0 }} accessibilityLayer={false}>
+					<Pie data={segments} dataKey="share" cx="50%" cy="50%"
+						startAngle={RING_START} endAngle={RING_END}
+						innerRadius={innerRadius} outerRadius={outerRadius}
+						paddingAngle={RING_GAP_DEG} stroke="none" isAnimationActive={false} rootTabIndex={-1}>
+						{segments.map((s, i) => <Cell key={i} fill={s.colour} />)}
+					</Pie>
+					<Tooltip content={RingTooltip} allowEscapeViewBox={{ x: true, y: true }} />
+				</PieChart>
+			</div>
+		) : null}
+		<RingCentre value={value} label={label} />
+	</div>
+)
+
+/** The 132px ring on Home, Orders and Categories. Same separator as the gauge below -- the
+    gap is a share of the circle, so one number gives both rings the same hairline. */
+export const Donut = ({ segments, value, label, ariaLabel }) => (
+	<Ring className="donut" segments={segments} value={value} label={label} ariaLabel={ariaLabel}
+		size={DONUT_SIZE} outerRadius={DONUT_OUTER} innerRadius={DONUT_INNER} />
+)
+
+export const DonutBox = ({ children, className }) =>
+	<div className={['donut-box', className].filter(Boolean).join(' ')}>{children}</div>
+
+/** Statistics' larger ring, which separates its segments with a hairline of the card colour. */
+export const SpendGauge = ({ segments, value, label, ariaLabel }) => (
+	<Ring className="spend-gauge" segments={segments} value={value} label={label} ariaLabel={ariaLabel}
+		size={GAUGE_SIZE} outerRadius={GAUGE_OUTER} innerRadius={GAUGE_INNER} />
+)
+
+/* ---- the bar rows ----
+
+   WeekdayBars and MonthColumns share one shape: a bar is a share of a fixed [0,100] domain,
+   not a pixel height, so a card that grows still means what its bars say. Neither has a real
+   kr figure behind it (see the two tooltips below), so the Y axis stays hidden. */
+
+const BAR_RADIUS = 10		// matches --radius-compact
+const BAR_MIN_HEIGHT = 3	// px floor so a zero-spend weekday still draws a sliver
+const PEAK_OVERLAY = .55	// fixed share of the peak bar's own height -- decorative, not data
+const MONTH_RADIUS = [8, 8, 4, 4]
+
+/* Per-corner rounded rect, clockwise from top-left: SVG's own rx/ry rounds all four corners
+   alike, and these bars need only the top rounded, or a smaller radius at the bottom than
+   the top. */
+const roundedRect = (x, y, width, height, [tl, tr, br, bl]) => {
+	const cap = r => Math.min(r, width / 2, height / 2)
+	const [a, b, c, d] = [tl, tr, br, bl].map(cap)
+	return `M${x} ${y + a} Q${x} ${y} ${x + a} ${y} H${x + width - b} Q${x + width} ${y} ${x + width} ${y + b} `
+		+ `V${y + height - c} Q${x + width} ${y + height} ${x + width - c} ${y + height} H${x + d} `
+		+ `Q${x} ${y + height} ${x} ${y + height - d} Z`
+}
+
+/* The peak day's own bottom 55%, redrawn in --green and clipped to the bar's own silhouette
+   so it never pokes past the rounded top on a very short bar -- a second rect on the same
+   bar, not a second series, since the 55% is fixed rather than a value a stack would sum. */
+const WeekdayBar = ({ x, y, width, height, payload, clipId }) => {
+	const bottom = y + height
+	const h = Math.max(height, BAR_MIN_HEIGHT)
+	const top = bottom - h
+	const path = roundedRect(x, top, width, h, [BAR_RADIUS, BAR_RADIUS, 0, 0])
+	if (!payload.peak) return <path d={path} fill="var(--bg-bar-track)" />
+	const overlay = h * PEAK_OVERLAY
+	const clip = `${clipId}-${payload.day}`
+	return (
+		<g>
+			<path d={path} fill="var(--bg-bar-track)" />
+			<clipPath id={clip}><path d={path} /></clipPath>
+			<rect x={x} y={bottom - overlay} width={width} height={overlay}
+				fill="var(--green)" clipPath={`url(#${clip})`} />
+		</g>
+	)
+}
+
+const MonthBar = ({ x, y, width, height, payload }) => (
+	<path d={roundedRect(x, y, width, height, MONTH_RADIUS)}
+		fill={payload.current ? 'var(--green)' : 'var(--bg-bar-track)'} />
+)
+
+/* Both label spans travel on every tick; app.css swaps them by container query. The
+   foreignObject carries real HTML spans, not SVG text, so those class rules still apply. */
+const WeekdayTick = ({ x, y, width, visibleTicksCount, index, days }) => {
+	const band = width / visibleTicksCount
+	const d = days[index]
+	return (
+		// A day name may be wider than its own even share of the axis; a foreignObject clips
+		// its content by default, so this opts out.
+		<foreignObject x={x - band / 2} y={y + 6} width={band} height={18} style={{ overflow: 'visible' }}>
+			<div xmlns="http://www.w3.org/1999/xhtml" style={{ textAlign: 'center' }}>
+				<span className="weekday-name-short">{d.day}</span>
+				<span className="weekday-name-full">{d.dayFull ?? d.day}</span>
+			</div>
+		</foreignObject>
+	)
+}
+
+const MonthTick = ({ x, y, width, visibleTicksCount, index, months }) => {
+	const band = width / visibleTicksCount
+	const m = months[index]
+	return (
+		<foreignObject x={x - band / 2} y={y + 6} width={band} height={18} style={{ overflow: 'visible' }}>
+			<div xmlns="http://www.w3.org/1999/xhtml" style={{ textAlign: 'center' }}>
+				<span className="period-full">{m.labelFull ?? m.label}</span>
+				<span className="period-short">{m.label}</span>
+			</div>
+		</foreignObject>
+	)
+}
+
+/* Neither chart has a real kr figure to show (see above), so the tooltip states the same
+   share its bar's own height already draws. */
+const WeekdayTooltip = ({ active, payload }) => {
+	if (!active || !payload?.length) return null
+	const d = payload[0].payload
+	return <div className="bar-tooltip"><strong>{d.dayFull ?? d.day}</strong><span>{percent(d.share)}</span></div>
+}
+
+const MonthTooltip = ({ active, payload }) => {
+	if (!active || !payload?.length) return null
+	const m = payload[0].payload
+	return <div className="bar-tooltip"><strong>{m.labelFull ?? m.label}</strong><span>{percent(m.height)}</span></div>
+}
+
+/** A bar per weekday, each a share of the busiest one, with its name underneath.
+
+    `ariaLabel` given makes the whole chart `role="img"` (Stats' own rhythm card); omitted, it
+    is `aria-hidden` (Home's copy -- the real numbers are stated elsewhere on that card).
+    Recharts' own SVG stays aria-hidden either way, so a screen reader only ever sees the one
+    label this component chooses to give it. */
+export const WeekdayBars = ({ days, className, style, ariaLabel }) => {
+	const uid = useId().replace(/:/g, '')
+	return (
+		<div className={['weekday-bars', className].filter(Boolean).join(' ')} style={style}
+			{...(ariaLabel ? { role: 'img', 'aria-label': ariaLabel } : { 'aria-hidden': 'true' })}>
+			<ResponsiveContainer aria-hidden="true" width="100%" height="100%">
+				<BarChart data={days} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}
+					barCategoryGap="16%" accessibilityLayer={false}>
+					<XAxis dataKey="day" tickLine={false} axisLine={false} tickSize={0} tickMargin={0}
+						height={26} tick={props => <WeekdayTick {...props} days={days} />} />
+					<YAxis hide domain={[0, 100]} />
+					<Tooltip content={WeekdayTooltip} cursor={{ fill: 'var(--bg-row-hover)' }} />
+					<Bar dataKey="share" isAnimationActive={false}
+						shape={props => <WeekdayBar {...props} clipId={uid} />} />
+				</BarChart>
+			</ResponsiveContainer>
+		</div>
+	)
+}
+
+/** A column per window, on the same fixed [0,100] scale as WeekdayBars above; the current
+    window's column is --green, every other --bg-bar-track. */
+export const MonthColumns = ({ months }) => (
+	<div className="month-columns">
+		<ResponsiveContainer width="100%" height="100%">
+			<BarChart data={months} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}
+				barCategoryGap="20%" accessibilityLayer={false}>
+				<XAxis dataKey="label" tickLine={false} axisLine={false} tickSize={0} tickMargin={0}
+					height={26} tick={props => <MonthTick {...props} months={months} />} />
+				<YAxis hide domain={[0, 100]} />
+				<Tooltip content={MonthTooltip} cursor={{ fill: 'var(--bg-row-hover)' }} />
+				<Bar dataKey="height" isAnimationActive={false} shape={props => <MonthBar {...props} />} />
+			</BarChart>
+		</ResponsiveContainer>
+	</div>
+)
 
 /* ---- how a window is cut into the points a chart draws ----
 
@@ -326,9 +453,9 @@ export const pointCount = (buckets, days) =>
 /** Averages a day-by-day series down to `n` buckets. Not a running total -- use `sampled` for
     one, for the reason written on it.
 
-    Nothing is rounded on the way out. These are order counts and kroner on their way into
-    `plotted`, and a month of days where most hold one order rounds to a row of 1s and draws a
-    flat line: the rounding was for the pixel coordinates this used to be handed. */
+    Nothing is rounded on the way out: these are order counts and kroner a chart still has to
+    sum and average, and a month of days where most hold one order would round to a flat line
+    of order-count-1 if this rounded early. */
 export function bucketed(values, buckets) {
 	const n = pointCount(buckets, values.length)
 	if (!buckets || values.length <= n) return values
@@ -340,11 +467,8 @@ export function bucketed(values, buckets) {
 }
 
 /* ---- where a day lands once a series is drawn coarser than it was recorded ----
-   One cut, used by all three: the two reducers here and the scale that has to say which plotted
-   point a calendar date ended up inside. They used to disagree -- bucketed() cut on
-   floor(i x L / n) and sampled() kept ceil((i+1) x L / n) - 1, which is the same idea rounded
-   the other way, so the two charts on Home and Statistics put the same date up to a bucket
-   apart. A scale can only be right about one of them, so there is now one to be right about. */
+   One cut, used by all three: the two reducers here and the axis have to agree on which point
+   a calendar date lands in, or the same date sits a bucket apart on two different charts. */
 
 /** First index of bucket `i`, under either kind of cut. */
 const cutAt = (i, L, buckets) =>
@@ -372,10 +496,4 @@ export function sampled(values, buckets) {
 	return Array.from({ length: n }, (_, i) =>
 		values[Math.max(0, Math.min(values.length - 1, cutAt(i + 1, values.length, buckets) - 1))])
 }
-
-/** Kroner onto the chart's pixel box, since one user unit is one CSS pixel and a series has to
-    arrive in pixels. `max` is shared by every series in the chart, or two lines drawn each to
-    its own scale say the smaller one is the bigger. */
-export const plotted = (values, max, top = 180, bottom = 20) =>
-	values.map(v => top - (top - bottom) * (max ? v / max : 0))
 

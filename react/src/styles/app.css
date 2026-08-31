@@ -612,16 +612,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
    which of the pair is rendered, and since only one of them is ever in the render tree, the
    string a reader sees is the string a screen reader says. README: Statistics. */
 .pager-narrow { display:none; }
-.chart-wrap { position:relative; margin-top:8px; }
-/* The callout is a tooltip: it is asked for by hovering or focusing the chart, and it is not
-   drawn at rest. Parked there permanently it is not a tooltip at all -- it is a label lying
-   across the middle of the line it annotates, hiding the data it is describing.
-   visibility, not display: the phone rule turns the callout off outright, and a `display`
-   reveal at (0,2,0) would out-specify that rule and hand the callout back to any touch
-   browser that emulates hover. README: Charts. */
-.chart-callout { position:absolute; left:34%; top:26%; background:var(--bg-card); border-radius:var(--radius-page); box-shadow:0 2px 6px rgb(var(--shadow-ink) / .06), 0 14px 34px rgb(var(--shadow-ink) / .12); padding:10px 14px; font-size:11px; color:var(--text-body); max-width:264px; line-height:1.5; visibility:hidden; }
-.chart-callout { border-radius:16px; }
-.chart-wrap:hover .chart-callout, .chart-wrap:focus-within .chart-callout { visibility:visible; }
+.chart-wrap { margin-top:8px; }
 .chart-caption-label { font-style:normal; font-size:11.5px; color:var(--text-muted); }
 .chart-legend { margin-top:4px; }
 .chart-legend-row { border-top:1px solid var(--border-divider); }
@@ -629,7 +620,6 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 /* The swatch is this row's difference: a key to a plotted hue, not a tile holding a
    glyph, so it keeps its 11px against the row spec's 36. */
 .chart-legend .chart-swatch { width:11px; height:11px; border-radius:3.5px; flex:none; }
-svg.chart { width:100%; display:block; }
 /* The label was a bare text node taking 12.5px off the row, which is how the one list
    with no element around its own label ended up half a point under every other list's
    title. It is a part with a name now, at the row spec's 13/600. README: Data Rows. */
@@ -687,36 +677,30 @@ svg.chart { width:100%; display:block; }
 
 /* weekday bars */
 /* Grows into whatever the card gives it, with a 112px floor -- the Home card shares a grid row
-   with the category breakdown, so its height is the row's, not the chart's. The bar is a
-   percentage of its own track rather than a pixel height chosen in the API; the track is what
-   makes that percentage mean something, exactly as on .month-columns below. */
-.weekday-bars { display:flex; align-items:stretch; gap:8px; flex:1; min-height:112px; margin-top:14px; }
-.weekday-bars > div { flex:1; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:flex-end; }
-.weekday-bars .weekday-bars-track { display:flex; align-items:flex-end; width:100%; flex:1; }
-/* No align-self here: the track's cross axis is vertical, and align-self:stretch on an
-   item with a definite height resolves to flex-start, which would hang the bar from the
-   top of the track instead of standing it on the floor. The width comes from the
-   .chart-bar rule below, which already sets 100%. */
-.weekday-bars .chart-bar { flex:none; }
-/* The track is the control's furniture and the height is the data, so a weekday the window
-   spent nothing on still draws one: these bars are the chosen window's now, and a Monday-to-
-   Friday window really does hold 0 on Saturday. Without the floor that day renders as a bare
-   label under nothing, which reads as a broken bar rather than an empty one. */
-/* Rounded on top only -- these grow up from the day label like any bar chart's baseline, and a
-   bottom corner rounded to match the top drew every bar as a capsule floating clear of its own
-   axis, full height and 3px sliver alike. */
-.weekday-bars .chart-bar { width:100%; min-height:3px; border-radius:var(--radius-compact) var(--radius-compact) 0 0; background:var(--bg-bar-track); position:relative; overflow:hidden; }
-.weekday-bars .chart-bar-fill { position:absolute; inset:auto 0 0 0; height:var(--f,0%); background:var(--green); border-radius:var(--radius-compact) var(--radius-compact) 0 0; }
+   with the category breakdown, so its height is the row's, not the chart's. Recharts' own
+   responsive container reads its size off this box, so this is what has to carry a real,
+   definite height: percentage/flex-stretch sizing would leave it 0px tall wherever this isn't
+   itself stretched by a flex parent (Stats' own plain, non-fill card body), so the chart is
+   positioned to fill this box directly instead. */
+.weekday-bars { position:relative; flex:1; min-height:112px; margin-top:14px; }
+.weekday-bars .recharts-responsive-container { position:absolute; inset:0; }
+/* svg clips to its own box by default, same as foreignObject (see WeekdayTick in Viz.jsx) --
+   a day name that runs past its own tick needs this too, or only the inner ticks show it. */
+.weekday-bars svg { overflow:visible; }
 .weekday-bars span { font-size:11px; color:var(--text-muted); font-weight:500; white-space:nowrap; }
+/* Shared with .month-columns below (Viz.jsx's WeekdayTooltip/MonthTooltip). Its own name, not
+   .chart-tooltip -- that one is the line charts' (Chart.jsx), a different shape for a different hover. */
+.bar-tooltip { display:grid; gap:2px; background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-compact); padding:6px 10px; box-shadow:0 2px 6px rgb(var(--shadow-ink) / .08); font-size:11px; white-space:nowrap; }
+.bar-tooltip strong { font-weight:600; color:var(--text); }
+.bar-tooltip span { color:var(--text-muted); }
 /* Short by default, full only where .rhythm-bars (Stats.jsx's own copy of this component) has
-   proven, by its own measured width, that "Wednesday" fits seven times over. 410px is that
-   measured floor with a working margin -- 394px overflowed (Sunday clipped off the end), 404px
-   did not, in both the single-column and the two-column state this row ever actually reaches.
-   Home's plain .weekday-bars sits in a dashboard-card width this was never measured against and
-   keeps the short form, same as always. */
+   proven, by its own measured width, that "Wednesday" and "Thursday" -- the widest day name
+   and its neighbour -- stop overlapping. 490px is that measured floor with a working margin.
+   Home's plain .weekday-bars sits in a dashboard-card width this was never measured against
+   and keeps the short form, same as always. */
 .weekday-name-full { display:none; }
 .weekday-bars.rhythm-bars { container-type:inline-size; container-name:rhythm-bars; }
-@container rhythm-bars (min-width:410px) {
+@container rhythm-bars (min-width:490px) {
 	.rhythm-bars .weekday-name-full { display:inline; }
 	.rhythm-bars .weekday-name-short { display:none; }
 }
@@ -726,14 +710,18 @@ svg.chart { width:100%; display:block; }
 
 /* donut */
 .donut-box { display:grid; justify-items:center; padding-top:6px; }
-/* No baked-in conic-gradient here: segments are set inline in JS from the same data as
-   the category list, so the ring's shares always match the legend's own numbers. An
-   account with no spend to split gets a flat neutral ring, not another account's split. */
+/* This flat colour is the empty-state ring: an account with no spend to split gets it
+   unedited, not another account's leftover split. Once segments are present, Viz.jsx's Ring
+   overrides it inline to var(--bg-card), so the Recharts pie layered on top shows gaps that
+   match its centre hole rather than this track colour. */
 .donut { width:132px; height:132px; border-radius:50%; position:relative; background:var(--border-card); }
 .donut::before { content:""; position:absolute; inset:17px; background:var(--bg-card); border-radius:50%; }
 .donut .ring-centre { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:1px; z-index:1; text-align:center; }
 .donut .ring-centre-value { font-size:16.5px; font-weight:700; letter-spacing:-.01em; }
 .donut .ring-centre-label { font-style:normal; font-size:9.5px; color:var(--text-muted); }
+/* Shared with .spend-gauge: the hover readout for one segment's own share, positioned by
+   Recharts' own tooltip wrapper (Viz.jsx's RingTooltip). */
+.ring-tooltip { background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-compact); padding:4px 8px; font-size:11px; font-weight:600; color:var(--text); box-shadow:0 2px 6px rgb(var(--shadow-ink) / .08); white-space:nowrap; }
 /* Same implicit-column trap as .content-column-side above: with no grid-template-columns of
    its own, this was an auto-sized single column that floored at the widest category name's
    own width rather than the card's. README: Responsive Layout. */
@@ -784,15 +772,14 @@ svg.chart { width:100%; display:block; }
 /* orders (spending) card */
 .chart-caption { padding:2px 0 0; }
 .chart-caption-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
-/* The scale under a chart: ticks and labels, both placed by the same fraction of the box (see
-   ChartScale). Each row is its own positioning context and each mark is absolute inside it, so
-   a tick and its label share one x and cannot drift apart. */
-.chart-scale { margin-top:8px; }
-/* height:1lh, because every label is absolutely positioned and a row of nothing but
-   absolute children collapses to no height at all -- 1lh reserves exactly one line of
-   this row's own 10.5px text so the cards below it never shift. */
-.chart-axis { position:relative; height:1lh; font-size:10.5px; color:var(--text-muted); margin-top:4px; }
-.chart-axis span { position:absolute; top:0; white-space:nowrap; }
+/* Matches .build-quality-callout's own card-on-card recipe: off the card surface, not the
+   page, since it can sit over either. */
+.chart-tooltip { display:grid; gap:5px; min-width:120px; padding:8px 10px; background:var(--bg-card); border-radius:var(--radius-page); box-shadow:0 2px 6px rgb(var(--shadow-ink) / .06), 0 14px 34px rgb(var(--shadow-ink) / .12); font-size:11.5px; color:var(--text-body); }
+.chart-tooltip-date { font-size:10.5px; color:var(--text-muted); }
+.chart-tooltip-row { display:flex; align-items:center; gap:6px; }
+.chart-tooltip-swatch { width:8px; height:8px; border-radius:2px; flex:none; }
+.chart-tooltip-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.chart-tooltip-value { margin-left:auto; font-weight:600; color:var(--text); }
 /* Key for a two-series chart. Both lines get named -- a swatch that labels one of two
    plotted series is worse than no key at all. Wraps rather than overflows on a phone. */
 .chart-series-key { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; color:var(--text-body); margin-top:2px; }
@@ -902,8 +889,6 @@ svg.chart { width:100%; display:block; }
 .empty-state p { margin:0; font-size:13.5px; color:var(--text-body); max-width:30ch; }
 .chip-tag { display:inline-flex; align-items:center; gap:var(--gap-icon); height:26px; padding:0 10px; border-radius:8px; font-size:11px; font-weight:600; width:max-content; }
 .panel-heading { font-weight:700; }
-.chart-ruler { position:relative; height:9px; }
-.chart-ruler i { position:absolute; top:0; width:1px; height:9px; background:#D9DDD8; }
 .segmented.segmented-compact { padding:3px; border-radius:var(--radius-page); }
 .segmented.segmented-compact button { padding:7px 16px; border-radius:9px; font-size:12px; }
 .row-inline { display:flex; align-items:center; gap:var(--gap-row); }
@@ -967,26 +952,27 @@ svg.chart { width:100%; display:block; }
 .meter { position:relative; height:10px; border-radius:5px; background:var(--bg-meter-track); }
 .meter-fill { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--green); }
 .meter-marker { position:absolute; top:-4px; bottom:-4px; width:2.5px; border-radius:2px; background:var(--text); }
-/* The track is the scale, and the label is outside it: a bar is a percentage of the scale, and a
-   scale that includes the label under it makes every tall bar shrink to the same height.
+/* The track is the scale: a bar is a percentage of it, not of the label under it, or a scale
+   that included the label would shrink every tall bar to the same height.
 
-   150px is the track's floor, not its height. The card this chart sits in shares a grid row with
-   one that grows with the account -- ten legend rows beside six bars -- so a fixed track left a
-   third of the card empty under the labels. It grows into whatever the row gives it. */
-.month-columns { display:flex; align-items:stretch; gap:var(--gap-panel); }
-.month-columns > div { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
-.month-columns-track { display:flex; align-items:flex-end; width:100%; flex:1; min-height:150px; }
-.month-columns-fill { width:100%; flex:none; border-radius:8px 8px 4px 4px; background:var(--bg-bar-track); }
-.month-columns .is-on .month-columns-fill { background:var(--green); }
+   150px is that scale's floor, not its height. The card this chart sits in shares a grid row
+   with one that grows with the account -- ten legend rows beside six bars -- so a fixed scale
+   left a third of the card empty under the labels. It grows into whatever the row gives it;
+   Recharts' own responsive container reads its size off this box, so this is what has to
+   carry a real, definite height -- see the same note on .weekday-bars above. */
+.month-columns { position:relative; min-height:150px; }
+.month-columns .recharts-responsive-container { position:absolute; inset:0; }
+.month-columns svg { overflow:visible; }
 .month-columns span { font-size:11px; color:var(--text-muted); white-space:nowrap; }
 /* Full month names once this row's own measured width proves they fit -- unlike its
    "same shape" neighbour .rhythm-bars, this one really does run out of room at the
-   narrowest real phone width it reaches. 340px is the measured floor with a working
-   margin. Named apart from .rhythm-bars: a container query only ever resolves to its
-   nearest container of that name, and .month-columns sits inside a plain .card, not
-   inside .rhythm-bars. */
+   narrowest real phone width it reaches. 410px is the measured floor with a working margin
+   against "September", the widest month name, overlapping its neighbour -- same reasoning
+   as .weekday-name-full above. Named apart from .rhythm-bars: a container query only ever
+   resolves to its nearest container of that name, and .month-columns sits inside a plain
+   .card, not inside .rhythm-bars. */
 .month-columns { container-type:inline-size; container-name:month-columns; }
-@container month-columns (min-width:340px) {
+@container month-columns (min-width:410px) {
 	.month-columns .period-full { display:inline; }
 	.month-columns .period-short { display:none; }
 }
@@ -1775,10 +1761,6 @@ label.field-shell { cursor:pointer; }
 	   there is no phone-specific step-down left for it to make. */
 	.fav-tile-grid { grid-template-columns:1fr; gap:var(--gap-row); }
 	.fav-tile { padding:14px 16px; }
-	/* No hover under a coarse pointer, so there is no way to ask for the tooltip and no
-	   room to put it -- off outright, rather than left to whether the browser emulates a
-	   hover on tap. display beats the reveal rule's visibility whatever specificity says. */
-	.chart-callout { display:none; }
 	/* A ring beside the legend that names its segments needs more width than a phone
 	   card has, so below 700px the three cards that lay ring and legend side by side
 	   take Home's own stacked arrangement instead: ring centred at the top, legend
@@ -2152,4 +2134,3 @@ html[data-theme="dark"] .entry-list .entry-glyph { background:var(--bg-control-t
    the pair is a component default of the vendor/category kind, data-adjacent, not a token. */
 html[data-theme="dark"] .item-row .item-row-icon { background:var(--bg-bar-track); }
 html[data-theme="dark"] .combobox-option.combobox-option-highlighted { background:var(--bg-nav-active); }
-html[data-theme="dark"] .chart-ruler i { background:var(--border-control); }

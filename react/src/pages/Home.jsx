@@ -1,12 +1,11 @@
-import { useId } from 'react'
 import { useLocation } from 'react-router'
 import { Sep } from '../components/Sep.jsx'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Chart, ChartScale, plotted, todayMarker } from '../components/Chart.jsx'
-import { Donut, DonutBox, Meter, WeekdayBars, foldForRing, useListBudget } from '../components/Viz.jsx'
+import { Donut, DonutBox, SpendChart, WeekdayBars } from '../components/Chart.jsx'
+import { Meter, foldForRing, useListBudget } from '../components/Viz.jsx'
 import { CategoryRow, EntryRow, LegendRow } from '../components/Rows.jsx'
 import { DashboardCards } from '../components/DashboardCards.jsx'
 import { AiCard, AiCardMark } from '../components/AiCard.jsx'
@@ -18,7 +17,7 @@ import {
 	failureMessage, getCurrentUser, getDashboardCards, getHomeContent, getHomeHero, getSettings, ordersIn,
 	saveSettings
 } from '../api/client.js'
-import { currency, dayMonth, percent, plural, sep } from '../api/format.js'
+import { compactAmount, currency, dayMonth, percent, plural, sep } from '../api/format.js'
 
 /* Home.
 
@@ -29,11 +28,7 @@ import { currency, dayMonth, percent, plural, sep } from '../api/format.js'
    returns card to go with it. The header still opens Statistics, which is where a different
    stretch of time is chosen. README: Home, Statistics. */
 
-/* The chart's box, and how far inside it a series is drawn. `plotted` puts a zero at the first
-   number and the window's peak at the second, so the 12px is an equal inset top and bottom
-   rather than two numbers that happen to look right. */
 const HERO_HEIGHT = 130
-const HERO_INSET = 12
 /* The chart itself is HERO_HEIGHT, but the card also carries a figure, a delta line and a
    category legend below it -- 582px measured whole on a demo account. The skeleton is one
    panel standing in for all of it, not just the chart, so it needs the card's height, not the
@@ -64,7 +59,6 @@ const DashboardCardsSkeleton = () => (
 const heroLabel = view => `Spent and saved per day, ${view.shortLabel}`
 
 function Hero({ month }) {
-	const calloutId = useId()
 	// This month, always. Statistics is where another one is chosen.
 	const state = useApi(getHomeHero)
 
@@ -74,19 +68,10 @@ function Hero({ month }) {
 			/* Both series, drawn together rather than one at a time behind a pair of tabs.
 			   Spending and what it saved are the same story told twice, and a control that
 			   showed one or the other made the reader hold the first in their head to compare
-			   it with the second.
-
-			   One scale for the two of them, and it is the pair's own maximum: a bucket average
-			   sits below the peak of the days inside it, so scaling by the raw daily maximum
-			   draws every wide window squashed into the bottom of the box -- and scaling each
-			   line to its own peak would draw the smaller one as tall as the larger, which is
-			   the defect the Orders overview chart already carries a note about. */
-			/* No bucketing: a month is at most 31 days against a scale that fits 31 marks, so
-			   every point is its own day and the axis names it. */
+			   it with the second. One scale for the two of them, Recharts' own y-axis. */
 			const spend = view.series.spend
 			const saved = view.series.saved
-			const ceiling = Math.max(...spend, ...saved)
-			const line = values => plotted(values, ceiling, HERO_HEIGHT - HERO_INSET, HERO_INSET)
+			const data = spend.map((y1, i) => ({ x: i, y1, y2: saved[i] }))
 
 			return (
 				<Card aria-label={`Spent, ${view.label}`}>
@@ -110,48 +95,22 @@ function Hero({ month }) {
 								saved {currency(view.saved)} vs retail ({percent(view.savedPercent)})
 							</div>
 						</div>
-						{/* The callout is a tooltip, drawn on hover or focus by the stylesheet. Both halves of
-						    that are the chart's to carry: it takes the tab stop, because a tooltip only a pointer
-						    can ask for is one the keyboard never sees, and it keeps the sentence as its own
-						    description, because the resting state is visibility:hidden and a hidden node is out
-						    of the accessibility tree unless something references it. README: Charts. */}
 						<div className="chart-wrap">
 							{/* Today, on both lines: they are two facts about the same days, and a
 							    mark on one of them would say the other ends somewhere else. The
 							    comparison lines elsewhere get none, because their days are not
 							    today's. README: Charts. */}
-							<Chart height={HERO_HEIGHT} label={heroLabel(view)}
-								tabIndex={0} aria-describedby={calloutId}
-								/* The one chart here that was drawn 'line' -- straight segments with a corner at
-								   every point, beside three curves on the same page. The curve was the riskier
-								   kind to hand a spiky series while the spline could overshoot: this one is a
-								   bucketed daily average, not a running total, so it turns hard in both
-								   directions and had the most to invent. Monotone now, so a segment stays
-								   between the two days it joins and there is nothing left to trade.
-
-								   Saved is drawn second, so the thinner line sits over the thicker one where
-								   they cross rather than under it. The two colours are the split bar's own,
-								   which is what lets one key below name both. */
+							{/* Saved drawn second, so the thinner line sits over the thicker one where
+							    they cross rather than under it. Both colours are the split bar's own,
+							    which is what lets the key below name both. */}
+							<SpendChart data={data} days={spend.length} from={view.from} marks={view.axis}
+								height={HERO_HEIGHT} label={heroLabel(view)} todayIndex={view.todayIndex}
+								yFormat={compactAmount}
 								series={[
-									{ points: line(spend), kind: 'curve', stroke: 'var(--teal)', strokeWidth: 2 },
-									{ points: line(saved), kind: 'curve', stroke: 'var(--green)', strokeWidth: 1.6 }
-								]}
-								markers={[
-									...todayMarker(view.todayIndex, { series: 0, colour: 'var(--teal)' }),
-									...todayMarker(view.todayIndex, { series: 1, colour: 'var(--green)' })
+									{ key: 'spend', dataKey: 'y1', name: 'Spent', color: 'var(--teal)', strokeWidth: 2, today: true },
+									{ key: 'saved', dataKey: 'y2', name: 'Saved', color: 'var(--green)', strokeWidth: 1.6, today: true }
 								]} />
-							{/* Read off the window's own days. The authored sentence named July's 23rd and a
-							    vendor, and stayed there while the chips moved the chart under it. */}
-							<div className="chart-callout" id={calloutId} role="tooltip">
-								Biggest day was {dayMonth(view.peak.date)}: {currency(view.peak.spend)}
-							</div>
 						</div>
-						{/* The window's own marks, not a fixed row of days: the chips move this chart
-						    across five widths, so a hardcoded set of dates would be one month's printed
-						    under a year. Every other chart in the app carries an axis and this
-						    one carried none, so its peaks sat at no date a reader could name.
-						    README: Charts. */}
-						<ChartScale marks={view.axis} span={view.series.spend.length} />
 						{/* The categories are written per month, which is as fine as the records cut, so the
 						    legend says which month in its own heading rather than borrowing the card's --
 						    the same rule the month-wide cards on Statistics follow under a window that
@@ -570,27 +529,13 @@ export default function Home() {
 											<div className="chart-caption-label">Spent this month</div>
 											<span className="chart-caption-value tabular-figures">{currency(data.period.spent)}</span>
 										</div>
-										<Chart height={110} className="chart-under-caption"
+										<SpendChart data={data.period.series.cumulative.map((y1, i) => ({ x: i, y1 }))}
+											days={data.period.series.cumulative.length} from={data.period.from}
+											marks={data.period.axis} height={110} className="chart-under-caption"
 											label={`Cumulative spend through ${data.period.shortLabel}`}
-											gradients={[{ key: 'spend', x1: 0, y1: 0, x2: 1, y2: 0, stops: [
-												{ offset: 0, color: 'var(--blue)' }, { offset: 1, color: '#A5B4FC' }] }]}
-											baselines={[{ y: 92, stroke: 'var(--border-control)', dash: '3 4' }]}
-											/* 7px of headroom (plotted()'s 4th arg) is the marker's, not the curve's:
-											   the marker rides the line, a cumulative series peaks on its last day, and
-											   a 4.5px circle with a 2px stroke paints 5.5px past the point it sits on.
-											   The curve is monotone and peaks exactly at its own maximum, so no extra
-											   headroom is held for overshoot. README: Charts. */
-											series={[{ points: plotted(data.period.series.cumulative,
-												Math.max(...data.period.series.cumulative), 93, 7), kind: 'curve',
-												stroke: 'gradient:spend', strokeWidth: 2.4 }]}
-											/* Where the running total actually is today, on a series that runs
-											   one point past it for every day the month has left -- a marker
-											   fixed at index 1 sat on the flat lead-in for any account whose
-											   first order landed later than the 2nd, a claim about a day the
-											   curve has nothing to say about. daysIn is the same count Statistics'
-											   own pace reads its "N days of records" from. */
-											markers={todayMarker(data.period.todayIndex, { colour: 'var(--blue)' })} />
-										<ChartScale marks={data.period.axis} span={data.period.series.cumulative.length} />
+											todayIndex={data.period.todayIndex} yFormat={compactAmount}
+											series={[{ key: 'spend', dataKey: 'y1', name: 'Spent', color: 'var(--blue)',
+												strokeGradient: ['var(--blue)', '#A5B4FC'], strokeWidth: 2.4, today: true }]} />
 										{/* The total, in the slot the total goes in -- this list held the
 										    saving there and the total in the meta line beneath the vendor,
 										    which is the same pair of figures the other two lists of orders
@@ -620,28 +565,13 @@ export default function Home() {
 											</div>
 											<SavingChip>{percent(data.period.savedPercent)}</SavingChip>
 										</div>
-										<Chart height={90} className="chart-under-caption"
+										<SpendChart data={data.period.series.savingsGrowth.map((y1, i) => ({ x: i, y1 }))}
+											days={data.period.series.savingsGrowth.length} from={data.period.from}
+											marks={data.period.axis} height={90} className="chart-under-caption"
 											label={`Savings growth through ${data.period.shortLabel}`}
-											gradients={[{ key: 'savings', x1: 0, y1: 0, x2: 0, y2: 1, stops: [
-												{ offset: 0, color: 'var(--green)', opacity: 0.22 },
-												{ offset: 1, color: 'var(--green)', opacity: 0 }] }]}
-											baselines={[{ y: 87, stroke: 'var(--border-control)', dash: '3 4' }]}
-											/* 6.5px of inset at both ends, and it is the marker's: a 4.5px circle with
-											   a 2px stroke paints 5.5px past the point it sits on, and a running total
-											   peaks on its own last day, so today's mark on the peak would have half
-											   its circle cut off by the SVG's edge. It was 3 while this chart had no
-											   marker on it -- enough for the 2.2px line's own half-stroke and nothing
-											   more -- and 17 before that, held for a spline overshoot the monotone
-											   curve cannot draw. The area's own close still runs to height regardless
-											   of the top. README: Home, Charts. */
-											series={[
-												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 83.5, 6.5), kind: 'area', fill: 'gradient:savings' },
-												{ points: plotted(data.period.series.savingsGrowth,
-													Math.max(...data.period.series.savingsGrowth), 83.5, 6.5), kind: 'curve', stroke: 'var(--green)', strokeWidth: 2.2 }
-											]}
-											markers={todayMarker(data.period.todayIndex, { series: 1, colour: 'var(--green)' })} />
-										<ChartScale marks={data.period.axis} span={data.period.series.savingsGrowth.length} />
+											todayIndex={data.period.todayIndex} yFormat={compactAmount}
+											series={[{ key: 'savings', dataKey: 'y1', name: 'Saved', color: 'var(--green)',
+												area: true, strokeWidth: 2.2, today: true }]} />
 									</>
 								) : (
 									<EmptyState>
