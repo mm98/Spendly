@@ -407,7 +407,7 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT default_kind, default_status, page_size, sort, show_scan_card, confirm_delete, card_rows, list_sort, currency, locale FROM settings WHERE user_id = ?": {
+		"SELECT default_kind, default_status, page_size, sort, show_scan_card, confirm_delete, card_rows, list_sort, currency, locale, chart_period FROM settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
 			],
@@ -1018,6 +1018,21 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT ot.vendor_id AS id, v.name, v.colour, SUM(ot.total) AS spend FROM orders ot JOIN vendors v ON v.id = ot.vendor_id WHERE ot.user_id = @userId AND ot.date >= @from AND ot.date < @to GROUP BY ot.vendor_id ORDER BY spend DESC": {
+			"plan": [
+				"SEARCH ot USING INDEX idx_orders_user_date (user_id=? AND date>? AND date<?)",
+				"SEARCH v USING INDEX sqlite_autoindex_vendors_1 (id=?)",
+				"USE TEMP B-TREE FOR GROUP BY",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_orders_user_date",
+				"sqlite_autoindex_vendors_1"
+			]
+		},
 		"SELECT u.id, u.needs_setup, s.expires_at FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?": {
 			"plan": [
 				"SEARCH s USING INDEX sqlite_autoindex_sessions_1 (id=?)",
@@ -1141,7 +1156,7 @@
 				"date",
 				"id"
 			],
-			"readers": 22
+			"readers": 23
 		},
 		"idx_orders_user_discount": {
 			"table": "orders",
