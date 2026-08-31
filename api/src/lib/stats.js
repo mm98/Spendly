@@ -40,10 +40,12 @@ export function windowBounds(userId, range, id) {
 	   the month pattern, indexes MONTH_NAMES[12] and threw a TypeError -- a 500 for a URL
 	   anyone can type. Out of range answers null like a malformed id does, which is the same
 	   reanchor-to-a-real-window fallback the caller already runs. */
-	/* shortLabelFull is shortLabel unmeasured: the caption everywhere that draws shortLabel
-	   at more room than a strict abbreviation needs. Only the month branch has one worth
-	   spelling out -- "Aug" -> "August" -- so every other branch's shortLabel already is its
-	   own full form and shortLabelFull just repeats it. */
+	/* shortLabelFull is the unabbreviated form of shortLabel -- Statistics' card header
+	   captions read this one unconditionally rather than shortLabel; the header row never runs
+	   short of room for it (measured against the widest one, "busiest day: Saturday", down to
+	   the narrowest width a card ever reaches, two-column or single). Only the month branch has
+	   one worth spelling out -- "Aug" -> "August" -- so every other branch's shortLabel already
+	   is its own full form and shortLabelFull just repeats it. */
 	if (range === 'week') {
 		const [, y, w] = /^(\d{4})-W(\d{2})$/.exec(id) ?? []
 		if (!y || Number(w) < 1 || Number(w) > 53) return null
@@ -543,9 +545,10 @@ function recentColumns(userId, range, id, currentSpent, count = 6) {
 	return {
 		title: `Last ${countWord(columns.length)} ${range}${columns.length === 1 ? '' : 's'}`,
 		/* top.spend > 0: reduce picks the first all-zero column otherwise, and the note named a
-		   month as "the highest" on an account that had spent nothing at all. */
-		note: columns.length > 1 && top && top.spend > 0 ? `${top.label} is the highest` : null,
-		noteFull: columns.length > 1 && top && top.spend > 0 ? `${top.labelFull} is the highest` : null,
+		   month as "the highest" on an account that had spent nothing at all. Spelled out --
+		   this sits in a card header caption, and Statistics' own header row never runs out of
+		   room for one (see the header caption note above windowBounds). */
+		note: columns.length > 1 && top && top.spend > 0 ? `${top.labelFull} is the highest` : null,
 		columns: columns.map(c => ({
 			label: c.label, labelFull: c.labelFull,
 			height: most ? Math.round((c.spend / most) * 100) : 0, current: c.id === id
@@ -574,16 +577,6 @@ const MONTH_ABBR = MONTH_NAMES.map(m => m.slice(0, 3))
 /** What the pager's arrows call their own step — a calendar unit, or "range" for `all`, which
     has no unit and pages nowhere. */
 const unitOf = range => (range === 'all' ? 'range' : range)
-
-/** The short form (no year) used as a compact caption — the SpendGauge's centre label, and
-    the tick under a bar-chart column elsewhere. */
-function tickFor(range, id) {
-	if (range === 'week') return 'W' + Number(/-W(\d{2})$/.exec(id)[1])
-	if (range === 'month') return MONTH_ABBR[Number(id.slice(5, 7)) - 1]
-	if (range === 'quarter') return 'Q' + id.slice(6)
-	if (range === 'year') return id
-	return 'All'
-}
 
 /** The short form with its year — what the pager band falls back to when it's too narrow for
     the full label ("Week 31, 2026" -> "W31 2026"). */
@@ -676,6 +669,16 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 	const previousShortLabel = previousBounds
 		? (compare === 'year' ? abbrFor(width, previousId) : previousBounds.shortLabel)
 		: null
+	/* Spelled out for the header caption and the pace card's prose ("vs July", "the marker is
+	   where July ended") -- both sit in contexts already proven to have the room (the header
+	   caption note above windowBounds), unlike the KPI tiles' own "15% down vs Jul", which stay
+	   on the plain short form above: a KPI tile is a narrower, unmeasured context and this is
+	   not the word that was reported cramped there. Year-compare's own abbreviated "Aug 2025"
+	   is untouched for the same reason -- nobody has asked for that one and it has not been
+	   measured either. */
+	const previousLabelFull = previousBounds
+		? (compare === 'year' ? abbrFor(width, previousId) : previousBounds.shortLabelFull)
+		: null
 
 	const deltaPct = was && was.spent ? Math.round((now.spent / was.spent - 1) * 100) : null
 	// "X% up/down" -- what it's up or down against ("vs Aug") is a separate field
@@ -709,14 +712,14 @@ export function getStats(userId, range, windowId, { summary = false, compare = '
 		window: {
 			id, range: width, from: fromEpoch(bounds.from), to: fromEpoch(bounds.to - DAY),
 			label: bounds.label, shortLabel: bounds.shortLabel, shortLabelFull: bounds.shortLabelFull, spanName,
-			unit: unitOf(width), tick: tickFor(width, id), abbr: abbrFor(width, id), compare,
+			unit: unitOf(width), abbr: abbrFor(width, id), compare,
 			axis: axisFor(width, bounds.from, bounds.to),
 			spent: now.spent, deltaLabel, deltaUp: deltaPct != null && deltaPct > 0,
 			// Raw totals, not just the formatted kpis/deltaLabel strings above — a caller
 			// composing its own presentation (Home's dashboard cards) needs the numbers.
 			saved: now.saved, shipping: now.shipping, retail: now.saved + now.spent - now.shipping,
 			orders: now.orders, average: now.average, savedPercent: now.savedPercent,
-			previousTotal: was?.spent ?? null, previousLabel: previousShortLabel,
+			previousTotal: was?.spent ?? null, previousLabel: previousLabelFull,
 			pace: paceFor(width, bounds.from, bounds.to, now.spent),
 			/* Which point on the chart is today, or null when the window is entirely in the past
 			   or entirely ahead. Every line chart in the app draws a marker there and none of

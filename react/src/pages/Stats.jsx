@@ -135,19 +135,6 @@ const budgetFigure = (budgets, entry) => (budgets.months > 1 ? entry.perMonth : 
    broken list rather than as more text. README: Data Rows. */
 const budgetMeta = entry => `${percent(entry.used, 0)} of a ${currency(entry.budget, 0)} budget`
 
-/* shortLabel spelled out wherever the card that draws it actually has the width for it --
-   "Aug" becomes "August" once @container card (app.css) says the card itself, not the
-   viewport, has room: these captions sit in a header row with something else on its other
-   end ("vs Aug", "busiest day: Saturday"), so the card can be wide and the caption still
-   cramped in a way a plain viewport breakpoint cannot see. Both forms travel; CSS picks.
-   Renders `short` alone with nothing to toggle when there is nothing to spell out -- every
-   range but month already is its own full form (windowBounds, api/src/lib/stats.js). */
-const Period = ({ short, full }) => (full === short ? short : (
-	<>
-		<span className="period-full">{full}</span>
-		<span className="period-short">{short}</span>
-	</>
-))
 export default function Stats() {
 	/* Which window is on screen lives in the URL, so a link to a week is a link to a week --
 	   and the browser's own Back walks the pager. The width is a parameter of its own because
@@ -270,7 +257,7 @@ export default function Stats() {
 						</div>
 
 						<Card aria-label="Overview">
-							<CardHeader title={<>Overview{sep}<Period short={view.shortLabel} full={view.shortLabelFull} /></>}>
+							<CardHeader title={`Overview${sep}${view.shortLabelFull}`}>
 								{view.previousLabel
 									? <span className="field-help">vs {view.previousLabel}</span>
 									: null}
@@ -307,7 +294,7 @@ export default function Stats() {
 							    one over the tiles, because a card that names nothing is a card a reader
 							    has to scroll up to date. */}
 							<Card aria-label="Pace">
-								<CardHeader title={<>Pace{sep}<Period short={view.shortLabel} full={view.shortLabelFull} /></>}>
+								<CardHeader title={`Pace${sep}${view.shortLabelFull}`}>
 									<span className="field-help">{plural(view.pace.daysIn, 'day')} in</span>
 								</CardHeader>
 								<CardDivider />
@@ -347,15 +334,17 @@ export default function Stats() {
 							</Card>
 
 							<Card aria-label="Weekly rhythm">
-								<CardHeader title={<>Weekly rhythm{sep}<Period short={view.shortLabel} full={view.shortLabelFull} /></>}>
-									<span className="field-help">busiest day: {view.rhythm.busiestDay}</span>
-								</CardHeader>
+								<CardHeader title={`Weekly rhythm${sep}${view.shortLabelFull}`} />
 								<CardDivider />
 								<CardBody>
 									<div className="figure-large tabular-figures">{view.rhythm.weekendShare}%{' '}
 										<span className="figure-unit">
 											of spend happens on weekends</span></div>
-									<WeekdayBars days={view.rhythm.weekdays} className="rhythm-bars" />
+									{/* The bars already carry this: the peak fill is the visible answer to
+									    "which day", so the sentence is only left as this row's aria-label
+									    now rather than printed twice. */}
+									<WeekdayBars days={view.rhythm.weekdays} className="rhythm-bars"
+										ariaLabel={view.rhythm.busiestDay ? `Busiest day: ${view.rhythm.busiestDay}` : undefined} />
 								</CardBody>
 							</Card>
 						</div>
@@ -363,7 +352,7 @@ export default function Stats() {
 						<div className="two-column">
 							<Card aria-label="Where it went">
 								{/* The basis for every "% of budget" in the rows below, said once. */}
-								<CardHeader title={<>Where it went{sep}<Period short={view.shortLabel} full={view.shortLabelFull} /></>}>
+								<CardHeader title={`Where it went${sep}${view.shortLabelFull}`}>
 									{view.budgets.total
 										? <span className="field-help">{budgetBasis(view.budgets)}</span>
 										: null}
@@ -375,7 +364,7 @@ export default function Stats() {
 									    category totals over a month's legend cannot happen again. */}
 									<SpendGauge segments={view.split.map(entry =>
 										({ share: entry.share, colour: entry.colour }))}
-										value={currency(view.spent, 0)} label={view.tick}
+										value={currency(view.spent, 0)} label={view.shortLabelFull}
 										ariaLabel={`Category split of ${currency(view.spent, 0)} in ${view.label}`} />
 									<div className="chart-legend chart-legend-fill">
 										{view.split.map(entry => (
@@ -400,16 +389,7 @@ export default function Stats() {
 							    the window, which is what this card has always drawn. */}
 							<Card aria-label={view.recent.title}>
 								<CardHeader title={view.recent.title}>
-									{view.recent.note ? (
-									<span className="field-help">
-										{/* The abbreviation opens this sentence ("Aug is the highest") rather
-										    than trailing it, so Period's own prefix-plus-token shape does not
-										    fit -- the whole sentence swaps instead, same classes, same
-										    @container card rule above them. */}
-										<span className="period-full">{view.recent.noteFull}</span>
-										<span className="period-short">{view.recent.note}</span>
-									</span>
-								) : null}
+									{view.recent.note ? <span className="field-help">{view.recent.note}</span> : null}
 								</CardHeader>
 								<CardDivider />
 								{/* Fills the card rather than sitting 150px tall in it: this shares a row
@@ -434,7 +414,7 @@ export default function Stats() {
 						    happened. The ratio is the same either way, so the meter and the rows cannot
 						    disagree. README: Meters and progress. */}
 						<Card aria-label="Against budget">
-							<CardHeader title={<>Against budget{sep}<Period short={view.shortLabel} full={view.shortLabelFull} /></>}
+							<CardHeader title={`Against budget${sep}${view.shortLabelFull}`}
 								to={view.budgets.total ? '/categories/all' : undefined}
 								label="Against budget, open all categories">
 								{view.budgets.total
@@ -488,7 +468,7 @@ export default function Stats() {
 							</CardBody>
 						</Card>
 
-						<ReturnsCard title={<>Returns{sep}<Period short={view.shortLabel} full={view.shortLabelFull} /></>}
+						<ReturnsCard title={`Returns${sep}${view.shortLabelFull}`}
 							span={view.shortLabelFull} returns={view.returns} />
 					</>
 				)

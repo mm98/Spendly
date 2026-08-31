@@ -230,6 +230,12 @@ number.
 Two things need no trigger, because neither costs a browser: **never claim what was not run**
 ([Reporting](#reporting)), and read the file you are changing before changing it.
 
+### Never assume or guess. Always validate first.
+
+A threshold, a claim that something fits, or a claim that something is safe is a claim about the
+full range it applies to, not the one point you happened to check. Sweep the range and find the
+real boundary before writing a number down; don't call a guess "measured" because it passed once.
+
 Everything from here down is how to run that pass well.
 
 ### The environment, settled -- do not re-derive it
