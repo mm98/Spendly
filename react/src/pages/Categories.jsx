@@ -107,7 +107,7 @@ export default function Categories() {
 							    onto foldForRing's own field (`amount` -> `spend`), the one shape it reads. */
 							const split = foldForRing(
 								chartData.split.map(c => ({ id: c.id, name: c.name, colour: c.colour, spend: c.amount })),
-								n => `${n} more categories`)
+								chartData.cardRows)
 							const periodWord = chartPeriodPhrase(chartData.period)
 							return (
 								/* The header opens the list only while the list has rows to show: on an
@@ -134,9 +134,9 @@ export default function Categories() {
 													ariaLabel={`Category split of ${currency(chartData.spent, 0)}`} />
 												<div className="chart-legend chart-legend-fill">
 													{split.map(c => (
-														/* The folded row names a count, not a category, so it opens the
-														   list those categories are on rather than a filter for one
-														   that has no id. */
+														/* The folded row stands for several categories at once, so it
+														   opens the list those categories are on rather than a filter
+														   for one that has no id. */
 														<LegendRow key={c.id ?? 'more'} colour={c.colour} title={c.name}
 															amount={currency(c.spend, 0)}
 															to={c.id ? `/orders/all?category=${c.id}` : '/categories/all'} />

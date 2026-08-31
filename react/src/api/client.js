@@ -191,7 +191,7 @@ async function chartWindow(signal) {
     centre and the split's own shares were computed from server-side. */
 export async function getVendorChartSplit(signal) {
 	const { period, window } = await chartWindow(signal)
-	return { period, spent: window.spent, split: window.vendorSplit }
+	return { period, spent: window.spent, split: window.vendorSplit, cardRows: window.cardRows }
 }
 
 /** Categories overview's ring: the same join, over the category split -- "Without category"
@@ -200,7 +200,7 @@ export async function getVendorChartSplit(signal) {
     beside the ring, which this setting does not touch. */
 export async function getCategoryChartSplit(signal) {
 	const { period, window } = await chartWindow(signal)
-	return { period, spent: window.spent, split: window.split }
+	return { period, spent: window.spent, split: window.split, cardRows: window.cardRows }
 }
 
 /* ---- categories ---- */

@@ -6,7 +6,7 @@ import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '..
 import { MonthColumns, SpendChart, SpendGauge, WeekdayBars, bucketOf, bucketsFor, sampled } from '../components/Chart.jsx'
 import { Segmented } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
-import { Meter } from '../components/Viz.jsx'
+import { Meter, foldForRing } from '../components/Viz.jsx'
 import { CategoryRow, LegendRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
@@ -184,6 +184,11 @@ export default function Stats() {
 				const chartToday = view.todayIndex == null ? null
 					: bucketOf(view.todayIndex, view.series.current.length, buckets)
 
+				/* The Where it went legend, folded to the account's own card length -- foldForRing
+				   reads `spend`, and the fold row is the one entry with no `amount` of its own. */
+				const split = foldForRing(
+					view.split.map(entry => ({ ...entry, spend: entry.amount })), view.cardRows)
+
 				/* The window's own read on itself, in one sentence: what it's measured against
 				   (nothing to say for the oldest window there is), how many orders, how much of
 				   the window has records. All three are said once, here, so the tiles below
@@ -354,21 +359,23 @@ export default function Stats() {
 									{/* The ring and the rows are one list of numbers: the segments are the
 									    shares the amounts beside them make, so a ring drawn from all-time
 									    category totals over a month's legend cannot happen again. */}
-									<SpendGauge segments={view.split.map(entry =>
+									<SpendGauge segments={split.map(entry =>
 										({ share: entry.share, colour: entry.colour }))}
 										value={currency(view.spent, 0)} label={view.shortLabelFull}
 										ariaLabel={`Category split of ${currency(view.spent, 0)} in ${view.label}`} />
 									<div className="chart-legend chart-legend-fill">
-										{view.split.map(entry => (
+										{split.map(entry => (
 											/* The row names a category and states the window's amount for it, so
 											   the link carries both: an unfiltered list, or the category across
 											   all time, is a link that does not go where the row says. The split's
 											   "Without category" remainder has a null id and filters as `none` --
-											   the window's orders with no category at all. */
+											   the window's orders with no category at all. The fold row stands for
+											   several categories at once, so it opens the whole window instead. */
 											<LegendRow key={entry.name} colour={entry.colour} title={entry.name}
-												meta={splitBudgetMeta(entry)}
-												amount={currency(entry.amount, 0)}
-												to={'/orders/all?' + `category=${entry.id ?? 'none'}&`
+												meta={entry.amount == null ? undefined : splitBudgetMeta(entry)}
+												amount={currency(entry.spend, 0)}
+												to={'/orders/all?'
+													+ (entry.amount == null ? '' : `category=${entry.id ?? 'none'}&`)
 													+ `from=${view.from}&to=${view.to}`} />
 										))}
 									</div>
