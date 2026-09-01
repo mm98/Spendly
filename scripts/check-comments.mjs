@@ -9,6 +9,10 @@ import { execFileSync } from "node:child_process";
 
 const MAX_NEW_COMMENT_LINES = 2;
 
+// The rule's other half: comment what stops someone breaking the code, which is a question of
+// how many, not how long. A change whose prose matches or outweighs its code answered it wrong.
+const MIN_GROWTH_TO_JUDGE = 5;
+
 const CHANGELOG = /\b(used to|previously|formerly|no longer|drifted|the original|we now|now that we)\b/i;
 
 const EXTENSIONS = [".js", ".jsx", ".css"];
@@ -27,21 +31,47 @@ const diff = execFileSync("git", ["diff", "--unified=0", mergeBase, "--",
 let file = null;
 let newLine = 0;
 let run = []; // [{ lineNo, text }] of the current contiguous run of added lines
-let hunkHasDeletion = false; // a hunk that also removes lines is an edit, not a fresh insertion
+let hunkCommentsRemoved = 0; // comment lines the hunk deletes, the budget a rewrite may spend
 let failures = 0;
+
+// Net growth per file, comments against code: a rewrite that replaces prose with prose nets
+// nothing and is judged only on length, below.
+const growth = new Map();
+let inAddedBlock = false;
+let inRemovedBlock = false;
 
 function isSourceFile(path) {
 	return EXTENSIONS.some(ext => path.endsWith(ext));
 }
 
-// A comment-only run inside the added lines, tracked separately from the raw added-line run:
-// block comments span lines with no per-line marker, so "are we still inside /* */" has to be
-// carried across lines. The length cap only applies to a run added by a pure-insertion hunk --
-// rewriting an existing long comment turns its old lines into removals and its new lines into
-// additions, so a length check blind to that would fail every edit to a comment regardless of
-// whether the result got shorter.
-function checkRun(hadDeletion) {
+// Whether a line opens, continues or closes a block comment, carried across lines because a
+// block comment's inner lines have no marker of their own.
+function classify(text, inBlock) {
+	const trimmed = text.trim();
+	if (!trimmed) return { comment: inBlock, inBlock, blank: true };
+	const opens = trimmed.startsWith("/*");
+	const comment = inBlock || opens || trimmed.startsWith("//");
+	let next = inBlock;
+	if (opens && !trimmed.includes("*/")) next = true;
+	else if (inBlock && trimmed.includes("*/")) next = false;
+	return { comment, inBlock: next, blank: false };
+}
+
+function tally(side, comment) {
+	if (!file || !isSourceFile(file)) return;
+	const e = growth.get(file) ?? { comment: 0, code: 0 };
+	const delta = side === "+" ? 1 : -1;
+	if (comment) e.comment += delta;
+	else e.code += delta;
+	growth.set(file, e);
+}
+
+// A comment-only run inside the added lines, tracked separately from the raw added-line run.
+// A rewrite may spend what it removed: replacing a six-line comment with five is a shortening,
+// while replacing it with nine is the growth this cap exists to stop.
+function checkRun(removedBudget) {
 	if (!file || !isSourceFile(file) || run.length === 0) return;
+	const limit = Math.max(MAX_NEW_COMMENT_LINES, removedBudget);
 	let inBlock = false;
 	let commentStart = null;
 	let commentLines = [];
@@ -53,8 +83,8 @@ function checkRun(hadDeletion) {
 		if (changelog) {
 			console.error(`${file}:${commentStart}  reads as changelog: "${changelog[0]}"`);
 			failures++;
-		} else if (!hadDeletion && commentLines.length > MAX_NEW_COMMENT_LINES) {
-			console.error(`${file}:${commentStart}  ${commentLines.length} new comment lines, limit ${MAX_NEW_COMMENT_LINES}`);
+		} else if (commentLines.length > limit) {
+			console.error(`${file}:${commentStart}  ${commentLines.length} new comment lines, limit ${limit}`);
 			failures++;
 		}
 		commentLines = [];
@@ -63,13 +93,12 @@ function checkRun(hadDeletion) {
 
 	for (const { lineNo, text } of run) {
 		const trimmed = text.trim();
-		const isCommentLine = inBlock || trimmed.startsWith("//") || trimmed.startsWith("/*");
-		if (isCommentLine) {
+		const { comment, inBlock: next } = classify(text, inBlock);
+		inBlock = next;
+		if (comment && trimmed) {
 			if (commentLines.length === 0) commentStart = lineNo;
 			commentLines.push(trimmed);
-			if (trimmed.startsWith("/*") && !trimmed.includes("*/")) inBlock = true;
-			else if (inBlock && trimmed.includes("*/")) inBlock = false;
-		} else {
+		} else if (trimmed) {
 			flushComment();
 		}
 	}
@@ -79,29 +108,44 @@ function checkRun(hadDeletion) {
 
 for (const raw of diff.split("\n")) {
 	if (raw.startsWith("+++ b/")) {
-		checkRun(hunkHasDeletion);
+		checkRun(hunkCommentsRemoved);
 		file = raw.slice(6);
+		inAddedBlock = inRemovedBlock = false;
 		continue;
 	}
 	if (raw.startsWith("@@")) {
-		checkRun(hunkHasDeletion);
+		checkRun(hunkCommentsRemoved);
 		const m = raw.match(/\+(\d+)/);
 		newLine = m ? Number(m[1]) : 0;
-		hunkHasDeletion = false;
+		hunkCommentsRemoved = 0;
+		inAddedBlock = inRemovedBlock = false;
 		continue;
 	}
 	if (raw.startsWith("+") && !raw.startsWith("+++")) {
+		const { comment, inBlock, blank } = classify(raw.slice(1), inAddedBlock);
+		inAddedBlock = inBlock;
+		if (!blank) tally("+", comment);
 		run.push({ lineNo: newLine, text: raw.slice(1) });
 		newLine++;
 		continue;
 	}
 	if (raw.startsWith("-") && !raw.startsWith("---")) {
-		hunkHasDeletion = true;
+		const { comment, inBlock, blank } = classify(raw.slice(1), inRemovedBlock);
+		inRemovedBlock = inBlock;
+		if (!blank) tally("-", comment);
+		if (comment && !blank) hunkCommentsRemoved++;
 		continue;
 	}
-	checkRun(hunkHasDeletion);
+	checkRun(hunkCommentsRemoved);
 }
-checkRun(hunkHasDeletion);
+checkRun(hunkCommentsRemoved);
+
+for (const [path, { comment, code }] of growth) {
+	if (comment >= MIN_GROWTH_TO_JUDGE && comment >= code) {
+		console.error(`${path}  adds ${comment} comment lines against ${code} of code — prose matching or outweighing code`);
+		failures++;
+	}
+}
 
 if (failures) {
 	console.error(`\n${failures} new comment${failures === 1 ? "" : "s"} to trim — see CLAUDE.md's Comments rule.`);
