@@ -23,12 +23,18 @@ export function readCookie(req, name) {
 	return null
 }
 
-export function setCookie(res, name, value, { maxAgeSeconds } = {}) {
+/* TLS ends at the proxy in front, so the socket here is always plain http and the scheme the
+   client used arrives in X-Forwarded-Proto -- first value wins when proxies chain. */
+function isHttpsRequest(req) {
+	if (req.secure) return true
+	return String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase() === 'https'
+}
+
+export function setCookie(req, res, name, value, { maxAgeSeconds } = {}) {
 	const attrs = [`${name}=${encodeURIComponent(value)}`, 'Path=/', 'HttpOnly', 'SameSite=Lax']
-	/* Secure cookies are refused by browsers over plain http, so a LAN deploy with no TLS
-	   (a NAS at http://192.168.x.x) opts out via SPENDLY_PLAIN_HTTP -- sessions can't stick
-	   there otherwise. Anything reachable over https should not set it. */
-	if (process.env.NODE_ENV === 'production' && process.env.SPENDLY_PLAIN_HTTP !== '1') attrs.push('Secure')
+	/* Secure mirrors the scheme this request arrived on: browsers refuse a Secure cookie over
+	   plain http, so a fixed flag would break whichever address the flag wasn't written for. */
+	if (isHttpsRequest(req)) attrs.push('Secure')
 	if (maxAgeSeconds != null) attrs.push(`Max-Age=${maxAgeSeconds}`)
 	res.append('Set-Cookie', attrs.join('; '))
 }

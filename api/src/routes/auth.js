@@ -53,7 +53,7 @@ router.post('/register', async (req, res) => {
 		throw e
 	}
 
-	const token = createSession(res, id)
+	const token = createSession(req, res, id)
 	res.status(201).json({ id, email, token, needsSetup: true })
 })
 
@@ -64,7 +64,7 @@ router.post('/login', async (req, res) => {
 	if (!user || !(await verifyPassword(password, user.password_hash)))
 		return res.status(401).json({ error: 'Wrong email or password.' })
 
-	const token = createSession(res, user.id)
+	const token = createSession(req, res, user.id)
 	res.json({ id: user.id, email: user.email, token, needsSetup: Boolean(user.needs_setup) })
 })
 

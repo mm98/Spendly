@@ -18,7 +18,9 @@ services:
       # Without this the container's clock is UTC, so the nightly backup fires at UTC
       # 23:59:59 -- 1-2am local, depending on daylight saving -- not local midnight.
       TZ: "Europe/Copenhagen"
-      # Plain-http sessions (LAN by IP). Remove if behind HTTPS.
+      # Keeps HSTS off so a plain-http address (LAN by IP) stays reachable. The session
+      # cookie handles this by itself: Secure when the request came over HTTPS, plain when
+      # it didn't. Remove only when every client uses HTTPS.
       SPENDLY_PLAIN_HTTP: "1"
       # Optional: lets Scan read receipts automatically. Get a key at console.anthropic.com.
       # ANTHROPIC_API_KEY: sk-ant-...

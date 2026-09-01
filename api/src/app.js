@@ -47,8 +47,8 @@ app.use((req, res, next) => {
 	res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
 	res.setHeader('Cross-Origin-Resource-Policy', 'same-origin')
 	res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()')
-	/* Same gate as the session cookie's Secure flag: a LAN deploy over plain http would lock
-	   itself out of its own address. */
+	/* HSTS pins the hostname to https for a year, so a deploy whose address is also reached
+	   over plain http opts out via SPENDLY_PLAIN_HTTP rather than locking that address out. */
 	if (process.env.NODE_ENV === 'production' && process.env.SPENDLY_PLAIN_HTTP !== '1')
 		res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
 	next()
