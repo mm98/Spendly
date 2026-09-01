@@ -8,7 +8,7 @@ import { EntityRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { LinePhoto, useDroppedPhoto } from '../components/LinePhoto.jsx'
 import {
-	CheckRow, Field, FieldShell, FieldUnit, TextInput, focusField, useFieldErrors
+	CheckRow, Field, FieldPair, FieldShell, FieldUnit, TextInput, focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -189,37 +189,41 @@ function WishFields({ mode, wish }) {
 				</FieldShell>
 			</Field>
 
-			<Field label="Price" optional error={priceField.error} errorId={priceField.errorId}
-				htmlFor="wish-price"
-				help="Leave it empty if you have not looked it up.">
-				<FieldShell>
-					<TextInput id="wish-price" value={price} inputMode="decimal"
-						onChange={v => { setPrice(v); recheck('wish-price', v) }}
-						aria-label="Price"
-						invalid={priceField.invalid} describedBy={priceField.describedBy}
-						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
-					<FieldUnit>{currencySymbol()}</FieldUnit>
-				</FieldShell>
-			</Field>
+			{/* The two optional facts about the thing itself, side by side, stacking on a phone
+			    the way every other pair in the app does. */}
+			<FieldPair>
+				<Field label="Price" optional error={priceField.error} errorId={priceField.errorId}
+					htmlFor="wish-price"
+					help="Leave it empty if you have not looked it up.">
+					<FieldShell>
+						<TextInput id="wish-price" value={price} inputMode="decimal"
+							onChange={v => { setPrice(v); recheck('wish-price', v) }}
+							aria-label="Price"
+							invalid={priceField.invalid} describedBy={priceField.describedBy}
+							onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
+						<FieldUnit>{currencySymbol()}</FieldUnit>
+					</FieldShell>
+				</Field>
 
-			{/* htmlFor for the reason every chips field in the app has one: the chips are
-			    labelable and come first, so without it the label points at the first chip's
-			    remove button and a tap on the chevron deletes a category. See components/Form.jsx. */}
-			<Field label="Categories" optional htmlFor="wish-categories"
-				help="Where this would land if you bought it.">
-				<Combobox id="wish-categories" label="Add category" placeholder="Add category..."
-					chips={chosen.map(c => (
-						<Chip key={c} label={`Remove category ${c}`}
-							onRemove={() => setChosen(chosen.filter(x => x !== c))}>{c}</Chip>
-					))}
-					value={categoryQuery} onChange={setCategoryQuery}
-					onSelect={o => addCategory(o.label)}
-					groups={categoryGroups(categories.data, { exclude: chosen })}
-					action={categoryQuery.trim()
-						? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
-							onSelect: addCategory }
-						: undefined} />
-			</Field>
+				{/* htmlFor for the reason every chips field in the app has one: the chips are
+				    labelable and come first, so without it the label points at the first chip's
+				    remove button and a tap on the chevron deletes a category. */}
+				<Field label="Categories" optional htmlFor="wish-categories"
+					help="Where this would land if you bought it.">
+					<Combobox id="wish-categories" label="Add category" placeholder="Add category..."
+						chips={chosen.map(c => (
+							<Chip key={c} label={`Remove category ${c}`}
+								onRemove={() => setChosen(chosen.filter(x => x !== c))}>{c}</Chip>
+						))}
+						value={categoryQuery} onChange={setCategoryQuery}
+						onSelect={o => addCategory(o.label)}
+						groups={categoryGroups(categories.data, { exclude: chosen })}
+						action={categoryQuery.trim()
+							? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
+								onSelect: addCategory }
+							: undefined} />
+				</Field>
+			</FieldPair>
 
 			{/* The picture is a field like the colour picker on a vendor: `group`, because what
 			    labels it is the group's own label and not an input. The frame is the one the
