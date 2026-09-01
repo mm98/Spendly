@@ -19,8 +19,8 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addItemAttachments, createOrder, failureMessage, getCategories, getCurrentUser, getOrderDraft,
-	getVendors, invalidateOrderData, spendKinds
+	addItemAttachments, categoriesForVendor, createOrder, failureMessage, getCategories,
+	getCurrentUser, getOrderDraft, getVendors, invalidateOrderData, spendKinds
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
 import { currency, currencySymbol, parseAmount, percent, shortDate, sanitizeAmount, today } from '../api/format.js'
@@ -98,7 +98,10 @@ export function NewOrderDetails() {
 
 	const set = (name, key) => v => { update({ [key]: v }); recheck(name, v) }
 
-	const pickVendor = name => { update({ vendor: name }); recheck('order-vendor', name) }
+	const pickVendor = name => {
+		update({ vendor: name, categories: categoriesForVendor(vendors.data ?? [], name, draft.categories) })
+		recheck('order-vendor', name)
+	}
 	const vendorPicker = useVendorPicker(vendors, draft.vendor, pickVendor, toast)
 
 	const next = () => {

@@ -79,6 +79,20 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
+		"SELECT c.name FROM vendor_default_categories d JOIN categories c ON c.id = d.category_id WHERE d.vendor_id = ? AND c.user_id = ? ORDER BY c.name": {
+			"plan": [
+				"SEARCH d USING COVERING INDEX sqlite_autoindex_vendor_default_categories_1 (vendor_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_vendor_default_categories_1"
+			]
+		},
 		"SELECT card_rows FROM settings WHERE user_id = ?": {
 			"plan": [
 				"SEARCH settings USING INDEX sqlite_autoindex_settings_1 (user_id=?)"
@@ -396,6 +410,22 @@
 			"findings": [],
 			"indexes": [
 				"idx_vendors_user_name"
+			]
+		},
+		"SELECT d.vendor_id, c.name FROM vendor_default_categories d JOIN categories c ON c.id = d.category_id JOIN vendors v ON v.id = d.vendor_id WHERE v.user_id = ? ORDER BY c.name": {
+			"plan": [
+				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
+				"SEARCH d USING COVERING INDEX sqlite_autoindex_vendor_default_categories_1 (vendor_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"idx_vendors_user_name",
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_vendor_default_categories_1"
 			]
 		},
 		"SELECT date, COUNT(*) AS orders, SUM(total) AS spend, SUM(saved) AS saved FROM orders WHERE user_id = @userId AND date >= @from AND date < @to GROUP BY date ORDER BY date": {
@@ -1258,7 +1288,7 @@
 				"user_id",
 				"name"
 			],
-			"readers": 11
+			"readers": 12
 		}
 	}
 }

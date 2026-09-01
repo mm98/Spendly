@@ -153,6 +153,11 @@ export const vendorByAnyName = (vendors, name) => {
 		|| (v.aliases ?? []).some(a => a.toLowerCase() === needle))
 }
 
+/** The categories an order carries once it names this vendor: what it already has, or else the
+    vendor's own defaults. Never a merge -- categories already chosen answer the same question. */
+export const categoriesForVendor = (vendors, name, current = []) =>
+	(current.length ? current : vendorByAnyName(vendors, name)?.defaultCategories ?? [])
+
 /** Search. Whether a typed string finds this vendor, and which alias did it -- `alias` is
     null when the vendor's own name matched, because then there is nothing for a row to
     explain, and the palette's query returns null in exactly that case for exactly that

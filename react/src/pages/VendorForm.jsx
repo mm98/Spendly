@@ -9,12 +9,14 @@ import { ColourPicker, VENDOR_COLOURS } from '../components/Pickers.jsx'
 import {
 	CheckRow, Field, FieldShell, TextInput, focusField, useFieldErrors
 } from '../components/Form.jsx'
+import { Combobox } from '../components/Combobox.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, failureMessage, getVendor, getVendors, invalidateVendorData, updateVendor
+	createVendor, deleteVendor, failureMessage, getCategories, getVendor, getVendors,
+	invalidateVendorData, updateVendor
 } from '../api/client.js'
-import { currency, sep } from '../api/format.js'
+import { currency, percent, sep } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
 
 /* A vendor, on its own page -- the same page component as a category and as an order, because
@@ -36,11 +38,14 @@ function VendorFields({ mode, vendor }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const all = useApi(getVendors)
+	const categories = useApi(getCategories)
 	const [name, setName] = useState('')
 	const [colour, setColour] = useState(VENDOR_COLOURS[0].id)
 	const [favourite, setFavourite] = useState(false)
 	const [aliases, setAliases] = useState([])
 	const [aliasQuery, setAliasQuery] = useState('')
+	const [defaultCategories, setDefaultCategories] = useState([])
+	const [categoryQuery, setCategoryQuery] = useState('')
 	const [saving, setSaving] = useState(false)
 
 	useEffect(() => {
@@ -49,6 +54,7 @@ function VendorFields({ mode, vendor }) {
 		setColour(vendor.colour)
 		setFavourite(Boolean(vendor.favourite))
 		setAliases(vendor.aliases ?? [])
+		setDefaultCategories(vendor.defaultCategories ?? [])
 	}, [vendor])
 
 	const fields = useMemo(() => {
@@ -84,6 +90,12 @@ function VendorFields({ mode, vendor }) {
 		setAliasQuery('')
 	}
 
+	const addDefaultCategory = value => {
+		const clean = String(value).trim()
+		if (clean && !defaultCategories.includes(clean)) setDefaultCategories([...defaultCategories, clean])
+		setCategoryQuery('')
+	}
+
 	const refresh = () => invalidateVendorData()
 
 	const save = () => {
@@ -93,7 +105,7 @@ function VendorFields({ mode, vendor }) {
 			return
 		}
 		setSaving(true)
-		const patch = { name: name.trim(), colour, initials, favourite, aliases }
+		const patch = { name: name.trim(), colour, initials, favourite, aliases, defaultCategories }
 		const written = mode === 'edit' ? updateVendor(vendor.id, patch) : createVendor(patch.name, patch)
 		written
 			.then(saved => {
@@ -128,7 +140,8 @@ function VendorFields({ mode, vendor }) {
 			rail={
 				<>
 					<VendorSummary name={name} colour={colour} initials={initials}
-						favourite={favourite} aliases={aliases} vendor={vendor} />
+						favourite={favourite} aliases={aliases} defaultCategories={defaultCategories}
+						vendor={vendor} />
 					{mode === 'edit' ? (
 						<DeleteCard what="vendor" del={del}>
 							A vendor that still has orders on it cannot be removed: the orders would
@@ -167,6 +180,34 @@ function VendorFields({ mode, vendor }) {
 				</FieldShell>
 			</Field>
 
+			{/* htmlFor for the same reason the aliases field above has one: the chips come first
+			    and are labelable, so without it the label points at a chip's remove button. */}
+			<Field label="Default categories" optional htmlFor="vendor-categories"
+				help={'A new order naming this vendor starts with these categories filled in. They '
+					+ 'are a starting point, not a rule: the order form can add or remove any of them '
+					+ 'before it is saved, and changing them here never touches orders already saved.'}>
+				<Combobox id="vendor-categories" label="Add default category" placeholder="Add category..."
+					chips={defaultCategories.map(c => (
+						<Chip key={c} label={`Remove default category ${c}`}
+							onRemove={() => setDefaultCategories(defaultCategories.filter(x => x !== c))}>
+							{c}</Chip>
+					))}
+					value={categoryQuery} onChange={setCategoryQuery}
+					onSelect={o => addDefaultCategory(o.label)}
+					groups={[
+						{ heading: 'Favourites', options: (categories.data ?? [])
+							.filter(c => c.favourite && !defaultCategories.includes(c.name))
+							.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses`, star: true })) },
+						{ heading: 'All categories', options: (categories.data ?? [])
+							.filter(c => !c.favourite && !defaultCategories.includes(c.name))
+							.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }
+					]}
+					action={categoryQuery.trim()
+						? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
+							onSelect: addDefaultCategory }
+						: undefined} />
+			</Field>
+
 			<Field label="Colour" group
 				help="Pick one of the eight colours shown, or choose any colour in the last box.">
 				<ColourPicker value={colour} onChange={setColour} colours={VENDOR_COLOURS}
@@ -187,7 +228,7 @@ function VendorFields({ mode, vendor }) {
 
 /** The rail card that mirrors the form: the row as it will be drawn, then its values, then
     what the vendor has cost all told. */
-function VendorSummary({ name, colour, initials, favourite, aliases, vendor }) {
+function VendorSummary({ name, colour, initials, favourite, aliases, defaultCategories, vendor }) {
 	return (
 		<Card aria-label="Vendor summary">
 			<CardBody>
@@ -207,6 +248,9 @@ function VendorSummary({ name, colour, initials, favourite, aliases, vendor }) {
 					<span className="summary-row-value">{favourite ? 'Yes' : 'No'}</span></div>
 				<div className="summary-row">Aliases
 					<span className="summary-row-value">{aliases.length ? aliases.join(', ') : '-'}</span></div>
+				<div className="summary-row">Default categories
+					<span className="summary-row-value">
+						{defaultCategories.length ? defaultCategories.join(', ') : '-'}</span></div>
 				{vendor ? <SummaryRow label="Saved vs retail" value={currency(vendor.saved, 0)} /> : null}
 				<div className="card-divider card-divider-tight" />
 				<SummaryTotal label="Spent all time" value={currency(vendor?.spend ?? 0, 0)}
