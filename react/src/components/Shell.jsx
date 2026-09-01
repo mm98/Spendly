@@ -44,10 +44,10 @@ const NAV = [
 	   door there: the top bar's chevron goes here from every page that is not already it. */
 	{ to: '/', key: 'home', icon: 'home', label: 'Home', wide: true },
 	{ to: '/orders', key: 'orders', icon: 'receipt', label: 'Orders' },
-	{ to: '/wishlist', key: 'wishlist', icon: 'cart', label: 'Wishlist' },
+	{ to: '/wishlist', key: 'wishlist', icon: 'cart', label: 'Wishlist', short: 'Wish' },
 	{ to: '/vendors', key: 'vendors', icon: 'store', label: 'Vendors' },
 	{ to: '/categories', key: 'categories', icon: 'tag', label: 'Categories' },
-	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics' }
+	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics', short: 'Stats' }
 ]
 
 function Sidebar({ navKey }) {
@@ -64,7 +64,13 @@ function Sidebar({ navKey }) {
 						<Link key={item.key} to={item.to}
 							className={[on && 'is-on', item.wide && 'wide-only'].filter(Boolean).join(' ') || undefined}
 							aria-current={on ? 'page' : undefined}>
-							<Icon name={item.icon} />{item.label}
+							{/* One word per column in the five-column bar. Both forms are in the markup and
+							    the hidden one is out of the tree, so the spoken name is the printed one. */}
+							<Icon name={item.icon} />
+							{item.short ? (<>
+								<span className="wide-only">{item.label}</span>
+								<span className="narrow-only">{item.short}</span>
+							</>) : item.label}
 						</Link>
 					)
 				})}
@@ -368,10 +374,51 @@ function SubTabs({ tabs, view, setView }) {
 	)
 }
 
+/* The way out, the page's name, the finder, and the two things the app does from anywhere.
+   `titleRef` is the shell's: it hands that heading out as the focus target through its context. */
+function TopBar({ handle, titleRef }) {
+	const location = useLocation()
+	const navigate = useNavigate()
+
+	return (
+		<header className="topbar">
+			{handle.back ? (
+				/* A row passes where it opened this page from as navigation state (Rows.jsx), so
+				   leaving closes that; `handle.back.to` is the fallback. README: Accessibility. */
+				<IconButton icon="chevronLeft"
+					label={location.state?.from ? 'Back' : 'Back to ' + handle.back.label}
+					onClick={() => navigate(location.state?.from ?? handle.back.to)} />
+			) : handle.navKey === 'home' ? null : (
+				/* Home's door on a phone, where the five columns go elsewhere. Drawn only on a
+				   phone: a wide screen has the rail, which carries Home. README: Chrome. */
+				<IconButton icon="chevronLeft" to="/" label="Home" className="topbar-up" />
+			)}
+			<h1 id="page-title" tabIndex={-1} ref={titleRef}>{handle.title ?? 'Spendly'}</h1>
+			<GlobalFinder />
+			<div className="topbar-actions">
+				<Button variant="primary" to="/scan" icon="scan" aria-label="Scan receipt">
+					<span>SCAN <span className="wide-only">RECEIPT</span></span>
+				</Button>
+				<Button variant="outline" to="/orders/new" icon="plus" aria-label="New order">
+					<span>NEW <span className="wide-only">ORDER</span></span>
+				</Button>
+				{/* Settings reaches every page from every page, because that is what it is
+				    about: the order form's defaults, both lists' opening order, how many
+				    entries a card holds, whether a trash asks first. It used to be a
+				    full-width ORDER SETTINGS button at the foot of the Orders rail --
+				    findable only from one tab of one page, and named for the one part of
+				    itself that page happened to own. A glyph, beside the two actions the
+				    bar already carries, since it is a destination rather than a thing to
+				    do here. README: Chrome, Settings. */}
+				<IconButton icon="settings" to="/settings" label="Settings" />
+			</div>
+		</header>
+	)
+}
+
 export function AppShell() {
 	const matches = useMatches()
 	const location = useLocation()
-	const navigate = useNavigate()
 	const handle = useMemo(() => matches.filter(m => m.handle).at(-1)?.handle ?? {}, [matches])
 	const [view, setView] = useState('overview')
 	const title = useRef(null)
@@ -403,42 +450,7 @@ export function AppShell() {
 			<div className="app-shell">
 				<Sidebar navKey={handle.navKey} />
 				<div className="main-panel">
-					<header className="topbar">
-						{handle.back ? (
-							/* A row that opens this page passes where it was opened from as
-							   navigation state (see components/Rows.jsx) -- so leaving closes the
-							   same place it was opened from, rather than a fixed page picked at
-							   route-definition time. `handle.back.to` is only the fallback, for
-							   whoever arrives with no such marker: a reload, a pasted link, a
-							   bookmark. README: Accessibility. */
-							<IconButton icon="chevronLeft"
-								label={location.state?.from ? 'Back' : 'Back to ' + handle.back.label}
-								onClick={() => navigate(location.state?.from ?? handle.back.to)} />
-						) : handle.navKey === 'home' ? null : (
-							/* Home's door on a phone, where the five columns go elsewhere. Drawn only on a
-							   phone: a wide screen has the rail, which carries Home. README: Chrome. */
-							<IconButton icon="chevronLeft" to="/" label="Home" className="topbar-up" />
-						)}
-						<h1 id="page-title" tabIndex={-1} ref={title}>{handle.title ?? 'Spendly'}</h1>
-						<GlobalFinder />
-						<div className="topbar-actions">
-							<Button variant="primary" to="/scan" icon="scan" aria-label="Scan receipt">
-								<span>SCAN <span className="wide-only">RECEIPT</span></span>
-							</Button>
-							<Button variant="outline" to="/orders/new" icon="plus" aria-label="New order">
-								<span>NEW <span className="wide-only">ORDER</span></span>
-							</Button>
-							{/* Settings reaches every page from every page, because that is what it is
-							    about: the order form's defaults, both lists' opening order, how many
-							    entries a card holds, whether a trash asks first. It used to be a
-							    full-width ORDER SETTINGS button at the foot of the Orders rail --
-							    findable only from one tab of one page, and named for the one part of
-							    itself that page happened to own. A glyph, beside the two actions the
-							    bar already carries, since it is a destination rather than a thing to
-							    do here. README: Chrome, Settings. */}
-							<IconButton icon="settings" to="/settings" label="Settings" />
-						</div>
-					</header>
+					<TopBar handle={handle} titleRef={title} />
 
 					{/* The one <main> per document. Everything below the top bar is the page: the
 					    sub-tab band selects within it, so it is inside rather than beside. Without
