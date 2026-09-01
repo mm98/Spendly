@@ -81,7 +81,7 @@ router.get('/draft', (req, res) => {
 	res.json({
 		vendor: '', date: todayIso(),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
-		categories: [], shipping: 0, discount: 0, reference: '', note: '', items: []
+		categories: [], shipping: '', discount: '', reference: '', note: '', items: []
 	})
 })
 

@@ -142,7 +142,7 @@ function VendorFields({ mode, vendor }) {
 				<FieldShell>
 					<TextInput id="vendor-name" value={name} autoFocus
 						onChange={v => { setName(v); recheck('vendor-name', v) }}
-						aria-label="Vendor name" aria-required="true" placeholder="Silvan"
+						aria-label="Vendor name" aria-required="true"
 						invalid={nameField.invalid} describedBy={nameField.describedBy}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
 				</FieldShell>
@@ -152,7 +152,7 @@ function VendorFields({ mode, vendor }) {
 			    categories field on the order form (components/Form.jsx): without it the label
 			    points at the first chip's remove button and a tap anywhere in the field that is
 			    not itself a control deletes an alias. */}
-			<Field label="Aliases" htmlFor="vendor-aliases"
+			<Field label="Aliases" optional htmlFor="vendor-aliases"
 				help={'Other names for this vendor: the name it had before a rename, or the short '
 					+ 'form an invoice prints. An order or scanned receipt with one of these names is '
 					+ 'filed under this vendor. Type a name and press Enter; it must be different from the vendor\'s name.'}>

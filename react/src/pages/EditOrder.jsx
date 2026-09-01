@@ -269,7 +269,7 @@ function EditOrderForm({ id, seed }) {
 							</Field>
 							<Field label="Kind" error={kindField.error} errorId={kindField.errorId} htmlFor="order-kind"
 								help="Only expenses are added to your totals.">
-								<Combobox id="order-kind" label="Kind" required placeholder="Expense"
+								<Combobox id="order-kind" label="Kind" required placeholder="Choose kind..."
 									value={draft.kind}
 									invalid={kindField.invalid} describedBy={kindField.describedBy}
 									onChange={set('order-kind', 'kind')}
@@ -280,19 +280,19 @@ function EditOrderForm({ id, seed }) {
 							{/* The optional fields, plain rows of the form -- the same flat rows
 							    as the new order form's. */}
 							<FieldPair>
-								<Field label="Discount" error={discountField.error} errorId={discountField.errorId}
+								<Field label="Discount" optional error={discountField.error} errorId={discountField.errorId}
 									help="The amount subtracted from the order.">
 									<FieldShell>
-										<TextInput id="order-discount" inputMode="decimal" placeholder="0,00"
+										<TextInput id="order-discount" inputMode="decimal"
 											aria-label="Discount" value={draft.discount}
 											invalid={discountField.invalid} describedBy={discountField.describedBy}
 											onChange={v => set('order-discount', 'discount')(sanitizeAmount(v))} />
 										<FieldUnit>{currencySymbol()}</FieldUnit>
 									</FieldShell>
 								</Field>
-								<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId}>
+								<Field label="Shipping fee" optional error={shippingField.error} errorId={shippingField.errorId}>
 									<FieldShell>
-										<TextInput id="order-shipping" inputMode="decimal" placeholder="0,00"
+										<TextInput id="order-shipping" inputMode="decimal"
 											aria-label="Shipping fee" value={draft.shipping}
 											invalid={shippingField.invalid} describedBy={shippingField.describedBy}
 											onChange={v => set('order-shipping', 'shipping')(sanitizeAmount(v))} />
@@ -301,16 +301,16 @@ function EditOrderForm({ id, seed }) {
 								</Field>
 							</FieldPair>
 							<FieldPair>
-								<Field label="Order reference">
+								<Field label="Order reference" optional>
 									<FieldShell>
-										<TextInput placeholder="Optional" aria-label="Order reference"
+										<TextInput aria-label="Order reference"
 											value={draft.reference} onChange={v => update({ reference: v })} />
 									</FieldShell>
 								</Field>
 							</FieldPair>
-							<Field label="Note">
+							<Field label="Note" optional>
 								<TextArea aria-label="Note" value={draft.note}
-									placeholder="Add a note about this purchase, if you want one."
+									placeholder="Add a note about this purchase..."
 									onChange={v => update({ note: v })} />
 							</Field>
 						</Form>

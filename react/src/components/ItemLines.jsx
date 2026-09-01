@@ -508,11 +508,11 @@ function LineCard({
 						</FieldShell>
 					</Field>
 
-					<Field className="line-field-retail" label="Retail price" htmlFor="item-retail"
+					<Field className="line-field-retail" label="Retail price" optional htmlFor="item-retail"
 						error={retailField.error} errorId={retailField.errorId}
-						help="Optional. Used to work out how much you saved compared to the retail price.">
+						help="Used to work out how much you saved compared to the retail price.">
 						<FieldShell>
-							<TextInput id="item-retail" inputMode="decimal" placeholder="104,95"
+							<TextInput id="item-retail" inputMode="decimal"
 								aria-label="Retail price" value={form['item-retail']}
 								onChange={v => set('item-retail')(sanitizeAmount(v))}
 								invalid={retailField.invalid} describedBy={retailField.describedBy} />

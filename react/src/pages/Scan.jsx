@@ -636,17 +636,16 @@ function ScanReviewForm({ answer }) {
 			</FieldPair>
 
 			<FieldPair>
-				<Field label="Discount" error={discountField.error} errorId={discountField.errorId} htmlFor="order-discount"
+				<Field label="Discount" optional error={discountField.error} errorId={discountField.errorId} htmlFor="order-discount"
 					help="Any discount taken off the whole order.">
 					<FieldShell>
 						<TextInput id="order-discount" inputMode="decimal" value={draft.discount}
 							onChange={v => set('order-discount', 'discount')(sanitizeAmount(v))} aria-label="Discount"
-							placeholder="0,00"
 							invalid={discountField.invalid} describedBy={discountField.describedBy} />
 						<FieldUnit>{currencySymbol()}</FieldUnit>
 					</FieldShell>
 				</Field>
-				<Field label="Shipping fee" error={shippingField.error} errorId={shippingField.errorId} htmlFor="order-shipping"
+				<Field label="Shipping fee" optional error={shippingField.error} errorId={shippingField.errorId} htmlFor="order-shipping"
 					help="Not on the receipt; add it if the order was delivered.">
 					<FieldShell>
 						<TextInput id="order-shipping" inputMode="decimal" value={draft.shipping}
@@ -905,11 +904,11 @@ function LineEditor({
 							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>
 					</Field>
-					<Field className="line-field-retail" label="Retail price" htmlFor="line-retail"
+					<Field className="line-field-retail" label="Retail price" optional htmlFor="line-retail"
 						error={retailField.error} errorId={retailField.errorId}
-						help="Optional. Used to work out how much you saved compared to the retail price.">
+						help="Used to work out how much you saved compared to the retail price.">
 						<FieldShell>
-							<TextInput id="line-retail" inputMode="decimal" placeholder="104,95"
+							<TextInput id="line-retail" inputMode="decimal"
 								aria-label="Retail price" value={form['line-retail']}
 								onChange={v => set('line-retail')(sanitizeAmount(v))}
 								invalid={retailField.invalid} describedBy={retailField.describedBy} />

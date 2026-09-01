@@ -26,11 +26,14 @@ const join = (...parts) => parts.filter(Boolean).join(' ')
     the categories field are real buttons -- so the label pointed at "Remove category
     Household", and every tap inside the field that was not itself a control fired it. Two
     categories in, going back for a third took one away. See ../pages/NewOrder.jsx. */
-export function Field({ label, error, errorId, help, group, htmlFor, children, className, ...rest }) {
+export function Field({ label, optional, error, errorId, help, group, htmlFor, children, className, ...rest }) {
 	const Tag = group ? 'div' : 'label'
 	return (
 		<Tag className={join('field', className)} htmlFor={group ? undefined : htmlFor} {...rest}>
-			<span>{label}</span>
+			{/* "(optional)" rides in the label because it has to survive the control filling up --
+			    a placeholder saying the same thing reads as the field's own value once typed, and
+			    is gone the moment it is. */}
+			<span>{label}{optional ? <span className="field-label-optional"> (optional)</span> : null}</span>
 			{children}
 			{/* The id is what the control's aria-describedby points at, so it is not optional
 			    when there is a message: a description that is not there is announced by no
