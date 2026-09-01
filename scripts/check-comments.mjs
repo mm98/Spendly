@@ -17,7 +17,9 @@ const CHANGELOG = /\b(used to|previously|formerly|no longer|drifted|the original
 
 const EXTENSIONS = [".js", ".jsx", ".css"];
 
-const baseRef = process.argv[2] ?? process.env.CHECK_BASE_SHA ?? "origin/main";
+// || rather than ??: an unset workflow input arrives as "", which ?? treats as a value and
+// hands to git as a ref, and `git merge-base "" HEAD` is a fatal, not a fallback.
+const baseRef = process.argv[2] || process.env.CHECK_BASE_SHA || "origin/main";
 
 // The merge-base, not baseRef...HEAD: a plain "...HEAD" diff is blind to uncommitted work,
 // which is most of what this script exists to catch before a commit is ever made. Diffing
