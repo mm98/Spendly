@@ -22,7 +22,7 @@ const notFound = id => Object.assign(new Error('No wish ' + id), { status: 404 }
 
 /* ---- statements ---- */
 
-// No blob columns: a photo has its own two routes at the foot of this file.
+// No blob column: the picture has its own route at the foot of this file.
 const WISH_COLUMNS = 'id, name, url, price, archived, created_at, photo_id'
 const selectOne = db.prepare(`SELECT ${WISH_COLUMNS} FROM wishes WHERE id = ? AND user_id = ?`)
 const countAllWishes = db.prepare('SELECT COUNT(*) c FROM wishes WHERE user_id = ?')
@@ -37,12 +37,9 @@ const selectCategoryNames = db.prepare(`SELECT c.name FROM categories c
 const selectCategoryNamesFor = db.prepare(`SELECT wc.wish_id, c.name FROM categories c
 	JOIN wish_categories wc ON wc.category_id = c.id
 	WHERE wc.wish_id IN (SELECT value FROM json_each(?)) ORDER BY wc.wish_id, c.name`)
-const updatePhoto = db.prepare(`UPDATE wishes SET photo_id=@photoId, photo_content_type=@contentType,
-	photo_size=@size, photo_data=@data, photo_data_is_compressed=@dataCompressed,
+const updatePhoto = db.prepare(`UPDATE wishes SET photo_id=@photoId,
 	photo_thumbnail=@thumbnail, photo_thumbnail_is_compressed=@thumbnailCompressed,
 	photo_thumbnail_content_type=@thumbnailContentType WHERE id=@id AND user_id=@userId`)
-const selectPhoto = db.prepare(
-	'SELECT photo_content_type, photo_data, photo_data_is_compressed FROM wishes WHERE id = ? AND user_id = ? AND photo_id = ?')
 const selectPhotoThumbnail = db.prepare(
 	'SELECT photo_thumbnail, photo_thumbnail_is_compressed, photo_thumbnail_content_type FROM wishes WHERE id = ? AND user_id = ? AND photo_id = ?')
 
@@ -268,8 +265,6 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 		const processed = await processAttachment(fetched.buffer, fetched.contentType, 'picture')
 		updatePhoto.run({
 			id: wish.id, userId: req.user.id, photoId: newId('p'),
-			contentType: processed.contentType ?? fetched.contentType, size: processed.size,
-			data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
 			thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
 			thumbnailContentType: processed.thumbnailContentType
 		})
@@ -284,8 +279,6 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 	const processed = await processAttachment(req.file.buffer, req.file.mimetype, req.file.originalname)
 	updatePhoto.run({
 		id: wish.id, userId: req.user.id, photoId: newId('p'),
-		contentType: processed.contentType ?? req.file.mimetype, size: processed.size,
-		data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
 		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
 		thumbnailContentType: processed.thumbnailContentType
 	})
@@ -296,24 +289,16 @@ router.delete('/:id/photo', (req, res) => {
 	const wish = selectOne.get(req.params.id, req.user.id)
 	if (!wish) throw notFound(req.params.id)
 	updatePhoto.run({
-		id: wish.id, userId: req.user.id, photoId: null, contentType: null, size: null,
-		data: null, dataCompressed: 0, thumbnail: null, thumbnailCompressed: 0, thumbnailContentType: null
+		id: wish.id, userId: req.user.id, photoId: null,
+		thumbnail: null, thumbnailCompressed: 0, thumbnailContentType: null
 	})
 	res.json(decorateOne(selectOne.get(wish.id, req.user.id)))
-})
-
-router.get('/:id/photo/:photoId/file', (req, res) => {
-	const photo = selectPhoto.get(req.params.id, req.user.id, req.params.photoId)
-	if (!photo?.photo_data) return res.status(404).json({ error: 'No picture stored for that wish.' })
-	res.set('Content-Type', photo.photo_content_type || 'application/octet-stream')
-	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // the id in the path changes when the picture does
-	res.send(decompressBlob(photo.photo_data, photo.photo_data_is_compressed))
 })
 
 router.get('/:id/photo/:photoId/thumbnail', (req, res) => {
 	const photo = selectPhotoThumbnail.get(req.params.id, req.user.id, req.params.photoId)
 	if (!photo?.photo_thumbnail) return res.status(404).json({ error: 'No picture stored for that wish.' })
 	res.set('Content-Type', photo.photo_thumbnail_content_type || 'image/webp')
-	res.set('Cache-Control', 'private, max-age=31536000, immutable')
+	res.set('Cache-Control', 'private, max-age=31536000, immutable')   // the id in the path changes when the picture does
 	res.send(decompressBlob(photo.photo_thumbnail, photo.photo_thumbnail_is_compressed))
 })
