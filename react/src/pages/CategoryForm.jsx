@@ -166,17 +166,17 @@ function CategoryFields({ mode, category }) {
 				<FieldShell>
 					<TextInput id="category-name" value={values.name} autoFocus
 						onChange={set('name', 'category-name')} aria-label="Category name"
-						aria-required="true" placeholder="Transport"
+						aria-required="true"
 						invalid={nameField.invalid} describedBy={nameField.describedBy}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
 				</FieldShell>
 			</Field>
 
-			<Field label="Monthly budget" htmlFor="category-budget" help="Leave it empty for no budget."
+			<Field label="Monthly budget" optional htmlFor="category-budget" help="Leave it empty for no budget."
 				error={budgetField.error} errorId={budgetField.errorId}>
 				<FieldShell>
 					<TextInput id="category-budget" inputMode="decimal" value={values.budget}
-						onChange={set('budget', 'category-budget')} placeholder="6.000"
+						onChange={set('budget', 'category-budget')} placeholder="No budget"
 						aria-label="Monthly budget"
 						invalid={budgetField.invalid} describedBy={budgetField.describedBy}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />

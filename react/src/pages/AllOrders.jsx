@@ -286,7 +286,7 @@ export default function AllOrders() {
 						<FieldPair variant="field-pair-keep">
 							<Field label="Min amount" htmlFor="filter-min-amount">
 								<FieldShell>
-									<input id="filter-min-amount" type="text" inputMode="decimal" placeholder="0,00" aria-label="Minimum amount"
+									<input id="filter-min-amount" type="text" inputMode="decimal" placeholder="Any" aria-label="Minimum amount"
 										value={draft.minAmount} onChange={e => setDraft({ ...draft, minAmount: e.target.value })} />
 									<FieldUnit>{currencySymbol()}</FieldUnit>
 								</FieldShell>
