@@ -13,12 +13,12 @@
 
    States (settled in CLAUDE.md):
    - home.png        1440x900 dSF2, Home
-   - all-orders.png  1440x900 dSF2, /orders/all?vendor=bilka&status=Delivered&from=2026-07-01&to=2026-07-31,
+   - all-orders.png  1440x900 dSF2, /orders/all?vendor=bilka&status=Delivered&from=2026-08-01&to=2026-08-31,
                      FILTERS panel open, finder open with 'bil' typed. 3 matching.
    - phone.png       iPhone 15 descriptor, dSF overridden to 2, Home. 786x1318.
    Account: fresh, demo fill {seed: 1, months: 2, orders: 30} -- the dataset is a function of
    (seed, today), so the params are re-picked on a render day to give the all-orders state its
-   3 July Bilka Delivered matches; today seed 1 does. */
+   3 August Bilka Delivered matches; today seed 1 does. */
 import { readFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { execSync } from 'node:child_process'
@@ -42,8 +42,8 @@ async function freshAccount(ctx) {
 	r = await ctx.request.post(BASE + '/api/demo-data', { data: { seed: 1, months: 2, orders: 30 } })
 	if (!r.ok()) throw new Error('demo-data ' + r.status())
 	console.log('demo-data:', await r.text())
-	const check = await (await ctx.request.get(BASE + '/api/orders?vendor=bilka&status=Delivered&from=2026-07-01&to=2026-07-31')).json()
-	console.log('account check: july bilka delivered =', check.matched, 'of', check.total)
+	const check = await (await ctx.request.get(BASE + '/api/orders?vendor=bilka&status=Delivered&from=2026-08-01&to=2026-08-31')).json()
+	console.log('account check: august bilka delivered =', check.matched, 'of', check.total)
 }
 
 async function settle(page) {
@@ -109,14 +109,14 @@ page.setDefaultTimeout(2000)
 page.setDefaultNavigationTimeout(2000)
 
 await page.goto(BASE + '/#/', { timeout: 15000 })
-await page.waitForSelector('.chart path', { state: 'attached', timeout: 5000 })
+await page.waitForSelector('.chart-wrap path', { state: 'attached', timeout: 5000 })
 await shoot(page, 'home.png')
 
 /* Vendor ids are generated per account now, so the id is read back from the API rather than
    hardcoded -- the committed shot's state is "filtered to Bilka", not any literal id. */
 const vendors = await (await desktop.request.get(BASE + '/api/vendors')).json()
 const bilka = vendors.find(v => v.name === 'Bilka').id
-await page.goto(BASE + `/#/orders/all?vendor=${bilka}&status=Delivered&from=2026-07-01&to=2026-07-31`, { timeout: 15000 })
+await page.goto(BASE + `/#/orders/all?vendor=${bilka}&status=Delivered&from=2026-08-01&to=2026-08-31`, { timeout: 15000 })
 await page.waitForSelector('.pager-row .field-help')
 const matchLine = await page.locator('text=MATCH').first().innerText().catch(() => '?')
 console.log('all-orders header:', JSON.stringify(matchLine))
@@ -147,7 +147,7 @@ const phone = await phoneCtx.newPage()
 phone.setDefaultTimeout(2000)
 phone.setDefaultNavigationTimeout(2000)
 await phone.goto(BASE + '/#/', { timeout: 15000 })
-await phone.waitForSelector('.chart path', { state: 'attached', timeout: 5000 })
+await phone.waitForSelector('.chart-wrap path', { state: 'attached', timeout: 5000 })
 await settle(phone)
 await phone.screenshot({ path: join(outdir, 'phone.png') })
 await diff(phone, 'phone.png')

@@ -133,6 +133,7 @@ Red — error and destructive. Used for validation that stops a save, and for de
 - Gap between cards in a column: `14px`. Between columns: `24px` (in-app), `40px` (mockup comparison).
 - Page padding: `48px` desktop, `20px` mobile.
 - Row vertical padding in lists: `12–14px`.
+- The first row of a list sits below the card's hairline at the distance every other row sits below the hairline above it. The row's own padding is the whole gap; nothing above it adds more.
 
 ### Radius
 

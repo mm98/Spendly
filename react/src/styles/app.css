@@ -583,6 +583,9 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .card-body:has(> .card-subheading) { padding:18px var(--pad-card); }
 .card-body-page { padding:var(--pad-card); }
 .card-body-tight { padding-top:6px; }
+/* A body opening straight onto a row adds no top of its own: the row's padding is both the gap
+   under the hairline and the box the hover tint paints, so it has to be the only one. README: Cards. */
+.card-body:has(> .data-row:first-child) { padding-top:0; }
 .card-body-centered { padding:34px 28px; display:grid; justify-items:center; gap:var(--gap-panel); text-align:center; }
 .card-body-filters { padding:16px 18px; display:grid; gap:var(--gap-block); }
 /* A body whose one child is a chart, in a card that is only as tall as the row it shares. The
@@ -786,6 +789,9 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .chart-series-key .chart-series-key-row { display:inline-flex; align-items:center; gap:var(--gap-icon); }
 .chart-series-key .chart-series-key-swatch { width:9px; height:9px; border-radius:3px; flex:none; }
 .entry-list { margin-top:8px; }
+/* That margin separates the list from whatever sits above it inside the body. First in the
+   body, or the body itself, there is nothing above it but the card's own hairline. */
+.card-body.entry-list, .card-body > .entry-list:first-child { margin-top:0; }
 /* The count under a truncated list ("The 5 most recent of 40 in Aug."). A block of its own, so
    the button under it clears it -- .field-help is an inline span, and inline is what let this
    line sit inside the row above it. Written as style="display:block;margin-top:10px" at its one
@@ -874,12 +880,9 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); min-width:0; }
 .entry-list .entry-glyph { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:var(--bg-inset); flex:none; }
-/* A tight top belongs to the container, not to the row: the row's padding is the box
-   the hover tint paints, so trimming the row's own padding for a row that can light up
-   would make the lit band uneven. Rows that never light up keep the tight top, since
-   nothing there ever draws the box. README: Honest Affordances. */
+/* Where no row in the list can light up, the tight top goes on the row itself: trimming the
+   padding of a row that does light up would make the hover box uneven. README: Honest Affordances. */
 .entry-list:not(:has(.entry-list-row[data-go])) > .entry-list-row:first-child { padding-top:0; }
-.card-body-tight:has(> .entry-list-row[data-go]) { padding-top:0; }
 /* flex:1 is for the flex bodies (.ring-row): a block-level grid fills its card on its own, but
    as a flex item it shrinks to content and sits at flex-start -- two empty states rendered
    hard left while every other one centered. README: Empty states. */
@@ -1601,7 +1604,9 @@ label.field-shell { cursor:pointer; }
 	}
 	:root:has(.line-card) .sidebar { display:none; }
 	.topbar { flex-wrap:wrap; }
-	.topbar h1 { font-size:16px; }
+	/* The title takes what the arrow, the buttons and the gear leave and cuts the rest with an
+	   ellipsis; under 80px -- eight letters here -- the row wraps instead. Cut in the render only. */
+	.topbar h1 { font-size:16px; flex:1 1 80px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but
 	   typing an order is the one you need when there is no receipt to scan, so it
 	   must never be the desktop-only option. Shortening the labels to "Scan" and
