@@ -130,7 +130,7 @@ function BuildQuality() {
    with none highlighted, searches all orders for the typed text, which is what the line at the
    foot of the panel says.
 
-   It searches orders, vendors, categories, item lines and notes, and it lists the commands
+   It searches orders, vendors, categories, wishes, item lines and notes, and it lists the commands
    the app can run -- so it is the one control that reaches every page and every create flow.
    The results come from the API on each keystroke, aborted when the next one lands, which is
    why a slow answer cannot overwrite a fast one typed after it.
@@ -319,7 +319,7 @@ function GlobalFinder() {
 				{query.trim() && !flat.length ? (
 					<div className="combobox-group">
 						<div className="combobox-group-heading">Nothing found</div>
-						<div className="combobox-option">No order, vendor, category or note matches "{query}".</div>
+						<div className="combobox-option">No order, vendor, category, wish or note matches "{query}".</div>
 					</div>
 				) : null}
 				{query.trim() ? (

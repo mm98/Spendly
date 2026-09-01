@@ -826,8 +826,8 @@ export const scanThumbnailUrl = documentKey => `/api/scan/documents/${documentKe
 export const scanFileUrl = documentKey => `/api/scan/documents/${documentKey}/file`
 
 /* ---- command palette ----
-   The server's /api/search matches vendors, categories and orders (by vendor name, note or an
-   item's title) against the account's own rows — the same real query getOrders' text search
+   The server's /api/search matches vendors, categories, wishes and orders (by vendor name,
+   note or an item's title) against the account's own rows — the same real query getOrders' text search
    runs. Grouping that into headed sections, highlighting the matched substring and mixing in
    the static "go to"/"create" commands is presentation, not data, so it stays here rather than
    asking the server to compose UI. */
@@ -880,7 +880,7 @@ export async function search(query, signal) {
 			.map(c => ({ id: c.id, ...highlight(c.label, ''), meta: c.meta, to: c.to })) }] }
 	}
 
-	const { vendors, categories, orders } = await request('/api/search' + qs({ query }), { signal })
+	const { vendors, categories, wishes, orders } = await request('/api/search' + qs({ query }), { signal })
 	const groups = []
 	const take = (heading, options) => { if (options.length) groups.push({ heading, options }) }
 	/* The last row of a group holding more than the panel shows. Its label quotes the typed text,
@@ -930,6 +930,14 @@ export async function search(query, signal) {
 				meta: 'Category', to: `/categories/${c.id}/edit` }])
 		]),
 		...more(categories, 'categories', `/categories/all?q=${encodeURIComponent(query)}`, 'All categories')
+	])
+
+	/* One row a wish, because a wish has one destination -- itself. The meta says when it is an
+	   archived one, which the wishlist's own default view leaves out. */
+	take('Wishes', [
+		...wishes.slice(0, SHOWN_PER_KIND).map(w => ({ id: w.id, ...highlight(w.name, needle),
+			meta: w.archived ? `Wish${sep}Archived` : 'Wish', to: `/wishlist/${w.id}/edit` })),
+		...more(wishes, 'wishes', `/wishlist?q=${encodeURIComponent(query)}`, 'All wishes')
 	])
 
 	const lines = []

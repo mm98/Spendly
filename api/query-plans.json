@@ -618,6 +618,26 @@
 				"sqlite_autoindex_categories_2"
 			]
 		},
+		"SELECT id, name, archived FROM wishes WHERE user_id = @userId AND contains_fold(name, @needle) ORDER BY name COLLATE NOCASE LIMIT @limit": {
+			"plan": [
+				"SCAN wishes",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
+		"SELECT id, name, archived FROM wishes WHERE user_id = @userId AND name LIKE @needle ESCAPE '\\' ORDER BY name COLLATE NOCASE LIMIT @limit": {
+			"plan": [
+				"SCAN wishes",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
 		"SELECT id, name, icon, icon_path, colour, budget, favourite FROM categories WHERE id = ? AND user_id = ?": {
 			"plan": [
 				"SEARCH categories USING INDEX sqlite_autoindex_categories_1 (id=?)"
