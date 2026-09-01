@@ -4,7 +4,7 @@ import { Button } from '../components/Button.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { ImageOrIcon } from '../components/Icon.jsx'
-import { EntityRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
+import { EntityRow, SummaryRow } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { LinePhoto, useDroppedPhoto } from '../components/LinePhoto.jsx'
 import {
@@ -150,7 +150,7 @@ function WishFields({ mode, wish }) {
 			rail={
 				<>
 					<WishSummary name={name} url={url} price={price} categories={chosen}
-						archived={archived} photo={photo} wish={wish} />
+						photo={photo} wish={wish} />
 					{mode === 'edit' ? (
 						<DeleteCard what="wish" del={del}>
 							Nothing else points at a wish, so removing one takes only the wish itself.
@@ -255,7 +255,7 @@ function WishFields({ mode, wish }) {
 
 /** The rail card mirroring the form. No spend total: a wish has never cost anything, and the
     figure it has is what the shop asks today. */
-function WishSummary({ name, url, price, categories, archived, photo, wish }) {
+function WishSummary({ name, url, price, categories, photo, wish }) {
 	const site = url.trim() ? siteOf(url) : ''
 	// Only an address a browser can follow becomes a link -- httpUrl is the same rule the field
 	// validates with, so the rail cannot offer a link the form would have refused.
@@ -279,20 +279,10 @@ function WishSummary({ name, url, price, categories, archived, photo, wish }) {
 				<div className="summary-row">Shop<span className="summary-row-value">{site || '-'}</span></div>
 				<div className="summary-row">Categories
 					<span className="summary-row-value">{categories.length ? categories.join(', ') : '-'}</span></div>
-				<div className="summary-row">Picture
-					<span className="summary-row-value">{photo.present ? 'Yes' : 'No'}</span></div>
 				{wish ? <SummaryRow label="Added" value={longDate(wish.createdAt)} /> : null}
-				<div className="summary-row">On your wishlist
-					<span className="summary-row-value">{archived ? 'No, archived' : 'Yes'}</span></div>
-				<div className="card-divider card-divider-tight" />
-				{/* An asking price, not a spend: the estimate mark says the figure is what the
-				    shop wants, not something this account has paid. */}
-				<SummaryTotal label="Price today"
-					value={asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'} estimate />
-				<span className="field-help">
-					A wish is not an order. Nothing here is counted in your spending, your charts or
-					your budgets.
-				</span>
+				<div className="summary-row">Price
+					<span className="summary-row-value">
+						{asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'}</span></div>
 				{/* The way to the shop, on the page that holds every other action on this record --
 				    a real link at the foot, the way the vendor page ends in VIEW ORDERS. Only
 				    once the address is one a browser can follow. */}
