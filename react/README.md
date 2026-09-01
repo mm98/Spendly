@@ -506,10 +506,10 @@ originals still stay, since content negotiation needs the identity encoding to e
 stale on arrival: every asset revalidated on every load, one conditional round trip each, to be
 told 304 every time. Three positions instead — `assets/` is content-hashed, so the name changes
 whenever the bytes do and it can be `max-age=31536000, immutable`; `index.html` is the file that
-names those hashes and is `no-cache`, which is stored-and-revalidated rather than not stored, so
-a load after a deploy costs one 304 and picks up the new chunk names; everything `public/` copies
-through verbatim is unhashed and bounded at a week, so a replaced favicon reaches an open browser
-eventually rather than never.
+names those hashes and is `no-store`, kept by no browser or shared cache, so every load fetches
+the current copy and a deploy's new chunk names are live on the very next load; everything
+`public/` copies through verbatim is unhashed and bounded at a week, so a replaced favicon
+reaches an open browser eventually rather than never.
 
 Loading is already asynchronous where it can be. The entry is `<script type="module">`, which
 defers by definition; the runtime and `vendor` chunks are `modulepreload`ed so they are in flight

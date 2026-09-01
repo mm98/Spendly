@@ -266,9 +266,9 @@ app.use((req, res, next) => {
                  immutable, never revalidated. The fonts are in here rather than in the bucket
                  below because they are imported from src/ for exactly that: an unhashed name
                  can only ever be cached for as long as you are willing to serve a stale one.
-     index.html  the file that names the current hashes. no-cache is not "do not store": it is
-                 stored and revalidated, so a load after a deploy costs one 304 and picks up
-                 the new chunk names instead of running last week's.
+     index.html  the file that names the current hashes. no-store: no browser or shared cache
+                 keeps a copy, so every load fetches the current file and a deploy's new chunk
+                 names are live on the very next load, with nothing left to revalidate.
      everything  what public/ copies through verbatim -- the icons, the manifest. Unhashed, so
      else        bounded rather than immutable: a replaced favicon reaches an already-open
                  browser within the week rather than never.
@@ -282,7 +282,7 @@ if (existsSync(CLIENT_DIST)) app.use(express.static(CLIENT_DIST, {
 	setHeaders: (res, filePath) => {
 		const name = filePath.replace(/\.(br|gz)$/, '')
 		if (name.includes(`${path.sep}assets${path.sep}`)) res.setHeader('Cache-Control', `public, max-age=${CACHE_YEAR}, immutable`)
-		else if (name.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache')
+		else if (name.endsWith('.html')) res.setHeader('Cache-Control', 'no-store')
 		else res.setHeader('Cache-Control', `public, max-age=${CACHE_WEEK}`)
 	}
 }))
