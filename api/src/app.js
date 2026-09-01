@@ -198,20 +198,6 @@ app.use('/api/search', searchRouter)
    own default of serving index.html for '/' is the only fallback this needs, not a wildcard
    route for arbitrary paths the way a browser-history router would. */
 const CLIENT_DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'react', 'dist')
-/* The bundle ships a source map beside every chunk, which is what makes a stack trace off a
-   running container name a file in src/ instead of index-<hash>.js:1:24817 -- and what makes
-   this app's sources readable by anyone who can reach it. So the maps are built into the image
-   and served only when asked for: SPENDLY_SOURCE_MAPS=1 hands them out, anything else (unset
-   included) 404s them while the chunks beside them serve exactly as before. Same default shape
-   as SPENDLY_PLAIN_HTTP one file over -- unset is the closed position, and "1" is the install
-   saying it wants the open one.
-
-   A serving decision rather than a build one, deliberately: the image always carries the maps,
-   so turning them on to read one trace is a restart, not a rebuild, and turning them back off
-   is the same. The .gz/.br variants are named here too, or precompress.mjs's own output would
-   be the way around the switch. */
-if (process.env.SPENDLY_SOURCE_MAPS !== '1') app.use((req, res, next) =>
-	/\.map(\.(gz|br))?$/.test(req.path) ? res.status(404).end() : next())
 /* The build writes a .br and a .gz beside every text asset (react/scripts/precompress.mjs),
    and until now nothing read them back: express.static answers with the identity file
    whatever a request's Accept-Encoding says, and this process is what serves the app in the

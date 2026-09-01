@@ -20,8 +20,6 @@ services:
       TZ: "Europe/Copenhagen"
       # Plain-http sessions (LAN by IP). Remove if behind HTTPS.
       SPENDLY_PLAIN_HTTP: "1"
-      # Serves source maps for stack traces. Readable by anyone who can reach the app.
-      # SPENDLY_SOURCE_MAPS: "1"
       # Optional: lets Scan read receipts automatically. Get a key at console.anthropic.com.
       # ANTHROPIC_API_KEY: sk-ant-...
     volumes:

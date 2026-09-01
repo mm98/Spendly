@@ -19,7 +19,7 @@ import { fileURLToPath } from 'url'
 const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 /* Anything already compressed (woff2, png, the fonts inside the CSS) gains nothing from a
    second pass and can lose to it. This list is what is worth the disk. */
-const EXTENSIONS = new Set(['.js', '.css', '.html', '.json', '.svg', '.map', '.txt', '.webmanifest'])
+const EXTENSIONS = new Set(['.js', '.css', '.html', '.json', '.svg', '.txt', '.webmanifest'])
 
 const walk = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
 	const full = path.join(dir, entry.name)
