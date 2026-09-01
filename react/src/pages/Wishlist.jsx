@@ -176,7 +176,7 @@ export default function Wishlist() {
 							<Button variant="pill" icon="plus" to="/wishlist/new">ADD</Button>
 						</CardHeader>
 						<CardDivider />
-						<CardBody>
+						<CardBody variant="card-body-tight">
 							{data.wishes.length ? (
 								data.wishes.map(wish => {
 									const href = httpUrl(wish.url)

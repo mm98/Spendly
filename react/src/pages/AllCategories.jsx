@@ -74,7 +74,7 @@ export default function AllCategories() {
 				placeholder="Search category name..." label="Search categories"
 				sortLabel="Sort categories" sorts={SORTS} sortValue={sort.label} onSort={resort} />
 
-			<Async state={state} label="Loading your categories" skeleton={<SkeletonCard><SkeletonRows count={6} /></SkeletonCard>}>
+			<Async state={state} label="Loading your categories" skeleton={<SkeletonCard bodyVariant="card-body-tight"><SkeletonRows count={6} /></SkeletonCard>}>
 				{categories => {
 				const needle = query.trim().toLowerCase()
 				const listed = categories
@@ -88,7 +88,7 @@ export default function AllCategories() {
 							<Button variant="pill" icon="plus" to="/categories/new">ADD</Button>
 						</CardHeader>
 						<CardDivider />
-						<CardBody>
+						<CardBody variant="card-body-tight">
 							{paged.rows.map(category => (
 								<EntityRow key={category.id}
 									mark={<EntityMark favourite={category.favourite}>

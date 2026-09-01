@@ -91,7 +91,7 @@ export default function AllVendors() {
 				placeholder="Search by vendor name or other name..." label="Search vendors"
 				sortLabel="Sort vendors" sorts={SORTS} sortValue={sort.label} onSort={resort} />
 
-			<Async state={state} label="Loading your vendors" skeleton={<SkeletonCard><SkeletonRows count={6} /></SkeletonCard>}>
+			<Async state={state} label="Loading your vendors" skeleton={<SkeletonCard bodyVariant="card-body-tight"><SkeletonRows count={6} /></SkeletonCard>}>
 				{vendors => {
 				/* What counts as a match is not this page's to decide -- vendorTextMatch is the
 				   client's one answer, matching the name and every alias the way resolution
@@ -113,7 +113,7 @@ export default function AllVendors() {
 							<Button variant="pill" icon="plus" to="/vendors/new">ADD</Button>
 						</CardHeader>
 						<CardDivider />
-						<CardBody>
+						<CardBody variant="card-body-tight">
 							{paged.rows.map(vendor => (
 								<EntityRow key={vendor.id}
 									mark={<EntityMark favourite={vendor.favourite}>
