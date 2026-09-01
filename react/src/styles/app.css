@@ -168,8 +168,6 @@
 	--gutter-page:24px;
 	/* The sheet's own vertical padding, beside the gutter above: 18px over the first
 	   card and 24px under the last at desktop, one even 14px on the phone. */
-	--pad-sheet-top:18px;
-	--pad-sheet-bottom:24px;
 	--pad-card:20px;
 	--pad-inset:12px;
 	/* Control side-insets come in two, by role rather than by height tier -- the 32px
@@ -389,9 +387,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    fire on any page. What actually hid it was the tab builder reaching up to
    subtabs.parentElement.style: JS styling an element it does not own, one wrapper
    away from hiding the wrong one, and an inline display:none in the served DOM. */
-.page-bar { background:var(--bg-card); padding:var(--pad-bar-y) var(--gutter-page) 0; }
+.page-bar { background:var(--bg-card); padding:var(--gutter-page) var(--gutter-page) 0; }
 .page-bar:not(:has(button)) { display:none; }
-.content-sheet { background:var(--bg-card); padding:var(--pad-sheet-top) var(--gutter-page) var(--pad-sheet-bottom); }
+.content-sheet { background:var(--bg-card); padding:var(--gutter-page); }
 .content-sheet-inner { width:100%; }
 
 /* Pull-to-refresh (components/PullToRefresh.jsx). Fixed to the viewport rather than to the page
@@ -1339,7 +1337,7 @@ label.field-shell { cursor:pointer; }
 .hero.hero-panel { text-align:left; padding:38px 42px; background:var(--bg-hero); border-radius:20px; }
 /* Centred, so the sentence has to be centred in the column as well as in itself --
    max-width alone would pin it to the left edge of a 760px block. */
-.hero.hero-column { max-width:760px; margin:0 auto; text-align:center; padding:24px 0 10px; }
+.hero.hero-column { max-width:760px; margin:0 auto; text-align:center; padding:0 0 10px; }
 .hero.hero-column p { margin-inline:auto; }
 .button.button-caps { gap:var(--gap-icon); border:0; border-radius:var(--radius-page); background:var(--bg-dark); color:var(--text-inverse); font-size:11.5px; letter-spacing:.08em; }
 .ai-prompt-bar { display:flex; align-items:center; gap:var(--gap-row); background:var(--bg-card); border:1px solid var(--border-card); border-radius:16px; box-shadow:var(--shadow); padding:8px 8px 8px 20px; max-width:640px; margin:0 auto; }
@@ -1552,8 +1550,6 @@ label.field-shell { cursor:pointer; }
 		   sheet's vertical padding evens out to 14px, and the pager buttons narrow so
 		   the row fits beside the range chips. */
 		--gutter-page:12px;
-		--pad-sheet-top:14px;
-		--pad-sheet-bottom:14px;
 		--pad-pager:7px;
 	}
 	.sidebar {
@@ -1775,10 +1771,10 @@ label.field-shell { cursor:pointer; }
 	   own edge and have nothing to be rounded against once they run full width, but
 	   the cards sitting on them keep their radius -- they are objects on the paper,
 	   not the paper. Controls keep theirs for the same reason. */
-	.content-sheet { margin:8px 0 14px; border-radius:0; }
+	.content-sheet { border-radius:0; }
 	/* The strip scrolls rather than wrapping: a second row of sub-tabs would push the
 	   first card below the fold, and the tabs are a set you scan, not a paragraph. */
-	.page-bar { padding-bottom:2px; overflow-x:auto; scrollbar-width:none; }
+	.page-bar { overflow-x:auto; scrollbar-width:none; }
 	.segmented { flex-wrap:nowrap; }
 	.dashboard-cards { grid-template-columns:minmax(0,1fr); }
 	/* One favourite per row, the tile a little tighter. The total already sits at its own

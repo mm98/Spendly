@@ -134,6 +134,7 @@ Red — error and destructive. Used for validation that stops a save, and for de
 - Page padding: `48px` desktop, `20px` mobile.
 - Row vertical padding in lists: `12–14px`.
 - The first row of a list sits below the card's hairline at the distance every other row sits below the hairline above it. The row's own padding is the whole gap; nothing above it adds more.
+- **The gutter is the page's inset on all four sides.** The space between the top bar and the first thing a page draws, and below the last, is the same value as the side margin. A page adds nothing of its own on top of it: where a lead-in looks wanted, it belongs to a surface that is drawn, not to empty air.
 
 ### Radius
 
