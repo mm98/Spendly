@@ -1,14 +1,8 @@
 import { percent, plural, sep } from './format.js'
 import { vendorTextMatch } from './client.js'
 
-/* The groups a vendor or category dropdown offers, built in one place.
-
-   README: Input types groups a searchable picker Favourites → All, and every call site used to
-   build its own two groups -- so a picker added later simply listed everything and the starred
-   records led nothing. Nothing here is a call site's to decide. */
-
-/** Favourites first and starred, then the rest. `exclude` drops names already chosen, which is
-    what a field holding chips needs and a filter picking one value does not. */
+/** Favourites first and starred, then the rest -- every category dropdown's groups, built here
+    rather than at each call site (README: Input types). `exclude` drops names already chosen. */
 export const categoryGroups = (categories, { exclude = [] } = {}) => {
 	const listed = (categories ?? []).filter(c => !exclude.includes(c.name))
 	const option = c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })
@@ -18,9 +12,8 @@ export const categoryGroups = (categories, { exclude = [] } = {}) => {
 	]
 }
 
-/** The same split for vendors. `typed` is the field's current text: a vendor matched through an
-    alias names that alias in its meta line, because the text may appear nowhere else on the row
-    (README: Vendors), and `search` is what the dropdown filters against. */
+/** The same split for vendors. `search` carries the aliases the dropdown filters on, and an
+    alias `typed` matched is named in the meta line (README: Vendors). */
 export const vendorGroups = (vendors, typed = '') => {
 	const listed = vendors ?? []
 	const option = v => {
