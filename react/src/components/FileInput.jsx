@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useId, useImperativeHandle, useRef, useState } from 'react'
 import { Icon } from './Icon.jsx'
 import { ButtonLink } from './Button.jsx'
 import { acceptAttribute } from './fileKinds.js'
@@ -55,6 +55,9 @@ async function pickWithFileSystemAccess(spec, multiple) {
     filtered dialog wherever the browser can draw one. */
 export const HiddenFileInput = forwardRef(function HiddenFileInput({ onFiles, multiple, kind, accept, label }, ref) {
 	const input = useRef(null)
+	// A page can hold several of these at once -- one per line photo -- so the id has to be
+	// per instance, not a name shared by every hidden input on the page.
+	const id = useId()
 
 	useImperativeHandle(ref, () => ({
 		click() {
@@ -70,7 +73,7 @@ export const HiddenFileInput = forwardRef(function HiddenFileInput({ onFiles, mu
 	}), [kind, multiple, onFiles])
 
 	return (
-		<input ref={input} type="file" multiple={multiple} accept={accept ?? (kind && acceptAttribute(kind))}
+		<input ref={input} type="file" id={id} multiple={multiple} accept={accept ?? (kind && acceptAttribute(kind))}
 			className="field-file-input" tabIndex={-1} aria-hidden="true"
 			aria-label={label}
 			onChange={e => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { sep } from '../api/format.js'
 import { Icon, ICONS } from './Icon.jsx'
 import { FieldShell } from './Form.jsx'
@@ -81,6 +81,7 @@ export const VENDOR_COLOURS = [
 export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, label }) {
 	const chosen = colours.some(c => c.id === value)
 	const hex = resolveColour(value)
+	const id = useId()
 
 	/* The colour is the data, so it stays on the element; the size and the selection ring are
 	   the stylesheet's (.colour-swatch -- the ring survives every background a swatch can be
@@ -114,7 +115,7 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
 					}}>
 					<Icon name={chosen ? 'plus' : 'pencil'} />
 				</span>
-				<input type="color" value={hex} className="colour-picker-input"
+				<input type="color" id={id} value={hex} className="colour-picker-input"
 					aria-label={chosen ? 'Pick another colour' : `Custom colour ${hex}`}
 					onChange={e => onChange(e.target.value)} />
 			</span>
@@ -142,6 +143,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 	const [query, setQuery] = useState('')
 	const [catalogue, setCatalogue] = useState(null)
 	const [paths, setPaths] = useState({})
+	const id = useId()
 
 	/* Imported here rather than at the top of the module: 5,129 names belong in the chunk that
 	   opens with the picker instead of the one that paints the app. */
@@ -197,7 +199,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 		<div className="icon-picker">
 			<FieldShell>
 				<Icon name="search" />
-				<input type="search" value={query}
+				<input type="search" id={id} value={query}
 					placeholder="Search icons..."
 					aria-label="Search icons" onChange={e => setQuery(e.target.value)} />
 			</FieldShell>

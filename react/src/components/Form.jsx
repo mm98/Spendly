@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import { Icon } from './Icon.jsx'
 
 /* Fields, and the one place a rejection is drawn.
@@ -58,10 +58,20 @@ export const FieldUnit = ({ children }) => <span className="field-unit">{childre
 
 /** The plain text input. Nothing here is input[type=number] and nothing should be: Danish
     decimals use a comma, which type=number rejects -- `value` comes back empty and
-    min/max/step never run. `inputMode` gets the numeric keyboard; the parsing is ours. */
-export function TextInput({ value, onChange, invalid, describedBy, ...rest }) {
+    min/max/step never run. `inputMode` gets the numeric keyboard; the parsing is ours.
+
+    Every field the app renders is one a label, an autofill hint or a password manager can
+    address, so `id` is never optional -- `useId()` covers the fields no caller names (a
+    reference, a note) without asking every one of them to invent a string. A caller's own
+    `id` (the field validation and `focusField` key on) always wins.
+
+    The generated fallback is named `autoId` rather than `id` because this component already
+    has a prop called `id` -- the same generated value elsewhere in the app (a control with
+    no `id` prop of its own to collide with) is just called `id`. */
+export function TextInput({ id, value, onChange, invalid, describedBy, ...rest }) {
+	const autoId = useId()
 	return (
-		<input type="text" value={value} onChange={e => onChange?.(e.target.value)}
+		<input type="text" id={id ?? autoId} value={value} onChange={e => onChange?.(e.target.value)}
 			aria-invalid={invalid ? 'true' : undefined}
 			aria-describedby={invalid ? describedBy : undefined} {...rest} />
 	)
@@ -72,8 +82,9 @@ export function TextInput({ value, onChange, invalid, describedBy, ...rest }) {
    No native affordance survives the stylesheet, so the glyph opens the picker itself. Where
    showPicker() is missing (iOS < 16) nothing is bound at all -- a dead listener would
    swallow the tap the label forwards to the input. Alt+Down keeps it off the mouse. README: Honest Affordances, iOS and WebKit. */
-export function DateInput({ value, onChange, invalid, describedBy, trail, label, ...rest }) {
+export function DateInput({ id, value, onChange, invalid, describedBy, trail, label, ...rest }) {
 	const ref = useRef(null)
+	const autoId = useId()
 
 	const openPicker = useCallback(() => {
 		const input = ref.current
@@ -88,7 +99,7 @@ export function DateInput({ value, onChange, invalid, describedBy, trail, label,
 
 	return (
 		<FieldShell variant="field-shell-date">
-			<input ref={ref} type="date" value={value} aria-label={label}
+			<input ref={ref} type="date" id={id ?? autoId} value={value} aria-label={label}
 				onChange={e => onChange?.(e.target.value)}
 				aria-invalid={invalid ? 'true' : undefined}
 				aria-describedby={invalid ? describedBy : undefined}
@@ -107,11 +118,14 @@ export function DateInput({ value, onChange, invalid, describedBy, trail, label,
 	)
 }
 
-export const TextArea = ({ value, onChange, ...rest }) => (
-	<FieldShell variant="field-shell-area">
-		<textarea value={value} onChange={e => onChange?.(e.target.value)} {...rest} />
-	</FieldShell>
-)
+export const TextArea = ({ id, value, onChange, ...rest }) => {
+	const autoId = useId()
+	return (
+		<FieldShell variant="field-shell-area">
+			<textarea id={id ?? autoId} value={value} onChange={e => onChange?.(e.target.value)} {...rest} />
+		</FieldShell>
+	)
+}
 
 /* ---- segmented control ----
    It looks and announces like tabs, so it behaves like them: selection follows the click,

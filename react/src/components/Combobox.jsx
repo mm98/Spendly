@@ -52,6 +52,9 @@ export function Combobox({
 	const wrapper = useRef(null)
 	const input = useRef(null)
 	const panelId = useId().replace(/:/g, '') + '-panel'
+	// Falls back for a caller that renders this with no id of its own (the toolbar sort,
+	// the Stats window picker).
+	const autoId = useId()
 
 	/* Closing on an outside click is a document listener, so it has to ignore clicks inside
 	   this combobox -- otherwise choosing an option closes the list before the choice lands. */
@@ -143,7 +146,7 @@ export function Combobox({
 	}, [active, activeOption, panelId])
 
 	const inputEl = (
-		<input ref={input} type="text" id={id} role="combobox" readOnly={pickOnly}
+		<input ref={input} type="text" id={id ?? autoId} role="combobox" readOnly={pickOnly}
 			aria-expanded={open} aria-controls={panelId} aria-autocomplete={pickOnly ? 'none' : 'list'}
 			aria-label={label} aria-required={required || undefined}
 			aria-invalid={invalid ? 'true' : undefined}
