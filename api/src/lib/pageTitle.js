@@ -50,7 +50,13 @@ async function hostIsPublic(hostname) {
 	}
 }
 
-const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'", '#x27': "'" }
+/* Named references are case-sensitive in HTML (&Oslash; is not &oslash;), so this is looked up
+   as written. Numeric ones are decoded arithmetically below and need no table. */
+const NAMED = {
+	amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+	aelig: 'æ', oslash: 'ø', aring: 'å', AElig: 'Æ', Oslash: 'Ø', Aring: 'Å',
+	ndash: '–', mdash: '—', hellip: '…', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”'
+}
 
 /** The content of the first <meta> naming any of `names`, in the order given. */
 const metaContent = (html, names) => {
@@ -62,8 +68,18 @@ const metaContent = (html, names) => {
 	return null
 }
 
+/* A Danish shop escapes its own name mostly numerically: "n&#248;glebr&#230;t" has to reach a
+   reader as "nøglebræt". Anything unrecognised is left exactly as written. */
 const decode = text => text
-	.replace(/&(amp|lt|gt|quot|apos|nbsp|#39|#x27);/gi, (_, name) => ENTITIES[name.toLowerCase()] ?? _)
+	.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, ref) => {
+		if (ref[0] !== '#') return NAMED[ref] ?? whole
+		const code = ref[1].toLowerCase() === 'x' ? parseInt(ref.slice(2), 16) : Number(ref.slice(1))
+		// Nothing outside a real character: a code of 0, a lone surrogate half or a value past
+		// the last code point is a broken reference, not a letter.
+		if (!Number.isInteger(code) || code <= 0 || code > 0x10ffff) return whole
+		if (code >= 0xd800 && code <= 0xdfff) return whole
+		return String.fromCodePoint(code)
+	})
 	.replace(/\s+/g, ' ')
 	.trim()
 
