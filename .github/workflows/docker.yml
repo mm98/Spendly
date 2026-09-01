@@ -2,25 +2,38 @@ name: Docker
 
 # Builds the deploy image and publishes it to GHCR, so a self-hosted box (the QNAP)
 # pulls a ready image instead of compiling better-sqlite3 on NAS hardware.
-# Pull requests build without pushing, which is what verifies the Dockerfile in CI.
+#
+# It waits for CI rather than running beside it: on a push both start at once, so an image
+# could be built, measured, pushed and pulled by the NAS while the run that would have failed
+# was still going. What ships is a commit every check agreed on.
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
-  # pull_request:
   workflow_dispatch:
 
 jobs:
   image:
+    # Nothing ships from a CI run that failed or was cancelled. A hand-started run has no CI
+    # run behind it to read, and is the deliberate way to rebuild the current main.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    env:
+      # github.sha is the default branch's head under workflow_run, not the commit CI ran on,
+      # and checkout defaults to the same. Both would silently build something else the moment
+      # a second merge lands while this one is building.
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: docker/setup-buildx-action@v4
       - uses: docker/login-action@v4
-        if: github.event_name != 'pull_request'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -31,28 +44,12 @@ jobs:
         id: stamp
         run: echo "time=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
-      # A pull request builds the image and stops there, which is the Dockerfile check this
-      # workflow has always been. No measurement: the scores belong to what gets shipped, and a
-      # pull request ships nothing.
-      - uses: docker/build-push-action@v7
-        if: github.event_name == 'pull_request'
-        with:
-          context: .
-          push: false
-          build-args: |
-            BUILD_TIME=${{ steps.stamp.outputs.time }}
-            GIT_SHA=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          provenance: false
-
-      # Everything below is the push path: two passes over one build. The first produces the
+      # Two passes over one build. The first produces the
       # image locally; Lighthouse scores that container -- the actual artifact, serving its own
       # bundle through its own API, which is the only honest thing to stamp -- and the second
       # pass bakes the result in. Every layer is cached from the first pass, so the second
       # rebuilds the ENV line and nothing else.
       - uses: docker/build-push-action@v7
-        if: github.event_name != 'pull_request'
         with:
           context: .
           load: true
@@ -60,16 +57,14 @@ jobs:
           tags: spendly:measuring
           build-args: |
             BUILD_TIME=${{ steps.stamp.outputs.time }}
-            GIT_SHA=${{ github.sha }}
+            GIT_SHA=${{ env.SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
       - uses: actions/setup-node@v5
-        if: github.event_name != 'pull_request'
         with:
           node-version: 24
       - name: Score the image
-        if: github.event_name != 'pull_request'
         id: lighthouse
         run: |
           # SPENDLY_DB into /tmp: the image points it at /data, which only exists once a volume
@@ -81,16 +76,15 @@ jobs:
           echo "scores=$(cat lighthouse.json)" >> "$GITHUB_OUTPUT"
           docker rm -f spendly-measuring
       - uses: docker/build-push-action@v7
-        if: github.event_name != 'pull_request'
         with:
           context: .
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/spendly:latest
-            ghcr.io/${{ github.repository_owner }}/spendly:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/spendly:${{ env.SHA }}
           build-args: |
             BUILD_TIME=${{ steps.stamp.outputs.time }}
-            GIT_SHA=${{ github.sha }}
+            GIT_SHA=${{ env.SHA }}
             LIGHTHOUSE=${{ steps.lighthouse.outputs.scores }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -105,10 +99,9 @@ jobs:
   # grows without bound on a registry whose storage is the repository's. Keep the ten most
   # recent versions and delete the rest; `latest` always shares a digest with the newest
   # `<sha>`, so it is inside the kept set by construction and cannot be pruned out from
-  # under a `docker compose pull`. Pull requests do not push, so there is nothing to prune.
+  # under a `docker compose pull`.
   prune:
     needs: image
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       packages: write
