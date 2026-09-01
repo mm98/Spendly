@@ -463,7 +463,7 @@ trust the row below past this pass:
 
 | | identity | gzip | brotli |
 | --- | --- | --- | --- |
-| whole `dist/`, 62 files (excluding source maps) | 1,578.46 kB | 402.52 kB (74.5% off) | **352.33 kB (77.7% off)** |
+| whole `dist/`, 59 files | 1,862.93 kB | 511.57 kB (72.5% off) | **442.78 kB (76.2% off)** |
 | first paint, 8 files | 416.15 kB | — | **124.70 kB** (70.0% off) — unverified against the file set above; not re-derived this pass |
 
 Serving them used to be described here as the host's half — nginx `gzip_static`, Caddy
@@ -549,45 +549,23 @@ fetched in CORS mode, and a preload whose mode does not match the fetch after it
 Verified as **0 duplicate resource entries** and all three faces `loaded`, in the built app and
 under `vite dev` both.
 
-### Source maps ride along with the chunks
+### The build ships no source maps
 
-Everything above is why a stack trace off this build is unreadable: the minifier renames every
-binding and puts a chunk on one line, so a report from a running container names
-`index-Dn_mor3s.js:1:24817` and stops there. `build.sourcemap: true` in `vite.config.js` writes a
-`<chunk>.js.map` beside every chunk and appends a `sourceMappingURL` comment pointing at it, so
-devtools and any error reporter walk the frame back to `src/`. The maps carry `sourcesContent`, so
-the sources travel with the map and nothing has to be fetched from the repository to read them.
+The minifier renames every binding and puts a chunk on one line, so a stack trace off this build
+names `index-<hash>.js:1:24817` and stops there. A map is what would undo that, and
+`build.sourcemap` in `vite.config.js` is `false` regardless: the maps are the larger part of the
+directory for a file no visitor ever fetches, and the source they point into is public anyway —
+`/api/version` names the commit the image was built from, and a frame is read against that commit
+in the repository.
 
-**48 maps, 3,158.90 kB at last count, and none of it on the critical path.** A browser requests a
-`.map` only when devtools is open, so what a visitor actually pays is the comment: **2,190 bytes
-over the 48 chunks that carry one**, 45.6 on average — the runtime chunk Rolldown emits is the one
-JS file that gets no map. Both totals grow with the chunk count; the shape (one comment per chunk,
-tens of bytes each, no map fetched unless devtools is open) is what's load-bearing, not the digits.
-That is the whole of the change to what is served, 2.19 kB inside 1,578.46 kB identity /
-352.33 kB brotli of shipped assets, and the `dist/` table above counts those and not the maps,
-which are the other 3,158.90 kB (667.75 kB brotli) of the directory — both pairs at last count,
-same caveat as above. `precompress.mjs` already
-listed `.map` among its text extensions, so the maps are gzipped and brotlied like everything
-else and that script needed no change.
+Measured over one tree, `npm run build` each way: maps on, **348 files, 11,032 kB**, of which
+**162 map files carrying 7,680 kB** — a `.map` per chunk plus the `.gz` and `.br` beside each.
+Maps off, **186 files, 3,332 kB**. That is **69.6% of the directory**. The chunks themselves are
+the same bytes either way, a map being a file beside a chunk rather than part of it, so the only
+difference on the wire is the `sourceMappingURL` comment, which the chunks do not carry.
 
-The sources being readable from the deployed app is the other half of that, so the server hands
-the maps out only when told to: `SPENDLY_SOURCE_MAPS=1` serves them, anything else — unset
-included — 404s every `.map`, and the `.map.gz` and `.map.br` beside it, or `precompress.mjs`'s
-own output would be the way around the switch. That is the same default shape as
-`SPENDLY_PLAIN_HTTP`: unset is the closed position and `"1"` is an install asking for the open
-one. The chunks serve unchanged either way, so what is lost while it is off is a legible trace and
-nothing else. Measured against the built `dist/`, over the API's own static mount: **maps 404 /
-chunks 200 unset and at `=0`, maps 200 / chunks 200 at `=1`**, `/` and `/api/version` 200
-throughout. It is deliberately a serving decision and not a build one — the image always carries
-the maps, so turning them on to read one trace is a restart rather than a rebuild, and turning
-them back off is the same.
-
-The stylesheet gets no map: Vite emits none for it here, and the CSS is plain CSS with no
-preprocessor behind it, so a map would only undo the minifier's whitespace. Verified served —
-`GET /assets/index-Dn_mor3s.js.map` answers **200, `application/json`, 199,573 bytes** through
-`vite preview`, which serves `dist/` without the gate, and the same through the API's static
-mount with `SPENDLY_SOURCE_MAPS=1`. The gate reads that variable strictly — `=true` is not `=1`
-and 404s, the same way `SPENDLY_PLAIN_HTTP` is tested.
+`precompress.mjs` lists the text extensions worth a `.gz` and a `.br`, and `.map` is not among
+them, because the list describes what `dist/` holds.
 
 ## What was measured
 
