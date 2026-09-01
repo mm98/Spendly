@@ -376,6 +376,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .icon-button.icon-button-clear { width:26px; height:26px; margin-left:auto; flex:none; }
 .icon-button.icon-button-send { width:40px; height:40px; border-radius:var(--radius-page); border:0; background:var(--bg-dark); color:var(--text-inverse); display:grid; flex:none; }
 .icon-button.icon-button-reorder { width:28px; height:28px; flex:none; }
+.icon-button.topbar-up { display:none; }
 
 /* the rounded content sheet: sidebar and top bar sit on the white shell,
    the canvas itself is an inset rounded panel the cards sit on */
@@ -663,6 +664,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
    it, and the dashed border carries the edit affordance without an animation the
    reduced-motion rule would strip. */
 .screenreader-only { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+.narrow-only { display:none; }
 .dashboard-cards.is-editing > .card { border-style:dashed; border-color:var(--text-faint); }
 .card-reorder-bar { display:flex; align-items:center; gap:6px; padding:12px 14px 0; }
 .card-reorder-bar .card-reorder-position { font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin-right:auto; }
@@ -1604,14 +1606,16 @@ label.field-shell { cursor:pointer; }
 	}
 	:root:has(.line-card) .sidebar { display:none; }
 	.topbar { flex-wrap:wrap; }
-	/* The title takes what the arrow, the buttons and the gear leave and cuts the rest with an
-	   ellipsis; under 80px -- eight letters here -- the row wraps instead. Cut in the render only. */
-	.topbar h1 { font-size:16px; flex:1 1 80px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+	/* Every page here names itself -- the tab bar lights the section, each form card prints its
+	   own headline -- so the title is .screenreader-only's recipe: announced and focusable, undrawn. */
+	.topbar h1 { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+	.icon-button.topbar-up { display:inline-grid; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but
 	   typing an order is the one you need when there is no receipt to scan, so it
 	   must never be the desktop-only option. Shortening the labels to "Scan" and
 	   "NEW" keeps the pair on one row; the full wording stays in the accessible name. */
 	.wide-only { display:none; }
+	.narrow-only { display:inline; }
 	.field-pair { grid-template-columns:1fr; }
 	/* The one exception to that collapse. From/To and Min/Max are ranges: the pair
 	   is one control, and an end is read against the other end, not against a label
