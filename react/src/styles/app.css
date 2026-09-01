@@ -1778,7 +1778,7 @@ label.field-shell { cursor:pointer; }
 	.content-sheet { margin:8px 0 14px; border-radius:0; }
 	/* The strip scrolls rather than wrapping: a second row of sub-tabs would push the
 	   first card below the fold, and the tabs are a set you scan, not a paragraph. */
-	.page-bar { padding:6px var(--gutter-page) 2px; overflow-x:auto; scrollbar-width:none; }
+	.page-bar { padding-bottom:2px; overflow-x:auto; scrollbar-width:none; }
 	.segmented { flex-wrap:nowrap; }
 	.dashboard-cards { grid-template-columns:minmax(0,1fr); }
 	/* One favourite per row, the tile a little tighter. The total already sits at its own
