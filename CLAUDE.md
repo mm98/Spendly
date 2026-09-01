@@ -308,6 +308,14 @@ several matches per line).
 one more.** A rule added beside surviving per-copy declarations is a near-miss the cascade hides until
 they disagree — read the match count back and check survivors declare only their real differences.
 
+**A class name is built from names that exist.** Every segment but the last names a real class in
+the file; the last says what this element is. A segment naming an element that has no class of its own
+describes a structure the stylesheet does not have, and a grep for it finds nothing. Check the
+prefix before compounding onto it.
+
+**The name says what the element is, not what is true of its neighbour.** A qualifier attaches to
+whatever it actually qualifies — putting it on the wrong noun reads as a claim about that noun.
+
 **A value with a design-system token is written as the token, always** — check `:root` before writing
 a literal. Where a value has no token and repeats, name it as a scoped custom property instead of
 repeating the literal.
