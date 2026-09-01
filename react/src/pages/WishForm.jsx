@@ -150,7 +150,7 @@ function WishFields({ mode, wish }) {
 			rail={
 				<>
 					<WishSummary name={name} url={url} price={price} categories={chosen}
-						archived={archived} photo={photo} wish={wish} />
+						photo={photo} wish={wish} />
 					{mode === 'edit' ? (
 						<DeleteCard what="wish" del={del}>
 							Nothing else points at a wish, so removing one takes only the wish itself.
@@ -255,7 +255,7 @@ function WishFields({ mode, wish }) {
 
 /** The rail card mirroring the form. No spend total: a wish has never cost anything, and the
     figure it has is what the shop asks today. */
-function WishSummary({ name, url, price, categories, archived, photo, wish }) {
+function WishSummary({ name, url, price, categories, photo, wish }) {
 	const site = url.trim() ? siteOf(url) : ''
 	// Only an address a browser can follow becomes a link -- httpUrl is the same rule the field
 	// validates with, so the rail cannot offer a link the form would have refused.
@@ -279,15 +279,12 @@ function WishSummary({ name, url, price, categories, archived, photo, wish }) {
 				<div className="summary-row">Shop<span className="summary-row-value">{site || '-'}</span></div>
 				<div className="summary-row">Categories
 					<span className="summary-row-value">{categories.length ? categories.join(', ') : '-'}</span></div>
-				<div className="summary-row">Picture
-					<span className="summary-row-value">{photo.present ? 'Yes' : 'No'}</span></div>
 				{wish ? <SummaryRow label="Added" value={longDate(wish.createdAt)} /> : null}
-				<div className="summary-row">On your wishlist
-					<span className="summary-row-value">{archived ? 'No, archived' : 'Yes'}</span></div>
 				<div className="card-divider card-divider-tight" />
 				{/* An asking price, not a spend: the estimate mark says the figure is what the
-				    shop wants, not something this account has paid. */}
-				<SummaryTotal label="Price today"
+				    shop wants, not something this account has paid. Not "today" -- the field holds
+				    whatever was written down, on whatever day that was. */}
+				<SummaryTotal label="Price"
 					value={asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'} estimate />
 				<span className="field-help">
 					A wish is not an order. Nothing here is counted in your spending, your charts or
