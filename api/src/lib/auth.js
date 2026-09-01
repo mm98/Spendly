@@ -42,11 +42,11 @@ const openSession = db.transaction((id, userId, expiresAt) => {
 	insertSession.run(id, userId, expiresAt)
 })
 
-export function createSession(res, userId) {
+export function createSession(req, res, userId) {
 	const id = newId('sess')
 	const expiresAt = nowEpoch() + SESSION_TTL_SECONDS
 	openSession(id, userId, expiresAt)
-	setCookie(res, SESSION_COOKIE, id, { maxAgeSeconds: SESSION_TTL_SECONDS })
+	setCookie(req, res, SESSION_COOKIE, id, { maxAgeSeconds: SESSION_TTL_SECONDS })
 	// Returned so login and register can hand the same token back in the body: a script uses
 	// it as `Authorization: Bearer <token>` instead of parsing Set-Cookie. One token, two
 	// carriers, one session row either way.
@@ -93,7 +93,7 @@ export function requireAuth(req, res, next) {
 	if (user.expires_at - now < SESSION_TTL_SECONDS - SESSION_RENEW_AFTER_SECONDS) {
 		const expiresAt = now + SESSION_TTL_SECONDS
 		renewSession.run(expiresAt, token)
-		setCookie(res, SESSION_COOKIE, token, { maxAgeSeconds: SESSION_TTL_SECONDS })
+		setCookie(req, res, SESSION_COOKIE, token, { maxAgeSeconds: SESSION_TTL_SECONDS })
 	}
 	req.user = user
 	next()
