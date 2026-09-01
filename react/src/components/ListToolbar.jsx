@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useId, useRef } from 'react'
 import { Icon } from './Icon.jsx'
 import { FieldShell } from './Form.jsx'
 import { Combobox } from './Combobox.jsx'
@@ -16,11 +16,12 @@ export function ListToolbar({
 	   keyword must not draw a disclosure over an empty panel. */
 	filters
 }) {
+	const id = useId()
 	return (
 		<div className="row-inline toolbar">
 			<FieldShell>
 				<Icon name="search" />
-				<input ref={searchRef} type="search" value={query} placeholder={placeholder}
+				<input ref={searchRef} type="search" id={id} value={query} placeholder={placeholder}
 					aria-label={label} onChange={e => onQuery(e.target.value)} />
 			</FieldShell>
 			{filters ? (

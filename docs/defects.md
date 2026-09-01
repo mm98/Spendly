@@ -2850,3 +2850,52 @@ already drops a group whose options filter empty, so the shared builder needs no
 The tell worth keeping: the three broken pickers were all *filters*, and the four correct ones were
 all *forms*. A rule enforced by copying spreads along the lines authors actually copy, so the gap
 follows the shape of the page rather than the shape of the rule.
+
+---
+
+## Forms — the top bar's own search box had neither a `name` nor an `id`
+
+A sweep of every real `<input>` and `<textarea>` in the app (no `<select>` exists; every choice list
+is the combobox) turned up nine controls with neither attribute: the top bar's global search, the
+list-toolbar search and its sort combobox (shared by All orders, All vendors, All categories and the
+Wishlist), the Stats "Window width" combobox, the order form's reference and note fields (New order
+and Edit order both), the category form's colour-picker custom swatch and icon-picker search field,
+and every hidden file input the app opens for a receipt, an attachment or a line photo.
+
+None of it looked broken. Every one of these drew, focused, and took typed or picked input exactly
+like its neighbours — the gap is invisible to a screenshot and to a click-through, because nothing a
+sighted, mouse-driven pass exercises depends on the attribute. What does: a `<label for="...">` has
+nothing to point at without an `id`; a password manager and a browser's own autofill match a field by
+`id` or `name`; and a test or a future page reaching for `document.getElementById(...)` finds nothing.
+
+`TextInput`, `DateInput`, `TextArea` and `Combobox` already accepted an optional `id` — so a field got
+one exactly when the screen composing it happened to name it (order-vendor, order-date,
+filter-min-amount, every field a validation rule or `focusField` needed to address). The nine that
+didn't were exactly the fields nothing else needed a stable name for, plus two shared controls
+(`ColourPicker`'s custom-colour input, `IconPicker`'s search field, `ListToolbar`'s own search box,
+`HiddenFileInput`) that had no `id` prop to accept in the first place.
+
+The fix sits below every screen, not on nine of them: each shared control that renders a real
+`<input>`/`<textarea>` now generates a fallback id for itself whenever none is supplied, so composing
+one without naming it is no longer possible. A control that can appear more than once on the same
+page at once (a hidden file input, one per line photo) gets a fresh id per instance rather than a
+literal string that would collide the second time it renders.
+
+### Measured
+
+Read back from the running app after the fix, registered fresh and rendered at 1440x900:
+
+| control | before | after |
+|---|---|---|
+| Top bar search (global finder) | no `id`, no `name` | `id="global-finder-search"` |
+| List toolbar search (All orders) | no `id`, no `name` | a generated id (e.g. `_r_2_`) |
+| List toolbar sort combobox | no `id`, no `name` | a generated id (e.g. `_r_4_`) |
+| Stats "Window width" combobox | no `id`, no `name` | a generated id |
+| New/Edit order "Order reference" | no `id`, no `name` | a generated id |
+| New/Edit order "Note" | no `id`, no `name` | a generated id |
+| Category colour picker's custom swatch | no `id`, no `name` | a generated id |
+| Category icon picker's search field | no `id`, no `name` | a generated id |
+
+Every field that already carried a meaningful id (order-vendor, order-date, filter-min-amount, and
+the rest) kept it unchanged — the fallback only fills what was missing, it never overrides a name a
+screen already gave.
