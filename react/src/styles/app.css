@@ -923,7 +923,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
    grow past the field's own width. README: Responsive Layout. */
 .field { display:grid; grid-template-columns:minmax(0,1fr); gap:7px; align-content:start; min-width:0; }
 .field > span { font-size:13px; font-weight:600; color:var(--text); }
-.field-label-optional { font-weight:500; color:var(--text-muted); }
+.field-optional { font-size:10px; font-weight:500; color:var(--text-muted); }
 .field > span.field-help { font-size:12px; font-weight:500; color:var(--text-muted); }
 /* The rejection message, under the field it rejects. Same specificity trap as
    .field-help one line up: `.field > span` is the label, so a message left at
