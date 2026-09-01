@@ -273,7 +273,11 @@ export default function AllOrders() {
 				{data => (
 				<Card aria-label="Orders">
 					<CardHeader title={`Orders${sep}${plural(data.matched, 'match', 'matches')}`}>
-						<span className="field-help">filtered from {data.total}</span>
+						{/* A phone has room for the count or for what it was counted out of, not both:
+						    the two wrap the header onto three lines at 390px. The count is the answer;
+						    "filtered from N" is context, and the pager below still gives it.
+						    `.wide-only` is the app's one way to say so. */}
+						<span className="field-help wide-only">filtered from {data.total}</span>
 					</CardHeader>
 					<CardDivider />
 					<CardBody variant="card-body-tight">

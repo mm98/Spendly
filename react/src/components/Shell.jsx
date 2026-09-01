@@ -45,7 +45,11 @@ const NAV = [
 	{ to: '/wishlist', key: 'wishlist', icon: 'cart', label: 'Wishlist' },
 	{ to: '/vendors', key: 'vendors', icon: 'store', label: 'Vendors' },
 	{ to: '/categories', key: 'categories', icon: 'tag', label: 'Categories' },
-	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics' }
+	/* The one entry the phone bar leaves out. That bar is five columns wide, a sixth wraps it
+	   onto two rows, and two rows cost every page 51px of screen. Statistics is the item that
+	   leaves because it is the only one with another door on a phone: Home's own Spent card is
+	   a link to it (pages/Home.jsx). The sidebar carries all six wherever there is room. */
+	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics', wide: true }
 ]
 
 function Sidebar({ navKey }) {
@@ -59,7 +63,8 @@ function Sidebar({ navKey }) {
 				{NAV.map(item => {
 					const on = item.key === navKey
 					return (
-						<Link key={item.key} to={item.to} className={on ? 'is-on' : undefined}
+						<Link key={item.key} to={item.to}
+							className={[on && 'is-on', item.wide && 'wide-only'].filter(Boolean).join(' ') || undefined}
 							aria-current={on ? 'page' : undefined}>
 							<Icon name={item.icon} />{item.label}
 						</Link>

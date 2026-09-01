@@ -194,7 +194,11 @@ export default function Wishlist() {
 				{data => (
 					<Card aria-label="Wishes">
 						<CardHeader title={`Wishes${sep}${plural(data.matched, 'match', 'matches')}`}>
-							<span className="field-help">filtered from {data.total}</span>
+							{/* A phone has room for the count or for what it was counted out of, not
+							    both: the two wrapped this header onto three lines and pushed ADD down
+							    with them. The count is the answer; "filtered from N" is context, and the
+							    pager below still gives it. `.wide-only` is the app's one way to say so. */}
+							<span className="field-help wide-only">filtered from {data.total}</span>
 							{/* The way to a new record, where the vendor and category lists put it. */}
 							<Button variant="pill" icon="plus" to="/wishlist/new">ADD</Button>
 						</CardHeader>
@@ -219,7 +223,11 @@ export default function Wishlist() {
 											meta={[siteOf(wish.url), `Added ${longDate(wish.createdAt)}`,
 												wish.archived ? 'Archived' : '',
 												wish.categories.join(', ')].filter(Boolean).join(sep)}
-											amount={wish.price != null ? currency(wish.price) : '-'}
+											/* The name and the shop are what a row is looked through for; the price
+										   is what the wish's own page opens with. At 393px the three cannot all
+										   have their width, and the two that identify the record win. */
+										amount={<span className="wide-only">
+											{wish.price != null ? currency(wish.price) : '-'}</span>}
 											/* The one thing a wish has that a vendor and a category do not: a
 											   page outside this app. A real link, so it can be middle-clicked
 											   and its destination read off the status bar. README: Honest

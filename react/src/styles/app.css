@@ -1575,6 +1575,11 @@ label.field-shell { cursor:pointer; }
 	   label, so "Categories" would take more of the bar than "Home". */
 	.sidebar-nav { grid-auto-flow:row; grid-template-columns:repeat(5,minmax(0,1fr)); width:100%; gap:2px; }
 	.sidebar-nav a { flex-direction:column; gap:4px; min-height:48px; padding:6px 2px; font-size:9.5px; border-radius:var(--radius-page); justify-content:center; color:var(--text-muted); }
+	/* The entry the bar leaves out (components/Shell.jsx). `.wide-only` alone cannot do it
+	   here: `.sidebar-nav a` sets display:flex at a higher specificity than a bare class, so
+	   the plain rule further down loses and the item stays -- which is a sixth column in a
+	   five-column grid, and the bar wraps to two rows. */
+	.sidebar-nav a.wide-only { display:none; }
 	/* A filled pill was the desktop rail's way of marking the current page, and it
 	   reads muddy floating on its own already-defined panel — a box inside a box.
 	   Tinting the icon and label instead is the mark this panel can carry without one:
