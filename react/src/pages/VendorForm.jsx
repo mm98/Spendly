@@ -16,8 +16,9 @@ import {
 	createVendor, deleteVendor, failureMessage, getCategories, getVendor, getVendors,
 	invalidateVendorData, updateVendor
 } from '../api/client.js'
-import { currency, percent, sep } from '../api/format.js'
+import { currency, sep } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
+import { categoryGroups } from '../api/pickerGroups.js'
 
 /* A vendor, on its own page -- the same page component as a category and as an order, because
    there is one way to edit a record in this app rather than one per screen. The inline version
@@ -194,14 +195,7 @@ function VendorFields({ mode, vendor }) {
 					))}
 					value={categoryQuery} onChange={setCategoryQuery}
 					onSelect={o => addDefaultCategory(o.label)}
-					groups={[
-						{ heading: 'Favourites', options: (categories.data ?? [])
-							.filter(c => c.favourite && !defaultCategories.includes(c.name))
-							.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses`, star: true })) },
-						{ heading: 'All categories', options: (categories.data ?? [])
-							.filter(c => !c.favourite && !defaultCategories.includes(c.name))
-							.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }
-					]}
+					groups={categoryGroups(categories.data, { exclude: defaultCategories })}
 					action={categoryQuery.trim()
 						? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
 							onSelect: addDefaultCategory }

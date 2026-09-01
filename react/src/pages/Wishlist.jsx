@@ -14,7 +14,8 @@ import { DateInput, Field, FieldPair, FilterSection, Segmented } from '../compon
 import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
 import { getCategories, getSettings, getWishes, wishPhotoThumbnailUrl, wishSorts } from '../api/client.js'
-import { currency, dayMonth, longDate, percent, plural, sep } from '../api/format.js'
+import { currency, dayMonth, longDate, plural, sep } from '../api/format.js'
+import { categoryGroups } from '../api/pickerGroups.js'
 
 /* Only ever a list: a wish is a record, edited on its own page (pages/WishForm.jsx). Archived
    has two answers because the checkbox has two, and unasked it takes "Open". */
@@ -136,8 +137,7 @@ export default function Wishlist() {
 								value={draft.categoryName ?? ''}
 								onChange={v => setDraft({ ...draft, categoryName: v, categoryId: '' })}
 								onSelect={o => setDraft({ ...draft, categoryName: o.label, categoryId: o.id })}
-								groups={[{ heading: 'All categories', options: (categories.data ?? []).map(c =>
-									({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) },
+								groups={[...categoryGroups(categories.data),
 									{ heading: 'Other', options: [{ id: 'none', label: 'Without category' }] }]} />
 						</Field>
 						{/* When it was added, which is the only date a wish has -- it is not dated by
@@ -172,11 +172,6 @@ export default function Wishlist() {
 				{data => (
 					<Card aria-label="Wishes">
 						<CardHeader title={`Wishes${sep}${plural(data.matched, 'match', 'matches')}`}>
-							{/* A phone has room for the count or for what it was counted out of, not
-							    both: the two wrapped this header onto three lines and pushed ADD down
-							    with them. The count is the answer; "filtered from N" is context, and the
-							    pager below still gives it. `.wide-only` is the app's one way to say so. */}
-							<span className="field-help wide-only">filtered from {data.total}</span>
 							{/* The way to a new record, where the vendor and category lists put it. */}
 							<Button variant="pill" icon="plus" to="/wishlist/new">ADD</Button>
 						</CardHeader>

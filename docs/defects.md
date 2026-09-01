@@ -2722,3 +2722,35 @@ either side, and it and the score built from it are what the change actually mov
 Blink only; Gecko and WebKit are not installed and were not checked, and nothing about a
 shimmering `<span>` and a CSS grid stretch reads as engine-shaped enough to expect a difference,
 but that is a reading of the diff, not a run.
+
+## Input types — three pickers listed everything, and a starred record led nothing
+
+Defends: *results are grouped **Favourites → Recent → All***, against a rule every call site was
+trusted to obey on its own.
+
+An account that had starred Electronics, Groceries and Household opened All orders' FILTERS panel
+and found them nowhere near the top: the category picker there listed all ten alphabetically, so
+the three records the reader had marked as the ones they reach for sat between Eating out and
+Health. The vendor picker beside it did the same to Bilka and Proshop. The Wishlist's own category
+filter, written later, listed everything too — not because anyone decided to, but because it was
+written from the picker next to it.
+
+The rule was already in the design system and already obeyed on four forms. What broke it is that
+the two groups were hand-written at each call site: a `.filter(c => c.favourite)` list mapped with
+`star: true`, then a `.filter(c => !c.favourite)` list mapped without it, seven times. Nothing in
+that shape tells a later author it is a rule rather than a layout choice, so a picker written from
+the wrong neighbour, or written fresh, simply lists what it was given.
+
+`react/src/api/pickerGroups.js` now holds `categoryGroups` and `vendorGroups`, and every picker
+calls one of them: All orders' two filters, the Wishlist's filter, New order, Edit order, the
+vendor form, the wish form, and `useVendorPicker` for the order forms' vendor field. `exclude`
+takes the names a chips field has already collected, which is the one thing that genuinely differed
+between the copies. 80 lines of duplicated grouping became 24.
+
+Measured on a seeded account: all seven pickers open with FAVOURITES first and a star on each of
+its rows. On a new account with nothing starred the heading is not drawn at all — the combobox
+already drops a group whose options filter empty, so the shared builder needs no case for it.
+
+The tell worth keeping: the three broken pickers were all *filters*, and the four correct ones were
+all *forms*. A rule enforced by copying spreads along the lines authors actually copy, so the gap
+follows the shape of the page rather than the shape of the rule.
