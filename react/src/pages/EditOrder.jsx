@@ -18,8 +18,9 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addItemAttachments, failureMessage, getCategories, getOrderAsDraft, getVendors,
-	invalidateOrderData, itemAttachmentThumbnailUrl, removeItemAttachment, spendKinds, updateOrder
+	addItemAttachments, categoriesForVendor, failureMessage, getCategories, getOrderAsDraft,
+	getVendors, invalidateOrderData, itemAttachmentThumbnailUrl, removeItemAttachment, spendKinds,
+	updateOrder
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
 import { currency, currencySymbol, parseAmount, percent, sep, sanitizeAmount, today } from '../api/format.js'
@@ -82,7 +83,10 @@ function EditOrderForm({ id, seed }) {
 	const orderErrors = useFieldErrors(ORDER_FIELDS, orderValues)
 	const set = (name, key) => v => { update({ [key]: v }); orderErrors.recheck(name, v) }
 
-	const pickVendor = name => { update({ vendor: name }); orderErrors.recheck('order-vendor', name) }
+	const pickVendor = name => {
+		update({ vendor: name, categories: categoriesForVendor(vendors.data ?? [], name, draft.categories) })
+		orderErrors.recheck('order-vendor', name)
+	}
 	const vendorPicker = useVendorPicker(vendors, draft.vendor, pickVendor, toast)
 
 	const [categoryQuery, setCategoryQuery] = useState('')

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
 import { vendorStats, vendorStatsFor } from '../lib/aggregate.js'
+import { findOrCreateCategory } from '../lib/findOrCreate.js'
 import { colourFor } from '../lib/palette.js'
 
 export const router = Router()
@@ -26,6 +27,45 @@ const insertAlias = db.prepare('INSERT INTO vendor_aliases (id, user_id, vendor_
 const deleteAliasesForVendor = db.prepare('DELETE FROM vendor_aliases WHERE vendor_id = ? AND user_id = ?')
 
 const aliasesFor = (userId, vendorId) => selectAliasesForVendor.all(vendorId, userId).map(r => r.name)
+
+/* Carried as names, the shape an order's own categories travel in, so the order form drops
+   them straight into its field. */
+const selectAllDefaultCategories = db.prepare(`SELECT d.vendor_id, c.name FROM vendor_default_categories d
+	JOIN categories c ON c.id = d.category_id
+	JOIN vendors v ON v.id = d.vendor_id
+	WHERE v.user_id = ? ORDER BY c.name`)
+const selectDefaultCategoriesForVendor = db.prepare(`SELECT c.name FROM vendor_default_categories d
+	JOIN categories c ON c.id = d.category_id
+	WHERE d.vendor_id = ? AND c.user_id = ? ORDER BY c.name`)
+const insertDefaultCategory = db.prepare('INSERT INTO vendor_default_categories (vendor_id, category_id) VALUES (?, ?)')
+const deleteDefaultCategoriesForVendor = db.prepare('DELETE FROM vendor_default_categories WHERE vendor_id = ?')
+
+const defaultCategoriesFor = (userId, vendorId) =>
+	selectDefaultCategoriesForVendor.all(vendorId, userId).map(r => r.name)
+
+/** Trims, drops empties, folds case-insensitive duplicates. Names, not ids: an unknown one is
+    created on write (lib/findOrCreate.js), as saving an order does with the same field. */
+function cleanDefaultCategories(raw) {
+	if (!Array.isArray(raw)) return { error: 'Default categories must be a list of names.' }
+	const seen = new Set()
+	const names = []
+	for (const value of raw) {
+		const name = String(value ?? '').trim()
+		if (!name) continue
+		if (name.length > 80) return { error: '80 characters at most for a category name.' }
+		if (seen.has(name.toLowerCase())) continue
+		seen.add(name.toLowerCase())
+		names.push(name)
+	}
+	return { names }
+}
+
+/** Replaces a vendor's stored default set -- delete-and-reinsert, like the aliases beside it:
+    nothing references one of these rows by id. */
+const writeDefaultCategories = db.transaction((userId, vendorId, names) => {
+	deleteDefaultCategoriesForVendor.run(vendorId)
+	for (const name of names) insertDefaultCategory.run(vendorId, findOrCreateCategory(userId, name))
+})
 
 /** One rule for a submitted alias list, wherever it arrives from (create, edit, the scan
     review's learned alias). Trims, drops empties, folds case-insensitive duplicates, and
@@ -66,29 +106,39 @@ const writeAliases = db.transaction((userId, vendorId, aliases) => {
     separately, so a failure between them left a renamed vendor whose old name had not become
     an alias -- receipts carrying it would stop resolving. writeAliases nests as a savepoint
     inside this, so it stays callable on its own where nothing else is written. */
-const saveVendor = db.transaction((writeRow, userId, vendorId, aliases) => {
+const saveVendor = db.transaction((writeRow, userId, vendorId, aliases, defaultCategories) => {
 	writeRow()
 	writeAliases(userId, vendorId, aliases)
+	writeDefaultCategories(userId, vendorId, defaultCategories)
 })
 
-const withStats = (vendor, stats, aliases = []) => {
+const withStats = (vendor, stats, aliases = [], defaultCategories = []) => {
 	const s = stats.get(vendor.id) ?? { orders: 0, spend: 0, saved: 0 }
 	return {
 		id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour,
 		favourite: Boolean(vendor.favourite), lead: vendor.lead ?? undefined,
-		aliases,
+		aliases, defaultCategories,
 		orders: s.orders, spend: s.spend, saved: s.saved
 	}
 }
 
 router.get('/', (req, res) => {
 	const stats = vendorStats(req.user.id)
-	const aliasesBy = new Map()
-	for (const row of selectAllAliases.all(req.user.id)) {
-		if (!aliasesBy.has(row.vendor_id)) aliasesBy.set(row.vendor_id, [])
-		aliasesBy.get(row.vendor_id).push(row.name)
+	const groupByVendor = rows => {
+		const by = new Map()
+		for (const row of rows) {
+			if (!by.has(row.vendor_id)) by.set(row.vendor_id, [])
+			by.get(row.vendor_id).push(row.name)
+		}
+		return by
 	}
-	res.json(selectAll.all(req.user.id).map(v => withStats(v, stats, aliasesBy.get(v.id) ?? [])))
+	const aliasesBy = groupByVendor(selectAllAliases.all(req.user.id))
+	/* One query for the whole account's defaults, grouped here -- the order form reads this
+	   list to fill its categories field, so a per-vendor query would be one round of SQL per
+	   row of a list that is already in hand. */
+	const defaultsBy = groupByVendor(selectAllDefaultCategories.all(req.user.id))
+	res.json(selectAll.all(req.user.id)
+		.map(v => withStats(v, stats, aliasesBy.get(v.id) ?? [], defaultsBy.get(v.id) ?? [])))
 })
 
 router.post('/', (req, res) => {
@@ -103,6 +153,8 @@ router.post('/', (req, res) => {
 	const look = req.body?.look ?? {}
 	const cleaned = cleanAliases(req.user.id, null, name, look.aliases ?? [])
 	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
+	const defaults = cleanDefaultCategories(look.defaultCategories ?? [])
+	if (defaults.error) return res.status(400).json({ error: defaults.error })
 
 	const vendor = {
 		id: newId('v'), userId: req.user.id, name,
@@ -110,9 +162,10 @@ router.post('/', (req, res) => {
 		colour: look.colour ?? colourFor(name),
 		favourite: look.favourite ? 1 : 0, lead: look.lead ?? null
 	}
-	saveVendor(() => insert.run(vendor), req.user.id, vendor.id, cleaned.aliases)
+	saveVendor(() => insert.run(vendor), req.user.id, vendor.id, cleaned.aliases, defaults.names)
 	// Read back rather than echoed, so the answer holds the stored order (alphabetical).
-	res.status(201).json(withStats({ ...vendor, favourite: vendor.favourite }, new Map(), aliasesFor(req.user.id, vendor.id)))
+	res.status(201).json(withStats({ ...vendor, favourite: vendor.favourite }, new Map(),
+		aliasesFor(req.user.id, vendor.id), defaultCategoriesFor(req.user.id, vendor.id)))
 })
 
 /* One vendor's stats, not vendorStats' whole-account rollup read for one entry -- the map
@@ -123,7 +176,8 @@ const statsForOne = (userId, vendorId) => new Map([[vendorId, vendorStatsFor(use
 router.get('/:id', (req, res) => {
 	const vendor = selectOne.get(req.params.id, req.user.id)
 	if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
-	res.json(withStats(vendor, statsForOne(req.user.id, vendor.id), aliasesFor(req.user.id, vendor.id)))
+	res.json(withStats(vendor, statsForOne(req.user.id, vendor.id), aliasesFor(req.user.id, vendor.id),
+		defaultCategoriesFor(req.user.id, vendor.id)))
 })
 
 router.patch('/:id', (req, res) => {
@@ -161,6 +215,10 @@ router.patch('/:id', (req, res) => {
 	}
 	const cleaned = cleanAliases(req.user.id, vendor.id, nextName, submitted)
 	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
+	// Same rule as the aliases above: the submitted set replaces the stored one, absent it stands.
+	const defaults = cleanDefaultCategories(patch.defaultCategories !== undefined
+		? patch.defaultCategories : defaultCategoriesFor(req.user.id, vendor.id))
+	if (defaults.error) return res.status(400).json({ error: defaults.error })
 
 	const next = {
 		name: nextName,
@@ -170,8 +228,9 @@ router.patch('/:id', (req, res) => {
 		lead: patch.lead !== undefined ? patch.lead : vendor.lead
 	}
 	saveVendor(() => update.run({ ...next, id: vendor.id, userId: req.user.id }),
-		req.user.id, vendor.id, cleaned.aliases)
-	res.json(withStats(selectOne.get(vendor.id, req.user.id), statsForOne(req.user.id, vendor.id), aliasesFor(req.user.id, vendor.id)))
+		req.user.id, vendor.id, cleaned.aliases, defaults.names)
+	res.json(withStats(selectOne.get(vendor.id, req.user.id), statsForOne(req.user.id, vendor.id),
+		aliasesFor(req.user.id, vendor.id), defaultCategoriesFor(req.user.id, vendor.id)))
 })
 
 /** Adds one alias -- the scan review's learning path. When a receipt's vendor line said one

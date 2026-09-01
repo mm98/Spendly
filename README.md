@@ -426,7 +426,9 @@ File: `Vendors and categories.dc.html` · Code: `pages/Vendors.jsx`, `pages/Cate
 
 List rows: name 14px/600, order count and total 12px `#8b8a82`, chevron. Search above.
 
-Panel for a selected vendor: the vendor form (name, VAT number, website, address, default category, notes), then a small stats card — spend, orders, average order, saved vs retail as a 2×2 grid of 20px/700 values — plus a sparkline and the "See in Statistics" link. No charts.
+Panel for a selected vendor: the vendor form (name, VAT number, website, address, default categories, notes), then a small stats card — spend, orders, average order, saved vs retail as a 2×2 grid of 20px/700 values — plus a sparkline and the "See in Statistics" link. No charts.
+
+**Default categories** are the vendor's own answer to "what is this usually": a new order that names the vendor starts with them already in its Categories field, where they can be added to or removed before it saves. They are a starting point, never a rule — an order that already carries categories keeps them when its vendor changes, and editing a vendor's defaults never rewrites orders already saved.
 
 **Merge** handles scan duplicates: the panel offers "Merge into…", which opens a picker of similar vendors, then a comparison showing which field wins per row and the resulting order count. It is destructive and confirmed explicitly, naming the number of orders that will move.
 
