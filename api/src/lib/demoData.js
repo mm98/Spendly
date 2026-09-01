@@ -69,10 +69,8 @@ const ITEMS = {
 	'Everything else': [['Gavekort', 300], ['Blomster', 145], ['Fødselsdagsgave', 399], ['Porto', 45]]
 }
 
-/* A few things not bought yet, so the wishlist has something in it for the same reason the
-   ledger does. Two are archived: a list whose every row is open never shows what the archived
-   tab is for. The prices are what the shop asks, not what anyone paid -- nothing here reaches
-   any total, chart or budget in the app. `back` is how many days ago it was added. */
+/* Two are archived, or the filter has nothing to show. `back` is days ago; the prices are what
+   a shop asks and reach no total in the app. */
 const WISHES = [
 	{ name: 'Sony WH-1000XM5', url: 'https://www.proshop.dk/hoeretelefoner/sony-wh-1000xm5', price: 2799,
 		categories: ['Electronics'], back: 3 },

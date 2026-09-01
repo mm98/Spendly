@@ -77,20 +77,13 @@ export function assertValidOrderDraft(draft) {
 	}
 }
 
-/* ---- wishes ----
-   Ports react/src/api/rules.js's WISH_FIELDS, same as the two above port the order and item
-   ones: a wish typed into the app and a wish posted straight to the API are held to one rule,
-   in the same words. */
+/* Ports react/src/api/rules.js's WISH_FIELDS: one rule in the same words at both doors. */
 
 const MAX_URL = 2048
 const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i
 
-/** The address a wish was found at, in the only form this app stores: an http(s) URL.
-
-    A reader pastes what the address bar gave them, or types `zalando.dk/sko` without a scheme,
-    so a missing scheme is filled in rather than refused. Anything that is not http or https is
-    refused outright, because this value is rendered as a link and `javascript:` in an href is
-    a script the page runs. Returns the normalised address, or null when the value is not one. */
+/** A missing scheme is filled in, since a reader types `zalando.dk/sko`. Anything but http(s)
+    is refused: this is rendered as a link, and `javascript:` in an href is a script. */
 export function normaliseUrl(value) {
 	const clean = String(value ?? '').trim()
 	if (!clean || clean.length > MAX_URL) return null

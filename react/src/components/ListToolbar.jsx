@@ -6,14 +6,8 @@ import { Chip } from './Chip.jsx'
 import { ButtonLink } from './Button.jsx'
 import { useToast } from './Toast.jsx'
 
-/* The row every working list opens with, and the chips under it.
-
-   Four lists ask the same two questions -- what are you looking for, and in what order --
-   and they were four copies of the same twelve lines, agreeing only until one of them was
-   fixed. The sort is the app's one combobox for the job (a native <select> here would be a
-   second dropdown pattern), the search is one `input type=search` inside the field shell, and
-   the FILTERS disclosure sits between them on the lists that have a panel to open. README:
-   Fields and Forms, All Orders. */
+/* The row four working lists open with. The sort is the app's one combobox for the job -- a
+   native <select> here would be a second dropdown pattern. README: Fields and Forms. */
 
 export function ListToolbar({
 	query, onQuery, placeholder, label, searchRef,
@@ -49,13 +43,8 @@ export function ListToolbar({
 
 const countSentence = n => n ? n + (n === 1 ? ' filter still active.' : ' filters still active.') : 'No filters are set.'
 
-/** The filters that are on. A chip is the only place a filter is stored, so a chip that is gone
-    is a filter that is off — never a picture of one. Removing one takes away the element focus
-    was on, so focus is put somewhere deliberate and the change is announced once. README:
-    Honest Affordances, Accessibility.
-
-    `chips` are `{ key, label }`; `onRemove` and `onClearAll` are what actually change the
-    list's state, and `focusRef` is where focus lands when no chip is left to take it. */
+/** A chip is the only place a filter is stored, so a chip that is gone is a filter that is off.
+    Removing one takes away the element focus was on, so `focusRef` is where it lands. */
 export function FilterChips({ chips, onRemove, onClearAll, focusRef }) {
 	const row = useRef(null)
 	const toast = useToast()

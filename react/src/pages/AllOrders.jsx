@@ -167,10 +167,8 @@ export default function AllOrders() {
 		return out
 	}, [filters, vendors.data, categories.data])
 
-	/* Removing a chip and clearing them all are the same two acts on every filtered list, so
-	   the announcement and where focus lands afterwards live with the chips themselves
-	   (components/ListToolbar.jsx). What is left here is the only half that is this page's:
-	   which filters the act turns off. */
+	// The announcement and where focus lands live with the chips (components/ListToolbar.jsx);
+	// which filters an act turns off is this page's.
 	const clearAll = () => write(EMPTY, '', urlSort, 1)
 
 	return (

@@ -16,9 +16,8 @@ const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon
    start from the orders side and read all 50,000 of an account's rows to count one category's
    links: 12.2ms against 1.5ms, same count. */
 const countOrders = db.prepare('SELECT COUNT(*) c FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = ? AND o.user_id = ?')
-// A wish carries categories the same way an order does, so it holds a category in use the
-// same way -- without this the delete below reached SQLite's foreign key and came back as a
-// 500 instead of the sentence the orders case answers with.
+// A wish holds a category in use the same way an order does; without this the delete below
+// reaches SQLite's foreign key and answers 500 instead of a sentence.
 const countWishes = db.prepare('SELECT COUNT(*) c FROM wish_categories wc CROSS JOIN wishes w ON w.id = wc.wish_id WHERE wc.category_id = ? AND w.user_id = ?')
 const deleteOne = db.prepare('DELETE FROM categories WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, favourite=@favourite WHERE id=@id AND user_id=@userId')

@@ -16,30 +16,8 @@ import { httpUrl, siteOf } from '../api/rules.js'
 import { getCategories, getSettings, getWishes, wishPhotoThumbnailUrl, wishSorts } from '../api/client.js'
 import { currency, dayMonth, longDate, percent, plural, sep } from '../api/format.js'
 
-/* The wishlist: things the account wants and has not bought.
-
-   A wish is not an order, and that is the whole reason this is its own section. Every total,
-   chart and budget in the app reads the orders table on one assumption -- that a row there is
-   money that has already left -- so a wish counted anywhere among them would quietly overstate
-   a month. Nothing on this page reaches any of those figures.
-
-   And this page is only ever a list. A wish is a record, so it is created and edited on its own
-   page (pages/WishForm.jsx) the way a vendor and a category are -- one way to edit a record in
-   this app, not one per screen. What is here is the working list every other list here is: one
-   search field, one sort, one FILTERS panel, chips naming what is on, and a real pager cut to
-   the account's own rows-per-page setting. The toolbar and the chips are the shared ones
-   (components/ListToolbar.jsx); the filters and the sorts are this list's. */
-
-/* Archived is a filter with three answers, and "no" is the one it takes when nobody asks: a
-   wishlist is what you still want, so a list that opened with the things you had already put
-   away would have to be narrowed before it could be read.
-
-   Two answers, because the thing it filters has two. A wish carries one checkbox called
-   Archived (pages/WishForm.jsx), so the list shows the wishes with it ticked or the wishes
-   without -- a third "both" would be a state no record can be in. "Archived" is the
-   checkbox's own word, so a reader who ticked it can see which side they are now looking at,
-   and "Open" is what the other side is: still wanted, not yet dealt with. The labels are what
-   a reader sees; the values are what the URL and the API carry. */
+/* Only ever a list: a wish is a record, edited on its own page (pages/WishForm.jsx). Archived
+   has two answers because the checkbox has two, and unasked it takes "Open". */
 const SHOWN = [
 	{ value: 'no', label: 'Open' },
 	{ value: 'yes', label: 'Archived' }
@@ -48,10 +26,8 @@ const shownLabel = value => SHOWN.find(s => s.value === value)?.label ?? SHOWN[0
 
 const EMPTY = { categoryId: '', categoryName: '', from: '', to: '', archived: 'no' }
 
-/* The filters live in the query string, not in component state -- the same rule All orders
-   follows, and for the same reasons: a filtered list is then a URL that can be sent, the Back
-   button walks the filters, and a link arriving from elsewhere cannot disagree with the chips
-   above the list. */
+/* In the query string, not component state: a filtered list is then a URL that can be sent,
+   and the chips cannot disagree with a link that arrives carrying filters. */
 const filtersFromParams = params => ({
 	...EMPTY,
 	categoryId: params.get('category') ?? '',
@@ -90,10 +66,8 @@ export default function Wishlist() {
 	const settings = useApi(getSettings)
 	const pageSize = settings.data?.pageSize ?? 10
 
-	/* The panel's own copy follows the URL, so a link arriving with a filter on it opens the
-	   panel showing that filter rather than the last thing typed into it. The category needs
-	   translating on the way in -- the URL carries an id and the combobox shows a name -- and
-	   the names land after the first render, so this re-runs when they do. */
+	/* The panel follows the URL, so a link carrying a filter opens it showing that filter. The
+	   category is an id there and a name here, and the names land after the first render. */
 	useEffect(() => setDraft({
 		...filters,
 		categoryName: categoryNameOf(categories.data, filters.categoryId)
@@ -136,9 +110,8 @@ export default function Wishlist() {
 		return out
 	}, [filters, categories.data])
 
-	/* Sorted by price with nothing filtered: the list can be empty because no wish has a price
-	   yet, and then the action that fixes it is the sort, not a CLEAR ALL with nothing to
-	   clear. The narrowing lives on the server so the count and the page agree about it. */
+	// Sorted by price the list can be empty because no wish has one, and then the fix is the
+	// sort rather than a CLEAR ALL with nothing to clear.
 	const narrowingSort = activeSort.startsWith('price-')
 
 	return (
@@ -214,29 +187,23 @@ export default function Wishlist() {
 									const href = httpUrl(wish.url)
 									return (
 										<EntityRow key={wish.id} editTo={`/wishlist/${wish.id}/edit`}
-											/* The cover: the wish's own picture where it has one, and the
-											   same tile drawn empty where it does not -- a record without a
-											   picture keeps the column, so no name or price shifts sideways
-											   between one row and the next. */
+											/* Drawn empty where there is no picture, so the column is kept
+											   and no name shifts sideways between rows. */
 											mark={<span className="document-thumb">
 												<ImageOrIcon src={wish.photoId ? wishPhotoThumbnailUrl(wish.id, wish.photoId) : ''}
 													icon="photo" imgClassName="document-thumb-img" /></span>}
 											name={wish.name}
-											/* Where it is sold, when it was written down, whether it is put
-											   away, and what it would land under -- one meta line, the way a
-											   vendor row names its orders and its aliases. */
+											// One meta line, the way a vendor row names its orders and
+											// aliases.
 											meta={[siteOf(wish.url), `Added ${longDate(wish.createdAt)}`,
 												wish.archived ? 'Archived' : '',
 												wish.categories.join(', ')].filter(Boolean).join(sep)}
-											/* The name and the shop are what a row is looked through for; the price
-										   is what the wish's own page opens with. At 393px the three cannot all
-										   have their width, and the two that identify the record win. */
+											/* At 393px the three cannot all have their width, and the two
+											   that identify the record win. */
 										amount={<span className="wide-only">
 											{wish.price != null ? currency(wish.price) : '-'}</span>}
-											/* The one thing a wish has that a vendor and a category do not: a
-											   page outside this app. A real link, so it can be middle-clicked
-											   and its destination read off the status bar. README: Honest
-											   Affordances. */
+											/* A real link, so it can be middle-clicked and read off the
+											   status bar. README: Honest Affordances. */
 											action={href ? (
 												<IconButton icon="externalLink" href={href}
 													target="_blank" rel="noopener noreferrer"
@@ -245,9 +212,8 @@ export default function Wishlist() {
 									)
 								})
 							) : data.total === 0 ? (
-								/* Nothing to filter is not "nothing matches": on an account with no
-								   wishes at all the filter sentence would blame filters nobody set, and
-								   CLEAR ALL would offer to clear them. README: Empty states. */
+								/* Nothing to filter is not "nothing matches": with no wishes at all,
+								   CLEAR ALL would offer to clear filters nobody set. */
 								<EmptyState icon="cart">
 									<p>Nothing on your wishlist yet. Add the first thing you are thinking about buying.</p>
 									<ButtonLink to="/wishlist/new">ADD A WISH</ButtonLink>

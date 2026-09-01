@@ -209,17 +209,8 @@ export function EntityRow({ mark, name, meta, amount, sub, editTo, action }) {
 		</>
 	)
 
-	/* One row, one link, and it is the record -- what a vendor and a category row are, and the
-	   reason neither of them carries a button.
-
-	   `action` is for a record that genuinely has a second destination outside this app: a wish
-	   names a shop's own page, which is not something the record page can be a substitute for
-	   the way "this vendor's orders" is. An <a> cannot hold another <a>, so the row stops being
-	   the link and the name carries it, stretched over the row -- the whole row still goes to
-	   the record, and the action beside it is a real link too. Nothing about how the row looks
-	   changes: `data-go` still says where the row goes, so the one hover treatment every
-	   navigating row in the app shares lights this one too. See .row-stretch in the
-	   stylesheet. */
+	/* `action` is a second destination outside this app. An <a> cannot hold another <a>, so the
+	   name carries the link and stretches over the row; `data-go` still lights it. */
 	if (action) {
 		return (
 			<div className="data-row entity-row entity-row-action" data-go={editTo}>
@@ -229,9 +220,8 @@ export function EntityRow({ mark, name, meta, amount, sub, editTo, action }) {
 			</div>
 		)
 	}
-	/* No destination, no link and no chevron: this file's own rule, and what the live preview
-	   in an edit form's rail needs -- the row exactly as its list draws it, and inert, because
-	   the record it is previewing may not exist yet. */
+	// No destination, no link and no chevron: an edit form's rail preview draws the row its
+	// list draws, inert, for a record that may not exist yet.
 	if (!editTo) return <div className="data-row entity-row">{body}</div>
 	return (
 		<Link className="data-row entity-row" to={editTo} data-go={editTo}>

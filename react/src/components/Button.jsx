@@ -25,10 +25,8 @@ export function Button({ variant = '', to, href, icon, iconAfter, children, clas
 		</>
 	)
 	if (to) return <Link className={classes} to={to} data-go={to} {...rest}>{content}</Link>
-	/* The third case, the one `IconButton` below already names: a real URL outside this app's
-	   own routes, so a plain <a> rather than the router's `Link`. Same reasoning as `to`, one
-	   rung further out -- middle-click, "open in new tab" and the status bar all have to work,
-	   which a button calling window.open takes away. */
+	// A real URL outside this app's routes takes a plain <a>: middle-click, open-in-new-tab and
+	// the status bar all have to work, which a button calling window.open takes away.
 	if (href) return <a className={classes} href={href} {...rest}>{content}</a>
 	return <button type="button" className={classes} {...rest}>{content}</button>
 }

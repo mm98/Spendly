@@ -69,15 +69,8 @@ export const ITEM_FIELDS = [
 export const LINE_FIELDS = ITEM_FIELDS
 	.map(f => ({ ...f, name: f.name.replace('item-', 'line-') }))
 
-/* The wishlist's own form. Required: what it is, and where to buy it -- a wish nobody can find
-   again is a note, not a wish. Price and categories are optional, and optional is still
-   checked: `gratis` is as wrong in a price here as it is on an item.
-
-   The address rule is the one place in this app a field is normalised rather than only judged.
-   A reader pastes what the address bar gave them, or types `zalando.dk/sko` without the
-   `https://`, and both are the same intention -- so the missing part is filled in (by the API,
-   which stores the one form: see api/src/lib/validate.js, whose normaliseUrl this mirrors) and
-   anything that is not an http address is refused outright. */
+/* Required: what it is and where to buy it. The address is the one field here normalised
+   rather than only judged -- api/src/lib/validate.js stores the form this mirrors. */
 export const WISH_FIELDS = [
 	{ name: 'wish-name', label: 'Name', check: v =>
 		!v ? 'What do you wish for?' : v.length > 120 ? '120 characters at most.' : '' },
@@ -93,9 +86,8 @@ export const WISH_FIELDS = [
 
 const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i
 
-/** The address as a browser can follow it, or null when the value is not one. Whatever a link
-    is drawn from goes through here first: `javascript:` in an href is a script the page runs,
-    and a stored address is only ever as trustworthy as the door it came in through. */
+/** Whatever a link is drawn from goes through here first: `javascript:` in an href is a
+    script, and a stored address is only as trustworthy as the door it came in through. */
 export function httpUrl(value) {
 	const clean = String(value ?? '').trim()
 	if (!clean) return null
@@ -106,9 +98,8 @@ export function httpUrl(value) {
 	return url.href
 }
 
-/** The shop's own name, for the line under a wish: `www.` is noise a reader does not need,
-    and a whole address there would be a line of query string. Falls back to the raw value,
-    which is only reachable for a record written before this rule existed. */
+/** The shop's name for the line under a wish -- a whole address there is a line of query
+    string. Falls back to the raw value. */
 export const siteOf = value => {
 	const href = httpUrl(value)
 	if (!href) return String(value ?? '')
