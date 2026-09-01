@@ -280,7 +280,7 @@ export default function Stats() {
 										{ key: 'current', dataKey: 'y1', name: view.shortLabelFull, color: 'var(--green)',
 											area: true, strokeWidth: 2.4, today: true },
 										...(compare ? [{ key: 'previous', dataKey: 'y2', name: view.previousLabel,
-											color: '#95ABAA', dash: '4 4', strokeWidth: 1.6 }] : [])
+											color: 'var(--green-light)', dash: '4 4', strokeWidth: 1.6 }] : [])
 									]} />
 							</CardBody>
 						</Card>
