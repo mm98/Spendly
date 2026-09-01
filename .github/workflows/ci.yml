@@ -72,7 +72,9 @@ jobs:
           node-version: 24
       - run: node scripts/check-comments.mjs
         env:
-          CHECK_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          # A push has no pull_request to read: github.event.before is the main this one
+          # landed on, so the diff is what the merge actually brought in.
+          CHECK_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
 
   # Lighthouse against the built bundle served by the API process -- the deployed shape, not
   # the dev server, which serves unminified modules one file per import and scores something
