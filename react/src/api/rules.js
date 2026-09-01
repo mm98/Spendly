@@ -39,8 +39,7 @@ export const ORDER_FIELDS = [
 ]
 
 /** Step 2's item form. Required: Description, Quantity, Price paid. Retail and Note are
-    optional and still checked -- optional is not unchecked, and `gratis` is as wrong there as
-    anywhere. Note takes the title's own length, being the other free text on a line. */
+    optional and still checked -- optional is not unchecked, and `gratis` is as wrong there. */
 export const ITEM_FIELDS = [
 	{ name: 'item-description', label: 'Description', check: v =>
 		!v ? 'Describe the item.' : v.length > 120 ? '120 characters at most.' : '' },
