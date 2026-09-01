@@ -444,7 +444,8 @@ function ScanReviewForm({ answer }) {
 			const lineValues = {
 				'line-description': line.title, 'line-quantity': String(line.quantity),
 				'line-price': amount(line.price),
-				'line-retail': line.retail != null ? amount(line.retail) : ''
+				'line-retail': line.retail != null ? amount(line.retail) : '',
+				'line-note': line.note ?? ''
 			}
 			const failedLine = LINE_FIELDS.filter(f => f.check(String(lineValues[f.name] ?? '').trim()))
 			if (failedLine.length) {
@@ -459,7 +460,8 @@ function ScanReviewForm({ answer }) {
 		createOrder({
 			vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
 			categories: [], shipping: draft.shipping, discount: draft.discount,
-			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price, retail: l.retail }))
+			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price,
+				retail: l.retail, note: l.note }))
 		})
 			/* The order is saved either way -- navigation proceeds -- but a receipt that quietly
 			   failed to attach is the one claim this flow exists to keep, so the failure is said. */
@@ -787,13 +789,15 @@ function LineEditor({
 		'line-description': line.title,
 		'line-quantity': String(line.quantity),
 		'line-price': amount(line.price),
-		'line-retail': line.retail != null ? amount(line.retail) : ''
+		'line-retail': line.retail != null ? amount(line.retail) : '',
+		'line-note': line.note ?? ''
 	})
 	const { check, recheck, propsFor } = useFieldErrors(LINE_FIELDS, form)
 	const description = propsFor('line-description')
 	const quantity = propsFor('line-quantity')
 	const price = propsFor('line-price')
 	const retailField = propsFor('line-retail')
+	const noteField = propsFor('line-note')
 	const file = useRef(null)
 	const [over, setOver] = useState(false)
 
@@ -805,11 +809,13 @@ function LineEditor({
 		const failed = check()
 		if (failed.length) { focusField(failed[0].name); return }
 		const retail = form['line-retail'].trim()
+		const note = form['line-note'].trim()
 		onSave({
 			title: form['line-description'].trim(),
 			quantity: Number(form['line-quantity']),
 			price: parseAmount(form['line-price']),
-			retail: retail ? parseAmount(retail) : undefined
+			retail: retail ? parseAmount(retail) : undefined,
+			note: note || undefined
 		})
 	}
 
@@ -913,6 +919,15 @@ function LineEditor({
 								onChange={v => set('line-retail')(sanitizeAmount(v))}
 								invalid={retailField.invalid} describedBy={retailField.describedBy} />
 							<FieldUnit>{currencySymbol()}</FieldUnit>
+						</FieldShell>
+					</Field>
+					<Field label="Note" optional htmlFor="line-note"
+						error={noteField.error} errorId={noteField.errorId}
+						help="Anything worth remembering about this line.">
+						<FieldShell>
+							<TextInput id="line-note" aria-label="Note" value={form['line-note']}
+								onChange={set('line-note')}
+								invalid={noteField.invalid} describedBy={noteField.describedBy} />
 						</FieldShell>
 					</Field>
 
