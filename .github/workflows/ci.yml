@@ -47,6 +47,18 @@ jobs:
       - run: npm ci
       - run: npm run queries:check
 
+  # Every control that opens a new browsing context carries rel="noopener". Whole tree, not the
+  # diff: one that lands without it is wrong every day after, and a diff-scoped guard would let
+  # it through forever once merged.
+  external-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/check-external-links.mjs
+
   # CLAUDE.md's Comments rule, made mechanical and scoped to the diff -- a comment nobody
   # touched never fails a run it has nothing to do with, the same shape as queries: above.
   comments:
