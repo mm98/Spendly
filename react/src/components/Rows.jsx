@@ -91,7 +91,7 @@ export function ItemRow({ icon, iconTone, thumb, thumbSrc, onThumbClick, thumbHr
 					   lives at a URL, so middle-click, "open in new tab" and the status bar all have
 					   to work. README: Honest Affordances. */
 					<a className="document-thumb document-thumb-button" href={thumbHref}
-						target="_blank" rel="noopener noreferrer"
+						target="_blank" rel="noopener"
 						aria-label={thumbLabel ?? `Open ${title ?? 'file'} in a new tab`}>
 						<ImageOrIcon src={thumbSrc} icon={thumb} imgClassName="document-thumb-img" />
 					</a>
@@ -192,13 +192,16 @@ export function EntityMark({ favourite, children }) {
 	)
 }
 
-export function EntityRow({ mark, name, meta, amount, sub, editTo, action }) {
+export function EntityRow({ mark, name, meta, amount, sub, editTo, action, open }) {
 	const body = (
 		<>
 			{mark}
 			<div className="entity-row-text">
 				<div className="entity-row-name">
-					{action ? <Link className="row-stretch" to={editTo} data-go={editTo}>{name}</Link> : name}
+					{open ? (
+						<a className="row-stretch" href={open.href} data-go={open.href}
+							target="_blank" rel="noopener" aria-label={open.label}>{name}</a>
+					) : action ? <Link className="row-stretch" to={editTo} data-go={editTo}>{name}</Link> : name}
 				</div>
 				{meta ? <div className="entity-row-meta">{meta}</div> : null}
 			</div>
@@ -209,14 +212,14 @@ export function EntityRow({ mark, name, meta, amount, sub, editTo, action }) {
 		</>
 	)
 
-	/* `action` is a second destination outside this app. An <a> cannot hold another <a>, so the
-	   name carries the link and stretches over the row; `data-go` still lights it. */
-	if (action) {
+	/* Two destinations, and an <a> cannot hold another <a>: the name carries the row's own and
+	   stretches over it, `action` rides on top. The chevron is for a row that opens a page here. */
+	if (open || action) {
 		return (
-			<div className="data-row entity-row entity-row-action" data-go={editTo}>
+			<div className="data-row entity-row entity-row-action" data-go={open?.href ?? editTo}>
 				{body}
-				<span className="row-inline row-actions">{action}</span>
-				<Chevron />
+				{action ? <span className="row-inline row-actions">{action}</span> : null}
+				{open ? null : <Chevron />}
 			</div>
 		)
 	}

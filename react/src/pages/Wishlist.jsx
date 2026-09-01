@@ -197,12 +197,13 @@ export default function Wishlist() {
 											   that identify the record win. */
 										amount={<span className="wide-only">
 											{wish.price != null ? currency(wish.price) : '-'}</span>}
-											/* A real link, so it can be middle-clicked and read off the
-											   status bar. README: Honest Affordances. */
+											/* The row goes where the wish points; the button changes it. An
+											   address that will not parse leaves the plain row that edits. */
+											open={href ? { href,
+												label: `Open ${wish.name} at ${siteOf(wish.url)} in a new tab` } : null}
 											action={href ? (
-												<IconButton icon="externalLink" href={href}
-													target="_blank" rel="noopener noreferrer"
-													label={`Open ${wish.name} at ${siteOf(wish.url)} in a new tab`} />
+												<IconButton icon="pencil" to={`/wishlist/${wish.id}/edit`}
+													label={`Edit ${wish.name}`} />
 											) : null} />
 									)
 								})
