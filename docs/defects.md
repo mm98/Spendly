@@ -109,6 +109,40 @@ Orders is 12. The rule matches no element in the prototype's own markup — its 
 by field rows — so none of the three committed screenshots moved: **0 differing pixels of
 11,403,840**.
 
+## Cards — the first row of a list sat lower than every row under it
+
+Six card bodies in the app open directly onto a row. In each of them the first row sat further below
+the card's hairline than the rows below it sit below their own, because two leading spaces were being
+added on top of the row's own padding and neither knew about the other.
+
+Measured on an `iPhone 15` descriptor at `deviceScaleFactor: 2`, hairline to the content below it —
+the card's hairline for the first row, the row's own border for the next:
+
+| list | first row, before | first row, after | every other row |
+| --- | --- | --- | --- |
+| Orders / Latest orders | **18** | 10 | 11 |
+| All orders | **18** | 12 | 13 |
+| Order detail / Items | **16** | 10 | 11 |
+| Wishlist / Wishes | **18** | 12 | 13 |
+| All vendors | **18** | 12 | 13 |
+| All categories | **18** | 12 | 13 |
+
+The 1px each row's column still carries is the border itself. Two sources, found separately: a card
+body's own `padding-top`, and the 8px `margin-top` a list carries to hold itself off whatever sits
+above it inside the body — which, where the list *is* the body or opens it, is nothing but the
+hairline. The second source is why the worst of the six was the one list already exempt from the
+first: it read 18 with its body padding already at 0.
+
+Both are now stated as what they are. A body opening straight onto a row takes no top of its own, so
+the row's padding is the whole gap — the row keeps that padding rather than the body keeping a
+smaller one, because the row's padding is also the box its hover tint paints, and trimming it would
+light an uneven band. The list's leading margin drops where it is the body or the first thing in it.
+
+Measured after, in Blink 141.0.7390.37: every one of the six now sits within the hairline's own 1px
+of its list's row spacing. Eleven screens rendered at 390px and at 1440px before and after — Home,
+Vendors, Categories and Settings are **byte-identical**; the pages that moved lost exactly the space
+removed, 6px per list and 16px on Orders, which draws two.
+
 ## Filtering — FILTERS starts closed, and the panel shows the filter
 
 Two halves of one defect, and the first could not land before the second was true.
@@ -974,6 +1008,39 @@ a probe that leaves any of those behind produces two runs that agree with each o
 the file. `phone.png` is `devices['iPhone 13']` with `deviceScaleFactor` overridden to 2 at a 390x664
 viewport, which is the 780x1328 the committed file is; a bare 390x844 window renders 1170x2532 and dies
 on a size mismatch that reads as a layout change and is not one.
+
+**Not rendered:** Gecko and WebKit are not installed in this container. These files are Blink renders,
+as they have always been.
+
+---
+
+## Documentation — the harness that renders the screenshots had drifted from the app
+
+The three committed shots are only as good as the script that makes them, and that script had gone
+stale in two independent ways at once. Neither could be seen without running it, and running it is
+what a change to a documented screen is supposed to trigger.
+
+**It waited on an element that no longer exists.** The home render blocked on `.chart path`, which
+matches **0 elements**: the hero's chart sits in `.chart-wrap`, where `.chart-wrap path` matches 2.
+The wait timed out at 5s and the script aborted before writing any of the three files, so the failure
+looked like a broken environment rather than a stale selector.
+
+**Its filtered state had fallen out of the data.** The all-orders shot pins the list to a vendor, a
+status and a month, and the month was written as a literal — July 2026. The fixture is
+`{seed: 1, months: 2, orders: 30}` and the dataset is a function of *(seed, today)*, so on a render
+day two months later the window held **0 of 30** orders. Moved to the August window the same fixture
+gives **3** Bilka Delivered orders, and the header reads *ORDERS • 3 MATCHES* again, which is the
+state the committed file documents.
+
+Both are the same failure with different faces: a fact about the app written down in a place nothing
+renders. The check the script already prints on every run — the match count of its own filtered
+query — is what named the second one immediately.
+
+Rendered twice through the fixed harness, on two independently registered accounts, in Blink
+141.0.7390.37 under Playwright 1.56.1: `home.png` and `phone.png` came back at **0 differing pixels**
+of 5,184,000 and 1,035,948 — the harness agrees with itself, and neither shot is touched by the card
+spacing fixed above. `all-orders.png` differs by **22,819 of 5,184,000**, which is that fix and only
+that fix.
 
 **Not rendered:** Gecko and WebKit are not installed in this container. These files are Blink renders,
 as they have always been.
