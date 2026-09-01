@@ -3,8 +3,7 @@ import { Sep } from './Sep.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Icon } from './Icon.jsx'
 import { ConfirmDialog } from './ConfirmDialog.jsx'
-import { HiddenFileInput } from './FileInput.jsx'
-import { PHOTO_FILES } from './fileKinds.js'
+import { LinePhoto, useDroppedPhoto } from './LinePhoto.jsx'
 import { InsetPanel, ItemRow } from './Rows.jsx'
 import { useReorder } from './Reorder.jsx'
 import { useRowDelete } from './FormPage.jsx'
@@ -364,19 +363,13 @@ function LineCard({
 	ref, isNew, index, count, form, set, errors, dirty, photo,
 	onPick, onClearPhoto, onSave, onSaveAndNext, onCancel, onStep, deleteButton
 }) {
-	const file = useRef(null)
-	const [over, setOver] = useState(false)
+	const drop = useDroppedPhoto(onPick)
 
 	const description = errors.propsFor('item-description')
 	const quantity = errors.propsFor('item-quantity')
 	const price = errors.propsFor('item-price')
 	const retailField = errors.propsFor('item-retail')
 	const noteField = errors.propsFor('item-note')
-
-	const take = list => {
-		const image = [...(list ?? [])].find(f => f.type.startsWith('image/'))
-		if (image) onPick(image)
-	}
 
 	/* Escape works from anywhere in the card; Enter only from a field. A button already treats
 	   Enter as its own activation, so catching it here as well would either fire the save twice
@@ -408,12 +401,8 @@ function LineCard({
 	const savedEach = retail != null && Number.isFinite(retail) ? retail - paid : null
 
 	return (
-		<div ref={ref} className={join('filter-section', 'line-card', over && 'is-dragover')}
-			onKeyDown={keys}
-			onPaste={e => take(e.clipboardData?.files)}
-			onDragOver={e => { e.preventDefault(); setOver(true) }}
-			onDragLeave={() => setOver(false)}
-			onDrop={e => { e.preventDefault(); setOver(false); take(e.dataTransfer?.files) }}>
+		<div ref={ref} className={join('filter-section', 'line-card', drop.over && 'is-dragover')}
+			onKeyDown={keys} {...drop.dropProps}>
 
 			<div className="line-card-head">
 				<span className="section-label line-card-title">{heading}</span>
@@ -430,53 +419,9 @@ function LineCard({
 			</div>
 
 			<div className="line-card-body">
-				<div className="line-photo">
-					<button type="button" className="line-photo-frame"
-						onClick={() => file.current?.click()}
-						aria-label={photo.present ? 'Replace the photo' : 'Add a photo'}>
-						{photo.src
-							? <img className="line-photo-img" src={photo.src} alt="" />
-							: photo.present
-								? <span className="line-photo-mark"><Icon name="photo" /></span>
-								: <span className="line-photo-mark"><Icon name="photo" />Add photo</span>}
-					</button>
-					<HiddenFileInput ref={file} kind={PHOTO_FILES} label="Product photo" onFiles={take} />
-					{/* Two plain text actions with a hairline between them, spread to the frame's
-					    own width. They were `ButtonLink`s, which is this app's *caps* text action
-					    -- SEE ALL, CLEAR ALL, SHOW ALL, and every other one of them is caps -- so
-					    sentence-case words came out bold, letter-spaced and underlined. These are
-					    their own thing: 12px, medium, no underline until hovered.
-
-					    The line under them names two gestures a phone does not have, so the phone
-					    does not print it -- there the frame is tapped, which needs no sentence. */}
-					{/* On a phone the head is not drawn at all -- the design puts what it says
-					    beside the frame instead, with the line's own name under it, and that is
-					    the whole header. Both are hidden on a desktop, where the head is real.
-					    The string is built once above and rendered twice rather than written
-					    twice: two copies of a sentence agree until the day one is edited. */}
-					<span className="line-photo-foot">
-						<span className="section-label line-card-title line-photo-heading">{heading}</span>
-						<span className="line-photo-name">
-							{form['item-description'].trim() || 'Untitled line'}</span>
-						{photo.present ? (
-							<span className="line-photo-actions">
-								<button type="button" className="line-photo-action"
-									onClick={() => file.current?.click()}>Replace</button>
-								<span className="line-photo-sep" aria-hidden="true">|</span>
-								<button type="button" className="line-photo-action line-photo-action-remove"
-									onClick={onClearPhoto}>Remove</button>
-							</span>
-						) : (
-							/* Only over an empty frame. Dropping and pasting leave no mark on the
-							   screen, so the sentence is the only way anyone finds out they work --
-							   which is worth a line while the frame is empty and the reader is
-							   looking for the way in. Once there is a photo, Replace is a visible
-							   control answering the same question, the two gestures still work, and
-							   the sentence is a third row in a column standing beside the fields. */
-							<span className="field-help line-photo-hint">Drop a photo here, or paste one you copied</span>
-						)}
-					</span>
-				</div>
+				<LinePhoto photo={photo} heading={heading} label="Product photo"
+					name={form['item-description'].trim() || 'Untitled line'}
+					onPick={onPick} onClear={onClearPhoto} />
 
 				<div className="line-card-fields">
 					<Field className="line-field-wide" label="Description" htmlFor="item-description"

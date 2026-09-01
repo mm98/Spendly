@@ -994,6 +994,15 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .entity-row .entity-row-name, .order-row .order-row-vendor { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .entity-row .entity-row-meta { font-size:11.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .entity-row .entity-row-amount { text-align:right; font-weight:600; font-size:13.5px; color:var(--text); }
+/* A row whose record has a second destination outside the app (components/Rows.jsx). The row
+   is a div rather than a link -- an <a> cannot hold another <a> -- so the name carries the
+   link and covers the row with it. Everything the row looked like is untouched, hover
+   included: the div still carries data-go, which is what the one hover rule above keys on.
+   The action sits above the cover, or the stretch would swallow the clicks meant for it. */
+.row-stretch { color:inherit; text-decoration:none; }
+.entity-row-action { position:relative; }
+.entity-row-action .row-stretch::after { content:''; position:absolute; inset:0; border-radius:inherit; }
+.entity-row-action .row-actions { position:relative; }
 
 /* The favourite mark on All vendors and All categories -- a small filled circle overlapping
    the tile's corner. It sits at position:absolute, so it costs no layout width: the tile
@@ -1434,6 +1443,13 @@ label.field-shell { cursor:pointer; }
 .line-photo-sep { font-size:12px; color:var(--border-card); }
 /* Drawn only on a phone, where the head is not -- see the responsive section. */
 .line-photo-heading, .line-photo-name { display:none; }
+/* The picture field on a record's own page (pages/WishForm.jsx). It restates nothing about the
+   frame -- that is .line-photo above, the same one the line card draws -- and adds only the
+   drop target around it, which is the block rather than the frame because a 128px target is a
+   small thing to ask someone to hit. What being dragged over looks like is the app's one
+   .is-dragover treatment further down, not a second one. --line-photo is the frame's own edge,
+   named by .line-card for the card and here for the form, so the two cannot disagree. */
+.wish-photo-field { --line-photo:128px; width:fit-content; }
 .line-card-fields { flex:1; min-width:0; display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-panel); align-content:start; }
 .line-field-wide { grid-column:1 / -1; }
 /* What the two prices mean together, under both of them. A retail below the price paid is a
@@ -1559,6 +1575,11 @@ label.field-shell { cursor:pointer; }
 	   label, so "Categories" would take more of the bar than "Home". */
 	.sidebar-nav { grid-auto-flow:row; grid-template-columns:repeat(5,minmax(0,1fr)); width:100%; gap:2px; }
 	.sidebar-nav a { flex-direction:column; gap:4px; min-height:48px; padding:6px 2px; font-size:9.5px; border-radius:var(--radius-page); justify-content:center; color:var(--text-muted); }
+	/* The entry the bar leaves out (components/Shell.jsx). `.wide-only` alone cannot do it
+	   here: `.sidebar-nav a` sets display:flex at a higher specificity than a bare class, so
+	   the plain rule further down loses and the item stays -- which is a sixth column in a
+	   five-column grid, and the bar wraps to two rows. */
+	.sidebar-nav a.wide-only { display:none; }
 	/* A filled pill was the desktop rail's way of marking the current page, and it
 	   reads muddy floating on its own already-defined panel — a box inside a box.
 	   Tinting the icon and label instead is the mark this panel can carry without one:

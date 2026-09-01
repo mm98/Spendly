@@ -11,6 +11,9 @@ export const router = Router()
 const wipeLedger = userId => {
 	// orders first: cascades order_items, order_categories, attachments
 	db.prepare('DELETE FROM orders WHERE user_id = ?').run(userId)
+	// then wishes, which cascade their own category links -- before categories, or the delete
+	// below hits a link still pointing at one and the whole fill fails on a foreign key.
+	db.prepare('DELETE FROM wishes WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM vendors WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM categories WHERE user_id = ?').run(userId)
 }
@@ -25,7 +28,7 @@ const wipe = db.transaction(userId => {
 
 /** Forgets everything this account has added and returns it to the empty state a fresh
     registration starts from -- settings and dashboard cards reset to their defaults, every
-    order, vendor and category gone. */
+    order, wish, vendor and category gone. */
 router.post('/reset', (req, res) => {
 	wipe(req.user.id)
 	refreshStatistics()
@@ -43,7 +46,7 @@ const refreshStatistics = () => db.exec('ANALYZE')
 /* Fills the account with a year of demo orders. Replaces rather than appends: pressed twice,
    appending would double a year of orders and leave every per-month figure quietly wrong,
    which is a worse answer than the obvious one. It replaces the ledger only -- the button
-   promises "every order, vendor and category is removed first" and keeps exactly that
+   promises "every order, wish, vendor and category is removed first" and keeps exactly that
    promise; CLEAR STORED DATA is the button that resets preferences too.
 
    Only ever this account -- populateDemoData writes every row against req.user.id, the same

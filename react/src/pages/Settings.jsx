@@ -399,8 +399,8 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 							{filling ? (
 								<>
 									<p className="field-help danger-note">
-										This replaces what is here now. Every order, vendor and category you have
-										added is removed first, and the demo year is written in its place.
+										This replaces what is here now. Every order, wish, vendor and category you
+										have added is removed first, and the demo year is written in its place.
 									</p>
 									<FormActions>
 										<Button variant="caps compact" disabled={busy} onClick={fill}>
@@ -423,14 +423,15 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 					<CardDivider />
 					<CardBody>
 						<p className="card-lead card-lead-flush">
-							Orders you save, vendors and categories you add, your dashboard and these
-							settings belong to this account.
+							Orders and wishes you save, vendors and categories you add, your dashboard and
+							these settings belong to this account.
 						</p>
 						{confirming ? (
 							<>
 								<p className="field-help danger-note">
-									This removes every order, vendor and category you have added, permanently,
-									and there is no demo data to replace them with. The ledger becomes empty.
+									This removes every order, wish, vendor and category you have added,
+									permanently, and there is no demo data to replace them with. The ledger
+									becomes empty.
 								</p>
 								<FormActions>
 									<Button variant="caps compact" onClick={clear}>YES, CLEAR IT</Button>

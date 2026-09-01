@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -6,12 +6,10 @@ import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { OrderRow } from '../components/Rows.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
-import { Chip } from '../components/Chip.jsx'
-import { Icon } from '../components/Icon.jsx'
 import { DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, Segmented } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
+import { FilterChips, ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager } from '../components/Pager.jsx'
-import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds, vendorTextMatch } from '../api/client.js'
 import { currencySymbol, dayMonth, parseAmount, percent, plural, sep } from '../api/format.js'
@@ -21,8 +19,8 @@ import { currencySymbol, dayMonth, parseAmount, percent, plural, sep } from '../
    The chips are the filters, not a picture of them. The prototype drew three and removing
    one changed the list not at all, because the list was markup -- here a chip is the only
    place a filter is stored, so a chip that is gone is a filter that is off and the count
-   above the list moves. Each removal leaves focus somewhere deliberate, since it removes the
-   element focus was on, and announces once. README: Honest Affordances, Accessibility.
+   above the list moves. How one is removed and announced is the same on every filtered list
+   and lives in components/ListToolbar.jsx; what each one turns off is this page's, below.
 
    FILTERS owns the panel below it: aria-expanded is the state, and there is no live-region
    message for it, because a disclosure announces itself. */
@@ -93,9 +91,7 @@ export default function AllOrders() {
 	   field, so opening the panel confirms that state instead of revealing it. Open, it is 8
 	   fields and a segmented control standing between the search and the orders it filtered. */
 	const [panelOpen, setPanelOpen] = useState(false)
-	const toast = useToast()
 	const searchField = useRef(null)
-	const chipRow = useRef(null)
 
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
@@ -171,68 +167,29 @@ export default function AllOrders() {
 		return out
 	}, [filters, vendors.data, categories.data])
 
-	const countSentence = n => n ? n + (n === 1 ? ' filter still active.' : ' filters still active.') : 'No filters are set.'
-
-	const removeChip = useCallback((chip, index) => {
-		const rest = chips.length - 1
-		refilter({ ...filters, ...chip.clear })
-		toast(chip.label + ' removed. ' + countSentence(rest))
-		queueMicrotask(() => {
-			const buttons = [...(chipRow.current?.querySelectorAll('[data-chip]') ?? [])]
-			const next = buttons[index] || buttons[index - 1]
-			;(next || searchField.current || document.getElementById('page-title'))?.focus()
-		})
-	}, [chips, filters])
-
-	const clearAll = () => {
-		write(EMPTY, '', urlSort, 1)
-		toast('All filters cleared.')
-		queueMicrotask(() => (searchField.current || document.getElementById('page-title'))?.focus())
-	}
+	/* Removing a chip and clearing them all are the same two acts on every filtered list, so
+	   the announcement and where focus lands afterwards live with the chips themselves
+	   (components/ListToolbar.jsx). What is left here is the only half that is this page's:
+	   which filters the act turns off. */
+	const clearAll = () => write(EMPTY, '', urlSort, 1)
 
 	return (
 		<Page variant="page-grid">
 			<Card aria-label="Search and filters">
 				<CardBody variant="card-body-filters">
-					<div className="row-inline toolbar">
-						<FieldShell>
-							<Icon name="search" />
-							<input ref={searchField} type="search" value={query}
-								placeholder="Search vendor, note or item text..." aria-label="Search orders"
-								onChange={e => setQuery(e.target.value)} />
-						</FieldShell>
-						<button type="button" className="button button-ghost"
-							data-filters-toggle aria-expanded={panelOpen} aria-controls="filter-panel"
-							onClick={() => setPanelOpen(open => !open)}>
-							<Icon name="filters" />FILTERS
-							<Icon name="chevronDown" className="icon chevron-icon" />
-						</button>
-						{/* The prototype draws this as a chip with a chevron and no handler -- a control
-						    by every visual cue and inert. It is the app's one dropdown pattern now, and
-						    it re-sorts through the API rather than reordering the page's own array,
-						    because the page only holds the rows for the page you are on.
+					{/* The sort re-sorts through the API rather than reordering the page's own
+					    array, because the page only holds the rows for the page you are on. */}
+					<ListToolbar query={query} onQuery={setQuery} searchRef={searchField}
+						placeholder="Search vendor, note or item text..." label="Search orders"
+						sortLabel="Sort orders" sorts={sorts}
+						sortValue={sorts.find(s => s.id === activeSort)?.label ?? ''}
+						onSort={id => write(filters, query, id, 1)}
+						filters={{ open: panelOpen, panelId: 'filter-panel',
+							onToggle: () => setPanelOpen(open => !open) }} />
 
-						    .toolbar-sort is the slot, and the stylesheet owns its width. It stood in a
-						    wrapper div with flex:none and min-width:190px, which is an inline style
-						    beating any rule the phone layout could write: three toolbar rows on a phone,
-						    and 38px of the control hanging off the card. README: Responsive Layout. */}
-						<Combobox className="toolbar-sort" label="Sort orders"
-							value={sorts.find(s => s.id === activeSort)?.label ?? ''}
-							onChange={() => {}}
-							onSelect={o => write(filters, query, o.id, 1)}
-							groups={[{ heading: 'Sort by', options: sorts.map(s => ({ id: s.id, label: s.label })) }]} />
-					</div>
-
-					{chips.length ? (
-						<div className="row-inline chip-row" ref={chipRow}>
-							{chips.map((chip, i) => (
-								<Chip key={chip.key} data-chip={chip.key}
-									label={'Remove filter ' + chip.label}
-									onRemove={() => removeChip(chip, i)}>{chip.label}</Chip>
-							))}
-							<ButtonLink className="button-link" onClick={clearAll}>CLEAR ALL</ButtonLink>
-						</div>
-					) : null}
+					<FilterChips chips={chips} focusRef={searchField}
+						onRemove={chip => refilter({ ...filters, ...chip.clear })}
+						onClearAll={clearAll} />
 
 					<FilterSection id="filter-panel" hidden={!panelOpen}>
 						{/* Every dropdown in the app is the one combobox: type to search, grouped
@@ -316,7 +273,11 @@ export default function AllOrders() {
 				{data => (
 				<Card aria-label="Orders">
 					<CardHeader title={`Orders${sep}${plural(data.matched, 'match', 'matches')}`}>
-						<span className="field-help">filtered from {data.total}</span>
+						{/* A phone has room for the count or for what it was counted out of, not both:
+						    the two wrap the header onto three lines at 390px. The count is the answer;
+						    "filtered from N" is context, and the pager below still gives it.
+						    `.wide-only` is the app's one way to say so. */}
+						<span className="field-help wide-only">filtered from {data.total}</span>
 					</CardHeader>
 					<CardDivider />
 					<CardBody variant="card-body-tight">

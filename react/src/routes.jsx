@@ -97,6 +97,8 @@ const NewOrderLayout = page(() => import('./pages/NewOrder.jsx'), 'NewOrderLayou
 const NewOrderDetails = page(() => import('./pages/NewOrder.jsx'), 'NewOrderDetails')
 const NewOrderItems = page(() => import('./pages/NewOrder.jsx'), 'NewOrderItems')
 const EditOrder = page(() => import('./pages/EditOrder.jsx'))
+const Wishlist = page(() => import('./pages/Wishlist.jsx'))
+const WishForm = page(() => import('./pages/WishForm.jsx'))
 const Settings = page(() => import('./pages/Settings.jsx'))
 const SettingsImport = page(() => import('./pages/SettingsImport.jsx'))
 const CategoryForm = page(() => import('./pages/CategoryForm.jsx'))
@@ -191,6 +193,23 @@ export const routes = [
 					{ path: 'edit', element: <EditOrder />,
 						handle: { title: 'Edit order', navKey: 'orders', back: { to: '/orders', label: 'orders' } } }
 				] }
+			] },
+
+			/* Wishes are not orders and never reach a total: see pages/Wishlist.jsx. Its own
+			   section for that reason, rather than a filter over the order list. One page and no
+			   sub-tabs -- what a tab would have separated (the archived ones) is a filter on the
+			   list itself, so it composes with the search, the category and the dates instead of
+			   splitting them across two addresses. Its own state still lives in the URL, so a
+			   filtered wishlist is a link like any other list here. */
+			{ path: 'wishlist', children: [
+				{ index: true, element: <ListState name="wishlist"><Wishlist /></ListState>,
+					handle: { title: 'Wishlist', navKey: 'wishlist' } },
+				/* A wish is a record, so it is created and edited on its own page -- the rule the
+				   vendor and category routes above already follow. */
+				{ path: 'new', element: <WishForm mode="create" />,
+					handle: { title: 'New wish', navKey: 'wishlist', back: { to: '/wishlist', label: 'wishlist' } } },
+				{ path: ':id/edit', element: <WishForm mode="edit" />,
+					handle: { title: 'Edit wish', navKey: 'wishlist', back: { to: '/wishlist', label: 'wishlist' } } }
 			] },
 
 			{ path: 'scan', handle: { title: 'Scan receipt', navKey: 'orders' }, children: [

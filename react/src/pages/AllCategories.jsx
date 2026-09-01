@@ -6,8 +6,7 @@ import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../componen
 import { EntityRow, EntityMark } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { FieldShell } from '../components/Form.jsx'
-import { Combobox } from '../components/Combobox.jsx'
+import { ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager, paginate } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategoriesThisMonth, getSettings } from '../api/client.js'
@@ -71,17 +70,9 @@ export default function AllCategories() {
 
 	return (
 		<Page>
-			<div className="row-inline toolbar">
-				<FieldShell>
-					<Icon name="search" />
-					<input type="search" value={query} placeholder="Search category name..."
-						aria-label="Search categories" onChange={e => search(e.target.value)} />
-				</FieldShell>
-				<Combobox className="toolbar-sort" label="Sort categories"
-					value={sort.label} onChange={() => {}}
-					onSelect={o => resort(o.id)}
-					groups={[{ heading: 'Sort by', options: SORTS.map(s => ({ id: s.id, label: s.label })) }]} />
-			</div>
+			<ListToolbar query={query} onQuery={search}
+				placeholder="Search category name..." label="Search categories"
+				sortLabel="Sort categories" sorts={SORTS} sortValue={sort.label} onSort={resort} />
 
 			<Async state={state} label="Loading your categories" skeleton={<SkeletonCard><SkeletonRows count={6} /></SkeletonCard>}>
 				{categories => {

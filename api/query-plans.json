@@ -79,6 +79,21 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
+		"SELECT c.name FROM categories c JOIN wish_categories wc ON wc.category_id = c.id WHERE wc.wish_id = ? ORDER BY c.name": {
+			"plan": [
+				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree",
+				"reads a per-account table without naming user_id"
+			],
+			"indexes": [
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_wish_categories_1"
+			]
+		},
 		"SELECT c.name FROM vendor_default_categories d JOIN categories c ON c.id = d.category_id WHERE d.vendor_id = ? AND c.user_id = ? ORDER BY c.name": {
 			"plan": [
 				"SEARCH d USING COVERING INDEX sqlite_autoindex_vendor_default_categories_1 (vendor_id=?)",
@@ -412,6 +427,88 @@
 				"idx_vendors_user_name"
 			]
 		},
+		"SELECT COUNT(*) c FROM wishes w WHERE w.user_id = @userId AND w.archived = 0": {
+			"plan": [
+				"SCAN w"
+			],
+			"findings": [],
+			"indexes": []
+		},
+		"SELECT COUNT(*) c FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND ( contains_fold(w.name, @needle) OR contains_fold(w.url, @needle) OR w.id IN (SELECT wc.wish_id FROM wish_categories wc JOIN categories c ON c.id = wc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) )": {
+			"plan": [
+				"SCAN w",
+				"LIST SUBQUERY 1",
+				"SCAN wc",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_categories_1"
+			]
+		},
+		"SELECT COUNT(*) c FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND ( w.name LIKE @needle ESCAPE '\\' OR w.url LIKE @needle ESCAPE '\\' OR w.id IN (SELECT wc.wish_id FROM wish_categories wc JOIN categories c ON c.id = wc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') )": {
+			"plan": [
+				"SCAN w",
+				"LIST SUBQUERY 1",
+				"SCAN wc",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_categories_1"
+			]
+		},
+		"SELECT COUNT(*) c FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND NOT EXISTS (SELECT 1 FROM wish_categories wc WHERE wc.wish_id = w.id)": {
+			"plan": [
+				"SCAN w",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_wish_categories_1"
+			]
+		},
+		"SELECT COUNT(*) c FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND w.created_at >= @from AND w.created_at < @to": {
+			"plan": [
+				"SCAN w"
+			],
+			"findings": [],
+			"indexes": []
+		},
+		"SELECT COUNT(*) c FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND w.id IN (SELECT wish_id FROM wish_categories WHERE category_id = @categoryId)": {
+			"plan": [
+				"SCAN w",
+				"LIST SUBQUERY 1",
+				"SCAN wish_categories",
+				"CREATE BLOOM FILTER"
+			],
+			"findings": [],
+			"indexes": []
+		},
+		"SELECT COUNT(*) c FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND w.price IS NOT NULL": {
+			"plan": [
+				"SCAN w"
+			],
+			"findings": [],
+			"indexes": []
+		},
+		"SELECT COUNT(*) c FROM wishes w WHERE w.user_id = @userId AND w.archived = 1": {
+			"plan": [
+				"SCAN w"
+			],
+			"findings": [],
+			"indexes": []
+		},
+		"SELECT COUNT(*) c FROM wishes WHERE user_id = ?": {
+			"plan": [
+				"SCAN wishes"
+			],
+			"findings": [],
+			"indexes": []
+		},
 		"SELECT d.vendor_id, c.name FROM vendor_default_categories d JOIN categories c ON c.id = d.category_id JOIN vendors v ON v.id = d.vendor_id WHERE v.user_id = ? ORDER BY c.name": {
 			"plan": [
 				"SEARCH v USING INDEX idx_vendors_user_name (user_id=?)",
@@ -492,6 +589,16 @@
 			"indexes": [
 				"sqlite_autoindex_vendors_2"
 			]
+		},
+		"SELECT id FROM wishes WHERE user_id = ? ORDER BY created_at DESC LIMIT 1": {
+			"plan": [
+				"SCAN wishes",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
 		},
 		"SELECT id, name FROM categories WHERE user_id = @userId AND contains_fold(name, @needle) ORDER BY name LIMIT @limit": {
 			"plan": [
@@ -580,6 +687,15 @@
 			],
 			"indexes": [
 				"idx_attachments_order"
+			]
+		},
+		"SELECT id, name, url, price, archived, created_at, photo_id FROM wishes WHERE id = ? AND user_id = ?": {
+			"plan": [
+				"SEARCH wishes USING INDEX sqlite_autoindex_wishes_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_wishes_1"
 			]
 		},
 		"SELECT id, title, quantity, price, retail, note FROM order_items WHERE order_id = ? ORDER BY position": {
@@ -1139,6 +1255,142 @@
 			],
 			"indexes": [
 				"idx_vendor_aliases_user_name"
+			]
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND ( contains_fold(w.name, @needle) OR contains_fold(w.url, @needle) OR w.id IN (SELECT wc.wish_id FROM wish_categories wc JOIN categories c ON c.id = wc.category_id WHERE c.user_id = @userId AND contains_fold(c.name, @needle)) ) ORDER BY w.created_at DESC, w.id DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"LIST SUBQUERY 1",
+				"SCAN wc",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"CREATE BLOOM FILTER",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"sqlite_autoindex_categories_1"
+			]
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND ( w.name LIKE @needle ESCAPE '\\' OR w.url LIKE @needle ESCAPE '\\' OR w.id IN (SELECT wc.wish_id FROM wish_categories wc JOIN categories c ON c.id = wc.category_id WHERE c.user_id = @userId AND c.name LIKE @needle ESCAPE '\\') ) ORDER BY w.created_at DESC, w.id DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"LIST SUBQUERY 1",
+				"SCAN wc",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"CREATE BLOOM FILTER",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"sqlite_autoindex_categories_1"
+			]
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND NOT EXISTS (SELECT 1 FROM wish_categories wc WHERE wc.wish_id = w.id) ORDER BY w.created_at DESC, w.id DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": [
+				"sqlite_autoindex_wish_categories_1"
+			]
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND w.created_at >= @from AND w.created_at < @to ORDER BY w.created_at DESC, w.id DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND w.id IN (SELECT wish_id FROM wish_categories WHERE category_id = @categoryId) ORDER BY w.created_at DESC, w.id DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"LIST SUBQUERY 1",
+				"SCAN wish_categories",
+				"CREATE BLOOM FILTER",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 AND w.price IS NOT NULL ORDER BY w.price DESC, w.id DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 ORDER BY w.created_at ASC, w.id ASC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 ORDER BY w.created_at DESC, w.id DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 0 ORDER BY w.name COLLATE NOCASE ASC, w.id ASC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
+		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId AND w.archived = 1 ORDER BY w.created_at DESC, w.id DESC LIMIT @limit OFFSET @offset": {
+			"plan": [
+				"SCAN w",
+				"USE TEMP B-TREE FOR ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree"
+			],
+			"indexes": []
+		},
+		"SELECT wc.wish_id, c.name FROM categories c JOIN wish_categories wc ON wc.category_id = c.id WHERE wc.wish_id IN (SELECT value FROM json_each(?)) ORDER BY wc.wish_id, c.name": {
+			"plan": [
+				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"SEARCH c USING INDEX sqlite_autoindex_categories_1 (id=?)",
+				"USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+			],
+			"findings": [
+				"sorts in a temp B-tree",
+				"reads a per-account table without naming user_id"
+			],
+			"indexes": [
+				"sqlite_autoindex_categories_1",
+				"sqlite_autoindex_wish_categories_1"
 			]
 		}
 	},

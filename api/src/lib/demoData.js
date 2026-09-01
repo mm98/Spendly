@@ -69,6 +69,25 @@ const ITEMS = {
 	'Everything else': [['Gavekort', 300], ['Blomster', 145], ['Fødselsdagsgave', 399], ['Porto', 45]]
 }
 
+/* A few things not bought yet, so the wishlist has something in it for the same reason the
+   ledger does. Two are archived: a list whose every row is open never shows what the archived
+   tab is for. The prices are what the shop asks, not what anyone paid -- nothing here reaches
+   any total, chart or budget in the app. `back` is how many days ago it was added. */
+const WISHES = [
+	{ name: 'Sony WH-1000XM5', url: 'https://www.proshop.dk/hoeretelefoner/sony-wh-1000xm5', price: 2799,
+		categories: ['Electronics'], back: 3 },
+	{ name: 'Robotstøvsuger', url: 'https://www.elgiganten.dk/robotstoevsuger', price: 3499,
+		categories: ['Household'], back: 11 },
+	{ name: 'Løbesko, str. 42', url: 'https://www.zalando.dk/loebesko', price: 899,
+		categories: ['Clothing', 'Hobby'], back: 24 },
+	{ name: 'Espressokværn', url: 'https://www.coop.dk/espressokvaern', price: 1495,
+		categories: ['Household', 'Hobby'], back: 40 },
+	{ name: 'Skrivebordsstol', url: 'https://www.jysk.dk/kontorstol', price: 1999,
+		categories: ['Home office'], back: 62, archived: 1 },
+	{ name: 'Rejsekuffert', url: 'https://www.bilka.dk/kuffert', price: null,
+		categories: [], back: 95, archived: 1 }
+]
+
 const STATUSES = ['Delivered', 'Delivered', 'Delivered', 'Delivered', 'Ordered', 'Returned']
 const KINDS = ['Expense', 'Expense', 'Expense', 'Expense', 'Gift', 'Work', 'Sold']
 
@@ -86,6 +105,9 @@ const insertOrder = db.prepare(`INSERT INTO orders
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, NULL)`)
+const insertWish = db.prepare(`INSERT INTO wishes (id, user_id, name, url, price, archived, created_at)
+	VALUES (@id, @userId, @name, @url, @price, @archived, @createdAt)`)
+const insertWishCategory = db.prepare('INSERT INTO wish_categories (wish_id, category_id) VALUES (?, ?)')
 
 /** Populates one account with `months` months of orders ending today. Deterministic for a
     given (seed, today) so two runs of the verification harness can be compared rather than
@@ -205,5 +227,13 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 		WHERE user_id = ?`).run(userId)
 	for (const t of triggers) db.exec(t.sql)
 
-	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months }
+	const categoryByName = new Map(categoryIds.map(c => [c.name, c.id]))
+	for (const wish of WISHES) {
+		const id = newId('w')
+		insertWish.run({ id, userId, name: wish.name, url: wish.url, price: wish.price ?? null,
+			archived: wish.archived ?? 0, createdAt: Math.floor(today.getTime() / 1000) - wish.back * 86400 })
+		for (const name of wish.categories) insertWishCategory.run(id, categoryByName.get(name))
+	}
+
+	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months, wishes: WISHES.length }
 })
