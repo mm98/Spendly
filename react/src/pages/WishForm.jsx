@@ -63,7 +63,7 @@ function WishFields({ mode, wish }) {
 	   until the wish is saved, because the browser can draw it straight from the shop's host and
 	   only the server can fetch it (see save below). Anything the reader does to the frame --
 	   choosing a file, removing it -- takes precedence and drops this. */
-	const [offered, setOffered] = useState(null)
+	const [offered, setOffered] = useState(null)   // { address, thumbnail }
 
 	useEffect(() => {
 		if (!wish) return
@@ -88,7 +88,7 @@ function WishFields({ mode, wish }) {
 	const photo = picked ? { present: true, src: picked.url }
 		: cleared ? {}
 		: wish?.photoId ? { present: true, src: wishPhotoThumbnailUrl(wish.id, wish.photoId) }
-		: offered ? { present: true, src: offered }
+		: offered ? { present: true, src: offered.thumbnail }
 		: {}
 
 	/* Pasting a link first is the natural order -- the thing is in front of you in a browser
@@ -107,7 +107,7 @@ function WishFields({ mode, wish }) {
 		const address = httpUrl(value)
 		if (mode !== 'create' || !address) return
 		const ticket = ++wanted.current
-		const { title, image } = await getWishPreview(address)
+		const { title, image, thumbnail } = await getWishPreview(address)
 		if (ticket !== wanted.current) return
 		if (title) setName(current => {
 			if (current.trim()) return current
@@ -116,7 +116,7 @@ function WishFields({ mode, wish }) {
 		})
 		// Offered, not applied: the frame shows it and the reader can replace or remove it
 		// before saving, exactly as they can a file they chose themselves.
-		if (image) setOffered(current => (picked || cleared ? current : image))
+		if (image && thumbnail) setOffered(current => (picked || cleared ? current : { address: image, thumbnail }))
 	}
 
 	const addCategory = value => {
@@ -139,7 +139,7 @@ function WishFields({ mode, wish }) {
 			else if (cleared) await removeWishPhoto(saved.id)
 			// The shop's own picture, fetched by the server against the row that now exists.
 			// Silent both ways: a wish is saved whether or not the picture could be had.
-			else if (offered) await addWishPhotoFromUrl(saved.id, offered)
+			else if (offered) await addWishPhotoFromUrl(saved.id, offered.address)
 			invalidateWishData()
 			toast(`${saved.name} ${mode === 'edit' ? 'saved' : 'added'}.`)
 			navigate('/wishlist')
@@ -193,10 +193,15 @@ function WishFields({ mode, wish }) {
 
 			<Field label="Link" error={urlField.error} errorId={urlField.errorId} htmlFor="wish-url"
 				help={mode === 'create'
-					? 'The page you would buy it on. You can leave out the https:// — and if you fill this in before the rest, the name and a picture are taken from that page where it offers them.'
-					: 'The page you would buy it on. You can leave out the https://'}>
+					? 'Fill this in first and the name and picture are taken from the page.'
+					: 'The page you would buy it on.'}>
 				<FieldShell>
-					<TextInput id="wish-url" value={url} inputMode="url" placeholder="shop.dk/product"
+					{/* No placeholder. A required field that names itself does not take one here --
+					    Name on a vendor, Name on a category and Description on an order line all
+					    go without -- and the only thing a placeholder could show for a link is a
+					    made-up address, which README: Input types forbids: a grey "shop.dk/product"
+					    reads as a field somebody has already filled in. */}
+					<TextInput id="wish-url" value={url} inputMode="url"
 						onChange={v => { setUrl(v); recheck('wish-url', v) }}
 						aria-label="Link" aria-required="true"
 						invalid={urlField.invalid} describedBy={urlField.describedBy}
@@ -207,7 +212,7 @@ function WishFields({ mode, wish }) {
 
 			<Field label="Price" optional error={priceField.error} errorId={priceField.errorId}
 				htmlFor="wish-price"
-				help="What the shop asks for it today. Left empty means you have not looked it up yet — which is not the same as free, so an empty price is left out of every total.">
+				help="Leave it empty if you have not looked it up.">
 				<FieldShell>
 					<TextInput id="wish-price" value={price} inputMode="decimal"
 						onChange={v => { setPrice(v); recheck('wish-price', v) }}
@@ -222,7 +227,7 @@ function WishFields({ mode, wish }) {
 			    labelable and come first, so without it the label points at the first chip's
 			    remove button and a tap on the chevron deletes a category. See components/Form.jsx. */}
 			<Field label="Categories" optional htmlFor="wish-categories"
-				help="Where this would land if you bought it. Pick from your categories, or type one and press Enter. A wish counts towards no category's spending — only orders do.">
+				help="Where this would land if you bought it.">
 				<Combobox id="wish-categories" label="Add category" placeholder="Add category..."
 					chips={chosen.map(c => (
 						<Chip key={c} label={`Remove category ${c}`}
@@ -250,7 +255,7 @@ function WishFields({ mode, wish }) {
 			    app, not one per screen -- and the drop target is this whole block rather than
 			    the 128px frame alone. */}
 			<Field label="Picture" optional group
-				help="Click the frame to choose a picture, or drop one here — a photo of the thing, or the picture from the shop's own page.">
+				help="A photo of it, or the picture from the shop's own page.">
 				<div className={drop.over ? 'wish-photo-field is-dragover' : 'wish-photo-field'}
 					{...drop.dropProps}>
 					<LinePhoto photo={photo} label="Picture of this wish"
@@ -266,7 +271,7 @@ function WishFields({ mode, wish }) {
 			{mode === 'edit' ? (
 				<CheckRow id="wish-archived" checked={archived} onChange={setArchived}
 					label="Archived"
-					help="Keeps the wish without it being on your wishlist — for something you bought elsewhere, or decided against. Archived wishes are left out of the list until you ask for them in the filters." />
+					help="Kept, but off your wishlist until you ask for the archived ones." />
 			) : null}
 		</FormPage>
 	)

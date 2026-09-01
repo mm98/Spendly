@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Icon } from './Icon.jsx'
+import { ImageOrIcon } from './Icon.jsx'
 import { HiddenFileInput } from './FileInput.jsx'
 import { PHOTO_FILES } from './fileKinds.js'
 
@@ -53,11 +53,15 @@ export function LinePhoto({ photo, heading, name, label, onPick, onClear }) {
 			<button type="button" className="line-photo-frame"
 				onClick={() => file.current?.click()}
 				aria-label={photo.present ? 'Replace the photo' : 'Add a photo'}>
+				{/* An image that will not load falls back to the same mark an empty frame draws,
+				    rather than to the browser's broken-picture glyph -- a stored thumbnail that
+				    has gone, or a picture the reader's connection could not fetch, should read as
+				    "no picture", which is what it is. `ImageOrIcon` is that fallback. */}
 				{photo.src
-					? <img className="line-photo-img" src={photo.src} alt="" />
-					: photo.present
-						? <span className="line-photo-mark"><Icon name="photo" /></span>
-						: <span className="line-photo-mark"><Icon name="photo" />Add photo</span>}
+					? <ImageOrIcon src={photo.src} icon="photo" imgClassName="line-photo-img"
+						className="line-photo-mark-icon" />
+					: <span className="line-photo-mark">
+						<ImageOrIcon icon="photo" />{photo.present ? null : 'Add photo'}</span>}
 			</button>
 			<HiddenFileInput ref={file} kind={PHOTO_FILES} label={label}
 				onFiles={list => { const image = firstImage(list); if (image) onPick(image) }} />
