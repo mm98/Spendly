@@ -195,12 +195,8 @@ export const routes = [
 				] }
 			] },
 
-			/* Wishes are not orders and never reach a total: see pages/Wishlist.jsx. Its own
-			   section for that reason, rather than a filter over the order list. One page and no
-			   sub-tabs -- what a tab would have separated (the archived ones) is a filter on the
-			   list itself, so it composes with the search, the category and the dates instead of
-			   splitting them across two addresses. Its own state still lives in the URL, so a
-			   filtered wishlist is a link like any other list here. */
+			/* Its own section because a wish never reaches a total. No sub-tabs: archived is a
+			   filter on the list, so it composes with the search, the category and the dates. */
 			{ path: 'wishlist', children: [
 				{ index: true, element: <ListState name="wishlist"><Wishlist /></ListState>,
 					handle: { title: 'Wishlist', navKey: 'wishlist' } },

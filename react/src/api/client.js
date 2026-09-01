@@ -297,14 +297,8 @@ const toApiDraft = draft => ({
 	}))
 })
 
-/* ---- wishes ----
-
-   A wish is a product the account has not bought: a name, the page it was found on, and
-   optionally a price, a picture and the categories it would land under. Nothing here reaches a
-   total, a chart or a budget -- those read orders, which is money that has actually left.
-
-   The photo is its own request, after the wish exists: the picture is uploaded against a real
-   id, the same order NewOrder.jsx uploads an item's photo in. */
+/* ---- wishes: nothing here reaches a total, a chart or a budget, which all read orders. The
+   photo is its own request, after the wish exists and has an id to hang it on. ---- */
 
 export async function getWishes(params = {}, signal) {
 	return request('/api/wishes' + qs(params), { signal })
@@ -314,10 +308,8 @@ export async function getWish(id, signal) {
 	return request(`/api/wishes/${id}`, { signal })
 }
 
-/** What the shop's own page says about the thing -- `{ title, image }` -- so the form can fill
-    in from a pasted link. Either may be null for every way that can fail, and this adds one of
-    its own: a request that falls over is the same nothing, because a wish is saved by typing a
-    name and never by this succeeding. */
+/** `{ title, image, thumbnail }` from the shop's page, any of them null. A request that falls
+    over is the same nothing: a wish is saved by typing a name, never by this succeeding. */
 export async function getWishPreview(url, signal) {
 	try {
 		return await request('/api/wishes/preview' + qs({ url }), { signal })
@@ -326,9 +318,8 @@ export async function getWishPreview(url, signal) {
 	}
 }
 
-/** The picture a page offered, fetched by the server rather than the browser -- it lives on the
-    shop's host, which has no reason to let a script on this origin read it. Silent: a picture
-    that cannot be fetched leaves the wish exactly as it was saved. */
+/** Fetched by the server, not the browser: it lives on the shop's host. Silent, so a picture
+    that cannot be had leaves the wish as it saved. */
 export async function addWishPhotoFromUrl(id, url, signal) {
 	try {
 		const saved = await request(`/api/wishes/${id}/photo`, { method: 'POST', body: { url }, signal })
@@ -381,9 +372,8 @@ export async function removeWishPhoto(id, signal) {
 	return saved
 }
 
-/** Read by `<img src>` the same way the attachment URLs above are, and carrying the picture's
-    own id: replacing a wish's photo gives it a new one, so these addresses change with the
-    bytes and the browser is never left showing a cached copy of the old picture. */
+/** Carrying the picture's own id, so the address changes with the bytes and a browser told to
+    keep one forever never shows a replaced photo. */
 export const wishPhotoThumbnailUrl = (id, photoId) => `/api/wishes/${id}/photo/${photoId}/thumbnail`
 export const wishPhotoFileUrl = (id, photoId) => `/api/wishes/${id}/photo/${photoId}/file`
 
@@ -994,9 +984,8 @@ export const sorts = [
 	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
 ]
 
-/** The wishlist's sorts, in the vocabulary its own rows use: a wish is added rather than
-    dated, and it has one figure. The two price sorts also narrow -- a wish with no price
-    written down is not the cheapest one (api/src/routes/wishes.js). */
+/** The two price sorts also narrow: a wish with no price is not the cheapest one
+    (api/src/routes/wishes.js). */
 export const wishSorts = [
 	{ id: 'added-desc', label: 'Added, newest' },
 	{ id: 'added-asc', label: 'Added, oldest' },
@@ -1054,10 +1043,8 @@ export function invalidateVendorData() {
 	invalidate(getVendorChartSplit)
 }
 
-/** A wish was added, edited, archived, given a picture or deleted. Only the wishlist reads
-    them -- no total, chart or budget in the app counts a wish -- so this invalidates the one
-    read, with one exception: a wish may name a category that does not exist yet, and saving it
-    creates that category (api/lib/findOrCreate.js), which the category lists do show. */
+/** Only the wishlist reads wishes, so one read -- plus the category lists, because saving a
+    wish can create a category it names (api/lib/findOrCreate.js). */
 export function invalidateWishData() {
 	invalidate(getWishes); invalidate(getWish)
 	invalidate(getCategories); invalidate(getCategoriesThisMonth)

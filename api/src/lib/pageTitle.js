@@ -1,22 +1,8 @@
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
 
-/* Reading what a thing is called, and what it looks like, off the page it is sold on.
-
-   This is the one place the server fetches an address a user typed, which makes it the one
-   place that can be talked into fetching something it should not: a link naming 127.0.0.1, or
-   a cloud metadata endpoint, is a request the browser could never make but this process can.
-   So every hop is resolved first and refused if it lands anywhere but a public address, the
-   read is bounded in bytes and in seconds, and nothing but the title ever leaves this file --
-   the page's own bytes are never returned, so a blocked fetch cannot be used to read one.
-
-   Nothing here reports a failure, and that is the whole contract: a shop that answers 403 to
-   anything without a browser's headers, a page that has moved, a name that does not resolve,
-   a site that is simply slow -- every one of them is "nothing found", because the reader is in
-   the middle of typing and a wish does not need this to be saved. The fields are left alone and
-   they carry on. Not a general web scraper either: only what a page states about itself for
-   exactly this purpose is read (the tags a shop writes so a link to it previews properly);
-   nothing is guessed from the address, and no picture is picked out of the page's body. */
+/* The one place this server fetches an address a user typed, so every hop is resolved and
+   refused unless public, and nothing reports a failure: every way it fails is "nothing found". */
 
 const TIMEOUT_MS = 6000
 // A title lives in <head>, which is at the top of the document -- anything past this cannot be
@@ -52,13 +38,8 @@ function isPublicAddress(ip) {
 	return false
 }
 
-/** Every address the host resolves to has to be public, not just the first one: a name with
-    one public answer and one private one would otherwise be a way through.
-
-    This leaves the gap every such check leaves -- the name is resolved here and again by the
-    fetch below, and a name that answers differently between the two is not caught. Closing it
-    means dialling the address ourselves, which is a different and much larger piece of code
-    than this feature is worth. */
+/** Every address the name resolves to, not just the first: one public answer beside a private
+    one would be a way through. The name is resolved again by the fetch, which this cannot see. */
 async function hostIsPublic(hostname) {
 	if (isIP(hostname)) return isPublicAddress(hostname)
 	try {
@@ -98,10 +79,8 @@ export function titleFrom(html) {
 	return text ? text.slice(0, 120) : null
 }
 
-/** The picture a page offers a link preview, as an address this server could go on to fetch --
-    absolute, http(s), and resolved against the page it was found on, because a shop may write
-    it as `/img/sko.jpg`. Only the tags written for previews are read: a shop that publishes one
-    is offering it, which is a different thing from picking an image out of its page. */
+/** Resolved against the page, since a shop may write `/img/sko.jpg`. Only the preview tags are
+    read: publishing one is offering it, unlike an image taken out of the page's body. */
 export function imageFrom(html, pageUrl) {
 	const raw = metaContent(html, ['og:image:secure_url', 'og:image:url', 'og:image', 'twitter:image', 'twitter:image:src'])
 	if (!raw) return null
@@ -111,10 +90,8 @@ export function imageFrom(html, pageUrl) {
 	return at.href
 }
 
-/** What the page at `url` says about itself: `{ title, image }`, either of which may be null --
-    for a refused address, an unreadable page, any status at all, or a page that just does not
-    say. Never throws: every caller treats "no answer" and "nothing there" as the same thing,
-    so there is nothing to tell apart. */
+/** `{ title, image }`, either of which may be null. Never throws: every caller treats "no
+    answer" and "nothing there" as one thing. */
 export async function fetchPagePreview(url) {
 	const NOTHING = { title: null, image: null }
 	let at
@@ -169,12 +146,8 @@ export async function fetchPagePreview(url) {
 	return NOTHING   // redirected past the cap
 }
 
-/* The picture itself, once the reader's wish is saved and there is a row to hang it on.
-
-   Same guards as the page read above, for the same reason -- the address came off a page this
-   server was pointed at, so it is no more trusted than the one that named it -- plus two of its
-   own: the bytes have to say they are an image, and there is a ceiling on how many of them are
-   read. Returns the bytes and their type, or null, which every caller treats as "no picture". */
+/* Same guards as the page read: the address came off a page this server was pointed at, so it
+   is no more trusted than the one that named it. Plus a type check and a ceiling on the read. */
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 

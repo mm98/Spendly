@@ -20,17 +20,8 @@ import {
 } from '../api/client.js'
 import { amount, currency, currencySymbol, longDate, parseAmount, percent } from '../api/format.js'
 
-/* A wish, on its own page -- the same page component as a vendor, a category and an order,
-   because there is one way to edit a record in this app rather than one per screen.
-
-   A wish is a record, not part of one. That is the whole distinction the shape follows: an
-   order's lines are edited in place because a line is a piece of the order being edited and
-   has no life without it, while a wish stands on its own -- it is created, corrected, archived
-   and deleted by itself, exactly as a vendor is. So it is created and edited here, and the
-   wishlist is only ever a list. See components/FormPage.jsx.
-
-   And it is not an order. Nothing saved here reaches a total, a chart or a budget: those all
-   read the orders table as money that has already left the account. */
+/* A wish is a record, not part of one, so it is edited on its own page like a vendor -- one way
+   to edit a record here, not one per screen. Nothing saved reaches a total. */
 
 export default function WishForm({ mode = 'create' }) {
 	const { id } = useParams()
@@ -54,15 +45,12 @@ function WishFields({ mode, wish }) {
 	const [categoryQuery, setCategoryQuery] = useState('')
 	const [archived, setArchived] = useState(false)
 	const [saving, setSaving] = useState(false)
-	/* The picture chosen in this session, and whether the stored one was taken away. Both are
-	   this form's, not the record's: a wish being created has no id to hang a file on yet, so
-	   the bytes travel after the record exists (see save below). */
+	// This form's, not the record's: a wish being created has no id to hang a file on, so the
+	// bytes travel after it exists.
 	const [picked, setPicked] = useState(null)
 	const [cleared, setCleared] = useState(false)
-	/* The picture the shop's own page offered, if it offered one: an address rather than bytes
-	   until the wish is saved, because the browser can draw it straight from the shop's host and
-	   only the server can fetch it (see save below). Anything the reader does to the frame --
-	   choosing a file, removing it -- takes precedence and drops this. */
+	/* What the shop's page offered and the server could get: a copy to draw, and the address to
+	   fetch the full one from. Anything done to the frame drops it. */
 	const [offered, setOffered] = useState(null)   // { address, thumbnail }
 
 	useEffect(() => {
@@ -91,17 +79,8 @@ function WishFields({ mode, wish }) {
 		: offered ? { present: true, src: offered.thumbnail }
 		: {}
 
-	/* Pasting a link first is the natural order -- the thing is in front of you in a browser
-	   tab -- so the shop's own page is asked what it calls it and the name is filled in from
-	   that. Three rules keep it from being in the way:
-
-	   only while a wish is being created, because an edit is a record that already has the name
-	   its owner settled on and a link corrected later must not reach back and change it; only
-	   when the name is empty, so nothing anyone typed is ever replaced; only when the address
-	   has stopped changing (on leaving the field, not per keystroke); and silently, because a
-	   shop that refuses to be read, a page that has moved and a slow one are all the same
-	   nothing to a reader who can simply type the name. `wanted` is what stops a slow answer
-	   landing in a field that has since been typed into or moved on from. */
+	/* Create only, into an empty name only, on leaving the field, and silently. `wanted` stops a
+	   slow answer landing in a field that has since been typed into. */
 	const wanted = useRef(0)
 	const readPage = async value => {
 		const address = httpUrl(value)
@@ -125,9 +104,8 @@ function WishFields({ mode, wish }) {
 		setCategoryQuery('')
 	}
 
-	/** The record first, then its picture -- the bytes go against a real id, so a wish being
-	    created has to exist before its own photo can be attached to it. The same order the
-	    order form uploads a line's photo in. */
+	/** The record first, then its picture: the bytes go against a real id, so the wish has to
+	    exist before its photo can be attached. */
 	const save = async () => {
 		const failed = check()
 		if (failed.length) { focusField(failed[0].name); return }
@@ -277,9 +255,8 @@ function WishFields({ mode, wish }) {
 	)
 }
 
-/** The rail card that mirrors the form: the row as the wishlist will draw it, then its values.
-    No spend total, because a wish has never cost anything -- the figure it does have is what
-    the shop asks today. */
+/** The rail card mirroring the form. No spend total: a wish has never cost anything, and the
+    figure it has is what the shop asks today. */
 function WishSummary({ name, url, price, categories, archived, photo, wish }) {
 	const site = url.trim() ? siteOf(url) : ''
 	// Only an address a browser can follow becomes a link -- httpUrl is the same rule the field

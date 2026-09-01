@@ -22,9 +22,7 @@ const notFound = id => Object.assign(new Error('No wish ' + id), { status: 404 }
 
 /* ---- statements ---- */
 
-// The blob columns are never in a list or record read: a photo is fetched by its own two
-// routes at the bottom of this file, and a row that carried its bytes would send the picture
-// with every list of names.
+// No blob columns: a photo has its own two routes at the foot of this file.
 const WISH_COLUMNS = 'id, name, url, price, archived, created_at, photo_id'
 const selectOne = db.prepare(`SELECT ${WISH_COLUMNS} FROM wishes WHERE id = ? AND user_id = ?`)
 const countAllWishes = db.prepare('SELECT COUNT(*) c FROM wishes WHERE user_id = ?')
@@ -48,11 +46,8 @@ const selectPhoto = db.prepare(
 const selectPhotoThumbnail = db.prepare(
 	'SELECT photo_thumbnail, photo_thumbnail_is_compressed, photo_thumbnail_content_type FROM wishes WHERE id = ? AND user_id = ? AND photo_id = ?')
 
-/* ---- the row shape ----
-   What the wishlist actually renders: the name, the address, the price, when it was added,
-   whether it is archived, the categories by name and the token that addresses its photo. The
-   categories are names rather than records because the row prints names and the form edits
-   names -- the same shape an order draft carries them in. */
+/* Categories are names rather than records: the row prints names and the form edits them, the
+   shape an order draft carries them in. */
 
 const rowOf = (wish, categories) => ({
 	id: wish.id,
@@ -79,10 +74,8 @@ function decorateRows(wishes) {
 	return wishes.map(wish => rowOf(wish, byWish.get(wish.id) ?? []))
 }
 
-/** The names a write asked for, resolved to category rows and linked. Names rather than ids,
-    and looked up or created, so typing a category that does not exist yet works here exactly
-    as it does on an order (lib/findOrCreate.js). Case-insensitive duplicates in one request
-    resolve to the same id, so the link insert is deduped before it can violate the key. */
+/** Looked up or created, so a category typed here works as it does on an order. Deduped by
+    id, since two spellings of one name resolve to the same row (lib/findOrCreate.js). */
 const linkCategories = (userId, wishId, names) => {
 	deleteWishCategories.run(wishId)
 	const ids = new Set()
@@ -104,18 +97,8 @@ const updateWish = db.transaction((userId, wish, categories) => {
 	if (categories !== undefined) linkCategories(userId, wish.id, categories)
 })
 
-/* ---- the list ----
-   Searched, filtered, sorted and paged in SQL, the same shape the orders list is built in
-   (routes/orders.js): the clauses are built once and reused between the COUNT that says how
-   many matched and the SELECT that reads the page, so the two can never disagree about which
-   rows qualify.
-
-   No index on wishes, deliberately, and the plan check carries that decision blessed: every
-   read here scans the account's wishes and sorts them in a temp B-tree, which is the right
-   plan for a table that is tens of rows -- a wishlist is what one person still wants, and it
-   does not grow the way a ledger does. Measured on this schema, the list read is 0.10ms at
-   50 wishes, 0.43ms at 500, 4.6ms at 5,000 and 58ms at 50,000; an index is what the last of
-   those would call for, and it would be paid for on every wish written from here on. */
+/* One set of clauses for the COUNT and the page, so the two cannot disagree about which rows
+   qualify. No index: the scan is the right plan at a wishlist's size (docs/defects.md). */
 
 const WISH_SORT_SQL = {
 	'added-desc': 'w.created_at DESC, w.id DESC',
@@ -132,17 +115,11 @@ function buildWishFilter(userId, q) {
 	const where = ['w.user_id = @userId']
 	const params = { userId }
 
-	/* The archived flag has two states, so the filter over it has two, and the one it takes
-	   when nobody asks is "not the archived ones": a wishlist is what you still want, and a
-	   list that opened with the things already put away would have to be narrowed before it
-	   could be read. */
+	// Two states, and unasked it takes "not archived": a wishlist is what you still want.
 	where.push(q.archived === 'yes' ? 'w.archived = 1' : 'w.archived = 0')
 
-	/* The two sorts that also narrow, the same rule the orders list applies to its discount
-	   sort: a wish with no price written down is not the cheapest wish, it is a wish the
-	   question does not apply to. The predicate lives here so the count and the page agree
-	   about it -- a row the page drops is a row the "N matching" line has already stopped
-	   counting. */
+	// A wish with no price is not the cheapest one. Here, not in the ORDER BY, so the count
+	// and the page agree about which rows the sort dropped.
 	if (sortKey.startsWith('price-')) where.push('w.price IS NOT NULL')
 
 	if (q.categoryId === 'none') {
@@ -152,20 +129,15 @@ function buildWishFilter(userId, q) {
 		params.categoryId = q.categoryId
 	}
 
-	/* Finite or absent, never NaN -- the orders list's rule and its reason: better-sqlite3
-	   binds NaN as NULL and `created_at >= NULL` matches nothing, so a date that does not
-	   parse would silently empty the list instead of being ignored. */
+	// Finite or absent, never NaN: better-sqlite3 binds NaN as NULL and `created_at >= NULL`
+	// matches nothing, so a date that will not parse would silently empty the list.
 	const from = toEpoch(q.from), to = toEpoch(q.to)
 	if (Number.isFinite(from)) { where.push('w.created_at >= @from'); params.from = from }
-	// The stored value is a moment, not a day, so an inclusive "to" has to reach the end of
-	// that day -- otherwise a wish added this afternoon falls outside a range ending today.
+	// The stored value is a moment, not a day: an inclusive "to" reaches the end of that day.
 	if (Number.isFinite(to)) { where.push('w.created_at < @to'); params.to = to + 86400 }
 
-	/* What a wish can be found by: its own name, the shop it is from, and the categories it
-	   carries. The address is searched as well as shown because the row prints the site under
-	   the name, so "zalando" is a thing a reader can see and therefore a thing they will type.
-	   Same two matchers as everywhere else -- an ASCII needle goes through LIKE, one carrying a
-	   letter LIKE cannot case-fold goes through contains_fold (lib/textSearch.js). */
+	/* Name, shop and category name -- the address is searched because the row prints it. Same
+	   two matchers as everywhere else (lib/textSearch.js). */
 	const needle = String(q.query ?? '').trim().toLowerCase()
 	if (needle) {
 		const match = MATCHERS[asciiNeedle(needle) ? 'ascii' : 'fold']
@@ -192,9 +164,8 @@ router.get('/', (req, res) => {
 		? db.prepare(`SELECT COUNT(*) c FROM wishes w WHERE ${whereSql}`).get(params).c
 		: total
 
-	/* LIMIT/OFFSET go straight into the statement, so a caller-chosen page size is made safe
-	   here: SQLite reads a negative LIMIT as "no limit at all" rather than as an error. Same
-	   clamp, same ceiling and same reason as the orders list. */
+	// SQLite reads a negative LIMIT as "no limit at all", so a caller's page size is clamped
+	// here. Same clamp and ceiling as the orders list.
 	const requestedSize = Number(q.pageSize) || Number(q.limit) || matched || 1
 	const size = Math.min(MAX_PAGE_SIZE, Number.isFinite(requestedSize)
 		? Math.max(1, Math.floor(requestedSize)) : Math.max(1, matched))
@@ -216,26 +187,8 @@ router.get('/', (req, res) => {
 	})
 })
 
-/** What the page at an address says about itself -- its name and the picture it offers a link
-    preview -- for the form to fill in while the reader is still typing (pages/WishForm.jsx).
-    Always 200 and always `{ title, image }`, either of which may be null: a shop that refuses,
-    a page that has moved, an address this server will not fetch, a page that simply says
-    nothing (lib/pageTitle.js). None of it is an error the reader has to read; they can type the
-    name themselves and choose their own picture.
-
-    Before /:id, or that route would answer this with "No wish preview". */
-/* The picture is fetched here too, not only pointed at.
-
-   The obvious cheap version hands the browser the shop's own address and lets it draw from
-   there, and it breaks in the ordinary case: shops serve their pictures from a CDN that turns
-   away anything without their own page as the referer, so the frame drew a broken tile over a
-   name that had parsed perfectly. It is also a request from the reader's own browser to a shop
-   they have not visited yet.
-
-   So the server fetches it -- which it must do on save anyway -- and hands back one small
-   thumbnail inlined in the answer. That makes the offer truthful: a picture is only shown once
-   this server has actually got the bytes and made something of them. Thumbnail-sized, because
-   the frame is 128px and a data URL rides in a JSON body. */
+/** Always 200 and always `{ title, image, thumbnail }`, any of them null. The picture is
+    fetched, not pointed at: a shop's CDN turns away a browser without its page as referer. */
 async function previewThumbnail(imageUrl) {
 	const fetched = await fetchImage(imageUrl)
 	if (!fetched || detectFileType(fetched.buffer)?.kind !== 'image') return null
@@ -251,9 +204,8 @@ router.get('/preview', async (req, res) => {
 	res.json({ title, image: thumbnail ? image : null, thumbnail })
 })
 
-/** One wish, for the page that edits it -- the same single-record read a vendor and a
-    category have. Registered before the writes below so the shape of this file reads
-    reads-then-writes; nothing else answers a bare id. */
+/** One wish, for the page that edits it. Before the writes below; nothing else answers a
+    bare id. */
 router.get('/:id', (req, res) => {
 	const wish = selectOne.get(req.params.id, req.user.id)
 	if (!wish) throw notFound(req.params.id)
@@ -280,10 +232,8 @@ router.patch('/:id', (req, res) => {
 	const wish = selectOne.get(req.params.id, req.user.id)
 	if (!wish) throw notFound(req.params.id)
 	const patch = req.body ?? {}
-	/* Archiving is a PATCH like any other field, so the one place a wish is written is this
-	   one. An archive press sends nothing but `archived`, and every other column keeps the
-	   value the record already has -- which is why each line below reads the patch for
-	   "was this field mentioned" rather than for "is it truthy". */
+	// Each line reads the patch for "was this mentioned", not "is it truthy": an archive press
+	// sends nothing but `archived` and every other column keeps what it has.
 	const draft = {
 		name: patch.name !== undefined ? patch.name : wish.name,
 		url: patch.url !== undefined ? patch.url : wish.url,
@@ -305,19 +255,8 @@ router.delete('/:id', (req, res) => {
 	res.json({ id: req.params.id })
 })
 
-/* ---- the photo ----
-   One picture per wish, on the wish's own row. `photo_id` is regenerated on every upload and
-   is part of the URL the browser fetches, so the two routes at the bottom can be cached
-   forever without a replaced photo staying stale in a cache that was told never to ask again. */
-
-/* Two ways in, one pipeline. A file is what the frame's picker and a drop hand over; an
-   address is what a shop's own page offered (the `image` from /preview), fetched here rather
-   than by the browser -- the bytes have to reach this process either way, and a page's picture
-   is on a host that has no reason to allow a script on this origin to read it.
-
-   The address is refused silently, like everything else about reading someone else's page: a
-   wish saves whether or not its picture could be fetched. A file that will not do is a
-   different case and still says so -- somebody chose that file by hand. */
+/* `photo_id` is regenerated on every upload and rides in the URL, so a thumbnail can be cached
+   forever. An address that will not fetch is refused silently; a chosen file says so. */
 router.post('/:id/photo', upload.single('file'), async (req, res) => {
 	const wish = selectOne.get(req.params.id, req.user.id)
 	if (!wish) throw notFound(req.params.id)
@@ -338,11 +277,8 @@ router.post('/:id/photo', upload.single('file'), async (req, res) => {
 	}
 
 	if (!req.file) return res.status(400).json({ error: 'No picture was sent.' })
-	/* The bytes have to *be* a picture, which is a stricter question than the one the
-	   attachment pipeline asks: an order attachment files anything it cannot recognise under
-	   'image' and keeps the original bytes, because there the frame is a tile with a filename
-	   under it. Here the frame draws the image itself, so a file no format signature claims
-	   would be stored and then fail to render with nothing said about why (lib/fileType.js). */
+	// Stricter than the attachment pipeline, which files anything unrecognised under 'image':
+	// here the frame draws the picture, so an unclaimed file would store and then not render.
 	if (detectFileType(req.file.buffer)?.kind !== 'image')
 		return res.status(400).json({ error: 'That file is not a picture. JPEG, PNG, WebP, GIF, HEIC, TIFF and BMP all work.' })
 	const processed = await processAttachment(req.file.buffer, req.file.mimetype, req.file.originalname)

@@ -3,35 +3,12 @@ import { ImageOrIcon } from './Icon.jsx'
 import { HiddenFileInput } from './FileInput.jsx'
 import { PHOTO_FILES } from './fileKinds.js'
 
-/* The picture beside a card's fields: an order line's product photo, a wish's.
-
-   One frame, one set of words, one way in. The two cards that draw it are not the same form —
-   an item has a quantity and a price paid, a wish has a link — but the picture is the same
-   picture, taken the same three ways: the frame is clicked, a file is dropped on the card, or
-   one is pasted into it. Two copies of that would be two answers to "what does an empty frame
-   say", and the frame is the half of the card a reader looks at first.
-
-   `photo` is what the host knows: `{ present, src }` — a file picked in this session, an
-   image already on the server, or neither. The host decides which, because only it knows
-   whether a record has been saved yet. */
-
-/* Only an image, and only the first of them: the frame holds one picture, so a folder dropped
-   on it fills the frame rather than failing. The picker, the drop and the paste all read a
-   FileList, so they all read it through here. */
+/* One frame for the two cards that draw one. `photo` is `{ present, src }`: only the host
+   knows whether its record has been saved yet. The first image only -- the frame holds one. */
 const firstImage = list => [...(list ?? [])].find(f => f.type.startsWith('image/'))
 
-/** The two ways in that are not the frame itself: dropping, and pasting.
-
-    `dropProps` go on the card or the block around the frame, not on the frame: a photo dropped
-    there is a photo meant for it, and a 96px target is a small thing to ask someone to hit.
-
-    Pasting is a window listener rather than a handler among them, because a paste is delivered
-    to whatever holds focus and then bubbles from there -- so a handler on an element that
-    cannot hold focus never runs, and one on a card only runs while the cursor happens to be
-    inside it. The frame says "paste one you copied" with no conditions attached, so the
-    listener has none either: while this form is open, a copied image goes in the frame wherever
-    the cursor is. A paste carrying no image is left entirely alone, which is every paste into
-    a text field. */
+/** Pasting is a window listener, not one of `dropProps`: a paste goes to whatever holds focus,
+    so a handler on an element that cannot hold it never runs. The frame promises it plainly. */
 export function useDroppedPhoto(onPick) {
 	const [over, setOver] = useState(false)
 	// The handler is bound once; the callback it should use is whatever the latest render
@@ -64,10 +41,8 @@ export function useDroppedPhoto(onPick) {
 	}
 }
 
-/** The frame, its file picker, and the lines under it.
- *
- *  `heading` and `name` are the card's own header, drawn here only on a phone (see the note on
- *  the foot below) — a host that already has a headline of its own passes neither. */
+/** `heading` and `name` are drawn only on a phone; a host with a headline of its own passes
+    neither. */
 export function LinePhoto({ photo, heading, name, label, onPick, onClear }) {
 	const file = useRef(null)
 
@@ -114,12 +89,8 @@ export function LinePhoto({ photo, heading, name, label, onPick, onClear }) {
 							onClick={onClear}>Remove</button>
 					</span>
 				) : (
-					/* Only over an empty frame. Dropping and pasting leave no mark on the screen,
-					   so the sentence is the only way anyone finds out they work — which is worth a
-					   line while the frame is empty and the reader is looking for the way in. Once
-					   there is a photo, Replace is a visible control answering the same question,
-					   the two gestures still work, and the sentence is a third row in a column
-					   standing beside the fields. */
+					/* Only over an empty frame: dropping and pasting leave no mark on screen, so
+					   nothing else says they work. */
 					<span className="field-help line-photo-hint">Drop a photo here, or paste one you copied</span>
 				)}
 			</span>
