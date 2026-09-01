@@ -534,8 +534,8 @@ export default function Home() {
 											marks={data.period.axis} height={110} className="chart-under-caption"
 											label={`Cumulative spend through ${data.period.shortLabel}`}
 											todayIndex={data.period.todayIndex} yFormat={compactAmount}
-											series={[{ key: 'spend', dataKey: 'y1', name: 'Spent', color: 'var(--blue)',
-												strokeGradient: ['var(--blue)', '#A5B4FC'], strokeWidth: 2.4, today: true }]} />
+											series={[{ key: 'spend', dataKey: 'y1', name: 'Spent', color: 'var(--green)',
+												strokeGradient: ['var(--green)', 'var(--green-light)'], strokeWidth: 2.4, today: true }]} />
 										{/* The total, in the slot the total goes in -- this list held the
 										    saving there and the total in the meta line beneath the vendor,
 										    which is the same pair of figures the other two lists of orders

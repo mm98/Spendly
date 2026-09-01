@@ -17,7 +17,7 @@
    Colours sampled from the reference shot itself:
    sidebar #EFF1EF • canvas #F7F8F6 • card #FFFFFF • ink #0B0F0D
    vivid green #14AC72 • deep teal #07625E • dark card #0B1A12
-   spending line #4F5BD5→#A5B4FC • donut blue #1FA8E0
+   spending line #14AC72→#95ABAA • donut blue #1FA8E0
    ============================================================ */
 :root {
 	/* A colour token is named for the surface it paints, because that is the one
@@ -73,6 +73,9 @@
 	   the 3:1 a stroke-drawn glyph needs, and this lifts it to 5.02:1. The SVG icons
 	   carry these same stops. */
 	--green-deep:#0A7F56;
+	/* The paler line of a spend chart's pair -- the window before this one, drawn dashed
+	   behind it. The key's swatches read these tokens, so a line and its swatch agree. */
+	--green-light:#95ABAA;
 	/* --green paints fills; --text-positive is the ink tier for text on a light
 	   background, since --green itself fails 4.5:1 as text. The chips that sit on
 	   a tint use --text-positive too, to stay legible; --green keeps the fills and
@@ -86,10 +89,7 @@
 	   error edge is 1.4.11's 3:1 boundary and this clears it either way. README: Accessibility. */
 	--text-negative:#B3261E;
 	--teal:#07625E;
-	/* The July and June series. Both swatches read --blue-light from this token,
-	   so the rendered colour and the value here can't diverge. */
 	--blue:#4F5BD5;
-	--blue-light:#B9BFF0;
 	--donut-blue:#1FA8E0;
 	--donut-red:#D34F2E;
 	--donut-yellow:#E8C51B;
@@ -2044,8 +2044,8 @@ label.field-shell { cursor:pointer; }
 .rhythm-bars { min-height:86px; }
 
 /* Orders overview's two-series key. */
-.swatch-current { background:var(--blue); }
-.swatch-previous { background:var(--blue-light); }
+.swatch-current { background:var(--green); }
+.swatch-previous { background:var(--green-light); }
 .card-toggle-row { margin-bottom:14px; }
 
 /* Scan. */
