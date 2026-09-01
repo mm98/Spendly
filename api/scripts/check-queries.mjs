@@ -232,7 +232,7 @@ const REQUESTS = [
 	'/categories', `/categories/${ids.category}`, '/categories/uncategorised',
 	'/stats?range=week', '/stats?range=month', '/stats?range=quarter', '/stats?range=year',
 	'/stats?range=all', '/stats?range=month&summary=1',
-	'/wishes', '/wishes?archived=yes', '/wishes?archived=all',
+	'/wishes', '/wishes?archived=yes',
 	'/wishes?sort=added-asc', '/wishes?sort=price-desc', '/wishes?sort=name-asc',
 	`/wishes?categoryId=${ids.category}`, '/wishes?categoryId=none',
 	'/wishes?query=sko', '/wishes?query=æg', '/wishes?from=2020-01-01&to=2030-12-31',

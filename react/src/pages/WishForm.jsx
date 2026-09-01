@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Button } from '../components/Button.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
@@ -15,8 +15,8 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { WISH_FIELDS, httpUrl, siteOf } from '../api/rules.js'
 import {
-	addWishPhoto, createWish, deleteWish, failureMessage, getCategories, getWish,
-	invalidateWishData, removeWishPhoto, updateWish, wishPhotoThumbnailUrl
+	addWishPhoto, addWishPhotoFromUrl, createWish, deleteWish, failureMessage, getCategories,
+	getWish, getWishPreview, invalidateWishData, removeWishPhoto, updateWish, wishPhotoThumbnailUrl
 } from '../api/client.js'
 import { amount, currency, currencySymbol, longDate, parseAmount, percent } from '../api/format.js'
 
@@ -59,6 +59,11 @@ function WishFields({ mode, wish }) {
 	   the bytes travel after the record exists (see save below). */
 	const [picked, setPicked] = useState(null)
 	const [cleared, setCleared] = useState(false)
+	/* The picture the shop's own page offered, if it offered one: an address rather than bytes
+	   until the wish is saved, because the browser can draw it straight from the shop's host and
+	   only the server can fetch it (see save below). Anything the reader does to the frame --
+	   choosing a file, removing it -- takes precedence and drops this. */
+	const [offered, setOffered] = useState(null)
 
 	useEffect(() => {
 		if (!wish) return
@@ -79,10 +84,40 @@ function WishFields({ mode, wish }) {
 	const urlField = propsFor('wish-url')
 	const priceField = propsFor('wish-price')
 
-	const drop = useDroppedPhoto(file => { setPicked({ file, url: URL.createObjectURL(file) }); setCleared(false) })
+	const drop = useDroppedPhoto(file => { setPicked({ file, url: URL.createObjectURL(file) }); setOffered(null); setCleared(false) })
 	const photo = picked ? { present: true, src: picked.url }
-		: cleared || !wish?.photoId ? {}
-		: { present: true, src: wishPhotoThumbnailUrl(wish.id, wish.photoId) }
+		: cleared ? {}
+		: wish?.photoId ? { present: true, src: wishPhotoThumbnailUrl(wish.id, wish.photoId) }
+		: offered ? { present: true, src: offered }
+		: {}
+
+	/* Pasting a link first is the natural order -- the thing is in front of you in a browser
+	   tab -- so the shop's own page is asked what it calls it and the name is filled in from
+	   that. Three rules keep it from being in the way:
+
+	   only while a wish is being created, because an edit is a record that already has the name
+	   its owner settled on and a link corrected later must not reach back and change it; only
+	   when the name is empty, so nothing anyone typed is ever replaced; only when the address
+	   has stopped changing (on leaving the field, not per keystroke); and silently, because a
+	   shop that refuses to be read, a page that has moved and a slow one are all the same
+	   nothing to a reader who can simply type the name. `wanted` is what stops a slow answer
+	   landing in a field that has since been typed into or moved on from. */
+	const wanted = useRef(0)
+	const readPage = async value => {
+		const address = httpUrl(value)
+		if (mode !== 'create' || !address) return
+		const ticket = ++wanted.current
+		const { title, image } = await getWishPreview(address)
+		if (ticket !== wanted.current) return
+		if (title) setName(current => {
+			if (current.trim()) return current
+			recheck('wish-name', title)
+			return title
+		})
+		// Offered, not applied: the frame shows it and the reader can replace or remove it
+		// before saving, exactly as they can a file they chose themselves.
+		if (image) setOffered(current => (picked || cleared ? current : image))
+	}
 
 	const addCategory = value => {
 		const clean = String(value).trim()
@@ -102,6 +137,9 @@ function WishFields({ mode, wish }) {
 			const saved = mode === 'edit' ? await updateWish(wish.id, draft) : await createWish(draft)
 			if (picked) await addWishPhoto(saved.id, picked.file)
 			else if (cleared) await removeWishPhoto(saved.id)
+			// The shop's own picture, fetched by the server against the row that now exists.
+			// Silent both ways: a wish is saved whether or not the picture could be had.
+			else if (offered) await addWishPhotoFromUrl(saved.id, offered)
 			invalidateWishData()
 			toast(`${saved.name} ${mode === 'edit' ? 'saved' : 'added'}.`)
 			navigate('/wishlist')
@@ -154,12 +192,15 @@ function WishFields({ mode, wish }) {
 			</Field>
 
 			<Field label="Link" error={urlField.error} errorId={urlField.errorId} htmlFor="wish-url"
-				help="The page you would buy it on. You can leave out the https://">
+				help={mode === 'create'
+					? 'The page you would buy it on. You can leave out the https:// — and if you fill this in before the rest, the name and a picture are taken from that page where it offers them.'
+					: 'The page you would buy it on. You can leave out the https://'}>
 				<FieldShell>
 					<TextInput id="wish-url" value={url} inputMode="url" placeholder="shop.dk/product"
 						onChange={v => { setUrl(v); recheck('wish-url', v) }}
 						aria-label="Link" aria-required="true"
 						invalid={urlField.invalid} describedBy={urlField.describedBy}
+										onBlur={e => readPage(e.target.value)}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
 				</FieldShell>
 			</Field>
@@ -213,8 +254,8 @@ function WishFields({ mode, wish }) {
 				<div className={drop.over ? 'wish-photo-field is-dragover' : 'wish-photo-field'}
 					{...drop.dropProps}>
 					<LinePhoto photo={photo} label="Picture of this wish"
-						onPick={file => { setPicked({ file, url: URL.createObjectURL(file) }); setCleared(false) }}
-						onClear={() => { setPicked(null); setCleared(true) }} />
+						onPick={file => { setPicked({ file, url: URL.createObjectURL(file) }); setOffered(null); setCleared(false) }}
+						onClear={() => { setPicked(null); setOffered(null); setCleared(true) }} />
 				</div>
 			</Field>
 

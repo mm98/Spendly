@@ -314,6 +314,31 @@ export async function getWish(id, signal) {
 	return request(`/api/wishes/${id}`, { signal })
 }
 
+/** What the shop's own page says about the thing -- `{ title, image }` -- so the form can fill
+    in from a pasted link. Either may be null for every way that can fail, and this adds one of
+    its own: a request that falls over is the same nothing, because a wish is saved by typing a
+    name and never by this succeeding. */
+export async function getWishPreview(url, signal) {
+	try {
+		return await request('/api/wishes/preview' + qs({ url }), { signal })
+	} catch {
+		return { title: null, image: null }
+	}
+}
+
+/** The picture a page offered, fetched by the server rather than the browser -- it lives on the
+    shop's host, which has no reason to let a script on this origin read it. Silent: a picture
+    that cannot be fetched leaves the wish exactly as it was saved. */
+export async function addWishPhotoFromUrl(id, url, signal) {
+	try {
+		const saved = await request(`/api/wishes/${id}/photo`, { method: 'POST', body: { url }, signal })
+		invalidateWishData()
+		return saved
+	} catch {
+		return null
+	}
+}
+
 const toApiWish = wish => ({
 	name: wish.name,
 	url: wish.url,

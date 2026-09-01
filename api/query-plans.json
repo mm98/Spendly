@@ -1376,16 +1376,6 @@
 			],
 			"indexes": []
 		},
-		"SELECT w.id, w.name, w.url, w.price, w.archived, w.created_at, w.photo_id FROM wishes w WHERE w.user_id = @userId ORDER BY w.created_at DESC, w.id DESC LIMIT @limit OFFSET @offset": {
-			"plan": [
-				"SCAN w",
-				"USE TEMP B-TREE FOR ORDER BY"
-			],
-			"findings": [
-				"sorts in a temp B-tree"
-			],
-			"indexes": []
-		},
 		"SELECT wc.wish_id, c.name FROM categories c JOIN wish_categories wc ON wc.category_id = c.id WHERE wc.wish_id IN (SELECT value FROM json_each(?)) ORDER BY wc.wish_id, c.name": {
 			"plan": [
 				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)",

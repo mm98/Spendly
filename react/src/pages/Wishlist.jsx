@@ -32,12 +32,17 @@ import { currency, dayMonth, longDate, percent, plural, sep } from '../api/forma
 
 /* Archived is a filter with three answers, and "no" is the one it takes when nobody asks: a
    wishlist is what you still want, so a list that opened with the things you had already put
-   away would have to be narrowed before it could be read. The labels are what a reader sees;
-   the values are what the URL and the API carry. */
+   away would have to be narrowed before it could be read.
+
+   Two answers, because the thing it filters has two. A wish carries one checkbox called
+   Archived (pages/WishForm.jsx), so the list shows the wishes with it ticked or the wishes
+   without -- a third "both" would be a state no record can be in. "Archived" is the
+   checkbox's own word, so a reader who ticked it can see which side they are now looking at,
+   and "Open" is what the other side is: still wanted, not yet dealt with. The labels are what
+   a reader sees; the values are what the URL and the API carry. */
 const SHOWN = [
-	{ value: 'no', label: 'On the list' },
-	{ value: 'yes', label: 'Archived' },
-	{ value: 'all', label: 'All' }
+	{ value: 'no', label: 'Open' },
+	{ value: 'yes', label: 'Archived' }
 ]
 const shownLabel = value => SHOWN.find(s => s.value === value)?.label ?? SHOWN[0].label
 

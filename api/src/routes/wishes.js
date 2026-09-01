@@ -7,6 +7,7 @@ import { findOrCreateCategory } from '../lib/findOrCreate.js'
 import { assertValidWishDraft, normaliseUrl } from '../lib/validate.js'
 import { processAttachment } from '../lib/images.js'
 import { detectFileType } from '../lib/fileType.js'
+import { fetchImage, fetchPagePreview } from '../lib/pageTitle.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { MAX_PAGE_SIZE } from '../lib/constants.js'
 import { MATCHERS, asciiNeedle, escapeLike } from '../lib/textSearch.js'
@@ -131,12 +132,11 @@ function buildWishFilter(userId, q) {
 	const where = ['w.user_id = @userId']
 	const params = { userId }
 
-	/* Archived is a filter with three answers, and the one it takes when nobody asks is "not
-	   the archived ones": a wishlist is what you still want, and a list that opened with the
-	   things you had already put away would have to be narrowed before it could be read. */
-	const archived = ['yes', 'all'].includes(q.archived) ? q.archived : 'no'
-	if (archived === 'no') where.push('w.archived = 0')
-	else if (archived === 'yes') where.push('w.archived = 1')
+	/* The archived flag has two states, so the filter over it has two, and the one it takes
+	   when nobody asks is "not the archived ones": a wishlist is what you still want, and a
+	   list that opened with the things already put away would have to be narrowed before it
+	   could be read. */
+	where.push(q.archived === 'yes' ? 'w.archived = 1' : 'w.archived = 0')
 
 	/* The two sorts that also narrow, the same rule the orders list applies to its discount
 	   sort: a wish with no price written down is not the cheapest wish, it is a wish the
@@ -216,6 +216,18 @@ router.get('/', (req, res) => {
 	})
 })
 
+/** What the page at an address says about itself -- its name and the picture it offers a link
+    preview -- for the form to fill in while the reader is still typing (pages/WishForm.jsx).
+    Always 200 and always `{ title, image }`, either of which may be null: a shop that refuses,
+    a page that has moved, an address this server will not fetch, a page that simply says
+    nothing (lib/pageTitle.js). None of it is an error the reader has to read; they can type the
+    name themselves and choose their own picture.
+
+    Before /:id, or that route would answer this with "No wish preview". */
+router.get('/preview', async (req, res) => {
+	res.json(await fetchPagePreview(String(req.query.url ?? '')))
+})
+
 /** One wish, for the page that edits it -- the same single-record read a vendor and a
     category have. Registered before the writes below so the shape of this file reads
     reads-then-writes; nothing else answers a bare id. */
@@ -275,9 +287,33 @@ router.delete('/:id', (req, res) => {
    is part of the URL the browser fetches, so the two routes at the bottom can be cached
    forever without a replaced photo staying stale in a cache that was told never to ask again. */
 
+/* Two ways in, one pipeline. A file is what the frame's picker and a drop hand over; an
+   address is what a shop's own page offered (the `image` from /preview), fetched here rather
+   than by the browser -- the bytes have to reach this process either way, and a page's picture
+   is on a host that has no reason to allow a script on this origin to read it.
+
+   The address is refused silently, like everything else about reading someone else's page: a
+   wish saves whether or not its picture could be fetched. A file that will not do is a
+   different case and still says so -- somebody chose that file by hand. */
 router.post('/:id/photo', upload.single('file'), async (req, res) => {
 	const wish = selectOne.get(req.params.id, req.user.id)
 	if (!wish) throw notFound(req.params.id)
+
+	if (!req.file && req.body?.url) {
+		const fetched = await fetchImage(String(req.body.url))
+		if (!fetched || detectFileType(fetched.buffer)?.kind !== 'image')
+			return res.json(decorateOne(wish))
+		const processed = await processAttachment(fetched.buffer, fetched.contentType, 'picture')
+		updatePhoto.run({
+			id: wish.id, userId: req.user.id, photoId: newId('p'),
+			contentType: processed.contentType ?? fetched.contentType, size: processed.size,
+			data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
+			thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
+			thumbnailContentType: processed.thumbnailContentType
+		})
+		return res.status(201).json(decorateOne(selectOne.get(wish.id, req.user.id)))
+	}
+
 	if (!req.file) return res.status(400).json({ error: 'No picture was sent.' })
 	/* The bytes have to *be* a picture, which is a stricter question than the one the
 	   attachment pipeline asks: an order attachment files anything it cannot recognise under
