@@ -4,7 +4,7 @@ import { Button } from '../components/Button.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { ImageOrIcon } from '../components/Icon.jsx'
-import { EntityRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
+import { EntityRow, SummaryRow } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { LinePhoto, useDroppedPhoto } from '../components/LinePhoto.jsx'
 import {
@@ -280,16 +280,9 @@ function WishSummary({ name, url, price, categories, photo, wish }) {
 				<div className="summary-row">Categories
 					<span className="summary-row-value">{categories.length ? categories.join(', ') : '-'}</span></div>
 				{wish ? <SummaryRow label="Added" value={longDate(wish.createdAt)} /> : null}
-				<div className="card-divider card-divider-tight" />
-				{/* An asking price, not a spend: the estimate mark says the figure is what the
-				    shop wants, not something this account has paid. Not "today" -- the field holds
-				    whatever was written down, on whatever day that was. */}
-				<SummaryTotal label="Price"
-					value={asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'} estimate />
-				<span className="field-help">
-					A wish is not an order. Nothing here is counted in your spending, your charts or
-					your budgets.
-				</span>
+				<div className="summary-row">Price
+					<span className="summary-row-value">
+						{asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'}</span></div>
 				{/* The way to the shop, on the page that holds every other action on this record --
 				    a real link at the foot, the way the vendor page ends in VIEW ORDERS. Only
 				    once the address is one a browser can follow. */}
