@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router'
 import { Button } from '../components/Button.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
 import { Chip } from '../components/Chip.jsx'
-import { ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
+import { ImageOrIcon } from '../components/Icon.jsx'
+import { EntityRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { LinePhoto, useDroppedPhoto } from '../components/LinePhoto.jsx'
 import {
@@ -244,12 +245,15 @@ function WishSummary({ name, url, price, categories, archived, photo, wish }) {
 			<CardBody>
 				<div className="card-subheading">Wish summary</div>
 				<span className="section-label">How it will look</span>
-				<div className="inset-panel summary-preview">
-					<ItemRow icon={photo.present ? undefined : 'cube'}
-						thumb={photo.present ? 'photo' : undefined} thumbSrc={photo.src}
-						title={name.trim() || 'Your wish'}
+				{/* The row the wishlist will draw, drawn by the same component -- a preview that is
+				    a second arrangement of the same parts is one that can disagree with the list. */}
+				<div className="summary-preview">
+					<EntityRow
+						mark={<span className="document-thumb">
+							<ImageOrIcon src={photo.src ?? ''} icon="photo" imgClassName="document-thumb-img" /></span>}
+						name={name.trim() || 'Your wish'}
 						meta={site || 'no link yet'}
-						amount={asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : undefined} />
+						amount={asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'} />
 				</div>
 				<div className="summary-row">Shop<span className="summary-row-value">{site || '-'}</span></div>
 				<div className="summary-row">Categories

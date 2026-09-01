@@ -994,6 +994,15 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .entity-row .entity-row-name, .order-row .order-row-vendor { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .entity-row .entity-row-meta { font-size:11.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .entity-row .entity-row-amount { text-align:right; font-weight:600; font-size:13.5px; color:var(--text); }
+/* A row whose record has a second destination outside the app (components/Rows.jsx). The row
+   is a div rather than a link -- an <a> cannot hold another <a> -- so the name carries the
+   link and covers the row with it. Everything the row looked like is untouched, hover
+   included: the div still carries data-go, which is what the one hover rule above keys on.
+   The action sits above the cover, or the stretch would swallow the clicks meant for it. */
+.row-stretch { color:inherit; text-decoration:none; }
+.entity-row-action { position:relative; }
+.entity-row-action .row-stretch::after { content:''; position:absolute; inset:0; border-radius:inherit; }
+.entity-row-action .row-actions { position:relative; }
 
 /* The favourite mark on All vendors and All categories -- a small filled circle overlapping
    the tile's corner. It sits at position:absolute, so it costs no layout width: the tile

@@ -4,18 +4,16 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { InsetPanel, ItemRow } from '../components/Rows.jsx'
+import { EntityRow } from '../components/Rows.jsx'
 import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
+import { ImageOrIcon } from '../components/Icon.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { FilterChips, ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager } from '../components/Pager.jsx'
-import { Sep } from '../components/Sep.jsx'
 import { DateInput, Field, FieldPair, FilterSection, Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
-import {
-	getCategories, getSettings, getWishes, wishPhotoFileUrl, wishPhotoThumbnailUrl, wishSorts
-} from '../api/client.js'
+import { getCategories, getSettings, getWishes, wishPhotoThumbnailUrl, wishSorts } from '../api/client.js'
 import { currency, dayMonth, longDate, percent, plural, sep } from '../api/format.js'
 
 /* The wishlist: things the account wants and has not bought.
@@ -203,46 +201,36 @@ export default function Wishlist() {
 						<CardDivider />
 						<CardBody>
 							{data.wishes.length ? (
-								<InsetPanel>
-									{data.wishes.map(wish => {
-										const photo = wish.photoId
-											? { src: wishPhotoThumbnailUrl(wish.id, wish.photoId) } : {}
-										const href = httpUrl(wish.url)
-										return (
-											<ItemRow key={wish.id} className="item-row-group"
-												icon={photo.src ? undefined : 'cube'}
-												thumb={photo.src ? 'photo' : undefined} thumbSrc={photo.src}
-												thumbHref={photo.src ? wishPhotoFileUrl(wish.id, wish.photoId) : undefined}
-												thumbLabel={`Open the picture of ${wish.name} in a new tab`}
-												title={wish.name}
-												/* Where it is sold, when it was written down, whether it is put
-												   away, and what it would land under -- the row's own meta line
-												   rather than chips: a chip is something you can take away
-												   (components/Chip.jsx), and nothing on a row here removes a
-												   category. */
-												meta={[siteOf(wish.url), `Added ${longDate(wish.createdAt)}`,
-													wish.archived ? 'Archived' : '',
-													wish.categories.join(', ')].filter(Boolean).join(sep)}
-												amount={wish.price != null ? currency(wish.price) : undefined}>
-												{/* The row itself goes nowhere, so it is not a link: it offers two
-												    destinations rather than one, and a row that quietly picks one
-												    of them for you is the dishonest half of that. Both are real
-												    links -- middle-click and "open in new tab" work on each, and
-												    the status bar says where each goes. README: Honest
-												    Affordances. */}
-												<span className="row-inline row-actions">
-													{href ? (
-														<IconButton icon="externalLink" href={href}
-															target="_blank" rel="noopener noreferrer"
-															label={`Open ${wish.name} at ${siteOf(wish.url)} in a new tab`} />
-													) : null}
-													<IconButton icon="pencil" to={`/wishlist/${wish.id}/edit`}
-														label={`Edit ${wish.name}`} />
-												</span>
-											</ItemRow>
-										)
-									})}
-								</InsetPanel>
+								data.wishes.map(wish => {
+									const href = httpUrl(wish.url)
+									return (
+										<EntityRow key={wish.id} editTo={`/wishlist/${wish.id}/edit`}
+											/* The cover: the wish's own picture where it has one, and the
+											   same tile drawn empty where it does not -- a record without a
+											   picture keeps the column, so no name or price shifts sideways
+											   between one row and the next. */
+											mark={<span className="document-thumb">
+												<ImageOrIcon src={wish.photoId ? wishPhotoThumbnailUrl(wish.id, wish.photoId) : ''}
+													icon="photo" imgClassName="document-thumb-img" /></span>}
+											name={wish.name}
+											/* Where it is sold, when it was written down, whether it is put
+											   away, and what it would land under -- one meta line, the way a
+											   vendor row names its orders and its aliases. */
+											meta={[siteOf(wish.url), `Added ${longDate(wish.createdAt)}`,
+												wish.archived ? 'Archived' : '',
+												wish.categories.join(', ')].filter(Boolean).join(sep)}
+											amount={wish.price != null ? currency(wish.price) : '-'}
+											/* The one thing a wish has that a vendor and a category do not: a
+											   page outside this app. A real link, so it can be middle-clicked
+											   and its destination read off the status bar. README: Honest
+											   Affordances. */
+											action={href ? (
+												<IconButton icon="externalLink" href={href}
+													target="_blank" rel="noopener noreferrer"
+													label={`Open ${wish.name} at ${siteOf(wish.url)} in a new tab`} />
+											) : null} />
+									)
+								})
 							) : data.total === 0 ? (
 								/* Nothing to filter is not "nothing matches": on an account with no
 								   wishes at all the filter sentence would blame filters nobody set, and
@@ -265,12 +253,6 @@ export default function Wishlist() {
 								</EmptyState>
 							)}
 
-							{/* What is on this page adds up to, which is not what the whole list does --
-							    so it says which. A wish with no price written down is not a wish that
-							    costs nothing, so it is left out of the sum and the sentence names how
-							    many were counted. */}
-							{data.wishes.length ? <PageTotal wishes={data.wishes} /> : null}
-
 							<Pager from={data.from} to={data.to} matched={data.matched}
 								page={data.page} pages={data.pages} onPage={setPage} />
 						</CardBody>
@@ -278,23 +260,5 @@ export default function Wishlist() {
 				)}
 			</Async>
 		</Page>
-	)
-}
-
-/** What the rows on screen come to. Named for what it counts -- this page, not the wishlist --
-    because a pager underneath it means those are two different figures. */
-function PageTotal({ wishes }) {
-	const priced = wishes.filter(w => w.price != null)
-	const total = priced.reduce((sum, w) => sum + w.price, 0)
-	return (
-		<div className="line-total-row">
-			<span>
-				{plural(wishes.length, 'wish', 'wishes')} on this page
-				{priced.length ? <><Sep />{currency(total)}</> : null}
-			</span>
-			{priced.length && priced.length !== wishes.length ? (
-				<span className="field-help">the total is for the {priced.length} with a price</span>
-			) : null}
-		</div>
 	)
 }
