@@ -288,7 +288,7 @@ function WishSummary({ name, url, price, categories, photo, wish }) {
 				    once the address is one a browser can follow. */}
 				{href ? (
 					<Button variant="block" icon="externalLink" href={href}
-						target="_blank" rel="noopener noreferrer">OPEN {site.toUpperCase()}</Button>
+						target="_blank" rel="noopener">OPEN {site.toUpperCase()}</Button>
 				) : null}
 			</CardBody>
 		</Card>

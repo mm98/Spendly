@@ -546,7 +546,7 @@ function ScanReviewForm({ answer }) {
 							    already showed its own real bytes correctly. */}
 							{answer.file.kind === 'pdf' ? (
 								<a className="button button-pill" href={scanFileUrl(answer.documentKey)}
-									target="_blank" rel="noopener noreferrer">OPEN</a>
+									target="_blank" rel="noopener">OPEN</a>
 							) : (
 								<button type="button" className="button button-pill"
 									aria-expanded={sourceOpen} aria-controls="scan-source-preview"

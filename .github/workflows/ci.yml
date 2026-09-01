@@ -1,13 +1,13 @@
 name: CI
 
-# Every commit on main arrives by squash-merging a PR, so a push-to-main run of this same
-# workflow re-checks a tree the PR's own run already checked -- same code, same result, paid
-# for twice, Lighthouse's ~90s included. The one thing it would catch -- a push that skipped
-# review -- isn't a path this repo uses; if that ever changes, add `push: branches: [main]`
-# back. docker.yml's own main-triggered build (and its Lighthouse run against the shipped
-# image) is unrelated and keeps running regardless -- it measures the artifact, not the diff.
+# On main as well as on pull requests, and the second run is not the waste it looks like:
+# docker.yml waits for it, so this is what decides whether an image is built and pulled by the
+# NAS at all. A pull request checks the branch; this checks the commit that actually ships,
+# which is not the same tree whenever main moved under the branch while it sat open.
 on:
   pull_request:
+  push:
+    branches: [main]
 
 jobs:
   build:
@@ -46,6 +46,18 @@ jobs:
           cache-dependency-path: api/package-lock.json
       - run: npm ci
       - run: npm run queries:check
+
+  # Every control that opens a new browsing context carries rel="noopener". Whole tree, not the
+  # diff: one that lands without it is wrong every day after, and a diff-scoped guard would let
+  # it through forever once merged.
+  external-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/check-external-links.mjs
 
   # CLAUDE.md's Comments rule, made mechanical and scoped to the diff -- a comment nobody
   # touched never fails a run it has nothing to do with, the same shape as queries: above.
