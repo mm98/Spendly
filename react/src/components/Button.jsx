@@ -15,7 +15,7 @@ import { Icon } from './Icon.jsx'
 
 const join = (...parts) => parts.filter(Boolean).join(' ')
 
-export function Button({ variant = '', to, icon, iconAfter, children, className, ...rest }) {
+export function Button({ variant = '', to, href, icon, iconAfter, children, className, ...rest }) {
 	const classes = join('button', variant && variant.split(' ').map(v => 'button-' + v).join(' '), className)
 	const content = (
 		<>
@@ -24,16 +24,19 @@ export function Button({ variant = '', to, icon, iconAfter, children, className,
 			{iconAfter ? <Icon name={iconAfter} /> : null}
 		</>
 	)
-	return to
-		? <Link className={classes} to={to} data-go={to} {...rest}>{content}</Link>
-		: <button type="button" className={classes} {...rest}>{content}</button>
+	if (to) return <Link className={classes} to={to} data-go={to} {...rest}>{content}</Link>
+	/* The third case, the one `IconButton` below already names: a real URL outside this app's
+	   own routes, so a plain <a> rather than the router's `Link`. Same reasoning as `to`, one
+	   rung further out -- middle-click, "open in new tab" and the status bar all have to work,
+	   which a button calling window.open takes away. */
+	if (href) return <a className={classes} href={href} {...rest}>{content}</a>
+	return <button type="button" className={classes} {...rest}>{content}</button>
 }
 
 /** A square control carrying nothing but a glyph, so the label has to be given. `href` is the
-    third case the file comment above doesn't name: a real URL outside this app's own routes
-    (an API file download), so it takes a plain `<a>` rather than the router's `Link` -- same
-    reasoning as `to`, one rung further out, and it's what lets a caller pass `download` through
-    `...rest` and get a real save-this-file button instead of a navigation. */
+    same third case `Button` above takes: a real URL outside this app's own routes (an API file
+    download, a shop's page), which is what lets a caller pass `download` or `target` through
+    `...rest` and get a real link rather than a navigation. */
 export function IconButton({ variant = 'arrow', icon, label, to, href, className, ...rest }) {
 	const classes = join('icon-button', variant && 'icon-button-' + variant, className)
 	if (to) return <Link className={classes} to={to} data-go={to} aria-label={label} {...rest}><Icon name={icon} /></Link>

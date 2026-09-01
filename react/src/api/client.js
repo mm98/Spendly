@@ -310,13 +310,18 @@ export async function getWishes(params = {}, signal) {
 	return request('/api/wishes' + qs(params), { signal })
 }
 
+export async function getWish(id, signal) {
+	return request(`/api/wishes/${id}`, { signal })
+}
+
 const toApiWish = wish => ({
 	name: wish.name,
 	url: wish.url,
 	// An empty price field is "not written down", which the API stores as no price at all --
 	// not as zero, which would claim the thing is free.
 	price: wish.price ? parseAmount(wish.price) : null,
-	categories: wish.categories ?? []
+	categories: wish.categories ?? [],
+	archived: Boolean(wish.archived)
 })
 
 export async function createWish(wish, signal) {
@@ -327,14 +332,6 @@ export async function createWish(wish, signal) {
 
 export async function updateWish(id, wish, signal) {
 	const saved = await request(`/api/wishes/${id}`, { method: 'PATCH', body: toApiWish(wish), signal })
-	invalidateWishData()
-	return saved
-}
-
-/** Archiving and restoring are the same write with the flag either way round -- a wish put
-    away is still the record it was, so nothing else about it changes. */
-export async function setWishArchived(id, archived, signal) {
-	const saved = await request(`/api/wishes/${id}`, { method: 'PATCH', body: { archived }, signal })
 	invalidateWishData()
 	return saved
 }
@@ -1033,7 +1030,7 @@ export function invalidateVendorData() {
     read, with one exception: a wish may name a category that does not exist yet, and saving it
     creates that category (api/lib/findOrCreate.js), which the category lists do show. */
 export function invalidateWishData() {
-	invalidate(getWishes)
+	invalidate(getWishes); invalidate(getWish)
 	invalidate(getCategories); invalidate(getCategoriesThisMonth)
 }
 

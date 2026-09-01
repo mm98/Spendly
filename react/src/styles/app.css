@@ -1434,6 +1434,13 @@ label.field-shell { cursor:pointer; }
 .line-photo-sep { font-size:12px; color:var(--border-card); }
 /* Drawn only on a phone, where the head is not -- see the responsive section. */
 .line-photo-heading, .line-photo-name { display:none; }
+/* The picture field on a record's own page (pages/WishForm.jsx). It restates nothing about the
+   frame -- that is .line-photo above, the same one the line card draws -- and adds only the
+   drop target around it, which is the block rather than the frame because a 128px target is a
+   small thing to ask someone to hit. What being dragged over looks like is the app's one
+   .is-dragover treatment further down, not a second one. --line-photo is the frame's own edge,
+   named by .line-card for the card and here for the form, so the two cannot disagree. */
+.wish-photo-field { --line-photo:128px; width:fit-content; }
 .line-card-fields { flex:1; min-width:0; display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-panel); align-content:start; }
 .line-field-wide { grid-column:1 / -1; }
 /* What the two prices mean together, under both of them. A retail below the price paid is a
@@ -1680,9 +1687,6 @@ label.field-shell { cursor:pointer; }
 	   saves a row in a card that is already tall. Retail takes the width back. */
 	.line-card-fields { grid-template-columns:92px minmax(0,1fr); }
 	.line-field-retail { grid-column:1 / -1; }
-	/* The wish card has no quantity, so nothing here wants the narrow column the pair above
-	   share -- its shortest field is a price, and 92px is not a price. One field per row. */
-	.line-card-fields.wish-card-fields { grid-template-columns:minmax(0,1fr); }
 	/* No help text under the fields here. Each line of it is a row in a card that is already
 	   the tallest thing on the screen, and what they say is either recoverable (the line total
 	   is on the row the card came out of) or a standing note about a field whose label already

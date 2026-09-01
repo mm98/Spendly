@@ -41,9 +41,10 @@ export function useDroppedPhoto(onPick) {
 	}
 }
 
-/** The frame, its file picker, and the three lines under it.
+/** The frame, its file picker, and the lines under it.
  *
- *  `heading` and `name` are drawn here only on a phone — see the note on the foot below. */
+ *  `heading` and `name` are the card's own header, drawn here only on a phone (see the note on
+ *  the foot below) — a host that already has a headline of its own passes neither. */
 export function LinePhoto({ photo, heading, name, label, onPick, onClear }) {
 	const file = useRef(null)
 
@@ -75,8 +76,8 @@ export function LinePhoto({ photo, heading, name, label, onPick, onClear }) {
 			    builds the string once and hands it to both rather than writing it twice: two
 			    copies of a sentence agree until the day one is edited. */}
 			<span className="line-photo-foot">
-				<span className="section-label line-card-title line-photo-heading">{heading}</span>
-				<span className="line-photo-name">{name}</span>
+				{heading ? <span className="section-label line-card-title line-photo-heading">{heading}</span> : null}
+				{name ? <span className="line-photo-name">{name}</span> : null}
 				{photo.present ? (
 					<span className="line-photo-actions">
 						<button type="button" className="line-photo-action"

@@ -365,7 +365,7 @@ The fixed vendor column is a deliberate correction: an earlier version placed th
 ---
 
 ### Wishlist
-No design file — both patterns it is built from are already drawn: the working list (2a) and the item card (1d). Code: `pages/Wishlist.jsx`, `components/ListToolbar.jsx`, `components/LinePhoto.jsx`, `components/Rows.jsx`, `components/Pager.jsx`
+No design file — both patterns it is built from are already drawn: the working list (2a) and the record form (5a–5c). Code: `pages/Wishlist.jsx`, `pages/WishForm.jsx`, `components/ListToolbar.jsx`, `components/LinePhoto.jsx`, `components/FormPage.jsx`
 
 **Purpose:** what the account wants and has not bought. A wish is a name and a link, and optionally a price, a picture and one or more categories. It is never an order, and that separation is the point: every total, chart and budget in the product reads orders as money that has already left, so nothing on this page reaches any of them.
 
@@ -373,11 +373,11 @@ No design file — both patterns it is built from are already drawn: the working
 
 **The list:** the toolbar every working list here opens with — one search field, one sort, one FILTERS disclosure — then the chips naming what is on, the rows, and the pager cut to the account's own rows-per-page setting. Search matches the name, the shop and the categories. Filters: category, the dates it was added between, and which wishes are shown — on the list, archived, or all. Archived are excluded until they are asked for. The two price sorts also narrow, the way the order list's discount sorts do: a wish with no price is not the cheapest wish, it is one the question does not apply to.
 
-**A row:** the picture, or the same cube glyph an item without one gets; the name; and one meta line carrying the shop, when it was added, "Archived" where it is, and the categories. The price is right-aligned like every other amount. Four actions: open the shop page in a new tab — a real link, so it can be middle-clicked and its destination read off the status bar — edit, archive or put back, and delete.
+**A row:** the picture, or the same cube glyph an item without one gets; the name; and one meta line carrying the shop, when it was added, "Archived" where it is, and the categories. The price is right-aligned like every other amount. Two destinations, both real links so each can be middle-clicked and read off the status bar: the shop's page in a new tab, and the wish's own page. The row itself goes nowhere — it offers two ways out, and a row that quietly picks one of them for the reader is the dishonest half of that.
 
-**Editing:** the row opens into the item card, in place, with the picture on the left and the fields on the right. One card adds and corrects, so there is one set of rules and one validation path; adding opens it at the head of the list, since the list is sorted and paged and "the end" is only the end of this page. Deleting asks first, through the one ask-before-deleting setting every other delete reads.
+**A wish is a record, not part of one,** so it is created and edited on its own page — the same page a vendor, a category and an order use, because there is one way to edit a record here rather than one per screen. An order's lines are edited in place because a line has no life outside the order; a wish stands on its own. The list is only ever a list. Archived is a checkbox on the record beside its other fields, the way a vendor's Favourite is; the list filters on it. Deleting lives on the record's own page and asks first, through the one ask-before-deleting setting every other delete reads.
 
-**The picture:** one per wish. The frame is clicked, or a file is dropped anywhere on the card, or one is pasted into it. Only what is actually an image is accepted — the bytes decide, not the filename. Replacing gives the picture a new address, so a browser told to keep it forever can never show the old one.
+**The picture:** one per wish, and the same frame an order line's photo uses. It is clicked, or a file is dropped on it, or one is pasted in. Only what is actually an image is accepted — the bytes decide, not the filename. Replacing gives the picture a new address, so a browser told to keep it forever can never show the old one.
 
 ---
 

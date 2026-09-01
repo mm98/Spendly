@@ -209,7 +209,8 @@ const H = { Authorization: `Bearer ${SESSION}` }
 const ids = {
 	vendor: db.prepare('SELECT id FROM vendors WHERE user_id = ? ORDER BY name LIMIT 1').get(USER).id,
 	category: db.prepare('SELECT id FROM categories WHERE user_id = ? ORDER BY name LIMIT 1').get(USER).id,
-	order: db.prepare('SELECT id FROM orders WHERE user_id = ? ORDER BY date DESC LIMIT 1').get(USER).id
+	order: db.prepare('SELECT id FROM orders WHERE user_id = ? ORDER BY date DESC LIMIT 1').get(USER).id,
+	wish: db.prepare('SELECT id FROM wishes WHERE user_id = ? ORDER BY created_at DESC LIMIT 1').get(USER).id
 }
 
 /* Every read the app serves, and every shape of the orders list -- each filter, each sort, and
@@ -235,6 +236,7 @@ const REQUESTS = [
 	'/wishes?sort=added-asc', '/wishes?sort=price-desc', '/wishes?sort=name-asc',
 	`/wishes?categoryId=${ids.category}`, '/wishes?categoryId=none',
 	'/wishes?query=sko', '/wishes?query=æg', '/wishes?from=2020-01-01&to=2030-12-31',
+	`/wishes/${ids.wish}`,
 	'/home/hero', '/home/onboarding', '/settings', '/dashboard-cards',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/scan/recent'

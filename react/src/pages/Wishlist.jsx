@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
@@ -6,74 +6,36 @@ import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { InsetPanel, ItemRow } from '../components/Rows.jsx'
 import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
-import { Chip } from '../components/Chip.jsx'
 import { Combobox } from '../components/Combobox.jsx'
-import { ConfirmDialog } from '../components/ConfirmDialog.jsx'
-import { Icon } from '../components/Icon.jsx'
-import { LinePhoto, useDroppedPhoto } from '../components/LinePhoto.jsx'
 import { FilterChips, ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager } from '../components/Pager.jsx'
-import { useRowDelete } from '../components/FormPage.jsx'
 import { Sep } from '../components/Sep.jsx'
-import { useToast } from '../components/Toast.jsx'
-import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, FormActions, Segmented,
-	TextInput, focusField, useFieldErrors
-} from '../components/Form.jsx'
+import { DateInput, Field, FieldPair, FilterSection, Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
-import { WISH_FIELDS, httpUrl, siteOf } from '../api/rules.js'
+import { httpUrl, siteOf } from '../api/rules.js'
 import {
-	addWishPhoto, createWish, deleteWish, failureMessage, getCategories, getSettings, getWishes,
-	removeWishPhoto, setWishArchived, updateWish, wishPhotoFileUrl, wishPhotoThumbnailUrl,
-	wishSorts
+	getCategories, getSettings, getWishes, wishPhotoFileUrl, wishPhotoThumbnailUrl, wishSorts
 } from '../api/client.js'
-import {
-	amount, currency, currencySymbol, dayMonth, longDate, percent, plural, sanitizeAmount, sep
-} from '../api/format.js'
+import { currency, dayMonth, longDate, percent, plural, sep } from '../api/format.js'
 
 /* The wishlist: things the account wants and has not bought.
 
-   It is not an order in a "wanted" status, and that is the whole reason it is its own section.
-   Every total, chart and budget in this app reads the orders table on one assumption -- that a
-   row there is money that has already left -- so a wish counted anywhere among them would
-   quietly overstate a month. Nothing on this page reaches any of those figures.
+   A wish is not an order, and that is the whole reason this is its own section. Every total,
+   chart and budget in the app reads the orders table on one assumption -- that a row there is
+   money that has already left -- so a wish counted anywhere among them would quietly overstate
+   a month. Nothing on this page reaches any of those figures.
 
-   Two patterns already in the app meet here, and neither is rewritten:
+   And this page is only ever a list. A wish is a record, so it is created and edited on its own
+   page (pages/WishForm.jsx) the way a vendor and a category are -- one way to edit a record in
+   this app, not one per screen. What is here is the working list every other list here is: one
+   search field, one sort, one FILTERS panel, chips naming what is on, and a real pager cut to
+   the account's own rows-per-page setting. The toolbar and the chips are the shared ones
+   (components/ListToolbar.jsx); the filters and the sorts are this list's. */
 
-   - It is a working list, so it opens the way All orders does -- one search field, one sort,
-     one FILTERS panel, chips naming what is on, and a real pager cut to the account's own
-     rows-per-page setting. The toolbar and the chips are the shared ones
-     (components/ListToolbar.jsx); the filters and the sorts are this list's.
-   - A wish is edited the way a line on an order is: the row opens into a card, in place, with
-     the picture on the left and the fields on the right (components/ItemLines.jsx made that
-     shape, components/LinePhoto.jsx is the half the two share).
-
-   What differs from the item card is when it saves. An order's lines are a draft until the
-   order is saved, so that card commits into an array; a wish is a record of its own, so this
-   one commits to the server -- which is why there is a saving state here and none there. */
-
-const BLANK = { 'wish-name': '', 'wish-url': '', 'wish-price': '' }
-
-const formOf = wish => ({
-	'wish-name': wish.name,
-	'wish-url': wish.url,
-	'wish-price': wish.price != null ? amount(wish.price) : ''
-})
-
-const same = (a, b) => WISH_FIELDS.every(f => (a[f.name] ?? '') === (b[f.name] ?? ''))
-const sameList = (a, b) => a.length === b.length && a.every((v, i) => v === b[i])
-
-/** What a wish's picture is right now: the one picked in this card, or the one on the server. */
-const photoOf = (wish, picked, cleared) => {
-	if (picked) return { present: true, src: picked.url }
-	if (cleared || !wish?.photoId) return {}
-	return { present: true, src: wishPhotoThumbnailUrl(wish.id, wish.photoId) }
-}
-
-/* Archived is a filter with three answers rather than a tab, and "no" is the one it takes when
-   nobody asks: a wishlist is what you still want, so a list that opened with the things you
-   had already put away would have to be narrowed before it could be read. The labels are what
-   a reader sees; the values are what the URL and the API carry. */
+/* Archived is a filter with three answers, and "no" is the one it takes when nobody asks: a
+   wishlist is what you still want, so a list that opened with the things you had already put
+   away would have to be narrowed before it could be read. The labels are what a reader sees;
+   the values are what the URL and the API carry. */
 const SHOWN = [
 	{ value: 'no', label: 'On the list' },
 	{ value: 'yes', label: 'Archived' },
@@ -119,7 +81,6 @@ export default function Wishlist() {
 
 	const [draft, setDraft] = useState(filters)
 	const [panelOpen, setPanelOpen] = useState(false)
-	const toast = useToast()
 	const searchField = useRef(null)
 
 	const categories = useApi(getCategories)
@@ -157,132 +118,6 @@ export default function Wishlist() {
 
 	const state = useApi(getWishes, [request])
 
-	const [openId, setOpenId] = useState(null)      // a wish id, 'new', or null
-	const [form, setForm] = useState(BLANK)
-	const [chosen, setChosen] = useState([])        // category names on the open card
-	const [baseline, setBaseline] = useState({ form: BLANK, categories: [] })
-	const [picked, setPicked] = useState(null)      // { file, url } chosen in this card
-	const [cleared, setCleared] = useState(false)   // the card's photo was removed
-	const [leaving, setLeaving] = useState(null)    // where a discard question is headed
-	const [saving, setSaving] = useState(false)
-	const [savedId, setSavedId] = useState(null)
-	const cardRef = useRef(null)
-
-	const errors = useFieldErrors(WISH_FIELDS, form)
-	const set = name => v => { setForm(f => ({ ...f, [name]: v })); errors.recheck(name, v) }
-
-	const wishes = state.data?.wishes ?? []
-	const openWish = openId === 'new' ? null : wishes.find(w => w.id === openId)
-	const dirty = !same(form, baseline.form) || !sameList(chosen, baseline.categories)
-		|| Boolean(picked) || cleared
-
-	/* Only if part of the card is off screen, and by the least that fixes it -- the same
-	   `nearest` the item card uses, for the same reason: opening a row in the middle of a list
-	   should not move the list. */
-	useEffect(() => {
-		if (openId === null) return
-		cardRef.current?.scrollIntoView({ block: 'nearest' })
-	}, [openId])
-
-	/* The preview belongs to the card and is revoked with it -- once saved, the row draws the
-	   thumbnail the server made, never this object URL. */
-	useEffect(() => () => { if (picked) URL.revokeObjectURL(picked.url) }, [picked])
-
-	useEffect(() => {
-		if (savedId === null) return
-		const t = setTimeout(() => setSavedId(null), 2000)
-		return () => clearTimeout(t)
-	}, [savedId])
-
-	const seed = target => {
-		setPicked(null)
-		setCleared(false)
-		errors.clear()
-		if (target === null) {
-			setOpenId(null); setForm(BLANK); setChosen([]); setBaseline({ form: BLANK, categories: [] })
-			return
-		}
-		const wish = target === 'new' ? null : wishes.find(w => w.id === target)
-		const next = wish ? formOf(wish) : BLANK
-		const cats = wish ? wish.categories : []
-		setForm(next)
-		setChosen(cats)
-		setBaseline({ form: next, categories: cats })
-		setOpenId(target)
-		focusField('wish-name')
-	}
-
-	/** Save the open card. One write for the wish, then at most one for the picture -- the
-	    photo travels against a real id, so a brand-new wish has to exist before its own picture
-	    can be attached to it (the order NewOrder.jsx uploads an item's photo in). */
-	const commit = async () => {
-		const failed = errors.check()
-		if (failed.length) { focusField(failed[0].name); return false }
-		const wish = {
-			name: form['wish-name'].trim(),
-			url: form['wish-url'].trim(),
-			price: form['wish-price'].trim(),
-			categories: chosen
-		}
-		setSaving(true)
-		try {
-			const saved = openId === 'new' ? await createWish(wish) : await updateWish(openId, wish)
-			if (picked) await addWishPhoto(saved.id, picked.file)
-			else if (cleared) await removeWishPhoto(saved.id)
-			toast(`${saved.name} ${openId === 'new' ? 'added' : 'saved'}.`)
-			setSavedId(saved.id)
-			seed(null)
-			state.refresh()
-			return true
-		} catch (e) {
-			toast(failureMessage(e, 'That did not save.'), 'negative')
-			return false
-		} finally {
-			setSaving(false)
-		}
-	}
-
-	/** Ask for the card the reader is heading to -- the item card's rule, in the same words: a
-	    card with nothing typed into it just closes, one that is dirty and invalid is worth a
-	    question, and one that is dirty and valid is not lost to a click on the row below. */
-	const go = target => {
-		if (openId === target || saving) return
-		if (openId === null || !dirty) { seed(target); return }
-		if (errors.check().length) { setLeaving({ target }); return }
-		commit().then(saved => { if (saved && target !== null) seed(target) })
-	}
-
-	const remove = async wish => {
-		try {
-			await deleteWish(wish.id)
-			if (openId === wish.id) seed(null)
-			toast(`${wish.name} removed.`)
-			state.refresh()
-		} catch (e) {
-			toast(failureMessage(e, 'That did not delete.'), 'negative')
-		}
-	}
-
-	const archive = async (wish, next) => {
-		try {
-			await setWishArchived(wish.id, next)
-			if (openId === wish.id) seed(null)
-			/* What the reader sees happen: with the default filter on, archiving takes the row
-			   off the list -- so the message says where it went rather than only that it saved. */
-			toast(next ? `${wish.name} archived.` : `${wish.name} is back on your wishlist.`)
-			state.refresh()
-		} catch (e) {
-			toast(failureMessage(e, 'That did not save.'), 'negative')
-		}
-	}
-
-	const wishDel = useRowDelete({
-		what: 'wish',
-		label: wish => `Delete ${wish.name}`,
-		detail: wish => `${wish.name}, from ${siteOf(wish.url)}.`,
-		onDelete: remove
-	})
-
 	/* One chip per filter that is actually on, derived rather than listed -- what keeps the row
 	   and the query from disagreeing. */
 	const chips = useMemo(() => {
@@ -302,24 +137,6 @@ export default function Wishlist() {
 	   yet, and then the action that fixes it is the sort, not a CLEAR ALL with nothing to
 	   clear. The narrowing lives on the server so the count and the page agree about it. */
 	const narrowingSort = activeSort.startsWith('price-')
-
-	const card = (
-		<WishCard ref={cardRef}
-			isNew={openId === 'new'} form={form} set={set} errors={errors} dirty={dirty} saving={saving}
-			photo={photoOf(openWish, picked, cleared)}
-			name={form['wish-name'].trim() || 'Untitled wish'}
-			categories={chosen} onCategoriesChange={setChosen}
-			allCategories={categories.data ?? []}
-			onPick={file => { setPicked({ file, url: URL.createObjectURL(file) }); setCleared(false) }}
-			onClearPhoto={() => { setPicked(null); setCleared(true) }}
-			onSave={() => commit()}
-			onCancel={() => (dirty ? setLeaving({ target: null }) : seed(null))}
-			deleteButton={openWish
-				? wishDel.button(openWish,
-					<span className="line-delete-label">DELETE WISH</span>,
-					`Delete wish, ${openWish.name}`)
-				: null} />
-	)
 
 	return (
 		<Page variant="page-grid">
@@ -380,26 +197,22 @@ export default function Wishlist() {
 					<Card aria-label="Wishes">
 						<CardHeader title={`Wishes${sep}${plural(data.matched, 'match', 'matches')}`}>
 							<span className="field-help">filtered from {data.total}</span>
-							<Button variant="pill" icon="plus" onClick={() => go('new')}>ADD</Button>
+							{/* The way to a new record, where the vendor and category lists put it. */}
+							<Button variant="pill" icon="plus" to="/wishlist/new">ADD</Button>
 						</CardHeader>
 						<CardDivider />
 						<CardBody>
-							{/* The new card opens at the head of the list rather than at its foot: the
-							    list is paged and sorted, so "the end" is the end of this page, which is
-							    not where a wish being added belongs. */}
-							{openId === 'new' ? <InsetPanel>{card}</InsetPanel> : null}
-
 							{data.wishes.length ? (
 								<InsetPanel>
 									{data.wishes.map(wish => {
-										if (openId === wish.id) return <Fragment key={wish.id}>{card}</Fragment>
-										const photo = photoOf(wish)
+										const photo = wish.photoId
+											? { src: wishPhotoThumbnailUrl(wish.id, wish.photoId) } : {}
 										const href = httpUrl(wish.url)
 										return (
 											<ItemRow key={wish.id} className="item-row-group"
-												icon={photo.present ? undefined : 'cube'}
-												thumb={photo.present ? 'photo' : undefined} thumbSrc={photo.src}
-												thumbHref={photo.present ? wishPhotoFileUrl(wish.id, wish.photoId) : undefined}
+												icon={photo.src ? undefined : 'cube'}
+												thumb={photo.src ? 'photo' : undefined} thumbSrc={photo.src}
+												thumbHref={photo.src ? wishPhotoFileUrl(wish.id, wish.photoId) : undefined}
 												thumbLabel={`Open the picture of ${wish.name} in a new tab`}
 												title={wish.name}
 												/* Where it is sold, when it was written down, whether it is put
@@ -411,38 +224,32 @@ export default function Wishlist() {
 													wish.archived ? 'Archived' : '',
 													wish.categories.join(', ')].filter(Boolean).join(sep)}
 												amount={wish.price != null ? currency(wish.price) : undefined}>
-												{savedId === wish.id ? (
-													<span className="line-saved"><Icon name="check" />Saved</span>
-												) : null}
+												{/* The row itself goes nowhere, so it is not a link: it offers two
+												    destinations rather than one, and a row that quietly picks one
+												    of them for you is the dishonest half of that. Both are real
+												    links -- middle-click and "open in new tab" work on each, and
+												    the status bar says where each goes. README: Honest
+												    Affordances. */}
 												<span className="row-inline row-actions">
-													{/* A real address outside this app, so a real link: middle-click
-													    and "open in new tab" have to work, and the status bar has to
-													    say where it goes. README: Honest Affordances. */}
 													{href ? (
 														<IconButton icon="externalLink" href={href}
 															target="_blank" rel="noopener noreferrer"
 															label={`Open ${wish.name} at ${siteOf(wish.url)} in a new tab`} />
 													) : null}
-													<IconButton icon="pencil" label={`Edit ${wish.name}`}
-														onClick={() => go(wish.id)} />
-													<IconButton icon={wish.archived ? 'undo' : 'archive'}
-														label={wish.archived
-															? `Put ${wish.name} back on your wishlist`
-															: `Archive ${wish.name}`}
-														onClick={() => archive(wish, !wish.archived)} />
-													{wishDel.iconButton(wish)}
+													<IconButton icon="pencil" to={`/wishlist/${wish.id}/edit`}
+														label={`Edit ${wish.name}`} />
 												</span>
 											</ItemRow>
 										)
 									})}
 								</InsetPanel>
-							) : openId === 'new' ? null : data.total === 0 ? (
+							) : data.total === 0 ? (
 								/* Nothing to filter is not "nothing matches": on an account with no
 								   wishes at all the filter sentence would blame filters nobody set, and
 								   CLEAR ALL would offer to clear them. README: Empty states. */
 								<EmptyState icon="cart">
 									<p>Nothing on your wishlist yet. Add the first thing you are thinking about buying.</p>
-									<ButtonLink onClick={() => go('new')}>ADD A WISH</ButtonLink>
+									<ButtonLink to="/wishlist/new">ADD A WISH</ButtonLink>
 								</EmptyState>
 							) : narrowingSort && !chips.length && !query ? (
 								<EmptyState icon="cart">
@@ -470,16 +277,6 @@ export default function Wishlist() {
 					</Card>
 				)}
 			</Async>
-
-			{wishDel.dialog}
-
-			{leaving ? (
-				<ConfirmDialog title="Discard changes to this wish?"
-					detail="This wish still has something wrong with it, so it cannot be saved yet. Closing this leaves it as it was."
-					confirmLabel="DISCARD" cancelLabel="KEEP EDITING"
-					onConfirm={() => { const { target } = leaving; setLeaving(null); seed(target) }}
-					onCancel={() => setLeaving(null)} />
-			) : null}
 		</Page>
 	)
 }
@@ -498,136 +295,6 @@ function PageTotal({ wishes }) {
 			{priced.length && priced.length !== wishes.length ? (
 				<span className="field-help">the total is for the {priced.length} with a price</span>
 			) : null}
-		</div>
-	)
-}
-
-/* ---- the card a wish opens into ----
-
-   The item card's shape and the item card's reading order: the picture first in the markup as
-   well as on screen, so the focus ring runs down the card rather than jumping back up it on
-   the fifth press. */
-function WishCard({
-	ref, isNew, form, set, errors, dirty, saving, photo, name,
-	categories, onCategoriesChange, allCategories,
-	onPick, onClearPhoto, onSave, onCancel, deleteButton
-}) {
-	const drop = useDroppedPhoto(onPick)
-	const [query, setQuery] = useState('')
-
-	const nameField = errors.propsFor('wish-name')
-	const urlField = errors.propsFor('wish-url')
-	const priceField = errors.propsFor('wish-price')
-
-	const addCategory = value => {
-		const clean = value.trim()
-		if (clean && !categories.includes(clean)) onCategoriesChange([...categories, clean])
-	}
-
-	/* Escape from anywhere in the card, Enter only from a field -- a button already treats
-	   Enter as its own activation, so catching it here as well would swallow the press CANCEL
-	   was about to receive. */
-	const keys = e => {
-		if (e.key === 'Escape') {
-			e.preventDefault(); e.stopPropagation()
-			onCancel()
-			return
-		}
-		/* Not from the categories field: Enter there is how a category that does not exist yet
-		   is added (the combobox's own action row), and saving the card instead would swallow
-		   the word just typed. */
-		if (e.key !== 'Enter' || !(e.target instanceof HTMLInputElement)) return
-		if (e.target.id === 'wish-categories') return
-		e.preventDefault()
-		onSave()
-	}
-
-	const heading = isNew ? 'New wish' : 'Editing this wish'
-
-	return (
-		<div ref={ref} className={['filter-section', 'line-card', drop.over && 'is-dragover'].filter(Boolean).join(' ')}
-			onKeyDown={keys} {...drop.dropProps}>
-
-			<div className="line-card-head">
-				<span className="section-label line-card-title">{heading}</span>
-				<span className="field-help push-end line-card-keys">Enter saves<Sep />Escape cancels</span>
-			</div>
-
-			<div className="line-card-body">
-				<LinePhoto photo={photo} heading={heading} name={name} label="Picture of this wish"
-					onPick={onPick} onClear={onClearPhoto} />
-
-				<div className="line-card-fields wish-card-fields">
-					<Field className="line-field-wide" label="Name" htmlFor="wish-name"
-						error={nameField.error} errorId={nameField.errorId}>
-						<FieldShell>
-							<TextInput id="wish-name" aria-label="Name" aria-required="true"
-								value={form['wish-name']} onChange={set('wish-name')}
-								invalid={nameField.invalid} describedBy={nameField.describedBy} />
-						</FieldShell>
-					</Field>
-
-					<Field className="line-field-wide" label="Link" htmlFor="wish-url"
-						error={urlField.error} errorId={urlField.errorId}
-						help="The page you would buy it on. You can leave out the https://">
-						<FieldShell>
-							<TextInput id="wish-url" inputMode="url" aria-label="Link" aria-required="true"
-								placeholder="shop.dk/product"
-								value={form['wish-url']} onChange={set('wish-url')}
-								invalid={urlField.invalid} describedBy={urlField.describedBy} />
-						</FieldShell>
-					</Field>
-
-					<Field label="Price" optional htmlFor="wish-price"
-						error={priceField.error} errorId={priceField.errorId}
-						help="What the shop asks for it today.">
-						<FieldShell>
-							<TextInput id="wish-price" inputMode="decimal" aria-label="Price"
-								value={form['wish-price']}
-								onChange={v => set('wish-price')(sanitizeAmount(v))}
-								invalid={priceField.invalid} describedBy={priceField.describedBy} />
-							<FieldUnit>{currencySymbol()}</FieldUnit>
-						</FieldShell>
-					</Field>
-
-					{/* The order form's categories field, with the order form's reasoning: htmlFor,
-					    because the chips are labelable and come first, and without it the label
-					    points at the first chip's remove button -- so a tap on the chevron deletes a
-					    category instead of opening the list. See components/Form.jsx. */}
-					<Field label="Categories" optional htmlFor="wish-categories"
-						help="Pick from your categories, or type one and press Enter.">
-						<Combobox id="wish-categories" label="Add category" placeholder="Add category..."
-							chips={categories.map(cat => (
-								<Chip key={cat} label={`Remove category ${cat}`}
-									onRemove={() => onCategoriesChange(categories.filter(c => c !== cat))}>
-									{cat}</Chip>
-							))}
-							value={query} onChange={setQuery}
-							onSelect={o => { addCategory(o.label); setQuery('') }}
-							groups={[
-								{ heading: 'Favourites', options: allCategories
-									.filter(c => c.favourite && !categories.includes(c.name))
-									.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses`, star: true })) },
-								{ heading: 'All categories', options: allCategories
-									.filter(c => !c.favourite && !categories.includes(c.name))
-									.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }
-							]}
-							action={query.trim()
-								? { icon: 'plus', label: `ADD "${query.trim().toUpperCase()}"`,
-									onSelect: value => { addCategory(value); setQuery('') } }
-								: undefined} />
-					</Field>
-				</div>
-			</div>
-
-			<FormActions>
-				<Button variant="caps compact" icon="check" disabled={saving} onClick={onSave}>
-					{saving ? 'SAVING...' : isNew ? 'ADD WISH' : 'SAVE WISH'}</Button>
-				<Button variant="ghost compact" disabled={saving} onClick={onCancel}>CANCEL</Button>
-				<span className="field-help form-actions-note">
-					{dirty ? 'Unsaved changes' : 'A name and a link are all it needs.'}</span>
-				{deleteButton ? <span className="push-end">{deleteButton}</span> : null}
-			</FormActions>
 		</div>
 	)
 }

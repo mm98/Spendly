@@ -216,6 +216,15 @@ router.get('/', (req, res) => {
 	})
 })
 
+/** One wish, for the page that edits it -- the same single-record read a vendor and a
+    category have. Registered before the writes below so the shape of this file reads
+    reads-then-writes; nothing else answers a bare id. */
+router.get('/:id', (req, res) => {
+	const wish = selectOne.get(req.params.id, req.user.id)
+	if (!wish) throw notFound(req.params.id)
+	res.json(decorateOne(wish))
+})
+
 /* ---- writes ---- */
 
 const priceOf = value => (value == null || value === '' ? null : Number(value))
