@@ -19,6 +19,41 @@ import { readCache } from './lib/readCache.js'
 
 export const app = express()
 
+/* The browser reaches this origin and nowhere else -- a shop's picture is fetched server-side
+   into a data: URI (routes/wishes.js). No inline or eval escape, so injected markup cannot run. */
+const CSP = [
+	"default-src 'self'",
+	"script-src 'self'",
+	/* A colour a user picked is written onto the element, so style attributes are allowed --
+	   an injected <style> element is not. */
+	"style-src 'self'",
+	"style-src-attr 'unsafe-inline'",
+	"img-src 'self' data: blob:",
+	"font-src 'self'",
+	"connect-src 'self'",
+	"manifest-src 'self'",
+	"form-action 'self'",
+	"frame-ancestors 'none'",
+	"base-uri 'none'",
+	"object-src 'none'"
+].join('; ')
+
+app.disable('x-powered-by')
+app.use((req, res, next) => {
+	res.setHeader('Content-Security-Policy', CSP)
+	res.setHeader('Referrer-Policy', 'no-referrer')
+	res.setHeader('X-Content-Type-Options', 'nosniff')
+	res.setHeader('X-Frame-Options', 'DENY')
+	res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+	res.setHeader('Cross-Origin-Resource-Policy', 'same-origin')
+	res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()')
+	/* Same gate as the session cookie's Secure flag: a LAN deploy over plain http would lock
+	   itself out of its own address. */
+	if (process.env.NODE_ENV === 'production' && process.env.SPENDLY_PLAIN_HTTP !== '1')
+		res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+	next()
+})
+
 // The bulk-import route carries base64-encoded receipt images, so it gets a raised body limit
 // of its own rather than opening every route to arbitrarily large request bodies. A single
 // picked-per-request parser (rather than mounting two express.json()s in sequence) keeps each
