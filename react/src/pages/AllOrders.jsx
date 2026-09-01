@@ -11,8 +11,9 @@ import { Combobox } from '../components/Combobox.jsx'
 import { FilterChips, ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds, vendorTextMatch } from '../api/client.js'
-import { currencySymbol, dayMonth, parseAmount, percent, plural, sep } from '../api/format.js'
+import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
+import { currencySymbol, dayMonth, parseAmount, plural, sep } from '../api/format.js'
+import { categoryGroups, vendorGroups } from '../api/pickerGroups.js'
 
 /* All orders: the search, the filters, and what they leave.
 
@@ -201,14 +202,7 @@ export default function AllOrders() {
 								value={draft.vendorName ?? ''}
 								onChange={v => setDraft({ ...draft, vendorName: v, vendorId: '' })}
 								onSelect={o => setDraft({ ...draft, vendorName: o.label, vendorId: o.id })}
-								groups={[{ heading: 'All vendors', options: (vendors.data ?? []).map(v => {
-									const { alias } = vendorTextMatch(v, draft.vendorName ?? '')
-									return {
-										id: v.id, label: v.name,
-										meta: plural(v.orders, 'order') + (alias ? `${sep}also ${alias}` : ''),
-										search: [v.name, ...(v.aliases ?? [])].join(' ')
-									}
-								}) }]} />
+								groups={vendorGroups(vendors.data, draft.vendorName ?? '')} />
 						</Field>
 						<FieldPair variant="field-pair-stack-early">
 							<Field label="Category" htmlFor="filter-category">
@@ -216,12 +210,9 @@ export default function AllOrders() {
 									value={draft.categoryName ?? ''}
 									onChange={v => setDraft({ ...draft, categoryName: v, categoryId: '' })}
 									onSelect={o => setDraft({ ...draft, categoryName: o.label, categoryId: o.id })}
-									groups={[{ heading: 'All categories', options: (categories.data ?? []).map(c =>
-										({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) },
-										/* The rows every ring folds its remainder into are reachable from here
-										   too, not only by arriving on their link -- a filter the chip row can
-										   name has to be one the panel can set. Its own group, because it is
-										   not a category and should not read as one of them. */
+									/* The rows every ring folds its remainder into are reachable from here
+									   too, not only by arriving on their link. Its own group: not a category. */
+									groups={[...categoryGroups(categories.data),
 										{ heading: 'Other', options: [{ id: 'none', label: 'Without category' }] }]} />
 							</Field>
 							<Field label="Kind" htmlFor="filter-kind">
@@ -270,13 +261,7 @@ export default function AllOrders() {
 				skeleton={<SkeletonCard bodyVariant="card-body-tight"><SkeletonRows count={6} /></SkeletonCard>}>
 				{data => (
 				<Card aria-label="Orders">
-					<CardHeader title={`Orders${sep}${plural(data.matched, 'match', 'matches')}`}>
-						{/* A phone has room for the count or for what it was counted out of, not both:
-						    the two wrap the header onto three lines at 390px. The count is the answer;
-						    "filtered from N" is context, and the pager below still gives it.
-						    `.wide-only` is the app's one way to say so. */}
-						<span className="field-help wide-only">filtered from {data.total}</span>
-					</CardHeader>
+					<CardHeader title={`Orders${sep}${plural(data.matched, 'match', 'matches')}`} />
 					<CardDivider />
 					<CardBody variant="card-body-tight">
 						{data.orders.length ? data.orders.map(order => (

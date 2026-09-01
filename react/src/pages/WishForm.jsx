@@ -18,7 +18,8 @@ import {
 	addWishPhoto, addWishPhotoFromUrl, createWish, deleteWish, failureMessage, getCategories,
 	getWish, getWishPreview, invalidateWishData, removeWishPhoto, updateWish, wishPhotoThumbnailUrl
 } from '../api/client.js'
-import { amount, currency, currencySymbol, longDate, parseAmount, percent } from '../api/format.js'
+import { amount, currency, currencySymbol, longDate, parseAmount } from '../api/format.js'
+import { categoryGroups } from '../api/pickerGroups.js'
 
 /* A wish is a record, not part of one, so it is edited on its own page like a vendor -- one way
    to edit a record here, not one per screen. Nothing saved reaches a total. */
@@ -213,14 +214,7 @@ function WishFields({ mode, wish }) {
 					))}
 					value={categoryQuery} onChange={setCategoryQuery}
 					onSelect={o => addCategory(o.label)}
-					groups={[
-						{ heading: 'Favourites', options: (categories.data ?? [])
-							.filter(c => c.favourite && !chosen.includes(c.name))
-							.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses`, star: true })) },
-						{ heading: 'All categories', options: (categories.data ?? [])
-							.filter(c => !c.favourite && !chosen.includes(c.name))
-							.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }
-					]}
+					groups={categoryGroups(categories.data, { exclude: chosen })}
 					action={categoryQuery.trim()
 						? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
 							onSelect: addCategory }
@@ -231,12 +225,12 @@ function WishFields({ mode, wish }) {
 			    labels it is the group's own label and not an input. The frame is the one the
 			    order line card draws (components/LinePhoto.jsx) -- one picture control in the
 			    app, not one per screen -- and the drop target is this whole block rather than
-			    the 128px frame alone. */}
-			<Field label="Picture" optional group
-				help="A photo of it, or the picture from the shop's own page.">
+			    the 128px frame alone. No sentence under it: at 128px the frame's own words broke
+			    over three lines, and the box already says what it takes. */}
+			<Field label="Picture" optional group>
 				<div className={drop.over ? 'wish-photo-field is-dragover' : 'wish-photo-field'}
 					{...drop.dropProps}>
-					<LinePhoto photo={photo} label="Picture of this wish"
+					<LinePhoto photo={photo} label="Picture of this wish" hint={false}
 						onPick={file => { setPicked({ file, url: URL.createObjectURL(file) }); setOffered(null); setCleared(false) }}
 						onClear={() => { setPicked(null); setOffered(null); setCleared(true) }} />
 				</div>

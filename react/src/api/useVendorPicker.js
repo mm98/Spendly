@@ -1,5 +1,5 @@
-import { createVendor, failureMessage, invalidateVendorData, vendorByAnyName, vendorTextMatch } from './client.js'
-import { plural, sep } from './format.js'
+import { createVendor, failureMessage, invalidateVendorData, vendorByAnyName } from './client.js'
+import { vendorGroups } from './pickerGroups.js'
 
 /** The vendor picker every order form shares -- New order's step 1 and Edit order both use this
     one hook (README: Vendors, docs/defects.md), so a fix to matching can't land in only one
@@ -20,19 +20,7 @@ export function useVendorPicker(vendors, value, onPick, toast) {
 	const list = vendors.data ?? []
 	const aliasHit = vendorByAnyName(list, value)
 
-	const vendorOption = v => {
-		const { alias } = vendorTextMatch(v, value)
-		return {
-			id: v.id, label: v.name,
-			meta: plural(v.orders, 'order') + (alias ? `${sep}also ${alias}` : ''),
-			search: [v.name, ...(v.aliases ?? [])].join(' ')
-		}
-	}
-
-	const groups = [
-		{ heading: 'Favourites', options: list.filter(v => v.favourite).map(v => ({ ...vendorOption(v), star: true })) },
-		{ heading: 'All vendors', options: list.filter(v => !v.favourite).map(vendorOption) }
-	]
+	const groups = vendorGroups(list, value)
 
 	/* CREATE VENDOR "..." is the foot of the vendor list, and it creates the vendor rather than
 	   only typing its name into the field -- a row labelled with a verb that does not do the

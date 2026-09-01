@@ -24,6 +24,7 @@ import {
 } from '../api/client.js'
 import { ORDER_FIELDS } from '../api/rules.js'
 import { currency, currencySymbol, parseAmount, percent, shortDate, sanitizeAmount, today } from '../api/format.js'
+import { categoryGroups } from '../api/pickerGroups.js'
 
 /* New order, in two steps that share one draft.
 
@@ -189,14 +190,7 @@ export function NewOrderDetails() {
 					))}
 					value={categoryQuery} onChange={setCategoryQuery}
 					onSelect={o => { addCategory(o.label); setCategoryQuery('') }}
-					groups={[
-						{ heading: 'Favourites', options: (categories.data ?? [])
-							.filter(c => c.favourite && !draft.categories.includes(c.name))
-							.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses`, star: true })) },
-						{ heading: 'All categories', options: (categories.data ?? [])
-							.filter(c => !c.favourite && !draft.categories.includes(c.name))
-							.map(c => ({ id: c.id, label: c.name, meta: `${percent(c.share)} of expenses` })) }
-					]}
+					groups={categoryGroups(categories.data, { exclude: draft.categories })}
 					action={categoryQuery.trim()
 						? { icon: 'plus', label: `ADD "${categoryQuery.trim().toUpperCase()}"`,
 							onSelect: name => { addCategory(name); setCategoryQuery('') } }

@@ -42,8 +42,8 @@ export function useDroppedPhoto(onPick) {
 }
 
 /** `heading` and `name` are drawn only on a phone; a host with a headline of its own passes
-    neither. */
-export function LinePhoto({ photo, heading, name, label, onPick, onClear }) {
+    neither. `hint` is the sentence under an empty frame, which a host may turn off. */
+export function LinePhoto({ photo, heading, name, label, hint = true, onPick, onClear }) {
 	const file = useRef(null)
 
 	return (
@@ -88,11 +88,11 @@ export function LinePhoto({ photo, heading, name, label, onPick, onClear }) {
 						<button type="button" className="line-photo-action line-photo-action-remove"
 							onClick={onClear}>Remove</button>
 					</span>
-				) : (
+				) : hint ? (
 					/* Only over an empty frame: dropping and pasting leave no mark on screen, so
 					   nothing else says they work. */
 					<span className="field-help line-photo-hint">Drop a photo here, or paste one you copied</span>
-				)}
+				) : null}
 			</span>
 		</div>
 	)
