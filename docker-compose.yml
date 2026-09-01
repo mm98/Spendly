@@ -28,6 +28,30 @@ services:
       # Absolute path -- a relative one breaks if this file moves. On QNAP: /share/Container/spendly:/data
       - /share/Container/spendly:/data
 
+  # HTTPS in front of the app: browsers only use HTTP/2 and HTTP/3 over HTTPS, so this one
+  # service turns both on. Caddy signs the certificate itself, which works with no internet
+  # access; a device trusts it once the file caddy/pki/authorities/local/root.crt from the
+  # mounted folder is installed on that device.
+  caddy:
+    image: caddy:2
+    container_name: spendly-caddy
+    restart: unless-stopped
+    # Change spendly.example.com to the DNS name that points at the NAS. The certificate is
+    # issued for that exact name, so the https:// address must use it, not the IP.
+    command: caddy reverse-proxy --from spendly.example.com --to spendly:4000 --internal-certs
+    ports:
+      # QTS holds port 443 for its own admin page by default -- free it first (Control Panel
+      # > System > General Settings > System Administration, change the HTTPS port). To leave
+      # QTS alone instead: write the --from address as spendly.example.com:8443 and make all
+      # four numbers below 8443 -- the port must match end to end or HTTP/3 silently stops.
+      # The udp line is HTTP/3; keep both lines.
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      # Keeps the signing certificate across container updates -- without it every update
+      # makes a new one and every device must trust it again. Absolute path, like above.
+      - /share/Container/spendly-caddy:/data
+
   # Auto-updates the spendly container when a new image lands on GHCR.
   watchtower:
     image: containrrr/watchtower
