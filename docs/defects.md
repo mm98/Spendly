@@ -368,6 +368,35 @@ Gecko and WebKit are not installed in this container and were not checked. The c
 flex row and a custom property in a `calc()`, neither of which is engine-shaped — but that is an
 argument, not a render.
 
+## Chrome — the top bar grew a second row rather than shortening the name on it
+
+The phone top bar carries a back arrow, the page name, SCAN, NEW and the gear, and it was set to
+wrap. Nothing shrank, so on any page whose name did not fit beside the four controls the whole action
+group dropped to a line of its own and the bar went from **57px to 101px** — 44px of a phone screen
+spent so that a thirteen-letter name could be printed whole.
+
+Which pages it hit was a function of width, and at `iPhone 15` it hit most of them: *Order details*,
+*New category* and *Review scan* all wrapped at 390px; *Edit order*, four letters shorter, did not.
+
+What the row leaves the name is fixed arithmetic — the gutter (24), the back arrow (32), the action
+group (220.09) and two 12px gaps come to **300.09px**, so the name gets *width − 300.09*: **89.91px**
+at 390, 74.91 at 375, 19.91 at 320. The name now takes that space and cuts what does not fit, and the
+row wraps only when the remainder falls under a floor of 80px, which is where the boundary sits:
+swept a pixel at a time, **379px wraps and 381px does not**.
+
+80px is what eight letters and an ellipsis measure in the title's own face — 700 16px Poppins puts
+*Order de…* at 84.56, *New cate…* at 89.56, *Review s…* at 82.56 — so under the floor the row is
+genuinely too narrow to name a page beside four controls, and wrapping is the honest answer there.
+Above it, at 390, the name shows 81% of *Order details*, 77% of *New category*, 87% of *Review scan*.
+The name is cut in the rendering only; the whole string stays in the markup and is still announced.
+
+Measured after, in Blink 141.0.7390.37, swept at 320 · 360 · 375 · 379 · 381 · 390 · 393 · 414 · 430 ·
+699: the bar is **57px at every width at or above the floor** and `documentElement.scrollWidth`
+never exceeds `clientWidth` at any of them, before or after. Nine screens rendered at phone and
+desktop size: only the two that were wrapping moved, each **exactly 44px shorter**; the other seven
+and every desktop render are **byte-identical**. The rule reaches nothing above the phone
+breakpoint — the name's computed `flex-basis` is `auto` at 701px and `80px` at 700.
+
 ## Chrome — the bottom bar landed on the save button of an open line
 
 Reported from a phone: with a line of an order open for correction, the bottom bar conflicts with the

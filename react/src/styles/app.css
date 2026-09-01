@@ -1604,7 +1604,9 @@ label.field-shell { cursor:pointer; }
 	}
 	:root:has(.line-card) .sidebar { display:none; }
 	.topbar { flex-wrap:wrap; }
-	.topbar h1 { font-size:16px; }
+	/* The title takes what the arrow, the buttons and the gear leave and cuts the rest with an
+	   ellipsis; under 80px -- eight letters here -- the row wraps instead. Cut in the render only. */
+	.topbar h1 { font-size:16px; flex:1 1 80px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but
 	   typing an order is the one you need when there is no receipt to scan, so it
 	   must never be the desktop-only option. Shortening the labels to "Scan" and
