@@ -375,7 +375,6 @@ export async function removeWishPhoto(id, signal) {
 /** Carrying the picture's own id, so the address changes with the bytes and a browser told to
     keep one forever never shows a replaced photo. */
 export const wishPhotoThumbnailUrl = (id, photoId) => `/api/wishes/${id}/photo/${photoId}/thumbnail`
-export const wishPhotoFileUrl = (id, photoId) => `/api/wishes/${id}/photo/${photoId}/file`
 
 export async function getOrders(params = {}, signal) {
 	return request('/api/orders' + qs(params), { signal })
