@@ -68,10 +68,12 @@ export default function Orders() {
 									from={data.period.from} marks={data.period.axis} height={250}
 									className="chart-under-caption" todayIndex={data.period.todayIndex}
 									yFormat={compactAmount}
-									label={`${data.period.shortLabel} against ${data.period.previousLabel}, day by day`}
+									label={`${data.period.shortLabel} against ${data.period.previousLabel} dashed behind it, day by day`}
 									series={[
+										/* Dashed, the way Statistics draws the window before this one: a
+										   solid second line reads as a second thing measured. */
 										{ key: 'previous', dataKey: 'y2', name: data.period.previousLabel,
-											color: 'var(--blue-light)', strokeWidth: 2 },
+											color: 'var(--blue-light)', dash: '4 4', strokeWidth: 2 },
 										{ key: 'current', dataKey: 'y1', name: data.period.shortLabel,
 											color: 'var(--blue)', strokeWidth: 2.6, today: true }
 									]} />
