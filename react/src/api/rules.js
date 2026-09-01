@@ -38,8 +38,8 @@ export const ORDER_FIELDS = [
 		: AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 25,00.' }
 ]
 
-/** Step 2's item form. Required: Description, Quantity, Price paid. Retail is optional and
-    still parsed -- optional is not unchecked, and `gratis` is as wrong there as anywhere. */
+/** Step 2's item form. Required: Description, Quantity, Price paid. Retail and Note are
+    optional and still checked -- optional is not unchecked, and `gratis` is as wrong there. */
 export const ITEM_FIELDS = [
 	{ name: 'item-description', label: 'Description', check: v =>
 		!v ? 'Describe the item.' : v.length > 120 ? '120 characters at most.' : '' },
@@ -58,11 +58,13 @@ export const ITEM_FIELDS = [
 	{ name: 'item-retail', label: 'Retail price', check: v =>
 		!v ? ''
 		: v.startsWith('-') ? 'Retail cannot go below zero.'
-		: AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 104,95.' }
+		: AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 104,95.' },
+	{ name: 'item-note', label: 'Note', check: v =>
+		v.length > 120 ? '120 characters at most.' : '' }
 ]
 
 /** A line corrected on the scan review is an item under a different name, so it takes the
-    item's own four rules rather than a fourth copy of them -- retail included, now that a
-    scanned line can carry one the same way a typed one does. */
+    item's own rules rather than a second copy of them -- retail and note included, since a
+    scanned line carries both the same way a typed one does. */
 export const LINE_FIELDS = ITEM_FIELDS
 	.map(f => ({ ...f, name: f.name.replace('item-', 'line-') }))

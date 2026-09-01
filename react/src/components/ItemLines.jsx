@@ -51,13 +51,15 @@ const join = (...parts) => parts.filter(Boolean).join(' ')
    blanked quantity is still a rejected quantity -- but nobody has to type the answer that is
    true of almost every line, so in practice the two fields a reader must fill are Description
    and Price paid. */
-const BLANK = { 'item-description': '', 'item-quantity': '1', 'item-price': '', 'item-retail': '' }
+const BLANK = { 'item-description': '', 'item-quantity': '1', 'item-price': '', 'item-retail': '',
+	'item-note': '' }
 
 const formOf = item => ({
 	'item-description': item.title,
 	'item-quantity': String(item.quantity),
 	'item-price': amount(item.price),
-	'item-retail': item.retail != null ? amount(item.retail) : ''
+	'item-retail': item.retail != null ? amount(item.retail) : '',
+	'item-note': item.note ?? ''
 })
 
 const same = (a, b) => ITEM_FIELDS.every(f => (a[f.name] ?? '') === (b[f.name] ?? ''))
@@ -132,13 +134,15 @@ export function ItemLines({
 		}
 		const id = openId === 'new' ? 'new-' + (nextId.current++) : openId
 		const retail = form['item-retail'].trim()
+		const note = form['item-note'].trim()
 		return {
 			...(openItem ?? {}),
 			id,
 			title: form['item-description'].trim(),
 			quantity: Number(form['item-quantity']),
 			price: parseAmount(form['item-price']),
-			retail: retail ? parseAmount(retail) : undefined
+			retail: retail ? parseAmount(retail) : undefined,
+			note: note || undefined
 		}
 	}
 
@@ -367,6 +371,7 @@ function LineCard({
 	const quantity = errors.propsFor('item-quantity')
 	const price = errors.propsFor('item-price')
 	const retailField = errors.propsFor('item-retail')
+	const noteField = errors.propsFor('item-note')
 
 	const take = list => {
 		const image = [...(list ?? [])].find(f => f.type.startsWith('image/'))
@@ -517,6 +522,16 @@ function LineCard({
 								onChange={v => set('item-retail')(sanitizeAmount(v))}
 								invalid={retailField.invalid} describedBy={retailField.describedBy} />
 							<FieldUnit>{currencySymbol()}</FieldUnit>
+						</FieldShell>
+					</Field>
+
+					<Field label="Note" optional htmlFor="item-note"
+						error={noteField.error} errorId={noteField.errorId}
+						help="Anything worth remembering about this line.">
+						<FieldShell>
+							<TextInput id="item-note" aria-label="Note" value={form['item-note']}
+								onChange={set('item-note')}
+								invalid={noteField.invalid} describedBy={noteField.describedBy} />
 						</FieldShell>
 					</Field>
 

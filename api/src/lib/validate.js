@@ -59,6 +59,9 @@ export function validateOrderDraft(draft) {
 
 		if (item.retail != null && (!Number.isFinite(Number(item.retail)) || Number(item.retail) < 0))
 			errors[`items.${i}.retail`] = 'Retail price must be a non-negative amount.'
+
+		if (item.note != null && String(item.note).trim().length > 120)
+			errors[`items.${i}.note`] = '120 characters at most.'
 	})
 
 	return errors
