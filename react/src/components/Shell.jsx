@@ -40,14 +40,14 @@ export function Page({ variant, children, ...rest }) {
 }
 
 const NAV = [
-	{ to: '/', key: 'home', icon: 'home', label: 'Home' },
+	/* The entry the five-column phone bar leaves out, because it is the only one with another
+	   door there: the top bar's chevron goes here from every page that is not already it. */
+	{ to: '/', key: 'home', icon: 'home', label: 'Home', wide: true },
 	{ to: '/orders', key: 'orders', icon: 'receipt', label: 'Orders' },
 	{ to: '/wishlist', key: 'wishlist', icon: 'cart', label: 'Wishlist' },
 	{ to: '/vendors', key: 'vendors', icon: 'store', label: 'Vendors' },
 	{ to: '/categories', key: 'categories', icon: 'tag', label: 'Categories' },
-	/* The entry the five-column phone bar leaves out, because it is the only one with another
-	   door there: Home's Spent card is a link to it. */
-	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics', wide: true }
+	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics' }
 ]
 
 function Sidebar({ navKey }) {
@@ -411,12 +411,14 @@ export function AppShell() {
 							   route-definition time. `handle.back.to` is only the fallback, for
 							   whoever arrives with no such marker: a reload, a pasted link, a
 							   bookmark. README: Accessibility. */
-							<button type="button" className="icon-button icon-button-arrow"
-								aria-label={location.state?.from ? 'Back' : 'Back to ' + handle.back.label}
-								onClick={() => navigate(location.state?.from ?? handle.back.to)}>
-								<Icon name="chevronLeft" />
-							</button>
-						) : null}
+							<IconButton icon="chevronLeft"
+								label={location.state?.from ? 'Back' : 'Back to ' + handle.back.label}
+								onClick={() => navigate(location.state?.from ?? handle.back.to)} />
+						) : handle.navKey === 'home' ? null : (
+							/* Home's door on a phone, where the five columns go elsewhere. Drawn only on a
+							   phone: a wide screen has the rail, which carries Home. README: Chrome. */
+							<IconButton icon="chevronLeft" to="/" label="Home" className="topbar-up" />
+						)}
 						<h1 id="page-title" tabIndex={-1} ref={title}>{handle.title ?? 'Spendly'}</h1>
 						<GlobalFinder />
 						<div className="topbar-actions">

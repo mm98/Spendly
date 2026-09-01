@@ -376,6 +376,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .icon-button.icon-button-clear { width:26px; height:26px; margin-left:auto; flex:none; }
 .icon-button.icon-button-send { width:40px; height:40px; border-radius:var(--radius-page); border:0; background:var(--bg-dark); color:var(--text-inverse); display:grid; flex:none; }
 .icon-button.icon-button-reorder { width:28px; height:28px; flex:none; }
+.icon-button.topbar-up { display:none; }
 
 /* the rounded content sheet: sidebar and top bar sit on the white shell,
    the canvas itself is an inset rounded panel the cards sit on */
@@ -1604,9 +1605,10 @@ label.field-shell { cursor:pointer; }
 	}
 	:root:has(.line-card) .sidebar { display:none; }
 	.topbar { flex-wrap:wrap; }
-	/* The title takes what the arrow, the buttons and the gear leave and cuts the rest with an
-	   ellipsis; under 80px -- eight letters here -- the row wraps instead. Cut in the render only. */
-	.topbar h1 { font-size:16px; flex:1 1 80px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+	/* Every page here names itself -- the tab bar lights the section, each form card prints its
+	   own headline -- so the title is .screenreader-only's recipe: announced and focusable, undrawn. */
+	.topbar h1 { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+	.icon-button.topbar-up { display:inline-grid; }
 	/* Both creation paths stay reachable on a phone. Scanning is the fast path, but
 	   typing an order is the one you need when there is no receipt to scan, so it
 	   must never be the desktop-only option. Shortening the labels to "Scan" and
