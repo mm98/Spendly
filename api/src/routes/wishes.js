@@ -5,7 +5,7 @@ import { newId } from '../lib/ids.js'
 import { fromEpoch, toEpoch } from '../lib/dates.js'
 import { findOrCreateCategory } from '../lib/findOrCreate.js'
 import { assertValidWishDraft, normaliseUrl } from '../lib/validate.js'
-import { processAttachment } from '../lib/images.js'
+import { processAttachment, processImage } from '../lib/images.js'
 import { detectFileType } from '../lib/fileType.js'
 import { fetchImage, fetchPagePreview } from '../lib/pageTitle.js'
 import { decompressBlob } from '../lib/blobCompression.js'
@@ -224,8 +224,31 @@ router.get('/', (req, res) => {
     name themselves and choose their own picture.
 
     Before /:id, or that route would answer this with "No wish preview". */
+/* The picture is fetched here too, not only pointed at.
+
+   The obvious cheap version hands the browser the shop's own address and lets it draw from
+   there, and it breaks in the ordinary case: shops serve their pictures from a CDN that turns
+   away anything without their own page as the referer, so the frame drew a broken tile over a
+   name that had parsed perfectly. It is also a request from the reader's own browser to a shop
+   they have not visited yet.
+
+   So the server fetches it -- which it must do on save anyway -- and hands back one small
+   thumbnail inlined in the answer. That makes the offer truthful: a picture is only shown once
+   this server has actually got the bytes and made something of them. Thumbnail-sized, because
+   the frame is 128px and a data URL rides in a JSON body. */
+async function previewThumbnail(imageUrl) {
+	const fetched = await fetchImage(imageUrl)
+	if (!fetched || detectFileType(fetched.buffer)?.kind !== 'image') return null
+	const processed = await processImage(fetched.buffer)
+	if (!processed.thumbnail) return null
+	return `data:${processed.thumbnailContentType};base64,${processed.thumbnail.toString('base64')}`
+}
+
 router.get('/preview', async (req, res) => {
-	res.json(await fetchPagePreview(String(req.query.url ?? '')))
+	const { title, image } = await fetchPagePreview(String(req.query.url ?? ''))
+	const thumbnail = image ? await previewThumbnail(image) : null
+	// No thumbnail, no picture on offer: the address alone is a promise this cannot keep.
+	res.json({ title, image: thumbnail ? image : null, thumbnail })
 })
 
 /** One wish, for the page that edits it -- the same single-record read a vendor and a

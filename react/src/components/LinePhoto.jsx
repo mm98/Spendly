@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { Icon } from './Icon.jsx'
+import { useEffect, useRef, useState } from 'react'
+import { ImageOrIcon } from './Icon.jsx'
 import { HiddenFileInput } from './FileInput.jsx'
 import { PHOTO_FILES } from './fileKinds.js'
 
@@ -20,20 +20,43 @@ import { PHOTO_FILES } from './fileKinds.js'
    FileList, so they all read it through here. */
 const firstImage = list => [...(list ?? [])].find(f => f.type.startsWith('image/'))
 
-/** The card's own drag-and-paste behaviour, so the frame below is not the only way in.
-    `dropProps` go on the card, not on the frame: a photo dropped anywhere on the card is a
-    photo meant for it, and a 96px target is a small thing to ask someone to hit. */
+/** The two ways in that are not the frame itself: dropping, and pasting.
+
+    `dropProps` go on the card or the block around the frame, not on the frame: a photo dropped
+    there is a photo meant for it, and a 96px target is a small thing to ask someone to hit.
+
+    Pasting is a window listener rather than a handler among them, because a paste is delivered
+    to whatever holds focus and then bubbles from there -- so a handler on an element that
+    cannot hold focus never runs, and one on a card only runs while the cursor happens to be
+    inside it. The frame says "paste one you copied" with no conditions attached, so the
+    listener has none either: while this form is open, a copied image goes in the frame wherever
+    the cursor is. A paste carrying no image is left entirely alone, which is every paste into
+    a text field. */
 export function useDroppedPhoto(onPick) {
 	const [over, setOver] = useState(false)
+	// The handler is bound once; the callback it should use is whatever the latest render
+	// passed, which a ref carries without rebinding the listener on every keystroke.
+	const pick = useRef(onPick)
+	pick.current = onPick
+
 	const take = list => {
 		const image = firstImage(list)
-		if (image) onPick(image)
+		if (image) pick.current(image)
 	}
+
+	useEffect(() => {
+		const onPaste = e => {
+			const image = firstImage(e.clipboardData?.files)
+			if (image) pick.current(image)
+		}
+		window.addEventListener('paste', onPaste)
+		return () => window.removeEventListener('paste', onPaste)
+	}, [])
+
 	return {
 		take,
 		over,
 		dropProps: {
-			onPaste: e => take(e.clipboardData?.files),
 			onDragOver: e => { e.preventDefault(); setOver(true) },
 			onDragLeave: () => setOver(false),
 			onDrop: e => { e.preventDefault(); setOver(false); take(e.dataTransfer?.files) }
@@ -53,11 +76,15 @@ export function LinePhoto({ photo, heading, name, label, onPick, onClear }) {
 			<button type="button" className="line-photo-frame"
 				onClick={() => file.current?.click()}
 				aria-label={photo.present ? 'Replace the photo' : 'Add a photo'}>
+				{/* An image that will not load falls back to the same mark an empty frame draws,
+				    rather than to the browser's broken-picture glyph -- a stored thumbnail that
+				    has gone, or a picture the reader's connection could not fetch, should read as
+				    "no picture", which is what it is. `ImageOrIcon` is that fallback. */}
 				{photo.src
-					? <img className="line-photo-img" src={photo.src} alt="" />
-					: photo.present
-						? <span className="line-photo-mark"><Icon name="photo" /></span>
-						: <span className="line-photo-mark"><Icon name="photo" />Add photo</span>}
+					? <ImageOrIcon src={photo.src} icon="photo" imgClassName="line-photo-img"
+						className="line-photo-mark-icon" />
+					: <span className="line-photo-mark">
+						<ImageOrIcon icon="photo" />{photo.present ? null : 'Add photo'}</span>}
 			</button>
 			<HiddenFileInput ref={file} kind={PHOTO_FILES} label={label}
 				onFiles={list => { const image = firstImage(list); if (image) onPick(image) }} />
