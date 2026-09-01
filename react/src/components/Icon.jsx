@@ -51,7 +51,9 @@ export const ICONS = {
 	eye: "M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6",
 	trendDown: "M3 7l6 6l4 -4l8 8 M21 10l0 7l-7 0",
 	download: "M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2 M7 11l5 5l5 -5 M12 4l0 12",
-	textScanAi: "M8 12h4.5 M8 8h6 M8 16h2 M3 7v-2a2 2 0 0 1 2 -2h2 M3 17v2a2 2 0 0 0 2 2h2 M17 3h2a2 2 0 0 1 2 2v2 M14 21v-4a2 2 0 1 1 4 0v4 M14 19h4 M21 15v6"
+	textScanAi: "M8 12h4.5 M8 8h6 M8 16h2 M3 7v-2a2 2 0 0 1 2 -2h2 M3 17v2a2 2 0 0 0 2 2h2 M17 3h2a2 2 0 0 1 2 2v2 M14 21v-4a2 2 0 1 1 4 0v4 M14 19h4 M21 15v6",
+	archive: "M3 6a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2 M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10 M10 12h4",
+	externalLink: "M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6 M11 13l9 -9 M15 4h5v5"
 }
 
 /** The 24x24 line icon used everywhere. `title` makes it a labelled image; without one it

@@ -364,6 +364,23 @@ The fixed vendor column is a deliberate correction: an earlier version placed th
 
 ---
 
+### Wishlist
+No design file — both patterns it is built from are already drawn: the working list (2a) and the item card (1d). Code: `pages/Wishlist.jsx`, `components/ListToolbar.jsx`, `components/LinePhoto.jsx`, `components/Rows.jsx`, `components/Pager.jsx`
+
+**Purpose:** what the account wants and has not bought. A wish is a name and a link, and optionally a price, a picture and one or more categories. It is never an order, and that separation is the point: every total, chart and budget in the product reads orders as money that has already left, so nothing on this page reaches any of them.
+
+**Required:** the name, and the link. A link may be typed without `https://` and is completed on the way in; anything that is not an http(s) address is refused in the field, in the same words on both sides of the wire. A price left blank means "not written down", which is a different fact from free — a wish with no price is left out of every sum, and any figure that leaves some out says how many it counted.
+
+**The list:** the toolbar every working list here opens with — one search field, one sort, one FILTERS disclosure — then the chips naming what is on, the rows, and the pager cut to the account's own rows-per-page setting. Search matches the name, the shop and the categories. Filters: category, the dates it was added between, and which wishes are shown — on the list, archived, or all. Archived are excluded until they are asked for. The two price sorts also narrow, the way the order list's discount sorts do: a wish with no price is not the cheapest wish, it is one the question does not apply to.
+
+**A row:** the picture, or the same cube glyph an item without one gets; the name; and one meta line carrying the shop, when it was added, "Archived" where it is, and the categories. The price is right-aligned like every other amount. Four actions: open the shop page in a new tab — a real link, so it can be middle-clicked and its destination read off the status bar — edit, archive or put back, and delete.
+
+**Editing:** the row opens into the item card, in place, with the picture on the left and the fields on the right. One card adds and corrects, so there is one set of rules and one validation path; adding opens it at the head of the list, since the list is sorted and paged and "the end" is only the end of this page. Deleting asks first, through the one ask-before-deleting setting every other delete reads.
+
+**The picture:** one per wish. The frame is clicked, or a file is dropped anywhere on the card, or one is pasted into it. Only what is actually an image is accepted — the bytes decide, not the filename. Replacing gives the picture a new address, so a browser told to keep it forever can never show the old one.
+
+---
+
 ### 3a — Creating an order from a receipt
 File: `Order create.dc.html` · Code: `pages/NewOrder.jsx`, `pages/Scan.jsx`, `components/AiCard.jsx`, `components/fileKinds.js`
 

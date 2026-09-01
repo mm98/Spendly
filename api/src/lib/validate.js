@@ -76,3 +76,62 @@ export function assertValidOrderDraft(draft) {
 		throw err
 	}
 }
+
+/* ---- wishes ----
+   Ports react/src/api/rules.js's WISH_FIELDS, same as the two above port the order and item
+   ones: a wish typed into the app and a wish posted straight to the API are held to one rule,
+   in the same words. */
+
+const MAX_URL = 2048
+const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i
+
+/** The address a wish was found at, in the only form this app stores: an http(s) URL.
+
+    A reader pastes what the address bar gave them, or types `zalando.dk/sko` without a scheme,
+    so a missing scheme is filled in rather than refused. Anything that is not http or https is
+    refused outright, because this value is rendered as a link and `javascript:` in an href is
+    a script the page runs. Returns the normalised address, or null when the value is not one. */
+export function normaliseUrl(value) {
+	const clean = String(value ?? '').trim()
+	if (!clean || clean.length > MAX_URL) return null
+	let url
+	try { url = new URL(HAS_SCHEME.test(clean) ? clean : 'https://' + clean) } catch { return null }
+	if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
+	// A host with no dot in it is a typo ("zalando"), not a shop -- there is no intranet
+	// hostname a receipt-keeping app needs to link to.
+	if (!url.hostname.includes('.')) return null
+	return url.href
+}
+
+export function validateWishDraft(draft) {
+	const errors = {}
+
+	const name = String(draft.name ?? '').trim()
+	if (!name) errors.name = 'What do you wish for?'
+	else if (name.length > 120) errors.name = '120 characters at most.'
+
+	const url = String(draft.url ?? '').trim()
+	if (!url) errors.url = 'Where can you buy it?'
+	else if (!normaliseUrl(url)) errors.url = 'That is not a web address. One looks like this: shop.dk/product'
+
+	// A price the reader has not looked up yet is left out; a price that is present is money,
+	// so it follows every other amount in the app and never goes below zero.
+	if (draft.price != null && draft.price !== '' &&
+		(!Number.isFinite(Number(draft.price)) || Number(draft.price) < 0))
+		errors.price = 'Price must be a non-negative amount.'
+
+	if (draft.categories != null && !Array.isArray(draft.categories))
+		errors.categories = 'Categories are a list of names.'
+
+	return errors
+}
+
+export function assertValidWishDraft(draft) {
+	const errors = validateWishDraft(draft)
+	if (Object.keys(errors).length) {
+		const err = new Error(Object.values(errors)[0])
+		err.status = 400
+		err.fields = errors
+		throw err
+	}
+}

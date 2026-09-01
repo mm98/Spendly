@@ -42,6 +42,7 @@ export function Page({ variant, children, ...rest }) {
 const NAV = [
 	{ to: '/', key: 'home', icon: 'home', label: 'Home' },
 	{ to: '/orders', key: 'orders', icon: 'receipt', label: 'Orders' },
+	{ to: '/wishlist', key: 'wishlist', icon: 'cart', label: 'Wishlist' },
 	{ to: '/vendors', key: 'vendors', icon: 'store', label: 'Vendors' },
 	{ to: '/categories', key: 'categories', icon: 'tag', label: 'Categories' },
 	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics' }

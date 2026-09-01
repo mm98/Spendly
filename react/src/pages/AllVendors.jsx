@@ -5,9 +5,7 @@ import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { EntityRow, EntityMark } from '../components/Rows.jsx'
 import { Button } from '../components/Button.jsx'
-import { Icon } from '../components/Icon.jsx'
-import { FieldShell } from '../components/Form.jsx'
-import { Combobox } from '../components/Combobox.jsx'
+import { ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager, paginate } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
 import { getVendors, getSettings, vendorTextMatch } from '../api/client.js'
@@ -86,22 +84,12 @@ export default function AllVendors() {
 
 	return (
 		<Page>
-			<div className="row-inline toolbar">
-				<FieldShell>
-					<Icon name="search" />
-					{/* The placeholder names both because the search matches both, and copy that
-					    enumerates is a contract: a field promising only the name would be lying
-					    about what it does. README: Language and Formats, Vendors. */}
-					<input type="search" value={query} placeholder="Search by vendor name or other name..."
-						aria-label="Search vendors" onChange={e => search(e.target.value)} />
-				</FieldShell>
-				{/* The same combobox All orders sorts with -- three working lists asked the same
-				    question with two different controls and two vocabularies. README: All Orders. */}
-				<Combobox className="toolbar-sort" label="Sort vendors"
-					value={sort.label} onChange={() => {}}
-					onSelect={o => resort(o.id)}
-					groups={[{ heading: 'Sort by', options: SORTS.map(s => ({ id: s.id, label: s.label })) }]} />
-			</div>
+			{/* The placeholder names both because the search matches both, and copy that
+			    enumerates is a contract: a field promising only the name would be lying about
+			    what it does. README: Language and Formats, Vendors. */}
+			<ListToolbar query={query} onQuery={search}
+				placeholder="Search by vendor name or other name..." label="Search vendors"
+				sortLabel="Sort vendors" sorts={SORTS} sortValue={sort.label} onSort={resort} />
 
 			<Async state={state} label="Loading your vendors" skeleton={<SkeletonCard><SkeletonRows count={6} /></SkeletonCard>}>
 				{vendors => {

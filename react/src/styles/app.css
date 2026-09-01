@@ -1680,6 +1680,9 @@ label.field-shell { cursor:pointer; }
 	   saves a row in a card that is already tall. Retail takes the width back. */
 	.line-card-fields { grid-template-columns:92px minmax(0,1fr); }
 	.line-field-retail { grid-column:1 / -1; }
+	/* The wish card has no quantity, so nothing here wants the narrow column the pair above
+	   share -- its shortest field is a price, and 92px is not a price. One field per row. */
+	.line-card-fields.wish-card-fields { grid-template-columns:minmax(0,1fr); }
 	/* No help text under the fields here. Each line of it is a row in a card that is already
 	   the tallest thing on the screen, and what they say is either recoverable (the line total
 	   is on the row the card came out of) or a standing note about a field whose label already

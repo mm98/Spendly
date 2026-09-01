@@ -6,6 +6,7 @@ import { router as authRouter } from './routes/auth.js'
 import { router as vendorsRouter } from './routes/vendors.js'
 import { router as categoriesRouter } from './routes/categories.js'
 import { router as ordersRouter } from './routes/orders.js'
+import { router as wishesRouter } from './routes/wishes.js'
 import { router as settingsRouter } from './routes/settings.js'
 import { router as dashboardCardsRouter } from './routes/dashboardCards.js'
 import { router as accountRouter } from './routes/account.js'
@@ -141,6 +142,7 @@ app.use('/api', requireAuth, readCache)
 app.use('/api/vendors', vendorsRouter)
 app.use('/api/categories', categoriesRouter)
 app.use('/api/orders', ordersRouter)
+app.use('/api/wishes', wishesRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/dashboard-cards', dashboardCardsRouter)
 /* accountRouter only defines POST /reset, but it's mounted at the bare /api prefix (the route

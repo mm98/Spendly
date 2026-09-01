@@ -297,6 +297,74 @@ const toApiDraft = draft => ({
 	}))
 })
 
+/* ---- wishes ----
+
+   A wish is a product the account has not bought: a name, the page it was found on, and
+   optionally a price, a picture and the categories it would land under. Nothing here reaches a
+   total, a chart or a budget -- those read orders, which is money that has actually left.
+
+   The photo is its own request, after the wish exists: the picture is uploaded against a real
+   id, the same order NewOrder.jsx uploads an item's photo in. */
+
+export async function getWishes(params = {}, signal) {
+	return request('/api/wishes' + qs(params), { signal })
+}
+
+const toApiWish = wish => ({
+	name: wish.name,
+	url: wish.url,
+	// An empty price field is "not written down", which the API stores as no price at all --
+	// not as zero, which would claim the thing is free.
+	price: wish.price ? parseAmount(wish.price) : null,
+	categories: wish.categories ?? []
+})
+
+export async function createWish(wish, signal) {
+	const saved = await request('/api/wishes', { method: 'POST', body: toApiWish(wish), signal })
+	invalidateWishData()
+	return saved
+}
+
+export async function updateWish(id, wish, signal) {
+	const saved = await request(`/api/wishes/${id}`, { method: 'PATCH', body: toApiWish(wish), signal })
+	invalidateWishData()
+	return saved
+}
+
+/** Archiving and restoring are the same write with the flag either way round -- a wish put
+    away is still the record it was, so nothing else about it changes. */
+export async function setWishArchived(id, archived, signal) {
+	const saved = await request(`/api/wishes/${id}`, { method: 'PATCH', body: { archived }, signal })
+	invalidateWishData()
+	return saved
+}
+
+export async function deleteWish(id, signal) {
+	const gone = await request(`/api/wishes/${id}`, { method: 'DELETE', signal })
+	invalidateWishData()
+	return gone
+}
+
+export async function addWishPhoto(id, file, signal) {
+	const form = new FormData()
+	form.append('file', file)
+	const saved = await request(`/api/wishes/${id}/photo`, { method: 'POST', form, signal })
+	invalidateWishData()
+	return saved
+}
+
+export async function removeWishPhoto(id, signal) {
+	const saved = await request(`/api/wishes/${id}/photo`, { method: 'DELETE', signal })
+	invalidateWishData()
+	return saved
+}
+
+/** Read by `<img src>` the same way the attachment URLs above are, and carrying the picture's
+    own id: replacing a wish's photo gives it a new one, so these addresses change with the
+    bytes and the browser is never left showing a cached copy of the old picture. */
+export const wishPhotoThumbnailUrl = (id, photoId) => `/api/wishes/${id}/photo/${photoId}/thumbnail`
+export const wishPhotoFileUrl = (id, photoId) => `/api/wishes/${id}/photo/${photoId}/file`
+
 export async function getOrders(params = {}, signal) {
 	return request('/api/orders' + qs(params), { signal })
 }
@@ -900,6 +968,17 @@ export const sorts = [
 	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
 ]
 
+/** The wishlist's sorts, in the vocabulary its own rows use: a wish is added rather than
+    dated, and it has one figure. The two price sorts also narrow -- a wish with no price
+    written down is not the cheapest one (api/src/routes/wishes.js). */
+export const wishSorts = [
+	{ id: 'added-desc', label: 'Added, newest' },
+	{ id: 'added-asc', label: 'Added, oldest' },
+	{ id: 'price-desc', label: 'Price, highest' },
+	{ id: 'price-asc', label: 'Price, lowest' },
+	{ id: 'name-asc', label: 'Name, A to Z' }
+]
+
 export const ranges = [
 	{ key: 'week', label: 'Week', short: 'WK' },
 	{ key: 'month', label: 'Month', short: 'MO' },
@@ -947,6 +1026,15 @@ export function invalidateVendorData() {
 	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getStats)
 	invalidate(getVendorChartSplit)
+}
+
+/** A wish was added, edited, archived, given a picture or deleted. Only the wishlist reads
+    them -- no total, chart or budget in the app counts a wish -- so this invalidates the one
+    read, with one exception: a wish may name a category that does not exist yet, and saving it
+    creates that category (api/lib/findOrCreate.js), which the category lists do show. */
+export function invalidateWishData() {
+	invalidate(getWishes)
+	invalidate(getCategories); invalidate(getCategoriesThisMonth)
 }
 
 /** A category record changed (name, look, budget, favourite) or one was created. Same shape
