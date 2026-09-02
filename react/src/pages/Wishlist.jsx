@@ -68,10 +68,8 @@ export default function Wishlist() {
 	const settings = useApi(getSettings)
 	const pageSize = settings.data?.pageSize ?? 10
 
-	/* The filter's own category list: only ones actually on a wish, so picking one can never
-	   read back zero. The chip and the "Added" combobox still resolve names against the full
-	   account list -- a category already chosen (from a link, say) still needs its name even
-	   if a later edit stripped it from every wish. */
+	// The filter's own category list: only ones actually on a wish, so picking one can never
+	// read back zero. The chip still resolves names against the full account list.
 	const usedCategories = useMemo(() => {
 		const ids = new Set(categoryUsage.data?.categoryIds ?? [])
 		return (categories.data ?? []).filter(c => ids.has(c.id))

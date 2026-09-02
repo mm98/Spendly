@@ -37,9 +37,7 @@ const selectCategoryNames = db.prepare(`SELECT c.name FROM categories c
 const selectCategoryNamesFor = db.prepare(`SELECT wc.wish_id, c.name FROM categories c
 	JOIN wish_categories wc ON wc.category_id = c.id
 	WHERE wc.wish_id IN (SELECT value FROM json_each(?)) ORDER BY wc.wish_id, c.name`)
-// No DISTINCT: SQLite would sort the whole result in a temp B-tree to dedupe it, for a row
-// count bounded by one account's wishlist -- small enough that a Set in JS does the same job
-// for free (below, at the route).
+// No DISTINCT, which would sort in a temp B-tree: a Set in JS dedupes for free at this size.
 const selectUsedCategoryIds = db.prepare(`SELECT wc.category_id AS id FROM wish_categories wc
 	JOIN wishes w ON w.id = wc.wish_id WHERE w.user_id = ?`)
 const selectHasUncategorised = db.prepare(`SELECT 1 FROM wishes w WHERE w.user_id = ?
@@ -208,10 +206,8 @@ router.get('/preview', async (req, res) => {
 	res.json({ title, image: thumbnail ? image : null, thumbnail })
 })
 
-/** The filter panel's own category list: which categories sit on at least one wish, and
-    whether any wish has none. Every category the account has -- most of them only ever used
-    on orders -- would otherwise fill the same dropdown with choices that always read back
-    zero. Registered before /:id, or "categories" would be read as a wish's id. */
+/** The filter panel's own category list, so it never offers one that reads back zero.
+    Registered before /:id, or "categories" would be read as a wish's id. */
 router.get('/categories', (req, res) => {
 	res.json({
 		categoryIds: [...new Set(selectUsedCategoryIds.all(req.user.id).map(r => r.id))],

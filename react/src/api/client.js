@@ -1056,9 +1056,8 @@ export function invalidateVendorData() {
 	invalidate(getVendorChartSplit)
 }
 
-/** Only the wishlist reads wishes, so one read -- plus which categories are on a wish (the
-    filter panel's own list) and the account's category lists, because saving a wish can create
-    a category it names (api/lib/findOrCreate.js). */
+/** Only the wishlist reads wishes -- plus its category usage and the account's category lists,
+    since saving a wish can create a category it names (api/lib/findOrCreate.js). */
 export function invalidateWishData() {
 	invalidate(getWishes); invalidate(getWish); invalidate(getWishCategoryUsage)
 	invalidate(getCategories); invalidate(getCategoriesThisMonth)
