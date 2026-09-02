@@ -37,6 +37,13 @@ const selectCategoryNames = db.prepare(`SELECT c.name FROM categories c
 const selectCategoryNamesFor = db.prepare(`SELECT wc.wish_id, c.name FROM categories c
 	JOIN wish_categories wc ON wc.category_id = c.id
 	WHERE wc.wish_id IN (SELECT value FROM json_each(?)) ORDER BY wc.wish_id, c.name`)
+// No DISTINCT: SQLite would sort the whole result in a temp B-tree to dedupe it, for a row
+// count bounded by one account's wishlist -- small enough that a Set in JS does the same job
+// for free (below, at the route).
+const selectUsedCategoryIds = db.prepare(`SELECT wc.category_id AS id FROM wish_categories wc
+	JOIN wishes w ON w.id = wc.wish_id WHERE w.user_id = ?`)
+const selectHasUncategorised = db.prepare(`SELECT 1 FROM wishes w WHERE w.user_id = ?
+	AND NOT EXISTS (SELECT 1 FROM wish_categories wc WHERE wc.wish_id = w.id) LIMIT 1`)
 const updatePhoto = db.prepare(`UPDATE wishes SET photo_id=@photoId,
 	photo_thumbnail=@thumbnail, photo_thumbnail_is_compressed=@thumbnailCompressed,
 	photo_thumbnail_content_type=@thumbnailContentType WHERE id=@id AND user_id=@userId`)
@@ -199,6 +206,17 @@ router.get('/preview', async (req, res) => {
 	const thumbnail = image ? await previewThumbnail(image) : null
 	// No thumbnail, no picture on offer: the address alone is a promise this cannot keep.
 	res.json({ title, image: thumbnail ? image : null, thumbnail })
+})
+
+/** The filter panel's own category list: which categories sit on at least one wish, and
+    whether any wish has none. Every category the account has -- most of them only ever used
+    on orders -- would otherwise fill the same dropdown with choices that always read back
+    zero. Registered before /:id, or "categories" would be read as a wish's id. */
+router.get('/categories', (req, res) => {
+	res.json({
+		categoryIds: [...new Set(selectUsedCategoryIds.all(req.user.id).map(r => r.id))],
+		hasUncategorised: Boolean(selectHasUncategorised.get(req.user.id))
+	})
 })
 
 /** One wish, for the page that edits it. Before the writes below; nothing else answers a

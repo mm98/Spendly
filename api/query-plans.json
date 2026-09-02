@@ -16,6 +16,17 @@
 			"findings": [],
 			"indexes": []
 		},
+		"SELECT 1 FROM wishes w WHERE w.user_id = ? AND NOT EXISTS (SELECT 1 FROM wish_categories wc WHERE wc.wish_id = w.id) LIMIT 1": {
+			"plan": [
+				"SCAN w",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_wish_categories_1"
+			]
+		},
 		"SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = ?": {
 			"plan": [
 				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
@@ -1395,6 +1406,16 @@
 				"sorts in a temp B-tree"
 			],
 			"indexes": []
+		},
+		"SELECT wc.category_id AS id FROM wish_categories wc JOIN wishes w ON w.id = wc.wish_id WHERE w.user_id = ?": {
+			"plan": [
+				"SCAN w",
+				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_wish_categories_1"
+			]
 		},
 		"SELECT wc.wish_id, c.name FROM categories c JOIN wish_categories wc ON wc.category_id = c.id WHERE wc.wish_id IN (SELECT value FROM json_each(?)) ORDER BY wc.wish_id, c.name": {
 			"plan": [

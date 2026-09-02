@@ -13,7 +13,7 @@ import { Pager } from '../components/Pager.jsx'
 import { DateInput, Field, FieldPair, FilterSection, Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
-import { getCategories, getSettings, getWishes, wishPhotoThumbnailUrl, wishSorts } from '../api/client.js'
+import { getCategories, getSettings, getWishCategoryUsage, getWishes, wishPhotoThumbnailUrl, wishSorts } from '../api/client.js'
 import { currency, dayMonth, longDate, plural, sep } from '../api/format.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
@@ -64,8 +64,18 @@ export default function Wishlist() {
 	const searchField = useRef(null)
 
 	const categories = useApi(getCategories)
+	const categoryUsage = useApi(getWishCategoryUsage)
 	const settings = useApi(getSettings)
 	const pageSize = settings.data?.pageSize ?? 10
+
+	/* The filter's own category list: only ones actually on a wish, so picking one can never
+	   read back zero. The chip and the "Added" combobox still resolve names against the full
+	   account list -- a category already chosen (from a link, say) still needs its name even
+	   if a later edit stripped it from every wish. */
+	const usedCategories = useMemo(() => {
+		const ids = new Set(categoryUsage.data?.categoryIds ?? [])
+		return (categories.data ?? []).filter(c => ids.has(c.id))
+	}, [categories.data, categoryUsage.data])
 
 	/* The panel follows the URL, so a link carrying a filter opens it showing that filter. The
 	   category is an id there and a name here, and the names land after the first render. */
@@ -137,8 +147,10 @@ export default function Wishlist() {
 								value={draft.categoryName ?? ''}
 								onChange={v => setDraft({ ...draft, categoryName: v, categoryId: '' })}
 								onSelect={o => setDraft({ ...draft, categoryName: o.label, categoryId: o.id })}
-								groups={[...categoryGroups(categories.data),
-									{ heading: 'Other', options: [{ id: 'none', label: 'Without category' }] }]} />
+								groups={[...categoryGroups(usedCategories),
+									...(categoryUsage.data?.hasUncategorised
+										? [{ heading: 'Other', options: [{ id: 'none', label: 'Without category' }] }]
+										: [])]} />
 						</Field>
 						{/* When it was added, which is the only date a wish has -- it is not dated by
 						    the reader the way an order is, so From/To are about the day it was written
