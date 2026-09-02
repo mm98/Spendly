@@ -86,7 +86,7 @@ if (process.argv.includes('--debug') || process.env.DEBUG) {
 /* The build that answered, on every API response -- react/src/api/build.js compares it against
    the bundle's own commit. Above every route: one registered first would answer without it. */
 app.use('/api', (req, res, next) => {
-	if (process.env.SPENDLY_BUILD_SHA) res.setHeader('Spendly-Build', process.env.SPENDLY_BUILD_SHA)
+	if (process.env.SPENDLY_BUILD_SHA) res.setHeader('Build-Commit', process.env.SPENDLY_BUILD_SHA)
 	next()
 })
 
