@@ -876,7 +876,7 @@ export const SEARCH_FROM = 2
 export async function search(query, signal) {
 	const needle = query.trim().toLowerCase()
 	if (needle.length < SEARCH_FROM) {
-		return { query, groups: [{ heading: 'Commands', options: COMMANDS.slice(0, 5)
+		return { query, groups: [{ heading: 'Commands', options: COMMANDS.slice(0, 6)
 			.map(c => ({ id: c.id, ...highlight(c.label, ''), meta: c.meta, to: c.to })) }] }
 	}
 
