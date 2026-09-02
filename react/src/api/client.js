@@ -849,13 +849,13 @@ const krLabel = (n, decimals = 2) => {
 const COMMANDS = [
 	{ id: 'cmd-new', label: 'New order', meta: 'Create', to: '/orders/new', keywords: 'new order create add' },
 	{ id: 'cmd-scan', label: 'Scan a receipt', meta: 'Create', to: '/scan', keywords: 'scan receipt upload pdf photo ai' },
+	{ id: 'cmd-new-wish', label: 'New wish', meta: 'Create', to: '/wishlist/new', keywords: 'new wish wishlist want create add' },
 	{ id: 'cmd-new-vendor', label: 'New vendor', meta: 'Create', to: '/vendors/new', keywords: 'new vendor shop store create add' },
 	{ id: 'cmd-new-category', label: 'New category', meta: 'Create', to: '/categories/new', keywords: 'new category tag budget create add' },
 	{ id: 'cmd-orders', label: 'All orders', meta: 'Go to', to: '/orders/all', keywords: 'orders list all search filter' },
 	/* The one section the phone's tab bar leaves out (components/Shell.jsx), so this row is
 	   how a phone reaches it -- which is why it is a command rather than an oversight. */
 	{ id: 'cmd-wishlist', label: 'Wishlist', meta: 'Go to', to: '/wishlist', keywords: 'wishlist wishes wanted buy later saved' },
-	{ id: 'cmd-new-wish', label: 'New wish', meta: 'Create', to: '/wishlist/new', keywords: 'new wish wishlist want create add' },
 	{ id: 'cmd-vendors', label: 'Vendors', meta: 'Go to', to: '/vendors', keywords: 'vendors shops stores' },
 	{ id: 'cmd-categories', label: 'Categories', meta: 'Go to', to: '/categories', keywords: 'categories tags manage' },
 	{ id: 'cmd-stats', label: 'Statistics', meta: 'Go to', to: '/stats', keywords: 'statistics stats charts month period' },
@@ -876,7 +876,7 @@ export const SEARCH_FROM = 2
 export async function search(query, signal) {
 	const needle = query.trim().toLowerCase()
 	if (needle.length < SEARCH_FROM) {
-		return { query, groups: [{ heading: 'Commands', options: COMMANDS.slice(0, 5)
+		return { query, groups: [{ heading: 'Commands', options: COMMANDS.slice(0, 6)
 			.map(c => ({ id: c.id, ...highlight(c.label, ''), meta: c.meta, to: c.to })) }] }
 	}
 
