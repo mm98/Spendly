@@ -11,7 +11,8 @@ import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Row
 import { DocumentPreview, ProgressBar } from '../components/Viz.jsx'
 import { JsonDialog } from '../components/Json.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
-import { PHOTO_FILES, RECEIPT_FILES } from '../components/fileKinds.js'
+import { RECEIPT_FILES } from '../components/fileKinds.js'
+import { LinePhoto, useDroppedPhoto } from '../components/LinePhoto.jsx'
 import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
@@ -798,8 +799,7 @@ function LineEditor({
 	const price = propsFor('line-price')
 	const retailField = propsFor('line-retail')
 	const noteField = propsFor('line-note')
-	const file = useRef(null)
-	const [over, setOver] = useState(false)
+	const drop = useDroppedPhoto(onPick)
 
 	useEffect(() => { if (autoCheck) check() }, [autoCheck, check])
 
@@ -817,11 +817,6 @@ function LineEditor({
 			retail: retail ? parseAmount(retail) : undefined,
 			note: note || undefined
 		})
-	}
-
-	const take = list => {
-		const image = [...(list ?? [])].find(f => f.type.startsWith('image/'))
-		if (image) onPick(image)
 	}
 
 	/* Escape works from anywhere in the card, matching ItemLines' own line card -- one editing
@@ -843,44 +838,16 @@ function LineEditor({
 	const savedEach = retail != null && Number.isFinite(retail) ? retail - paid : null
 
 	return (
-		<div className={'filter-section line-card' + (over ? ' is-dragover' : '')} onKeyDown={keys}
-			onPaste={e => take(e.clipboardData?.files)}
-			onDragOver={e => { e.preventDefault(); setOver(true) }}
-			onDragLeave={() => setOver(false)}
-			onDrop={e => { e.preventDefault(); setOver(false); take(e.dataTransfer?.files) }}>
+		<div className={'filter-section line-card' + (drop.over ? ' is-dragover' : '')} onKeyDown={keys}
+			{...drop.dropProps}>
 			<div className="line-card-head">
 				<span className="section-label line-card-title">{heading}</span>
 				<span className="field-help push-end line-card-keys">Enter saves<Sep />Escape cancels</span>
 			</div>
 			<div className="line-card-body">
-				<div className="line-photo">
-					<button type="button" className="line-photo-frame"
-						onClick={() => file.current?.click()}
-						aria-label={photo.present ? 'Replace the photo' : 'Add a photo'}>
-						{photo.src
-							? <img className="line-photo-img" src={photo.src} alt="" />
-							: photo.present
-								? <span className="line-photo-mark"><Icon name="photo" /></span>
-								: <span className="line-photo-mark"><Icon name="photo" />Add photo</span>}
-					</button>
-					<HiddenFileInput ref={file} kind={PHOTO_FILES} label="Line photo" onFiles={take} />
-					<span className="line-photo-foot">
-						<span className="section-label line-card-title line-photo-heading">{heading}</span>
-						<span className="line-photo-name">
-							{form['line-description'].trim() || 'Untitled line'}</span>
-						{photo.present ? (
-							<span className="line-photo-actions">
-								<button type="button" className="line-photo-action"
-									onClick={() => file.current?.click()}>Replace</button>
-								<span className="line-photo-sep" aria-hidden="true">|</span>
-								<button type="button" className="line-photo-action line-photo-action-remove"
-									onClick={onClearPhoto}>Remove</button>
-							</span>
-						) : (
-							<span className="field-help line-photo-hint">Drop a photo here, or paste one you copied</span>
-						)}
-					</span>
-				</div>
+				<LinePhoto photo={photo} heading={heading} label="Line photo"
+					name={form['line-description'].trim() || 'Untitled line'}
+					onPick={onPick} onClear={onClearPhoto} />
 
 				<div className="line-card-fields">
 					<Field className="line-field-wide" label="Description" error={description.error} errorId={description.errorId} htmlFor="line-description">
