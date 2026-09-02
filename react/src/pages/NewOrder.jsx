@@ -20,9 +20,9 @@ import { useApi } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
 	addItemAttachments, categoriesForVendor, createOrder, failureMessage, getCategories,
-	getCurrentUser, getOrderDraft, getVendors, invalidateOrderData, spendKinds
+	getCurrentUser, getOrderDraft, getVendors, invalidateOrderData, orderStatuses, spendKinds
 } from '../api/client.js'
-import { ORDER_FIELDS } from '../api/rules.js'
+import { DELIVERED_DATE_FIELD, ORDER_FIELDS, RETURNED_DATE_FIELD } from '../api/rules.js'
 import { currency, currencySymbol, parseAmount, percent, shortDate, sanitizeAmount, today } from '../api/format.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
@@ -87,17 +87,36 @@ export function NewOrderDetails() {
 	const aiEnabled = useApi(getCurrentUser).data?.scanAiEnabled ?? false
 	const toast = useToast()
 
+	// Delivered/Returned date only apply once Status has actually reached that far -- see
+	// DELIVERED_DATE_FIELD's own comment for why that rules them out of ORDER_FIELDS itself.
+	const fields = useMemo(() => [
+		...ORDER_FIELDS,
+		...(draft.status !== 'Ordered' ? [DELIVERED_DATE_FIELD] : []),
+		...(draft.status === 'Returned' ? [RETURNED_DATE_FIELD] : [])
+	], [draft.status])
+
 	const values = useMemo(() => ({
 		'order-vendor': draft.vendor,
 		'order-date': draft.date,
 		'order-kind': draft.kind,
 		'order-shipping': draft.shipping,
-		'order-discount': draft.discount
+		'order-discount': draft.discount,
+		'order-delivered-date': draft.deliveredDate,
+		'order-returned-date': draft.returnedDate
 	}), [draft])
 
-	const { check, recheck, propsFor } = useFieldErrors(ORDER_FIELDS, values)
+	const { check, recheck, propsFor } = useFieldErrors(fields, values)
 
 	const set = (name, key) => v => { update({ [key]: v }); recheck(name, v) }
+
+	// Defaults a newly-shown date to today, like the order date field itself, but only when
+	// unset -- so toggling status back and forth never overwrites a date already entered.
+	const setStatus = v => {
+		const patch = { status: v }
+		if (v !== 'Ordered' && !draft.deliveredDate) patch.deliveredDate = today()
+		if (v === 'Returned' && !draft.returnedDate) patch.returnedDate = today()
+		update(patch)
+	}
 
 	const pickVendor = name => {
 		update({ vendor: name, categories: categoriesForVendor(vendors.data ?? [], name, draft.categories) })
@@ -122,6 +141,8 @@ export function NewOrderDetails() {
 	const kindField = propsFor('order-kind')
 	const shippingField = propsFor('order-shipping')
 	const discountField = propsFor('order-discount')
+	const deliveredDateField = propsFor('order-delivered-date')
+	const returnedDateField = propsFor('order-returned-date')
 
 	return (
 		<FormPage
@@ -162,14 +183,31 @@ export function NewOrderDetails() {
 						onChange={set('order-date', 'date')} />
 				</Field>
 				<Field label="Status" group>
-					{/* Read left to right before shipping one: an order is placed, then delivered,
-					    and only then can it be returned. The options are listed Ordered /
-					    Delivered / Returned in every place this control appears, matching that
-					    real-world order. README: Honest Affordances. */}
-					<Segmented options={['Ordered', 'Delivered', 'Returned']} value={draft.status}
-						onChange={v => update({ status: v })} label="Status" />
+					<Segmented options={orderStatuses} value={draft.status}
+						onChange={setStatus} label="Status" />
 				</Field>
 			</FieldPair>
+
+			{draft.status === 'Returned' ? (
+				<FieldPair>
+					<Field label="Delivered date" error={deliveredDateField.error} errorId={deliveredDateField.errorId} htmlFor="order-delivered-date">
+						<DateInput id="order-delivered-date" label="Delivered date" value={draft.deliveredDate}
+							aria-required="true" invalid={deliveredDateField.invalid} describedBy={deliveredDateField.describedBy}
+							onChange={set('order-delivered-date', 'deliveredDate')} />
+					</Field>
+					<Field label="Returned date" error={returnedDateField.error} errorId={returnedDateField.errorId} htmlFor="order-returned-date">
+						<DateInput id="order-returned-date" label="Returned date" value={draft.returnedDate}
+							aria-required="true" invalid={returnedDateField.invalid} describedBy={returnedDateField.describedBy}
+							onChange={set('order-returned-date', 'returnedDate')} />
+					</Field>
+				</FieldPair>
+			) : draft.status === 'Delivered' ? (
+				<Field label="Delivered date" error={deliveredDateField.error} errorId={deliveredDateField.errorId} htmlFor="order-delivered-date">
+					<DateInput id="order-delivered-date" label="Delivered date" value={draft.deliveredDate}
+						aria-required="true" invalid={deliveredDateField.invalid} describedBy={deliveredDateField.describedBy}
+						onChange={set('order-delivered-date', 'deliveredDate')} />
+				</Field>
+			) : null}
 
 			{/* Categories and Kind each hold a row. They shared one, breaking to a line each
 			    at 900px, and a field that grows is a bad neighbour: every chip added to

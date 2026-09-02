@@ -27,7 +27,7 @@ import { failureMessage, importOrders } from '../api/client.js'
    list under the block instead. */
 const IMPORT_EXAMPLE = {
 	orders: [{
-		vendor: 'Bilka', date: '2026-07-18', kind: 'Expense', status: 'Delivered',
+		vendor: 'Bilka', date: '2026-07-18', kind: 'Expense', status: 'Delivered', deliveredDate: '2026-07-20',
 		categories: ['Groceries'], shipping: 0, discount: 10.00, reference: 'A-10419', note: '',
 		items: [{
 			title: 'Rugbrød', quantity: 1, price: 24.95, retail: 32.00, note: '',
@@ -273,6 +273,8 @@ export default function SettingsImport() {
 								<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
 								<li><code>kind</code>: Expense, Gift, Sold, Work or Other.</li>
 								<li><code>status</code>: Ordered, Delivered or Returned; Delivered when omitted.</li>
+								<li><code>deliveredDate</code>/<code>returnedDate</code>: YYYY-MM-DD, optional, never
+									before <code>date</code> or in the future.</li>
 								<li>Attachments carry base64 bytes: on the order for the receipt, on an item
 									for its photo.</li>
 								<li>Vendors and categories are matched by name, case-insensitively, and

@@ -37,6 +37,8 @@ const insertOrder = db.prepare(`INSERT INTO orders (id, user_id, vendor_id, date
 const updateOrderRow = db.prepare(`UPDATE orders SET vendor_id=@vendorId, date=@date, status=@status, kind=@kind,
 	shipping=@shipping, discount=@discount, note=@note, reference=@reference, refunded=@refunded WHERE id=@id AND user_id=@userId`)
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
+const deleteOrderStatuses = db.prepare('DELETE FROM order_statuses WHERE order_id = ?')
+const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const selectItemIds = db.prepare('SELECT id FROM order_items WHERE order_id = ?')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, @note)`)
@@ -81,6 +83,7 @@ router.get('/draft', (req, res) => {
 	res.json({
 		vendor: '', date: todayIso(),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
+		deliveredDate: todayIso(), returnedDate: todayIso(),
 		categories: [], shipping: '', discount: '', reference: '', note: '', items: []
 	})
 })
@@ -241,6 +244,17 @@ router.get('/:id', (req, res) => {
 
 /* ---- create / update / delete ---- */
 
+/** order_statuses is a log: Ordered from the order's own date, Delivered/Returned only when
+    supplied. Delete-and-reinsert like order_categories below -- today's form edits only the latest. */
+function saveOrderStatuses(orderId, draft) {
+	deleteOrderStatuses.run(orderId)
+	insertOrderStatus.run(newId('os'), orderId, 'Ordered', toEpoch(draft.date))
+	if (draft.deliveredDate && (draft.status === 'Delivered' || draft.status === 'Returned'))
+		insertOrderStatus.run(newId('os'), orderId, 'Delivered', toEpoch(draft.deliveredDate))
+	if (draft.returnedDate && draft.status === 'Returned')
+		insertOrderStatus.run(newId('os'), orderId, 'Returned', toEpoch(draft.returnedDate))
+}
+
 /** Turns a validated draft into inserted rows. Shared by manual create, update (which first
     clears whatever it's replacing) and import. */
 const insertOrderRows = db.transaction((userId, id, draft) => {
@@ -254,6 +268,7 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 		note: draft.note || '', reference: draft.reference || '',
 		refunded: draft.refunded ? 1 : 0
 	})
+	saveOrderStatuses(id, draft)
 	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)
 	// Returned in draft order so a caller that also has per-item attachments to insert (import)
 	// can match them back up to the row each one landed in -- create/update never read this
@@ -298,6 +313,7 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 		note: draft.note || '', reference: draft.reference || '',
 		refunded: draft.refunded ? 1 : 0
 	})
+	saveOrderStatuses(id, draft)
 
 	deleteOrderCategories.run(id)
 	for (const categoryId of categoryIds) insertOrderCategory.run(id, categoryId)

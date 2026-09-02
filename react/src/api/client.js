@@ -281,6 +281,7 @@ export async function deleteCategory(id, signal) {
 
 const toApiDraft = draft => ({
 	vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
+	deliveredDate: draft.deliveredDate, returnedDate: draft.returnedDate,
 	categories: draft.categories ?? [], shipping: draft.shipping ? parseAmount(draft.shipping) : 0,
 	discount: draft.discount ? parseAmount(draft.discount) : 0,
 	reference: draft.reference ?? '', note: draft.note ?? '',
@@ -499,8 +500,12 @@ export async function getOrderDraft(signal) {
 
 export async function getOrderAsDraft(id, signal) {
 	const order = await getOrder(id, signal)
+	// findLast, not find: statusHistory is chronological and a status can now recur (a
+	// replacement delivered after a return), so the form edits the most recent of each.
+	const statusDate = status => order.statusHistory.findLast(s => s.status === status)?.date ?? ''
 	return {
 		vendor: order.vendor?.name ?? '', date: order.date, status: order.status,
+		deliveredDate: statusDate('Delivered'), returnedDate: statusDate('Returned'),
 		categories: order.categories.map(c => c.name), kind: order.kind,
 		shipping: order.shipping ? String(order.shipping).replace('.', ',') : '',
 		discount: order.discount ? String(order.discount).replace('.', ',') : '',
@@ -976,6 +981,10 @@ export async function search(query, signal) {
    chip) ---- */
 
 export const spendKinds = ['Expense', 'Gift', 'Sold', 'Work', 'Other']
+
+// Mirrors the server's ORDER_STATUSES the same way spendKinds mirrors SPEND_KINDS. Order is
+// deliberate -- ordered, then delivered, then (only then) returned -- wherever this list appears.
+export const orderStatuses = ['Ordered', 'Delivered', 'Returned']
 
 /* Ranking columns come as pairs, the same scheme the vendors and categories lists follow,
    because three lists sorting one way each is three vocabularies for one control. Vendor is

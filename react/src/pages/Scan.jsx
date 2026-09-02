@@ -27,12 +27,12 @@ import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
 	addItemAttachments, addVendorAlias, attachScanDocument, createOrder, deleteScanDocument, failureMessage,
 	getCurrentUser, getRecentScans, getScanDraft, getVendors, invalidateOrderData, invalidateVendorData,
-	putScanDocument, scanFileUrl, scanThumbnailUrl, spendKinds
+	orderStatuses, putScanDocument, scanFileUrl, scanThumbnailUrl, spendKinds
 } from '../api/client.js'
-import { LINE_FIELDS, ORDER_FIELDS } from '../api/rules.js'
+import { DELIVERED_DATE_FIELD, LINE_FIELDS, ORDER_FIELDS, RETURNED_DATE_FIELD } from '../api/rules.js'
 import {
 	amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, percent, plural,
-	sanitizeAmount, sanitizeWholeNumber, sep
+	sanitizeAmount, sanitizeWholeNumber, sep, today
 } from '../api/format.js'
 
 /* Scan, in three steps.
@@ -380,20 +380,37 @@ function ScanReviewForm({ answer }) {
 	   comes back blank cannot save an order with no vendor on it, through a form whose twin
 	   says "Who did you buy from?" about that field. Create and scan are two doors to one
 	   saved order. README: Fields and Forms. */
+	const fields = useMemo(() => [
+		...ORDER_FIELDS,
+		...(draft.status !== 'Ordered' ? [DELIVERED_DATE_FIELD] : []),
+		...(draft.status === 'Returned' ? [RETURNED_DATE_FIELD] : [])
+	], [draft.status])
 	const values = useMemo(() => ({
 		'order-vendor': draft.vendor, 'order-date': draft.date,
 		'order-kind': draft.kind, 'order-shipping': draft.shipping,
-		'order-discount': draft.discount
+		'order-discount': draft.discount,
+		'order-delivered-date': draft.deliveredDate, 'order-returned-date': draft.returnedDate
 	}), [draft])
-	const { check, recheck, propsFor } = useFieldErrors(ORDER_FIELDS, values)
+	const { check, recheck, propsFor } = useFieldErrors(fields, values)
 	const vendorField = propsFor('order-vendor')
 	const dateField = propsFor('order-date')
 	const kindField = propsFor('order-kind')
 	const shippingField = propsFor('order-shipping')
 	const discountField = propsFor('order-discount')
+	const deliveredDateField = propsFor('order-delivered-date')
+	const returnedDateField = propsFor('order-returned-date')
 
 	const patch = p => setDraft(d => ({ ...d, ...p }))
 	const set = (name, key) => v => { patch({ [key]: v }); recheck(name, v) }
+
+	// Defaults a newly-shown date to today, like the order date field itself, but only when
+	// unset -- so toggling status back and forth never overwrites a date already entered.
+	const setStatus = v => {
+		const patchValue = { status: v }
+		if (v !== 'Ordered' && !draft.deliveredDate) patchValue.deliveredDate = today()
+		if (v === 'Returned' && !draft.returnedDate) patchValue.returnedDate = today()
+		patch(patchValue)
+	}
 
 	/* The info card on step 1 promises "Vendor matched to your list, or offered as a new
 	   vendor", and CREATE VENDOR "..." at the foot of the list is the second half of that
@@ -633,10 +650,31 @@ function ScanReviewForm({ answer }) {
 						invalid={dateField.invalid} describedBy={dateField.describedBy} />
 				</Field>
 				<Field label="Status" group>
-					<Segmented options={['Ordered', 'Delivered', 'Returned']}
-						value={draft.status} onChange={v => patch({ status: v })} label="Status" />
+					<Segmented options={orderStatuses}
+						value={draft.status} onChange={setStatus} label="Status" />
 				</Field>
 			</FieldPair>
+
+			{draft.status === 'Returned' ? (
+				<FieldPair>
+					<Field label="Delivered date" error={deliveredDateField.error} errorId={deliveredDateField.errorId} htmlFor="order-delivered-date">
+						<DateInput id="order-delivered-date" label="Delivered date" value={draft.deliveredDate}
+							onChange={set('order-delivered-date', 'deliveredDate')} aria-required="true"
+							invalid={deliveredDateField.invalid} describedBy={deliveredDateField.describedBy} />
+					</Field>
+					<Field label="Returned date" error={returnedDateField.error} errorId={returnedDateField.errorId} htmlFor="order-returned-date">
+						<DateInput id="order-returned-date" label="Returned date" value={draft.returnedDate}
+							onChange={set('order-returned-date', 'returnedDate')} aria-required="true"
+							invalid={returnedDateField.invalid} describedBy={returnedDateField.describedBy} />
+					</Field>
+				</FieldPair>
+			) : draft.status === 'Delivered' ? (
+				<Field label="Delivered date" error={deliveredDateField.error} errorId={deliveredDateField.errorId} htmlFor="order-delivered-date">
+					<DateInput id="order-delivered-date" label="Delivered date" value={draft.deliveredDate}
+						onChange={set('order-delivered-date', 'deliveredDate')} aria-required="true"
+						invalid={deliveredDateField.invalid} describedBy={deliveredDateField.describedBy} />
+				</Field>
+			) : null}
 
 			<FieldPair>
 				<Field label="Discount" optional error={discountField.error} errorId={discountField.errorId} htmlFor="order-discount"

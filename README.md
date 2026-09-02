@@ -305,7 +305,7 @@ This is the core of the handoff.
 
 Main column `1fr` (min `560px`), right rail `360px`, `24px` gap, aligned to top. The item list begins at the top of the main column — no header block above it. The rail scrolls with the page; it is deliberately kept shorter than the item list so the two do not fight (this was an explicit revision: the rail must not become the longest thing on the page).
 
-**Rail contents, in order:** order details (vendor, order date, status, category, reference), then totals, then notes. Each is its own white card, radius `12px`, `16px` padding, `14px` between cards. Each card opens with an 11px uppercase `0.12em` `#6b6a63` label.
+**Rail contents, in order:** order details (vendor, order date, status, delivered/returned date once the order has reached them, category, reference), then totals, then notes. Each is its own white card, radius `12px`, `16px` padding, `14px` between cards. Each card opens with an 11px uppercase `0.12em` `#6b6a63` label.
 
 **Totals card:** label/value rows 13px, then a `1px #dedcd4` divider, then the grand total at 20px/700.
 

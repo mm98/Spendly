@@ -18,7 +18,8 @@ import { invalidate, useApi } from '../api/useApi.js'
 import {
 	cardRowOptions, checkVersion, failureMessage, getCategories, getCategoryChartSplit, getHomeContent,
 	getOrderDraft, getOrders, getOrdersOverview, getSettings, getVendorChartSplit, getVendors, getVersion,
-	listSorts, logout, markSetupSeen, populateDemoData, ranges, resetStoredData, saveSettings, sorts, spendKinds
+	listSorts, logout, markSetupSeen, orderStatuses, populateDemoData, ranges, resetStoredData, saveSettings,
+	sorts, spendKinds
 } from '../api/client.js'
 
 /* Settings.
@@ -207,7 +208,7 @@ function SettingsBody({ settings, set, toast, firstRun, confirming, setConfirmin
 											groups={[{ heading: 'Kinds', options: spendKinds.map(k => ({ id: k, label: k })) }]} />
 									</Field>
 									<Field label="Status" group help="Which segment is selected on a new order.">
-										<Segmented options={['Ordered', 'Delivered', 'Returned']}
+										<Segmented options={orderStatuses}
 											value={local.defaultStatus}
 											onChange={v => change({ defaultStatus: v }, 'Default status saved.')}
 											label="Default status" />

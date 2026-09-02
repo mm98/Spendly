@@ -1220,6 +1220,15 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
+		"SELECT status, date FROM order_statuses WHERE order_id = ?": {
+			"plan": [
+				"SEARCH order_statuses USING INDEX idx_order_statuses_order (order_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_statuses_order"
+			]
+		},
 		"SELECT u.id, u.needs_setup, s.expires_at FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?": {
 			"plan": [
 				"SEARCH s USING INDEX sqlite_autoindex_sessions_1 (id=?)",
@@ -1481,6 +1490,13 @@
 				"order_id"
 			],
 			"readers": 3
+		},
+		"idx_order_statuses_order": {
+			"table": "order_statuses",
+			"columns": [
+				"order_id"
+			],
+			"readers": 1
 		},
 		"idx_orders_user_date": {
 			"table": "orders",

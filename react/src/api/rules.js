@@ -38,6 +38,13 @@ export const ORDER_FIELDS = [
 		: AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 25,00.' }
 ]
 
+/** Conditional on Status, so not part of ORDER_FIELDS -- each page includes one only while it
+    renders the field. Order against delivery/order date is checked server-side only (validate.js). */
+export const DELIVERED_DATE_FIELD = { name: 'order-delivered-date', label: 'Delivered date', check: v =>
+	!v ? 'When did it arrive?' : v > today() ? 'A delivery cannot be dated in the future.' : '' }
+export const RETURNED_DATE_FIELD = { name: 'order-returned-date', label: 'Returned date', check: v =>
+	!v ? 'When was it returned?' : v > today() ? 'A return cannot be dated in the future.' : '' }
+
 /** Step 2's item form. Required: Description, Quantity, Price paid. Retail and Note are
     optional and still checked -- optional is not unchecked, and `gratis` is as wrong there. */
 export const ITEM_FIELDS = [
