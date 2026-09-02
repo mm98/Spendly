@@ -16,17 +16,6 @@
 			"findings": [],
 			"indexes": []
 		},
-		"SELECT 1 FROM wishes w WHERE w.user_id = ? AND NOT EXISTS (SELECT 1 FROM wish_categories wc WHERE wc.wish_id = w.id) LIMIT 1": {
-			"plan": [
-				"SCAN w",
-				"CORRELATED SCALAR SUBQUERY 1",
-				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"sqlite_autoindex_wish_categories_1"
-			]
-		},
 		"SELECT a.order_item_id, a.id, a.name, a.kind, a.meta, (a.thumbnail IS NOT NULL) AS has_thumbnail FROM attachments a JOIN order_items oi ON oi.id = a.order_item_id WHERE oi.order_id = ?": {
 			"plan": [
 				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
@@ -140,17 +129,6 @@
 				"idx_orders_user_date"
 			]
 		},
-		"SELECT COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) AS spend, COALESCE(SUM(ot.saved * 1.0 / ot.category_count), 0) AS saved FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = ? AND ot.user_id = ?": {
-			"plan": [
-				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
-				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)"
-			],
-			"findings": [],
-			"indexes": [
-				"idx_order_categories_cat",
-				"sqlite_autoindex_orders_1"
-			]
-		},
 		"SELECT COALESCE(SUM(total), 0) AS spend FROM orders INDEXED BY idx_orders_user_total WHERE user_id = ?": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_total (user_id=?)"
@@ -180,6 +158,17 @@
 				"idx_orders_user_status"
 			]
 		},
+		"SELECT COUNT(*) AS orders, COALESCE(SUM(ot.total * 1.0 / ot.category_count), 0) AS spend, COALESCE(SUM(ot.saved * 1.0 / ot.category_count), 0) AS saved FROM order_categories oc CROSS JOIN orders ot ON ot.id = oc.order_id WHERE oc.category_id = ? AND ot.user_id = ?": {
+			"plan": [
+				"SEARCH oc USING COVERING INDEX idx_order_categories_cat (category_id=?)",
+				"SEARCH ot USING INDEX sqlite_autoindex_orders_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"idx_order_categories_cat",
+				"sqlite_autoindex_orders_1"
+			]
+		},
 		"SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spend, COALESCE(SUM(saved), 0) AS saved FROM orders WHERE user_id = ? AND category_count = 0": {
 			"plan": [
 				"SEARCH orders USING INDEX idx_orders_user_uncategorised (user_id=?)"
@@ -207,6 +196,17 @@
 			"findings": [],
 			"indexes": [
 				"idx_orders_user_date"
+			]
+		},
+		"SELECT COUNT(*) AS wishes FROM wishes w WHERE w.user_id = ? AND NOT EXISTS (SELECT 1 FROM wish_categories wc WHERE wc.wish_id = w.id)": {
+			"plan": [
+				"SCAN w",
+				"CORRELATED SCALAR SUBQUERY 1",
+				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_wish_categories_1"
 			]
 		},
 		"SELECT COUNT(*) c FROM categories WHERE user_id = ?": {
@@ -436,6 +436,16 @@
 			"findings": [],
 			"indexes": [
 				"idx_vendors_user_name"
+			]
+		},
+		"SELECT COUNT(*) c FROM wish_categories wc CROSS JOIN wishes w ON w.id = wc.wish_id WHERE wc.category_id = ? AND w.user_id = ?": {
+			"plan": [
+				"SCAN wc",
+				"SEARCH w USING INDEX sqlite_autoindex_wishes_1 (id=?)"
+			],
+			"findings": [],
+			"indexes": [
+				"sqlite_autoindex_wishes_1"
 			]
 		},
 		"SELECT COUNT(*) c FROM wishes w WHERE w.user_id = @userId AND w.archived = 0": {
@@ -826,7 +836,7 @@
 				"sqlite_autoindex_orders_1"
 			]
 		},
-		"SELECT oc.category_id AS categoryId, SUM(ot.total * 1.0 / ot.category_count) AS spend, SUM(ot.saved * 1.0 / ot.category_count) AS saved FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = ? GROUP BY oc.category_id": {
+		"SELECT oc.category_id AS categoryId, COUNT(*) AS orders, SUM(ot.total * 1.0 / ot.category_count) AS spend, SUM(ot.saved * 1.0 / ot.category_count) AS saved FROM order_categories oc JOIN orders ot ON ot.id = oc.order_id WHERE ot.user_id = ? GROUP BY oc.category_id": {
 			"plan": [
 				"SEARCH ot USING INDEX idx_orders_user_discount (user_id=?)",
 				"SEARCH oc USING COVERING INDEX sqlite_autoindex_order_categories_1 (order_id=?)",
@@ -1407,7 +1417,7 @@
 			],
 			"indexes": []
 		},
-		"SELECT wc.category_id AS id FROM wish_categories wc JOIN wishes w ON w.id = wc.wish_id WHERE w.user_id = ?": {
+		"SELECT wc.category_id AS categoryId FROM wish_categories wc JOIN wishes w ON w.id = wc.wish_id WHERE w.user_id = ?": {
 			"plan": [
 				"SCAN w",
 				"SEARCH wc USING COVERING INDEX sqlite_autoindex_wish_categories_1 (wish_id=?)"
