@@ -54,7 +54,10 @@ services:
 
   # Auto-updates the spendly container when a new image lands on GHCR.
   watchtower:
-    image: containrrr/watchtower
+    # nickfedor/watchtower is the maintained continuation, drop-in compatible;
+    # containrrr/watchtower is archived and gets no fixes. Pinned to major version 1,
+    # same style as caddy's 2: new releases yes, a surprise major jump no.
+    image: nickfedor/watchtower:1
     container_name: watchtower
     restart: unless-stopped
     ports:
