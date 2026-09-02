@@ -1,6 +1,7 @@
 import { db } from '../db.js'
 import { fromEpoch } from './dates.js'
 import { orderTotalsSelectList } from './orderColumns.js'
+import { ORDER_STATUSES } from './constants.js'
 
 /* The order math lives in the orders table itself: stored columns maintained by the
    order_items triggers (see migrations/001_init.sql) — one formula, applied by SQLite at write
@@ -31,6 +32,9 @@ const selectCategories = db.prepare(`
 	ORDER BY c.name
 `)
 const selectVendor = db.prepare('SELECT id, name, initials, colour FROM vendors WHERE id = ?')
+// No ORDER BY: at most 3 rows, sorted in JS below by workflow order rather than asking SQLite
+// to sort what the index (order_id, status) can't answer without its own temp B-tree.
+const selectOrderStatuses = db.prepare('SELECT status, date FROM order_statuses WHERE order_id = ?')
 
 // hasThumbnail tells the client whether GET .../thumbnail will 404 (a PDF, or an image sharp
 // couldn't decode) — never the bytes themselves, so an order's JSON stays small.
@@ -48,12 +52,17 @@ const mapItem = (i, itemAttachments) => ({
     read). A list of orders never wants this whole shape; see decorateOrderListRows,
     decorateOrderSummaryRows and decorateOrderSearchRows below for the leaner ones each list
     actually renders. */
-export function decorateOrder(totals, { items, attachments, itemAttachments, categories, vendor }) {
+export function decorateOrder(totals, { items, attachments, itemAttachments, categories, vendor, statuses }) {
 	return {
 		id: totals.id,
 		vendorId: totals.vendor_id,
 		date: fromEpoch(totals.date),
 		status: totals.status,
+		// Chronological -- a returned item can be replaced and delivered again, so a status
+		// can recur. Same-day ties keep workflow order (Returned can't sort before Delivered).
+		statusHistory: statuses
+			.sort((a, b) => a.date - b.date || ORDER_STATUSES.indexOf(a.status) - ORDER_STATUSES.indexOf(b.status))
+			.map(s => ({ status: s.status, date: fromEpoch(s.date) })),
 		kind: totals.kind,
 		categoryIds: categories.map(c => c.id),
 		shipping: totals.shipping,
@@ -85,7 +94,8 @@ export function getDecoratedOrder(userId, id) {
 		attachments: selectAttachments.all(id),
 		itemAttachments: groupBy(selectItemAttachments.all(id), 'order_item_id'),
 		categories: selectCategories.all(id),
-		vendor: selectVendor.get(totals.vendor_id)
+		vendor: selectVendor.get(totals.vendor_id),
+		statuses: selectOrderStatuses.all(id)
 	})
 }
 

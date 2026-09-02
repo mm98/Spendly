@@ -19,10 +19,10 @@ import { useApi } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
 	addItemAttachments, categoriesForVendor, failureMessage, getCategories, getOrderAsDraft,
-	getVendors, invalidateOrderData, itemAttachmentThumbnailUrl, removeItemAttachment, spendKinds,
-	updateOrder
+	getVendors, invalidateOrderData, itemAttachmentThumbnailUrl, orderStatuses, removeItemAttachment,
+	spendKinds, updateOrder
 } from '../api/client.js'
-import { ORDER_FIELDS } from '../api/rules.js'
+import { DELIVERED_DATE_FIELD, ORDER_FIELDS, RETURNED_DATE_FIELD } from '../api/rules.js'
 import { currency, currencySymbol, parseAmount, percent, sep, sanitizeAmount, today } from '../api/format.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
@@ -76,13 +76,28 @@ function EditOrderForm({ id, seed }) {
 	const [itemsTried, setItemsTried] = useState(false)
 	const [saving, setSaving] = useState(false)
 
+	const orderFields = useMemo(() => [
+		...ORDER_FIELDS,
+		...(draft.status !== 'Ordered' ? [DELIVERED_DATE_FIELD] : []),
+		...(draft.status === 'Returned' ? [RETURNED_DATE_FIELD] : [])
+	], [draft.status])
 	const orderValues = useMemo(() => ({
 		'order-vendor': draft.vendor, 'order-date': draft.date,
 		'order-kind': draft.kind, 'order-shipping': draft.shipping,
-		'order-discount': draft.discount
+		'order-discount': draft.discount,
+		'order-delivered-date': draft.deliveredDate, 'order-returned-date': draft.returnedDate
 	}), [draft])
-	const orderErrors = useFieldErrors(ORDER_FIELDS, orderValues)
+	const orderErrors = useFieldErrors(orderFields, orderValues)
 	const set = (name, key) => v => { update({ [key]: v }); orderErrors.recheck(name, v) }
+
+	// Defaults a newly-shown date to today, like the order date field itself, but only when
+	// unset -- so toggling status back and forth never overwrites a date already entered.
+	const setStatus = v => {
+		const patch = { status: v }
+		if (v !== 'Ordered' && !draft.deliveredDate) patch.deliveredDate = today()
+		if (v === 'Returned' && !draft.returnedDate) patch.returnedDate = today()
+		update(patch)
+	}
 
 	const pickVendor = name => {
 		update({ vendor: name, categories: categoriesForVendor(vendors.data ?? [], name, draft.categories) })
@@ -204,6 +219,8 @@ function EditOrderForm({ id, seed }) {
 	const kindField = orderErrors.propsFor('order-kind')
 	const shippingField = orderErrors.propsFor('order-shipping')
 	const discountField = orderErrors.propsFor('order-discount')
+	const deliveredDateField = orderErrors.propsFor('order-delivered-date')
+	const returnedDateField = orderErrors.propsFor('order-returned-date')
 
 	return (
 		<div className="order-list-grid">
@@ -244,10 +261,31 @@ function EditOrderForm({ id, seed }) {
 										onChange={set('order-date', 'date')} />
 								</Field>
 								<Field label="Status" group>
-									<Segmented options={['Ordered', 'Delivered', 'Returned']} value={draft.status}
-										onChange={v => update({ status: v })} label="Status" />
+									<Segmented options={orderStatuses} value={draft.status}
+										onChange={setStatus} label="Status" />
 								</Field>
 							</FieldPair>
+
+							{draft.status === 'Returned' ? (
+								<FieldPair>
+									<Field label="Delivered date" error={deliveredDateField.error} errorId={deliveredDateField.errorId} htmlFor="order-delivered-date">
+										<DateInput id="order-delivered-date" label="Delivered date" value={draft.deliveredDate}
+											aria-required="true" invalid={deliveredDateField.invalid} describedBy={deliveredDateField.describedBy}
+											onChange={set('order-delivered-date', 'deliveredDate')} />
+									</Field>
+									<Field label="Returned date" error={returnedDateField.error} errorId={returnedDateField.errorId} htmlFor="order-returned-date">
+										<DateInput id="order-returned-date" label="Returned date" value={draft.returnedDate}
+											aria-required="true" invalid={returnedDateField.invalid} describedBy={returnedDateField.describedBy}
+											onChange={set('order-returned-date', 'returnedDate')} />
+									</Field>
+								</FieldPair>
+							) : draft.status === 'Delivered' ? (
+								<Field label="Delivered date" error={deliveredDateField.error} errorId={deliveredDateField.errorId} htmlFor="order-delivered-date">
+									<DateInput id="order-delivered-date" label="Delivered date" value={draft.deliveredDate}
+										aria-required="true" invalid={deliveredDateField.invalid} describedBy={deliveredDateField.describedBy}
+										onChange={set('order-delivered-date', 'deliveredDate')} />
+								</Field>
+							) : null}
 
 							<Field label="Categories" htmlFor="order-categories"
 								help="Pick from your categories, or type one and press Enter.">

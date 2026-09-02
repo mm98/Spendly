@@ -11,7 +11,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { FilterChips, ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories, getOrders, getSettings, getUncategorised, getVendors, sorts, spendKinds } from '../api/client.js'
+import { getCategories, getOrders, getSettings, getUncategorised, getVendors, orderStatuses, sorts, spendKinds } from '../api/client.js'
 import { currencySymbol, dayMonth, parseAmount, plural, sep } from '../api/format.js'
 import { categoryGroups, vendorGroups } from '../api/pickerGroups.js'
 
@@ -253,7 +253,7 @@ export default function AllOrders() {
 							</Field>
 						</FieldPair>
 						<Field label="Status" group>
-							<Segmented options={['Any', 'Ordered', 'Delivered', 'Returned']} value={draft.status}
+							<Segmented options={['Any', ...orderStatuses]} value={draft.status}
 								onChange={status => setDraft({ ...draft, status })} label="Status" />
 						</Field>
 						<div className="form-actions">

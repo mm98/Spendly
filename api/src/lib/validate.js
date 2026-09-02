@@ -29,6 +29,22 @@ export function validateOrderDraft(draft) {
 	if (draft.status && !ORDER_STATUSES.some(s => s.toLowerCase() === String(draft.status).toLowerCase()))
 		errors.status = 'Status is one of: ' + ORDER_STATUSES.join(', ') + '.'
 
+	// Optional here, like most fields an import can omit (status itself defaults to Delivered)
+	// -- the create/edit/scan forms are what make these required, only once status warrants them.
+	if (draft.deliveredDate) {
+		const deliveredDate = String(draft.deliveredDate)
+		if (!ISO_DATE.test(deliveredDate)) errors.deliveredDate = 'That is not a valid date.'
+		else if (deliveredDate > todayIso()) errors.deliveredDate = 'A delivery cannot be dated in the future.'
+		else if (deliveredDate < date) errors.deliveredDate = 'That is before the order date.'
+	}
+	if (draft.returnedDate) {
+		const returnedDate = String(draft.returnedDate)
+		if (!ISO_DATE.test(returnedDate)) errors.returnedDate = 'That is not a valid date.'
+		else if (returnedDate > todayIso()) errors.returnedDate = 'A return cannot be dated in the future.'
+		else if (draft.deliveredDate && !errors.deliveredDate && returnedDate < String(draft.deliveredDate))
+			errors.returnedDate = 'That is before the delivery date.'
+	}
+
 	if (draft.shipping != null && (!Number.isFinite(Number(draft.shipping)) || Number(draft.shipping) < 0))
 		errors.shipping = 'Shipping must be a non-negative amount.'
 

@@ -101,6 +101,7 @@ const insertOrder = db.prepare(`INSERT INTO orders
 	(id, user_id, vendor_id, date, status, kind, shipping, note, reference, refunded)
 	VALUES (@id, @userId, @vendorId, @date, @status, @kind, @shipping, '', @reference, 0)`)
 const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, category_id) VALUES (?, ?)')
+const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, NULL)`)
 const insertWish = db.prepare(`INSERT INTO wishes (id, user_id, name, url, price, archived, created_at)
@@ -155,6 +156,7 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 
 	const today = new Date()
 	today.setUTCHours(0, 0, 0, 0)
+	const todayEpoch = Math.floor(today.getTime() / 1000)
 	let made = 0, reference = 1000
 	let remaining = Number.isFinite(orders) && orders > 0 ? Math.floor(orders) : null
 
@@ -188,11 +190,23 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 
 			const id = newId('o')
 			const shipping = rnd() < 0.3 ? pick([29, 39, 49]) : 0
+			const status = pick(STATUSES)
+			const orderEpoch = toEpoch(date)
 			insertOrder.run({
-				id, userId, vendorId: pick(vendorIds).id, date: toEpoch(date),
-				status: pick(STATUSES), kind: pick(KINDS), shipping,
+				id, userId, vendorId: pick(vendorIds).id, date: orderEpoch,
+				status, kind: pick(KINDS), shipping,
 				reference: String(reference++)
 			})
+			// A real gap, not same-day-as-ordered for every Delivered/Returned order, so the
+			// timeline this seeds is one the app's own screenshots can show something on.
+			insertOrderStatus.run(newId('os'), id, 'Ordered', orderEpoch)
+			if (status === 'Delivered' || status === 'Returned') {
+				const deliveredEpoch = Math.min(orderEpoch + (1 + Math.floor(rnd() * 4)) * 86400, todayEpoch)
+				insertOrderStatus.run(newId('os'), id, 'Delivered', deliveredEpoch)
+				if (status === 'Returned')
+					insertOrderStatus.run(newId('os'), id, 'Returned',
+						Math.min(deliveredEpoch + (1 + Math.floor(rnd() * 6)) * 86400, todayEpoch))
+			}
 			insertOrderCategory.run(id, category.id)
 			// A second category on some orders, so the breakdown has multi-category spend to split.
 			if (rnd() < 0.22) {

@@ -10,7 +10,7 @@ import { ImageLightbox } from '../components/Viz.jsx'
 import { DropZone, HiddenFileInput } from '../components/FileInput.jsx'
 import { RECEIPT_FILES } from '../components/fileKinds.js'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
-import { Button, IconButton } from '../components/Button.jsx'
+import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
@@ -43,6 +43,7 @@ export default function OrderDetail() {
 	   user has to go back and fix, which is the one kind of message that stays on the page. */
 	const toast = useToast()
 	const [openPhoto, setOpenPhoto] = useState(null)
+	const [showHistory, setShowHistory] = useState(false)
 	const filePicker = useRef(null)
 
 	const invalidateOrder = () => invalidateOrderData()
@@ -186,7 +187,21 @@ export default function OrderDetail() {
 							<CardDivider />
 							<CardBody variant="card-body-tight">
 								<div className="summary-row">Status<span className="summary-row-value">{order.status}</span></div>
-								<SummaryRow label="Date" value={shortDate(order.date)} />
+								<SummaryRow label="Date" value={shortDate(order.statusHistory[0].date)} />
+								{/* Status above already says where the order stands; the rest of its
+								    dates are a detail worth having, not one worth printing every time --
+								    a returned item can be replaced and delivered again, so this list has
+								    no fixed length to just always show. */}
+								{order.statusHistory.length > 1 ? (showHistory ? (
+									<>
+										{order.statusHistory.slice(1).map((s, i) => (
+											<SummaryRow key={i} label={s.status} value={shortDate(s.date)} />
+										))}
+										<ButtonLink onClick={() => setShowHistory(false)}>HIDE HISTORY</ButtonLink>
+									</>
+								) : (
+									<ButtonLink onClick={() => setShowHistory(true)}>SHOW HISTORY</ButtonLink>
+								)) : null}
 								{/* The vendor and each category open the orders list filtered to themselves --
 								    the name is the link, all time rather than any window, since this card
 								    states the record and names no window of its own. */}

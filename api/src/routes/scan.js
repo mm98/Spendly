@@ -162,6 +162,7 @@ router.get('/draft/:key', async (req, res) => {
 			documentKey: upload.id, file,
 			vendor: '', vendorMatched: false, date: todayIso(),
 			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
+			deliveredDate: todayIso(), returnedDate: todayIso(),
 			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: 0,
 			reconciled: process.env.ANTHROPIC_API_KEY
 				? 'This document could not be read automatically. Add the line items and totals below yourself.'
@@ -199,6 +200,7 @@ router.get('/draft/:key', async (req, res) => {
 		vendor: vendorMatched ? vendorName : read.vendor, vendorMatched,
 		date: read.date ?? todayIso(),
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
+		deliveredDate: read.date ?? todayIso(), returnedDate: todayIso(),
 		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
 		lines: read.lines.map(l => ({
 			id: newId('l'), title: l.title, quantity: l.quantity, price: l.price,
