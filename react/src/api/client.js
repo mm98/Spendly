@@ -53,7 +53,7 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
 		})
 		/* Read before the status is judged: a 401 or a 500 names the build that refused just as an
 		   answer does, and a container replaced mid-session is exactly when refusals arrive. */
-		noteServerBuild(res.headers.get('Build-Commit'))
+		noteServerBuild(res.headers.get('Build'))
 		if (res.status === 204) return null
 		let data = null
 		try { data = await res.json() } catch { /* empty body */ }
