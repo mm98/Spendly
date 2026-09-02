@@ -10,7 +10,7 @@ import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
-import { toEpoch, fromEpoch, todayIso } from '../lib/dates.js'
+import { toEpoch, fromEpoch, todayIso, nowEpoch } from '../lib/dates.js'
 import { msUntilEndOfDay } from '../lib/backup.js'
 
 export const router = Router()
@@ -19,19 +19,18 @@ export const router = Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const insertUpload = db.prepare(`INSERT INTO scan_uploads
-	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
-	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType)`)
-/* A pending upload nobody came back to (DISCARD, or a tab just closed) is swept by
-   scheduleDailyUploadCleanup below, not deleted on the spot. The dedup lookup below trusts a
-   hash match for a day -- long enough to catch a second click on the same file
-   or a re-export from the camera roll, without matching a receipt from last week that just
-   happens to be identical. Deletion is a separate, longer window (RETENTION_MS): a review draft
-   left open overnight, or a browser tab nobody got back to before the weekend, still has to
-   find its upload there on Monday, so a row survives well past the point it can still save a
-   second AI read. */
-const DEDUP_WINDOW_MS = 24 * 60 * 60 * 1000
-const RETENTION_MS = 7 * 24 * 60 * 60 * 1000
-const deleteExpiredUploads = db.prepare('DELETE FROM scan_uploads WHERE created_at < ?')
+	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, expires_at)
+	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @expiresAt)`)
+/* A pending upload nobody came back to (DISCARD, or a tab just closed) -- and, since attach below
+   no longer deletes the row either, one that already became an order's attachment too -- is swept
+   by scheduleDailyUploadCleanup once its own expires_at passes, not deleted on the spot. Set once
+   at upload time, same shape as sessions.expires_at (migrations/001_init.sql, lib/auth.js), rather
+   than recomputed from created_at on every sweep: the row's lifetime -- and so the hash lookup
+   below, which trusts any row that has not yet expired -- survives whatever happens to any order
+   it went on to help create. Delete that order and scan the same receipt again before expires_at,
+   and the hash still matches the original row, still holding its cached AI read. */
+const UPLOAD_TTL_SECONDS = 7 * 24 * 60 * 60
+const deleteExpiredUploads = db.prepare('DELETE FROM scan_uploads WHERE expires_at <= ?')
 /* Swept once a day rather than opportunistically on the write path that grows the table -- a
    week-long retention window means most uploads in the table are still well within it on any
    given write, so sweeping on every upload would mostly re-run a DELETE that matches nothing.
@@ -41,7 +40,7 @@ const deleteExpiredUploads = db.prepare('DELETE FROM scan_uploads WHERE created_
    the way it does for the backup's date-stamped filename, but sharing msUntilEndOfDay keeps the
    app's two daily jobs on one clock instead of two. */
 function cleanupExpiredUploads() {
-	deleteExpiredUploads.run(Math.floor((Date.now() - RETENTION_MS) / 1000))
+	deleteExpiredUploads.run(nowEpoch())
 }
 export function scheduleDailyUploadCleanup() {
 	cleanupExpiredUploads()
@@ -52,14 +51,15 @@ export function scheduleDailyUploadCleanup() {
 	timer.unref()
 	return timer
 }
-/* The same bytes, uploaded again inside the window -- a second click on the same file, a photo
-   re-exported from the camera roll under a new name, a receipt dropped twice by habit. The
-   existing row is the answer: same id, same cached ai_read_json if the first upload's draft was
-   already opened, no second resize and no second model call for a document this account has
-   already paid to read once. */
+/* The same bytes, uploaded again before the row from last time expires -- a second click on the
+   same file, a photo re-exported from the camera roll under a new name, a receipt dropped twice
+   by habit, or the same document scanned again after the order it first produced was deleted.
+   The existing row is the answer either way: same id, same cached ai_read_json if the first
+   upload's draft was already opened, no second resize and no second model call for a document
+   this account has already paid to read once. */
 const selectUploadByHash = db.prepare(`
 	SELECT id, kind, size, (thumbnail IS NOT NULL) AS has_thumbnail
-	FROM scan_uploads WHERE user_id = ? AND sha256 = ? AND created_at >= ?
+	FROM scan_uploads WHERE user_id = ? AND sha256 = ? AND expires_at > ?
 	ORDER BY created_at DESC LIMIT 1`)
 /* Split by what each reader draws, like attachments' own statements in routes/orders.js: the
    draft screen wants the row's facts and whether a thumbnail exists, the file route wants the
@@ -101,7 +101,7 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 	// The source bytes' own hash, before any resizing -- two uploads of the same file hash the
 	// same regardless of what processAttachment below would make of either.
 	const sha256 = createHash('sha256').update(file.buffer).digest('hex')
-	const existing = selectUploadByHash.get(req.user.id, sha256, Math.floor((Date.now() - DEDUP_WINDOW_MS) / 1000))
+	const existing = selectUploadByHash.get(req.user.id, sha256, nowEpoch())
 	if (existing) {
 		return res.status(200).json({
 			key: existing.id, name: file.originalname, kind: existing.kind,
@@ -119,7 +119,8 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 		contentType: processed.contentType ?? file.mimetype,
 		data: processed.data, dataCompressed: processed.dataCompressed ? 1 : 0,
 		thumbnail: processed.thumbnail, thumbnailCompressed: processed.thumbnailCompressed ? 1 : 0,
-		thumbnailContentType: processed.thumbnailContentType
+		thumbnailContentType: processed.thumbnailContentType,
+		expiresAt: nowEpoch() + UPLOAD_TTL_SECONDS
 	})
 	res.status(201).json({
 		key: id, name: file.originalname, kind, hasThumbnail: Boolean(processed.thumbnail),
@@ -240,20 +241,15 @@ router.get('/draft/:key', async (req, res) => {
 })
 
 /** Turns a reviewed draft into the new order's own attachment, so the browser doesn't have to
-    upload the same file a second time. Deletes the pending upload once it's copied over. */
-/* INSERT ... SELECT, so the bytes go table-to-table inside SQLite instead of surfacing into a
-   JS Buffer just to be handed straight back -- and one transaction with the delete, so "the
-   upload became the order's attachment" cannot half-happen: run separately, a failure between
-   them either duplicated the document (inserted but not deleted) or would have lost it in the
-   other order. */
+    upload the same file a second time -- an INSERT ... SELECT, so the bytes go table-to-table
+    inside SQLite instead of surfacing into a JS Buffer just to be handed straight back. The
+    scan_uploads row is left in place rather than deleted: its sha256 and cached ai_read_json go
+    on answering a later re-upload of the same bytes -- including one after this very order gets
+    deleted -- until the row's own expires_at retires it (scheduleDailyUploadCleanup above). */
 const copyUploadToAttachment = db.prepare(`INSERT INTO attachments
 	(id, order_id, name, kind, meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type)
 	SELECT @id, @orderId, name, kind, @meta, content_type, size, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type
 	FROM scan_uploads WHERE id = @uploadId AND user_id = @userId`)
-const attachUpload = db.transaction(row => {
-	copyUploadToAttachment.run(row)
-	deleteUpload.run(row.uploadId, row.userId)
-})
 
 router.post('/documents/:key/attach/:orderId', (req, res) => {
 	const upload = selectUploadMeta.get(req.params.key, req.user.id)
@@ -261,7 +257,7 @@ router.post('/documents/:key/attach/:orderId', (req, res) => {
 	const order = selectOrderExists.get(req.params.orderId, req.user.id)
 	if (!order) return res.status(404).json({ error: 'No order ' + req.params.orderId })
 
-	attachUpload({ id: newId('a'), orderId: order.id,
+	copyUploadToAttachment.run({ id: newId('a'), orderId: order.id,
 		meta: `Scanned today${sep}${fileSizeLabel(upload.size)}`, uploadId: upload.id, userId: req.user.id })
 	res.json(getDecoratedOrder(req.user.id, order.id))
 })
