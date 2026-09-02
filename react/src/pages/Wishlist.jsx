@@ -13,7 +13,7 @@ import { Pager } from '../components/Pager.jsx'
 import { DateInput, Field, FieldPair, FilterSection, Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
-import { getCategories, getSettings, getWishCategoryUsage, getWishes, wishPhotoThumbnailUrl, wishSorts } from '../api/client.js'
+import { getCategories, getSettings, getUncategorised, getWishes, wishPhotoThumbnailUrl, wishSorts } from '../api/client.js'
 import { currency, dayMonth, longDate, plural, sep } from '../api/format.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
@@ -64,16 +64,12 @@ export default function Wishlist() {
 	const searchField = useRef(null)
 
 	const categories = useApi(getCategories)
-	const categoryUsage = useApi(getWishCategoryUsage)
+	const uncategorised = useApi(getUncategorised)
 	const settings = useApi(getSettings)
 	const pageSize = settings.data?.pageSize ?? 10
 
-	// The filter's own category list: only ones actually on a wish, so picking one can never
-	// read back zero. The chip still resolves names against the full account list.
-	const usedCategories = useMemo(() => {
-		const ids = new Set(categoryUsage.data?.categoryIds ?? [])
-		return (categories.data ?? []).filter(c => ids.has(c.id))
-	}, [categories.data, categoryUsage.data])
+	// Only categories actually on a wish, so picking one can never read back zero.
+	const usedCategories = useMemo(() => (categories.data ?? []).filter(c => c.wishes > 0), [categories.data])
 
 	/* The panel follows the URL, so a link carrying a filter opens it showing that filter. The
 	   category is an id there and a name here, and the names land after the first render. */
@@ -146,7 +142,7 @@ export default function Wishlist() {
 								onChange={v => setDraft({ ...draft, categoryName: v, categoryId: '' })}
 								onSelect={o => setDraft({ ...draft, categoryName: o.label, categoryId: o.id })}
 								groups={[...categoryGroups(usedCategories),
-									...(categoryUsage.data?.hasUncategorised
+									...(uncategorised.data?.wishes > 0
 										? [{ heading: 'Other', options: [{ id: 'none', label: 'Without category' }] }]
 										: [])]} />
 						</Field>

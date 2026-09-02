@@ -11,7 +11,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { FilterChips, ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
-import { getCategories, getOrders, getSettings, getVendors, sorts, spendKinds } from '../api/client.js'
+import { getCategories, getOrders, getSettings, getUncategorised, getVendors, sorts, spendKinds } from '../api/client.js'
 import { currencySymbol, dayMonth, parseAmount, plural, sep } from '../api/format.js'
 import { categoryGroups, vendorGroups } from '../api/pickerGroups.js'
 
@@ -96,7 +96,12 @@ export default function AllOrders() {
 
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
+	const uncategorised = useApi(getUncategorised)
 	const settings = useApi(getSettings)
+
+	// Only vendors/categories actually on an order, so picking one can never read back zero.
+	const usedVendors = useMemo(() => (vendors.data ?? []).filter(v => v.orders > 0), [vendors.data])
+	const usedCategories = useMemo(() => (categories.data ?? []).filter(c => c.orders > 0), [categories.data])
 
 	/* The panel's own copy follows the URL, so a link that arrives with a filter on it opens the
 	   panel showing that filter rather than the last one typed into it.
@@ -202,7 +207,7 @@ export default function AllOrders() {
 								value={draft.vendorName ?? ''}
 								onChange={v => setDraft({ ...draft, vendorName: v, vendorId: '' })}
 								onSelect={o => setDraft({ ...draft, vendorName: o.label, vendorId: o.id })}
-								groups={vendorGroups(vendors.data, draft.vendorName ?? '')} />
+								groups={vendorGroups(usedVendors, draft.vendorName ?? '')} />
 						</Field>
 						<FieldPair variant="field-pair-stack-early">
 							<Field label="Category" htmlFor="filter-category">
@@ -212,8 +217,10 @@ export default function AllOrders() {
 									onSelect={o => setDraft({ ...draft, categoryName: o.label, categoryId: o.id })}
 									/* The rows every ring folds its remainder into are reachable from here
 									   too, not only by arriving on their link. Its own group: not a category. */
-									groups={[...categoryGroups(categories.data),
-										{ heading: 'Other', options: [{ id: 'none', label: 'Without category' }] }]} />
+									groups={[...categoryGroups(usedCategories),
+										...(uncategorised.data?.orders > 0
+											? [{ heading: 'Other', options: [{ id: 'none', label: 'Without category' }] }]
+											: [])]} />
 							</Field>
 							<Field label="Kind" htmlFor="filter-kind">
 								<Combobox id="filter-kind" label="Kind" placeholder="Any kind" value={draft.kind ?? ''}

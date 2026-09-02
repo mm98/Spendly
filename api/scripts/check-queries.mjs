@@ -236,7 +236,7 @@ const REQUESTS = [
 	'/wishes?sort=added-asc', '/wishes?sort=price-desc', '/wishes?sort=name-asc',
 	`/wishes?categoryId=${ids.category}`, '/wishes?categoryId=none',
 	'/wishes?query=sko', '/wishes?query=æg', '/wishes?from=2020-01-01&to=2030-12-31',
-	`/wishes/${ids.wish}`, '/wishes/categories',
+	`/wishes/${ids.wish}`,
 	'/home/hero', '/home/onboarding', '/settings', '/dashboard-cards',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
 	'/scan/recent'

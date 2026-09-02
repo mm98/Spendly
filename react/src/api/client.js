@@ -308,12 +308,6 @@ export async function getWish(id, signal) {
 	return request(`/api/wishes/${id}`, { signal })
 }
 
-/** `{ categoryIds, hasUncategorised }` -- the filter panel's own answer to "which categories
-    are actually on a wish," so its dropdown can't offer one that always reads back zero. */
-export async function getWishCategoryUsage(signal) {
-	return request('/api/wishes/categories', { signal })
-}
-
 /** `{ title, image, thumbnail }` from the shop's page, any of them null. A request that falls
     over is the same nothing: a wish is saved by typing a name, never by this succeeding. */
 export async function getWishPreview(url, signal) {
@@ -1056,11 +1050,11 @@ export function invalidateVendorData() {
 	invalidate(getVendorChartSplit)
 }
 
-/** Only the wishlist reads wishes -- plus its category usage and the account's category lists,
-    since saving a wish can create a category it names (api/lib/findOrCreate.js). */
+/** Only the wishlist reads wishes -- plus the category lists, since saving a wish can create a
+    category it names (api/lib/findOrCreate.js) and changes their order/wish usage counts. */
 export function invalidateWishData() {
-	invalidate(getWishes); invalidate(getWish); invalidate(getWishCategoryUsage)
-	invalidate(getCategories); invalidate(getCategoriesThisMonth)
+	invalidate(getWishes); invalidate(getWish)
+	invalidate(getCategories); invalidate(getCategoriesThisMonth); invalidate(getUncategorised)
 }
 
 /** A category record changed (name, look, budget, favourite) or one was created. Same shape

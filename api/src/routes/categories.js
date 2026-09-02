@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
-import { categoryStats, categoryStatsFor, uncategorisedStats } from '../lib/aggregate.js'
+import { categoryStats, categoryStatsFor, uncategorisedStats, wishCategoryCounts } from '../lib/aggregate.js'
 
 export const router = Router()
 
@@ -22,18 +22,20 @@ const countWishes = db.prepare('SELECT COUNT(*) c FROM wish_categories wc CROSS 
 const deleteOne = db.prepare('DELETE FROM categories WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, favourite=@favourite WHERE id=@id AND user_id=@userId')
 
-const withStats = (category, stats) => {
-	const s = stats.get(category.id) ?? { spend: 0, share: 0, saved: 0 }
-	return {
-		id: category.id, name: category.name, icon: category.icon, iconPath: category.icon_path,
-		colour: category.colour, budget: category.budget, favourite: Boolean(category.favourite),
-		spend: s.spend, share: s.share, saved: s.saved
-	}
-}
+const ZERO_STATS = { orders: 0, spend: 0, share: 0, saved: 0 }
+
+// Order and wish usage ride beside spend/share -- the filter panels' own answer to "is this
+// category worth offering," read for free by every consumer that already fetches the list.
+const withStats = (category, stats = ZERO_STATS, wishes = 0) => ({
+	id: category.id, name: category.name, icon: category.icon, iconPath: category.icon_path,
+	colour: category.colour, budget: category.budget, favourite: Boolean(category.favourite),
+	spend: stats.spend, share: stats.share, saved: stats.saved, orders: stats.orders, wishes
+})
 
 router.get('/', (req, res) => {
 	const stats = categoryStats(req.user.id)
-	res.json(selectAll.all(req.user.id).map(c => withStats(c, stats)))
+	const wishCounts = wishCategoryCounts(req.user.id)
+	res.json(selectAll.all(req.user.id).map(c => withStats(c, stats.get(c.id), wishCounts.get(c.id) ?? 0)))
 })
 
 /* Registered before /:id, or that route would answer it with "No category uncategorised".
@@ -63,19 +65,13 @@ router.post('/', (req, res) => {
 		favourite: look.favourite ? 1 : 0
 	}
 	insert.run(category)
-	res.status(201).json(withStats(category, new Map()))
+	res.status(201).json(withStats(category))
 })
-
-/* One category's stats, not categoryStats' whole-account rollup read for one entry -- the map
-   joins every category link the account has (~105ms at 50,000 orders with the account total
-   beside it) to render a single record this reads in ~5ms from that category's own links
-   (lib/aggregate.js). */
-const statsForOne = (userId, categoryId) => new Map([[categoryId, categoryStatsFor(userId, categoryId)]])
 
 router.get('/:id', (req, res) => {
 	const category = selectOne.get(req.params.id, req.user.id)
 	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
-	res.json(withStats(category, statsForOne(req.user.id, category.id)))
+	res.json(withStats(category, categoryStatsFor(req.user.id, category.id), countWishes.get(category.id, req.user.id).c))
 })
 
 router.patch('/:id', (req, res) => {
@@ -100,7 +96,8 @@ router.patch('/:id', (req, res) => {
 		favourite: patch.favourite != null ? (patch.favourite ? 1 : 0) : category.favourite
 	}
 	update.run({ ...next, id: category.id, userId: req.user.id })
-	res.json(withStats(selectOne.get(category.id, req.user.id), statsForOne(req.user.id, category.id)))
+	const updated = selectOne.get(category.id, req.user.id)
+	res.json(withStats(updated, categoryStatsFor(req.user.id, category.id), countWishes.get(category.id, req.user.id).c))
 })
 
 router.delete('/:id', (req, res) => {
