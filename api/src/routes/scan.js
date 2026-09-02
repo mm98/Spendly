@@ -21,14 +21,14 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 
 const insertUpload = db.prepare(`INSERT INTO scan_uploads
 	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, expires_at)
 	VALUES (@id, @userId, @name, @size, @kind, @sha256, @contentType, @data, @dataCompressed, @thumbnail, @thumbnailCompressed, @thumbnailContentType, @expiresAt)`)
-/* A pending upload nobody came back to (DISCARD, or a tab just closed) -- and, since attach below
-   no longer deletes the row either, one that already became an order's attachment too -- is swept
-   by scheduleDailyUploadCleanup once its own expires_at passes, not deleted on the spot. Set once
+/* A pending upload nobody came back to (DISCARD, or a tab just closed), or one that already
+   became an order's attachment (attach below leaves the row in place either way) -- both are
+   swept by scheduleDailyUploadCleanup once expires_at passes, not deleted on the spot. Set once
    at upload time, same shape as sessions.expires_at (migrations/001_init.sql, lib/auth.js), rather
    than recomputed from created_at on every sweep: the row's lifetime -- and so the hash lookup
    below, which trusts any row that has not yet expired -- survives whatever happens to any order
    it went on to help create. Delete that order and scan the same receipt again before expires_at,
-   and the hash still matches the original row, still holding its cached AI read. */
+   and the hash still matches that same row, still holding its cached AI read. */
 const UPLOAD_TTL_SECONDS = 7 * 24 * 60 * 60
 const deleteExpiredUploads = db.prepare('DELETE FROM scan_uploads WHERE expires_at <= ?')
 /* Swept once a day rather than opportunistically on the write path that grows the table -- a
@@ -52,11 +52,10 @@ export function scheduleDailyUploadCleanup() {
 	return timer
 }
 /* The same bytes, uploaded again before the row from last time expires -- a second click on the
-   same file, a photo re-exported from the camera roll under a new name, a receipt dropped twice
-   by habit, or the same document scanned again after the order it first produced was deleted.
-   The existing row is the answer either way: same id, same cached ai_read_json if the first
-   upload's draft was already opened, no second resize and no second model call for a document
-   this account has already paid to read once. */
+   same file, a re-export from the camera roll, a receipt dropped twice, or the same document
+   scanned again after the order it first produced was deleted. The existing row is the answer
+   either way: same id, same cached ai_read_json if the draft was already opened, no second
+   resize and no second model call for a document this account has already paid to read once. */
 const selectUploadByHash = db.prepare(`
 	SELECT id, kind, size, (thumbnail IS NOT NULL) AS has_thumbnail
 	FROM scan_uploads WHERE user_id = ? AND sha256 = ? AND expires_at > ?
