@@ -82,6 +82,18 @@ export function assertValidOrderDraft(draft) {
 const MAX_URL = 2048
 const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i
 
+// A link pasted from an ad, a social app or a newsletter carries the campaign that pointed at
+// it, not a fact about the product -- so it never survives into a saved wish.
+const TRACKING_PARAMS = new Set([
+	'gclid', 'gclsrc', 'dclid', 'wbraid', 'gbraid', 'fbclid', 'igshid', 'msclkid', 'twclid',
+	'ttclid', 'yclid', 'mc_cid', 'mc_eid', '_ga', '_gl'
+])
+const stripTracking = url => {
+	for (const key of [...url.searchParams.keys()])
+		if (key.toLowerCase().startsWith('utm_') || TRACKING_PARAMS.has(key.toLowerCase())) url.searchParams.delete(key)
+	return url
+}
+
 /** A missing scheme is filled in, since a reader types `zalando.dk/sko`. Anything but http(s)
     is refused: this is rendered as a link, and `javascript:` in an href is a script. */
 export function normaliseUrl(value) {
@@ -93,7 +105,7 @@ export function normaliseUrl(value) {
 	// A host with no dot in it is a typo ("zalando"), not a shop -- there is no intranet
 	// hostname a receipt-keeping app needs to link to.
 	if (!url.hostname.includes('.')) return null
-	return url.href
+	return stripTracking(url).href
 }
 
 export function validateWishDraft(draft) {
