@@ -9,6 +9,7 @@
 
 import { dayMonth, detectLocale, parseAmount, sep } from './format.js'
 import { invalidate } from './useApi.js'
+import { noteServerBuild, writeSettled, writeStarted } from './build.js'
 
 class ApiError extends Error {
 	constructor(message, status, fields, body) {
@@ -40,16 +41,27 @@ const qs = params => {
 }
 
 async function request(path, { method = 'GET', body, signal, form } = {}) {
-	const res = await fetch(path, {
-		method, signal, credentials: 'include',
-		headers: form || body === undefined ? undefined : { 'Content-Type': 'application/json' },
-		body: form ?? (body === undefined ? undefined : JSON.stringify(body))
-	})
-	if (res.status === 204) return null
-	let data = null
-	try { data = await res.json() } catch { /* empty body */ }
-	if (!res.ok) throw new ApiError(data?.error || res.statusText || 'Request failed', res.status, data?.fields, data)
-	return data
+	/* Anything that is not a read is announced to api/build.js as it goes out and again once it
+	   is answered, which is what keeps the reload prompt off the screen until a save has landed. */
+	const writing = method !== 'GET'
+	if (writing) writeStarted()
+	try {
+		const res = await fetch(path, {
+			method, signal, credentials: 'include',
+			headers: form || body === undefined ? undefined : { 'Content-Type': 'application/json' },
+			body: form ?? (body === undefined ? undefined : JSON.stringify(body))
+		})
+		/* Read before the status is judged: a 401 or a 500 names the build that refused just as an
+		   answer does, and a container replaced mid-session is exactly when refusals arrive. */
+		noteServerBuild(res.headers.get('Build'))
+		if (res.status === 204) return null
+		let data = null
+		try { data = await res.json() } catch { /* empty body */ }
+		if (!res.ok) throw new ApiError(data?.error || res.statusText || 'Request failed', res.status, data?.fields, data)
+		return data
+	} finally {
+		if (writing) writeSettled()
+	}
 }
 
 /* ---- auth ----
