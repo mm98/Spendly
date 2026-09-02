@@ -29,7 +29,7 @@ import { getVersion } from '../api/client.js'
    so the worst case degrades to what an unstamped build already does: never prompt. */
 const BUNDLE_COMMIT = typeof __BUILD_COMMIT__ === 'string' ? __BUILD_COMMIT__ : null
 
-const EVERY_MS = 15 * 60 * 1000
+const EVERY_MS = 5 * 60 * 1000
 
 /* Coming back to the app is the moment worth asking at -- a phone reopened after a week is the
    case this exists for, and it can arrive long before the next interval. But a flick to another
@@ -40,7 +40,7 @@ const QUIET_MS = 60 * 1000
    updated, the other has not -- so a reader who presses CHECK FOR UPDATES and hears "you have
    the newest version" has only heard about the server. This tab could still be running
    whatever it loaded days ago. `useUpdateCheck` is how that button also asks the tab's own
-   question, on demand, instead of waiting for the next quarter-hour poll. */
+   question, on demand, instead of waiting for the next five-minute poll. */
 const UpdateCheckContext = createContext(() => Promise.resolve(false))
 
 /** Runs the same tab-vs-server comparison the background poll runs, right now. Resolves
