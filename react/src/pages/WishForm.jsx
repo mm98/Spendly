@@ -185,6 +185,15 @@ function WishFields({ mode, wish }) {
 						aria-label="Link" aria-required="true"
 						invalid={urlField.invalid} describedBy={urlField.describedBy}
 										onBlur={e => readPage(e.target.value)}
+						/* A pasted link replaces the field outright rather than inserting at the
+						   cursor, already stripped of whatever campaign brought it here. */
+						onPaste={e => {
+							const cleaned = httpUrl(e.clipboardData.getData('text'))
+							if (!cleaned) return
+							e.preventDefault()
+							setUrl(cleaned)
+							recheck('wish-url', cleaned)
+						}}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
 				</FieldShell>
 			</Field>

@@ -802,7 +802,9 @@ button.card-header:hover + .card-divider { margin-inline:0; }
    card names itself, and the entry list is not the only group that does. The hero card's legend
    is written per month under a header that names a window, so it says which month over its own
    rows -- and scoped to .entry-list it would have arrived there at the UA's 16px. */
-.list-heading { font-size:11.5px; color:var(--text-muted); font-weight:500; margin:10px 0 2px; }
+/* --gap-cards, not --gap-block: the chart's own axis text overflows its box by ~3.5px, so a
+   literal --gap-block margin only ever read as an 8.5px gap. */
+.list-heading { font-size:11.5px; color:var(--text-body); font-weight:600; margin:var(--gap-cards) 0 2px; }
 /* The fill is written per avatar in the markup, and it is a text background, not a
    swatch -- these initials are white at 10px/700, so every value has to clear 4.5:1
    against white. Four of the seven were the donut's chart hues, which are picked to
