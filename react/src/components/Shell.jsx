@@ -473,10 +473,10 @@ export function AppShell() {
 				</div>
 			</div>
 			</PullToRefresh>
-			{/* The bar and its dialog render inside UpdateNoticeProvider itself, outside
-			    PullToRefresh on purpose: it is fixed to the viewport, and a transformed
-			    ancestor would make it resolve against that element instead -- so a pull would
-			    drag it down the screen with the page. */}
+			{/* The bar and its dialog render inside UpdateNoticeProvider itself, outside the
+			    shell a pull moves: it announces a build the whole app is running, not a state
+			    of the page under it, so it holds its place on the screen while the page slides
+			    down and back. */}
 		</UpdateNoticeProvider>
 		</ToastProvider>
 		</ViewContext.Provider>

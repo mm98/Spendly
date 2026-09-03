@@ -89,6 +89,13 @@ export function PullToRefresh({ children }) {
 	const dragging = pull > 0 && !refreshing
 	const ease = dragging ? 'none' : 'transform .2s ease, opacity .2s ease'
 
+	/* Handed to app.css rather than applied to a box around the shell: a transform anchors every
+	   fixed descendant to itself, and the phone tab bar is one. Unset at rest, never a zero. */
+	const shell = {
+		'--pull-shift': pull ? `translateY(${pull}px)` : undefined,
+		'--pull-ease': ease
+	}
+
 	return (
 		<>
 			<div className="pull-to-refresh-indicator" aria-hidden={!pull}
@@ -102,7 +109,7 @@ export function PullToRefresh({ children }) {
 				<span className={['pull-to-refresh-spinner', refreshing && 'is-spinning'].filter(Boolean).join(' ')}
 					style={refreshing ? undefined : { transform: `rotate(${pull * 4}deg)` }} />
 			</div>
-			<div style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: ease }}>
+			<div className="pull-shell" style={shell}>
 				{children}
 			</div>
 		</>
