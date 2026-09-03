@@ -1,7 +1,7 @@
 import { scrypt, randomBytes, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
 import { db } from '../db.js'
-import { newId } from './ids.js'
+import { newSessionId } from './ids.js'
 import { nowEpoch } from './dates.js'
 import { readCookie, setCookie, clearCookie, SESSION_COOKIE } from './cookies.js'
 
@@ -43,7 +43,7 @@ const openSession = db.transaction((id, userId, expiresAt) => {
 })
 
 export function createSession(req, res, userId) {
-	const id = newId('sess')
+	const id = newSessionId()
 	const expiresAt = nowEpoch() + SESSION_TTL_SECONDS
 	openSession(id, userId, expiresAt)
 	setCookie(req, res, SESSION_COOKIE, id, { maxAgeSeconds: SESSION_TTL_SECONDS })
