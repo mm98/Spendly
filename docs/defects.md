@@ -2984,3 +2984,40 @@ API with it is reading two different vocabularies as one.
 
 With the seed re-picked so the account holds three August Bilka deliveries, all three shots render
 identically twice in a row: **0 differing pixels** of 5,184,000 (desktop) and 1,035,948 (phone).
+
+## Responsive Layout — the phone tab bar left the screen for the foot of the page whenever a finger pulled down
+
+Pulling down at the top of a page moves the whole shell with the finger, and the shell was moved by a
+`transform` on one box wrapped around it. A transform makes its own element the anchor every
+`position:fixed` descendant resolves against, and below 700px the bottom tab bar is fixed. Wrapped,
+it stopped measuring from the screen and started measuring from a box as tall as the document.
+
+On the front page, in an iPhone 15 context (786x1318 at `deviceScaleFactor: 2`, 659px of viewport),
+the bar's top edge over one gesture:
+
+| | at rest | 50px of pull | 100px of pull | released, easing | settled |
+|---|---|---|---|---|---|
+| wrapped | **589** | **2582** | **3350** | **3334** | 589 |
+| per column | **589** | **639** | **689** | 648 | 589 |
+
+Nearly **2000px** of displacement for a 50px pull, and the front page is where every session starts at
+scroll top — so any downward drag there, the commonest gesture on the page, threw the bar off the
+screen and snapped it back on release. The wrapped row is also why it read as random movement rather
+than a constant offset: the anchor is the document's height, which grows as content loads.
+
+The pull now moves the shell's two columns rather than a box around them, so the bar carries its own
+transform and keeps measuring from the screen; it trails the page by exactly the pull distance
+(589 → 639 → 689 for 50 and 100px). The rail and the panel still move as one on a wide screen, both
+by 80px for an 80px pull.
+
+`--pull-shift` is unset when nothing is being pulled, and that is load-bearing: a `var()` with nothing
+behind it makes the declaration invalid at computed-value time, so `transform` computes to `none` and
+neither column anchors anything. A literal `translateY(0)` would have kept both of them anchors and
+the defect with them. Measured at rest: `transform: none` on the wrapper, the rail and the panel, the
+bar 3px from the bottom of the screen at all seven scroll positions sampled from 0 to 2661, and **0
+differing pixels** against the unchanged source on both the phone (1,035,948 px) and desktop
+(5,184,000 px) front page.
+
+No `position:fixed` element sits inside the panel on any of the ten phone routes, checked by walking
+the DOM of each — the toast stack, the update bar and the pull spinner are all outside the shell the
+pull moves. Verified in Blink (Chromium 1.56.1 via Playwright); other engines unverified.

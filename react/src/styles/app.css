@@ -392,6 +392,14 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .content-sheet { background:var(--bg-card); padding:var(--gutter-page); }
 .content-sheet-inner { width:100%; }
 
+/* A pull moves the two columns, never a box around them: a transform there would anchor the
+   phone's fixed tab bar to it instead of the screen. Unset at rest, so this computes to none. */
+.pull-shell > .app-shell > .sidebar,
+.pull-shell > .app-shell > .main-panel {
+	transform:var(--pull-shift);
+	transition:var(--pull-ease);
+}
+
 /* Pull-to-refresh (components/PullToRefresh.jsx). Fixed to the viewport rather than to the page
    beside it, because the page is the thing that moves: a pull translates the whole shell down
    and uncovers this from behind it. Everything distance-driven -- how far it has emerged, how
