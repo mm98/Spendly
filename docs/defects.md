@@ -2963,3 +2963,24 @@ total 199,00 kr.
 One line of that card was also false rather than merely redundant: with no retail saving to report,
 step 2's rail printed "Items are added in step 2; the total builds as you add them" — on step 2,
 under the items it was describing as still to come. That sentence is now step 1's only.
+
+## Screenshots — the docs render checked its own state with a filter the list does not read
+
+`all-orders.png` documents a filtered list: one vendor, one status, one month, three matching orders.
+The render script asserts that state before shooting, and asked for it as
+`/api/orders?vendor=bilka&status=Delivered&from=…&to=…`. The list route reads `vendorId`. A
+parameter it does not read narrows nothing, so the check was counting **every** August delivery in
+the account and printing it as Bilka's.
+
+On the render day this was found, the two numbers were **9** (what the check printed) and **1** (what
+the page actually drew, and what the shot would have been regenerated with). Both are wrong for a
+shot whose state is three. The check now sends `vendorId`, reads the count back, and throws rather
+than shooting a state the shot is not documenting — the difference between a probe that can fail and
+one that only reports.
+
+The `vendor` spelling is not a bug in the app: it is the page's own address (`/orders/all?vendor=…`),
+which the page turns into the `vendorId` it sends. A harness reading the address bar and calling the
+API with it is reading two different vocabularies as one.
+
+With the seed re-picked so the account holds three August Bilka deliveries, all three shots render
+identically twice in a row: **0 differing pixels** of 5,184,000 (desktop) and 1,035,948 (phone).

@@ -16,9 +16,9 @@
    - all-orders.png  1440x900 dSF2, /orders/all?vendor=bilka&status=Delivered&from=2026-08-01&to=2026-08-31,
                      FILTERS panel open, finder open with 'bil' typed. 3 matching.
    - phone.png       iPhone 15 descriptor, dSF overridden to 2, Home. 786x1318.
-   Account: fresh, demo fill {seed: 1, months: 2, orders: 30} -- the dataset is a function of
-   (seed, today), so the params are re-picked on a render day to give the all-orders state its
-   3 August Bilka Delivered matches; today seed 1 does. */
+   Account: fresh, demo fill {seed: SEED, months: 2, orders: 30} -- the dataset is a function of
+   (seed, today), so the seed is re-picked on a render day to give the all-orders state its
+   3 August Bilka Delivered matches, and the render refuses to shoot when it does not hold. */
 import { readFileSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { execSync } from 'node:child_process'
@@ -28,6 +28,11 @@ const pw = await import('playwright').catch(() =>
 const { chromium, devices } = pw
 
 const BASE = 'http://localhost:5173'
+/* The demo fill is a function of (seed, today), so a later render day picks its own seed: the
+   one that puts three August Bilka deliveries in the account, which is the all-orders shot's
+   state. Nothing else in the three shots depends on which seed it is. */
+const SEED = 2
+const MATCHES = 3
 const DOCS = new URL('../../docs', import.meta.url).pathname
 const outdir = process.argv[2]
 const refdir = process.argv[3] ?? DOCS
@@ -39,11 +44,19 @@ async function freshAccount(ctx) {
 	const email = `docs-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`
 	let r = await ctx.request.post(BASE + '/api/auth/register', { data: { email, password: 'docs-pass-1' } })
 	if (r.status() !== 201) throw new Error('register ' + r.status())
-	r = await ctx.request.post(BASE + '/api/demo-data', { data: { seed: 1, months: 2, orders: 30 } })
+	r = await ctx.request.post(BASE + '/api/demo-data', { data: { seed: SEED, months: 2, orders: 30 } })
 	if (!r.ok()) throw new Error('demo-data ' + r.status())
 	console.log('demo-data:', await r.text())
-	const check = await (await ctx.request.get(BASE + '/api/orders?vendor=bilka&status=Delivered&from=2026-08-01&to=2026-08-31')).json()
+	/* The list filters on `vendorId`. The page's own address spells the same filter `vendor`,
+	   and a parameter the API does not read narrows nothing -- asked that way, this check
+	   answers with every August delivery in the account, whatever vendor made it. */
+	const vendors = await (await ctx.request.get(BASE + '/api/vendors')).json()
+	const bilka = (vendors.vendors ?? vendors).find(v => v.name === 'Bilka')
+	const check = await (await ctx.request.get(
+		BASE + `/api/orders?vendorId=${bilka.id}&status=Delivered&from=2026-08-01&to=2026-08-31&limit=1`)).json()
 	console.log('account check: august bilka delivered =', check.matched, 'of', check.total)
+	if (check.matched !== MATCHES)
+		throw new Error(`refusing to shoot: ${check.matched} august bilka deliveries, the shot's state is ${MATCHES}`)
 }
 
 async function settle(page) {

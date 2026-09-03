@@ -168,8 +168,10 @@ writing a number down; don't call a guess "measured" because it passed once.
   `all-orders.png` is a filtered, dateless view and should always come back byte-identical.
 - **`all-orders.png` holds three pieces of state**, each has to be driven into it: FILTERS panel
   open, list filtered to a specific vendor/status/date range, and the global finder open with text
-  typed in. `react/scripts/regen-docs.mjs` is the canonical record of how; params may need re-picking
-  since demo data is a function of today's date.
+  typed in. `react/scripts/regen-docs.mjs` is the canonical record of how. Demo data is a function of
+  (seed, today), so a render day picks its own `SEED` — the one giving the account the three August
+  Bilka deliveries that shot is filtered to; the script reads the count back and refuses to shoot when
+  it does not hold, so the seed is found by trying rather than reasoned about.
 - **A 403 on a browser download is egress policy, not the CDN.** Check
   `curl -sS "$HTTPS_PROXY/__agentproxy/status"` for `recentRelayFailures` before guessing a cause.
 - **Locale is the harness's to name — except inside a native control, which this build ignores.**
