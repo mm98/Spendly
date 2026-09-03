@@ -14,7 +14,9 @@ const stripHtmlComments = () => ({
 	name: 'strip-html-comments',
 	enforce: 'post',
 	apply: 'build',
-	transformIndexHtml: html => html.replace(/<!--(?!\[if)[\s\S]*?-->\n?/g, '')
+	// The leading tabs go with it: left behind, they land in front of the next line's own
+	// indentation and the built document is one line wider than it was written.
+	transformIndexHtml: html => html.replace(/[ \t]*<!--(?!\[if)[\s\S]*?-->\n?/g, '')
 })
 
 export default defineConfig({
