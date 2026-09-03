@@ -315,32 +315,23 @@ function OrderSummary({ draft, estimate, showItems }) {
 				<div className="summary-row">Vendor<span className="summary-row-value">{draft.vendor}</span></div>
 				<div className="summary-row">Date<span className="summary-row-value">{shortDate(draft.date)}</span></div>
 				<div className="summary-row">Status<span className="summary-row-value">{draft.status}</span></div>
-				{showItems ? null : (
-					<>
-						<div className="summary-row">Categories
-							<span className="summary-row-value">{draft.categories.join(', ') || '-'}</span></div>
-						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
-						{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
-						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
-					</>
-				)}
-				{showItems ? (
-					<>
-						<span className="section-label section-label-break">Items</span>
-						{draft.items.map(item => (
-							<SummaryRow key={item.id} className="summary-row-item"
-								label={`${item.title} × ${item.quantity}`}
-								value={currency(item.price * item.quantity)} />
-						))}
-					</>
-				) : null}
+				<div className="summary-row">Categories
+					<span className="summary-row-value">{draft.categories.join(', ') || '-'}</span></div>
+				<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
+				{/* One line for the items, not a copy of the list -- on step 2 every line is
+				    already named, priced and editable beside this rail, and a second reading of
+				    it here is one more thing to keep in step. What the rail owes is the
+				    arithmetic: items, then discount and shipping, adding down to the total. */}
+				{showItems ? <SummaryRow label="Items" value={currency(paid)} /> : null}
+				{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
+				<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 				<div className="card-divider card-divider-tight" />
 				<SummaryTotal label="Estimated total" value={currency(total)} estimate={estimate} />
-				{showItems && saved > 0 ? (
+				{showItems ? (saved > 0 ? (
 					<span className="field-help summary-saved">
 						saved {currency(saved)} vs retail ({percent(saved / retail * 100)})
 					</span>
-				) : (
+				) : null) : (
 					<span className="field-help">Items are added in step 2; the total builds as you add them.</span>
 				)}
 			</CardBody>

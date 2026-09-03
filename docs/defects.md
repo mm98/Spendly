@@ -2899,3 +2899,88 @@ Read back from the running app after the fix, registered fresh and rendered at 1
 Every field that already carried a meaningful id (order-vendor, order-date, filter-min-amount, and
 the rest) kept it unchanged — the fallback only fills what was missing, it never overrides a name a
 screen already gave.
+
+## Charts — the busiest day's bar was filled 55% of the way up, and the 55% was not a value
+
+The weekday rhythm card on Home and on Statistics draws one bar per weekday, each a share of the
+busiest one, and marked the busiest by redrawing **the bottom 55% of that bar** in `--green` over the
+track colour. The 55% was a constant. Nothing in the data was 55% of anything.
+
+So the peak bar was the one bar on the card carrying two lines: a height, which is the day's spend
+against the busiest day, and a fill boundary, which is nothing. On a demo account where a single day
+holds the month's spend, that reads as "the busiest day is a bit over half of something" on a chart
+whose only other bars are 3px floors. Measured on the rendered app at 1440x900, one account, both
+cards:
+
+| Home — spending rhythm, peak bar | before | after |
+|---|---|---|
+| the bar | `path` 206px, track colour | `path` 206px, `--green` |
+| the green on it | `rect` 113.3px, clipped to the path | — |
+| green as a share of the bar | 55.0% | 100% |
+
+Read off the rendered app at 1440x900 (dSF2), demo data seeded so both runs draw the same week; the
+other six bars measure 3, 79.3, 41.6, 3, 3, 3px in both runs, track colour in both.
+
+The card next to it already had the rule: `MonthColumns` fills the current window's column whole in
+`--green` and every other in the track colour, so two bar charts in one app answered "which one is
+marked" two different ways. The peak bar is now the same single path as every other bar, with only
+its fill differing — which also drops the clip path the overlay needed to stay inside a rounded top.
+
+Verified in Blink; Gecko and WebKit unverified, neither installed here. Home's committed screenshot
+moves with this: rendered before and after on one machine, `home.png` differs by **3,515 of
+5,184,000 pixels**, all of them inside that one bar, with run-to-run difference **0**.
+
+## Create and Edit — the rail restated the item list standing beside it
+
+Edit order is two columns: the item list in the main column, the order summary in the rail. The rail
+printed **every line again** — name, quantity and line total, one summary row per item — beside the
+list that already draws each of them with its price, its retail price and its own edit control.
+
+An order of 11 lines therefore carried 11 rows of the rail's total height for facts already on
+screen, and the rail's own rule is that it stays shorter than the item list. The same shape was on
+new order's step 2, where the list being copied is the one being typed into.
+
+The rail now states the items as a single row — their summed price — between Kind and the discount
+and shipping rows, so the card reads down to the total instead of restating the list. Measured on the
+running app, one demo account, at 1440x900:
+
+| Edit order, the same 5-line order | before | after |
+|---|---|---|
+| rows in the rail | 10 | 6 |
+| of those, one per item | 5 | 0 |
+| rail height | 619px | 418px |
+| the items on screen | list + rail | list only |
+
+The five rows it dropped read 12,00 / 11,71 / 46,62 / 4,00 / 69,93 kr., and the one row that
+replaced them reads 144,26 kr. — their sum, which is what the total was already built from.
+
+New order's step 2 had the same rail, over the list being typed into. That rail was also hiding
+categories, kind, discount and shipping to make room for the item copy, so its estimated total was
+the one figure on the card no other row accounted for. With the list gone those rows fit and the
+arithmetic closes, measured on a two-line draft: items 150,00 kr. + shipping 49,00 kr. = estimated
+total 199,00 kr.
+
+One line of that card was also false rather than merely redundant: with no retail saving to report,
+step 2's rail printed "Items are added in step 2; the total builds as you add them" — on step 2,
+under the items it was describing as still to come. That sentence is now step 1's only.
+
+## Screenshots — the docs render checked its own state with a filter the list does not read
+
+`all-orders.png` documents a filtered list: one vendor, one status, one month, three matching orders.
+The render script asserts that state before shooting, and asked for it as
+`/api/orders?vendor=bilka&status=Delivered&from=…&to=…`. The list route reads `vendorId`. A
+parameter it does not read narrows nothing, so the check was counting **every** August delivery in
+the account and printing it as Bilka's.
+
+On the render day this was found, the two numbers were **9** (what the check printed) and **1** (what
+the page actually drew, and what the shot would have been regenerated with). Both are wrong for a
+shot whose state is three. The check now sends `vendorId`, reads the count back, and throws rather
+than shooting a state the shot is not documenting — the difference between a probe that can fail and
+one that only reports.
+
+The `vendor` spelling is not a bug in the app: it is the page's own address (`/orders/all?vendor=…`),
+which the page turns into the `vendorId` it sends. A harness reading the address bar and calling the
+API with it is reading two different vocabularies as one.
+
+With the seed re-picked so the account holds three August Bilka deliveries, all three shots render
+identically twice in a row: **0 differing pixels** of 5,184,000 (desktop) and 1,035,948 (phone).

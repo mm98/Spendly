@@ -307,7 +307,7 @@ Main column `1fr` (min `560px`), right rail `360px`, `24px` gap, aligned to top.
 
 **Rail contents, in order:** order details (vendor, order date, status, delivered/returned date once the order has reached them, category, reference), then totals, then notes. Each is its own white card, radius `12px`, `16px` padding, `14px` between cards. Each card opens with an 11px uppercase `0.12em` `#6b6a63` label.
 
-**Totals card:** label/value rows 13px, then a `1px #dedcd4` divider, then the grand total at 20px/700.
+**Totals card:** label/value rows 13px, then a `1px #dedcd4` divider, then the grand total at 20px/700. The items are one row here — their summed price, with the rows that follow taking the discount off and adding the shipping, so the card reads down to the same total the order stores. The rail never repeats a list the main column already shows.
 
 #### 1a — Read view
 
@@ -433,6 +433,8 @@ File: `Order statistics.dc.html` · Code: `pages/Stats.jsx`, `components/Chart.j
 - **By status:** the same bar pattern, five statuses.
 - **Monthly limits:** one row per category with a limit — name, spent, limit, and a bar with the `#b58a2b` pace marker. Over-limit rows fill amber `#e2d3ae` rather than red.
 - **Vendor table:** top vendors with spend, orders, average, and a 60×20 sparkline.
+
+**A bar's height is its value; its fill only says which bar is singled out.** The one bar a card marks — this month's column, the busiest weekday — is filled whole in the highlight colour, every other in the track colour. A fill that stops part-way up a bar reads as a second value the bar does not carry.
 
 **Drill-down:** clicking any bar, slice or table row pushes a crumb onto the breadcrumb (`2026 ▸ Decor ▸ August`) and re-filters every card on the page to that slice. The final level is a list of the matching orders, from which a row opens the order. Crumbs are individually removable, and the state is URL-encoded so a drilled view can be linked.
 

@@ -398,14 +398,14 @@ function EditOrderForm({ id, seed }) {
 						<div className="summary-row">Categories
 							<span className="summary-row-value">{draft.categories.join(', ') || '—'}</span></div>
 						<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
+						{/* One line for the items, not a copy of the list -- every line is already
+						    named, priced and editable in the items card beside this rail, and a
+						    second reading of it here is one more thing to keep in step. What the
+						    rail owes is the arithmetic: items, then discount and shipping, adding
+						    down to the same total the record stores. */}
+						<SummaryRow label="Items" value={currency(paid)} />
 						{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
 						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
-						<span className="section-label section-label-break">Items</span>
-						{draft.items.map(item => (
-							<SummaryRow key={item.id} className="summary-row-item"
-								label={`${item.title} × ${item.quantity}`}
-								value={currency(item.price * item.quantity)} />
-						))}
 						<div className="card-divider card-divider-tight" />
 						{/* No `estimate` here, and no "est." in the label -- every line above is a
 						    real entry against a real order, not a preview of one still being built. */}

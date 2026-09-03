@@ -292,7 +292,6 @@ export const SpendGauge = ({ segments, value, label, ariaLabel }) => (
 
 const BAR_RADIUS = 10		// matches --radius-compact
 const BAR_MIN_HEIGHT = 3	// px floor so a zero-spend weekday still draws a sliver
-const PEAK_OVERLAY = .55	// fixed share of the peak bar's own height -- decorative, not data
 const MONTH_RADIUS = [8, 8, 4, 4]
 
 /* Per-corner rounded rect, clockwise from top-left: SVG's own rx/ry rounds all four corners
@@ -306,25 +305,13 @@ const roundedRect = (x, y, width, height, [tl, tr, br, bl]) => {
 		+ `Q${x} ${y + height} ${x} ${y + height - d} Z`
 }
 
-/* The peak day's own bottom 55%, redrawn in --green and clipped to the bar's own silhouette
-   so it never pokes past the rounded top on a very short bar -- a second rect on the same
-   bar, not a second series, since the 55% is fixed rather than a value a stack would sum. */
-const WeekdayBar = ({ x, y, width, height, payload, clipId }) => {
-	const bottom = y + height
+/* The whole peak bar is --green, every other bar the track grey -- same rule MonthBar draws
+   the current window by. The height is the value; the fill only says which one is the peak, so
+   a fill that stops part-way up reads as a second value the day does not have. */
+const WeekdayBar = ({ x, y, width, height, payload }) => {
 	const h = Math.max(height, BAR_MIN_HEIGHT)
-	const top = bottom - h
-	const path = roundedRect(x, top, width, h, [BAR_RADIUS, BAR_RADIUS, 0, 0])
-	if (!payload.peak) return <path d={path} fill="var(--bg-bar-track)" />
-	const overlay = h * PEAK_OVERLAY
-	const clip = `${clipId}-${payload.day}`
-	return (
-		<g>
-			<path d={path} fill="var(--bg-bar-track)" />
-			<clipPath id={clip}><path d={path} /></clipPath>
-			<rect x={x} y={bottom - overlay} width={width} height={overlay}
-				fill="var(--green)" clipPath={`url(#${clip})`} />
-		</g>
-	)
+	const path = roundedRect(x, y + height - h, width, h, [BAR_RADIUS, BAR_RADIUS, 0, 0])
+	return <path d={path} fill={payload.peak ? 'var(--green)' : 'var(--bg-bar-track)'} />
 }
 
 const MonthBar = ({ x, y, width, height, payload }) => (
@@ -382,25 +369,21 @@ const MonthTooltip = ({ active, payload }) => {
     is `aria-hidden` (Home's copy -- the real numbers are stated elsewhere on that card).
     Recharts' own SVG stays aria-hidden either way, so a screen reader only ever sees the one
     label this component chooses to give it. */
-export const WeekdayBars = ({ days, className, style, ariaLabel }) => {
-	const uid = useId().replace(/:/g, '')
-	return (
-		<div className={['weekday-bars', className].filter(Boolean).join(' ')} style={style}
-			{...(ariaLabel ? { role: 'img', 'aria-label': ariaLabel } : { 'aria-hidden': 'true' })}>
-			<ResponsiveContainer aria-hidden="true" width="100%" height="100%">
-				<BarChart data={days} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}
-					barCategoryGap="16%" accessibilityLayer={false}>
-					<XAxis dataKey="day" tickLine={false} axisLine={false} tickSize={0} tickMargin={0}
-						height={26} tick={props => <WeekdayTick {...props} days={days} />} />
-					<YAxis hide domain={[0, 100]} />
-					<Tooltip content={WeekdayTooltip} cursor={{ fill: 'var(--bg-row-hover)' }} />
-					<Bar dataKey="share" isAnimationActive={false}
-						shape={props => <WeekdayBar {...props} clipId={uid} />} />
-				</BarChart>
-			</ResponsiveContainer>
-		</div>
-	)
-}
+export const WeekdayBars = ({ days, className, style, ariaLabel }) => (
+	<div className={['weekday-bars', className].filter(Boolean).join(' ')} style={style}
+		{...(ariaLabel ? { role: 'img', 'aria-label': ariaLabel } : { 'aria-hidden': 'true' })}>
+		<ResponsiveContainer aria-hidden="true" width="100%" height="100%">
+			<BarChart data={days} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}
+				barCategoryGap="16%" accessibilityLayer={false}>
+				<XAxis dataKey="day" tickLine={false} axisLine={false} tickSize={0} tickMargin={0}
+					height={26} tick={props => <WeekdayTick {...props} days={days} />} />
+				<YAxis hide domain={[0, 100]} />
+				<Tooltip content={WeekdayTooltip} cursor={{ fill: 'var(--bg-row-hover)' }} />
+				<Bar dataKey="share" isAnimationActive={false} shape={props => <WeekdayBar {...props} />} />
+			</BarChart>
+		</ResponsiveContainer>
+	</div>
+)
 
 /** A column per window, on the same fixed [0,100] scale as WeekdayBars above; the current
     window's column is --green, every other --bg-bar-track. */

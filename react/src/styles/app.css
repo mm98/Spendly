@@ -1853,7 +1853,6 @@ label.field-shell { cursor:pointer; }
 .chip-row .button-link { margin-left:6px; }
 .row-actions { gap:4px; }
 .space-between-top { align-items:flex-start; }
-.section-label-break { display:block; margin-top:10px; }
 .inset-panel-note { padding:10px var(--pad-inset); }
 .card-divider-gap { margin:6px 0 0; }
 .meter-under-caption { margin-top:14px; }
