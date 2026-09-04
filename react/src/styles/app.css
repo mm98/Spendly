@@ -357,13 +357,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 	cursor:pointer; white-space:nowrap; text-decoration:none;
 }
 .button:disabled { opacity:.45; cursor:default; }
-/* The full-width action that closes a card. It sits above the surface variants, not below
-   them, because it declares a surface of its own at the same specificity they do -- placed
-   after, it silently repainted `primary block` in card white. Order is what lets a surface
-   variant compose with it. README: Buttons. */
+/* Above the surface variants: block declares a surface at the same specificity they do, so
+   placed after it repainted `primary block` in card white. README: Buttons. */
 .button.button-block { display:flex; width:100%; height:44px; padding:0; gap:var(--gap-icon); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; margin-top:var(--gap-block); }
-/* border-color is restated rather than left to .button's transparent, so a surface variant
-   combined with one that draws an edge (block) does not keep the edge. */
 .button.button-primary { background:var(--bg-dark); border-color:transparent; color:var(--text-inverse); }
 .button.button-outline { background:var(--bg-card); border-color:var(--border-control); color:var(--text); }
 /* Every button label in this system is caps, and the two topbar actions share one

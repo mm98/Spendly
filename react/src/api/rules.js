@@ -50,9 +50,7 @@ export const RETURNED_DATE_FIELD = { name: 'order-returned-date', label: 'Return
 export const ITEM_FIELDS = [
 	{ name: 'item-description', label: 'Description', check: v =>
 		!v ? 'Describe the item.' : v.length > 120 ? '120 characters at most.' : '' },
-	/* A quantity takes the same rule the two price fields take -- a comma and at most two
-	   decimals -- because a line can be half a kilo as easily as it can be two of something,
-	   and a field that accepts 89,95 beside one that refuses 0,5 is two rules to learn. */
+	/* The price fields' own rule: a line can be half a kilo as easily as two of something. */
 	{ name: 'item-quantity', label: 'Quantity', check: v =>
 		!v ? 'How many did you buy?'
 		: !AMOUNT_PATTERN.test(v) ? 'Quantities take a comma, such as 1,5.'

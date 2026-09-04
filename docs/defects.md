@@ -3219,3 +3219,36 @@ After, same instrument: Note **265px** on the phone (input **233px**) and **498p
 with Description and Retail at both.
 
 Not checked: Firefox and WebKit.
+
+## Form Validation — the field filter promised more than it delivered
+
+`sanitizeAmount` runs on every keystroke in a money field, and the comment above it claimed the
+result: *"The field cannot show a value the app never accepts."* It stripped a sign and letters
+and nothing else, so nine shapes reached the field and were refused only on save. Measured by
+running the live filter against `AMOUNT_PATTERN`:
+
+| typed | field showed | on save |
+|---|---|---|
+| `1,2,3` | `1,2,3` | rejected |
+| `0,755` | `0,755` | rejected |
+| `89,,95` | `89,,95` | rejected |
+| `,5` | `,5` | rejected |
+| `1.23` | `1.23` | rejected |
+
+Nine money fields ran the filter and **four ran none at all** — the category budget, the wish
+price, and both amount filters on All orders. Same kind of field, two behaviours, and the two
+raw `<input>`s on All orders were the only money fields in the app not going through
+`TextInput`.
+
+The filter now collapses a second comma and a third decimal into the value being typed and
+drops a separator standing before the first digit, while leaving a trailing comma alone so
+`12,` can still become `12,5`. Verified in the browser by typing into the real fields:
+`1,2,3` → `1,23`, `0,755` → `0,75`, `89,,95` → `89,95`, `,5` → `5`, `-12,50` → `12,50`,
+`12,` → `12,`, and `1.234,56` untouched. All thirteen money fields run it.
+
+One shape is deliberately still left to the save: a misplaced grouping dot (`1.23`, `1..234`).
+A dot is either grouping or a typo, and the app cannot tell which — `1.23` could be a slip for
+`1,23` or the start of `1.234`. Guessing would silently change a figure nobody asked to change,
+which is worse than a rejection that names the shape it wants.
+
+Not checked: Firefox and WebKit.

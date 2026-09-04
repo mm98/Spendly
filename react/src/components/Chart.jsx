@@ -319,10 +319,8 @@ const MonthBar = ({ x, y, width, height, payload }) => (
 		fill={payload.current ? 'var(--green)' : 'var(--bg-bar-track)'} />
 )
 
-/* Recharts drops ticks when the axis runs out of room, then numbers the survivors from 0 --
-   so a tick's `index` is a position among what is still drawn, not into the data. Look the row
-   up by the value the axis is keyed on instead: read positionally, a thinned axis printed the
-   first three names over the second, fourth and sixth columns and said nothing was wrong. */
+/* Recharts renumbers surviving ticks from 0 when it thins them, so `index` is not a data index:
+   read positionally, a thinned axis names the wrong columns and reports nothing. */
 const rowForTick = (rows, key, payload, index) =>
 	rows.find(row => row[key] === payload?.value) ?? rows[index]
 

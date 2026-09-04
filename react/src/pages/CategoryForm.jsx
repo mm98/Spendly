@@ -14,7 +14,7 @@ import { useApi } from '../api/useApi.js'
 import {
 	createCategory, deleteCategory, failureMessage, getCategories, getCategory, invalidateCategoryData, updateCategory
 } from '../api/client.js'
-import { AMOUNT_PATTERN, amountRound, currency, currencySymbol, parseAmount } from '../api/format.js'
+import { AMOUNT_PATTERN, amountRound, currency, currencySymbol, parseAmount, sanitizeAmount } from '../api/format.js'
 import { resolveColour } from '../api/colour.js'
 
 /* A category, on its own page.
@@ -176,7 +176,7 @@ function CategoryFields({ mode, category }) {
 				error={budgetField.error} errorId={budgetField.errorId}>
 				<FieldShell>
 					<TextInput id="category-budget" inputMode="decimal" value={values.budget}
-						onChange={set('budget', 'category-budget')} placeholder="No budget"
+						onChange={v => set('budget', 'category-budget')(sanitizeAmount(v))} placeholder="No budget"
 						aria-label="Monthly budget"
 						invalid={budgetField.invalid} describedBy={budgetField.describedBy}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
