@@ -146,6 +146,21 @@ Mixing them renders a class that does not exist, silently.
   `Segmented` or a colour picker labels only its first button.
 - `Segmented`'s size is decided by whether it sits in a `Field`, not by its `compact` prop.
 
+## Data shapes the charts need before they draw anything
+
+Five chart components render an empty box with no error when the data is the wrong shape.
+
+- `WeekdayBars.days` / `MonthColumns.months` — `share`/`height` are **percentages**, 0-100.
+- `Meter.fill` / `marker` — numbers 0-100, not fractions and not kroner.
+- `ProgressBar` — indeterminate by default, so `value` alone does nothing.
+- `DonutBox` — a centring grid; nothing to see until a ring is inside it.
+- `Donut` / `SpendGauge` `segments` — colours come from `api/src/lib/palette.js`
+  (`CATEGORY_PALETTE`); `foldForRing` in `Viz.jsx` is what builds them from rows.
+- `.card-body-fill` is load-bearing for `WeekdayBars` and `MonthColumns`, as `.entry-list` is
+  for `EntryRow`.
+- `Async.children` is a **function**, not markup, and `state` is exactly `useApi`'s return.
+- `RecordWait.state` is the same `{data, error, loading}` triple.
+
 ## Small affordance gaps found while authoring
 
 Each verified, none fixed here. Listed so a preview never quietly draws a state the app does
@@ -159,11 +174,41 @@ not actually give.
   `span.section-label`, a flex item sized to its own content, and the bar's width is a
   percentage of that span — each waits on the other. Every waiting card in the app is affected.
 
+## MonthColumns and WeekdayBars mislabel their columns once ticks are thinned
+
+`MonthTick`/`WeekdayTick` (`react/src/components/Chart.jsx:324,339`) read `months[index]` /
+`days[index]`, where recharts' `index` counts the **surviving** ticks, not the data. The same
+functions already read `visibleTicksCount`, so the thinning is known about; only the lookup
+misses it. While every tick fits, the two agree.
+
+Measured on the six-week data: at a 504px chart all six labels sit over their own bars; at
+348px the three surviving ticks sit over columns 2, 4 and 6 and read "Week 14, Week 15,
+Week 16". Nothing errors.
+
+It bites at Week and Quarter width, whose labels have no short form
+(`api/src/lib/stats.js:53,70`), on a phone-width card. Not fixed here.
+
+
 ## Live code the app never calls
 
 Previewed from the component's own contract, and each doc says so rather than implying a usage:
 `CardHeader`'s disclosure branch (`onToggle`/`open`/`controls`), `TagChip` (its pattern stayed
 in the frozen prototype), `Switch`, and `FilterSectionBody`.
+
+## Where a re-sync starts
+
+```sh
+ln -sfn .. react/node_modules/spendly-react          # npm removes it; recreate first
+ln -sfn /opt/node22/lib/node_modules/playwright .ds-sync/node_modules/playwright
+node .design-sync/fold-props.mjs                     # props/*.txt -> cfg.dtsPropsFor
+PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers node .ds-sync/resync.mjs \
+  --config .design-sync/config.json --node-modules react/node_modules \
+  --out ./ds-bundle --remote .design-sync/.cache/remote-sync.json
+```
+
+Fetch `_ds_sync.json` from the project into `.design-sync/.cache/remote-sync.json` first, and
+re-copy the staged scripts from the skill before running. `fold-props.mjs` is not part of the
+driver: run it whenever a `props/*.txt` changed, or the contract will not reach the build.
 
 ## Re-sync risks
 
@@ -174,3 +219,16 @@ in the frozen prototype), `Switch`, and `FilterSectionBody`.
   stale. Re-read the destructuring of any component whose source changed.
 - Icon names in previews are string keys into `ICONS` in `react/src/components/Icon.jsx`. A
   renamed icon renders nothing and does not error.
+- Only 20 of 89 components are found by the converter's own source matcher (their name matches
+  a filename). The rest are grouped and documented purely by `.design-sync/docs/<Name>.md`
+  frontmatter, so a doc deleted or renamed silently drops that component back into `general`.
+- `.design-sync/conventions.md` names 78 tokens, 21 components and 23 variant classes. It is
+  prepended to the README the design agent reads, so a name that stops existing becomes
+  confident wrong advice. Re-check it against the fresh build on every sync — the check is a
+  grep of each name against `ds-bundle/_ds_bundle.css`, the `components/<group>/` tree and
+  `ds-bundle/_ds_bundle.js`.
+- Every preview renders against a `MemoryRouter` created per card. A component that starts
+  reading loader or action data (not just `useRouteError`) would need routes with real data,
+  not just a data router.
+- Five app defects are recorded above and none is fixed. If any is repaired in `react/src`,
+  the matching component doc still describes the broken behaviour and must be corrected.
