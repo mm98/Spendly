@@ -525,11 +525,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 /* The row is the link, so the link takes the row's colour rather than the UA's
    blue-and-underlined. Keyed on the attribute, not on a class, because eight
    different components navigate this way -- and on `a` specifically, since the
-   <button data-go> elements have colours of their own to keep.
-   .button-link is excluded: it is a text link that underlines on purpose, and an
-   attribute selector outranks its class, so without this it lost the underline the
-   moment it was given somewhere to go. README: Honest Affordances. */
-a[data-go]:not(.button-link) { color:inherit; text-decoration:none; }
+   <button data-go> elements have colours of their own to keep. Narrowing this with a
+   :not() would outrank every .button variant and repaint their labels. */
+a[data-go] { color:inherit; text-decoration:none; }
 /* A subtab selection has to change what is on screen, or the tab is decoration. */
 .page[data-view="favourites"] [data-view-only="overview"],
 .page[data-view="manage"] [data-view-only="overview"] { display:none; }
@@ -893,6 +891,8 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .page-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
 .two-column { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--gap-cards); }
 .button-link { font:inherit; background:none; border:0; padding:0; display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-decoration:underline; text-underline-offset:3px; color:var(--text); cursor:pointer; }
+/* Given somewhere to go it is an <a data-go>, whose reset above would take the underline. */
+a.button-link { text-decoration:underline; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); min-width:0; }
 .entry-list .entry-glyph { width:var(--thumb-size); height:var(--thumb-size); border-radius:var(--radius-compact); display:grid; place-items:center; color:var(--text-body); background:var(--bg-inset); flex:none; }
