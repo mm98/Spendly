@@ -250,6 +250,30 @@ for (const request of REQUESTS) {
 	}
 	await response.arrayBuffer()
 }
+/* The two bulk moves, run last and in this order because each one rewrites the fixture: every
+   read above is captured against the account as seeded, and a move re-pointing a category's or
+   a vendor's whole order set would otherwise be doing it underneath them. Their targets are read
+   back out of the list responses rather than queried for, so driving them adds no SELECT of this
+   script's own to the baseline. */
+const idsFrom = async (path, not) => {
+	const rows = await (await fetch(BASE + path, { headers: H })).json()
+	return rows.find(r => r.id !== not)?.id
+}
+
+for (const [path, to] of [
+	[`/categories/${ids.category}/move-orders`, await idsFrom('/categories', ids.category)],
+	[`/vendors/${ids.vendor}/move-orders`, await idsFrom('/vendors', ids.vendor)]
+]) {
+	const response = await fetch(BASE + path, {
+		method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify({ to })
+	})
+	if (!response.ok) {
+		console.error(`  ${path} answered ${response.status} -- the check cannot read plans for it`)
+		process.exitCode = 1
+	}
+	await response.arrayBuffer()
+}
+
 server.close()
 
 /* ---- explain what was captured ---- */

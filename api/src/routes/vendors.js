@@ -14,6 +14,9 @@ const selectByNameExists = db.prepare('SELECT id FROM vendors WHERE user_id = ? 
 const insert = db.prepare(`INSERT INTO vendors (id, user_id, name, initials, colour, favourite, lead)
 	VALUES (@id, @userId, @name, @initials, @colour, @favourite, @lead)`)
 const countOrders = db.prepare('SELECT COUNT(*) c FROM orders WHERE vendor_id = ? AND user_id = ?')
+/* (user_id, vendor_id) is idx_orders_user_vendor's own order. An order's search_text holds no
+   vendor name (migrations/001), so nothing has to be rewritten behind this. */
+const moveOrdersTo = db.prepare('UPDATE orders SET vendor_id = ? WHERE vendor_id = ? AND user_id = ?')
 const deleteOne = db.prepare('DELETE FROM vendors WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE vendors SET name=@name, initials=@initials, colour=@colour, favourite=@favourite, lead=@lead WHERE id=@id AND user_id=@userId')
 
@@ -252,6 +255,19 @@ router.post('/aliases', (req, res) => {
 	if (cleaned.error) return res.status(cleaned.status).json({ error: cleaned.error })
 	writeAliases(req.user.id, vendor.id, cleaned.aliases)
 	res.status(201).json({ id: vendor.id, aliases: aliasesFor(req.user.id, vendor.id) })
+})
+
+/* The delete below refuses while a vendor has orders, so this is the way out of it. Aliases
+   stay with the vendor they were learned for. */
+router.post('/:id/move-orders', (req, res) => {
+	const vendor = selectOne.get(req.params.id, req.user.id)
+	if (!vendor) return res.status(404).json({ error: 'No vendor ' + req.params.id })
+	const toId = String(req.body?.to ?? '')
+	if (toId === vendor.id) return res.status(400).json({ error: 'Pick a different vendor.' })
+	const target = toId ? selectOne.get(toId, req.user.id) : null
+	if (!target) return res.status(404).json({ error: 'No vendor ' + (toId || req.body?.to) })
+	const moved = moveOrdersTo.run(target.id, vendor.id, req.user.id).changes
+	res.json({ moved, from: vendor.id, to: target.id, name: target.name })
 })
 
 router.delete('/:id', (req, res) => {

@@ -125,6 +125,11 @@ export async function updateVendor(id, patch, signal) {
 	return request(`/api/vendors/${id}`, { method: 'PATCH', body: patch, signal })
 }
 
+/** Hands every order from this vendor to another one, and answers with how many moved. */
+export async function moveVendorOrders(id, to, signal) {
+	return request(`/api/vendors/${id}/move-orders`, { method: 'POST', body: { to }, signal })
+}
+
 export async function deleteVendor(id, signal) {
 	return request(`/api/vendors/${id}`, { method: 'DELETE', signal })
 }
@@ -277,6 +282,12 @@ export async function getCategory(id, signal) {
 
 export async function updateCategory(id, patch, signal) {
 	return request(`/api/categories/${id}`, { method: 'PATCH', body: patch, signal })
+}
+
+/** Hands every order on this category to another one, and answers with how many moved. An
+    order already on the target simply leaves this category. */
+export async function moveCategoryOrders(id, to, signal) {
+	return request(`/api/categories/${id}/move-orders`, { method: 'POST', body: { to }, signal })
 }
 
 export async function deleteCategory(id, signal) {

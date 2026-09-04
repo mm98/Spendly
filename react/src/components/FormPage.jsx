@@ -5,9 +5,11 @@ import { SkeletonCard } from './Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader } from './Card.jsx'
 import { Stepper } from './Stepper.jsx'
 import { Button, IconButton } from './Button.jsx'
-import { Form, FormActions } from './Form.jsx'
+import { Field, Form, FormActions } from './Form.jsx'
 import { ConfirmDialog } from './ConfirmDialog.jsx'
+import { Combobox } from './Combobox.jsx'
 import { useApi } from '../api/useApi.js'
+import { plural } from '../api/format.js'
 import { getSettings } from '../api/client.js'
 
 /* One page, one form -- and only one of these in the app.
@@ -165,6 +167,70 @@ export function useRowDelete({ what, label, detail, onDelete, icon = 'trash' }) 
 				onCancel={() => setConfirming(null)} />
 		) : null
 	}
+}
+
+/** One card for both edit forms, in the rail beside DeleteCard. Confirmed rather than undone:
+    nothing records which orders moved, so there is nothing to put back. */
+export function MoveOrdersCard({ what, from, count, groups, onMove, children }) {
+	const [query, setQuery] = useState('')
+	const [target, setTarget] = useState(null)
+	const [error, setError] = useState('')
+	const [confirming, setConfirming] = useState(false)
+	const [moving, setMoving] = useState(false)
+	const id = `move-orders-${what}`
+	const orders = plural(count, 'order')
+
+	/* Not a disabled button: the reader is told what is missing where they would fix it, the same
+	   way every other form in the app rejects. README: Buttons. */
+	const ask = () => {
+		if (!target) {
+			setError(`Which ${what} should they move to?`)
+			document.getElementById(id)?.focus()
+			return
+		}
+		setConfirming(true)
+	}
+
+	const move = () => {
+		setConfirming(false)
+		setMoving(true)
+		Promise.resolve(onMove(target)).finally(() => {
+			setMoving(false)
+			setTarget(null)
+			setQuery('')
+		})
+	}
+
+	return (
+		<Card aria-label={`Move orders to another ${what}`}>
+			<CardHeader title="Move orders" />
+			<CardDivider />
+			<CardBody>
+				<p className="card-lead card-lead-flush">{children}</p>
+				{count ? (
+					<>
+						<Field label="Move them to" htmlFor={id} error={error} errorId={`${id}-error`}>
+							<Combobox id={id} label="Move them to" placeholder={`Choose a ${what}...`}
+								value={query} groups={groups}
+								invalid={Boolean(error)} describedBy={`${id}-error`}
+								onChange={v => { setQuery(v); setTarget(null) }}
+								onSelect={o => { setQuery(o.label); setTarget(o); setError('') }} />
+						</Field>
+						<Button variant="block" icon="chevronRight" disabled={moving}
+							aria-haspopup="dialog" onClick={ask}>
+							{moving ? 'MOVING...' : `MOVE ${orders.toUpperCase()}`}</Button>
+					</>
+				) : null}
+				{confirming && target ? (
+					<ConfirmDialog
+						title={`Move ${orders} to ${target.label}?`}
+						detail={`The orders move from ${from} to ${target.label}. This cannot be undone.`}
+						confirmLabel={`MOVE ${orders.toUpperCase()}`}
+						onConfirm={move} onCancel={() => setConfirming(false)} />
+				) : null}
+			</CardBody>
+		</Card>
+	)
 }
 
 /** The delete control in the rail of an edit form, where a record has no page of its own to

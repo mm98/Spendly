@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router'
 import { Button } from '../components/Button.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
 import { SummaryRow, SummaryTotal } from '../components/Rows.jsx'
-import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
+import { DeleteCard, FormPage, MoveOrdersCard, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { CategoryPreview, ColourPicker, IconPicker } from '../components/Pickers.jsx'
 import { ICONS } from '../components/Icon.jsx'
 import {
@@ -12,9 +12,11 @@ import {
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createCategory, deleteCategory, failureMessage, getCategories, getCategory, invalidateCategoryData, updateCategory
+	createCategory, deleteCategory, failureMessage, getCategories, getCategory,
+	invalidateCategoryData, invalidateOrderData, moveCategoryOrders, updateCategory
 } from '../api/client.js'
-import { AMOUNT_PATTERN, amountRound, currency, currencySymbol, parseAmount } from '../api/format.js'
+import { AMOUNT_PATTERN, amountRound, currency, currencySymbol, parseAmount, plural } from '../api/format.js'
+import { categoryGroups } from '../api/pickerGroups.js'
 
 /* A category, on its own page.
 
@@ -38,10 +40,10 @@ export default function CategoryForm({ mode = 'create' }) {
 	if (mode === 'edit' && !existing.data) {
 		return <RecordWait state={existing} label="Loading the category" />
 	}
-	return <CategoryFields mode={mode} category={existing.data ?? null} />
+	return <CategoryFields mode={mode} category={existing.data ?? null} reload={existing.refresh} />
 }
 
-function CategoryFields({ mode, category }) {
+function CategoryFields({ mode, category, reload }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const all = useApi(getCategories)
@@ -127,6 +129,19 @@ function CategoryFields({ mode, category }) {
 			.catch(e => { setSaving(false); toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
 
+	/* Moving orders changes which category every one of them is counted under, so the whole
+	   order side is re-read, not just the two categories. */
+	const moveOrders = target => moveCategoryOrders(category.id, target.id)
+		.then(r => {
+			/* Clearing the cache is not enough on a page that stays open: the reader is still
+			   looking at this record's own figures, so the two reads it draws are asked again. */
+			invalidateOrderData()
+			reload()
+			all.refresh()
+			toast(`${plural(r.moved, 'order')} moved to ${r.name}.`)
+		})
+		.catch(e => toast(failureMessage(e, 'Those orders did not move.'), 'negative'))
+
 	const del = useDelete({
 		what: 'category',
 		detail: category ? `${category.name}, ${currency(category.spend, 0)} this month.` : '',
@@ -150,9 +165,18 @@ function CategoryFields({ mode, category }) {
 				<>
 					<CategorySummary values={values} budget={budget} category={category} />
 					{mode === 'edit' ? (
+						<MoveOrdersCard what="category" from={category.name} count={category.orders}
+							groups={categoryGroups(all.data, { exclude: [category.name] })}
+							onMove={moveOrders}>
+							{category.orders
+								? 'Every order in this category moves to the category you pick. An order can be in more than one category, so it keeps the others.'
+								: 'No orders use this category, so there is nothing to move.'}
+						</MoveOrdersCard>
+					) : null}
+					{mode === 'edit' ? (
 						<DeleteCard what="category" del={del}>
-							Removing a category does not remove its orders. A category still used by
-							an order cannot be removed.
+							Removing a category does not remove its orders. A category still on an
+							order or on a wish cannot be removed.
 						</DeleteCard>
 					) : null}
 				</>

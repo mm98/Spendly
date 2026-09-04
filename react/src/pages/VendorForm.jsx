@@ -4,7 +4,7 @@ import { Button } from '../components/Button.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { EntryRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
-import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
+import { DeleteCard, FormPage, MoveOrdersCard, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { ColourPicker, VENDOR_COLOURS } from '../components/Pickers.jsx'
 import {
 	CheckRow, Field, FieldShell, TextInput, focusField, useFieldErrors
@@ -14,9 +14,10 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createVendor, deleteVendor, failureMessage, getCategories, getVendor, getVendors,
-	invalidateVendorData, updateVendor
+	invalidateOrderData, invalidateVendorData, moveVendorOrders, updateVendor
 } from '../api/client.js'
-import { currency, sep } from '../api/format.js'
+import { currency, plural, sep } from '../api/format.js'
+import { vendorGroups } from '../api/pickerGroups.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
 /* A vendor, on its own page -- the same page component as a category and as an order, because
@@ -31,10 +32,10 @@ export default function VendorForm({ mode = 'create' }) {
 	if (mode === 'edit' && !existing.data) {
 		return <RecordWait state={existing} label="Loading the vendor" />
 	}
-	return <VendorFields mode={mode} vendor={existing.data ?? null} />
+	return <VendorFields mode={mode} vendor={existing.data ?? null} reload={existing.refresh} />
 }
 
-function VendorFields({ mode, vendor }) {
+function VendorFields({ mode, vendor, reload }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const all = useApi(getVendors)
@@ -116,6 +117,19 @@ function VendorFields({ mode, vendor }) {
 			.catch(e => { setSaving(false); toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
 	}
 
+	/* Order rows carry the vendor's own name and colour, so moving them re-reads the order side
+	   as well as the two vendors. */
+	const moveOrders = target => moveVendorOrders(vendor.id, target.id)
+		.then(r => {
+			/* Same as the category form: the page stays open on this record, so its own two reads
+			   are asked again rather than only dropped from the cache. */
+			invalidateOrderData()
+			reload()
+			all.refresh()
+			toast(`${plural(r.moved, 'order')} moved to ${r.name}.`)
+		})
+		.catch(e => toast(failureMessage(e, 'Those orders did not move.'), 'negative'))
+
 	const del = useDelete({
 		what: 'vendor',
 		detail: vendor ? `${vendor.name}, ${vendor.orders} order${vendor.orders === 1 ? '' : 's'}.` : '',
@@ -142,6 +156,15 @@ function VendorFields({ mode, vendor }) {
 					<VendorSummary name={name} colour={colour} initials={initials}
 						favourite={favourite} aliases={aliases} defaultCategories={defaultCategories}
 						vendor={vendor} />
+					{mode === 'edit' ? (
+						<MoveOrdersCard what="vendor" from={vendor.name} count={vendor.orders}
+							groups={vendorGroups((all.data ?? []).filter(v => v.id !== vendor.id))}
+							onMove={moveOrders}>
+							{vendor.orders
+								? 'Every order from this vendor moves to the vendor you pick. Nothing else on the orders changes.'
+								: 'This vendor has no orders, so there is nothing to move.'}
+						</MoveOrdersCard>
+					) : null}
 					{mode === 'edit' ? (
 						<DeleteCard what="vendor" del={del}>
 							A vendor that still has orders on it cannot be removed: the orders would
