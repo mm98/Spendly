@@ -3128,10 +3128,26 @@ identical across both — the difference was the underline alone. Four call site
 `Orders.jsx:110`, `AllOrders.jsx:285`, `Home.jsx:549`, `Wishlist.jsx:221`. `Button variant="link"`
 with a `to` produces the same class and would have lost it the same way; nothing writes that today.
 
-The reset now excludes the one class that underlines on purpose. After, on `/orders/all` at 1440px:
-the page's single anchor-form link reads `underline`. `docs/all-orders.png` moved by **1978 of
-5,184,000 pixels** against a baseline that reproduced the committed shot at **0**, and re-rendering
-twice gave **0** between runs.
+The exception now sits with `.button-link` as `a.button-link { text-decoration:underline }` —
+`(0,1,1)`, the same weight as the reset, declared after it, so it wins on order and competes on
+nothing but the underline. After, on `/orders/all` at 1440px, the page's single anchor-form link
+reads `underline`.
+
+**The first fix for this was a regression, and it is the reason the rule below exists.** Narrowing
+the reset to `a[data-go]:not(.button-link)` reads like a smaller selector and is a larger one:
+`:not()` carries its argument's specificity, so `(0,1,1)` became `(0,2,1)` and outranked
+`.button.button-primary` and `.button.button-caps` at `(0,2,0)`. Every button the app renders as a
+link — the topbar's SCAN RECEIPT, the vendor and category heroes' ADD buttons — took
+`color: inherit` and drew near-black `rgb(11, 15, 13)` on `rgb(25, 77, 48)`. Measured on the page
+and confirmed by reverting the one selector.
+
+It shipped because the verification asked the wrong question twice. A sweep of the button variants
+covered `<button>` elements and a single `<a class="button-link">`, and never the link form of a
+button variant, which is the only shape that fails. And the screenshots did catch it: `home.png` and
+`all-orders.png` each moved by **1978 of 5,184,000 pixels** and `phone.png` by **968 of 1,035,948**,
+where the phone's label is the shorter `SCAN`. The same number on two different pages is a shared
+element, not a page's own content — the diff was read as a total and its cause assumed rather than
+located. A pixel count answers *how much* moved; only looking answers *what*.
 
 ## Loading and Errors — the shimmering title on every waiting card was zero pixels wide
 
