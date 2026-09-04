@@ -101,16 +101,19 @@ const SCORES = [
 
 function BuildQuality() {
 	const version = useApi(getVersion)
+	const rail = useRef(null)
 	const [band, setBand] = useState(null)
 	const scores = version.data?.lighthouse
 	if (!scores) return <span>Spendly<Sep />your spending</span>
 
 	/* Focusable, or the label is hover-only and a keyboard never reaches it. */
-	const show = event => setBand(event.currentTarget.getBoundingClientRect())
+	/* Pointed at the rail's own box, not at the line of text inside it: the text is an inline
+	   run as wide as the words, so centring on it puts the scores left of the rail's middle. */
+	const show = () => setBand(rail.current.getBoundingClientRect())
 	const hide = () => setBand(null)
 
 	return (
-		<span className="build-quality">
+		<span className="build-quality" ref={rail}>
 			<span className="build-quality-band" tabIndex={0}
 				onPointerEnter={show} onPointerLeave={hide} onFocus={show} onBlur={hide}>
 				Spendly<Sep />your spending

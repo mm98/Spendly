@@ -205,6 +205,8 @@ These hold on every screen and are the constraints behind several layout decisio
 
 **The gap between a tooltip and what it points at is a token, not a number in the script that places it.** The stylesheet owns the spacing; the component owns only which side it goes on.
 
+**It is pointed at the box the reader sees, not at the words inside it.** A tooltip centres on what it is given, so what it is given has to be the shape the reader reads as the target. Where the target is a line of text inside a wider block — a footer line, a caption, a cell — the block is what the label measures against; centred on the text run it lands off-centre in everything around it.
+
 ---
 
 ## The shell — structure and scroll behaviour
