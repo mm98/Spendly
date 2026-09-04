@@ -12,9 +12,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Roughly double what the job takes, so only a hang trips it: GitHub's own default is six
-    # hours, long enough for a stuck step to hold a runner most of a day before anyone looks.
-    timeout-minutes: 10
+    # Sized to catch a hang and nothing else: GitHub's own default is six hours, long enough
+    # for a stuck step to hold a runner most of a day, and a slow platform day is not a failure.
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: react
@@ -37,7 +37,7 @@ jobs:
   # react/'s, and a red plan check should read as a red plan check rather than a failed build.
   queries:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: api
@@ -97,7 +97,7 @@ jobs:
   lighthouse:
     runs-on: ubuntu-latest
     # Three installs and a Chrome run, so this one is the long job on the board, not a hang.
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
