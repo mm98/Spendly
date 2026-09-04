@@ -1,5 +1,8 @@
 	/** The rectangle of what is being pointed at, from `getBoundingClientRect()`.
 	    Nothing drawn without one -- that is how the label is hidden. */
 	anchor?: DOMRect;
-	/** The words. One short line; the label does not wrap. */
+	/** Optional heading line above the body, in the muted caption size. */
+	title?: React.ReactNode;
+	/** The body. Plain text reads as normal weight; compose rows from
+	    `tooltip-row` / `tooltip-swatch` / `tooltip-name` / `tooltip-value` for figures. */
 	children?: React.ReactNode;

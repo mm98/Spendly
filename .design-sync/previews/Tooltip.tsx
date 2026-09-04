@@ -1,29 +1,47 @@
+import { useCallback, useState } from 'react'
 import { Tooltip } from 'spendly-react'
 
-// It places itself against the viewport, so a still card shows it beside a stand-in for the
-// control it would be labelling rather than in a live hover.
+// The label places itself against the viewport, so the rectangle has to come from the real
+// control: a hard-coded one puts the words where the control isn't.
 const frame: React.CSSProperties = {
-	position: 'relative', width: 300, height: 120, display: 'grid', placeItems: 'center'
+	position: 'relative', width: 320, height: 170, display: 'grid', placeItems: 'center'
 }
 const tile: React.CSSProperties = {
-	width: 34, height: 34, borderRadius: 8, border: '1px solid #e4e2da', display: 'grid',
-	placeItems: 'center', fontSize: 11, color: '#6b6a63'
+	width: 34, height: 34, borderRadius: 8, border: '1px solid #e4e2da', background: '#fff',
+	display: 'grid', placeItems: 'center', fontSize: 11, color: '#6b6a63'
 }
 
-const rect = (left: number, top: number) =>
-	({ left, top, right: left + 34, bottom: top + 34, width: 34, height: 34, x: left, y: top,
-		toJSON: () => ({}) } as DOMRect)
+const Pointed = ({ title, body, children }: {
+	title?: string, body: React.ReactNode, children: React.ReactNode
+}) => {
+	const [anchor, setAnchor] = useState<DOMRect | null>(null)
+	const measure = useCallback((node: HTMLDivElement | null) => {
+		if (node) setAnchor(node.getBoundingClientRect())
+	}, [])
+	return (
+		<div style={frame}>
+			<div ref={measure} style={tile}>{children}</div>
+			<Tooltip anchor={anchor} title={title}>{body}</Tooltip>
+		</div>
+	)
+}
 
-export const AboveTheControl = () => (
-	<div style={frame}>
-		<div style={tile}>icon</div>
-		<Tooltip anchor={rect(140, 90)}>gas station</Tooltip>
-	</div>
-)
+export const NamingAControl = () => <Pointed body="gas station">icon</Pointed>
 
-export const NearTheTopEdge = () => (
-	<div style={frame}>
-		<div style={tile}>icon</div>
-		<Tooltip anchor={rect(140, 4)}>flips below when there is no room above</Tooltip>
-	</div>
+export const ALongerName = () => <Pointed body="brand mastercard">card</Pointed>
+
+// Heading, swatches, names and figures are the same parts the chart hovers are built from.
+export const WithHeadingAndFigures = () => (
+	<Pointed title="4. september" body={<>
+		<div className="tooltip-row">
+			<span className="tooltip-swatch" style={{ background: '#14AC72' }} />
+			<span className="tooltip-name">Spent</span>
+			<span className="tooltip-value tabular-figures">402,17 kr.</span>
+		</div>
+		<div className="tooltip-row">
+			<span className="tooltip-swatch" style={{ background: '#8fd0ae' }} />
+			<span className="tooltip-name">Saved</span>
+			<span className="tooltip-value tabular-figures">0,00 kr.</span>
+		</div>
+	</>}>day</Pointed>
 )

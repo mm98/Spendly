@@ -78,6 +78,17 @@ against a real call site or the API that produces the value.
 - `.field-pair-keep` and `.field-pair-stack-early` differ only inside a viewport media query,
   so no still card can show them apart. Documented in prose instead.
 
+## `preview-rebuild.mjs` only recompiles the preview, never the bundle or the CSS
+
+The targeted loop (`lib/preview-rebuild.mjs --components X`) exists for presentation-only edits to
+`.design-sync/previews/*.tsx`. It does **not** rebuild `_ds_bundle.js` or `_ds_bundle.css`, so a
+card rebuilt that way renders the *previous* component against the *previous* stylesheet. A
+preview exercising a prop or a class that the same change just added comes back silently wrong —
+the prop ignored, the class unstyled — and nothing flags it, because the card renders fine.
+
+Whenever `react/src` changed, the rebuild is a full one (`package-build.mjs`, or the driver). Read
+the sheet rather than the flags: this failure looks like a clean render.
+
 ## Known render warns
 
 - Skeletons shimmer on a 1.6s CSS loop, so a still capture takes whichever phase it lands on.
@@ -99,6 +110,12 @@ components need it, each measured rather than guessed:
   on the rail, leaving ~72px for the wide column in a half cell.
 - `FavouriteTile`, `FavouriteTileGrid` — the tile has a real minimum width; five cells measured
   372-382px of content in a 328px cell, and `ds-col` clears all five.
+
+`cardMode = "single"` renders one story at full card width. One component needs it:
+
+- `Tooltip` — it draws into `document.body` at `position: fixed`, which no grid cell can
+  contain, so it tripped `[GRID_OVERFLOW] ... (fixed/portal)`. Single cards are exempt from that
+  check by construction, so the warn is gone rather than triaged — do not expect it back.
 
 ## Props that look like content but are not
 

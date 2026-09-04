@@ -109,3 +109,19 @@ const [at, setAt] = useState(null)
 Give it no `anchor` and it draws nothing — that is how it is hidden. It never holds a control
 and never carries a fact that is not also on the thing it points at, since it answers a pointer
 only.
+
+A tooltip is often more than one word. Pass `title` for a heading line, and build the body from
+the four classes the chart hovers already use — do not style your own:
+
+```jsx
+<Tooltip anchor={at} title="4. september">
+  <div className="tooltip-row">
+    <span className="tooltip-swatch" style={{ background: '#14AC72' }} />
+    <span className="tooltip-name">Spent</span>
+    <span className="tooltip-value tabular-figures">402,17 kr.</span>
+  </div>
+</Tooltip>
+```
+
+Plain text in a tooltip is normal weight; `tooltip-value` is the bold half of a pair and sits
+hard right. `tooltip-swatch` is an 8px chip — give it a `background`.

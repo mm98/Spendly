@@ -18,7 +18,19 @@ holds no controls.
 - `anchor` — a `DOMRect` for what is being pointed at, usually from
   `element.getBoundingClientRect()`. Pass nothing and it draws nothing, which is how it is
   hidden.
-- `children` — the words. One short line; it does not wrap.
+- `title` — an optional heading line above the body, in the muted caption size.
+- `children` — the body. Plain text reads as normal weight.
+
+## Building the content
+
+A tooltip is not only a one-word label. The content parts are shared with the chart hovers, so
+a composed one is built from the same four classes rather than a second set:
+
+- `tooltip-title` — the heading line (also what the `title` prop renders).
+- `tooltip-row` — one line of the body, laid out swatch, name, figure.
+- `tooltip-swatch` — an 8px colour chip; give it a `background`.
+- `tooltip-name` / `tooltip-value` — the label and its figure; the figure is the bold half
+  and sits hard right.
 
 ## Example
 

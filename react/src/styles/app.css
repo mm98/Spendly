@@ -515,9 +515,16 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 /* Every hover label in the app is this surface: the chart hovers, the sidebar's build-quality
    callout and the icon grid's name. Only what sits inside one is its own business. */
 .tooltip { --pad-tooltip:4px 8px; background:var(--bg-card); border-radius:var(--radius-page); box-shadow:var(--shadow); font-size:11.5px; color:var(--text-body); }
+/* What a tooltip's content is built from: a heading line, then rows of swatch, name and value.
+   The chart hovers and an app-drawn label compose from these same pieces. */
+.tooltip-title { font-size:10.5px; color:var(--text-muted); }
+.tooltip-row { display:flex; align-items:center; gap:6px; }
+.tooltip-swatch { width:8px; height:8px; border-radius:2px; flex:none; }
+.tooltip-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tooltip-value { margin-left:auto; font-weight:600; color:var(--text); }
 /* Placed against the viewport by Tooltip.jsx, which reads --gap-tooltip for how far to sit off
    what it points at. Above the page, under the toasts, and never a click target. */
-.tooltip-floating { --gap-tooltip:var(--gap-icon); position:fixed; z-index:50; padding:var(--pad-tooltip); font-weight:600; color:var(--text); white-space:nowrap; pointer-events:none; }
+.tooltip-floating { --gap-tooltip:var(--gap-icon); position:fixed; z-index:50; display:grid; gap:5px; max-width:260px; padding:var(--pad-tooltip); color:var(--text); pointer-events:none; }
 .card-header .chevron { color:var(--text-body); }
 .chevron { display:inline-flex; align-items:center; color:var(--text-faint); }
 /* Icon size is the container's business, not the markup's. svg.icon is 18px and
@@ -797,12 +804,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .chart-caption-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
 /* Matches .build-quality-callout's own card-on-card recipe: off the card surface, not the
    page, since it can sit over either. */
-.chart-tooltip { display:grid; gap:5px; min-width:120px; padding:8px 10px; white-space:normal; }
-.chart-tooltip-date { font-size:10.5px; color:var(--text-muted); }
-.chart-tooltip-row { display:flex; align-items:center; gap:6px; }
-.chart-tooltip-swatch { width:8px; height:8px; border-radius:2px; flex:none; }
-.chart-tooltip-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.chart-tooltip-value { margin-left:auto; font-weight:600; color:var(--text); }
+.chart-tooltip { display:grid; gap:5px; min-width:120px; padding:8px 10px; }
 /* Key for a two-series chart. Both lines get named -- a swatch that labels one of two
    plotted series is worse than no key at all. Wraps rather than overflows on a phone. */
 .chart-series-key { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; color:var(--text-body); margin-top:2px; }
