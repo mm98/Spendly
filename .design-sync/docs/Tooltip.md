@@ -19,7 +19,18 @@ holds no controls.
   `element.getBoundingClientRect()`. Pass nothing and it draws nothing, which is how it is
   hidden.
 - `title` — an optional heading line above the body, in the muted caption size.
+- `matchWidth` — draw the label at the width of the rectangle it points at. Off by default.
 - `children` — the body. Plain text reads as normal weight.
+
+## How wide it is
+
+A label is normally as wide as its own words, because it points at one small thing. One that
+labels a whole strip — a footer line across a rail, a row spanning a column — takes `matchWidth`
+instead, and is drawn at the width of the rectangle it was given. Its edges then land on the
+column everything around it already lines up with, rather than floating at whatever width its
+longest row happens to measure. Point it at the strip's own box for this, not at the words
+inside the strip: an inline run of text is only as wide as its words, so a label measured
+against it comes out narrow and off-centre.
 
 ## Building the content
 
@@ -51,5 +62,5 @@ const point = e => {
 <Tooltip anchor={at?.rect}>{at?.name}</Tooltip>
 ```
 
-The surface is shared: the chart hovers, the sidebar's build-quality callout and this all wear
-the `tooltip` class, so there is one white card to change rather than five.
+The surface is shared: the chart hovers, the sidebar's build scores and this all wear the
+`tooltip` class, so there is one white card to change rather than five.

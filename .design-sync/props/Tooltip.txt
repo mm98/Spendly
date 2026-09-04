@@ -3,6 +3,10 @@
 	anchor?: DOMRect;
 	/** Optional heading line above the body, in the muted caption size. */
 	title?: React.ReactNode;
+	/** Draw the label at the width of the rectangle it points at, for a label that
+	    belongs to a whole strip rather than to a point in it -- its edges then land on
+	    the strip's own column. Off by default: a label is as wide as its words. */
+	matchWidth?: boolean;
 	/** The body. Plain text reads as normal weight; compose rows from
 	    `tooltip-row` / `tooltip-swatch` / `tooltip-name` / `tooltip-value` for figures. */
 	children?: React.ReactNode;

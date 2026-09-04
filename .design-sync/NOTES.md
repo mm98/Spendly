@@ -3,7 +3,7 @@
 ## The project this repo syncs to
 
 **https://claude.ai/design/p/bc7c3554-1da2-4d46-a863-04f4247fabe6** — "Spendly Design System",
-89 components (90 once the next sync runs -- `Tooltip` is new here and not yet uploaded). The same id is `projectId` in `config.json` beside this file, and that is what
+92 components. The same id is `projectId` in `config.json` beside this file, and that is what
 pins a re-sync to this project rather than making a second one.
 
 It is generated **from `react/src`**, so it mirrors the app as built and never leads it. A card
@@ -117,6 +117,11 @@ components need it, each measured rather than guessed:
   contain, so it tripped `[GRID_OVERFLOW] ... (fixed/portal)`. Single cards are exempt from that
   check by construction, so the warn is gone rather than triaged — do not expect it back.
 
+A card-shaped component is `column` like every other card: `MoveOrdersCard` sits in the same
+340px rail as `DeleteCard` and was flagged `wide` on its first sync. A form field is not: size
+its preview `maxWidth`, the way `TextInput` does, and it shrinks into the half-width cell
+instead of needing an override at all.
+
 ## Props that look like content but are not
 
 The generated baseline guesses types from prop names, and these guesses were wrong in ways that
@@ -178,6 +183,14 @@ Previewed from the component's own contract, and each doc says so rather than im
 `CardHeader`'s disclosure branch (`onToggle`/`open`/`controls`) is no longer one of them: the
 order read view's status history card uses it. Its preview can be drawn from a real call site now.
 
+## The remote anchor has to be typed out by hand
+
+`_ds_sync.json` can only be read through `DesignSync(get_file)`, which returns it into the
+conversation rather than to disk, so putting it at `.design-sync/.cache/remote-sync.json` means
+transcribing ~450 lines of hashes. It is still far cheaper than the alternative: with no anchor
+every one of the 92 components is re-captured and re-graded. Transcribe it, then check it with
+`python3 -c "import json;json.load(open(...))"` before the driver runs.
+
 ## Where a re-sync starts
 
 ```sh
@@ -205,6 +218,11 @@ the day a caller passed a link.
 Whenever `react/src/components` gains or changes a prop, update `.design-sync/props/<Name>.txt`
 and re-run `fold-props.mjs` in the same pass. The check that catches it: diff the destructuring in
 the component against its `props/*.txt` for anything the change touched.
+
+The same gap swallows a whole component. A merged PR that adds one leaves no docs file, so it
+lands in `general` with an unauthored card and the build says only `[DOCS_UNMAPPED] <Name>` —
+which is a line in a log, not a failure. Read the driver's `added` list on every sync and write
+the three inputs for anything in it.
 
 ## Re-sync risks
 
