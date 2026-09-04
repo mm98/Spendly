@@ -15,7 +15,6 @@ import {
 	createCategory, deleteCategory, failureMessage, getCategories, getCategory, invalidateCategoryData, updateCategory
 } from '../api/client.js'
 import { AMOUNT_PATTERN, amountRound, currency, currencySymbol, parseAmount, sanitizeAmount } from '../api/format.js'
-import { resolveColour } from '../api/colour.js'
 
 /* A category, on its own page.
 
@@ -222,10 +221,6 @@ function CategorySummary({ values, budget, category }) {
 				</div>
 				<div className="summary-row">Name
 					<span className="summary-row-value">{values.name || '-'}</span></div>
-				<div className="summary-row">Colour
-					<span className="summary-row-value">{resolveColour(values.colour).toUpperCase()}</span></div>
-				<div className="summary-row">Icon
-					<span className="summary-row-value">{values.icon}</span></div>
 				<div className="summary-row">Favourite
 					<span className="summary-row-value">{values.favourite ? 'Yes' : 'No'}</span></div>
 				{/* Rounded, because the row in the Manage list rounds it: two figures for one

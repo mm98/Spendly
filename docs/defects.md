@@ -3268,3 +3268,119 @@ A dot is either grouping or a typo, and the app cannot tell which — `1.23` cou
 which is worse than a rejection that names the shape it wants.
 
 Not checked: Firefox and WebKit.
+
+## Order read — the status log hid the one step it existed to show
+
+`order_statuses` is a log: `saveOrderStatuses` always writes an `Ordered` row from the order's own
+date, then `Delivered` and `Returned` when they exist. The Details card printed
+`statusHistory[0]` under the fixed label `Date` and only named the entries after it, so the first
+step lost its name. On an order that reached Delivered the same day it was ordered, the card read:
+
+| row | shown | actually |
+|---|---|---|
+| Status | Delivered | the current status |
+| Date | 04.09.2026 | the **Ordered** step |
+| Delivered | 04.09.2026 | the Delivered step |
+
+Two rows, one word between them, and `Ordered` appeared nowhere on the page. Read straight down it
+says Delivered twice and reports no history at all.
+
+The SHOW/HISTORY control was measured in the same pass. Every other child of that card body spans
+the card's full 350px; the link spanned **1045→1143, 98px**, left-aligned in a column whose values
+are all right-aligned, sitting between two label/value rows with no rule tying it to either.
+
+The log is now its own card, collapsed behind its header band, and every row is the step's own
+name against its date. Verified in the browser on an order with `[Ordered 04.09, Delivered 04.09]`:
+collapsed the body reports `hidden`, `aria-expanded="false"`, width 0; expanded it draws
+`Ordered 04.09.2026` and `Delivered 04.09.2026`, both **350px**, level with every row in Details.
+On an iPhone 15 the rows measure 327px and `documentElement.scrollWidth` stays 393 against a 393
+`clientWidth`, before and after opening it.
+
+The card is drawn only when the log holds more than one step: an order still only ordered would
+otherwise get a card repeating the date the Details card already shows. Measured both ways — a
+two-step order draws `Details, Status history, Note`, a one-step order draws `Details` and no
+history card at all.
+
+Opening it once left it open on every order after that. The page keeps the same component across
+a change of `:id`, so walking order → order carried the state over and the next order arrived
+expanded on a log nobody had asked for; a bare `goto` hides this, since only in-app navigation
+reuses the component. Reset on the id, and re-measured along the same walk: open on one order,
+away, back — `aria-expanded="false"`, body hidden.
+
+`CardHeader`'s disclosure branch already existed and nothing in the app called it. It was the
+design-sync pass that recorded that, which is how it was found rather than rebuilt.
+
+Not checked: Firefox and WebKit.
+
+## Honest Affordances — three values printed in the language of the code
+
+Three strings reached the screen describing how a record is stored rather than what the reader
+chose:
+
+| where | printed | what the reader can do with it |
+|---|---|---|
+| Order read, Details card | `73860 km` | nothing — a bare unlabelled line under a divider |
+| Category summary | `#7A8B2E` | nothing — the tile above already is that colour |
+| Category summary | `music` | nothing — the tile above already is that glyph |
+
+The order note was a `field-help` span measured at **1045→1105**, no label of any kind, sitting
+after a divider at the foot of a card of label/value rows. Nothing on the page said the words were
+the note the account wrote, so a note that happens to be a bare number reads as a stray figure.
+The design system already put notes in their own card; the code had folded them into Details.
+
+The colour row ran `resolveColour(...).toUpperCase()` and the icon row printed the Tabler
+catalogue key. The vendor summary carried the same colour row, found by grepping rather than by
+being shown — one report, every instance.
+
+After: the note is its own card with its own header, and the three rows are gone. The category
+summary now lists Name, Favourite and Monthly budget; the vendor summary keeps Initials, which is
+a value the account typed and can act on. Verified by reading the rendered rows back from both
+cards.
+
+Not checked: Firefox and WebKit.
+
+## Tooltips — one look, written out four times
+
+The app drew four hover labels and none of them shared a rule. Measured from the stylesheet
+before the change:
+
+| where | surface |
+|---|---|
+| line chart | `--bg-card`, `--radius-page`, no border, `0 2px 6px /.06, 0 14px 34px /.12`, 11.5px |
+| weekday bars, month columns | `--bg-card`, `--radius-compact`, **1px border**, `0 2px 6px /.08`, 11px |
+| donut ring | the same as the bars, written out again |
+| sidebar build-quality callout | the chart's surface again, with `16px` in place of the radius token |
+
+Three looks across four copies, and the wide shadow pair appeared in two of them as a literal
+while `--shadow` already held that exact shape for the auth card and the prompt bar.
+
+They are now one `.tooltip` rule that every caller wears, and each keeps only what is really
+its own — the chart's grid and `min-width`, the bars' row gap, the ring's weight, the callout's
+position. Read back from the browser, all five callers now compute identically: white,
+`12px`, `0px` border, `11.5px`, and the same two-layer `--shadow`. The literal
+`0 14px 34px` no longer appears anywhere in the stylesheet.
+
+The icon grid was the fifth caller and the reason for the pass. 5,129 glyphs and no way to
+learn what one is without choosing it, and the grid clips: its declared `overflow-y: auto`
+makes the computed `overflow-x` `auto` too, so a label drawn inside it loses its top edge. It
+is drawn into `document.body` and placed against the viewport instead.
+
+Placement tries north, south, east, west and takes the first that fits, then slides along the
+free axis. Forced against each edge by shrinking the viewport, hovering every tile of a search
+and reading the chosen side and the label's own rectangle back:
+
+| viewport | side chosen | off-screen |
+|---|---|---|
+| 1440x900 | n | 0 of 5 |
+| 1440x240, grid pinned to the top | s | 0 of 5 |
+| 1440x90 | e | 0 of 5 |
+| 320x560 | n on four, w on the tile at the right edge | 0 of 5 |
+
+It answers keyboard focus as well as hover, checked by focusing a tile with no pointer over the
+grid at all.
+
+One trap came with it. The label spells the name in spaces, so `gas-station` reads "gas
+station" — and the search matched only the hyphenated form, meaning the words the tooltip
+showed returned nothing when typed back. A typed space now reaches a hyphen.
+
+Not checked: Firefox and WebKit.

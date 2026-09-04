@@ -17,7 +17,6 @@ import {
 	invalidateVendorData, updateVendor
 } from '../api/client.js'
 import { currency, sep } from '../api/format.js'
-import { resolveColour } from '../api/colour.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
 /* A vendor, on its own page -- the same page component as a category and as an order, because
@@ -236,8 +235,6 @@ function VendorSummary({ name, colour, initials, favourite, aliases, defaultCate
 				</div>
 				<div className="summary-row">Name<span className="summary-row-value">{name || '-'}</span></div>
 				<div className="summary-row">Initials<span className="summary-row-value">{initials}</span></div>
-				<div className="summary-row">Colour
-					<span className="summary-row-value">{resolveColour(colour).toUpperCase()}</span></div>
 				<div className="summary-row">Favourite
 					<span className="summary-row-value">{favourite ? 'Yes' : 'No'}</span></div>
 				<div className="summary-row">Aliases

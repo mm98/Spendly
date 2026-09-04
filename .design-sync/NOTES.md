@@ -3,7 +3,7 @@
 ## The project this repo syncs to
 
 **https://claude.ai/design/p/bc7c3554-1da2-4d46-a863-04f4247fabe6** — "Spendly Design System",
-89 components. The same id is `projectId` in `config.json` beside this file, and that is what
+89 components (90 once the next sync runs -- `Tooltip` is new here and not yet uploaded). The same id is `projectId` in `config.json` beside this file, and that is what
 pins a re-sync to this project rather than making a second one.
 
 It is generated **from `react/src`**, so it mirrors the app as built and never leads it. A card
@@ -156,8 +156,10 @@ Five chart components render an empty box with no error when the data is the wro
 ## Live code the app never calls
 
 Previewed from the component's own contract, and each doc says so rather than implying a usage:
-`CardHeader`'s disclosure branch (`onToggle`/`open`/`controls`), `TagChip` (its pattern stayed
-in the frozen prototype), `Switch`, and `FilterSectionBody`.
+`TagChip` (its pattern stayed in the frozen prototype), `Switch`, and `FilterSectionBody`.
+
+`CardHeader`'s disclosure branch (`onToggle`/`open`/`controls`) is no longer one of them: the
+order read view's status history card uses it. Its preview can be drawn from a real call site now.
 
 ## Where a re-sync starts
 
@@ -183,7 +185,7 @@ driver: run it whenever a `props/*.txt` changed, or the contract will not reach 
   stale. Re-read the destructuring of any component whose source changed.
 - Icon names in previews are string keys into `ICONS` in `react/src/components/Icon.jsx`. A
   renamed icon renders nothing and does not error.
-- Only 20 of 89 components are found by the converter's own source matcher (their name matches
+- Only 20 of them are found by the converter's own source matcher (their name matches
   a filename). The rest are grouped and documented purely by `.design-sync/docs/<Name>.md`
   frontmatter, so a doc deleted or renamed silently drops that component back into `general`.
 - `.design-sync/conventions.md` names 78 tokens, 21 components and 23 variant classes. It is

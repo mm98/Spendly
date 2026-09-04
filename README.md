@@ -182,6 +182,21 @@ These hold on every screen and are the constraints behind several layout decisio
 3. **Nothing saves by itself.** Scans propose values, they never overwrite silently. A duplicated order opens unsaved and can be abandoned.
 4. **Numbers answer the current filter.** Totals and counts in a filtered list describe what is on screen, not the whole account.
 5. **Single user, personal receipts.** No item catalogue, no shared editing, no permissions. A conflict means two browser tabs, not two people.
+6. **There is one tooltip.** Every hover label in the app is the same white card — one surface, defined once, used by the chart hovers, the sidebar callout and the icon grid alike. See Tooltips below.
+
+---
+
+### Tooltips
+
+**One surface, one component, no second way of doing this.** A tooltip is a white card on the page's card background, the page radius, the app's float shadow token, no border. It is defined in a single place and every caller wears it; a hover label that writes its own background, radius or shadow is a bug, because the day the surface changes, one of them will not.
+
+**A tooltip is for a pointer, and never the only way to know something.** Whatever it says, the thing it points at already says to a screen reader through its own `aria-label`. So a tooltip never carries a fact available nowhere else, and it never holds a control: it takes no pointer events, and it goes the moment the pointer leaves or the focus moves.
+
+**It picks its own side: north, south, east, west, in that order.** North is where a label is looked for, so it is tried first; the first side with room in the viewport wins, and when none has room, the side with the most does. It then slides along the free axis so it stays fully on screen — a label half off the edge is worse than one slightly off-centre. It is drawn against the viewport rather than beside what it points at, because the things worth labelling sit in scrolling boxes and rounded cards that would otherwise cut it off.
+
+**It appears on hover and on keyboard focus, not on click.** A grid of unlabelled controls is unusable to someone tabbing through it if the name only answers to a mouse.
+
+**The gap between a tooltip and what it points at is a token, not a number in the script that places it.** The stylesheet owns the spacing; the component owns only which side it goes on.
 
 ---
 
@@ -305,7 +320,9 @@ This is the core of the handoff.
 
 Main column `1fr` (min `560px`), right rail `360px`, `24px` gap, aligned to top. The item list begins at the top of the main column — no header block above it. The rail scrolls with the page; it is deliberately kept shorter than the item list so the two do not fight (this was an explicit revision: the rail must not become the longest thing on the page).
 
-**Rail contents, in order:** order details (vendor, order date, status, delivered/returned date once the order has reached them, category, reference), then totals, then notes. Each is its own white card, radius `12px`, `16px` padding, `14px` between cards. Each card opens with an 11px uppercase `0.12em` `#6b6a63` label.
+**Rail contents, in order:** order details (vendor, order date, status, category, reference), then the status history, then totals, then notes. Each is its own white card, radius `12px`, `16px` padding, `14px` between cards. Each card opens with an 11px uppercase `0.12em` `#6b6a63` label.
+
+**Status history is its own card, and every step in it names itself.** The order's dated steps — ordered, delivered, returned — are a log, not fields of the record: the list has no fixed length, since a returned item can be replaced and delivered again. Folding it into the details card costs the first step its name, because that row is already spoken for as the order's own date, and it leaves a bare link sitting between two label/value rows. So it is a card of its own, collapsed by default, opened by its header band (Progressive Disclosure), and it appears only when there is more than one step to see. Each row is the step's own name against its date, so a reader never has to work out which status a date belongs to.
 
 **Totals card:** label/value rows 13px, then a `1px #dedcd4` divider, then the grand total at 20px/700. The items are one row here — their summed price, with the rows that follow taking the discount off and adding the shipping, so the card reads down to the same total the order stores. The rail never repeats a list the main column already shows.
 
@@ -471,6 +488,8 @@ Panel: the category form.
 
 This is why the count is the summary: "8 of 9 over this month" is a fact about the limits that were actually set. A percentage across all of them is not.
 - Icon and colour always render together, so the same mark identifies the category in chips, facets and charts.
+
+**A summary card lists what the reader chose, in the words they chose it in — never the value the code stores.** The vendor and category forms each preview the record as it will be drawn, then list its fields underneath. A colour belongs in that preview as the colour, and an icon as the glyph; printing the colour's hex or the icon's catalogue name beside them states the same choice a second time in a form nobody reading a receipt can act on, and nothing on the page can be changed by knowing either. The rule is the general one: a row earns its place by changing what the reader does next, so a field whose whole meaning is already on screen as a picture is shown as the picture and nothing else.
 
 #### 5c — Roll-up panel (nothing selected)
 
