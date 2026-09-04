@@ -1,18 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-/** The app's one hover label. Give it the rectangle of the thing being pointed at and the
-    words to say; it finds a side of that rectangle with room for them.
-
-    It draws into `document.body` rather than beside its anchor, because the things worth
-    labelling sit inside scroll boxes and rounded cards that would cut it off -- the icon
-    grid clips on both axes, so a label drawn inside it is a label with its top sliced away.
-
-    Say nothing here that the anchor does not already say to a screen reader: this is a
-    convenience for a pointer, and `aria-label` on the anchor is what a reader hears. */
-
-/* North first, then south, then the sides. Above is where a label is looked for, and a row of
-   small controls has more room above it than beside it. */
+/** The app's one hover label: a rectangle to point at, words to say. Drawn into `document.body`,
+    since a caller that scrolls or rounds its corners cuts it off. Sides tried in this order. */
 const SIDES = ['n', 's', 'e', 'w']
 
 const positions = (anchor, tip) => ({

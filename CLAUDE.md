@@ -143,6 +143,12 @@ hide a broken selector as a slow run. Warm a cold dev server with one request ra
 Two things need no trigger: never claim what was not run ([Reporting](#reporting)), and read the file
 you're changing before changing it.
 
+**`git add` before running a diff-scoped check, or a new file is invisible to it.**
+`check-comments.mjs` and the other guards read `git diff`, which does not see an untracked file at
+all. A brand-new file therefore passes every local run and fails in CI, where it is committed.
+Stage first, and pass CI's own base (`CHECK_BASE_SHA=<merge base>`) so the local run is the run CI
+does.
+
 ### Never assume or guess. Always validate first.
 
 A threshold, or a claim that something fits or is safe, is a claim about the full range it applies
