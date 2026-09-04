@@ -1,8 +1,8 @@
 ---
 category: Chips
 ---
-States a number against retail: what an order or a month saved. Green wash, upward arrow,
-tabular figures, and no options — one look, because it only ever says one kind of thing.
+States a number against retail: what an order or a month saved. Green wash, upward arrow
+and no options — one look, because it only ever says one kind of thing.
 
 There is no tone and no trend. The arrow always points up and the ink is always the positive
 green, so only send it a figure that really is a gain. A loss goes somewhere else — `KpiCard`

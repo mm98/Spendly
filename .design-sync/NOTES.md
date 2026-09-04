@@ -193,6 +193,19 @@ Fetch `_ds_sync.json` from the project into `.design-sync/.cache/remote-sync.jso
 re-copy the staged scripts from the skill before running. `fold-props.mjs` is not part of the
 driver: run it whenever a `props/*.txt` changed, or the contract will not reach the build.
 
+## A prop added to a component is invisible to the sync until `props/<Name>.txt` says so
+
+`dtsPropsFor` is hand-written, so the `.d.ts` the design agent codes against does not follow the
+source. Adding a prop and shipping it leaves the contract stale, and **nothing fails**: the diff
+keys the verification partition on preview sources, so a component whose signature changed but
+whose preview did not reports `0 changed` and uploads nothing. Found this way — `SummaryRow`
+gained a `variant` and shipped without it, alongside a `value?: string` that had been wrong since
+the day a caller passed a link.
+
+Whenever `react/src/components` gains or changes a prop, update `.design-sync/props/<Name>.txt`
+and re-run `fold-props.mjs` in the same pass. The check that catches it: diff the destructuring in
+the component against its `props/*.txt` for anything the change touched.
+
 ## Re-sync risks
 
 - The `react/node_modules/spendly-react` symlink and the playwright link under `.ds-sync/` are

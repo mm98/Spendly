@@ -1,6 +1,8 @@
 	/** The name of the fact, on the left. */
 	label?: string;
-	/** The figure or the value, on the right, already formatted. Figures take the tabular
-	 *  face, so they line up down the panel. */
-	value?: string;
+	/** Its answer, on the right: a figure, a word, a link, a list of them. */
+	value?: React.ReactNode;
+	/** Class words that tone the answer, the way Card takes them. Today the only one is
+	 *  `summary-row-value-saving`, which makes it green. */
+	variant?: string;
 	className?: string;
