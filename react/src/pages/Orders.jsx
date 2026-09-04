@@ -7,11 +7,9 @@ import { Donut, DonutBox, SpendChart } from '../components/Chart.jsx'
 import { CategoryRow, EntryRow } from '../components/Rows.jsx'
 import { ReturnsCard } from '../components/Returns.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
-import { Segmented } from '../components/Form.jsx'
 import { useApi } from '../api/useApi.js'
-import { budgetUsed, getOrdersOverview, ordersIn } from '../api/client.js'
-import { compactAmount, currency, dayMonth, percent, sep } from '../api/format.js'
-import { useState } from 'react'
+import { getOrdersOverview, ordersIn } from '../api/client.js'
+import { compactAmount, currency, dayMonth, sep } from '../api/format.js'
 
 /* Orders, overview.
 
@@ -22,7 +20,6 @@ import { useState } from 'react'
 export default function Orders() {
 	const location = useLocation()
 	const state = useApi(getOrdersOverview)
-	const [breakdown, setBreakdown] = useState('Expenses')
 
 	return (
 		<Page>
@@ -141,67 +138,30 @@ export default function Orders() {
 							<CardHeader title="Category breakdown" />
 							<CardDivider />
 							<CardBody>
-								{/* With no rows to split, the toggle switched between two empty rings and
-								    ALL CATEGORIES closed the card over a list with nothing in it -- the
-								    empty state answers instead, and it has to know which absence it is
-								    answering: a month with nothing bought, or an account with no
-								    categories at all. README: Empty states, Honest Affordances. */}
+								{/* With no rows to split this card drew an empty ring and ALL CATEGORIES
+								    closed it over a list with nothing in it -- the empty state answers
+								    instead, and it has to know which absence it is answering: a month with
+								    nothing bought, or an account with no categories at all.
+								    README: Empty states, Honest Affordances. */}
 								{data.monthCategories.length ? (
 									<>
-									<div className="card-toggle-row">
-										<Segmented options={['Expenses', 'Budget']} value={breakdown}
-											onChange={setBreakdown} label="Category breakdown basis" />
+									<DonutBox>
+										<Donut segments={data.monthCategories.map(c => ({ share: c.share, colour: c.colour }))}
+											value={currency(data.period.spent, 0)} label="Spent this month"
+											ariaLabel={`Category split of ${currency(data.period.spent, 0)} this month`} />
+									</DonutBox>
+									{/* "Without category" carries the `none` sentinel the orders list
+									    filters by: the month's orders with no category at all, the same
+									    rows its figure added up. README: Home. */}
+									<div className="category-rows">
+										{data.monthCategories.map(c =>
+											<CategoryRow key={c.id} category={c}
+												/* The month this ring is of. Its centre reads "Spent this month",
+												   so a row opening every order in that category ever is a list
+												   that disagrees with the figure clicked to reach it. */
+												to={ordersIn({ category: c.id,
+													from: data.period.from, to: data.period.to })} />)}
 									</div>
-									{/* Two views, and the toggle really switches them. Expenses is each category's
-									    share of the month; Budget is the same categories against what they were
-									    allowed, which is a different question and gets a different ring. The
-									    prototype draws this control and changes nothing with it -- the
-									    decorative-control rule wearing the shape of a tab. README: Honest Affordances. */}
-									{breakdown === 'Expenses' ? (
-										<>
-											<DonutBox>
-												<Donut segments={data.monthCategories.map(c => ({ share: c.share, colour: c.colour }))}
-													value={currency(data.period.spent, 0)} label="Spent this month"
-													ariaLabel={`Category split of ${currency(data.period.spent, 0)} this month`} />
-											</DonutBox>
-											{/* "Without category" carries the `none` sentinel the orders list
-											    filters by: the month's orders with no category at all, the same
-											    rows its figure added up. README: Home. */}
-											<div className="category-rows">
-												{data.monthCategories.map(c =>
-													<CategoryRow key={c.id} category={c}
-														/* The month this ring is of. Its centre reads "Spent this month",
-													   so a row opening every order in that category ever is a list
-													   that disagrees with the figure clicked to reach it. */
-													to={ordersIn({ category: c.id,
-														from: data.period.from, to: data.period.to })} />)}
-											</div>
-										</>
-									) : (
-										<>
-											<DonutBox>
-												<Donut segments={[
-													{ share: Math.min(100, budgetUsed(data.budgetCategories)), colour: 'var(--green)' },
-													{ share: Math.max(0, 100 - budgetUsed(data.budgetCategories)), colour: 'var(--border-card)' }
-												]}
-													value={percent(budgetUsed(data.budgetCategories), 0)} label="of budget used"
-													ariaLabel={`${percent(budgetUsed(data.budgetCategories), 0)} of this month's budget used`} />
-											</DonutBox>
-											{/* The same rows as the Expenses view, saying a different thing in the
-											    meta line. A progress bar under each one would be a layout this app
-											    does not use anywhere else. README: Cards. */}
-											<div className="category-rows">
-												{data.monthCategories.map(c => (
-													<CategoryRow key={c.id} category={c}
-														to={ordersIn({ category: c.id,
-														from: data.period.from, to: data.period.to })}
-														meta={c.budget
-															? `${currency(c.spend, 0)} of ${currency(c.budget, 0)} budget`
-															: 'No budget set'} />
-												))}
-											</div>
-										</>
-									)}
 									{/* Categories, so the destination is the categories page. It read SEE ALL
 									    under a list of categories and opened the orders list -- the same
 									    mismatch the Categories page's own VIEW ALL had. */}

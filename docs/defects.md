@@ -2495,6 +2495,61 @@ after the change: no error card, no page errors.
 **Not run:** Gecko and WebKit are not installed in this container, and neither is a rendering
 question — every figure above is text read back from the DOM.
 
+## Meters and progress — every limit was added up and drawn as one month's budget
+
+A category's budget is a **ceiling on that category**, and three cards divided a period's spend by the
+sum of all of them: *Against budget* on the Categories overview, the same card on Statistics, and the
+Budget half of the Orders overview breakdown. The arithmetic was sound and the number was still not a
+fact about the account — nobody had ever set a total, so the denominator was a target the product
+invented. A limit on gifts stands in the months nobody has a birthday, and in those months it sat in
+the denominator anyway.
+
+It fails in both directions at once. Downward: five ceilings totalling 11.200 kr. with one 321 kr.
+purchase read **4% of budget used** in a month where the one category bought from was at 64% of its
+own — plenty of room left, said about categories that were never going to be bought from. Upward, on
+a ledger with history behind it, the same figure ran to three digits and was no more readable. And in
+every direction it hid the rows it was made of: on a demo account of nine budgeted categories, one
+figure of **337%** stood over a range from 45% to 1178%, so a category at more than eleven times its
+own ceiling was invisible in the number drawn above it.
+
+Each card was internally consistent — the caption, the meter, the help line and the rows all agreed
+with the figure, and the two pages that printed it agreed with each other to the øre. That is what
+kept it: nothing on any card was misdrawn, and the quantity itself had no referent.
+
+The cards are the rows now, fullest ceiling first, each category against its own budget and nothing
+else. No total of the limits, no percentage of one, no bar filled by one. The count is the summary a
+period gets — *8 of 9 over this month* names the ceilings someone actually set. A budgeted category
+with a quiet month is a row at 0% rather than an invisible share of a denominator, which is the case
+the old figure could not show at all. `budgets.used`, `budgets.allowed` and `budgets.spent` are gone
+from the API with the cards that read them; the per-row ratio stays, computed once server-side over
+Statistics' window and once in the browser over the month, from the same three sort keys — used,
+then spend, then name — so untouched budgets, all of them 0%, cannot rank differently on the two
+pages.
+
+Measured in Blink 141.0.7390.37 under Playwright 1.56.1, driving the app at `localhost:5173`, fresh
+accounts registered and filled through the UI:
+
+| account | what the reader saw | now |
+| --- | --- | --- |
+| 5 budgets, 8.700 kr. of ceilings, one 321 kr. order | 4% of budget used | Biking 64% of a 500 kr. budget, 321 kr. |
+| the other four, untouched that month | not drawn at all | four rows at 0% of their own budgets |
+| demo fill, 9 budgets, 11.200 kr. of ceilings | 337% of budget used | Hobby 1178%, down to Eating out 45% |
+| Categories overview against Statistics, same account | two cards, one figure each | six rows each, identical name, meta and amount, in identical order |
+
+The three cards no longer print the string "of budget used" anywhere. Orders overview keeps one ring
+instead of two behind a toggle: its Expenses view is the month's split and adds up to the figure in
+its own centre, and the Budget view it toggled to was a third copy of a number the Categories page
+and Statistics already carry with the context to read it. Categories names the month in the card
+header, as Statistics does, rather than in each row. On an iPhone 15 descriptor at
+`deviceScaleFactor: 2` all three cards sit 1px inside their card box, no meta line is clipped, every
+meta is one 16px line, and no page scrolls sideways. The empty branches were driven too: no
+categories, categories without budgets, and a budget with no spend — each draws its own sentence. All
+19 routes were opened after the change: no error card, no page error, no console error.
+
+**Not run:** Gecko and WebKit are not installed in this container. The `docs/` screenshots were not
+re-rendered: they show Home and the All orders list, neither of which draws any of these three cards,
+and the one style rule deleted (`.card-toggle-row`) had no other match in the app.
+
 ## Create and Edit — the fields for a line stood 587px from the line
 
 Both order forms drew one item form above the item list, permanently, and put a pencil on every

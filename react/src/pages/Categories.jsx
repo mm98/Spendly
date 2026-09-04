@@ -2,17 +2,18 @@ import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonKpiRow } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
-import { LegendRow } from '../components/Rows.jsx'
+import { CategoryRow, LegendRow } from '../components/Rows.jsx'
 import { FavouriteTile, FavouriteTileGrid } from '../components/FavouriteTiles.jsx'
 import { Donut } from '../components/Chart.jsx'
-import { Meter, foldForRing } from '../components/Viz.jsx'
+import { foldForRing } from '../components/Viz.jsx'
 import { Button } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	budgetUsed, chartPeriodPhrase, getCategoriesThisMonth, getCategoryChartSplit, getUncategorised, overBudget
+	budgetShare, chartPeriodPhrase, getCategoriesThisMonth, getCategoryChartSplit, getUncategorised,
+	ordersIn, overBudget
 } from '../api/client.js'
-import { currency, percent, plural, sep } from '../api/format.js'
+import { currency, percent, sep } from '../api/format.js'
 import { inkOn } from '../api/colour.js'
 
 /* Categories, overview.
@@ -36,7 +37,7 @@ export default function Categories() {
 	   figures a beat apart.
 
 	   It is the joined read rather than the plain list because every card here that names a
-	   budget is a month-scoped claim ("of this month's budget used", "over this month") and a
+	   budget makes a month-scoped claim ("over this month", a row against its own budget) and a
 	   budget is a monthly allowance, so those compare against `monthSpend`. The all-time
 	   figures on this page go on reading `spend`. */
 	const state = useApi(getCategoriesThisMonth)
@@ -45,7 +46,7 @@ export default function Categories() {
 		error: state.error ?? uncategorised.error,
 		loading: state.loading || uncategorised.loading,
 		data: state.data !== undefined && uncategorised.data !== undefined
-			? { categories: state.data, none: uncategorised.data } : undefined
+			? { ...state.data, none: uncategorised.data } : undefined
 	}
 	/* The ring's own read, separate from `both` above: it is scoped to settings.chartPeriod,
 	   which the rest of this page's cards are not, and joining it into the same gate would
@@ -66,7 +67,7 @@ export default function Categories() {
 				skeleton={<>
 					<SkeletonKpiRow />
 					<SkeletonCard bodyHeight={260} />
-				</>}>{({ categories, none }) => {
+				</>}>{({ categories, none, month, cardRows }) => {
 				/* Spent and saved are the account's, not the categorised part of it -- both used
 				   to leave the uncategorised remainder out, so the KPI read an all-time total
 				   that disagreed with every other all-time total by exactly what no category
@@ -75,6 +76,14 @@ export default function Categories() {
 				const saved = categories.reduce((sum, c) => sum + c.saved, 0) + none.saved
 				const budgeted = categories.filter(c => c.budget > 0)
 				const over = budgeted.filter(overBudget)
+				/* Fullest budget first, the same three keys in the same order Statistics' budget
+				   rows arrive in (api/src/lib/stats.js, budgetRowsOver), so the two cards rank
+				   the same categories the same way -- including the untouched ones, which are all
+				   0% of their own budget and would otherwise land in whatever order each page's
+				   source happened to hold them. */
+				const ranked = [...budgeted].sort((a, b) =>
+					budgetShare(b) - budgetShare(a) || b.monthSpend - a.monthSpend
+					|| a.name.localeCompare(b.name))
 				/* The records' own superlative -- "Without category" is not a category, so it
 				   cannot be the largest one. */
 				const top = categories.reduce((most, c) => (c.spend > (most?.spend ?? 0) ? c : most), null)
@@ -204,23 +213,40 @@ export default function Categories() {
 						    one card in a two-column grid and nothing at all beside it.
 						    README: Grids and Breakpoints. */}
 						<Card aria-label="Budget">
-							<CardHeader title="Against budget"
+							{/* The month is in the header, not in every row: which stretch a row's
+							    percentage is read under is the same for all of them, and said once it
+							    cannot drift between them. The same header Statistics' budget card
+							    carries, for the same reason. README: Data Rows. */}
+							<CardHeader title={`Against budget${sep}${month.label}`}
 								to={categories.length ? '/categories/all' : undefined}
 								label="Against budget, open all categories" />
 							<CardDivider />
 							<CardBody>
 								{budgeted.length ? (
 									<>
-										<div className="figure-card tabular-figures">
-											{percent(budgetUsed(categories), 0)}</div>
-										<span className="card-caption">of this month's budget used</span>
-										<Meter className="meter-under-caption"
-											fill={Math.min(100, budgetUsed(categories))}
-											ariaLabel={`${percent(budgetUsed(categories), 0)} of budget used`} />
+										{/* One row per budget, the fullest first, so a category that has passed
+										    its budget is the first thing read. A budget belongs to the category
+										    it is set on: adding every budget up and dividing the month by the
+										    sum invents an allowance nobody set, reads low in any month whose
+										    quiet categories were never going to be bought from, and hides a
+										    category far past its own budget inside a total that looks calm.
+										    README: Categories. */}
+										<div className="category-rows">
+											{ranked.slice(0, cardRows).map(c => (
+												/* This month's spend beside this month's budget, and the row opens
+												   this month's orders in that category -- the figure clicked and
+												   the list it lands on are the same stretch of time. The meta is
+												   the shape Statistics' budget rows use, so the two cards can be
+												   read against each other. */
+												<CategoryRow key={c.id} category={{ ...c, spend: c.monthSpend }}
+													meta={`${percent(budgetShare(c), 0)} of a ${currency(c.budget, 0)} budget`}
+													to={ordersIn({ category: c.id, from: month.from, to: month.to })} />
+											))}
+										</div>
 										<span className="field-help field-help-below">
-											{budgeted.length} categor{budgeted.length === 1 ? 'y has' : 'ies have'} a
-											budget{over.length ? `, ${over.length} over it` : ''}. Budgets are set on a
-											category's own page.
+											{budgeted.length > cardRows
+												? `${budgeted.length - cardRows} more with a budget${sep}`
+												: ''}Budgets are set on a category's own page.
 										</span>
 									</>
 								) : (

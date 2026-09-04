@@ -403,15 +403,14 @@ export default function Stats() {
 						{/* The budgets, on the window's own scale.
 
 						    A budget is a monthly allowance and this page draws five widths, so one of
-						    the two has to be converted before they can be printed in one sentence --
-						    and a card that skipped that is the "6664% of this month's budget used" the
-						    README's budget rule is written from, one page over. Longer than a month,
-						    the *spend* comes down to a monthly average, because that is the figure a
-						    monthly budget can be read against without dividing by twelve in your head;
-						    shorter, the *budget* goes down to the window's share of the month, because
-						    scaling four days up to a month is a claim about days that have not
-						    happened. The ratio is the same either way, so the meter and the rows cannot
-						    disagree. README: Meters and progress. */}
+						    the two has to be converted before they can be printed in one sentence.
+						    Longer than a month, the *spend* comes down to a monthly average, because
+						    that is the figure a monthly budget can be read against without dividing by
+						    twelve in your head; shorter, the *budget* goes down to the window's share
+						    of the month, because scaling four days up to a month is a claim about days
+						    that have not happened. The ratio is the same either way, so every row of
+						    the card is read under the one basis its header names.
+						    README: Meters and progress. */}
 						<Card aria-label="Against budget">
 							<CardHeader title={`Against budget${sep}${view.shortLabelFull}`}
 								to={view.budgets.total ? '/categories/all' : undefined}
@@ -421,17 +420,17 @@ export default function Stats() {
 									: null}
 							</CardHeader>
 							<CardDivider />
-							<CardBody variant={view.budgets.total ? 'ring-row' : undefined}>
+							<CardBody>
 								{view.budgets.total ? (
 									<>
-										<SpendGauge segments={[
-											{ share: Math.min(100, view.budgets.used), colour: 'var(--green)' },
-											{ share: Math.max(0, 100 - view.budgets.used), colour: 'var(--bg-meter-track)' }
-										]}
-											value={percent(view.budgets.used, 0)} label="of budget used"
-											ariaLabel={`${percent(view.budgets.used, 0)} of the budget for ${view.label} used`
-												+ `: ${currency(view.budgets.spent, 0)} of ${currency(view.budgets.allowed, 0)}`} />
-										<div className="category-rows chart-legend-fill">
+										{/* Rows, and no ring over them: a budget is a ceiling on one category,
+										    so the only ratio it supports is that category against its own. The
+										    sum of every budget is an allowance nobody set -- a window measured
+										    against it reads low whenever the quiet categories were never going
+										    to be bought from, and a category far past its own budget
+										    disappears into a total that looks calm.
+										    README: Meters and progress. */}
+										<div className="category-rows">
 											{view.budgets.items.map(entry => (
 												/* The row's own amount is the figure its meta line is about -- the
 												   monthly average where that is what is being compared, the window's
@@ -456,8 +455,7 @@ export default function Stats() {
 									</>
 								) : (
 									/* No budgets is not no data: the card says where a budget is set rather
-									   than drawing an empty ring against an allowance of nothing.
-									   README: Empty states. */
+									   than drawing an empty list of them. README: Empty states. */
 									<EmptyState>
 										<p>No budgets set. Give a category a monthly budget and this card measures
 											{' '}{view.label} against it.</p>
