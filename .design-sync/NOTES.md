@@ -78,6 +78,76 @@ rule placed after an override wins on equal specificity.
 - `.field-pair-keep` and `.field-pair-stack-early` differ only inside a viewport media query,
   so no still card can show them apart. Documented in prose instead.
 
+## Card presentation overrides, and why each one is there
+
+`cfg.overrides.<Name>.cardMode = "column"` puts one story per row at full card width. Five
+components need it, each measured rather than guessed:
+
+- `KpiCard` — four tiles across; flagged by `[GRID_OVERFLOW]`.
+- `Icon` — the `AllIcons` cell is the whole registry. At full width it is 8 across and ~350px
+  tall; in a half-width cell it is 4 across and ~820px, past the fold.
+- `Page` — every cell is a page's worth of cards, and the side-rail variant has a 300px floor
+  on the rail, leaving ~72px for the wide column in a half cell.
+- `FavouriteTile`, `FavouriteTileGrid` — the tile has a real minimum width; five cells measured
+  372-382px of content in a 328px cell, and `ds-col` clears all five.
+
+## Two places the app's own CSS contradicts what a name promises
+
+Both verified by reading the rules and by the render. Neither is fixed here — they are the
+user's call, and both are recorded so a preview never quietly "corrects" them.
+
+1. `variant="primary block"` loses the green (see the section above).
+2. **`ButtonLink` is underlined as a button and not underlined as a link.**
+   `a[data-go] { text-decoration:none }` (app.css:525, specificity 0-1-1) outranks
+   `.button-link` (app.css:889, 0-1-0), and every in-app link carries `data-go`. Four call
+   sites take the link form: `Orders.jsx:110`, `AllOrders.jsx:285`, `Home.jsx:549`,
+   `Wishlist.jsx:221`. `Button variant="link"` with a `to` would do the same; nothing does that
+   today.
+
+## Props that look like content but are not
+
+The generated baseline guesses types from prop names, and these guesses were wrong in ways that
+render nothing and never throw. All are corrected in `.design-sync/props/`; re-check them
+whenever the component changes.
+
+- `CardHeader.controls` — an element **id** for `aria-controls`, not markup.
+- `AiCard.header` — an object `{to, title, meta, destination, progress}`.
+- `ReturnsCard.returns` — an object `{items, total, history}`, not a list.
+- `EntryRow.avatar` — the record `{initials, colour}`; the row builds the tile itself.
+- `EntityRow.open` — `{href, label}`, not a boolean. `EntityRow.action` is a node.
+- `ItemRow.thumb` — an Icon-name string. `ItemRow.iconTone` is a style object.
+- `Pager.from` / `to` / `matched` — row numbers. `Pager` never links, unlike everything else
+  in this library that has a `to`.
+- `ListToolbar.filters` — `{open, onToggle, panelId}`; the baseline missed it entirely because
+  its destructured entry sits behind a block comment.
+- `CategoryRow.category`, `OrderRow.order` — whole records, written out field by field.
+
+## Three variant conventions, which do not match each other
+
+- `Button` splits `variant` on spaces and prefixes each word: `button-<word>`.
+- `IconButton` concatenates the whole string once: `icon-button-<variant>`. That is why the app
+  writes `variant="reorder icon-button-reorder-remove"`, spelling the second class in full.
+- `Card` / `CardBody` / `FieldShell` take the class words in full (`card-body-tight`).
+
+Mixing them renders a class that does not exist, silently.
+
+## Composition facts a bare preview gets wrong
+
+- `.entry-list` is load-bearing for `EntryRow`: its type sizes, meta line and figure column are
+  all declared under that ancestor, so cells compose inside
+  `CardBody variant="entry-list card-body-tight"`. A bare row renders at the wrong size.
+- Stacked cards need a `Page` around them, not a `div` — `.page.is-on` is where the gap between
+  cards comes from.
+- `Field`'s `group` swaps `<label>` for `<div>`. It is not styling: a `<label>` around a
+  `Segmented` or a colour picker labels only its first button.
+- `Segmented`'s size is decided by whether it sits in a `Field`, not by its `compact` prop.
+
+## Live code the app never calls
+
+Previewed from the component's own contract, and each doc says so rather than implying a usage:
+`CardHeader`'s disclosure branch (`onToggle`/`open`/`controls`), `TagChip` (its pattern stayed
+in the frozen prototype), and `Switch`.
+
 ## Re-sync risks
 
 - The `react/node_modules/spendly-react` symlink and the playwright link under `.ds-sync/` are
