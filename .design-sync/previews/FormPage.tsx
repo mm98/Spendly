@@ -22,7 +22,6 @@ const OrderSummary = () => (
 			<div className="card-subheading">Order summary</div>
 			<SummaryRow label="Vendor" value="Bilka" />
 			<SummaryRow label="Date" value="2 May" />
-			<SummaryRow label="Status" value="Delivered" />
 		</CardBody>
 	</Card>
 )

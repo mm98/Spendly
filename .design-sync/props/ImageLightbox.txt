@@ -1,3 +1,8 @@
+	/** The full-size image's URL. */
 	src?: string;
+	/** What the picture is of. Also the dialog's accessible name, which falls back to
+	 *  "Photo" when this is empty. */
 	alt?: string;
-	onClose?: (...args: any[]) => void;
+	/** Backdrop click, Escape and the close button all call this. The caller unmounts the
+	 *  dialog; it does not close itself. */
+	onClose?: () => void;

@@ -168,6 +168,12 @@
 		},
 		"SkeletonKpiRow": {
 			"cardMode": "column"
+		},
+		"FormPage": {
+			"cardMode": "column"
+		},
+		"ItemLines": {
+			"cardMode": "column"
 		}
 	}
 }

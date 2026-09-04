@@ -1,5 +1,12 @@
-	kind?: string;
+	/** The file's own kind, as the server files it from the bytes: `image` or `pdf`. These are
+	 *  the only two the stylesheet draws a glyph for — any other word renders an empty box.
+	 *  Defaults to `image`. */
+	kind?: 'image' | 'pdf';
+	/** A thumbnail or a display image. Left out, or failing to load, the box falls back to the
+	 *  glyph for `kind`. PDFs have no thumbnail, so they always fall back. */
 	src?: string;
+	/** `scan-source-open` for the 520px tall opened view, `scan-reading-preview` for the
+	 *  120x150 thumbnail beside the reading message. */
 	className?: string;
-	style?: unknown;
+	style?: React.CSSProperties;
 	[key: string]: unknown;

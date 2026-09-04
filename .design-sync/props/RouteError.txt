@@ -1,1 +1,1 @@
-	[key: string]: unknown;
+	/** No props. The router supplies the error, and the card is the same whatever was thrown. */

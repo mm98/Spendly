@@ -71,10 +71,14 @@ rule placed after an override wins on equal specificity.
 - The clock matters because `dayMonth()` (`react/src/api/format.js`) prints the year only when
   the date is not in the current year. Preview dates are written in the first half of 2024 so
   the compact form renders, which is what a reader normally sees.
-- The viewport puts `@media (max-width:900px)` in force. It reaches only `.kpi-row`,
-  `.two-column`, `.fav-tile-grid`, `.dashboard-cards` and `.field-pair-stack-early`, so it
-  affects `DashboardCards` and `FavouriteTileGrid` and nothing else. Not worth forking the
-  harness for; previews lay themselves out with inline styles.
+- The viewport puts **both** `@media (max-width:900px)` and `@media (max-width:1180px)` in
+  force. Between them they reach `.kpi-row`, `.two-column`, `.fav-tile-grid`,
+  `.dashboard-cards`, `.field-pair-stack-early` and `.order-list-grid` — so a page-shaped
+  preview puts its side rail under the form, and `DashboardCards`/`FavouriteTileGrid` show
+  their two-column form. Not worth forking the harness for; previews lay themselves out with
+  inline styles. The phone block (`max-width:700px`) is NOT in force.
+- The review sheet clips each story row at 536px tall. A taller composition is cut in the
+  sheet even though the card itself renders it.
 - `.field-pair-keep` and `.field-pair-stack-early` differ only inside a viewport media query,
   so no still card can show them apart. Documented in prose instead.
 
@@ -142,11 +146,24 @@ Mixing them renders a class that does not exist, silently.
   `Segmented` or a colour picker labels only its first button.
 - `Segmented`'s size is decided by whether it sits in a `Field`, not by its `compact` prop.
 
+## Small affordance gaps found while authoring
+
+Each verified, none fixed here. Listed so a preview never quietly draws a state the app does
+not actually give.
+
+- A disabled `.button` is only dimmed inside `.pager-buttons` and `.pager-arrow` (above).
+- `.icon-picker-tile:disabled` has no styling at all, so a tile still waiting for its stored
+  path is an indistinguishable blank box.
+- `SkeletonCard`'s title bar measures **0px wide** in every header-drawing cell (header 378px,
+  height 44.67px, so the anti-layout-shift job still holds). `CardHeader` puts the bar in
+  `span.section-label`, a flex item sized to its own content, and the bar's width is a
+  percentage of that span — each waits on the other. Every waiting card in the app is affected.
+
 ## Live code the app never calls
 
 Previewed from the component's own contract, and each doc says so rather than implying a usage:
 `CardHeader`'s disclosure branch (`onToggle`/`open`/`controls`), `TagChip` (its pattern stayed
-in the frozen prototype), and `Switch`.
+in the frozen prototype), `Switch`, and `FilterSectionBody`.
 
 ## Re-sync risks
 

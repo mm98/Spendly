@@ -7,7 +7,7 @@ const side: React.CSSProperties = { width: 560 }
 const importRequest = {
 	orders: [{
 		vendor: 'Bilka', date: '2024-04-18', kind: 'Expense', status: 'Delivered',
-		deliveredDate: '2024-04-20', categories: ['Groceries'], shipping: 0, discount: 10.00,
+		categories: ['Groceries'], shipping: 0, discount: 10.00,
 		items: [{ title: 'Rugbrød', quantity: 1, price: 24.95, retail: 32.00 }],
 		attachments: [{ filename: 'kvittering.pdf', contentType: 'application/pdf', data: '<base64>' }]
 	}]
@@ -30,7 +30,6 @@ export const ImportRequest = () => (
 		<Card aria-label="Import from another system">
 			<CardBody variant="card-body-page">
 				<div className="card-headline">Import from another system</div>
-				<p className="card-lead">Bring orders in from another expense tracker.</p>
 				<JsonBlock value={importRequest} label="Import request shape" />
 			</CardBody>
 		</Card>
