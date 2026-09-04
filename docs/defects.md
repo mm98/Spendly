@@ -3384,3 +3384,136 @@ station" — and the search matched only the hyphenated form, meaning the words 
 showed returned nothing when typed back. A typed space now reaches a hyphen.
 
 Not checked: Firefox and WebKit.
+
+## Tooltips — sharing the look is not sharing the component
+
+The pass above put every hover label on one `.tooltip` surface and called it done. It was not:
+one of the five was still a different thing wearing the same coat. The sidebar's build-quality
+scores kept their own mechanism (`position: absolute` in the footer, revealed by a CSS
+`:hover`/`:focus-within` rule, no viewport awareness) and their own three content classes,
+whose row and figure did exactly what `tooltip-row` and `tooltip-value` do:
+
+| | sidebar scores | Tooltip component |
+|---|---|---|
+| surface | shared | shared |
+| placement | absolute in the footer | fixed, portal to `document.body`, picks a side |
+| shown by | a CSS hover rule | pointer and focus handlers |
+| content | `build-quality-title` / `-row` / `-meta` | `tooltip-title` / `-row` / `-value` |
+
+It passed review because it looked right. That is the whole hazard: a shared surface over a
+private mechanism reads as finished and drifts the moment either half moves.
+
+It is the component now. The reason first given for keeping it separate — that it stays open
+while focus is inside it, which `pointer-events: none` would break — did not survive checking:
+nothing inside it is focusable, so `:focus-within` only ever meant the band itself, which is
+what the component's own focus handling does. Four private rules deleted, and the padding
+that was only the sidebar's is the shared default for all five.
+
+Verified in the browser on the real sidebar: hovering the band draws the label as a child of
+`document.body` (the portal), side `n`, padding `10px 14px`, fully inside the viewport, and
+focusing the band with no pointer draws the same thing. All five callers compute one surface.
+
+Not checked: Firefox and WebKit.
+
+## Components the app had and did not use
+
+The tooltip was not the only one. Sweeping the source for raw markup wearing a component's own
+classes found **eight `<button className="button …">`** across four files — `ListToolbar`'s
+FILTERS disclosure, `DashboardCards`' EDIT / DONE / CANCEL / ADD, `OrderDetail`'s ADD FILES and
+two on `Scan` — each hand-writing exactly what `Button` renders (`<button type="button"
+className={classes} {...rest}>`).
+
+All eight are the component now. Verified in the browser that nothing was lost in the swap,
+since `Button` forwards everything through `...rest`: FILTERS keeps `data-filters-toggle`,
+`aria-expanded` and `aria-controls` and still opens its panel; `data-add` survives on the tray
+buttons; and the `ref` that `DashboardCards` focuses still works — cancelling puts focus back on
+EDIT, which is the only proof that a ref reaches the real element. Scan's OPEN and DETAILS are
+behind a loaded receipt and were not reachable in this pass; same markup shape, compiles clean,
+not seen rendering.
+
+Two raw `<button>`s on Scan are deliberately left: they carry no `button` class and are styled
+by `.ai-suggestion-row button`, a different control.
+
+`SummaryRow` was the other one: **25 raw `<div className="summary-row">`** across six files
+(CategoryForm 2, EditOrder 4, NewOrder 5, OrderDetail 6, VendorForm 5, WishForm 3). They were
+not laziness. The component hard-coded `tabular-figures` on its value, so a row whose value is a
+word ("Delivered", "Expense") or a link looked wrong to write through it, and callers routed
+around — the component too narrow for its own call sites.
+
+The escape turned out to be from nothing (see the next entry: that class changes no pixel with the
+current typeface),
+so the widening needed is small. `SummaryRow` takes a `variant` for the tone, the way `Card`
+takes class words, and its value was always free to be a node. All 25 are the component now.
+
+Proved neutral rather than asserted: the four reachable summary panels were screenshotted
+before and after and diffed pixel by pixel — **0 differing pixels across 6,533,832**, max delta
+0. Checked besides that the one toned row still computes
+`summary-row-value-saving` at rgb(14, 122, 82), and that the Vendor and Categories rows still
+render real links.
+
+Not checked: Firefox and WebKit.
+
+## `tabular-figures` has never done anything
+
+Chasing why 25 rows avoided `SummaryRow` led to the class they were avoiding. It is applied in
+**36 places** in the source and backed by three `font-variant-numeric: tabular-nums` declarations,
+and it changes no pixel anywhere.
+
+| check | result |
+|---|---|
+| computed style on an element carrying the class | `font-variant-numeric: tabular-nums` — the class does reach |
+| eight `1`s vs eight `8`s, without the class | 112px vs 200px at 40px type |
+| eight `1`s vs eight `8`s, **with** the class | 112px vs 200px — identical |
+| same again via `font-feature-settings: "tnum" 1` | identical |
+| woff2 table directory (uncompressed, so readable without tooling) | `GPOS GSUB OS/2 cmap glyf loca head hhea hmtx maxp name post` |
+
+The chain breaks at the font, and precisely there: the class asks correctly, the layout tables
+exist, and Poppins simply has no tabular digit set to answer with — its figures are proportional
+by design. Counting strings in the `.woff2` proves nothing either way and should not be used as
+evidence: woff2 table data is Brotli-compressed, so a tag can be present and unfindable. The
+table directory is the part that is readable, and the rendered advance widths are what settle it.
+
+The consequence is small but real: money columns do not align on the decimal. The `kr.` lines up
+because the values are right-aligned, and that is all that was ever holding them. Nothing on
+screen changes if the class is deleted.
+
+**Kept anyway, deliberately.** The declaration costs nothing while it does nothing, and it states
+the intent for every figure in the app — so the day the typeface changes to one with a tabular
+set, the alignment arrives without hunting for the places that wanted it. What must not happen is
+a second reading of the same fact: this entry is why the class looks inert, so nobody deletes it
+as dead code.
+
+Not checked: Firefox and WebKit.
+
+## The wrong contrast model put a black glyph on a violet tile
+
+A category icon is drawn on a colour the account picked, so the glyph's ink is chosen per fill.
+The chooser used the WCAG 2 ratio, and on the violet category colour it picked black:
+
+| | black | white | picked |
+|---|---|---|---|
+| WCAG 2 ratio | **4.56** | 4.23 | black, by 0.32 |
+| APCA `Lc` | 34.9 | **74.2** | white, by more than double |
+
+Black is not merely the weaker choice there: at 34.9 it is under the 45 a bold glyph needs.
+WCAG 2's formula was built for grey text on a white page and overrates dark ink on saturated
+mid-tones, which is most of this palette. The same failure had already produced an
+inconsistency nobody had connected: two near-identical violets, `#8B5CF6` in the category
+palette and `#8453F5` in the vendor one, came out with opposite inks — black on one, white on
+the other — because the ratio put them a tenth apart on either side of the line.
+
+The chooser is APCA now. Six of the ten category colours flip to white; the two genuinely light
+fills, the yellow and the orange, keep black, which is right — white on the yellow scores 33.4.
+**No vendor colour flips**, so avatars are untouched.
+
+The picker's contrast readout went with it. It reported a WCAG ratio next to the colour, and
+with the ink chosen this way there is nothing left to warn about: swept every fourth value of
+all three channels — **262,144 colours** — and the worst any of them manages with its better ink
+is **54.3 Lc** (`#f48088`), with **0** falling under 45. A warning that can never fire is a line
+of copy that only takes up room.
+
+The three committed screenshots are unaffected: none of them draws a category glyph tile — Home
+and the phone shot show legend dots, the orders shot shows vendor avatars — and no vendor colour
+changes ink. Reasoned from the palettes and the shots rather than re-rendered.
+
+Not checked: Firefox and WebKit.

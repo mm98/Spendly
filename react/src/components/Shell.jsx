@@ -6,6 +6,7 @@ import { Button, IconButton } from './Button.jsx'
 import { Waiting } from './Async.jsx'
 import { ToastProvider } from './Toast.jsx'
 import { PullToRefresh } from './PullToRefresh.jsx'
+import { Tooltip } from './Tooltip.jsx'
 import { UpdateNoticeProvider } from './UpdateNotice.jsx'
 import { getVersion, search, SEARCH_FROM } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -100,24 +101,31 @@ const SCORES = [
 
 function BuildQuality() {
 	const version = useApi(getVersion)
+	const [band, setBand] = useState(null)
 	const scores = version.data?.lighthouse
 	if (!scores) return <span>Spendly<Sep />your spending</span>
 
+	/* Focusable, or the label is hover-only and a keyboard never reaches it. */
+	const show = event => setBand(event.currentTarget.getBoundingClientRect())
+	const hide = () => setBand(null)
+
 	return (
 		<span className="build-quality">
-			{/* Focusable, or the callout is hover-only and a keyboard never reaches it. */}
-			<span className="build-quality-band" tabIndex={0}>Spendly<Sep />your spending</span>
-			<span className="tooltip build-quality-callout" role="tooltip">
-				<span className="build-quality-title">This build scored</span>
+			<span className="build-quality-band" tabIndex={0}
+				onPointerEnter={show} onPointerLeave={hide} onFocus={show} onBlur={hide}>
+				Spendly<Sep />your spending
+			</span>
+			<Tooltip anchor={band} title="This build scored">
 				{SCORES.map(([label, key]) => (
-					<span className="build-quality-row" key={key}>
-						{label}<b>{scores[key]}</b>
+					<span className="tooltip-row" key={key}>
+						<span className="tooltip-name">{label}</span>
+						<span className="tooltip-value tabular-figures">{scores[key]}</span>
 					</span>
 				))}
-				<span className="build-quality-meta">
+				<span className="tooltip-title">
 					Lighthouse {scores.lighthouse ?? '?'}<Sep />FCP {Math.round(scores.firstContentfulPaintMs)} ms
 				</span>
-			</span>
+			</Tooltip>
 		</span>
 	)
 }

@@ -285,13 +285,11 @@ function WishSummary({ name, url, price, categories, photo, wish }) {
 						meta={site || 'no link yet'}
 						amount={asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'} />
 				</div>
-				<div className="summary-row">Shop<span className="summary-row-value">{site || '-'}</span></div>
-				<div className="summary-row">Categories
-					<span className="summary-row-value">{categories.length ? categories.join(', ') : '-'}</span></div>
+				<SummaryRow label="Shop" value={site || '-'} />
+				<SummaryRow label="Categories" value={categories.length ? categories.join(', ') : '-'} />
 				{wish ? <SummaryRow label="Added" value={longDate(wish.createdAt)} /> : null}
-				<div className="summary-row">Price
-					<span className="summary-row-value">
-						{asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'}</span></div>
+				<SummaryRow label="Price"
+					value={asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'} />
 				{/* The way to the shop, on the page that holds every other action on this record --
 				    a real link at the foot, the way the vendor page ends in VIEW ORDERS. Only
 				    once the address is one a browser can follow. */}

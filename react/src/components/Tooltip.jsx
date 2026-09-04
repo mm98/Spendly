@@ -38,7 +38,7 @@ function place(anchor, tip, view) {
 	}
 }
 
-export function Tooltip({ anchor, children }) {
+export function Tooltip({ anchor, title, children }) {
 	const ref = useRef(null)
 	const [tip, setTip] = useState(null)
 
@@ -52,7 +52,7 @@ export function Tooltip({ anchor, children }) {
 		setTip(was => (was?.width === width && was?.height === height && was?.gap === gap
 			? was
 			: { width, height, gap }))
-	}, [anchor, children])
+	}, [anchor, title, children])
 
 	if (!anchor) return null
 	const view = { width: window.innerWidth, height: window.innerHeight }
@@ -63,6 +63,7 @@ export function Tooltip({ anchor, children }) {
 			data-side={at?.side}
 			/* Measured before it is placed, so the first frame would otherwise land at 0,0. */
 			style={at ? { left: at.left, top: at.top } : { left: 0, top: 0, visibility: 'hidden' }}>
+			{title ? <span className="tooltip-title">{title}</span> : null}
 			{children}
 		</span>,
 		document.body

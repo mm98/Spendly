@@ -3,7 +3,7 @@ import { sep } from '../api/format.js'
 import { Icon, ICONS } from './Icon.jsx'
 import { FieldShell } from './Form.jsx'
 import { Tooltip } from './Tooltip.jsx'
-import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
+import { inkOn, resolveColour } from '../api/colour.js'
 
 /* Choosing a category's glyph and a vendor's colour.
 
@@ -124,11 +124,9 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
 					onChange={e => onChange(e.target.value)} />
 			</span>
 
-			{/* What the choice is worth, since a colour can be picked that its own contents cannot
-			    survive. The ink flips automatically; this says which way and by how much. */}
-			<span className="field-help colour-picker-contrast">
-				{chosen ? null : `${hex.toUpperCase()}${sep}icon contrast ${inkContrast(value).toFixed(1)}:1`}
-			</span>
+			{/* The colour itself, once it is one the palette does not name. No warning beside it:
+			    the glyph's ink is chosen per fill, and no colour leaves it hard to read. */}
+			<span className="field-help colour-picker-contrast">{chosen ? null : hex.toUpperCase()}</span>
 		</div>
 	)
 }

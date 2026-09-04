@@ -26,13 +26,13 @@ function ChartTooltip({ active, payload, series }) {
 	const date = payload[0]?.payload?.date
 	return (
 		<div className="tooltip chart-tooltip">
-			{date ? <div className="chart-tooltip-date">{dayMonth(date)}</div> : null}
+			{date ? <div className="tooltip-title">{dayMonth(date)}</div> : null}
 			{payload.map(entry => (
-				<div className="chart-tooltip-row" key={entry.dataKey}>
-					<span className="chart-tooltip-swatch"
+				<div className="tooltip-row" key={entry.dataKey}>
+					<span className="tooltip-swatch"
 						style={{ background: series.find(s => s.dataKey === entry.dataKey)?.color }} />
-					<span className="chart-tooltip-name">{entry.name}</span>
-					<span className="chart-tooltip-value tabular-figures">{currency(entry.value)}</span>
+					<span className="tooltip-name">{entry.name}</span>
+					<span className="tooltip-value tabular-figures">{currency(entry.value)}</span>
 				</div>
 			))}
 		</div>

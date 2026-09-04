@@ -219,10 +219,8 @@ function CategorySummary({ values, budget, category }) {
 					<CategoryPreview icon={values.icon} iconPath={values.iconPath}
 						colour={values.colour} name={values.name} />
 				</div>
-				<div className="summary-row">Name
-					<span className="summary-row-value">{values.name || '-'}</span></div>
-				<div className="summary-row">Favourite
-					<span className="summary-row-value">{values.favourite ? 'Yes' : 'No'}</span></div>
+				<SummaryRow label="Name" value={values.name || '-'} />
+				<SummaryRow label="Favourite" value={values.favourite ? 'Yes' : 'No'} />
 				{/* Rounded, because the row in the Manage list rounds it: two figures for one
 				    budget, differing only in their decimals, read as two budgets. */}
 				<SummaryRow label="Monthly budget" value={budget ? currency(budget, 0) : 'None'} />

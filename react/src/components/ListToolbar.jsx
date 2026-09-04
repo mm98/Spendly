@@ -3,7 +3,7 @@ import { Icon } from './Icon.jsx'
 import { FieldShell } from './Form.jsx'
 import { Combobox } from './Combobox.jsx'
 import { Chip } from './Chip.jsx'
-import { ButtonLink } from './Button.jsx'
+import { Button, ButtonLink } from './Button.jsx'
 import { useToast } from './Toast.jsx'
 
 /* The row four working lists open with. The sort is the app's one combobox for the job -- a
@@ -25,12 +25,12 @@ export function ListToolbar({
 					aria-label={label} onChange={e => onQuery(e.target.value)} />
 			</FieldShell>
 			{filters ? (
-				<button type="button" className="button button-ghost"
+				<Button variant="ghost" icon="filters"
 					data-filters-toggle aria-expanded={filters.open} aria-controls={filters.panelId}
 					onClick={filters.onToggle}>
-					<Icon name="filters" />FILTERS
+					FILTERS
 					<Icon name="chevronDown" className="icon chevron-icon" />
-				</button>
+				</Button>
 			) : null}
 			{/* `.toolbar-sort` is the slot and the stylesheet owns its width -- never an inline
 			    width on a wrapper, which beats any rule the phone layout could write. */}

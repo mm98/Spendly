@@ -234,9 +234,11 @@ export function EntityRow({ mark, name, meta, amount, sub, editTo, action, open 
 	)
 }
 
-/** One line of a summary panel. Values are figures, so they take the tabular face. */
-export const SummaryRow = ({ label, value, className }) => (
-	<div className={join('summary-row', className)}>{label}<span className="summary-row-value tabular-figures">{value}</span></div>
+/** A label and its answer, right-aligned: a figure, a word, a link, a list of them. `variant`
+    takes the class words that tone the answer, as Card does. */
+export const SummaryRow = ({ label, value, variant, className }) => (
+	<div className={join('summary-row', className)}>{label}
+		<span className={join('summary-row-value tabular-figures', variant)}>{value}</span></div>
 )
 
 /** The bottom line. `estimate` marks a total that is still being built. */

@@ -566,16 +566,16 @@ function ScanReviewForm({ answer }) {
 								<a className="button button-pill" href={scanFileUrl(answer.documentKey)}
 									target="_blank" rel="noopener">OPEN</a>
 							) : (
-								<button type="button" className="button button-pill"
+								<Button variant="pill"
 									aria-expanded={sourceOpen} aria-controls="scan-source-preview"
-									onClick={() => setSourceOpen(o => !o)}>{sourceOpen ? 'CLOSE' : 'OPEN'}</button>
+									onClick={() => setSourceOpen(o => !o)}>{sourceOpen ? 'CLOSE' : 'OPEN'}</Button>
 							)}
 							{/* What the source's own OPEN shows is the document; this is the other half --
 							    what the review screen is actually built from, in the same formatted-JSON
 							    shape Settings > Import already teaches a reader to read, rather than a
 							    screen's worth of labelled fields standing in for it. */}
-							<button type="button" className="button button-pill"
-								aria-haspopup="dialog" onClick={() => setJsonOpen(true)}>DETAILS</button>
+							<Button variant="pill"
+								aria-haspopup="dialog" onClick={() => setJsonOpen(true)}>DETAILS</Button>
 							{documentDel.button}
 							</span>
 						</CardHeader>

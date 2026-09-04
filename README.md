@@ -46,6 +46,10 @@ Two caveats:
 
 ### Colour
 
+**Contrast in this app is measured with APCA, the model WCAG 3 is drafted on. The older WCAG 2 ratio is not used anywhere and must not be reintroduced.** It was built for grey text on a white page, and it misjudges exactly the case this app has most of: a glyph on a saturated mid-tone tile. It scored a black icon higher than a white one on the violet category colour — 4.56 against 4.23 — when the white one is plainly easier to read, and APCA says so too, 74.2 against 34.9. Where a figure is quoted for contrast, it is an APCA `Lc`, roughly 45 to carry a bold glyph and 60 for body text.
+
+**The ink on a coloured tile is chosen, never assumed.** A category icon and a vendor's initials sit on a colour the account picked, so black or white is decided per fill by whichever scores higher. Only genuinely light fills — the yellow and the orange — come out black; everything else is white. Nothing warns the reader about a poor choice, because there is nothing to warn about: swept every fourth value of all three channels, 262,144 colours, the worst any of them manages with its better ink is 54.3, above the floor a glyph needs. That is what makes an open colour picker safe to offer.
+
 Neutrals — a warm greige family, not grey. This is the surface identity of the app.
 
 | Value | Use |
@@ -182,13 +186,16 @@ These hold on every screen and are the constraints behind several layout decisio
 3. **Nothing saves by itself.** Scans propose values, they never overwrite silently. A duplicated order opens unsaved and can be abandoned.
 4. **Numbers answer the current filter.** Totals and counts in a filtered list describe what is on screen, not the whole account.
 5. **Single user, personal receipts.** No item catalogue, no shared editing, no permissions. A conflict means two browser tabs, not two people.
-6. **There is one tooltip.** Every hover label in the app is the same white card — one surface, defined once, used by the chart hovers, the sidebar callout and the icon grid alike. See Tooltips below.
+6. **A component that exists is the only way to draw that thing.** No hand-rolled copy, no raw markup wearing the component's classes, no second implementation that merely looks the same. This is the whole reason a component exists: one place to change, one behaviour to trust. Sharing a component's *look* while keeping a private mechanism is the same failure wearing a disguise — it passes review because it renders correctly, and it drifts the first time either half moves. Before writing markup, check whether the thing already has a component; if it does and it cannot express what you need, widen the component rather than working around it.
+7. **There is one tooltip.** Every hover label in the app is drawn by one component: the chart hovers, the sidebar scores and the icon grid alike. See Tooltips below.
 
 ---
 
 ### Tooltips
 
-**One surface, one component, no second way of doing this.** A tooltip is a white card on the page's card background, the page radius, the app's float shadow token, no border. It is defined in a single place and every caller wears it; a hover label that writes its own background, radius or shadow is a bug, because the day the surface changes, one of them will not.
+**One surface, one component, no second way of doing this.** A tooltip is a white card on the page's card background, the page radius, the app's float shadow token, no border, and one padding — every hover label in the app is drawn by the same component, and there is no hand-rolled second kind. Sharing the look while keeping a private mechanism is the failure this rule exists to stop: it passes review because it looks right, and drifts the first time either half changes.
+
+**Its content is built from four named parts, not from free styling.** A tooltip is often more than one word: a heading, a coloured key, a name, a figure. Those are a heading line, a row, an 8px colour chip, and a name-and-figure pair — the same four the chart hovers use, so a new tooltip composes from what already exists instead of inventing a second vocabulary. Plain text in a tooltip is normal weight; the figure is the bold half of a pair, and a single-value tooltip is bold on its own. Nothing else in a tooltip is emphasised.
 
 **A tooltip is for a pointer, and never the only way to know something.** Whatever it says, the thing it points at already says to a screen reader through its own `aria-label`. So a tooltip never carries a fact available nowhere else, and it never holds a control: it takes no pointer events, and it goes the moment the pointer leaves or the focus moves.
 

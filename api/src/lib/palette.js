@@ -5,8 +5,8 @@
    vendor created by importing an order agreed only for as long as nobody edited one copy.
    One list, read by both.
 
-   Vendor colours carry white initials on an avatar, so every one of them is dark enough to
-   clear AA against white: measured 4.50:1 (#877364, the lightest) to 8.41:1 (#235553).
+   Vendor colours carry white initials on an avatar, so every one of them is dark enough to read
+   under APCA: measured 76.7 Lc (#877364, the lightest) to 93.4 (#235553), against a floor of 45.
    Category colours are swatches, legend dots and donut segments -- read against the card
    rather than written on, so they are free to be brighter, and they are chosen to differ
    from each other, which is the whole job of a data-viz palette. README: Color. */

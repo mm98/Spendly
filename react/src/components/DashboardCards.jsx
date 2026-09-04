@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { Card, CardBody, CardDivider, CardHeader, SectionHeader, SectionLabel } from './Card.jsx'
-import { IconButton } from './Button.jsx'
+import { Button, IconButton } from './Button.jsx'
 import { useReorder } from './Reorder.jsx'
 import { Icon } from './Icon.jsx'
 import { useToast } from './Toast.jsx'
@@ -125,14 +125,11 @@ export function DashboardCards({ all, initial, render }) {
 				<span className="row-inline">
 					{editing ? (
 						<>
-							<button type="button" className="button button-caps button-compact"
-								ref={doneButton} onClick={done}><Icon name="check" />DONE</button>
-							<button type="button" className="button button-pill" onClick={cancel}>CANCEL</button>
+							<Button variant="caps compact" icon="check" ref={doneButton} onClick={done}>DONE</Button>
+							<Button variant="pill" onClick={cancel}>CANCEL</Button>
 						</>
 					) : (
-						<button type="button" className="button button-pill" ref={editButton} onClick={start}>
-							<Icon name="pencil" />EDIT
-						</button>
+						<Button variant="pill" icon="pencil" ref={editButton} onClick={start}>EDIT</Button>
 					)}
 				</span>
 			</SectionHeader>
@@ -169,8 +166,8 @@ export function DashboardCards({ all, initial, render }) {
 									<div className="card-tray-row-title">{c.name}</div>
 									<div className="card-tray-row-meta">{c.desc}</div>
 								</div>
-								<button type="button" className="button button-pill" data-add={c.key}
-									onClick={() => add(c.key)}>ADD</button>
+								<Button variant="pill" data-add={c.key}
+									onClick={() => add(c.key)}>ADD</Button>
 							</div>
 						)) : <p className="card-tray-empty">Every card is already on your dashboard.</p>}
 					</CardBody>
