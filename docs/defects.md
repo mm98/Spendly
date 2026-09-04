@@ -3338,3 +3338,49 @@ a value the account typed and can act on. Verified by reading the rendered rows 
 cards.
 
 Not checked: Firefox and WebKit.
+
+## Tooltips — one look, written out four times
+
+The app drew four hover labels and none of them shared a rule. Measured from the stylesheet
+before the change:
+
+| where | surface |
+|---|---|
+| line chart | `--bg-card`, `--radius-page`, no border, `0 2px 6px /.06, 0 14px 34px /.12`, 11.5px |
+| weekday bars, month columns | `--bg-card`, `--radius-compact`, **1px border**, `0 2px 6px /.08`, 11px |
+| donut ring | the same as the bars, written out again |
+| sidebar build-quality callout | the chart's surface again, with `16px` in place of the radius token |
+
+Three looks across four copies, and the wide shadow pair appeared in two of them as a literal
+while `--shadow` already held that exact shape for the auth card and the prompt bar.
+
+They are now one `.tooltip` rule that every caller wears, and each keeps only what is really
+its own — the chart's grid and `min-width`, the bars' row gap, the ring's weight, the callout's
+position. Read back from the browser, all five callers now compute identically: white,
+`12px`, `0px` border, `11.5px`, and the same two-layer `--shadow`. The literal
+`0 14px 34px` no longer appears anywhere in the stylesheet.
+
+The icon grid was the fifth caller and the reason for the pass. 5,129 glyphs and no way to
+learn what one is without choosing it, and the grid clips: its declared `overflow-y: auto`
+makes the computed `overflow-x` `auto` too, so a label drawn inside it loses its top edge. It
+is drawn into `document.body` and placed against the viewport instead.
+
+Placement tries north, south, east, west and takes the first that fits, then slides along the
+free axis. Forced against each edge by shrinking the viewport, hovering every tile of a search
+and reading the chosen side and the label's own rectangle back:
+
+| viewport | side chosen | off-screen |
+|---|---|---|
+| 1440x900 | n | 0 of 5 |
+| 1440x240, grid pinned to the top | s | 0 of 5 |
+| 1440x90 | e | 0 of 5 |
+| 320x560 | n on four, w on the tile at the right edge | 0 of 5 |
+
+It answers keyboard focus as well as hover, checked by focusing a tile with no pointer over the
+grid at all.
+
+One trap came with it. The label spells the name in spaces, so `gas-station` reads "gas
+station" — and the search matched only the hyphenated form, meaning the words the tooltip
+showed returned nothing when typed back. A typed space now reaches a hyphen.
+
+Not checked: Firefox and WebKit.

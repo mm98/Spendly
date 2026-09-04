@@ -25,7 +25,7 @@ function ChartTooltip({ active, payload, series }) {
 	if (!active || !payload?.length) return null
 	const date = payload[0]?.payload?.date
 	return (
-		<div className="chart-tooltip">
+		<div className="tooltip chart-tooltip">
 			{date ? <div className="chart-tooltip-date">{dayMonth(date)}</div> : null}
 			{payload.map(entry => (
 				<div className="chart-tooltip-row" key={entry.dataKey}>
@@ -241,7 +241,7 @@ const GAUGE_INNER = GAUGE_OUTER - 22
    a sliver smaller than RING_GAP's own width can draw more separator than fill. */
 const RingTooltip = ({ active, payload }) => {
 	if (!active || !payload?.length) return null
-	return <span className="ring-tooltip">{percent(payload[0].payload.share, 0)}</span>
+	return <span className="tooltip ring-tooltip">{percent(payload[0].payload.share, 0)}</span>
 }
 
 /* RingCentre sits as this div's own direct child, so its ::before/getBoundingClientRect
@@ -361,13 +361,13 @@ const MonthTick = ({ x, y, width, visibleTicksCount, index, payload, months }) =
 const WeekdayTooltip = ({ active, payload }) => {
 	if (!active || !payload?.length) return null
 	const d = payload[0].payload
-	return <div className="bar-tooltip"><strong>{d.dayFull ?? d.day}</strong><span className="tabular-figures">{currency(d.spend)}</span></div>
+	return <div className="tooltip bar-tooltip"><strong>{d.dayFull ?? d.day}</strong><span className="tabular-figures">{currency(d.spend)}</span></div>
 }
 
 const MonthTooltip = ({ active, payload }) => {
 	if (!active || !payload?.length) return null
 	const m = payload[0].payload
-	return <div className="bar-tooltip"><strong>{m.labelFull ?? m.label}</strong><span className="tabular-figures">{currency(m.spend)}</span></div>
+	return <div className="tooltip bar-tooltip"><strong>{m.labelFull ?? m.label}</strong><span className="tabular-figures">{currency(m.spend)}</span></div>
 }
 
 /** A bar per weekday, each a share of the busiest one, with its name underneath.

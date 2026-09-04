@@ -182,6 +182,21 @@ These hold on every screen and are the constraints behind several layout decisio
 3. **Nothing saves by itself.** Scans propose values, they never overwrite silently. A duplicated order opens unsaved and can be abandoned.
 4. **Numbers answer the current filter.** Totals and counts in a filtered list describe what is on screen, not the whole account.
 5. **Single user, personal receipts.** No item catalogue, no shared editing, no permissions. A conflict means two browser tabs, not two people.
+6. **There is one tooltip.** Every hover label in the app is the same white card — one surface, defined once, used by the chart hovers, the sidebar callout and the icon grid alike. See Tooltips below.
+
+---
+
+### Tooltips
+
+**One surface, one component, no second way of doing this.** A tooltip is a white card on the page's card background, the page radius, the app's float shadow token, no border. It is defined in a single place and every caller wears it; a hover label that writes its own background, radius or shadow is a bug, because the day the surface changes, one of them will not.
+
+**A tooltip is for a pointer, and never the only way to know something.** Whatever it says, the thing it points at already says to a screen reader through its own `aria-label`. So a tooltip never carries a fact available nowhere else, and it never holds a control: it takes no pointer events, and it goes the moment the pointer leaves or the focus moves.
+
+**It picks its own side: north, south, east, west, in that order.** North is where a label is looked for, so it is tried first; the first side with room in the viewport wins, and when none has room, the side with the most does. It then slides along the free axis so it stays fully on screen — a label half off the edge is worse than one slightly off-centre. It is drawn against the viewport rather than beside what it points at, because the things worth labelling sit in scrolling boxes and rounded cards that would otherwise cut it off.
+
+**It appears on hover and on keyboard focus, not on click.** A grid of unlabelled controls is unusable to someone tabbing through it if the name only answers to a mouse.
+
+**The gap between a tooltip and what it points at is a token, not a number in the script that places it.** The stylesheet owns the spacing; the component owns only which side it goes on.
 
 ---
 

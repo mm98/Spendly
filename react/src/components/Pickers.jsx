@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useState } from 'react'
 import { sep } from '../api/format.js'
 import { Icon, ICONS } from './Icon.jsx'
 import { FieldShell } from './Form.jsx'
+import { Tooltip } from './Tooltip.jsx'
 import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
 
 /* Choosing a category's glyph and a vendor's colour.
@@ -44,6 +45,9 @@ import { inkContrast, inkOn, resolveColour } from '../api/colour.js'
     is a wall, not a choice -- and it is also the number that decides how many shards a
     keystroke can pull. */
 const LIMIT = 240
+
+/** `gas-station` -> `gas station`: the hyphen is how the file is named, not how it is read. */
+const spaced = name => name.replace(/-/g, ' ')
 
 /** The palette a category or a vendor can be -- the same hex the system's own tokens resolve
     to (a category coloured "red" is the same red as the one in the donut), copied here rather
@@ -144,6 +148,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 	const [catalogue, setCatalogue] = useState(null)
 	const [keywords, setKeywords] = useState(null)
 	const [paths, setPaths] = useState({})
+	const [pointedAt, setPointedAt] = useState(null)
 	const id = useId()
 
 	/* Imported here rather than at the top of the module: 5,129 names belong in the chunk that
@@ -169,23 +174,26 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 	   lower-case by construction -- they are the package's own file names -- so each pass walks
 	   in display order and stops at the cap, rather than filtering the set and sorting after. */
 	const hits = useMemo(() => {
-		const needle = query.trim().toLowerCase()
-		if (!needle) return { names: [...usedByName.keys()], shards: [], capped: false }
+		const typed = query.trim().toLowerCase().replace(/\s+/g, ' ')
+		if (!typed) return { names: [...usedByName.keys()], shards: [], capped: false }
 		if (!catalogue) return { names: [], shards: [], capped: false }
+		/* A name joins its words with a hyphen and a keyword line with a space, so a typed
+		   space has to reach both -- the tile's tooltip spells the name out in spaces. */
+		const hyphenated = typed.replace(/ /g, '-')
 
 		const names = []
 		const shards = new Set()
 		const take = i => { names.push(catalogue.NAMES[i]); shards.add(catalogue.shardOf(i)) }
 
 		for (let i = 0; i < catalogue.NAMES.length && names.length < LIMIT; i++) {
-			if (catalogue.NAMES[i].includes(needle)) take(i)
+			if (catalogue.NAMES[i].includes(hyphenated)) take(i)
 		}
 
 		/* Keyword hits go after the name hits, never in place of one, and match from the start
 		   of a word: "car" reaches an icon tagged "cars" but not one tagged "postcard". */
 		const found = new Set(names)
 		for (let i = 0; keywords && i < keywords.length && names.length < LIMIT; i++) {
-			if (!found.has(catalogue.NAMES[i]) && ` ${keywords[i]}`.includes(` ${needle}`)) take(i)
+			if (!found.has(catalogue.NAMES[i]) && ` ${keywords[i]}`.includes(` ${typed}`)) take(i)
 		}
 		return { names, shards: [...shards], capped: names.length === LIMIT }
 	}, [query, catalogue, keywords, usedByName])
@@ -212,6 +220,14 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 		return () => { live = false }
 	}, [catalogue, hits])
 
+	/* One pair of handlers on the grid rather than a pair per tile: the grid draws up to 240
+	   of them, and pointer and focus both bubble to here. */
+	const point = event => {
+		const tile = event.target.closest?.('.icon-picker-tile')
+		setPointedAt(tile ? { rect: tile.getBoundingClientRect(), name: spaced(tile.getAttribute('aria-label')) } : null)
+	}
+	const unpoint = () => setPointedAt(null)
+
 	const names = hits.names
 	const total = catalogue ? catalogue.NAMES.length : null
 	const waiting = names.some(name => !paths[name] && !usedByName.has(name) && !ICONS[name])
@@ -224,7 +240,9 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 					placeholder="Search icons..."
 					aria-label="Search icons" onChange={e => setQuery(e.target.value)} />
 			</FieldShell>
-			<div role="radiogroup" className="icon-picker-grid" aria-label={label} aria-busy={waiting || searching || undefined}>
+			<div role="radiogroup" className="icon-picker-grid" aria-label={label} aria-busy={waiting || searching || undefined}
+				onPointerOver={point} onPointerLeave={unpoint} onFocus={point} onBlur={unpoint}
+				onScroll={unpoint}>
 				{names.map(name => {
 					const on = name === value
 					/* A used icon's path travels with the record that already carries it, so the
@@ -266,6 +284,8 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 							? `${names.length} already used by a category. Search for more.`
 							: `${names.length} already used by a category. Loading the rest...`}
 			</span>
+			{/* A grid of unfamiliar glyphs cannot say what any one of them is. README: Tooltips. */}
+			<Tooltip anchor={pointedAt?.rect}>{pointedAt?.name}</Tooltip>
 		</div>
 	)
 }

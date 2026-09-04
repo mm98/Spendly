@@ -107,7 +107,7 @@ function BuildQuality() {
 		<span className="build-quality">
 			{/* Focusable, or the callout is hover-only and a keyboard never reaches it. */}
 			<span className="build-quality-band" tabIndex={0}>Spendly<Sep />your spending</span>
-			<span className="build-quality-callout" role="tooltip">
+			<span className="tooltip build-quality-callout" role="tooltip">
 				<span className="build-quality-title">This build scored</span>
 				{SCORES.map(([label, key]) => (
 					<span className="build-quality-row" key={key}>

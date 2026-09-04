@@ -85,3 +85,27 @@ example — those are written from the app's own screens, so prefer them over gu
 
 Money is written Danish style — `1.284,00 kr.` — and components that format it themselves take
 a number, not a string. Labels on buttons are usually capitals.
+
+## There is one tooltip, and it wants a rectangle
+
+Every hover label in the app is the same white card. Do not build another one and do not style
+your own: `Tooltip` takes the `DOMRect` of whatever is being pointed at and the words to say,
+and finds a side of that rectangle with room for them. It draws into `document.body`, so it is
+never cut off by a card or a scrolling box.
+
+```jsx
+const [at, setAt] = useState(null)
+
+<div onPointerOver={e => {
+      const tile = e.target.closest('.icon-picker-tile')
+      setAt(tile ? tile.getBoundingClientRect() : null)
+    }}
+    onPointerLeave={() => setAt(null)}>
+  {/* ...controls... */}
+</div>
+<Tooltip anchor={at}>gas station</Tooltip>
+```
+
+Give it no `anchor` and it draws nothing — that is how it is hidden. It never holds a control
+and never carries a fact that is not also on the thing it points at, since it answers a pointer
+only.

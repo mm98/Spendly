@@ -315,7 +315,7 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 /* No focus rule of its own: the band is focusable only so the callout can be asked for
    without a pointer, and the file's one :focus-visible already draws every ring in the app. */
 .build-quality-band { cursor:default; }
-.build-quality-callout { position:absolute; left:calc(-1 * var(--footer-inset)); right:calc(-1 * var(--footer-inset)); bottom:calc(100% + 8px); background:var(--bg-card); border-radius:16px; box-shadow:0 2px 6px rgb(var(--shadow-ink) / .06), 0 14px 34px rgb(var(--shadow-ink) / .12); padding:10px 14px; font-size:11px; color:var(--text-body); line-height:1.5; visibility:hidden; display:grid; gap:2px; z-index:2; }
+.build-quality-callout { position:absolute; left:calc(-1 * var(--footer-inset)); right:calc(-1 * var(--footer-inset)); bottom:calc(100% + 8px); padding:10px 14px; line-height:1.5; visibility:hidden; display:grid; gap:2px; white-space:normal; z-index:2; }
 .build-quality:hover .build-quality-callout, .build-quality:focus-within .build-quality-callout { visibility:visible; }
 .build-quality-title { font-size:11px; font-weight:600; color:var(--text); }
 /* Label left, score right -- the same two-column reading every data row in the app has. */
@@ -511,6 +511,13 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
    vendor or category name inside this caption (Top vendors, Top categories) is as long as
    whoever named it made it, with no truncate anywhere in the chain to catch it. */
 .card-caption { display:block; font-size:10.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* Every hover label in the app is this surface: the chart hovers, the sidebar's build-quality
+   callout and the icon grid's name. Only what sits inside one is its own business. */
+.tooltip { --pad-tooltip:4px 8px; background:var(--bg-card); border-radius:var(--radius-page); box-shadow:var(--shadow); font-size:11.5px; color:var(--text-body); }
+/* Placed against the viewport by Tooltip.jsx, which reads --gap-tooltip for how far to sit off
+   what it points at. Above the page, under the toasts, and never a click target. */
+.tooltip-floating { --gap-tooltip:var(--gap-icon); position:fixed; z-index:50; padding:var(--pad-tooltip); font-weight:600; color:var(--text); white-space:nowrap; pointer-events:none; }
 .card-header .chevron { color:var(--text-body); }
 .chevron { display:inline-flex; align-items:center; color:var(--text-faint); }
 /* Icon size is the container's business, not the markup's. svg.icon is 18px and
@@ -706,7 +713,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .weekday-bars span { font-size:11px; color:var(--text-muted); font-weight:500; white-space:nowrap; }
 /* Shared with .month-columns below (Viz.jsx's WeekdayTooltip/MonthTooltip). Its own name, not
    .chart-tooltip -- that one is the line charts' (Chart.jsx), a different shape for a different hover. */
-.bar-tooltip { display:grid; gap:2px; background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-compact); padding:6px 10px; box-shadow:0 2px 6px rgb(var(--shadow-ink) / .08); font-size:11px; white-space:nowrap; }
+.bar-tooltip { display:grid; gap:2px; padding:6px 10px; white-space:nowrap; }
 .bar-tooltip strong { font-weight:600; color:var(--text); }
 .bar-tooltip span { color:var(--text-muted); }
 /* Short by default, full only where .rhythm-bars (Stats.jsx's own copy of this component) has
@@ -737,7 +744,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .donut .ring-centre-label { font-style:normal; font-size:9.5px; color:var(--text-muted); }
 /* Shared with .spend-gauge: the hover readout for one segment's own share, positioned by
    Recharts' own tooltip wrapper (Viz.jsx's RingTooltip). */
-.ring-tooltip { background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-compact); padding:4px 8px; font-size:11px; font-weight:600; color:var(--text); box-shadow:0 2px 6px rgb(var(--shadow-ink) / .08); white-space:nowrap; }
+.ring-tooltip { padding:var(--pad-tooltip); font-weight:600; color:var(--text); white-space:nowrap; }
 /* Same implicit-column trap as .content-column-side above: with no grid-template-columns of
    its own, this was an auto-sized single column that floored at the widest category name's
    own width rather than the card's. README: Responsive Layout. */
@@ -790,7 +797,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .chart-caption-value { font-size:19px; font-weight:700; letter-spacing:-.01em; }
 /* Matches .build-quality-callout's own card-on-card recipe: off the card surface, not the
    page, since it can sit over either. */
-.chart-tooltip { display:grid; gap:5px; min-width:120px; padding:8px 10px; background:var(--bg-card); border-radius:var(--radius-page); box-shadow:0 2px 6px rgb(var(--shadow-ink) / .06), 0 14px 34px rgb(var(--shadow-ink) / .12); font-size:11.5px; color:var(--text-body); }
+.chart-tooltip { display:grid; gap:5px; min-width:120px; padding:8px 10px; white-space:normal; }
 .chart-tooltip-date { font-size:10.5px; color:var(--text-muted); }
 .chart-tooltip-row { display:flex; align-items:center; gap:6px; }
 .chart-tooltip-swatch { width:8px; height:8px; border-radius:2px; flex:none; }
