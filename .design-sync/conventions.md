@@ -49,8 +49,8 @@ silently, with no error:
 
 - **`Button`** splits `variant` on spaces and prefixes each word: `variant="ghost compact"`.
   Values: `primary` `outline` `ghost` `caps` `compact` `block` `pill` `invert` `link`.
-  `block` is a standalone full-width treatment with its own surface — use it **alone**, never
-  as `primary block`.
+  `block` is full width with its own resting surface, and it composes: `primary block` is a
+  full-width green button.
 - **`IconButton`** takes the whole string as one class: `arrow` `clear` `send` `reorder`.
 - **`Card`, `CardBody`, `FieldShell`** take the class word in full: `card-body-tight`.
 

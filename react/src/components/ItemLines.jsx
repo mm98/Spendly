@@ -13,8 +13,8 @@ import {
 } from './Form.jsx'
 import { ITEM_FIELDS } from '../api/rules.js'
 import {
-	amount, currency, currencySymbol, fullStop, parseAmount, percent, plural, sanitizeAmount,
-	sanitizeWholeNumber, sep
+	amount, currency, currencySymbol, fullStop, parseAmount, percent, plural, quantity as qtyText,
+	sanitizeAmount, sep
 } from '../api/format.js'
 
 /* The lines on an order, edited where they sit.
@@ -55,7 +55,7 @@ const BLANK = { 'item-description': '', 'item-quantity': '1', 'item-price': '', 
 
 const formOf = item => ({
 	'item-description': item.title,
-	'item-quantity': String(item.quantity),
+	'item-quantity': qtyText(item.quantity),
 	'item-price': amount(item.price),
 	'item-retail': item.retail != null ? amount(item.retail) : '',
 	'item-note': item.note ?? ''
@@ -138,7 +138,7 @@ export function ItemLines({
 			...(openItem ?? {}),
 			id,
 			title: form['item-description'].trim(),
-			quantity: Number(form['item-quantity']),
+			quantity: parseAmount(form['item-quantity']),
 			price: parseAmount(form['item-price']),
 			retail: retail ? parseAmount(retail) : undefined,
 			note: note || undefined
@@ -188,7 +188,7 @@ export function ItemLines({
 	const itemDel = useRowDelete({
 		what: 'item',
 		label: item => `Delete ${item.title}`,
-		detail: item => `${item.title}, ${item.quantity} × ${currency(item.price)}${fullStop()}`,
+		detail: item => `${item.title}, ${qtyText(item.quantity)} × ${currency(item.price)}${fullStop()}`,
 		onDelete: removeItem
 	})
 
@@ -292,7 +292,7 @@ export function ItemLines({
 								   card, so the index arithmetic would be off by one. A disabled button
 								   never reaches that arithmetic, and the column keeps its width. */
 								handle={showGrips ? reorder.handle(item, i, openId !== null) : null}
-								meta={`${item.quantity} × ${currency(item.price)}`
+								meta={`${qtyText(item.quantity)} × ${currency(item.price)}`
 									+ (item.retail ? `${sep}retail ${currency(item.retail)}` : '')}
 								amount={currency(item.price * item.quantity)}
 								{...reorder.rowProps(item)}>
@@ -393,7 +393,7 @@ function LineCard({
 	/* The three figures the fields imply, recomputed as either number is typed. A quantity is a
 	   multiplier and never a second price to keep in step by hand, so the line total is read
 	   back rather than asked for. */
-	const qty = Number(form['item-quantity'])
+	const qty = parseAmount(form['item-quantity'])
 	const paid = parseAmount(form['item-price'])
 	const retail = form['item-retail'].trim() ? parseAmount(form['item-retail']) : null
 	const figures = Number.isFinite(qty) && qty > 0 && Number.isFinite(paid)
@@ -436,9 +436,9 @@ function LineCard({
 					<Field className="line-field-qty" label="Quantity" htmlFor="item-quantity"
 						error={quantity.error} errorId={quantity.errorId}>
 						<FieldShell>
-							<TextInput id="item-quantity" inputMode="numeric" aria-label="Quantity"
+							<TextInput id="item-quantity" inputMode="decimal" aria-label="Quantity"
 								aria-required="true" value={form['item-quantity']}
-								onChange={v => set('item-quantity')(sanitizeWholeNumber(v))}
+								onChange={v => set('item-quantity')(sanitizeAmount(v))}
 								invalid={quantity.invalid} describedBy={quantity.describedBy} />
 							<FieldUnit>pcs</FieldUnit>
 						</FieldShell>
@@ -470,7 +470,7 @@ function LineCard({
 						</FieldShell>
 					</Field>
 
-					<Field label="Note" optional htmlFor="item-note"
+					<Field className="line-field-wide" label="Note" optional htmlFor="item-note"
 						error={noteField.error} errorId={noteField.errorId}
 						help="Anything worth remembering about this line.">
 						<FieldShell>

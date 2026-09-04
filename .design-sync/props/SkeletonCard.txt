@@ -1,6 +1,5 @@
-	/** Draws the header band and the divider under it. Defaults to true; pass `false` where
-	 *  the loaded card has no header. The band comes out empty - the bar inside it is sized
-	 *  as a percentage of a slot that sizes itself to that bar, so it measures 0px across. */
+	/** Draws the header band and the divider under it, with a shimmering bar where the title
+	 *  will be. Defaults to true; pass `false` where the loaded card has no header. */
 	title?: boolean;
 	/** Pixel height of the panel that stands in for a chart or a figure, drawn after the
 	 *  lines. Set it to the height the loaded card actually has, or the swap moves

@@ -50,21 +50,6 @@ Sibling components do NOT share a tone vocabulary. `KpiCard` takes `good | bad |
 class. Check with `grep -o '\.<base>-[a-z-]*' react/src/styles/app.css | sort -u`, and confirm
 against a real call site or the API that produces the value.
 
-## Known render warns
-
-- `disabled` on `.button` has no style outside `.pager-buttons` (only `.pager-buttons .button:disabled`
-  and `.pager-arrow:disabled` set `opacity:.45`), so a disabled button looks identical to an
-  enabled one. No Disabled story is authored for `Button` — it would grade as an axis that does
-  not vary. **This is a real affordance gap in the app**, reported to the user, not fixed here.
-
-## `block` is a standalone button treatment, not a modifier
-
-`.button.button-block` (app.css:888) and `.button.button-primary` (app.css:359) have equal
-specificity and block is declared later, so `variant="primary block"` renders block's own card
-surface and silently drops the green. The app only ever writes `variant="block"` alone.
-Verified by reading both rules and by the render. Same shape as the README's rule that a base
-rule placed after an override wins on equal specificity.
-
 ## Capture harness facts
 
 - `package-capture.mjs` pins the clock to **2024-05-15** and captures at **900x700**.
@@ -82,6 +67,15 @@ rule placed after an override wins on equal specificity.
 - `.field-pair-keep` and `.field-pair-stack-early` differ only inside a viewport media query,
   so no still card can show them apart. Documented in prose instead.
 
+## Known render warns
+
+- Skeletons shimmer on a 1.6s CSS loop, so a still capture takes whichever phase it lands on.
+  Two cells of one skeleton component coming out alike is that, not a broken variant axis.
+- `SkeletonBlock`'s own cells are genuinely thin (`APageTitle` renders 380x34). A
+  `[RENDER_THIN]` line naming it is expected.
+- `ProgressBar`'s indeterminate slide is a live CSS animation the harness does not freeze; it
+  captures mid-track and legible.
+
 ## Card presentation overrides, and why each one is there
 
 `cfg.overrides.<Name>.cardMode = "column"` puts one story per row at full card width. Five
@@ -94,19 +88,6 @@ components need it, each measured rather than guessed:
   on the rail, leaving ~72px for the wide column in a half cell.
 - `FavouriteTile`, `FavouriteTileGrid` — the tile has a real minimum width; five cells measured
   372-382px of content in a 328px cell, and `ds-col` clears all five.
-
-## Two places the app's own CSS contradicts what a name promises
-
-Both verified by reading the rules and by the render. Neither is fixed here — they are the
-user's call, and both are recorded so a preview never quietly "corrects" them.
-
-1. `variant="primary block"` loses the green (see the section above).
-2. **`ButtonLink` is underlined as a button and not underlined as a link.**
-   `a[data-go] { text-decoration:none }` (app.css:525, specificity 0-1-1) outranks
-   `.button-link` (app.css:889, 0-1-0), and every in-app link carries `data-go`. Four call
-   sites take the link form: `Orders.jsx:110`, `AllOrders.jsx:285`, `Home.jsx:549`,
-   `Wishlist.jsx:221`. `Button variant="link"` with a `to` would do the same; nothing does that
-   today.
 
 ## Props that look like content but are not
 
@@ -161,34 +142,6 @@ Five chart components render an empty box with no error when the data is the wro
 - `Async.children` is a **function**, not markup, and `state` is exactly `useApi`'s return.
 - `RecordWait.state` is the same `{data, error, loading}` triple.
 
-## Small affordance gaps found while authoring
-
-Each verified, none fixed here. Listed so a preview never quietly draws a state the app does
-not actually give.
-
-- A disabled `.button` is only dimmed inside `.pager-buttons` and `.pager-arrow` (above).
-- `.icon-picker-tile:disabled` has no styling at all, so a tile still waiting for its stored
-  path is an indistinguishable blank box.
-- `SkeletonCard`'s title bar measures **0px wide** in every header-drawing cell (header 378px,
-  height 44.67px, so the anti-layout-shift job still holds). `CardHeader` puts the bar in
-  `span.section-label`, a flex item sized to its own content, and the bar's width is a
-  percentage of that span — each waits on the other. Every waiting card in the app is affected.
-
-## MonthColumns and WeekdayBars mislabel their columns once ticks are thinned
-
-`MonthTick`/`WeekdayTick` (`react/src/components/Chart.jsx:324,339`) read `months[index]` /
-`days[index]`, where recharts' `index` counts the **surviving** ticks, not the data. The same
-functions already read `visibleTicksCount`, so the thinning is known about; only the lookup
-misses it. While every tick fits, the two agree.
-
-Measured on the six-week data: at a 504px chart all six labels sit over their own bars; at
-348px the three surviving ticks sit over columns 2, 4 and 6 and read "Week 14, Week 15,
-Week 16". Nothing errors.
-
-It bites at Week and Quarter width, whose labels have no short form
-(`api/src/lib/stats.js:53,70`), on a phone-width card. Not fixed here.
-
-
 ## Live code the app never calls
 
 Previewed from the component's own contract, and each doc says so rather than implying a usage:
@@ -230,5 +183,9 @@ driver: run it whenever a `props/*.txt` changed, or the contract will not reach 
 - Every preview renders against a `MemoryRouter` created per card. A component that starts
   reading loader or action data (not just `useRouteError`) would need routes with real data,
   not just a data router.
-- Five app defects are recorded above and none is fixed. If any is repaired in `react/src`,
-  the matching component doc still describes the broken behaviour and must be corrected.
+- Six defects this sync surfaced were fixed in `react/src` and their evidence is in
+  `docs/defects.md`, not here. Component docs, `conventions.md` and previews were corrected to
+  match. If any of that behaviour changes again, those three follow it — a doc that describes a
+  behaviour the build no longer has is confident wrong advice.
+- One gap is still open and previews must not draw a state for it: `.icon-picker-tile:disabled`
+  has no styling, so a tile still waiting for its stored path is an indistinguishable blank box.

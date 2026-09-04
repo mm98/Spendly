@@ -30,7 +30,10 @@ export function SkeletonCard({ title = true, bodyHeight, lines = 0, bodyVariant,
 		<Card aria-hidden="true" className={className}>
 			{title ? (
 				<>
-					<CardHeader title={<SkeletonBlock width="42%" height={13} />} />
+					{/* A length, not a percentage: CardHeader puts the title in a flex item sized to its
+					    own content, so a percentage resolves against a width that is itself waiting on
+					    this, and the bar comes out 0px wide in every waiting card. */}
+					<CardHeader title={<SkeletonBlock width={140} height={13} />} />
 					<CardDivider />
 				</>
 			) : null}

@@ -12,12 +12,12 @@ the screen, use `Button variant="primary"` instead.
 Pass `to` for an in-app route and it renders a react-router link; pass `onClick` and it
 renders a real `<button>`.
 
-## One thing to know about the two forms
+## The two forms look the same
 
-The button form is underlined. The link form is **not**: every navigating element in the app
-carries `data-go`, and `a[data-go] { text-decoration: none }` outranks `.button-link`. So
-`<ButtonLink onClick={…}>` comes out underlined and `<ButtonLink to="…">` comes out bold and
-flat. Both are the app as it ships. Do not try to correct one with a class.
+Both forms are underlined, and both are the same weight, size and colour. Pass `to` and you get
+a real link; pass `onClick` and you get a real button. Nothing about the styling tells them
+apart, which is the point: the underline is what says "this is a link you can follow", and it
+should not depend on which element the component happened to render.
 
 ## On a dark surface
 

@@ -43,10 +43,9 @@ and still sits inside the same real `CardBody`, so the padding stays right.
 
 ## Props
 
-- `title` — draws the header band and the divider under it. Defaults to `true`; pass `false`
-  where the loaded card has no header. The band is empty today: the bar meant to sit in it is
-  given a percentage width inside a shrink-to-fit slot and measures 0px across, so what you get
-  is the band's height and the hairline, not a shimmering title
+- `title` — draws the header band and the divider under it, with a 140px shimmering bar where
+  the card's title will be. Defaults to `true`; pass `false` where the loaded card has no
+  header
 - `bodyHeight` — pixel height of the panel after the lines
 - `lines` — how many text bars. Defaults to `0`
 - `bodyVariant` — class words for the `CardBody`, written in full

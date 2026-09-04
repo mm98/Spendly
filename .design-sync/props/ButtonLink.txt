@@ -1,5 +1,5 @@
 	/** An in-app route. Renders a react-router link; without it, a real `<button>`.
-	 *  The link form loses the underline (`a[data-go]` outranks `.button-link`). */
+	 *  Both forms are underlined and otherwise identical. */
 	to?: string;
 	/** The words, written in capitals: SEE ALL, CLEAR ALL, ADD AN ORDER. */
 	children?: React.ReactNode;

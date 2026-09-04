@@ -32,7 +32,7 @@ import {
 import { DELIVERED_DATE_FIELD, LINE_FIELDS, ORDER_FIELDS, RETURNED_DATE_FIELD } from '../api/rules.js'
 import {
 	amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, percent, plural,
-	sanitizeAmount, sanitizeWholeNumber, sep, today
+	quantity as qtyText, sanitizeAmount, sep, today
 } from '../api/format.js'
 
 /* Scan, in three steps.
@@ -460,7 +460,7 @@ function ScanReviewForm({ answer }) {
 		   the values the editor would have been given. */
 		for (const line of draft.lines) {
 			const lineValues = {
-				'line-description': line.title, 'line-quantity': String(line.quantity),
+				'line-description': line.title, 'line-quantity': qtyText(line.quantity),
 				'line-price': amount(line.price),
 				'line-retail': line.retail != null ? amount(line.retail) : '',
 				'line-note': line.note ?? ''
@@ -746,7 +746,7 @@ function ScanReviewForm({ answer }) {
 								thumb={pendingPhotos[line.id] ? 'photo' : undefined}
 								thumbSrc={pendingPhotos[line.id]?.url}
 								title={line.title}
-								meta={(line.meta ?? `${line.quantity} × ${currency(line.price)}`)
+								meta={(line.meta ?? `${qtyText(line.quantity)} × ${currency(line.price)}`)
 									+ (line.retail ? `${sep}retail ${currency(line.retail)}` : '')}
 								amount={currency(line.price * line.quantity)}>
 								{/* Pencil and trash side by side, the same pair ItemLines.jsx draws on a
@@ -826,7 +826,7 @@ function LineEditor({
 }) {
 	const [form, setForm] = useState({
 		'line-description': line.title,
-		'line-quantity': String(line.quantity),
+		'line-quantity': qtyText(line.quantity),
 		'line-price': amount(line.price),
 		'line-retail': line.retail != null ? amount(line.retail) : '',
 		'line-note': line.note ?? ''
@@ -850,7 +850,7 @@ function LineEditor({
 		const note = form['line-note'].trim()
 		onSave({
 			title: form['line-description'].trim(),
-			quantity: Number(form['line-quantity']),
+			quantity: parseAmount(form['line-quantity']),
 			price: parseAmount(form['line-price']),
 			retail: retail ? parseAmount(retail) : undefined,
 			note: note || undefined
@@ -898,8 +898,8 @@ function LineEditor({
 					</Field>
 					<Field className="line-field-qty" label="Quantity" error={quantity.error} errorId={quantity.errorId} htmlFor="line-quantity">
 						<FieldShell>
-							<TextInput id="line-quantity" inputMode="numeric" value={form['line-quantity']}
-								onChange={v => set('line-quantity')(sanitizeWholeNumber(v))} aria-label="Quantity" aria-required="true"
+							<TextInput id="line-quantity" inputMode="decimal" value={form['line-quantity']}
+								onChange={v => set('line-quantity')(sanitizeAmount(v))} aria-label="Quantity" aria-required="true"
 								invalid={quantity.invalid} describedBy={quantity.describedBy} />
 							<FieldUnit>pcs</FieldUnit>
 						</FieldShell>
@@ -926,7 +926,7 @@ function LineEditor({
 							<FieldUnit>{currencySymbol()}</FieldUnit>
 						</FieldShell>
 					</Field>
-					<Field label="Note" optional htmlFor="line-note"
+					<Field className="line-field-wide" label="Note" optional htmlFor="line-note"
 						error={noteField.error} errorId={noteField.errorId}
 						help="Anything worth remembering about this line.">
 						<FieldShell>

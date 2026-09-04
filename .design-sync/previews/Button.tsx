@@ -31,6 +31,15 @@ export const FullWidth = () => (
 	<div style={{ maxWidth: 320 }}>
 		<Button variant="block" icon="receipt" to="/orders/all">SEE ALL ORDERS</Button>
 		<Button variant="block" icon="pencil" to="/orders/1/edit">EDIT ORDER</Button>
+		<Button variant="primary block" icon="check">SAVE ORDER</Button>
+	</div>
+)
+
+export const Disabled = () => (
+	<div style={row}>
+		<Button variant="primary" disabled>SAVING…</Button>
+		<Button variant="outline" disabled>CANCEL</Button>
+		<Button variant="ghost" disabled>Skip for now</Button>
 	</div>
 )
 

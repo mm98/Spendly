@@ -19,7 +19,7 @@ import {
 	invalidateOrderData, itemAttachmentFileUrl, itemAttachmentThumbnailUrl,
 	ordersIn, removeAttachment
 } from '../api/client.js'
-import { currency, fullStop, longDate, percent, plural, sep, shortDate } from '../api/format.js'
+import { currency, fullStop, longDate, percent, plural, quantity as qtyText, sep, shortDate } from '../api/format.js'
 
 /* One order, and everything you can do to it.
 
@@ -152,7 +152,7 @@ export default function OrderDetail() {
 										thumbSrc={photo?.hasThumbnail ? itemAttachmentThumbnailUrl(order.id, item.id, photo.id) : undefined}
 										onThumbClick={photo ? () => setOpenPhoto({ item, photo }) : undefined}
 										title={item.title}
-										meta={`${item.quantity} × ${currency(item.price)}`
+										meta={`${qtyText(item.quantity)} × ${currency(item.price)}`
 											+ (item.retail ? `${sep}retail ${currency(item.retail)}` : '')
 											+ (item.note ? `${sep}${item.note}` : '')}
 										amount={currency(item.price * item.quantity)} />

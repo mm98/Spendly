@@ -3076,3 +3076,146 @@ differing pixels** against the unchanged source on both the phone (1,035,948 px)
 No `position:fixed` element sits inside the panel on any of the ten phone routes, checked by walking
 the DOM of each — the toast stack, the update bar and the pull spinner are all outside the shell the
 pull moves. Verified in Blink (Chromium 1.56.1 via Playwright); other engines unverified.
+
+---
+
+## Honest Affordances — a disabled button was drawn exactly like one that works
+
+`.button` set one resting look and nothing under it answered `:disabled`. Four disabled rules
+existed and three of them were for something else: `.icon-button-reorder:disabled` at `opacity:.35`,
+`.item-row-grip:disabled` at `.4`, `.pager-arrow:disabled` at `.45`, and one rule that did reach a
+button — `.pager-buttons .button:disabled` — scoped to the pager it was written in.
+
+Measured in Chromium 141 (Playwright 1.56.1) on `button.button.button-primary` with and without the
+attribute, reading computed style: **`opacity` 1 in both, `cursor: pointer` in both, identical
+background and colour**. Settings' "check for updates" button takes `disabled={checking}` and sat in
+that state saying nothing about it.
+
+The rule now lives once, on `.button:disabled` beside the base spec, at the `.45` the pager already
+used; the pager's own copy is gone, since a value stated twice is a value that can disagree. After:
+`opacity: 0.45`, `cursor: default`, against `1`/`pointer` enabled.
+
+Not checked: Firefox and WebKit. The rule is one declaration on a pseudo-class every engine has.
+
+## Buttons — `primary block` painted itself white, and said nothing
+
+`.button.button-block` and `.button.button-primary` are both `(0,2,0)`. Block was declared at
+app.css:888 and primary at 359, so block won on order, and its own surface trio —
+`background:var(--bg-card); color:var(--text); border-color:var(--border-control)` — is character for
+character `.button-outline`'s. A control named primary rendered **`rgb(255, 255, 255)`** on a
+**`rgb(25, 77, 48)`** promise.
+
+Nothing in the app writes the two together, so nothing was visibly wrong; the combination was simply
+a lie waiting to be told, and a preview card drew it before a screen did. This is the case
+`CLAUDE.md` names in general terms — a base rule placed below an override wins on equal specificity —
+in the one place the file itself had it backwards.
+
+Block now sits directly under the base spec, above every surface variant, and `.button-primary`
+states `border-color:transparent` rather than inheriting it, so a surface variant combined with one
+that draws an edge does not keep the edge. Measured after, computed style at a 400px container:
+`primary block` **`rgb(25, 77, 48)`**, white text, transparent border, 400/400px wide; `block` alone
+unchanged at **`rgb(255, 255, 255)`** with a **`rgb(226, 228, 223)`** edge, 400/400px.
+
+## Honest Affordances — the same text link was underlined as a button and bare as a link
+
+`a[data-go] { text-decoration:none }` (app.css:525, `(0,1,1)`) outranks `.button-link`
+(app.css:889, `(0,1,0)`), and every in-app link carries `data-go`. So the component underlined
+itself only while it had nowhere to go.
+
+Measured in Chromium 141, computed style on both forms of the one component: `<button>`
+**`underline`**, `<a data-go>` **`none`**, with colour `rgb(11, 15, 13)`, weight 700 and size 12px
+identical across both — the difference was the underline alone. Four call sites take the link form:
+`Orders.jsx:110`, `AllOrders.jsx:285`, `Home.jsx:549`, `Wishlist.jsx:221`. `Button variant="link"`
+with a `to` produces the same class and would have lost it the same way; nothing writes that today.
+
+The reset now excludes the one class that underlines on purpose. After, on `/orders/all` at 1440px:
+the page's single anchor-form link reads `underline`. `docs/all-orders.png` moved by **1978 of
+5,184,000 pixels** against a baseline that reproduced the committed shot at **0**, and re-rendering
+twice gave **0** between runs.
+
+## Loading and Errors — the shimmering title on every waiting card was zero pixels wide
+
+`SkeletonCard` drew its header as `<CardHeader title={<SkeletonBlock width="42%" />} />`. `CardHeader`
+puts the title in `span.section-label`, and `.card-header` is `display:flex`, so that span is a flex
+item sized to its own content — whose only content is a bar asking for 42% of it. Each waits on the
+other and both resolve to nothing.
+
+Measured in Chromium 141, `getBoundingClientRect()` on all four header-drawing cells: **span 0px, bar
+0px**, inside a header **378px** wide and **44.67px** tall. Seen again from an unrelated route
+(`RecordWait`'s waiting state): bar 0×13 in an 850×44.67 header while the body lines below it drew
+729px. Every waiting card on Home, Orders, Statistics, Settings and the list pages showed an empty
+band.
+
+The height contract was never the casualty — the band held its 44.67px and the divider drew, so the
+job of not shifting the page was done throughout. What was missing was the only part a reader can
+see. The bar is a length now, not a fraction of a width that is waiting on it. After: **bar 140px,
+header height 44.67px**, unchanged.
+
+## Charts — a thinned axis named the wrong columns and reported nothing
+
+`MonthTick` and `WeekdayTick` read `months[index]` and `days[index]`. Recharts drops ticks when an
+axis runs out of room and numbers the survivors from zero, so `index` is a position among what is
+still drawn. The same two functions already read `visibleTicksCount`, so the thinning was known
+about; only the lookup missed it.
+
+Measured in Chromium 141 on six weeks of data, comparing each label's centre against the bar centres
+under it:
+
+| chart width | bar centres | labels drawn | sat over columns |
+|---|---|---|---|
+| 520px | 43, 130, 217, 303, 390, 477 | Week 14 … Week 19 | 1, 2, 3, 4, 5, 6 |
+| 348px | 29, 87, 145, 203, 261, 319 | Week 14, Week 15, Week 16 | 2, 4, 6 |
+
+At 348px three columns were named, and all three were named wrong. It bites at Week and Quarter
+width, whose labels have no short form (`api/src/lib/stats.js:53,70`), on a card narrow enough to
+thin — a phone. A month window escapes because "Dec" always fits.
+
+The row is looked up by the value the axis is keyed on, not by tick position. After, same instrument:
+348px draws **Week 15, Week 17, Week 19** over columns 2, 4 and 6, and 300px agrees.
+
+## Form Validation — quantity refused a half, and the README had never asked it to
+
+The Fields and Forms rules state `quantity > 0` and `amounts max two decimals`. Both ends of the app
+enforced something else: `react/src/api/rules.js` tested `WHOLE_NUMBER_PATTERN` (`/^\d+$/`) and
+`Number(v) < 1`, and `api/src/lib/validate.js` tested `Number.isInteger(quantity) || quantity < 1`.
+The column had been `quantity REAL NOT NULL` since `001_init.sql`, and the totals triggers multiply
+it — so half a kilo was storable and summable, and only the two validators stood in the way.
+
+A quantity now takes the rule the two price fields take, `AMOUNT_PATTERN`, and is bounded above 0 and
+at or below 9999. Measured against the running API: `0.5` accepted and decorated to subtotal
+**6.25** and saved **1.25** from `0.5 × 12.50` against a `15.00` retail; `1.1` accepted; `0.333`
+and `0` refused 400. In the browser at 1440px the line reads **`0,5 × 12,50 kr.`** and a whole two
+still reads **`2 × 24,95 kr.`**, not `2,00`; the edit field pre-fills **`0,5`**; typing `0,755` is
+refused in the field's own words and `0,75` saves to **`9,38 kr.`**
+
+One trap worth the line it costs: a two-decimal test written as `Math.round(q * 100) !== q * 100`
+refuses `1.1`, `2.2` and `8.7`, because `1.1 * 100` is `110.00000000000001` in binary floating point.
+Rounding and comparing back — `Math.round(q * 100) / 100 !== q` — accepts all three and still refuses
+`1.005` and `0.333`. Checked across 19 values before it shipped.
+
+Not checked: Firefox and WebKit; every measurement above is Blink.
+
+## Create and Edit — the note field was given the quantity's column
+
+`.line-card-fields` is a two-track grid. Description and Retail price each carry a class that spans
+it; Quantity and Price paid take a track each and are meant to. The note carried no class at all, so
+it auto-placed into whatever track came next — column one, which on a phone is the 92px box sized for
+a two-character quantity.
+
+Measured on an iPhone 15 descriptor at `deviceScaleFactor: 2` (Chromium 141), reading
+`getBoundingClientRect()` inside the open line card: grid **265px** across at
+`grid-template-columns: 92px 157px`; Description **265px**, Retail **265px**, Note **92px** with a
+**60px** input. A field for free text was drawn a third the width of the field above it and the
+field below it. At 1440px the same fault was quieter and still there: **241px** of an available
+**498px**.
+
+The README's own test is the content, not the importance — full width when the content has no
+predictable length, and it names notes in that list. The fix is the class the description already
+uses, on both line forms that have this shape: the item card and the scan review's line card. No new
+rule; a second name for `grid-column: 1 / -1` would have been one declaration in two places waiting
+to disagree.
+
+After, same instrument: Note **265px** on the phone (input **233px**) and **498px** at 1440px, level
+with Description and Retail at both.
+
+Not checked: Firefox and WebKit.
