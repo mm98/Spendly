@@ -12,6 +12,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Roughly double what the job takes, so only a hang trips it: GitHub's own default is six
+    # hours, long enough for a stuck step to hold a runner most of a day before anyone looks.
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: react
@@ -34,6 +37,7 @@ jobs:
   # react/'s, and a red plan check should read as a red plan check rather than a failed build.
   queries:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: api
@@ -52,6 +56,7 @@ jobs:
   # it through forever once merged.
   external-links:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -63,6 +68,7 @@ jobs:
   # touched never fails a run it has nothing to do with, the same shape as queries: above.
   comments:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
         with:
@@ -90,6 +96,8 @@ jobs:
   # still matters on every commit; the score itself stays a number to read, not a merge blocker.
   lighthouse:
     runs-on: ubuntu-latest
+    # Three installs and a Chrome run, so this one is the long job on the board, not a hang.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
