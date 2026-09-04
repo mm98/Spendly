@@ -26,7 +26,7 @@ export const OnSuggestions = () => (
 		<CardHeader title="For you" />
 		<CardDivider />
 		<CardBody>
-			<div style={{ display: 'grid', gap: 12 }}>
+			<div style={{ display: 'grid', gap: 20 }}>
 				<div style={{ display: 'grid', gap: 6 }}>
 					<TagChip icon="bolt">Quick wins</TagChip>
 					<span style={{ fontWeight: 700, fontSize: 14.5, letterSpacing: '-.01em' }}>Name that vendor</span>

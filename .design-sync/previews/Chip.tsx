@@ -40,9 +40,10 @@ export const WithIcon = () => (
 	</div>
 )
 
-/* The chips live inside the field they are being added to, not above it. The last chip
-   is longer than the field, so its label ellipsises while the cross keeps its place. */
+/* The chips live inside the field they are being added to, not above it, and the field
+   grows a line rather than scrolling sideways when they no longer fit across. */
 export const InsideAField = () => (
+	<div style={{ maxWidth: 460 }}>
 	<Field label="Aliases" optional htmlFor="vendor-aliases"
 		help="Other names for this vendor. Type a name and press Enter.">
 		<FieldShell className="field-shell-chips field-shell-no-chevron">
@@ -54,4 +55,5 @@ export const InsideAField = () => (
 				aria-label="Add alias" placeholder="Add alias..." />
 		</FieldShell>
 	</Field>
+	</div>
 )

@@ -59,9 +59,9 @@ export const InControls = () => (
 	</div>
 )
 
-/* `title` turns a glyph into a labelled image; without it the svg is hidden from screen
-   readers, which is right beside its own text and wrong when it stands alone. */
-export const StandingAlone = () => (
+/* The largest one the app draws: the glyph an empty card leads with, sized by the frame
+   around it rather than by anything passed here. */
+export const InAnEmptyState = () => (
 	<Card>
 		<CardHeader title="Returns this month" />
 		<CardDivider />

@@ -13,8 +13,8 @@ const categoryIcon = (icon: string, colour: string, ink: string) => (
 	<span className="category-icon" style={{ background: colour, color: ink }}><Icon name={icon} /></span>
 )
 
-/* Three pinned records is the full row the grid is drawn for. */
-export const ThreeAcross = () => (
+/* Three pinned records -- a full row on a wide panel, two plus one at this width. */
+export const ThreeFavourites = () => (
 	<Card aria-label="Favourites">
 		<CardHeader title="Favourites" to="/vendors/all" label="Favourites, open all vendors" />
 		<CardDivider />
@@ -34,8 +34,8 @@ export const ThreeAcross = () => (
 	</Card>
 )
 
-/* Fewer than three tiles keep their column width instead of stretching across the panel. */
-export const PartialRow = () => (
+/* Fewer tiles than columns keep their column width instead of stretching across the panel. */
+export const TwoFavourites = () => (
 	<Card aria-label="Favourites">
 		<CardHeader title="Favourites" to="/categories/all" label="Favourites, open all categories" />
 		<CardDivider />
@@ -52,8 +52,8 @@ export const PartialRow = () => (
 	</Card>
 )
 
-/* More than three wrap onto a second row of the same three columns. */
-export const TwoRows = () => (
+/* More tiles than one row holds wrap onto the next row of the same columns. */
+export const SixFavourites = () => (
 	<Card aria-label="Favourites">
 		<CardHeader title="Favourites" to="/vendors/all" label="Favourites, open all vendors" />
 		<CardDivider />

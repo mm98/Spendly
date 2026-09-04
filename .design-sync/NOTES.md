@@ -65,6 +65,19 @@ surface and silently drops the green. The app only ever writes `variant="block"`
 Verified by reading both rules and by the render. Same shape as the README's rule that a base
 rule placed after an override wins on equal specificity.
 
+## Capture harness facts
+
+- `package-capture.mjs` pins the clock to **2024-05-15** and captures at **900x700**.
+- The clock matters because `dayMonth()` (`react/src/api/format.js`) prints the year only when
+  the date is not in the current year. Preview dates are written in the first half of 2024 so
+  the compact form renders, which is what a reader normally sees.
+- The viewport puts `@media (max-width:900px)` in force. It reaches only `.kpi-row`,
+  `.two-column`, `.fav-tile-grid`, `.dashboard-cards` and `.field-pair-stack-early`, so it
+  affects `DashboardCards` and `FavouriteTileGrid` and nothing else. Not worth forking the
+  harness for; previews lay themselves out with inline styles.
+- `.field-pair-keep` and `.field-pair-stack-early` differ only inside a viewport media query,
+  so no still card can show them apart. Documented in prose instead.
+
 ## Re-sync risks
 
 - The `react/node_modules/spendly-react` symlink and the playwright link under `.ds-sync/` are

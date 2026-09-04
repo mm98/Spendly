@@ -1,1 +1,1 @@
-	[key: string]: unknown;
+	[key: string]: never;

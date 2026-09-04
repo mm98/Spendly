@@ -1,7 +1,18 @@
+	/** One word, appended to `icon-button-`: `arrow` (the default, 32px) | `clear` (26px) |
+	 *  `send` (40px, filled dark) | `reorder` (28px). Not space-split the way Button's is, so a
+	 *  second class is spelled out in full: `"reorder icon-button-reorder-remove"`. */
 	variant?: string;
+	/** An Icon name. The control carries this and nothing else. */
 	icon?: string;
+	/** The accessible name. Required in practice - there is no text inside to fall back on. */
 	label?: string;
+	/** An in-app route. Renders a react-router link. */
 	to?: string;
+	/** A URL outside the app (a file download, a shop's page). Renders a plain anchor, so
+	 *  `download` and `target` can ride through. */
 	href?: string;
 	className?: string;
+	onClick?: (event: React.MouseEvent) => void;
+	/** Dimmed only on the `reorder` variant; the others look unchanged. */
+	disabled?: boolean;
 	[key: string]: unknown;

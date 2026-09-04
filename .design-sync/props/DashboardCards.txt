@@ -1,3 +1,9 @@
-	all?: unknown[];
-	initial?: unknown;
-	render?: (...args: any[]) => React.ReactNode;
+	/** The catalogue of every card that exists. `desc` is shown in the "cards you can add"
+	 *  tray while editing. */
+	all?: Array<{ key: string; name: string; desc: string }>;
+	/** The keys this account has on its dashboard, in its own order. Every key must exist in
+	 *  `all` - the component looks each one up to name it. */
+	initial?: string[];
+	/** Draws the inside of one card. The component supplies the <section class="card"> around
+	 *  it, so return a `CardHeader` / `CardDivider` / `CardBody` group, not another Card. */
+	render?: (key: string) => React.ReactNode;

@@ -10,7 +10,7 @@ import { Button, Card, CardBody, CardDivider, CardHeader, CategoryRow } from 'sp
 const groceries = { id: 'c-groceries', name: 'Groceries', colour: '#C43F2A', icon: 'cart', share: 38.4, spend: 4791 }
 const household = { id: 'c-household', name: 'Household', colour: '#8B5CF6', icon: 'home', share: 21.2, spend: 2644 }
 const electronics = { id: 'c-electronics', name: 'Electronics', colour: '#E9C517', icon: 'plug', share: 17.9, spend: 2233 }
-const transport = { id: 'c-transport', name: 'Transport', colour: '#D34F2E', icon: 'tag', share: 12.1, spend: 1509 }
+const transport = { id: 'c-transport', name: 'Transport', colour: '#2FA36B', icon: 'tag', share: 12.1, spend: 1509 }
 const homeOffice = { id: 'c-home-office', name: 'Home office', colour: '#1FA8E0', icon: 'display', share: 10.4, spend: 1297 }
 
 export const MonthBreakdown = () => (

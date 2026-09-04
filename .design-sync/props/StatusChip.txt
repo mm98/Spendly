@@ -1,4 +1,9 @@
+	/** The status word, e.g. "Delivered". */
 	children?: React.ReactNode;
-	tone?: string;
+	/** The only tone the stylesheet defines. Omit for the settled green reading with its dot;
+	 *  `warning` is the amber one. No `good`/`bad`/`neutral` here - that is KpiCard's set. */
+	tone?: "warning";
+	/** `chip-matched` is the one modifier the app passes: the shorter 24px form that fits
+	 *  inside a field. */
 	className?: string;
 	[key: string]: unknown;

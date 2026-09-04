@@ -8,7 +8,7 @@ const split = [
 	{ id: 'c-groceries', name: 'Groceries', colour: '#C43F2A', amount: '4.791 kr.', share: 38.4 },
 	{ id: 'c-household', name: 'Household', colour: '#8B5CF6', amount: '2.644 kr.', share: 21.2 },
 	{ id: 'c-electronics', name: 'Electronics', colour: '#E9C517', amount: '2.233 kr.', share: 17.9 },
-	{ id: 'c-transport', name: 'Transport', colour: '#D34F2E', amount: '1.509 kr.', share: 12.1 },
+	{ id: 'c-transport', name: 'Transport', colour: '#2FA36B', amount: '1.509 kr.', share: 12.1 },
 	{ id: 'c-home-office', name: 'Home office', colour: '#1FA8E0', amount: '1.297 kr.', share: 10.4 }
 ]
 
@@ -46,7 +46,7 @@ export const WithMeta = () => (
 					amount="505 kr." to="/orders/all?category=c-household&from=2026-08-01&to=2026-08-31" />
 				<LegendRow colour="#E9C517" title="Electronics" meta="no budget set"
 					amount="2.233 kr." to="/orders/all?category=c-electronics&from=2026-08-01&to=2026-08-31" />
-				<LegendRow colour="#D34F2E" title="Transport"
+				<LegendRow colour="#2FA36B" title="Transport"
 					amount="1.509 kr." to="/orders/all?category=c-transport&from=2026-08-01&to=2026-08-31" />
 			</div>
 		</CardBody>

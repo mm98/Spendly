@@ -1,2 +1,4 @@
+	/** The rows in the well, normally `ItemRow`s. */
 	children?: React.ReactNode;
+	/** Spread onto the <div>; the component also forwards a ref to it. */
 	[key: string]: unknown;

@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, CardDivider, FilterChips, ListToolbar, OrderRow } from 'spendly-react'
+import { Card, CardBody, CardDivider, CardHeader, FilterChips, ListToolbar, OrderRow, Page } from 'spendly-react'
 
 /* The row of chips under the toolbar, one per filter that is actually on. A chip is the only
    place a filter is stored, so removing one turns that filter off and the count above the
@@ -44,9 +44,10 @@ export const OneFilter = () => (
 	</Card>
 )
 
-/* Every filter All orders can set, on at once. The row wraps onto a second line rather than
-   scrolling sideways. */
-export const EveryFilter = () => (
+/* Several filters at once, one chip each, in the order the page derives them: dates, status,
+   vendor, category, kind, then the amount bounds. A chip long enough to crowd the row cuts
+   its own label rather than the row scrolling. */
+export const ManyFilters = () => (
 	<Card aria-label="Search and filters">
 		<CardBody variant="card-body-filters">
 			<FilterChips focusRef={searchRef} onRemove={() => {}} onClearAll={() => {}}
@@ -54,10 +55,8 @@ export const EveryFilter = () => (
 					{ key: 'dates', label: '1 Aug - 31 Aug' },
 					{ key: 'status', label: 'Returned' },
 					{ key: 'vendor', label: 'Vendor: Matas' },
-					{ key: 'category', label: 'Category: Without category' },
 					{ key: 'kind', label: 'Gift' },
-					{ key: 'min', label: 'From 100 kr.' },
-					{ key: 'max', label: 'To 2.500 kr.' }
+					{ key: 'min', label: 'From 100 kr.' }
 				]} />
 		</CardBody>
 	</Card>
@@ -66,7 +65,7 @@ export const EveryFilter = () => (
 /* What the reader actually sees: the chips name the filters, and the list under them holds
    only what is left. */
 export const OverTheList = () => (
-	<div>
+	<Page>
 		<Card aria-label="Search and filters">
 			<CardBody variant="card-body-filters">
 				<FilterChips focusRef={searchRef} onRemove={() => {}} onClearAll={() => {}}
@@ -90,5 +89,5 @@ export const OverTheList = () => (
 					itemCount: 24, total: 1284.5, saved: 121.4 }} />
 			</CardBody>
 		</Card>
-	</div>
+	</Page>
 )

@@ -1,4 +1,4 @@
-import { Card, CardBody, CardDivider, CardHeader, EntityRow, ListToolbar, OrderRow } from 'spendly-react'
+import { Card, CardBody, CardDivider, CardHeader, EntityRow, ListToolbar, OrderRow, Page } from 'spendly-react'
 
 /* The band the four working lists open with: one search field, an optional FILTERS
    disclosure, and the app's one sort combobox.
@@ -30,7 +30,7 @@ const avatar = (initials: string, colour: string) => (
 
 /* All vendors and All categories: the toolbar sits bare on the page, above the list's card. */
 export const AboveAList = () => (
-	<div>
+	<Page>
 		<ListToolbar query="" onQuery={() => {}} searchRef={searchRef}
 			placeholder="Search by vendor name or other name..." label="Search vendors"
 			sortLabel="Sort vendors" sorts={vendorSorts} sortValue="Name, A to Z" onSort={() => {}} />
@@ -46,7 +46,7 @@ export const AboveAList = () => (
 					amount="7.310 kr." sub="saved 402 kr." editTo="/vendors/v-foetex/edit" />
 			</CardBody>
 		</Card>
-	</div>
+	</Page>
 )
 
 /* All orders: the toolbar lives inside a filters card, and `filters` adds the disclosure
@@ -79,7 +79,7 @@ export const FiltersOpen = () => (
 /* Searching: the keyword is the field's value, and the count in the card header below says
    how much of the list it is holding back. */
 export const Searching = () => (
-	<div>
+	<Page>
 		<Card aria-label="Search and filters">
 			<CardBody variant="card-body-filters">
 				<ListToolbar query="kaffe" onQuery={() => {}} searchRef={searchRef}
@@ -102,5 +102,5 @@ export const Searching = () => (
 					itemCount: 9, total: 284.1, saved: 12 }} />
 			</CardBody>
 		</Card>
-	</div>
+	</Page>
 )
