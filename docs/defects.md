@@ -3384,3 +3384,33 @@ station" — and the search matched only the hyphenated form, meaning the words 
 showed returned nothing when typed back. A typed space now reaches a hyphen.
 
 Not checked: Firefox and WebKit.
+
+## Tooltips — sharing the look is not sharing the component
+
+The pass above put every hover label on one `.tooltip` surface and called it done. It was not:
+one of the five was still a different thing wearing the same coat. The sidebar's build-quality
+scores kept their own mechanism (`position: absolute` in the footer, revealed by a CSS
+`:hover`/`:focus-within` rule, no viewport awareness) and their own three content classes,
+whose row and figure did exactly what `tooltip-row` and `tooltip-value` do:
+
+| | sidebar scores | Tooltip component |
+|---|---|---|
+| surface | shared | shared |
+| placement | absolute in the footer | fixed, portal to `document.body`, picks a side |
+| shown by | a CSS hover rule | pointer and focus handlers |
+| content | `build-quality-title` / `-row` / `-meta` | `tooltip-title` / `-row` / `-value` |
+
+It passed review because it looked right. That is the whole hazard: a shared surface over a
+private mechanism reads as finished and drifts the moment either half moves.
+
+It is the component now. The reason first given for keeping it separate — that it stays open
+while focus is inside it, which `pointer-events: none` would break — did not survive checking:
+nothing inside it is focusable, so `:focus-within` only ever meant the band itself, which is
+what the component's own focus handling does. Four private rules deleted, and the padding
+that was only the sidebar's is the shared default for all five.
+
+Verified in the browser on the real sidebar: hovering the band draws the label as a child of
+`document.body` (the portal), side `n`, padding `10px 14px`, fully inside the viewport, and
+focusing the band with no pointer draws the same thing. All five callers compute one surface.
+
+Not checked: Firefox and WebKit.

@@ -88,10 +88,11 @@ a number, not a string. Labels on buttons are usually capitals.
 
 ## There is one tooltip, and it wants a rectangle
 
-Every hover label in the app is the same white card. Do not build another one and do not style
-your own: `Tooltip` takes the `DOMRect` of whatever is being pointed at and the words to say,
-and finds a side of that rectangle with room for them. It draws into `document.body`, so it is
-never cut off by a card or a scrolling box.
+Every hover label in the app is the same component — the chart hovers, the sidebar's build
+scores, the icon grid. Do not build another one and do not style your own: `Tooltip` takes the
+`DOMRect` of whatever is being pointed at and the words to say, and finds a side of that
+rectangle with room for them. It draws into `document.body`, so it is never cut off by a card
+or a scrolling box.
 
 ```jsx
 const [at, setAt] = useState(null)

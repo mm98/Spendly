@@ -182,13 +182,13 @@ These hold on every screen and are the constraints behind several layout decisio
 3. **Nothing saves by itself.** Scans propose values, they never overwrite silently. A duplicated order opens unsaved and can be abandoned.
 4. **Numbers answer the current filter.** Totals and counts in a filtered list describe what is on screen, not the whole account.
 5. **Single user, personal receipts.** No item catalogue, no shared editing, no permissions. A conflict means two browser tabs, not two people.
-6. **There is one tooltip.** Every hover label in the app is the same white card — one surface, defined once, used by the chart hovers, the sidebar callout and the icon grid alike. See Tooltips below.
+6. **There is one tooltip.** Every hover label in the app is the same white card — one surface, defined once, drawn by one component: the chart hovers, the sidebar scores and the icon grid alike. See Tooltips below.
 
 ---
 
 ### Tooltips
 
-**One surface, one component, no second way of doing this.** A tooltip is a white card on the page's card background, the page radius, the app's float shadow token, no border. It is defined in a single place and every caller wears it; a hover label that writes its own background, radius or shadow is a bug, because the day the surface changes, one of them will not.
+**One surface, one component, no second way of doing this.** A tooltip is a white card on the page's card background, the page radius, the app's float shadow token, no border, and one padding — every hover label in the app is drawn by the same component, and there is no hand-rolled second kind. Sharing the look while keeping a private mechanism is the failure this rule exists to stop: it passes review because it looks right, and drifts the first time either half changes.
 
 **Its content is built from four named parts, not from free styling.** A tooltip is often more than one word: a heading, a coloured key, a name, a figure. Those are a heading line, a row, an 8px colour chip, and a name-and-figure pair — the same four the chart hovers use, so a new tooltip composes from what already exists instead of inventing a second vocabulary. Plain text in a tooltip is normal weight; the figure is the bold half of a pair, and a single-value tooltip is bold on its own. Nothing else in a tooltip is emphasised.
 
