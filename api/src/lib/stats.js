@@ -356,7 +356,10 @@ function budgetRowsOver(userId, from, to) {
 		budget: r.budget, allowed: r.budget * months, spend: r.spend,
 		perMonth: months ? r.spend / months : 0,
 		used: r.budget && months ? (r.spend / (r.budget * months)) * 100 : 0
-	})).sort((a, b) => b.used - a.used || b.spend - a.spend)
+	}))
+	/* Name last: Categories ranks its own copy from the same three keys, and untouched budgets
+	   -- 0% used, 0 spent -- are the rows that would otherwise differ between the two. */
+	rows.sort((a, b) => b.used - a.used || b.spend - a.spend || a.name.localeCompare(b.name))
 	return { months, rows }
 }
 
@@ -365,18 +368,15 @@ function budgetRowsOver(userId, from, to) {
     idea of what a budget covers over this window. */
 const budgetsById = ({ rows }) => new Map(rows.map(r => [r.id, r]))
 
+/** The rows, how many there are, and how many are over. No total allowance and no percentage of
+    one: a budget is a ceiling on one category, so the ratio belongs on the row. */
 function budgetSummary({ months, rows }, rowLimit) {
-	const allowed = rows.reduce((sum, r) => sum + r.allowed, 0)
-	const spent = rows.reduce((sum, r) => sum + r.spend, 0)
 	return {
-		/* Exact, not rounded for the caption that prints it: every figure above is derived from
-		   this number, so a rounded copy travelling beside them is a second, slightly different
-		   month count for anyone re-deriving one from the other -- 0.23 of a month against the
-		   0.2258 the allowance was actually computed from. The card rounds when it prints. */
+		/* Exact, not rounded for the caption that prints it: a rounded copy travelling beside the
+		   rows is a second, slightly different month count. The card rounds when it prints. */
 		months,
 		total: rows.length,
 		over: rows.filter(r => r.spend > r.allowed).length,
-		allowed, spent, used: allowed ? (spent / allowed) * 100 : 0,
 		// The same cut every other card on the page takes, and the count above says what it hid.
 		items: rows.slice(0, rowLimit)
 	}

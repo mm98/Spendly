@@ -75,7 +75,7 @@ export default function AllCategories() {
 				sortLabel="Sort categories" sorts={SORTS} sortValue={sort.label} onSort={resort} />
 
 			<Async state={state} label="Loading your categories" skeleton={<SkeletonCard bodyVariant="card-body-tight"><SkeletonRows count={6} /></SkeletonCard>}>
-				{categories => {
+				{({ categories }) => {
 				const needle = query.trim().toLowerCase()
 				const listed = categories
 					.filter(c => !needle || c.name.toLowerCase().includes(needle))

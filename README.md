@@ -286,7 +286,7 @@ File: `Home.dc.html` · Code: new page (`pages/Home.jsx`)
 
 **Main column, top to bottom:**
 1. **Greeting + month.** Title 34px/600, subline 14px `#57564f`.
-2. **This month against the limits.** White card, radius `12px`, `20px` padding. Big total 28px/700, then "of X kr. in limits" 13px `#8b8a82`. Progress bar height `10px`, radius `5px`, track `#eef1ee`, fill `#1d4d33`, plus a 2px `#b58a2b` pace marker positioned at `day/daysInMonth`, extending 2px beyond the bar top and bottom. Caption under it explains the marker: 11px `#8b8a82` with a 2px amber swatch inline.
+2. **This month against its own pace.** White card, radius `12px`, `20px` padding. Big total 28px/700, then what the month is projected to reach 13px `#8b8a82`. Progress bar height `10px`, radius `5px`, track `#eef1ee`, fill `#1d4d33`, plus a 2px `#b58a2b` pace marker where the previous month ended, extending 2px beyond the bar top and bottom. Caption under it explains the marker: 11px `#8b8a82` with a 2px amber swatch inline. The denominator is the month's own projection, never the sum of the category limits — see 5b.
 3. **Capture a receipt.** The prominent action: a dashed drop zone (`1px dashed #dedcd4`, radius `12px`, `24px` padding, fill `#f7f6f2`) with an upload icon, "Drop a receipt, or take a photo", and a primary button. Drag-over state: border `#1d4d33`, fill `#e7efe8`.
 4. **Recent orders.** Compact five-row list; each row vendor 14px/600, date and item count 12px `#8b8a82`, amount right-aligned 14px/600, status pill. Row hover `#f0efe9`. Footer link "All orders".
 
@@ -431,7 +431,7 @@ File: `Order statistics.dc.html` · Code: `pages/Stats.jsx`, `components/Chart.j
 - **Spend by month:** column chart. Bars `#1d4d33`, radius `4px` top corners, track `#eef1ee`. Axis labels 11px `#8b8a82`. Hover tooltip gives the month, total and order count.
 - **By category:** horizontal bars using the five-step green ramp (`#1d4d33`, `#4f7f63`, `#8caf97`, `#c6d6c9`, `#dfe6e0`) with everything beyond the top five collapsed into "Other N categories" at `#dfe6e0`. Each row carries the category icon tile.
 - **By status:** the same bar pattern, five statuses.
-- **Monthly limits:** one row per category with a limit — name, spent, limit, and a bar with the `#b58a2b` pace marker. Over-limit rows fill amber `#e2d3ae` rather than red.
+- **Monthly limits:** one row per category with a limit — name, spent, limit, and a bar with the `#b58a2b` pace marker. Over-limit rows fill amber `#e2d3ae` rather than red. Rows only: the card states no total for the limits and no percentage of one (5b).
 - **Vendor table:** top vendors with spend, orders, average, and a 60×20 sparkline.
 
 **A bar's height is its value; its fill only says which bar is singled out.** The one bar a card marks — this month's column, the busiest weekday — is filled whole in the highlight colour, every other in the track colour. A fill that stops part-way up a bar reads as a second value the bar does not carry.
@@ -466,11 +466,15 @@ Panel: the category form.
 - **Icon.** The current icon at 44px (radius `11px`, category colour), its name, and a Change control. Open, it is a picker: a search field, then an 8-column grid of `aspect-ratio: 1` cells (radius `8px`, `#f7f6f2`, selected cell `#eef1ee` with a 2px `#1d4d33` outline offset 1px), ending in a "+64" overflow cell. Icons come from a fixed set; the picker never accepts uploads.
 - **Colour.** A row of swatches from the green ramp plus neutrals.
 - **Monthly limit.** A single amount that applies to every month — it is not per-month data. Empty means no limit. Below the field: this month's spend against it, with the pace marker bar.
+
+**A limit is a ceiling on one category, and limits are never added together.** A category is limited so that *it* stays under an amount, not so that it spends one every month: a limit on gifts still stands in the months nobody has a birthday. So the sum of every limit is not a budget the account set, and a period measured against that sum is a percentage of a number nobody chose — it reads low whenever the quiet categories were never going to be bought from, and a category far over its own limit disappears inside it. Every screen that compares spend to a limit compares one category to its own, ranked fullest first, and says how many categories are over. No screen prints a total of the limits, a percentage of that total, or a bar filled by one.
+
+This is why the count is the summary: "8 of 9 over this month" is a fact about the limits that were actually set. A percentage across all of them is not.
 - Icon and colour always render together, so the same mark identifies the category in chips, facets and charts.
 
 #### 5c — Roll-up panel (nothing selected)
 
-The panel's default state, matching the detail panel's width and card rhythm but describing the whole list: totals for all vendors (spend, vendors used, saved, average order), a "where the money goes" top-five bar list with "Other N vendors", and a "Needs a look" list — possible scan duplicates, vendors with no orders in 12 months, missing VAT — each an amber or neutral row with a count bubble and a chevron into the filtered list. For categories: the month's spend against the sum of all limits, with the pace marker. Footer hint: "Select a vendor to edit its details."
+The panel's default state, matching the detail panel's width and card rhythm but describing the whole list: totals for all vendors (spend, vendors used, saved, average order), a "where the money goes" top-five bar list with "Other N vendors", and a "Needs a look" list — possible scan duplicates, vendors with no orders in 12 months, missing VAT — each an amber or neutral row with a count bubble and a chevron into the filtered list. For categories: the categories closest to their limits and the ones past them, each against its own limit, fullest first, with the count over. Footer hint: "Select a vendor to edit its details."
 
 ---
 

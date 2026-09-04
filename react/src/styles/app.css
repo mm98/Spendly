@@ -2060,7 +2060,6 @@ label.field-shell { cursor:pointer; }
 /* Orders overview's two-series key. */
 .swatch-current { background:var(--green); }
 .swatch-previous { background:var(--green-light); }
-.card-toggle-row { margin-bottom:14px; }
 
 /* Scan. */
 .scan-drop { cursor:pointer; }
