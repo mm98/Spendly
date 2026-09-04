@@ -7,14 +7,14 @@ import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormP
 import { CategoryPreview, ColourPicker, IconPicker } from '../components/Pickers.jsx'
 import { ICONS } from '../components/Icon.jsx'
 import {
-	CheckRow, Field, FieldShell, FieldUnit, TextInput, focusField, useFieldErrors
+	CheckRow, Field, FieldShell, NumberInput, TextInput, focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createCategory, deleteCategory, failureMessage, getCategories, getCategory, invalidateCategoryData, updateCategory
 } from '../api/client.js'
-import { AMOUNT_PATTERN, amountRound, currency, currencySymbol, parseAmount, sanitizeAmount } from '../api/format.js'
+import { AMOUNT_PATTERN, amountRound, currency, currencySymbol, parseAmount } from '../api/format.js'
 
 /* A category, on its own page.
 
@@ -173,14 +173,11 @@ function CategoryFields({ mode, category }) {
 
 			<Field label="Monthly budget" optional htmlFor="category-budget" help="Leave it empty for no budget."
 				error={budgetField.error} errorId={budgetField.errorId}>
-				<FieldShell>
-					<TextInput id="category-budget" inputMode="decimal" value={values.budget}
-						onChange={v => set('budget', 'category-budget')(sanitizeAmount(v))} placeholder="No budget"
-						aria-label="Monthly budget"
-						invalid={budgetField.invalid} describedBy={budgetField.describedBy}
-						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
-					<FieldUnit>{currencySymbol()}</FieldUnit>
-				</FieldShell>
+				<NumberInput id="category-budget" unit={currencySymbol()} value={values.budget}
+					onChange={set('budget', 'category-budget')} placeholder="No budget"
+					aria-label="Monthly budget"
+					invalid={budgetField.invalid} describedBy={budgetField.describedBy}
+					onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
 			</Field>
 
 			<Field label="Colour" group

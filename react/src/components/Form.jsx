@@ -1,5 +1,6 @@
 import { useCallback, useId, useRef, useState } from 'react'
 import { Icon } from './Icon.jsx'
+import { sanitizeAmount } from '../api/format.js'
 
 /* Fields, and the one place a rejection is drawn.
 
@@ -56,9 +57,7 @@ export const FieldPair = ({ variant, children }) =>
     form, never spelled out ("pieces") -- deliberate, not an oversight caught by a copy pass. */
 export const FieldUnit = ({ children }) => <span className="field-unit">{children}</span>
 
-/** The plain text input. Nothing here is input[type=number] and nothing should be: Danish
-    decimals use a comma, which type=number rejects -- `value` comes back empty and
-    min/max/step never run. `inputMode` gets the numeric keyboard; the parsing is ours.
+/** The plain text input.
 
     Every field the app renders is one a label, an autofill hint or a password manager can
     address, so `id` is never optional -- `useId()` covers the fields no caller names (a
@@ -74,6 +73,18 @@ export function TextInput({ id, value, onChange, invalid, describedBy, ...rest }
 		<input type="text" id={id ?? autoId} value={value} onChange={e => onChange?.(e.target.value)}
 			aria-invalid={invalid ? 'true' : undefined}
 			aria-describedby={invalid ? describedBy : undefined} {...rest} />
+	)
+}
+
+/** A figure and its unit. Not input[type=number]: a comma decimal makes that control hand
+    back an empty `value` (../api/format.js), so the grammar and the keyboard are ours. */
+export function NumberInput({ value, onChange, unit, ...rest }) {
+	return (
+		<FieldShell>
+			<TextInput inputMode="decimal" value={value}
+				onChange={v => onChange?.(sanitizeAmount(v))} {...rest} />
+			{unit ? <FieldUnit>{unit}</FieldUnit> : null}
+		</FieldShell>
 	)
 }
 

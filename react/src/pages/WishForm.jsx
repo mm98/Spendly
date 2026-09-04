@@ -8,7 +8,7 @@ import { EntityRow, SummaryRow } from '../components/Rows.jsx'
 import { DeleteCard, FormPage, RecordWait, useDelete } from '../components/FormPage.jsx'
 import { LinePhoto, useDroppedPhoto } from '../components/LinePhoto.jsx'
 import {
-	CheckRow, Field, FieldPair, FieldShell, FieldUnit, TextInput, focusField, useFieldErrors
+	CheckRow, Field, FieldPair, FieldShell, NumberInput, TextInput, focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -18,7 +18,7 @@ import {
 	addWishPhoto, addWishPhotoFromUrl, createWish, deleteWish, failureMessage, getCategories,
 	getWish, getWishPreview, invalidateWishData, removeWishPhoto, updateWish, wishPhotoThumbnailUrl
 } from '../api/client.js'
-import { amount, currency, currencySymbol, longDate, parseAmount, sanitizeAmount } from '../api/format.js'
+import { amount, currency, currencySymbol, longDate, parseAmount } from '../api/format.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
 /* A wish is a record, not part of one, so it is edited on its own page like a vendor -- one way
@@ -204,14 +204,11 @@ function WishFields({ mode, wish }) {
 				<Field label="Price" optional error={priceField.error} errorId={priceField.errorId}
 					htmlFor="wish-price"
 					help="Leave it empty if you have not looked it up.">
-					<FieldShell>
-						<TextInput id="wish-price" value={price} inputMode="decimal"
-							onChange={v => { const a = sanitizeAmount(v); setPrice(a); recheck('wish-price', a) }}
-							aria-label="Price"
-							invalid={priceField.invalid} describedBy={priceField.describedBy}
-							onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
-						<FieldUnit>{currencySymbol()}</FieldUnit>
-					</FieldShell>
+					<NumberInput id="wish-price" value={price} unit={currencySymbol()}
+						onChange={a => { setPrice(a); recheck('wish-price', a) }}
+						aria-label="Price"
+						invalid={priceField.invalid} describedBy={priceField.describedBy}
+						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
 				</Field>
 
 				{/* htmlFor for the reason every chips field in the app has one: the chips are

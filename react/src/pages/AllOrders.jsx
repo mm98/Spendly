@@ -6,13 +6,13 @@ import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { OrderRow } from '../components/Rows.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
-import { DateInput, Field, FieldPair, FieldShell, FieldUnit, FilterSection, Segmented } from '../components/Form.jsx'
+import { DateInput, Field, FieldPair, FilterSection, NumberInput, Segmented } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { FilterChips, ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getOrders, getSettings, getUncategorised, getVendors, orderStatuses, sorts, spendKinds } from '../api/client.js'
-import { currencySymbol, dayMonth, parseAmount, plural, sanitizeAmount, sep } from '../api/format.js'
+import { currencySymbol, dayMonth, parseAmount, plural, sep } from '../api/format.js'
 import { categoryGroups, vendorGroups } from '../api/pickerGroups.js'
 
 /* All orders: the search, the filters, and what they leave.
@@ -238,18 +238,14 @@ export default function AllOrders() {
 						</FieldPair>
 						<FieldPair variant="field-pair-keep">
 							<Field label="Min amount" htmlFor="filter-min-amount">
-								<FieldShell>
-									<input id="filter-min-amount" type="text" inputMode="decimal" placeholder="Any" aria-label="Minimum amount"
-										value={draft.minAmount} onChange={e => setDraft({ ...draft, minAmount: sanitizeAmount(e.target.value) })} />
-									<FieldUnit>{currencySymbol()}</FieldUnit>
-								</FieldShell>
+								<NumberInput id="filter-min-amount" placeholder="Any" aria-label="Minimum amount"
+									unit={currencySymbol()} value={draft.minAmount}
+									onChange={v => setDraft({ ...draft, minAmount: v })} />
 							</Field>
 							<Field label="Max amount" htmlFor="filter-max-amount">
-								<FieldShell>
-									<input id="filter-max-amount" type="text" inputMode="decimal" placeholder="Any" aria-label="Maximum amount"
-										value={draft.maxAmount} onChange={e => setDraft({ ...draft, maxAmount: sanitizeAmount(e.target.value) })} />
-									<FieldUnit>{currencySymbol()}</FieldUnit>
-								</FieldShell>
+								<NumberInput id="filter-max-amount" placeholder="Any" aria-label="Maximum amount"
+									unit={currencySymbol()} value={draft.maxAmount}
+									onChange={v => setDraft({ ...draft, maxAmount: v })} />
 							</Field>
 						</FieldPair>
 						<Field label="Status" group>
