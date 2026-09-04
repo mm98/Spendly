@@ -1,0 +1,11 @@
+	/** Required: the help text's id is derived from it (`<id>-help`), and so is the name's
+	 *  (`<id>-label`). */
+	id?: string;
+	/** Controlled. */
+	checked?: boolean;
+	/** Gets the new checked state. */
+	onChange?: (checked: boolean) => void;
+	/** The bold name on the first line. This alone is the control's accessible name. */
+	label?: string;
+	/** The muted sentence under the name. Say what turning it off changes. */
+	help?: string;

@@ -1,0 +1,33 @@
+	/** An Icon name on the leading tile — `cube` for a line on an order, `check` for a line
+	 *  read off a receipt, `alert` for one to check, `dots` for a folded remainder. */
+	icon?: string;
+	/** Recolours that tile where the line is a warning rather than a value, e.g.
+	 *  `{ background: 'var(--bg-warn)', color: 'var(--text-warn)' }`. */
+	iconTone?: React.CSSProperties;
+	/** An Icon name for a file's own kind — `photo` or `document`. Draws the thumbnail box
+	 *  instead of the icon tile. */
+	thumb?: string;
+	/** A real thumbnail image for `thumb` to fall back to when there is none. */
+	thumbSrc?: string;
+	/** Makes the thumbnail a button that opens the full picture. The row's own title and
+	 *  amount are not "open this photo" — only the photo is. */
+	onThumbClick?: (event: React.MouseEvent) => void;
+	/** Makes the thumbnail a link to the file itself, opened in a new tab. Use this rather
+	 *  than `onThumbClick` where the file lives at a URL. */
+	thumbHref?: string;
+	/** The thumbnail's own label, since it is a control of its own. */
+	thumbLabel?: string;
+	/** A drag grip, passed in by whatever can actually move the row. The row never draws one
+	 *  on its own. */
+	handle?: React.ReactNode;
+	/** The line's first line. */
+	title?: string;
+	/** The quiet second line: quantity, unit price, retail, a note. */
+	meta?: string;
+	/** The figure on the right, already formatted. */
+	amount?: React.ReactNode;
+	/** An in-app route. With it the whole row is a link and draws a chevron. */
+	to?: string;
+	/** The row's own actions (edit, delete, download), after the amount. */
+	children?: React.ReactNode;
+	[key: string]: unknown;

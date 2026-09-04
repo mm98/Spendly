@@ -1,0 +1,9 @@
+	/** Icon name for the tile above the text. Defaults to `search`. Pass `null` to draw no
+	 *  tile - almost never right, since every other empty state in the app has one. */
+	icon?: string | null;
+	/** A `<p>` saying what is absent, then at most one action - a `ButtonLink` for a text
+	 *  action, `<Button variant="block">` for a full-width one. Leave the action out when
+	 *  there is nothing useful to press. */
+	children?: React.ReactNode;
+	className?: string;
+	[key: string]: unknown;

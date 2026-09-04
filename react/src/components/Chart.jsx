@@ -319,11 +319,17 @@ const MonthBar = ({ x, y, width, height, payload }) => (
 		fill={payload.current ? 'var(--green)' : 'var(--bg-bar-track)'} />
 )
 
+/* Recharts renumbers surviving ticks from 0 when it thins them, so `index` is not a data index:
+   read positionally, a thinned axis names the wrong columns and reports nothing. */
+const rowForTick = (rows, key, payload, index) =>
+	rows.find(row => row[key] === payload?.value) ?? rows[index]
+
 /* Both label spans travel on every tick; app.css swaps them by container query. The
    foreignObject carries real HTML spans, not SVG text, so those class rules still apply. */
-const WeekdayTick = ({ x, y, width, visibleTicksCount, index, days }) => {
+const WeekdayTick = ({ x, y, width, visibleTicksCount, index, payload, days }) => {
 	const band = width / visibleTicksCount
-	const d = days[index]
+	const d = rowForTick(days, 'day', payload, index)
+	if (!d) return null
 	return (
 		// A day name may be wider than its own even share of the axis; a foreignObject clips
 		// its content by default, so this opts out.
@@ -336,9 +342,10 @@ const WeekdayTick = ({ x, y, width, visibleTicksCount, index, days }) => {
 	)
 }
 
-const MonthTick = ({ x, y, width, visibleTicksCount, index, months }) => {
+const MonthTick = ({ x, y, width, visibleTicksCount, index, payload, months }) => {
 	const band = width / visibleTicksCount
-	const m = months[index]
+	const m = rowForTick(months, 'label', payload, index)
+	if (!m) return null
 	return (
 		<foreignObject x={x - band / 2} y={y + 6} width={band} height={18} style={{ overflow: 'visible' }}>
 			<div xmlns="http://www.w3.org/1999/xhtml" style={{ textAlign: 'center' }}>

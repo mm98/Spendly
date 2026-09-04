@@ -1,0 +1,4 @@
+	/** The steps, left to right. `done` draws a check in place of `icon` and inks that
+	 *  step green; `on` marks the step being worked on now. The grid gets one column per
+	 *  entry, so the count is free. `icon` is an Icon name. */
+	steps: { label: string; icon: string; done?: boolean; on?: boolean }[];

@@ -1,0 +1,9 @@
+	/** Extra class words on the section, written in full (not `card-` prefixed):
+	 *  `card-tray` for the "cards you can add" tray, `card-steps` for a Stepper card. Most
+	 *  cards pass nothing. */
+	variant?: string;
+	/** Normally `CardHeader`, `CardDivider`, then one or more `CardBody`. */
+	children?: React.ReactNode;
+	className?: string;
+	/** Spread onto the <section>. Give every card an `aria-label` naming it. */
+	[key: string]: unknown;

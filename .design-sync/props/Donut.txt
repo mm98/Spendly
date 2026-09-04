@@ -1,0 +1,13 @@
+	/** The arcs, in draw order clockwise from twelve o'clock. `share` is a percentage and
+	 *  `colour` a CSS colour - the category's own, so the ring and the rows beside it agree.
+	 *  Omitted or empty, the ring draws no arcs at all: a flat track with the centre figure
+	 *  still in it. */
+	segments?: { share: number; colour: string }[];
+	/** The figure in the hole, already formatted (`"12.474 kr."`). It shrinks itself to
+	 *  whatever the circle can hold, so a long amount needs no shortening by the caller. */
+	value?: string;
+	/** The small caption under the figure - what stretch of time the figure covers. */
+	label?: string;
+	/** The whole ring's accessible name. Recharts' own SVG stays hidden, so this is the only
+	 *  thing a screen reader gets: state the figure and what it is split by. */
+	ariaLabel?: string;

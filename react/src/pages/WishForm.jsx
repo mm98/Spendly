@@ -18,7 +18,7 @@ import {
 	addWishPhoto, addWishPhotoFromUrl, createWish, deleteWish, failureMessage, getCategories,
 	getWish, getWishPreview, invalidateWishData, removeWishPhoto, updateWish, wishPhotoThumbnailUrl
 } from '../api/client.js'
-import { amount, currency, currencySymbol, longDate, parseAmount } from '../api/format.js'
+import { amount, currency, currencySymbol, longDate, parseAmount, sanitizeAmount } from '../api/format.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
 /* A wish is a record, not part of one, so it is edited on its own page like a vendor -- one way
@@ -206,7 +206,7 @@ function WishFields({ mode, wish }) {
 					help="Leave it empty if you have not looked it up.">
 					<FieldShell>
 						<TextInput id="wish-price" value={price} inputMode="decimal"
-							onChange={v => { setPrice(v); recheck('wish-price', v) }}
+							onChange={v => { const a = sanitizeAmount(v); setPrice(a); recheck('wish-price', a) }}
 							aria-label="Price"
 							invalid={priceField.invalid} describedBy={priceField.describedBy}
 							onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />

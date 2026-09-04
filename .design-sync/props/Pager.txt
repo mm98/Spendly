@@ -1,0 +1,14 @@
+	/** First row on this page, counting from 1 in the whole filtered set. 0 when nothing
+	 *  matched. A number, not a string. */
+	from?: number;
+	/** Last row on this page. Note this is a count, not a route — `Pager` never links. */
+	to?: number;
+	/** How many rows the filter matched in total, not how many are on this page. */
+	matched?: number;
+	/** Which page is showing, from 1. */
+	page?: number;
+	/** How many pages there are. With 1 the position note is left off and both buttons are
+	 *  disabled. */
+	pages?: number;
+	/** A page button was pressed. Receives the page number to go to. */
+	onPage?: (page: number) => void;

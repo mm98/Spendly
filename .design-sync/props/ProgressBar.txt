@@ -1,0 +1,14 @@
+	/** True by default: a short segment slides across the track for as long as the step runs,
+	 *  and no percentage is claimed. Pass `false` only once there is a real measurement, and
+	 *  then `value` is required. */
+	indeterminate?: boolean;
+	/** Percent complete, 0-100, read only when `indeterminate` is false. Print the same figure
+	 *  in words beside the bar - the track carries no scale of its own. */
+	value?: number;
+	/** The bar's accessible name. It is the `role="progressbar"`, and in the determinate mode
+	 *  it also carries `aria-valuenow`. */
+	label?: string;
+	/** `scan-reading-progress` for the full-width bar under the scan card; the import row sets
+	 *  its width from its own `import-progress` parent instead. */
+	className?: string;
+	style?: React.CSSProperties;

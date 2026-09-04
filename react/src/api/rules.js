@@ -1,4 +1,4 @@
-import { AMOUNT_PATTERN, WHOLE_NUMBER_PATTERN, today } from './format.js'
+import { AMOUNT_PATTERN, parseAmount, today } from './format.js'
 import { spendKinds } from './client.js'
 
 /* What an order and an item may hold, in one place.
@@ -50,11 +50,12 @@ export const RETURNED_DATE_FIELD = { name: 'order-returned-date', label: 'Return
 export const ITEM_FIELDS = [
 	{ name: 'item-description', label: 'Description', check: v =>
 		!v ? 'Describe the item.' : v.length > 120 ? '120 characters at most.' : '' },
+	/* The price fields' own rule: a line can be half a kilo as easily as two of something. */
 	{ name: 'item-quantity', label: 'Quantity', check: v =>
 		!v ? 'How many did you buy?'
-		: !WHOLE_NUMBER_PATTERN.test(v) ? 'Whole pieces only, such as 2.'
-		: Number(v) < 1 ? 'At least 1 pc.'
-		: Number(v) > 9999 ? '9.999 pcs at most.' : '' },
+		: !AMOUNT_PATTERN.test(v) ? 'Quantities take a comma, such as 1,5.'
+		: parseAmount(v) <= 0 ? 'More than 0 pcs.'
+		: parseAmount(v) > 9999 ? '9.999 pcs at most.' : '' },
 	/* No money field here is signed. A rabat was a negative price on a line once; it is the
 	   order's own Discount field now, so price says what it cost and points at the field that
 	   subtracts rather than blaming the comma. */

@@ -1,0 +1,11 @@
+	/** Controlled. Both states are drawn: green with the knob right when on, grey with the
+	 *  knob left when off. */
+	checked?: boolean;
+	/** Gets the new checked state. */
+	onChange?: (checked: boolean) => void;
+	/** The accessible name. There is no visible label of its own, so the text beside it
+	 *  should be a <label htmlFor> pointing at `id`. */
+	label?: string;
+	/** The id of the panel this switch shows and hides, set as aria-controls. */
+	controls?: string;
+	id?: string;

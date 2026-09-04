@@ -18,6 +18,10 @@ export const amount = (n, decimals = 2) => {
 /** 18420 -> "18.420". Kept as its own name because "rounded" is what the call sites mean. */
 export const amountRound = n => amount(n, 0)
 
+/** 2 -> "2", 1.5 -> "1,5" -- two decimals like the money fields, trailing zeros trimmed,
+    because a count is not money and "2,00 pcs" is a precision nobody typed. */
+export const quantity = n => amount(n, 2).replace(/(,\d*?)0+$/, '$1').replace(/,$/, '')
+
 /** 60000 -> "60k", 2500 -> "2,5k", 500 -> "500" -- a chart axis's own shorthand: a label
     repeated down a chart's edge cannot carry a total's full grammar without crowding it out. */
 export const compactAmount = n => {
@@ -101,16 +105,16 @@ export const percent = (n, decimals = 1) =>
    entered as the amount taken off, not a negative price -- which also means it can be typed on
    a phone, whose decimal keypad has no minus key. README: Fields and Forms. */
 export const AMOUNT_PATTERN = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/
-export const WHOLE_NUMBER_PATTERN = /^\d+$/
 export const parseAmount = v => Number(String(v).replace(/\./g, '').replace(',', '.'))
 
-/* No money field a user types is signed, and AMOUNT_PATTERN above is built only from digits, a
-   thousands dot and a decimal comma -- so anything else (a minus included) is dropped as it is
-   typed rather than typed and then rejected. The field cannot show a value the app never
-   accepts. */
-export const sanitizeAmount = v => v.replace(/[^0-9.,]/g, '')
-/* WHOLE_NUMBER_PATTERN above is digits only -- a quantity is pieces, never signed or fractional. */
-export const sanitizeWholeNumber = v => v.replace(/[^0-9]/g, '')
+/* Drops what AMOUNT_PATTERN would reject: a sign, a letter, a second comma, a third decimal, a
+   separator before the first digit. A misplaced grouping dot is left to the save -- guessing
+   whether a dot is grouping or a typo would change a figure nobody asked to change. */
+export const sanitizeAmount = v => {
+	const kept = v.replace(/[^0-9.,]/g, '').replace(/^[.,]+/, '')
+	const [whole, ...decimals] = kept.split(',')
+	return decimals.length ? whole + ',' + decimals.join('').slice(0, 2) : whole
+}
 
 /* Dates read in the reader's own locale, not in one this file picks.
 

@@ -1,0 +1,3 @@
+	/** How many waiting rows to draw. Match it to how many rows the loaded list normally
+	 *  opens with - 3 for a short panel, 6 for a full list page. Defaults to 4. */
+	count?: number;

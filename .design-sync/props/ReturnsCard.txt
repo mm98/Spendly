@@ -1,0 +1,19 @@
+	/** The card's header, e.g. "Returns • August 2026". */
+	title?: string;
+	/** The window in words, used in the sentences: "No returns in {span}." */
+	span?: string;
+	/** `items` are the newest few returns to draw; `total` is how many the window holds (the
+	 *  "showing N of M" line appears only when it is larger); `history` is the account's
+	 *  all-time count, and SEE RETURN HISTORY is drawn only when it is above zero. */
+	returns?: {
+		items?: Array<{
+			id: string | number;
+			vendor: { name: string; colour: string; initials: string };
+			date: string;
+			total: number;
+			saved: number;
+			refunded?: boolean;
+		}>;
+		total?: number;
+		history?: number;
+	};

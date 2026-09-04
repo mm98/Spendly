@@ -1,0 +1,30 @@
+	/** The current text, or the selected option's label. */
+	value?: string;
+	/** The user typed. */
+	onChange?: (text: string) => void;
+	/** The user chose a row. */
+	onSelect?: (option: { id: string; label: string }) => void;
+	/** Sections of the open list. */
+	groups?: Array<{ heading?: string; options: Array<{ id: string; label: string }> }>;
+	/** Label for the create row, e.g. "CREATE VENDOR". Shown only once something is typed
+	 *  that does not already match an option. */
+	action?: string;
+	placeholder?: string;
+	label?: string;
+	id?: string;
+	required?: boolean;
+	/** Error state. Pair with the surrounding Field's `error`. */
+	invalid?: boolean;
+	describedBy?: string;
+	/** An Icon name shown inside the field, before the text. */
+	leadingIcon?: string;
+	/** Selected values rendered inside the shell rather than above it, so a field with
+	 *  values still lines up with the field beside it. */
+	chips?: React.ReactNode;
+	/** Content pinned to the right of the input. */
+	trail?: React.ReactNode;
+	/** Chosen from, never typed into (sort orders, currencies). Removes the caret and the
+	 *  mobile keyboard; click, arrow keys and Enter are unchanged. */
+	pickOnly?: boolean;
+	children?: React.ReactNode;
+	className?: string;

@@ -1,0 +1,18 @@
+	/** What the host knows about this record's picture. `present` is whether there is one at
+	 *  all, `src` is where to draw it from - an object URL for a file just picked, or the
+	 *  stored thumbnail's URL. `{}` is an empty frame. */
+	photo?: { present?: boolean; src?: string };
+	/** A heading drawn beside the frame on a phone only, where the host's own card band is
+	 *  hidden. A host with a headline of its own passes neither this nor `name`. */
+	heading?: string;
+	/** The record's name, under the heading, and also phone-only. */
+	name?: string;
+	/** The accessible name of the file input behind the frame, e.g. "Product photo". */
+	label?: string;
+	/** The "Drop a photo here, or paste one you copied" line under an empty frame. Default
+	 *  `true`. Turn it off where the frame is too narrow for it to read in two lines. */
+	hint?: boolean;
+	/** Gets the chosen image File, from the picker, a drop or a paste. */
+	onPick?: (file: File) => void;
+	/** Take the picture off the record. Drawn as Remove, and only while `photo.present`. */
+	onClear?: () => void;

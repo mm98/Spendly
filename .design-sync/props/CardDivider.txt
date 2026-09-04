@@ -1,0 +1,2 @@
+	/** `card-divider-tight` or `card-divider-gap` where the default spacing is wrong. */
+	className?: string;

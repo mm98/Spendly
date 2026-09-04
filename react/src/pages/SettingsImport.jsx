@@ -269,7 +269,8 @@ export default function SettingsImport() {
 									<code>shipping</code> all stay at zero or above.</li>
 								<li><code>vendor</code> ≤ 80 characters.</li>
 								<li><code>title</code> ≤ 120 characters.</li>
-								<li><code>quantity</code> a whole number, 1-9999.</li>
+								<li><code>quantity</code> more than 0 and at most 9999, with at most two
+									decimals, so a line sold by weight can say <code>0.75</code>.</li>
 								<li><code>date</code> is YYYY-MM-DD and never in the future.</li>
 								<li><code>kind</code>: Expense, Gift, Sold, Work or Other.</li>
 								<li><code>status</code>: Ordered, Delivered or Returned; Delivered when omitted.</li>

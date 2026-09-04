@@ -1,0 +1,7 @@
+	/** Draws the small star over the tile's corner. A favourite is turned on and off from
+	 *  the record's own edit page — nothing here is a control. */
+	favourite?: boolean;
+	/** The record's own tile at its own size: an `entry-avatar` span for a vendor, a
+	 *  `category-icon` span for a category. The mark overlaps its corner rather than
+	 *  growing it, so favourite and plain rows keep one left column. */
+	children?: React.ReactNode;

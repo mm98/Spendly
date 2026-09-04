@@ -1,0 +1,17 @@
+	/** Draws the header band and the divider under it, with a shimmering bar where the title
+	 *  will be. Defaults to true; pass `false` where the loaded card has no header. */
+	title?: boolean;
+	/** Pixel height of the panel that stands in for a chart or a figure, drawn after the
+	 *  lines. Set it to the height the loaded card actually has, or the swap moves
+	 *  everything below it. Omit for a body that is only text. */
+	bodyHeight?: number;
+	/** How many text bars to draw, each a little shorter than the last. Defaults to 0. */
+	lines?: number;
+	/** Class words for the CardBody, written in full: `card-body-tight` for a list,
+	 *  `entry-list card-body-tight` for a list of entry rows. */
+	bodyVariant?: string;
+	/** Class words on the Card itself. */
+	className?: string;
+	/** A body that is not lines-then-panel - `SkeletonRows`, or your own blocks. Replaces
+	 *  `lines` and `bodyHeight` completely; it still sits in the same real CardBody. */
+	children?: React.ReactNode;

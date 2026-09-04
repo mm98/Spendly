@@ -356,7 +356,11 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 	background:none; color:inherit; font:inherit; font-size:12.5px; font-weight:600;
 	cursor:pointer; white-space:nowrap; text-decoration:none;
 }
-.button.button-primary { background:var(--bg-dark); color:var(--text-inverse); }
+.button:disabled { opacity:.45; cursor:default; }
+/* Above the surface variants: block declares a surface at the same specificity they do, so
+   placed after it repainted `primary block` in card white. README: Buttons. */
+.button.button-block { display:flex; width:100%; height:44px; padding:0; gap:var(--gap-icon); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; margin-top:var(--gap-block); }
+.button.button-primary { background:var(--bg-dark); border-color:transparent; color:var(--text-inverse); }
 .button.button-outline { background:var(--bg-card); border-color:var(--border-control); color:var(--text); }
 /* Every button label in this system is caps, and the two topbar actions share one
    spec so neither drifts into its own treatment. That spec is `.button-pill`'s: one
@@ -521,8 +525,11 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 /* The row is the link, so the link takes the row's colour rather than the UA's
    blue-and-underlined. Keyed on the attribute, not on a class, because eight
    different components navigate this way -- and on `a` specifically, since the
-   <button data-go> elements have colours of their own to keep. */
-a[data-go] { color:inherit; text-decoration:none; }
+   <button data-go> elements have colours of their own to keep.
+   .button-link is excluded: it is a text link that underlines on purpose, and an
+   attribute selector outranks its class, so without this it lost the underline the
+   moment it was given somewhere to go. README: Honest Affordances. */
+a[data-go]:not(.button-link) { color:inherit; text-decoration:none; }
 /* A subtab selection has to change what is on screen, or the tab is decoration. */
 .page[data-view="favourites"] [data-view-only="overview"],
 .page[data-view="manage"] [data-view-only="overview"] { display:none; }
@@ -885,7 +892,6 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 .segmented button.is-on { background:var(--bg-dark); color:var(--text-inverse); }
 .page-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); }
 .two-column { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--gap-cards); }
-.button.button-block { display:flex; width:100%; height:44px; padding:0; gap:var(--gap-icon); border-color:var(--border-control); border-radius:var(--radius-page); background:var(--bg-card); color:var(--text); font-size:12px; letter-spacing:.08em; margin-top:var(--gap-block); }
 .button-link { font:inherit; background:none; border:0; padding:0; display:inline-block; font-size:12px; font-weight:700; letter-spacing:.06em; text-decoration:underline; text-underline-offset:3px; color:var(--text); cursor:pointer; }
 .order-list-grid { display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:var(--gap-cards); align-items:start; }
 .order-list-column { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--gap-cards); min-width:0; }
@@ -1892,7 +1898,6 @@ label.field-shell { cursor:pointer; }
 /* The pagers: All orders' buttons, Statistics' arrows. */
 .pager-row { margin-top:var(--gap-block); }
 .pager-buttons { gap:8px; }
-.pager-buttons .button:disabled { opacity:.45; }
 .pager-arrow:disabled { opacity:.45; }
 [data-filters-toggle] .chevron-icon { color:var(--text-muted); }
 

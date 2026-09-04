@@ -1,0 +1,8 @@
+	/** Defaults to "Total". Name what kind of total it is where it is not a settled one,
+	 *  e.g. "Estimated total". */
+	label?: string;
+	/** The figure, already formatted. */
+	value?: string;
+	/** Marks a total that is still being built — a form's rail, where nothing is saved yet
+	 *  and one more line changes the figure. */
+	estimate?: boolean;

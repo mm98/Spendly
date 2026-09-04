@@ -1,0 +1,13 @@
+	/** The chip's text. Kept on one line; it is cut with an ellipsis before the chip's
+	 *  own edges give way. */
+	children?: React.ReactNode;
+	/** Takes the value away. With it the chip is a real `<button>` carrying a cross; without
+	 *  it, a plain `<span>`. Never draw a cross the chip cannot honour. */
+	onRemove?: (event: React.MouseEvent) => void;
+	/** The button form's accessible name, e.g. "Remove filter Bilka". Pair it with `onRemove`;
+	 *  ignored without one. */
+	label?: string;
+	/** An Icon name drawn after the label, before the cross. */
+	icon?: string;
+	className?: string;
+	[key: string]: unknown;

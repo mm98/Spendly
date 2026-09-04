@@ -1,0 +1,9 @@
+	/** The `useApi` state the page is waiting on: `{ data, error, loading }`. While `data` is
+	 *  `undefined` the skeleton shows; a non-null `error` replaces it with the failure card. */
+	state?: { data?: unknown; error?: { status?: number; message?: string } | null; loading?: boolean };
+	/** What is being loaded, written as a sentence fragment: "Loading the vendor". It names
+	 *  the busy region for a screen reader; it is not drawn as text. */
+	label?: string;
+	/** The Stepper band above the card, when the form sits inside a numbered flow. Same array
+	 *  the flow's own `FormPage` gets, so the wait keeps the reader's place. */
+	steps?: { label: string; icon: string; done?: boolean; on?: boolean }[];

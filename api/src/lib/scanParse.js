@@ -54,7 +54,7 @@ const READ_RECEIPT_TOOL = {
 					type: 'object',
 					properties: {
 						title: { type: 'string', description: 'The item as described on the document.' },
-						quantity: { type: 'number', description: 'How many of this item, as printed (1 if not stated).' },
+						quantity: { type: 'number', description: 'How many of this item, as printed (1 if not stated). May be a fraction where the line is sold by weight or length, e.g. 0.75.' },
 						price: { type: 'number', description: 'The per-unit price INCLUDING VAT -- convert it first if the document prints it net of VAT. quantity times this price must equal the line\'s own VAT-inclusive total.' },
 						uncertain: { type: 'boolean', description: 'true only if this specific line is a genuine guess -- smudged, cropped or otherwise hard to read. Omit or false for anything clearly printed.' }
 					},
@@ -95,7 +95,7 @@ function normalise(input) {
 	const lines = Array.isArray(input.lines) ? input.lines
 		.map(l => ({
 			title: String(l?.title ?? '').trim().slice(0, 120),
-			quantity: isFiniteNumber(l?.quantity) && l.quantity > 0 ? Math.round(l.quantity) : 1,
+			quantity: isFiniteNumber(l?.quantity) && l.quantity > 0 ? Math.round(l.quantity * 100) / 100 : 1,
 			price: isFiniteNumber(l?.price) && l.price >= 0 ? l.price : null,
 			uncertain: l?.uncertain === true
 		}))

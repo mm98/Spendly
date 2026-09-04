@@ -12,7 +12,7 @@ import { FilterChips, ListToolbar } from '../components/ListToolbar.jsx'
 import { Pager } from '../components/Pager.jsx'
 import { useApi } from '../api/useApi.js'
 import { getCategories, getOrders, getSettings, getUncategorised, getVendors, orderStatuses, sorts, spendKinds } from '../api/client.js'
-import { currencySymbol, dayMonth, parseAmount, plural, sep } from '../api/format.js'
+import { currencySymbol, dayMonth, parseAmount, plural, sanitizeAmount, sep } from '../api/format.js'
 import { categoryGroups, vendorGroups } from '../api/pickerGroups.js'
 
 /* All orders: the search, the filters, and what they leave.
@@ -240,14 +240,14 @@ export default function AllOrders() {
 							<Field label="Min amount" htmlFor="filter-min-amount">
 								<FieldShell>
 									<input id="filter-min-amount" type="text" inputMode="decimal" placeholder="Any" aria-label="Minimum amount"
-										value={draft.minAmount} onChange={e => setDraft({ ...draft, minAmount: e.target.value })} />
+										value={draft.minAmount} onChange={e => setDraft({ ...draft, minAmount: sanitizeAmount(e.target.value) })} />
 									<FieldUnit>{currencySymbol()}</FieldUnit>
 								</FieldShell>
 							</Field>
 							<Field label="Max amount" htmlFor="filter-max-amount">
 								<FieldShell>
 									<input id="filter-max-amount" type="text" inputMode="decimal" placeholder="Any" aria-label="Maximum amount"
-										value={draft.maxAmount} onChange={e => setDraft({ ...draft, maxAmount: e.target.value })} />
+										value={draft.maxAmount} onChange={e => setDraft({ ...draft, maxAmount: sanitizeAmount(e.target.value) })} />
 									<FieldUnit>{currencySymbol()}</FieldUnit>
 								</FieldShell>
 							</Field>

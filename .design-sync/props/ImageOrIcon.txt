@@ -1,0 +1,11 @@
+	/** A real preview image. Empty, or failing to load, falls back to `icon` with no request
+	 *  made and no broken-image box. */
+	src?: string;
+	/** The Icon name drawn when there is no picture. */
+	icon?: string;
+	/** Alt text for the image branch. Defaults to `""`, i.e. decorative. */
+	alt?: string;
+	/** Class on the fallback icon. */
+	className?: string;
+	/** Class on the `<img>`. The two are separate because the frame sizes them differently. */
+	imgClassName?: string;

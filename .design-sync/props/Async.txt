@@ -1,0 +1,14 @@
+	/** Exactly what `useApi` returns. `data === undefined` is the wait, a non-null `error`
+	 *  is the failure, and anything else is loaded. `loading` only marks a background
+	 *  refetch - the last good render stays on screen through it. */
+	state: { data?: unknown; error?: { status?: number; message?: string } | null; loading?: boolean };
+	/** A function, not markup. It is called with `state.data` and only once that data is
+	 *  there, so it may read the record without guarding for undefined. */
+	children: (data: any) => React.ReactNode;
+	/** What is being waited for, in the reader's words: "Loading your orders". Printed on
+	 *  the plain waiting card and spoken on the waiting region. Defaults to "Loading". */
+	label?: string;
+	/** A region shaped like the answer, shown instead of the plain waiting card - built
+	 *  from SkeletonCard, SkeletonRows and SkeletonKpiRow. Leave it out where there is no
+	 *  good approximation and the Waiting card shows instead. */
+	skeleton?: React.ReactNode;

@@ -1,0 +1,4 @@
+	/** The saving, already written out: "13,6% under retail", "31,4%", "412 kr. under retail".
+	 *  The chip formats nothing and always reads as a gain, so only send it one. */
+	children?: React.ReactNode;
+	[key: string]: unknown;

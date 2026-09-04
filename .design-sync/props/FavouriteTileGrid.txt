@@ -1,0 +1,3 @@
+	/** The `FavouriteTile`s. The grid decides the columns — three across a wide panel, two
+	 *  at tablet width, one per row on a phone — so a caller never sets them. */
+	children?: React.ReactNode;

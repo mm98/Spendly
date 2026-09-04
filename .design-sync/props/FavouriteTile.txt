@@ -1,0 +1,15 @@
+	/** The record's own tile: a vendor's initials avatar or a category's coloured glyph. */
+	mark?: React.ReactNode;
+	/** The record's name. */
+	name?: string;
+	/** An in-app route — the record's own filtered orders. The whole tile is this link. */
+	to?: string;
+	/** What the tile announces, since the tile is one link over four pieces of text, e.g.
+	 *  "Bilka, open their orders". */
+	linkLabel?: string;
+	/** The quiet line under the name: an order count, or a share of expenses. */
+	meta?: string;
+	/** The figure, already formatted. */
+	amount?: React.ReactNode;
+	/** The smaller line under the figure, e.g. "saved 1.965 kr.". */
+	saved?: React.ReactNode;

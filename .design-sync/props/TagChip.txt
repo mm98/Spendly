@@ -1,0 +1,7 @@
+	/** An Icon name. Required in practice: the chip always draws a glyph, and a missing or
+	 *  unknown name throws. */
+	icon: string;
+	/** The two `chip-tag-*` classes that exist. */
+	tone?: "pink" | "blue";
+	/** The tag's words, e.g. "Quick wins". */
+	children?: React.ReactNode;

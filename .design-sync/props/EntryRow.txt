@@ -1,0 +1,21 @@
+	/** The record's own tile: the colour it is filled with and the initials drawn on it.
+	 *  A vendor row passes the vendor record itself. The ink is picked from the fill. */
+	avatar?: { initials: string; colour: string };
+	/** An Icon name on the neutral grey tile, for a row that stands for something with no
+	 *  colour of its own. Use instead of `avatar`, never with it. */
+	glyph?: string;
+	/** The row's first line — the record's name. */
+	name?: string;
+	/** The quiet second line: a date, an order count, a note. */
+	meta?: string;
+	/** The figure on the right, already formatted, e.g. "742,45 kr.". */
+	amount?: React.ReactNode;
+	/** A smaller second figure under `amount`, e.g. "saved 38,50 kr.". Draw it on every row
+	 *  of a list or none, so the column keeps one shape. */
+	sub?: string;
+	/** An in-app route. With it the whole row is a link and draws a chevron; without it the
+	 *  row is a plain block and claims nothing about being actionable. */
+	to?: string;
+	/** Extra content between the figure and the chevron. */
+	children?: React.ReactNode;
+	[key: string]: unknown;

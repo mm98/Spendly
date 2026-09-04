@@ -1,0 +1,7 @@
+	/** The controls the section groups, usually opening with a `<span className="panel-heading">`
+	 *  naming them. Fields stack with the section's own 14px gap. */
+	children?: React.ReactNode;
+	/** The panel's id, for the `aria-controls` of the button that opens it. */
+	id?: string;
+	/** Spread onto the div - `hidden` closes the panel without taking it out of the DOM. */
+	[key: string]: unknown;

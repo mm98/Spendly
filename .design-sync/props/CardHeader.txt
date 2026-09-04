@@ -1,0 +1,20 @@
+	/** Usually the heading text. It is rendered as-is, so a node works too -- SkeletonCard
+	 *  passes a shimmer block. A node with only a percentage width measures 0 wide here,
+	 *  because the label span is a flex item sized to its own content. */
+	title?: React.ReactNode;
+	/** An in-app route. The whole band becomes a link and grows a right chevron. */
+	to?: string;
+	/** Overrides the accessible name. With `to`, it defaults to "<title>, open <to>"; give a
+	 *  spoken destination instead, e.g. "Orders, open Orders". */
+	label?: string;
+	/** Makes the whole band a disclosure button with a chevron that points down when closed
+	 *  and up when open. Mutually exclusive with `to`. */
+	onToggle?: (event: React.MouseEvent) => void;
+	/** Whether the panel `onToggle` controls is open. Sets aria-expanded and turns the chevron. */
+	open?: boolean;
+	/** The `id` of the element `onToggle` opens - a string for aria-controls, not markup. */
+	controls?: string;
+	/** A control for the right-hand slot, e.g. `<Button variant="pill" icon="plus">ADD</Button>`.
+	 *  Keep it shorter than the band: the band sets its own height. */
+	children?: React.ReactNode;
+	className?: string;

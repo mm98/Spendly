@@ -1,0 +1,26 @@
+	/** The keyword currently searched for. The field is controlled: hold it in the URL, not
+	 *  in component state, so a filtered list stays a link you can send. */
+	query?: string;
+	/** The user typed in the search field. */
+	onQuery?: (text: string) => void;
+	/** The search field's placeholder. Name everything the search matches — a field
+	 *  promising only the name is lying about what it does. */
+	placeholder?: string;
+	/** The search field's own label, since it has no visible one. */
+	label?: string;
+	/** Where focus lands after a filter chip is removed. Pass the same ref to `FilterChips`
+	 *  as its `focusRef`. */
+	searchRef?: React.RefObject<HTMLInputElement>;
+	/** The sort control's label. */
+	sortLabel?: string;
+	/** The sort options. Label the column and the direction both — an option reading "Spend"
+	 *  that means highest-first names half of what it does. */
+	sorts?: Array<{ id: string; label: string }>;
+	/** The current sort's label (not its id) — it is what the closed control displays. */
+	sortValue?: string;
+	/** The user picked a sort. Receives the option's id. */
+	onSort?: (id: string) => void;
+	/** Adds the FILTERS disclosure between the search and the sort, controlling the panel
+	 *  with that id. Leave it off where the list has no panel — a disclosure over nothing is
+	 *  a control that does not do anything. */
+	filters?: { open: boolean; onToggle: () => void; panelId: string };

@@ -1,0 +1,20 @@
+	/** Gets the dropped or chosen files as an array. Never fired with an empty one. */
+	onFiles?: (files: File[]) => void;
+	/** Whether more than one file can be chosen at a time. Default `true`. */
+	multiple?: boolean;
+	/** What the picker offers, from `fileKinds.js`: `RECEIPT_FILES`, `PHOTO_FILES`,
+	 *  `EXPORT_FILES`. Shaped `{description, accept}` - `accept` maps a MIME type to its
+	 *  extensions. Where the browser has showOpenFilePicker this is the only filter offered. */
+	kind?: { description: string; accept: Record<string, string[]> };
+	/** An `accept` attribute written out by hand. Only for a picker with no `kind`. */
+	accept?: string;
+	/** The accessible name of the file input behind the zone, e.g. "Add attachments". */
+	label?: string;
+	/** The sentence inside the box. Say what it takes and how many, e.g. "Drop receipts here -
+	 *  as many as you like - or choose them." */
+	hint?: string;
+	/** The text action under the sentence, written in capitals. Default `CHOOSE FILES`. */
+	action?: string;
+	/** The Icon name on the tile above the sentence. Default `upload`; the attachments card
+	 *  uses `photo`. */
+	icon?: string;

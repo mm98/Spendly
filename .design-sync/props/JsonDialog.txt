@@ -1,0 +1,7 @@
+	/** Any JSON-serialisable value — the whole record, not a trimmed copy of it. */
+	value?: unknown;
+	/** The heading in the dialog's own band, and its accessible name. */
+	title?: string;
+	/** Backdrop click, Escape and the close button all call this. The caller unmounts the
+	 *  dialog; it does not close itself. */
+	onClose?: () => void;

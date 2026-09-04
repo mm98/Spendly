@@ -61,9 +61,12 @@ export function validateOrderDraft(draft) {
 		if (!title) errors[`items.${i}.title`] = 'Describe the item.'
 		else if (title.length > 120) errors[`items.${i}.title`] = '120 characters at most.'
 
+		/* Rounded and compared back, not `quantity * 100` tested for wholeness: 1.1 * 100 is
+		   110.00000000000001, and that test refuses a one-decimal quantity. */
 		const quantity = Number(item.quantity)
-		if (!Number.isInteger(quantity) || quantity < 1 || quantity > 9999)
-			errors[`items.${i}.quantity`] = 'Quantity must be a whole number from 1 to 9999.'
+		if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 9999
+			|| Math.round(quantity * 100) / 100 !== quantity)
+			errors[`items.${i}.quantity`] = 'Quantity must be more than 0 and at most 9999, with at most two decimals.'
 
 		/* No money field is signed: a discount is the order's own `discount` column
 		   (migrations/009), so price joins retail and shipping at zero or above. */

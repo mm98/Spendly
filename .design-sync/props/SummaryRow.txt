@@ -1,0 +1,6 @@
+	/** The name of the fact, on the left. */
+	label?: string;
+	/** The figure or the value, on the right, already formatted. Figures take the tabular
+	 *  face, so they line up down the panel. */
+	value?: string;
+	className?: string;

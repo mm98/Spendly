@@ -1,0 +1,8 @@
+	/** The page's own column shape. Omit, or `page-grid`, for the single column every detail,
+	 *  form and list page uses - the two declare the same grid. `content-grid` is the wide
+	 *  column plus a rail, and needs `content-column-main` and `content-column-side` children;
+	 *  it collapses to one column below 1181px. */
+	variant?: "page-grid" | "content-grid";
+	/** The page. Cards and grids, not a wrapper around them. */
+	children?: React.ReactNode;
+	[key: string]: unknown;
