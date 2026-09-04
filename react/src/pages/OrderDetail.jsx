@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Sep } from '../components/Sep.jsx'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
@@ -10,7 +10,7 @@ import { ImageLightbox } from '../components/Viz.jsx'
 import { DropZone, HiddenFileInput } from '../components/FileInput.jsx'
 import { RECEIPT_FILES } from '../components/fileKinds.js'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
-import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
+import { Button, IconButton } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
@@ -44,6 +44,9 @@ export default function OrderDetail() {
 	const toast = useToast()
 	const [openPhoto, setOpenPhoto] = useState(null)
 	const [showHistory, setShowHistory] = useState(false)
+	/* Walking from one order to the next keeps this component mounted, so the state has to be
+	   put back or the next order arrives already open on a log nobody asked to see. */
+	useEffect(() => setShowHistory(false), [id])
 	const filePicker = useRef(null)
 
 	const invalidateOrder = () => invalidateOrderData()
@@ -187,21 +190,7 @@ export default function OrderDetail() {
 							<CardDivider />
 							<CardBody variant="card-body-tight">
 								<div className="summary-row">Status<span className="summary-row-value">{order.status}</span></div>
-								<SummaryRow label="Date" value={shortDate(order.statusHistory[0].date)} />
-								{/* Status above already says where the order stands; the rest of its
-								    dates are a detail worth having, not one worth printing every time --
-								    a returned item can be replaced and delivered again, so this list has
-								    no fixed length to just always show. */}
-								{order.statusHistory.length > 1 ? (showHistory ? (
-									<>
-										{order.statusHistory.slice(1).map((s, i) => (
-											<SummaryRow key={i} label={s.status} value={shortDate(s.date)} />
-										))}
-										<ButtonLink onClick={() => setShowHistory(false)}>HIDE HISTORY</ButtonLink>
-									</>
-								) : (
-									<ButtonLink onClick={() => setShowHistory(true)}>SHOW HISTORY</ButtonLink>
-								)) : null}
+								<SummaryRow label="Date" value={shortDate(order.date)} />
 								{/* The vendor and each category open the orders list filtered to themselves --
 								    the name is the link, all time rather than any window, since this card
 								    states the record and names no window of its own. */}
@@ -226,14 +215,32 @@ export default function OrderDetail() {
 								<div className="summary-row">Saved vs retail
 									<span className="summary-row-value tabular-figures summary-row-value-saving">
 										{currency(order.saved)} ({percent(order.savedPercent)})</span></div>
-								{order.note ? (
-									<>
-										<div className="card-divider card-divider-tight" />
-										<span className="field-help">{order.note}</span>
-									</>
-								) : null}
 							</CardBody>
 						</Card>
+
+						{/* Every step names itself here, which the Details card cannot do -- its date
+						    row is the order's own date, and a status list has no fixed length: a
+						    returned item can be replaced and delivered again. */}
+						{order.statusHistory.length > 1 ? (
+							<Card aria-label="Status history">
+								<CardHeader title="Status history" open={showHistory} controls="order-status-history"
+									onToggle={() => setShowHistory(open => !open)} />
+								{showHistory ? <CardDivider /> : null}
+								<CardBody variant="card-body-tight" id="order-status-history" hidden={!showHistory}>
+									{order.statusHistory.map((s, i) => (
+										<SummaryRow key={i} label={s.status} value={shortDate(s.date)} />
+									))}
+								</CardBody>
+							</Card>
+						) : null}
+
+						{order.note ? (
+							<Card aria-label="Note">
+								<CardHeader title="Note" />
+								<CardDivider />
+								<CardBody><span className="field-help">{order.note}</span></CardBody>
+							</Card>
+						) : null}
 
 						<Card aria-label="Attachments">
 							<CardHeader title={`Attachments${sep}${order.attachments.length}`}>

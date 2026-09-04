@@ -14,7 +14,7 @@ outside a card; it has no look of its own.
 |---|---|---|
 | Plain | `<CardHeader title="Latest orders" />` | the label alone |
 | Navigating | `<CardHeader title="Orders" to="/orders" label="Orders, open Orders" />` | the whole band is a link, with a right chevron |
-| Disclosure | `<CardHeader title="Filters" onToggle={fn} open={open} controls="filter-panel" />` | the whole band is a button, with a chevron that turns down/up |
+| Disclosure | `<CardHeader title="Status history" onToggle={fn} open={open} controls="order-status-history" />` | the whole band is a button, with a chevron that turns down/up |
 
 `to` and `onToggle` are mutually exclusive: one band, one verb. Never put a boxed icon button
 on a passive header to open something — make the band itself the control.

@@ -156,8 +156,10 @@ Five chart components render an empty box with no error when the data is the wro
 ## Live code the app never calls
 
 Previewed from the component's own contract, and each doc says so rather than implying a usage:
-`CardHeader`'s disclosure branch (`onToggle`/`open`/`controls`), `TagChip` (its pattern stayed
-in the frozen prototype), `Switch`, and `FilterSectionBody`.
+`TagChip` (its pattern stayed in the frozen prototype), `Switch`, and `FilterSectionBody`.
+
+`CardHeader`'s disclosure branch (`onToggle`/`open`/`controls`) is no longer one of them: the
+order read view's status history card uses it. Its preview can be drawn from a real call site now.
 
 ## Where a re-sync starts
 
