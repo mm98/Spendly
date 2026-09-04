@@ -207,6 +207,8 @@ These hold on every screen and are the constraints behind several layout decisio
 
 **It is pointed at the box the reader sees, not at the words inside it.** A tooltip centres on what it is given, so what it is given has to be the shape the reader reads as the target. Where the target is a line of text inside a wider block — a footer line, a caption, a cell — the block is what the label measures against; centred on the text run it lands off-centre in everything around it.
 
+**A label for a whole strip is as wide as that strip.** Most tooltips are as wide as their own words, because they point at one small thing. One that labels a full-width strip takes the strip's width instead, so its edges land on the column everything around it already lines up with — a card of figures floating at whatever width its longest row happens to measure reads as loose inside a narrow column.
+
 ---
 
 ## The shell — structure and scroll behaviour

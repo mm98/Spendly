@@ -3418,30 +3418,33 @@ Not checked: Firefox and WebKit.
 ## Tooltips — the label centred on the words, not on the rail
 
 Moving the sidebar's scores onto the shared component swapped a callout stretched across the
-footer's box for one that centres on whatever rect it is handed, and the rect handed to it was
-the hovered element's own — a `<span>` holding the line "Spendly · your spending". That span is
-an inline run as wide as its words, so the label centred on the words instead of on the rail.
+footer's box for one that centres on whatever rect it is handed, at whatever width its own rows
+measure. The rect handed to it was the hovered element's own — a `<span>` holding the line
+"Spendly · your spending" — and that span is an inline run as wide as its words, so the label
+centred on the words rather than on the rail, and was narrower than the column it belongs to.
 
 Measured at 1440x900, sidebar 0..236:
 
-| | left | right | centre |
-|---|---|---|---|
-| rail | 0 | 236 | 118 |
-| nav link above it | 18 | 218 | 118 |
-| footer block (`.build-quality`) | 28 | 208 | 118 |
-| text run (`.build-quality-band`) | 28 | 172 | **100** |
-| label, before | 6 | 204 | **105** |
-| label, after | 19 | 217 | **118** |
+| | left | right | width | centre |
+|---|---|---|---|---|
+| rail | 0 | 236 | 236 | 118 |
+| nav link above it | 18 | 218 | 200 | 118 |
+| text run (`.build-quality-band`) | 28 | 172 | 144 | **100** |
+| label, before | 6 | 204 | 198 | **105** |
+| label, after | 18 | 218 | 200 | **118** |
 
 Centring on the text run put the label's left edge at −11, so the component's own "keep it on
 screen" slide pushed it back to the 6px gap — the 13px error is the two effects together, and
-neither one is visible as a mistake in the code that caused it. The label is measured against
-the footer block now: dead centre on the rail, and inside the nav links' own 18..218 box, which
-is where it sat before the swap.
+neither one is visible as a mistake in the code that caused it.
 
-The band is still what is hovered and focused; only what the label is measured against changed.
-Verified in Blink on the running app, hover and keyboard focus both, with the label removed from
-the page on blur. Not checked: Firefox and WebKit.
+Two changes, because centring alone still left it floating at its own width inside a 200px
+column. The block around the band cancels the footer's inset and puts it back as padding, so
+its box is the nav links' own 18..218 while the text still starts at 28; and the component
+takes an opt-in `matchWidth`, which draws the label at the width of what it points at. The
+band is still what is hovered and focused.
+
+Verified in Blink on the running app, hover and keyboard focus both, with the label removed
+from the page on blur. Not checked: Firefox and WebKit.
 
 ## Components the app had and did not use
 

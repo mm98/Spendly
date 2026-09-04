@@ -107,8 +107,8 @@ function BuildQuality() {
 	if (!scores) return <span>Spendly<Sep />your spending</span>
 
 	/* Focusable, or the label is hover-only and a keyboard never reaches it. */
-	/* Pointed at the rail's own box, not at the line of text inside it: the text is an inline
-	   run as wide as the words, so centring on it puts the scores left of the rail's middle. */
+	/* Pointed at the rail's own block, not at the inline run of text in it: that run is only as
+	   wide as its words, so the scores would centre on the words rather than on the rail. */
 	const show = () => setBand(rail.current.getBoundingClientRect())
 	const hide = () => setBand(null)
 
@@ -118,7 +118,7 @@ function BuildQuality() {
 				onPointerEnter={show} onPointerLeave={hide} onFocus={show} onBlur={hide}>
 				Spendly<Sep />your spending
 			</span>
-			<Tooltip anchor={band} title="This build scored">
+			<Tooltip anchor={band} title="This build scored" matchWidth>
 				{SCORES.map(([label, key]) => (
 					<span className="tooltip-row" key={key}>
 						<span className="tooltip-name">{label}</span>
