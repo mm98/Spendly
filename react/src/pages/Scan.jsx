@@ -18,7 +18,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { StatusChip } from '../components/Chip.jsx'
 import { Icon } from '../components/Icon.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit, FormActions, Segmented, TextInput,
+	DateInput, Field, FieldPair, FieldShell, FormActions, NumberInput, Segmented, TextInput,
 	focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -32,7 +32,7 @@ import {
 import { DELIVERED_DATE_FIELD, LINE_FIELDS, ORDER_FIELDS, RETURNED_DATE_FIELD } from '../api/rules.js'
 import {
 	amount, AMOUNT_PATTERN, currency, currencySymbol, fullStop, parseAmount, percent, plural,
-	quantity as qtyText, sanitizeAmount, sep, today
+	quantity as qtyText, sep, today
 } from '../api/format.js'
 
 /* Scan, in three steps.
@@ -679,21 +679,15 @@ function ScanReviewForm({ answer }) {
 			<FieldPair>
 				<Field label="Discount" optional error={discountField.error} errorId={discountField.errorId} htmlFor="order-discount"
 					help="Any discount taken off the whole order.">
-					<FieldShell>
-						<TextInput id="order-discount" inputMode="decimal" value={draft.discount}
-							onChange={v => set('order-discount', 'discount')(sanitizeAmount(v))} aria-label="Discount"
-							invalid={discountField.invalid} describedBy={discountField.describedBy} />
-						<FieldUnit>{currencySymbol()}</FieldUnit>
-					</FieldShell>
+					<NumberInput id="order-discount" unit={currencySymbol()} value={draft.discount}
+						onChange={set('order-discount', 'discount')} aria-label="Discount"
+						invalid={discountField.invalid} describedBy={discountField.describedBy} />
 				</Field>
 				<Field label="Shipping fee" optional error={shippingField.error} errorId={shippingField.errorId} htmlFor="order-shipping"
 					help="Not on the receipt; add it if the order was delivered.">
-					<FieldShell>
-						<TextInput id="order-shipping" inputMode="decimal" value={draft.shipping}
-							onChange={v => set('order-shipping', 'shipping')(sanitizeAmount(v))} aria-label="Shipping fee"
-							invalid={shippingField.invalid} describedBy={shippingField.describedBy} />
-						<FieldUnit>{currencySymbol()}</FieldUnit>
-					</FieldShell>
+					<NumberInput id="order-shipping" unit={currencySymbol()} value={draft.shipping}
+						onChange={set('order-shipping', 'shipping')} aria-label="Shipping fee"
+						invalid={shippingField.invalid} describedBy={shippingField.describedBy} />
 				</Field>
 			</FieldPair>
 
@@ -897,34 +891,25 @@ function LineEditor({
 						</FieldShell>
 					</Field>
 					<Field className="line-field-qty" label="Quantity" error={quantity.error} errorId={quantity.errorId} htmlFor="line-quantity">
-						<FieldShell>
-							<TextInput id="line-quantity" inputMode="decimal" value={form['line-quantity']}
-								onChange={v => set('line-quantity')(sanitizeAmount(v))} aria-label="Quantity" aria-required="true"
-								invalid={quantity.invalid} describedBy={quantity.describedBy} />
-							<FieldUnit>pcs</FieldUnit>
-						</FieldShell>
+						<NumberInput id="line-quantity" unit="pcs" value={form['line-quantity']}
+							onChange={set('line-quantity')} aria-label="Quantity" aria-required="true"
+							invalid={quantity.invalid} describedBy={quantity.describedBy} />
 					</Field>
 					<Field label="Price paid" error={price.error} errorId={price.errorId} htmlFor="line-price"
 						help={figures && qty > 1
 							? `Per piece${sep}line total ${currency(paid * qty)}`
 							: 'What one piece cost.'}>
-						<FieldShell>
-							<TextInput id="line-price" inputMode="decimal" value={form['line-price']}
-								onChange={v => set('line-price')(sanitizeAmount(v))} aria-label="Price paid" aria-required="true"
-								invalid={price.invalid} describedBy={price.describedBy} />
-							<FieldUnit>{currencySymbol()}</FieldUnit>
-						</FieldShell>
+						<NumberInput id="line-price" unit={currencySymbol()} value={form['line-price']}
+							onChange={set('line-price')} aria-label="Price paid" aria-required="true"
+							invalid={price.invalid} describedBy={price.describedBy} />
 					</Field>
 					<Field className="line-field-retail" label="Retail price" optional htmlFor="line-retail"
 						error={retailField.error} errorId={retailField.errorId}
 						help="Used to work out how much you saved compared to the retail price.">
-						<FieldShell>
-							<TextInput id="line-retail" inputMode="decimal"
-								aria-label="Retail price" value={form['line-retail']}
-								onChange={v => set('line-retail')(sanitizeAmount(v))}
-								invalid={retailField.invalid} describedBy={retailField.describedBy} />
-							<FieldUnit>{currencySymbol()}</FieldUnit>
-						</FieldShell>
+						<NumberInput id="line-retail" unit={currencySymbol()}
+							aria-label="Retail price" value={form['line-retail']}
+							onChange={set('line-retail')}
+							invalid={retailField.invalid} describedBy={retailField.describedBy} />
 					</Field>
 					<Field className="line-field-wide" label="Note" optional htmlFor="line-note"
 						error={noteField.error} errorId={noteField.errorId}

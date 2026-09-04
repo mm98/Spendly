@@ -8,13 +8,12 @@ import { InsetPanel, ItemRow } from './Rows.jsx'
 import { useReorder } from './Reorder.jsx'
 import { useRowDelete } from './FormPage.jsx'
 import {
-	Field, FieldPair, FieldShell, FieldUnit, FormActions, TextInput,
-	focusField, useFieldErrors
+	Field, FieldShell, FormActions, NumberInput, TextInput, focusField, useFieldErrors
 } from './Form.jsx'
 import { ITEM_FIELDS } from '../api/rules.js'
 import {
 	amount, currency, currencySymbol, fullStop, parseAmount, percent, plural, quantity as qtyText,
-	sanitizeAmount, sep
+	sep
 } from '../api/format.js'
 
 /* The lines on an order, edited where they sit.
@@ -435,13 +434,10 @@ function LineCard({
 
 					<Field className="line-field-qty" label="Quantity" htmlFor="item-quantity"
 						error={quantity.error} errorId={quantity.errorId}>
-						<FieldShell>
-							<TextInput id="item-quantity" inputMode="decimal" aria-label="Quantity"
-								aria-required="true" value={form['item-quantity']}
-								onChange={v => set('item-quantity')(sanitizeAmount(v))}
-								invalid={quantity.invalid} describedBy={quantity.describedBy} />
-							<FieldUnit>pcs</FieldUnit>
-						</FieldShell>
+						<NumberInput id="item-quantity" aria-label="Quantity" unit="pcs"
+							aria-required="true" value={form['item-quantity']}
+							onChange={set('item-quantity')}
+							invalid={quantity.invalid} describedBy={quantity.describedBy} />
 					</Field>
 
 					<Field label="Price paid" htmlFor="item-price"
@@ -449,25 +445,19 @@ function LineCard({
 						help={figures && qty > 1
 							? `Per piece${sep}line total ${currency(lineTotal)}`
 							: 'What one piece cost.'}>
-						<FieldShell>
-							<TextInput id="item-price" inputMode="decimal" aria-label="Price paid"
-								aria-required="true" value={form['item-price']}
-								onChange={v => set('item-price')(sanitizeAmount(v))}
-								invalid={price.invalid} describedBy={price.describedBy} />
-							<FieldUnit>{currencySymbol()}</FieldUnit>
-						</FieldShell>
+						<NumberInput id="item-price" aria-label="Price paid" unit={currencySymbol()}
+							aria-required="true" value={form['item-price']}
+							onChange={set('item-price')}
+							invalid={price.invalid} describedBy={price.describedBy} />
 					</Field>
 
 					<Field className="line-field-retail" label="Retail price" optional htmlFor="item-retail"
 						error={retailField.error} errorId={retailField.errorId}
 						help="Used to work out how much you saved compared to the retail price.">
-						<FieldShell>
-							<TextInput id="item-retail" inputMode="decimal"
-								aria-label="Retail price" value={form['item-retail']}
-								onChange={v => set('item-retail')(sanitizeAmount(v))}
-								invalid={retailField.invalid} describedBy={retailField.describedBy} />
-							<FieldUnit>{currencySymbol()}</FieldUnit>
-						</FieldShell>
+						<NumberInput id="item-retail" unit={currencySymbol()}
+							aria-label="Retail price" value={form['item-retail']}
+							onChange={set('item-retail')}
+							invalid={retailField.invalid} describedBy={retailField.describedBy} />
 					</Field>
 
 					<Field className="line-field-wide" label="Note" optional htmlFor="item-note"

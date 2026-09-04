@@ -10,9 +10,8 @@ import { Chip } from '../components/Chip.jsx'
 import { InsetPanel, ItemRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
 import { ItemLines } from '../components/ItemLines.jsx'
 import {
-	DateInput, Field, FieldPair, FieldShell, FieldUnit,
-	Form, FormActions, Segmented, TextArea, TextInput,
-	focusField, useFieldErrors
+	DateInput, Field, FieldPair, FieldShell, Form, FormActions, NumberInput, Segmented, TextArea,
+	TextInput, focusField, useFieldErrors
 } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
@@ -23,7 +22,7 @@ import {
 	spendKinds, updateOrder
 } from '../api/client.js'
 import { DELIVERED_DATE_FIELD, ORDER_FIELDS, RETURNED_DATE_FIELD } from '../api/rules.js'
-import { currency, currencySymbol, parseAmount, percent, sep, sanitizeAmount, today } from '../api/format.js'
+import { currency, currencySymbol, parseAmount, percent, sep, today } from '../api/format.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
 /* Editing an order, whole.
@@ -318,22 +317,16 @@ function EditOrderForm({ id, seed }) {
 							<FieldPair>
 								<Field label="Discount" optional error={discountField.error} errorId={discountField.errorId}
 									help="The amount subtracted from the order.">
-									<FieldShell>
-										<TextInput id="order-discount" inputMode="decimal"
-											aria-label="Discount" value={draft.discount}
-											invalid={discountField.invalid} describedBy={discountField.describedBy}
-											onChange={v => set('order-discount', 'discount')(sanitizeAmount(v))} />
-										<FieldUnit>{currencySymbol()}</FieldUnit>
-									</FieldShell>
+									<NumberInput id="order-discount" unit={currencySymbol()}
+										aria-label="Discount" value={draft.discount}
+										invalid={discountField.invalid} describedBy={discountField.describedBy}
+										onChange={set('order-discount', 'discount')} />
 								</Field>
 								<Field label="Shipping fee" optional error={shippingField.error} errorId={shippingField.errorId}>
-									<FieldShell>
-										<TextInput id="order-shipping" inputMode="decimal"
-											aria-label="Shipping fee" value={draft.shipping}
-											invalid={shippingField.invalid} describedBy={shippingField.describedBy}
-											onChange={v => set('order-shipping', 'shipping')(sanitizeAmount(v))} />
-										<FieldUnit>{currencySymbol()}</FieldUnit>
-									</FieldShell>
+									<NumberInput id="order-shipping" unit={currencySymbol()}
+										aria-label="Shipping fee" value={draft.shipping}
+										invalid={shippingField.invalid} describedBy={shippingField.describedBy}
+										onChange={set('order-shipping', 'shipping')} />
 								</Field>
 							</FieldPair>
 							<FieldPair>
