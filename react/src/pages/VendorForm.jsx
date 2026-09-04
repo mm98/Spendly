@@ -233,15 +233,12 @@ function VendorSummary({ name, colour, initials, favourite, aliases, defaultCate
 							? `${vendor.orders} order${vendor.orders === 1 ? '' : 's'}${sep}saved ${currency(vendor.saved, 0)}`
 							: 'no orders yet'} />
 				</div>
-				<div className="summary-row">Name<span className="summary-row-value">{name || '-'}</span></div>
-				<div className="summary-row">Initials<span className="summary-row-value">{initials}</span></div>
-				<div className="summary-row">Favourite
-					<span className="summary-row-value">{favourite ? 'Yes' : 'No'}</span></div>
-				<div className="summary-row">Aliases
-					<span className="summary-row-value">{aliases.length ? aliases.join(', ') : '-'}</span></div>
-				<div className="summary-row">Default categories
-					<span className="summary-row-value">
-						{defaultCategories.length ? defaultCategories.join(', ') : '-'}</span></div>
+				<SummaryRow label="Name" value={name || '-'} />
+				<SummaryRow label="Initials" value={initials} />
+				<SummaryRow label="Favourite" value={favourite ? 'Yes' : 'No'} />
+				<SummaryRow label="Aliases" value={aliases.length ? aliases.join(', ') : '-'} />
+				<SummaryRow label="Default categories"
+					value={defaultCategories.length ? defaultCategories.join(', ') : '-'} />
 				{vendor ? <SummaryRow label="Saved vs retail" value={currency(vendor.saved, 0)} /> : null}
 				<div className="card-divider card-divider-tight" />
 				<SummaryTotal label="Spent all time" value={currency(vendor?.spend ?? 0, 0)}

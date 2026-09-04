@@ -189,32 +189,26 @@ export default function OrderDetail() {
 							<CardHeader title="Details" />
 							<CardDivider />
 							<CardBody variant="card-body-tight">
-								<div className="summary-row">Status<span className="summary-row-value">{order.status}</span></div>
+								<SummaryRow label="Status" value={order.status} />
 								<SummaryRow label="Date" value={shortDate(order.date)} />
 								{/* The vendor and each category open the orders list filtered to themselves --
 								    the name is the link, all time rather than any window, since this card
 								    states the record and names no window of its own. */}
-								<div className="summary-row">Vendor
-									<span className="summary-row-value">
-										{order.vendor ? (
-											<Link className="summary-row-link" to={ordersIn({ vendor: order.vendor.id })}>
-												{order.vendor.name}</Link>
-										) : null}</span></div>
-								<div className="summary-row">Categories
-									<span className="summary-row-value">
-										{order.categories.length ? order.categories.map((c, i) => (
-											<Fragment key={c.id}>{i ? ', ' : ''}
-												<Link className="summary-row-link" to={ordersIn({ category: c.id })}>
-													{c.name}</Link></Fragment>
-										)) : '-'}</span></div>
-								<div className="summary-row">Kind<span className="summary-row-value">{order.kind}</span></div>
+								<SummaryRow label="Vendor" value={order.vendor ? (
+									<Link className="summary-row-link" to={ordersIn({ vendor: order.vendor.id })}>
+										{order.vendor.name}</Link>
+								) : null} />
+								<SummaryRow label="Categories" value={order.categories.length ? order.categories.map((c, i) => (
+									<Fragment key={c.id}>{i ? ', ' : ''}
+										<Link className="summary-row-link" to={ordersIn({ category: c.id })}>
+											{c.name}</Link></Fragment>
+								)) : '-'} />
+								<SummaryRow label="Kind" value={order.kind} />
 								{order.reference ? (
-									<div className="summary-row">Reference
-										<span className="summary-row-value">{order.reference}</span></div>
+									<SummaryRow label="Reference" value={order.reference} />
 								) : null}
-								<div className="summary-row">Saved vs retail
-									<span className="summary-row-value tabular-figures summary-row-value-saving">
-										{currency(order.saved)} ({percent(order.savedPercent)})</span></div>
+								<SummaryRow label="Saved vs retail" variant="summary-row-value-saving"
+									value={`${currency(order.saved)} (${percent(order.savedPercent)})`} />
 							</CardBody>
 						</Card>
 

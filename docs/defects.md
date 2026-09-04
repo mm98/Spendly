@@ -3434,12 +3434,48 @@ not seen rendering.
 Two raw `<button>`s on Scan are deliberately left: they carry no `button` class and are styled
 by `.ai-suggestion-row button`, a different control.
 
-**Still open, and larger.** `SummaryRow` exists, and **25 raw `<div className="summary-row">`**
-remain across six files (CategoryForm 2, EditOrder 4, NewOrder 5, OrderDetail 6, VendorForm 5,
-WishForm 3). They are not laziness: `SummaryRow` hard-codes `tabular-figures` on its value and
-takes one scalar, so a row whose value is a word ("Delivered", "Expense") or a link renders
-wrong through it. The component is too narrow for its own call sites, which is why they route
-around it. Widening it is an API change to a synced component with 25 consumers, so it is
-recorded here rather than done in passing.
+`SummaryRow` was the other one: **25 raw `<div className="summary-row">`** across six files
+(CategoryForm 2, EditOrder 4, NewOrder 5, OrderDetail 6, VendorForm 5, WishForm 3). They were
+not laziness. The component hard-coded `tabular-figures` on its value, so a row whose value is a
+word ("Delivered", "Expense") or a link looked wrong to write through it, and callers routed
+around — the component too narrow for its own call sites.
+
+The escape turned out to be from nothing (see the next entry: that class does not do anything),
+so the widening needed is small. `SummaryRow` takes a `variant` for the tone, the way `Card`
+takes class words, and its value was always free to be a node. All 25 are the component now.
+
+Proved neutral rather than asserted: the four reachable summary panels were screenshotted
+before and after and diffed pixel by pixel — **0 differing pixels across 6,533,832**, max delta
+0. Checked besides that the one toned row still computes
+`summary-row-value-saving` at rgb(14, 122, 82), and that the Vendor and Categories rows still
+render real links.
+
+Not checked: Firefox and WebKit.
+
+## `tabular-figures` has never done anything
+
+Chasing why 25 rows avoided `SummaryRow` led to the class they were avoiding. It is applied in
+**36 places** in the source and backed by three `font-variant-numeric: tabular-nums` declarations,
+and it changes no pixel anywhere.
+
+Measured three ways, in the running app:
+
+| check | result |
+|---|---|
+| computed style on an element carrying the class | `font-variant-numeric: tabular-nums` — the class does reach |
+| eight `1`s vs eight `8`s, without the class | 40px vs 72px |
+| eight `1`s vs eight `8`s, **with** the class | 40px vs 72px — identical |
+| `tnum` entries in the three shipped `poppins-*.woff2` | **0**, and 0 `onum` / `lnum` besides |
+
+The chain breaks at the font: the class asks correctly, and the subsetted Poppins carries no
+numeric features to answer with. A missing feature in a font file is missing in every engine, so
+this is not a Chromium-only finding even though Chromium is the only engine installed here.
+
+The consequence is small but real: money columns do not align on the decimal. The `kr.` lines up
+because the values are right-aligned, and that is all that was ever holding them. Nothing on
+screen changes if the class is deleted.
+
+Left in place for now — deleting 36 call sites, or re-subsetting the font with `tnum` kept if
+Poppins ships one upstream, is a decision about the typography rather than about these rows.
 
 Not checked: Firefox and WebKit.

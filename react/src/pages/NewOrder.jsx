@@ -312,12 +312,11 @@ function OrderSummary({ draft, estimate, showItems }) {
 			<CardBody>
 				<div className="card-subheading">Order summary</div>
 				<span className="section-label">Order details</span>
-				<div className="summary-row">Vendor<span className="summary-row-value">{draft.vendor}</span></div>
-				<div className="summary-row">Date<span className="summary-row-value">{shortDate(draft.date)}</span></div>
-				<div className="summary-row">Status<span className="summary-row-value">{draft.status}</span></div>
-				<div className="summary-row">Categories
-					<span className="summary-row-value">{draft.categories.join(', ') || '-'}</span></div>
-				<div className="summary-row">Kind<span className="summary-row-value">{draft.kind}</span></div>
+				<SummaryRow label="Vendor" value={draft.vendor} />
+				<SummaryRow label="Date" value={shortDate(draft.date)} />
+				<SummaryRow label="Status" value={draft.status} />
+				<SummaryRow label="Categories" value={draft.categories.join(', ') || '-'} />
+				<SummaryRow label="Kind" value={draft.kind} />
 				{/* One line for the items, not a copy of the list -- on step 2 every line is
 				    already named, priced and editable beside this rail, and a second reading of
 				    it here is one more thing to keep in step. What the rail owes is the
