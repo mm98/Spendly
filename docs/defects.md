@@ -3414,3 +3414,32 @@ Verified in the browser on the real sidebar: hovering the band draws the label a
 focusing the band with no pointer draws the same thing. All five callers compute one surface.
 
 Not checked: Firefox and WebKit.
+
+## Components the app had and did not use
+
+The tooltip was not the only one. Sweeping the source for raw markup wearing a component's own
+classes found **eight `<button className="button …">`** across four files — `ListToolbar`'s
+FILTERS disclosure, `DashboardCards`' EDIT / DONE / CANCEL / ADD, `OrderDetail`'s ADD FILES and
+two on `Scan` — each hand-writing exactly what `Button` renders (`<button type="button"
+className={classes} {...rest}>`).
+
+All eight are the component now. Verified in the browser that nothing was lost in the swap,
+since `Button` forwards everything through `...rest`: FILTERS keeps `data-filters-toggle`,
+`aria-expanded` and `aria-controls` and still opens its panel; `data-add` survives on the tray
+buttons; and the `ref` that `DashboardCards` focuses still works — cancelling puts focus back on
+EDIT, which is the only proof that a ref reaches the real element. Scan's OPEN and DETAILS are
+behind a loaded receipt and were not reachable in this pass; same markup shape, compiles clean,
+not seen rendering.
+
+Two raw `<button>`s on Scan are deliberately left: they carry no `button` class and are styled
+by `.ai-suggestion-row button`, a different control.
+
+**Still open, and larger.** `SummaryRow` exists, and **25 raw `<div className="summary-row">`**
+remain across six files (CategoryForm 2, EditOrder 4, NewOrder 5, OrderDetail 6, VendorForm 5,
+WishForm 3). They are not laziness: `SummaryRow` hard-codes `tabular-figures` on its value and
+takes one scalar, so a row whose value is a word ("Delivered", "Expense") or a link renders
+wrong through it. The component is too narrow for its own call sites, which is why they route
+around it. Widening it is an API change to a synced component with 25 consumers, so it is
+recorded here rather than done in passing.
+
+Not checked: Firefox and WebKit.

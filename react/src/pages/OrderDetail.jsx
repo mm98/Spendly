@@ -244,8 +244,7 @@ export default function OrderDetail() {
 
 						<Card aria-label="Attachments">
 							<CardHeader title={`Attachments${sep}${order.attachments.length}`}>
-								<button type="button" className="button button-pill"
-									onClick={() => filePicker.current?.click()}>ADD FILES</button>
+								<Button variant="pill" onClick={() => filePicker.current?.click()}>ADD FILES</Button>
 							</CardHeader>
 							<CardDivider />
 							{/* Dropping a stack of receipts on a card is how anyone with a scanner works, so

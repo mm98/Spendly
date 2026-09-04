@@ -182,7 +182,8 @@ These hold on every screen and are the constraints behind several layout decisio
 3. **Nothing saves by itself.** Scans propose values, they never overwrite silently. A duplicated order opens unsaved and can be abandoned.
 4. **Numbers answer the current filter.** Totals and counts in a filtered list describe what is on screen, not the whole account.
 5. **Single user, personal receipts.** No item catalogue, no shared editing, no permissions. A conflict means two browser tabs, not two people.
-6. **There is one tooltip.** Every hover label in the app is the same white card — one surface, defined once, drawn by one component: the chart hovers, the sidebar scores and the icon grid alike. See Tooltips below.
+6. **A component that exists is the only way to draw that thing.** No hand-rolled copy, no raw markup wearing the component's classes, no second implementation that merely looks the same. This is the whole reason a component exists: one place to change, one behaviour to trust. Sharing a component's *look* while keeping a private mechanism is the same failure wearing a disguise — it passes review because it renders correctly, and it drifts the first time either half moves. Before writing markup, check whether the thing already has a component; if it does and it cannot express what you need, widen the component rather than working around it.
+7. **There is one tooltip.** Every hover label in the app is drawn by one component: the chart hovers, the sidebar scores and the icon grid alike. See Tooltips below.
 
 ---
 
