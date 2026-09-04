@@ -24,7 +24,7 @@ everywhere it is shown, which is the thing hand-written markup could not promise
 ```
 src/
   api/          the phantom data source: seed.js, client.js, useApi.js, format.js
-  api/tabler/   the generated icon catalogue: names, and twelve shards of paths
+  api/tabler/   the generated icon catalogue: names, search words, twelve shards of paths
   components/   the design system as components -- one file per family
   pages/        ten page modules over fifteen routes, each its own chunk
   styles/       app.css, the design system's stylesheet -- see "The stylesheet" below
@@ -297,7 +297,15 @@ icon is flattened to one stroke path; the transparent 24×24 bounds path every T
 with is dropped, and so are the 77 filled paths a handful of outline icons carry, since
 everything here draws with one stroke and no fill.
 
-Three things keep 5,129 icons affordable, and all three are measured:
+A search reads two things, because a file name is not what people type. `gas-station` is what
+the petrol pump is called and **fuel** is what someone looking for it types, so the catalogue
+also carries Tabler's own keywords for every icon, taken from the same package. Words already
+in the icon's own name are left out — the name search finds those — and a keyword match starts
+at a word, so `car` reaches an icon tagged "cars" but not one tagged "postcard". Name matches
+come first and keyword matches after, under the same 240 cap. Measured: `fuel` matches no name
+at all and draws **4 tiles** — `barrel`, `barrel-off`, `gas-station`, `gas-station-off`.
+
+Four things keep 5,129 icons affordable, and all four are measured:
 
 - **The catalogue is loaded on demand.** `IconPicker` imports it inside an effect, so it is
   never in the chunk that paints the app.
@@ -309,6 +317,10 @@ Three things keep 5,129 icons affordable, and all three are measured:
   be drawn. An icon's shard is its position in the name list divided by 440, so no index has
   to be shipped to find it. Measured: searching `carrot` draws 2 tiles and pulls **1 shard of
   12**; `brand-git` draws 4 and pulls 1 more.
+- **The words are fetched on the first keystroke, not when the picker opens.** They are one
+  331.32 kB chunk (77.16 kB gzipped, 62.68 kB brotli) and the grid opens on the icons a
+  category already carries, so choosing from those costs nothing. Measured: opening the picker
+  fetches the names only; typing one letter is what pulls the words.
 - **A record stores the path, not just the name.** A category saved with `carrot` keeps the
   path string beside the name, so the rows, the rings and the donut draw it from the record —
   measured at **0 shards** fetched by the categories list, before and after a reload. The app's
@@ -433,7 +445,7 @@ of that fix, not a live build number; `npm run build` prints the current ones.
   drawn nameless while one is in flight.
 - **React, the DOM renderer and the router are a `vendor` group.** They are the half of the
   entry chunk this repository never edits; split out, an edit to a page leaves them cached.
-- **The catalogue is names plus twelve shards of paths**, above — and its path data is written
+- **The catalogue is names, search words and twelve shards of paths**, above — and its path data is written
   the way an SVG parser reads it. A minus sign is its own separator, so `2 -2` and `2-2` are
   the same two numbers, and dropping that space took 32,874 bytes out of the set. That it takes
   nothing else out is checked rather than argued: both forms of all 5,129 icons stroked into a

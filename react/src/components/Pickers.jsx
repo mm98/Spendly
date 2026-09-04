@@ -142,6 +142,7 @@ export function ColourPicker({ value, onChange, colours = CATEGORY_COLOURS, labe
 export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) {
 	const [query, setQuery] = useState('')
 	const [catalogue, setCatalogue] = useState(null)
+	const [keywords, setKeywords] = useState(null)
 	const [paths, setPaths] = useState({})
 	const id = useId()
 
@@ -153,11 +154,20 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 		return () => { live = false }
 	}, [])
 
+	/* On the first keystroke, not on open: someone who picks from the tiles already on screen
+	   never asks a question the keywords answer, and never pays for them. */
+	useEffect(() => {
+		if (!catalogue || !query.trim()) return undefined
+		let live = true
+		catalogue.loadKeywords().then(w => { if (live) setKeywords(w) })
+		return () => { live = false }
+	}, [catalogue, query])
+
 	const usedByName = useMemo(() => new Map(usedIcons.map(u => [u.name, u.path ?? null])), [usedIcons])
 
 	/* The names the grid will draw, and the shards their paths are in. NAMES is sorted and
-	   lower-case by construction -- they are the package's own file names -- so this walks in
-	   display order and stops at the cap, rather than filtering the set and sorting after. */
+	   lower-case by construction -- they are the package's own file names -- so each pass walks
+	   in display order and stops at the cap, rather than filtering the set and sorting after. */
 	const hits = useMemo(() => {
 		const needle = query.trim().toLowerCase()
 		if (!needle) return { names: [...usedByName.keys()], shards: [], capped: false }
@@ -165,13 +175,24 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 
 		const names = []
 		const shards = new Set()
+		const take = i => { names.push(catalogue.NAMES[i]); shards.add(catalogue.shardOf(i)) }
+
 		for (let i = 0; i < catalogue.NAMES.length && names.length < LIMIT; i++) {
-			if (!catalogue.NAMES[i].includes(needle)) continue
-			names.push(catalogue.NAMES[i])
-			shards.add(catalogue.shardOf(i))
+			if (catalogue.NAMES[i].includes(needle)) take(i)
+		}
+
+		/* Keyword hits go after the name hits, never in place of one, and match from the start
+		   of a word: "car" reaches an icon tagged "cars" but not one tagged "postcard". */
+		const found = new Set(names)
+		for (let i = 0; keywords && i < keywords.length && names.length < LIMIT; i++) {
+			if (!found.has(catalogue.NAMES[i]) && ` ${keywords[i]}`.includes(` ${needle}`)) take(i)
 		}
 		return { names, shards: [...shards], capped: names.length === LIMIT }
-	}, [query, catalogue, usedByName])
+	}, [query, catalogue, keywords, usedByName])
+
+	/* A search that has not read the keywords yet has not finished, and must not say it found
+	   nothing -- it has only finished looking at the names. */
+	const searching = Boolean(query.trim()) && Boolean(catalogue) && keywords === null
 
 	/* Fetch the path data for what is about to be drawn, and nothing else. A shard already on
 	   hand resolves from cache and merges to the same object, so a held-down key does not
@@ -203,7 +224,7 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 					placeholder="Search icons..."
 					aria-label="Search icons" onChange={e => setQuery(e.target.value)} />
 			</FieldShell>
-			<div role="radiogroup" className="icon-picker-grid" aria-label={label} aria-busy={waiting || undefined}>
+			<div role="radiogroup" className="icon-picker-grid" aria-label={label} aria-busy={waiting || searching || undefined}>
 				{names.map(name => {
 					const on = name === value
 					/* A used icon's path travels with the record that already carries it, so the
@@ -224,7 +245,9 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 				})}
 				{names.length === 0
 					? <p className="field-help icon-picker-empty">
-						{query.trim() ? `No icon matches "${query}".` : 'No category has an icon yet -- search to pick one.'}
+						{!query.trim()
+							? 'No category has an icon yet -- search to pick one.'
+							: searching ? 'Searching...' : `No icon matches "${query}".`}
 					</p>
 					: null}
 			</div>
@@ -234,7 +257,9 @@ export function IconPicker({ value, onChange, label = 'Icon', usedIcons = [] }) 
 			    can act on -- it was cut there and kept only where a query has narrowed the list. */}
 			<span className="field-help">
 				{query.trim()
-					? `${names.length}${hits.capped ? '+' : ''} of ${(total ?? 0).toLocaleString('da-DK')} ${names.length === 1 && !hits.capped ? 'icon matches' : 'icons match'}.`
+					? searching
+						? null
+						: `${names.length}${hits.capped ? '+' : ''} of ${(total ?? 0).toLocaleString('da-DK')} ${names.length === 1 && !hits.capped ? 'icon matches' : 'icons match'}.`
 					: names.length === 0
 						? null
 						: total
