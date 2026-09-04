@@ -38,7 +38,7 @@ function place(anchor, tip, view) {
 	}
 }
 
-export function Tooltip({ anchor, title, children }) {
+export function Tooltip({ anchor, title, matchWidth, children }) {
 	const ref = useRef(null)
 	const [tip, setTip] = useState(null)
 
@@ -52,17 +52,20 @@ export function Tooltip({ anchor, title, children }) {
 		setTip(was => (was?.width === width && was?.height === height && was?.gap === gap
 			? was
 			: { width, height, gap }))
-	}, [anchor, title, children])
+	}, [anchor, title, matchWidth, children])
 
 	if (!anchor) return null
 	const view = { width: window.innerWidth, height: window.innerHeight }
 	const at = tip ? place(anchor, tip, view) : null
+	/* A label for a whole strip takes that strip's width, so its edges land on the strip's column.
+	   The cap lifts with it, or the stylesheet's max-width would narrow a wide strip's label. */
+	const size = matchWidth ? { width: anchor.width, maxWidth: 'none' } : null
 
 	return createPortal(
 		<span ref={ref} role="tooltip" className="tooltip tooltip-floating"
 			data-side={at?.side}
 			/* Measured before it is placed, so the first frame would otherwise land at 0,0. */
-			style={at ? { left: at.left, top: at.top } : { left: 0, top: 0, visibility: 'hidden' }}>
+			style={at ? { ...size, left: at.left, top: at.top } : { ...size, left: 0, top: 0, visibility: 'hidden' }}>
 			{title ? <span className="tooltip-title">{title}</span> : null}
 			{children}
 		</span>,

@@ -45,3 +45,31 @@ export const WithHeadingAndFigures = () => (
 		</div>
 	</>}>day</Pointed>
 )
+
+// A label for a whole strip: `matchWidth` draws it at the width of the rectangle it was given,
+// so its edges land on the column the strip sits in rather than on its own longest row.
+const strip: React.CSSProperties = {
+	width: 200, padding: '6px 0', textAlign: 'center', fontSize: 11.5, color: '#6b6a63'
+}
+
+export const AsWideAsTheStrip = () => {
+	const [anchor, setAnchor] = useState<DOMRect | null>(null)
+	const measure = useCallback((node: HTMLDivElement | null) => {
+		if (node) setAnchor(node.getBoundingClientRect())
+	}, [])
+	return (
+		<div style={{ ...frame, alignItems: 'end' }}>
+			<div ref={measure} style={strip}>Spendly · your spending</div>
+			<Tooltip anchor={anchor} title="This build scored" matchWidth>
+				<span className="tooltip-row">
+					<span className="tooltip-name">Performance</span>
+					<span className="tooltip-value tabular-figures">99</span>
+				</span>
+				<span className="tooltip-row">
+					<span className="tooltip-name">Accessibility</span>
+					<span className="tooltip-value tabular-figures">100</span>
+				</span>
+			</Tooltip>
+		</div>
+	)
+}
