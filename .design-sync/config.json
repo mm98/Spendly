@@ -111,6 +111,12 @@
 	"overrides": {
 		"KpiCard": {
 			"cardMode": "column"
+		},
+		"Icon": {
+			"cardMode": "column"
+		},
+		"Page": {
+			"cardMode": "column"
 		}
 	}
 }
