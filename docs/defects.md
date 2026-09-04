@@ -3440,7 +3440,8 @@ not laziness. The component hard-coded `tabular-figures` on its value, so a row 
 word ("Delivered", "Expense") or a link looked wrong to write through it, and callers routed
 around — the component too narrow for its own call sites.
 
-The escape turned out to be from nothing (see the next entry: that class does not do anything),
+The escape turned out to be from nothing (see the next entry: that class changes no pixel with the
+current typeface),
 so the widening needed is small. `SummaryRow` takes a `variant` for the tone, the way `Card`
 takes class words, and its value was always free to be a node. All 25 are the component now.
 
@@ -3458,24 +3459,28 @@ Chasing why 25 rows avoided `SummaryRow` led to the class they were avoiding. It
 **36 places** in the source and backed by three `font-variant-numeric: tabular-nums` declarations,
 and it changes no pixel anywhere.
 
-Measured three ways, in the running app:
-
 | check | result |
 |---|---|
 | computed style on an element carrying the class | `font-variant-numeric: tabular-nums` — the class does reach |
-| eight `1`s vs eight `8`s, without the class | 40px vs 72px |
-| eight `1`s vs eight `8`s, **with** the class | 40px vs 72px — identical |
-| `tnum` entries in the three shipped `poppins-*.woff2` | **0**, and 0 `onum` / `lnum` besides |
+| eight `1`s vs eight `8`s, without the class | 112px vs 200px at 40px type |
+| eight `1`s vs eight `8`s, **with** the class | 112px vs 200px — identical |
+| same again via `font-feature-settings: "tnum" 1` | identical |
+| woff2 table directory (uncompressed, so readable without tooling) | `GPOS GSUB OS/2 cmap glyf loca head hhea hmtx maxp name post` |
 
-The chain breaks at the font: the class asks correctly, and the subsetted Poppins carries no
-numeric features to answer with. A missing feature in a font file is missing in every engine, so
-this is not a Chromium-only finding even though Chromium is the only engine installed here.
+The chain breaks at the font, and precisely there: the class asks correctly, the layout tables
+exist, and Poppins simply has no tabular digit set to answer with — its figures are proportional
+by design. Counting strings in the `.woff2` proves nothing either way and should not be used as
+evidence: woff2 table data is Brotli-compressed, so a tag can be present and unfindable. The
+table directory is the part that is readable, and the rendered advance widths are what settle it.
 
 The consequence is small but real: money columns do not align on the decimal. The `kr.` lines up
 because the values are right-aligned, and that is all that was ever holding them. Nothing on
 screen changes if the class is deleted.
 
-Left in place for now — deleting 36 call sites, or re-subsetting the font with `tnum` kept if
-Poppins ships one upstream, is a decision about the typography rather than about these rows.
+**Kept anyway, deliberately.** The declaration costs nothing while it does nothing, and it states
+the intent for every figure in the app — so the day the typeface changes to one with a tabular
+set, the alignment arrives without hunting for the places that wanted it. What must not happen is
+a second reading of the same fact: this entry is why the class looks inert, so nobody deletes it
+as dead code.
 
 Not checked: Firefox and WebKit.
