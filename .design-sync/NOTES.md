@@ -57,6 +57,14 @@ against a real call site or the API that produces the value.
   enabled one. No Disabled story is authored for `Button` — it would grade as an axis that does
   not vary. **This is a real affordance gap in the app**, reported to the user, not fixed here.
 
+## `block` is a standalone button treatment, not a modifier
+
+`.button.button-block` (app.css:888) and `.button.button-primary` (app.css:359) have equal
+specificity and block is declared later, so `variant="primary block"` renders block's own card
+surface and silently drops the green. The app only ever writes `variant="block"` alone.
+Verified by reading both rules and by the render. Same shape as the README's rule that a base
+rule placed after an override wins on equal specificity.
+
 ## Re-sync risks
 
 - The `react/node_modules/spendly-react` symlink and the playwright link under `.ds-sync/` are

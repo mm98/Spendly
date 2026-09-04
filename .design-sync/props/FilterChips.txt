@@ -1,4 +1,14 @@
-	chips?: unknown[];
-	onRemove?: (...args: any[]) => void;
-	onClearAll?: (...args: any[]) => void;
-	focusRef?: unknown;
+	/** One entry per filter that is actually on, derived from the query string rather than
+	 *  held here. `key` identifies it for removal, `label` is what the reader sees. Any
+	 *  other field rides along and comes back in `onRemove` — the pages carry a `clear`
+	 *  object saying which filter this chip turns off. With an empty array the component
+	 *  renders nothing at all. */
+	chips?: Array<{ key: string; label: string; [field: string]: unknown }>;
+	/** One chip's remove button was pressed. Receives the whole chip. */
+	onRemove?: (chip: { key: string; label: string; [field: string]: unknown }) => void;
+	/** CLEAR ALL was pressed. Clears the filters, and keeps the sort — a sort is not a
+	 *  filter. */
+	onClearAll?: (...args: unknown[]) => void;
+	/** Where focus lands when the last chip goes, or after CLEAR ALL. The list's own search
+	 *  field, the same ref `ListToolbar` gets. */
+	focusRef?: React.RefObject<HTMLElement>;

@@ -20,10 +20,14 @@ button that calls `window.open`.
 | `ghost` | A quiet action inside a card or row. |
 | `caps` | Uppercase label, for short destructive or administrative actions. |
 | `compact` | Smaller padding. Combine, e.g. `ghost compact`. |
-| `block` | Full width of its container. Used for form submits and on phones. |
+| `block` | The full-width action that closes a card. Carries its own card surface, so it is used **alone**, never with `primary` (see below). |
 | `pill` | Rounded filter or range switch. |
 | `invert` | For placing on a dark surface such as `AiCard`. |
 | `link` / `link-invert` | Reads as text, still a real control. |
+
+`block` is a standalone treatment, not a modifier. `.button-block` sets its own background
+and is declared after `.button-primary` at equal specificity, so `variant="primary block"`
+renders the plain card-surface button and silently loses the green. Write `variant="block"`.
 
 ## Props
 

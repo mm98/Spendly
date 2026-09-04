@@ -29,7 +29,8 @@ export const Sizes = () => (
 
 export const FullWidth = () => (
 	<div style={{ maxWidth: 320 }}>
-		<Button variant="primary block">CREATE ACCOUNT</Button>
+		<Button variant="block" icon="receipt" to="/orders/all">SEE ALL ORDERS</Button>
+		<Button variant="block" icon="pencil" to="/orders/1/edit">EDIT ORDER</Button>
 	</div>
 )
 

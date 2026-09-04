@@ -1,3 +1,6 @@
+	/** Default `true`: the form fills its column. `false` caps it at 640px, for a narrow
+	 *  form standing on its own such as sign-in. */
 	wide?: boolean;
+	/** Fields, FieldPairs, FilterSections and a closing FormActions. */
 	children?: React.ReactNode;
 	[key: string]: unknown;

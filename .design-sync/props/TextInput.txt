@@ -1,6 +1,20 @@
+	/** The control's id, and what the Field's `htmlFor` points at. Generated when left out,
+	 *  but then no label or error can address the field. */
 	id?: string;
 	value?: string;
-	onChange?: (...args: any[]) => void;
+	/** Gets the new text, not the event. */
+	onChange?: (value: string) => void;
+	/** Draws the red edge on the surrounding FieldShell and sets aria-invalid. */
 	invalid?: boolean;
+	/** The Field's `errorId`. Only read while `invalid` is set. */
 	describedBy?: string;
+	/** Always a text input. Never `number`: Danish decimals use a comma, which type=number
+	 *  throws away. Use `inputMode="decimal"` or `"numeric"` for the keyboard instead. */
+	type?: "text" | "email" | "password" | "search" | "url" | "tel";
+	inputMode?: "text" | "decimal" | "numeric" | "email" | "url" | "tel" | "search";
+	placeholder?: string;
+	autoFocus?: boolean;
+	autoComplete?: string;
+	onKeyDown?: (event: React.KeyboardEvent) => void;
+	onBlur?: (event: React.FocusEvent) => void;
 	[key: string]: unknown;

@@ -1,6 +1,14 @@
-	options?: unknown[];
+	/** The segments, left to right, and their labels. Strings only — read them in order
+	 *  before shipping: the sequence is a claim about time or size. */
+	options?: string[];
+	/** The selected option. Must be one of `options`, or nothing is selected. */
 	value?: string;
-	onChange?: (...args: any[]) => void;
+	/** Gets the chosen option string. */
+	onChange?: (option: string) => void;
+	/** The accessible name of the whole control, e.g. "Status". */
 	label?: string;
+	/** Smaller padding and type. Default `true`. Inside a Field the control is full width
+	 *  and 48px tall whatever this says. */
 	compact?: boolean;
+	/** Announce as a tab list. Default `true`. */
 	tablist?: boolean;

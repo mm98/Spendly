@@ -1,10 +1,22 @@
+	/** The label above the control. */
 	label?: string;
+	/** Appends a muted "(optional)" to the label. Every field is required unless this says
+	 *  otherwise; there is no "required" marker. */
 	optional?: boolean;
+	/** The rejection message, drawn under the control in red. Set it only after a submit. */
 	error?: string;
+	/** The id given to the error span. The control's `describedBy` must be the same string,
+	 *  by convention `<control id> + "-error"`. */
 	errorId?: string;
+	/** Muted help text under the control (and under the error, when both are shown). */
 	help?: string;
-	group?: unknown;
-	htmlFor?: unknown;
+	/** The field wraps a group of controls (a segmented control, a colour picker) rather than
+	 *  one control, so it renders a <div> instead of a <label>. */
+	group?: boolean;
+	/** The id of the control this label points at. Required whenever anything clickable sits
+	 *  before the control inside the field, such as chips. Ignored when `group` is set. */
+	htmlFor?: string;
+	/** The control, normally a FieldShell, a Combobox, a DateInput, a TextArea or a Segmented. */
 	children?: React.ReactNode;
 	className?: string;
 	[key: string]: unknown;
