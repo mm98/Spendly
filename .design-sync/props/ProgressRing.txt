@@ -1,2 +1,4 @@
-	done?: number;
-	total?: number;
+	/** Steps finished. A count, not a percentage - the ring does the division. */
+	done: number;
+	/** Steps in total. 0 draws an empty ring rather than dividing by zero. */
+	total: number;

@@ -1,2 +1,3 @@
+	/** The ring. One child - whatever names its segments goes under the box, not inside it. */
 	children?: React.ReactNode;
 	className?: string;

@@ -1,5 +1,11 @@
-	width?: number;
-	height?: number;
+	/** CSS width: a number of pixels, or a percentage string like `"55%"`. */
+	width?: number | string;
+	/** CSS height, normally a number of pixels. */
+	height?: number | string;
+	/** Draws a circle instead of a bar - the mark at the head of a waiting row. */
 	round?: boolean;
+	/** Extra class words: `skeleton-line`, `skeleton-panel`, `skeleton-row-amount`,
+	 *  `skeleton-kpi-value`. The shimmer itself is always on. */
 	className?: string;
-	style?: unknown;
+	/** Merged after `width` and `height`, so it can add margins but must not fight them. */
+	style?: React.CSSProperties;

@@ -1,1 +1,3 @@
+	/* Takes no props at all. The card and body around it decide where it sits; the row
+	   itself is one fixed shape. */
 	[key: string]: never;

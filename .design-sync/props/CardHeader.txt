@@ -1,5 +1,7 @@
-	/** The words in the band, drawn as the card's uppercase label. */
-	title?: string;
+	/** Usually the heading text. It is rendered as-is, so a node works too -- SkeletonCard
+	 *  passes a shimmer block. A node with only a percentage width measures 0 wide here,
+	 *  because the label span is a flex item sized to its own content. */
+	title?: React.ReactNode;
 	/** An in-app route. The whole band becomes a link and grows a right chevron. */
 	to?: string;
 	/** Overrides the accessible name. With `to`, it defaults to "<title>, open <to>"; give a

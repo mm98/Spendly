@@ -1,4 +1,11 @@
+	/** The chosen icon's name. Must be one of the names on screen or nothing is filled. */
 	value?: string;
-	onChange?: (...args: any[]) => void;
+	/** Gets the name and the path together, because the record stores both: the name is what a
+	 *  search matches later, the path is what every row that draws the category needs. */
+	onChange?: (name: string, path: string) => void;
+	/** The accessible name of the grid. Defaults to "Icon". */
 	label?: string;
-	usedIcons?: unknown[];
+	/** The icons this account's categories already carry, one `{name, path}` each and
+	 *  deduplicated. This is what the grid shows before anything is typed, so the opening view
+	 *  costs no fetch. An empty array draws the "no category has an icon yet" line instead. */
+	usedIcons?: Array<{ name: string; path?: string | null }>;

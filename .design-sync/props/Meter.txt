@@ -1,5 +1,14 @@
-	fill?: number;
+	/** The green fill, as a percentage of the track (0-100). The caller does the division, so
+	 *  guard the 0/0 case: an unknown projection is an honest 0, never a missing fill. */
+	fill: number;
+	/** A thin line across the track at this percentage (0-100), where the window before this
+	 *  one ended. Omitted, no line is drawn - which is what the oldest window on record gets.
+	 *  Clamp it to 100 before passing it, or a previous window that outspent this one's whole
+	 *  projection puts the marker past the end of the track. */
 	marker?: number;
+	/** The meter is one `role="img"`. State both figures the fill is a ratio of, and what the
+	 *  marker stands for. */
 	ariaLabel?: string;
+	/** `meter-under-caption` where the meter follows a caption line. */
 	className?: string;
-	style?: unknown;
+	style?: React.CSSProperties;
