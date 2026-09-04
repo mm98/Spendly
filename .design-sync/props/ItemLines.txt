@@ -1,0 +1,9 @@
+	items?: unknown[];
+	onItemsChange?: (...args: any[]) => void;
+	onAnnounce?: (...args: any[]) => void;
+	error?: string;
+	photoOf?: (...args: any[]) => React.ReactNode;
+	onPhotoPick?: (...args: any[]) => void;
+	onPhotoClear?: (...args: any[]) => void;
+	label?: string;
+	heading?: boolean;

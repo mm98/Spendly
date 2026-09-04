@@ -1,0 +1,5 @@
+	colour?: string;
+	title?: string;
+	meta?: string;
+	amount?: React.ReactNode;
+	to?: string;

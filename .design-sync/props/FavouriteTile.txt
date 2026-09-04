@@ -1,0 +1,7 @@
+	mark?: React.ReactNode;
+	name?: string;
+	to?: string;
+	linkLabel?: string;
+	meta?: string;
+	amount?: React.ReactNode;
+	saved?: React.ReactNode;

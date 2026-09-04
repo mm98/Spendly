@@ -1,0 +1,9 @@
+	title?: string;
+	lead?: string;
+	label?: string;
+	steps?: unknown[];
+	notice?: React.ReactNode;
+	rail?: React.ReactNode;
+	cancel?: React.ReactNode;
+	submit?: React.ReactNode;
+	children?: React.ReactNode;

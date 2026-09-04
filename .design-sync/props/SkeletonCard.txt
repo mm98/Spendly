@@ -1,0 +1,6 @@
+	title?: boolean;
+	bodyHeight?: number;
+	lines?: number;
+	bodyVariant?: unknown;
+	className?: string;
+	children?: React.ReactNode;

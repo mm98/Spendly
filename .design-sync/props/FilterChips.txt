@@ -1,0 +1,4 @@
+	chips?: unknown[];
+	onRemove?: (...args: any[]) => void;
+	onClearAll?: (...args: any[]) => void;
+	focusRef?: unknown;

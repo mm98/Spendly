@@ -1,0 +1,4 @@
+	state?: unknown;
+	children?: React.ReactNode;
+	label?: string;
+	skeleton?: unknown;

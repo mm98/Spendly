@@ -1,0 +1,2 @@
+	split?: boolean;
+	children?: React.ReactNode;

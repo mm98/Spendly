@@ -1,0 +1,5 @@
+	src?: string;
+	icon?: string;
+	alt?: string;
+	className?: string;
+	imgClassName?: unknown;

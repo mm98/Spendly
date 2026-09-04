@@ -1,0 +1,3 @@
+	all?: unknown[];
+	initial?: unknown;
+	render?: (...args: any[]) => React.ReactNode;

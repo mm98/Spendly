@@ -1,0 +1,8 @@
+	id?: string;
+	value?: string;
+	onChange?: (...args: any[]) => void;
+	invalid?: boolean;
+	describedBy?: string;
+	trail?: React.ReactNode;
+	label?: string;
+	[key: string]: unknown;

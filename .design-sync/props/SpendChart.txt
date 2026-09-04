@@ -1,0 +1,10 @@
+	data?: unknown[];
+	days?: number;
+	from?: unknown;
+	marks?: unknown[];
+	series?: unknown[];
+	todayIndex?: number;
+	yFormat?: string;
+	height?: number;
+	label?: string;
+	className?: string;

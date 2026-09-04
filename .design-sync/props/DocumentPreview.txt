@@ -1,0 +1,5 @@
+	kind?: string;
+	src?: string;
+	className?: string;
+	style?: unknown;
+	[key: string]: unknown;

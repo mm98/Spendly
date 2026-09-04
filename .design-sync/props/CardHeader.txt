@@ -1,0 +1,8 @@
+	title?: string;
+	to?: string;
+	label?: string;
+	onToggle?: (...args: any[]) => void;
+	open?: boolean;
+	controls?: React.ReactNode;
+	children?: React.ReactNode;
+	className?: string;

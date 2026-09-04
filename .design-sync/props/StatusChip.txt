@@ -1,0 +1,4 @@
+	children?: React.ReactNode;
+	tone?: string;
+	className?: string;
+	[key: string]: unknown;

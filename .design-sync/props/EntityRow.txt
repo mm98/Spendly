@@ -1,0 +1,8 @@
+	mark?: React.ReactNode;
+	name?: string;
+	meta?: string;
+	amount?: React.ReactNode;
+	sub?: string;
+	editTo?: string;
+	action?: string;
+	open?: boolean;

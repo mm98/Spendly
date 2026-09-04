@@ -1,0 +1,9 @@
+	avatar?: React.ReactNode;
+	glyph?: string;
+	name?: string;
+	meta?: string;
+	amount?: React.ReactNode;
+	sub?: string;
+	to?: string;
+	children?: React.ReactNode;
+	[key: string]: unknown;

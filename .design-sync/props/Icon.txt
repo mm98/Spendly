@@ -1,0 +1,5 @@
+	name?: string;
+	path?: unknown;
+	className?: string;
+	title?: string;
+	[key: string]: unknown;

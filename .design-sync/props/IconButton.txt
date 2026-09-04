@@ -1,0 +1,7 @@
+	variant?: string;
+	icon?: string;
+	label?: string;
+	to?: string;
+	href?: string;
+	className?: string;
+	[key: string]: unknown;

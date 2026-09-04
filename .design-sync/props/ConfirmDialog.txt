@@ -1,0 +1,6 @@
+	title?: string;
+	detail?: string;
+	confirmLabel?: string;
+	cancelLabel?: string;
+	onConfirm?: (...args: any[]) => void;
+	onCancel?: (...args: any[]) => void;

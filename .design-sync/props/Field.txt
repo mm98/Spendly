@@ -1,0 +1,10 @@
+	label?: string;
+	optional?: boolean;
+	error?: string;
+	errorId?: string;
+	help?: string;
+	group?: unknown;
+	htmlFor?: unknown;
+	children?: React.ReactNode;
+	className?: string;
+	[key: string]: unknown;

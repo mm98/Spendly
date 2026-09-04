@@ -1,0 +1,8 @@
+	onFiles?: (...args: any[]) => void;
+	multiple?: boolean;
+	kind?: string;
+	accept?: string;
+	label?: string;
+	hint?: boolean;
+	action?: string;
+	icon?: string;

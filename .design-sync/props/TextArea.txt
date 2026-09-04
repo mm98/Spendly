@@ -1,0 +1,4 @@
+	id?: string;
+	value?: string;
+	onChange?: (...args: any[]) => void;
+	[key: string]: unknown;

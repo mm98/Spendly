@@ -1,0 +1,3 @@
+	src?: string;
+	alt?: string;
+	onClose?: (...args: any[]) => void;

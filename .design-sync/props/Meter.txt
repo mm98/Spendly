@@ -1,0 +1,5 @@
+	fill?: number;
+	marker?: number;
+	ariaLabel?: string;
+	className?: string;
+	style?: unknown;

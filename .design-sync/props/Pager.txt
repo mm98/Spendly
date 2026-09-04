@@ -1,0 +1,6 @@
+	from?: unknown;
+	to?: string;
+	matched?: number;
+	page?: number;
+	pages?: number;
+	onPage?: (...args: any[]) => void;

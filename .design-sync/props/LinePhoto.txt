@@ -1,0 +1,7 @@
+	photo?: unknown;
+	heading?: boolean;
+	name?: string;
+	label?: string;
+	hint?: boolean;
+	onPick?: (...args: any[]) => void;
+	onClear?: (...args: any[]) => void;

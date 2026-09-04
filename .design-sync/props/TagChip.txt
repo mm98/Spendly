@@ -1,0 +1,3 @@
+	tone?: string;
+	icon?: string;
+	children?: React.ReactNode;

@@ -1,0 +1,4 @@
+	segments?: unknown[];
+	value?: string;
+	label?: string;
+	ariaLabel?: string;

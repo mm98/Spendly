@@ -1,0 +1,4 @@
+	value?: string;
+	onChange?: (...args: any[]) => void;
+	colours?: unknown[];
+	label?: string;

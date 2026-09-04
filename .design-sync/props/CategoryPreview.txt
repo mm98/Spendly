@@ -1,0 +1,4 @@
+	icon?: string;
+	iconPath?: string;
+	colour?: string;
+	name?: string;

@@ -1,0 +1,2 @@
+	variant?: string;
+	children?: React.ReactNode;

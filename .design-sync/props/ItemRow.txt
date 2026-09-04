@@ -1,0 +1,14 @@
+	icon?: string;
+	iconTone?: unknown;
+	thumb?: React.ReactNode;
+	thumbSrc?: string;
+	onThumbClick?: (...args: any[]) => void;
+	thumbHref?: string;
+	thumbLabel?: string;
+	handle?: React.ReactNode;
+	title?: string;
+	meta?: string;
+	amount?: React.ReactNode;
+	to?: string;
+	children?: React.ReactNode;
+	[key: string]: unknown;

@@ -1,0 +1,5 @@
+	variant?: string;
+	children?: React.ReactNode;
+	className?: string;
+	as?: string;
+	[key: string]: unknown;

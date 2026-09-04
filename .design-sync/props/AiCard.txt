@@ -1,0 +1,5 @@
+	header?: React.ReactNode;
+	headline?: string;
+	body?: React.ReactNode;
+	children?: React.ReactNode;
+	[key: string]: unknown;

@@ -1,0 +1,2 @@
+	children?: React.ReactNode;
+	className?: string;

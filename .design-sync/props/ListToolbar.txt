@@ -1,0 +1,9 @@
+	query?: string;
+	onQuery?: (...args: any[]) => void;
+	placeholder?: string;
+	label?: string;
+	searchRef?: unknown;
+	sortLabel?: string;
+	sorts?: unknown[];
+	sortValue?: string;
+	onSort?: (...args: any[]) => void;

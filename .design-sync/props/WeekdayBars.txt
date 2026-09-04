@@ -1,0 +1,4 @@
+	days?: number;
+	className?: string;
+	style?: unknown;
+	ariaLabel?: string;

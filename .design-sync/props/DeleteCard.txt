@@ -1,0 +1,3 @@
+	what?: string;
+	children?: React.ReactNode;
+	del?: unknown;

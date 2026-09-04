@@ -1,0 +1,6 @@
+	options?: unknown[];
+	value?: string;
+	onChange?: (...args: any[]) => void;
+	label?: string;
+	compact?: boolean;
+	tablist?: boolean;

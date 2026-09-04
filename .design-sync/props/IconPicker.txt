@@ -1,0 +1,4 @@
+	value?: string;
+	onChange?: (...args: any[]) => void;
+	label?: string;
+	usedIcons?: unknown[];

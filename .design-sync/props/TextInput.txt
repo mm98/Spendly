@@ -1,0 +1,6 @@
+	id?: string;
+	value?: string;
+	onChange?: (...args: any[]) => void;
+	invalid?: boolean;
+	describedBy?: string;
+	[key: string]: unknown;

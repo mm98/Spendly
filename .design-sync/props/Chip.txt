@@ -1,0 +1,6 @@
+	children?: React.ReactNode;
+	onRemove?: (...args: any[]) => void;
+	label?: string;
+	icon?: string;
+	className?: string;
+	[key: string]: unknown;

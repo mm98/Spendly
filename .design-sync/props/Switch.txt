@@ -1,0 +1,5 @@
+	checked?: boolean;
+	onChange?: (...args: any[]) => void;
+	label?: string;
+	controls?: React.ReactNode;
+	id?: string;
