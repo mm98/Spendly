@@ -8,16 +8,18 @@ import { NAMES, PER_SHARD, SHARDS } from './tabler/index.js'
    screenful -- it opens on the app's own 39 glyphs and a search is capped at 240 hits -- so a
    search for "carrot" was paying for 5,128 paths it would not put on screen.
 
-   So the two halves travel separately, because they answer different questions:
+   So the three parts travel separately, because they answer different questions:
 
-   - The **names** are what a search reads, and it has to read all of them to answer. They are
-     69 kB for the set, one dynamic import when the picker first renders.
+   - The **names** are what a search reads first, and it has to read all of them to answer.
+     They are 69 kB for the set, one dynamic import when the picker first renders.
+   - The **search words** are Tabler's own keywords for each icon, and they are what lets
+     "fuel" find gas-station. 62 kB compressed, fetched on the first keystroke, never before.
    - The **paths** are what a tile draws, and only the matched ones are ever drawn. They are cut
      into twelve shards along the same sorted order the names are in, so an icon's shard is its
      position in NAMES divided by PER_SHARD and no index has to be shipped to find it.
 
-   A search therefore pulls the names plus however many shards its hits land in -- for anything
-   lexically clustered, which is most searches, that is one or two of twelve. See
+   A search therefore pulls the names and the words plus the shards its hits land in -- for
+   anything lexically clustered, which is most searches, one or two of twelve. See
    components/Pickers.jsx for the drawing half, and ../README.md for the measurements.
 
    Nothing outside the picker imports any of this. What a record needs in order to be *drawn*
@@ -25,6 +27,12 @@ import { NAMES, PER_SHARD, SHARDS } from './tabler/index.js'
    the rings and the donut never load a shard at all. */
 
 export { NAMES, PER_SHARD }
+
+/* One file and one promise: the words are read whole, by every search or by none. */
+let words = null
+
+/** Tabler's keywords, one space-joined line per NAMES entry, in the same order. */
+export const loadKeywords = () => (words ??= import('./tabler/tags.js').then(m => m.default))
 
 /** Which shard holds the path for `NAMES[index]`. */
 export const shardOf = index => Math.floor(index / PER_SHARD)
