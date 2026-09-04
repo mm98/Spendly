@@ -231,11 +231,8 @@ export async function getCategories(signal) {
     the same record answers a different question. */
 export const overBudget = category => category.budget > 0 && category.monthSpend > category.budget
 
-/** How full one category's budget is this month, as a percentage. One category against its own
-    budget is the only ratio a budget supports: a budget is a ceiling on that category, not a
-    share of some planned total, so budgets are never added together and the month is never
-    divided by the sum of them. Statistics computes the same ratio server-side over its own
-    window (api/src/lib/stats.js, budgetRowsOver) -- one formula, two windows. */
+/** How full one category's budget is this month. A budget is a ceiling on that category, so
+    budgets are never summed and no period is divided by the sum of them. */
 export const budgetShare = category => (category.budget > 0
 	? (category.monthSpend / category.budget) * 100 : 0)
 
@@ -248,13 +245,9 @@ export const withMonthSpend = (categories, split) => {
 	return categories.map(c => ({ ...c, monthSpend: byId.get(c.id)?.amount ?? 0 }))
 }
 
-/** The whole category list, joined, and the month it is joined against. A wrapper with its own
-    cache entry because it is a join of two requests, not a reshape of one -- both category tabs
-    read it, so they share the entry.
-
-    The month travels with the list because the cards drawn from it name one: a row stating this
-    month's spend has to open this month's orders, and the row count is the account's
-    entries-per-card setting, the same cut every other list card takes. */
+/** The whole category list, joined. A wrapper with its own cache entry because it is a join of
+    two requests, not a reshape of one -- both category tabs read it, so they share the entry.
+    The month travels with it: a row stating this month's spend opens this month's orders. */
 export async function getCategoriesThisMonth(signal) {
 	const [categories, { window }] = await Promise.all([
 		getCategories(signal),

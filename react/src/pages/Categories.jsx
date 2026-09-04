@@ -76,11 +76,8 @@ export default function Categories() {
 				const saved = categories.reduce((sum, c) => sum + c.saved, 0) + none.saved
 				const budgeted = categories.filter(c => c.budget > 0)
 				const over = budgeted.filter(overBudget)
-				/* Fullest budget first, the same three keys in the same order Statistics' budget
-				   rows arrive in (api/src/lib/stats.js, budgetRowsOver), so the two cards rank
-				   the same categories the same way -- including the untouched ones, which are all
-				   0% of their own budget and would otherwise land in whatever order each page's
-				   source happened to hold them. */
+				/* Fullest budget first, on the three keys Statistics sorts its own copy by
+				   (api/src/lib/stats.js, budgetRowsOver), so the two cards cannot disagree. */
 				const ranked = [...budgeted].sort((a, b) =>
 					budgetShare(b) - budgetShare(a) || b.monthSpend - a.monthSpend
 					|| a.name.localeCompare(b.name))
@@ -213,10 +210,8 @@ export default function Categories() {
 						    one card in a two-column grid and nothing at all beside it.
 						    README: Grids and Breakpoints. */}
 						<Card aria-label="Budget">
-							{/* The month is in the header, not in every row: which stretch a row's
-							    percentage is read under is the same for all of them, and said once it
-							    cannot drift between them. The same header Statistics' budget card
-							    carries, for the same reason. README: Data Rows. */}
+							{/* The month in the header, not in every row: one qualifier for rows that
+							    all share it, so it cannot drift between them. README: Data Rows. */}
 							<CardHeader title={`Against budget${sep}${month.label}`}
 								to={categories.length ? '/categories/all' : undefined}
 								label="Against budget, open all categories" />
@@ -224,20 +219,12 @@ export default function Categories() {
 							<CardBody>
 								{budgeted.length ? (
 									<>
-										{/* One row per budget, the fullest first, so a category that has passed
-										    its budget is the first thing read. A budget belongs to the category
-										    it is set on: adding every budget up and dividing the month by the
-										    sum invents an allowance nobody set, reads low in any month whose
-										    quiet categories were never going to be bought from, and hides a
-										    category far past its own budget inside a total that looks calm.
-										    README: Categories. */}
+										{/* One row per budget, fullest first: a budget is a ceiling on the
+										    category it is set on, so nothing here sums them. README: Categories. */}
 										<div className="category-rows">
 											{ranked.slice(0, cardRows).map(c => (
-												/* This month's spend beside this month's budget, and the row opens
-												   this month's orders in that category -- the figure clicked and
-												   the list it lands on are the same stretch of time. The meta is
-												   the shape Statistics' budget rows use, so the two cards can be
-												   read against each other. */
+												/* The month's spend, the month's orders behind the row: the figure
+												   clicked and the list it opens are one stretch of time. */
 												<CategoryRow key={c.id} category={{ ...c, spend: c.monthSpend }}
 													meta={`${percent(budgetShare(c), 0)} of a ${currency(c.budget, 0)} budget`}
 													to={ordersIn({ category: c.id, from: month.from, to: month.to })} />

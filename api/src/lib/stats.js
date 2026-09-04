@@ -357,11 +357,8 @@ function budgetRowsOver(userId, from, to) {
 		perMonth: months ? r.spend / months : 0,
 		used: r.budget && months ? (r.spend / (r.budget * months)) * 100 : 0
 	}))
-	/* Name last, so budgets used the same amount land in one order rather than the order the
-	   table happened to return them in -- Categories ranks its own copy of these rows from the
-	   same three keys, and a card that disagreed with it would be a second answer to one
-	   question. Untouched budgets are all 0% used and 0 spent, so without it they are exactly
-	   the rows that would differ. */
+	/* Name last: Categories ranks its own copy from the same three keys, and untouched budgets
+	   -- 0% used, 0 spent -- are the rows that would otherwise differ between the two. */
 	rows.sort((a, b) => b.used - a.used || b.spend - a.spend || a.name.localeCompare(b.name))
 	return { months, rows }
 }
@@ -371,20 +368,12 @@ function budgetRowsOver(userId, from, to) {
     idea of what a budget covers over this window. */
 const budgetsById = ({ rows }) => new Map(rows.map(r => [r.id, r]))
 
-/** What the budget card reads: the rows, how many there are, and how many are over.
-
-    No total allowance and no percentage of one. A budget is a ceiling on a single category, not
-    that category's share of some planned total, so the sum of every budget is not a figure the
-    account ever set -- a category budgeted for the months it is bought in counts in that sum in
-    every other month too, and a window measured against it reads low while one category sits
-    far over its own. The ratio lives on the row, against the budget it belongs to. */
+/** The rows, how many there are, and how many are over. No total allowance and no percentage of
+    one: a budget is a ceiling on one category, so the ratio belongs on the row. */
 function budgetSummary({ months, rows }, rowLimit) {
 	return {
-		/* Exact, not rounded for the caption that prints it: every figure on the card is derived
-		   from this number, so a rounded copy travelling beside them is a second, slightly
-		   different month count for anyone re-deriving one from the other -- 0.23 of a month
-		   against the 0.2258 the allowance was actually computed from. The card rounds when it
-		   prints. */
+		/* Exact, not rounded for the caption that prints it: a rounded copy travelling beside the
+		   rows is a second, slightly different month count. The card rounds when it prints. */
 		months,
 		total: rows.length,
 		over: rows.filter(r => r.spend > r.allowed).length,

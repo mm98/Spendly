@@ -156,9 +156,8 @@ export default function Orders() {
 									<div className="category-rows">
 										{data.monthCategories.map(c =>
 											<CategoryRow key={c.id} category={c}
-												/* The month this ring is of. Its centre reads "Spent this month",
-												   so a row opening every order in that category ever is a list
-												   that disagrees with the figure clicked to reach it. */
+												/* The month this ring is of: its centre reads "Spent this month",
+												   so the row cannot open the category's whole history. */
 												to={ordersIn({ category: c.id,
 													from: data.period.from, to: data.period.to })} />)}
 									</div>
