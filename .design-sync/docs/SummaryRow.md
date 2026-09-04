@@ -1,9 +1,8 @@
 ---
 category: Rows
 ---
-One line of a summary panel: a label on the left, a value on the right in the tabular face
-so figures line up down the card. It is the arithmetic under an item list, and the fact list
-in a record's details rail.
+One line of a summary panel: a label on the left, its answer on the right. It is the arithmetic
+under an item list, and the fact list in a record's details rail.
 
 ## Composing it
 
@@ -25,9 +24,18 @@ reference — one row each.
 
 ## What to pass
 
-`value` is already-formatted text. Money keeps the øre where the figure is a total someone
-could check against a receipt (`1.284,50 kr.`) and drops to whole units where it is a
-summary (`18.420 kr.`). A discount line is written with its own minus: `-120,00 kr.`.
+`value` is whatever answers the label, already formatted — a figure, a word, or a node. Money
+keeps the øre where the figure is a total someone could check against a receipt
+(`1.284,50 kr.`) and drops to whole units where it is a summary (`18.420 kr.`). A discount line
+is written with its own minus: `-120,00 kr.`. A row whose answer is a link passes the link:
+
+```jsx
+<SummaryRow label="Vendor" value={<Link className="summary-row-link" to="/orders/all">Bilka</Link>} />
+<SummaryRow label="Saved vs retail" variant="summary-row-value-saving" value="110,28 kr. (19,3%)" />
+```
+
+`variant` takes class words that tone the answer, the way `Card` takes them. There is one today,
+`summary-row-value-saving`, which makes the answer green.
 
 Draw a row only where there is a value for it. A row reading "Discount" over nothing claims
 a discount that was never given.
