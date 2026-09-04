@@ -46,6 +46,10 @@ Two caveats:
 
 ### Colour
 
+**Contrast in this app is measured with APCA, the model WCAG 3 is drafted on. The older WCAG 2 ratio is not used anywhere and must not be reintroduced.** It was built for grey text on a white page, and it misjudges exactly the case this app has most of: a glyph on a saturated mid-tone tile. It scored a black icon higher than a white one on the violet category colour — 4.56 against 4.23 — when the white one is plainly easier to read, and APCA says so too, 74.2 against 34.9. Where a figure is quoted for contrast, it is an APCA `Lc`, roughly 45 to carry a bold glyph and 60 for body text.
+
+**The ink on a coloured tile is chosen, never assumed.** A category icon and a vendor's initials sit on a colour the account picked, so black or white is decided per fill by whichever scores higher. Only genuinely light fills — the yellow and the orange — come out black; everything else is white. Nothing warns the reader about a poor choice, because there is nothing to warn about: swept every fourth value of all three channels, 262,144 colours, the worst any of them manages with its better ink is 54.3, above the floor a glyph needs. That is what makes an open colour picker safe to offer.
+
 Neutrals — a warm greige family, not grey. This is the surface identity of the app.
 
 | Value | Use |

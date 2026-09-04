@@ -3484,3 +3484,36 @@ a second reading of the same fact: this entry is why the class looks inert, so n
 as dead code.
 
 Not checked: Firefox and WebKit.
+
+## The wrong contrast model put a black glyph on a violet tile
+
+A category icon is drawn on a colour the account picked, so the glyph's ink is chosen per fill.
+The chooser used the WCAG 2 ratio, and on the violet category colour it picked black:
+
+| | black | white | picked |
+|---|---|---|---|
+| WCAG 2 ratio | **4.56** | 4.23 | black, by 0.32 |
+| APCA `Lc` | 34.9 | **74.2** | white, by more than double |
+
+Black is not merely the weaker choice there: at 34.9 it is under the 45 a bold glyph needs.
+WCAG 2's formula was built for grey text on a white page and overrates dark ink on saturated
+mid-tones, which is most of this palette. The same failure had already produced an
+inconsistency nobody had connected: two near-identical violets, `#8B5CF6` in the category
+palette and `#8453F5` in the vendor one, came out with opposite inks — black on one, white on
+the other — because the ratio put them a tenth apart on either side of the line.
+
+The chooser is APCA now. Six of the ten category colours flip to white; the two genuinely light
+fills, the yellow and the orange, keep black, which is right — white on the yellow scores 33.4.
+**No vendor colour flips**, so avatars are untouched.
+
+The picker's contrast readout went with it. It reported a WCAG ratio next to the colour, and
+with the ink chosen this way there is nothing left to warn about: swept every fourth value of
+all three channels — **262,144 colours** — and the worst any of them manages with its better ink
+is **54.3 Lc** (`#f48088`), with **0** falling under 45. A warning that can never fire is a line
+of copy that only takes up room.
+
+The three committed screenshots are unaffected: none of them draws a category glyph tile — Home
+and the phone shot show legend dots, the orders shot shows vendor avatars — and no vendor colour
+changes ink. Reasoned from the palettes and the shots rather than re-rendered.
+
+Not checked: Firefox and WebKit.

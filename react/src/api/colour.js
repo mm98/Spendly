@@ -11,9 +11,8 @@
    1.66:1 -- the Electronics tile has always been a white glyph you cannot really see. The
    same rule that protects a chosen colour repairs that one.
 
-   The formula is sRGB relative luminance, which is arithmetic and needs no DOM. Resolving a
-   `var(--token)` does need one, so that part reads the custom property off the document and
-   remembers it. */
+   The measure is APCA, and only APCA. It is arithmetic; only resolving a `var(--token)` needs a
+   DOM, so that part reads the custom property off the document and remembers it. */
 
 const resolved = new Map()
 
@@ -36,30 +35,29 @@ export function resolveColour(value) {
 	return hex
 }
 
-const channel = n => (n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4)
-
-/** WCAG relative luminance. Takes a hex; anything else it cannot read comes back as black. */
-export function luminance(hex) {
-	const value = expand(String(hex).trim())
-	if (!/^#[0-9a-f]{6}$/i.test(value)) return 0
-	const [r, g, b] = [1, 3, 5].map(i => parseInt(value.slice(i, i + 2), 16) / 255)
-	return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
-}
-
-export function contrast(a, b) {
-	const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m)
-	return (x + 0.05) / (y + 0.05)
-}
-
 const INK_DARK = '#0B0F0D'    // --text-strong
 const INK_LIGHT = '#FFFFFF'
 
-/** Whichever of the two inks reads better on this fill. Ties go to white, which is what the
-    stylesheet assumes and what the eight palette colours all resolve to anyway. */
-export function inkOn(fill) {
-	const hex = resolveColour(fill)
-	return contrast(INK_LIGHT, hex) >= contrast(INK_DARK, hex) ? INK_LIGHT : INK_DARK
+/* APCA, because the older ratio overrates dark ink on saturated mid-tones. Sign says which way
+   round the pair is; only the size counts here. README: Colour. */
+const Y = hex => {
+	const [r, g, b] = [1, 3, 5].map(i => (parseInt(hex.slice(i, i + 2), 16) / 255) ** 2.4)
+	const y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b
+	return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
 }
 
-/** What a chosen colour is worth, for a picker that would rather say so than not. */
-export const inkContrast = fill => contrast(inkOn(fill), resolveColour(fill))
+/** APCA lightness contrast, |Lc| 0-106. Roughly: 45 carries a bold glyph, 60 body text. */
+export function lightnessContrast(ink, fill) {
+	const [t, b] = [Y(expand(ink)), Y(resolveColour(fill))]
+	const s = (b > t ? b ** 0.56 - t ** 0.57 : b ** 0.65 - t ** 0.62) * 1.14
+	return Math.abs(s) < 0.1 ? 0 : Math.abs((s > 0 ? s - 0.027 : s + 0.027) * 100)
+}
+
+/** Whichever of the two inks reads better on this fill. Ties go to white, which is what the
+    stylesheet assumes. */
+export function inkOn(fill) {
+	return lightnessContrast(INK_LIGHT, fill) >= lightnessContrast(INK_DARK, fill) ? INK_LIGHT : INK_DARK
+}
+
+/* No `inkContrast` export: swept all three channels in steps of 4 and no colour's better ink
+   falls under 45, so a picker has nothing to warn about. docs/defects.md carries the numbers. */
