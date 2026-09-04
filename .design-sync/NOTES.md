@@ -1,5 +1,16 @@
 # design-sync notes for Spendly
 
+## The project this repo syncs to
+
+**https://claude.ai/design/p/bc7c3554-1da2-4d46-a863-04f4247fabe6** — "Spendly Design System",
+89 components. The same id is `projectId` in `config.json` beside this file, and that is what
+pins a re-sync to this project rather than making a second one.
+
+It is generated **from `react/src`**, so it mirrors the app as built and never leads it. A card
+that looks wrong means the app renders it that way: fix the app, then re-sync. It is not a
+specification — `README.md` at the repo root is the design system, and this project trails it by
+however far the code currently does.
+
 ## Shape and environment
 
 - Spendly is an **app, not a published component library**: no `dist/`, no `.d.ts`, plain
