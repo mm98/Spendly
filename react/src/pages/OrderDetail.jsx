@@ -142,9 +142,7 @@ export default function OrderDetail() {
 						</Card>
 
 						<Card aria-label="Items">
-							<CardHeader title={`Items${sep}${order.itemCount}`}>
-								<span className="field-help tabular-figures">{currency(order.subtotal)}</span>
-							</CardHeader>
+							<CardHeader title={`Items${sep}${order.itemCount}`} />
 							<CardDivider />
 							<CardBody variant="card-body-tight">
 								{order.items.map(item => {
@@ -207,6 +205,7 @@ export default function OrderDetail() {
 								{order.reference ? (
 									<SummaryRow label="Reference" value={order.reference} />
 								) : null}
+								<SummaryRow label="Total" value={currency(order.total)} />
 								<SummaryRow label="Saved vs retail" variant="summary-row-value-saving"
 									value={`${currency(order.saved)} (${percent(order.savedPercent)})`} />
 							</CardBody>
