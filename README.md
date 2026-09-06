@@ -339,6 +339,8 @@ Main column `1fr` (min `560px`), right rail `360px`, `24px` gap, aligned to top.
 
 **Totals card:** label/value rows 13px, then a `1px #dedcd4` divider, then the grand total at 20px/700. The items are one row here — their summed price, with the rows that follow taking the discount off and adding the shipping, so the card reads down to the same total the order stores. The rail never repeats a list the main column already shows.
 
+**The summary states the order's total, and every other figure is printed once.** A long receipt puts the breakdown past every line on it, so the fact list beside the order carries the total as well, next to the saving it produced. Nothing else is printed twice: a card header that repeats the figure its own foot states hands the reader the same number in two places, at two weights, with nothing to say which one answers the question.
+
 #### 1a — Read view
 
 Values render as text, not inputs. Item rows are read-only: thumbnail, name, quantity × unit price, line total. The primary action is Edit; secondary actions Duplicate and Delete sit next to it, inside the page (never in the top bar).

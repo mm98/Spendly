@@ -124,14 +124,9 @@ export default function OrderDetail() {
 										<div className="field-help order-subtitle">
 											{longDate(order.date)}<Sep />{plural(order.itemCount, 'item')}</div>
 									</div>
-									<div className="order-head-side">
-										<div className="row-inline row-inline-nowrap order-head-actions">
-											<IconButton icon="pencil" label="Edit order" to={`/orders/${id}/edit`} />
-											{del.iconButton}
-										</div>
-										{/* The order's own line, drawn where the order names itself: the breakdown
-										    under the items is past every line on a long receipt. */}
-										<div className="order-head-total tabular-figures">{currency(order.total)}</div>
+									<div className="row-inline row-inline-nowrap order-head-actions">
+										<IconButton icon="pencil" label="Edit order" to={`/orders/${id}/edit`} />
+										{del.iconButton}
 									</div>
 								</div>
 
@@ -147,9 +142,7 @@ export default function OrderDetail() {
 						</Card>
 
 						<Card aria-label="Items">
-							<CardHeader title={`Items${sep}${order.itemCount}`}>
-								<span className="field-help tabular-figures">{currency(order.subtotal)}</span>
-							</CardHeader>
+							<CardHeader title={`Items${sep}${order.itemCount}`} />
 							<CardDivider />
 							<CardBody variant="card-body-tight">
 								{order.items.map(item => {
@@ -212,6 +205,7 @@ export default function OrderDetail() {
 								{order.reference ? (
 									<SummaryRow label="Reference" value={order.reference} />
 								) : null}
+								<SummaryRow label="Total" value={currency(order.total)} />
 								<SummaryRow label="Saved vs retail" variant="summary-row-value-saving"
 									value={`${currency(order.saved)} (${percent(order.savedPercent)})`} />
 							</CardBody>

@@ -1298,7 +1298,7 @@ label.field-shell { cursor:pointer; }
 /* The settled total is the default colour; green marks the estimate you are still
    composing. .summary-total-value-estimate overrides it back to --text-positive for
    that one state. */
-.summary-total .summary-total-value, .order-head-total { color:var(--text-strong); font-weight:700; font-size:19px; }
+.summary-total .summary-total-value { color:var(--text-strong); font-weight:700; font-size:19px; }
 .summary-total .summary-total-value-estimate { color:var(--text-positive); }
 /* Flex/grid children default to min-width:auto, so a long placeholder or a
    nowrap chip forces the whole panel wider than its card and the overflow gets
@@ -1949,7 +1949,6 @@ label.field-shell { cursor:pointer; }
 .order-title { font-size:22px; font-weight:600; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .order-subtitle { font-size:12.5px; }
 .order-head-actions { gap:8px; }
-.order-head-side { display:grid; justify-items:end; gap:var(--gap-block); }
 .order-chips { gap:6px; margin-top:var(--gap-block); flex-wrap:wrap; }
 
 /* Statistics. */
