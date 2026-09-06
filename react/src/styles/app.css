@@ -216,6 +216,9 @@
 /* Any class that sets a display value outranks the UA's [hidden] rule, so hidden
    elements would keep rendering. Make the attribute win everywhere. */
 [hidden] { display:none !important; }
+/* A link is never a drag source: the native link drag holds the mouse until it ends, and the page
+   gets no mouseup at all. Not inherited, so an image inside a link can still be dragged out. */
+a { -webkit-user-drag:none; }
 html, body { height:100%; }
 body {
 	margin:0; background:var(--bg-app); color:var(--text);
@@ -286,7 +289,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .app-shell { display:grid; grid-template-columns:236px minmax(0,1fr); min-height:100vh; }
 
 /* sidebar */
-.sidebar { background:var(--bg-sidebar); padding:28px 18px; display:flex; flex-direction:column; gap:36px; position:sticky; top:0; height:100vh; }
+/* Labels for controls, not content: nothing in the rail is worth selecting, and a long press on
+   the phone's tab bar would otherwise raise the platform's selection callout over it. */
+.sidebar { background:var(--bg-sidebar); padding:28px 18px; display:flex; flex-direction:column; gap:36px; position:sticky; top:0; height:100vh; user-select:none; }
 .sidebar .sidebar-nav a.is-on { box-shadow:0 1px 2px rgb(var(--shadow-ink) / .06); }
 .brand { display:flex; align-items:center; gap:10px; padding:0 10px; }
 /* The gradient darkens and never lightens: white on --green is 2.93:1, under the 3:1 a

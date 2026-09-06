@@ -3548,3 +3548,45 @@ and the phone shot show legend dots, the orders shot shows vendor avatars — an
 changes ink. Reasoned from the palettes and the shots rather than re-rendered.
 
 Not checked: Firefox and WebKit.
+
+---
+
+## Chrome — a press-drag on the rail picked the rail up instead of selecting it
+
+Pressing a word in the rail and moving the mouse, the way text is selected anywhere else, selected
+nothing. Every item in the rail is a link, and a browser makes a link something to pick up: the press
+became a drag of the link itself. Driven at 1440x900 and recorded from the document, a press on the
+Orders label and 20 moves across it produced
+
+```
+mousedown  dragstart  drag x17  dragover x18  dragend
+```
+
+**no `mouseup` at all**, and no `click`. That is the whole defect: while a drag runs it holds the
+mouse, so nothing the pointer does afterwards reaches the page — and nothing is logged, because none
+of it is the page's doing. The keyboard is unaffected, which is why the window reads as stopped
+rather than crashed.
+
+Six rail destinations, the brand, and every row, tile and button drawn as a link carried it: `20`
+places in the source render an anchor, and every one of them reported `draggable: true`, the
+browser's default. One rule covers all of them — the rail's own is not repeated per item, and a link added
+later is covered without anyone remembering to.
+
+Measured after, same harness, same viewport, on an account filled from **Demo data**: a press-drag
+over the rail label, the brand, the line at the foot, an order row and the top bar's SCAN button now
+reports `mousedown mouseup` and no `dragstart` — `0` of `5` start a drag, `5` of `5` deliver the
+release. A click straight after a press-drag on the rail navigates (Orders → Vendors), so nothing is
+left holding the pointer. Page text is untouched: the heading and a card caption still select by
+drag. `-webkit-user-drag` does not inherit — an image inside a link still reports `auto` and still
+fires `dragstart` from itself, so a receipt can be dragged out of the page as before. The rail's
+scores tooltip still opens on hover.
+
+The rail also stops being selectable text, which is a second thing: with the drag gone, a drag across
+it would otherwise leave the six destinations highlighted, and on a phone a long press on the tab bar
+raises the platform's selection callout over it. Confirmed `user-select: none` on the tab bar under
+`devices['iPhone 15']`.
+
+Verified in Blink (Chromium 1440x900 and the iPhone 15 descriptor). Firefox and WebKit are not
+installed here and were not run; Firefox does not implement `-webkit-user-drag`, so a link there is
+still a drag source. The reported lock was seen in a Chromium browser, where the drag it starts is
+the platform's own modal loop rather than anything the page runs.

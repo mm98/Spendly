@@ -188,6 +188,7 @@ These hold on every screen and are the constraints behind several layout decisio
 5. **Single user, personal receipts.** No item catalogue, no shared editing, no permissions. A conflict means two browser tabs, not two people.
 6. **A component that exists is the only way to draw that thing.** No hand-rolled copy, no raw markup wearing the component's classes, no second implementation that merely looks the same. This is the whole reason a component exists: one place to change, one behaviour to trust. Sharing a component's *look* while keeping a private mechanism is the same failure wearing a disguise — it passes review because it renders correctly, and it drifts the first time either half moves. Before writing markup, check whether the thing already has a component; if it does and it cannot express what you need, widen the component rather than working around it.
 7. **There is one tooltip.** Every hover label in the app is drawn by one component: the chart hovers, the sidebar scores and the icon grid alike. See Tooltips below.
+8. **A control is not something to pick up.** Pressing a link and moving the mouse selects text, or does nothing at all. It never drags the link. Every browser hands a link that gesture by default, and a drag holds the mouse for as long as it lasts: no release reaches the page, and every click after it goes to the drag rather than to what was clicked — which reads as a window that has stopped answering while the keyboard still works. Three things in the app are dragged, and each one says so: a file into a drop zone, an image out of the page, and a line by its handle.
 
 ---
 
@@ -242,6 +243,7 @@ Read this before building any screen. It is the frame everything else sits in, a
   3. *Bottom zone, pinned:* Settings, the theme toggle, and the account block. These sit below a `flex: 1` spacer, so they rest against the bottom of the viewport whatever the nav length. On a short viewport the nav scrolls and the bottom zone stays put — it is never scrolled away, because switching theme and reaching the account must not depend on scroll position.
 - A `1px rgba(255,255,255,0.07)` divider separates the theme toggle from the nav above it. There is no divider between the toggle and the account block; they read as one bottom group.
 - **The collapse state** persists per user. Collapsed, labels become tooltips on hover; the bottom zone keeps the same order, icons only, and the account block becomes the avatar alone.
+- **Nothing in the rail is text to select.** The brand, the destinations and the line at the foot are labels for controls, so a drag across them has nothing to hand back, and a long press on the phone's tab bar raises no selection callout over it.
 - The sidebar keeps `#14261c` in **both themes** (see 12a) — it is the one element that does not participate in theming, which also means it needs no theme work.
 
 ### The top bar
