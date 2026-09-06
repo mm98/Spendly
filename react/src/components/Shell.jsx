@@ -54,7 +54,9 @@ const NAV = [
 function Sidebar({ navKey }) {
 	return (
 		<aside className="sidebar">
-			<Link className="brand" to="/" data-go="/" aria-label="Spendly, go to home">
+			{/* draggable={false} beside the stylesheet's own rule: Gecko reads the attribute and
+			    not -webkit-user-drag, so the rail behaves the same in every engine. */}
+			<Link className="brand" to="/" data-go="/" draggable={false} aria-label="Spendly, go to home">
 				<span className="brand-mark" aria-hidden="true"><Icon name="receipt" className="" /></span>
 				<span className="brand-name">Spendly</span>
 			</Link>
@@ -62,7 +64,7 @@ function Sidebar({ navKey }) {
 				{NAV.map(item => {
 					const on = item.key === navKey
 					return (
-						<Link key={item.key} to={item.to}
+						<Link key={item.key} to={item.to} draggable={false}
 							className={[on && 'is-on', item.wide && 'wide-only'].filter(Boolean).join(' ') || undefined}
 							aria-current={on ? 'page' : undefined}>
 							{/* One word per column in the five-column bar. Both forms are in the markup and

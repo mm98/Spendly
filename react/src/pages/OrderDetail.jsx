@@ -124,9 +124,14 @@ export default function OrderDetail() {
 										<div className="field-help order-subtitle">
 											{longDate(order.date)}<Sep />{plural(order.itemCount, 'item')}</div>
 									</div>
-									<div className="row-inline row-inline-nowrap order-head-actions">
-										<IconButton icon="pencil" label="Edit order" to={`/orders/${id}/edit`} />
-										{del.iconButton}
+									<div className="order-head-side">
+										<div className="row-inline row-inline-nowrap order-head-actions">
+											<IconButton icon="pencil" label="Edit order" to={`/orders/${id}/edit`} />
+											{del.iconButton}
+										</div>
+										{/* The order's own line, drawn where the order names itself: the breakdown
+										    under the items is past every line on a long receipt. */}
+										<div className="order-head-total tabular-figures">{currency(order.total)}</div>
 									</div>
 								</div>
 
