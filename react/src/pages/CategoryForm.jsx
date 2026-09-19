@@ -80,7 +80,7 @@ function CategoryFields({ mode, category, reload }) {
 	}, [all.data, category?.id])
 
 	/* One entry per icon a category already carries, first occurrence wins -- what the picker
-	   suggests before a search is real choices another category made, not the app's own 39. */
+	   suggests before a search is real choices another category made, not the app's own 44. */
 	const usedIcons = useMemo(() => {
 		const seen = new Map()
 		for (const c of all.data ?? []) if (!seen.has(c.icon)) seen.set(c.icon, c.iconPath ?? null)

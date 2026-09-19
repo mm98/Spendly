@@ -1012,11 +1012,14 @@ a.button-link { text-decoration:underline; }
 .entity-row .entity-row-meta { font-size:11.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .entity-row .entity-row-amount { text-align:right; font-weight:600; font-size:13.5px; color:var(--text); }
 /* The name carries the row's link and covers the row with it (components/Rows.jsx). The action
-   sits above that cover, or the stretch swallows the clicks meant for it. */
+   sits above that cover, or the stretch swallows the clicks meant for it. Named for .data-row
+   rather than for one family: the entity row and the order row draw the same shape, and a
+   second copy of these three rules under a second family name is the near-miss that survives
+   right up until one of them is changed. */
 .row-stretch { color:inherit; text-decoration:none; }
-.entity-row-action { position:relative; }
-.entity-row-action .row-stretch::after { content:''; position:absolute; inset:0; border-radius:inherit; }
-.entity-row-action .row-actions { position:relative; }
+.data-row-action { position:relative; }
+.data-row-action .row-stretch::after { content:''; position:absolute; inset:0; border-radius:inherit; }
+.data-row-action .row-actions { position:relative; }
 
 /* The favourite mark on All vendors and All categories -- a small filled circle overlapping
    the tile's corner. It sits at position:absolute, so it costs no layout width: the tile
@@ -1027,6 +1030,9 @@ a.button-link { text-decoration:underline; }
 .entity-mark-fav svg.icon { width:9px; height:9px; fill:var(--text-warn); stroke:none; }
 
 .order-row { display:grid; grid-template-columns:minmax(0,1fr) auto 150px auto; padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); }
+/* One more track, the control's, before the chevron. Restated in the phone block below: two
+   classes outrank the one-class override there whatever the source order. */
+.order-row.data-row-action { grid-template-columns:minmax(0,1fr) auto 150px auto auto; }
 .order-row .order-row-identity { display:flex; align-items:center; gap:var(--gap-row); min-width:0; }
 .order-row .order-row-identity-text { min-width:0; }
 /* The list's outer edge carries no divider, the same way .category-row clears its
@@ -1638,9 +1644,10 @@ label.field-shell { cursor:pointer; }
 	   or a fixed chip, which is the clipping this layout keeps hitting. README: Responsive Layout. */
 	.order-list-grid { grid-template-columns:minmax(0,1fr); }
 	/* The order row's fixed columns (auto + 150px + 26px + gaps) cannot fit a phone
-	   with the status chip in the row too, so the chip drops on phone: identity, total
-	   and chevron stay one line, truncating like the rest of this list. */
+	   with the status chip in the row too, so the chip drops on phone: identity, total,
+	   the copy control and the chevron stay one line, truncating as this list does. */
 	.order-row { grid-template-columns:minmax(0,1fr) auto auto; column-gap:var(--gap-row); }
+	.order-row.data-row-action { grid-template-columns:minmax(0,1fr) auto auto auto; }
 	.order-row > .chip-status { display:none; }
 	.row-inline { flex-wrap:wrap; }
 	.space-between { flex-wrap:wrap; }

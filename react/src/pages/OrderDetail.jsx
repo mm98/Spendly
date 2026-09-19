@@ -32,7 +32,8 @@ import { currency, fullStop, longDate, percent, plural, quantity as qtyText, sep
    read in the summary card and changed on the edit page. A live status editor stood on this
    card once -- a full-width segmented band duplicating the control the edit form already has,
    which is the reading view paying rent for the form's job (README: Order Detail). Edit opens
-   the New order flow with this order in it. Delete asks first, unless Settings says not to. */
+   the form on this order, Copy the same form on an unsaved order prefilled from it. Delete asks
+   first, unless Settings says not to. */
 
 export default function OrderDetail() {
 	const { id } = useParams()
@@ -126,6 +127,10 @@ export default function OrderDetail() {
 									</div>
 									<div className="row-inline row-inline-nowrap order-head-actions">
 										<IconButton icon="pencil" label="Edit order" to={`/orders/${id}/edit`} />
+										{/* Beside edit and delete: it acts on this record too.
+										    README: Copying an Order. */}
+										<IconButton icon="copy" label="Copy this order"
+											to={`/orders/${id}/copy`} />
 										{del.iconButton}
 									</div>
 								</div>

@@ -13,7 +13,7 @@ import { Combobox } from '../components/Combobox.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	createVendor, deleteVendor, failureMessage, getCategories, getVendor, getVendors,
+	createVendor, deleteVendor, failureMessage, getCategories, getOrders, getVendor, getVendors,
 	invalidateOrderData, invalidateVendorData, moveVendorOrders, updateVendor
 } from '../api/client.js'
 import { currency, plural, sep } from '../api/format.js'
@@ -245,6 +245,28 @@ function VendorFields({ mode, vendor, reload }) {
 /** The rail card that mirrors the form: the row as it will be drawn, then its values, then
     what the vendor has cost all told. */
 function VendorSummary({ name, colour, initials, favourite, aliases, defaultCategories, vendor }) {
+	const navigate = useNavigate()
+	const toast = useToast()
+	const [finding, setFinding] = useState(false)
+
+	/* One row of the order list, sorted the way it already sorts. Asked on the click: a reader
+	   who came to rename a vendor is not owed a query about its orders. */
+	const copyLatest = () => {
+		setFinding(true)
+		getOrders({ vendorId: vendor.id, sort: 'date-desc', pageSize: 1 })
+			.then(({ orders }) => {
+				const latest = orders[0]
+				if (!latest) {
+					setFinding(false)
+					toast(`${vendor.name} has no orders to copy.`, 'negative')
+					return
+				}
+				navigate(`/orders/${latest.id}/copy`)
+			})
+			.catch(e => { setFinding(false)
+				toast(failureMessage(e, 'That did not open. Try again.'), 'negative') })
+	}
+
 	return (
 		<Card aria-label="Vendor summary">
 			<CardBody>
@@ -278,6 +300,13 @@ function VendorSummary({ name, colour, initials, favourite, aliases, defaultCate
 				{vendor ? (
 					<Button variant="block" icon="receipt" to={`/orders/all?vendor=${vendor.id}`}>
 						VIEW ORDERS
+					</Button>
+				) : null}
+				{/* A shop visited on a schedule is the same order every time. Hidden with no
+				    orders, since there is no last one to open. README: Copying an Order. */}
+				{vendor?.orders ? (
+					<Button variant="block" icon="copy" onClick={copyLatest} disabled={finding}>
+						{finding ? 'OPENING...' : 'COPY LATEST ORDER'}
 					</Button>
 				) : null}
 			</CardBody>

@@ -58,8 +58,8 @@ const requireAuth = async () => {
    requested, so the shell is never drawn nameless while one is in flight. A page that named
    itself from inside its own module would put those four back where the prototype had them.
 
-   A module with more than one page in it (NewOrder, Scan) is named once per export and still
-   fetched once: they resolve to the same chunk. */
+   A module with more than one page in it (NewOrder, Scan, EditOrder) is named once per export
+   and still fetched once: they resolve to the same chunk. */
 
 /* A deploy gives every chunk a new content hash, and the index.html that names them is
    replaced in the same breath -- but a tab opened before the deploy is still running the old
@@ -97,6 +97,7 @@ const NewOrderLayout = page(() => import('./pages/NewOrder.jsx'), 'NewOrderLayou
 const NewOrderDetails = page(() => import('./pages/NewOrder.jsx'), 'NewOrderDetails')
 const NewOrderItems = page(() => import('./pages/NewOrder.jsx'), 'NewOrderItems')
 const EditOrder = page(() => import('./pages/EditOrder.jsx'))
+const CopyOrder = page(() => import('./pages/EditOrder.jsx'), 'CopyOrder')
 const Wishlist = page(() => import('./pages/Wishlist.jsx'))
 const WishForm = page(() => import('./pages/WishForm.jsx'))
 const Settings = page(() => import('./pages/Settings.jsx'))
@@ -191,7 +192,11 @@ export const routes = [
 					   through a step that touched nothing. EditOrder is its own page: one form,
 					   one save, for details and items together. See EditOrder.jsx. */
 					{ path: 'edit', element: <EditOrder />,
-						handle: { title: 'Edit order', navKey: 'orders', back: { to: '/orders', label: 'orders' } } }
+						handle: { title: 'Edit order', navKey: 'orders', back: { to: '/orders', label: 'orders' } } },
+					/* Under the source order's id because that is what is being copied: the record
+					   this creates has none of its own until it is saved. See EditOrder.jsx. */
+					{ path: 'copy', element: <CopyOrder />,
+						handle: { title: 'Copy order', navKey: 'orders', back: { to: '/orders', label: 'orders' } } }
 				] }
 			] },
 
