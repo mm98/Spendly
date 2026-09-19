@@ -5,7 +5,7 @@ import { NAMES, PER_SHARD, SHARDS } from './tabler/index.js'
    5,129 icons is 800 kB of path data, and it used to arrive as one object: the picker opened,
    the whole set came down, and Rollup reported a 919.61 kB chunk against a 500 kB warning.
    What made that wasteful rather than merely large is that the picker never draws more than a
-   screenful -- it opens on the app's own 39 glyphs and a search is capped at 240 hits -- so a
+   screenful -- it opens on the app's own 44 glyphs and a search is capped at 240 hits -- so a
    search for "carrot" was paying for 5,128 paths it would not put on screen.
 
    So the three parts travel separately, because they answer different questions:

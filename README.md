@@ -183,7 +183,7 @@ These hold on every screen and are the constraints behind several layout decisio
 
 1. **The top shell is locked.** No page actions may be placed in the top bar. Every page's actions live inside the page. This is a hard constraint from the existing product.
 2. **A monthly limit never blocks a save.** Red blocks, amber informs. Exceeding a category limit is a fact about the month, not a validation error.
-3. **Nothing saves by itself.** Scans propose values, they never overwrite silently. A duplicated order opens unsaved and can be abandoned.
+3. **Nothing saves by itself.** Scans propose values, they never overwrite silently. A copied order opens unsaved and can be abandoned.
 4. **Numbers answer the current filter.** Totals and counts in a filtered list describe what is on screen, not the whole account.
 5. **Single user, personal receipts.** No item catalogue, no shared editing, no permissions. A conflict means two browser tabs, not two people.
 6. **A component that exists is the only way to draw that thing.** No hand-rolled copy, no raw markup wearing the component's classes, no second implementation that merely looks the same. This is the whole reason a component exists: one place to change, one behaviour to trust. Sharing a component's *look* while keeping a private mechanism is the same failure wearing a disguise — it passes review because it renders correctly, and it drifts the first time either half moves. Before writing markup, check whether the thing already has a component; if it does and it cannot express what you need, widen the component rather than working around it.
@@ -343,7 +343,7 @@ Main column `1fr` (min `560px`), right rail `360px`, `24px` gap, aligned to top.
 
 #### 1a — Read view
 
-Values render as text, not inputs. Item rows are read-only: thumbnail, name, quantity × unit price, line total. The primary action is Edit; secondary actions Duplicate and Delete sit next to it, inside the page (never in the top bar).
+Values render as text, not inputs. Item rows are read-only: thumbnail, name, quantity × unit price, line total. The primary action is Edit; secondary actions Copy and Delete sit next to it, inside the page (never in the top bar).
 
 Attachments sit **below** the item list as a horizontal strip of tiles: `96×96`, radius `10px`, `1px solid #e6e4dc`. Images show a cropped thumbnail; PDFs show a rendered first-page thumb with a small `PDF` tag bottom-left (11px, white on `rgba(27,26,23,0.6)`). Filename 11px truncated under each tile. Clicking opens a lightbox.
 
@@ -433,11 +433,11 @@ File: `Order create.dc.html` · Code: `pages/NewOrder.jsx`, `pages/Scan.jsx`, `c
 
 The scan **proposes**; nothing is stored until Create order. The uploaded file always ends up attached to the resulting order.
 
-**3b — Copy a previous order.** The picker the create-screen card opens; the copy itself is 8a's duplicate unchanged. A 462px dialog: a line stating what carries over, search across **vendor and item name** (the thing you remember is often "the order with the oak chairs", not the shop), then two groups — **You order these often** (orders whose vendor and line shape recurred, with the repeat count, since that is the case this exists for) and **Recent**. Same grouped-Combobox behaviour as 14a: arrows cross both groups as one flat list, headers never focusable.
+**3b — Copy a previous order.** The picker the create-screen card opens; the copy itself is 8a's, unchanged. A 462px dialog: a line stating what carries over, search across **vendor and item name** (the thing you remember is often "the order with the oak chairs", not the shop), then two groups — **You order these often** (orders whose vendor and line shape recurred, with the repeat count, since that is the case this exists for) and **Recent**. Same grouped-Combobox behaviour as 14a: arrows cross both groups as one flat list, headers never focusable.
 
 Every row must be identifiable without opening it, so each carries vendor, line count, the first item names and the total — the total does most of the work when a shop has twelve orders. Picking opens the edit screen **unsaved** with 8a's notice; no confirm, because nothing exists yet. Amounts are copied, not re-priced: they are what was paid last time and are editable like any field — nothing looks up a current price.
 
-Three entry points, one dialog: the create-screen card (hidden with no orders), the New order split-button menu, and Home's **Duplicate last order** (which skips the dialog, since "last" needs no picking). The order list's per-row Duplicate is deliberately not one of them — there the source is already chosen, so it goes straight to edit. That is also why this is a dialog and not a list page: browsing with facets is the order list's job, and Duplicate is already waiting there.
+Two entry points open this dialog: the create-screen card (hidden with no orders) and the New order split-button menu. The rest skip it, because they already know which order is meant — Home's **Copy last order**, a vendor's **Copy latest order**, and the order list's per-row copy, where the reader has already found the row. That is also why this is a dialog and not a list page: browsing with facets is the order list's job, and the copy control is already waiting there.
 
 **3c — the same receipt scanned twice.** Every upload is hashed (SHA-256 of the bytes as received, stored on the attachment row and indexed). On a match this screen **replaces the reading stage** — a dialog over a progress bar would mean the scan is running behind a question about whether it should, and asking after the proposal exists wastes the read and drops the user into review with a decision they should have made first.
 
@@ -514,10 +514,14 @@ The panel's default state, matching the detail panel's width and card rhythm but
 
 ---
 
-### 8a / 8b — Duplicating an order, and budget alerts
+### 8a / 8b — Copying an order, and budget alerts
 File: `Duplicate and alerts.dc.html` · Code: `pages/EditOrder.jsx`, `pages/CategoryForm.jsx`
 
-**8a — Duplicate.** "Duplicate" on an order opens a new **unsaved** order prefilled from the original, on the edit screen, with a notice at the top: 13px on `#e7efe8`, radius `9px`, naming the source order and offering "Discard". What carries over is explicit and stated in the notice: vendor, category, reference, notes and all item lines with quantities and prices. What does not: the order date (set to today), the status (reset to the first status), and attachments — a receipt belongs to the order it came from. Leaving without saving discards it, with a confirm.
+**8a — Copy.** Copying an order opens a new **unsaved** order prefilled from it, on the edit screen, with a notice at the top on the success surface, naming the order it came from and offering "Discard". What carries over is explicit and stated in the notice: vendor, categories, kind, reference, note, discount, shipping, and every item line with its quantity and prices. What does not: the order date (set to today), the status (reset to what a new order opens as, which the account's own default decides), and attachments — a receipt belongs to the order it came from. Nothing is written until Save, and Save creates a record of its own rather than touching the one copied from.
+
+**The case this exists for is a shop visited on a schedule** — a barber, a standing delivery — where the order is the same every time and the only thing that changes is the date. So the copy is offered where that shop is already on screen: on an order, on every row of the order list, and on a vendor as **Copy latest order**, which picks the newest order that vendor has rather than asking which one. The vendor's control is hidden while the vendor has no orders, since there is no last one to open. 3b's picker is the way in when the shop is not on screen at all.
+
+**Every entry point lands on the same page, and none of them writes anything on the way.** A control that copied silently would put a record in the ledger from one click, on a screen that never showed what it was about to say.
 
 **8b — Budget alerts.** The same fact surfaced in three places, all amber, none blocking:
 1. **As you cross it, while editing.** A notice appears above the sticky save bar the moment the running total pushes the order's category over its monthly limit: "This puts Decor 1.240 kr. over its 6.000 kr. limit for August." Save is unaffected.
@@ -765,7 +769,7 @@ Also stated here: **global actions live in the shell, page actions do not.** Sca
 | Export CSV / Export | Appeared on four screens meaning four things. One behaviour: exports **the current filter or drill state**, never the page and never the account, with the count in the button label. Same column set the importer reads, so export/import round-trips. |
 | Save current | Saved views store query + facets + sort under a name, listed above the facet rail. Stores **the filter, not the result**. Never shared — one user. |
 | Archive (vendor/category) | The middle option between keeping and deleting, and the answer to 5c's "no orders in 12 months". Hides it from lists and pickers; orders, totals and history untouched. Reversible, so toast + Undo. |
-| Duplicate last order (Home) | 8a's duplicate applied to the most recent order without opening it. Same rules (no date, status or attachments), opens unsaved. Hidden when there are no orders. |
+| Copy last order (Home) | 8a's copy applied to the most recent order without opening it. Same rules (no date, status or attachments), opens unsaved. Hidden when there are no orders. |
 | Reuse mapping | Applies a previous import's mapping to the new file by column name. Always lands on the **mapping step** with rows pre-filled, never straight to preview — same headers can still mean different data. Unmatched columns are flagged. |
 | Change password | A dialog (current / new / confirm), not inline fields, so it is never half-filled in a card that saves other things. Success is a toast; **other sessions stay signed in**. |
 | Open full size (scan review) | The 12b viewer with the receipt as its only file, so small print is readable without leaving review. Panel edits untouched. |

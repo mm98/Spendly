@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
-import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader, Note } from '../components/Card.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { Button } from '../components/Button.jsx'
 import { Chip } from '../components/Chip.jsx'
@@ -17,12 +17,12 @@ import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { useVendorPicker } from '../api/useVendorPicker.js'
 import {
-	addItemAttachments, categoriesForVendor, failureMessage, getCategories, getOrderAsDraft,
-	getVendors, invalidateOrderData, itemAttachmentThumbnailUrl, orderStatuses, removeItemAttachment,
-	spendKinds, updateOrder
+	addItemAttachments, categoriesForVendor, createOrder, failureMessage, getCategories,
+	getOrderAsCopy, getOrderAsDraft, getVendors, invalidateOrderData, itemAttachmentThumbnailUrl,
+	orderStatuses, removeItemAttachment, spendKinds, updateOrder
 } from '../api/client.js'
 import { DELIVERED_DATE_FIELD, ORDER_FIELDS, RETURNED_DATE_FIELD } from '../api/rules.js'
-import { currency, currencySymbol, parseAmount, percent, sep, today } from '../api/format.js'
+import { currency, currencySymbol, longDate, parseAmount, percent, sep, today } from '../api/format.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
 /* Editing an order, whole.
@@ -35,16 +35,34 @@ import { categoryGroups } from '../api/pickerGroups.js'
    page is not the wizard with a flag on it: it is its own layout, and it saves everything --
    details and items -- in the one call updateOrder already accepts as one draft.
 
-   The total in the rail is not "Estimated total" here either. An estimate is a number about to
-   change before anything is saved; every kroner on this page already belongs to a real order,
-   so the figure is a fact about what was entered, and is printed as one. */
+   The total in the rail is not "Estimated total" when an order is being edited. An estimate is
+   a number about to change before anything is saved; every kroner of a saved order already
+   belongs to a real one, so the figure is a fact about what was entered. A copy has not been
+   saved yet, and there the estimate is the honest reading.
 
-export default function EditOrder() {
+   Copying an order is this page again, seeded differently and saving through the other door:
+   the reader gets the same one form for details and items, and the wizard is no use for it --
+   a copy arrives with its lines already on it, which is the whole reason the wizard exists.
+   What the seed leaves behind (the date, the status, the attachments) is client.js'
+   getOrderAsCopy; what this page owes is to say so on screen and to POST rather than PUT.
+   README: Copying an Order. */
+
+export default function EditOrder() { return <OrderPage mode="edit" /> }
+
+/** Its own export, so React sees a second component type and unmounts between the two: swapped
+    in place, one seeds a frame from the other's shape and the render throws. */
+export function CopyOrder() { return <OrderPage mode="copy" /> }
+
+function OrderPage({ mode }) {
 	const { id } = useParams()
-	const state = useApi(getOrderAsDraft, [id])
+	const copying = mode === 'copy'
+	const state = useApi(copying ? getOrderAsCopy : getOrderAsDraft, [id])
+	/* The form seeds once, so it must never be handed an order it is not for. useApi keeps the
+	   last answer on screen while an uncached id loads, and the key remounts on a cached one. */
+	const loaded = state.loading ? { ...state, data: undefined } : state
 	return (
 		<Page>
-			<Async state={state} label="Loading the order"
+			<Async state={loaded} label={copying ? 'Loading the order to copy' : 'Loading the order'}
 				skeleton={<div className="order-list-grid" aria-hidden="true">
 					<div className="order-list-column">
 						<SkeletonCard lines={4} />
@@ -54,13 +72,17 @@ export default function EditOrder() {
 						<SkeletonCard lines={3} />
 					</div>
 				</div>}>
-				{seed => <EditOrderForm id={id} seed={seed} />}
+				{seed => copying
+					? <OrderForm key={`copy-${id}`} id={id} seed={seed.draft} source={seed.source} />
+					: <OrderForm key={`edit-${id}`} id={id} seed={seed} />}
 			</Async>
 		</Page>
 	)
 }
 
-function EditOrderForm({ id, seed }) {
+function OrderForm({ id, seed, source }) {
+	// The order this was copied from, and so the one fact that says this is a copy.
+	const copying = Boolean(source)
 	const navigate = useNavigate()
 	const toast = useToast()
 	const vendors = useApi(getVendors)
@@ -178,10 +200,14 @@ function EditOrderForm({ id, seed }) {
 			return
 		}
 		setSaving(true)
-		updateOrder(id, draft)
+		/* A copy has no record yet, so it is POSTed and lands on an id of its own -- which is why
+		   everything below reads the id off the answer and not off the route. */
+		const written = copying ? createOrder(draft) : updateOrder(id, draft)
+		written
 			.then(async order => {
 				invalidateOrderData()
 
+				// A copy's lines arrive carrying no attachment, so the removal half finds none.
 				const photoOps = draft.items.flatMap((item, i) => {
 					const savedItem = order.items[i]
 					if (!savedItem) return []
@@ -199,7 +225,7 @@ function EditOrderForm({ id, seed }) {
 					})
 				}
 
-				navigate(`/orders/${id}`)
+				navigate(`/orders/${order.id}`)
 			})
 			.catch(e => { setSaving(false)
 				toast(failureMessage(e, 'That did not save. Try again.'), 'negative') })
@@ -221,9 +247,26 @@ function EditOrderForm({ id, seed }) {
 	const deliveredDateField = orderErrors.propsFor('order-delivered-date')
 	const returnedDateField = orderErrors.propsFor('order-returned-date')
 
+	/* Where leaving goes, for both of the controls that offer it. A copy has no record of its
+	   own to return to, so both send the reader back to the order it was copied from. */
+	const leave = () => navigate(`/orders/${id}`)
+
 	return (
 		<div className="order-list-grid">
 			<div className="order-list-column">
+				{/* What carries and what does not, said once -- a missing receipt is the thing a
+				    reader would otherwise go looking for. README: Copying an Order. */}
+				{copying ? (
+					<Note tone="positive" className="space-between" aria-label="Copied order">
+						<span>
+							<strong>This is a copy.</strong> It came from {source.vendor}
+							{', '}{longDate(source.date)}. The vendor, the categories, the note and
+							the items are filled in. The date is set to today. Attachments are not
+							copied, and nothing is saved until you select SAVE.
+						</span>
+						<Button variant="ghost compact" onClick={leave}>DISCARD</Button>
+					</Note>
+				) : null}
 				<Card aria-label="Order details">
 					<CardBody variant="card-body-page">
 						{/* The page-level SAVE at the very foot is still the one that answers "is
@@ -235,11 +278,13 @@ function EditOrderForm({ id, seed }) {
 						    button sharing a row with a two-line paragraph wraps onto its own line
 						    with a gap under it; sharing a row with four words never needs to. */}
 						<div className="space-between space-between-top">
-							<div className="card-headline">Edit order</div>
+							<div className="card-headline">{copying ? 'New order' : 'Edit order'}</div>
 							<Button variant="caps compact" onClick={save} disabled={saving}>
 								{saving ? 'SAVING...' : 'SAVE'}</Button>
 						</div>
-						<p className="card-lead">Update the details, the items, or both; everything saves together.</p>
+						<p className="card-lead">{copying
+							? 'Change anything that is different this time, then save it.'
+							: 'Update the details, the items, or both; everything saves together.'}</p>
 						<Form>
 							<Field label="Vendor" error={vendorField.error} errorId={vendorField.errorId} htmlFor="order-vendor">
 								<Combobox id="order-vendor" label="Vendor" required
@@ -375,7 +420,7 @@ function EditOrderForm({ id, seed }) {
 				</Card>
 
 				<FormActions split>
-					<Button variant="ghost" onClick={() => navigate(`/orders/${id}`)}>CANCEL</Button>
+					<Button variant="ghost" onClick={leave}>{copying ? 'DISCARD' : 'CANCEL'}</Button>
 					<Button variant="caps" onClick={save} disabled={saving}>
 						{saving ? 'SAVING...' : 'SAVE'}</Button>
 				</FormActions>
@@ -399,9 +444,9 @@ function EditOrderForm({ id, seed }) {
 						{discount ? <SummaryRow label="Discount" value={'-' + currency(discount)} /> : null}
 						<SummaryRow label="Shipping" value={currency(draft.shipping ? parseAmount(draft.shipping) : 0)} />
 						<div className="card-divider card-divider-tight" />
-						{/* No `estimate` here, and no "est." in the label -- every line above is a
-						    real entry against a real order, not a preview of one still being built. */}
-						<SummaryTotal value={currency(total)} />
+						{/* An edit's lines are real entries against a real record; a copy is not
+						    written yet, so the same total is a preview and says so. */}
+						<SummaryTotal value={currency(total)} estimate={copying} />
 						{saved > 0 ? (
 							<span className="field-help summary-saved">
 								saved {currency(saved)} vs retail ({percent(saved / retail * 100)})

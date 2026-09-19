@@ -3590,3 +3590,48 @@ Verified in Blink (Chromium 1440x900 and the iPhone 15 descriptor). Firefox and 
 installed here and were not run; Firefox does not implement `-webkit-user-drag`, so a link there is
 still a drag source. The reported lock was seen in a Chromium browser, where the drag it starts is
 the platform's own modal loop rather than anything the page runs.
+
+## Create and Edit — the order form seeded once, from whichever order was on screen before
+
+The form seeds its draft from the loader's answer on mount and never again. `useApi` keeps the
+previous answer on screen while a new id loads, so for the render between the address changing and
+the new order arriving, the page holds the last order's data — and the form, seeded in that render,
+goes on holding it.
+
+Driven at 1440x900 on an account filled from **Demo data**, walking from one order's form to
+another's by address alone (no document load), the second form drew the first order's record:
+
+```
+A (3 items, Elgiganten) shows 3 items, vendor Elgiganten
+B (1 item,  Coop)       shows 3 items, vendor Elgiganten
+B after reload()        shows 1 item,  vendor Coop
+```
+
+Three items priced and named against a vendor that sold none of them, on a form whose Save writes to
+B. The reload is the tell: nothing is wrong with either record, only with which one the form was
+handed.
+
+Copying made the same walk worse, because the two pages seed from different shapes — the edit form
+from a draft, the copy from a draft plus the order it came from. One frame of the wrong shape is not
+a wrong number, it is a missing field, and the render threw:
+
+```
+copy → edit   TypeError: Cannot read properties of undefined (reading 'reduce')
+edit → copy   TypeError: Cannot read properties of undefined (reading 'status')
+```
+
+Both ended on the route's error card — "This page did not load" — the same TypeError logged `4`
+times before the boundary caught it.
+
+Two fixes, because there are two ways in. Within one shape, the page hands the form nothing while an
+uncached id is loading (`loading` is only ever true with stale data when the key just changed — a
+background revalidation of the same key sets it false), and the form is keyed by mode and id so a
+cached answer remounts it instead of being ignored. Across the two shapes, edit and copy are two
+exports and so two component types, which React unmounts between rather than reconciling.
+
+Measured after, same harness: the A → B walk without a reload reports `1 item, Coop`, matching the
+reload; `copy → edit` and `edit → copy` both render their form, `0` console errors, `0` error cards.
+
+Verified in Blink (Chromium 1440x900); the walk is an address change, so it was not re-driven on a
+phone. Firefox and WebKit are not installed here and were not run; nothing here is engine-shaped —
+it is which object the form was given.

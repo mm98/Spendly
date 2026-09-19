@@ -5,7 +5,7 @@ import { Async } from '../components/Async.jsx'
 import { SkeletonCard, SkeletonRows } from '../components/Skeleton.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
 import { OrderRow } from '../components/Rows.jsx'
-import { Button, ButtonLink } from '../components/Button.jsx'
+import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
 import { DateInput, Field, FieldPair, FilterSection, NumberInput, Segmented } from '../components/Form.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { FilterChips, ListToolbar } from '../components/ListToolbar.jsx'
@@ -270,7 +270,11 @@ export default function AllOrders() {
 						{data.orders.length ? data.orders.map(order => (
 							<OrderRow key={order.id} to={`/orders/${order.id}`}
 								state={{ from: location.pathname + location.search }}
-								order={{ ...order, dateLabel: dayMonth(order.date) }} />
+								order={{ ...order, dateLabel: dayMonth(order.date) }}
+								/* Named after the vendor: thirty rows of "Copy order" name thirty
+								   different orders. README: Copying an Order. */
+								action={<IconButton icon="copy" to={`/orders/${order.id}/copy`}
+									label={`Copy the order from ${order.vendor?.name ?? 'this vendor'}`} />} />
 						)) : data.total === 0 ? (
 							/* Nothing to filter is not "nothing matches": on an account with no orders
 							   at all the filter sentence blamed filters that were not set, and CLEAR ALL

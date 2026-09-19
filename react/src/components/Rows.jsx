@@ -117,17 +117,23 @@ export function ItemRow({ icon, iconTone, thumb, thumbSrc, onThumbClick, thumbHr
 	)
 }
 
-/** The All orders row: vendor, what was in it, where it got to, what it cost. */
-export function OrderRow({ order, to, ...rest }) {
-	return (
-		<Row to={to} family="order-row" {...rest}>
+/** The All orders row: vendor, what was in it, where it got to, what it cost. With `action` it
+    splits the way EntityRow does -- an <a> cannot hold another, so the name carries the link. */
+export function OrderRow({ order, to, action, ...rest }) {
+	const vendorName = order.vendor?.name
+	const body = (
+		<>
 			<div className="order-row-identity">
 				{order.vendor ? (
 					<span className="entry-avatar"
 						style={{ background: order.vendor.colour, color: inkOn(order.vendor.colour) }}>{order.vendor.initials}</span>
 				) : null}
 				<div className="order-row-identity-text">
-					<div className="order-row-vendor">{order.vendor?.name}</div>
+					<div className="order-row-vendor">
+						{action
+							? <Link className="row-stretch" to={to} data-go={to} {...rest}>{vendorName}</Link>
+							: vendorName}
+					</div>
 					<div className="order-row-meta">
 						{order.dateLabel}<Sep />{plural(order.itemCount, 'item')}
 						{order.categories.length ? <><Sep />{order.categories.map(c => c.name).join(', ')}</> : null}
@@ -144,9 +150,20 @@ export function OrderRow({ order, to, ...rest }) {
 				{currency(order.total)}
 				<div className="order-row-total-saved">saved {currency(order.saved)}</div>
 			</div>
-			<span className="order-row-chevron"><Icon name="chevronRight" /></span>
-		</Row>
+		</>
 	)
+
+	const chevron = <span className="order-row-chevron"><Icon name="chevronRight" /></span>
+	if (action) {
+		return (
+			<div className="data-row order-row data-row-action" data-go={to}>
+				{body}
+				<span className="row-inline row-actions">{action}</span>
+				{chevron}
+			</div>
+		)
+	}
+	return <Row to={to} family="order-row" {...rest}>{body}{chevron}</Row>
 }
 
 /** A chart's key, where each entry is also the way into the orders behind it.
@@ -216,7 +233,7 @@ export function EntityRow({ mark, name, meta, amount, sub, editTo, action, open 
 	   stretches over it, `action` rides on top. The chevron is for a row that opens a page here. */
 	if (open || action) {
 		return (
-			<div className="data-row entity-row entity-row-action" data-go={open?.href ?? editTo}>
+			<div className="data-row entity-row data-row-action" data-go={open?.href ?? editTo}>
 				{body}
 				{action ? <span className="row-inline row-actions">{action}</span> : null}
 				{open ? null : <Chevron />}

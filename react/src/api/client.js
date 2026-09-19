@@ -519,6 +519,24 @@ export async function getOrderDraft(signal) {
 	return request('/api/orders/draft', { signal })
 }
 
+/** The same purchase as a new order. The blank draft is the server's answer for what a new one
+    opens as; an item id is dropped because an item's photo hangs off it. README: Copying an Order. */
+export async function getOrderAsCopy(id, signal) {
+	const [from, blank] = await Promise.all([getOrderAsDraft(id, signal), getOrderDraft(signal)])
+	return {
+		source: { vendor: from.vendor, date: from.date },
+		draft: {
+			...from,
+			date: blank.date, status: blank.status,
+			deliveredDate: blank.deliveredDate, returnedDate: blank.returnedDate,
+			items: from.items.map((item, i) => ({
+				id: `copy-${i}`, title: item.title, quantity: item.quantity,
+				price: item.price, retail: item.retail, note: item.note
+			}))
+		}
+	}
+}
+
 export async function getOrderAsDraft(id, signal) {
 	const order = await getOrder(id, signal)
 	// findLast, not find: statusHistory is chronological and a status can now recur (a
@@ -1058,7 +1076,8 @@ export const chartPeriodPhrase = key => ({
     aggregates: the lists and the record embed them, stats/hero/home sum them, and the vendor
     and category records carry spend/share/saved computed from them. */
 export function invalidateOrderData() {
-	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
+	invalidate(getOrders); invalidate(getOrder)
+	invalidate(getOrderAsDraft); invalidate(getOrderAsCopy)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
 	invalidate(getStats); invalidate(getVendorChartSplit); invalidate(getCategoryChartSplit)
 	invalidate(getVendors); invalidate(getVendor)
@@ -1070,7 +1089,8 @@ export function invalidateOrderData() {
     vendor's name, initials and colour, so the order reads go too -- not just the vendor ones. */
 export function invalidateVendorData() {
 	invalidate(getVendors); invalidate(getVendor)
-	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
+	invalidate(getOrders); invalidate(getOrder)
+	invalidate(getOrderAsDraft); invalidate(getOrderAsCopy)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getStats)
 	invalidate(getVendorChartSplit)
 }
@@ -1087,7 +1107,8 @@ export function invalidateWishData() {
 export function invalidateCategoryData() {
 	invalidate(getCategories); invalidate(getCategoriesThisMonth); invalidate(getCategory)
 	invalidate(getUncategorised)
-	invalidate(getOrders); invalidate(getOrder); invalidate(getOrderAsDraft)
+	invalidate(getOrders); invalidate(getOrder)
+	invalidate(getOrderAsDraft); invalidate(getOrderAsCopy)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
 	invalidate(getStats); invalidate(getCategoryChartSplit)
 }
