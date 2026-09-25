@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import Anthropic, { APIError } from '@anthropic-ai/sdk'
 import { decompressBlob } from './blobCompression.js'
 import { todayIso } from './dates.js'
 
@@ -11,8 +11,8 @@ import { todayIso } from './dates.js'
    inconsistent layout back as the fixed shape the review form already knows how to edit.
 
    No API key configured is a real, supported state -- not every install runs one -- so this
-   never throws into its caller. It returns null for that, for a request failure, for a timeout,
-   and for a response the model declined to fill in; routes/scan.js's fallback is exactly the
+   never throws into its caller. A missing key, a failed request and a response the model
+   declined to fill in all come back without a read; routes/scan.js's fallback is exactly the
    draft this app shipped with before any of this existed. */
 
 const MODEL = 'claude-sonnet-4-5-20250929'
@@ -112,14 +112,19 @@ function contentBlockFor(bytes, contentType, kind) {
 	return { type: 'image', source: { type: 'base64', media_type: contentType || 'image/jpeg', data: base64 } }
 }
 
+// 402 billing_error is the documented refusal; "credit balance is too low" has come back as a 400.
+const isBillingRefusal = e => e instanceof APIError
+	&& (e.status === 402 || e.type === 'billing_error' || /credit balance/i.test(e.message))
+
 /** Reads a stored upload's own bytes (the same `data` column routes/scan.js's own /file route
-    serves) via Claude, and returns the normalised fields above, or null on any failure. `upload`
-    is a full row from scan_uploads -- data, data_is_compressed, content_type, kind. */
+    serves) via Claude, and returns `{ read, failure }`: the normalised fields above or null, and
+    null when the model answered, 'billing' when the account was refused, 'failed' otherwise.
+    `upload` is a full row from scan_uploads -- data, data_is_compressed, content_type, kind. */
 export async function parseReceipt(upload) {
 	const anthropic = getClient()
-	if (!anthropic || !upload.data) return null
+	if (!anthropic || !upload.data) return { read: null, failure: 'failed' }
 	const bytes = decompressBlob(upload.data, upload.data_is_compressed)
-	if (!bytes?.length) return null
+	if (!bytes?.length) return { read: null, failure: 'failed' }
 
 	try {
 		const response = await anthropic.messages.create({
@@ -147,10 +152,10 @@ export async function parseReceipt(upload) {
 			}]
 		})
 		const call = response.content.find(b => b.type === 'tool_use' && b.name === READ_RECEIPT_TOOL.name)
-		return call ? normalise(call.input) : null
-	} catch {
-		// No network, a bad key, a rate limit, a file the model refuses -- every one of these
-		// is the same "could not read it" to the caller, which already has a fallback for that.
-		return null
+		return { read: call ? normalise(call.input) : null, failure: null }
+	} catch (error) {
+		// The log is the one place a bad key, a timeout or a rate limit is told apart.
+		console.error('Receipt read failed:', error.message)
+		return { read: null, failure: isBillingRefusal(error) ? 'billing' : 'failed' }
 	}
 }

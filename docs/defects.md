@@ -3635,3 +3635,31 @@ reload; `copy → edit` and `edit → copy` both render their form, `0` console 
 Verified in Blink (Chromium 1440x900); the walk is an address change, so it was not re-driven on a
 phone. Firefox and WebKit are not installed here and were not run; nothing here is engine-shaped —
 it is which object the form was given.
+
+## Creating an order from a receipt — the review dropped both status dates, and called nothing read a match
+
+The review built its form from a hand-picked list of the server's draft fields, and SAVE ORDER sent a
+second hand-picked list. Neither list held the Delivered or Returned date. The server sends both, so a
+review opening on Delivered (the account default) drew an empty Delivered date, marked required; the
+date the reader then typed never left the browser, and the order was stored with its Ordered step only.
+The verdict line compared the lines against a total of 0 when nothing was read, and against the reader's
+own sum of its lines when the receipt printed no total, so both drew green "Total matches.". A failed
+read was also stored as if it were a reading, so the same file uploaded again was never read again.
+
+Measured in Blink (Chromium 1194, 1440x900), fresh account, the reading service replaced by a local
+stand-in answering each case:
+
+| case | before | after |
+|---|---|---|
+| nothing read, Delivered date on open | empty | today |
+| typed 21.09 on an order of 18.09, sent / stored / on edit | not sent / Ordered only / empty | 21.09 / Ordered 18.09, Delivered 21.09 / 21.09 |
+| receipt read (dated 20.09), Delivered date on open | empty, SAVE ORDER refused "When did it arrive?" | 20.09, saved and shown on edit |
+| nothing read, verdict | green "Total matches." | amber "Total not checked." |
+| read, no printed total, verdict | green "Total matches." | amber "Total not checked." |
+| read, lines 25 against printed 30, verdict | "Total no longer matches." on first view | "Total does not match." |
+| refused over billing (402, and a 400 naming the credit balance) | "could not be read", green | the billing sentence, amber |
+| same file uploaded again after the refusal clears | 0 new reads, still unread | 1 new read, lines filled |
+
+New order already opened its Delivered date on today (25.09) and was not changed. Stored empty reads are
+cleared once at start-up (1 of 1 in the test database, the one real reading untouched). Not checked:
+Firefox, WebKit, a phone, and the real reading service's answer for an empty account.

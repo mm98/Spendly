@@ -149,8 +149,10 @@ router.get('/draft/:key', async (req, res) => {
 	const settings = selectDraftDefaults.get(req.user.id)
 
 	const hadCachedRead = upload.ai_read_json != null
-	let read = hadCachedRead ? JSON.parse(upload.ai_read_json) : await parseReceipt(upload)
-	if (!hadCachedRead) saveAiRead.run({ id: upload.id, userId: req.user.id, json: JSON.stringify(read) })
+	const { read, failure } = hadCachedRead
+		? { read: JSON.parse(upload.ai_read_json), failure: null } : await parseReceipt(upload)
+	// Only an answer is kept: a call that failed cost nothing, and keeping it would block the retry.
+	if (!hadCachedRead && !failure) saveAiRead.run({ id: upload.id, userId: req.user.id, json: JSON.stringify(read) })
 
 	const file = {
 		key: upload.id, name: upload.name, kind: upload.kind, hasThumbnail: Boolean(upload.has_thumbnail),
@@ -163,10 +165,12 @@ router.get('/draft/:key', async (req, res) => {
 			vendor: '', vendorMatched: false, date: todayIso(),
 			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
 			deliveredDate: todayIso(), returnedDate: todayIso(),
-			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: 0,
-			reconciled: process.env.ANTHROPIC_API_KEY
-				? 'This document could not be read automatically. Add the line items and totals below yourself.'
-				: 'This document has not been read automatically. Add the line items and totals below yourself.',
+			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: null,
+			reconciled: failure === 'billing'
+				? 'This document was not read: the reading service reports a billing problem, such as no credits left. Add the line items and totals below yourself, or upload it again once that is fixed.'
+				: process.env.ANTHROPIC_API_KEY
+					? 'This document could not be read automatically. Add the line items and totals below yourself.'
+					: 'This document has not been read automatically. Add the line items and totals below yourself.',
 			checks: [], duplicate: null
 		})
 	}
@@ -187,9 +191,6 @@ router.get('/draft/:key', async (req, res) => {
 		}
 	}
 
-	const linesTotal = read.lines.reduce((sum, l) => sum + l.price * l.quantity, 0)
-	const total = read.total ?? (linesTotal + read.shipping - read.discount)
-
 	res.json({
 		documentKey: upload.id, file,
 		// The document's own spelling once reached the review screen even when the vendor
@@ -206,7 +207,8 @@ router.get('/draft/:key', async (req, res) => {
 			id: newId('l'), title: l.title, quantity: l.quantity, price: l.price,
 			uncertain: l.uncertain, meta: l.uncertain ? 'Not clearly printed -- check this line.' : undefined
 		})),
-		remainder: null, total,
+		// The printed total or null, never the lines' own sum: the review checks the lines against it.
+		remainder: null, total: read.total,
 		reconciled: read.total != null
 			? 'Matched against the document’s own printed total.'
 			: 'No printed total was found on the document to check the lines against.',

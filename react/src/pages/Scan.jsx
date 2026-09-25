@@ -93,6 +93,8 @@ export function ScanUpload() {
 		putScanDocument(file)
 			.then(({ key, name, kind, meta, hasThumbnail }) => {
 				invalidate(getRecentScans)
+				// A read that failed is tried again on the server, so the same file dropped twice asks again.
+				invalidate(getScanDraft)
 				/* The thumbnail already exists server-side the moment this response comes back --
 				   handing its facts down as navigation state lets the reading step draw it straight
 				   away, instead of waiting on the document read (which can take several seconds) to
@@ -292,6 +294,7 @@ function ScanReviewForm({ answer }) {
 	   ORDER writes -- so the fields on this page are the order, rather than a picture of one. */
 	const [draft, setDraft] = useState(() => ({
 		vendor: answer.vendor, date: answer.date, status: answer.status,
+		deliveredDate: answer.deliveredDate, returnedDate: answer.returnedDate,
 		kind: answer.kind, shipping: amount(answer.shipping), discount: answer.discount ? amount(answer.discount) : '',
 		lines: answer.lines.map(l => ({ ...l, quantity: l.quantity ?? 1, price: l.price ?? l.amount })),
 		remainder: answer.remainder
@@ -476,8 +479,7 @@ function ScanReviewForm({ answer }) {
 		setLinesTried(false)
 		setSaving(true)
 		createOrder({
-			vendor: draft.vendor, date: draft.date, status: draft.status, kind: draft.kind,
-			categories: [], shipping: draft.shipping, discount: draft.discount,
+			...draft,
 			items: draft.lines.map(l => ({ id: l.id, title: l.title, quantity: l.quantity, price: l.price,
 				retail: l.retail, note: l.note }))
 		})
@@ -534,14 +536,18 @@ function ScanReviewForm({ answer }) {
 				/* The verdict is about the numbers on screen, so it is recomputed from them:
 				   correct a line and the note either still says the total matches or stops saying
 				   it. A fixed "Total matches." over edited figures is the app asserting something
-				   it has not checked. */
-				Math.abs(orderTotal - answer.total) < 0.005 ? (
+				   it has not checked, and so is one over a document with no printed total. */
+				answer.total == null ? (
+					<Note tone="warning" title="Total not checked." className="note-lead">
+						{answer.reconciled}
+					</Note>
+				) : Math.abs(orderTotal - answer.total) < 0.005 ? (
 					<Note tone="positive" title="Total matches." className="note-lead">
 						{answer.reconciled}
 					</Note>
 				) : (
-					<Note tone="warning" title="Total no longer matches." className="note-lead">
-						The lines now total {currency(orderTotal)}, against the document total
+					<Note tone="warning" title="Total does not match." className="note-lead">
+						The lines total {currency(orderTotal)}, against the document total
 						of {currency(answer.total)}{fullStop()} Saving keeps what is on screen.
 					</Note>
 				)
