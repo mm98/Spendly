@@ -393,16 +393,14 @@ function SheetCard({ sheet, setSheet, write, del, arranging }) {
 			<div className="budget-table" role="grid" aria-label={`Budget ${sheet.year}, amounts in whole ${activeCurrency().label}`}>
 				<div className="budget-sheet budget-sheet-head" ref={head}>
 					<div className="budget-grid">
-						<HeadRow months={months} thisMonth={thisMonth} first="Row" />
+						<HeadRow months={months} thisMonth={thisMonth} />
 					</div>
 				</div>
 				<div className="budget-sheet" ref={scroller} onScroll={follow}>
 					<div className="budget-grid">
 						{KINDS.map(({ kind, title }) => (
 							<Fragment key={kind}>
-								<div className="budget-row budget-section" role="row">
-									<span role="rowheader" className="budget-span"><span>{title}</span></span>
-								</div>
+								<SectionRow title={title} />
 								{sheet.groups.filter(g => g.kind === kind).map(group => (
 									<GroupBlock key={group.id} group={group} sheet={sheet} panel={panel} cell={cell} arranging={arranging}
 										openPanel={openPanel} closePanel={closePanel} write={write} onAnnounce={setSaid}
@@ -427,7 +425,7 @@ function SheetCard({ sheet, setSheet, write, del, arranging }) {
 								) : null}
 							</Fragment>
 						))}
-						<Totals sheet={sheet} months={months} thisMonth={thisMonth} />
+						<Totals sheet={sheet} thisMonth={thisMonth} />
 					</div>
 				</div>
 			</div>
@@ -449,10 +447,16 @@ function SheetCard({ sheet, setSheet, write, del, arranging }) {
 	)
 }
 
-function HeadRow({ months, thisMonth, first }) {
+const SectionRow = ({ title, quiet }) => (
+	<div className={join('budget-row budget-section', quiet && 'budget-section-quiet')} role="row">
+		<span role="rowheader" className="budget-span"><span>{title}</span></span>
+	</div>
+)
+
+function HeadRow({ months, thisMonth }) {
 	return (
 		<div className="budget-row budget-head" role="row">
-			<span role="columnheader" className="budget-name">{first}</span>
+			<span role="columnheader" className="budget-name">Row</span>
 			<span role="columnheader" className="budget-account">Account</span>
 			{months.map((name, m) => (
 				<span key={m} role="columnheader" className={join('budget-month', m === thisMonth && 'is-now')}>{name}</span>
@@ -993,7 +997,7 @@ function SumRow({ label, values, strong, signed, thisMonth }) {
 }
 
 /** The sheet's own totals: what each account pays, then income, costs and what is left. */
-function Totals({ sheet, months, thisMonth }) {
+function Totals({ sheet, thisMonth }) {
 	const linesOf = kind => sheet.groups.filter(g => g.kind === kind).flatMap(g => g.lines)
 	const income = sumMonths(linesOf('income'))
 	const costLines = linesOf('expense')
@@ -1006,12 +1010,10 @@ function Totals({ sheet, months, thisMonth }) {
 	]
 	return (
 		<>
-			<HeadRow months={months} thisMonth={thisMonth} first="Totals" />
+			<SectionRow title="Totals" />
 			{byAccount.length ? (
 				<>
-					<div className="budget-row budget-section budget-section-quiet" role="row">
-						<span role="rowheader" className="budget-span"><span>Costs by account</span></span>
-					</div>
+					<SectionRow title="Costs by account" quiet />
 					{byAccount.map(a => <SumRow key={a.key} label={a.label} thisMonth={thisMonth} values={sumMonths(a.lines)} />)}
 				</>
 			) : null}

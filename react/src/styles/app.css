@@ -1523,6 +1523,7 @@ label.field-shell { cursor:pointer; }
 .budget-sheet-head { position:sticky; top:var(--topbar-height, 0px); z-index:4; overflow:hidden; padding-bottom:0; background:var(--bg-card); }
 .budget-grid {
 	--budget-name:150px; --budget-account:78px; --budget-month:58px; --budget-total:76px; --budget-average:64px;
+	--budget-line-gap:20px;
 	min-width:calc(var(--budget-name) + var(--budget-account) + 12 * var(--budget-month) + var(--budget-total) + var(--budget-average));
 }
 .budget-grid, .budget-accounts { --budget-mark:26px; --budget-name-max:240px; }
@@ -1543,11 +1544,16 @@ label.field-shell { cursor:pointer; }
 .budget-section { border-bottom:0; }
 .budget-section .budget-span > * { display:block; width:max-content; padding:18px 0 6px; font-size:13.5px; font-weight:700; color:var(--text); }
 .budget-section-quiet .budget-span > * { font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
+/* A blank line opens each group and each section; what sits straight under a heading has the heading
+   above it already. On the row, not the name, so a focused group name keeps a tight ring. */
+.budget-group, .budget-section { padding-top:var(--budget-line-gap); }
+.budget-grid > .budget-section:first-child, .budget-section + .budget-group-block > .budget-group,
+.budget-section + .budget-section { padding-top:0; }
 .budget-group-name { font:inherit; display:inline-flex; align-items:center; gap:6px; padding:12px 0 6px; background:none; border:0; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); }
 .budget-group-name svg.icon { width:12px; height:12px; color:var(--text-faint); }
 button.budget-group-name { cursor:pointer; }
 button.budget-group-name:hover { color:var(--text); }
-.budget-line-name { font:inherit; flex:1; min-width:0; padding:8px 0; background:none; border:0; text-align:left; font-size:13px; font-weight:600; color:var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.budget-line-name { font:inherit; flex:1; min-width:0; padding:8px 0; background:none; border:0; text-align:left; font-size:13px; color:var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 button.budget-line-name { cursor:pointer; }
 button.budget-line-name:hover { text-decoration:underline; text-underline-offset:3px; }
 .budget-line:hover, .budget-line:hover > .budget-name { background:var(--bg-row-hover); }
