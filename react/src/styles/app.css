@@ -1617,9 +1617,7 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-account-row.is-open { background:var(--bg-green-tint); }
 .budget-account-row .budget-line-name { flex:0 1 var(--budget-name-max); }
 .budget-account-row .field-help { flex:none; padding-right:8px; }
-.budget-foot { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--gap-panel); padding:12px var(--pad-card) 16px; border-top:1px solid var(--border-divider); }
-.budget-foot p { margin:0; max-width:640px; line-height:1.5; }
-.budget-foot .button { flex:none; }
+.budget-foot { display:flex; justify-content:flex-end; padding:12px var(--pad-card) 16px; border-top:1px solid var(--border-divider); }
 @container budget-sheet (max-width:640px) {
 	.budget-grid { --budget-name:128px; --budget-account:0px; }
 	.budget-account { visibility:hidden; padding:0; }

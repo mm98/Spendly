@@ -432,19 +432,8 @@ function SheetCard({ sheet, setSheet, write, del, arranging }) {
 				</div>
 			</div>
 			<p className="screenreader-only" role="status" aria-live="polite">{said}</p>
-			<div className="budget-foot">
-				{arranging ? (
-					<p className="field-help">Drag a row by its dots to move it. Click a row's name to change the row,
-						its account and its expected amounts, or a group's name to rename or move the group. The list
-						of accounts is under the sheet. Amounts can still be typed straight into the sheet.</p>
-				) : (
-					<p className="field-help">Click an amount to write the real one. Enter saves it and moves down.
-						Clear it to show the expected amount again. To add, move or rename rows, groups and accounts,
-						or to change expected amounts, press EDIT.</p>
-				)}
-				{arranging ? del.button : null}
-				{del.dialog}
-			</div>
+			{arranging ? <div className="budget-foot">{del.button}</div> : null}
+			{del.dialog}
 		</Card>
 	)
 }
