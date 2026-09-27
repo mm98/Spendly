@@ -37,9 +37,9 @@
 	--text-body:#3A423D;
 	--text-muted:#636D64;
 	--text-faint:#9AA39D;
-	/* A budget amount that is only expected: as pale as text goes here, APCA Lc 60 on the palest
-	   surface it lands on, the current month's column. README: Budget. */
-	--text-expected:#78827A;
+	/* A budget amount that is only expected: a placeholder, faded on purpose to the spreadsheet's own
+	   light grey, so it sits under the Lc 60 asked of text that has to be read. README: Budget. */
+	--text-expected:#A0A8A2;
 	/* The x inside a chip, which is lighter than the chip's own text so the
 	   label reads first. Five chips wrote it out as #8B948C. */
 	--chip-glyph:#8B948C;
