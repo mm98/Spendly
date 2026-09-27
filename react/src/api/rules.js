@@ -132,9 +132,12 @@ export const BUDGET_AMOUNT = v =>
 
 export const BUDGET_ROW_FIELDS = [
 	{ name: 'budget-row-name', label: 'Name', check: v =>
-		!v ? 'Give the row a name.' : v.length > 80 ? '80 characters at most.' : '' },
-	{ name: 'budget-row-account', label: 'Account', check: v =>
-		v.length > 40 ? '40 characters at most.' : '' }
+		!v ? 'Give the row a name.' : v.length > 80 ? '80 characters at most.' : '' }
+]
+
+export const BUDGET_ACCOUNT_FIELDS = [
+	{ name: 'budget-account-name', label: 'Name', check: v =>
+		!v ? 'Give the account a name.' : v.length > 40 ? '40 characters at most.' : '' }
 ]
 
 export const BUDGET_GROUP_FIELDS = [

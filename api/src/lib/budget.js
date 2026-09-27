@@ -12,15 +12,16 @@ const notFound = what => Object.assign(new Error(`No such ${what}.`), { status: 
 const selectYears = db.prepare('SELECT year FROM budget_years WHERE user_id = ? ORDER BY year')
 const selectYear = db.prepare('SELECT id, year FROM budget_years WHERE user_id = ? AND year = ?')
 const selectGroups = db.prepare('SELECT id, kind, name, position FROM budget_groups WHERE user_id = ? AND year_id = ?')
-const selectLines = db.prepare(`SELECT l.id, l.group_id, l.name, l.account, l.position, a.month, a.expected, a.real
+const selectLines = db.prepare(`SELECT l.id, l.group_id, l.name, l.account_id, l.position, a.month, a.expected, a.real
 	FROM budget_lines l LEFT JOIN budget_amounts a ON a.line_id = l.id
 	WHERE l.user_id = ? AND l.group_id IN (SELECT id FROM budget_groups WHERE user_id = ? AND year_id = ?)`)
-// Every account any year names, so a row in a new year can pick one it used before.
-const selectAccounts = db.prepare("SELECT account FROM budget_lines WHERE user_id = ? AND account <> ''")
+const selectAccounts = db.prepare('SELECT id, name, position FROM budget_accounts WHERE user_id = ?')
+const selectAccount = db.prepare('SELECT id, name FROM budget_accounts WHERE id = ? AND user_id = ?')
+const selectAccountUse = db.prepare('SELECT account_id FROM budget_lines WHERE user_id = ? AND account_id IS NOT NULL')
 
 const selectGroup = db.prepare(`SELECT g.id, g.kind, g.year_id, y.year FROM budget_groups g
 	JOIN budget_years y ON y.id = g.year_id WHERE g.id = ? AND g.user_id = ?`)
-const selectLine = db.prepare(`SELECT l.id, l.group_id, l.name, l.account, g.year_id, y.year FROM budget_lines l
+const selectLine = db.prepare(`SELECT l.id, l.group_id, l.name, l.account_id, g.year_id, y.year FROM budget_lines l
 	JOIN budget_groups g ON g.id = l.group_id JOIN budget_years y ON y.id = g.year_id
 	WHERE l.id = ? AND l.user_id = ?`)
 const selectSiblingGroups = db.prepare(
@@ -31,8 +32,9 @@ const selectAmount = db.prepare('SELECT expected, real FROM budget_amounts WHERE
 const insertYear = db.prepare('INSERT INTO budget_years (id, user_id, year) VALUES (?, ?, ?)')
 const insertGroup = db.prepare(`INSERT INTO budget_groups (id, user_id, year_id, kind, name, position)
 	VALUES (?, ?, ?, ?, ?, ?)`)
-const insertLine = db.prepare(`INSERT INTO budget_lines (id, user_id, group_id, name, account, position)
+const insertLine = db.prepare(`INSERT INTO budget_lines (id, user_id, group_id, name, account_id, position)
 	VALUES (?, ?, ?, ?, ?, ?)`)
+const insertAccount = db.prepare('INSERT INTO budget_accounts (id, user_id, name, position) VALUES (?, ?, ?, ?)')
 const upsertAmount = db.prepare(`INSERT INTO budget_amounts (line_id, month, expected, real) VALUES (?, ?, ?, ?)
 	ON CONFLICT (line_id, month) DO UPDATE SET expected = excluded.expected, real = excluded.real`)
 const deleteAmount = db.prepare('DELETE FROM budget_amounts WHERE line_id = ? AND month = ?')
@@ -42,9 +44,13 @@ const deleteGroupRow = db.prepare('DELETE FROM budget_groups WHERE id = ? AND us
 const deleteLineRow = db.prepare('DELETE FROM budget_lines WHERE id = ? AND user_id = ?')
 const renameGroup = db.prepare('UPDATE budget_groups SET name = ? WHERE id = ? AND user_id = ?')
 const setGroupPosition = db.prepare('UPDATE budget_groups SET position = ? WHERE id = ? AND user_id = ?')
-const updateLineText = db.prepare('UPDATE budget_lines SET name = ?, account = ? WHERE id = ? AND user_id = ?')
+const updateLineText = db.prepare('UPDATE budget_lines SET name = ?, account_id = ? WHERE id = ? AND user_id = ?')
 const setLinePlace = db.prepare('UPDATE budget_lines SET group_id = ?, position = ? WHERE id = ? AND user_id = ?')
 const deleteAllYears = db.prepare('DELETE FROM budget_years WHERE user_id = ?')
+const deleteAllAccounts = db.prepare('DELETE FROM budget_accounts WHERE user_id = ?')
+const renameAccountRow = db.prepare('UPDATE budget_accounts SET name = ? WHERE id = ? AND user_id = ?')
+const setAccountPosition = db.prepare('UPDATE budget_accounts SET position = ? WHERE id = ? AND user_id = ?')
+const deleteAccountRow = db.prepare('DELETE FROM budget_accounts WHERE id = ? AND user_id = ?')
 
 /* ---- reading ---- */
 
@@ -53,9 +59,14 @@ const kindOrder = kind => (kind === 'income' ? 0 : 1)
 
 export const listYears = userId => selectYears.all(userId).map(r => r.year)
 
-export function listAccounts(userId) {
-	const names = new Set(selectAccounts.all(userId).map(r => r.account))
-	return [...names].sort((a, b) => a.localeCompare(b, 'da'))
+/** The account list, in its own order: the one list every year's rows pick from. */
+export const listAccounts = userId => selectAccounts.all(userId).sort(byPosition).map(({ id, name }) => ({ id, name }))
+
+/** The same list, each with how many rows in any year pick it. */
+export function listAccountsInUse(userId) {
+	const rows = new Map()
+	for (const { account_id: id } of selectAccountUse.all(userId)) rows.set(id, (rows.get(id) ?? 0) + 1)
+	return listAccounts(userId).map(a => ({ ...a, rows: rows.get(a.id) ?? 0 }))
 }
 
 /** One year's sheet: income groups first, then costs, each in its own order. */
@@ -66,7 +77,7 @@ export function readYear(userId, year) {
 	for (const r of selectLines.all(userId, userId, found.id)) {
 		let line = lines.get(r.id)
 		if (!line) {
-			line = { id: r.id, groupId: r.group_id, name: r.name, account: r.account, position: r.position,
+			line = { id: r.id, groupId: r.group_id, name: r.name, accountId: r.account_id, position: r.position,
 				months: emptyMonths() }
 			lines.set(r.id, line)
 		}
@@ -77,7 +88,7 @@ export function readYear(userId, year) {
 		.map(g => ({
 			id: g.id, kind: g.kind, name: g.name,
 			lines: [...lines.values()].filter(l => l.groupId === g.id).sort(byPosition)
-				.map(({ id, name, account, months }) => ({ id, name, account, months }))
+				.map(({ id, name, accountId, months }) => ({ id, name, accountId, months }))
 		}))
 	return { year: found.year, groups, accounts: listAccounts(userId) }
 }
@@ -91,7 +102,7 @@ const writeMonth = (lineId, month, { expected, real }) => {
 
 const addLineRow = (userId, groupId, line, position) => {
 	const id = newId('bl')
-	insertLine.run(id, userId, groupId, line.name, line.account ?? '', position)
+	insertLine.run(id, userId, groupId, line.name, line.accountId ?? null, position)
 	line.months?.forEach((m, i) => { if (m.expected != null || m.real != null) writeMonth(id, i + 1, m) })
 	return id
 }
@@ -103,13 +114,18 @@ const addGroupRows = (userId, yearId, group, position) => {
 	return id
 }
 
-/** Writes whole years, replacing any the account already holds under the same number. */
-export const replaceYears = db.transaction((userId, years) => {
+/** Writes whole years, each replacing a year already stored under the same number. Rows name
+    their account; a name the list does not hold yet is added to its end. */
+export const replaceYears = db.transaction((userId, years, accounts = []) => {
+	const named = [...accounts, ...years.flatMap(y => y.groups.flatMap(g => g.lines.map(l => l.account)))]
+	const ids = ensureAccounts(userId, named.filter(Boolean))
 	for (const year of years) {
 		deleteYearRow.run(userId, year.year)
 		const yearId = newId('by')
 		insertYear.run(yearId, userId, year.year)
-		year.groups.forEach((group, i) => addGroupRows(userId, yearId, group, i))
+		year.groups.forEach((group, i) => addGroupRows(userId, yearId, {
+			...group, lines: group.lines.map(l => ({ ...l, accountId: l.account ? ids.get(accountKey(l.account)) : null }))
+		}, i))
 	}
 })
 
@@ -169,6 +185,7 @@ export function deleteGroup(userId, groupId) {
 export const addLine = db.transaction((userId, groupId, line) => {
 	const group = selectGroup.get(groupId, userId)
 	if (!group) throw notFound('group')
+	if (line.accountId) checkAccount(userId, line.accountId)
 	const id = addLineRow(userId, groupId, line, Number.MAX_SAFE_INTEGER)
 	place(selectSiblingLines.all(userId, groupId), id, line.index, (l, p) => setLinePlace.run(groupId, p, l, userId))
 	return group.year
@@ -179,8 +196,10 @@ export const addLine = db.transaction((userId, groupId, line) => {
 export const updateLine = db.transaction((userId, lineId, patch) => {
 	const line = selectLine.get(lineId, userId)
 	if (!line) throw notFound('row')
-	if (patch.name != null || patch.account != null)
-		updateLineText.run(patch.name ?? line.name, patch.account ?? line.account, lineId, userId)
+	if (patch.accountId) checkAccount(userId, patch.accountId)
+	if (patch.name != null || patch.accountId !== undefined)
+		updateLineText.run(patch.name ?? line.name, patch.accountId !== undefined ? patch.accountId : line.account_id,
+			lineId, userId)
 	if (patch.months) patch.months.forEach((m, i) => writeMonth(lineId, i + 1, m))
 	if (patch.month != null) {
 		const was = selectAmount.get(lineId, patch.month) ?? { expected: null, real: null }
@@ -206,5 +225,54 @@ export function deleteLine(userId, lineId) {
 	return line.year
 }
 
-/** Forgets every year the account holds -- the reset that returns it to a fresh account. */
-export const wipeBudget = userId => deleteAllYears.run(userId)
+/* ---- accounts ---- */
+
+const accountKey = name => name.trim().toLocaleLowerCase('da')
+const refuse = message => Object.assign(new Error(message), { status: 400 })
+
+function checkAccount(userId, id) {
+	if (!selectAccount.get(id, userId)) throw notFound('account')
+}
+
+const refuseTwin = (userId, name, id) => {
+	const twin = listAccounts(userId).find(a => a.id !== id && accountKey(a.name) === accountKey(name))
+	if (twin) throw refuse(`You already have an account called ${twin.name}.`)
+}
+
+/** Finds each name in the list, adding the ones it does not hold to the end of it. */
+function ensureAccounts(userId, names) {
+	const ids = new Map(listAccounts(userId).map(a => [accountKey(a.name), a.id]))
+	let position = ids.size
+	for (const name of names) {
+		if (ids.has(accountKey(name))) continue
+		const id = newId('ba')
+		insertAccount.run(id, userId, name.trim(), position++)
+		ids.set(accountKey(name), id)
+	}
+	return ids
+}
+
+export const addAccount = db.transaction((userId, name) => {
+	refuseTwin(userId, name)
+	ensureAccounts(userId, [name])
+})
+
+export const updateAccount = db.transaction((userId, id, { name, index }) => {
+	checkAccount(userId, id)
+	if (name != null) {
+		refuseTwin(userId, name, id)
+		renameAccountRow.run(name, id, userId)
+	}
+	if (index != null) place(selectAccounts.all(userId), id, index, (a, p) => setAccountPosition.run(p, a, userId))
+})
+
+export function deleteAccount(userId, id) {
+	checkAccount(userId, id)
+	deleteAccountRow.run(id, userId)
+}
+
+/** Forgets every year and the whole account list -- the reset that starts a login afresh. */
+export const wipeBudget = db.transaction(userId => {
+	deleteAllYears.run(userId)
+	deleteAllAccounts.run(userId)
+})

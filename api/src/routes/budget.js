@@ -1,11 +1,11 @@
 import { Router } from 'express'
 import {
-	addGroup, addLine, createYear, deleteGroup, deleteLine, deleteYear, listYears, readYear,
-	replaceYears, updateGroup, updateLine
+	addAccount, addGroup, addLine, createYear, deleteAccount, deleteGroup, deleteLine, deleteYear,
+	listAccountsInUse, listYears, readYear, replaceYears, updateAccount, updateGroup, updateLine
 } from '../lib/budget.js'
 import {
-	BUDGET_TEXT, budgetAmount, budgetKind, budgetLine, budgetMonth, budgetMonths, budgetText,
-	budgetYear, budgetYears
+	BUDGET_TEXT, budgetAccountId, budgetAccountNames, budgetAmount, budgetKind, budgetMonth,
+	budgetMonths, budgetText, budgetYear, budgetYears
 } from '../lib/validate.js'
 
 export const router = Router()
@@ -25,8 +25,33 @@ router.get('/', (req, res) => res.json({ years: listYears(req.user.id) }))
 
 router.post('/import', (req, res) => {
 	const years = budgetYears(req.body?.years)
-	replaceYears(req.user.id, years)
+	replaceYears(req.user.id, years, budgetAccountNames(req.body?.accounts))
 	res.json({ years: years.map(y => y.year) })
+})
+
+/* The account list, above the year routes so /accounts is never read as a year. Each answer is
+   the whole list, with how many rows use each account. */
+const accounts = req => ({ accounts: listAccountsInUse(req.user.id) })
+
+router.get('/accounts', (req, res) => res.json(accounts(req)))
+
+router.post('/accounts', (req, res) => {
+	addAccount(req.user.id, budgetText(req.body?.name, BUDGET_TEXT.account))
+	res.status(201).json(accounts(req))
+})
+
+router.patch('/accounts/:id', (req, res) => {
+	const body = req.body ?? {}
+	updateAccount(req.user.id, req.params.id, {
+		name: body.name === undefined ? null : budgetText(body.name, BUDGET_TEXT.account),
+		index: body.index === undefined ? null : position(body.index)
+	})
+	res.json(accounts(req))
+})
+
+router.delete('/accounts/:id', (req, res) => {
+	deleteAccount(req.user.id, req.params.id)
+	res.json(accounts(req))
 })
 
 router.post('/', (req, res) => {
@@ -73,7 +98,8 @@ router.delete('/groups/:id', (req, res) => res.json(sheet(req, deleteGroup(req.u
 router.post('/groups/:id/lines', (req, res) => {
 	const body = req.body ?? {}
 	const year = addLine(req.user.id, req.params.id, {
-		...budgetLine(body), index: body.index === undefined ? null : position(body.index)
+		name: budgetText(body.name, BUDGET_TEXT.row), accountId: budgetAccountId(body.accountId),
+		months: budgetMonths(body.months), index: body.index === undefined ? null : position(body.index)
 	})
 	res.status(201).json(sheet(req, year))
 })
@@ -82,7 +108,7 @@ router.patch('/lines/:id', (req, res) => {
 	const body = req.body ?? {}
 	const patch = {}
 	if (body.name !== undefined) patch.name = budgetText(body.name, BUDGET_TEXT.row)
-	if (body.account !== undefined) patch.account = budgetText(body.account, BUDGET_TEXT.account)
+	if (body.accountId !== undefined) patch.accountId = budgetAccountId(body.accountId)
 	if (body.months !== undefined) patch.months = budgetMonths(body.months)
 	if (body.month !== undefined) {
 		patch.month = budgetMonth(body.month)

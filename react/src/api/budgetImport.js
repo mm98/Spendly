@@ -1,9 +1,10 @@
 import { readWorkbook } from './xlsx.js'
 
-/* The budget workbook's own layout: one sheet per year, named by the year, the month names
-   across one row, and to the left of January the account, the row's name and the group heading. */
+/* The budget workbook's layout: a sheet per year named by the year, months across one row, and left of
+   January the account, the row's name and the group heading. A sheet named Accounts lists the accounts. */
 
 const SECTIONS = { income: /^(indtægter|income)$/i, expense: /^(udgifter|expenses|costs)$/i }
+const ACCOUNT_SHEET = /^(accounts?|konti|konto)$/i
 const FALLBACK_GROUP = { income: 'Income', expense: 'Costs' }
 
 const round2 = n => Math.round(Number((n * 100).toPrecision(15))) / 100
@@ -46,13 +47,20 @@ function readYear(rows) {
 	return { groups: groups.filter(g => g.lines.length), skipped }
 }
 
-/** The years in the file, newest first, plus the sheets that are not a year and the cells
-    that held something other than an amount. */
+// The first column, less its heading, which names the sheet itself; a name listed twice counts once.
+function readAccounts(rows) {
+	const names = rows.map(row => text(row?.[0])).filter(name => name && !ACCOUNT_SHEET.test(name))
+	return names.filter((name, i) => names.findIndex(n => n.toLowerCase() === name.toLowerCase()) === i)
+}
+
+/** The years in the file, newest first, the account list, the sheets that are neither, and the
+    cells that held something other than an amount. */
 export async function budgetFromFile(file) {
 	const years = [], left = []
-	let skipped = 0
+	let skipped = 0, accounts = []
 	for (const sheet of await readWorkbook(file)) {
 		const name = sheet.name.trim()
+		if (ACCOUNT_SHEET.test(name)) { accounts = readAccounts(sheet.rows); continue }
 		const year = /^\d{4}$/.test(name) ? Number(name) : null
 		const read = year >= 1900 && year <= 2200 ? readYear(sheet.rows) : null
 		if (read?.groups.length) {
@@ -60,5 +68,5 @@ export async function budgetFromFile(file) {
 			skipped += read.skipped
 		} else left.push(name)
 	}
-	return { years: years.sort((a, b) => b.year - a.year), left, skipped }
+	return { years: years.sort((a, b) => b.year - a.year), accounts, left, skipped }
 }

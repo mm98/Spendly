@@ -415,7 +415,8 @@ async function budgetWrite(path, method, body, signal) {
 export const createBudgetYear = (year, from, amounts, signal) =>
 	budgetWrite('/api/budget', 'POST', { year, from, amounts }, signal)
 export const deleteBudgetYear = (year, signal) => budgetWrite(`/api/budget/${year}`, 'DELETE', undefined, signal)
-export const importBudget = (years, signal) => budgetWrite('/api/budget/import', 'POST', { years }, signal)
+export const importBudget = (years, accounts, signal) =>
+	budgetWrite('/api/budget/import', 'POST', { years, accounts }, signal)
 export const addBudgetGroup = (year, group, signal) =>
 	budgetWrite(`/api/budget/${year}/groups`, 'POST', group, signal)
 export const updateBudgetGroup = (id, patch, signal) =>
@@ -426,6 +427,18 @@ export const addBudgetLine = (groupId, line, signal) =>
 export const updateBudgetLine = (id, patch, signal) =>
 	budgetWrite(`/api/budget/lines/${id}`, 'PATCH', patch, signal)
 export const deleteBudgetLine = (id, signal) => budgetWrite(`/api/budget/lines/${id}`, 'DELETE', undefined, signal)
+
+/** The account list every row picks from, each with how many rows use it. Every write answers
+    with the whole list, as reading it does. */
+export async function getBudgetAccounts(signal) {
+	return (await request('/api/budget/accounts', { signal })).accounts
+}
+const accountWrite = async (path, method, body, signal) => (await budgetWrite(path, method, body, signal)).accounts
+export const addBudgetAccount = (name, signal) => accountWrite('/api/budget/accounts', 'POST', { name }, signal)
+export const updateBudgetAccount = (id, patch, signal) =>
+	accountWrite(`/api/budget/accounts/${id}`, 'PATCH', patch, signal)
+export const deleteBudgetAccount = (id, signal) =>
+	accountWrite(`/api/budget/accounts/${id}`, 'DELETE', undefined, signal)
 
 /** Carrying the picture's own id, so the address changes with the bytes and a browser told to
     keep one forever never shows a replaced photo. */
@@ -1149,5 +1162,5 @@ export function invalidateCategoryData() {
 
 /** Only the budget page reads the budget, and nothing else reads it. */
 export function invalidateBudgetData() {
-	invalidate(getBudgetYears); invalidate(getBudgetYear)
+	invalidate(getBudgetYears); invalidate(getBudgetYear); invalidate(getBudgetAccounts)
 }

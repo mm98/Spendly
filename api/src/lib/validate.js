@@ -168,7 +168,7 @@ const refuse = message => Object.assign(new Error(message), { status: 400 })
 export const BUDGET_TEXT = {
 	row: { max: 80, missing: 'Give the row a name.' },
 	group: { max: 60, missing: 'Give the group a name.' },
-	account: { max: 40 }
+	account: { max: 40, missing: 'Give the account a name.' }
 }
 
 export function budgetText(value, { max, missing }) {
@@ -208,11 +208,20 @@ export function budgetKind(value) {
 	return value
 }
 
+/** A row as a file carries it, naming its account rather than pointing at one. */
 export const budgetLine = line => ({
 	name: budgetText(line?.name, BUDGET_TEXT.row),
-	account: budgetText(line?.account, BUDGET_TEXT.account),
+	account: budgetText(line?.account, { max: BUDGET_TEXT.account.max }),
 	months: budgetMonths(line?.months)
 })
+
+export const budgetAccountId = value => (value == null || value === '' ? null : String(value))
+
+export function budgetAccountNames(names) {
+	if (names == null) return []
+	if (!Array.isArray(names)) throw refuse('Accounts are a list of names.')
+	return names.map(name => budgetText(name, BUDGET_TEXT.account))
+}
 
 /** A whole file's worth of years, checked before any of it is written. */
 export function budgetYears(years) {

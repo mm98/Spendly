@@ -10,16 +10,18 @@ import { ConfirmDialog } from '../components/ConfirmDialog.jsx'
 import { Field, FieldShell, FormActions, Segmented, TextInput, focusField, useFieldErrors } from '../components/Form.jsx'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { Icon } from '../components/Icon.jsx'
+import { InsetPanel, ItemRow } from '../components/Rows.jsx'
 import { useReorder } from '../components/Reorder.jsx'
 import { Sep } from '../components/Sep.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import { AMOUNT_PATTERN, activeCurrency, amount, amountRound, monthNames, parseAmount, plural, sanitizeAmount } from '../api/format.js'
-import { BUDGET_AMOUNT, BUDGET_GROUP_FIELDS, BUDGET_ROW_FIELDS } from '../api/rules.js'
+import { BUDGET_ACCOUNT_FIELDS, BUDGET_AMOUNT, BUDGET_GROUP_FIELDS, BUDGET_ROW_FIELDS } from '../api/rules.js'
 import {
-	addBudgetGroup, addBudgetLine, createBudgetYear, deleteBudgetGroup, deleteBudgetLine, deleteBudgetYear,
-	failureMessage, getBudgetYear, getBudgetYears, updateBudgetGroup, updateBudgetLine
+	addBudgetAccount, addBudgetGroup, addBudgetLine, createBudgetYear, deleteBudgetAccount, deleteBudgetGroup,
+	deleteBudgetLine, deleteBudgetYear, failureMessage, getBudgetAccounts, getBudgetYear, getBudgetYears,
+	updateBudgetAccount, updateBudgetGroup, updateBudgetLine
 } from '../api/client.js'
 
 /* The yearly budget, drawn the way the spreadsheet it replaces was: rows down the side in
@@ -41,15 +43,55 @@ const cellId = (lineId, month) => `budget-cell-${lineId}-${month}`
 const mapLines = (sheet, fn) => ({ ...sheet, groups: sheet.groups.map(g => ({ ...g, lines: g.lines.map(fn) })) })
 const withMonth = (sheet, lineId, month, change) => mapLines(sheet, line => (line.id !== lineId ? line
 	: { ...line, months: line.months.map((m, i) => (i === month ? { ...m, ...change } : m)) }))
+const moved = (list, from, to) => {
+	const next = [...list]
+	next.splice(to, 0, next.splice(from, 1)[0])
+	return next
+}
 const withMove = (sheet, groupId, from, to) => ({
-	...sheet,
-	groups: sheet.groups.map(g => {
-		if (g.id !== groupId) return g
-		const lines = [...g.lines]
-		lines.splice(to, 0, lines.splice(from, 1)[0])
-		return { ...g, lines }
-	})
+	...sheet, groups: sheet.groups.map(g => (g.id === groupId ? { ...g, lines: moved(g.lines, from, to) } : g))
 })
+
+/* Reordering saved once per move: at once for a key press, and where a drag is let go rather than
+   at every row it passes on the way. */
+function useSavedReorder({ items, describe, onAnnounce, onMove, onPlace }) {
+	const dragging = useRef(null)
+	const lifted = useRef(null)
+	const latest = useRef(items)
+	latest.current = items
+	const reorder = useReorder({
+		items, describe, onAnnounce,
+		onReorder: (from, to) => {
+			onMove(from, to)
+			if (!dragging.current) onPlace(items[from].id, to)
+		}
+	})
+	dragging.current = reorder.draggingId
+	useEffect(() => {
+		if (reorder.draggingId) {
+			lifted.current ??= { id: reorder.draggingId, from: latest.current.findIndex(i => i.id === reorder.draggingId) }
+			return
+		}
+		const was = lifted.current
+		lifted.current = null
+		const index = was ? latest.current.findIndex(i => i.id === was.id) : -1
+		if (was && index >= 0 && index !== was.from) onPlace(was.id, index)
+	}, [reorder.draggingId])
+	return reorder
+}
+
+/* Focus that waits for the next render, since the button it goes back to may be one that
+   render draws: an add button a panel stood in for, or a row that has just moved. */
+function useFocusLater() {
+	const target = useRef(null)
+	useEffect(() => {
+		if (!target.current) return
+		const el = document.getElementById(target.current)
+		target.current = null
+		if (el && !el.disabled) el.focus()
+	})
+	return useCallback(id => { target.current = id }, [])
+}
 
 export default function Budget() {
 	const years = useApi(getBudgetYears)
@@ -94,13 +136,16 @@ function FirstRun({ onYearsChanged }) {
 
 function BudgetYears({ years, onYearsChanged }) {
 	const { year: param } = useParams()
+	const [arranging, setArranging] = useState(false)
 	const now = new Date().getFullYear()
 	const latest = years[years.length - 1]
 	const year = param ? Number(param) : years.includes(now) ? now : latest
 	return (
 		<div className="page-grid">
-			<YearBar years={years} year={year} onYearsChanged={onYearsChanged} />
-			{years.includes(year) ? <YearSheet key={year} year={year} onYearsChanged={onYearsChanged} /> : (
+			<YearBar years={years} year={year} arranging={arranging} onArrange={setArranging} onYearsChanged={onYearsChanged} />
+			{years.includes(year) ? (
+				<YearSheet key={year} year={year} arranging={arranging} onYearsChanged={onYearsChanged} />
+			) : (
 				<Card aria-label="Budget">
 					<CardBody>
 						<EmptyState icon="budget">
@@ -114,7 +159,9 @@ function BudgetYears({ years, onYearsChanged }) {
 	)
 }
 
-function YearBar({ years, year, onYearsChanged }) {
+/* Amounts are typed straight into the sheet at all times. Everything that changes its shape --
+   rows, groups, accounts, years -- waits behind EDIT, because it is done a few times a year. */
+function YearBar({ years, year, arranging, onArrange, onYearsChanged }) {
 	const navigate = useNavigate()
 	const [starting, setStarting] = useState(false)
 	return (
@@ -123,8 +170,12 @@ function YearBar({ years, year, onYearsChanged }) {
 				<Segmented label="Year" options={years.map(String)} value={String(year)}
 					onChange={y => navigate(`/budget/${y}`)} />
 			</div>
-			<Button variant="pill" icon="plus" aria-haspopup="dialog" onClick={() => setStarting(true)}>
-				NEW YEAR</Button>
+			{arranging ? (
+				<Button variant="pill" icon="plus" aria-haspopup="dialog" onClick={() => setStarting(true)}>
+					NEW YEAR</Button>
+			) : null}
+			<Button variant="pill" icon={arranging ? 'check' : 'pencil'} aria-pressed={arranging}
+				onClick={() => onArrange(!arranging)}>{arranging ? 'DONE' : 'EDIT'}</Button>
 			{starting ? (
 				<NewYearDialog from={years[years.length - 1]} onClose={() => setStarting(false)}
 					onStarted={next => { setStarting(false); onYearsChanged(); navigate(`/budget/${next}`) }} />
@@ -191,7 +242,7 @@ function useWrites(setSheet, reload) {
 	}, [setSheet, reload, toast])
 }
 
-function YearSheet({ year, onYearsChanged }) {
+function YearSheet({ year, arranging, onYearsChanged }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const loaded = useApi(getBudgetYear, [year])
@@ -216,10 +267,15 @@ function YearSheet({ year, onYearsChanged }) {
 	if (!sheet) {
 		return <Async state={loaded} label={`Loading ${year}`} skeleton={<SkeletonCard lines={12} />}>{() => null}</Async>
 	}
-	return <SheetCard sheet={sheet} setSheet={setSheet} write={write} del={del} />
+	return (
+		<>
+			<SheetCard sheet={sheet} setSheet={setSheet} write={write} del={del} arranging={arranging} />
+			{arranging ? <AccountsCard sheet={sheet} onChanged={loaded.refresh} /> : null}
+		</>
+	)
 }
 
-function SheetCard({ sheet, setSheet, write, del }) {
+function SheetCard({ sheet, setSheet, write, del, arranging }) {
 	const months = useMemo(() => monthNames('short'), [])
 	const longMonths = useMemo(() => monthNames('long'), [])
 	const now = new Date()
@@ -229,8 +285,6 @@ function SheetCard({ sheet, setSheet, write, del }) {
 	const [editing, setEditing] = useState(null)
 	const [said, setSaid] = useState('')
 	const toast = useToast()
-	const sheetRef = useRef(sheet)
-	sheetRef.current = sheet
 	const scroller = useRef(null)
 
 	// Where the year does not fit, it opens on the month it is now rather than on January.
@@ -276,11 +330,13 @@ function SheetCard({ sheet, setSheet, write, del }) {
 		setEditing(null)
 		setPanel(next)
 	}
+	useEffect(() => { if (!arranging) setPanel(null) }, [arranging])
 
-	/* Where focus goes when a panel closes: back to what opened it, which may have moved. */
+	// Where focus goes when a panel closes: back to what opened it, which may have moved.
+	const focusLater = useFocusLater()
 	const closePanel = back => {
 		setPanel(null)
-		if (back) queueMicrotask(() => document.getElementById(back)?.focus())
+		if (back) focusLater(back)
 	}
 
 	const cellKeys = (line, month) => e => {
@@ -342,18 +398,17 @@ function SheetCard({ sheet, setSheet, write, del }) {
 								<span role="rowheader" className="budget-span"><span>{title}</span></span>
 							</div>
 							{sheet.groups.filter(g => g.kind === kind).map(group => (
-								<GroupBlock key={group.id} group={group} sheet={sheet} panel={panel} cell={cell}
+								<GroupBlock key={group.id} group={group} sheet={sheet} panel={panel} cell={cell} arranging={arranging}
 									openPanel={openPanel} closePanel={closePanel} write={write} onAnnounce={setSaid}
 									onMoveLocal={(from, to) => setSheet(s => withMove(s, group.id, from, to))}
-									onPlace={(lineId, index) => write(() => updateBudgetLine(lineId, { index })).catch(() => {})}
-									sheetRef={sheetRef} />
+									onPlace={(lineId, index) => write(() => updateBudgetLine(lineId, { index })).catch(() => {})} />
 							))}
 							{panel?.kind === 'new-group' && panel.section === kind ? (
 								<PanelRow>
 									<GroupPanel sheet={sheet} kind={kind} write={write}
 										onClose={() => closePanel(`budget-add-group-${kind}`)} />
 								</PanelRow>
-							) : (
+							) : arranging ? (
 								<div className="budget-row budget-add" role="row">
 									<span role="gridcell" className="budget-span">
 										<button type="button" className="line-add-row" id={`budget-add-group-${kind}`}
@@ -363,7 +418,7 @@ function SheetCard({ sheet, setSheet, write, del }) {
 										</button>
 									</span>
 								</div>
-							)}
+							) : null}
 						</Fragment>
 					))}
 					<Totals sheet={sheet} months={months} thisMonth={thisMonth} />
@@ -371,10 +426,16 @@ function SheetCard({ sheet, setSheet, write, del }) {
 			</div>
 			<p className="screenreader-only" role="status" aria-live="polite">{said}</p>
 			<div className="budget-foot">
-				<p className="field-help">Click an amount to write the real one. Enter saves it and moves down.
-					Clear it to show the expected amount again. Click a row's name to change the row, its account
-					and its expected amounts. The sheet shows whole {activeCurrency().label}.</p>
-				{del.button}
+				{arranging ? (
+					<p className="field-help">Drag a row by its dots to move it. Click a row's name to change the row,
+						its account and its expected amounts, or a group's name to rename or move the group. The list
+						of accounts is under the sheet. Amounts can still be typed straight into the sheet.</p>
+				) : (
+					<p className="field-help">Click an amount to write the real one. Enter saves it and moves down.
+						Clear it to show the expected amount again. To add, move or rename rows, groups and accounts,
+						or to change expected amounts, press EDIT. The sheet shows whole {activeCurrency().label}.</p>
+				)}
+				{arranging ? del.button : null}
 				{del.dialog}
 			</div>
 		</Card>
@@ -401,30 +462,11 @@ const PanelRow = ({ children }) => (
 	</div>
 )
 
-function GroupBlock({ group, sheet, panel, cell, openPanel, closePanel, write, onAnnounce, onMoveLocal, onPlace, sheetRef }) {
-	const dragging = useRef(null)
-	const reorder = useReorder({
-		items: group.lines, describe: line => line.name, onAnnounce,
-		onReorder: (from, to) => {
-			onMoveLocal(from, to)
-			if (!dragging.current) onPlace(group.lines[from].id, to)
-		}
+function GroupBlock({ group, sheet, panel, cell, arranging, openPanel, closePanel, write, onAnnounce, onMoveLocal, onPlace }) {
+	const reorder = useSavedReorder({
+		items: group.lines, describe: line => line.name, onAnnounce, onMove: onMoveLocal, onPlace
 	})
-	dragging.current = reorder.draggingId
-
-	/* A drag is saved once, where it was let go, rather than at every row it passed. */
-	const lifted = useRef(null)
-	useEffect(() => {
-		if (reorder.draggingId) {
-			lifted.current ??= { id: reorder.draggingId, from: group.lines.findIndex(l => l.id === reorder.draggingId) }
-			return
-		}
-		const was = lifted.current
-		lifted.current = null
-		if (!was) return
-		const index = sheetRef.current.groups.find(g => g.id === group.id)?.lines.findIndex(l => l.id === was.id)
-		if (index != null && index >= 0 && index !== was.from) onPlace(was.id, index)
-	}, [reorder.draggingId])
+	const accountName = id => sheet.accounts.find(a => a.id === id)?.name ?? ''
 
 	const groupOpen = panel?.kind === 'group' && panel.id === group.id
 	const index = sheet.groups.filter(g => g.kind === group.kind).findIndex(g => g.id === group.id)
@@ -435,16 +477,18 @@ function GroupBlock({ group, sheet, panel, cell, openPanel, closePanel, write, o
 		<div {...reorder.listProps} className="budget-group-block">
 			<div className="budget-row budget-group" role="row">
 				<span role="rowheader" className="budget-span">
-					<button type="button" className="budget-group-name" id={`budget-group-${group.id}`} aria-expanded={groupOpen}
-						onClick={() => openPanel(groupOpen ? null : { kind: 'group', id: group.id })}>
-						{group.name}<Icon name="pencil" />
-					</button>
+					{arranging ? (
+						<button type="button" className="budget-group-name" id={`budget-group-${group.id}`} aria-expanded={groupOpen}
+							onClick={() => openPanel(groupOpen ? null : { kind: 'group', id: group.id })}>
+							{group.name}<Icon name="pencil" />
+						</button>
+					) : <span className="budget-group-name">{group.name}</span>}
 				</span>
 			</div>
 			{groupOpen ? (
 				<PanelRow>
 					<GroupPanel sheet={sheet} group={group} kind={group.kind} index={index} count={siblings} write={write}
-						onClose={() => closePanel(`budget-group-${group.id}`)} />
+						onClose={gone => closePanel(gone ? `budget-add-group-${group.kind}` : `budget-group-${group.id}`)} />
 				</PanelRow>
 			) : null}
 			{group.lines.map((line, i) => {
@@ -455,12 +499,15 @@ function GroupBlock({ group, sheet, panel, cell, openPanel, closePanel, write, o
 						{reorder.placeholder(line)}
 						<div className={join('budget-row budget-line', open && 'is-open')} role="row" {...reorder.rowProps(line)}>
 							<span role="rowheader" className="budget-name">
-								{reorder.handle(line, i, panel !== null)}
-								<button type="button" className="budget-line-name" id={`budget-line-${line.id}`}
-									aria-expanded={open} title={line.name}
-									onClick={() => openPanel(open ? null : { kind: 'row', id: line.id })}>{line.name}</button>
+								{arranging ? reorder.handle(line, i, panel !== null) : null}
+								{arranging ? (
+									<button type="button" className="budget-line-name" id={`budget-line-${line.id}`}
+										aria-expanded={open} title={line.name}
+										onClick={() => openPanel(open ? null : { kind: 'row', id: line.id })}>{line.name}</button>
+								) : <span className="budget-line-name" title={line.name}>{line.name}</span>}
 							</span>
-							<span role="gridcell" className="budget-account" title={line.account}>{line.account}</span>
+							<span role="gridcell" className="budget-account" title={accountName(line.accountId)}>
+								{accountName(line.accountId)}</span>
 							{line.months.map((_, m) => cell(line, m))}
 							<span role="gridcell" className="budget-total">{figure(total)}</span>
 							<span role="gridcell" className="budget-total budget-average">{figure(total / MONTHS)}</span>
@@ -469,7 +516,7 @@ function GroupBlock({ group, sheet, panel, cell, openPanel, closePanel, write, o
 							<PanelRow>
 								<RowPanel sheet={sheet} line={line} groupId={group.id} write={write}
 									heading={`Row ${i + 1} of ${group.lines.length} in ${group.name}`}
-									onClose={() => closePanel(`budget-line-${line.id}`)} />
+									onClose={gone => closePanel(gone ? `budget-add-row-${group.id}` : `budget-line-${line.id}`)} />
 							</PanelRow>
 						) : null}
 					</Fragment>
@@ -480,7 +527,7 @@ function GroupBlock({ group, sheet, panel, cell, openPanel, closePanel, write, o
 					<RowPanel sheet={sheet} groupId={group.id} write={write} heading={`New row in ${group.name}`}
 						onClose={() => closePanel(`budget-add-row-${group.id}`)} />
 				</PanelRow>
-			) : (
+			) : arranging ? (
 				<div className="budget-row budget-add" role="row">
 					<span role="gridcell" className="budget-span">
 						<button type="button" className="line-add-row" id={`budget-add-row-${group.id}`}
@@ -490,7 +537,7 @@ function GroupBlock({ group, sheet, panel, cell, openPanel, closePanel, write, o
 						</button>
 					</span>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }
@@ -550,7 +597,7 @@ const ROW_FIELDS = [
 ]
 
 const formOf = line => {
-	const form = { 'budget-row-name': line?.name ?? '', 'budget-row-account': line?.account ?? '' }
+	const form = { 'budget-row-name': line?.name ?? '' }
 	for (let m = 0; m < MONTHS; m++) for (const kind of ['expected', 'real']) {
 		const value = line?.months[m][kind]
 		form[amountField(kind, m)] = value != null ? amount(value) : ''
@@ -558,8 +605,10 @@ const formOf = line => {
 	return form
 }
 
-/* Escape and Enter belong to an open list first: a combobox that is showing its options takes them. */
+/* Escape and Enter belong to an open list or dialog first: a combobox showing its options, or
+   the question a delete asks, takes them before the panel behind it does. */
 const listOpen = e => e.target.getAttribute?.('aria-expanded') === 'true' || e.defaultPrevented
+	|| Boolean(e.target.closest?.('dialog'))
 
 /** A row's own fields: its name, its account, its group and both amounts for each month. */
 function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
@@ -567,6 +616,7 @@ function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
 	const longMonths = useMemo(() => monthNames('long'), [])
 	const [form, setForm] = useState(() => formOf(line))
 	const [target, setTarget] = useState(groupId)
+	const [accountId, setAccountId] = useState(line?.accountId ?? null)
 	const [fill, setFill] = useState('')
 	const [fillError, setFillError] = useState('')
 	const [saving, setSaving] = useState(false)
@@ -580,7 +630,9 @@ function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
 	const groupChoices = KINDS.map(({ kind, title }) => ({
 		heading: title, options: sheet.groups.filter(g => g.kind === kind).map(g => ({ id: g.id, label: g.name }))
 	}))
-	const accountChoices = [{ heading: 'Accounts', options: sheet.accounts.map(a => ({ label: a })) }]
+	const accountName = sheet.accounts.find(a => a.id === accountId)?.name ?? 'No account'
+	const accountChoices = [{ heading: 'Accounts', options: [{ id: 'none', label: 'No account' },
+		...sheet.accounts.map(a => ({ id: a.id, label: a.name }))] }]
 
 	const everyMonth = (kind, value) => setForm(f => {
 		const next = { ...f }
@@ -601,7 +653,7 @@ function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
 		if (failed.length) { focusField(failed[0].name); return }
 		const body = {
 			name: form['budget-row-name'].trim(),
-			account: form['budget-row-account'].trim(),
+			accountId,
 			months: Array.from({ length: MONTHS }, (_, m) => ({
 				expected: toNumber(form[amountField('expected', m)]), real: toNumber(form[amountField('real', m)])
 			}))
@@ -621,7 +673,7 @@ function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
 		what: 'row',
 		label: l => `Delete the row ${l.name}`,
 		detail: l => `${l.name}, with every amount in it.`,
-		onDelete: l => write(() => deleteBudgetLine(l.id)).then(() => onClose(), () => {})
+		onDelete: l => write(() => deleteBudgetLine(l.id)).then(() => onClose(true), () => {})
 	})
 
 	const keys = e => {
@@ -631,7 +683,6 @@ function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
 	}
 
 	const name = errors.propsFor('budget-row-name')
-	const account = errors.propsFor('budget-row-account')
 
 	return (
 		<div className="filter-section line-card budget-panel" onKeyDown={keys}>
@@ -646,11 +697,10 @@ function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
 							onChange={set('budget-row-name')} invalid={name.invalid} describedBy={name.describedBy} />
 					</FieldShell>
 				</Field>
-				<Field label="Account" optional htmlFor="budget-row-account" error={account.error} errorId={account.errorId}
-					help="Where the money is paid from, or paid into.">
-					<Combobox id="budget-row-account" label="Account" value={form['budget-row-account']}
-						groups={accountChoices} invalid={account.invalid} describedBy={account.describedBy}
-						onChange={set('budget-row-account')} onSelect={o => set('budget-row-account')(o.label)} />
+				<Field label="Account" optional htmlFor="budget-row-account"
+					help="Where the money is paid from, or paid into. The list of accounts is under the sheet.">
+					<Combobox id="budget-row-account" label="Account" pickOnly value={accountName} groups={accountChoices}
+						onSelect={o => setAccountId(o.id === 'none' ? null : o.id)} />
 				</Field>
 				<Field label="Group" htmlFor="budget-row-group">
 					<Combobox id="budget-row-group" label="Group" pickOnly value={groupName} groups={groupChoices}
@@ -712,40 +762,37 @@ function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
 	)
 }
 
-/** A group's name and place, or a new group for one side of the sheet. */
-function GroupPanel({ sheet, group, kind, index = 0, count = 0, write, onClose }) {
-	const [form, setForm] = useState({ 'budget-group-name': group?.name ?? '' })
+/** One name, saved or dropped: what a group and an account both are to edit. `onSave` answers
+    with the write, so a refused name keeps the panel open with what was typed. */
+function NamePanel({ id, heading, rules, initial, what, onSave, onClose, head, del }) {
+	const [form, setForm] = useState({ [id]: initial ?? '' })
 	const [saving, setSaving] = useState(false)
-	const errors = useFieldErrors(BUDGET_GROUP_FIELDS, form)
-	const name = errors.propsFor('budget-group-name')
+	const errors = useFieldErrors(rules, form)
+	const name = errors.propsFor(id)
 
-	useEffect(() => { focusField('budget-group-name') }, [])
+	// Once, when the panel opens: a group moved from its panel keeps focus on the button that moved it.
+	const opened = useRef(false)
+	useEffect(() => {
+		if (opened.current) return
+		opened.current = true
+		focusField(id)
+	}, [id])
 
 	const save = async () => {
 		if (saving) return
 		const failed = errors.check()
 		if (failed.length) { focusField(failed[0].name); return }
-		const value = form['budget-group-name'].trim()
 		setSaving(true)
 		try {
-			await write(() => (group ? updateBudgetGroup(group.id, { name: value }) : addBudgetGroup(sheet.year, { kind, name: value })))
+			await onSave(form[id].trim())
 			onClose()
 		} catch {
 			setSaving(false)
 		}
 	}
 
-	const move = step => write(() => updateBudgetGroup(group.id, { index: index + step })).catch(() => {})
-	const groupDelete = useRowDelete({
-		what: 'group',
-		label: g => `Delete the group ${g.name}`,
-		detail: g => (g.lines.length
-			? `${g.name} and its ${plural(g.lines.length, 'row')}, with every amount in them.`
-			: `${g.name}, which has no rows.`),
-		onDelete: g => write(() => deleteBudgetGroup(g.id)).then(() => onClose(), () => {})
-	})
-
 	const keys = e => {
+		if (listOpen(e)) return
 		if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
 		if (e.key === 'Enter' && e.target instanceof HTMLInputElement) { e.preventDefault(); save() }
 	}
@@ -753,37 +800,171 @@ function GroupPanel({ sheet, group, kind, index = 0, count = 0, write, onClose }
 	return (
 		<div className="filter-section line-card budget-panel" onKeyDown={keys}>
 			<div className="line-card-head">
-				<span className="section-label line-card-title">
-					{group ? `Group ${index + 1} of ${count}` : `New group in ${kind === 'income' ? 'income' : 'costs'}`}</span>
-				{group ? (
-					<span className="row-inline row-actions">
-						<IconButton icon="chevronUp" label="Move the group up" disabled={index <= 0} onClick={() => move(-1)} />
-						<IconButton icon="chevronDown" label="Move the group down" disabled={index >= count - 1} onClick={() => move(1)} />
-					</span>
-				) : null}
+				<span className="section-label line-card-title">{heading}</span>
+				{head}
 				<span className="field-help push-end line-card-keys">Enter saves<Sep />Escape cancels</span>
 			</div>
 			<div className="budget-panel-fields budget-panel-fields-one">
-				<Field label="Name" htmlFor="budget-group-name" error={name.error} errorId={name.errorId}>
+				<Field label="Name" htmlFor={id} error={name.error} errorId={name.errorId}>
 					<FieldShell>
-						<TextInput id="budget-group-name" aria-required="true" value={form['budget-group-name']}
-							onChange={v => { setForm({ 'budget-group-name': v }); errors.recheck('budget-group-name', v) }}
+						<TextInput id={id} aria-required="true" value={form[id]}
+							onChange={v => { setForm({ [id]: v }); errors.recheck(id, v) }}
 							invalid={name.invalid} describedBy={name.describedBy} />
 					</FieldShell>
 				</Field>
 			</div>
 			<FormActions>
 				<Button variant="caps compact" icon="check" onClick={save}>
-					{saving ? 'SAVING...' : group ? 'SAVE GROUP' : 'ADD GROUP'}</Button>
+					{saving ? 'SAVING...' : initial == null ? `ADD ${what}` : `SAVE ${what}`}</Button>
 				<Button variant="ghost compact" onClick={() => onClose()}>CANCEL</Button>
-				{group ? (
-					<span className="push-end">
-						{groupDelete.button(group, <span className="line-delete-label">DELETE GROUP</span>, `Delete group, ${group.name}`)}
-					</span>
-				) : null}
+				{del ? <span className="push-end">{del.button}</span> : null}
 			</FormActions>
-			{groupDelete.dialog}
+			{del?.dialog}
 		</div>
+	)
+}
+
+/** A group's name and place, or a new group for one side of the sheet. */
+function GroupPanel({ sheet, group, kind, index = 0, count = 0, write, onClose }) {
+	const focusLater = useFocusLater()
+	// A group moved to the top or the bottom leaves that button disabled, so focus takes the other one.
+	const move = step => write(() => updateBudgetGroup(group.id, { index: index + step })).then(() => {
+		const to = index + step
+		focusLater(to <= 0 ? 'budget-group-down' : to >= count - 1 ? 'budget-group-up'
+			: step < 0 ? 'budget-group-up' : 'budget-group-down')
+	}, () => {})
+	const groupDelete = useRowDelete({
+		what: 'group',
+		label: g => `Delete the group ${g.name}`,
+		detail: g => (g.lines.length
+			? `${g.name} and its ${plural(g.lines.length, 'row')}, with every amount in them.`
+			: `${g.name}, which has no rows.`),
+		onDelete: g => write(() => deleteBudgetGroup(g.id)).then(() => onClose(true), () => {})
+	})
+	return (
+		<NamePanel id="budget-group-name" rules={BUDGET_GROUP_FIELDS} initial={group?.name} what="GROUP"
+			heading={group ? `Group ${index + 1} of ${count}` : `New group in ${kind === 'income' ? 'income' : 'costs'}`}
+			onSave={name => write(() => (group ? updateBudgetGroup(group.id, { name }) : addBudgetGroup(sheet.year, { kind, name })))}
+			onClose={onClose}
+			head={group ? (
+				<span className="row-inline row-actions">
+					<IconButton icon="chevronUp" label="Move the group up" id="budget-group-up" disabled={index <= 0}
+						onClick={() => move(-1)} />
+					<IconButton icon="chevronDown" label="Move the group down" id="budget-group-down"
+						disabled={index >= count - 1} onClick={() => move(1)} />
+				</span>
+			) : null}
+			del={group ? {
+				button: groupDelete.button(group, <span className="line-delete-label">DELETE GROUP</span>, `Delete group, ${group.name}`),
+				dialog: groupDelete.dialog
+			} : null} />
+	)
+}
+
+const accountKey = name => name.trim().toLocaleLowerCase('da')
+
+/** An account's name, or a new account at the end of the list. Two accounts cannot share a name,
+    since the rows and the totals tell them apart by it. */
+function AccountPanel({ account, list, write, del, onClose }) {
+	const rules = useMemo(() => BUDGET_ACCOUNT_FIELDS.map(rule => ({
+		...rule,
+		check: v => {
+			const twin = list.find(a => a.id !== account?.id && accountKey(a.name) === accountKey(v))
+			return rule.check(v) || (twin ? `You already have an account called ${twin.name}.` : '')
+		}
+	})), [list, account?.id])
+	return (
+		<NamePanel id="budget-account-name" rules={rules} initial={account?.name} what="ACCOUNT"
+			heading={account ? 'Account' : 'New account'} onClose={onClose} del={del}
+			onSave={name => write(() => (account ? updateBudgetAccount(account.id, { name }) : addBudgetAccount(name)))} />
+	)
+}
+
+/* The spreadsheet's Accounts sheet: set up once, so it is shown only while editing. Every change
+   reads the year again, since the sheet draws the names and adds up the costs per account. */
+function AccountsCard({ sheet, onChanged }) {
+	const loaded = useApi(getBudgetAccounts)
+	const [list, setList] = useState(null)
+	useEffect(() => { if (loaded.data) setList(loaded.data) }, [loaded.data])
+	const writeList = useWrites(setList, loaded.refresh)
+	const write = useCallback((send, optimistic) => writeList(send, optimistic).then(fresh => {
+		onChanged()
+		return fresh
+	}), [writeList, onChanged])
+	const [panel, setPanel] = useState(null)
+	const [said, setSaid] = useState('')
+	const focusLater = useFocusLater()
+	const reorder = useSavedReorder({
+		items: list ?? [], describe: a => a.name, onAnnounce: setSaid,
+		onMove: (from, to) => setList(l => moved(l, from, to)),
+		onPlace: (id, index) => write(() => updateBudgetAccount(id, { index })).catch(() => {})
+	})
+	const close = back => {
+		setPanel(null)
+		focusLater(back)
+	}
+	// The list is shared by every year, so a delete counts the rows in all of them.
+	const accountDelete = useRowDelete({
+		what: 'account',
+		label: a => `Delete the account ${a.name}`,
+		detail: a => (a.rows
+			? `${a.name}. Counting all years, ${plural(a.rows, 'row')} will have no account.`
+			: `${a.name}, which no row uses in any year.`),
+		onDelete: a => write(() => deleteBudgetAccount(a.id)).then(() => close('budget-add-account'), () => {})
+	})
+	const inYear = id => sheet.groups.reduce((n, g) => n + g.lines.filter(l => l.accountId === id).length, 0)
+	const grips = (list?.length ?? 0) > 1
+
+	return (
+		<Card aria-label="Accounts">
+			<CardHeader title="Accounts" />
+			<CardDivider />
+			<CardBody>
+				<p className="card-lead card-lead-flush">The accounts a row is paid from, or paid into. Each row picks one,
+					and the sheet adds up the costs on each account in this order. Every year uses this list.</p>
+				{list === null ? <Async state={loaded} label="Loading the accounts">{() => null}</Async> : (
+					<InsetPanel {...reorder.listProps}>
+						{list.map((account, i) => {
+							if (panel === account.id) {
+								return (
+									<AccountPanel key={account.id} account={account} list={list} write={write}
+										del={{ button: accountDelete.button(account, <span className="line-delete-label">DELETE ACCOUNT</span>,
+											`Delete account, ${account.name}`) }}
+										onClose={() => close(`budget-account-${account.id}`)} />
+								)
+							}
+							const rows = inYear(account.id)
+							return (
+								<Fragment key={account.id}>
+									{reorder.placeholder(account)}
+									<ItemRow className="item-row-group" title={account.name}
+										handle={grips ? reorder.handle(account, i, panel !== null) : null}
+										meta={rows ? `Used by ${plural(rows, 'row')} in ${sheet.year}` : `Not used in ${sheet.year}`}
+										{...reorder.rowProps(account)}>
+										<span className="row-inline row-inline-nowrap row-actions push-end">
+											<IconButton icon="pencil" label={`Edit ${account.name}`} id={`budget-account-${account.id}`}
+												onClick={() => setPanel(account.id)} />
+											{accountDelete.iconButton(account)}
+										</span>
+									</ItemRow>
+								</Fragment>
+							)
+						})}
+						{panel === 'new' ? (
+							<AccountPanel list={list} write={write} onClose={() => close('budget-add-account')} />
+						) : (
+							<button type="button" className="line-add-row" id="budget-add-account" onClick={() => setPanel('new')}>
+								{grips ? <span className="line-add-grip-space" aria-hidden="true"><Icon name="grip" /></span> : null}
+								<span className="line-add-glyph" aria-hidden="true"><Icon name="plus" /></span>
+								<span className="line-add-text">{list.length ? 'Add an account' : 'Add the first account'}</span>
+							</button>
+						)}
+					</InsetPanel>
+				)}
+				{accountDelete.dialog}
+				<p className="screenreader-only" role="status" aria-live="polite">{said}</p>
+			</CardBody>
+		</Card>
 	)
 }
 
@@ -809,8 +990,12 @@ function Totals({ sheet, months, thisMonth }) {
 	const income = sumMonths(linesOf('income'))
 	const costLines = linesOf('expense')
 	const costs = sumMonths(costLines)
-	const accounts = [...new Set(costLines.map(l => l.account))].sort((a, b) => a.localeCompare(b, 'da'))
-	const byAccount = accounts.some(Boolean) ? accounts : []
+	const used = sheet.accounts.filter(a => costLines.some(l => l.accountId === a.id))
+	const byAccount = !used.length ? [] : [
+		...used.map(a => ({ key: a.id, label: a.name, lines: costLines.filter(l => l.accountId === a.id) })),
+		...(costLines.some(l => !l.accountId)
+			? [{ key: 'none', label: 'No account', lines: costLines.filter(l => !l.accountId) }] : [])
+	]
 	return (
 		<>
 			<HeadRow months={months} thisMonth={thisMonth} first="Totals" />
@@ -819,10 +1004,7 @@ function Totals({ sheet, months, thisMonth }) {
 					<div className="budget-row budget-section budget-section-quiet" role="row">
 						<span role="rowheader" className="budget-span"><span>Costs by account</span></span>
 					</div>
-					{byAccount.map(a => (
-						<SumRow key={a} label={a || 'No account'} thisMonth={thisMonth}
-							values={sumMonths(costLines.filter(l => l.account === a))} />
-					))}
+					{byAccount.map(a => <SumRow key={a.key} label={a.label} thisMonth={thisMonth} values={sumMonths(a.lines)} />)}
 				</>
 			) : null}
 			<SumRow label="Income" values={income} thisMonth={thisMonth} />

@@ -35,7 +35,7 @@ export function BudgetImport({ variant = 'caps', onImported }) {
 	const write = async () => {
 		setBusy(true)
 		try {
-			await importBudget(found.years)
+			await importBudget(found.years, found.accounts)
 			toast(`${plural(found.years.length, 'year')} brought in.`)
 			const years = found.years.map(y => y.year)
 			setFound(null)
@@ -51,6 +51,8 @@ export function BudgetImport({ variant = 'caps', onImported }) {
 	const years = found?.years.map(y => y.year) ?? []
 	const replaced = years.filter(y => held.data?.years.includes(y))
 	const rows = found?.years.map(y => y.groups.reduce((n, g) => n + g.lines.length, 0)) ?? []
+	const named = found && !found.accounts.length
+		&& found.years.some(y => y.groups.some(g => g.lines.some(l => l.account)))
 
 	return (
 		<>
@@ -64,6 +66,11 @@ export function BudgetImport({ variant = 'caps', onImported }) {
 					onConfirm={busy ? () => {} : write} onCancel={() => setFound(null)}>
 					<ul className="budget-import-notes">
 						<li>Amounts in light grey text come in as expected amounts. The others come in as real amounts.</li>
+						{found.accounts.length ? (
+							<li>The account list is {list(found.accounts)}, from the Accounts sheet.</li>
+						) : named ? (
+							<li>The accounts the rows name become the account list.</li>
+						) : null}
 						{replaced.length ? (
 							<li>{list(replaced.map(String))} {replaced.length === 1 ? 'is' : 'are'} already here. Importing replaces {replaced.length === 1 ? 'it' : 'them'}.</li>
 						) : null}

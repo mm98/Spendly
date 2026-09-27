@@ -117,7 +117,7 @@ const BIG_TABLES = new Set(['orders', 'order_items', 'order_categories', 'attach
    lookup by primary key that reached the row through an already-scoped query. The baseline
    carries the ones that are the latter. */
 const SCOPED_TABLES = new Set([...BIG_TABLES, 'vendors', 'categories', 'vendor_aliases', 'settings',
-	'dashboard_cards', 'wishes', 'budget_years', 'budget_groups', 'budget_lines'])
+	'dashboard_cards', 'wishes', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines'])
 
 const tmp = mkdtempSync(path.join(tmpdir(), 'spendly-queries-'))
 const DB_PATH = path.join(tmp, 'check.sqlite3')
@@ -210,8 +210,10 @@ const fixtureBudget = year => ({
 				account: ['Budget', 'Salary', 'Savings'][row % 3], months: fixtureMonths(row, 9) })) }))
 	]
 })
-replaceYears(USER, [2024, 2025, 2026].map(fixtureBudget))
-for (let i = 0; i < NEIGHBOURS; i++) replaceYears(`u-neighbour${String(i).padStart(6, '0')}`, [fixtureBudget(2026)])
+const fixtureAccounts = ['Salary', 'Budget', 'Savings']
+replaceYears(USER, [2024, 2025, 2026].map(fixtureBudget), fixtureAccounts)
+for (let i = 0; i < NEIGHBOURS; i++)
+	replaceYears(`u-neighbour${String(i).padStart(6, '0')}`, [fixtureBudget(2026)], fixtureAccounts)
 
 // The demo fill rewrites the whole ledger, so the statistics db.js gathered over an empty
 // account are stale -- exactly what routes/account.js re-runs ANALYZE for after a fill.
@@ -256,7 +258,7 @@ const REQUESTS = [
 	`/wishes/${ids.wish}`,
 	'/home/hero', '/home/onboarding', '/settings', '/dashboard-cards',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
-	'/scan/recent', '/budget', '/budget/2026'
+	'/scan/recent', '/budget', '/budget/2026', '/budget/accounts'
 ]
 
 for (const request of REQUESTS) {
@@ -296,16 +298,20 @@ for (const [path, to] of [
 const sheet = await (await fetch(BASE + '/budget/2026', { headers: H })).json()
 const [group, second] = sheet.groups.filter(g => g.kind === 'expense')
 const line = group.lines[1]
+const [account, other] = sheet.accounts
 for (const [method, path, body] of [
 	['PATCH', `/budget/lines/${line.id}`, { month: 3, real: 123.45 }],
-	['PATCH', `/budget/lines/${line.id}`, { name: 'Renamed', account: 'Budget' }],
+	['PATCH', `/budget/lines/${line.id}`, { name: 'Renamed', accountId: other.id }],
 	['PATCH', `/budget/lines/${line.id}`, { groupId: second.id, index: 0 }],
-	['POST', `/budget/groups/${group.id}/lines`, { name: 'New row', account: '', months: fixtureMonths(1, 0) }],
+	['POST', `/budget/groups/${group.id}/lines`, { name: 'New row', accountId: account.id, months: fixtureMonths(1, 0) }],
 	['PATCH', `/budget/groups/${second.id}`, { name: 'Moved', index: 0 }],
 	['POST', '/budget/2026/groups', { kind: 'expense', name: 'New group' }],
 	['POST', '/budget', { year: 2027, from: 2026, amounts: 'expected' }],
 	['DELETE', `/budget/lines/${group.lines[0].id}`],
-	['DELETE', `/budget/groups/${group.id}`]
+	['DELETE', `/budget/groups/${group.id}`],
+	['POST', '/budget/accounts', { name: 'Holiday' }],
+	['PATCH', `/budget/accounts/${other.id}`, { name: 'Budget account', index: 0 }],
+	['DELETE', `/budget/accounts/${account.id}`]
 ]) {
 	const response = await fetch(BASE + path, {
 		method, headers: { ...H, 'Content-Type': 'application/json' }, body: body && JSON.stringify(body)

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button.jsx'
 
 /* The question the app asks before doing something it cannot take back.
@@ -30,7 +31,9 @@ export function ConfirmDialog({ title, detail, confirmLabel, cancelLabel = 'CANC
 		return () => opener?.focus?.()
 	}, [])
 
-	return (
+	/* Drawn on the body, so a dialog opened from inside a centred or narrowed box does not
+	   take that box's alignment or width. */
+	return createPortal(
 		<dialog className="confirm-dialog" ref={ref} aria-label={title}
 			onCancel={onCancel}
 			onClick={e => { if (e.target === ref.current) onCancel() }}>
@@ -43,6 +46,7 @@ export function ConfirmDialog({ title, detail, confirmLabel, cancelLabel = 'CANC
 					<Button ref={cancelRef} variant="ghost compact" onClick={onCancel}>{cancelLabel}</Button>
 				</div>
 			</div>
-		</dialog>
+		</dialog>,
+		document.body
 	)
 }

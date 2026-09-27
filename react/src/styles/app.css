@@ -1531,11 +1531,13 @@ label.field-shell { cursor:pointer; }
 .budget-section { border-bottom:0; }
 .budget-section .budget-span > * { display:block; width:max-content; padding:18px 0 6px; font-size:13.5px; font-weight:700; color:var(--text); }
 .budget-section-quiet .budget-span > * { font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
-.budget-group-name { font:inherit; display:inline-flex; align-items:center; gap:6px; padding:12px 0 6px; background:none; border:0; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); cursor:pointer; }
+.budget-group-name { font:inherit; display:inline-flex; align-items:center; gap:6px; padding:12px 0 6px; background:none; border:0; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); }
 .budget-group-name svg.icon { width:12px; height:12px; color:var(--text-faint); }
-.budget-group-name:hover { color:var(--text); }
-.budget-line-name { font:inherit; flex:1; min-width:0; padding:8px 0; background:none; border:0; text-align:left; font-size:13px; font-weight:600; color:var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
-.budget-line-name:hover { text-decoration:underline; text-underline-offset:3px; }
+button.budget-group-name { cursor:pointer; }
+button.budget-group-name:hover { color:var(--text); }
+.budget-line-name { font:inherit; flex:1; min-width:0; padding:8px 0; background:none; border:0; text-align:left; font-size:13px; font-weight:600; color:var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+button.budget-line-name { cursor:pointer; }
+button.budget-line-name:hover { text-decoration:underline; text-underline-offset:3px; }
 .budget-line:hover, .budget-line:hover > .budget-name { background:var(--bg-row-hover); }
 .budget-line.is-open, .budget-line.is-open > .budget-name { background:var(--bg-green-tint); }
 .budget-account { padding:0 6px; font-size:11.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -1563,7 +1565,8 @@ label.field-shell { cursor:pointer; }
 .budget-editor-note.is-error { color:var(--text-negative); text-align:left; }
 /* A panel is as wide as the visible part of the sheet, not the whole row, so none of it scrolls away. */
 .budget-panel-row { border-bottom:0; }
-.budget-panel { container:budget-panel / inline-size; width:100cqw; margin:8px 0 12px; }
+.budget-panel { container:budget-panel / inline-size; margin:8px 0 12px; }
+.budget-panel-row .budget-panel { width:100cqw; }
 .budget-panel-fields { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); gap:var(--gap-panel); }
 .budget-panel-fields.budget-panel-fields-one { grid-template-columns:minmax(0,420px); }
 .budget-panel-months { display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:10px 8px; }

@@ -7,6 +7,15 @@ CREATE TABLE budget_years (
 	UNIQUE (user_id, year)
 );
 
+-- The accounts a row is paid from or into: one list for every year, which each row picks from.
+CREATE TABLE budget_accounts (
+	id TEXT PRIMARY KEY,
+	user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+	name TEXT NOT NULL,
+	position INTEGER NOT NULL,
+	UNIQUE (user_id, name)
+);
+
 CREATE TABLE budget_groups (
 	id TEXT PRIMARY KEY,
 	user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -16,12 +25,13 @@ CREATE TABLE budget_groups (
 	position INTEGER NOT NULL
 );
 
+-- A deleted account leaves its rows with no account, not deleted with it.
 CREATE TABLE budget_lines (
 	id TEXT PRIMARY KEY,
 	user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 	group_id TEXT NOT NULL REFERENCES budget_groups(id) ON DELETE CASCADE,
 	name TEXT NOT NULL,
-	account TEXT NOT NULL DEFAULT '',
+	account_id TEXT REFERENCES budget_accounts(id) ON DELETE SET NULL,
 	position INTEGER NOT NULL
 );
 
