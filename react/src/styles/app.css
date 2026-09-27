@@ -1569,7 +1569,7 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-line .item-row-grip, .budget-account-row .item-row-grip { width:var(--budget-mark); justify-content:center; }
 .budget-add { border-bottom:0; }
 .budget-add .line-add-row { border-top:0; width:max-content; gap:var(--gap-icon); padding:6px 0 10px; }
-.budget-add .line-add-glyph { width:var(--budget-mark); height:var(--budget-mark); }
+.budget-add .line-add-glyph { width:var(--budget-mark); height:var(--budget-mark); border:0; }
 .budget-add .line-add-text { font-size:12px; color:var(--text-muted); }
 /* The editor lies over its cell and runs past it to the left, the way a spreadsheet's does. */
 .budget-editor { position:absolute; top:0; right:0; z-index:3; width:max(100%, 112px); }
