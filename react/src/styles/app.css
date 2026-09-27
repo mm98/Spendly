@@ -112,7 +112,9 @@
 
 	/* Status tints come in pairs, a wash and an ink, so a chip and a note that mean
 	   the same thing draw from the same pair. Positive is --bg-positive above with
-	   --text-positive; these are the rest. --icon-warn is the warning dot. */
+	   --text-positive, negative is --bg-negative with --text-negative; these are the
+	   rest. --icon-warn is the warning dot. */
+	--bg-negative:#F5DAD6;
 	--bg-warn:#F6ECD9;
 	--text-warn:#84651E;
 	--icon-warn:#D9A63C;
@@ -1564,6 +1566,10 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-sum-label { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .budget-sum.is-strong { border-top:1px solid var(--border-control); border-bottom:0; }
 .budget-sum.is-strong > * { font-weight:700; color:var(--text); }
+/* What is left over reads the way the spreadsheet showed it: money left is green on a green wash, a
+   month that spends more than it brings in is red on a red wash. */
+.budget-sum > .is-positive { background:var(--bg-positive); color:var(--text-positive); }
+.budget-sum > .is-negative { background:var(--bg-negative); color:var(--text-negative); }
 /* The grip and the add rows' plus sit in one slot with one gap after it, so the words of an add row start
    where the names above it do. */
 .budget-line .item-row-grip, .budget-account-row .item-row-grip { width:var(--budget-mark); justify-content:center; }
@@ -2262,7 +2268,7 @@ html[data-theme="dark"] {
 	--chip-glyph:#7F8981; --thumb-glyph:#8E988F;
 	--bg-app:#0B0F0D; --bg-card:#151A17; --bg-dark:#3f564b;
 	--bg-nav-active:#1C221E; --bg-row-hover:#191F1B;
-	--bg-positive:#123227; --bg-bar-track:#202923; --bg-meter-track:#202923;
+	--bg-positive:#123227; --bg-negative:#3C201D; --bg-bar-track:#202923; --bg-meter-track:#202923;
 	--bg-inset:#1C221E; --bg-control-tint:#1E2420; --bg-hero:#1C221E;
 	--border-card:#232925; --border-divider:#1F2521; --border-control:#282F2A;
 	--text-positive:#4BD8A2; --text-negative:#F2837B; --teal:#38B8B2;

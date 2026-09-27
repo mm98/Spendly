@@ -100,7 +100,7 @@ Amber — informational warning. Used for anything about a monthly limit. **Ambe
 | `#7a5c23` | Text and icon |
 | `#6b5424` | Text on amber fill |
 
-Red — error and destructive. Used for validation that stops a save, and for delete.
+Red — error and destructive. Used for validation that stops a save, for delete, and for a budget month that spends more than it brings in.
 
 | Value | Use |
 | --- | --- |
@@ -426,7 +426,7 @@ No design file — it is drawn the way the spreadsheet it replaces was drawn. Co
 
 **Two amounts a month.** Each row holds, for each month, an expected amount and a real one, and either may be empty. The sheet shows the real amount where there is one and the expected amount otherwise, drawn in a paler grey so the two can be told apart at a glance; every total counts the same way. An expected amount is a placeholder, not something to read, so it is faded on purpose to placeholder level: APCA Lc 30 on the card in both themes, under the 60 asked of text that has to be read, and still visible on the current month's column and on the row under the pointer. In a row's panel the expected fields are typed into, so their text stays readable and their dashed edge marks them instead. The sheet's header says it in words: grey amounts are expected. Clearing a real amount brings the expected one back. Empty is not zero: a month with nothing written counts as nothing, and shows as a blank cell.
 
-**Totals, at the foot of the sheet.** Under the month names again: what the costs come to on each account, in the order of the account list, then income, costs and what is left over. Cost rows with no account are added up on a line of their own. The account block is drawn only when at least one cost row has an account.
+**Totals, at the foot of the sheet.** Under the month names again: what the costs come to on each account, in the order of the account list, then income, costs and what is left over. Cost rows with no account are added up on a line of their own. The account block is drawn only when at least one cost row has an account. Left over is coloured the way the spreadsheet coloured it: a month with money left is green on a green wash, a month that spends more than it brings in is red on a red wash, and the year and the monthly average follow the same rule. A figure shown as 0 stays plain.
 
 **Amounts are always open. The shape of the sheet waits behind EDIT.** An amount can be typed into the sheet at any time. Everything that changes the sheet's shape is done a few times a year: adding, renaming, moving and deleting rows and groups, the account list, and starting or deleting a year. All of it waits behind one EDIT button beside the years, which reads DONE while it is on. At rest a name is plain text, not a control that does nothing. In edit mode the rows show their grips, the names open their panels, the add rows appear, and the account list is drawn under the sheet. An add row's plus is bare, with no box around it, and sits where the grips sit, with the same small gap after it, so its words start where the names above it start. It is never drawn above the sheet, so turning edit mode on does not push the sheet down the page. Turning it off closes any open panel.
 

@@ -971,18 +971,23 @@ function AccountsCard({ sheet, onChanged }) {
 	)
 }
 
-function SumRow({ label, values, strong, thisMonth }) {
+// A signed row colours each figure by the sign it is shown with, so a figure drawn as 0 stays plain.
+const signOf = value => (Math.round(value) > 0 ? 'is-positive' : Math.round(value) < 0 ? 'is-negative' : null)
+
+function SumRow({ label, values, strong, signed, thisMonth }) {
 	const year = sum(values)
+	const tone = value => (signed ? signOf(value) : null)
 	return (
 		<div className={join('budget-row budget-sum', strong && 'is-strong')} role="row">
 			<span role="rowheader" className="budget-name"><span className="budget-sum-label" title={label}>{label}</span></span>
 			<span role="gridcell" className="budget-account" />
 			{values.map((value, m) => (
-				<span key={m} role="gridcell" className={join('budget-figure', m === thisMonth && 'is-now')}>
+				<span key={m} role="gridcell" className={join('budget-figure', m === thisMonth && 'is-now', tone(value))}>
 					{figure(value)}</span>
 			))}
-			<span role="gridcell" className="budget-total">{figure(year)}</span>
-			<span role="gridcell" className="budget-total budget-average">{figure(year / MONTHS)}</span>
+			<span role="gridcell" className={join('budget-figure budget-total', tone(year))}>{figure(year)}</span>
+			<span role="gridcell" className={join('budget-figure budget-total budget-average', tone(year / MONTHS))}>
+				{figure(year / MONTHS)}</span>
 		</div>
 	)
 }
@@ -1012,7 +1017,7 @@ function Totals({ sheet, months, thisMonth }) {
 			) : null}
 			<SumRow label="Income" values={income} thisMonth={thisMonth} />
 			<SumRow label="Costs" values={costs} thisMonth={thisMonth} />
-			<SumRow label="Left over" values={income.map((v, m) => v - costs[m])} strong thisMonth={thisMonth} />
+			<SumRow label="Left over" values={income.map((v, m) => v - costs[m])} strong signed thisMonth={thisMonth} />
 		</>
 	)
 }
