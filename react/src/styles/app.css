@@ -1542,8 +1542,6 @@ label.field-shell { cursor:pointer; }
 .budget-head > span { padding:12px 6px 8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; line-height:1.3; text-transform:uppercase; color:var(--text-muted); white-space:normal; }
 .budget-head > .budget-name { padding-left:0; align-items:flex-end; }
 .budget-head > .budget-month.is-now { color:var(--text-positive); }
-/* As tall as the row, a wrapped heading's included, so a lit column has no step at the top. */
-.budget-head > .budget-month, .budget-head > .budget-total { align-self:stretch; display:flex; align-items:flex-end; justify-content:flex-end; }
 .budget-month, .budget-total { text-align:right; }
 .budget-section { border-bottom:0; }
 .budget-section .budget-span > * { display:block; width:max-content; padding:18px 0 6px; font-size:13.5px; font-weight:700; color:var(--text); }
@@ -1561,25 +1559,6 @@ button.budget-group-name:hover { color:var(--text); }
 button.budget-line-name { cursor:pointer; }
 button.budget-line-name:hover { text-decoration:underline; text-underline-offset:3px; }
 .budget-line:hover, .budget-line:hover > .budget-name { background:var(--bg-row-hover); }
-/* A cross under the pointer. Each row is its own grid, so a column is the same child in every row, one
-   selector apiece; weightless, so a cell with its own colour keeps it; a mouse only, so a tap leaves none. */
-@media (hover: hover) {
-	.budget-sum:hover, .budget-sum:hover > .budget-name { background:var(--bg-row-hover); }
-	:where(.budget-table:has(.budget-row > :nth-child(3):hover) .budget-row > :nth-child(3)),
-	:where(.budget-table:has(.budget-row > :nth-child(4):hover) .budget-row > :nth-child(4)),
-	:where(.budget-table:has(.budget-row > :nth-child(5):hover) .budget-row > :nth-child(5)),
-	:where(.budget-table:has(.budget-row > :nth-child(6):hover) .budget-row > :nth-child(6)),
-	:where(.budget-table:has(.budget-row > :nth-child(7):hover) .budget-row > :nth-child(7)),
-	:where(.budget-table:has(.budget-row > :nth-child(8):hover) .budget-row > :nth-child(8)),
-	:where(.budget-table:has(.budget-row > :nth-child(9):hover) .budget-row > :nth-child(9)),
-	:where(.budget-table:has(.budget-row > :nth-child(10):hover) .budget-row > :nth-child(10)),
-	:where(.budget-table:has(.budget-row > :nth-child(11):hover) .budget-row > :nth-child(11)),
-	:where(.budget-table:has(.budget-row > :nth-child(12):hover) .budget-row > :nth-child(12)),
-	:where(.budget-table:has(.budget-row > :nth-child(13):hover) .budget-row > :nth-child(13)),
-	:where(.budget-table:has(.budget-row > :nth-child(14):hover) .budget-row > :nth-child(14)),
-	:where(.budget-table:has(.budget-row > :nth-child(15):hover) .budget-row > :nth-child(15)),
-	:where(.budget-table:has(.budget-row > :nth-child(16):hover) .budget-row > :nth-child(16)) { background:var(--bg-row-hover); }
-}
 .budget-line.is-open, .budget-line.is-open > .budget-name { background:var(--bg-green-tint); }
 .budget-account { padding:0 6px; font-size:11.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .budget-cell { position:relative; align-self:stretch; display:grid; }
