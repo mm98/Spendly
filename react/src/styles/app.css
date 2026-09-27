@@ -37,6 +37,9 @@
 	--text-body:#3A423D;
 	--text-muted:#636D64;
 	--text-faint:#9AA39D;
+	/* A budget amount that is only expected: as pale as text goes here, APCA Lc 60 on the palest
+	   surface it lands on, the current month's column. README: Budget. */
+	--text-expected:#78827A;
 	/* The x inside a chip, which is lighter than the chip's own text so the
 	   label reads first. Five chips wrote it out as #8B948C. */
 	--chip-glyph:#8B948C;
@@ -1506,8 +1509,8 @@ label.field-shell { cursor:pointer; }
 .budget-copy-choice { display:grid; gap:8px; margin-top:var(--gap-block); }
 .budget-import-notes { margin:var(--gap-block) 0 0; padding-left:18px; display:grid; gap:6px; font-size:12.5px; color:var(--text-body); }
 .budget-key { font-size:11.5px; font-weight:600; color:var(--text-body); white-space:nowrap; }
-/* --text-muted, not --text-faint: faint is for marks, and an amount has to be read. */
-.budget-key-expected, .budget-amount.is-expected { color:var(--text-muted); }
+/* Never --text-faint: faint is for marks, and an amount has to be read. */
+.budget-key-expected, .budget-amount.is-expected { color:var(--text-expected); }
 
 /* The one grid in the app wider than a phone. Every row sizes its columns from the sheet's width alone, so a
    figure sits at one x all the way down; the names stop at --budget-name-max and the months take the rest. */
@@ -1516,7 +1519,7 @@ label.field-shell { cursor:pointer; }
 	--budget-name:150px; --budget-account:78px; --budget-month:58px; --budget-total:76px; --budget-average:64px;
 	min-width:calc(var(--budget-name) + var(--budget-account) + 12 * var(--budget-month) + var(--budget-total) + var(--budget-average));
 }
-.budget-grid, .budget-accounts { --budget-mark:26px; --budget-name-max:200px; }
+.budget-grid, .budget-accounts { --budget-mark:26px; --budget-name-max:240px; }
 .budget-row { display:grid; grid-template-columns:minmax(var(--budget-name),var(--budget-name-max)) var(--budget-account) repeat(12,minmax(var(--budget-month),1fr)) minmax(var(--budget-total),1fr) minmax(var(--budget-average),1fr); align-items:center; border-bottom:1px solid var(--border-divider); }
 .budget-row > * { min-width:0; }
 .budget-span { grid-column:1 / -1; }
@@ -1524,6 +1527,8 @@ label.field-shell { cursor:pointer; }
 /* The names stay while the months scroll under them, and the strip of padding beside the names
    is painted over too, or figures show through it. */
 .budget-name { position:sticky; left:0; z-index:1; align-self:stretch; display:flex; align-items:center; gap:var(--gap-icon); padding-right:8px; background:var(--bg-card); box-shadow:calc(-1 * var(--pad-card)) 0 0 var(--bg-card); }
+/* What holds focus is lifted over its neighbours, or the next row's name cell covers the bottom of its ring. */
+.budget-name:focus-within, .budget-span > :focus-within { z-index:2; }
 .budget-head { align-items:end; }
 .budget-head > span { padding:12px 6px 8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; line-height:1.3; text-transform:uppercase; color:var(--text-muted); white-space:normal; }
 .budget-head > .budget-name { padding-left:0; align-items:flex-end; }
@@ -1581,7 +1586,7 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-panel-month { display:grid; gap:4px; align-content:start; }
 .budget-panel-month-name { font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
 .budget-panel-amount { font:inherit; width:100%; height:34px; padding:0 8px; border:1px solid var(--border-control); border-radius:var(--radius-compact); background:var(--bg-card); color:var(--text); text-align:right; font-size:13px; font-variant-numeric:tabular-nums; }
-.budget-panel-amount.is-expected { border-style:dashed; color:var(--text-muted); }
+.budget-panel-amount.is-expected { border-style:dashed; color:var(--text-expected); }
 .budget-panel-amount:focus { outline:none; border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
 .budget-panel-amount[aria-invalid="true"] { border-color:var(--text-negative); }
 .budget-panel-month .field-error { font-size:11px; font-weight:600; color:var(--text-negative); }
@@ -2248,7 +2253,7 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 html[data-theme="dark"] {
 	color-scheme:dark;
 	--text:#EAEEEB; --text-strong:#EAEEEB;
-	--text-body:#C4CBC6; --text-muted:#9BA59E; --text-faint:#6E7871;
+	--text-body:#C4CBC6; --text-muted:#9BA59E; --text-faint:#6E7871; --text-expected:var(--text-muted);
 	--chip-glyph:#7F8981; --thumb-glyph:#8E988F;
 	--bg-app:#0B0F0D; --bg-card:#151A17; --bg-dark:#3f564b;
 	--bg-nav-active:#1C221E; --bg-row-hover:#191F1B;

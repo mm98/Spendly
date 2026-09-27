@@ -383,9 +383,7 @@ function SheetCard({ sheet, setSheet, write, del, arranging }) {
 	return (
 		<Card aria-label={`Budget ${sheet.year}`} className="budget-card">
 			<CardHeader title={`Budget ${sheet.year}`}>
-				<span className="budget-key">
-					<span className="budget-key-expected">1.234</span> expected<Sep /><span>1.234</span> real
-				</span>
+				<span className="budget-key"><span className="budget-key-expected">Grey</span> amounts are expected</span>
 			</CardHeader>
 			<CardDivider />
 			<div className="budget-sheet" ref={scroller}>
