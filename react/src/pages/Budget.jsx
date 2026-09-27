@@ -522,8 +522,8 @@ function GroupBlock({ group, sheet, panel, cell, arranging, openPanel, closePane
 							<span role="gridcell" className="budget-account" title={accountName(line.accountId)}>
 								{accountName(line.accountId)}</span>
 							{line.months.map((_, m) => cell(line, m))}
-							<span role="gridcell" className="budget-total">{figure(total)}</span>
-							<span role="gridcell" className="budget-total budget-average">{figure(total / MONTHS)}</span>
+							<span role="gridcell" className="budget-figure budget-total">{figure(total)}</span>
+							<span role="gridcell" className="budget-figure budget-total budget-average">{figure(total / MONTHS)}</span>
 						</div>
 						{open ? (
 							<PanelRow>

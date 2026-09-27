@@ -1542,6 +1542,8 @@ label.field-shell { cursor:pointer; }
 .budget-head > span { padding:12px 6px 8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; line-height:1.3; text-transform:uppercase; color:var(--text-muted); white-space:normal; }
 .budget-head > .budget-name { padding-left:0; align-items:flex-end; }
 .budget-head > .budget-month.is-now { color:var(--text-positive); }
+/* As tall as the row, a wrapped heading's included, so a lit column has no step at the top. */
+.budget-head > .budget-month, .budget-head > .budget-total { align-self:stretch; display:flex; align-items:flex-end; justify-content:flex-end; }
 .budget-month, .budget-total { text-align:right; }
 .budget-section { border-bottom:0; }
 .budget-section .budget-span > * { display:block; width:max-content; padding:18px 0 6px; font-size:13.5px; font-weight:700; color:var(--text); }
