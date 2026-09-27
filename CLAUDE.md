@@ -119,6 +119,14 @@ The test is "is it read anywhere," not "might it be handy": before a list route 
 every consumer in `react/src` and confirm it's actually rendered or branched on. A field used by more
 than one consumer still isn't "keep everywhere" — each shape gets what *its own* consumers read.
 
+## The API's migrations
+
+### A migration that any database may have run is never edited
+
+The runner records each file by name and never runs it twice, so an edited migration never reaches a
+database that ran the old one. That includes the user's own copy of an unmerged branch: change the
+schema in a new migration.
+
 ## Verification
 
 ### Verification is one pass at the end, not a gate on every edit

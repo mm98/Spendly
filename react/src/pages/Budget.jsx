@@ -10,7 +10,6 @@ import { ConfirmDialog } from '../components/ConfirmDialog.jsx'
 import { Field, FieldShell, FormActions, Segmented, TextInput, focusField, useFieldErrors } from '../components/Form.jsx'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { InsetPanel, ItemRow } from '../components/Rows.jsx'
 import { useReorder } from '../components/Reorder.jsx'
 import { Sep } from '../components/Sep.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
@@ -731,21 +730,19 @@ function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
 					)
 				})}
 			</div>
-			<div className="budget-panel-tools">
-				<Field label="Same amount in every month" htmlFor="budget-row-fill" error={fillError}
-					errorId="budget-row-fill-error">
-					<FieldShell>
-						<TextInput id="budget-row-fill" inputMode="decimal" value={fill}
-							onChange={v => { setFill(sanitizeAmount(v)); setFillError('') }}
-							invalid={Boolean(fillError)} describedBy="budget-row-fill-error" />
-					</FieldShell>
-				</Field>
+			<div className="field budget-panel-tools">
+				<span id="budget-row-fill-label">Same amount in every month</span>
 				<div className="row-inline budget-panel-tool-buttons">
+					<input id="budget-row-fill" inputMode="decimal" autoComplete="off" className="budget-panel-amount"
+						aria-labelledby="budget-row-fill-label" value={fill} aria-invalid={fillError ? 'true' : undefined}
+						aria-describedby={fillError ? 'budget-row-fill-error' : undefined}
+						onChange={e => { setFill(sanitizeAmount(e.target.value)); setFillError('') }} />
 					<Button variant="ghost compact" onClick={() => fillWith('expected')}>SET AS EXPECTED</Button>
 					<Button variant="ghost compact" onClick={() => fillWith('real')}>SET AS REAL</Button>
 					<Button variant="ghost compact" onClick={() => everyMonth('expected', '')}>CLEAR EXPECTED</Button>
 					<Button variant="ghost compact" onClick={() => everyMonth('real', '')}>CLEAR REAL</Button>
 				</div>
+				{fillError ? <span className="field-error" id="budget-row-fill-error">{fillError}</span> : null}
 			</div>
 			<FormActions>
 				<Button variant="caps compact" icon="check" onClick={save}>
@@ -913,7 +910,6 @@ function AccountsCard({ sheet, onChanged }) {
 		onDelete: a => write(() => deleteBudgetAccount(a.id)).then(() => close('budget-add-account'), () => {})
 	})
 	const inYear = id => sheet.groups.reduce((n, g) => n + g.lines.filter(l => l.accountId === id).length, 0)
-	const grips = (list?.length ?? 0) > 1
 
 	return (
 		<Card aria-label="Accounts">
@@ -921,45 +917,44 @@ function AccountsCard({ sheet, onChanged }) {
 			<CardDivider />
 			<CardBody>
 				<p className="card-lead card-lead-flush">The accounts a row is paid from, or paid into. Each row picks one,
-					and the sheet adds up the costs on each account in this order. Every year uses this list.</p>
+					and the sheet adds up the costs on each account in this order. Every year uses this list. Click a name
+					to rename or delete the account.</p>
 				{list === null ? <Async state={loaded} label="Loading the accounts">{() => null}</Async> : (
-					<InsetPanel {...reorder.listProps}>
+					<div className="budget-accounts" {...reorder.listProps}>
 						{list.map((account, i) => {
-							if (panel === account.id) {
-								return (
-									<AccountPanel key={account.id} account={account} list={list} write={write}
-										del={{ button: accountDelete.button(account, <span className="line-delete-label">DELETE ACCOUNT</span>,
-											`Delete account, ${account.name}`) }}
-										onClose={() => close(`budget-account-${account.id}`)} />
-								)
-							}
+							const open = panel === account.id
 							const rows = inYear(account.id)
 							return (
 								<Fragment key={account.id}>
 									{reorder.placeholder(account)}
-									<ItemRow className="item-row-group" title={account.name}
-										handle={grips ? reorder.handle(account, i, panel !== null) : null}
-										meta={rows ? `Used by ${plural(rows, 'row')} in ${sheet.year}` : `Not used in ${sheet.year}`}
-										{...reorder.rowProps(account)}>
-										<span className="row-inline row-inline-nowrap row-actions push-end">
-											<IconButton icon="pencil" label={`Edit ${account.name}`} id={`budget-account-${account.id}`}
-												onClick={() => setPanel(account.id)} />
-											{accountDelete.iconButton(account)}
-										</span>
-									</ItemRow>
+									<div className={join('budget-account-row', open && 'is-open')} {...reorder.rowProps(account)}>
+										{reorder.handle(account, i, panel !== null)}
+										<button type="button" className="budget-line-name" id={`budget-account-${account.id}`}
+											aria-expanded={open} title={account.name}
+											onClick={() => setPanel(open ? null : account.id)}>{account.name}</button>
+										<span className="field-help">
+											{rows ? `Used by ${plural(rows, 'row')} in ${sheet.year}` : `Not used in ${sheet.year}`}</span>
+									</div>
+									{open ? (
+										<AccountPanel account={account} list={list} write={write}
+											del={{ button: accountDelete.button(account, <span className="line-delete-label">DELETE ACCOUNT</span>,
+												`Delete account, ${account.name}`) }}
+											onClose={() => close(`budget-account-${account.id}`)} />
+									) : null}
 								</Fragment>
 							)
 						})}
 						{panel === 'new' ? (
 							<AccountPanel list={list} write={write} onClose={() => close('budget-add-account')} />
 						) : (
-							<button type="button" className="line-add-row" id="budget-add-account" onClick={() => setPanel('new')}>
-								{grips ? <span className="line-add-grip-space" aria-hidden="true"><Icon name="grip" /></span> : null}
-								<span className="line-add-glyph" aria-hidden="true"><Icon name="plus" /></span>
-								<span className="line-add-text">{list.length ? 'Add an account' : 'Add the first account'}</span>
-							</button>
+							<div className="budget-add">
+								<button type="button" className="line-add-row" id="budget-add-account" onClick={() => setPanel('new')}>
+									<span className="line-add-glyph" aria-hidden="true"><Icon name="plus" /></span>
+									<span className="line-add-text">{list.length ? 'Add an account' : 'Add the first account'}</span>
+								</button>
+							</div>
 						)}
-					</InsetPanel>
+					</div>
 				)}
 				{accountDelete.dialog}
 				<p className="screenreader-only" role="status" aria-live="polite">{said}</p>
@@ -972,7 +967,7 @@ function SumRow({ label, values, strong, thisMonth }) {
 	const year = sum(values)
 	return (
 		<div className={join('budget-row budget-sum', strong && 'is-strong')} role="row">
-			<span role="rowheader" className="budget-name">{label}</span>
+			<span role="rowheader" className="budget-name"><span className="budget-sum-label" title={label}>{label}</span></span>
 			<span role="gridcell" className="budget-account" />
 			{values.map((value, m) => (
 				<span key={m} role="gridcell" className={join('budget-figure', m === thisMonth && 'is-now')}>

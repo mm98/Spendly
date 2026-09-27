@@ -864,7 +864,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 /* The drag handle is styled by this class rather than as a bare <span> styling itself,
    so its color always resolves to the --text-faint token rather than a hardcoded
    fallback that can drift from it. */
-.item-row .item-row-grip, .budget-line .item-row-grip { color:var(--text-faint); cursor:grab; }
+.item-row .item-row-grip, .budget-line .item-row-grip, .budget-account-row .item-row-grip { color:var(--text-faint); cursor:grab; }
 .item-row-title { font-size:13px; font-weight:600; color:var(--text-strong); }
 /* The meta ellipses rather than wrapping: a second line reads as a broken list rather
    than as more text. The title above still wraps, since it names the thing and may not
@@ -1209,7 +1209,7 @@ label.field-shell { cursor:pointer; }
    drifts one selector at a time; each tier is one rule naming its contexts. Order matters
    twice: compact and pill must beat .button's 15px, and the chevron the field-shell's. */
 .button svg.icon, .chevron svg.icon, .item-row .item-row-grip svg.icon, .budget-line .item-row-grip svg.icon,
-.order-row .order-row-chevron svg.icon, .combobox-action svg.icon,
+.budget-account-row .item-row-grip svg.icon, .order-row .order-row-chevron svg.icon, .combobox-action svg.icon,
 /* The add row's empty grip column stands in for the grip above it, so it is sized by the
    grip's own declaration rather than by a copy of it -- the scoped selector beside it reaches
    into .item-row, which the add row is not, and the icon fell back to the 18px default and
@@ -1509,20 +1509,21 @@ label.field-shell { cursor:pointer; }
 /* --text-muted, not --text-faint: faint is for marks, and an amount has to be read. */
 .budget-key-expected, .budget-amount.is-expected { color:var(--text-muted); }
 
-/* The one grid in the app wider than a phone: it scrolls sideways inside its card while the row
-   names stay in place. Every column but the names is fixed, so a figure sits at one x all the way down. */
+/* The one grid in the app wider than a phone. Every row sizes its columns from the sheet's width alone, so a
+   figure sits at one x all the way down; the names stop at --budget-name-max and the months take the rest. */
 .budget-sheet { container:budget-sheet / inline-size; overflow-x:auto; padding:0 var(--pad-card) 8px; }
 .budget-grid {
 	--budget-name:150px; --budget-account:78px; --budget-month:58px; --budget-total:76px; --budget-average:64px;
 	min-width:calc(var(--budget-name) + var(--budget-account) + 12 * var(--budget-month) + var(--budget-total) + var(--budget-average));
 }
-.budget-row { display:grid; grid-template-columns:minmax(var(--budget-name),1fr) var(--budget-account) repeat(12,var(--budget-month)) var(--budget-total) var(--budget-average); align-items:center; border-bottom:1px solid var(--border-divider); }
+.budget-grid, .budget-accounts { --budget-mark:26px; --budget-name-max:200px; }
+.budget-row { display:grid; grid-template-columns:minmax(var(--budget-name),var(--budget-name-max)) var(--budget-account) repeat(12,minmax(var(--budget-month),1fr)) minmax(var(--budget-total),1fr) minmax(var(--budget-average),1fr); align-items:center; border-bottom:1px solid var(--border-divider); }
 .budget-row > * { min-width:0; }
 .budget-span { grid-column:1 / -1; }
 .budget-span > * { position:sticky; left:0; }
 /* The names stay while the months scroll under them, and the strip of padding beside the names
    is painted over too, or figures show through it. */
-.budget-name { position:sticky; left:0; z-index:1; align-self:stretch; display:flex; align-items:center; gap:6px; padding-right:8px; background:var(--bg-card); box-shadow:calc(-1 * var(--pad-card)) 0 0 var(--bg-card); }
+.budget-name { position:sticky; left:0; z-index:1; align-self:stretch; display:flex; align-items:center; gap:var(--gap-icon); padding-right:8px; background:var(--bg-card); box-shadow:calc(-1 * var(--pad-card)) 0 0 var(--bg-card); }
 .budget-head { align-items:end; }
 .budget-head > span { padding:12px 6px 8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; line-height:1.3; text-transform:uppercase; color:var(--text-muted); white-space:normal; }
 .budget-head > .budget-name { padding-left:0; align-items:flex-end; }
@@ -1551,11 +1552,15 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-total { font-weight:600; color:var(--text); }
 .budget-total.budget-average { font-weight:500; color:var(--text-body); }
 .budget-sum > .budget-name { min-height:34px; font-size:12.5px; font-weight:600; color:var(--text-body); }
+.budget-sum-label { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .budget-sum.is-strong { border-top:1px solid var(--border-control); border-bottom:0; }
 .budget-sum.is-strong > * { font-weight:700; color:var(--text); }
+/* The grip and the add rows' plus sit in one slot with one gap after it, so the words of an add row start
+   where the names above it do. */
+.budget-line .item-row-grip, .budget-account-row .item-row-grip { width:var(--budget-mark); justify-content:center; }
 .budget-add { border-bottom:0; }
-.budget-add .line-add-row { border-top:0; width:max-content; padding:6px 0 10px; }
-.budget-add .line-add-glyph { width:26px; height:26px; }
+.budget-add .line-add-row { border-top:0; width:max-content; gap:var(--gap-icon); padding:6px 0 10px; }
+.budget-add .line-add-glyph { width:var(--budget-mark); height:var(--budget-mark); }
 .budget-add .line-add-text { font-size:12px; color:var(--text-muted); }
 /* The editor lies over its cell and runs past it to the left, the way a spreadsheet's does. */
 .budget-editor { position:absolute; top:0; right:0; z-index:3; width:max(100%, 112px); }
@@ -1565,11 +1570,13 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-editor-note.is-error { color:var(--text-negative); text-align:left; }
 /* A panel is as wide as the visible part of the sheet, not the whole row, so none of it scrolls away. */
 .budget-panel-row { border-bottom:0; }
-.budget-panel { container:budget-panel / inline-size; margin:8px 0 12px; }
+.budget-panel { --budget-box:84px; container:budget-panel / inline-size; margin:8px 0 12px; }
 .budget-panel-row .budget-panel { width:100cqw; }
 .budget-panel-fields { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); gap:var(--gap-panel); }
 .budget-panel-fields.budget-panel-fields-one { grid-template-columns:minmax(0,420px); }
-.budget-panel-months { display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:10px 8px; }
+/* Twelve months across, or six, or three, so no month sits alone on a row. Each step is the width where that
+   many --budget-box boxes and their 8px gaps fit. */
+.budget-panel-months { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px 8px; }
 .budget-panel-legend { grid-column:1 / -1; margin:0; }
 .budget-panel-month { display:grid; gap:4px; align-content:start; }
 .budget-panel-month-name { font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
@@ -1578,9 +1585,13 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-panel-amount:focus { outline:none; border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
 .budget-panel-amount[aria-invalid="true"] { border-color:var(--text-negative); }
 .budget-panel-month .field-error { font-size:11px; font-weight:600; color:var(--text-negative); }
-.budget-panel-tools { display:flex; align-items:flex-end; gap:var(--gap-row); flex-wrap:wrap; }
-.budget-panel-tools > .field { width:200px; }
+.budget-panel-tools .budget-panel-amount { flex:none; width:var(--budget-box); }
 .budget-panel-tool-buttons { flex-wrap:wrap; gap:8px; }
+.budget-account-row { display:flex; align-items:center; gap:var(--gap-icon); border-bottom:1px solid var(--border-divider); }
+.budget-account-row:hover { background:var(--bg-row-hover); }
+.budget-account-row.is-open { background:var(--bg-green-tint); }
+.budget-account-row .budget-line-name { flex:0 1 var(--budget-name-max); }
+.budget-account-row .field-help { flex:none; padding-right:8px; }
 .budget-foot { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--gap-panel); padding:12px var(--pad-card) 16px; border-top:1px solid var(--border-divider); }
 .budget-foot p { margin:0; max-width:640px; line-height:1.5; }
 .budget-foot .button { flex:none; }
@@ -1588,12 +1599,13 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 	.budget-grid { --budget-name:128px; --budget-account:0px; }
 	.budget-account { visibility:hidden; padding:0; }
 }
+@container budget-panel (min-width:544px) { .budget-panel-months { grid-template-columns:repeat(6,minmax(0,1fr)); } }
+@container budget-panel (min-width:1096px) { .budget-panel-months { grid-template-columns:repeat(12,minmax(0,1fr)); } }
 @container budget-panel (max-width:640px) {
 	.budget-panel-fields { grid-template-columns:minmax(0,1fr); }
-	.budget-panel-tools > .field { width:100%; }
 }
 @media (pointer: coarse) {
-	.budget-amount, .budget-name { min-height:44px; }
+	.budget-amount, .budget-name, .budget-account-row { min-height:44px; }
 }
 @media (max-width:900px) { .two-column { grid-template-columns:minmax(0,1fr); } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
