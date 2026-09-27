@@ -37,9 +37,9 @@
 	--text-body:#3A423D;
 	--text-muted:#636D64;
 	--text-faint:#9AA39D;
-	/* A budget amount that is only expected: a placeholder, faded on purpose to the spreadsheet's own
-	   light grey, so it sits under the Lc 60 asked of text that has to be read. README: Budget. */
-	--text-expected:#A0A8A2;
+	/* A budget amount that is only expected: a placeholder, faded on purpose to placeholder level, APCA
+	   Lc 30 on the card, under the Lc 60 asked of text that has to be read. README: Budget. */
+	--text-expected:#C3C9C4;
 	/* The x inside a chip, which is lighter than the chip's own text so the
 	   label reads first. Five chips wrote it out as #8B948C. */
 	--chip-glyph:#8B948C;
@@ -336,7 +336,9 @@ svg.icon { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width
 .auth-tagline { color:var(--text-muted); font-size:12px; line-height:1.35; margin:3px 0 0; }
 
 /* topbar */
-.main-panel { min-width:0; display:flex; flex-direction:column; background:var(--bg-card); border-radius:26px 0 0 26px; margin:12px 0; overflow:hidden; box-shadow:0 2px 14px rgb(var(--shadow-ink) / .05); }
+/* clip, not hidden: hidden makes the panel a scroll box of its own, and then nothing in it stays in
+   place while the page scrolls -- the top bar included. */
+.main-panel { min-width:0; display:flex; flex-direction:column; background:var(--bg-card); border-radius:26px 0 0 26px; margin:12px 0; overflow:clip; box-shadow:0 2px 14px rgb(var(--shadow-ink) / .05); }
 .topbar { display:flex; align-items:center; gap:var(--gap-row); padding:var(--pad-bar-y) var(--gutter-page); background:var(--bg-card); border-bottom:1px solid var(--border-divider); position:sticky; top:0; z-index:10; }
 .topbar h1 { margin:0; font-size:19px; font-weight:700; letter-spacing:-.01em; }
 .topbar .topbar-actions { margin-left:auto; display:flex; align-items:center; gap:var(--gap-row); }
@@ -1515,6 +1517,8 @@ label.field-shell { cursor:pointer; }
 /* The one grid in the app wider than a phone. Every row sizes its columns from the sheet's width alone, so a
    figure sits at one x all the way down; the names stop at --budget-name-max and the months take the rest. */
 .budget-sheet { container:budget-sheet / inline-size; overflow-x:auto; padding:0 var(--pad-card) 8px; }
+/* Hidden rather than scrolling: the sheet under it moves it sideways, and it stops under the top bar. */
+.budget-sheet-head { position:sticky; top:var(--topbar-height, 0px); z-index:4; overflow:hidden; padding-bottom:0; background:var(--bg-card); }
 .budget-grid {
 	--budget-name:150px; --budget-account:78px; --budget-month:58px; --budget-total:76px; --budget-average:64px;
 	min-width:calc(var(--budget-name) + var(--budget-account) + 12 * var(--budget-month) + var(--budget-total) + var(--budget-average));
@@ -1586,7 +1590,8 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-panel-month { display:grid; gap:4px; align-content:start; }
 .budget-panel-month-name { font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
 .budget-panel-amount { font:inherit; width:100%; height:34px; padding:0 8px; border:1px solid var(--border-control); border-radius:var(--radius-compact); background:var(--bg-card); color:var(--text); text-align:right; font-size:13px; font-variant-numeric:tabular-nums; }
-.budget-panel-amount.is-expected { border-style:dashed; color:var(--text-expected); }
+/* Typed into, so it stays readable; the dashed edge is what says expected here. */
+.budget-panel-amount.is-expected { border-style:dashed; color:var(--text-muted); }
 .budget-panel-amount:focus { outline:none; border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
 .budget-panel-amount[aria-invalid="true"] { border-color:var(--text-negative); }
 .budget-panel-month .field-error { font-size:11px; font-weight:600; color:var(--text-negative); }
@@ -2253,7 +2258,7 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 html[data-theme="dark"] {
 	color-scheme:dark;
 	--text:#EAEEEB; --text-strong:#EAEEEB;
-	--text-body:#C4CBC6; --text-muted:#9BA59E; --text-faint:#6E7871; --text-expected:var(--text-muted);
+	--text-body:#C4CBC6; --text-muted:#9BA59E; --text-faint:#6E7871; --text-expected:#727B75;
 	--chip-glyph:#7F8981; --thumb-glyph:#8E988F;
 	--bg-app:#0B0F0D; --bg-card:#151A17; --bg-dark:#3f564b;
 	--bg-nav-active:#1C221E; --bg-row-hover:#191F1B;

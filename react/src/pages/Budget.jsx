@@ -285,14 +285,18 @@ function SheetCard({ sheet, setSheet, write, del, arranging }) {
 	const [said, setSaid] = useState('')
 	const toast = useToast()
 	const scroller = useRef(null)
+	const head = useRef(null)
+	// The month names sit in a strip of their own, which stays in view while the page scrolls down.
+	const follow = () => { if (head.current && scroller.current) head.current.scrollLeft = scroller.current.scrollLeft }
 
 	// Where the year does not fit, it opens on the month it is now rather than on January.
 	useEffect(() => {
 		const box = scroller.current
-		const now = box?.querySelector('.budget-head .budget-month.is-now')
-		const names = box?.querySelector('.budget-head .budget-name')
-		if (!now || !names || box.scrollWidth <= box.clientWidth) return
+		const now = head.current?.querySelector('.budget-month.is-now')
+		const names = head.current?.querySelector('.budget-name')
+		if (!box || !now || !names || box.scrollWidth <= box.clientWidth) return
 		box.scrollLeft += now.getBoundingClientRect().left - names.getBoundingClientRect().right
+		follow()
 	}, [])
 
 	const lineOrder = sheet.groups.flatMap(g => g.lines.map(l => l.id))
@@ -386,39 +390,45 @@ function SheetCard({ sheet, setSheet, write, del, arranging }) {
 				<span className="budget-key"><span className="budget-key-expected">Grey</span> amounts are expected</span>
 			</CardHeader>
 			<CardDivider />
-			<div className="budget-sheet" ref={scroller}>
-				<div className="budget-grid" role="grid" aria-label={`Budget ${sheet.year}, amounts in whole ${activeCurrency().label}`}>
-					<HeadRow months={months} thisMonth={thisMonth} first="Row" />
-					{KINDS.map(({ kind, title }) => (
-						<Fragment key={kind}>
-							<div className="budget-row budget-section" role="row">
-								<span role="rowheader" className="budget-span"><span>{title}</span></span>
-							</div>
-							{sheet.groups.filter(g => g.kind === kind).map(group => (
-								<GroupBlock key={group.id} group={group} sheet={sheet} panel={panel} cell={cell} arranging={arranging}
-									openPanel={openPanel} closePanel={closePanel} write={write} onAnnounce={setSaid}
-									onMoveLocal={(from, to) => setSheet(s => withMove(s, group.id, from, to))}
-									onPlace={(lineId, index) => write(() => updateBudgetLine(lineId, { index })).catch(() => {})} />
-							))}
-							{panel?.kind === 'new-group' && panel.section === kind ? (
-								<PanelRow>
-									<GroupPanel sheet={sheet} kind={kind} write={write}
-										onClose={() => closePanel(`budget-add-group-${kind}`)} />
-								</PanelRow>
-							) : arranging ? (
-								<div className="budget-row budget-add" role="row">
-									<span role="gridcell" className="budget-span">
-										<button type="button" className="line-add-row" id={`budget-add-group-${kind}`}
-											onClick={() => openPanel({ kind: 'new-group', section: kind })}>
-											<span className="line-add-glyph" aria-hidden="true"><Icon name="plus" /></span>
-											<span className="line-add-text">Add a group to {title.toLowerCase()}</span>
-										</button>
-									</span>
+			<div className="budget-table" role="grid" aria-label={`Budget ${sheet.year}, amounts in whole ${activeCurrency().label}`}>
+				<div className="budget-sheet budget-sheet-head" ref={head}>
+					<div className="budget-grid">
+						<HeadRow months={months} thisMonth={thisMonth} first="Row" />
+					</div>
+				</div>
+				<div className="budget-sheet" ref={scroller} onScroll={follow}>
+					<div className="budget-grid">
+						{KINDS.map(({ kind, title }) => (
+							<Fragment key={kind}>
+								<div className="budget-row budget-section" role="row">
+									<span role="rowheader" className="budget-span"><span>{title}</span></span>
 								</div>
-							) : null}
-						</Fragment>
-					))}
-					<Totals sheet={sheet} months={months} thisMonth={thisMonth} />
+								{sheet.groups.filter(g => g.kind === kind).map(group => (
+									<GroupBlock key={group.id} group={group} sheet={sheet} panel={panel} cell={cell} arranging={arranging}
+										openPanel={openPanel} closePanel={closePanel} write={write} onAnnounce={setSaid}
+										onMoveLocal={(from, to) => setSheet(s => withMove(s, group.id, from, to))}
+										onPlace={(lineId, index) => write(() => updateBudgetLine(lineId, { index })).catch(() => {})} />
+								))}
+								{panel?.kind === 'new-group' && panel.section === kind ? (
+									<PanelRow>
+										<GroupPanel sheet={sheet} kind={kind} write={write}
+											onClose={() => closePanel(`budget-add-group-${kind}`)} />
+									</PanelRow>
+								) : arranging ? (
+									<div className="budget-row budget-add" role="row">
+										<span role="gridcell" className="budget-span">
+											<button type="button" className="line-add-row" id={`budget-add-group-${kind}`}
+												onClick={() => openPanel({ kind: 'new-group', section: kind })}>
+												<span className="line-add-glyph" aria-hidden="true"><Icon name="plus" /></span>
+												<span className="line-add-text">Add a group to {title.toLowerCase()}</span>
+											</button>
+										</span>
+									</div>
+								) : null}
+							</Fragment>
+						))}
+						<Totals sheet={sheet} months={months} thisMonth={thisMonth} />
+					</div>
 				</div>
 			</div>
 			<p className="screenreader-only" role="status" aria-live="polite">{said}</p>

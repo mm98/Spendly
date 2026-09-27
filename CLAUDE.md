@@ -254,6 +254,9 @@ an attribute), a related control agrees with it, a chosen value survived rather 
 silently, a shared fact matches across every place it's shown, a query genuinely ran rather than being
 skipped into an empty state that looks the same as a real one.
 
+**A sticky element is checked by scrolling and measuring where it lands.** `position: sticky` is only
+a request: an ancestor that clips into a scroll box of its own turns it off without a sound.
+
 **A fix or a defect report usually generalizes.** Enumerate every instance (DOM, codebase, every label
 carrying the same string) rather than fixing only the one shown, and verify on a fixture actually large
 enough to trigger the condition, not the smallest one that happens to pass.

@@ -394,9 +394,18 @@ function SubTabs({ tabs, view, setView }) {
 function TopBar({ handle, titleRef }) {
 	const location = useLocation()
 	const navigate = useNavigate()
+	const bar = useRef(null)
+
+	// A page's sticky strip stops under this bar, whose height follows what it holds, so the bar says it.
+	useEffect(() => {
+		const el = bar.current
+		const watch = new ResizeObserver(() => el.parentElement.style.setProperty('--topbar-height', `${el.offsetHeight}px`))
+		watch.observe(el)
+		return () => watch.disconnect()
+	}, [])
 
 	return (
-		<header className="topbar">
+		<header className="topbar" ref={bar}>
 			{handle.back ? (
 				/* A row passes where it opened this page from as navigation state (Rows.jsx), so
 				   leaving closes that; `handle.back.to` is the fallback. README: Accessibility. */
