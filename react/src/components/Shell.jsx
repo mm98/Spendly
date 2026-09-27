@@ -48,7 +48,9 @@ const NAV = [
 	{ to: '/wishlist', key: 'wishlist', icon: 'cart', label: 'Wishlist', short: 'Wish' },
 	{ to: '/vendors', key: 'vendors', icon: 'store', label: 'Vendors' },
 	{ to: '/categories', key: 'categories', icon: 'tag', label: 'Categories' },
-	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics', short: 'Stats' }
+	// Leaves the phone bar to Budget: Home's Spent card is its door there.
+	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics', wide: true },
+	{ to: '/budget', key: 'budget', icon: 'budget', label: 'Budget' }
 ]
 
 function Sidebar({ navKey }) {

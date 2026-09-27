@@ -26,7 +26,7 @@ src/
   api/          the phantom data source: seed.js, client.js, useApi.js, format.js
   api/tabler/   the generated icon catalogue: names, search words, twelve shards of paths
   components/   the design system as components -- one file per family
-  pages/        ten page modules over fifteen routes, each its own chunk
+  pages/        the page modules, each its own chunk
   styles/       app.css, the design system's stylesheet -- see "The stylesheet" below
   routes.jsx    the routes, and the four things the shell reads off each one
 ```
@@ -49,8 +49,9 @@ src/
 | `/categories` | Categories, and a Manage tab whose rows open the record |
 | `/categories/new`, `/categories/:id/edit` | A category: name, budget, colour, glyph, delete |
 | `/stats` | Statistics, with a pager over weeks, months, quarters and years |
+| `/budget`, `/budget/:year` | The yearly budget: one sheet a year, edited in place like a spreadsheet |
 | `/settings` | Settings: order defaults, lists, account, demo data |
-| `/settings/import` | Importing: the JSON upload and the API reference |
+| `/settings/import` | Importing: the JSON upload, the Excel budget, and the API reference |
 
 ### The stylesheet
 
@@ -187,7 +188,7 @@ One file per family, coarse rather than granular: `Card`, `Rows`, `Form`, `Chart
 
 Two of them carry most of the argument:
 
-**`Icon.jsx`** holds all 40 glyphs the app uses. The prototype repeats each path wherever it
+**`Icon.jsx`** holds every glyph the app uses. The prototype repeats each path wherever it
 appears — the chevron 30 times, the receipt 13 — which is the drift the uniformity rule is
 about. Naming them makes the count a fact you can read off the object, and an unknown name
 throws rather than drawing nothing.
@@ -324,7 +325,7 @@ Four things keep 5,129 icons affordable, and all four are measured:
 - **A record stores the path, not just the name.** A category saved with `carrot` keeps the
   path string beside the name, so the rows, the rings and the donut draw it from the record —
   measured at **0 shards** fetched by the categories list, before and after a reload. The app's
-  own 39 store no path at all; `Icon.jsx` knows those by name.
+  own glyphs store no path at all; `Icon.jsx` knows those by name.
 
 That last one had a hole in it, and the split is what found it. `createCategory` built its
 record field by field and `iconPath` was not one of the fields, so a category *created* with a

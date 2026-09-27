@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Card, CardBody } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { CheckRow, FilterSection, FormActions } from '../components/Form.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { HiddenFileInput } from '../components/FileInput.jsx'
+import { BudgetImport } from '../components/BudgetImport.jsx'
 import { EXPORT_FILES } from '../components/fileKinds.js'
 import { ProgressBar } from '../components/Viz.jsx'
 import { tokenizeJson } from '../components/Json.jsx'
@@ -83,6 +85,7 @@ function sliceOrders(orders) {
 
 export default function SettingsImport() {
 	const toast = useToast()
+	const navigate = useNavigate()
 	const [importFile, setImportFile] = useState(null)
 	/* Whether files ride along, on by default and split the way the schema splits them: the
 	   order's own attachments (the receipt), and the images on its items (the photos). Off
@@ -237,6 +240,16 @@ export default function SettingsImport() {
 						)}
 						<HiddenFileInput ref={importPicker} kind={EXPORT_FILES}
 							label="Choose a JSON file of orders" onFiles={([file]) => setImportFile(file)} />
+					</CardBody>
+				</Card>
+				<Card aria-label="Import a budget">
+					<CardBody variant="card-body-page">
+						<div className="card-headline">Import a budget</div>
+						<p className="card-lead">
+							Bring in an Excel budget that has one sheet for each year, named like 2026. This is
+							done once. After that, you keep the budget on the Budget page.
+						</p>
+						<BudgetImport variant="block" onImported={([newest]) => navigate(`/budget/${newest}`)} />
 					</CardBody>
 				</Card>
 				{/* Documentation, not a control. It used to open closed to spare the settings

@@ -19,7 +19,7 @@ import { Button } from './Button.jsx'
    onto a new build (UpdateNotice.jsx). A second copy of the mechanics is how the two would come
    to disagree about which button focus lands on. README: Deletion, Chrome. */
 
-export function ConfirmDialog({ title, detail, confirmLabel, cancelLabel = 'CANCEL', onConfirm, onCancel }) {
+export function ConfirmDialog({ title, detail, confirmLabel, cancelLabel = 'CANCEL', onConfirm, onCancel, children }) {
 	const ref = useRef(null)
 	const cancelRef = useRef(null)
 
@@ -37,6 +37,7 @@ export function ConfirmDialog({ title, detail, confirmLabel, cancelLabel = 'CANC
 			<div className="confirm-dialog-card">
 				<strong>{title}</strong>
 				<p>{detail}</p>
+				{children}
 				<div className="form-actions">
 					<Button variant="caps compact" onClick={onConfirm}>{confirmLabel}</Button>
 					<Button ref={cancelRef} variant="ghost compact" onClick={onCancel}>{cancelLabel}</Button>

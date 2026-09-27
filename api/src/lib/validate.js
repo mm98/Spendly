@@ -159,3 +159,77 @@ export function assertValidWishDraft(draft) {
 		throw err
 	}
 }
+
+/* The budget's rules, in the same words as react/src/api/rules.js's BUDGET_FIELDS. Each
+   helper hands back the cleaned value or throws the 400 that names what is wrong. */
+
+const refuse = message => Object.assign(new Error(message), { status: 400 })
+
+export const BUDGET_TEXT = {
+	row: { max: 80, missing: 'Give the row a name.' },
+	group: { max: 60, missing: 'Give the group a name.' },
+	account: { max: 40 }
+}
+
+export function budgetText(value, { max, missing }) {
+	const text = String(value ?? '').trim()
+	if (!text && missing) throw refuse(missing)
+	if (text.length > max) throw refuse(`${max} characters at most.`)
+	return text
+}
+
+/** Rounded to øre the way a spreadsheet shows it, or null where nothing is written. */
+export function budgetAmount(value) {
+	if (value == null || value === '') return null
+	const n = Number(value)
+	if (!Number.isFinite(n) || n < 0 || n >= 1e9) throw refuse('An amount is zero or more, like 1.234,56.')
+	return Math.round(Number((n * 100).toPrecision(15))) / 100
+}
+
+export function budgetMonths(months) {
+	if (!Array.isArray(months) || months.length !== 12) throw refuse('A row has one amount for each of the twelve months.')
+	return months.map(m => ({ expected: budgetAmount(m?.expected), real: budgetAmount(m?.real) }))
+}
+
+export function budgetMonth(value) {
+	const month = Number(value)
+	if (!Number.isInteger(month) || month < 1 || month > 12) throw refuse('A month is 1 to 12.')
+	return month
+}
+
+export function budgetYear(value) {
+	const year = Number(value)
+	if (!Number.isInteger(year) || year < 1900 || year > 2200) throw refuse('A year is four digits, like 2027.')
+	return year
+}
+
+export function budgetKind(value) {
+	if (value !== 'income' && value !== 'expense') throw refuse('A group holds income or costs.')
+	return value
+}
+
+export const budgetLine = line => ({
+	name: budgetText(line?.name, BUDGET_TEXT.row),
+	account: budgetText(line?.account, BUDGET_TEXT.account),
+	months: budgetMonths(line?.months)
+})
+
+/** A whole file's worth of years, checked before any of it is written. */
+export function budgetYears(years) {
+	if (!Array.isArray(years) || !years.length) throw refuse('There is no year to import.')
+	const seen = new Set()
+	return years.map(y => {
+		const year = budgetYear(y?.year)
+		if (seen.has(year)) throw refuse(`${year} is in the file twice.`)
+		seen.add(year)
+		if (!Array.isArray(y.groups)) throw refuse(`${year} has no groups.`)
+		return {
+			year,
+			groups: y.groups.map(g => ({
+				kind: budgetKind(g?.kind),
+				name: budgetText(g?.name, BUDGET_TEXT.group),
+				lines: (Array.isArray(g.lines) ? g.lines : []).map(budgetLine)
+			}))
+		}
+	})
+}

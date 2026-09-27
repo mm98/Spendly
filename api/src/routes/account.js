@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { db } from '../db.js'
 import { seedAccountDefaults } from '../seed.js'
 import { populateDemoData } from '../lib/demoData.js'
+import { wipeBudget } from '../lib/budget.js'
 
 export const router = Router()
 
@@ -20,6 +21,7 @@ const wipeLedger = userId => {
 
 const wipe = db.transaction(userId => {
 	wipeLedger(userId)
+	wipeBudget(userId)
 	db.prepare('DELETE FROM settings WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM dashboard_cards WHERE user_id = ?').run(userId)
 	db.prepare('DELETE FROM scan_uploads WHERE user_id = ?').run(userId)
@@ -28,7 +30,7 @@ const wipe = db.transaction(userId => {
 
 /** Forgets everything this account has added and returns it to the empty state a fresh
     registration starts from -- settings and dashboard cards reset to their defaults, every
-    order, wish, vendor and category gone. */
+    order, wish, vendor, category and budget year gone. */
 router.post('/reset', (req, res) => {
 	wipe(req.user.id)
 	refreshStatistics()

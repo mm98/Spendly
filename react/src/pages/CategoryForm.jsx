@@ -110,7 +110,7 @@ function CategoryFields({ mode, category, reload }) {
 		setSaving(true)
 		/* The path travels with the name. A category may be any of Tabler's 5,129 outline icons,
 		   and a record that stored only the name would make every list load the catalogue to
-		   find out what to draw. `iconPath` is null for the app's own 39, which Icon.jsx knows
+		   find out what to draw. `iconPath` is null for the app's own glyphs, which Icon.jsx knows
 		   by name -- null rather than undefined, so saving an app glyph over a Tabler one really
 		   clears it. */
 		const patch = {

@@ -864,7 +864,7 @@ button.card-header:hover + .card-divider { margin-inline:0; }
 /* The drag handle is styled by this class rather than as a bare <span> styling itself,
    so its color always resolves to the --text-faint token rather than a hardcoded
    fallback that can drift from it. */
-.item-row .item-row-grip { color:var(--text-faint); cursor:grab; }
+.item-row .item-row-grip, .budget-line .item-row-grip { color:var(--text-faint); cursor:grab; }
 .item-row-title { font-size:13px; font-weight:600; color:var(--text-strong); }
 /* The meta ellipses rather than wrapping: a second line reads as a broken list rather
    than as more text. The title above still wraps, since it names the thing and may not
@@ -1208,7 +1208,7 @@ label.field-shell { cursor:pointer; }
    four numbers were restated in twenty scattered rules, one per context, which is how a tier
    drifts one selector at a time; each tier is one rule naming its contexts. Order matters
    twice: compact and pill must beat .button's 15px, and the chevron the field-shell's. */
-.button svg.icon, .chevron svg.icon, .item-row .item-row-grip svg.icon,
+.button svg.icon, .chevron svg.icon, .item-row .item-row-grip svg.icon, .budget-line .item-row-grip svg.icon,
 .order-row .order-row-chevron svg.icon, .combobox-action svg.icon,
 /* The add row's empty grip column stands in for the grip above it, so it is sized by the
    grip's own declaration rather than by a copy of it -- the scoped selector beside it reaches
@@ -1499,6 +1499,99 @@ label.field-shell { cursor:pointer; }
 .line-saved { display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-positive); }
 .line-saved svg.icon { width:13px; height:13px; }
 .line-total-row { display:flex; align-items:baseline; justify-content:space-between; gap:var(--gap-row); flex-wrap:wrap; margin-top:10px; font-size:12.5px; font-weight:600; color:var(--text-strong); }
+/* ---------------- budget ---------------- */
+.budget-bar { display:flex; align-items:center; gap:var(--gap-row); flex-wrap:wrap; }
+.budget-years { min-width:0; max-width:100%; overflow-x:auto; }
+.budget-first-actions { justify-content:center; flex-wrap:wrap; }
+.budget-copy-choice { display:grid; gap:8px; margin-top:var(--gap-block); }
+.budget-import-notes { margin:var(--gap-block) 0 0; padding-left:18px; display:grid; gap:6px; font-size:12.5px; color:var(--text-body); }
+.budget-key { font-size:11.5px; font-weight:600; color:var(--text-body); white-space:nowrap; }
+/* --text-muted, not --text-faint: faint is for marks, and an amount has to be read. */
+.budget-key-expected, .budget-amount.is-expected { color:var(--text-muted); }
+
+/* The one grid in the app wider than a phone: it scrolls sideways inside its card while the row
+   names stay in place. Every column but the names is fixed, so a figure sits at one x all the way down. */
+.budget-sheet { container:budget-sheet / inline-size; overflow-x:auto; padding:0 var(--pad-card) 8px; }
+.budget-grid {
+	--budget-name:150px; --budget-account:78px; --budget-month:58px; --budget-total:76px; --budget-average:64px;
+	min-width:calc(var(--budget-name) + var(--budget-account) + 12 * var(--budget-month) + var(--budget-total) + var(--budget-average));
+}
+.budget-row { display:grid; grid-template-columns:minmax(var(--budget-name),1fr) var(--budget-account) repeat(12,var(--budget-month)) var(--budget-total) var(--budget-average); align-items:center; border-bottom:1px solid var(--border-divider); }
+.budget-row > * { min-width:0; }
+.budget-span { grid-column:1 / -1; }
+.budget-span > * { position:sticky; left:0; }
+/* The names stay while the months scroll under them, and the strip of padding beside the names
+   is painted over too, or figures show through it. */
+.budget-name { position:sticky; left:0; z-index:1; align-self:stretch; display:flex; align-items:center; gap:6px; padding-right:8px; background:var(--bg-card); box-shadow:calc(-1 * var(--pad-card)) 0 0 var(--bg-card); }
+.budget-head { align-items:end; }
+.budget-head > span { padding:12px 6px 8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; line-height:1.3; text-transform:uppercase; color:var(--text-muted); white-space:normal; }
+.budget-head > .budget-name { padding-left:0; align-items:flex-end; }
+.budget-head > .budget-month.is-now { color:var(--text-positive); }
+.budget-month, .budget-total { text-align:right; }
+.budget-section { border-bottom:0; }
+.budget-section .budget-span > * { display:block; width:max-content; padding:18px 0 6px; font-size:13.5px; font-weight:700; color:var(--text); }
+.budget-section-quiet .budget-span > * { font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
+.budget-group-name { font:inherit; display:inline-flex; align-items:center; gap:6px; padding:12px 0 6px; background:none; border:0; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); cursor:pointer; }
+.budget-group-name svg.icon { width:12px; height:12px; color:var(--text-faint); }
+.budget-group-name:hover { color:var(--text); }
+.budget-line-name { font:inherit; flex:1; min-width:0; padding:8px 0; background:none; border:0; text-align:left; font-size:13px; font-weight:600; color:var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+.budget-line-name:hover { text-decoration:underline; text-underline-offset:3px; }
+.budget-line:hover, .budget-line:hover > .budget-name { background:var(--bg-row-hover); }
+.budget-line.is-open, .budget-line.is-open > .budget-name { background:var(--bg-green-tint); }
+.budget-account { padding:0 6px; font-size:11.5px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.budget-cell { position:relative; align-self:stretch; display:grid; }
+.budget-cell.is-now, .budget-figure.is-now { background:var(--bg-inset); }
+.budget-amount { font:inherit; width:100%; min-height:34px; padding:0 6px; background:none; border:0; border-radius:6px; text-align:right; font-size:12.5px; font-variant-numeric:tabular-nums; color:var(--text); white-space:nowrap; cursor:text; }
+.budget-amount:hover { background:var(--bg-row-hover); box-shadow:inset 0 0 0 1px var(--border-control); }
+.budget-amount:focus-visible { outline-offset:-2px; }
+.budget-figure, .budget-total { padding:0 6px; font-size:12.5px; font-variant-numeric:tabular-nums; white-space:nowrap; text-align:right; }
+.budget-figure { align-self:stretch; display:flex; align-items:center; justify-content:flex-end; }
+.budget-total { font-weight:600; color:var(--text); }
+.budget-total.budget-average { font-weight:500; color:var(--text-body); }
+.budget-sum > .budget-name { min-height:34px; font-size:12.5px; font-weight:600; color:var(--text-body); }
+.budget-sum.is-strong { border-top:1px solid var(--border-control); border-bottom:0; }
+.budget-sum.is-strong > * { font-weight:700; color:var(--text); }
+.budget-add { border-bottom:0; }
+.budget-add .line-add-row { border-top:0; width:max-content; padding:6px 0 10px; }
+.budget-add .line-add-glyph { width:26px; height:26px; }
+.budget-add .line-add-text { font-size:12px; color:var(--text-muted); }
+/* The editor lies over its cell and runs past it to the left, the way a spreadsheet's does. */
+.budget-editor { position:absolute; top:0; right:0; z-index:3; width:max(100%, 112px); }
+.budget-editor input { font:inherit; width:100%; height:34px; padding:0 6px; border:1px solid var(--text-strong); border-radius:6px; background:var(--bg-card); color:var(--text); text-align:right; font-size:12.5px; font-variant-numeric:tabular-nums; box-shadow:var(--shadow); outline:none; }
+.budget-editor input[aria-invalid="true"] { border-color:var(--text-negative); box-shadow:0 0 0 1px var(--text-negative); }
+.budget-editor-note { position:absolute; top:100%; right:0; width:max-content; max-width:210px; margin-top:4px; padding:6px 8px; border-radius:var(--radius-compact); background:var(--bg-card); box-shadow:var(--shadow); font-size:11.5px; font-weight:600; color:var(--text-muted); white-space:normal; text-align:right; }
+.budget-editor-note.is-error { color:var(--text-negative); text-align:left; }
+/* A panel is as wide as the visible part of the sheet, not the whole row, so none of it scrolls away. */
+.budget-panel-row { border-bottom:0; }
+.budget-panel { container:budget-panel / inline-size; width:100cqw; margin:8px 0 12px; }
+.budget-panel-fields { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); gap:var(--gap-panel); }
+.budget-panel-fields.budget-panel-fields-one { grid-template-columns:minmax(0,420px); }
+.budget-panel-months { display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:10px 8px; }
+.budget-panel-legend { grid-column:1 / -1; margin:0; }
+.budget-panel-month { display:grid; gap:4px; align-content:start; }
+.budget-panel-month-name { font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); }
+.budget-panel-amount { font:inherit; width:100%; height:34px; padding:0 8px; border:1px solid var(--border-control); border-radius:var(--radius-compact); background:var(--bg-card); color:var(--text); text-align:right; font-size:13px; font-variant-numeric:tabular-nums; }
+.budget-panel-amount.is-expected { border-style:dashed; color:var(--text-muted); }
+.budget-panel-amount:focus { outline:none; border-color:var(--text-strong); box-shadow:0 0 0 1px var(--text-strong); }
+.budget-panel-amount[aria-invalid="true"] { border-color:var(--text-negative); }
+.budget-panel-month .field-error { font-size:11px; font-weight:600; color:var(--text-negative); }
+.budget-panel-tools { display:flex; align-items:flex-end; gap:var(--gap-row); flex-wrap:wrap; }
+.budget-panel-tools > .field { width:200px; }
+.budget-panel-tool-buttons { flex-wrap:wrap; gap:8px; }
+.budget-foot { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--gap-panel); padding:12px var(--pad-card) 16px; border-top:1px solid var(--border-divider); }
+.budget-foot p { margin:0; max-width:640px; line-height:1.5; }
+.budget-foot .button { flex:none; }
+@container budget-sheet (max-width:640px) {
+	.budget-grid { --budget-name:128px; --budget-account:0px; }
+	.budget-account { visibility:hidden; padding:0; }
+}
+@container budget-panel (max-width:640px) {
+	.budget-panel-fields { grid-template-columns:minmax(0,1fr); }
+	.budget-panel-tools > .field { width:100%; }
+}
+@media (pointer: coarse) {
+	.budget-amount, .budget-name { min-height:44px; }
+}
 @media (max-width:900px) { .two-column { grid-template-columns:minmax(0,1fr); } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
 /* ---------------- responsive ---------------- */

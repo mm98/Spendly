@@ -403,7 +403,7 @@ The fixed vendor column is a deliberate correction: an earlier version placed th
 ### Wishlist
 No design file — both patterns it is built from are already drawn: the working list (2a) and the record form (5a–5c). Code: `pages/Wishlist.jsx`, `pages/WishForm.jsx`, `components/ListToolbar.jsx`, `components/LinePhoto.jsx`, `components/FormPage.jsx`
 
-**Purpose:** what the account wants and has not bought. A wish is a name and a link, and optionally a price, a picture and one or more categories. It is never an order, and that separation is the point: every total, chart and budget in the product reads orders as money that has already left, so nothing on this page reaches any of them.
+**Purpose:** what the account wants and has not bought. A wish is a name and a link, and optionally a price, a picture and one or more categories. It is never an order, and that separation is the point: every total, chart and category limit in the product reads orders as money that has already left, so nothing on this page reaches any of them.
 
 **Filling in from the link:** paste the address first and the page is asked what it calls the thing and what picture it offers a link preview, and the name and the picture frame fill in from that. Only while a wish is being created, only into a name nobody has typed, and silently — a shop that refuses to be read, a page that has moved, an address the server will not fetch are all the same nothing, and the reader types the name themselves. The picture is offered, not applied: choosing a file or pressing Remove drops it, and it is fetched by the server only once the wish is saved.
 
@@ -416,6 +416,29 @@ No design file — both patterns it is built from are already drawn: the working
 **A wish is a record, not part of one,** so it is created and edited on its own page — the same page a vendor, a category and an order use, because there is one way to edit a record here rather than one per screen. An order's lines are edited in place because a line has no life outside the order; a wish stands on its own. The list is only ever a list. Archived is a checkbox on the record beside its other fields, the way a vendor's Favourite is; the list filters on it. Deleting lives on the record's own page and asks first, through the one ask-before-deleting setting every other delete reads.
 
 **The picture:** one per wish, and the same frame an order line's photo uses. It is clicked, or a file is dropped on it, or one is pasted in. Only what is actually an image is accepted — the bytes decide, not the filename. Replacing gives the picture a new address, so a browser told to keep it forever can never show the old one.
+
+---
+
+### Budget
+No design file — it is drawn the way the spreadsheet it replaces was drawn. Code: `pages/Budget.jsx`, `components/BudgetImport.jsx`
+
+**Purpose:** the household's yearly budget: one sheet per year, the income and the fixed costs down the side in groups, the twelve months across, and at the end of each row the year's total and the monthly average. Like the wishlist it is not orders, so no order total, chart or category limit reads it, and it reads none of them.
+
+**Two amounts a month.** Each row holds, for each month, an expected amount and a real one, and either may be empty. The sheet shows the real amount where there is one and the expected amount otherwise, drawn light so the two can be told apart at a glance; every total counts the same way. Clearing a real amount brings the expected one back. Empty is not zero: a month with nothing written counts as nothing, and shows as a blank cell.
+
+**Totals, at the foot of the sheet.** Under the month names again: what the costs come to on each account a row names (the account a bill is paid from, or savings are paid into), then income, costs and what is left over. The account block is drawn only when at least one cost row names an account.
+
+**It is edited where it is read, the way a spreadsheet is.** An amount is a cell: click it, or type into it, and it becomes a field over the cell for the real amount. Enter saves and goes down a row, Tab saves and goes right, Escape leaves the cell as it was, and the arrow keys walk the sheet. Where the real amount is empty, the expected one is written under the field, not in it. Every change is saved as it is made, one after another; a change that fails says so and the sheet reads the year back, so it never shows a figure that is not stored.
+
+**A row's own panel.** The row's name opens a panel under the row with its name, its account, its group, and both amounts for every month, with a way to put one amount in every month and to clear either kind. Rows are moved by their grip, dragged or with the arrow keys; a row moves to another group from its panel. A group's name opens the group's panel: rename it, move it up or down, delete it. Deleting a row, a group or a year asks first, the same way every delete does.
+
+**A new year starts from the newest one.** It gets the same groups and rows, and the reader chooses what happens to the amounts: copied as they are, copied as expected amounts, or left out. The first choice is how the spreadsheet was carried forward — copy last year, then clear what is not known yet and write what is expected instead.
+
+**Bringing the spreadsheet in is done once.** The first screen offers it, and Settings' Import tab keeps the same button for a second go. The workbook is read in the browser: every sheet named after a year becomes that year, the rows under each group heading become that group's rows, and an amount drawn in light grey text comes in as an expected amount. Before anything is written the reader is told which years were found, which of them would replace a year already here, and which sheets are left out because they are not years.
+
+**Figures are whole units of the account's currency in the sheet** — it is an overview — and exact to the øre in the cell's field and in the row's panel. Every column but the names is a fixed width, so a figure sits at the same place all the way down. Where the year does not fit across, the sheet scrolls sideways inside its card with the row names held in place, and it opens on the current month rather than on January.
+
+**Navigation.** Budget is the last entry in the rail. On a phone it takes Statistics' column in the five-column bar; Statistics keeps its door there through Home's Spent card.
 
 ---
 
@@ -843,9 +866,9 @@ File: `Responsive reference.dc.html`
 
 **16b — per-screen table.** One row per screen, three columns (at 1280 / at 900 / at 640), with an empty cell meaning the layout is identical to the column on its left. Covers the shell, order read and edit, the list, create, statistics, the library, home, settings, import, the viewer, dialogs and the combobox.
 
-Two places horizontal scroll is allowed, both named in the table: the import dry-run preview table, and the attachment strip. Nowhere else.
+Three places horizontal scroll is allowed: the import dry-run preview table, the attachment strip, and the budget sheet, whose twelve months across are its whole layout. Nowhere else.
 
-**Acceptance, per screen.** At each of `1440 · 1280 · 1024 · 900 · 768 · 640 · 390`: no horizontal scroll except those two, no text under 11px, every target ≥44px below 640, no overlap, and the sticky save bar reachable without the keyboard covering it. The two widths that catch the most problems are **1024** (a rail has left but the table has not yet become cards) and **390** (the narrowest phone that matters).
+**Acceptance, per screen.** At each of `1440 · 1280 · 1024 · 900 · 768 · 640 · 390`: no horizontal scroll except those three, no text under 11px, every target ≥44px below 640, no overlap, and the sticky save bar reachable without the keyboard covering it. The two widths that catch the most problems are **1024** (a rail has left but the table has not yet become cards) and **390** (the narrowest phone that matters).
 
 **Build the four container-query wrappers first**, as four layout components. Every screen then picks one and fills it — screens that hand-roll their own grid are how a fifth threshold appears.
 

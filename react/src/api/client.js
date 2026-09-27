@@ -394,6 +394,39 @@ export async function removeWishPhoto(id, signal) {
 	return saved
 }
 
+/* ---- budget: one sheet a year, rows in groups, an expected and a real amount a month. Every
+   write answers with the whole year as it is now stored. ---- */
+
+export async function getBudgetYears(signal) {
+	return request('/api/budget', { signal })
+}
+
+export async function getBudgetYear(year, signal) {
+	return request(`/api/budget/${year}`, { signal })
+}
+
+async function budgetWrite(path, method, body, signal) {
+	const answer = await request(path, { method, body, signal })
+	invalidateBudgetData()
+	return answer
+}
+
+/** `amounts` is what the copied months become: 'same', 'expected', or 'none'. */
+export const createBudgetYear = (year, from, amounts, signal) =>
+	budgetWrite('/api/budget', 'POST', { year, from, amounts }, signal)
+export const deleteBudgetYear = (year, signal) => budgetWrite(`/api/budget/${year}`, 'DELETE', undefined, signal)
+export const importBudget = (years, signal) => budgetWrite('/api/budget/import', 'POST', { years }, signal)
+export const addBudgetGroup = (year, group, signal) =>
+	budgetWrite(`/api/budget/${year}/groups`, 'POST', group, signal)
+export const updateBudgetGroup = (id, patch, signal) =>
+	budgetWrite(`/api/budget/groups/${id}`, 'PATCH', patch, signal)
+export const deleteBudgetGroup = (id, signal) => budgetWrite(`/api/budget/groups/${id}`, 'DELETE', undefined, signal)
+export const addBudgetLine = (groupId, line, signal) =>
+	budgetWrite(`/api/budget/groups/${groupId}/lines`, 'POST', line, signal)
+export const updateBudgetLine = (id, patch, signal) =>
+	budgetWrite(`/api/budget/lines/${id}`, 'PATCH', patch, signal)
+export const deleteBudgetLine = (id, signal) => budgetWrite(`/api/budget/lines/${id}`, 'DELETE', undefined, signal)
+
 /** Carrying the picture's own id, so the address changes with the bytes and a browser told to
     keep one forever never shows a replaced photo. */
 export const wishPhotoThumbnailUrl = (id, photoId) => `/api/wishes/${id}/photo/${photoId}/thumbnail`
@@ -898,6 +931,7 @@ const COMMANDS = [
 	{ id: 'cmd-vendors', label: 'Vendors', meta: 'Go to', to: '/vendors', keywords: 'vendors shops stores' },
 	{ id: 'cmd-categories', label: 'Categories', meta: 'Go to', to: '/categories', keywords: 'categories tags manage' },
 	{ id: 'cmd-stats', label: 'Statistics', meta: 'Go to', to: '/stats', keywords: 'statistics stats charts month period' },
+	{ id: 'cmd-budget', label: 'Budget', meta: 'Go to', to: '/budget', keywords: 'budget year income costs months plan sheet excel' },
 	{ id: 'cmd-settings', label: 'Settings', meta: 'Go to', to: '/settings', keywords: 'settings preferences defaults reset' },
 	{ id: 'cmd-home', label: 'Home', meta: 'Go to', to: '/', keywords: 'home dashboard cards' }
 ]
@@ -1111,4 +1145,9 @@ export function invalidateCategoryData() {
 	invalidate(getOrderAsDraft); invalidate(getOrderAsCopy)
 	invalidate(getOrdersOverview); invalidate(getHomeContent); invalidate(getHomeHero)
 	invalidate(getStats); invalidate(getCategoryChartSplit)
+}
+
+/** Only the budget page reads the budget, and nothing else reads it. */
+export function invalidateBudgetData() {
+	invalidate(getBudgetYears); invalidate(getBudgetYear)
 }

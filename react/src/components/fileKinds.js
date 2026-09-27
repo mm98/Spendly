@@ -39,6 +39,11 @@ export const PHOTO_FILES = {
 	}
 }
 
+export const BUDGET_FILES = {
+	description: 'Excel workbooks',
+	accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
+}
+
 export const EXPORT_FILES = {
 	description: 'Spendly export',
 	accept: { 'application/json': ['.json'] }
