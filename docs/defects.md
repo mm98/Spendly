@@ -397,6 +397,21 @@ desktop size: only the two that were wrapping moved, each **exactly 44px shorter
 and every desktop render are **byte-identical**. The rule reaches nothing above the phone
 breakpoint — the name's computed `flex-basis` is `auto` at 701px and `80px` at 700.
 
+## Chrome — the top bar scrolled away with the page
+
+The README locks the top bar: it never scrolls. The bar was `position: sticky; top: 0`, but the panel
+that holds it and every page cut its rounded corner with `overflow: hidden`, and a box that clips that
+way is a scroll container of its own. A sticky element holds its place against the nearest scroll
+container, and that one never scrolls, so the bar went with the page: with the document scrolled
+**700px**, its bottom edge sat at **−625px**, off the screen, at 1024, 1440 and 2560 wide and on the
+`iPhone 15` descriptor. Nothing else on the page could stay in view either, which is how it came up:
+the Budget sheet's month names could not be kept on screen.
+
+`overflow: clip` cuts the same corner without making a scroll container. Measured after, in Blink
+141.0.7390.37, same widths, same scroll: the bar's bottom edge stays at **63px** on the desktop widths
+and **57px** on the phone, and the Budget month strip stops under it at exactly those values. The
+three `docs/` screenshots are taken at the top of the page and came back at **0 differing pixels**.
+
 ## Chrome — the bottom bar landed on the save button of an open line
 
 Reported from a phone: with a line of an order open for correction, the bottom bar conflicts with the

@@ -117,7 +117,7 @@ const BIG_TABLES = new Set(['orders', 'order_items', 'order_categories', 'attach
    lookup by primary key that reached the row through an already-scoped query. The baseline
    carries the ones that are the latter. */
 const SCOPED_TABLES = new Set([...BIG_TABLES, 'vendors', 'categories', 'vendor_aliases', 'settings',
-	'dashboard_cards', 'wishes'])
+	'dashboard_cards', 'wishes', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines'])
 
 const tmp = mkdtempSync(path.join(tmpdir(), 'spendly-queries-'))
 const DB_PATH = path.join(tmp, 'check.sqlite3')
@@ -196,6 +196,25 @@ for (let i = 0; i < NEIGHBOURS; i++) {
 	// because nothing is in it rather than because nothing asks for it.
 	insertUpload.run(`su-neighbour${String(i).padStart(5, '0')}`, id)
 }
+/* A budget in every account, written after every other row so the ids above stay the ones the
+   baseline was taken with: three years of seven groups here, one year each next door. */
+const { replaceYears } = await import('../src/lib/budget.js')
+const fixtureMonths = (row, known) => Array.from({ length: 12 }, (_, m) =>
+	(m < known ? { expected: null, real: 100 * (row + 1) } : { expected: 100 * (row + 1), real: null }))
+const fixtureBudget = year => ({
+	year,
+	groups: [
+		{ kind: 'income', name: 'Income', lines: [{ name: 'Salary', account: 'Salary', months: fixtureMonths(300, 9) }] },
+		...Array.from({ length: 6 }, (_, g) => ({ kind: 'expense', name: `Group ${g}`,
+			lines: Array.from({ length: 6 }, (_, row) => ({ name: `Row ${g}.${row}`,
+				account: ['Budget', 'Salary', 'Savings'][row % 3], months: fixtureMonths(row, 9) })) }))
+	]
+})
+const fixtureAccounts = ['Salary', 'Budget', 'Savings']
+replaceYears(USER, [2024, 2025, 2026].map(fixtureBudget), fixtureAccounts)
+for (let i = 0; i < NEIGHBOURS; i++)
+	replaceYears(`u-neighbour${String(i).padStart(6, '0')}`, [fixtureBudget(2026)], fixtureAccounts)
+
 // The demo fill rewrites the whole ledger, so the statistics db.js gathered over an empty
 // account are stale -- exactly what routes/account.js re-runs ANALYZE for after a fill.
 db.exec('ANALYZE')
@@ -239,7 +258,7 @@ const REQUESTS = [
 	`/wishes/${ids.wish}`,
 	'/home/hero', '/home/onboarding', '/settings', '/dashboard-cards',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
-	'/scan/recent'
+	'/scan/recent', '/budget', '/budget/2026', '/budget/accounts'
 ]
 
 for (const request of REQUESTS) {
@@ -269,6 +288,36 @@ for (const [path, to] of [
 	})
 	if (!response.ok) {
 		console.error(`  ${path} answered ${response.status} -- the check cannot read plans for it`)
+		process.exitCode = 1
+	}
+	await response.arrayBuffer()
+}
+
+/* The budget's writes, last for the same reason as the moves above. Their ids come out of the
+   sheet the app itself answers with, so no SELECT of this script's own joins the baseline. */
+const sheet = await (await fetch(BASE + '/budget/2026', { headers: H })).json()
+const [group, second] = sheet.groups.filter(g => g.kind === 'expense')
+const line = group.lines[1]
+const [account, other] = sheet.accounts
+for (const [method, path, body] of [
+	['PATCH', `/budget/lines/${line.id}`, { month: 3, real: 123.45 }],
+	['PATCH', `/budget/lines/${line.id}`, { name: 'Renamed', accountId: other.id }],
+	['PATCH', `/budget/lines/${line.id}`, { groupId: second.id, index: 0 }],
+	['POST', `/budget/groups/${group.id}/lines`, { name: 'New row', accountId: account.id, months: fixtureMonths(1, 0) }],
+	['PATCH', `/budget/groups/${second.id}`, { name: 'Moved', index: 0 }],
+	['POST', '/budget/2026/groups', { kind: 'expense', name: 'New group' }],
+	['POST', '/budget', { year: 2027, from: 2026, amounts: 'expected' }],
+	['DELETE', `/budget/lines/${group.lines[0].id}`],
+	['DELETE', `/budget/groups/${group.id}`],
+	['POST', '/budget/accounts', { name: 'Holiday' }],
+	['PATCH', `/budget/accounts/${other.id}`, { name: 'Budget account', index: 0 }],
+	['DELETE', `/budget/accounts/${account.id}`]
+]) {
+	const response = await fetch(BASE + path, {
+		method, headers: { ...H, 'Content-Type': 'application/json' }, body: body && JSON.stringify(body)
+	})
+	if (!response.ok) {
+		console.error(`  ${method} ${path} answered ${response.status} -- the check cannot read plans for it`)
 		process.exitCode = 1
 	}
 	await response.arrayBuffer()

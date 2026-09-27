@@ -100,7 +100,7 @@ Amber — informational warning. Used for anything about a monthly limit. **Ambe
 | `#7a5c23` | Text and icon |
 | `#6b5424` | Text on amber fill |
 
-Red — error and destructive. Used for validation that stops a save, and for delete.
+Red — error and destructive. Used for validation that stops a save, for delete, and for a budget month that spends more than it brings in.
 
 | Value | Use |
 | --- | --- |
@@ -256,7 +256,7 @@ Read this before building any screen. It is the frame everything else sits in, a
 
 - One scroll container, `48px` padding (`20px` on mobile).
 - **Scroll position resets to top on navigation**, and is restored when returning to a list via the browser back button — a user who scrolled to order 80, opened it, and came back should land where they were.
-- **Sticky elements inside it** — the save bar on order edit, the bulk-action bar on the list, table headers — are `position: sticky` relative to *this* container, not the viewport. This only works because the container is the scroller; it is the main reason for the layout above.
+- **Sticky elements inside it** — the save bar on order edit, the bulk-action bar on the list, table headers — are `position: sticky` relative to *this* container, not the viewport. This only works because the container is the scroller; it is the main reason for the layout above. Nothing between a sticky element and the scroller may clip in a way that makes a scroll box of its own, or the element silently stops sticking, and whatever a page keeps in view stops under the top bar, never behind it.
 - The two-column screens (order edit, order list, the library) lay out **inside** this column: main `1fr` plus a fixed rail, `24px` gap. The rail scrolls with the content, not separately. There is no second scrollbar anywhere in the app.
 
 ### Breakpoints
@@ -403,7 +403,7 @@ The fixed vendor column is a deliberate correction: an earlier version placed th
 ### Wishlist
 No design file — both patterns it is built from are already drawn: the working list (2a) and the record form (5a–5c). Code: `pages/Wishlist.jsx`, `pages/WishForm.jsx`, `components/ListToolbar.jsx`, `components/LinePhoto.jsx`, `components/FormPage.jsx`
 
-**Purpose:** what the account wants and has not bought. A wish is a name and a link, and optionally a price, a picture and one or more categories. It is never an order, and that separation is the point: every total, chart and budget in the product reads orders as money that has already left, so nothing on this page reaches any of them.
+**Purpose:** what the account wants and has not bought. A wish is a name and a link, and optionally a price, a picture and one or more categories. It is never an order, and that separation is the point: every total, chart and category limit in the product reads orders as money that has already left, so nothing on this page reaches any of them.
 
 **Filling in from the link:** paste the address first and the page is asked what it calls the thing and what picture it offers a link preview, and the name and the picture frame fill in from that. Only while a wish is being created, only into a name nobody has typed, and silently — a shop that refuses to be read, a page that has moved, an address the server will not fetch are all the same nothing, and the reader types the name themselves. The picture is offered, not applied: choosing a file or pressing Remove drops it, and it is fetched by the server only once the wish is saved.
 
@@ -416,6 +416,33 @@ No design file — both patterns it is built from are already drawn: the working
 **A wish is a record, not part of one,** so it is created and edited on its own page — the same page a vendor, a category and an order use, because there is one way to edit a record here rather than one per screen. An order's lines are edited in place because a line has no life outside the order; a wish stands on its own. The list is only ever a list. Archived is a checkbox on the record beside its other fields, the way a vendor's Favourite is; the list filters on it. Deleting lives on the record's own page and asks first, through the one ask-before-deleting setting every other delete reads.
 
 **The picture:** one per wish, and the same frame an order line's photo uses. It is clicked, or a file is dropped on it, or one is pasted in. Only what is actually an image is accepted — the bytes decide, not the filename. Replacing gives the picture a new address, so a browser told to keep it forever can never show the old one.
+
+---
+
+### Budget
+No design file — it is drawn the way the spreadsheet it replaces was drawn. Code: `pages/Budget.jsx`, `components/BudgetImport.jsx`
+
+**Purpose:** the household's yearly budget: one sheet per year, the income and the fixed costs down the side in groups, the twelve months across, and at the end of each row the year's total and the monthly average. Like the wishlist it is not orders, so no order total, chart or category limit reads it, and it reads none of them.
+
+**Two amounts a month.** Each row holds, for each month, an expected amount and a real one, and either may be empty. The sheet shows the real amount where there is one and the expected amount otherwise, drawn in a paler grey so the two can be told apart at a glance; every total counts the same way. An expected amount is a placeholder, not something to read, so it is faded on purpose to placeholder level: APCA Lc 30 on the card in both themes, under the 60 asked of text that has to be read, and still visible on the current month's column and on the row under the pointer. In a row's panel the expected fields are typed into, so their text stays readable and their dashed edge marks them instead. The sheet's header says it in words: grey amounts are expected. Clearing a real amount brings the expected one back. Empty is not zero: a month with nothing written counts as nothing, and shows as a blank cell.
+
+**Totals, at the foot of the sheet,** under a Totals heading like Income and Costs. The month names are not repeated there, because they stay in view above the sheet. First what the costs come to on each account, in the order of the account list, then income, costs and what is left over. Cost rows with no account are added up on a line of their own. The account block is drawn only when at least one cost row has an account. Left over is coloured the way the spreadsheet coloured it: a month with money left is green on a green wash, a month that spends more than it brings in is red on a red wash, and the year and the monthly average follow the same rule. A figure shown as 0,00 stays plain.
+
+**Amounts are always open. The shape of the sheet waits behind EDIT.** An amount can be typed into the sheet at any time. Everything that changes the sheet's shape is done a few times a year: adding, renaming, moving and deleting rows and groups, the account list, and starting or deleting a year. All of it waits behind one EDIT button beside the years, which reads DONE while it is on. At rest a name is plain text, not a control that does nothing. In edit mode the rows show their grips, the names open their panels, the add rows appear, and the account list is drawn under the sheet. An add row's plus is bare, with no box around it, and sits where the grips sit, with the same small gap after it, so its words start where the names above it start. It is never drawn above the sheet, so turning edit mode on does not push the sheet down the page. Turning it off closes any open panel.
+
+**It is edited where it is read, the way a spreadsheet is.** An amount is a cell: click it, or type into it, and it becomes a field over the cell for the real amount. Enter saves and goes down a row, Tab saves and goes right, Escape leaves the cell as it was, and the arrow keys walk the sheet. Where the real amount is empty, the expected one is written under the field, not in it. Every change is saved as it is made, one after another; a change that fails says so and the sheet reads the year back, so it never shows a figure that is not stored.
+
+**A row's own panel.** In edit mode the row's name opens a panel under the row with its name, its account (one from the account list, or none), its group, and both amounts for every month, with a way to put one amount in every month and to clear either kind. The months stand twelve across, or six, or three, so no month is left alone on a line, and the box for one amount in every month is the size of a month's box, with its buttons beside it. Rows are moved by their grip, dragged or with the arrow keys; a row moves to another group from its panel. A group's name opens the group's panel: rename it, move it up or down, delete it. Deleting a row, a group, an account or a year asks first, the same way every delete does. When a panel closes, focus goes back to what opened it, or to the add button of its list when that was deleted.
+
+**The account list.** The accounts a row is paid from, or paid into, are one list that every year shares, and each row picks one from it or none. It is set up once, so it is shown only in edit mode, under the sheet, and it is drawn the way the sheet's own rows are: a grip, the name, and how much it is used, one line each. A name opens the account's panel to rename or delete it, and the grip moves it. Two accounts cannot share a name, and a taken name is refused in the field, the way every other taken name is. Each account says how many rows use it in the year on screen. Deleting one asks first, says how many rows it leaves without an account counting all years, and keeps those rows.
+
+**A new year starts from the newest one.** It gets the same groups and rows, and the reader chooses what happens to the amounts: copied as they are, copied as expected amounts, or left out. The first choice is how the spreadsheet was carried forward: copy last year, then clear what is not known yet and write what is expected instead.
+
+**Bringing the spreadsheet in is done once.** The first screen offers it, and Settings' Import tab keeps the same button for a second go. The workbook is read in the browser: every sheet named after a year becomes that year, the rows under each group heading become that group's rows, and an amount drawn in light grey text comes in as an expected amount. A sheet named Accounts becomes the account list, in its own order; without one, the accounts the rows name become the list. Before anything is written the reader is told which years were found, which of them would replace a year already here, what the account list will be, and which sheets are left out because they are not years.
+
+**Figures are shown with two decimals**, in the sheet as in the cell's field and the row's panel, the way the spreadsheet showed them. A month column is sized for the widest figure a household budget is likely to hold, and no row draws its figures heavier than semibold, since bold figures are wider; Left over stands out by its colours and its bold label instead. The name column grows only to a set width, and a longer name is cut short and shown in full on hover; the months are what the sheet is for, so they and the totals share all the width that is left. Every row uses the same columns, so a figure sits at the same place all the way down. A blank line opens each group and each section after the first; what sits straight under a heading does not get one, since the heading already sets it apart. Row names are drawn in the regular weight, and the group and section headings carry the emphasis. Where the year does not fit across, the sheet scrolls sideways inside its card with the row names held in place, and it opens on the current month rather than on January. The month names stay in view: while the page scrolls down they stop under the top bar, and they move sideways with the sheet, so a figure is never far from the name of its month.
+
+**Navigation.** Budget is the last entry in the rail. On a phone it takes Statistics' column in the five-column bar; Statistics keeps its door there through Home's Spent card.
 
 ---
 
@@ -843,9 +870,9 @@ File: `Responsive reference.dc.html`
 
 **16b — per-screen table.** One row per screen, three columns (at 1280 / at 900 / at 640), with an empty cell meaning the layout is identical to the column on its left. Covers the shell, order read and edit, the list, create, statistics, the library, home, settings, import, the viewer, dialogs and the combobox.
 
-Two places horizontal scroll is allowed, both named in the table: the import dry-run preview table, and the attachment strip. Nowhere else.
+Three places horizontal scroll is allowed: the import dry-run preview table, the attachment strip, and the budget sheet, whose twelve months across are its whole layout. Nowhere else.
 
-**Acceptance, per screen.** At each of `1440 · 1280 · 1024 · 900 · 768 · 640 · 390`: no horizontal scroll except those two, no text under 11px, every target ≥44px below 640, no overlap, and the sticky save bar reachable without the keyboard covering it. The two widths that catch the most problems are **1024** (a rail has left but the table has not yet become cards) and **390** (the narrowest phone that matters).
+**Acceptance, per screen.** At each of `1440 · 1280 · 1024 · 900 · 768 · 640 · 390`: no horizontal scroll except those three, no text under 11px, every target ≥44px below 640, no overlap, and the sticky save bar reachable without the keyboard covering it. The two widths that catch the most problems are **1024** (a rail has left but the table has not yet become cards) and **390** (the narrowest phone that matters).
 
 **Build the four container-query wrappers first**, as four layout components. Every screen then picks one and fills it — screens that hand-roll their own grid are how a fifth threshold appears.
 

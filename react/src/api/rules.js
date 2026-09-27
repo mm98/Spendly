@@ -124,3 +124,23 @@ export const siteOf = value => {
 	if (!href) return String(value ?? '')
 	return new URL(href).hostname.replace(/^www\./, '')
 }
+
+/* The budget's rows and groups, in the same words as api/src/lib/validate.js. A row's twelve
+   months take BUDGET_AMOUNT, one field per month and kind of amount. */
+export const BUDGET_AMOUNT = v =>
+	!v ? '' : AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 1.234,56.'
+
+export const BUDGET_ROW_FIELDS = [
+	{ name: 'budget-row-name', label: 'Name', check: v =>
+		!v ? 'Give the row a name.' : v.length > 80 ? '80 characters at most.' : '' }
+]
+
+export const BUDGET_ACCOUNT_FIELDS = [
+	{ name: 'budget-account-name', label: 'Name', check: v =>
+		!v ? 'Give the account a name.' : v.length > 40 ? '40 characters at most.' : '' }
+]
+
+export const BUDGET_GROUP_FIELDS = [
+	{ name: 'budget-group-name', label: 'Name', check: v =>
+		!v ? 'Give the group a name.' : v.length > 60 ? '60 characters at most.' : '' }
+]

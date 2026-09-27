@@ -48,7 +48,9 @@ const NAV = [
 	{ to: '/wishlist', key: 'wishlist', icon: 'cart', label: 'Wishlist', short: 'Wish' },
 	{ to: '/vendors', key: 'vendors', icon: 'store', label: 'Vendors' },
 	{ to: '/categories', key: 'categories', icon: 'tag', label: 'Categories' },
-	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics', short: 'Stats' }
+	// Leaves the phone bar to Budget: Home's Spent card is its door there.
+	{ to: '/stats', key: 'stats', icon: 'chart', label: 'Statistics', wide: true },
+	{ to: '/budget', key: 'budget', icon: 'budget', label: 'Budget' }
 ]
 
 function Sidebar({ navKey }) {
@@ -392,9 +394,18 @@ function SubTabs({ tabs, view, setView }) {
 function TopBar({ handle, titleRef }) {
 	const location = useLocation()
 	const navigate = useNavigate()
+	const bar = useRef(null)
+
+	// A page's sticky strip stops under this bar, whose height follows what it holds, so the bar says it.
+	useEffect(() => {
+		const el = bar.current
+		const watch = new ResizeObserver(() => el.parentElement.style.setProperty('--topbar-height', `${el.offsetHeight}px`))
+		watch.observe(el)
+		return () => watch.disconnect()
+	}, [])
 
 	return (
-		<header className="topbar">
+		<header className="topbar" ref={bar}>
 			{handle.back ? (
 				/* A row passes where it opened this page from as navigation state (Rows.jsx), so
 				   leaving closes that; `handle.back.to` is the fallback. README: Accessibility. */

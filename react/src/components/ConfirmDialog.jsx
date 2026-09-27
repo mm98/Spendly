@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button.jsx'
 
 /* The question the app asks before doing something it cannot take back.
@@ -19,7 +20,7 @@ import { Button } from './Button.jsx'
    onto a new build (UpdateNotice.jsx). A second copy of the mechanics is how the two would come
    to disagree about which button focus lands on. README: Deletion, Chrome. */
 
-export function ConfirmDialog({ title, detail, confirmLabel, cancelLabel = 'CANCEL', onConfirm, onCancel }) {
+export function ConfirmDialog({ title, detail, confirmLabel, cancelLabel = 'CANCEL', onConfirm, onCancel, children }) {
 	const ref = useRef(null)
 	const cancelRef = useRef(null)
 
@@ -30,18 +31,22 @@ export function ConfirmDialog({ title, detail, confirmLabel, cancelLabel = 'CANC
 		return () => opener?.focus?.()
 	}, [])
 
-	return (
+	/* Drawn on the body, so a dialog opened from inside a centred or narrowed box does not
+	   take that box's alignment or width. */
+	return createPortal(
 		<dialog className="confirm-dialog" ref={ref} aria-label={title}
 			onCancel={onCancel}
 			onClick={e => { if (e.target === ref.current) onCancel() }}>
 			<div className="confirm-dialog-card">
 				<strong>{title}</strong>
 				<p>{detail}</p>
+				{children}
 				<div className="form-actions">
 					<Button variant="caps compact" onClick={onConfirm}>{confirmLabel}</Button>
 					<Button ref={cancelRef} variant="ghost compact" onClick={onCancel}>{cancelLabel}</Button>
 				</div>
 			</div>
-		</dialog>
+		</dialog>,
+		document.body
 	)
 }

@@ -239,6 +239,16 @@ const stampFormat = formatter({ dateStyle: 'long', timeStyle: 'short' })
    asking about a rendering nobody can see from the label. */
 const sampleFormat = formatter({ dateStyle: 'short', timeStyle: 'short' })
 
+const shortMonthFormat = formatter({ month: 'short' })
+const longMonthFormat = formatter({ month: 'long' })
+
+/** The twelve month names in the reader's own locale: short ones head a column, long ones are
+    what a screen reader says. A locale's closing full stop ("okt.") is left off a heading. */
+export const monthNames = (style = 'short') => Array.from({ length: 12 }, (_, m) => {
+	const name = (style === 'long' ? longMonthFormat : shortMonthFormat)().format(new Date(2026, m, 1))
+	return style === 'long' ? name : name.replace(/\.$/, '')
+})
+
 const dateOf = iso => {
 	const [y, m, d] = String(iso).split('-').map(Number)
 	return new Date(y, m - 1, d)

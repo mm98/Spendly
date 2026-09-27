@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 /* The whole Tabler outline set, flattened to one path string per icon and cut into shards.
 
-   The app's own 39 glyphs live in src/components/Icon.jsx and are the ones the interface
+   The app's own glyphs live in src/components/Icon.jsx and are the ones the interface
    draws: a chevron, a receipt, a trash can. This directory is the *catalogue* the category
    picker offers, which is a different job -- 5,129 icons nobody's interface uses more than a
    handful of. It is generated rather than hand-written, since 5,129 icons is nobody's job to

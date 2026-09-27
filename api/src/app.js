@@ -7,6 +7,7 @@ import { router as vendorsRouter } from './routes/vendors.js'
 import { router as categoriesRouter } from './routes/categories.js'
 import { router as ordersRouter } from './routes/orders.js'
 import { router as wishesRouter } from './routes/wishes.js'
+import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
 import { router as dashboardCardsRouter } from './routes/dashboardCards.js'
 import { router as accountRouter } from './routes/account.js'
@@ -60,7 +61,10 @@ app.use((req, res, next) => {
 // request body read exactly once.
 const smallJson = express.json()
 const importJson = express.json({ limit: '50mb' })
-app.use((req, res, next) => (req.path === '/api/orders/import' ? importJson : smallJson)(req, res, next))
+// A budget file of many years outgrows the default 100 kB, though it carries no images.
+const budgetJson = express.json({ limit: '2mb' })
+app.use((req, res, next) => (req.path === '/api/orders/import' ? importJson
+	: req.path === '/api/budget/import' ? budgetJson : smallJson)(req, res, next))
 
 // Debug request log, off unless asked for (node src/server.js --debug, or DEBUG=1) -- one line
 // per request, written when the response finishes so it can carry the status and timing, but
@@ -185,6 +189,7 @@ app.use('/api/vendors', vendorsRouter)
 app.use('/api/categories', categoriesRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/wishes', wishesRouter)
+app.use('/api/budget', budgetRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/dashboard-cards', dashboardCardsRouter)
 /* accountRouter only defines POST /reset, but it's mounted at the bare /api prefix (the route
