@@ -15,7 +15,7 @@ import { Sep } from '../components/Sep.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { useApi } from '../api/useApi.js'
-import { AMOUNT_PATTERN, activeCurrency, amount, amountRound, monthNames, parseAmount, plural, sanitizeAmount } from '../api/format.js'
+import { AMOUNT_PATTERN, activeCurrency, amount, monthNames, parseAmount, plural, sanitizeAmount } from '../api/format.js'
 import { BUDGET_ACCOUNT_FIELDS, BUDGET_AMOUNT, BUDGET_GROUP_FIELDS, BUDGET_ROW_FIELDS } from '../api/rules.js'
 import {
 	addBudgetAccount, addBudgetGroup, addBudgetLine, createBudgetYear, deleteBudgetAccount, deleteBudgetGroup,
@@ -35,7 +35,9 @@ const shown = m => m.real ?? m.expected
 const sumMonths = lines => Array.from({ length: MONTHS }, (_, m) =>
 	lines.reduce((sum, line) => sum + (shown(line.months[m]) ?? 0), 0))
 const sum = values => values.reduce((a, b) => a + b, 0)
-const figure = n => (n == null ? '' : amountRound(Math.round(n)))
+// Rounded to two decimals first, so a sum a hair under zero is drawn as 0,00, not -0,00.
+const cents = n => Math.round(n * 100) / 100
+const figure = n => (n == null ? '' : amount(cents(n)))
 const toNumber = text => (text.trim() ? parseAmount(text.trim()) : null)
 const cellId = (lineId, month) => `budget-cell-${lineId}-${month}`
 
@@ -390,7 +392,7 @@ function SheetCard({ sheet, setSheet, write, del, arranging }) {
 				<span className="budget-key"><span className="budget-key-expected">Grey</span> amounts are expected</span>
 			</CardHeader>
 			<CardDivider />
-			<div className="budget-table" role="grid" aria-label={`Budget ${sheet.year}, amounts in whole ${activeCurrency().label}`}>
+			<div className="budget-table" role="grid" aria-label={`Budget ${sheet.year}, amounts in ${activeCurrency().label}`}>
 				<div className="budget-sheet budget-sheet-head" ref={head}>
 					<div className="budget-grid">
 						<HeadRow months={months} thisMonth={thisMonth} />
@@ -438,7 +440,7 @@ function SheetCard({ sheet, setSheet, write, del, arranging }) {
 				) : (
 					<p className="field-help">Click an amount to write the real one. Enter saves it and moves down.
 						Clear it to show the expected amount again. To add, move or rename rows, groups and accounts,
-						or to change expected amounts, press EDIT. The sheet shows whole {activeCurrency().label}.</p>
+						or to change expected amounts, press EDIT.</p>
 				)}
 				{arranging ? del.button : null}
 				{del.dialog}
@@ -976,7 +978,7 @@ function AccountsCard({ sheet, onChanged }) {
 }
 
 // A signed row colours each figure by the sign it is shown with, so a figure drawn as 0 stays plain.
-const signOf = value => (Math.round(value) > 0 ? 'is-positive' : Math.round(value) < 0 ? 'is-negative' : null)
+const signOf = value => (cents(value) > 0 ? 'is-positive' : cents(value) < 0 ? 'is-negative' : null)
 
 function SumRow({ label, values, strong, signed, thisMonth }) {
 	const year = sum(values)
