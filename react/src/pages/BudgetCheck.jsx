@@ -511,7 +511,7 @@ export default function BudgetCheck() {
 
 						{!ready || !payments.length ? null : !checked ? <SkeletonCard lines={8} /> : (
 							<>
-								<div className="stats-hero-row budget-hero-row bank-hero-row">
+								<div className="stats-hero-row budget-hero-row">
 									<section className="card card-ai stats-hero budget-hero" aria-label="The check">
 										<div className="bank-hero-head">
 											<span className="panel-heading bank-hero-file">{file}</span>

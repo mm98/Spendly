@@ -1712,9 +1712,6 @@ button.budget-slide-line-name:hover { text-decoration:underline; text-underline-
 
 .bank-hero-head { display:grid; gap:2px; min-width:0; }
 .bank-hero-file { color:var(--text-inverse); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-/* A note may wrap, so each tile keeps its figure at the top and a row's figures line up. */
-.bank-hero-row .card-kpi { align-content:start; }
-.bank-hero-row .card-kpi .card-kpi-label { white-space:normal; }
 .bank-panel { display:grid; gap:14px; }
 .bank-hint { margin:0; }
 .bank-lines { list-style:none; margin:0; padding:0; }
