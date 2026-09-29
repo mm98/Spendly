@@ -117,7 +117,7 @@ const BIG_TABLES = new Set(['orders', 'order_items', 'order_categories', 'attach
    lookup by primary key that reached the row through an already-scoped query. The baseline
    carries the ones that are the latter. */
 const SCOPED_TABLES = new Set([...BIG_TABLES, 'vendors', 'categories', 'vendor_aliases', 'settings',
-	'dashboard_cards', 'wishes', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines'])
+	'dashboard_cards', 'wishes', 'budget_years', 'budget_accounts', 'budget_groups', 'budget_lines', 'bank_links'])
 
 const tmp = mkdtempSync(path.join(tmpdir(), 'spendly-queries-'))
 const DB_PATH = path.join(tmp, 'check.sqlite3')
@@ -258,7 +258,7 @@ const REQUESTS = [
 	`/wishes/${ids.wish}`,
 	'/home/hero', '/home/onboarding', '/settings', '/dashboard-cards',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
-	'/scan/recent', '/budget', '/budget/2026', '/budget/accounts'
+	'/scan/recent', '/budget', '/budget/2026', '/budget/accounts', '/budget/links'
 ]
 
 for (const request of REQUESTS) {
@@ -311,7 +311,9 @@ for (const [method, path, body] of [
 	['DELETE', `/budget/groups/${group.id}`],
 	['POST', '/budget/accounts', { name: 'Holiday' }],
 	['PATCH', `/budget/accounts/${other.id}`, { name: 'Budget account', index: 0 }],
-	['DELETE', `/budget/accounts/${account.id}`]
+	['DELETE', `/budget/accounts/${account.id}`],
+	['PUT', '/budget/links', { pattern: 'betalingsservice aquaren aftalenr', kind: 'expense', line: 'Water' }],
+	['DELETE', '/budget/links?pattern=betalingsservice%20aquaren%20aftalenr&kind=expense']
 ]) {
 	const response = await fetch(BASE + path, {
 		method, headers: { ...H, 'Content-Type': 'application/json' }, body: body && JSON.stringify(body)

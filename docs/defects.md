@@ -3693,3 +3693,24 @@ expected amounts shows no plan and says so on its cards. Measured on a fixture w
 written up to June and real amounts up to September: March reads "The plan was 42%" and "2,00 more
 than expected", September reads "42% of the income is used" with no plan line, no mark on the meter,
 and "No expected amounts yet" on both the Income and the Costs card.
+
+## Controls — the bar's white buttons stood shorter than the switches beside them
+
+On the Budget page and on Check a bank statement, the bar at the top holds segmented switches (the
+year, the view, the list to show) and white buttons (ALL MONTHS, EDIT, CHECK A BANK STATEMENT,
+COLUMNS, ANOTHER FILE). The buttons kept the 32px of a section header's button, so each one sat
+7.39px shorter than the switch beside it and read as a smaller, lesser control.
+
+The height was taken from the pages that already put controls in one row, measured in the running app:
+
+| page, measured in Chromium at 1440x900 and on iPhone 15 | controls in the row | height |
+|---|---|---|
+| Orders, Vendors, Categories, Wishlist: the list toolbar | search field, FILTERS (white), sort, PREVIOUS / NEXT | 38px each |
+| every page: the top bar's search | search field | 38px |
+| Budget and Check a bank statement, before | switch / white button | 39.39px / 32px |
+| Budget (edit mode included) and Check a bank statement, after | switch / white button | 38px / 38px |
+
+Stretching the buttons to the switch's own height does not hold on a phone: a button that wraps onto
+a row with no switch fell to its content, 17.94px. A fixed height does not depend on what shares the
+row. After the fix the tabs inside a switch are 30px, no label is clipped, and neither page scrolls
+sideways. Not checked: Firefox and WebKit.

@@ -1694,6 +1694,58 @@ button.budget-slide-line-name:hover { text-decoration:underline; text-underline-
 @media (pointer: coarse) {
 	.budget-amount, .budget-name, .budget-account-row { min-height:44px; }
 }
+/* ---------------- bank statement check ---------------- */
+.bank-columns { display:grid; gap:var(--gap-block); }
+.bank-columns > .card-lead { margin:0; }
+.bank-map-head, .bank-map-row { --bank-map-gap:48px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:var(--bank-map-gap); }
+.bank-map-head { padding-bottom:8px; border-bottom:1px solid var(--border-divider); }
+.bank-map { list-style:none; margin:0; padding:0; display:grid; }
+.bank-map-spendly { display:grid; gap:var(--gap-block); min-width:0; }
+.bank-map-problem { margin:0; color:var(--text-negative); font-weight:600; }
+.bank-map-row { align-items:first baseline; row-gap:8px; padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); }
+.bank-map-row:last-child { border-bottom:0; }
+.bank-map-row.is-unused .bank-map-samples { color:var(--text-faint); }
+.bank-map-samples { list-style:none; margin:4px 0 0; padding:0; display:grid; gap:2px; font-size:12.5px; color:var(--text-body); overflow-wrap:anywhere; }
+/* Centred on the select it points at, in the gap before it, whatever the label or the file's column hold. */
+.bank-map-pick { position:relative; }
+.bank-map-arrow { position:absolute; top:50%; right:100%; margin-right:calc((var(--bank-map-gap) - 18px) / 2); transform:translateY(-50%); color:var(--text-muted); }
+
+.bank-hero-head { display:grid; gap:2px; min-width:0; }
+.bank-hero-file { color:var(--text-inverse); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bank-panel { display:grid; gap:14px; }
+.bank-hint { margin:0; }
+.bank-lines { list-style:none; margin:0; padding:0; }
+.bank-line { display:grid; gap:6px; padding:10px 0; border-bottom:1px solid var(--border-divider); }
+.bank-line.is-picked { background:var(--bg-row-hover); box-shadow:-8px 0 0 var(--bg-row-hover), 8px 0 0 var(--bg-row-hover); }
+.bank-line-head { display:flex; align-items:flex-start; gap:var(--gap-row); min-width:0; }
+label.bank-line-head { cursor:pointer; }
+.bank-line-head .check-box { flex:none; margin-top:2px; }
+.bank-line-text { display:grid; gap:1px; flex:1; min-width:0; }
+.bank-line-name { font-size:13px; color:var(--text-strong); overflow-wrap:anywhere; }
+.bank-line-meta { font-size:11px; color:var(--text-muted); }
+.bank-line-amount { flex:none; font-size:13.5px; color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap; }
+/* Everything under a line with a box to tick starts where its text does. */
+.bank-line.has-check > :not(.bank-line-head) { margin-left:calc(20px + var(--gap-row)); }
+.bank-line-note { margin:0; font-size:12px; }
+.bank-line-note.is-warn, .bank-line.is-amount .bank-status, .bank-line.is-near .bank-status { color:var(--text-warn); font-weight:600; }
+.bank-line-note.is-negative, .bank-line.is-missing .bank-status, .bank-line.is-year .bank-status { color:var(--text-negative); font-weight:600; }
+.bank-line.is-match .bank-status { color:var(--text-positive); }
+.bank-line-actions { display:flex; flex-wrap:wrap; gap:8px var(--gap-panel); }
+.bank-place { margin:4px 0 6px; }
+.bank-place-actions { display:flex; justify-content:flex-end; gap:var(--gap-panel); }
+/* Stays in view while the list scrolls, so what is selected far down can still be placed. */
+.bank-bulk { position:sticky; top:calc(var(--topbar-height, 0px) + 8px); z-index:3; background:var(--bg-row-hover); box-shadow:var(--shadow); }
+@media (pointer: coarse) {
+	.bank-line-actions .button-link, .bank-bulk .button-link { min-height:44px; }
+	.bank-line-actions { row-gap:0; }
+}
+@media (max-width:640px) {
+	.bank-map-row { grid-template-columns:minmax(0,1fr); }
+	.bank-map-head, .bank-map-arrow { display:none; }
+	.bank-bar > .segmented { order:1; width:100%; }
+	.bank-bar .segmented button { flex:1 1 auto; min-width:0; padding-inline:clamp(8px, 2.5vw, 16px); }
+}
+
 @media (max-width:900px) { .two-column { grid-template-columns:minmax(0,1fr); } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
 /* ---------------- responsive ---------------- */

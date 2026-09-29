@@ -168,7 +168,8 @@ const refuse = message => Object.assign(new Error(message), { status: 400 })
 export const BUDGET_TEXT = {
 	row: { max: 80, missing: 'Give the row a name.' },
 	group: { max: 60, missing: 'Give the group a name.' },
-	account: { max: 40, missing: 'Give the account a name.' }
+	account: { max: 40, missing: 'Give the account a name.' },
+	payment: { max: 200, missing: 'The payment has no text to remember it by.' }
 }
 
 export function budgetText(value, { max, missing }) {

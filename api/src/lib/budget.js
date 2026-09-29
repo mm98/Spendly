@@ -51,6 +51,11 @@ const deleteAllAccounts = db.prepare('DELETE FROM budget_accounts WHERE user_id 
 const renameAccountRow = db.prepare('UPDATE budget_accounts SET name = ? WHERE id = ? AND user_id = ?')
 const setAccountPosition = db.prepare('UPDATE budget_accounts SET position = ? WHERE id = ? AND user_id = ?')
 const deleteAccountRow = db.prepare('DELETE FROM budget_accounts WHERE id = ? AND user_id = ?')
+const selectLinks = db.prepare('SELECT pattern, kind, line_name FROM bank_links WHERE user_id = ?')
+const upsertLink = db.prepare(`INSERT INTO bank_links (user_id, pattern, kind, line_name) VALUES (?, ?, ?, ?)
+	ON CONFLICT (user_id, pattern, kind) DO UPDATE SET line_name = excluded.line_name`)
+const deleteLinkRow = db.prepare('DELETE FROM bank_links WHERE user_id = ? AND pattern = ? AND kind = ?')
+const deleteAllLinks = db.prepare('DELETE FROM bank_links WHERE user_id = ?')
 
 /* ---- reading ---- */
 
@@ -271,8 +276,20 @@ export function deleteAccount(userId, id) {
 	deleteAccountRow.run(id, userId)
 }
 
-/** Forgets every year and the whole account list -- the reset that starts a login afresh. */
+/* ---- bank payments the reader has placed ---- */
+
+/** What each remembered payment text is in the budget: a row's name, or null for none. */
+export const listLinks = userId =>
+	selectLinks.all(userId).map(({ pattern, kind, line_name: line }) => ({ pattern, kind, line }))
+
+export const saveLink = (userId, { pattern, kind, line }) => upsertLink.run(userId, pattern, kind, line)
+
+export const forgetLink = (userId, { pattern, kind }) => deleteLinkRow.run(userId, pattern, kind)
+
+/** Forgets every year, the whole account list and every placed payment -- the reset that
+    starts a login afresh. */
 export const wipeBudget = db.transaction(userId => {
 	deleteAllYears.run(userId)
 	deleteAllAccounts.run(userId)
+	deleteAllLinks.run(userId)
 })
