@@ -1507,7 +1507,9 @@ label.field-shell { cursor:pointer; }
 .line-saved svg.icon { width:13px; height:13px; }
 .line-total-row { display:flex; align-items:baseline; justify-content:space-between; gap:var(--gap-row); flex-wrap:wrap; margin-top:10px; font-size:12.5px; font-weight:600; color:var(--text-strong); }
 /* ---------------- budget ---------------- */
-.budget-bar { display:flex; align-items:center; gap:var(--gap-row); flex-wrap:wrap; }
+/* Stretched, not centred: the buttons take the height of the year control beside them. */
+.budget-bar { display:flex; align-items:stretch; gap:var(--gap-row); flex-wrap:wrap; }
+.budget-bar .button-pill { height:auto; }
 .budget-years { min-width:0; max-width:100%; overflow-x:auto; }
 .budget-first-actions { justify-content:center; flex-wrap:wrap; }
 .budget-copy-choice { display:grid; gap:8px; margin-top:var(--gap-block); }
@@ -1528,7 +1530,7 @@ label.field-shell { cursor:pointer; }
 	--budget-line-gap:20px;
 	min-width:calc(var(--budget-name) + var(--budget-account) + 12 * var(--budget-month) + var(--budget-total) + var(--budget-average));
 }
-.budget-grid, .budget-accounts { --budget-mark:26px; --budget-name-max:240px; }
+.budget-grid, .budget-accounts, .budget-slide { --budget-mark:26px; --budget-name-max:240px; }
 .budget-row { display:grid; grid-template-columns:minmax(var(--budget-name),var(--budget-name-max)) var(--budget-account) repeat(12,minmax(var(--budget-month),1fr)) minmax(var(--budget-total),1fr) minmax(var(--budget-average),1fr); align-items:center; border-bottom:1px solid var(--border-divider); }
 .budget-row > * { min-width:0; }
 .budget-span { grid-column:1 / -1; }
@@ -1618,7 +1620,7 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-account-row .budget-line-name { flex:0 1 var(--budget-name-max); }
 .budget-account-row .field-help { flex:none; padding-right:8px; }
 .budget-foot { display:flex; justify-content:flex-end; padding:12px var(--pad-card) 16px; border-top:1px solid var(--border-divider); }
-.budget-views { display:flex; align-items:center; gap:var(--gap-row); flex-wrap:wrap; }
+.budget-views { display:flex; align-items:stretch; gap:var(--gap-row); flex-wrap:wrap; }
 .budget-now-tag { font-style:normal; margin-left:6px; padding:2px 6px; border-radius:6px; background:var(--bg-positive); color:var(--text-positive); font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
 
 /* A few months at a time. The strip of months and the month names stay in view while the page scrolls. */
@@ -1633,7 +1635,9 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-slide-section { padding:18px 0 6px; font-size:13.5px; font-weight:700; color:var(--text); }
 .budget-slide-group { padding:12px 0 6px; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); }
 .budget-slide-name { display:flex; flex-direction:column; justify-content:center; gap:1px; padding:6px 8px 6px 0; }
-.budget-slide-line-name { font-size:13px; color:var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.budget-slide-line-name { font:inherit; font-size:13px; color:var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+button.budget-slide-line-name { padding:0; background:none; border:0; text-align:left; cursor:pointer; }
+button.budget-slide-line-name:hover { text-decoration:underline; text-underline-offset:3px; }
 .budget-slide-account { font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .budget-slide-cell .budget-amount { font-size:13.5px; }
 .budget-slide-cell { position:relative; display:grid; justify-items:end; align-content:center; }
@@ -1655,13 +1659,10 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-left-chip { display:inline-flex; align-items:center; height:28px; padding:0 var(--pad-chip); border-radius:9px; background:var(--bg-inset); color:var(--text); font-size:11.5px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .budget-left-chip.is-positive { background:var(--bg-positive); color:var(--text-positive); }
 .budget-left-chip.is-negative { background:var(--bg-negative); color:var(--text-negative); }
-.budget-split { display:grid; gap:10px; }
-.budget-split-bar { display:flex; gap:2px; height:10px; border-radius:5px; overflow:hidden; background:var(--bg-meter-track); }
-.budget-split-bar > span { min-width:2px; }
-.budget-split-key { display:flex; flex-wrap:wrap; gap:6px 14px; margin:0; padding:0; list-style:none; }
-.budget-split-key li { display:inline-flex; align-items:center; gap:var(--gap-icon); min-width:0; font-size:11.5px; color:var(--text-body); }
-.budget-split-key .chart-swatch { width:10px; height:10px; border-radius:3px; flex:none; }
-.budget-split-share { font-weight:600; color:var(--text); font-variant-numeric:tabular-nums; }
+.budget-month-use { display:grid; gap:8px; }
+.budget-month-use .field-help { margin:0; }
+.budget-slide-meta { display:flex; align-items:center; gap:var(--gap-icon); min-width:0; }
+.budget-row-tag { flex:none; font-style:normal; padding:1px 6px; border-radius:6px; background:var(--bg-inset); color:var(--text-muted); font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
 .budget-month-side { display:grid; }
 .budget-month-side-head { display:flex; justify-content:space-between; gap:var(--gap-row); padding-bottom:6px; border-bottom:1px solid var(--border-control); font-size:13.5px; font-weight:700; color:var(--text); }
 .budget-month-side-head b { font-weight:700; font-variant-numeric:tabular-nums; }
@@ -1669,7 +1670,9 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-month-group-head > :last-child { letter-spacing:normal; font-variant-numeric:tabular-nums; }
 .budget-month-line { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--gap-row); min-height:49px; border-bottom:1px solid var(--border-divider); }
 .budget-month-line:hover { background:var(--bg-row-hover); }
+.budget-month-line.is-open { background:var(--bg-green-tint); }
 .budget-month-line .budget-amount { width:auto; min-width:96px; margin-right:-6px; }
+.budget-month-group-head .budget-group-name { padding:0; }
 .budget-month-left { display:flex; justify-content:space-between; align-items:center; gap:var(--gap-row); min-height:40px; padding:0 12px; border-radius:var(--radius-compact); background:var(--bg-inset); font-size:13.5px; font-weight:700; color:var(--text); }
 .budget-month-left b { font-variant-numeric:tabular-nums; }
 .budget-month-left.is-positive { background:var(--bg-positive); color:var(--text-positive); }
@@ -2002,6 +2005,8 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 	   step between lines, which is a pointer convenience beside a keyboard shortcut, and on a
 	   phone the way to the next line is the row you tap. */
 	.line-card-head { display:none; }
+	/* The budget's panels keep theirs: its chevrons move the row or the group, and a phone has no other way to. */
+	.budget-panel .line-card-head { display:flex; }
 	.line-photo-heading, .line-photo-name { display:block; }
 	/* One line, ellipsed -- the treatment `.item-row-group` gives a row title, for the same
 	   reason: a product name is as long as the vendor felt like making it, and wrapping one
