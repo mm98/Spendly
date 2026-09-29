@@ -1,7 +1,9 @@
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Card, CardDivider, CardHeader } from '../components/Card.jsx'
+import { Card, CardDivider, CardHeader, KpiCard } from '../components/Card.jsx'
 import { IconButton } from '../components/Button.jsx'
 import { CellEditor, KINDS, MONTHS, figure, join, shown, signOf, sum, sumMonths } from '../components/BudgetCells.jsx'
+import { Meter } from '../components/Viz.jsx'
+import { Sep } from '../components/Sep.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { activeCurrency, amount, monthNames } from '../api/format.js'
 import { updateBudgetLine } from '../api/client.js'
@@ -45,41 +47,141 @@ function MonthStrip({ months, from, count, thisMonth, onPick }) {
 	)
 }
 
-/** A few months side by side, which slide sideways: arrows, the strip of months, or a swipe. */
+const GROUP_COLOURS = ['var(--green)', 'var(--donut-blue)', 'var(--donut-orange)', 'var(--donut-purple)',
+	'var(--donut-yellow)', 'var(--teal)', 'var(--donut-red)']
+const expectedOf = lines => Array.from({ length: MONTHS }, (_, m) => lines.reduce((s, l) => s + (l.months[m].expected ?? 0), 0))
+const percentOf = (part, whole) => (whole > 0 ? Math.round(part / whole * 100) : 0)
+
+function versusExpected(counted, expected, kind) {
+	const diff = counted - expected
+	if (!Math.round(diff * 100)) return { note: 'As expected' }
+	const good = (diff > 0) === (kind === 'income')
+	return {
+		delta: `${figure(Math.abs(diff))} ${diff > 0 ? 'more' : 'less'} than expected`,
+		trend: diff > 0 ? 'up' : 'down', tone: good ? 'good' : 'bad'
+	}
+}
+
+/** The month in front: what is left, how much of the income is used, and how it compares to the plan. */
+function MonthHero({ sheet, month, longMonths, thisMonth, totals, onGo, count }) {
+	const incomeLines = linesOf(sheet, 'income')
+	const costLines = linesOf(sheet, 'expense')
+	const expectedIncome = expectedOf(incomeLines)[month]
+	const expectedCosts = expectedOf(costLines)[month]
+	const used = percentOf(totals.costs[month], totals.income[month])
+	const planned = percentOf(expectedCosts, expectedIncome)
+	const lines = [...incomeLines, ...costLines]
+	const withAmount = lines.filter(l => shown(l.months[month]) != null)
+	const real = withAmount.filter(l => l.months[month].real != null).length
+	const next = month < MONTHS - 1
+	return (
+		<div className="stats-hero-row budget-hero-row">
+			<section className="card card-ai stats-hero budget-hero" aria-label={`${longMonths[month]} ${sheet.year}`}>
+				<div className="stats-hero-pager">
+					<IconButton icon="chevronLeft" label="Earlier month" disabled={month === 0} className="pager-arrow"
+						onClick={() => onGo(month - 1)} />
+					<span className="panel-heading pager-heading budget-hero-month">
+						{longMonths[month]} {sheet.year}{month === thisMonth ? <em className="budget-now-tag">Now</em> : null}</span>
+					<IconButton icon="chevronRight" label="Later month" disabled={month >= MONTHS - count} className="pager-arrow"
+						onClick={() => onGo(month + 1)} />
+				</div>
+				<div>
+					<span className="stats-hero-caption">Left over</span>
+					<div className="stats-hero-total tabular-figures">{figure(totals.left[month])}</div>
+				</div>
+				<div className="budget-hero-use">
+					<Meter fill={Math.min(used, 100)} marker={expectedIncome ? Math.min(planned, 100) : null}
+						ariaLabel={`${used}% of the income is used. The plan was ${planned}%.`} />
+					<p className="stats-hero-caption">{used}% of the income is used<Sep />The plan was {planned}%</p>
+				</div>
+			</section>
+			<div className="kpi-row">
+				<KpiCard label="Income" value={figure(totals.income[month])}
+					{...versusExpected(totals.income[month], expectedIncome, 'income')} />
+				<KpiCard label="Costs" value={figure(totals.costs[month])}
+					{...versusExpected(totals.costs[month], expectedCosts, 'expense')} />
+				<KpiCard label="Real amounts" value={`${real} of ${withAmount.length}`}
+					note={real === withAmount.length ? 'Every row has its real amount' : `${withAmount.length - real} rows still show the expected amount`} />
+				<KpiCard label={next ? `Left over in ${longMonths[month + 1]}` : `Left over in ${sheet.year}`}
+					value={figure(next ? totals.left[month + 1] : sum(totals.left))}
+					note={next ? (thisMonth === month ? 'Next month' : 'The month after') : 'The whole year'} />
+			</div>
+		</div>
+	)
+}
+
+/** Where the costs of one month go, group by group, as one bar split into colours. */
+function CostSplit({ sheet, month }) {
+	const groups = sheet.groups.filter(g => g.kind === 'expense')
+		.map((g, i) => ({ id: g.id, name: g.name, colour: GROUP_COLOURS[i % GROUP_COLOURS.length],
+			value: g.lines.reduce((s, l) => s + (shown(l.months[month]) ?? 0), 0) }))
+		.filter(g => g.value > 0)
+	const total = sum(groups.map(g => g.value))
+	if (!total) return null
+	return (
+		<div className="budget-split">
+			<span className="budget-split-bar" aria-hidden="true">
+				{groups.map(g => <span key={g.id} style={{ width: `${g.value / total * 100}%`, background: g.colour }} />)}
+			</span>
+			<ul className="budget-split-key" aria-label="Costs by group">
+				{groups.map(g => (
+					<li key={g.id}>
+						<span className="chart-swatch" style={{ background: g.colour }} />
+						<span className="budget-split-name">{g.name}</span>
+						<span className="budget-split-share">{percentOf(g.value, total)}%</span>
+					</li>
+				))}
+			</ul>
+		</div>
+	)
+}
+
+/** Every month as a panel in a row that slides sideways: swipe it, or use the arrows and the strip. */
 export function MonthsCard({ sheet, write, start, onStart }) {
 	const months = useMemo(() => monthNames('short'), [])
 	const longMonths = useMemo(() => monthNames('long'), [])
 	const toast = useToast()
 	const box = useRef(null)
+	const track = useRef(null)
 	const count = useMonthsThatFit(box)
 	const now = new Date()
 	const thisMonth = sheet.year === now.getFullYear() ? now.getMonth() : -1
 	const from = clamp(start ?? Math.max(thisMonth, 0), 0, MONTHS - count)
-	const shownMonths = Array.from({ length: count }, (_, i) => from + i)
-	const [slide, setSlide] = useState(null)
 	const [editing, setEditing] = useState(null)
 	const totals = yearTotals(sheet)
 	const lineOrder = sheet.groups.flatMap(g => g.lines)
 
+	const step = () => {
+		const el = track.current
+		const first = el?.firstElementChild
+		return first ? first.getBoundingClientRect().width + parseFloat(getComputedStyle(el).columnGap) : 0
+	}
+	// The row opens on the chosen month and keeps it when the panels change width, since the
+	// browser keeps the distance in pixels, which would land on another month.
+	const at = useRef(from)
+	at.current = from
+	useLayoutEffect(() => {
+		const el = track.current
+		if (!el) return
+		const place = () => { el.scrollLeft = at.current * step() }
+		place()
+		const watch = new ResizeObserver(place)
+		watch.observe(el)
+		return () => watch.disconnect()
+	}, [count])
 	const go = to => {
 		const next = clamp(to, 0, MONTHS - count)
-		if (next === from) return
 		setEditing(null)
-		setSlide(next > from ? 'next' : 'back')
+		track.current?.scrollTo({ left: next * step(), behavior: 'smooth' })
 		onStart(next)
 	}
-
-	const touch = useRef(null)
-	const swipe = {
-		onPointerDown: e => { if (e.pointerType !== 'mouse') touch.current = { x: e.clientX, y: e.clientY } },
-		onPointerUp: e => {
-			const t = touch.current
-			touch.current = null
-			if (!t) return
-			const dx = e.clientX - t.x
-			if (Math.abs(dx) > 48 && Math.abs(dx) > 2 * Math.abs(e.clientY - t.y)) go(from + (dx < 0 ? 1 : -1))
-		},
-		onPointerCancel: () => { touch.current = null }
+	const settled = useRef(null)
+	const onScroll = () => {
+		clearTimeout(settled.current)
+		settled.current = setTimeout(() => {
+			const landed = step() ? clamp(Math.round(track.current.scrollLeft / step()), 0, MONTHS - count) : from
+			if (landed !== from) onStart(landed)
+		}, 120)
 	}
 
 	const focusAmount = (lineId, month) => queueMicrotask(() => document.getElementById(`budget-slide-${lineId}-${month}`)?.focus())
@@ -87,8 +189,6 @@ export function MonthsCard({ sheet, write, start, onStart }) {
 		const at = lineOrder.findIndex(l => l.id === lineId)
 		if (direction === 'down' && at < lineOrder.length - 1) return focusAmount(lineOrder[at + 1].id, month)
 		if (direction === 'up' && at > 0) return focusAmount(lineOrder[at - 1].id, month)
-		if (direction === 'right' && month < from + count - 1) return focusAmount(lineId, month + 1)
-		if (direction === 'left' && month > from) return focusAmount(lineId, month - 1)
 		focusAmount(lineId, month)
 	}
 	const saveReal = (line, month, value) => {
@@ -99,12 +199,11 @@ export function MonthsCard({ sheet, write, start, onStart }) {
 		})).catch(() => {})
 	}
 
-	const cell = (line, month) => {
+	const amountCell = (line, month) => {
 		const value = line.months[month]
 		const isEditing = editing?.line === line.id && editing.month === month
-		const differs = value.real != null && value.expected != null && value.real !== value.expected
 		return (
-			<span key={month} role="gridcell" className={join('budget-slide-cell', month === thisMonth && 'is-now')}>
+			<span className="budget-slide-cell">
 				{isEditing ? (
 					<CellEditor typed={editing.typed} initial={editing.typed ?? (value.real != null ? amount(value.real) : '')}
 						hint={value.real == null && value.expected != null ? `Expected ${amount(value.expected)}` : null}
@@ -123,7 +222,7 @@ export function MonthsCard({ sheet, write, start, onStart }) {
 							: value.expected != null ? `expected ${amount(value.expected)}` : 'empty'}`}
 						onClick={() => setEditing({ line: line.id, month })}
 						onKeyDown={e => {
-							const direction = { ArrowDown: 'down', ArrowUp: 'up', ArrowRight: 'right', ArrowLeft: 'left' }[e.key]
+							const direction = { ArrowDown: 'down', ArrowUp: 'up' }[e.key]
 							if (direction) { e.preventDefault(); moveFrom(line.id, month, direction); return }
 							if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); saveReal(line, month, null); return }
 							if (/^[0-9,]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -134,78 +233,80 @@ export function MonthsCard({ sheet, write, start, onStart }) {
 						{figure(shown(value))}
 					</button>
 				)}
-				{differs ? <span className="budget-slide-planned">Expected {amount(value.expected)}</span> : null}
 			</span>
 		)
 	}
 
-	const style = { '--budget-shown': count }
-	return (
-		<Card aria-label={`Budget ${sheet.year}`} className="budget-card">
-			<CardHeader title={`Budget ${sheet.year}`}>
-				<span className="budget-key"><span className="budget-key-expected">Grey</span> amounts are expected</span>
-			</CardHeader>
-			<CardDivider />
-			<div className="budget-slide" ref={box} style={style}>
-				<div className="budget-slide-top">
-					<div className="budget-slide-nav">
-						<IconButton icon="chevronLeft" label="Earlier months" disabled={from === 0} onClick={() => go(from - 1)} />
-						<MonthStrip months={months} from={from} count={count} thisMonth={thisMonth} onPick={m => go(m)} />
-						<IconButton icon="chevronRight" label="Later months" disabled={from >= MONTHS - count}
-							onClick={() => go(from + 1)} />
-					</div>
-					<div className="budget-slide-row budget-slide-head" key={`head-${from}`} data-slide={slide}>
-						<span className="budget-slide-name" />
-						{shownMonths.map(m => (
-							<span key={m} className={join('budget-slide-month', m === thisMonth && 'is-now')}>
-								<span className="budget-slide-month-name">{longMonths[m]}{m === thisMonth ? <em className="budget-now-tag">Now</em> : null}</span>
-								<span className="budget-slide-sums">
-									<span>In <b>{figure(totals.income[m])}</b></span>
-									<span>Out <b>{figure(totals.costs[m])}</b></span>
-									<span className={signOf(totals.left[m]) ?? undefined}>Left <b>{figure(totals.left[m])}</b></span>
-								</span>
-							</span>
+	const panel = month => (
+		<section key={month} className={join('budget-month-panel', month === thisMonth && 'is-now')}
+			aria-label={`${longMonths[month]} ${sheet.year}`}>
+			<div className="budget-month-head">
+				<span className="budget-month-title">{longMonths[month]}
+					{month === thisMonth ? <em className="budget-now-tag">Now</em> : null}</span>
+				<span className={join('budget-left-chip', signOf(totals.left[month]))}>Left {figure(totals.left[month])}</span>
+			</div>
+			<CostSplit sheet={sheet} month={month} />
+			{KINDS.map(({ kind, title }) => {
+				const groups = sheet.groups.filter(g => g.kind === kind)
+				return (
+					<div key={kind} className="budget-month-side">
+						<div className="budget-month-side-head">
+							<span>{title}</span>
+							<b>{figure(kind === 'income' ? totals.income[month] : totals.costs[month])}</b>
+						</div>
+						{groups.map(group => (
+							<div key={group.id} className="budget-month-group">
+								<div className="budget-month-group-head">
+									<span>{group.name}</span>
+									<span>{figure(group.lines.reduce((s, l) => s + (shown(l.months[month]) ?? 0), 0))}</span>
+								</div>
+								{group.lines.map(line => (
+									<div key={line.id} className="budget-month-line">
+										<span className="budget-slide-name">
+											<span className="budget-slide-line-name" title={line.name}>{line.name}</span>
+											{line.accountId ? (
+												<span className="budget-slide-account">{sheet.accounts.find(a => a.id === line.accountId)?.name}</span>
+											) : null}
+										</span>
+										{amountCell(line, month)}
+									</div>
+								))}
+							</div>
 						))}
 					</div>
-				</div>
-				<div className="budget-slide-body" role="grid" key={from} data-slide={slide} {...swipe}
-					aria-label={`Budget ${sheet.year}, ${shownMonths.map(m => longMonths[m]).join(' and ')}, amounts in ${activeCurrency().label}`}>
-					{KINDS.map(({ kind, title }) => (
-						<Fragment key={kind}>
-							<div className="budget-slide-section" role="row"><span role="rowheader">{title}</span></div>
-							{sheet.groups.filter(g => g.kind === kind).map(group => (
-								<Fragment key={group.id}>
-									<div className="budget-slide-group" role="row"><span role="rowheader">{group.name}</span></div>
-									{group.lines.map(line => (
-										<div key={line.id} className="budget-slide-row budget-slide-line" role="row">
-											<span role="rowheader" className="budget-slide-name">
-												<span className="budget-slide-line-name" title={line.name}>{line.name}</span>
-												{line.accountId ? (
-													<span className="budget-slide-account">
-														{sheet.accounts.find(a => a.id === line.accountId)?.name}</span>
-												) : null}
-											</span>
-											{shownMonths.map(m => cell(line, m))}
-										</div>
-									))}
-								</Fragment>
-							))}
-						</Fragment>
-					))}
-					<div className="budget-slide-section" role="row"><span role="rowheader">Totals</span></div>
-					{[['Income', totals.income], ['Costs', totals.costs], ['Left over', totals.left, true]].map(([label, values, signed]) => (
-						<div key={label} className={join('budget-slide-row budget-slide-sum', signed && 'is-strong')} role="row">
-							<span role="rowheader" className="budget-slide-name">{label}</span>
-							{shownMonths.map(m => (
-								<span key={m} role="gridcell"
-									className={join('budget-slide-figure', m === thisMonth && 'is-now', signed && signOf(values[m]))}>
-									{figure(values[m])}</span>
-							))}
-						</div>
-					))}
-				</div>
+				)
+			})}
+			<div className={join('budget-month-left', signOf(totals.left[month]))}>
+				<span>Left over</span><b>{figure(totals.left[month])}</b>
 			</div>
-		</Card>
+		</section>
+	)
+
+	return (
+		<div className="budget-months" ref={box}>
+			<MonthHero sheet={sheet} month={from} longMonths={longMonths} thisMonth={thisMonth} totals={totals}
+				onGo={go} count={count} />
+			<Card aria-label={`Budget ${sheet.year}, month by month`} className="budget-card">
+				<CardHeader title={`Months ${sheet.year}`}>
+					<span className="budget-key"><span className="budget-key-expected">Grey</span> amounts are expected</span>
+				</CardHeader>
+				<CardDivider />
+				<div className="budget-slide">
+					<div className="budget-slide-top">
+						<div className="budget-slide-nav">
+							<IconButton icon="chevronLeft" label="Earlier month" disabled={from === 0} onClick={() => go(from - 1)} />
+							<MonthStrip months={months} from={from} count={count} thisMonth={thisMonth} onPick={m => go(m)} />
+							<IconButton icon="chevronRight" label="Later month" disabled={from >= MONTHS - count}
+								onClick={() => go(from + 1)} />
+						</div>
+					</div>
+					<div className="budget-carousel" ref={track} onScroll={onScroll}
+						aria-label={`Amounts in ${activeCurrency().label}`}>
+						{Array.from({ length: MONTHS }, (_, m) => panel(m))}
+					</div>
+				</div>
+			</Card>
+		</div>
 	)
 }
 
