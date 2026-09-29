@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
@@ -14,8 +14,10 @@ import { useReorder } from '../components/Reorder.jsx'
 import { Sep } from '../components/Sep.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
 import { useToast } from '../components/Toast.jsx'
+import { CellEditor, KINDS, MONTHS, figure, join, shown, signOf, sum, sumMonths } from '../components/BudgetCells.jsx'
 import { useApi } from '../api/useApi.js'
-import { AMOUNT_PATTERN, activeCurrency, amount, monthNames, parseAmount, plural, sanitizeAmount } from '../api/format.js'
+import { MonthsCard, OverviewCard, RowsCard } from './BudgetViews.jsx'
+import { activeCurrency, amount, monthNames, parseAmount, plural, sanitizeAmount } from '../api/format.js'
 import { BUDGET_ACCOUNT_FIELDS, BUDGET_AMOUNT, BUDGET_GROUP_FIELDS, BUDGET_ROW_FIELDS } from '../api/rules.js'
 import {
 	addBudgetAccount, addBudgetGroup, addBudgetLine, createBudgetYear, deleteBudgetAccount, deleteBudgetGroup,
@@ -26,18 +28,6 @@ import {
 /* The yearly budget, drawn the way the spreadsheet it replaces was: rows down the side in
    groups, the twelve months across, the year and the monthly average at the end of each row. */
 
-const join = (...parts) => parts.filter(Boolean).join(' ')
-const MONTHS = 12
-const KINDS = [{ kind: 'income', title: 'Income' }, { kind: 'expense', title: 'Costs' }]
-
-// What the sheet counts for a month: the real amount where there is one, else the expected.
-const shown = m => m.real ?? m.expected
-const sumMonths = lines => Array.from({ length: MONTHS }, (_, m) =>
-	lines.reduce((sum, line) => sum + (shown(line.months[m]) ?? 0), 0))
-const sum = values => values.reduce((a, b) => a + b, 0)
-// Rounded to two decimals first, so a sum a hair under zero is drawn as 0,00, not -0,00.
-const cents = n => Math.round(n * 100) / 100
-const figure = n => (n == null ? '' : amount(cents(n)))
 const toNumber = text => (text.trim() ? parseAmount(text.trim()) : null)
 const cellId = (lineId, month) => `budget-cell-${lineId}-${month}`
 
@@ -135,17 +125,32 @@ function FirstRun({ onYearsChanged }) {
 	)
 }
 
+// The views a year can be read in, by the name the address carries. The full sheet is its own button.
+const VIEWS = { months: 'Months', overview: 'Overview', rows: 'By row' }
+
 function BudgetYears({ years, onYearsChanged }) {
 	const { year: param } = useParams()
+	const [params, setParams] = useSearchParams()
 	const [arranging, setArranging] = useState(false)
 	const now = new Date().getFullYear()
 	const latest = years[years.length - 1]
 	const year = param ? Number(param) : years.includes(now) ? now : latest
+	const view = params.get('view') in VIEWS || params.get('view') === 'all' ? params.get('view') : 'months'
+	const start = params.has('month') ? Number(params.get('month')) - 1 : null
+	const show = (next, month) => setParams(p => {
+		const out = new URLSearchParams(p)
+		out.set('view', next)
+		if (month != null) out.set('month', String(month + 1))
+		else if (next !== 'months') out.delete('month')
+		return out
+	}, { replace: true })
 	return (
 		<div className="page-grid">
-			<YearBar years={years} year={year} arranging={arranging} onArrange={setArranging} onYearsChanged={onYearsChanged} />
+			<YearBar years={years} year={year} view={view} onView={show} arranging={arranging} onArrange={setArranging}
+				onYearsChanged={onYearsChanged} />
 			{years.includes(year) ? (
-				<YearSheet key={year} year={year} arranging={arranging} onYearsChanged={onYearsChanged} />
+				<YearSheet key={year} year={year} view={arranging ? 'all' : view} start={start} onView={show}
+					arranging={arranging} onYearsChanged={onYearsChanged} />
 			) : (
 				<Card aria-label="Budget">
 					<CardBody>
@@ -162,15 +167,25 @@ function BudgetYears({ years, onYearsChanged }) {
 
 /* Amounts are typed straight into the sheet at all times. Everything that changes its shape --
    rows, groups, accounts, years -- waits behind EDIT, because it is done a few times a year. */
-function YearBar({ years, year, arranging, onArrange, onYearsChanged }) {
+function YearBar({ years, year, view, onView, arranging, onArrange, onYearsChanged }) {
 	const navigate = useNavigate()
+	const [params] = useSearchParams()
 	const [starting, setStarting] = useState(false)
+	const all = view === 'all'
 	return (
 		<div className="budget-bar">
 			<div className="budget-years">
 				<Segmented label="Year" options={years.map(String)} value={String(year)}
-					onChange={y => navigate(`/budget/${y}`)} />
+					onChange={y => navigate({ pathname: `/budget/${y}`, search: params.has('view') ? `?view=${params.get('view')}` : '' })} />
 			</div>
+			{arranging ? null : (
+				<div className="budget-views">
+					<Segmented label="View" options={Object.values(VIEWS)} value={all ? '' : VIEWS[view]}
+						onChange={label => onView(Object.keys(VIEWS).find(k => VIEWS[k] === label))} />
+					<Button variant="pill" icon={all ? 'close' : 'calendar'} aria-pressed={all}
+						onClick={() => onView(all ? 'months' : 'all')}>{all ? 'CLOSE ALL MONTHS' : 'ALL MONTHS'}</Button>
+				</div>
+			)}
 			{arranging ? (
 				<Button variant="pill" icon="plus" aria-haspopup="dialog" onClick={() => setStarting(true)}>
 					NEW YEAR</Button>
@@ -243,7 +258,7 @@ function useWrites(setSheet, reload) {
 	}, [setSheet, reload, toast])
 }
 
-function YearSheet({ year, arranging, onYearsChanged }) {
+function YearSheet({ year, view, start, onView, arranging, onYearsChanged }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const loaded = useApi(getBudgetYear, [year])
@@ -270,7 +285,10 @@ function YearSheet({ year, arranging, onYearsChanged }) {
 	}
 	return (
 		<>
-			<SheetCard sheet={sheet} setSheet={setSheet} write={write} del={del} arranging={arranging} />
+			{view === 'months' ? <MonthsCard sheet={sheet} write={write} start={start} onStart={m => onView('months', m)} />
+				: view === 'overview' ? <OverviewCard sheet={sheet} onOpenMonth={m => onView('months', m)} />
+					: view === 'rows' ? <RowsCard sheet={sheet} />
+						: <SheetCard sheet={sheet} setSheet={setSheet} write={write} del={del} arranging={arranging} />}
 			{arranging ? <AccountsCard sheet={sheet} onChanged={loaded.refresh} /> : null}
 		</>
 	)
@@ -541,53 +559,6 @@ function GroupBlock({ group, sheet, panel, cell, arranging, openPanel, closePane
 				</div>
 			) : null}
 		</div>
-	)
-}
-
-/* The input a cell becomes. It overlays the cell and grows past it, the way a spreadsheet's does. */
-function CellEditor({ initial, typed, hint, label, onCommit, onCancel, onInvalid }) {
-	const [text, setText] = useState(initial)
-	const [error, setError] = useState('')
-	const input = useRef(null)
-	const done = useRef(false)
-
-	useEffect(() => {
-		const el = input.current
-		el?.focus()
-		if (typed == null) el?.select()
-		else el?.setSelectionRange(el.value.length, el.value.length)
-	}, [typed])
-
-	const valid = clean => !clean || AMOUNT_PATTERN.test(clean)
-	const finish = direction => {
-		const clean = text.trim()
-		if (!valid(clean)) { setError('Amounts take a comma, such as 1.234,56.'); return }
-		done.current = true
-		onCommit(clean ? parseAmount(clean) : null, direction)
-	}
-
-	return (
-		<span className="budget-editor">
-			<input ref={input} id="budget-cell-editor" inputMode="decimal" autoComplete="off" value={text}
-				aria-label={label} aria-invalid={error ? 'true' : undefined}
-				aria-describedby={error ? 'budget-cell-editor-error' : hint ? 'budget-cell-editor-hint' : undefined}
-				onChange={e => { setText(sanitizeAmount(e.target.value)); setError('') }}
-				onKeyDown={e => {
-					if (e.key === 'Enter') { e.preventDefault(); finish(e.shiftKey ? 'up' : 'down') }
-					else if (e.key === 'Tab') { e.preventDefault(); finish(e.shiftKey ? 'left' : 'right') }
-					else if (e.key === 'Escape') { e.preventDefault(); done.current = true; onCancel(true) }
-				}}
-				onBlur={() => {
-					if (done.current) return
-					done.current = true
-					const clean = text.trim()
-					if (text === initial && typed == null) onCancel(false)
-					else if (!valid(clean)) { onInvalid(); onCancel(false) }
-					else onCommit(clean ? parseAmount(clean) : null, null)
-				}} />
-			{error ? <span className="budget-editor-note is-error" id="budget-cell-editor-error" role="alert">{error}</span>
-				: hint ? <span className="budget-editor-note" id="budget-cell-editor-hint">{hint}</span> : null}
-		</span>
 	)
 }
 
@@ -965,9 +936,6 @@ function AccountsCard({ sheet, onChanged }) {
 		</Card>
 	)
 }
-
-// A signed row colours each figure by the sign it is shown with, so a figure drawn as 0 stays plain.
-const signOf = value => (cents(value) > 0 ? 'is-positive' : cents(value) < 0 ? 'is-negative' : null)
 
 function SumRow({ label, values, strong, signed, thisMonth }) {
 	const year = sum(values)
