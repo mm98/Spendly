@@ -3686,12 +3686,16 @@ year, the view, the list to show) and white buttons (ALL MONTHS, EDIT, CHECK A B
 COLUMNS, ANOTHER FILE). The buttons kept the 32px of a section header's button, so each one sat
 7.39px shorter than the switch beside it and read as a smaller, lesser control.
 
-| bar, measured in Chromium | switch | button |
-|---|---|---|
-| Budget, desktop 1440x900 and iPhone 15, before | 39.39px | 32px |
-| Bank check, both devices, before | 39.39px | 32px |
-| Budget, both devices and in edit mode (NEW YEAR, DONE), after | 40px | 40px |
-| Bank check, both devices, after | 40px | 40px |
+The height was taken from the pages that already put controls in one row, measured in the running app:
 
-After the fix the tabs inside each switch are 32px, no label is clipped, and neither page scrolls
+| page, measured in Chromium at 1440x900 and on iPhone 15 | controls in the row | height |
+|---|---|---|
+| Orders, Vendors, Categories, Wishlist: the list toolbar | search field, FILTERS (white), sort, PREVIOUS / NEXT | 38px each |
+| every page: the top bar's search | search field | 38px |
+| Budget and Check a bank statement, before | switch / white button | 39.39px / 32px |
+| Budget (edit mode included) and Check a bank statement, after | switch / white button | 38px / 38px |
+
+Stretching the buttons to the switch's own height does not hold on a phone: a button that wraps onto
+a row with no switch fell to its content, 17.94px. A fixed height does not depend on what shares the
+row. After the fix the tabs inside a switch are 30px, no label is clipped, and neither page scrolls
 sideways. Not checked: Firefox and WebKit.
