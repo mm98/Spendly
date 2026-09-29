@@ -1,44 +1,31 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { Page } from '../components/Shell.jsx'
 import { Async } from '../components/Async.jsx'
 import { Card, CardBody, CardDivider, CardHeader, EmptyState } from '../components/Card.jsx'
-import { Button, ButtonLink, IconButton } from '../components/Button.jsx'
+import { Button, ButtonLink } from '../components/Button.jsx'
 import { BudgetImport } from '../components/BudgetImport.jsx'
-import { Combobox } from '../components/Combobox.jsx'
 import { ConfirmDialog } from '../components/ConfirmDialog.jsx'
-import { Field, FieldShell, FormActions, Segmented, TextInput, focusField, useFieldErrors } from '../components/Form.jsx'
+import { Segmented } from '../components/Form.jsx'
 import { useDelete, useRowDelete } from '../components/FormPage.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { useReorder } from '../components/Reorder.jsx'
 import { Sep } from '../components/Sep.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
 import { useToast } from '../components/Toast.jsx'
+import { CellEditor, KINDS, MONTHS, figure, join, shown, signOf, sum, sumMonths } from '../components/BudgetCells.jsx'
+import { AccountPanel, GroupPanel, RowPanel, useFocusLater } from '../components/BudgetPanels.jsx'
 import { useApi } from '../api/useApi.js'
-import { AMOUNT_PATTERN, activeCurrency, amount, monthNames, parseAmount, plural, sanitizeAmount } from '../api/format.js'
-import { BUDGET_ACCOUNT_FIELDS, BUDGET_AMOUNT, BUDGET_GROUP_FIELDS, BUDGET_ROW_FIELDS } from '../api/rules.js'
+import { MonthsCard } from './BudgetMonths.jsx'
+import { activeCurrency, amount, monthNames, plural } from '../api/format.js'
 import {
-	addBudgetAccount, addBudgetGroup, addBudgetLine, createBudgetYear, deleteBudgetAccount, deleteBudgetGroup,
-	deleteBudgetLine, deleteBudgetYear, failureMessage, getBudgetAccounts, getBudgetYear, getBudgetYears,
-	updateBudgetAccount, updateBudgetGroup, updateBudgetLine
+	createBudgetYear, deleteBudgetAccount, deleteBudgetYear, failureMessage, getBudgetAccounts, getBudgetYear,
+	getBudgetYears, updateBudgetAccount, updateBudgetLine
 } from '../api/client.js'
 
 /* The yearly budget, drawn the way the spreadsheet it replaces was: rows down the side in
    groups, the twelve months across, the year and the monthly average at the end of each row. */
 
-const join = (...parts) => parts.filter(Boolean).join(' ')
-const MONTHS = 12
-const KINDS = [{ kind: 'income', title: 'Income' }, { kind: 'expense', title: 'Costs' }]
-
-// What the sheet counts for a month: the real amount where there is one, else the expected.
-const shown = m => m.real ?? m.expected
-const sumMonths = lines => Array.from({ length: MONTHS }, (_, m) =>
-	lines.reduce((sum, line) => sum + (shown(line.months[m]) ?? 0), 0))
-const sum = values => values.reduce((a, b) => a + b, 0)
-// Rounded to two decimals first, so a sum a hair under zero is drawn as 0,00, not -0,00.
-const cents = n => Math.round(n * 100) / 100
-const figure = n => (n == null ? '' : amount(cents(n)))
-const toNumber = text => (text.trim() ? parseAmount(text.trim()) : null)
 const cellId = (lineId, month) => `budget-cell-${lineId}-${month}`
 
 const mapLines = (sheet, fn) => ({ ...sheet, groups: sheet.groups.map(g => ({ ...g, lines: g.lines.map(fn) })) })
@@ -79,19 +66,6 @@ function useSavedReorder({ items, describe, onAnnounce, onMove, onPlace }) {
 		if (was && index >= 0 && index !== was.from) onPlace(was.id, index)
 	}, [reorder.draggingId])
 	return reorder
-}
-
-/* Focus that waits for the next render, since the button it goes back to may be one that
-   render draws: an add button a panel stood in for, or a row that has just moved. */
-function useFocusLater() {
-	const target = useRef(null)
-	useEffect(() => {
-		if (!target.current) return
-		const el = document.getElementById(target.current)
-		target.current = null
-		if (el && !el.disabled) el.focus()
-	})
-	return useCallback(id => { target.current = id }, [])
 }
 
 export default function Budget() {
@@ -137,15 +111,28 @@ function FirstRun({ onYearsChanged }) {
 
 function BudgetYears({ years, onYearsChanged }) {
 	const { year: param } = useParams()
+	const [params, setParams] = useSearchParams()
 	const [arranging, setArranging] = useState(false)
 	const now = new Date().getFullYear()
 	const latest = years[years.length - 1]
 	const year = param ? Number(param) : years.includes(now) ? now : latest
+	const view = params.get('view') === 'all' ? 'all' : 'months'
+	const start = params.has('month') ? Number(params.get('month')) - 1 : null
+	// The address carries the month in front, and `view=all` opens the full sheet over the same month.
+	const show = (next, month) => setParams(p => {
+		const out = new URLSearchParams(p)
+		if (next === 'all') out.set('view', 'all')
+		else out.delete('view')
+		if (month != null) out.set('month', String(month + 1))
+		return out
+	}, { replace: true })
 	return (
 		<div className="page-grid">
-			<YearBar years={years} year={year} arranging={arranging} onArrange={setArranging} onYearsChanged={onYearsChanged} />
+			<YearBar years={years} year={year} view={view} onView={show} arranging={arranging} onArrange={setArranging}
+				onYearsChanged={onYearsChanged} />
 			{years.includes(year) ? (
-				<YearSheet key={year} year={year} arranging={arranging} onYearsChanged={onYearsChanged} />
+				<YearSheet key={year} year={year} view={view} start={start} onView={show}
+					arranging={arranging} onYearsChanged={onYearsChanged} />
 			) : (
 				<Card aria-label="Budget">
 					<CardBody>
@@ -162,15 +149,23 @@ function BudgetYears({ years, onYearsChanged }) {
 
 /* Amounts are typed straight into the sheet at all times. Everything that changes its shape --
    rows, groups, accounts, years -- waits behind EDIT, because it is done a few times a year. */
-function YearBar({ years, year, arranging, onArrange, onYearsChanged }) {
+function YearBar({ years, year, view, onView, arranging, onArrange, onYearsChanged }) {
 	const navigate = useNavigate()
+	const [params] = useSearchParams()
 	const [starting, setStarting] = useState(false)
+	const all = view === 'all'
 	return (
 		<div className="budget-bar">
-			<div className="budget-years">
-				<Segmented label="Year" options={years.map(String)} value={String(year)}
-					onChange={y => navigate(`/budget/${y}`)} />
-			</div>
+			{years.length > 1 ? (
+				<div className="budget-years">
+					<Segmented label="Year" options={years.map(String)} value={String(year)}
+						onChange={y => navigate({ pathname: `/budget/${y}`, search: params.has('view') ? `?view=${params.get('view')}` : '' })} />
+				</div>
+			) : null}
+			{arranging ? null : (
+				<Button variant="pill" icon={all ? 'close' : 'calendar'} aria-pressed={all}
+					onClick={() => onView(all ? 'months' : 'all')}>{all ? 'CLOSE ALL MONTHS' : 'ALL MONTHS'}</Button>
+			)}
 			{arranging ? (
 				<Button variant="pill" icon="plus" aria-haspopup="dialog" onClick={() => setStarting(true)}>
 					NEW YEAR</Button>
@@ -243,7 +238,7 @@ function useWrites(setSheet, reload) {
 	}, [setSheet, reload, toast])
 }
 
-function YearSheet({ year, arranging, onYearsChanged }) {
+function YearSheet({ year, view, start, onView, arranging, onYearsChanged }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const loaded = useApi(getBudgetYear, [year])
@@ -270,7 +265,8 @@ function YearSheet({ year, arranging, onYearsChanged }) {
 	}
 	return (
 		<>
-			<SheetCard sheet={sheet} setSheet={setSheet} write={write} del={del} arranging={arranging} />
+			{view === 'all' ? <SheetCard sheet={sheet} setSheet={setSheet} write={write} del={del} arranging={arranging} />
+				: <MonthsCard sheet={sheet} write={write} start={start} onStart={m => onView('months', m)} arranging={arranging} del={del} />}
 			{arranging ? <AccountsCard sheet={sheet} onChanged={loaded.refresh} /> : null}
 		</>
 	)
@@ -544,342 +540,6 @@ function GroupBlock({ group, sheet, panel, cell, arranging, openPanel, closePane
 	)
 }
 
-/* The input a cell becomes. It overlays the cell and grows past it, the way a spreadsheet's does. */
-function CellEditor({ initial, typed, hint, label, onCommit, onCancel, onInvalid }) {
-	const [text, setText] = useState(initial)
-	const [error, setError] = useState('')
-	const input = useRef(null)
-	const done = useRef(false)
-
-	useEffect(() => {
-		const el = input.current
-		el?.focus()
-		if (typed == null) el?.select()
-		else el?.setSelectionRange(el.value.length, el.value.length)
-	}, [typed])
-
-	const valid = clean => !clean || AMOUNT_PATTERN.test(clean)
-	const finish = direction => {
-		const clean = text.trim()
-		if (!valid(clean)) { setError('Amounts take a comma, such as 1.234,56.'); return }
-		done.current = true
-		onCommit(clean ? parseAmount(clean) : null, direction)
-	}
-
-	return (
-		<span className="budget-editor">
-			<input ref={input} id="budget-cell-editor" inputMode="decimal" autoComplete="off" value={text}
-				aria-label={label} aria-invalid={error ? 'true' : undefined}
-				aria-describedby={error ? 'budget-cell-editor-error' : hint ? 'budget-cell-editor-hint' : undefined}
-				onChange={e => { setText(sanitizeAmount(e.target.value)); setError('') }}
-				onKeyDown={e => {
-					if (e.key === 'Enter') { e.preventDefault(); finish(e.shiftKey ? 'up' : 'down') }
-					else if (e.key === 'Tab') { e.preventDefault(); finish(e.shiftKey ? 'left' : 'right') }
-					else if (e.key === 'Escape') { e.preventDefault(); done.current = true; onCancel(true) }
-				}}
-				onBlur={() => {
-					if (done.current) return
-					done.current = true
-					const clean = text.trim()
-					if (text === initial && typed == null) onCancel(false)
-					else if (!valid(clean)) { onInvalid(); onCancel(false) }
-					else onCommit(clean ? parseAmount(clean) : null, null)
-				}} />
-			{error ? <span className="budget-editor-note is-error" id="budget-cell-editor-error" role="alert">{error}</span>
-				: hint ? <span className="budget-editor-note" id="budget-cell-editor-hint">{hint}</span> : null}
-		</span>
-	)
-}
-
-const amountField = (kind, m) => `budget-row-${kind}-${m}`
-const ROW_FIELDS = [
-	...BUDGET_ROW_FIELDS,
-	...Array.from({ length: MONTHS }, (_, m) => ['expected', 'real'].map(kind =>
-		({ name: amountField(kind, m), label: kind, check: BUDGET_AMOUNT }))).flat()
-]
-
-const formOf = line => {
-	const form = { 'budget-row-name': line?.name ?? '' }
-	for (let m = 0; m < MONTHS; m++) for (const kind of ['expected', 'real']) {
-		const value = line?.months[m][kind]
-		form[amountField(kind, m)] = value != null ? amount(value) : ''
-	}
-	return form
-}
-
-/* Escape and Enter belong to an open list or dialog first: a combobox showing its options, or
-   the question a delete asks, takes them before the panel behind it does. */
-const listOpen = e => e.target.getAttribute?.('aria-expanded') === 'true' || e.defaultPrevented
-	|| Boolean(e.target.closest?.('dialog'))
-
-/** A row's own fields: its name, its account, its group and both amounts for each month. */
-function RowPanel({ sheet, line, groupId, heading, write, onClose }) {
-	const months = useMemo(() => monthNames('short'), [])
-	const longMonths = useMemo(() => monthNames('long'), [])
-	const [form, setForm] = useState(() => formOf(line))
-	const [target, setTarget] = useState(groupId)
-	const [accountId, setAccountId] = useState(line?.accountId ?? null)
-	const [fill, setFill] = useState('')
-	const [fillError, setFillError] = useState('')
-	const [saving, setSaving] = useState(false)
-	const errors = useFieldErrors(ROW_FIELDS, form)
-	const set = name => value => { setForm(f => ({ ...f, [name]: value })); errors.recheck(name, value) }
-	const setAmount = name => value => set(name)(sanitizeAmount(value))
-
-	useEffect(() => { focusField('budget-row-name') }, [])
-
-	const groupName = sheet.groups.find(g => g.id === target)?.name ?? ''
-	const groupChoices = KINDS.map(({ kind, title }) => ({
-		heading: title, options: sheet.groups.filter(g => g.kind === kind).map(g => ({ id: g.id, label: g.name }))
-	}))
-	const accountName = sheet.accounts.find(a => a.id === accountId)?.name ?? 'No account'
-	const accountChoices = [{ heading: 'Accounts', options: [{ id: 'none', label: 'No account' },
-		...sheet.accounts.map(a => ({ id: a.id, label: a.name }))] }]
-
-	const everyMonth = (kind, value) => setForm(f => {
-		const next = { ...f }
-		for (let m = 0; m < MONTHS; m++) next[amountField(kind, m)] = value
-		return next
-	})
-	const fillWith = kind => {
-		const clean = fill.trim()
-		const problem = !clean ? 'Write the amount first.' : BUDGET_AMOUNT(clean)
-		if (problem) { setFillError(problem); focusField('budget-row-fill'); return }
-		setFillError('')
-		everyMonth(kind, amount(parseAmount(clean)))
-	}
-
-	const save = async () => {
-		if (saving) return
-		const failed = errors.check()
-		if (failed.length) { focusField(failed[0].name); return }
-		const body = {
-			name: form['budget-row-name'].trim(),
-			accountId,
-			months: Array.from({ length: MONTHS }, (_, m) => ({
-				expected: toNumber(form[amountField('expected', m)]), real: toNumber(form[amountField('real', m)])
-			}))
-		}
-		setSaving(true)
-		try {
-			await write(() => (line
-				? updateBudgetLine(line.id, target !== groupId ? { ...body, groupId: target } : body)
-				: addBudgetLine(target, body)))
-			onClose()
-		} catch {
-			setSaving(false)
-		}
-	}
-
-	const rowDelete = useRowDelete({
-		what: 'row',
-		label: l => `Delete the row ${l.name}`,
-		detail: l => `${l.name}, with every amount in it.`,
-		onDelete: l => write(() => deleteBudgetLine(l.id)).then(() => onClose(true), () => {})
-	})
-
-	const keys = e => {
-		if (listOpen(e)) return
-		if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
-		if (e.key === 'Enter' && e.target instanceof HTMLInputElement) { e.preventDefault(); save() }
-	}
-
-	const name = errors.propsFor('budget-row-name')
-
-	return (
-		<div className="filter-section line-card budget-panel" onKeyDown={keys}>
-			<div className="line-card-head">
-				<span className="section-label line-card-title">{heading}</span>
-				<span className="field-help push-end line-card-keys">Enter saves<Sep />Escape cancels</span>
-			</div>
-			<div className="budget-panel-fields">
-				<Field label="Name" htmlFor="budget-row-name" error={name.error} errorId={name.errorId}>
-					<FieldShell>
-						<TextInput id="budget-row-name" aria-required="true" value={form['budget-row-name']}
-							onChange={set('budget-row-name')} invalid={name.invalid} describedBy={name.describedBy} />
-					</FieldShell>
-				</Field>
-				<Field label="Account" optional htmlFor="budget-row-account"
-					help="Where the money is paid from, or paid into. The list of accounts is under the sheet.">
-					<Combobox id="budget-row-account" label="Account" pickOnly value={accountName} groups={accountChoices}
-						onSelect={o => setAccountId(o.id === 'none' ? null : o.id)} />
-				</Field>
-				<Field label="Group" htmlFor="budget-row-group">
-					<Combobox id="budget-row-group" label="Group" pickOnly value={groupName} groups={groupChoices}
-						onSelect={o => setTarget(o.id)} />
-				</Field>
-			</div>
-			<div className="budget-panel-months" role="group" aria-label="Amounts for each month">
-				<p className="field-help budget-panel-legend">In each month, the upper field is the expected amount.
-					The lower field is the real amount. The sheet shows the real amount when there is one.</p>
-				{months.map((month, m) => {
-					const expected = errors.propsFor(amountField('expected', m))
-					const real = errors.propsFor(amountField('real', m))
-					return (
-						<div key={m} className="budget-panel-month">
-							<span className="budget-panel-month-name">{month}</span>
-							{[['expected', expected, 'Expected'], ['real', real, 'Real']].map(([kind, props, word]) => (
-								<Fragment key={kind}>
-									<input id={amountField(kind, m)} inputMode="decimal" autoComplete="off"
-										className={join('budget-panel-amount', kind === 'expected' && 'is-expected')}
-										aria-label={`${word} amount, ${longMonths[m]}`} value={form[amountField(kind, m)]}
-										aria-invalid={props.invalid ? 'true' : undefined}
-										aria-describedby={props.invalid ? props.describedBy : undefined}
-										onChange={e => setAmount(amountField(kind, m))(e.target.value)} />
-									{props.error ? <span className="field-error" id={props.errorId}>{props.error}</span> : null}
-								</Fragment>
-							))}
-						</div>
-					)
-				})}
-			</div>
-			<div className="field budget-panel-tools">
-				<span id="budget-row-fill-label">Same amount in every month</span>
-				<div className="row-inline budget-panel-tool-buttons">
-					<input id="budget-row-fill" inputMode="decimal" autoComplete="off" className="budget-panel-amount"
-						aria-labelledby="budget-row-fill-label" value={fill} aria-invalid={fillError ? 'true' : undefined}
-						aria-describedby={fillError ? 'budget-row-fill-error' : undefined}
-						onChange={e => { setFill(sanitizeAmount(e.target.value)); setFillError('') }} />
-					<Button variant="ghost compact" onClick={() => fillWith('expected')}>SET AS EXPECTED</Button>
-					<Button variant="ghost compact" onClick={() => fillWith('real')}>SET AS REAL</Button>
-					<Button variant="ghost compact" onClick={() => everyMonth('expected', '')}>CLEAR EXPECTED</Button>
-					<Button variant="ghost compact" onClick={() => everyMonth('real', '')}>CLEAR REAL</Button>
-				</div>
-				{fillError ? <span className="field-error" id="budget-row-fill-error">{fillError}</span> : null}
-			</div>
-			<FormActions>
-				<Button variant="caps compact" icon="check" onClick={save}>
-					{saving ? 'SAVING...' : line ? 'SAVE ROW' : 'ADD ROW'}</Button>
-				<Button variant="ghost compact" onClick={() => onClose()}>CANCEL</Button>
-				{line ? (
-					<span className="push-end">
-						{rowDelete.button(line, <span className="line-delete-label">DELETE ROW</span>, `Delete row, ${line.name}`)}
-					</span>
-				) : null}
-			</FormActions>
-			{rowDelete.dialog}
-		</div>
-	)
-}
-
-/** One name, saved or dropped: what a group and an account both are to edit. `onSave` answers
-    with the write, so a refused name keeps the panel open with what was typed. */
-function NamePanel({ id, heading, rules, initial, what, onSave, onClose, head, del }) {
-	const [form, setForm] = useState({ [id]: initial ?? '' })
-	const [saving, setSaving] = useState(false)
-	const errors = useFieldErrors(rules, form)
-	const name = errors.propsFor(id)
-
-	// Once, when the panel opens: a group moved from its panel keeps focus on the button that moved it.
-	const opened = useRef(false)
-	useEffect(() => {
-		if (opened.current) return
-		opened.current = true
-		focusField(id)
-	}, [id])
-
-	const save = async () => {
-		if (saving) return
-		const failed = errors.check()
-		if (failed.length) { focusField(failed[0].name); return }
-		setSaving(true)
-		try {
-			await onSave(form[id].trim())
-			onClose()
-		} catch {
-			setSaving(false)
-		}
-	}
-
-	const keys = e => {
-		if (listOpen(e)) return
-		if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
-		if (e.key === 'Enter' && e.target instanceof HTMLInputElement) { e.preventDefault(); save() }
-	}
-
-	return (
-		<div className="filter-section line-card budget-panel" onKeyDown={keys}>
-			<div className="line-card-head">
-				<span className="section-label line-card-title">{heading}</span>
-				{head}
-				<span className="field-help push-end line-card-keys">Enter saves<Sep />Escape cancels</span>
-			</div>
-			<div className="budget-panel-fields budget-panel-fields-one">
-				<Field label="Name" htmlFor={id} error={name.error} errorId={name.errorId}>
-					<FieldShell>
-						<TextInput id={id} aria-required="true" value={form[id]}
-							onChange={v => { setForm({ [id]: v }); errors.recheck(id, v) }}
-							invalid={name.invalid} describedBy={name.describedBy} />
-					</FieldShell>
-				</Field>
-			</div>
-			<FormActions>
-				<Button variant="caps compact" icon="check" onClick={save}>
-					{saving ? 'SAVING...' : initial == null ? `ADD ${what}` : `SAVE ${what}`}</Button>
-				<Button variant="ghost compact" onClick={() => onClose()}>CANCEL</Button>
-				{del ? <span className="push-end">{del.button}</span> : null}
-			</FormActions>
-			{del?.dialog}
-		</div>
-	)
-}
-
-/** A group's name and place, or a new group for one side of the sheet. */
-function GroupPanel({ sheet, group, kind, index = 0, count = 0, write, onClose }) {
-	const focusLater = useFocusLater()
-	// A group moved to the top or the bottom leaves that button disabled, so focus takes the other one.
-	const move = step => write(() => updateBudgetGroup(group.id, { index: index + step })).then(() => {
-		const to = index + step
-		focusLater(to <= 0 ? 'budget-group-down' : to >= count - 1 ? 'budget-group-up'
-			: step < 0 ? 'budget-group-up' : 'budget-group-down')
-	}, () => {})
-	const groupDelete = useRowDelete({
-		what: 'group',
-		label: g => `Delete the group ${g.name}`,
-		detail: g => (g.lines.length
-			? `${g.name} and its ${plural(g.lines.length, 'row')}, with every amount in them.`
-			: `${g.name}, which has no rows.`),
-		onDelete: g => write(() => deleteBudgetGroup(g.id)).then(() => onClose(true), () => {})
-	})
-	return (
-		<NamePanel id="budget-group-name" rules={BUDGET_GROUP_FIELDS} initial={group?.name} what="GROUP"
-			heading={group ? `Group ${index + 1} of ${count}` : `New group in ${kind === 'income' ? 'income' : 'costs'}`}
-			onSave={name => write(() => (group ? updateBudgetGroup(group.id, { name }) : addBudgetGroup(sheet.year, { kind, name })))}
-			onClose={onClose}
-			head={group ? (
-				<span className="row-inline row-actions">
-					<IconButton icon="chevronUp" label="Move the group up" id="budget-group-up" disabled={index <= 0}
-						onClick={() => move(-1)} />
-					<IconButton icon="chevronDown" label="Move the group down" id="budget-group-down"
-						disabled={index >= count - 1} onClick={() => move(1)} />
-				</span>
-			) : null}
-			del={group ? {
-				button: groupDelete.button(group, <span className="line-delete-label">DELETE GROUP</span>, `Delete group, ${group.name}`),
-				dialog: groupDelete.dialog
-			} : null} />
-	)
-}
-
-const accountKey = name => name.trim().toLocaleLowerCase('da')
-
-/** An account's name, or a new account at the end of the list. Two accounts cannot share a name,
-    since the rows and the totals tell them apart by it. */
-function AccountPanel({ account, list, write, del, onClose }) {
-	const rules = useMemo(() => BUDGET_ACCOUNT_FIELDS.map(rule => ({
-		...rule,
-		check: v => {
-			const twin = list.find(a => a.id !== account?.id && accountKey(a.name) === accountKey(v))
-			return rule.check(v) || (twin ? `You already have an account called ${twin.name}.` : '')
-		}
-	})), [list, account?.id])
-	return (
-		<NamePanel id="budget-account-name" rules={rules} initial={account?.name} what="ACCOUNT"
-			heading={account ? 'Account' : 'New account'} onClose={onClose} del={del}
-			onSave={name => write(() => (account ? updateBudgetAccount(account.id, { name }) : addBudgetAccount(name)))} />
-	)
-}
-
 /* The spreadsheet's Accounts sheet: set up once, so it is shown only while editing. Every change
    reads the year again, since the sheet draws the names and adds up the costs per account. */
 function AccountsCard({ sheet, onChanged }) {
@@ -965,9 +625,6 @@ function AccountsCard({ sheet, onChanged }) {
 		</Card>
 	)
 }
-
-// A signed row colours each figure by the sign it is shown with, so a figure drawn as 0 stays plain.
-const signOf = value => (cents(value) > 0 ? 'is-positive' : cents(value) < 0 ? 'is-negative' : null)
 
 function SumRow({ label, values, strong, signed, thisMonth }) {
 	const year = sum(values)
