@@ -72,11 +72,13 @@ function Columns({ rows, mapping, onChange }) {
 								{body.slice(0, 3).map((r, n) => <li key={n}>{r[i] ? cut(r[i]) : '(empty)'}</li>)}
 							</ul>
 						</div>
-						<Icon name="chevronRight" className="icon bank-map-arrow" aria-hidden="true" />
 						<Field label="Spendly reads it as" htmlFor={`bank-column-${i}`}>
-							<Combobox id={`bank-column-${i}`} label={`Spendly reads column ${i + 1} as`} pickOnly
-								value={roleOf(i).label} groups={[{ heading: '', options: ROLES }]}
-								onSelect={o => set(i, o.id)} />
+							<div className="bank-map-pick">
+								<Icon name="chevronRight" className="icon bank-map-arrow" aria-hidden="true" />
+								<Combobox id={`bank-column-${i}`} label={`Spendly reads column ${i + 1} as`} pickOnly
+									value={roleOf(i).label} groups={[{ heading: '', options: ROLES }]}
+									onSelect={o => set(i, o.id)} />
+							</div>
 						</Field>
 						{mapping.date === i ? (
 							<Field label="The date is written" htmlFor="bank-date-format" className="bank-map-extra">
