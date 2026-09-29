@@ -133,9 +133,9 @@ function MonthHero({ sheet, month, longMonths, thisMonth, totals, onGo, count })
 					{...versusExpected(totals.costs[month], use.plannedCosts, use.costsPlanned, 'expense')} />
 				<KpiCard label="Real amounts" value={`${real} of ${withAmount.length}`}
 					note={real === withAmount.length ? 'Every row has its real amount' : `${plural(withAmount.length - real, 'row')} still expected`} />
-				<KpiCard label={next ? `Left over in ${longMonths[month + 1]}` : `Left over in ${sheet.year}`}
+				<KpiCard label={next ? longMonths[month + 1] : String(sheet.year)}
 					value={figure(next ? totals.left[month + 1] : sum(totals.left))}
-					note={next ? (thisMonth === month ? 'Next month' : 'The month after') : 'The whole year'} />
+					note={next ? (thisMonth === month ? 'Left over next month' : 'Left over in the month after') : 'Left over in the whole year'} />
 			</div>
 		</div>
 	)
