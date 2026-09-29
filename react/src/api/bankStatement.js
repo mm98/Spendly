@@ -155,8 +155,12 @@ function nameIn(name, text) {
 const sameName = (a, b) => a.trim().toLocaleLowerCase('da') === b.trim().toLocaleLowerCase('da')
 const same = (a, b) => a != null && Math.abs(a - b) < 0.005
 
-/** Each payment with a status: 'match' (same amount), 'amount' (row found, other amount), 'missing',
-    'skip' (placed outside the budget) or 'year' (no sheet). `links` are { pattern, kind, line }. */
+/** How far a payment may be from a row's amount and still be suggested as that row: a share of the row's amount. */
+export const NEAR = 0.1
+const gap = (budget, want) => (budget ? Math.abs(budget - want) / budget : Infinity)
+
+/** Each payment with a status: 'match' (same amount), 'amount' (row found, other amount), 'near' (no row
+    found, one is close in amount), 'missing', 'skip' (placed outside the budget) or 'year' (no sheet). */
 export function checkPayments(payments, sheets, links = []) {
 	const used = new Set()
 	const placed = new Map(links.map(l => [`${l.kind}:${l.pattern}`, l.line]))
@@ -210,6 +214,13 @@ export function checkPayments(payments, sheets, links = []) {
 	for (const r of results.filter(r => r.status === 'missing')) {
 		const found = candidates(r).find(c => nameIn(c.line.name, r.text))
 		if (found) differs(r, found)
+	}
+	// Last, a suggestion from the amount alone: the closest row this month, when it is close enough.
+	for (const r of results.filter(r => r.status === 'missing')) {
+		const want = Math.abs(r.amount)
+		const off = c => { const m = c.line.months[monthOf(r)]; return Math.min(gap(m.real, want), gap(m.expected, want)) }
+		const found = candidates(r).filter(c => off(c) <= NEAR).sort((a, b) => off(a) - off(b))[0]
+		if (found) { differs(r, found); r.status = 'near' }
 	}
 	return results
 }

@@ -13,14 +13,14 @@ import { cachedFetch, useApi } from '../api/useApi.js'
 import { currency, monthNames, plural, shortDate } from '../api/format.js'
 import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, saveBankLink } from '../api/client.js'
 import {
-	DATE_FORMATS, checkPayments, guessColumns, guessDateFormat, hasHeader, kindOf, parseCsv, readPayments, readText
+	DATE_FORMATS, NEAR, checkPayments, guessColumns, guessDateFormat, hasHeader, kindOf, parseCsv, readPayments, readText
 } from '../api/bankStatement.js'
 
 /* A bank's CSV export checked against the budget: every payment is looked up in its year's
    sheet, and the ones no row accounts for are listed. The file is read here and never sent. */
 
 const NONE = 'none'
-const SHOWN = { Missing: ['missing', 'year'], 'Other amount': ['amount'], All: null }
+const SHOWN = { Missing: ['missing', 'near', 'year'], 'Other amount': ['amount'], All: null }
 const FILTERS = Object.keys(SHOWN)
 
 // The column choice for a file of the same shape, kept in this browser only.
@@ -38,7 +38,8 @@ const rememberMapping = (width, mapping) => {
 function Columns({ rows, mapping, onChange }) {
 	const body = mapping.header ? rows.slice(1) : rows
 	const width = Math.max(...rows.map(r => r.length))
-	const name = i => (mapping.header && rows[0][i] ? rows[0][i] : `Column ${i + 1}`)
+	const name = i => (mapping.header && rows[0][i] ? rows[0][i]
+		: `Column ${i + 1} in the file${body[0]?.[i] ? `: ${body[0][i].slice(0, 24)}` : ''}`)
 	const options = Array.from({ length: width }, (_, i) => ({ id: String(i), label: name(i) }))
 	const cut = text => (text.length > 32 ? text.slice(0, 31) + '…' : text)
 	const sample = i => (i == null ? '' : body.slice(0, 3).map(r => r[i]).filter(Boolean).map(cut).join('  |  '))
@@ -55,7 +56,7 @@ function Columns({ rows, mapping, onChange }) {
 	}
 	return (
 		<FilterSection>
-			<span className="panel-heading">The columns in the file</span>
+			<span className="panel-heading">Which column in your file holds what</span>
 			<CheckRow id="bank-header" checked={mapping.header} label="The first line holds the column names"
 				onChange={header => onChange({ header })} />
 			<div className="bank-columns">
@@ -83,6 +84,7 @@ const statusText = (p, months) => {
 		case 'amount': return p.budget == null
 			? `${p.line}: the budget has no amount for ${month}`
 			: `${p.line}: the budget says ${currency(p.budget)} for ${month}`
+		case 'near': return `Maybe ${p.line}? The budget says ${currency(p.budget)} for ${month}`
 		case 'skip': return 'Not part of the budget'
 		case 'year': return `There is no budget for ${p.date.slice(0, 4)}`
 		default: return 'Not in the budget'
@@ -107,6 +109,9 @@ function Place({ payment, sheet, onSave, onForget, onClose }) {
 					onSelect={o => onSave(o.id === NONE ? null : o.id)} />
 			</Field>
 			<div className="bank-place-actions">
+				{!payment.placed && payment.line ? (
+					<ButtonLink onClick={() => onSave(payment.line)}>ALWAYS USE {payment.line.toLocaleUpperCase('da')}</ButtonLink>
+				) : null}
 				{payment.placed ? <ButtonLink onClick={onForget}>FORGET MY CHOICE</ButtonLink> : null}
 				<ButtonLink onClick={onClose}>CLOSE</ButtonLink>
 			</div>
@@ -193,7 +198,8 @@ export default function BudgetCheck() {
 
 	const count = status => checked?.filter(p => status.includes(p.status)) ?? []
 	const tally = list => currency(list.reduce((n, p) => n + p.amount, 0))
-	const missing = count(['missing', 'year'])
+	const missing = count(['missing', 'near', 'year'])
+	const near = count(['near'])
 	const differs = count(['amount'])
 	const shown = checked?.filter(p => !SHOWN[filter] || SHOWN[filter].includes(p.status)) ?? []
 
@@ -234,12 +240,16 @@ export default function BudgetCheck() {
 								{payments.length ? `From ${shortDate(payments.reduce((a, p) => (p.date < a ? p.date : a), payments[0].date))} to ${shortDate(payments.reduce((a, p) => (p.date > a ? p.date : a), payments[0].date))}. ` : ''}
 								A payment is in the budget when a row of the same kind has the same amount in the same month,
 								when the row&apos;s name is in the payment&apos;s text, or when you placed it yourself.
+								A payment within {NEAR * 100} % of a row&apos;s amount is suggested as that row, and counts once you confirm it.
 								{unread.length ? ` ${plural(unread.length, 'line')} of the file had no date or amount that could be read, so ${unread.length === 1 ? 'it is' : 'they are'} left out.` : ''}
 							</p>
 							<div className="bank-summary">
 								<SummaryRow label={`Same amount as the budget: ${count(['match']).length}`} value={tally(count(['match']))} />
 								<SummaryRow label={`Other amount than the budget: ${differs.length}`} value={tally(differs)} />
 								<SummaryRow label={`Not in the budget: ${missing.length}`} value={tally(missing)} />
+								{near.length ? (
+									<SummaryRow label={`Of those, close to a row's amount: ${near.length}`} value={tally(near)} />
+								) : null}
 								{count(['skip']).length ? (
 									<SummaryRow label={`Left out by you: ${count(['skip']).length}`} value={tally(count(['skip']))} />
 								) : null}

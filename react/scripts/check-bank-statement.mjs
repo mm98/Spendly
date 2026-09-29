@@ -17,7 +17,7 @@ assert.equal(rows[5][1], 'MobilePay køb MobilePay Forsikringen "danmark')
 
 const { payments, unread } = readPayments(rows, { header, ...columns, dateFormat })
 assert.equal(unread.length, 0)
-assert.deepEqual(payments.map(p => p.amount), [-169, -4449.48, -229, -245, 15000, -99, -700, -50])
+assert.deepEqual(payments.map(p => p.amount), [-169, -4449.48, -229, -245, 15000, -99, -700, -50, -372])
 
 const months = amount => Array.from({ length: 12 }, () => ({ expected: amount, real: null }))
 const sheet = { year: 2026, groups: [
@@ -25,7 +25,8 @@ const sheet = { year: 2026, groups: [
 	{ kind: 'expense', name: 'Home', lines: [
 		{ id: 'a', name: 'Telefon', months: months(159) },
 		{ id: 'b', name: 'Bil', months: months(4449.48) },
-		{ id: 'c', name: 'Vand', months: months(229) }] }] }
+		{ id: 'c', name: 'Vand', months: months(229) },
+		{ id: 'd', name: 'El', months: months(350) }] }] }
 const links = [
 	{ pattern: paymentKey('Betalingsservice VANDVÆRK Aftalenr. 987654321'), kind: 'expense', line: 'Vand' },
 	{ pattern: 'udligning erhvervskonto', kind: 'expense', line: null }
@@ -39,6 +40,7 @@ assert.deepEqual(status, [
 	['match', 'Fast overførsel'],
 	['missing', null],
 	['skip', null],
-	['year', null]
+	['year', null],
+	['near', 'El'] // no name, no saved choice, 6 % from the row's amount
 ])
 console.log('Bank statement check: all cases pass.')

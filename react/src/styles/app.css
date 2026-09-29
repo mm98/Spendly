@@ -1640,7 +1640,7 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .bank-list { margin-top:var(--gap-block); }
 .bank-list .entry-meta { white-space:normal; }
 .bank-row-missing .bank-status, .bank-row-year .bank-status { color:var(--text-negative); font-weight:600; }
-.bank-row-amount .bank-status { color:var(--text-warn); font-weight:600; }
+.bank-row-amount .bank-status, .bank-row-near .bank-status { color:var(--text-warn); font-weight:600; }
 .bank-row-match .bank-status { color:var(--text-positive); }
 .bank-place { margin:4px 0 var(--gap-block); }
 .bank-place-actions { display:flex; justify-content:flex-end; gap:var(--gap-panel); }
