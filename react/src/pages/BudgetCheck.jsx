@@ -8,6 +8,7 @@ import { CheckRow, Field, FilterSection, Segmented } from '../components/Form.js
 import { Icon } from '../components/Icon.jsx'
 import { EntryRow, SummaryRow } from '../components/Rows.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
+import { ProgressBar } from '../components/Viz.jsx'
 import { useToast } from '../components/Toast.jsx'
 import { BANK_FILES } from '../components/fileKinds.js'
 import { cachedFetch, useApi } from '../api/useApi.js'
@@ -22,8 +23,41 @@ import {
 
 const NONE = 'none'
 const ONCE = 'once'
-const SHOWN = { Missing: ['missing', 'near', 'year'], 'Other amount': ['amount'], All: null }
+const TO_PLACE = ['missing', 'near', 'year']
+const SHOWN = { 'To place': TO_PLACE, 'Other amount': ['amount'], All: null }
 const FILTERS = Object.keys(SHOWN)
+
+// The rows a payment of this kind can go to, over every year the file covers, as picker groups.
+const rowChoices = (sheets, kind, extra) => {
+	const byGroup = new Map()
+	for (const sheet of sheets) for (const g of sheet.groups.filter(g => g.kind === kind)) {
+		const names = byGroup.get(g.name) ?? new Set()
+		g.lines.forEach(l => names.add(l.name))
+		byGroup.set(g.name, names)
+	}
+	return [
+		...[...byGroup].map(([heading, names]) => ({ heading, options: [...names].map(n => ({ id: n, label: n })) })),
+		{ heading: 'Not in the budget', options: extra }
+	].filter(g => g.options.length)
+}
+
+/* Payments no row accounts for, one group per text: placing the text once places them all. */
+function groupPayments(list) {
+	const groups = new Map()
+	for (const p of list) {
+		const id = `${kindOf(p)}:${p.key}`
+		const g = groups.get(id) ?? { id, key: p.key, kind: kindOf(p), text: p.text, payments: [] }
+		g.payments.push(p)
+		groups.set(id, g)
+	}
+	return [...groups.values()].map(g => {
+		const hints = g.payments.filter(p => p.status === 'near').map(p => p.line)
+		const suggestion = hints.sort((a, b) => hints.filter(h => h === b).length - hints.filter(h => h === a).length)[0] ?? null
+		const dates = g.payments.map(p => p.date).sort()
+		return { ...g, suggestion, total: g.payments.reduce((n, p) => n + p.amount, 0), first: dates[0], last: dates[dates.length - 1],
+			noSheet: g.payments.every(p => p.status === 'year') }
+	}).sort((a, b) => Math.abs(b.total) - Math.abs(a.total))
+}
 
 // The column choice for a file of the same shape, kept in this browser only.
 const MAPPING_KEY = 'spendly.bankColumns'
@@ -154,7 +188,9 @@ export default function BudgetCheck() {
 	const [rows, setRows] = useState(null)
 	const [mapping, setMapping] = useState(null)
 	const [sheets, setSheets] = useState(null)
-	const [filter, setFilter] = useState('Missing')
+	const [filter, setFilter] = useState('To place')
+	const [picked, setPicked] = useState(() => new Set())
+	const [bulkBusy, setBulkBusy] = useState(false)
 	const [open, setOpen] = useState(null)
 	const saved = useApi(getBankLinks)
 	const [links, setLinks] = useState(null)
@@ -227,12 +263,45 @@ export default function BudgetCheck() {
 		}
 	}
 
+	/* A group placed on a row, or outside the budget every time, is one saved choice for its text. A group
+	   marked one-time is one choice per payment in it, so the text teaches nothing for later files. */
+	const saveGroups = async (list, line, once) => {
+		setBulkBusy(true)
+		try {
+			let latest = null
+			for (const g of list) {
+				if (once) for (const p of g.payments) latest = await saveBankLink({ pattern: onceKey(p), kind: g.kind, line: null })
+				else latest = await saveBankLink({ pattern: g.key, kind: g.kind, line })
+			}
+			if (latest) setLinks(latest)
+			const n = list.reduce((sum, g) => sum + g.payments.length, 0)
+			setPicked(new Set())
+			setOpen(null)
+			toast(`${plural(n, 'payment')} ${once ? 'marked as one-time' : line ? `placed on ${line}` : 'left out of the budget'}.`)
+		} catch (e) {
+			toast(failureMessage(e, 'Not every choice was saved.'), 'negative')
+			saved.refresh()
+		} finally {
+			setBulkBusy(false)
+		}
+	}
+
 	const count = status => checked?.filter(p => status.includes(p.status)) ?? []
 	const tally = list => currency(list.reduce((n, p) => n + p.amount, 0))
 	const missing = count(['missing', 'near', 'year'])
 	const near = count(['near'])
 	const differs = count(['amount'])
 	const shown = checked?.filter(p => !SHOWN[filter] || SHOWN[filter].includes(p.status)) ?? []
+	const groups = useMemo(() => groupPayments(checked?.filter(p => TO_PLACE.includes(p.status)) ?? []), [checked])
+	const chosen = groups.filter(g => picked.has(g.id))
+	const chosenKinds = new Set(chosen.map(g => g.kind))
+	const sheetList = sheets ? [...sheets.values()] : []
+	const accounted = checked ? checked.length - missing.length : 0
+	const toggle = id => setPicked(set => {
+		const next = new Set(set)
+		if (next.has(id)) next.delete(id); else next.add(id)
+		return next
+	})
 
 	return (
 		<Page>
@@ -285,8 +354,91 @@ export default function BudgetCheck() {
 									<SummaryRow label={`Left out by you: ${count(['skip', 'once']).length}`} value={tally(count(['skip', 'once']))} />
 								) : null}
 							</div>
-							<Segmented label="Show" options={FILTERS} value={filter} onChange={f => { setFilter(f); setOpen(null) }} />
-							{shown.length ? (
+							<div className="bank-progress">
+								<ProgressBar indeterminate={false} label="Payments accounted for"
+									value={payments.length ? Math.round((accounted / payments.length) * 100) : 100} />
+								<span className="field-help">{accounted} of {plural(payments.length, 'payment')} are accounted for.
+									{groups.length ? ` ${plural(groups.length, 'text')} left to place.` : ''}</span>
+							</div>
+							<Segmented label="Show" options={FILTERS} value={filter}
+								onChange={f => { setFilter(f); setOpen(null); setPicked(new Set()) }} />
+							{filter === 'To place' ? (
+								groups.length ? (
+									<>
+										<p className="field-help bank-hint">Payments with the same text are shown together. Place a text once,
+											and Spendly uses your choice for all of its payments, also in later files.</p>
+										{chosen.length ? (
+											<div className="filter-section bank-bulk" aria-label="Selected texts">
+												<span className="panel-heading">{plural(chosen.length, 'text')} selected, {plural(chosen.reduce((n, g) => n + g.payments.length, 0), 'payment')}</span>
+												{chosenKinds.size === 1 && !chosen.some(g => g.noSheet) ? (
+													<Field label="Put them all on" htmlFor="bank-bulk-row">
+														<Combobox id="bank-bulk-row" label="Put them all on" pickOnly value=""
+															placeholder={chosen[0].kind === 'income' ? 'Choose an income row' : 'Choose a cost row'}
+															groups={rowChoices(sheetList, chosen[0].kind, [])}
+															onSelect={o => !bulkBusy && saveGroups(chosen, o.id)} />
+													</Field>
+												) : (
+													<p className="field-help">Money in and money out go to different rows, so only the choices below apply to all of them.</p>
+												)}
+												<div className="bank-place-actions">
+													<ButtonLink disabled={bulkBusy} onClick={() => saveGroups(chosen, null, true)}>ONE-TIME</ButtonLink>
+													<ButtonLink disabled={bulkBusy} onClick={() => saveGroups(chosen, null)}>NOT IN THE BUDGET</ButtonLink>
+													<ButtonLink onClick={() => setPicked(new Set())}>CLEAR</ButtonLink>
+												</div>
+											</div>
+										) : null}
+										<CheckRow id="bank-pick-all" checked={chosen.length === groups.length} label="Select every text"
+											onChange={all => setPicked(new Set(all ? groups.map(g => g.id) : []))} />
+										<ul className="bank-groups">
+											{groups.map(g => (
+												<li key={g.id} className={picked.has(g.id) ? 'bank-group is-picked' : 'bank-group'}>
+													<label className="bank-group-head">
+														<input type="checkbox" className="check-box" checked={picked.has(g.id)} onChange={() => toggle(g.id)}
+															aria-label={`Select ${g.text || 'this text'}`} />
+														<span className="bank-group-text">
+															<span className="bank-group-name">{g.text || '(no text)'}</span>
+															<span className="field-help">
+																{g.payments.length === 1 ? shortDate(g.payments[0].date)
+																	: `${plural(g.payments.length, 'payment')}, ${shortDate(g.first)} to ${shortDate(g.last)}`}
+															</span>
+														</span>
+														<span className="amount tabular-figures bank-group-total">{currency(g.total)}</span>
+													</label>
+													{g.noSheet ? (
+														<p className="field-help bank-status-line">There is no budget for {g.payments[0].date.slice(0, 4)}.</p>
+													) : g.suggestion ? (
+														<p className="field-help bank-status-line bank-status-near">Close to {g.suggestion} in amount.</p>
+													) : null}
+													<div className="bank-group-actions">
+														{g.suggestion ? (
+															<ButtonLink disabled={bulkBusy} onClick={() => saveGroups([g], g.suggestion)}>
+																USE {g.suggestion.toLocaleUpperCase('da')}</ButtonLink>
+														) : null}
+														{g.noSheet ? null : (
+															<ButtonLink aria-expanded={open === g.id} onClick={() => setOpen(open === g.id ? null : g.id)}>
+																CHOOSE A ROW</ButtonLink>
+														)}
+														<ButtonLink disabled={bulkBusy} onClick={() => saveGroups([g], null, true)}>ONE-TIME</ButtonLink>
+														<ButtonLink disabled={bulkBusy} onClick={() => saveGroups([g], null)}>NOT IN THE BUDGET</ButtonLink>
+													</div>
+													{open === g.id ? (
+														<div className="filter-section bank-place">
+															<Field label={`All payments with this text go to`} htmlFor={`bank-group-${g.id}`}>
+																<Combobox id={`bank-group-${g.id}`} label="All payments with this text go to" pickOnly value=""
+																	placeholder={g.kind === 'income' ? 'Choose an income row' : 'Choose a cost row'}
+																	groups={rowChoices(sheetList, g.kind, [])}
+																	onSelect={o => !bulkBusy && saveGroups([g], o.id)} />
+															</Field>
+														</div>
+													) : null}
+												</li>
+											))}
+										</ul>
+									</>
+								) : (
+									<EmptyState icon="check"><p>Every payment is accounted for.</p></EmptyState>
+								)
+							) : shown.length ? (
 								<div className="entry-list bank-list">
 									{shown.map(p => (
 										<Fragment key={p.row}>
@@ -304,8 +456,8 @@ export default function BudgetCheck() {
 									))}
 								</div>
 							) : (
-								<EmptyState icon="check"><p>{filter === 'Missing' ? 'Every payment is in the budget.'
-									: filter === 'Other amount' ? 'No payment has another amount than the budget.' : 'There are no payments.'}</p></EmptyState>
+								<EmptyState icon="check"><p>{filter === 'Other amount' ? 'No payment has another amount than the budget.'
+									: 'There are no payments.'}</p></EmptyState>
 							)}
 						</CardBody>
 					</Card>

@@ -1654,9 +1654,27 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .bank-row-amount .bank-status, .bank-row-near .bank-status { color:var(--text-warn); font-weight:600; }
 .bank-row-match .bank-status { color:var(--text-positive); }
 .bank-place { margin:4px 0 var(--gap-block); }
+.bank-progress { display:grid; gap:6px; margin-bottom:var(--gap-block); }
+.bank-hint { margin:var(--gap-block) 0 0; }
+/* Stays in view while the list scrolls, so what is selected far down can still be placed. */
+.bank-bulk { position:sticky; top:calc(var(--topbar-height, 0px) + 8px); z-index:3; margin-top:var(--gap-block); background:var(--bg-row-hover); box-shadow:var(--shadow); }
+.bank-groups { list-style:none; margin:0; padding:0; border-top:1px solid var(--border-divider); }
+.bank-group { display:grid; gap:8px; padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); }
+.bank-group.is-picked { background:var(--bg-row-hover); box-shadow:-8px 0 0 var(--bg-row-hover), 8px 0 0 var(--bg-row-hover); }
+.bank-group-head { display:flex; align-items:flex-start; gap:var(--gap-row); cursor:pointer; min-width:0; }
+.bank-group-head .check-box { margin-top:2px; flex:none; }
+.bank-group-text { display:grid; gap:2px; min-width:0; flex:1; }
+.bank-group-name { font-size:13px; font-weight:600; color:var(--text); overflow-wrap:anywhere; }
+.bank-group-total { flex:none; font-size:13px; font-weight:600; color:var(--text); }
+.bank-status-line { margin:0 0 0 calc(20px + var(--gap-row)); }
+.bank-status-near { color:var(--text-warn); font-weight:600; }
+.bank-group-actions { display:flex; flex-wrap:wrap; gap:8px var(--gap-panel); margin-left:calc(20px + var(--gap-row)); }
+.bank-group .bank-place { margin:0 0 0 calc(20px + var(--gap-row)); }
 .bank-place-actions { display:flex; justify-content:flex-end; gap:var(--gap-panel); }
 @media (pointer: coarse) {
 	.bank-row .icon-button { width:44px; height:44px; }
+	.bank-group-actions .button-link, .bank-bulk .button-link { min-height:44px; }
+	.bank-group-actions { row-gap:0; }
 }
 @media (max-width:640px) {
 	.bank-map-row { grid-template-columns:minmax(0,1fr); }
