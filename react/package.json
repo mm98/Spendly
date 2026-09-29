@@ -5,6 +5,7 @@
 	"type": "module",
 	"description": "Spendly, a React/Vite app backed by a phantom API",
 	"scripts": {
+		"bank:check": "node scripts/check-bank-statement.mjs",
 		"dev": "vite",
 		"build": "vite build",
 		"postbuild": "node scripts/precompress.mjs",

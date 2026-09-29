@@ -143,13 +143,13 @@ export const paymentKey = text => words(text).filter(w => !/\d/.test(w)).join(' 
 
 export const kindOf = payment => (payment.amount < 0 ? 'expense' : 'income')
 
-/* A row's name is in the payment's text when every word of it three letters or longer is there.
+/* A row's name is in the payment's text when every word of it three letters or longer starts a word there.
    A row named with shorter words only, like "El", is found by its amount alone. */
 function nameIn(name, text) {
 	const needles = words(name).filter(w => w.length >= 3 && !/^\d+$/.test(w))
 	if (!needles.length) return false
-	const hay = words(text).join(' ')
-	return needles.every(w => hay.includes(w))
+	const hay = words(text)
+	return needles.every(w => hay.some(h => h.startsWith(w)))
 }
 
 const sameName = (a, b) => a.trim().toLocaleLowerCase('da') === b.trim().toLocaleLowerCase('da')
