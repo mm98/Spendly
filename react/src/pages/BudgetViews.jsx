@@ -243,8 +243,8 @@ export function OverviewCard({ sheet, onOpenMonth }) {
 								<span className="budget-tile-name">{name}{m === thisMonth ? <em className="budget-now-tag">Now</em> : null}</span>
 								<span className="budget-tile-line"><span>In</span><b>{figure(income)}</b></span>
 								<span className="budget-tile-line"><span>Out</span><b>{figure(totals.costs[m])}</b></span>
-								<span className="budget-tile-bar" aria-hidden="true">
-									<span className={join('budget-tile-fill', over && 'is-over')} style={{ width: `${share * 100}%` }} />
+								<span className="progress-bar" aria-hidden="true">
+									<span className={join('progress-bar-fill', over && 'is-over')} style={{ width: `${share * 100}%` }} />
 								</span>
 								<span className={join('budget-tile-line budget-tile-left', signOf(totals.left[m]))}>
 									<span>Left</span><b>{figure(totals.left[m])}</b></span>
