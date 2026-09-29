@@ -61,33 +61,38 @@ function Columns({ rows, mapping, onChange }) {
 			<span className="panel-heading">Your file has {plural(width, 'column')}. What does each one hold?</span>
 			<CheckRow id="bank-header" checked={mapping.header} label="The first line of the file holds column names"
 				onChange={header => onChange({ header })} />
+			<div className="bank-map-head" aria-hidden="true">
+				<span className="section-label">File</span>
+				<span className="section-label">Spendly</span>
+			</div>
 			<ol className="bank-map">
 				{Array.from({ length: width }, (_, i) => (
 					<li key={i} className={roleOf(i).id === NONE ? 'bank-map-row is-unused' : 'bank-map-row'}>
 						<div className="bank-map-file">
-							<span className="section-label">
-								{mapping.header && rows[0][i] ? `Your file: ${rows[0][i]}` : `Your file, column ${i + 1}`}
+							<span className="panel-heading">
+								{mapping.header && rows[0][i] ? rows[0][i] : `Column ${i + 1}`}
 							</span>
 							<ul className="bank-map-samples">
 								{body.slice(0, 3).map((r, n) => <li key={n}>{r[i] ? cut(r[i]) : '(empty)'}</li>)}
 							</ul>
 						</div>
-						<Field label="Spendly reads it as" htmlFor={`bank-column-${i}`}>
+						<div className="bank-map-spendly">
+							<span className="field-help bank-map-phone-label">Spendly reads it as</span>
 							<div className="bank-map-pick">
 								<Icon name="chevronRight" className="icon bank-map-arrow" aria-hidden="true" />
 								<Combobox id={`bank-column-${i}`} label={`Spendly reads column ${i + 1} as`} pickOnly
 									value={roleOf(i).label} groups={[{ heading: '', options: ROLES }]}
 									onSelect={o => set(i, o.id)} />
 							</div>
-						</Field>
-						{mapping.date === i ? (
-							<Field label="The date is written" htmlFor="bank-date-format" className="bank-map-extra">
-								<Combobox id="bank-date-format" label="The date is written" pickOnly
-									value={DATE_FORMATS.find(f => f.id === mapping.dateFormat)?.label ?? ''}
-									groups={[{ heading: '', options: DATE_FORMATS.map(f => ({ id: f.id, label: f.label })) }]}
-									onSelect={o => onChange({ dateFormat: o.id })} />
-							</Field>
-						) : null}
+							{mapping.date === i ? (
+								<Field label="The date is written" htmlFor="bank-date-format">
+									<Combobox id="bank-date-format" label="The date is written" pickOnly
+										value={DATE_FORMATS.find(f => f.id === mapping.dateFormat)?.label ?? ''}
+										groups={[{ heading: '', options: DATE_FORMATS.map(f => ({ id: f.id, label: f.label })) }]}
+										onSelect={o => onChange({ dateFormat: o.id })} />
+								</Field>
+							) : null}
+						</div>
 					</li>
 				))}
 			</ol>
