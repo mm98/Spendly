@@ -16,7 +16,7 @@ import { useToast } from '../components/Toast.jsx'
 import { CellEditor, KINDS, MONTHS, figure, join, shown, signOf, sum, sumMonths } from '../components/BudgetCells.jsx'
 import { AccountPanel, GroupPanel, RowPanel, useFocusLater } from '../components/BudgetPanels.jsx'
 import { useApi } from '../api/useApi.js'
-import { MonthsCard, OverviewCard, RowsCard } from './BudgetViews.jsx'
+import { MonthsCard } from './BudgetMonths.jsx'
 import { activeCurrency, amount, monthNames, plural } from '../api/format.js'
 import {
 	createBudgetYear, deleteBudgetAccount, deleteBudgetYear, failureMessage, getBudgetAccounts, getBudgetYear,
@@ -109,9 +109,6 @@ function FirstRun({ onYearsChanged }) {
 	)
 }
 
-// The views a year can be read in, by the name the address carries. The full sheet is its own button.
-const VIEWS = { months: 'Months', overview: 'Overview', rows: 'By row' }
-
 function BudgetYears({ years, onYearsChanged }) {
 	const { year: param } = useParams()
 	const [params, setParams] = useSearchParams()
@@ -119,13 +116,14 @@ function BudgetYears({ years, onYearsChanged }) {
 	const now = new Date().getFullYear()
 	const latest = years[years.length - 1]
 	const year = param ? Number(param) : years.includes(now) ? now : latest
-	const view = params.get('view') in VIEWS || params.get('view') === 'all' ? params.get('view') : 'months'
+	const view = params.get('view') === 'all' ? 'all' : 'months'
 	const start = params.has('month') ? Number(params.get('month')) - 1 : null
+	// The address carries the month in front, and `view=all` opens the full sheet over the same month.
 	const show = (next, month) => setParams(p => {
 		const out = new URLSearchParams(p)
-		out.set('view', next)
+		if (next === 'all') out.set('view', 'all')
+		else out.delete('view')
 		if (month != null) out.set('month', String(month + 1))
-		else if (next !== 'months') out.delete('month')
 		return out
 	}, { replace: true })
 	return (
@@ -133,7 +131,7 @@ function BudgetYears({ years, onYearsChanged }) {
 			<YearBar years={years} year={year} view={view} onView={show} arranging={arranging} onArrange={setArranging}
 				onYearsChanged={onYearsChanged} />
 			{years.includes(year) ? (
-				<YearSheet key={year} year={year} view={arranging && view !== 'months' ? 'all' : view} start={start} onView={show}
+				<YearSheet key={year} year={year} view={view} start={start} onView={show}
 					arranging={arranging} onYearsChanged={onYearsChanged} />
 			) : (
 				<Card aria-label="Budget">
@@ -163,12 +161,8 @@ function YearBar({ years, year, view, onView, arranging, onArrange, onYearsChang
 					onChange={y => navigate({ pathname: `/budget/${y}`, search: params.has('view') ? `?view=${params.get('view')}` : '' })} />
 			</div>
 			{arranging ? null : (
-				<div className="budget-views">
-					<Segmented label="View" options={Object.values(VIEWS)} value={all ? '' : VIEWS[view]}
-						onChange={label => onView(Object.keys(VIEWS).find(k => VIEWS[k] === label))} />
-					<Button variant="pill" icon={all ? 'close' : 'calendar'} aria-pressed={all}
-						onClick={() => onView(all ? 'months' : 'all')}>{all ? 'CLOSE ALL MONTHS' : 'ALL MONTHS'}</Button>
-				</div>
+				<Button variant="pill" icon={all ? 'close' : 'calendar'} aria-pressed={all}
+					onClick={() => onView(all ? 'months' : 'all')}>{all ? 'CLOSE ALL MONTHS' : 'ALL MONTHS'}</Button>
 			)}
 			{arranging ? (
 				<Button variant="pill" icon="plus" aria-haspopup="dialog" onClick={() => setStarting(true)}>
@@ -269,12 +263,8 @@ function YearSheet({ year, view, start, onView, arranging, onYearsChanged }) {
 	}
 	return (
 		<>
-			{view === 'months' ? (
-				<MonthsCard sheet={sheet} write={write} start={start} onStart={m => onView('months', m)} arranging={arranging} del={del} />
-			)
-				: view === 'overview' ? <OverviewCard sheet={sheet} onOpenMonth={m => onView('months', m)} />
-					: view === 'rows' ? <RowsCard sheet={sheet} />
-						: <SheetCard sheet={sheet} setSheet={setSheet} write={write} del={del} arranging={arranging} />}
+			{view === 'all' ? <SheetCard sheet={sheet} setSheet={setSheet} write={write} del={del} arranging={arranging} />
+				: <MonthsCard sheet={sheet} write={write} start={start} onStart={m => onView('months', m)} arranging={arranging} del={del} />}
 			{arranging ? <AccountsCard sheet={sheet} onChanged={loaded.refresh} /> : null}
 		</>
 	)

@@ -3678,3 +3678,18 @@ stand-in answering each case:
 New order already opened its Delivered date on today (25.09) and was not changed. Stored empty reads are
 cleared once at start-up (1 of 1 in the test database, the one real reading untouched). Not checked:
 Firefox, WebKit, a phone, and the real reading service's answer for an empty account.
+
+## Budget — a month without expected amounts was measured against a plan of nothing
+
+The month card compares income and costs with the expected amounts by adding them up, and the sum
+of none is 0. A month whose rows carried only real amounts would therefore have read its whole income
+as more than expected, and its plan as 0% of the income, with nothing behind either figure. It was
+caught in the layout screenshots, by the reader asking whether every figure shown was one the budget
+actually holds.
+
+The rule (README: Budget, "The plan is shown only where there is one"): a row without an expected
+amount counts at its real one, so only a row with a plan can differ from it, and a month with no
+expected amounts shows no plan and says so on its cards. Measured on a fixture with expected amounts
+written up to June and real amounts up to September: March reads "The plan was 42%" and "2,00 more
+than expected", September reads "42% of the income is used" with no plan line, no mark on the meter,
+and "No expected amounts yet" on both the Income and the Costs card.
