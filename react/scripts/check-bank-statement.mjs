@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
 import {
-	checkPayments, guessColumns, guessDateFormat, hasHeader, paymentKey, parseCsv, readPayments, readText
+	checkPayments, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText
 } from '../src/api/bankStatement.js'
 
 const bytes = readFileSync(new URL('./fixtures/bank-statement.csv', import.meta.url))
@@ -17,7 +17,7 @@ assert.equal(rows[5][1], 'MobilePay køb MobilePay Forsikringen "danmark')
 
 const { payments, unread } = readPayments(rows, { header, ...columns, dateFormat })
 assert.equal(unread.length, 0)
-assert.deepEqual(payments.map(p => p.amount), [-169, -4449.48, -229, -245, 15000, -99, -700, -50, -372])
+assert.deepEqual(payments.map(p => p.amount), [-169, -4449.48, -229, -245, 15000, -99, -700, -50, -372, -1899])
 
 const months = amount => Array.from({ length: 12 }, () => ({ expected: amount, real: null }))
 const sheet = { year: 2026, groups: [
@@ -29,7 +29,8 @@ const sheet = { year: 2026, groups: [
 		{ id: 'd', name: 'El', months: months(350) }] }] }
 const links = [
 	{ pattern: paymentKey('Betalingsservice VANDVÆRK Aftalenr. 987654321'), kind: 'expense', line: 'Vand' },
-	{ pattern: 'udligning erhvervskonto', kind: 'expense', line: null }
+	{ pattern: 'udligning erhvervskonto', kind: 'expense', line: null },
+	{ pattern: onceKey(payments[9]), kind: 'expense', line: null }
 ]
 const status = checkPayments(payments, new Map([[2026, sheet]]), links).map(p => [p.status, p.line])
 assert.deepEqual(status, [
@@ -41,6 +42,10 @@ assert.deepEqual(status, [
 	['missing', null],
 	['skip', null],
 	['year', null],
-	['near', 'El'] // no name, no saved choice, 6 % from the row's amount
+	['near', 'El'], // no name, no saved choice, 6 % from the row's amount
+	['once', null]
 ])
+// A one-time mark holds for that payment alone, not for a later one with the same text.
+const later = { ...payments[9], date: '2026-10-12' }
+assert.equal(checkPayments([later], new Map([[2026, sheet]]), links)[0].status, 'missing')
 console.log('Bank statement check: all cases pass.')

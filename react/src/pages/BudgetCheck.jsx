@@ -14,13 +14,14 @@ import { cachedFetch, useApi } from '../api/useApi.js'
 import { currency, monthNames, plural, shortDate } from '../api/format.js'
 import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, saveBankLink } from '../api/client.js'
 import {
-	DATE_FORMATS, NEAR, checkPayments, guessColumns, guessDateFormat, hasHeader, kindOf, parseCsv, readPayments, readText
+	DATE_FORMATS, NEAR, checkPayments, guessColumns, guessDateFormat, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText
 } from '../api/bankStatement.js'
 
 /* A bank's CSV export checked against the budget: every payment is looked up in its year's
    sheet, and the ones no row accounts for are listed. The file is read here and never sent. */
 
 const NONE = 'none'
+const ONCE = 'once'
 const SHOWN = { Missing: ['missing', 'near', 'year'], 'Other amount': ['amount'], All: null }
 const FILTERS = Object.keys(SHOWN)
 
@@ -103,6 +104,7 @@ const statusText = (p, months) => {
 			: `${p.line}: the budget says ${currency(p.budget)} for ${month}`
 		case 'near': return `Maybe ${p.line}? The budget says ${currency(p.budget)} for ${month}`
 		case 'skip': return 'Not part of the budget'
+		case 'once': return 'One-time payment'
 		case 'year': return `There is no budget for ${p.date.slice(0, 4)}`
 		default: return 'Not in the budget'
 	}
@@ -114,16 +116,19 @@ function Place({ payment, sheet, onSave, onForget, onClose }) {
 	const groups = [
 		...(sheet?.groups ?? []).filter(g => g.kind === kind)
 			.map(g => ({ heading: g.name, options: g.lines.map(l => ({ id: l.name, label: l.name })) })),
-		{ heading: '', options: [{ id: NONE, label: 'Not part of the budget' }] }
+		{ heading: 'Not in the budget', options: [
+			{ id: ONCE, label: 'One-time payment, only this one' },
+			{ id: NONE, label: 'Not part of the budget, every time' }] }
 	].filter(g => g.options.length)
-	const current = payment.placed ? (payment.status === 'skip' ? 'Not part of the budget' : payment.line) : ''
+	const current = payment.placed === 'once' ? 'One-time payment, only this one'
+		: payment.placed ? (payment.status === 'skip' ? 'Not part of the budget, every time' : payment.line) : ''
 	return (
 		<div className="filter-section bank-place">
 			<Field label="This payment belongs to" htmlFor={`bank-place-${payment.row}`}
-				help="Every payment with the same text is placed the same way, in this file and in the next.">
+				help="A row or 'every time' is used for all payments with the same text, now and in later files. A one-time payment is only this one.">
 				<Combobox id={`bank-place-${payment.row}`} label="This payment belongs to" pickOnly value={current}
 					placeholder={kind === 'income' ? 'Choose an income row' : 'Choose a cost row'} groups={groups}
-					onSelect={o => onSave(o.id === NONE ? null : o.id)} />
+					onSelect={o => onSave(o.id === NONE ? null : o.id, o.id === ONCE)} />
 			</Field>
 			<div className="bank-place-actions">
 				{!payment.placed && payment.line ? (
@@ -195,18 +200,20 @@ export default function BudgetCheck() {
 	const checked = useMemo(() => (sheets && links ? checkPayments(payments, sheets, links) : null),
 		[payments, sheets, links])
 
-	const place = async (payment, line) => {
+	const place = async (payment, line, once) => {
 		try {
-			setLinks(await saveBankLink({ pattern: payment.key, kind: kindOf(payment), line }))
+			if (payment.placed === 'once' && !once) await forgetBankLink({ pattern: onceKey(payment), kind: kindOf(payment) })
+			setLinks(await saveBankLink({ pattern: once ? onceKey(payment) : payment.key, kind: kindOf(payment), line: once ? null : line }))
 			setOpen(null)
-			toast(line ? `Payments with this text now go to ${line}.` : 'Payments with this text are now left out of the check.')
+			toast(once ? 'This payment is marked as a one-time payment.'
+				: line ? `Payments with this text now go to ${line}.` : 'Payments with this text are now left out of the check.')
 		} catch (e) {
 			toast(failureMessage(e, 'Your choice was not saved.'), 'negative')
 		}
 	}
 	const forget = async payment => {
 		try {
-			setLinks(await forgetBankLink({ pattern: payment.key, kind: kindOf(payment) }))
+			setLinks(await forgetBankLink({ pattern: payment.placed === 'once' ? onceKey(payment) : payment.key, kind: kindOf(payment) }))
 			setOpen(null)
 		} catch (e) {
 			toast(failureMessage(e, 'Your choice was not removed.'), 'negative')
@@ -267,8 +274,8 @@ export default function BudgetCheck() {
 								{near.length ? (
 									<SummaryRow label={`Of those, close to a row's amount: ${near.length}`} value={tally(near)} />
 								) : null}
-								{count(['skip']).length ? (
-									<SummaryRow label={`Left out by you: ${count(['skip']).length}`} value={tally(count(['skip']))} />
+								{count(['skip', 'once']).length ? (
+									<SummaryRow label={`Left out by you: ${count(['skip', 'once']).length}`} value={tally(count(['skip', 'once']))} />
 								) : null}
 							</div>
 							<Segmented label="Show" options={FILTERS} value={filter} onChange={f => { setFilter(f); setOpen(null) }} />
@@ -284,7 +291,7 @@ export default function BudgetCheck() {
 											</EntryRow>
 											{open === p.row ? (
 												<Place payment={p} sheet={sheets.get(Number(p.date.slice(0, 4)))}
-													onSave={line => place(p, line)} onForget={() => forget(p)} onClose={() => setOpen(null)} />
+													onSave={(line, once) => place(p, line, once)} onForget={() => forget(p)} onClose={() => setOpen(null)} />
 											) : null}
 										</Fragment>
 									))}

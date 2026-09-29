@@ -141,6 +141,9 @@ const words = text => String(text).toLocaleLowerCase('da').match(/[\p{L}\p{N}]+/
     receipt number changes every month while the rest of the text stays. */
 export const paymentKey = text => words(text).filter(w => !/\d/.test(w)).join(' ').slice(0, 200)
 
+/** Marks one payment alone, by its day and amount as well as its text, so nothing later is placed by it. */
+export const onceKey = payment => `once ${payment.date} ${payment.amount} ${paymentKey(payment.text)}`.slice(0, 200)
+
 export const kindOf = payment => (payment.amount < 0 ? 'expense' : 'income')
 
 /* A row's name is in the payment's text when every word of it three letters or longer starts a word there.
@@ -160,7 +163,7 @@ export const NEAR = 0.1
 const gap = (budget, want) => (budget ? Math.abs(budget - want) / budget : Infinity)
 
 /** Each payment with a status: 'match' (same amount), 'amount' (row found, other amount), 'near' (no row
-    found, one is close in amount), 'missing', 'skip' (placed outside the budget) or 'year' (no sheet). */
+    found, one is close in amount), 'missing', 'skip' (placed outside the budget), 'once' (a one-time payment) or 'year' (no sheet). */
 export function checkPayments(payments, sheets, links = []) {
 	const used = new Set()
 	const placed = new Map(links.map(l => [`${l.kind}:${l.pattern}`, l.line]))
@@ -191,6 +194,7 @@ export function checkPayments(payments, sheets, links = []) {
 	// up by a payment that only shares its amount.
 	for (const r of results) {
 		const lines = candidates(r)
+		if (placed.has(`${kindOf(r)}:${onceKey(r)}`)) { Object.assign(r, { status: 'once', placed: 'once' }); continue }
 		const link = placed.get(`${kindOf(r)}:${r.key}`)
 		r.placed = link !== undefined
 		if (link === null) { r.status = 'skip'; continue }
