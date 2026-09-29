@@ -252,6 +252,16 @@ export default function SettingsImport() {
 						<BudgetImport variant="block" onImported={([newest]) => navigate(`/budget/${newest}`)} />
 					</CardBody>
 				</Card>
+				<Card aria-label="Check a bank statement">
+					<CardBody variant="card-body-page">
+						<div className="card-headline">Check a bank statement</div>
+						<p className="card-lead">
+							Open the CSV file your bank exports and see which payments are not in the budget.
+							Nothing is imported.
+						</p>
+						<Button variant="block" icon="budget" to="/budget/check">CHECK A BANK STATEMENT</Button>
+					</CardBody>
+				</Card>
 				{/* Documentation, not a control. It used to open closed to spare the settings
 				    page a screenful of reference on every visit; on a tab that exists for
 				    importing, the reference is half the point, so it stands open. The example

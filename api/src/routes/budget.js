@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import {
-	addAccount, addGroup, addLine, createYear, deleteAccount, deleteGroup, deleteLine, deleteYear,
-	listAccountsInUse, listYears, readYear, replaceYears, updateAccount, updateGroup, updateLine
+	addAccount, addGroup, addLine, createYear, deleteAccount, deleteGroup, deleteLine, deleteYear, forgetLink,
+	listAccountsInUse, listLinks, listYears, readYear, replaceYears, saveLink, updateAccount, updateGroup, updateLine
 } from '../lib/budget.js'
 import {
 	BUDGET_TEXT, budgetAccountId, budgetAccountNames, budgetAmount, budgetKind, budgetMonth,
@@ -52,6 +52,26 @@ router.patch('/accounts/:id', (req, res) => {
 router.delete('/accounts/:id', (req, res) => {
 	deleteAccount(req.user.id, req.params.id)
 	res.json(accounts(req))
+})
+
+/* Bank payments placed by hand: which row a payment's text belongs to, or that it belongs to
+   none. Above the year routes, like the accounts. */
+const links = req => ({ links: listLinks(req.user.id) })
+const linkKey = body => ({
+	pattern: budgetText(body?.pattern, BUDGET_TEXT.payment), kind: budgetKind(body?.kind)
+})
+
+router.get('/links', (req, res) => res.json(links(req)))
+
+router.put('/links', (req, res) => {
+	const line = req.body?.line == null ? null : budgetText(req.body.line, BUDGET_TEXT.row)
+	saveLink(req.user.id, { ...linkKey(req.body), line })
+	res.json(links(req))
+})
+
+router.delete('/links', (req, res) => {
+	forgetLink(req.user.id, linkKey(req.query))
+	res.json(links(req))
 })
 
 router.post('/', (req, res) => {

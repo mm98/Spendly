@@ -1328,6 +1328,13 @@
 				"sqlite_autoindex_vendors_1"
 			]
 		},
+		"SELECT pattern, kind, line_name FROM bank_links WHERE user_id = ?": {
+			"plan": [
+				"SEARCH bank_links USING PRIMARY KEY (user_id=?)"
+			],
+			"findings": [],
+			"indexes": []
+		},
 		"SELECT status, date FROM order_statuses WHERE order_id = ?": {
 			"plan": [
 				"SEARCH order_statuses USING INDEX idx_order_statuses_order (order_id=?)"

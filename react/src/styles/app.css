@@ -1630,6 +1630,24 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 @media (pointer: coarse) {
 	.budget-amount, .budget-name, .budget-account-row { min-height:44px; }
 }
+/* ---------------- bank statement check ---------------- */
+.bank-file { display:flex; align-items:center; justify-content:space-between; gap:var(--gap-row); flex-wrap:wrap; margin:0 0 var(--gap-block); }
+.bank-columns { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:var(--gap-panel); }
+.bank-summary { margin-bottom:var(--gap-block); }
+.bank-summary .summary-row { flex-wrap:wrap; }
+.bank-summary .summary-row-value { flex:none; }
+.bank-row .icon-button { flex:none; }
+.bank-list { margin-top:var(--gap-block); }
+.bank-list .entry-meta { white-space:normal; }
+.bank-row-missing .bank-status, .bank-row-year .bank-status { color:var(--text-negative); font-weight:600; }
+.bank-row-amount .bank-status { color:var(--text-warn); font-weight:600; }
+.bank-row-match .bank-status { color:var(--text-positive); }
+.bank-place { margin:4px 0 var(--gap-block); }
+.bank-place-actions { display:flex; justify-content:flex-end; gap:var(--gap-panel); }
+@media (pointer: coarse) {
+	.bank-row .icon-button { width:44px; height:44px; }
+}
+
 @media (max-width:900px) { .two-column { grid-template-columns:minmax(0,1fr); } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
 /* ---------------- responsive ---------------- */

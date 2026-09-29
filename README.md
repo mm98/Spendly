@@ -446,6 +446,19 @@ No design file — it is drawn the way the spreadsheet it replaces was drawn. Co
 
 ---
 
+### Checking a bank statement
+No design file. Code: `pages/BudgetCheck.jsx`, `api/bankStatement.js`
+
+**Purpose:** answer one question about a bank's CSV export: is every payment in it accounted for in the budget? Nothing is imported. The file is read on the device and never sent; only the reader's own choices are stored. It is reached from Settings' Import tab and from the command palette, and it counts as part of Budget in the rail.
+
+**The columns are the reader's to set, and are guessed first.** Banks do not agree on a format, so the page asks which column holds the date, the text and the amount, and, for a bank that shows money out in a column of its own, which one that is. Each choice shows three real values from the file under it. The separator, the text encoding, the decimal mark, a first line of column names and how the date is written are guessed from the file; the date format and the column-name line can be changed. The choice is remembered in the browser for the next file of the same width.
+
+**A payment is in the budget** when a row of the same kind, cost for money out and income for money in, holds the same amount in the payment's month, as its real or its expected amount; when every longer word of a row's name is in the payment's text; or when the reader placed it. A row's amount in a month is used by one payment only. A row found by its name or by the reader's choice, whose amount that month is another, is reported as found with another amount, and says what the budget holds. A payment in a year with no budget says so.
+
+**What the reader sees:** a headline stating how many payments are not in the budget, the date range the file covers, and the count and sum for each outcome. The list opens on the missing payments, with other amounts and all payments one tap away. Every payment can be placed by hand: on a row of the right kind in its year, or outside the budget. The choice applies to every payment with the same text, less any word holding a digit, so next month's statement is placed the same way; it can be taken back.
+
+---
+
 ### 3a — Creating an order from a receipt
 File: `Order create.dc.html` · Code: `pages/NewOrder.jsx`, `pages/Scan.jsx`, `components/AiCard.jsx`, `components/fileKinds.js`
 

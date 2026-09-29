@@ -113,6 +113,7 @@ const Categories = page(() => import('./pages/Categories.jsx'))
 const AllCategories = page(() => import('./pages/AllCategories.jsx'))
 const Stats = page(() => import('./pages/Stats.jsx'))
 const Budget = page(() => import('./pages/Budget.jsx'))
+const BudgetCheck = page(() => import('./pages/BudgetCheck.jsx'))
 
 /* The routes, and the four things the shell reads off each one.
 
@@ -249,6 +250,8 @@ export const routes = [
 			{ path: 'stats', element: <Stats />, handle: { title: 'Statistics', navKey: 'stats' } },
 			/* One page for every year: /budget opens this year, or the newest there is. */
 			{ path: 'budget/:year?', element: <Budget />, handle: { title: 'Budget', navKey: 'budget' } },
+			{ path: 'budget/check', element: <BudgetCheck />,
+				handle: { title: 'Check a bank statement', navKey: 'budget', back: { to: '/budget', label: 'budget' } } },
 			/* No `back` and no rail key: settings is reached from the top bar on every page now,
 			   not from a button at the foot of the Orders rail, so there is no one page it came
 			   from to send the reader back to and no sidebar item it belongs under. It was

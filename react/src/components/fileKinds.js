@@ -44,6 +44,11 @@ export const BUDGET_FILES = {
 	accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
 }
 
+export const BANK_FILES = {
+	description: 'Bank statements',
+	accept: { 'text/csv': ['.csv'], 'text/plain': ['.txt'] }
+}
+
 export const EXPORT_FILES = {
 	description: 'Spendly export',
 	accept: { 'application/json': ['.json'] }
