@@ -399,7 +399,8 @@ export default function BudgetCheck() {
 															<span className="bank-group-name">{g.text || '(no text)'}</span>
 															<span className="field-help">
 																{g.payments.length === 1 ? shortDate(g.payments[0].date)
-																	: `${plural(g.payments.length, 'payment')}, ${shortDate(g.first)} to ${shortDate(g.last)}`}
+																	: g.first === g.last ? `${plural(g.payments.length, 'payment')} on ${shortDate(g.first)}`
+																		: `${plural(g.payments.length, 'payment')}, ${shortDate(g.first)} to ${shortDate(g.last)}`}
 															</span>
 														</span>
 														<span className="amount tabular-figures bank-group-total">{currency(g.total)}</span>
