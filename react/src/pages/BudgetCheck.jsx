@@ -5,6 +5,7 @@ import { ButtonLink, IconButton } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { DropZone } from '../components/FileInput.jsx'
 import { CheckRow, Field, FilterSection, Segmented } from '../components/Form.jsx'
+import { Icon } from '../components/Icon.jsx'
 import { EntryRow, SummaryRow } from '../components/Rows.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
 import { useToast } from '../components/Toast.jsx'
@@ -35,44 +36,60 @@ const rememberMapping = (width, mapping) => {
 	} catch { /* the choice is only a convenience */ }
 }
 
+// What Spendly can read from a column of the file. Each is taken by one column at most.
+const ROLES = [
+	{ id: 'date', label: 'Date' },
+	{ id: 'text', label: 'Text' },
+	{ id: 'amount', label: 'Amount' },
+	{ id: 'out', label: 'Money out, as its own column' },
+	{ id: NONE, label: 'Not used' }
+]
+
 function Columns({ rows, mapping, onChange }) {
 	const body = mapping.header ? rows.slice(1) : rows
 	const width = Math.max(...rows.map(r => r.length))
-	const name = i => (mapping.header && rows[0][i] ? rows[0][i]
-		: `Column ${i + 1} in the file${body[0]?.[i] ? `: ${body[0][i].slice(0, 24)}` : ''}`)
-	const options = Array.from({ length: width }, (_, i) => ({ id: String(i), label: name(i) }))
-	const cut = text => (text.length > 32 ? text.slice(0, 31) + '…' : text)
-	const sample = i => (i == null ? '' : body.slice(0, 3).map(r => r[i]).filter(Boolean).map(cut).join('  |  '))
-	const pick = (key, label, { optional, help, noneLabel } = {}) => {
-		const value = mapping[key]
-		const groups = [{ heading: '', options: optional ? [{ id: NONE, label: noneLabel }, ...options] : options }]
-		return (
-			<Field label={label} optional={optional} htmlFor={`bank-${key}`}
-				help={value == null ? help : `In the file: ${sample(value)}`}>
-				<Combobox id={`bank-${key}`} label={label} pickOnly value={value == null ? noneLabel ?? '' : name(value)}
-					groups={groups} onSelect={o => onChange({ [key]: o.id === NONE ? null : Number(o.id) })} />
-			</Field>
-		)
+	const cut = text => (text.length > 40 ? text.slice(0, 39) + '…' : text)
+	const roleOf = i => ROLES.find(r => mapping[r.id] === i) ?? ROLES[ROLES.length - 1]
+	const set = (i, role) => {
+		const patch = Object.fromEntries(ROLES.filter(r => r.id !== NONE && mapping[r.id] === i).map(r => [r.id, null]))
+		if (role !== NONE) patch[role] = i
+		onChange(patch)
 	}
 	return (
 		<FilterSection>
-			<span className="panel-heading">Which column in your file holds what</span>
-			<CheckRow id="bank-header" checked={mapping.header} label="The first line holds the column names"
+			<span className="panel-heading">Your file has {plural(width, 'column')}. What does each one hold?</span>
+			<CheckRow id="bank-header" checked={mapping.header} label="The first line of the file holds column names"
 				onChange={header => onChange({ header })} />
-			<div className="bank-columns">
-				{pick('date', 'Date')}
-				<Field label="How the date is written" htmlFor="bank-date-format">
-					<Combobox id="bank-date-format" label="How the date is written" pickOnly
-						value={DATE_FORMATS.find(f => f.id === mapping.dateFormat)?.label ?? ''}
-						groups={[{ heading: '', options: DATE_FORMATS.map(f => ({ id: f.id, label: f.label })) }]}
-						onSelect={o => onChange({ dateFormat: o.id })} />
-				</Field>
-				{pick('text', 'Text')}
-				{pick('amount', 'Amount', { help: 'Money out is a minus amount.' })}
-				{pick('out', 'Money out', {
-					optional: true, noneLabel: 'Not used', help: 'Only when the bank shows money out in a column of its own.'
-				})}
-			</div>
+			<ol className="bank-map">
+				{Array.from({ length: width }, (_, i) => (
+					<li key={i} className={roleOf(i).id === NONE ? 'bank-map-row is-unused' : 'bank-map-row'}>
+						<div className="bank-map-file">
+							<span className="section-label">
+								{mapping.header && rows[0][i] ? `Your file: ${rows[0][i]}` : `Your file, column ${i + 1}`}
+							</span>
+							<ul className="bank-map-samples">
+								{body.slice(0, 3).map((r, n) => <li key={n}>{r[i] ? cut(r[i]) : '(empty)'}</li>)}
+							</ul>
+						</div>
+						<Icon name="chevronRight" className="icon bank-map-arrow" aria-hidden="true" />
+						<Field label="Spendly reads it as" htmlFor={`bank-column-${i}`}>
+							<Combobox id={`bank-column-${i}`} label={`Spendly reads column ${i + 1} as`} pickOnly
+								value={roleOf(i).label} groups={[{ heading: '', options: ROLES }]}
+								onSelect={o => set(i, o.id)} />
+						</Field>
+						{mapping.date === i ? (
+							<Field label="The date is written" htmlFor="bank-date-format" className="bank-map-extra">
+								<Combobox id="bank-date-format" label="The date is written" pickOnly
+									value={DATE_FORMATS.find(f => f.id === mapping.dateFormat)?.label ?? ''}
+									groups={[{ heading: '', options: DATE_FORMATS.map(f => ({ id: f.id, label: f.label })) }]}
+									onSelect={o => onChange({ dateFormat: o.id })} />
+							</Field>
+						) : null}
+					</li>
+				))}
+			</ol>
+			<p className="field-help">Money out is read as a minus amount. Choose a column as money out only when your bank shows it
+				in a column of its own.</p>
 		</FilterSection>
 	)
 }
@@ -226,7 +243,7 @@ export default function BudgetCheck() {
 
 				{!rows ? null : !ready ? (
 					<Card><CardBody variant="card-body-page">
-						<EmptyState icon="alert"><p>Choose the columns for the date, the text and the amount.</p></EmptyState>
+						<EmptyState icon="alert"><p>Tell Spendly which column in your file holds the date, the text and the amount.</p></EmptyState>
 					</CardBody></Card>
 				) : !checked ? <SkeletonCard /> : (
 					<Card aria-label="The check">

@@ -1632,7 +1632,13 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 }
 /* ---------------- bank statement check ---------------- */
 .bank-file { display:flex; align-items:center; justify-content:space-between; gap:var(--gap-row); flex-wrap:wrap; margin:0 0 var(--gap-block); }
-.bank-columns { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:var(--gap-panel); }
+.bank-map { list-style:none; margin:0; padding:0; display:grid; }
+.bank-map-row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:8px var(--gap-panel); padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); }
+.bank-map-row:last-child { border-bottom:0; }
+.bank-map-row.is-unused .bank-map-samples { color:var(--text-faint); }
+.bank-map-samples { list-style:none; margin:4px 0 0; padding:0; display:grid; gap:2px; font-size:12.5px; color:var(--text-body); overflow-wrap:anywhere; }
+.bank-map-arrow { color:var(--text-muted); }
+.bank-map-extra { grid-column:3; }
 .bank-summary { margin-bottom:var(--gap-block); }
 .bank-summary .summary-row { flex-wrap:wrap; }
 .bank-summary .summary-row-value { flex:none; }
@@ -1646,6 +1652,11 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .bank-place-actions { display:flex; justify-content:flex-end; gap:var(--gap-panel); }
 @media (pointer: coarse) {
 	.bank-row .icon-button { width:44px; height:44px; }
+}
+@media (max-width:640px) {
+	.bank-map-row { grid-template-columns:minmax(0,1fr); }
+	.bank-map-arrow { display:none; }
+	.bank-map-extra { grid-column:auto; }
 }
 
 @media (max-width:900px) { .two-column { grid-template-columns:minmax(0,1fr); } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
