@@ -95,46 +95,46 @@ function Columns({ rows, mapping, dateFits, dateFormat, onChange }) {
 			<span className="panel-heading">Your file has {plural(width, 'column')}. What does each one hold?</span>
 			<CheckRow id="bank-header" checked={mapping.header} label="The first line of the file holds column names"
 				onChange={header => onChange({ header })} />
-			<div className="bank-map-head" aria-hidden="true">
-				<span className="section-label">File</span>
-				<span className="section-label">Spendly</span>
-			</div>
-			<ol className="bank-map">
-				{Array.from({ length: width }, (_, i) => (
-					<li key={i} className={roleOf(i).id === NONE ? 'bank-map-row is-unused' : 'bank-map-row'}>
-						<div className="bank-map-file">
-							<span className="panel-heading">
-								{mapping.header && rows[0][i] ? rows[0][i] : `Column ${i + 1}`}
-							</span>
-							<ul className="bank-map-samples">
-								{body.slice(0, 3).map((r, n) => <li key={n}>{r[i] ? cut(r[i]) : '(empty)'}</li>)}
-							</ul>
-						</div>
-						<div className="bank-map-spendly">
-							<Field label="Mapped to" htmlFor={`bank-column-${i}`}>
-								<div className="bank-map-pick">
-									<Icon name="chevronRight" className="icon bank-map-arrow" aria-hidden="true" />
-									<Combobox id={`bank-column-${i}`} label={`Column ${i + 1} is mapped to`} pickOnly
-										value={roleOf(i).label} groups={[{ heading: '', options: ROLES }]}
-										onSelect={o => set(i, o.id)} />
-								</div>
-							</Field>
-							{mapping.date !== i ? null : dateFits.length === 1 ? (
-								<p className="field-help">Dates are read as {DATE_FORMATS.find(f => f.id === dateFits[0]).label.toLocaleLowerCase('da')}.</p>
-							) : dateFits.length ? (
-								<Field label="Every date in the file can be read two ways. Which is right?" htmlFor="bank-date-format">
-									<Combobox id="bank-date-format" label="How the date is written" pickOnly
-										value={DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? ''}
-										groups={[{ heading: '', options: DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: f.label })) }]}
-										onSelect={o => onChange({ dateFormat: o.id })} />
+			<div className="bank-map-table">
+				<div className="bank-map-head" aria-hidden="true">
+					<span className="section-label">File</span>
+					<span className="section-label">Spendly</span>
+				</div>
+				<ol className="bank-map">
+					{Array.from({ length: width }, (_, i) => (
+						<li key={i} className={roleOf(i).id === NONE ? 'bank-map-row is-unused' : 'bank-map-row'}>
+							<div className="bank-map-file">
+								<span className="panel-heading">
+									{mapping.header && rows[0][i] ? rows[0][i] : `Column ${i + 1}`}
+								</span>
+								<ul className="bank-map-samples">
+									{body.slice(0, 3).map((r, n) => <li key={n}>{r[i] ? cut(r[i]) : '(empty)'}</li>)}
+								</ul>
+							</div>
+							<div className="bank-map-spendly">
+								<Field label="Mapped to" htmlFor={`bank-column-${i}`}>
+									<div className="bank-map-pick">
+										<Icon name="chevronRight" className="icon bank-map-arrow" aria-hidden="true" />
+										<Combobox id={`bank-column-${i}`} label={`Column ${i + 1} is mapped to`} pickOnly
+											value={roleOf(i).label} groups={[{ heading: '', options: ROLES }]}
+											onSelect={o => set(i, o.id)} />
+									</div>
 								</Field>
-							) : (
-								<p className="field-help bank-map-problem">These are not dates Spendly can read.</p>
-							)}
-						</div>
-					</li>
-				))}
-			</ol>
+								{mapping.date !== i || dateFits.length === 1 ? null : dateFits.length ? (
+									<Field label="Every date in the file can be read two ways. Which is right?" htmlFor="bank-date-format">
+										<Combobox id="bank-date-format" label="How the date is written" pickOnly
+											value={DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? ''}
+											groups={[{ heading: '', options: DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: f.label })) }]}
+											onSelect={o => onChange({ dateFormat: o.id })} />
+									</Field>
+								) : (
+									<p className="field-help bank-map-problem">These are not dates Spendly can read.</p>
+								)}
+							</div>
+						</li>
+					))}
+				</ol>
+			</div>
 			<p className="field-help">Money out is read as a minus amount. Choose a column as money out only when your bank shows it
 				in a column of its own.</p>
 		</FilterSection>
