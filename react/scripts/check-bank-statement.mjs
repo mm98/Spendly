@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
 import {
-	checkPayments, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText
+	checkPayments, dateFormatsFor, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText
 } from '../src/api/bankStatement.js'
 
 const bytes = readFileSync(new URL('./fixtures/bank-statement.csv', import.meta.url))
@@ -13,6 +13,9 @@ const dateFormat = guessDateFormat(rows.map(r => r[columns.date]))
 assert.equal(header, false)
 assert.deepEqual(columns, { date: 0, text: 1, amount: 2, out: null })
 assert.equal(dateFormat, 'dmy')
+assert.deepEqual(dateFormatsFor(rows.map(r => r[columns.date])), ['dmy'])
+assert.deepEqual(dateFormatsFor(['01-02-2026', '03-04-2026']), ['dmy', 'mdy'])
+assert.deepEqual(dateFormatsFor(['2026-02-01']), ['ymd'])
 assert.equal(rows[5][1], 'MobilePay køb MobilePay Forsikringen "danmark')
 
 const { payments, unread } = readPayments(rows, { header, ...columns, dateFormat })

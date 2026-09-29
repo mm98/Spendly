@@ -1636,7 +1636,7 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .bank-map-head { padding-bottom:8px; border-bottom:1px solid var(--border-divider); }
 .bank-map { list-style:none; margin:0; padding:0; display:grid; }
 .bank-map-spendly { display:grid; gap:var(--gap-block); min-width:0; }
-.bank-map-phone-label { display:none; }
+.bank-map-problem { color:var(--text-negative); font-weight:600; }
 .bank-map-row { align-items:start; row-gap:8px; padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); }
 .bank-map-row:last-child { border-bottom:0; }
 .bank-map-row.is-unused .bank-map-samples { color:var(--text-faint); }
@@ -1656,6 +1656,10 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .bank-place { margin:4px 0 var(--gap-block); }
 .bank-progress { display:grid; gap:6px; margin-bottom:var(--gap-block); }
 .bank-hint { margin:var(--gap-block) 0 0; }
+/* Four choices fill the width on a phone rather than run past the card's edge. */
+.bank-filter .segmented { display:flex; max-width:100%; }
+.bank-filter .segmented button { flex:1 1 auto; min-width:0; padding-inline:clamp(8px, 2.5vw, 16px); }
+
 /* Stays in view while the list scrolls, so what is selected far down can still be placed. */
 .bank-bulk { position:sticky; top:calc(var(--topbar-height, 0px) + 8px); z-index:3; margin-top:var(--gap-block); background:var(--bg-row-hover); box-shadow:var(--shadow); }
 .bank-groups { list-style:none; margin:0; padding:0; border-top:1px solid var(--border-divider); }
@@ -1670,6 +1674,9 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .bank-status-near { color:var(--text-warn); font-weight:600; }
 .bank-group-actions { display:flex; flex-wrap:wrap; gap:8px var(--gap-panel); margin-left:calc(20px + var(--gap-row)); }
 .bank-group .bank-place { margin:0 0 0 calc(20px + var(--gap-row)); }
+/* A left-out line has no box to tick, so nothing is indented past one. */
+.bank-group-head.bank-group-head-flat { cursor:default; }
+.bank-group-actions.bank-group-actions-flat { margin-left:0; }
 .bank-place-actions { display:flex; justify-content:flex-end; gap:var(--gap-panel); }
 @media (pointer: coarse) {
 	.bank-row .icon-button { width:44px; height:44px; }
@@ -1679,7 +1686,6 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 @media (max-width:640px) {
 	.bank-map-row { grid-template-columns:minmax(0,1fr); }
 	.bank-map-head, .bank-map-arrow { display:none; }
-	.bank-map-phone-label { display:block; }
 }
 
 @media (max-width:900px) { .two-column { grid-template-columns:minmax(0,1fr); } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }

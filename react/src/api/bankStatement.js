@@ -65,9 +65,15 @@ export function readDate(value, formatId) {
 	return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 }
 
-// The first format that reads every sample; day first before month first, as Danish banks write it.
-export const guessDateFormat = samples =>
-	DATE_FORMATS.find(f => samples.length && samples.every(s => readDate(s, f.id)))?.id ?? 'dmy'
+/** Every format that reads all of the column's dates. One when any day is above 12; more only when every
+    date could be read with the day or the month first. */
+export const dateFormatsFor = values => {
+	const filled = values.filter(Boolean)
+	return DATE_FORMATS.filter(f => filled.length && filled.every(v => readDate(v, f.id))).map(f => f.id)
+}
+
+// Day first before month first when both fit, as Danish banks write it.
+export const guessDateFormat = values => dateFormatsFor(values)[0] ?? 'dmy'
 
 /* ---- amounts ---- */
 

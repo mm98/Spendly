@@ -15,7 +15,7 @@ import { cachedFetch, useApi } from '../api/useApi.js'
 import { currency, monthNames, plural, shortDate } from '../api/format.js'
 import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, saveBankLink } from '../api/client.js'
 import {
-	DATE_FORMATS, NEAR, checkPayments, guessColumns, guessDateFormat, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText
+	DATE_FORMATS, NEAR, checkPayments, dateFormatsFor, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText
 } from '../api/bankStatement.js'
 
 /* A bank's CSV export checked against the budget: every payment is looked up in its year's
@@ -24,7 +24,7 @@ import {
 const NONE = 'none'
 const ONCE = 'once'
 const TO_PLACE = ['missing', 'near', 'year']
-const SHOWN = { 'To place': TO_PLACE, 'Other amount': ['amount'], All: null }
+const SHOWN = { 'To place': TO_PLACE, 'Other amount': ['amount'], 'Left out': ['skip', 'once'], All: null }
 const FILTERS = Object.keys(SHOWN)
 
 // The rows a payment of this kind can go to, over every year the file covers, as picker groups.
@@ -80,7 +80,7 @@ const ROLES = [
 	{ id: NONE, label: 'Not used' }
 ]
 
-function Columns({ rows, mapping, onChange }) {
+function Columns({ rows, mapping, dateFits, dateFormat, onChange }) {
 	const body = mapping.header ? rows.slice(1) : rows
 	const width = Math.max(...rows.map(r => r.length))
 	const cut = text => (text.length > 40 ? text.slice(0, 39) + '…' : text)
@@ -111,21 +111,26 @@ function Columns({ rows, mapping, onChange }) {
 							</ul>
 						</div>
 						<div className="bank-map-spendly">
-							<span className="field-help bank-map-phone-label">Spendly reads it as</span>
-							<div className="bank-map-pick">
-								<Icon name="chevronRight" className="icon bank-map-arrow" aria-hidden="true" />
-								<Combobox id={`bank-column-${i}`} label={`Spendly reads column ${i + 1} as`} pickOnly
-									value={roleOf(i).label} groups={[{ heading: '', options: ROLES }]}
-									onSelect={o => set(i, o.id)} />
-							</div>
-							{mapping.date === i ? (
-								<Field label="The date is written" htmlFor="bank-date-format">
-									<Combobox id="bank-date-format" label="The date is written" pickOnly
-										value={DATE_FORMATS.find(f => f.id === mapping.dateFormat)?.label ?? ''}
-										groups={[{ heading: '', options: DATE_FORMATS.map(f => ({ id: f.id, label: f.label })) }]}
+							<Field label="Mapped to" htmlFor={`bank-column-${i}`}>
+								<div className="bank-map-pick">
+									<Icon name="chevronRight" className="icon bank-map-arrow" aria-hidden="true" />
+									<Combobox id={`bank-column-${i}`} label={`Column ${i + 1} is mapped to`} pickOnly
+										value={roleOf(i).label} groups={[{ heading: '', options: ROLES }]}
+										onSelect={o => set(i, o.id)} />
+								</div>
+							</Field>
+							{mapping.date !== i ? null : dateFits.length === 1 ? (
+								<p className="field-help">Dates are read as {DATE_FORMATS.find(f => f.id === dateFits[0]).label.toLocaleLowerCase('da')}.</p>
+							) : dateFits.length ? (
+								<Field label="Every date in the file can be read two ways. Which is right?" htmlFor="bank-date-format">
+									<Combobox id="bank-date-format" label="How the date is written" pickOnly
+										value={DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? ''}
+										groups={[{ heading: '', options: DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: f.label })) }]}
 										onSelect={o => onChange({ dateFormat: o.id })} />
 								</Field>
-							) : null}
+							) : (
+								<p className="field-help bank-map-problem">These are not dates Spendly can read.</p>
+							)}
 						</div>
 					</li>
 				))}
@@ -145,7 +150,7 @@ const statusText = (p, months) => {
 			: `${p.line}: the budget says ${currency(p.budget)} for ${month}`
 		case 'near': return `Maybe ${p.line}? The budget says ${currency(p.budget)} for ${month}`
 		case 'skip': return 'Not part of the budget'
-		case 'once': return 'One-time payment'
+		case 'once': return 'One-time payment, left out of the budget'
 		case 'year': return `There is no budget for ${p.date.slice(0, 4)}`
 		default: return 'Not in the budget'
 	}
@@ -166,9 +171,9 @@ function Place({ payment, sheet, onSave, onForget, onClose }) {
 	return (
 		<div className="filter-section bank-place">
 			<Field label="This payment belongs to" htmlFor={`bank-place-${payment.row}`}
-				help="A row or 'every time' is used for all payments with the same text, now and in later files. A one-time payment is only this one.">
+				help="A budget item or 'every time' is used for all payments with the same text, now and in later files. A one-time payment is only this one.">
 				<Combobox id={`bank-place-${payment.row}`} label="This payment belongs to" pickOnly value={current}
-					placeholder={kind === 'income' ? 'Choose an income row' : 'Choose a cost row'} groups={groups}
+					placeholder={kind === 'income' ? 'Pick from your income' : 'Pick from your costs'} groups={groups}
 					onSelect={o => onSave(o.id === NONE ? null : o.id, o.id === ONCE)} />
 			</Field>
 			<div className="bank-place-actions">
@@ -205,7 +210,6 @@ export default function BudgetCheck() {
 			const width = Math.max(...found.map(r => r.length))
 			const header = hasHeader(found)
 			const guess = { header, ...guessColumns(found, header) }
-			guess.dateFormat = guessDateFormat(found.slice(header ? 1 : 0, 21).map(r => r[guess.date] ?? ''))
 			setFile(picked.name)
 			setRows(found)
 			setMapping(rememberedMapping(width) ?? guess)
@@ -221,9 +225,13 @@ export default function BudgetCheck() {
 		return next
 	})
 
+	/* The date format comes from the whole column. It is asked only when every date reads both ways. */
+	const dateFits = useMemo(() => (mapping?.date == null ? []
+		: dateFormatsFor((mapping.header ? rows.slice(1) : rows).map(r => r[mapping.date] ?? ''))), [rows, mapping])
+	const dateFormat = dateFits.includes(mapping?.dateFormat) ? mapping.dateFormat : dateFits[0] ?? 'dmy'
 	const ready = mapping && mapping.date != null && mapping.text != null && mapping.amount != null
-	const { payments, unread } = useMemo(() => (ready ? readPayments(rows, mapping) : { payments: [], unread: [] }),
-		[ready, rows, mapping])
+	const { payments, unread } = useMemo(() => (ready ? readPayments(rows, { ...mapping, dateFormat }) : { payments: [], unread: [] }),
+		[ready, rows, mapping, dateFormat])
 	const years = useMemo(() => [...new Set(payments.map(p => Number(p.date.slice(0, 4))))].sort(), [payments])
 
 	useEffect(() => {
@@ -286,6 +294,22 @@ export default function BudgetCheck() {
 		}
 	}
 
+	// Takes back every choice that left this text's payments out: its one-time marks, or its rule.
+	const bringBack = async g => {
+		setBulkBusy(true)
+		try {
+			let latest = null
+			for (const p of g.payments) latest = await forgetBankLink({ pattern: p.placed === 'once' ? onceKey(p) : p.key, kind: g.kind })
+			if (latest) setLinks(latest)
+			toast(`${plural(g.payments.length, 'payment')} brought back to the list.`)
+		} catch (e) {
+			toast(failureMessage(e, 'Not every payment was brought back.'), 'negative')
+			saved.refresh()
+		} finally {
+			setBulkBusy(false)
+		}
+	}
+
 	const count = status => checked?.filter(p => status.includes(p.status)) ?? []
 	const tally = list => currency(list.reduce((n, p) => n + p.amount, 0))
 	const missing = count(['missing', 'near', 'year'])
@@ -293,6 +317,7 @@ export default function BudgetCheck() {
 	const differs = count(['amount'])
 	const shown = checked?.filter(p => !SHOWN[filter] || SHOWN[filter].includes(p.status)) ?? []
 	const groups = useMemo(() => groupPayments(checked?.filter(p => TO_PLACE.includes(p.status)) ?? []), [checked])
+	const leftOut = useMemo(() => groupPayments(checked?.filter(p => ['skip', 'once'].includes(p.status)) ?? []), [checked])
 	const chosen = groups.filter(g => picked.has(g.id))
 	const chosenKinds = new Set(chosen.map(g => g.kind))
 	const sheetList = sheets ? [...sheets.values()] : []
@@ -320,7 +345,7 @@ export default function BudgetCheck() {
 							<DropZone kind={BANK_FILES} multiple={false} label="Choose the bank file" onFiles={read}
 								hint="Drop the bank file here" action="CHOOSE A CSV FILE" />
 						)}
-						{rows ? <Columns rows={rows} mapping={mapping} onChange={change} /> : null}
+						{rows ? <Columns rows={rows} mapping={mapping} dateFits={dateFits} dateFormat={dateFormat} onChange={change} /> : null}
 					</CardBody>
 				</Card>
 
@@ -338,9 +363,9 @@ export default function BudgetCheck() {
 							</div>
 							<p className="card-lead">
 								{payments.length ? `From ${shortDate(payments.reduce((a, p) => (p.date < a ? p.date : a), payments[0].date))} to ${shortDate(payments.reduce((a, p) => (p.date > a ? p.date : a), payments[0].date))}. ` : ''}
-								A payment is in the budget when a row of the same kind has the same amount in the same month,
-								when the row&apos;s name is in the payment&apos;s text, or when you placed it yourself.
-								A payment within {NEAR * 100} % of a row&apos;s amount is suggested as that row, and counts once you confirm it.
+								A payment is in the budget when a budget item of the same kind has the same amount in the same month,
+								when the item&apos;s name is in the payment&apos;s text, or when you placed it yourself.
+								A payment within {NEAR * 100} % of an item&apos;s amount is suggested as that item, and counts once you confirm it.
 								{unread.length ? ` ${plural(unread.length, 'line')} of the file had no date or amount that could be read, so ${unread.length === 1 ? 'it is' : 'they are'} left out.` : ''}
 							</p>
 							<div className="bank-summary">
@@ -348,7 +373,7 @@ export default function BudgetCheck() {
 								<SummaryRow label={`Other amount than the budget: ${differs.length}`} value={tally(differs)} />
 								<SummaryRow label={`Not in the budget: ${missing.length}`} value={tally(missing)} />
 								{near.length ? (
-									<SummaryRow label={`Of those, close to a row's amount: ${near.length}`} value={tally(near)} />
+									<SummaryRow label={`Of those, close to a budget item's amount: ${near.length}`} value={tally(near)} />
 								) : null}
 								{count(['skip', 'once']).length ? (
 									<SummaryRow label={`Left out by you: ${count(['skip', 'once']).length}`} value={tally(count(['skip', 'once']))} />
@@ -360,8 +385,10 @@ export default function BudgetCheck() {
 								<span className="field-help">{accounted} of {plural(payments.length, 'payment')} are accounted for.
 									{groups.length ? ` ${plural(groups.length, 'text')} left to place.` : ''}</span>
 							</div>
-							<Segmented label="Show" options={FILTERS} value={filter}
-								onChange={f => { setFilter(f); setOpen(null); setPicked(new Set()) }} />
+							<div className="bank-filter">
+								<Segmented label="Show" options={FILTERS} value={filter}
+									onChange={f => { setFilter(f); setOpen(null); setPicked(new Set()) }} />
+							</div>
 							{filter === 'To place' ? (
 								groups.length ? (
 									<>
@@ -373,12 +400,12 @@ export default function BudgetCheck() {
 												{chosenKinds.size === 1 && !chosen.some(g => g.noSheet) ? (
 													<Field label="Put them all on" htmlFor="bank-bulk-row">
 														<Combobox id="bank-bulk-row" label="Put them all on" pickOnly value=""
-															placeholder={chosen[0].kind === 'income' ? 'Choose an income row' : 'Choose a cost row'}
+															placeholder={chosen[0].kind === 'income' ? 'Pick from your income' : 'Pick from your costs'}
 															groups={rowChoices(sheetList, chosen[0].kind, [])}
 															onSelect={o => !bulkBusy && saveGroups(chosen, o.id)} />
 													</Field>
 												) : (
-													<p className="field-help">Money in and money out go to different rows, so only the choices below apply to all of them.</p>
+													<p className="field-help">Money in and money out go to different budget items, so only the choices below apply to all of them.</p>
 												)}
 												<div className="bank-place-actions">
 													<ButtonLink disabled={bulkBusy} onClick={() => saveGroups(chosen, null, true)}>ONE-TIME</ButtonLink>
@@ -417,7 +444,7 @@ export default function BudgetCheck() {
 														) : null}
 														{g.noSheet ? null : (
 															<ButtonLink aria-expanded={open === g.id} onClick={() => setOpen(open === g.id ? null : g.id)}>
-																CHOOSE A ROW</ButtonLink>
+																PICK FROM BUDGET</ButtonLink>
 														)}
 														<ButtonLink disabled={bulkBusy} onClick={() => saveGroups([g], null, true)}>ONE-TIME</ButtonLink>
 														<ButtonLink disabled={bulkBusy} onClick={() => saveGroups([g], null)}>NOT IN THE BUDGET</ButtonLink>
@@ -426,7 +453,7 @@ export default function BudgetCheck() {
 														<div className="filter-section bank-place">
 															<Field label={`All payments with this text go to`} htmlFor={`bank-group-${g.id}`}>
 																<Combobox id={`bank-group-${g.id}`} label="All payments with this text go to" pickOnly value=""
-																	placeholder={g.kind === 'income' ? 'Choose an income row' : 'Choose a cost row'}
+																	placeholder={g.kind === 'income' ? 'Pick from your income' : 'Pick from your costs'}
 																	groups={rowChoices(sheetList, g.kind, [])}
 																	onSelect={o => !bulkBusy && saveGroups([g], o.id)} />
 															</Field>
@@ -438,6 +465,32 @@ export default function BudgetCheck() {
 									</>
 								) : (
 									<EmptyState icon="check"><p>Every payment is accounted for.</p></EmptyState>
+								)
+							) : filter === 'Left out' ? (
+								leftOut.length ? (
+									<ul className="bank-groups">
+										{leftOut.map(g => (
+											<li key={g.id} className="bank-group">
+												<div className="bank-group-head bank-group-head-flat">
+													<span className="bank-group-text">
+														<span className="bank-group-name">{g.text || '(no text)'}</span>
+														<span className="field-help">
+															{g.payments.length === 1 ? shortDate(g.first)
+																: g.first === g.last ? `${plural(g.payments.length, 'payment')} on ${shortDate(g.first)}`
+																	: `${plural(g.payments.length, 'payment')}, ${shortDate(g.first)} to ${shortDate(g.last)}`}
+															{' · '}{g.payments[0].status === 'once' ? 'One-time' : 'Not in the budget, every time'}
+														</span>
+													</span>
+													<span className="amount tabular-figures bank-group-total">{currency(g.total)}</span>
+												</div>
+												<div className="bank-group-actions bank-group-actions-flat">
+													<ButtonLink disabled={bulkBusy} onClick={() => bringBack(g)}>BRING BACK</ButtonLink>
+												</div>
+											</li>
+										))}
+									</ul>
+								) : (
+									<EmptyState icon="check"><p>You have not left any payment out.</p></EmptyState>
 								)
 							) : shown.length ? (
 								<div className="entry-list bank-list">
