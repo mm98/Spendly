@@ -1645,6 +1645,8 @@ button.budget-slide-line-name:hover { text-decoration:underline; text-underline-
 .budget-hero .meter-fill { background:var(--text-inverse); }
 .budget-hero-use { display:grid; gap:10px; }
 .budget-hero-row .card-kpi .delta-text, .budget-hero-row .card-kpi .card-kpi-label { letter-spacing:normal; text-transform:none; white-space:normal; }
+/* A note that wraps makes its card taller; the figures beside it stay where they are. */
+.budget-hero-row .card-kpi { align-content:start; }
 .budget-carousel { display:grid; grid-auto-flow:column; grid-auto-columns:calc((100% - var(--gap-panel)) / 2); gap:var(--gap-panel); align-items:start; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scrollbar-width:none; }
 .budget-carousel::-webkit-scrollbar { display:none; }
 .budget-month-panel { min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:14px; padding:16px 18px; border:1px solid var(--border-card); border-radius:var(--radius-card); background:var(--bg-card); scroll-snap-align:start; }
