@@ -486,10 +486,8 @@ export default function BudgetCheck() {
 						<div className="budget-bar bank-bar">
 							{ready && payments.length ? (
 								<>
-									<div className="budget-views">
-										<Segmented label="Show" options={VIEWS} value={filter}
-											onChange={f => { setFilter(f); setOpen(null); setPicked(new Set()) }} />
-									</div>
+									<Segmented label="Show" options={VIEWS} value={filter}
+										onChange={f => { setFilter(f); setOpen(null); setPicked(new Set()) }} />
 									<Button variant="pill" icon={showColumns ? 'close' : 'document'} aria-pressed={showColumns}
 										onClick={toggleColumns}>{showColumns ? 'CLOSE COLUMNS' : 'COLUMNS'}</Button>
 								</>
