@@ -1761,12 +1761,13 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 	.budget-amount, .budget-name, .budget-account-row { min-height:44px; }
 }
 /* ---------------- bank statement check ---------------- */
-.bank-file { display:flex; align-items:center; justify-content:space-between; gap:var(--gap-row); flex-wrap:wrap; margin:0 0 var(--gap-block); }
+.bank-columns { display:grid; gap:var(--gap-block); }
+.bank-columns > .card-lead { margin:0; }
 .bank-map-head, .bank-map-row { --bank-map-gap:48px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:var(--bank-map-gap); }
 .bank-map-head { padding-bottom:8px; border-bottom:1px solid var(--border-divider); }
 .bank-map { list-style:none; margin:0; padding:0; display:grid; }
 .bank-map-spendly { display:grid; gap:var(--gap-block); min-width:0; }
-.bank-map-problem { color:var(--text-negative); font-weight:600; }
+.bank-map-problem { margin:0; color:var(--text-negative); font-weight:600; }
 .bank-map-row { align-items:first baseline; row-gap:8px; padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); }
 .bank-map-row:last-child { border-bottom:0; }
 .bank-map-row.is-unused .bank-map-samples { color:var(--text-faint); }
@@ -1774,48 +1775,41 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 /* Centred on the select it points at, in the gap before it, whatever the label or the file's column hold. */
 .bank-map-pick { position:relative; }
 .bank-map-arrow { position:absolute; top:50%; right:100%; margin-right:calc((var(--bank-map-gap) - 18px) / 2); transform:translateY(-50%); color:var(--text-muted); }
-.bank-summary { margin-bottom:var(--gap-block); }
-.bank-summary .summary-row { flex-wrap:wrap; }
-.bank-summary .summary-row-value { flex:none; }
-.bank-row .icon-button { flex:none; }
-.bank-list { margin-top:var(--gap-block); }
-.bank-list .entry-meta { white-space:normal; }
-.bank-row-missing .bank-status, .bank-row-year .bank-status { color:var(--text-negative); font-weight:600; }
-.bank-row-amount .bank-status, .bank-row-near .bank-status { color:var(--text-warn); font-weight:600; }
-.bank-row-match .bank-status { color:var(--text-positive); }
-.bank-place { margin:4px 0 var(--gap-block); }
-.bank-progress { display:grid; gap:6px; margin-bottom:var(--gap-block); }
-.bank-hint { margin:var(--gap-block) 0 0; }
-/* Four choices fill the width on a phone rather than run past the card's edge. */
-.bank-filter .segmented { display:flex; max-width:100%; }
-.bank-filter .segmented button { flex:1 1 auto; min-width:0; padding-inline:clamp(8px, 2.5vw, 16px); }
 
-/* Stays in view while the list scrolls, so what is selected far down can still be placed. */
-.bank-bulk { position:sticky; top:calc(var(--topbar-height, 0px) + 8px); z-index:3; margin-top:var(--gap-block); background:var(--bg-row-hover); box-shadow:var(--shadow); }
-.bank-groups { list-style:none; margin:0; padding:0; border-top:1px solid var(--border-divider); }
-.bank-group { display:grid; gap:8px; padding:var(--pad-row-y) 0; border-bottom:1px solid var(--border-divider); }
-.bank-group.is-picked { background:var(--bg-row-hover); box-shadow:-8px 0 0 var(--bg-row-hover), 8px 0 0 var(--bg-row-hover); }
-.bank-group-head { display:flex; align-items:flex-start; gap:var(--gap-row); cursor:pointer; min-width:0; }
-.bank-group-head .check-box { margin-top:2px; flex:none; }
-.bank-group-text { display:grid; gap:2px; min-width:0; flex:1; }
-.bank-group-name { font-size:13px; font-weight:600; color:var(--text); overflow-wrap:anywhere; }
-.bank-group-total { flex:none; font-size:13px; font-weight:600; color:var(--text); }
-.bank-status-line { margin:0 0 0 calc(20px + var(--gap-row)); }
-.bank-status-near { color:var(--text-warn); font-weight:600; }
-.bank-group-actions { display:flex; flex-wrap:wrap; gap:8px var(--gap-panel); margin-left:calc(20px + var(--gap-row)); }
-.bank-group .bank-place { margin:0 0 0 calc(20px + var(--gap-row)); }
-/* A left-out line has no box to tick, so nothing is indented past one. */
-.bank-group-head.bank-group-head-flat { cursor:default; }
-.bank-group-actions.bank-group-actions-flat { margin-left:0; }
+.bank-hero-head { display:grid; gap:2px; min-width:0; }
+.bank-hero-file { color:var(--text-inverse); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bank-hero-row .card-kpi .card-kpi-label { white-space:normal; }
+.bank-panel { display:grid; gap:14px; }
+.bank-hint { margin:0; }
+.bank-lines { list-style:none; margin:0; padding:0; }
+.bank-line { display:grid; gap:6px; padding:10px 0; border-bottom:1px solid var(--border-divider); }
+.bank-line.is-picked { background:var(--bg-row-hover); box-shadow:-8px 0 0 var(--bg-row-hover), 8px 0 0 var(--bg-row-hover); }
+.bank-line-head { display:flex; align-items:flex-start; gap:var(--gap-row); min-width:0; }
+label.bank-line-head { cursor:pointer; }
+.bank-line-head .check-box { flex:none; margin-top:2px; }
+.bank-line-text { display:grid; gap:1px; flex:1; min-width:0; }
+.bank-line-name { font-size:13px; color:var(--text-strong); overflow-wrap:anywhere; }
+.bank-line-meta { font-size:11px; color:var(--text-muted); }
+.bank-line-amount { flex:none; font-size:13.5px; color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap; }
+/* Everything under a line with a box to tick starts where its text does. */
+.bank-line.has-check > :not(.bank-line-head) { margin-left:calc(20px + var(--gap-row)); }
+.bank-line-note { margin:0; font-size:12px; }
+.bank-line-note.is-warn, .bank-line.is-amount .bank-status, .bank-line.is-near .bank-status { color:var(--text-warn); font-weight:600; }
+.bank-line-note.is-negative, .bank-line.is-missing .bank-status, .bank-line.is-year .bank-status { color:var(--text-negative); font-weight:600; }
+.bank-line.is-match .bank-status { color:var(--text-positive); }
+.bank-line-actions { display:flex; flex-wrap:wrap; gap:8px var(--gap-panel); }
+.bank-place { margin:4px 0 6px; }
 .bank-place-actions { display:flex; justify-content:flex-end; gap:var(--gap-panel); }
+/* Stays in view while the list scrolls, so what is selected far down can still be placed. */
+.bank-bulk { position:sticky; top:calc(var(--topbar-height, 0px) + 8px); z-index:3; background:var(--bg-row-hover); box-shadow:var(--shadow); }
 @media (pointer: coarse) {
-	.bank-row .icon-button { width:44px; height:44px; }
-	.bank-group-actions .button-link, .bank-bulk .button-link { min-height:44px; }
-	.bank-group-actions { row-gap:0; }
+	.bank-line-actions .button-link, .bank-bulk .button-link { min-height:44px; }
+	.bank-line-actions { row-gap:0; }
 }
 @media (max-width:640px) {
 	.bank-map-row { grid-template-columns:minmax(0,1fr); }
 	.bank-map-head, .bank-map-arrow { display:none; }
+	.bank-bar .segmented button { flex:1 1 auto; min-width:0; padding-inline:clamp(8px, 2.5vw, 16px); }
 }
 
 @media (max-width:900px) { .two-column { grid-template-columns:minmax(0,1fr); } .fav-tile-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }

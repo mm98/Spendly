@@ -192,6 +192,7 @@ function YearBar({ years, year, view, onView, arranging, onArrange, onYearsChang
 			) : null}
 			<Button variant="pill" icon={arranging ? 'check' : 'pencil'} aria-pressed={arranging}
 				onClick={() => onArrange(!arranging)}>{arranging ? 'DONE' : 'EDIT'}</Button>
+			{arranging ? null : <Button variant="pill" icon="upload" to="/budget/check">CHECK A BANK STATEMENT</Button>}
 			{starting ? (
 				<NewYearDialog from={years[years.length - 1]} onClose={() => setStarting(false)}
 					onStarted={next => { setStarting(false); onYearsChanged(); navigate(`/budget/${next}`) }} />
