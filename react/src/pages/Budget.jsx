@@ -156,10 +156,12 @@ function YearBar({ years, year, view, onView, arranging, onArrange, onYearsChang
 	const all = view === 'all'
 	return (
 		<div className="budget-bar">
-			<div className="budget-years">
-				<Segmented label="Year" options={years.map(String)} value={String(year)}
-					onChange={y => navigate({ pathname: `/budget/${y}`, search: params.has('view') ? `?view=${params.get('view')}` : '' })} />
-			</div>
+			{years.length > 1 ? (
+				<div className="budget-years">
+					<Segmented label="Year" options={years.map(String)} value={String(year)}
+						onChange={y => navigate({ pathname: `/budget/${y}`, search: params.has('view') ? `?view=${params.get('view')}` : '' })} />
+				</div>
+			) : null}
 			{arranging ? null : (
 				<Button variant="pill" icon={all ? 'close' : 'calendar'} aria-pressed={all}
 					onClick={() => onView(all ? 'months' : 'all')}>{all ? 'CLOSE ALL MONTHS' : 'ALL MONTHS'}</Button>
