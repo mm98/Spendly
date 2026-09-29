@@ -3678,3 +3678,20 @@ stand-in answering each case:
 New order already opened its Delivered date on today (25.09) and was not changed. Stored empty reads are
 cleared once at start-up (1 of 1 in the test database, the one real reading untouched). Not checked:
 Firefox, WebKit, a phone, and the real reading service's answer for an empty account.
+
+## Controls — the bar's white buttons stood shorter than the switches beside them
+
+On the Budget page and on Check a bank statement, the bar at the top holds segmented switches (the
+year, the view, the list to show) and white buttons (ALL MONTHS, EDIT, CHECK A BANK STATEMENT,
+COLUMNS, ANOTHER FILE). The buttons kept the 32px of a section header's button, so each one sat
+7.39px shorter than the switch beside it and read as a smaller, lesser control.
+
+| bar, measured in Chromium | switch | button |
+|---|---|---|
+| Budget, desktop 1440x900 and iPhone 15, before | 39.39px | 32px |
+| Bank check, both devices, before | 39.39px | 32px |
+| Budget, both devices and in edit mode (NEW YEAR, DONE), after | 40px | 40px |
+| Bank check, both devices, after | 40px | 40px |
+
+After the fix the tabs inside each switch are 32px, no label is clipped, and neither page scrolls
+sideways. Not checked: Firefox and WebKit.
