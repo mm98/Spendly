@@ -4,7 +4,7 @@ import { Combobox } from './Combobox.jsx'
 import { CheckRow, Field, FieldShell, FormActions, TextInput, focusField, useFieldErrors } from './Form.jsx'
 import { useRowDelete } from './FormPage.jsx'
 import { Sep } from './Sep.jsx'
-import { KINDS, MONTHS, join } from './BudgetCells.jsx'
+import { KINDS, MONTHS, join, numbered } from './BudgetCells.jsx'
 import { amount, monthNames, parseAmount, plural, sanitizeAmount } from '../api/format.js'
 import { BUDGET_ACCOUNT_FIELDS, BUDGET_AMOUNT, BUDGET_GROUP_FIELDS, BUDGET_ROW_FIELDS } from '../api/rules.js'
 import {
@@ -180,7 +180,7 @@ export function RowPanel({ sheet, line, groupId, heading, index, count, write, o
 					const real = errors.propsFor(amountField('real', m))
 					return (
 						<div key={m} className="budget-panel-month">
-							<span className="budget-panel-month-name">{month}</span>
+							<span className="budget-panel-month-name">{numbered(month, m)}</span>
 							{[['expected', expected, 'Expected'], ['real', real, 'Real']].map(([kind, props, word]) => (
 								<Fragment key={kind}>
 									<input id={amountField(kind, m)} inputMode="decimal" autoComplete="off"

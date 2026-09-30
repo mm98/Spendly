@@ -13,7 +13,7 @@ import { useReorder } from '../components/Reorder.jsx'
 import { Sep } from '../components/Sep.jsx'
 import { SkeletonCard } from '../components/Skeleton.jsx'
 import { useToast } from '../components/Toast.jsx'
-import { CellEditor, KINDS, MONTHS, figure, join, shown, signOf, sum, sumMonths } from '../components/BudgetCells.jsx'
+import { CellEditor, KINDS, MONTHS, figure, join, numbered, shown, signOf, sum, sumMonths } from '../components/BudgetCells.jsx'
 import { AccountPanel, GroupPanel, RowPanel, useFocusLater } from '../components/BudgetPanels.jsx'
 import { useApi } from '../api/useApi.js'
 import { MonthsCard } from './BudgetMonths.jsx'
@@ -447,7 +447,7 @@ function HeadRow({ months, thisMonth }) {
 			<span role="columnheader" className="budget-name">Row</span>
 			<span role="columnheader" className="budget-account">Account</span>
 			{months.map((name, m) => (
-				<span key={m} role="columnheader" className={join('budget-month', m === thisMonth && 'is-now')}>{name}</span>
+				<span key={m} role="columnheader" className={join('budget-month', m === thisMonth && 'is-now')}>{numbered(name, m)}</span>
 			))}
 			<span role="columnheader" className="budget-total">Year</span>
 			<span role="columnheader" className="budget-total">Per month</span>

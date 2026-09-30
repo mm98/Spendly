@@ -1628,7 +1628,7 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-slide-top { position:sticky; top:var(--topbar-height, 0px); z-index:4; padding-top:14px; background:var(--bg-card); }
 .budget-slide-nav { display:flex; align-items:center; gap:var(--gap-row); padding-bottom:var(--gap-block); }
 .budget-strip { flex:1; min-width:0; display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:2px; padding:2px; background:var(--bg-tile); border:1px solid var(--border-control); border-radius:var(--radius-compact); }
-.budget-strip-month { font:inherit; text-transform:capitalize; min-width:0; height:26px; padding:0; border:0; border-radius:8px; background:transparent; font-size:11px; font-weight:600; color:var(--text-body); cursor:pointer; overflow:hidden; }
+.budget-strip-month { font:inherit; text-transform:capitalize; min-width:0; height:26px; padding:0; border:0; border-radius:8px; background:transparent; font-size:11px; font-weight:600; color:var(--text-body); white-space:nowrap; cursor:pointer; overflow:hidden; }
 .budget-strip-month:hover { background:var(--bg-row-hover); }
 .budget-strip-month.is-now { color:var(--text-positive); }
 .budget-strip-month[aria-pressed="true"] { background:var(--bg-dark); color:var(--text-inverse); }
@@ -1687,12 +1687,15 @@ button.budget-slide-line-name:hover { text-decoration:underline; text-underline-
 @container budget-panel (max-width:640px) {
 	.budget-panel-fields { grid-template-columns:minmax(0,1fr); }
 }
+/* Twelve across only while "Dec (12)" still fits on one line; then two rows, then three. */
+@container budget-slide (max-width:760px) { .budget-strip { grid-template-columns:repeat(6,minmax(0,1fr)); } }
 @container budget-slide (max-width:520px) {
-	.budget-strip { grid-template-columns:repeat(6,minmax(0,1fr)); }
+	.budget-strip { grid-template-columns:repeat(4,minmax(0,1fr)); }
 	.budget-carousel { grid-auto-columns:88%; gap:var(--gap-row); }
 	.budget-month-panel { padding:14px; }
 	.budget-left-chip { padding:0 8px; }
 }
+@container budget-slide (max-width:340px) { .budget-strip { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (pointer: coarse) {
 	.budget-amount, .budget-name, .budget-account-row { min-height:44px; }
 }
