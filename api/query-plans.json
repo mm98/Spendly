@@ -782,7 +782,7 @@
 				"idx_attachments_order"
 			]
 		},
-		"SELECT id, name, position FROM budget_accounts WHERE user_id = ?": {
+		"SELECT id, name, position, grey FROM budget_accounts WHERE user_id = ?": {
 			"plan": [
 				"SEARCH budget_accounts USING INDEX sqlite_autoindex_budget_accounts_2 (user_id=?)"
 			],

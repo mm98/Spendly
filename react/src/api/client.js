@@ -434,7 +434,7 @@ export async function getBudgetAccounts(signal) {
 	return (await request('/api/budget/accounts', { signal })).accounts
 }
 const accountWrite = async (path, method, body, signal) => (await budgetWrite(path, method, body, signal)).accounts
-export const addBudgetAccount = (name, signal) => accountWrite('/api/budget/accounts', 'POST', { name }, signal)
+export const addBudgetAccount = (account, signal) => accountWrite('/api/budget/accounts', 'POST', account, signal)
 export const updateBudgetAccount = (id, patch, signal) =>
 	accountWrite(`/api/budget/accounts/${id}`, 'PATCH', patch, signal)
 export const deleteBudgetAccount = (id, signal) =>

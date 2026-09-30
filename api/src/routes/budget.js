@@ -33,10 +33,16 @@ router.post('/import', (req, res) => {
    the whole list, with how many rows use each account. */
 const accounts = req => ({ accounts: listAccountsInUse(req.user.id) })
 
+const greyFlag = value => {
+	if (value === undefined) return null
+	if (typeof value !== 'boolean') throw refuse(400, 'Grey is yes or no.')
+	return value
+}
+
 router.get('/accounts', (req, res) => res.json(accounts(req)))
 
 router.post('/accounts', (req, res) => {
-	addAccount(req.user.id, budgetText(req.body?.name, BUDGET_TEXT.account))
+	addAccount(req.user.id, budgetText(req.body?.name, BUDGET_TEXT.account), greyFlag(req.body?.grey) ?? false)
 	res.status(201).json(accounts(req))
 })
 
@@ -44,6 +50,7 @@ router.patch('/accounts/:id', (req, res) => {
 	const body = req.body ?? {}
 	updateAccount(req.user.id, req.params.id, {
 		name: body.name === undefined ? null : budgetText(body.name, BUDGET_TEXT.account),
+		grey: greyFlag(body.grey),
 		index: body.index === undefined ? null : position(body.index)
 	})
 	res.json(accounts(req))
