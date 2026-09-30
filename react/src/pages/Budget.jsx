@@ -627,11 +627,11 @@ function AccountsCard({ sheet, onChanged }) {
 	)
 }
 
-function SumRow({ label, values, strong, signed, thisMonth }) {
+function SumRow({ label, values, strong, signed, grey, thisMonth }) {
 	const year = sum(values)
 	const tone = value => (signed ? signOf(value) : null)
 	return (
-		<div className={join('budget-row budget-sum', strong && 'is-strong')} role="row">
+		<div className={join('budget-row budget-sum', strong && 'is-strong', grey && 'is-grey')} role="row">
 			<span role="rowheader" className="budget-name"><span className="budget-sum-label" title={label}>{label}</span></span>
 			<span role="gridcell" className="budget-account" />
 			{values.map((value, m) => (
@@ -653,7 +653,7 @@ function Totals({ sheet, thisMonth }) {
 	const costs = sumMonths(costLines)
 	const used = sheet.accounts.filter(a => costLines.some(l => l.accountId === a.id))
 	const byAccount = !used.length ? [] : [
-		...used.map(a => ({ key: a.id, label: a.name, lines: costLines.filter(l => l.accountId === a.id) })),
+		...used.map(a => ({ key: a.id, label: a.name, grey: a.grey, lines: costLines.filter(l => l.accountId === a.id) })),
 		...(costLines.some(l => !l.accountId)
 			? [{ key: 'none', label: 'No account', lines: costLines.filter(l => !l.accountId) }] : [])
 	]
@@ -663,7 +663,9 @@ function Totals({ sheet, thisMonth }) {
 			{byAccount.length ? (
 				<>
 					<SectionRow title="Costs by account" quiet />
-					{byAccount.map(a => <SumRow key={a.key} label={a.label} thisMonth={thisMonth} values={sumMonths(a.lines)} />)}
+					{byAccount.map(a => (
+						<SumRow key={a.key} label={a.label} grey={a.grey} thisMonth={thisMonth} values={sumMonths(a.lines)} />
+					))}
 				</>
 			) : null}
 			<SumRow label="Income" values={income} thisMonth={thisMonth} />
