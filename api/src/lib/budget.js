@@ -15,7 +15,7 @@ const selectGroups = db.prepare('SELECT id, kind, name, position FROM budget_gro
 const selectLines = db.prepare(`SELECT l.id, l.group_id, l.name, l.account_id, l.position, a.month, a.expected, a.real
 	FROM budget_lines l LEFT JOIN budget_amounts a ON a.line_id = l.id
 	WHERE l.user_id = ? AND l.group_id IN (SELECT id FROM budget_groups WHERE user_id = ? AND year_id = ?)`)
-const selectAccounts = db.prepare('SELECT id, name, position FROM budget_accounts WHERE user_id = ?')
+const selectAccounts = db.prepare('SELECT id, name, position, grey FROM budget_accounts WHERE user_id = ?')
 const selectAccount = db.prepare('SELECT id, name FROM budget_accounts WHERE id = ? AND user_id = ?')
 const selectAccountUse = db.prepare('SELECT account_id FROM budget_lines WHERE user_id = ? AND account_id IS NOT NULL')
 
@@ -49,6 +49,7 @@ const setLinePlace = db.prepare('UPDATE budget_lines SET group_id = ?, position 
 const deleteAllYears = db.prepare('DELETE FROM budget_years WHERE user_id = ?')
 const deleteAllAccounts = db.prepare('DELETE FROM budget_accounts WHERE user_id = ?')
 const renameAccountRow = db.prepare('UPDATE budget_accounts SET name = ? WHERE id = ? AND user_id = ?')
+const setAccountGrey = db.prepare('UPDATE budget_accounts SET grey = ? WHERE id = ? AND user_id = ?')
 const setAccountPosition = db.prepare('UPDATE budget_accounts SET position = ? WHERE id = ? AND user_id = ?')
 const deleteAccountRow = db.prepare('DELETE FROM budget_accounts WHERE id = ? AND user_id = ?')
 const selectLinks = db.prepare('SELECT pattern, kind, line_name FROM bank_links WHERE user_id = ?')
@@ -65,7 +66,8 @@ const kindOrder = kind => (kind === 'income' ? 0 : 1)
 export const listYears = userId => selectYears.all(userId).map(r => r.year)
 
 /** The account list, in its own order: the one list every year's rows pick from. */
-export const listAccounts = userId => selectAccounts.all(userId).sort(byPosition).map(({ id, name }) => ({ id, name }))
+export const listAccounts = userId => selectAccounts.all(userId).sort(byPosition)
+	.map(({ id, name, grey }) => ({ id, name, grey: grey === 1 }))
 
 /** The same list, each with how many rows in any year pick it. */
 export function listAccountsInUse(userId) {
@@ -257,13 +259,15 @@ function ensureAccounts(userId, names) {
 	return ids
 }
 
-export const addAccount = db.transaction((userId, name) => {
+export const addAccount = db.transaction((userId, name, grey = false) => {
 	refuseTwin(userId, name)
-	ensureAccounts(userId, [name])
+	const id = ensureAccounts(userId, [name]).get(accountKey(name))
+	if (grey) setAccountGrey.run(1, id, userId)
 })
 
-export const updateAccount = db.transaction((userId, id, { name, index }) => {
+export const updateAccount = db.transaction((userId, id, { name, grey, index }) => {
 	checkAccount(userId, id)
+	if (grey != null) setAccountGrey.run(grey ? 1 : 0, id, userId)
 	if (name != null) {
 		refuseTwin(userId, name, id)
 		renameAccountRow.run(name, id, userId)

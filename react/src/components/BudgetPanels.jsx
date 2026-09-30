@@ -1,10 +1,10 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button, IconButton } from './Button.jsx'
 import { Combobox } from './Combobox.jsx'
-import { Field, FieldShell, FormActions, TextInput, focusField, useFieldErrors } from './Form.jsx'
+import { CheckRow, Field, FieldShell, FormActions, TextInput, focusField, useFieldErrors } from './Form.jsx'
 import { useRowDelete } from './FormPage.jsx'
 import { Sep } from './Sep.jsx'
-import { KINDS, MONTHS, join } from './BudgetCells.jsx'
+import { KINDS, MONTHS, join, numbered } from './BudgetCells.jsx'
 import { amount, monthNames, parseAmount, plural, sanitizeAmount } from '../api/format.js'
 import { BUDGET_ACCOUNT_FIELDS, BUDGET_AMOUNT, BUDGET_GROUP_FIELDS, BUDGET_ROW_FIELDS } from '../api/rules.js'
 import {
@@ -180,7 +180,7 @@ export function RowPanel({ sheet, line, groupId, heading, index, count, write, o
 					const real = errors.propsFor(amountField('real', m))
 					return (
 						<div key={m} className="budget-panel-month">
-							<span className="budget-panel-month-name">{month}</span>
+							<span className="budget-panel-month-name">{numbered(month, m)}</span>
 							{[['expected', expected, 'Expected'], ['real', real, 'Real']].map(([kind, props, word]) => (
 								<Fragment key={kind}>
 									<input id={amountField(kind, m)} inputMode="decimal" autoComplete="off"
@@ -227,7 +227,7 @@ export function RowPanel({ sheet, line, groupId, heading, index, count, write, o
 
 /** One name, saved or dropped: what a group and an account both are to edit. `onSave` answers
     with the write, so a refused name keeps the panel open with what was typed. */
-function NamePanel({ id, heading, rules, initial, what, onSave, onClose, head, del }) {
+function NamePanel({ id, heading, rules, initial, what, onSave, onClose, head, del, children }) {
 	const [form, setForm] = useState({ [id]: initial ?? '' })
 	const [saving, setSaving] = useState(false)
 	const errors = useFieldErrors(rules, form)
@@ -269,6 +269,7 @@ function NamePanel({ id, heading, rules, initial, what, onSave, onClose, head, d
 							invalid={name.invalid} describedBy={name.describedBy} />
 					</FieldShell>
 				</Field>
+				{children}
 			</div>
 			<FormActions>
 				<Button variant="caps compact" icon="check" onClick={save}>
@@ -309,9 +310,10 @@ export function GroupPanel({ sheet, group, kind, index = 0, count = 0, write, on
 
 const accountKey = name => name.trim().toLocaleLowerCase('da')
 
-/** An account's name, or a new account at the end of the list. Two accounts cannot share a name,
-    since the rows and the totals tell them apart by it. */
+/** An account's name and whether its line in the totals is grey, or a new account at the end of
+    the list. Two accounts cannot share a name, since the rows and the totals tell them apart by it. */
 export function AccountPanel({ account, list, write, del, onClose }) {
+	const [grey, setGrey] = useState(account?.grey ?? false)
 	const rules = useMemo(() => BUDGET_ACCOUNT_FIELDS.map(rule => ({
 		...rule,
 		check: v => {
@@ -322,6 +324,9 @@ export function AccountPanel({ account, list, write, del, onClose }) {
 	return (
 		<NamePanel id="budget-account-name" rules={rules} initial={account?.name} what="ACCOUNT"
 			heading={account ? 'Account' : 'New account'} onClose={onClose} del={del}
-			onSave={name => write(() => (account ? updateBudgetAccount(account.id, { name }) : addBudgetAccount(name)))} />
+			onSave={name => write(() => (account ? updateBudgetAccount(account.id, { name, grey }) : addBudgetAccount({ name, grey })))}>
+			<CheckRow id="budget-account-grey" checked={grey} onChange={setGrey} label="Grey in the totals"
+				help="The account's line under Totals is shown in grey. Its costs still count in every sum." />
+		</NamePanel>
 	)
 }

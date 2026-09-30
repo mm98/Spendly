@@ -2,7 +2,7 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 
 import { Card, CardDivider, CardHeader, KpiCard } from '../components/Card.jsx'
 import { IconButton } from '../components/Button.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { CellEditor, KINDS, MONTHS, figure, join, shown, signOf, sum, sumMonths } from '../components/BudgetCells.jsx'
+import { CellEditor, KINDS, MONTHS, figure, join, numbered, shown, signOf, sum, sumMonths } from '../components/BudgetCells.jsx'
 import { GroupPanel, RowPanel, useFocusLater } from '../components/BudgetPanels.jsx'
 import { Meter } from '../components/Viz.jsx'
 import { Sep } from '../components/Sep.jsx'
@@ -43,7 +43,7 @@ function MonthStrip({ months, from, count, thisMonth, onPick }) {
 			{months.map((name, m) => (
 				<button key={m} type="button" aria-pressed={m >= from && m < from + count}
 					className={join('budget-strip-month', m === thisMonth && 'is-now')}
-					onClick={() => onPick(m)}>{name}</button>
+					onClick={() => onPick(m)}>{numbered(name, m)}</button>
 			))}
 		</div>
 	)
