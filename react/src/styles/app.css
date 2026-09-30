@@ -1125,6 +1125,9 @@ a.button-link { text-decoration:underline; }
 .combobox > .combobox-panel { display:none; }
 .combobox.is-open > .combobox-panel { display:block; }
 .combobox.is-open > .field-shell .chevron-icon { transform:rotate(180deg); }
+.combobox.opens-up > .combobox-panel { top:auto; bottom:calc(100% + 6px); }
+/* The fixed bars the panel must clear; Combobox.jsx reads these to decide which way it opens. */
+.combobox-panel { scroll-margin-top:var(--topbar-height, 0px); scroll-margin-bottom:var(--tabbar-clearance, 0px); }
 /* Capped and scrolling, because the panel is out of flow: an absolutely positioned list adds
    nothing to the document's height, so however far past the viewport it grows, no page scroll
    ever reaches the rows below the fold -- they render, and cannot be picked. */
@@ -1730,6 +1733,13 @@ label.bank-line-head { cursor:pointer; }
 .bank-line-note.is-warn, .bank-line.is-amount .bank-status, .bank-line.is-near .bank-status { color:var(--text-warn); font-weight:600; }
 .bank-line-note.is-negative, .bank-line.is-missing .bank-status, .bank-line.is-year .bank-status { color:var(--text-negative); font-weight:600; }
 .bank-line.is-match .bank-status { color:var(--text-positive); }
+.bank-line-note.is-positive { color:var(--text-positive); font-weight:600; }
+.bank-saved { color:var(--text-positive); }
+.bank-line-done { flex:none; display:inline-grid; place-items:center; width:20px; height:20px; margin-top:2px; border-radius:50%; background:var(--bg-positive); color:var(--text-positive); }
+.bank-line-done svg.icon { width:13px; height:13px; }
+.bank-line.is-saved .bank-line-name, .bank-line.is-saved .bank-line-amount { color:var(--text-muted); }
+.bank-done { margin:0; }
+.bank-save { display:flex; justify-content:flex-end; }
 .bank-line-actions { display:flex; flex-wrap:wrap; gap:8px var(--gap-panel); }
 .bank-place { margin:4px 0 6px; }
 .bank-place-actions { display:flex; justify-content:flex-end; gap:var(--gap-panel); }

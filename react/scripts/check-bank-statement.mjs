@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
 import {
-	checkPayments, dateFormatsFor, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText
+	checkPayments, dateFormatsFor, guessColumns, guessDateFormat, hasHeader, onceKey, paymentKey, parseCsv, readPayments, readText,
+	realAmounts
 } from '../src/api/bankStatement.js'
 
 const bytes = readFileSync(new URL('./fixtures/bank-statement.csv', import.meta.url))
@@ -51,4 +52,21 @@ assert.deepEqual(status, [
 // A one-time mark holds for that payment alone, not for a later one with the same text.
 const later = { ...payments[9], date: '2026-10-12' }
 assert.equal(checkPayments([later], new Map([[2026, sheet]]), links)[0].status, 'missing')
+
+// What saving writes: each row and month's payments summed, where the real amount is another.
+const groceries = { year: 2026, groups: [{ kind: 'expense', name: 'Food', lines: [
+	{ id: 'n', name: 'Netto', months: months(1500) }] }] }
+const shop = [
+	{ row: 1, date: '2026-01-08', text: 'Dankort NETTO 1234', amount: -642.15 },
+	{ row: 2, date: '2026-01-12', text: 'Dankort NETTO 1234', amount: -818.4 }]
+const shopSheets = new Map([[2026, groceries]])
+const found = checkPayments(shop, shopSheets)
+assert.deepEqual(found.map(p => p.status), ['amount', 'amount'])
+const writes = realAmounts(found, shopSheets)
+assert.deepEqual(writes.map(w => [w.lineId, w.month, w.amount, w.count, w.now]), [['n', 1, 1460.55, 2, null]])
+// Once saved, the two payments add up to the month's real amount and are found together.
+groceries.groups[0].lines[0].months[0].real = 1460.55
+const saved = checkPayments(shop, shopSheets)
+assert.deepEqual(saved.map(p => p.status), ['match', 'match'])
+assert.deepEqual(realAmounts(saved, shopSheets), [])
 console.log('Bank statement check: all cases pass.')

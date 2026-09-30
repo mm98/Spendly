@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Page } from '../components/Shell.jsx'
-import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard } from '../components/Card.jsx'
+import { Card, CardBody, CardDivider, CardHeader, EmptyState, KpiCard, Note } from '../components/Card.jsx'
 import { Button, ButtonLink } from '../components/Button.jsx'
 import { Combobox } from '../components/Combobox.jsx'
 import { DropZone } from '../components/FileInput.jsx'
@@ -14,9 +14,10 @@ import { KINDS, figure, join } from '../components/BudgetCells.jsx'
 import { BANK_FILES } from '../components/fileKinds.js'
 import { cachedFetch, useApi } from '../api/useApi.js'
 import { activeCurrency, longDate, monthNames, plural, shortDate } from '../api/format.js'
-import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, saveBankLink } from '../api/client.js'
+import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, saveBankLink, updateBudgetLine } from '../api/client.js'
 import {
-	DATE_FORMATS, checkPayments, dateFormatsFor, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText
+	DATE_FORMATS, checkPayments, dateFormatsFor, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText,
+	realAmounts
 } from '../api/bankStatement.js'
 
 /* A bank's CSV export checked against the budget: every payment is looked up in its year's
@@ -59,6 +60,17 @@ function groupPayments(list) {
 		return { ...g, suggestion, total: g.payments.reduce((n, p) => n + p.amount, 0), first: dates[0], last: dates[dates.length - 1],
 			noSheet: g.payments.every(p => p.status === 'year') }
 	}).sort((a, b) => Math.abs(b.total) - Math.abs(a.total))
+}
+
+/** A budget item picked by typing part of its name, or from the list. */
+function BudgetPicker({ id, label, groups, kind, current = '', onPick, disabled }) {
+	const [query, setQuery] = useState(current)
+	useEffect(() => { setQuery(current) }, [current])
+	return (
+		<Combobox id={id} label={label} value={query} groups={groups}
+			placeholder={kind === 'income' ? 'Type or pick from your income' : 'Type or pick from your costs'}
+			onChange={setQuery} onSelect={o => { if (disabled) return; setQuery(o.label); onPick(o) }} />
+	)
 }
 
 const when = g => (g.payments.length === 1 ? shortDate(g.first)
@@ -155,8 +167,8 @@ const statusText = (p, months) => {
 			? `${p.line}: the budget has no amount for ${month}`
 			: `${p.line}: the budget says ${figure(p.budget)} for ${month}`
 		case 'near': return `Maybe ${p.line}? The budget says ${figure(p.budget)} for ${month}`
-		case 'skip': return 'Not part of the budget'
-		case 'once': return 'One-time payment, left out of the budget'
+		case 'skip': return 'Always left out'
+		case 'once': return 'Left out this time only'
 		case 'year': return `There is no budget for ${p.date.slice(0, 4)}`
 		default: return 'Not in the budget'
 	}
@@ -169,18 +181,17 @@ function Place({ payment, sheet, onSave, onForget, onClose }) {
 		...(sheet?.groups ?? []).filter(g => g.kind === kind)
 			.map(g => ({ heading: g.name, options: g.lines.map(l => ({ id: l.name, label: l.name })) })),
 		{ heading: 'Not in the budget', options: [
-			{ id: ONCE, label: 'One-time payment, only this one' },
-			{ id: NONE, label: 'Not part of the budget, every time' }] }
+			{ id: NONE, label: 'Always leave out' },
+			{ id: ONCE, label: 'Leave out this time only' }] }
 	].filter(g => g.options.length)
-	const current = payment.placed === 'once' ? 'One-time payment, only this one'
-		: payment.placed ? (payment.status === 'skip' ? 'Not part of the budget, every time' : payment.line) : ''
+	const current = payment.placed === 'once' ? 'Leave out this time only'
+		: payment.placed ? (payment.status === 'skip' ? 'Always leave out' : payment.line) : ''
 	return (
 		<div className="filter-section bank-place">
 			<Field label="This payment belongs to" htmlFor={`bank-place-${payment.row}`}
-				help="A budget item or 'every time' is used for all payments with the same text, now and in later files. A one-time payment is only this one.">
-				<Combobox id={`bank-place-${payment.row}`} label="This payment belongs to" pickOnly value={current}
-					placeholder={kind === 'income' ? 'Pick from your income' : 'Pick from your costs'} groups={groups}
-					onSelect={o => onSave(o.id === NONE ? null : o.id, o.id === ONCE)} />
+				help="A budget item, or Always leave out, is used for all payments with the same text, now and in later files. This time only is used for this payment alone.">
+				<BudgetPicker id={`bank-place-${payment.row}`} label="This payment belongs to" kind={kind} current={current}
+					groups={groups} onPick={o => onSave(o.id === NONE ? null : o.id, o.id === ONCE)} />
 			</Field>
 			<div className="bank-place-actions">
 				{!payment.placed && payment.line ? (
@@ -211,7 +222,7 @@ function Sides({ items, render }) {
 
 /** A line of the list: its text, when, and the amount, with what can be done to it underneath. */
 function Line({ className, check, name, meta, total, note, noteTone, actions, children }) {
-	const Head = check ? 'label' : 'div'
+	const Head = check?.type === 'input' ? 'label' : 'div'
 	return (
 		<li className={join('bank-line', check && 'has-check', className)}>
 			<Head className="bank-line-head">
@@ -240,6 +251,11 @@ export default function BudgetCheck() {
 	const [picked, setPicked] = useState(() => new Set())
 	const [bulkBusy, setBulkBusy] = useState(false)
 	const [open, setOpen] = useState(null)
+	// Texts placed since the file was read. They stay in the list, marked as saved, until the next file.
+	const [recent, setRecent] = useState([])
+	const [leaveAlone, setLeaveAlone] = useState(() => new Set())
+	const [writing, setWriting] = useState(false)
+	const [wrote, setWrote] = useState(0)
 	const saved = useApi(getBankLinks)
 	const [links, setLinks] = useState(null)
 	const months = useMemo(() => monthNames('long'), [])
@@ -262,11 +278,16 @@ export default function BudgetCheck() {
 			setFilter('To place')
 			setPicked(new Set())
 			setOpen(null)
+			setRecent([])
+			setLeaveAlone(new Set())
+			setWrote(0)
 		} catch (e) {
 			toast(`${chosen.name} could not be read. ${e.message}`, 'negative')
 		}
 	}
-	const another = () => { setFile(null); setRows(null); setMapping(null); setPicked(new Set()); setOpen(null) }
+	const another = () => {
+		setFile(null); setRows(null); setMapping(null); setPicked(new Set()); setOpen(null); setRecent([]); setWrote(0)
+	}
 
 	const change = patch => setMapping(m => {
 		const next = { ...m, ...patch }
@@ -310,8 +331,8 @@ export default function BudgetCheck() {
 			if (payment.placed === 'once' && !once) await forgetBankLink({ pattern: onceKey(payment), kind: kindOf(payment) })
 			setLinks(await saveBankLink({ pattern: once ? onceKey(payment) : payment.key, kind: kindOf(payment), line: once ? null : line }))
 			setOpen(null)
-			toast(once ? 'This payment is marked as a one-time payment.'
-				: line ? `Payments with this text now go to ${line}.` : 'Payments with this text are now left out of the check.')
+			toast(once ? 'This payment is left out this time only.'
+				: line ? `Payments with this text now go to ${line}.` : 'Payments with this text are now always left out.')
 		} catch (e) {
 			toast(failureMessage(e, 'Your choice was not saved.'), 'negative')
 		}
@@ -337,14 +358,55 @@ export default function BudgetCheck() {
 			}
 			if (latest) setLinks(latest)
 			const n = list.reduce((sum, g) => sum + g.payments.length, 0)
+			const what = once ? 'Left out this time only' : line ? `Goes to ${line}` : 'Always left out'
+			setRecent(r => [...r.filter(x => !list.some(g => g.id === x.id)), ...list.map(g => ({ ...g, saved: what, once }))])
 			setPicked(new Set())
 			setOpen(null)
-			toast(`${plural(n, 'payment')} ${once ? 'marked as one-time' : line ? `placed on ${line}` : 'left out of the budget'}.`)
+			toast(`${plural(n, 'payment')} ${once ? 'left out this time only' : line ? `placed on ${line}` : 'always left out'}.`)
 		} catch (e) {
 			toast(failureMessage(e, 'Not every choice was saved.'), 'negative')
 			saved.refresh()
 		} finally {
 			setBulkBusy(false)
+		}
+	}
+
+	// Takes back a choice made since the file was read, and puts its text back in the list to place.
+	const undo = async g => {
+		setBulkBusy(true)
+		try {
+			let latest = null
+			if (g.once) for (const p of g.payments) latest = await forgetBankLink({ pattern: onceKey(p), kind: g.kind })
+			else latest = await forgetBankLink({ pattern: g.key, kind: g.kind })
+			if (latest) setLinks(latest)
+			setRecent(r => r.filter(x => x.id !== g.id))
+			toast('Your choice was taken back.')
+		} catch (e) {
+			toast(failureMessage(e, 'Your choice was not taken back.'), 'negative')
+			saved.refresh()
+		} finally {
+			setBulkBusy(false)
+		}
+	}
+
+	// Writes each amount the reader kept ticked as the real amount of its row and month.
+	const saveReal = async list => {
+		setWriting(true)
+		const next = new Map(sheets)
+		let done = 0
+		try {
+			for (const w of list) {
+				next.set(w.year, await updateBudgetLine(w.lineId, { month: w.month, real: w.amount }))
+				done++
+			}
+			toast(`${plural(done, 'amount')} saved in the budget.`)
+		} catch (e) {
+			toast(failureMessage(e, 'Not every amount was saved.'), 'negative')
+		} finally {
+			setSheets(next)
+			setWrote(n => n + done)
+			setLeaveAlone(new Set())
+			setWriting(false)
 		}
 	}
 
@@ -376,39 +438,50 @@ export default function BudgetCheck() {
 	const sheetList = sheets ? [...sheets.values()] : []
 	const accounted = checked ? checked.length - missing.length : 0
 	const dates = payments.map(p => p.date).sort()
+	const listed = [...groups, ...recent.filter(r => !groups.some(g => g.id === r.id))]
+		.sort((a, b) => Math.abs(b.total) - Math.abs(a.total))
+	const writes = useMemo(() => (checked && sheets ? realAmounts(checked, sheets) : []), [checked, sheets])
+	const toWrite = writes.filter(w => !leaveAlone.has(w.id))
 	const toggle = id => setPicked(set => {
 		const next = new Set(set)
 		if (next.has(id)) next.delete(id); else next.add(id)
 		return next
 	})
 
-	const toPlace = groups.length ? (
+	const toPlace = listed.length ? (
 		<>
 			<p className="field-help bank-hint">Payments with the same text are shown together. Place a text once,
-				and Spendly uses your choice for all of its payments, also in later files.</p>
+				and Spendly uses your choice for all of its payments, also in later files. Each choice is saved
+				the moment you make it.</p>
+			{groups.length ? null : <Note className="bank-done">Every payment is accounted for.</Note>}
 			{chosen.length ? (
 				<div className="filter-section bank-bulk" aria-label="Selected texts">
 					<span className="panel-heading">{plural(chosen.length, 'text')} selected, {plural(chosen.reduce((n, g) => n + g.payments.length, 0), 'payment')}</span>
 					{chosenKinds.size === 1 && !chosen.some(g => g.noSheet) ? (
 						<Field label="Put them all on" htmlFor="bank-bulk-row">
-							<Combobox id="bank-bulk-row" label="Put them all on" pickOnly value=""
-								placeholder={chosen[0].kind === 'income' ? 'Pick from your income' : 'Pick from your costs'}
-								groups={rowChoices(sheetList, chosen[0].kind, [])}
-								onSelect={o => !bulkBusy && saveGroups(chosen, o.id)} />
+							<BudgetPicker id="bank-bulk-row" label="Put them all on" kind={chosen[0].kind} disabled={bulkBusy}
+								groups={rowChoices(sheetList, chosen[0].kind, [])} onPick={o => saveGroups(chosen, o.id)} />
 						</Field>
 					) : (
 						<p className="field-help">Money in and money out go to different budget items, so only the choices below apply to all of them.</p>
 					)}
 					<div className="bank-place-actions">
-						<ButtonLink disabled={bulkBusy} onClick={() => saveGroups(chosen, null, true)}>ONE-TIME</ButtonLink>
-						<ButtonLink disabled={bulkBusy} onClick={() => saveGroups(chosen, null)}>NOT IN THE BUDGET</ButtonLink>
+						<ButtonLink disabled={bulkBusy} onClick={() => saveGroups(chosen, null)}>ALWAYS LEAVE OUT</ButtonLink>
+						<ButtonLink disabled={bulkBusy} onClick={() => saveGroups(chosen, null, true)}>LEAVE OUT ONCE</ButtonLink>
 						<ButtonLink onClick={() => setPicked(new Set())}>CLEAR</ButtonLink>
 					</div>
 				</div>
 			) : null}
-			<CheckRow id="bank-pick-all" checked={chosen.length === groups.length} label="Select every text"
-				onChange={all => setPicked(new Set(all ? groups.map(g => g.id) : []))} />
-			<Sides items={groups} render={g => (
+			{groups.length ? (
+				<CheckRow id="bank-pick-all" checked={chosen.length === groups.length} label="Select every text"
+					onChange={all => setPicked(new Set(all ? groups.map(g => g.id) : []))} />
+			) : null}
+			<Sides items={listed} render={g => g.saved ? (
+				<Line key={g.id} className="is-saved" name={g.text} meta={when(g)} total={g.total}
+					check={<span className="bank-line-done"><Icon name="check" /></span>}
+					note={`Saved: ${g.saved}.`} noteTone="is-positive"
+					actions={<ButtonLink disabled={bulkBusy} onClick={() => undo(g)}>UNDO</ButtonLink>} />
+			) : (
 				<Line key={g.id} className={picked.has(g.id) ? 'is-picked' : null} name={g.text} meta={when(g)} total={g.total}
 					check={<input type="checkbox" className="check-box" checked={picked.has(g.id)} onChange={() => toggle(g.id)}
 						aria-label={`Select ${g.text || 'this text'}`} />}
@@ -424,16 +497,14 @@ export default function BudgetCheck() {
 							<ButtonLink aria-expanded={open === g.id} onClick={() => setOpen(open === g.id ? null : g.id)}>
 								PICK FROM BUDGET</ButtonLink>
 						)}
-						<ButtonLink disabled={bulkBusy} onClick={() => saveGroups([g], null, true)}>ONE-TIME</ButtonLink>
-						<ButtonLink disabled={bulkBusy} onClick={() => saveGroups([g], null)}>NOT IN THE BUDGET</ButtonLink>
+						<ButtonLink disabled={bulkBusy} onClick={() => saveGroups([g], null)}>ALWAYS LEAVE OUT</ButtonLink>
+						<ButtonLink disabled={bulkBusy} onClick={() => saveGroups([g], null, true)}>LEAVE OUT ONCE</ButtonLink>
 					</>}>
 					{open === g.id ? (
 						<div className="filter-section bank-place">
 							<Field label="All payments with this text go to" htmlFor={`bank-group-${g.id}`}>
-								<Combobox id={`bank-group-${g.id}`} label="All payments with this text go to" pickOnly value=""
-									placeholder={g.kind === 'income' ? 'Pick from your income' : 'Pick from your costs'}
-									groups={rowChoices(sheetList, g.kind, [])}
-									onSelect={o => !bulkBusy && saveGroups([g], o.id)} />
+								<BudgetPicker id={`bank-group-${g.id}`} label="All payments with this text go to" kind={g.kind}
+									disabled={bulkBusy} groups={rowChoices(sheetList, g.kind, [])} onPick={o => saveGroups([g], o.id)} />
 							</Field>
 						</div>
 					) : null}
@@ -445,7 +516,7 @@ export default function BudgetCheck() {
 	const left = leftOut.length ? (
 		<Sides items={leftOut} render={g => (
 			<Line key={g.id} name={g.text} total={g.total}
-				meta={<>{when(g)}<Sep />{g.payments[0].status === 'once' ? 'One-time' : 'Not in the budget, every time'}</>}
+				meta={<>{when(g)}<Sep />{g.payments[0].status === 'once' ? 'Left out this time only' : 'Always left out'}</>}
 				actions={<ButtonLink disabled={bulkBusy} onClick={() => bringBack(g)}>BRING BACK</ButtonLink>} />
 		)} />
 	) : <EmptyState icon="check"><p>You have not left any payment out.</p></EmptyState>
@@ -453,7 +524,8 @@ export default function BudgetCheck() {
 	const each = shown.length ? (
 		<Sides items={shown} render={p => (
 			<Line key={p.row} className={`is-${p.status}`} name={p.text} total={p.amount}
-				meta={<>{shortDate(p.date)}<Sep /><span className="bank-status">{statusText(p, months)}</span></>}
+				meta={<>{shortDate(p.date)}<Sep /><span className="bank-status">{statusText(p, months)}</span>
+					{p.placed ? <><Sep /><span className="bank-saved">Your choice, saved</span></> : null}</>}
 				actions={<ButtonLink aria-expanded={open === p.row} onClick={() => setOpen(open === p.row ? null : p.row)}>
 					{p.placed || p.status === 'match' || p.status === 'amount' ? 'CHANGE' : 'PLACE'}</ButtonLink>}>
 				{open === p.row ? (
@@ -515,7 +587,7 @@ export default function BudgetCheck() {
 									<section className="card card-ai stats-hero budget-hero" aria-label="The check">
 										<div className="bank-hero-head">
 											<span className="panel-heading bank-hero-file">{file}</span>
-											<span className="stats-hero-caption">{longDate(dates[0])} to {longDate(dates[dates.length - 1])}</span>
+											<span className="stats-hero-caption">{plural(payments.length, 'payment')} read<Sep />{longDate(dates[0])} to {longDate(dates[dates.length - 1])}</span>
 										</div>
 										<div>
 											<span className="stats-hero-caption">Not in the budget</span>
@@ -537,7 +609,7 @@ export default function BudgetCheck() {
 										<KpiCard label="Same amount" value={ofAll(['match'])} note="Found in the budget" />
 										<KpiCard label="Other amount" value={ofAll(['amount'])} note="The budget says another amount" />
 										<KpiCard label="Suggested" value={ofAll(['near'])} note="Close to a budget item" />
-										<KpiCard label="Left out" value={ofAll(LEFT_OUT)} note="One-time, or not in the budget" />
+										<KpiCard label="Left out" value={ofAll(LEFT_OUT)} note="Always, or this time only" />
 									</div>
 								</div>
 
@@ -548,6 +620,47 @@ export default function BudgetCheck() {
 									<CardDivider />
 									<CardBody className="bank-panel">
 										{filter === 'To place' ? toPlace : filter === 'Left out' ? left : each}
+									</CardBody>
+								</Card>
+
+								<Card aria-label="Save to the budget">
+									<CardHeader title="Save to the budget">
+										<span className="budget-key">Amounts in {activeCurrency().label}</span>
+									</CardHeader>
+									<CardDivider />
+									<CardBody className="bank-panel">
+										{wrote ? <Note>Saved. {plural(wrote, 'amount')} from the bank {wrote === 1 ? 'is' : 'are'} now
+											in the budget as real {wrote === 1 ? 'amount' : 'amounts'}.</Note> : null}
+										{writes.length ? (
+											<>
+												<p className="field-help bank-hint">These amounts from the bank are found on a budget item, but are not yet
+													the real amount for their month. Saving writes them into the budget. Payments that still
+													need a place are not saved.</p>
+												<CheckRow id="bank-write-all" checked={!leaveAlone.size} label="Select every amount"
+													onChange={all => setLeaveAlone(new Set(all ? [] : writes.map(w => w.id)))} />
+												<Sides items={writes.map(w => ({ ...w, total: w.amount }))} render={w => (
+													<Line key={w.id} name={w.name} total={w.amount} noteTone="is-warn"
+														meta={<>{months[w.month - 1]} {w.year}<Sep />{w.group}
+															{w.count > 1 ? <><Sep />{plural(w.count, 'payment')}</> : null}</>}
+														check={<input type="checkbox" className="check-box" checked={!leaveAlone.has(w.id)}
+															aria-label={`Save ${w.name} for ${months[w.month - 1]}`}
+															onChange={() => setLeaveAlone(set => {
+																const next = new Set(set)
+																if (next.has(w.id)) next.delete(w.id); else next.add(w.id)
+																return next
+															})} />}
+														note={w.now == null ? null : `The budget says ${figure(w.now)} now. Saving replaces it.`} />
+												)} />
+												<div className="bank-save">
+													<Button variant="primary" icon="check" disabled={writing || !toWrite.length}
+														onClick={() => saveReal(toWrite)}>
+														{writing ? 'SAVING...' : `SAVE ${plural(toWrite.length, 'AMOUNT', 'AMOUNTS')}`}
+													</Button>
+												</div>
+											</>
+										) : wrote ? null : (
+											<EmptyState icon="check"><p>Every amount the file found on a budget item is already in the budget.</p></EmptyState>
+										)}
 									</CardBody>
 								</Card>
 							</>

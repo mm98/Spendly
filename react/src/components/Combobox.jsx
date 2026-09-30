@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Icon } from './Icon.jsx'
 
 /* One combobox, used by every dropdown in the app: type to search, grouped results, create
@@ -10,6 +10,9 @@ import { Icon } from './Icon.jsx'
    Enter open the list; Escape closes it and hands focus back. */
 
 const join = (...parts) => parts.filter(Boolean).join(' ')
+
+// The panel's distance from the field, plus the margin it keeps from the edge it would otherwise touch.
+const PANEL_GAP = 18
 
 /** Marks the typed text inside a result. The prototype hard-codes <mark>Bil</mark>ka, which
     is right for one query and wrong for every other -- doing it from the value means the
@@ -145,6 +148,32 @@ export function Combobox({
 		if (activeOption) document.getElementById(`${panelId}-opt-${active}`)?.scrollIntoView({ block: 'nearest' })
 	}, [active, activeOption, panelId])
 
+	/* Opens upward when the room below (window, clipping boxes, fixed bars) cannot hold the panel and the
+	   room above is larger; either way the panel is capped to its room. */
+	const panel = useRef(null)
+	const [place, setPlace] = useState(null)
+	useLayoutEffect(() => {
+		if (!open || !panel.current || !wrapper.current) { setPlace(null); return }
+		let top = 0, bottom = window.innerHeight
+		for (let el = wrapper.current.parentElement; el && el !== document.body; el = el.parentElement) {
+			if (getComputedStyle(el).overflowY === 'visible') continue
+			const box = el.getBoundingClientRect()
+			top = Math.max(top, box.top)
+			bottom = Math.min(bottom, box.bottom)
+		}
+		// The bars fixed over the page's edges, as the stylesheet declares them on the panel.
+		const covered = getComputedStyle(panel.current)
+		top += parseFloat(covered.scrollMarginTop) || 0
+		bottom -= parseFloat(covered.scrollMarginBottom) || 0
+		const field = wrapper.current.getBoundingClientRect()
+		panel.current.style.maxHeight = ''
+		const wanted = panel.current.getBoundingClientRect().height
+		const below = bottom - field.bottom - PANEL_GAP
+		const above = field.top - top - PANEL_GAP
+		const up = wanted > below && above > below
+		setPlace({ up, room: Math.floor(up ? above : below) })
+	}, [open, flat.length])
+
 	const inputEl = (
 		<input ref={input} type="text" id={id ?? autoId} role="combobox" readOnly={pickOnly}
 			aria-expanded={open} aria-controls={panelId} aria-autocomplete={pickOnly ? 'none' : 'list'}
@@ -190,7 +219,7 @@ export function Combobox({
 	   design system has a name for -- the toolbar's sort control -- wears that name itself
 	   rather than sitting in a wrapper div holding an inline width. */
 	return (
-		<div className={join('combobox', open && 'is-open', className)} ref={wrapper}>
+		<div className={join('combobox', open && 'is-open', place?.up && 'opens-up', className)} ref={wrapper}>
 			<div className={join('field-shell', wrapping && 'field-shell-chips')} onClick={onShellClick}>
 				{leadingIcon ? <Icon name={leadingIcon} /> : null}
 				{chips}
@@ -210,7 +239,8 @@ export function Combobox({
 				    ellipsis, instead of pushing the chevron anywhere. README: Combobox. */}
 				<Icon name="chevronDown" className="icon chevron-icon" />
 			</div>
-			<div className="combobox-panel" id={panelId} role="listbox" aria-label={label}>
+			<div className="combobox-panel" id={panelId} role="listbox" aria-label={label} ref={panel}
+				style={place ? { maxHeight: `min(342px, 60vh, ${place.room}px)` } : undefined}>
 				{shown.map((group, gi) => {
 					/* The flat index this group starts at, so a row's id and the keyboard's
 					   `active` agree on which row is which across group boundaries. */
