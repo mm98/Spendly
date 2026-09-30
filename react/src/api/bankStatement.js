@@ -188,12 +188,13 @@ export function checkPayments(payments, sheets, links = []) {
 	}
 	const take = (r, found) => {
 		used.add(`${found.line.id}:${monthOf(r)}`)
-		Object.assign(r, { status: 'match', line: found.line.name, group: found.group })
+		Object.assign(r, { status: 'match', line: found.line.name, lineId: found.line.id, group: found.group })
 	}
 
 	const differs = (r, found) => {
 		const m = found.line.months[monthOf(r)]
-		Object.assign(r, { status: 'amount', line: found.line.name, group: found.group, budget: m.real ?? m.expected })
+		Object.assign(r, { status: 'amount', line: found.line.name, lineId: found.line.id, group: found.group,
+			budget: m.real ?? m.expected })
 	}
 
 	// The reader's own answers first, then the amount and the name together, so a row is not used
@@ -232,5 +233,38 @@ export function checkPayments(payments, sheets, links = []) {
 		const found = candidates(r).filter(c => off(c) <= NEAR).sort((a, b) => off(a) - off(b))[0]
 		if (found) { differs(r, found); r.status = 'near' }
 	}
+	// Several payments on one row in a month match together when they add up to the row's amount.
+	const lines = new Map([...sheets.values()].flatMap(s => s.groups.flatMap(g => g.lines.map(l => [l.id, l]))))
+	for (const list of onRows(results).values()) {
+		if (list.length < 2 || list.every(r => r.status === 'match')) continue
+		const m = lines.get(list[0].lineId).months[monthOf(list[0])]
+		const sum = total(list)
+		if (same(m.real, sum) || same(m.expected, sum)) for (const r of list) Object.assign(r, { status: 'match', budget: null })
+	}
 	return results
+}
+
+const total = list => Math.round(list.reduce((n, r) => n + Math.abs(r.amount), 0) * 100) / 100
+
+// The payments found on a row, by row and month, each with the row's amounts for that month.
+function onRows(results) {
+	const byRow = new Map()
+	for (const r of results.filter(r => r.lineId && (r.status === 'match' || r.status === 'amount'))) {
+		const id = `${r.lineId}:${r.date.slice(0, 7)}`
+		byRow.set(id, [...(byRow.get(id) ?? []), r])
+	}
+	return byRow
+}
+
+/** What the file would write into the budget: for each row and month the payments were found on, their
+    sum as the real amount, where the budget holds another. */
+export function realAmounts(checked, sheets) {
+	const rows = new Map()
+	for (const sheet of sheets.values()) for (const g of sheet.groups) for (const l of g.lines) rows.set(l.id, { line: l, group: g.name })
+	return [...onRows(checked)].map(([id, list]) => {
+		const { line, group } = rows.get(list[0].lineId)
+		const month = Number(list[0].date.slice(5, 7))
+		return { id, lineId: line.id, name: line.name, group, kind: kindOf(list[0]), year: Number(list[0].date.slice(0, 4)), month,
+			now: line.months[month - 1].real, amount: total(list), count: list.length }
+	}).filter(w => !same(w.now, w.amount)).sort((a, b) => a.year - b.year || a.month - b.month)
 }
