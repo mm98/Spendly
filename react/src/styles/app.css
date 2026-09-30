@@ -1576,8 +1576,8 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-sum.is-strong { border-top:1px solid var(--border-control); border-bottom:0; }
 .budget-sum.is-strong > * { font-weight:600; color:var(--text); }
 .budget-sum.is-strong > .budget-name { font-weight:700; }
-/* An account set to grey: only its colour changes, its costs still count in every sum. */
-.budget-sum.is-grey > * { color:var(--text-faint); }
+/* An account set to grey takes the expected amounts' grey; its costs still count in every sum. */
+.budget-sum.is-grey > * { color:var(--text-expected); }
 /* What is left over reads the way the spreadsheet showed it: money left is green on a green wash, a
    month that spends more than it brings in is red on a red wash. */
 .budget-sum > .is-positive { background:var(--bg-positive); color:var(--text-positive); }
