@@ -7,7 +7,7 @@ import { AMOUNT_PATTERN, amount, parseAmount, sanitizeAmount } from '../api/form
 export const join = (...parts) => parts.filter(Boolean).join(' ')
 export const MONTHS = 12
 /** A month's short name with its number, the way the budget's headers write it: Jan (1). */
-export const numbered = (name, m) => `${name} (${m + 1})`
+export const numbered = (name, m) => <>{name} <span className="month-number">({m + 1})</span></>
 export const KINDS = [{ kind: 'income', title: 'Income' }, { kind: 'expense', title: 'Costs' }]
 
 // What the sheet counts for a month: the real amount where there is one, else the expected.

@@ -1632,6 +1632,10 @@ button.budget-line-name:hover { text-decoration:underline; text-underline-offset
 .budget-strip-month:hover { background:var(--bg-row-hover); }
 .budget-strip-month.is-now { color:var(--text-positive); }
 .budget-strip-month[aria-pressed="true"] { background:var(--bg-dark); color:var(--text-inverse); }
+/* The number after a month's name is regular weight and faded, so the name reads first. On the dark
+   chosen month it keeps the white and only fades. */
+.month-number { font-weight:400; color:var(--text-faint); }
+.budget-strip-month[aria-pressed="true"] .month-number { color:inherit; opacity:.7; }
 .budget-slide-name { display:flex; flex-direction:column; justify-content:center; gap:1px; padding:6px 8px 6px 0; }
 .budget-slide-line-name { font:inherit; font-size:13px; color:var(--text-strong); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 button.budget-slide-line-name { padding:0; background:none; border:0; text-align:left; cursor:pointer; }
