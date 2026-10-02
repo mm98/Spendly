@@ -1122,6 +1122,21 @@
 				"sqlite_autoindex_order_categories_1"
 			]
 		},
+		"SELECT oi.order_id, oi.position, a.rowid AS seq, a.order_item_id, a.id FROM order_items oi JOIN attachments a ON a.order_item_id = oi.id WHERE oi.order_id IN (SELECT value FROM json_each(?)) AND a.kind = 'image'": {
+			"plan": [
+				"SEARCH oi USING INDEX idx_order_items_order (order_id=?)",
+				"LIST SUBQUERY 1",
+				"SCAN json_each VIRTUAL TABLE INDEX 1:",
+				"SEARCH a USING INDEX idx_attachments_item (order_item_id=?)"
+			],
+			"findings": [
+				"reads a per-account table without naming user_id"
+			],
+			"indexes": [
+				"idx_attachments_item",
+				"idx_order_items_order"
+			]
+		},
 		"SELECT order_id, id, title FROM order_items WHERE order_id IN (SELECT value FROM json_each(?)) ORDER BY order_id, position": {
 			"plan": [
 				"SEARCH order_items USING INDEX idx_order_items_order (order_id=?)",
@@ -1584,7 +1599,7 @@
 			"columns": [
 				"order_item_id"
 			],
-			"readers": 1
+			"readers": 2
 		},
 		"idx_attachments_order": {
 			"table": "attachments",
@@ -1613,7 +1628,7 @@
 			"columns": [
 				"order_id"
 			],
-			"readers": 3
+			"readers": 4
 		},
 		"idx_order_statuses_order": {
 			"table": "order_statuses",

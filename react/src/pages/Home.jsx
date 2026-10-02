@@ -13,8 +13,9 @@ import { Alert } from '../components/Overlays.jsx'
 import { Empty, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark } from '../app/categoryMark.jsx'
+import { OrderPhoto } from '../app/orderRow.jsx'
 import {
-	failureMessage, getCategories, getCurrentUser, getOrder, getOrders, getStats, itemAttachmentThumbnailUrl, overBudget,
+	failureMessage, getCategories, getCurrentUser, getOrders, getStats, overBudget,
 	withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
@@ -54,14 +55,6 @@ function against(spent, limit, pace) {
 }
 
 const ordersFor = (category, window) => `/orders?category=${category.id}&from=${window.from}&to=${window.to}`
-
-const firstPhoto = order => {
-	for (const item of order?.items ?? []) {
-		const photo = item.attachments.find(a => a.hasThumbnail)
-		if (photo) return itemAttachmentThumbnailUrl(order.id, item.id, photo.id)
-	}
-	return null
-}
 
 const dateOf = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d) }
 const dayNumbers = () => new Intl.DateTimeFormat(activeLocaleCode(), { day: '2-digit', month: '2-digit' })
@@ -295,26 +288,16 @@ function RecentCard({ recent }) {
 	)
 }
 
-/* The list row carries no photo and no reference; the order's own record has both. */
 function OrderHead({ order }) {
-	const detail = useApi(getOrder, [order.id])
-	const reference = detail.data?.reference
 	return (
 		<>
-			<Thumb order={order} detail={detail} />
+			<OrderPhoto order={order} />
 			<span className="sp-stacked">
 				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
-				<span className="sp-meta sp-truncate">{reference ? `${reference} · ` : ''}{plural(order.itemCount, 'item')}</span>
+				<span className="sp-meta sp-truncate">{order.reference ? `${order.reference} · ` : ''}{plural(order.itemCount, 'item')}</span>
 			</span>
 		</>
 	)
-}
-
-function Thumb({ order, detail }) {
-	if (!detail.data && !detail.error) return <Skeleton shape="mark" />
-	const photo = firstPhoto(detail.data)
-	if (photo) return <Mark size="medium" fill="photo" aria-label={`Photo from ${order.vendor?.name}`}><img src={photo} alt="" /></Mark>
-	return <Mark size="medium" fill="empty" aria-hidden="true" aria-label="No photo" />
 }
 
 function CaptureCard({ newest, loading }) {
@@ -508,12 +491,11 @@ function PhoneRecent({ recent }) {
 
 function PhoneOrder({ order }) {
 	const navigate = useNavigate()
-	const detail = useApi(getOrder, [order.id])
 	const open = () => navigate(`/orders/${order.id}`)
 	return (
 		<div className="sp-row-flex sp-gap-12" role="link" tabIndex={0} onClick={open}
 			onKeyDown={ev => { if (ev.key === 'Enter') open() }}>
-			<Thumb order={order} detail={detail} />
+			<OrderPhoto order={order} />
 			<div className="sp-stacked sp-grow">
 				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
 				<span className="sp-meta">{rowDate(order.date)} · {plural(order.itemCount, 'item')}</span>

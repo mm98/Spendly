@@ -13,6 +13,7 @@ import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
+import { orderLine } from '../app/orderRow.jsx'
 import { getCategories, getOrders, getStats } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { activeLocaleCode, amount, compactAmount, currency, monthNames, percent, plural, shortDate } from '../api/format.js'
@@ -686,14 +687,14 @@ function OrdersTable({ view, rows, onOpen }) {
 			<ListRow>
 				{order => (
 					<>
-						<ListCell><Stacked><span className="sp-title sp-truncate">{order.vendor?.name}</span></Stacked></ListCell>
+						<ListCell><Stacked><span className="sp-title sp-truncate">{order.vendor?.name}</span><span className="sp-meta sp-truncate">{orderLine(order)}</span></Stacked></ListCell>
 						<ListCell><span className="sp-data">{shortDate(order.date)}</span></ListCell>
 						<ListCell>
 							<span className="sp-row-flex sp-gap-6 sp-wrap">
 								{order.categories.map(category => <Chip key={category.id}>{category.name}</Chip>)}
 							</span>
 						</ListCell>
-						<ListCell cell="amount"><span className="sp-data">{order.itemCount}</span></ListCell>
+						<ListCell cell="number"><span className="sp-data">{order.itemCount}</span></ListCell>
 						<ListCell><Pill {...STATUS_PILL[order.status]}>{order.status}</Pill></ListCell>
 						<ListCell cell="amount"><span className="sp-amount">{currency(order.total)}</span></ListCell>
 					</>

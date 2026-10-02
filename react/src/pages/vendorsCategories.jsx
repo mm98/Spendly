@@ -7,7 +7,7 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
-import { failureMessage, getOrder, getOrders } from '../api/client.js'
+import { failureMessage, getOrders } from '../api/client.js'
 import { currency, plural, shortDate } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 
@@ -196,14 +196,11 @@ export function RecentOrders({ filter, to, total }) {
 	)
 }
 
-/* A list row carries no reference, so each of the two reads its own record for it. */
 function RecentOrder({ order }) {
-	const record = useApi(getOrder, [order.id])
-	const reference = record.data ? (record.data.reference || 'No reference yet') : null
 	return (
 		<ListItem to={`/orders/${order.id}`}>
 			<Stacked>
-				{reference === null ? <Skeleton shape="short" /> : <span className="sp-title sp-truncate">{reference}</span>}
+				<span className="sp-title sp-truncate">{order.reference || 'No reference yet'}</span>
 				<span className="sp-meta">{shortDate(order.date)}{DOT}{plural(order.itemCount, 'item')}</span>
 			</Stacked>
 			<span className="sp-title sp-nowrap">{currency(order.total)}</span>

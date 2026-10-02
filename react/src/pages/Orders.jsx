@@ -19,6 +19,7 @@ import { deleteOrder, failureMessage, getCategories, getOrder, getOrders, getSet
 import { useApi } from '../api/useApi.js'
 import { amount, currency, fullStop, plural, shortDate, today } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
+import { OrderPhoto, orderLine } from '../app/orderRow.jsx'
 
 const SORTS = [
 	{ id: 'date-desc', label: 'Newest first' },
@@ -289,8 +290,10 @@ function OrderRows({ data, width, size, onOpen, onLoadMore, onDelete }) {
 			<ListRow>{o => (
 				<>
 					<ListCell cell="flex">
+						<OrderPhoto order={o} />
 						<span className="sp-stacked sp-grow">
 							<span className="sp-title sp-truncate">{o.vendor?.name ?? 'No vendor'}</span>
+							<span className="sp-subtitle sp-truncate">{orderLine(o)}</span>
 						</span>
 					</ListCell>
 					<ListCell><span className="sp-data">{shortDate(o.date)}</span></ListCell>

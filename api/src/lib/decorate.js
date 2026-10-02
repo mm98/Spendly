@@ -115,6 +115,15 @@ const selectCategoriesFor = db.prepare(`
 	ORDER BY oc.order_id, c.name
 `)
 const selectVendorsFor = db.prepare(`SELECT id, name, initials, colour FROM vendors WHERE id IN (SELECT value FROM json_each(?))`)
+// An order row's pictures, for the thumbnail and the count; the first is chosen in code, which
+// spares the page a sort over every photo it carries
+const selectLinePhotosFor = db.prepare(`
+	SELECT oi.order_id, oi.position, a.rowid AS seq, a.order_item_id, a.id FROM order_items oi
+	JOIN attachments a ON a.order_item_id = oi.id
+	WHERE oi.order_id IN (SELECT value FROM json_each(?)) AND a.kind = 'image'
+`)
+const firstPhoto = photos => photos.reduce((first, p) =>
+	(p.position < first.position || (p.position === first.position && p.seq < first.seq) ? p : first))
 
 const groupBy = (rows, key) => {
 	const map = new Map()
@@ -125,13 +134,9 @@ const groupBy = (rows, key) => {
 	return map
 }
 
-/** The row shape All orders actually renders (see OrderRow, components/Rows.jsx): id, date,
-    status, vendor, categories, itemCount, total, saved — no items, no attachments, no per-order
-    detail fields (kind, shipping, discount, note, reference, refunded, categoryIds, subtotal,
-    savedPercent) nobody on that list reads. Two batched child queries (categories, vendors)
-    instead of getDecoratedOrder's five: a list row never shows an order's items or receipts, so
-    fetching them for every row on the page was bandwidth and DB work spent on data the page
-    discards. */
+/** The row shape the order lists render (pages/Orders.jsx, Home's recent orders, Statistics'
+    slice, a vendor's recent orders): the row's facts, its reference and note line, and its first
+    line photo with the count - no items, no receipts, no detail fields no row reads. */
 export function decorateOrderListRows(totalsRows) {
 	if (!totalsRows.length) return []
 	const ids = JSON.stringify(totalsRows.map(t => t.id))
@@ -139,13 +144,19 @@ export function decorateOrderListRows(totalsRows) {
 
 	const categoriesByOrder = groupBy(selectCategoriesFor.all(ids), 'order_id')
 	const vendorById = new Map(selectVendorsFor.all(vendorIds).map(v => [v.id, v]))
+	const photosByOrder = groupBy(selectLinePhotosFor.all(ids), 'order_id')
 
 	return totalsRows.map(totals => {
 		const vendor = vendorById.get(totals.vendor_id)
+		const photos = photosByOrder.get(totals.id) ?? []
 		return {
 			id: totals.id,
 			date: fromEpoch(totals.date),
 			status: totals.status,
+			reference: totals.reference,
+			note: totals.note,
+			photo: photos.length ? (p => ({ itemId: p.order_item_id, attachmentId: p.id }))(firstPhoto(photos)) : null,
+			photoCount: photos.length,
 			vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,
 			categories: (categoriesByOrder.get(totals.id) ?? []).map(({ order_id, ...c }) => c),
 			itemCount: totals.item_count,
