@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { Button } from '../components/Button.jsx'
-import { Card, CardBody } from '../components/Card.jsx'
-import { Chip } from '../components/Chip.jsx'
-import { EntryRow, SummaryRow, SummaryTotal } from '../components/Rows.jsx'
-import { DeleteCard, FormPage, MoveOrdersCard, RecordWait, useDelete } from '../components/FormPage.jsx'
-import { ColourPicker, VENDOR_COLOURS } from '../components/Pickers.jsx'
+import { Button } from '../legacy/Button.jsx'
+import { Card, CardBody } from '../legacy/Card.jsx'
+import { Chip } from '../legacy/Chip.jsx'
+import { EntryRow, SummaryRow, SummaryTotal } from '../legacy/Rows.jsx'
+import { DeleteCard, FormPage, MoveOrdersCard, RecordWait, useDelete } from '../legacy/FormPage.jsx'
+import { ColourPicker, VENDOR_COLOURS } from '../legacy/Pickers.jsx'
 import {
 	CheckRow, Field, FieldShell, TextInput, focusField, useFieldErrors
-} from '../components/Form.jsx'
-import { Combobox } from '../components/Combobox.jsx'
-import { useToast } from '../components/Toast.jsx'
+} from '../legacy/Form.jsx'
+import { Combobox } from '../legacy/Combobox.jsx'
+import { useToast } from '../legacy/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createVendor, deleteVendor, failureMessage, getCategories, getOrders, getVendor, getVendors,

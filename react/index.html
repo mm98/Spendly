@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 		<title>Spendly</title>
-		<!-- The three faces app.css declares, asked for here rather than waited for. A @font-face
+		<!-- The four faces fonts.css declares, asked for here rather than waited for. A @font-face
 		     url is discoverable only once the stylesheet has been fetched and parsed, so without these
 		     the fonts sit one link further down the critical path than they need to: measured at
 		     html -> css -> poppins-600, 397ms deep, for three files the preload scanner could have
@@ -18,6 +18,7 @@
 		     matching by source file cannot, because there is only ever one hash to be rewritten to.
 		     Which is also why they are /src/fonts/ and not /fonts/ -- a path Vite can resolve is a
 		     file it hashes, and a hashed name is what api/src/app.js caches for a year. -->
+		<link rel="preload" as="font" type="font/woff2" crossorigin href="/src/fonts/poppins-400.woff2">
 		<link rel="preload" as="font" type="font/woff2" crossorigin href="/src/fonts/poppins-500.woff2">
 		<link rel="preload" as="font" type="font/woff2" crossorigin href="/src/fonts/poppins-600.woff2">
 		<link rel="preload" as="font" type="font/woff2" crossorigin href="/src/fonts/poppins-700.woff2">
@@ -25,9 +26,9 @@
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 		<link rel="manifest" href="/site.webmanifest">
-		<meta name="theme-color" content="#ffffff">
+		<meta name="theme-color" content="#eceae4">
 	</head>
-	<body>
+	<body class="sp">
 		<div id="root"></div>
 		<script type="module" src="/src/main.jsx"></script>
 	</body>

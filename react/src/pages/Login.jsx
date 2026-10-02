@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router'
-import { Card, CardBody } from '../components/Card.jsx'
-import { Field, FieldShell, TextInput, FormActions, focusField } from '../components/Form.jsx'
-import { Button } from '../components/Button.jsx'
-import { Icon } from '../components/Icon.jsx'
+import { Card, CardBody } from '../legacy/Card.jsx'
+import { Field, FieldShell, TextInput, FormActions, focusField } from '../legacy/Form.jsx'
+import { Button } from '../legacy/Button.jsx'
+import { Icon } from '../legacy/Icon.jsx'
 import { failureMessage, login } from '../api/client.js'
 
 /* Sign-in. Outside the app shell on purpose — the sidebar, the rail and the command palette are

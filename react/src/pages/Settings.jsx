@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { Page } from '../components/Shell.jsx'
-import { Async } from '../components/Async.jsx'
-import { SkeletonCard } from '../components/Skeleton.jsx'
-import { Card, CardBody, CardDivider, CardHeader } from '../components/Card.jsx'
-import { Button } from '../components/Button.jsx'
-import { Combobox } from '../components/Combobox.jsx'
+import { Page } from '../legacy/Shell.jsx'
+import { Async } from '../legacy/Async.jsx'
+import { SkeletonCard } from '../legacy/Skeleton.jsx'
+import { Card, CardBody, CardDivider, CardHeader } from '../legacy/Card.jsx'
+import { Button } from '../legacy/Button.jsx'
+import { Combobox } from '../legacy/Combobox.jsx'
 import {
 	CheckRow, Field, FieldPair, FilterSection, Form, FormActions, Segmented
-} from '../components/Form.jsx'
-import { useToast } from '../components/Toast.jsx'
+} from '../legacy/Form.jsx'
+import { useToast } from '../legacy/Toast.jsx'
 import {
 	CURRENCIES, LOCALES, localStamp, localeSample, plural, setCurrency, setLocale
 } from '../api/format.js'

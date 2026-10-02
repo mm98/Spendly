@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { Button } from '../components/Button.jsx'
-import { Card, CardBody } from '../components/Card.jsx'
-import { SummaryRow, SummaryTotal } from '../components/Rows.jsx'
-import { DeleteCard, FormPage, MoveOrdersCard, RecordWait, useDelete } from '../components/FormPage.jsx'
-import { CategoryPreview, ColourPicker, IconPicker } from '../components/Pickers.jsx'
-import { ICONS } from '../components/Icon.jsx'
+import { Button } from '../legacy/Button.jsx'
+import { Card, CardBody } from '../legacy/Card.jsx'
+import { SummaryRow, SummaryTotal } from '../legacy/Rows.jsx'
+import { DeleteCard, FormPage, MoveOrdersCard, RecordWait, useDelete } from '../legacy/FormPage.jsx'
+import { CategoryPreview, ColourPicker, IconPicker } from '../legacy/Pickers.jsx'
+import { ICONS } from '../legacy/Icon.jsx'
 import {
 	CheckRow, Field, FieldShell, NumberInput, TextInput, focusField, useFieldErrors
-} from '../components/Form.jsx'
-import { useToast } from '../components/Toast.jsx'
+} from '../legacy/Form.jsx'
+import { useToast } from '../legacy/Toast.jsx'
 import { useApi } from '../api/useApi.js'
 import {
 	createCategory, deleteCategory, failureMessage, getCategories, getCategory,

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
-import { Card, CardBody } from '../components/Card.jsx'
-import { Field, FieldShell, TextInput, FormActions, focusField } from '../components/Form.jsx'
-import { Button } from '../components/Button.jsx'
-import { Icon } from '../components/Icon.jsx'
+import { Card, CardBody } from '../legacy/Card.jsx'
+import { Field, FieldShell, TextInput, FormActions, focusField } from '../legacy/Form.jsx'
+import { Button } from '../legacy/Button.jsx'
+import { Icon } from '../legacy/Icon.jsx'
 import { failureMessage, register } from '../api/client.js'
 
 /** Sign-up. A new account starts genuinely empty -- no vendor, no category, no order until

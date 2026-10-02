@@ -2,7 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createHashRouter } from 'react-router'
 import { routes } from './routes.jsx'
-import './styles/app.css'
+import './styles/fonts.css'
+import './styles/legacy.css'
+import './styles/tokens.css'
+import './styles/components.css'
 
 /* The dark theme follows the system, before first paint and live on change. The stylesheet
    keys every dark value off html[data-theme="dark"] rather than a prefers-color-scheme block
