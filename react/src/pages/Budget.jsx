@@ -103,27 +103,37 @@ function readAmount(text) {
 	return n === null || n < 0 ? false : cents(n)
 }
 
-/* Writes go out one at a time and each answers with the whole year. A change is drawn at once;
-   if a write fails, the year is read again so the page shows what is stored. */
+/* Writes go out one at a time and each answers with the whole year. A change is drawn at once; a failed
+   one reads the year again, unless the writer tells of a record deleted elsewhere itself (ownsGone). */
 function useWrites(setSheet, reload) {
 	const toast = useToast()
 	const queue = useRef(Promise.resolve())
 	const newest = useRef(0)
-	return useCallback((send, optimistic) => {
+	return useMemo(() => Object.assign((send, optimistic, ownsGone = false) => {
 		if (optimistic) setSheet(optimistic)
 		const ticket = ++newest.current
 		const run = queue.current.then(() => send()).then(fresh => {
 			if (ticket === newest.current && fresh?.groups) setSheet(fresh)
 			return fresh
 		}, error => {
-			toast({ message: failureMessage(error, 'That was not saved.'), color: 'danger' })
+			if (ownsGone && isGone(error)) throw error
+			toastFailure(toast, error, 'That was not saved.')
 			reload()
 			throw error
 		})
 		queue.current = run.catch(() => {})
 		return run
-	}, [setSheet, reload, toast])
+	}, { reload }), [setSheet, reload, toast])
 }
+
+// a failure the shell already tells of (the session ended) has no sentence, and takes no toast
+const toastFailure = (toast, error, fallback) => {
+	const message = failureMessage(error, fallback)
+	if (message) toast({ message, color: 'danger' })
+}
+
+// the record a write named was deleted in another window
+const isGone = error => !!error?.gone || error?.status === 404
 
 const withReal = (sheet, lineId, month, real) => ({
 	...sheet,
@@ -134,6 +144,16 @@ const withReal = (sheet, lineId, month, real) => ({
 })
 
 const opener = (kind, key) => `[data-opener="${kind}:${key}"]`
+
+/* Closing an editor whose record was deleted in another window reads the page again; focus goes
+   first to the add row that stays (`goOn`), since what opened the editor is about to go. */
+const leave = (goOn, reload, onClose) => {
+	if (goOn) {
+		document.querySelector(goOn.join(','))?.focus()
+		reload()
+	}
+	onClose()
+}
 
 /* An editor that closes with focus inside it gives focus back to the first of back(what was
    open) still on the page: what opened it, or the add row of its set once that is deleted. */
@@ -167,22 +187,171 @@ function Confirm({ title, body, commit, onConfirm, onCancel, busy }) {
 
 export default function Budget() {
 	const years = useApi(getBudgetYears)
+	const [params] = useSearchParams()
+	const touch = useShellShape() === 'touch'
 	if (!years.data && years.error) return <Failed onRetry={years.refresh} />
-	if (!years.data) return <Loading />
+	if (!years.data) return <><BarLoading view={params.get('view') === 'year' ? 'year' : 'months'} touch={touch} /><Loading view={params.get('view')} touch={touch} /></>
 	if (!years.data.years.length) return <FirstRun onChanged={years.refresh} />
 	return <BudgetYears years={years.data.years} onYearsChanged={years.refresh} />
 }
 
-function Loading() {
+/* ---- while the budget loads: the page's own layout, with bars where its figures and names go ---- */
+
+const bar = (w, h = '13', ink = '') => <span className={join(ink, 'bg-line')}><Skeleton shape="line" data-w={w} data-h={h} /></span>
+const VIEWS = [{ value: 'months', label: 'Months' }, { value: 'year', label: 'Whole year' }]
+
+function BarLoading({ view, touch }) {
+	const views = <Segmented name="budget-view-loading" aria-label="View" value={view} variant={touch ? 'facet' : 'default'} options={VIEWS.map(v => ({ ...v, disabled: true }))} />
 	return (
-		<Card aria-busy="true" aria-label="Loading the budget">
-			<div className="sp-stack sp-gap-12">
-				<Skeleton shape="title" />
-				<Skeleton shape="line" />
-				<Skeleton shape="line" />
-				<Skeleton shape="short" />
+		<Controls aria-busy="true">
+			{touch
+				? <><span className="bg-fill">{bar('130', '22')}</span><IconButton icon="dots-vertical" aria-label="Budget actions" disabled />{views}</>
+				: <>{bar('130', '22')}{views}<span className="sp-grow" /><Button variant="outline" disabled>Check a bank statement</Button><Button variant="outline" disabled>Edit</Button></>}
+		</Controls>
+	)
+}
+
+function Loading({ view, touch }) {
+	return view === 'year' ? <SheetLoading touch={touch} /> : <><HeroLoading touch={touch} /><MonthsLoading touch={touch} /></>
+}
+
+function HeroLoading({ touch }) {
+	return (
+		<Card variant="shell" aria-busy="true" aria-label="Loading the budget">
+			{bar('130', '11', 'sp-section-label')}
+			<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
+				{['Left over', 'Income', 'Costs', ...(touch ? [] : ['Real amounts'])].map((label, i) => (
+					<Stat key={label} label={label} figure={bar('96', '22')} meta={i ? bar('130', '11') : undefined} />
+				))}
+			</div>
+			<div className="sp-stack sp-gap-8">
+				<Gauge value={0} aria-label="Share of the month's income used" />
+				{bar('130', '11', 'sp-meta')}
 			</div>
 		</Card>
+	)
+}
+
+// one group of income and two of costs: what a small budget holds
+const LOADING_GROUPS = { income: [2], expense: [4, 3] }
+
+function MonthsLoading({ touch }) {
+	const card = useRef(null)
+	const count = useMonthsThatFit(card, touch)
+	const short = useMemo(() => monthNames('short'), [])
+	const stepper = <PeriodWindow unit="month" label={bar('82', '13')} previousLabel="Earlier month" nextLabel="Later month" />
+	const well = key => (
+		<Well key={key}>
+			<div className="sp-row-flex sp-gap-8">
+				{bar('82', '13', 'sp-title')}
+				<span className="sp-grow" />
+				<Skeleton shape="pill" />
+			</div>
+			{touch ? null : <div className="sp-stack sp-gap-8"><Gauge thin value={0} aria-label="Share of the month's income used" />{bar('130', '11', 'sp-meta')}</div>}
+			{SIDES.map(({ kind, title }) => (
+				<div className="sp-stack sp-gap-8" key={kind}>
+					<span className="sp-section-label sp-section-label--ruled">{title}</span>
+					{LOADING_GROUPS[kind].map((rows, g) => (
+						<div className="sp-stack sp-gap-6" key={g}>
+							{bar('96', '13', 'sp-subtitle')}
+							<div className="sp-stack">
+								{Array.from({ length: rows }, (_, r) => (
+									<Sum key={r} value={bar('76', '13')}>
+										<span className="sp-stacked">{bar('120', '13')}{bar('60', '11', 'sp-meta')}</span>
+									</Sum>
+								))}
+							</div>
+						</div>
+					))}
+					<Sum value={bar('76', '13')}><span className="sp-strong">{title}</span></Sum>
+				</div>
+			))}
+			<Sum variant="total" value={bar('96', '20')}>Left over</Sum>
+		</Well>
+	)
+	return (
+		<Card ref={card} aria-busy="true">
+			{touch ? bar('130', '11', 'sp-section-label') : (
+				<div className="sp-row-flex sp-gap-12">
+					{bar('130', '11', 'sp-section-label')}
+					<span className="sp-grow" />
+					<span className="sp-note">Grey amounts are expected</span>
+					{stepper}
+				</div>
+			)}
+			{touch ? stepper : null}
+			{count === 1 ? null : (
+				<Segmented variant="facet" fixed name="budget-month-loading" aria-label="Month" value={-1}
+					options={short.map((label, m) => ({ value: m, label, disabled: true }))} />
+			)}
+			{count === 1 ? well(0) : <Halves>{well(0)}{well(1)}</Halves>}
+		</Card>
+	)
+}
+
+function SheetLoading({ touch }) {
+	const short = useMemo(() => monthNames('short'), [])
+	const figures = n => Array.from({ length: n }, (_, m) => <td key={m} className="sp-col-number">{bar('52', '11')}</td>)
+	const label = (key, text) => <tr key={key}><td colSpan={MONTHS + 4}><span className="sp-section-label">{text}</span></td></tr>
+	return (
+		<Card variant="flush" aria-busy="true" aria-label="Loading the budget">
+			<CardBody>
+				<div className="sp-row-flex sp-gap-12">
+					{bar('130', '11', 'sp-section-label')}
+					<span className="sp-grow" />
+					<span className="sp-note">{touch ? '' : `Grey amounts are expected${dot}`}Amounts in {currencySymbol()}</span>
+				</div>
+			</CardBody>
+			<div className="bg-view">
+				<div className="bg-scroll">
+					<table className="sp-table sp-table--compact sp-table--static sp-table--borderless bg-sheet">
+						<SheetColumns short={short} />
+						<tbody>
+							{SIDES.flatMap(({ kind, title }) => [
+								label(kind, title),
+								...LOADING_GROUPS[kind].flatMap((rows, g) => [
+									<tr key={`${kind}-${g}`}><td colSpan={MONTHS + 4}>{bar('96', '13')}</td></tr>,
+									...Array.from({ length: rows }, (_, r) => (
+										<tr key={`${kind}-${g}-${r}`}><td>{bar('120', '11')}</td><td>{bar('60', '11')}</td>{figures(MONTHS + 2)}</tr>
+									))
+								])
+							])}
+							{label('totals', 'Totals')}
+							{['Income', 'Costs', 'Left over'].map(name => (
+								<tr key={name}><td><span className="sp-strong">{name}</span></td><td />{figures(MONTHS + 2)}</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</Card>
+	)
+}
+
+/** The sheet's columns and its header row of months, the month it is now in the accent ink. */
+function SheetColumns({ short, thisMonth = -1 }) {
+	return (
+		<>
+			{/* the widths sit on the columns, so the name column takes a width without the amount column's right alignment */}
+			<colgroup>
+				<col className="sp-col-amount" />
+				<col className="sp-col-status" />
+				{Array.from({ length: MONTHS + 2 }, (_, m) => <col className="sp-col-date" key={m} />)}
+			</colgroup>
+			<thead>
+				<tr>
+					<th scope="col">Row</th>
+					<th scope="col">Account</th>
+					{short.map((name, m) => (
+						<th scope="col" className="sp-col-number" key={m}>
+							{m === thisMonth ? <span className="sp-ink-accent">{name} ({m + 1})</span> : `${name} (${m + 1})`}
+						</th>
+					))}
+					<th scope="col" className="sp-col-number">Year</th>
+					<th scope="col" className="sp-col-number">Per month</th>
+				</tr>
+			</thead>
+		</>
 	)
 }
 
@@ -211,7 +380,7 @@ function FirstRun({ onChanged }) {
 			onChanged()
 			navigate(`/budget/${year}`)
 		} catch (e) {
-			toast({ message: failureMessage(e, `${year} could not be started.`), color: 'danger' })
+			toastFailure(toast, e, `${year} could not be started.`)
 			setBusy(false)
 		}
 	}
@@ -258,7 +427,7 @@ function ImportButton({ onImported }) {
 			setFound(null)
 			onImported?.(years)
 		} catch (e) {
-			toast({ message: failureMessage(e, 'The budget was not brought in.'), color: 'danger' })
+			toastFailure(toast, e, 'The budget was not brought in.')
 		} finally {
 			setBusy(false)
 		}
@@ -310,7 +479,7 @@ function NewYear({ from, onClose, onStarted }) {
 			toast({ message: `${next} is ready.` })
 			onStarted(next)
 		} catch (e) {
-			toast({ message: failureMessage(e, `${next} could not be started.`), color: 'danger' })
+			toastFailure(toast, e, `${next} could not be started.`)
 			setBusy(false)
 		}
 	}
@@ -363,7 +532,7 @@ function BudgetYears({ years, onYearsChanged }) {
 		)
 	const viewPicker = editing ? null : (
 		<Segmented name="budget-view" aria-label="View" value={view} onChange={setView} variant={touch ? 'facet' : 'default'}
-			options={[{ value: 'months', label: 'Months' }, { value: 'year', label: 'Whole year' }]} />
+			options={VIEWS} />
 	)
 
 	return (
@@ -453,7 +622,7 @@ function YearView({ year, view, editing, touch, onYearsChanged }) {
 	useEffect(() => { if (!editing) setPanel(null) }, [editing])
 	useGiveBack(panel, was => was.back)
 
-	if (!sheet) return loaded.error ? <Failed onRetry={loaded.refresh} /> : <Loading />
+	if (!sheet) return loaded.error ? <Failed onRetry={loaded.refresh} /> : <Loading view={view} touch={touch} />
 	const rows = sheet.groups.reduce((n, g) => n + g.lines.length, 0)
 	const removeYear = async () => {
 		setBusy(true)
@@ -463,7 +632,7 @@ function YearView({ year, view, editing, touch, onYearsChanged }) {
 			onYearsChanged()
 			navigate('/budget')
 		} catch (e) {
-			toast({ message: failureMessage(e, `${year} was not deleted.`), color: 'danger' })
+			toastFailure(toast, e, `${year} was not deleted.`)
 			setBusy(false)
 			setDeleting(false)
 		}
@@ -600,10 +769,18 @@ function useAmounts(sheet, write, long, reveal) {
 	const toast = useToast()
 	const [edit, setEdit] = useState(null)
 	const done = useRef(false)
+	// a save that fails puts what was typed back in its field, open but not taking focus (6d)
 	const save = (line, month, value) => {
 		if ((line.months[month].real ?? null) === value) return
 		write(() => updateBudgetLine(line.id, { month: month + 1, real: value }), s => withReal(s, line.id, month, value))
-			.catch(() => {})
+			.catch(error => {
+				if (isGone(error)) return
+				setEdit(open => {
+					if (open) return open
+					done.current = false
+					return { line: line.id, month, draft: value }
+				})
+			})
 	}
 	const focusRow = (el, step) => {
 		const rows = [...(el?.closest('.sp-well')?.querySelectorAll('[data-row]') ?? [])]
@@ -633,8 +810,9 @@ function useAmounts(sheet, write, long, reveal) {
 	const field = (line, month) => {
 		const m = line.months[month]
 		const id = `${line.id}-${month}`
+		const unsaved = edit && 'draft' in edit
 		return (
-			<NumberField cell locale={LOCALE} autoFocus value={m.real}
+			<NumberField cell locale={LOCALE} autoFocus={!unsaved} value={unsaved ? edit.draft : m.real} aria-invalid={unsaved ? 'true' : undefined}
 				placeholder={m.expected != null ? amount(m.expected) : undefined}
 				aria-label={`Real amount, ${line.name}, ${long[month]}`}
 				onKeyDown={ev => {
@@ -770,26 +948,36 @@ function RowEditor({ sheet, line, group, index, write, onClose }) {
 	const [accountId, setAccountId] = useState(line?.accountId ?? null)
 	const [groupId, setGroupId] = useState(group.id)
 	const [error, setError] = useState('')
+	// set when the row, or the group a new row goes in, was deleted in another window: what was typed stays
+	const [lost, setLost] = useState('')
 	const [saving, setSaving] = useState(false)
 	const [asking, setAsking] = useState(false)
 	const box = useRef(null)
+	// a second Enter while the first save is on its way writes nothing more
+	const pending = useRef(false)
 	const count = group.lines.length
 	const target = sheet.groups.find(g => g.id === groupId)
 
 	const save = async () => {
+		if (pending.current) return
 		if (!name.trim()) { setError('Give the row a name.'); box.current?.querySelector('input')?.focus(); return }
 		const body = { name: name.trim(), accountId }
 		// the months are written only when the expected amount was changed, so twelve different ones survive a rename
 		if (changed || !line) body.months = (line?.months ?? emptyMonths()).map(m => ({ expected, real: m.real }))
 		if (line && groupId !== group.id) body.groupId = groupId
+		pending.current = true
 		setSaving(true)
 		try {
-			await write(() => (line ? updateBudgetLine(line.id, body) : addBudgetLine(groupId, body)))
+			await write(() => (line ? updateBudgetLine(line.id, body) : addBudgetLine(groupId, body)), undefined, true)
 			onClose()
-		} catch {
+		} catch (e) {
+			pending.current = false
 			setSaving(false)
+			if (isGone(e)) setLost(line ? 'This row was deleted in another window. Your changes cannot be saved.'
+				: `${target?.name ?? group.name} was deleted in another window. The row cannot be added.`)
 		}
 	}
+	const cancel = () => leave(lost && (line ? [opener('new-row', group.id)] : [opener('new-group', group.kind)]), write.reload, onClose)
 	const moved = useMoveFocus(box, 'row', index, count)
 	const move = step => { moved(step); write(() => updateBudgetLine(line.id, { index: index + step })).catch(() => {}) }
 	const remove = () => write(() => deleteBudgetLine(line.id)).then(onClose, () => setAsking(false))
@@ -797,9 +985,9 @@ function RowEditor({ sheet, line, group, index, write, onClose }) {
 	return (
 		<>
 			<LineEditor ref={box} title={line ? `Row ${index + 1} of ${count} in ${group.name}` : `New row in ${group.name}`} what="row"
-				commit={line ? 'Save row' : 'Add row'} saving={saving} onCommit={save} onCancel={onClose}
+				commit={line ? 'Save row' : 'Add row'} saving={saving} onCommit={save} onCancel={cancel}
 				{...(line ? { onMoveUp: () => move(-1), onMoveDown: () => move(1), onDelete: () => setAsking(true), first: index === 0, last: index === count - 1 } : {})}>
-				<Field label="Name" message={error || undefined} messageType={error ? 'danger' : 'hint'}>
+				<Field label="Name" message={error || lost || undefined} messageType={error || lost ? 'danger' : 'hint'}>
 					<TextField autoFocus value={name} onChange={v => { setName(v); setError('') }} />
 				</Field>
 				<Field label="Expected each month" unit={currencySymbol()}
@@ -837,28 +1025,36 @@ function GroupEditor({ sheet, group, kind = group?.kind, index = 0, count = 0, w
 	const side = kind === 'income' ? 'income' : 'costs'
 	const [name, setName] = useState(group?.name ?? '')
 	const [error, setError] = useState('')
+	const [lost, setLost] = useState('')
 	const [saving, setSaving] = useState(false)
 	const [asking, setAsking] = useState(false)
 	const box = useRef(null)
+	const pending = useRef(false)
 	const save = async () => {
+		if (pending.current) return
 		if (!name.trim()) { setError('Give the group a name.'); return }
+		pending.current = true
 		setSaving(true)
 		try {
-			await write(() => (group ? updateBudgetGroup(group.id, { name: name.trim() }) : addBudgetGroup(sheet.year, { kind, name: name.trim() })))
+			await write(() => (group ? updateBudgetGroup(group.id, { name: name.trim() }) : addBudgetGroup(sheet.year, { kind, name: name.trim() })), undefined, true)
 			onClose()
-		} catch {
+		} catch (e) {
+			pending.current = false
 			setSaving(false)
+			if (isGone(e)) setLost(group ? 'This group was deleted in another window. Your changes cannot be saved.'
+				: `${sheet.year} was deleted in another window. The group cannot be added.`)
 		}
 	}
+	const cancel = () => leave(lost && [opener('new-group', kind)], write.reload, onClose)
 	const moved = useMoveFocus(box, 'group', index, count)
 	const move = step => { moved(step); write(() => updateBudgetGroup(group.id, { index: index + step })).catch(() => {}) }
 	const rows = group?.lines.length ?? 0
 	return (
 		<>
 			<LineEditor ref={box} title={group ? `Group ${index + 1} of ${count} in ${side}` : `New group in ${side}`} what="group"
-				commit={group ? 'Save group' : 'Add group'} saving={saving} onCommit={save} onCancel={onClose}
+				commit={group ? 'Save group' : 'Add group'} saving={saving} onCommit={save} onCancel={cancel}
 				{...(group ? { onMoveUp: () => move(-1), onMoveDown: () => move(1), onDelete: () => setAsking(true), first: index === 0, last: index === count - 1 } : {})}>
-				<Field label="Name" message={error || undefined} messageType={error ? 'danger' : 'hint'}>
+				<Field label="Name" message={error || lost || undefined} messageType={error || lost ? 'danger' : 'hint'}>
 					<TextField autoFocus value={name} onChange={v => { setName(v); setError('') }} />
 				</Field>
 			</LineEditor>
@@ -873,6 +1069,21 @@ function GroupEditor({ sheet, group, kind = group?.kind, index = 0, count = 0, w
 }
 
 const accountKey = name => name.trim().toLocaleLowerCase('da')
+const ACCOUNTS_NOTE = 'The accounts a row is paid from, or paid into. The totals add up the costs on each account in this order. Every year uses this list.'
+
+function AccountsLoading() {
+	return (
+		<Card aria-busy="true" aria-label="Loading the accounts">
+			<span className="sp-section-label">Accounts</span>
+			<span className="sp-subtitle">{ACCOUNTS_NOTE}</span>
+			<div className="sp-stack sp-gap-8">
+				{['96', '120', '82'].map(w => (
+					<ListItem key={w}><span className="sp-stacked sp-grow">{bar(w, '13', 'sp-title')}{bar('130', '11', 'sp-subtitle')}</span></ListItem>
+				))}
+			</div>
+		</Card>
+	)
+}
 
 /** The accounts every year's rows pick from, shown only while editing (21c, 21d). */
 function AccountsCard({ sheet, onChanged }) {
@@ -887,7 +1098,7 @@ function AccountsCard({ sheet, onChanged }) {
 	const [held, setHeld] = useState(null)
 	const [said, setSaid] = useState('')
 	const rowsRef = useRef(null)
-	const write = async (send, optimistic) => {
+	const write = Object.assign(async (send, optimistic, ownsGone = false) => {
 		if (optimistic) setList(optimistic)
 		try {
 			const fresh = await send()
@@ -895,11 +1106,12 @@ function AccountsCard({ sheet, onChanged }) {
 			onChanged()
 			return fresh
 		} catch (e) {
-			toast({ message: failureMessage(e, 'That was not saved.'), color: 'danger' })
+			if (ownsGone && isGone(e)) throw e
+			toastFailure(toast, e, 'That was not saved.')
 			loaded.refresh()
 			throw e
 		}
-	}
+	}, { reload: loaded.refresh })
 	const moveTo = (account, to) => {
 		const from = list.findIndex(a => a.id === account.id)
 		if (to === from || to < 0 || to >= list.length) return
@@ -908,7 +1120,7 @@ function AccountsCard({ sheet, onChanged }) {
 		write(() => updateBudgetAccount(account.id, { index: to }), next).catch(() => {})
 	}
 
-	if (!list) return <Loading />
+	if (!list) return <AccountsLoading />
 	const year = sheet.year
 	const lines = sheet.groups.flatMap(g => g.lines.map(l => ({ ...l, kind: g.kind })))
 	const through = id => {
@@ -972,7 +1184,7 @@ function AccountsCard({ sheet, onChanged }) {
 	return (
 		<Card>
 			<span className="sp-section-label">Accounts</span>
-			<span className="sp-subtitle">The accounts a row is paid from, or paid into. The totals add up the costs on each account in this order. Every year uses this list.</span>
+			<span className="sp-subtitle">{ACCOUNTS_NOTE}</span>
 			<div className="sp-stack sp-gap-8" ref={rowsRef}>
 				<Announce>{said}</Announce>
 				{list.map((account, i) => (
@@ -984,7 +1196,7 @@ function AccountsCard({ sheet, onChanged }) {
 								<ListItem variant={drag?.id === account.id || held?.id === account.id ? 'carried' : 'default'}
 									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${account.name}`}
 									data-account={account.id} {...handleEvents(account)}>
-									<span className="sp-stacked sp-grow" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`} data-opener={`account:${account.id}`}
+									<span className="sp-stacked sp-grow bg-opens-account" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`} data-opener={`account:${account.id}`}
 										onClick={() => setOpen(account.id)}
 										onKeyDown={ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setOpen(account.id) } }}>
 										<span className="sp-title sp-truncate">{account.name}</span>
@@ -1007,32 +1219,39 @@ function AccountEditor({ account, index = 0, list, write, onMove, onClose }) {
 	const [name, setName] = useState(account?.name ?? '')
 	const [grey, setGrey] = useState(account?.grey ?? false)
 	const [error, setError] = useState('')
+	const [lost, setLost] = useState('')
 	const [saving, setSaving] = useState(false)
 	const [asking, setAsking] = useState(false)
 	const count = list.length
 	const box = useRef(null)
+	const pending = useRef(false)
 	const moved = useMoveFocus(box, 'account', index, count)
 	const save = async () => {
+		if (pending.current) return
 		const clean = name.trim()
 		if (!clean) { setError('Give the account a name.'); return }
 		const twin = list.find(a => a.id !== account?.id && accountKey(a.name) === accountKey(clean))
 		if (twin) { setError(`You already have an account called ${twin.name}.`); return }
+		pending.current = true
 		setSaving(true)
 		try {
-			await write(() => (account ? updateBudgetAccount(account.id, { name: clean, grey }) : addBudgetAccount({ name: clean, grey })))
+			await write(() => (account ? updateBudgetAccount(account.id, { name: clean, grey }) : addBudgetAccount({ name: clean, grey })), undefined, true)
 			onClose()
 		} catch (e) {
-			setError(failureMessage(e, ''))
+			if (isGone(e)) setLost('This account was deleted in another window. Your changes cannot be saved.')
+			else setError(failureMessage(e, ''))
+			pending.current = false
 			setSaving(false)
 		}
 	}
+	const cancel = () => leave(lost && [opener('account', 'new')], write.reload, onClose)
 	return (
 		<>
 			<LineEditor ref={box} handle title={account ? `Account ${index + 1} of ${count}` : 'New account'} what="account"
-				commit={account ? 'Save account' : 'Add account'} saving={saving} onCommit={save} onCancel={onClose}
+				commit={account ? 'Save account' : 'Add account'} saving={saving} onCommit={save} onCancel={cancel}
 				{...(account ? { onMoveUp: () => { moved(-1); onMove(index - 1) }, onMoveDown: () => { moved(1); onMove(index + 1) }, onDelete: () => setAsking(true), first: index === 0, last: index === count - 1 } : {})}>
 				<>
-					<Field label="Name" message={error || undefined} messageType={error ? 'danger' : 'hint'}>
+					<Field label="Name" message={error || lost || undefined} messageType={error || lost ? 'danger' : 'hint'}>
 						<TextField autoFocus value={name} onChange={v => { setName(v); setError('') }} />
 					</Field>
 					<Choice variant="described" control={<Switch checked={grey} onChange={ev => setGrey(ev.target.checked)} />}
@@ -1063,26 +1282,10 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 	const totals = totalsOf(sheet)
 	const order = sheet.groups.flatMap(g => g.lines.map(l => l.id))
 	const span = MONTHS + 4
-	// an editor or an add row spans only the columns in view, so its buttons are never scrolled out of reach
-	const [fit, setFit] = useState(span)
-	useLayoutEffect(() => {
-		const box = scroller.current
-		if (!box) return
-		const measure = () => {
-			let used = 0
-			const heads = [...(box.querySelectorAll('thead th') ?? [])]
-			const n = heads.findIndex(th => (used += th.getBoundingClientRect().width) > box.clientWidth)
-			setFit(n < 0 ? span : Math.max(2, n))
-		}
-		measure()
-		const watch = new ResizeObserver(measure)
-		watch.observe(box)
-		return () => watch.disconnect()
-	}, [span])
+	// an editor or an add row spans the sheet, and what it holds stays across the box in view (21c)
 	const wide = (key, content) => (
 		<tr key={key}>
-			<td colSpan={fit} className="bg-hold">{content}</td>
-			{fit < span ? <td colSpan={span - fit} /> : null}
+			<td colSpan={span} className="bg-hold"><div className="bg-held">{content}</div></td>
 		</tr>
 	)
 	// it opens on the month it is now, just right of the row names, with Account and the months before to the left
@@ -1098,10 +1301,14 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 	const editRow = (line, group) => open('row', line.id, [opener('row', line.id), opener('new-row', group.id)])
 	const close = () => setPanel(null)
 
+	// a save that fails keeps what was typed in its cell, marked, until it is saved or Escape drops it (6d)
+	const [drafts, setDrafts] = useState(() => new Map())
+	const drop = key => setDrafts(d => (d.has(key) ? new Map([...d].filter(([k]) => k !== key)) : d))
 	const save = (line, month, value) => {
-		if ((line.months[month].real ?? null) === value) return
+		const key = `${line.id}:${month}`
+		if ((line.months[month].real ?? null) === value) { drop(key); return }
 		write(() => updateBudgetLine(line.id, { month: month + 1, real: value }), s => withReal(s, line.id, month, value))
-			.catch(() => {})
+			.then(() => drop(key), error => { if (!isGone(error)) setDrafts(d => new Map(d).set(key, value)) })
 	}
 	const cellAt = (row, month) => table.current?.querySelector(`[data-cell="${row}:${month}"]`)
 
@@ -1112,9 +1319,11 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 		const row = order.indexOf(line.id)
 		const key = `${row}:${month}`
 		const typed = () => typing.current.key === key
+		const draft = `${line.id}:${month}`
+		const unsaved = drafts.has(draft)
 		return (
 			<td className="sp-col-number" key={month}>
-				<NumberField cell locale={LOCALE} value={m.real} data-cell={key}
+				<NumberField cell locale={LOCALE} value={unsaved ? drafts.get(draft) : m.real} data-cell={key} aria-invalid={unsaved ? 'true' : undefined}
 					placeholder={m.real == null && m.expected != null ? amount(m.expected) : undefined}
 					aria-label={`Real amount, ${line.name}, ${long[month]}`}
 					onFocus={ev => { typing.current = { key: null, cancelled: false }; ev.target.select() }}
@@ -1134,7 +1343,8 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 						else if (k === 'Delete') { ev.preventDefault(); save(line, month, null) }
 					}}
 					onBlur={ev => {
-						if (typing.current.cancelled || !typed()) return
+						if (typing.current.cancelled) { drop(draft); return }
+						if (!typed() && !unsaved) return
 						const value = readAmount(ev.target.value)
 						if (value === false) toast({ message: 'Not saved. Write the amount like 1.234,56.', color: 'danger' })
 						else save(line, month, value)
@@ -1169,97 +1379,81 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 					<span className="sp-note">{touch ? '' : `Grey amounts are expected${dot}`}Amounts in {currencySymbol()}</span>
 				</div>
 			</CardBody>
-			<div className="bg-scroll" ref={scroller}>
-				<table ref={table} className="sp-table sp-table--compact sp-table--static sp-table--borderless bg-sheet" aria-label={`Budget ${sheet.year}, amounts in ${currencySymbol()}`}>
-					{/* the widths sit on the columns, so the name column takes a width without the amount column's right alignment */}
-					<colgroup>
-						<col className="sp-col-amount" />
-						<col className="sp-col-status" />
-						{Array.from({ length: MONTHS + 2 }, (_, m) => <col className="sp-col-date" key={m} />)}
-					</colgroup>
-					<thead>
-						<tr>
-							<th scope="col">Row</th>
-							<th scope="col">Account</th>
-							{short.map((name, m) => (
-								<th scope="col" className="sp-col-number" key={m}>
-									{m === thisMonth ? <span className="sp-ink-accent">{name} ({m + 1})</span> : `${name} (${m + 1})`}
-								</th>
-							))}
-							<th scope="col" className="sp-col-number">Year</th>
-							<th scope="col" className="sp-col-number">Per month</th>
-						</tr>
-					</thead>
-					<tbody>
-						{SIDES.map(({ kind, title }) => {
-							const groups = sheet.groups.filter(g => g.kind === kind)
-							return (
-								<Fragment key={kind}>
-									<tr><td colSpan={span}><span className="sp-section-label">{title}</span></td></tr>
-									{groups.map((g, gi) => (
-										<Fragment key={g.id}>
-											{isOpen('group', g.id)
-												? wide('group', <GroupEditor sheet={sheet} group={g} index={gi} count={groups.length} write={write} onClose={close} />)
-												: (
-													<tr>
-														<td colSpan={span}>
-															{editing
-																? (
-																	// the outer span is what holds still at the left while the sheet scrolls
-																	<span>
-																		<span className="sp-row-flex sp-gap-8">
-																			<span className="sp-title">{g.name}</span>
-																			<IconButton variant="outline" icon={<Icon name="pencil" size={14} />} aria-label={`Edit the group ${g.name}`} data-opener={`group:${g.id}`}
-																				onClick={() => open('group', g.id, [opener('group', g.id), opener('new-group', g.kind)])} />
+			<div className="bg-view">
+				<div className="bg-scroll" ref={scroller}>
+					<table ref={table} className="sp-table sp-table--compact sp-table--static sp-table--borderless bg-sheet" aria-label={`Budget ${sheet.year}, amounts in ${currencySymbol()}`}>
+						<SheetColumns short={short} thisMonth={thisMonth} />
+						<tbody>
+							{SIDES.map(({ kind, title }) => {
+								const groups = sheet.groups.filter(g => g.kind === kind)
+								return (
+									<Fragment key={kind}>
+										<tr><td colSpan={span}><span className="sp-section-label">{title}</span></td></tr>
+										{groups.map((g, gi) => (
+											<Fragment key={g.id}>
+												{isOpen('group', g.id)
+													? wide('group', <GroupEditor sheet={sheet} group={g} index={gi} count={groups.length} write={write} onClose={close} />)
+													: (
+														<tr>
+															<td colSpan={span}>
+																{editing
+																	? (
+																		// the outer span is what holds still at the left while the sheet scrolls
+																		<span>
+																			<span className="sp-row-flex sp-gap-8">
+																				<span className="sp-title">{g.name}</span>
+																				<IconButton variant="outline" icon={<Icon name="pencil" size={14} />} aria-label={`Edit the group ${g.name}`} data-opener={`group:${g.id}`}
+																					onClick={() => open('group', g.id, [opener('group', g.id), opener('new-group', g.kind)])} />
+																			</span>
 																		</span>
-																	</span>
-																)
-																: <span className="sp-title">{g.name}</span>}
-														</td>
-													</tr>
-												)}
-											{g.lines.map((line, i) => (isOpen('row', line.id)
-												? wide(line.id, <RowEditor sheet={sheet} line={line} group={g} index={i} write={write} onClose={close} />)
-												: (
-													<tr key={line.id}>
-														{/* while editing, a press anywhere in the name's cell opens the row; the keyboard reaches the name */}
-														<td {...(editing ? { className: 'bg-opens', onClick: () => editRow(line, g) } : {})}>
-															<span className="sp-cell-flex">
-																<span className="sp-truncate" title={line.name} {...(editing ? {
-																	role: 'button', tabIndex: 0, 'aria-label': `Edit the row ${line.name}`, 'data-opener': `row:${line.id}`,
-																	onKeyDown: ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); editRow(line, g) } }
-																} : {})}>{line.name}</span>
-															</span>
-														</td>
-														<td className="sp-truncate">{sheet.accounts.find(a => a.id === line.accountId)?.name ?? ''}</td>
-														{line.months.map((_, m) => cell(line, m))}
-														<td className="sp-col-number">{figure(sum(line.months.map(m => shown(m) ?? 0)))}</td>
-														<td className="sp-col-number">{figure(sum(line.months.map(m => shown(m) ?? 0)) / MONTHS)}</td>
-													</tr>
-												)))}
-											{!editing ? null : isOpen('new-row', g.id)
-												? wide(`new-${g.id}`, <RowEditor sheet={sheet} group={g} write={write} onClose={close} />)
-												: wide(`add-${g.id}`, <AddRow data-opener={`new-row:${g.id}`} onClick={() => open('new-row', g.id, [opener('new-row', g.id)])}>Add a row to {g.name}</AddRow>)}
-										</Fragment>
-									))}
-									{!editing ? null : isOpen('new-group', kind)
-										? wide(`new-group-${kind}`, <GroupEditor sheet={sheet} kind={kind} write={write} onClose={close} />)
-										: wide(`add-${kind}`, <AddRow data-opener={`new-group:${kind}`} onClick={() => open('new-group', kind, [opener('new-group', kind)])}>Add a group to {title.toLowerCase()}</AddRow>)}
-								</Fragment>
-							)
-						})}
-						<tr><td colSpan={span}><span className="sp-section-label">Totals</span></td></tr>
-						{byAccount.length ? (
-							<>
-								<tr><td colSpan={span}><span className="sp-title">Costs by account</span></td></tr>
-								{byAccount.map(a => sumRow(a.key, a.label, sumMonths(a.lines), { grey: a.grey }))}
-							</>
-						) : null}
-						{sumRow('income', 'Income', totals.income, { ink: true })}
-						{sumRow('costs', 'Costs', totals.costs, { ink: true })}
-						{sumRow('left', 'Left over', totals.left, { ink: true, signed: true })}
-					</tbody>
-				</table>
+																	)
+																	: <span className="sp-title">{g.name}</span>}
+															</td>
+														</tr>
+													)}
+												{g.lines.map((line, i) => (isOpen('row', line.id)
+													? wide(line.id, <RowEditor sheet={sheet} line={line} group={g} index={i} write={write} onClose={close} />)
+													: (
+														<tr key={line.id}>
+															{/* while editing, a press anywhere in the name's cell opens the row; the keyboard reaches the name */}
+															<td {...(editing ? { className: 'bg-opens', onClick: () => editRow(line, g) } : {})}>
+																<span className="sp-cell-flex">
+																	<span className="sp-truncate" title={line.name} {...(editing ? {
+																		role: 'button', tabIndex: 0, 'aria-label': `Edit the row ${line.name}`, 'data-opener': `row:${line.id}`,
+																		onKeyDown: ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); editRow(line, g) } }
+																	} : {})}>{line.name}</span>
+																</span>
+															</td>
+															<td className="sp-truncate">{sheet.accounts.find(a => a.id === line.accountId)?.name ?? ''}</td>
+															{line.months.map((_, m) => cell(line, m))}
+															<td className="sp-col-number">{figure(sum(line.months.map(m => shown(m) ?? 0)))}</td>
+															<td className="sp-col-number">{figure(sum(line.months.map(m => shown(m) ?? 0)) / MONTHS)}</td>
+														</tr>
+													)))}
+												{!editing ? null : isOpen('new-row', g.id)
+													? wide(`new-${g.id}`, <RowEditor sheet={sheet} group={g} write={write} onClose={close} />)
+													: wide(`add-${g.id}`, <AddRow data-opener={`new-row:${g.id}`} onClick={() => open('new-row', g.id, [opener('new-row', g.id)])}>Add a row to {g.name}</AddRow>)}
+											</Fragment>
+										))}
+										{!editing ? null : isOpen('new-group', kind)
+											? wide(`new-group-${kind}`, <GroupEditor sheet={sheet} kind={kind} write={write} onClose={close} />)
+											: wide(`add-${kind}`, <AddRow data-opener={`new-group:${kind}`} onClick={() => open('new-group', kind, [opener('new-group', kind)])}>Add a group to {title.toLowerCase()}</AddRow>)}
+									</Fragment>
+								)
+							})}
+							<tr><td colSpan={span}><span className="sp-section-label">Totals</span></td></tr>
+							{byAccount.length ? (
+								<>
+									<tr><td colSpan={span}><span className="sp-title">Costs by account</span></td></tr>
+									{byAccount.map(a => sumRow(a.key, a.label, sumMonths(a.lines), { grey: a.grey }))}
+								</>
+							) : null}
+							{sumRow('income', 'Income', totals.income, { ink: true })}
+							{sumRow('costs', 'Costs', totals.costs, { ink: true })}
+							{sumRow('left', 'Left over', totals.left, { ink: true, signed: true })}
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</Card>
 	)
