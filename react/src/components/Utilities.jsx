@@ -65,22 +65,83 @@ export function AddRow({ children, onClick, ...rest }) {
 	reject(rest, 'AddRow')
 	return (
 		<button type="button" className="sp-add-row" onClick={onClick} {...rest}>
-			<Icon name="plus" />
+			<Icon name="plus" size={14} />
 			<span>{children}</span>
 		</button>
 	)
 }
 
-/** Closes an open surface - a menu, a popover, a combobox's panel - when the reader presses
-    outside it or presses Escape, and hands focus back to whatever is inside it that opened it. */
+/** The button that opened the menu `el` sits in, if it sits in one: where focus belongs once
+    that menu has closed under it. */
+export function menuTrigger(el) {
+	let menu = el?.closest?.('.sp-menu')
+	if (!menu) return null
+	while (menu.parentElement?.closest('.sp-menu')) menu = menu.parentElement.closest('.sp-menu')
+	return [...(menu.parentElement?.querySelectorAll('[aria-haspopup="menu"]') ?? [])].find(b => !menu.contains(b)) ?? null
+}
+
+/** Closes an open menu, popover or combobox panel on a press outside, Escape or a Tab out of it,
+    and on Escape hands focus back to whatever inside it opened it. */
 export function useDismiss(ref, open, onClose) {
 	useEffect(() => {
 		if (!open) return
-		const away = ev => { if (ref.current && !ref.current.contains(ev.target)) onClose() }
-		const key = ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }
-		document.addEventListener('pointerdown', away)
 		const box = ref.current
+		const away = ev => { if (box && !box.contains(ev.target)) onClose() }
+		const key = ev => {
+			if (ev.key !== 'Escape') return
+			ev.stopPropagation()
+			// the item that had focus is about to be hidden, so focus goes to the control that opened it
+			if (box?.contains(document.activeElement)) box.querySelector('[aria-expanded]')?.focus()
+			onClose()
+		}
+		// only a move to a known element counts: a focused node that leaves the page reports none
+		const left = ev => { if (ev.relatedTarget && box && !box.contains(ev.relatedTarget)) onClose() }
+		document.addEventListener('pointerdown', away)
 		box?.addEventListener('keydown', key)
-		return () => { document.removeEventListener('pointerdown', away); box?.removeEventListener('keydown', key) }
+		box?.addEventListener('focusout', left)
+		return () => {
+			document.removeEventListener('pointerdown', away)
+			box?.removeEventListener('keydown', key)
+			box?.removeEventListener('focusout', left)
+		}
 	}, [ref, open, onClose])
+}
+
+const STOPS = 'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])'
+
+// what Tab can land on inside `box`: shown, and one radio per group, as the browser walks them
+const stopsIn = box => [...box.querySelectorAll(STOPS)].filter(el => {
+	if (el.checkVisibility && !el.checkVisibility()) return false
+	if (el.type !== 'radio' || el.checked || !el.name) return true
+	return !box.querySelector(`input[type="radio"][name="${CSS.escape(el.name)}"]:checked`)
+})
+
+/** Holds Tab inside a modal surface while `active`. Opening focuses `initial` (a selector), the box
+    or its first stop; closing returns focus to the opener, or to a closed menu's button. */
+export function useFocusTrap(ref, active = true, initial) {
+	useEffect(() => {
+		const box = ref.current
+		if (!box || !active) return
+		const back = menuTrigger(document.activeElement) ?? document.activeElement
+		const first = (initial && box.querySelector(initial)) ?? (box.hasAttribute('tabindex') ? box : stopsIn(box)[0] ?? box)
+		first.focus()
+		const tab = ev => {
+			if (ev.key !== 'Tab') return
+			const at = document.activeElement
+			// a surface opened over this one holds the keyboard itself
+			if (!box.contains(at) && at !== document.body) return
+			const stops = stopsIn(box)
+			if (!stops.length) { ev.preventDefault(); return }
+			const [head, tail] = [stops[0], stops.at(-1)]
+			if (!box.contains(at)) { ev.preventDefault(); (ev.shiftKey ? tail : head).focus() }
+			else if (ev.shiftKey && (at === head || at === box)) { ev.preventDefault(); tail.focus() }
+			else if (!ev.shiftKey && at === tail) { ev.preventDefault(); head.focus() }
+		}
+		document.addEventListener('keydown', tab)
+		return () => {
+			document.removeEventListener('keydown', tab)
+			const to = back?.isConnected && back.checkVisibility?.() !== false ? back : menuTrigger(back)
+			to?.focus?.()
+		}
+	}, [ref, initial, active])
 }

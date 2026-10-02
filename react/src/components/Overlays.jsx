@@ -1,8 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Scrim } from './Shell.jsx'
+import { menuTrigger, useFocusTrap } from './Utilities.jsx'
 
 const MENU = {
 	floating: 'sp-menu--floating',
@@ -16,16 +17,61 @@ const MENU = {
 	'side-right': 'sp-menu--floating sp-menu--side-right'
 }
 
+// a menu's own items, not its submenu's: the arrow keys walk one level at a time
+const itemsOf = menu => [...(menu?.querySelectorAll(':scope > li > .sp-menu__item:not(:disabled)') ?? [])]
+
 export function Menu({ position, scrolls = false, children, ...rest }) {
 	reject(rest, 'Menu')
+	const keys = ev => {
+		const items = itemsOf(ev.currentTarget)
+		if (!items.length) return
+		const at = items.indexOf(document.activeElement)
+		const to = { ArrowDown: at < 0 ? 0 : at + 1, ArrowUp: at < 0 ? -1 : at - 1, Home: 0, End: -1 }[ev.key]
+		if (to === undefined) return
+		ev.preventDefault()
+		ev.stopPropagation()
+		items[(to + items.length) % items.length].focus()
+	}
 	return (
 		<menu
 			className={join('sp-menu', position && pick(MENU, position, 'position', 'Menu'), scrolls && 'sp-menu--scrolls')}
+			role="menu"
+			onKeyDown={keys}
 			{...rest}
 		>
 			{children}
 		</menu>
 	)
+}
+
+/** What a menu's button needs from the keyboard (c9): Enter, Space or Down opens it on its first
+    item, Up on its last. `open` is the page's, so the menu is opened by pressing its own button. */
+export function useMenuButton(box, open) {
+	const want = useRef(null)
+	useEffect(() => {
+		if (!open || !want.current) return
+		const items = itemsOf(box.current?.querySelector('.sp-menu'))
+		;(want.current === 'last' ? items.at(-1) : items[0])?.focus()
+		want.current = null
+	}, [box, open])
+	const trigger = target => {
+		const button = target?.closest?.('[aria-haspopup="menu"]')
+		return button && !button.closest('.sp-menu') && box.current?.contains(button) ? button : null
+	}
+	return {
+		onKeyDown: ev => {
+			const button = trigger(ev.target)
+			if (!button || (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp')) return
+			ev.preventDefault()
+			want.current = ev.key === 'ArrowUp' ? 'last' : 'first'
+			if (!open) return button.click()
+			const items = itemsOf(box.current.querySelector('.sp-menu'))
+			;(want.current === 'last' ? items.at(-1) : items[0])?.focus()
+			want.current = null
+		},
+		// a click with no pointer behind it came from Enter or Space
+		onClickCapture: ev => { if (ev.detail === 0 && !open && trigger(ev.target)) want.current = 'first' }
+	}
 }
 
 export function MenuItem({ icon, onClick, disabled = false, danger = false, dot, selected, children, ...rest }) {
@@ -40,12 +86,19 @@ export function MenuItem({ icon, onClick, disabled = false, danger = false, dot,
 	const [subOpen, setSubOpen] = useState(false)
 	if (dot && !['draft', 'progress', 'done', 'returned', 'cancelled'].includes(dot))
 		console.error(`<MenuItem> dot="${dot}" is not a status the system has`)
+	// the item is hidden once it acts, so focus goes back to the menu's button first: whatever
+	// the page opens next (a dialog) then returns there rather than to nothing
+	const act = ev => {
+		if (!submenu) menuTrigger(ev.currentTarget)?.focus()
+		onClick?.(ev)
+	}
 	return (
-		<li className={submenu ? 'sp-anchor' : undefined}>
+		<li className={submenu ? 'sp-anchor' : undefined} role="none">
 			<button
 				type="button"
 				className={join('sp-menu__item', danger && 'sp-ink-danger')}
-				onClick={onClick}
+				role="menuitem"
+				onClick={act}
 				disabled={disabled}
 				{...(submenu ? { 'aria-haspopup': 'menu', 'aria-expanded': subOpen ? 'true' : 'false' } : {})}
 				{...(submenu ? { onMouseEnter: () => setSubOpen(true), onMouseLeave: () => setSubOpen(false), onFocus: () => setSubOpen(true) } : {})}
@@ -53,9 +106,9 @@ export function MenuItem({ icon, onClick, disabled = false, danger = false, dot,
 				{...rest}
 			>
 				{dot ? <span className="sp-combobox__dot" data-dot={dot} /> : null}
-				{icon ? <Icon name={icon} /> : null}
+				{icon ? <Icon name={icon} size={15} /> : null}
 				{label}
-				{selected ? <><span className="sp-grow" /><Icon name="check" /></> : null}
+				{selected ? <><span className="sp-grow" /><span className="sp-combobox__check"><Icon name="check" size={13} /></span></> : null}
 			</button>
 			{submenu}
 		</li>
@@ -65,7 +118,7 @@ export function MenuItem({ icon, onClick, disabled = false, danger = false, dot,
 /** The heading over a group of items. */
 export function MenuLabel({ children, ...rest }) {
 	reject(rest, 'MenuLabel')
-	return <li className="sp-menu__label" {...rest}>{children}</li>
+	return <li className="sp-menu__label" role="presentation" {...rest}>{children}</li>
 }
 
 /** A rule between groups. */
@@ -89,62 +142,83 @@ export function Popover({ position = 'default', head, children, summary, note, a
 	)
 }
 
-export function Anchor({ open, children, ...rest }) {
+export function Anchor({ open, ref, children, ...rest }) {
 	reject(rest, 'Anchor')
+	const own = useRef(null)
+	const keys = useMenuButton(own, open)
+	const bind = el => {
+		own.current = el
+		if (typeof ref === 'function') ref(el)
+		else if (ref) ref.current = el
+	}
 	return (
-		<span className="sp-anchor" {...(open === undefined ? {} : { 'data-open': open ? 'true' : 'false' })} {...rest}>
+		<span className="sp-anchor" ref={bind} {...keys} {...(open === undefined ? {} : { 'data-open': open ? 'true' : 'false' })} {...rest}>
 			{children}
 		</span>
 	)
 }
 
-/** `onCancel` is what Escape does: the dialog's own way out. */
+// the dialog is named by its title and described by its body, whichever ids those parts take
+const DialogParts = createContext(null)
+
+function useDialogPart(kind) {
+	const register = useContext(DialogParts)
+	const id = useId()
+	useLayoutEffect(() => register?.(kind, id), [register, kind, id])
+	return register ? id : undefined
+}
+
+const isActions = c => c && typeof c === 'object' && c.type === DialogActions
+
+/** `onCancel` is what Escape does: the dialog's own way out. A page that spaces its blocks wider
+    than the dialog does passes them, the actions last, in one stack of its own (6d). */
 export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	reject(rest, 'Dialog')
 	const box = useRef(null)
-	useEffect(() => {
-		if (!scrim) return
-		const back = document.activeElement
-		const first = box.current?.querySelector('.sp-dialog__actions button')
-		;(first ?? box.current)?.focus()
-		return () => back?.focus?.()
-	}, [scrim])
-	const keys = ev => {
-		if (ev.key === 'Escape' && onCancel) { ev.stopPropagation(); onCancel() }
-		if (ev.key !== 'Tab') return
-		const stops = [...box.current.querySelectorAll('button:not(:disabled), input:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])')]
-		if (!stops.length) return
-		const [head, tail] = [stops[0], stops.at(-1)]
-		if (ev.shiftKey && document.activeElement === head) { ev.preventDefault(); tail.focus() }
-		else if (!ev.shiftKey && document.activeElement === tail) { ev.preventDefault(); head.focus() }
-	}
+	const [parts, setParts] = useState({ title: [], body: [] })
+	const register = useCallback((kind, id) => {
+		setParts(p => ({ ...p, [kind]: [...p[kind], id] }))
+		return () => setParts(p => ({ ...p, [kind]: p[kind].filter(x => x !== id) }))
+	}, [])
+	useFocusTrap(box, scrim, '.sp-dialog__actions button:not(:disabled)')
+	const keys = ev => { if (ev.key === 'Escape' && onCancel) { ev.stopPropagation(); onCancel() } }
 	const kids = [].concat(children ?? []).flat()
-	const actions = kids.find(c => c && typeof c === 'object' && c.type === DialogActions)
+	const actions = kids.find(isActions)
+	const elements = kids.filter(c => c && typeof c === 'object')
+	const stacked = elements.length === 1 && [].concat(elements[0].props?.children ?? []).flat().some(isActions)
 	// plain words passed straight to the dialog are the body, so the common case
 	// stays one sentence rather than a wrapper around one sentence
 	const above = kids.filter(c => c !== actions).map((c, i) =>
 		typeof c === 'string' ? <DialogBody key={'body' + i}>{c}</DialogBody> : c)
-	if (!actions) console.error('<Dialog> has no <DialogActions>: a decision with no way out cannot be answered')
+	if (!actions && !stacked) console.error('<Dialog> has no <DialogActions>: a decision with no way out cannot be answered')
+	const named = rest['aria-label'] || !parts.title.length ? {} : { 'aria-labelledby': parts.title.join(' ') }
 	const panel = (
-		<div className="sp-dialog" role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys} {...rest}>
-			<div className="sp-stack sp-gap-6">{above}</div>
-			{actions}
-		</div>
+		<DialogParts.Provider value={register}>
+			<div className="sp-dialog" role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys}
+				{...named} {...(parts.body.length ? { 'aria-describedby': parts.body.join(' ') } : {})} {...rest}>
+				<div className="sp-stack sp-gap-6">
+					{above}
+					{actions}
+				</div>
+			</div>
+		</DialogParts.Provider>
 	)
 	if (!scrim) return panel
 	return createPortal(<Scrim dialog>{panel}</Scrim>, document.body)
 }
 
-/** What the dialog asks, as its heading. */
+/** What the dialog asks, as its heading. It names the dialog. */
 export function DialogTitle({ children, ...rest }) {
 	reject(rest, 'DialogTitle')
-	return <span className="sp-heading" {...rest}>{children}</span>
+	const id = useDialogPart('title')
+	return <span className="sp-heading" id={id} {...rest}>{children}</span>
 }
 
-/** What the decision costs, stated in full. */
+/** What the decision costs, stated in full. It is read with the dialog's name. */
 export function DialogBody({ children, ...rest }) {
 	reject(rest, 'DialogBody')
-	return <span className="sp-dialog__body" {...rest}>{children}</span>
+	const id = useDialogPart('body')
+	return <span className="sp-dialog__body" id={id} {...rest}>{children}</span>
 }
 
 /** The way out and the commit. It spaces and aligns its own buttons. */
@@ -195,7 +269,7 @@ export function Alert({ color = 'warning', mark, title, action, children, ...res
 		>
 			{mark ? <span className="sp-alert__mark" aria-hidden="true">{mark}</span> : null}
 			<span className="sp-alert__body">
-				<span className="sp-alert__title">{title}</span>
+				{title ? <span className="sp-alert__title">{title}</span> : null}
 				{children ? <span className="sp-alert__note">{children}</span> : null}
 			</span>
 			{action ? <><span className="sp-grow" />{action}</> : null}

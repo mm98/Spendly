@@ -1,9 +1,9 @@
-import { Children, cloneElement, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { IconButton } from './Button.jsx'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Chip } from './Chip.jsx'
-import { ComboboxOption } from './Combobox.jsx'
+import { usePanelPlace, useListbox } from './Combobox.jsx'
 import { formatNumber, parseNumber } from './format.js'
 
 const TEXT = {
@@ -110,7 +110,7 @@ export function SearchInput({ value, onChange, kbd, ...rest }) {
 	const clearable = !!value
 	return (
 		<span className="sp-picker__search">
-			<span className="sp-field__lead"><Icon name="search" /></span>
+			<span className="sp-field__lead"><Icon name="search" size={14} /></span>
 			<Box
 				type="search"
 				classes={join('sp-input--search', 'sp-input--lead', kbd && 'sp-input--search-kbd', 'sp-input--trail')}
@@ -127,8 +127,13 @@ export function SearchInput({ value, onChange, kbd, ...rest }) {
 	)
 }
 
-export function RangeSlider({ value, onChange, min, max, step = 1, label, format, ...rest }) {
+export function RangeSlider({ value, onChange, min, max, step = 1, label, format, locale, ...rest }) {
 	reject(rest, 'RangeSlider')
+	// what is being typed into a bound, kept until the box is left: a number half-written is not a value
+	const [typing, setTyping] = useState({})
+	// the boxes read text back in the grammar `format` writes it in, unless a locale is named
+	const grouping = !locale && format ? String(format(1000000)).replace(/[\d\s-]/g, '').charAt(0) : ''
+	const read = text => parseNumber(text, { locale: locale ?? (grouping === '.' ? 'da-DK' : grouping === ',' ? 'en-GB' : undefined) })
 	// two bounds, in order - a third would be read as nothing
 	if (!Array.isArray(value) || value.length !== 2)
 		console.error('<RangeSlider> value is two bounds, [low, high] - got ' + JSON.stringify(value))
@@ -153,12 +158,28 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 		move(which, min + ((ev.clientX - box.left) / box.width) * (max - min))
 	}
 
+	const commit = which => {
+		const text = typing[which]
+		setTyping(t => ({ ...t, [which]: undefined }))
+		if (text === undefined) return
+		const n = read(text)
+		if (n !== null) move(which, n)
+	}
+
 	const stepKeys = (which, n) => ev => {
+		if (ev.key === 'Enter') return commit(which)
 		const by = ev.key === 'ArrowUp' ? step : ev.key === 'ArrowDown' ? -step : 0
 		if (!by) return
 		ev.preventDefault()
+		setTyping(t => ({ ...t, [which]: undefined }))
 		move(which, n + by * (ev.shiftKey ? 10 : 1))
 	}
+	const bound = (which, n) => ({
+		value: typing[which] ?? (format ? format(n) : n),
+		onChange: text => setTyping(t => ({ ...t, [which]: text })),
+		onBlur: () => commit(which),
+		onKeyDown: stepKeys(which, n)
+	})
 
 	const handle = (which, n) => (
 		<button
@@ -210,18 +231,14 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 					component="RangeSlider"
 					inputMode="decimal"
 					aria-label={`${label}, from`}
-					value={format ? format(low) : low}
-					onChange={text => move('low', Number(text))}
-					onKeyDown={stepKeys('low', low)}
+					{...bound('low', low)}
 				/>
 				<Box
 					classes="sp-number"
 					component="RangeSlider"
 					inputMode="decimal"
 					aria-label={`${label}, to`}
-					value={format ? format(high) : high}
-					onChange={text => move('high', Number(text))}
-					onKeyDown={stepKeys('high', high)}
+					{...bound('high', high)}
 				/>
 			</span>
 		</>
@@ -232,40 +249,36 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
     panel under the field, the page filtering them by what `onSearch` reports (Bookmarks 22c). */
 export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, children, ...rest }) {
 	reject(rest, 'TokensField')
+	// what Field hands the control belongs on the input that takes focus, not on the box around it
+	const { 'aria-label': label, 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
 	const [typed, setTyped] = useState('')
 	const [open, setOpen] = useState(false)
-	const [active, setActive] = useState(-1)
 	const panelId = useId()
 	const suggests = children !== undefined
 	const type = text => {
 		setTyped(text)
-		setActive(-1)
+		listbox.setActive(-1)
 		onSearch?.(text)
 	}
+	const listbox = useListbox(children, { panelId, onPick: () => type('') })
+	const { options, active } = listbox
 	const add = () => {
 		const next = typed.trim()
 		if (!next) return
 		if (!value.includes(next)) onChange?.([...value, next])
 		type('')
 	}
-	const options = []
-	const list = Children.map(children, child => {
-		if (!child || typeof child !== 'object' || child.type !== ComboboxOption) return child
-		const index = options.length
-		const choose = () => { child.props.onSelect?.(); type('') }
-		options.push({ ...child.props, onSelect: choose })
-		return cloneElement(child, { id: panelId + '-' + index, active: index === active, onSelect: choose })
-	})
 	const shown = suggests && open && options.length > 0
+	const holder = useRef(null)
+	usePanelPlace(holder, listbox.panel, shown, options.length)
 	const field = (
-		<span className="sp-tokens" {...rest}>
+		<span className="sp-tokens" {...box}>
 			{value.map(token => (
 				<Chip
-					variant="solid"
 					key={token}
 					trail={
 						<IconButton
-							icon="x"
+							icon={<Icon name="x" size={9} />}
 							aria-label={`Remove ${token}`}
 							size="small"
 							onClick={() => onChange?.(value.filter(t => t !== token))}
@@ -278,17 +291,19 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 			<input
 				id={id}
 				className="sp-tokens__add"
-				aria-label={rest['aria-label']}
-				placeholder={value.length ? undefined : placeholder}
+				aria-label={label}
+				aria-describedby={describedBy}
+				required={required}
+				placeholder={placeholder}
 				value={typed}
-				{...(danger ? { 'aria-invalid': 'true' } : {})}
+				{...(danger || invalid === true || invalid === 'true' ? { 'aria-invalid': 'true' } : {})}
 				{...(suggests
 					? {
 						role: 'combobox',
 						'aria-expanded': shown ? 'true' : 'false',
 						'aria-controls': panelId,
 						'aria-autocomplete': 'list',
-						'aria-activedescendant': shown && active > -1 ? panelId + '-' + active : undefined,
+						'aria-activedescendant': shown ? listbox.activeId : undefined,
 						onFocus: () => setOpen(true)
 					}
 					: {})}
@@ -297,13 +312,14 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 					if (suggests && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) {
 						ev.preventDefault()
 						setOpen(true)
-						const n = options.length
-						if (!n) return
 						const by = ev.key === 'ArrowDown' ? 1 : -1
-						setActive(active < 0 ? (by > 0 ? 0 : n - 1) : (active + by + n) % n)
-						return
+						return listbox.step(by, active < 0 ? (by > 0 ? -1 : options.length) : active)
 					}
-					if (ev.key === 'Enter' && shown && active > -1) { ev.preventDefault(); options[active].onSelect(); return }
+					if (shown && (ev.key === 'Home' || ev.key === 'End') && active > -1) {
+						ev.preventDefault()
+						return ev.key === 'Home' ? listbox.step(1, -1) : listbox.step(-1, options.length)
+					}
+					if (ev.key === 'Enter' && shown && active > -1) { ev.preventDefault(); options[active].pick(); return }
 					if (ev.key === 'Escape' && shown) { ev.stopPropagation(); setOpen(false); return }
 					if (ev.key === 'Enter' || ev.key === ',') { ev.preventDefault(); add() }
 					// backspace in an empty field removes the last value, which is what
@@ -316,10 +332,10 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 	)
 	if (!suggests) return field
 	return (
-		<div className="sp-combobox" data-open={shown ? 'true' : 'false'}>
+		<div className="sp-combobox" data-open={shown ? 'true' : 'false'} ref={holder}>
 			{field}
 			{/* a press on an option must not blur the field first, or the half-typed text is added as a value */}
-			<ul className="sp-combobox__panel" id={panelId} role="listbox" onMouseDown={ev => ev.preventDefault()}>{list}</ul>
+			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={listbox.panel} onMouseDown={ev => ev.preventDefault()}>{listbox.list}</ul>
 		</div>
 	)
 }

@@ -22,10 +22,14 @@ export function ListItem({
 	color = 'default',
 	mark,
 	handle,
+	// what the handle says it moves: a row of several, each named, is one a reader can tell apart
+	handleLabel = 'Reorder',
 	actions,
 	count,
 	chevron,
 	selected,
+	// a row that opens on a click its list handles: the pointer and the hover fill of one that does (c15)
+	opens = false,
 	onClick,
 	to,
 	children,
@@ -38,7 +42,8 @@ export function ListItem({
 	const classes = join(
 		'sp-list-item',
 		variant === 'sticky' && 'sp-list-item--card',
-		pick(VARIANT, variant, 'variant', 'ListItem')
+		pick(VARIANT, variant, 'variant', 'ListItem'),
+		opens && 'sp-list-item--opens'
 	)
 	const attrs = {
 		...(color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'ListItem') }),
@@ -47,7 +52,7 @@ export function ListItem({
 	}
 	const body = (
 		<>
-			{handle ? <button type="button" className="sp-list-item__handle" aria-label="Reorder">{handle}</button> : null}
+			{handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button> : null}
 			{mark}
 			{children}
 			{actions ? <div className="sp-list-item__actions">{actions}</div> : null}
@@ -72,6 +77,12 @@ export function ListItemHead({ label, amount, ...rest }) {
 			<span className="sp-amount">{amount}</span>
 		</div>
 	)
+}
+
+/** What a reorder by keyboard says after each move, read out and not drawn (c1 Ordering by hand). */
+export function Announce({ children, ...rest }) {
+	reject(rest, 'Announce')
+	return <span className="sp-announce" aria-live="polite" {...rest}>{children}</span>
 }
 
 /** Where a carried row will land. Belongs to the drag, not to the data. */

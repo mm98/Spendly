@@ -1,9 +1,12 @@
 import { cloneElement, useEffect, useId, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { join, pick, reject } from './variants.js'
+import { useMenuButton } from './Overlays.jsx'
 import { Check } from './Choice.jsx'
 import { Button } from './Button.jsx'
 import { Cards, ListFooter } from './Card.jsx'
 import { Icon } from './Icon.jsx'
+import { formatNumber } from './format.js'
 
 const WIDTH = {
 	title: 'sp-col-title',
@@ -33,7 +36,7 @@ export function ListRow() { return null }
 /** Anything the foot carries beside the count and Load more, which the list builds itself. */
 export function Foot() { return null }
 
-export function ListCell({ width, column, cell = 'default', truncate = false, children, head, selectedCount, total, noun, onToggleAll, checked, labelledBy, onToggle, id, ...rest }) {
+export function ListCell({ width, column, cell = 'default', truncate = false, children, head, selectedCount, total, noun, onToggleAll, checked, labelledBy, onToggle, id, to, ...rest }) {
 	reject(rest, 'ListCell')
 	if (cell === 'checkbox') {
 		if (head)
@@ -55,8 +58,15 @@ export function ListCell({ width, column, cell = 'default', truncate = false, ch
 		)
 	}
 	const plain = (cell === 'default' || cell === 'number') && !truncate
+	const classes = join(column && WIDTH[column], cell === 'menu' && 'sp-cell-menu-cell', cell === 'number' && 'sp-col-number')
+	// the title of a row that goes somewhere is that row's link: a tab stop, and it opens in a new tab
+	if (to) return (
+		<td className={classes} id={id}>
+			<Link className={join('sp-cell-flex', truncate && 'sp-truncate')} to={to} data-go={to} data-row-link="">{children}</Link>
+		</td>
+	)
 	return (
-		<td className={join(column && WIDTH[column], cell === 'menu' && 'sp-cell-menu-cell', cell === 'number' && 'sp-col-number')} id={id}>
+		<td className={classes} id={id}>
 			{plain
 				? children
 				: (
@@ -106,16 +116,23 @@ export function List({
 	recordKey,
 	noun = 'records',
 	onRowClick,
+	// a record's route: each row is then a link to it, by its title cell
+	rowTo,
 	pageSize = 20,
 	selectionKey,
 	compact = false,
 	total,
 	onLoadMore,
 	headless = false,
+	// whose way of grouping thousands the counts are written in; the browser's when absent
+	locale,
 	children,
 	...rest
 }) {
 	reject(rest, 'List')
+	const counted = n => formatNumber(n, { locale, decimals: 0 })
+	if (rowTo && onRowClick) console.error('<List> a row either goes somewhere (rowTo) or acts (onRowClick), not both')
+	const navigate = useNavigate()
 	// `total` means the server pages: `data` is everything loaded so far and Load more asks it for the next page
 	const served = total !== undefined
 	if (served && !onLoadMore) console.error('<List total> needs onLoadMore: the rest of the records are on the server')
@@ -174,9 +191,22 @@ export function List({
 			if (c.type === ListCell && c.props.cell === 'checkbox')
 				return cloneElement(c, { key: 'check', checked: isPicked, labelledBy: titleId, onToggle: shift => toggle(key, shift) })
 			bodyIndex++
+			const title = bodyIndex === titleAt
 			// with no head row, each cell carries its column's width itself
-			return cloneElement(c, { key: c.key ?? n, ...(bodyIndex === titleAt ? { id: titleId } : {}), ...(headless ? { column: head[bodyIndex]?.width } : {}) })
+			return cloneElement(c, { key: c.key ?? n, ...(title ? { id: titleId } : {}), ...(title && rowTo ? { to: rowTo(record) } : {}), ...(headless ? { column: head[bodyIndex]?.width } : {}) })
 		})
+	}
+
+	// a press anywhere on a linked row does what a press on its link does; its own controls keep theirs
+	const follow = (ev, to) => {
+		if (ev.target.closest('a, button, input, label, select, textarea')) return
+		if (ev.button !== 0 && ev.button !== 1) return
+		if (ev.button === 1 || ev.ctrlKey || ev.metaKey || ev.shiftKey) {
+			const href = ev.currentTarget.querySelector('[data-row-link]')?.href
+			if (href) window.open(href, '_blank', 'noopener')
+			return
+		}
+		navigate(to)
 	}
 
 	const one = noun.replace(/s$/, '')
@@ -184,7 +214,7 @@ export function List({
 
 	const slot = (given, arg, fallback) =>
 		given === null || given === undefined ? fallback : typeof given === 'function' ? given(arg) : given
-	const captionContent = slot(caption, data, <strong className="sp-data">{count} {noun}</strong>)
+	const captionContent = slot(caption, data, <strong className="sp-data">{counted(count)} {noun}</strong>)
 	const selectedContent = slot(selected, chosen,
 		<span className="sp-bulkbar__count">{chosen.length === 1 ? `1 ${one} picked` : `${chosen.length} ${noun} picked`}</span>)
 
@@ -205,7 +235,15 @@ export function List({
 
 			<table
 				className={join('sp-table', compact && 'sp-table--compact', allOnPage && 'sp-table--all-selected')}
-				onKeyDown={ev => { if (ev.key === 'Escape' && picked.length) { ev.stopPropagation(); setPicked([]) } }}
+				onKeyDown={ev => {
+					if (ev.key === 'Escape' && picked.length) { ev.stopPropagation(); setPicked([]) }
+					// up and down walk the rows' links (c1)
+					if ((ev.key === 'ArrowDown' || ev.key === 'ArrowUp') && ev.target.matches?.('[data-row-link]')) {
+						const links = [...ev.currentTarget.querySelectorAll('[data-row-link]')]
+						const next = links[links.indexOf(ev.target) + (ev.key === 'ArrowDown' ? 1 : -1)]
+						if (next) { ev.preventDefault(); next.focus() }
+					}
+				}}
 			>
 				{headless ? null : <thead>
 					<tr>
@@ -225,7 +263,8 @@ export function List({
 							<tr
 								key={key}
 								{...(selecting ? { 'aria-selected': isPicked ? 'true' : 'false' } : {})}
-								onClick={onRowClick ? () => onRowClick(record) : undefined}
+								onClick={rowTo ? ev => follow(ev, rowTo(record)) : onRowClick ? () => onRowClick(record) : undefined}
+								onAuxClick={rowTo ? ev => follow(ev, rowTo(record)) : undefined}
 							>
 								{cellsOf(record)}
 							</tr>
@@ -237,7 +276,7 @@ export function List({
 			{foot || count > pageSize
 				? (
 					<ListFooter>
-						<span className="sp-subtitle">Showing {page.length} of {count}</span>
+						<span className="sp-subtitle">Showing {counted(page.length)} of {counted(count)}</span>
 						{foot}
 						<span className="sp-grow" />
 						{/* gone once everything is loaded, not disabled: a disabled Load more is
@@ -315,10 +354,12 @@ export function Crumbs({ root, children, ...rest }) {
 	)
 }
 
-/** A record as a card (Order list 2c, Bookmarks 22a). No `photos` draws the `empty` band; `meta` is
-    one line beside the amount or two above it; `href` makes the picture strip a link out. */
-export function Record({ photos = [], empty, more, href, pick, menu, title, subtitle, status, chips, meta, amount, onClick, void: isVoid = false, ...rest }) {
+/** A record as a card (2c, 22a). No `photos` draws the `empty` band, `meta` is one line or two;
+    `href` makes the strip a link out, named by `hrefLabel`; `menu.onClose` runs as focus leaves. */
+export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, title, subtitle, status, chips, meta, amount, onClick, void: isVoid = false, ...rest }) {
 	reject(rest, 'Record')
+	const menuBox = useRef(null)
+	const menuKeys = useMenuButton(menuBox, !!menu?.open)
 	const strip = photos.length
 		? photos.map((photo, i) => <span className="sp-record__photo" key={i}>{photo}</span>)
 		: <><Icon name="photo" size={22} /><span className="sp-meta">{empty}</span></>
@@ -328,9 +369,10 @@ export function Record({ photos = [], empty, more, href, pick, menu, title, subt
 	return (
 		<article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...rest}>
 			{href
-				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
+				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" aria-label={hrefLabel} onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
 				: <div className={stripClass}>{strip}{extras}</div>}
-			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open ? 'true' : undefined} onClick={ev => ev.stopPropagation()}>
+			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open ? 'true' : undefined} ref={menuBox} {...menuKeys} onClick={ev => ev.stopPropagation()}
+				onBlur={ev => { if (menu.open && ev.relatedTarget && !menuBox.current?.contains(ev.relatedTarget)) menu.onClose?.() }}>
 				<button type="button" className="sp-record__act" aria-label={menu.label} aria-haspopup="menu" aria-expanded={menu.open ? 'true' : 'false'} onClick={menu.onToggle}>
 					<Icon name="dots-vertical" size={12} />
 				</button>

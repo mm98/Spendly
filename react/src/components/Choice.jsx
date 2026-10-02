@@ -47,7 +47,7 @@ export function Choice({ variant = 'default', control, children, description, ..
 				? (
 					<span className="sp-choice__text">
 						<strong>{children}</strong>
-						<span className="sp-subtitle">{description}</span>
+						<span className="sp-meta">{description}</span>
 					</span>
 				)
 				: children}
@@ -97,8 +97,27 @@ export function FieldGroupPanel({ children, ...rest }) {
 	return <div className="sp-field-group__panel" {...rest}>{children}</div>
 }
 
+// what a reader calls each colour of the set (c7): its tooltip and its name
+const SWATCH_NAMES = {
+	green: 'Green',
+	'green-2': 'Deep green',
+	'green-3': 'Mid green',
+	'green-4': 'Light green',
+	'green-5': 'Pale green',
+	'amber-ink': 'Brown',
+	'amber-2': 'Sand',
+	'red-ink': 'Rust',
+	'ink-6': 'Grey'
+}
+
+// an icon the page does not name is called what its register name says, in words
+const iconName = name => {
+	const words = String(name).replace(/-/g, ' ')
+	return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
 /** `search` with `onSearch` puts the tile picker's search above the cells; `more` is the
-    "+N" cell that shows the rest, with `onMore` (c7). */
+    "+N" cell that shows the rest, with `onMore` (c7). An icon option may carry a `label`. */
 export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, more, onMore, ...rest }) {
 	reject(rest, 'Picker')
 	if (swatches && icons) console.error('<Picker> takes swatches or icons, not both')
@@ -116,7 +135,8 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 				<button
 					type="button"
 					className="sp-option sp-option--swatch"
-					aria-label={swatch}
+					aria-label={SWATCH_NAMES[swatch] ?? 'Colour'}
+					data-tip={SWATCH_NAMES[swatch] ?? 'Colour'}
 					aria-pressed={value === swatch ? 'true' : 'false'}
 					onClick={() => onChange?.(swatch)}
 					key={swatch}
@@ -127,7 +147,8 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 				<button
 					type="button"
 					className="sp-option"
-					aria-label={option.name}
+					aria-label={option.label ?? iconName(option.name)}
+					data-tip={option.label ?? iconName(option.name)}
 					aria-pressed={value === option.name ? 'true' : 'false'}
 					onClick={() => onChange?.(option.name)}
 					key={option.name}
@@ -139,13 +160,14 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 				? (
 					<label
 						className={join('sp-option', 'sp-option--swatch', !chosenOutside && 'sp-option--custom')}
-						aria-label={chosenOutside ? `The colour ${value}` : 'A colour of your own'}
+						data-tip="Custom colour"
 						aria-pressed={chosenOutside ? 'true' : 'false'}
 						{...(chosenOutside ? { style: { '--swatch': value } } : {})}
 					>
 						{chosenOutside ? null : customIcon}
 						<input
 							type="color"
+							aria-label="Custom colour"
 							value={chosenOutside ? value : '#1d4d33'}
 							onChange={ev => onChange?.(ev.target.value)}
 						/>

@@ -227,6 +227,8 @@ button.sp-mark:focus-visible { box-shadow: var(--ring); }
   outline: none;
 }
 .sp-mark__open:focus-visible { box-shadow: var(--ring); }
+/* a photo inside the open control fills the tile, as it does a bare photo mark */
+.sp-mark__open > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 
 /* a mark that picks a file wraps a real input, clipped rather than hidden so it
    stays focusable and the label around it opens the platform's own picker */
@@ -935,6 +937,10 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 .sp-table--compact thead th { background: var(--surface-2); border-bottom: 0; }
 
 .sp-cell-flex { display: flex; align-items: center; gap: var(--sp-12); min-width: 0; }
+/* a row that opens a record carries its link on the title: the cell's ink, and the row's own focus */
+a.sp-cell-flex { color: inherit; text-decoration: none; outline: none; border-radius: var(--r-tile); }
+a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
+.sp-table tbody tr:has(a.sp-cell-flex:focus-visible) { background: var(--hover); }
 .sp-cell-amount {
   align-items: flex-end;
   overflow: visible;
@@ -1462,7 +1468,8 @@ label.sp-option--swatch[aria-pressed="true"] {
 .sp-combobox__trigger:hover { border-color: var(--line-5); }
 .sp-combobox__trigger:focus-visible,
 .sp-combobox__trigger[aria-expanded="true"] { border-color: var(--green); box-shadow: var(--ring); }
-.sp-combobox__trigger > .sp-grow { pointer-events: none; }
+/* the chosen value keeps to one line, and says it runs on when the field is too narrow */
+.sp-combobox__trigger > .sp-grow { pointer-events: none; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* a flex box, like the card's and the row's chevrons: an inline svg sits on the
    text baseline instead, which reads as a glyph a pixel or two too high */
 .sp-combobox__chevron { display: flex; align-items: center; color: var(--ink-5); flex: none; }
@@ -1487,6 +1494,8 @@ label.sp-option--swatch[aria-pressed="true"] {
   box-shadow: var(--shadow-menu);
 }
 .sp-combobox[data-open="true"] .sp-combobox__panel { display: flex; }
+/* with no room below and more above, the panel opens upward from the field (c9) */
+.sp-combobox__panel[data-place="up"] { top: auto; bottom: calc(100% + var(--sp-2)); }
 /* the panel overlays: it is anchored under the trigger and never changes the layout behind it */
 
 .sp-combobox__group {
@@ -3151,7 +3160,8 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 
 .sp-sum { display: flex; align-items: baseline; gap: var(--sp-12); padding: var(--sp-8) 0; font-size: var(--t-12); }
 .sp-sum + .sp-sum { border-top: 1px solid var(--line-2); }
-.sp-sum__value { margin-left: auto; font-weight: 600; text-align: right; }
+/* a long value wraps inside its card rather than pushing the card wider */
+.sp-sum__value { margin-left: auto; font-weight: 600; text-align: right; min-width: 0; overflow-wrap: anywhere; }
 .sp-sum--stacked { flex-direction: column; gap: var(--sp-6); }
 .sp-sum--stacked .sp-sum__value { margin-left: 0; text-align: left; }
 .sp-sum--total { padding-top: var(--sp-12); border-top: 1px solid var(--line); }
@@ -3232,9 +3242,11 @@ button.sp-nav-item--light.sp-nav-item--edited:hover { background: var(--amber-ti
   outline: none;
 }
 a.sp-list-item,
-button.sp-list-item { cursor: pointer; }
+button.sp-list-item,
+.sp-list-item--opens { cursor: pointer; }
 a.sp-list-item:hover,
-button.sp-list-item:hover { background: var(--hover); }
+button.sp-list-item:hover,
+.sp-list-item--opens:hover { background: var(--hover); }
 a.sp-list-item:focus-visible,
 button.sp-list-item:focus-visible { box-shadow: var(--ring); }
 /* Stated after the checked fill, so a row that is both ticked and uncertain still
@@ -3584,6 +3596,8 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 
 /* the figure that is money kept rather than money spent - c14 variant */
 .sp-card--shell .sp-ink-success { color: var(--green-4); }
+/* a figure of nothing stays grey on the dark panel too, in the panel's own quiet ink */
+.sp-card--shell .sp-stat__figure.sp-ink-5 { color: var(--shell-item); }
 
 /* the chosen column's label reads as chosen too, not just its bar - c14 */
 .sp-bars__col[aria-pressed="true"] .sp-bars__tick { color: var(--green); font-weight: 600; }
@@ -3886,6 +3900,16 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
   border-radius: var(--r-tile);
   box-shadow: var(--shadow-menu);
   transform: rotate(-0.6deg);
+}
+/* a line read out to a screen reader and drawn nowhere */
+.sp-announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 /* Where it will land. */
 .sp-list-item__insertion {

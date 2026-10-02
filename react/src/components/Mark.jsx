@@ -80,16 +80,18 @@ export function Mark({
 			{remove}
 		</>
 	)
-	// a box with a remove control holds the opening control inside it
-	if (onClick && remove)
+	// a box with a remove control holds the opening control inside it, and the open control is what is named
+	if (onClick && remove) {
+		const { 'aria-label': label, ...box } = rest
 		return (
-			<span className={classes} {...paint} {...rest}>
-				<button type="button" className="sp-mark__open" onClick={onClick} aria-label={rest['aria-label']}>{shown}</button>
+			<span className={classes} {...paint} {...box}>
+				<button type="button" className="sp-mark__open" onClick={onClick} aria-label={label}>{shown}</button>
 				{count != null ? <span className="sp-mark__count">{count}</span> : null}
 				{text || danger ? <span className="sp-mark__text" {...(danger ? { 'data-color': 'danger' } : {})}>{danger ?? text}</span> : null}
 				{remove}
 			</span>
 		)
+	}
 	if (onClick)
 		return <button type="button" className={classes} onClick={onClick} {...paint} {...named} {...rest}>{body}</button>
 	// a mark that wraps a file input is the picker's own hit target

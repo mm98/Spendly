@@ -5,6 +5,7 @@ import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Scrim } from './Shell.jsx'
 import { reject } from './variants.js'
+import { useFocusTrap } from './Utilities.jsx'
 
 /** The attachment strip (c16): tiles in one row that scrolls sideways under two chevrons. A
     chevron is disabled, and so hidden, when there is nothing further that way. */
@@ -31,11 +32,11 @@ export function Strip({ children, ...rest }) {
 	return (
 		<div className="sp-strip-wrap" {...rest}>
 			<button type="button" className="sp-strip-nav" data-strip="prev" aria-label="Show earlier attachments" disabled={ends.start} onClick={() => by(-1)}>
-				<Icon name="chevron-left" />
+				<Icon name="chevron-left" size={14} />
 			</button>
 			<div className="sp-strip" ref={box} onScroll={measure}>{children}</div>
 			<button type="button" className="sp-strip-nav" data-strip="next" aria-label="Show later attachments" disabled={ends.end} onClick={() => by(1)}>
-				<Icon name="chevron-right" />
+				<Icon name="chevron-right" size={14} />
 			</button>
 		</div>
 	)
@@ -79,20 +80,21 @@ export function Viewer({ items = [], at = 0, onMove, onClose, ...rest }) {
 		if (items.length < 2) return
 		onMove?.((at + by + items.length) % items.length)
 	}, [at, items.length, onMove])
+	useFocusTrap(box, true, '.sp-viewer__bar > :last-child')
+	// the viewer is modal, so its keys are the page's while it is open, wherever focus is
 	useEffect(() => {
-		const back = document.activeElement
-		box.current?.querySelector('.sp-viewer__bar > :last-child')?.focus()
-		return () => back?.focus?.()
-	}, [])
+		const keys = ev => {
+			if (ev.key === 'Escape') { ev.stopPropagation(); onClose?.() }
+			else if (ev.key === 'ArrowLeft') { ev.preventDefault(); step(-1) }
+			else if (ev.key === 'ArrowRight') { ev.preventDefault(); step(1) }
+		}
+		document.addEventListener('keydown', keys)
+		return () => document.removeEventListener('keydown', keys)
+	}, [step, onClose])
 	if (!shown) return null
-	const keys = ev => {
-		if (ev.key === 'Escape') { ev.stopPropagation(); onClose?.() }
-		else if (ev.key === 'ArrowLeft') { ev.preventDefault(); step(-1) }
-		else if (ev.key === 'ArrowRight') { ev.preventDefault(); step(1) }
-	}
 	return createPortal(
 		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose?.() }}>
-			<div className="sp-viewer" role="dialog" aria-modal="true" aria-label={shown.name} tabIndex={-1} ref={box} onKeyDown={keys}>
+			<div className="sp-viewer" role="dialog" aria-modal="true" aria-label={shown.name} tabIndex={-1} ref={box}>
 				<div className="sp-viewer__stage">{shown.src ? <img src={shown.src} alt={shown.name} /> : null}</div>
 				<div className="sp-viewer__bar">
 					<IconButton icon="chevron-left" aria-label="Previous" disabled={items.length < 2} onClick={() => step(-1)} />
