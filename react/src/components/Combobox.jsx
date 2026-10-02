@@ -221,6 +221,12 @@ export function ComboboxGroup({ children, ...rest }) {
 	return <li className="sp-combobox__group" {...rest}>{children}</li>
 }
 
+/** A rule between sets of options (c5). */
+export function ComboboxSeparator(props) {
+	reject(props, 'ComboboxSeparator')
+	return <li {...props}><hr /></li>
+}
+
 /** What the panel says when nothing matches. */
 export function ComboboxEmpty({ children, ...rest }) {
 	reject(rest, 'ComboboxEmpty')

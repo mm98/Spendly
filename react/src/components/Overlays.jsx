@@ -81,7 +81,7 @@ export function Popover({ position = 'default', head, children, summary, note, a
 	return (
 		<div className={join('sp-popover', pick(POPOVER, position, 'position', 'Popover'))} {...rest}>
 			{head ? <div className="sp-popover__head">{head}</div> : null}
-			<div className="sp-popover__list">{children}</div>
+			{children ? <div className="sp-popover__list">{children}</div> : null}
 			{summary ? <div className="sp-popover__summary">{summary}</div> : null}
 			{note ? <div className="sp-popover__note">{note}</div> : null}
 			{actions ? <div className="sp-popover__actions">{actions}</div> : null}
