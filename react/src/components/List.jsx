@@ -15,7 +15,7 @@ const WIDTH = {
 	menu: 'sp-col-menu'
 }
 
-const CELL = { default: null, flex: 'sp-cell-flex', amount: 'sp-stacked sp-cell-amount', menu: 'sp-cell-menu' }
+const CELL = { default: null, flex: 'sp-cell-flex', amount: 'sp-stacked sp-cell-amount', menu: 'sp-cell-menu', number: null }
 
 /** What the table is, above it. HTML's caption. Content, or a function of the
     records; omit it and the list states its own count. */
@@ -54,9 +54,9 @@ export function ListCell({ width, cell = 'default', truncate = false, children, 
 			</td>
 		)
 	}
-	const plain = cell === 'default' && !truncate
+	const plain = (cell === 'default' || cell === 'number') && !truncate
 	return (
-		<td className={join(cell === 'menu' && 'sp-cell-menu-cell')} id={id}>
+		<td className={join(cell === 'menu' && 'sp-cell-menu-cell', cell === 'number' && 'sp-col-number')} id={id}>
 			{plain
 				? children
 				: (
@@ -109,10 +109,15 @@ export function List({
 	pageSize = 20,
 	selectionKey,
 	compact = false,
+	total,
+	onLoadMore,
 	children,
 	...rest
 }) {
 	reject(rest, 'List')
+	// `total` means the server pages: `data` is everything loaded so far and Load more asks it for the next page
+	const served = total !== undefined
+	if (served && !onLoadMore) console.error('<List total> needs onLoadMore: the rest of the records are on the server')
 	const ids = useId()
 	const { caption, selected, head, row, foot, check } = partsOf(children)
 	if (!row) console.error('<List> needs a ListRow: it is the template every record is drawn through')
@@ -127,7 +132,8 @@ export function List({
 	useEffect(() => { setPicked([]); setShown(pageSize) }, [selectionKey, pageSize])
 
 	// everything loaded so far: the list grows downward, it does not turn pages
-	const page = data.slice(0, shown)
+	const page = served ? data : data.slice(0, shown)
+	const count = served ? total : data.length
 	const order = page.map(recordKey)
 	const onPage = picked.filter(key => order.includes(key))
 	const selecting = check
@@ -176,7 +182,7 @@ export function List({
 
 	const slot = (given, arg, fallback) =>
 		given === null || given === undefined ? fallback : typeof given === 'function' ? given(arg) : given
-	const captionContent = slot(caption, data, <strong className="sp-data">{data.length} {noun}</strong>)
+	const captionContent = slot(caption, data, <strong className="sp-data">{count} {noun}</strong>)
 	const selectedContent = slot(selected, chosen,
 		<span className="sp-bulkbar__count">{chosen.length === 1 ? `1 ${one} picked` : `${chosen.length} ${noun} picked`}</span>)
 
@@ -226,16 +232,16 @@ export function List({
 				</tbody>
 			</table>
 
-			{foot || data.length > pageSize
+			{foot || count > pageSize
 				? (
 					<ListFooter>
-						<span className="sp-subtitle">Showing {page.length} of {data.length}</span>
+						<span className="sp-subtitle">Showing {page.length} of {count}</span>
 						{foot}
 						<span className="sp-grow" />
 						{/* gone once everything is loaded, not disabled: a disabled Load more is
 						    a promise of more that will not be kept */}
-						{page.length < data.length
-							? <Button variant="outline" size="small" onClick={() => setShown(s => s + pageSize)}>Load more</Button>
+						{page.length < count
+							? <Button variant="outline" size="small" onClick={served ? onLoadMore : () => setShown(s => s + pageSize)}>Load more</Button>
 							: null}
 					</ListFooter>
 				)
@@ -260,6 +266,12 @@ export function Filters({ onClear, children, ...rest }) {
 			{onClear ? <Button variant="outline" size="small" onClick={onClear}>Clear all</Button> : null}
 		</div>
 	)
+}
+
+/** The facet rail's groups (c12): one `FieldGroup facet` per thing the list can be filtered by. */
+export function Facets({ children, ...rest }) {
+	reject(rest, 'Facets')
+	return <div className="sp-facets" {...rest}>{children}</div>
 }
 
 /** One filter or one drill level. `name` is what the remove control says it removes. */

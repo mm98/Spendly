@@ -672,6 +672,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 				className="sp-input sp-input--trail sp-number"
 				aria-describedby={hintId}
 				{...text}
+				invalid={undefined}
 				{...(danger || text.invalid ? { 'aria-invalid': 'true' } : {})}
 				onKeyDown={ev => {
 					// the panel opens on the key that opens every other panel in the system

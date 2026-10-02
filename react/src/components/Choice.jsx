@@ -54,14 +54,46 @@ export function Choice({ variant = 'default', control, children, description, ..
 	)
 }
 
-export function FieldGroup({ legend, children, ...rest }) {
+/** `facet` is the group as a filter rail draws it (c12): its legend is the head, with a `count` at its end.
+    A facet whose controls name themselves, as a range does, has a head row instead, with its `meta` at the right. */
+export function FieldGroup({ legend, facet = false, count, meta, children, ...rest }) {
 	reject(rest, 'FieldGroup')
+	if ((count !== undefined || meta !== undefined) && !facet) console.error('<FieldGroup> a count or a meta belongs to a facet head')
+	if (meta !== undefined)
+		return (
+			<div className="sp-field-group" {...rest}>
+				<div className="sp-row-flex">
+					<span className="sp-field-group__head sp-grow">{legend}</span>
+					<span className="sp-meta">{meta}</span>
+				</div>
+				{children}
+			</div>
+		)
 	return (
 		<fieldset className="sp-field-group" {...rest}>
-			<legend>{legend}</legend>
+			{facet
+				? (
+					<legend className="sp-field-group__head">
+						{legend}
+						{count !== undefined ? <><span className="sp-grow" /><span className="sp-field-group__count">{count}</span></> : null}
+					</legend>
+				)
+				: <legend>{legend}</legend>}
 			{children}
 		</fieldset>
 	)
+}
+
+/** Shows the rest of a facet's values (c12). */
+export function FieldGroupMore({ onClick, children, ...rest }) {
+	reject(rest, 'FieldGroupMore')
+	return <button type="button" className="sp-field-group__more" onClick={onClick} {...rest}>{children}</button>
+}
+
+/** What a facet opens under its values, as the date facet's Custom range (c12, Order list 2d). */
+export function FieldGroupPanel({ children, ...rest }) {
+	reject(rest, 'FieldGroupPanel')
+	return <div className="sp-field-group__panel" {...rest}>{children}</div>
 }
 
 export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, ...rest }) {
