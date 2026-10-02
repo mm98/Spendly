@@ -1,0 +1,27 @@
+/* Settings (11a, 11b): the section nav beside the cards, and the import's figures. */
+
+@layer base {
+
+	/* 208 from the content column's edge, as 11a draws it: the page's own inset is its left
+	   padding. The hairline runs the height of the cards beside it, not to the last entry. */
+	.st-subnav {
+		width: 208px;
+		flex: none;
+		align-self: stretch;
+		margin-left: calc(-1 * var(--card-pad));
+		padding: 0 var(--card-pad);
+		border-right: 1px solid var(--line-3);
+	}
+
+	/* where /settings/<section> lands focus (9c): the system's ring for a keyboard reader, never
+	   the browser's own outline */
+	.st-landing:focus { outline: none; }
+	.st-landing:focus-visible { box-shadow: var(--ring); border-radius: var(--r-marker); }
+
+	.st-quad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
+	/* a phone holds four figures two by two, as Statistics does (Mobile screens) */
+	@media (max-width: 639.98px) {
+		.st-quad { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	}
+
+}

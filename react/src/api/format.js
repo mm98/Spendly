@@ -38,12 +38,12 @@ export const compactAmount = n => {
 
    The symbol does not always follow the figure: "1.187,25 kr." but "$1.187,25". */
 export const CURRENCIES = [
-	{ code: 'DKK', symbol: 'kr.', before: false, label: 'Danish kroner' },
-	{ code: 'SEK', symbol: 'kr', before: false, label: 'Swedish kronor' },
-	{ code: 'NOK', symbol: 'kr', before: false, label: 'Norwegian kroner' },
+	{ code: 'DKK', symbol: 'kr.', before: false, label: 'Danish krone' },
+	{ code: 'SEK', symbol: 'kr', before: false, label: 'Swedish krona' },
+	{ code: 'NOK', symbol: 'kr', before: false, label: 'Norwegian krone' },
 	{ code: 'EUR', symbol: '€', before: true, label: 'Euro' },
-	{ code: 'USD', symbol: '$', before: true, label: 'US dollars' },
-	{ code: 'GBP', symbol: '£', before: true, label: 'Pounds sterling' }
+	{ code: 'USD', symbol: '$', before: true, label: 'US dollar' },
+	{ code: 'GBP', symbol: '£', before: true, label: 'Pound sterling' }
 ]
 
 /* The account's own currency, held here rather than passed through all hundred call sites.
