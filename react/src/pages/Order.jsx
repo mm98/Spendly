@@ -6,65 +6,43 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Totals } from '../components/LineEditor.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
-import { Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
-import { Mark } from '../components/Mark.jsx'
-import { Icon } from '../components/Icon.jsx'
 import { useApi } from '../api/useApi.js'
-import {
-	attachmentFileUrl, attachmentThumbnailUrl, deleteOrder, failureMessage, getOrder, getSettings, invalidateOrderData
-} from '../api/client.js'
-import { monthNames, shortDate } from '../api/format.js'
+import { attachmentFileUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
+import { shortDate } from '../api/format.js'
 import {
 	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, SEP, Saving, StatusPill, filesOf, itemPhoto,
-	itemsWord, money, useNarrow, useTouch
+	itemsWord, money, saves, useTouch
 } from './OrderParts.jsx'
+import { DeleteOrder } from './DeleteOrder.jsx'
 
 /* One order, read (1a): items and attachments in the wide column, details and totals in the
    rail, and the rail ends with what can be done to the order. */
 
 export default function Order() {
 	const { id } = useParams()
-	const state = useApi(getOrder, [id])
+	// off once the order is deleted, so the page never asks for it again on its way out
+	const [gone, setGone] = useState(false)
+	const state = useApi(getOrder, [id], { enabled: !gone })
 	const touch = useTouch()
-	const narrow = useNarrow()
 	const order = state.data?.id === id ? state.data : null
 
 	if (!order && state.error) return <OrderFailed error={state.error} retry={state.refresh} />
-	if (!order) return <OrderLoading touch={narrow} />
-	return <OrderView key={order.id} order={order} touch={touch} narrow={narrow} />
+	if (!order) return <OrderLoading />
+	return <OrderView key={order.id} order={order} touch={touch} onGone={() => setGone(true)} />
 }
 
-function OrderView({ order, touch, narrow }) {
+function OrderView({ order, touch, onGone }) {
 	const navigate = useNavigate()
-	const toast = useToast()
-	const settings = useApi(getSettings)
 	const [viewing, setViewing] = useState(null)
 	const [asking, setAsking] = useState(false)
-	const [deleting, setDeleting] = useState(false)
 	const files = filesOf(order)
 	const open = key => setViewing(files.findIndex(f => f.key === key))
-
-	const remove = () => {
-		setDeleting(true)
-		deleteOrder(order.id)
-			.then(() => {
-				invalidateOrderData()
-				toast({ message: `The order from ${order.vendor?.name ?? 'this vendor'} was deleted.` })
-				navigate('/orders')
-			})
-			.catch(e => {
-				setDeleting(false)
-				setAsking(false)
-				toast({ message: failureMessage(e, 'The order was not deleted. Try again.'), color: 'danger' })
-			})
-	}
-	const askDelete = () => (settings.data?.confirmDelete === false ? remove() : setAsking(true))
 
 	const items = (
 		<Card>
 			<div className="sp-row-flex sp-gap-12">
-				<span className="sp-section-label">Items{SEP}{order.items.length}</span>
-				<span className="sp-meta">{order.vendor?.name}{SEP}{shortDate(order.date)}</span>
+				<span className="sp-section-label sp-nowrap">Items{SEP}{order.items.length}</span>
+				<span className="sp-meta sp-truncate">{order.vendor?.name}{SEP}{shortDate(order.date)}</span>
 				<span className="sp-grow" />
 				<StatusPill status={order.status} />
 			</div>
@@ -130,7 +108,7 @@ function OrderView({ order, touch, narrow }) {
 			]}
 			footerLayout="split"
 			footerCommits
-			after={<Button size="small" color="danger" fullWidth onClick={askDelete}>Delete order</Button>}
+			after={<Button size="small" color="danger" fullWidth onClick={() => setAsking(true)}>Delete order</Button>}
 		>
 			<span className="sp-section-label">Totals</span>
 			<div className="sp-stack">
@@ -139,58 +117,26 @@ function OrderView({ order, touch, narrow }) {
 				<Sum value={money(order.shipping)}>Shipping</Sum>
 				<Sum variant="total" value={money(order.total)}>Total</Sum>
 			</div>
-			{order.saved > 0
+			{saves(order.saved)
 				? <span className="sp-stat__delta">Saved {money(order.saved)}</span>
 				: <Saving value={0} />}
 		</Card>
 	)
 
 	const dialog = asking
-		? (
-			<Dialog onCancel={() => setAsking(false)}>
-				<div className="sp-row-flex sp-gap-12">
-					<Mark size="medium" aria-label="Delete" aria-hidden="true"><Icon name="trash" /></Mark>
-					<DialogTitle>Delete this order?</DialogTitle>
-				</div>
-				<DialogBody>{deleteSentence(order)}</DialogBody>
-				<ListItem>This cannot be undone.</ListItem>
-				<DialogActions>
-					<Button variant="outline" onClick={() => setAsking(false)}>Keep it</Button>
-					<span className="sp-grow" />
-					<Button color="danger" iconStart="trash" disabled={deleting} onClick={remove}>Delete order</Button>
-				</DialogActions>
-			</Dialog>
-		)
+		? <DeleteOrder order={order} onClose={() => setAsking(false)} onDeleted={() => { onGone(); navigate('/orders') }} />
 		: null
 
 	const viewer = viewing != null && viewing > -1
 		? <Viewer items={files} at={viewing} onMove={setViewing} onClose={() => setViewing(null)} />
 		: null
 
-	if (narrow) return (
-		<div className="sp-stack sp-gap-12">
-			{items}{attachments}{details}{totals}{dialog}{viewer}
-		</div>
-	)
 	return (
 		<>
 			<div className="sp-stack sp-gap-12">{items}{attachments}</div>
 			<Panel>{details}{totals}{dialog}{viewer}</Panel>
 		</>
 	)
-}
-
-/** What deleting takes with it, in numbers (6d). Only an expense counts in a month's total. */
-function deleteSentence(order) {
-	const who = order.reference ? `${order.reference} from ${order.vendor?.name}` : `The order from ${order.vendor?.name}`
-	const lines = itemsWord(order.items.length).replace('item', 'line')
-	const files = order.attachments.length
-		? ` and ${order.attachments.length === 1 ? '1 attachment' : `${order.attachments.length} attachments`}`
-		: ''
-	const [year, month] = order.date.split('-').map(Number)
-	const monthName = monthNames('long')[month - 1] + (year === new Date().getFullYear() ? '' : ` ${year}`)
-	const drop = order.kind === 'Expense' ? `, and the ${monthName} total drops by ${money(order.total)}` : ''
-	return `${who}, ${money(order.total)}. Its ${lines}${files} go with it${drop}.`
 }
 
 /** Every file, saved one after another the way the tile's own download saves one. */
