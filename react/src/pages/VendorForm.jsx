@@ -20,14 +20,18 @@ import {
 import { currency, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import {
-	ConfirmDelete, Failed, FormLoading, RecentOrders, SWATCHES, deleteNote, focusFirst, pickedColour, storedColour, useLeaveGuard
+	CategoryTokens, ConfirmDelete, Failed, FormLoading, RecentOrders, SWATCHES, deleteNote, focusFirst, pickedColour, storedColour,
+	useLeaveGuard
 } from './vendorsCategories.jsx'
 
 /** A vendor, created (5b) or edited (5c): one page, one form, one rail. */
 export default function VendorForm() {
 	const { id } = useParams()
-	const record = useApi(getVendor, [id], { enabled: Boolean(id) })
-	if (id && !record.data) {
+	// once deleted, the record is not read again: the page is on its way out
+	const [gone, setGone] = useState(false)
+	const record = useApi(getVendor, [id], { enabled: Boolean(id) && !gone })
+	// the last record stays in hand while the next one loads, so it has to be the one the address names
+	if (id && record.data?.id !== id) {
 		if (record.error) return (
 			<div className="sp-stack sp-gap-12">
 				<Failed title="This vendor could not be opened" error={record.error} onRetry={record.refresh}
@@ -36,13 +40,13 @@ export default function VendorForm() {
 		)
 		return <FormLoading />
 	}
-	return <VendorFields key={id ?? 'new'} vendor={record.data ?? null} />
+	return <VendorFields key={id ?? 'new'} vendor={record.data ?? null} onGone={setGone} />
 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 const lower = s => String(s).trim().toLowerCase()
 
-function VendorFields({ vendor }) {
+function VendorFields({ vendor, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
@@ -84,7 +88,12 @@ function VendorFields({ vendor }) {
 		const added = next.find(a => !values.aliases.includes(a))
 		if (added) {
 			const taken = owner(added)
-			if (taken) return setErrors(e => ({ ...e, aliases: `${taken.name} already matches "${added}". Pick a different one.` }))
+			if (taken) return setErrors(e => ({
+				...e,
+				aliases: lower(taken.name) === lower(added)
+					? `${taken.name} is the name of another vendor. Pick a different one.`
+					: `${taken.name} already matches "${added}". Pick a different one.`
+			}))
 			if (lower(added) === lower(values.name))
 				return setErrors(e => ({ ...e, aliases: 'That is already the vendor\'s name. Add the other names it uses.' }))
 		}
@@ -127,6 +136,7 @@ function VendorFields({ vendor }) {
 
 	const remove = () => {
 		setBusy(true)
+		onGone(true)
 		deleteVendor(vendor.id)
 			.then(() => {
 				invalidateVendorData()
@@ -136,6 +146,7 @@ function VendorFields({ vendor }) {
 			})
 			.catch(e => {
 				setBusy(false)
+				onGone(false)
 				toast({ message: failureMessage(e, 'The vendor was not deleted. Try again.'), color: 'danger' })
 			})
 	}
@@ -174,8 +185,7 @@ function VendorFields({ vendor }) {
 				<span className="sp-section-label">Defaults for its orders</span>
 				<Field id="vendor-defaults" label="Default categories"
 					message="Suggested on a new order from this vendor. Not applied automatically.">
-					<TokensField value={values.defaultCategories} onChange={v => set('defaultCategories', v)}
-						placeholder="none" aria-label="Add a category" />
+					<CategoryTokens value={values.defaultCategories} onChange={v => set('defaultCategories', v)} placeholder="none" />
 				</Field>
 			</Card>
 		</>

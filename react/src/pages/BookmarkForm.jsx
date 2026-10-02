@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { useBlocker, useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { Button } from '../components/Button.jsx'
 import { Card, Panel } from '../components/Card.jsx'
-import { ComboboxOption } from '../components/Combobox.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
 import { Slot } from '../components/FileDrop.jsx'
-import { Icon } from '../components/Icon.jsx'
-import { NumberField, TextField, TokensField } from '../components/Inputs.jsx'
+import { NumberField, TextField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
-import { Alert, Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Popover, useToast } from '../components/Overlays.jsx'
+import { useToast } from '../components/Overlays.jsx'
 import { Skeleton } from '../components/Utilities.jsx'
 import { Well } from '../components/Well.jsx'
 import { useShellShape } from '../app/useMedia.js'
@@ -17,9 +15,10 @@ import { useApi } from '../api/useApi.js'
 import { BOOKMARK_FIELDS, httpUrl, siteOf } from '../api/rules.js'
 import {
 	addBookmarkPhoto, addBookmarkPhotoFromUrl, bookmarkPhotoThumbnailUrl, createBookmark, deleteBookmark, failureMessage,
-	getBookmark, getBookmarkPreview, getCategories, removeBookmarkPhoto, setBookmarkArchived, updateBookmark
+	getBookmark, getBookmarkPreview, removeBookmarkPhoto, setBookmarkArchived, updateBookmark
 } from '../api/client.js'
 import { amount, currency, currencySymbol, shortDate } from '../api/format.js'
+import { CategoryTokens, ConfirmDelete, Failed, bookmarkDeleteNote, useLeaveGuard } from './vendorsCategories.jsx'
 
 const rule = name => BOOKMARK_FIELDS.find(f => f.name === name).check
 const checks = { url: rule('bookmark-url'), name: rule('bookmark-name') }
@@ -27,36 +26,40 @@ const lower = list => list.map(n => n.toLowerCase()).sort().join('\n')
 
 export default function BookmarkForm() {
 	const { id } = useParams()
-	const existing = useApi(getBookmark, [id], { enabled: Boolean(id) })
+	// once deleted, the record is not read again: the page is on its way out
+	const [gone, setGone] = useState(false)
+	const existing = useApi(getBookmark, [id], { enabled: Boolean(id) && !gone })
 	const touch = useShellShape() === 'touch'
-	if (id && !existing.data) {
+	// the last record stays in hand while the next one loads, so it has to be the one the address names
+	if (id && existing.data?.id !== id) {
+		if (existing.error) return (
+			<div className="sp-stack sp-gap-12">
+				<Failed title="This bookmark did not load" error={existing.error} onRetry={existing.refresh}
+					list={{ to: '/bookmarks', label: 'Open Bookmarks' }} />
+			</div>
+		)
 		return (
 			<>
 				<div className="sp-stack sp-gap-12">
-					{existing.error
-						? <Alert color="danger" mark="!" title="This bookmark did not load">{failureMessage(existing.error, 'Check your connection, then reload the page.')}</Alert>
-						: (
-							<Card aria-busy="true" aria-label="Loading the bookmark">
-								<div className="sp-stack sp-gap-12">
-									<Skeleton shape="mark-large" />
-									<Skeleton shape="title" />
-									<Skeleton shape="line" />
-									<Skeleton shape="short" />
-								</div>
-							</Card>
-						)}
+					<Card aria-busy="true" aria-label="Loading the bookmark">
+						<div className="sp-stack sp-gap-12">
+							<Skeleton shape="mark-large" />
+							<Skeleton shape="title" />
+							<Skeleton shape="line" />
+							<Skeleton shape="short" />
+						</div>
+					</Card>
 				</div>
 				{touch ? null : <Panel />}
 			</>
 		)
 	}
-	return <BookmarkFields key={id ?? 'new'} bookmark={existing.data ?? null} />
+	return <BookmarkFields key={id ?? 'new'} bookmark={existing.data ?? null} onGone={setGone} />
 }
 
-function BookmarkFields({ bookmark }) {
+function BookmarkFields({ bookmark, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
-	const categories = useApi(getCategories)
 	const editing = Boolean(bookmark)
 	const touch = useShellShape() === 'touch'
 
@@ -64,16 +67,15 @@ function BookmarkFields({ bookmark }) {
 	const [name, setName] = useState(bookmark?.name ?? '')
 	const [price, setPrice] = useState(bookmark?.price ?? null)
 	const [chosen, setChosen] = useState(bookmark?.categories ?? [])
-	const [typing, setTyping] = useState('')
 	const [errors, setErrors] = useState({})
 	const [saving, setSaving] = useState(false)
 	const [archived, setArchived] = useState(Boolean(bookmark?.archived))
 	const [confirming, setConfirming] = useState(false)
+	const [busy, setBusy] = useState(false)
 	// a file chosen here, a picture taken off, or the shop's own picture on offer: none is saved before Save
 	const [picked, setPicked] = useState(null)
 	const [cleared, setCleared] = useState(false)
 	const [offered, setOffered] = useState(null)
-	const leaving = useRef(false)
 
 	useEffect(() => () => { if (picked) URL.revokeObjectURL(picked.src) }, [picked])
 
@@ -93,15 +95,8 @@ function BookmarkFields({ bookmark }) {
 		|| lower(chosen) !== lower(bookmark?.categories ?? [])
 		|| Boolean(picked || offered || (cleared && bookmark?.photoId))
 
-	const blocker = useBlocker(({ currentLocation, nextLocation }) =>
-		dirty && !leaving.current && currentLocation.pathname !== nextLocation.pathname)
-	useEffect(() => {
-		if (!dirty) return
-		const hold = ev => { ev.preventDefault(); ev.returnValue = '' }
-		window.addEventListener('beforeunload', hold)
-		return () => window.removeEventListener('beforeunload', hold)
-	}, [dirty])
-	const leave = (to = '/bookmarks') => { leaving.current = true; navigate(to) }
+	const guard = useLeaveGuard(dirty)
+	const leave = (to = '/bookmarks') => { guard.release(); navigate(to) }
 
 	// marked on leaving the field or on Save, and cleared by the next value that passes
 	const mark = (field, value) => setErrors(e => ({ ...e, [field]: checks[field](value.trim()) }))
@@ -122,20 +117,6 @@ function BookmarkFields({ bookmark }) {
 		})
 		if (image && thumbnail && !picked && !cleared) setOffered({ address: image, thumbnail })
 	}
-
-	const known = categories.data ?? []
-	const setCategories = next => {
-		const out = []
-		for (const typed of next) {
-			const named = known.find(c => c.name.toLowerCase() === typed.toLowerCase())?.name ?? typed
-			if (!out.some(n => n.toLowerCase() === named.toLowerCase())) out.push(named)
-		}
-		setChosen(out)
-	}
-	const query = typing.trim()
-	const taken = new Set(chosen.map(n => n.toLowerCase()))
-	const matches = known.filter(c => !taken.has(c.name.toLowerCase()) && c.name.toLowerCase().includes(query.toLowerCase()))
-	const exists = taken.has(query.toLowerCase()) || known.some(c => c.name.toLowerCase() === query.toLowerCase())
 
 	const save = async () => {
 		const found = { url: checks.url(url.trim()), name: checks.name(name.trim()) }
@@ -175,11 +156,15 @@ function BookmarkFields({ bookmark }) {
 	}
 
 	const remove = async () => {
+		setBusy(true)
+		onGone(true)
 		try {
 			await deleteBookmark(bookmark.id)
 			toast({ message: `${bookmark.name} deleted.` })
 			leave()
 		} catch (e) {
+			onGone(false)
+			setBusy(false)
 			setConfirming(false)
 			toast({ message: failureMessage(e, 'That did not delete. Try again.'), color: 'danger' })
 		}
@@ -225,17 +210,7 @@ function BookmarkFields({ bookmark }) {
 					<NumberField value={price} onChange={setPrice} decimals={0} min={0} locale="da-DK" />
 				</Field>
 				<Field label="Categories" id="bookmark-categories" message="Type a name that is not on the list to add a new category.">
-					<TokensField value={chosen} onChange={setCategories} onSearch={setTyping}
-						placeholder="Add…" aria-label="Add a category">
-						{[
-							...matches.map(c => (
-								<ComboboxOption key={c.id} onSelect={() => setCategories([...chosen, c.name])}>{c.name}</ComboboxOption>
-							)),
-							query && !exists
-								? <ComboboxOption key="create" mark={<Icon name="plus" />} onSelect={() => setCategories([...chosen, query])}>Create "{query}"</ComboboxOption>
-								: null
-						]}
-					</TokensField>
+					<CategoryTokens value={chosen} onChange={setChosen} />
 				</Field>
 			</div>
 		</Card>
@@ -250,7 +225,7 @@ function BookmarkFields({ bookmark }) {
 				<Sum value={price != null ? currency(price, 0) : '-'}>Price</Sum>
 			</div>
 			{href
-				? <Button variant="outline" size="small" href={href} target="_blank" rel="noopener noreferrer">Open {site}</Button>
+				? <Button variant="outline" size="small" href={href} target="_blank" rel="noopener noreferrer"><span className="sp-truncate">Open {site}</span></Button>
 				: null}
 		</Card>
 	)
@@ -258,22 +233,7 @@ function BookmarkFields({ bookmark }) {
 		? (
 			<Card footerLayout="split" footerCommits footer={[
 				<Button key="archive" variant="outline" onClick={archive}>{archived ? 'Unarchive' : 'Archive'}</Button>,
-				<Anchor key="delete" open={confirming}>
-					<Button color="danger" fullWidth onClick={() => setConfirming(!confirming)}>Delete</Button>
-					{confirming
-						? (
-							<Popover position="end" role="dialog" aria-label={`Delete ${bookmark.name}?`}
-								head={<>
-									<span className="sp-title">Delete {bookmark.name}?</span>
-									<span className="sp-subtitle">The bookmark and its picture are removed. To keep it off the list without losing it, archive it instead.</span>
-								</>}
-								actions={<>
-									<Button variant="outline" fullWidth onClick={() => setConfirming(false)}>Cancel</Button>
-									<Button color="danger" fullWidth onClick={remove}>Delete bookmark</Button>
-								</>} />
-						)
-						: null}
-				</Anchor>
+				<Button key="delete" color="danger" onClick={() => setConfirming(true)}>Delete</Button>
 			]}>
 				<span className="sp-section-label">End of its life</span>
 				<Well>
@@ -293,19 +253,19 @@ function BookmarkFields({ bookmark }) {
 			</ListItem>
 		)
 		: null
-	const prompt = blocker.state === 'blocked'
-		? (
-			<Dialog onCancel={() => blocker.reset()}>
-				<DialogTitle>Leave without saving?</DialogTitle>
-				<DialogBody>Your changes to this bookmark are not saved. If you leave, they are lost.</DialogBody>
-				<DialogActions>
-					<Button variant="outline" onClick={() => blocker.reset()}>Keep editing</Button>
-					<span className="sp-grow" />
-					<Button color="danger" onClick={() => blocker.proceed()}>Leave</Button>
-				</DialogActions>
-			</Dialog>
-		)
-		: null
+	const prompt = (
+		<>
+			{guard.prompt}
+			{confirming
+				? (
+					<ConfirmDelete title={`Delete ${bookmark.name}?`} action="Delete bookmark" busy={busy}
+						onConfirm={remove} onCancel={() => setConfirming(false)}>
+						{bookmarkDeleteNote}
+					</ConfirmDelete>
+				)
+				: null}
+		</>
+	)
 
 	// a phone has no rail: the form, then the end-of-life card, then the bar it commits from (Mobile 5b)
 	if (touch) return (

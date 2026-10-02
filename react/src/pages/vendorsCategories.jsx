@@ -3,16 +3,18 @@ import { useBeforeUnload, useBlocker } from 'react-router'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card, Panel } from '../components/Card.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
+import { Icon } from '../components/Icon.jsx'
+import { TokensField } from '../components/Inputs.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
-import { failureMessage, getOrders } from '../api/client.js'
+import { failureMessage, getCategories, getOrders } from '../api/client.js'
 import { currency, plural, shortDate } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 
-/* What Vendors, Categories and their two forms share: the colour a record stores, the mark it
-   is drawn with, the bars above and around a list, and the parts of a record's form. */
+/* What the Library's lists (Vendors, Categories, Bookmarks) and their forms share: the colour a
+   record stores, the mark it is drawn with, the bars above and around a list, and the parts of a record's form. */
 
 export const DOT = ' · '
 
@@ -43,13 +45,14 @@ export function SortControl({ sorts, value, onChange }) {
 	)
 }
 
-/** A row's kebab and its menu. A click inside stays out of the row, which opens the record. */
-export function RowMenu({ label, open, onToggle, onClose, children }) {
+/** A row's kebab and its menu. A click inside stays out of the row, which opens the record. The
+    button names its row (c9), so a list of the page's buttons tells the rows apart. */
+export function RowMenu({ noun, label, open, onToggle, onClose, children }) {
 	const box = useRef(null)
 	useDismiss(box, open, onClose)
 	return (
 		<Anchor ref={box} open={open} onClick={ev => ev.stopPropagation()}>
-			<IconButton icon="dots-vertical" aria-label="Row actions" aria-haspopup="menu"
+			<IconButton icon="dots-vertical" aria-label={`${noun} menu, ${label}`} aria-haspopup="menu"
 				aria-expanded={open ? 'true' : 'false'} onClick={onToggle} />
 			<Menu position="floating" aria-label={label}>{children}</Menu>
 		</Anchor>
@@ -147,6 +150,9 @@ export const categoryDeleteNote = budget => (budget > 0
 	? `No order or bookmark carries it. Its limit of ${currency(budget, 0)} goes with it.`
 	: 'No order or bookmark carries it.')
 
+/** What deleting a bookmark takes with it, and the way to keep it instead. */
+export const bookmarkDeleteNote = 'The bookmark and its picture are removed. To keep it off the list without losing it, archive it instead.'
+
 /** Holds the page while the form has changes: in-app navigation asks first, and a reload or a
     closed tab gets the browser's own question. `release` lets a finished save leave. */
 export function useLeaveGuard(dirty) {
@@ -205,6 +211,37 @@ function RecentOrder({ order }) {
 			</Stacked>
 			<span className="sp-title sp-nowrap">{currency(order.total)}</span>
 		</ListItem>
+	)
+}
+
+/** Categories typed as tokens and picked from the one set; a name it does not hold is offered as
+    Create "…" and becomes a category when the form is saved (22c). */
+export function CategoryTokens({ value, onChange, ...rest }) {
+	const categories = useApi(getCategories)
+	const [typing, setTyping] = useState('')
+	const known = categories.data ?? []
+	const same = (a, b) => a.toLowerCase() === b.toLowerCase()
+	// a typed name takes the spelling of the category it names, and names it once
+	const change = next => {
+		const out = []
+		for (const typed of next) {
+			const named = known.find(c => same(c.name, typed))?.name ?? typed
+			if (!out.some(n => same(n, named))) out.push(named)
+		}
+		onChange(out)
+	}
+	const query = typing.trim()
+	const matches = known.filter(c => !value.some(n => same(n, c.name)) && c.name.toLowerCase().includes(query.toLowerCase()))
+	const exists = [...value, ...known.map(c => c.name)].some(n => same(n, query))
+	return (
+		<TokensField value={value} onChange={change} onSearch={setTyping} placeholder="Add…" aria-label="Add a category" {...rest}>
+			{[
+				...matches.map(c => <ComboboxOption key={c.id} onSelect={() => change([...value, c.name])}>{c.name}</ComboboxOption>),
+				query && !exists
+					? <ComboboxOption key="create" mark={<Icon name="plus" size={13} />} onSelect={() => change([...value, query])}>Create "{query}"</ComboboxOption>
+					: null
+			]}
+		</TokensField>
 	)
 }
 

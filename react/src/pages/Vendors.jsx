@@ -8,19 +8,21 @@ import { Mark } from '../components/Mark.jsx'
 import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
-import { deleteVendor, failureMessage, getVendors, invalidateCategoryData, invalidateVendorData, vendorTextMatch } from '../api/client.js'
+import {
+	deleteVendor, failureMessage, getSettings, getVendors, invalidateCategoryData, invalidateVendorData, vendorTextMatch
+} from '../api/client.js'
 import { amount, currency, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
-import { ConfirmDelete, Failed, ListLoading, RowMenu, SortControl, deleteNote, usePaged } from './vendorsCategories.jsx'
+import { ConfirmDelete, DOT, Failed, ListLoading, RowMenu, SortControl, deleteNote, usePaged } from './vendorsCategories.jsx'
 
 const SORTS = [
 	{ id: 'spend-desc', label: 'Spend ↓', by: (a, b) => b.spend - a.spend },
 	{ id: 'spend-asc', label: 'Spend ↑', by: (a, b) => a.spend - b.spend },
 	{ id: 'name-asc', label: 'Name A - Z', by: (a, b) => a.name.localeCompare(b.name) },
 	{ id: 'orders-desc', label: 'Orders ↓', by: (a, b) => b.orders - a.orders },
-	{ id: 'saved-desc', label: 'Saved ↓', by: (a, b) => b.saved - a.saved }
+	{ id: 'saved-desc', label: 'Saved ↓', by: (a, b) => b.saved - a.saved },
+	{ id: 'saved-asc', label: 'Saved ↑', by: (a, b) => a.saved - b.saved }
 ]
-const PAGE = 20
 
 /** Vendors (5a): find a vendor and open it, or create one. Favourites are kept at the top. */
 export default function Vendors() {
@@ -28,9 +30,13 @@ export default function Vendors() {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const vendors = useApi(getVendors)
+	const settings = useApi(getSettings).data
+	const step = settings?.pageSize ?? 10
+	// the order Settings names, until the address names another
+	const opening = SORTS.find(s => s.id === settings?.listSort) ?? SORTS[0]
 	const [params, setParams] = useSearchParams()
 	const query = touch ? '' : params.get('q') ?? ''
-	const sort = SORTS.find(s => s.id === params.get('sort')) ?? SORTS[0]
+	const sort = SORTS.find(s => s.id === params.get('sort')) ?? opening
 	const [menuFor, setMenuFor] = useState(null)
 	const [deleting, setDeleting] = useState(null)
 	const [busy, setBusy] = useState(false)
@@ -38,14 +44,14 @@ export default function Vendors() {
 	const write = (q, sortId) => {
 		const next = {}
 		if (q) next.q = q
-		if (sortId !== SORTS[0].id) next.sort = sortId
+		if (sortId !== opening.id) next.sort = sortId
 		setParams(next, { replace: true })
 	}
 
 	const rows = (vendors.data ?? [])
 		.filter(v => vendorTextMatch(v, query).matches)
 		.sort((a, b) => (b.favourite - a.favourite) || sort.by(a, b))
-	const paged = usePaged(rows, PAGE, query + sort.id)
+	const paged = usePaged(rows, step, query + sort.id)
 
 	const remove = () => {
 		setBusy(true)
@@ -101,13 +107,13 @@ export default function Vendors() {
 						<Mark size="medium">{v.name}</Mark>
 						<Stacked>
 							<span className="sp-heading sp-truncate">{v.name}</span>
-							<span className="sp-meta">{plural(v.orders, 'order')}</span>
+							<span className="sp-meta">{v.favourite ? `Favourite${DOT}` : null}{plural(v.orders, 'order')}</span>
 						</Stacked>
 						<span className="sp-amount sp-nowrap">{amount(v.spend)}</span>
 					</div>
 				</Card>
 			))}
-			{rows.length > PAGE
+			{rows.length > step
 				? (
 					<ListFooter loose>
 						<span className="sp-subtitle">Showing {paged.page.length} of {rows.length}</span>
@@ -118,7 +124,7 @@ export default function Vendors() {
 		</>
 	)
 	else body = (
-		<List data={rows} recordKey={v => v.id} noun="vendors" pageSize={PAGE} selectionKey={query + sort.id}
+		<List data={rows} recordKey={v => v.id} noun="vendors" pageSize={step} selectionKey={query + sort.id}
 			onRowClick={v => navigate(`/vendors/${v.id}/edit`)}>
 			<ListHead>
 				<ListCell width="title">Vendor</ListCell>
@@ -131,7 +137,7 @@ export default function Vendors() {
 						<Mark size="medium">{v.name}</Mark>
 						<Stacked>
 							<span className="sp-title sp-truncate">{v.name}</span>
-							<span className="sp-meta sp-truncate">{plural(v.orders, 'order')}</span>
+							<span className="sp-meta sp-truncate">{v.favourite ? `Favourite${DOT}` : null}{plural(v.orders, 'order')}</span>
 						</Stacked>
 					</ListCell>,
 					<ListCell key="a" cell="amount">
@@ -139,7 +145,7 @@ export default function Vendors() {
 						<span className="sp-amount-secondary" {...(v.saved > 0 ? { 'data-color': 'success' } : {})}>Saved {currency(v.saved)}</span>
 					</ListCell>,
 					<ListCell key="m" cell="menu">
-						<RowMenu label={v.name} open={menuFor === v.id}
+						<RowMenu noun="Vendor" label={v.name} open={menuFor === v.id}
 							onToggle={() => setMenuFor(menuFor === v.id ? null : v.id)} onClose={() => setMenuFor(null)}>
 							<MenuItem icon="external-link" onClick={() => navigate(`/orders?vendor=${v.id}`)}>Open in the order list</MenuItem>
 							<MenuItem icon="pencil" onClick={() => navigate(`/vendors/${v.id}/edit`)}>Edit vendor</MenuItem>
