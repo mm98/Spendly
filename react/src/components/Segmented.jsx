@@ -2,9 +2,11 @@ import { join, pick, reject } from './variants.js'
 
 const VARIANT = { default: null, facet: 'sp-segmented--facet' }
 
-export function Segmented({ name, options = [], value, defaultValue, onChange, variant = 'default', ...rest }) {
+/** `fixed` is a set that is ordered and never grows, like the twelve months (Budget 21a): it
+    stays segments past four, where any other set becomes a Combobox. */
+export function Segmented({ name, options = [], value, defaultValue, onChange, variant = 'default', fixed = false, ...rest }) {
 	reject(rest, 'Segmented')
-	if (options.length > 4) console.error('<Segmented> more than four options is a Combobox')
+	if (options.length > 4 && !fixed) console.error('<Segmented> more than four options is a Combobox')
 	const controlled = value !== undefined
 	return (
 		<div className={join('sp-segmented', pick(VARIANT, variant, 'variant', 'Segmented'))} {...rest}>

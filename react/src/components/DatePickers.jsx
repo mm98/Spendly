@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Icon } from './Icon.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Chip } from './Chip.jsx'
-import { join, reject } from './variants.js'
+import { join, pick, reject } from './variants.js'
 
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const parse = s => {
@@ -709,5 +709,34 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 				/>
 			</div>
 		</span>
+	)
+}
+
+const WINDOW = { week: 'week', month: 'month', quarter: 'quarter', year: 'year' }
+
+/** The period control's window (c14): what is shown, with a step to the earlier and the later
+    one either side. A step that would leave the range is disabled rather than missing. */
+export function Window({
+	size = 'month',
+	label,
+	onEarlier,
+	onLater,
+	earlierLabel = 'Previous window',
+	laterLabel = 'Next window',
+	earlierDisabled = false,
+	laterDisabled = false,
+	...rest
+}) {
+	reject(rest, 'Window')
+	return (
+		<div className="sp-window" {...rest}>
+			<button type="button" className="sp-window__btn" aria-label={earlierLabel} disabled={earlierDisabled} onClick={onEarlier}>
+				<Icon name="chevron-left" size={14} />
+			</button>
+			<span className="sp-window__label" data-w={pick(WINDOW, size, 'size', 'Window')}>{label}</span>
+			<button type="button" className="sp-window__btn" aria-label={laterLabel} disabled={laterDisabled} onClick={onLater}>
+				<Icon name="chevron-right" size={14} />
+			</button>
+		</div>
 	)
 }
