@@ -1,20 +1,21 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { Controls, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
+import { Caption, Controls, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { Card, ListFooter } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
-import { Empty, EmptyBody, EmptyTitle, Stacked } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	deleteVendor, failureMessage, getSettings, getVendors, invalidateCategoryData, invalidateVendorData, vendorTextMatch
+	deleteVendor, getSettings, getVendors, invalidateCategoryData, invalidateVendorData, vendorTextMatch
 } from '../api/client.js'
 import { NUMBER_LOCALE, amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
+import { useListMemory } from '../app/listMemory.js'
 import { Saving } from '../app/saving.jsx'
-import { ConfirmDelete, Failed, ListLoading, RowMenu, SortControl, deleteNote, usePaged } from './vendorsCategories.jsx'
+import { Bar, ConfirmDelete, Failed, RowMenu, SortControl, deleteNote, isGone, sayFailure, useRefocus } from './vendorsCategories.jsx'
 
 const SORTS = [
 	{ id: 'spend-desc', label: 'Spend ↓', by: (a, b) => b.spend - a.spend },
@@ -41,6 +42,9 @@ export default function Vendors() {
 	const [menuFor, setMenuFor] = useState(null)
 	const [deleting, setDeleting] = useState(null)
 	const [busy, setBusy] = useState(false)
+	// a page of rows per Load more, kept for Back along with the scroll
+	const { pages, setPages, restored } = useListMemory(`vendors?${query}&${sort.id}`)
+	useEffect(() => { if (vendors.data) restored() }, [vendors.data])
 
 	const write = (q, sortId) => {
 		const next = {}
@@ -52,18 +56,21 @@ export default function Vendors() {
 	const rows = (vendors.data ?? [])
 		.filter(v => vendorTextMatch(v, query).matches)
 		.sort((a, b) => (b.favourite - a.favourite) || sort.by(a, b))
-	const paged = usePaged(rows, step, query + sort.id)
+	const shown = rows.slice(0, pages * step)
+	const refocus = useRefocus(vendors.data, '.sp-table [aria-haspopup="menu"]', '.sp-controls input, .sp-controls a')
 
 	const remove = () => {
 		setBusy(true)
+		refocus(deleting, shown.findIndex(r => r.id === deleting.id))
 		deleteVendor(deleting.id)
+			.catch(e => { if (!isGone(e)) throw e })
 			.then(() => {
 				invalidateVendorData()
 				invalidateCategoryData()
 				vendors.refresh()
 				setDeleting(null)
 			})
-			.catch(e => toast({ message: failureMessage(e, 'The vendor was not deleted. Try again.'), color: 'danger' }))
+			.catch(e => sayFailure(toast, e, 'The vendor was not deleted. Try again.'))
 			.finally(() => setBusy(false))
 	}
 
@@ -82,7 +89,7 @@ export default function Vendors() {
 
 	let body
 	if (!vendors.data && vendors.error) body = <Failed title="Your vendors could not be loaded" error={vendors.error} onRetry={vendors.refresh} />
-	else if (!vendors.data) body = <ListLoading />
+	else if (!vendors.data) body = <VendorsLoading touch={touch} size={step} spend={sort.id.startsWith('spend') ? sort.label : 'Spend'} />
 	else if (!vendors.data.length) body = (
 		<Card>
 			<Empty>
@@ -102,10 +109,10 @@ export default function Vendors() {
 	)
 	else if (touch) body = (
 		<>
-			{paged.page.map(v => (
+			{shown.map(v => (
 				<Card key={v.id} to={`/vendors/${v.id}/edit`}>
 					<div className="sp-cell-flex">
-						<Mark size="medium">{v.name}</Mark>
+						<Mark size="medium" aria-hidden="true">{v.name}</Mark>
 						<Stacked>
 							<span className="sp-heading sp-truncate">{v.name}</span>
 							<span className="sp-meta">{v.favourite ? `Favourite${dot}` : null}{plural(v.orders, 'order')}</span>
@@ -117,16 +124,17 @@ export default function Vendors() {
 			{rows.length > step
 				? (
 					<ListFooter loose>
-						<span className="sp-subtitle">Showing {amount(paged.page.length, 0)} of {amount(rows.length, 0)}</span>
-						{paged.more ? <Button variant="outline" size="small" onClick={paged.showMore}>Load more</Button> : null}
+						<span className="sp-subtitle">Showing {amount(shown.length, 0)} of {amount(rows.length, 0)}</span>
+						{shown.length < rows.length ? <Button variant="outline" size="small" onClick={() => setPages(pages + 1)}>Load more</Button> : null}
 					</ListFooter>
 				)
 				: null}
 		</>
 	)
 	else body = (
-		<List data={rows} recordKey={v => v.id} noun="vendors" pageSize={step} selectionKey={query + sort.id}
+		<List data={shown} total={rows.length} onLoadMore={() => setPages(pages + 1)} recordKey={v => v.id} noun="vendors" pageSize={step}
 			rowTo={v => `/vendors/${v.id}/edit`} locale={NUMBER_LOCALE}>
+			<Caption><strong className="sp-data">{plural(rows.length, 'vendor')}</strong></Caption>
 			<ListHead>
 				<ListCell width="title">Vendor</ListCell>
 				<ListCell width="amount">{sort.id.startsWith('spend') ? sort.label : 'Spend'}</ListCell>
@@ -135,7 +143,7 @@ export default function Vendors() {
 			<ListRow>
 				{v => [
 					<ListCell key="t" cell="flex">
-						<Mark size="medium">{v.name}</Mark>
+						<Mark size="medium" aria-hidden="true">{v.name}</Mark>
 						<Stacked>
 							<span className="sp-title sp-truncate">{v.name}</span>
 							<span className="sp-meta sp-truncate">{v.favourite ? `Favourite${dot}` : null}{plural(v.orders, 'order')}</span>
@@ -178,5 +186,44 @@ export default function Vendors() {
 				)
 				: null}
 		</>
+	)
+}
+
+const WIDTHS = [['62pc', '44pc', '88'], ['48pc', '36pc', '74'], ['55pc', '30pc', '92']]
+
+/* A page of rows held at the loaded rows' places (6b), so nothing moves when the vendors land. */
+function VendorsLoading({ touch, size, spend }) {
+	const rows = Array.from({ length: size }, (_, i) => ({ id: i, w: WIDTHS[i % WIDTHS.length] }))
+	if (touch) return rows.map(({ id, w }) => (
+		<Card key={id} aria-busy="true">
+			<div className="sp-cell-flex">
+				<Skeleton shape="mark" />
+				<Stacked><Bar role="sp-heading" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></Stacked>
+				<Bar role="sp-amount" w={w[2]} h="13" end />
+			</div>
+		</Card>
+	))
+	return (
+		<List data={rows} recordKey={r => r.id} noun="vendors" pageSize={size} aria-busy="true">
+			<Caption><Bar role="sp-data" w="82" h="13" /></Caption>
+			<ListHead>
+				<ListCell width="title">Vendor</ListCell>
+				<ListCell width="amount">{spend}</ListCell>
+				<ListCell width="menu" />
+			</ListHead>
+			<ListRow>
+				{({ w }) => [
+					<ListCell key="t" cell="flex">
+						<Skeleton shape="mark" />
+						<Stacked><Bar role="sp-title" w={w[0]} h="13" /><Bar role="sp-meta" w={w[1]} h="10" /></Stacked>
+					</ListCell>,
+					<ListCell key="a" cell="amount">
+						<Bar role="sp-amount" w={w[2]} h="13" end />
+						<Bar role="sp-amount-secondary" w="74" h="10" end />
+					</ListCell>,
+					<ListCell key="m" cell="menu"><Skeleton shape="icon" /></ListCell>
+				]}
+			</ListRow>
+		</List>
 	)
 }

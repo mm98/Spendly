@@ -14,16 +14,17 @@ import { Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.
 import { Segmented } from '../components/Segmented.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
-import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, useFocusTrap } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
+import { useListMemory } from '../app/listMemory.js'
 import { useApi } from '../api/useApi.js'
 import { httpUrl, siteOf } from '../api/rules.js'
 import {
-	bookmarkPhotoThumbnailUrl, bookmarkSorts, deleteBookmark, failureMessage, getBookmarks, getCategories,
+	bookmarkPhotoThumbnailUrl, bookmarkSorts, deleteBookmark, getBookmarks, getCategories,
 	getSettings, getUncategorised, setBookmarkArchived
 } from '../api/client.js'
-import { currency, plural, shortDate } from '../api/format.js'
-import { CategoryMark, ConfirmDelete, Failed, bookmarkDeleteNote } from './vendorsCategories.jsx'
+import { amount, currency, plural, shortDate } from '../api/format.js'
+import { Bar, CategoryMark, ConfirmDelete, Failed, Held, bookmarkDeleteNote, isGone, sayFailure, useFold, useRefocus } from './vendorsCategories.jsx'
 
 const SORT_LABEL = {
 	'added-desc': 'Newest first',
@@ -40,6 +41,9 @@ export default function Bookmarks() {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
+	// below the 900 fold the bar takes the phone's shape: the filters move into the sheet (18b)
+	const [column, folded] = useFold()
+	const sheeted = touch || folded
 	const [params, setParams] = useSearchParams()
 	const query = params.get('q') ?? ''
 	const category = params.get('category') ?? ''
@@ -48,14 +52,22 @@ export default function Bookmarks() {
 
 	const settings = useApi(getSettings)
 	const step = settings.data?.pageSize ?? 10
-	const [shown, setShown] = useState(step)
-	useEffect(() => setShown(step), [step, query, category, sort, archived])
+	// a page of cards per Load more, kept for Back along with the scroll
+	const { pages, setPages, restored } = useListMemory(`bookmarks?${query}&${category}&${sort}&${archived}`)
+	const shown = pages * step
 
 	const categories = useApi(getCategories)
 	const uncategorised = useApi(getUncategorised)
 	const list = useApi(getBookmarks, [{
 		query, categoryId: category, sort, archived: archived ? 'yes' : 'no', page: 1, pageSize: shown
 	}])
+	useEffect(() => { if (list.data) restored() }, [list.data])
+	// a price sort leaves out what has no price, so an empty answer is asked again without it to say why
+	const pricedEmpty = Boolean(list.data?.total && !list.data.bookmarks.length && sort.startsWith('price-'))
+	const unpriced = useApi(getBookmarks, [{
+		query, categoryId: category, sort: SORTS[0].id, archived: archived ? 'yes' : 'no', page: 1, pageSize: 1
+	}], { enabled: pricedEmpty })
+	const refocus = useRefocus(list.data?.bookmarks, '.sp-record__act', '.sp-empty a, .sp-empty button')
 
 	const [menuFor, setMenuFor] = useState(null)
 	const [deleting, setDeleting] = useState(null)
@@ -109,25 +121,32 @@ export default function Bookmarks() {
 		closeMenus()
 		try {
 			await setBookmarkArchived(bookmark.id, to)
+			refocus(bookmark, list.data.bookmarks.findIndex(b => b.id === bookmark.id))
 			refresh()
 			toast({
 				message: `${bookmark.name} ${to ? 'archived' : 'is back on your list'}.`,
 				undo: { label: 'Undo', onClick: () => setBookmarkArchived(bookmark.id, !to).then(refresh) }
 			})
 		} catch (e) {
-			toast({ message: failureMessage(e, 'That did not change. Try again.'), color: 'danger' })
+			if (isGone(e)) {
+				refocus(bookmark, list.data.bookmarks.findIndex(b => b.id === bookmark.id))
+				refresh()
+				return toast({ message: `${bookmark.name} no longer exists.` })
+			}
+			sayFailure(toast, e, 'That did not change. Try again.')
 		}
 	}
 
 	const remove = async bookmark => {
 		setBusy(true)
 		try {
-			await deleteBookmark(bookmark.id)
+			await deleteBookmark(bookmark.id).catch(e => { if (!isGone(e)) throw e })
+			refocus(bookmark, list.data.bookmarks.findIndex(b => b.id === bookmark.id))
 			setDeleting(null)
 			refresh()
 			toast({ message: `${bookmark.name} deleted.` })
 		} catch (e) {
-			toast({ message: failureMessage(e, 'That did not delete. Try again.'), color: 'danger' })
+			sayFailure(toast, e, 'That did not delete. Try again.')
 		} finally {
 			setBusy(false)
 		}
@@ -157,12 +176,15 @@ export default function Bookmarks() {
 		</Combobox>
 	)
 
+	const filtersButtonProps = {
+		variant: 'outline', ref: filtersButton, 'aria-haspopup': 'dialog', 'aria-expanded': draft ? 'true' : 'false',
+		onClick: () => setDraft({ category, archived })
+	}
 	const head = touch
 		? (
-			<ListItem variant="card">
+			<ListItem variant="card" ref={column}>
 				<span className="sp-grow">
-					<Button variant="outline" ref={filtersButton} aria-haspopup="dialog" aria-expanded={draft ? 'true' : 'false'}
-						onClick={() => setDraft({ category, archived })}>Filters</Button>
+					<Button {...filtersButtonProps}>Filters</Button>
 				</span>
 				{sortControl}
 				<span className="sp-flex-none">
@@ -171,28 +193,38 @@ export default function Bookmarks() {
 			</ListItem>
 		)
 		: (
-			<Controls>
+			<Controls ref={column}>
 				<SearchInput value={query} onChange={q => write({ q })}
 					placeholder="Search bookmarks, shops or categories" aria-label="Search bookmarks" />
-				<Combobox variant="sort" aria-label="Category" value={category ? categoryName : 'Any'} prefix="Category">
-					{categoryOptions}
-				</Combobox>
+				{folded
+					? <Button {...filtersButtonProps}>Filters</Button>
+					: (
+						<Combobox variant="sort" aria-label="Category" value={category ? categoryName : 'Any'} prefix="Category">
+							{categoryOptions}
+						</Combobox>
+					)}
 				{sortControl}
-				<Segmented name="bookmarks-shown" options={SHOWN} value={archived ? 'archived' : 'open'}
-					onChange={v => write({ archived: v === 'archived' ? 'yes' : '' })}
-					role="radiogroup" aria-label="Which bookmarks" />
+				{folded
+					? null
+					: (
+						<Segmented name="bookmarks-shown" options={SHOWN} value={archived ? 'archived' : 'open'}
+							onChange={v => write({ archived: v === 'archived' ? 'yes' : '' })}
+							role="radiogroup" aria-label="Which bookmarks" />
+					)}
 				<Button to="/bookmarks/new">New bookmark</Button>
 			</Controls>
 		)
 
-	// on a phone there is no search field or view switch on screen, so what they hold is a crumb too
+	// what a control not on screen holds is a crumb too: on a phone the search, and with the sheet
+	// the view switch; Clear all clears what the crumbs show
 	const crumbs = [
 		touch && query ? <Crumb key="q" name={`the search for "${query}"`} onRemove={() => write({ q: '' })}>"{query}"</Crumb> : null,
 		category ? <Crumb key="category" name={categoryName} onRemove={() => write({ category: '' })}>{categoryName}</Crumb> : null,
-		touch && archived ? <Crumb key="archived" name="Archived" onRemove={() => write({ archived: '' })}>Archived</Crumb> : null
+		sheeted && archived ? <Crumb key="archived" name="Archived" onRemove={() => write({ archived: '' })}>Archived</Crumb> : null
 	].filter(Boolean)
+	const clearCrumbs = touch ? clearAll : folded ? () => write({ category: '', archived: '' }) : () => write({ category: '' })
 
-	const closeSheet = () => { setDraft(null); filtersButton.current?.focus() }
+	const closeSheet = () => setDraft(null)
 	const sheet = draft
 		? createPortal(
 			<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) closeSheet() }}>
@@ -207,23 +239,8 @@ export default function Bookmarks() {
 	let body
 	if (list.error) {
 		body = <Failed title="Your bookmarks did not load" error={list.error} onRetry={refresh} />
-	} else if (!data) {
-		body = (
-			<Card aria-busy="true" aria-label="Loading your bookmarks">
-				<div className="sp-stack sp-gap-12">
-					{[0, 1, 2].map(i => (
-						<div className="sp-row-flex sp-gap-12" key={i}>
-							<Skeleton shape="mark" />
-							<span className="sp-stack sp-gap-8 sp-grow">
-								<Skeleton shape="title" />
-								<Skeleton shape="line" />
-								<Skeleton shape="short" />
-							</span>
-						</div>
-					))}
-				</div>
-			</Card>
-		)
+	} else if (!data || (pricedEmpty && (unpriced.loading || (!unpriced.data && !unpriced.error)))) {
+		body = <BookmarksLoading size={step} />
 	} else if (data.total === 0) {
 		body = (
 			<Card>
@@ -238,9 +255,12 @@ export default function Bookmarks() {
 		// each sentence states only what an empty answer to this exact request proves
 		const state = archived ? 'archived' : 'open'
 		const holds = used.find(c => c.id === category)?.bookmarks ?? 0
-		const priced = sort.startsWith('price-')
+		// under a price sort, the price is the cause only when the same filters find bookmarks without it
+		const priced = sort.startsWith('price-') && unpriced.data?.matched > 0
+		const unknown = sort.startsWith('price-') && !unpriced.data
 		const filtered = Boolean(query || category || archived)
-		const why = priced ? `No ${state} bookmark here has a price yet. Sorting by price leaves those out.`
+		const why = unknown ? null
+			: priced ? `No ${state} bookmark here has a price yet. Sorting by price leaves those out.`
 			: query && category && category !== NONE
 				? `Nothing in ${categoryName} matches "${query}". ${categoryName} holds ${plural(holds, 'bookmark')}.`
 			: query && category ? `Nothing without a category matches "${query}".`
@@ -253,8 +273,8 @@ export default function Bookmarks() {
 			<Card>
 				<Empty>
 					<EmptyTitle>No bookmarks match these filters</EmptyTitle>
-					<EmptyBody>{why}</EmptyBody>
-					{priced ? <Button variant="outline" size="small" onClick={() => write({ sort: SORTS[0].id })}>Sort by newest</Button> : null}
+					{why ? <EmptyBody>{why}</EmptyBody> : null}
+					{priced || unknown ? <Button variant="outline" size="small" onClick={() => write({ sort: SORTS[0].id })}>Sort by newest</Button> : null}
 					{filtered ? <Button variant="outline" size="small" onClick={clearAll}>Clear filters</Button> : null}
 				</Empty>
 			</Card>
@@ -263,11 +283,11 @@ export default function Bookmarks() {
 		const footer = data.matched > step
 			? (
 				<>
-					<span className="sp-subtitle">Showing {data.bookmarks.length} of {data.matched}</span>
+					<span className="sp-subtitle">Showing {amount(data.bookmarks.length, 0)} of {amount(data.matched, 0)}</span>
 					<span className="sp-grow" />
 					{/* gone once everything is loaded: a disabled Load more promises more that will not come */}
 					{data.bookmarks.length < data.matched
-						? <Button variant="outline" size="small" onClick={() => setShown(n => n + step)}>Load more</Button>
+						? <Button variant="outline" size="small" onClick={() => setPages(pages + 1)}>Load more</Button>
 						: null}
 				</>
 			)
@@ -308,12 +328,7 @@ export default function Bookmarks() {
 											<MenuItem icon="pencil" onClick={() => navigate(`/bookmarks/${bookmark.id}/edit`)}>Edit bookmark</MenuItem>
 											<MenuItem icon="archive" onClick={() => archive(bookmark, !bookmark.archived)}>{bookmark.archived ? 'Unarchive' : 'Archive'}</MenuItem>
 											<MenuSeparator />
-											<MenuItem icon="trash" danger onClick={() => {
-												// the dialog hands focus back to what had it, and the menu item is about to go
-												document.querySelector('[data-menu-open="true"] [aria-haspopup="menu"]')?.focus()
-												closeMenus()
-												setDeleting(bookmark)
-											}}>Delete bookmark</MenuItem>
+											<MenuItem icon="trash" danger onClick={() => { closeMenus(); setDeleting(bookmark) }}>Delete bookmark</MenuItem>
 										</Menu>
 									)
 									: null
@@ -328,14 +343,14 @@ export default function Bookmarks() {
 	return (
 		<>
 			{head}
-			{crumbs.length ? <Filters onClear={touch ? clearAll : () => write({ category: '' })}>{crumbs}</Filters> : null}
+			{crumbs.length ? <Filters onClear={clearCrumbs}>{crumbs}</Filters> : null}
 			{body}
 			{sheet}
 			{deleting
 				? (
 					<ConfirmDelete title={`Delete ${deleting.name}?`} action="Delete bookmark" busy={busy}
 						onConfirm={() => remove(deleting)} onCancel={() => setDeleting(null)}>
-						{bookmarkDeleteNote}
+						{bookmarkDeleteNote(deleting)}
 					</ConfirmDelete>
 				)
 				: null}
@@ -346,7 +361,8 @@ export default function Bookmarks() {
 /** The phone's filters (Mobile screens 22a, c12): a sheet over the list, applied together. */
 function FilterSheet({ draft, setDraft, used, withoutCount, onClose, onApply }) {
 	const box = useRef(null)
-	useEffect(() => { box.current?.querySelector('input, button')?.focus() }, [])
+	// modal while open; closing gives focus back to the Filters button that opened it
+	useFocusTrap(box)
 	const pick = next => setDraft(d => ({ ...d, ...next }))
 	return (
 		<Sheet role="dialog" aria-modal="true" aria-label="Filters" ref={box}
@@ -379,3 +395,25 @@ function FilterSheet({ draft, setDraft, used, withoutCount, onClose, onApply }) 
 	)
 }
 
+
+const noop = () => {}
+const LOADING_WIDTHS = [['62pc', '44pc'], ['48pc', '36pc'], ['55pc', '30pc']]
+
+/* A page of cards held at the loaded cards' size (6b), so nothing moves when the bookmarks land. */
+function BookmarksLoading({ size }) {
+	return (
+		<Records aria-busy="true" aria-label="Loading your bookmarks">
+			{Array.from({ length: size }, (_, i) => {
+				const [title, shop] = LOADING_WIDTHS[i % LOADING_WIDTHS.length]
+				return (
+					<Record key={i} photos={['']}
+						title={<Bar role="sp-title" w={title} h="13" />}
+						subtitle={<Bar role="sp-subtitle" w={shop} h="11" />}
+						chips={<Held shape={<Chip onClick={noop}>Decor</Chip>} />}
+						meta={<Bar role="sp-subtitle" w="96" h="11" />}
+						amount={<Bar role="sp-amount" w="64" h="20" end />} />
+				)
+			})}
+		</Records>
+	)
+}

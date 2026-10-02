@@ -1,0 +1,20 @@
+/* The Library (5a-5f, 22a-22d): vendors, categories and bookmarks, their lists and record forms. */
+
+@layer base {
+
+	/* a record's form beside its rail: the form stops at its width in a 1400 window (5b, 22c),
+	   and the rail stays next to it rather than at the far edge */
+	.lb-split {
+		display: grid;
+		grid-template-columns: minmax(0, 748px) max-content;
+		gap: var(--sp-12);
+		align-items: start;
+	}
+
+	/* a skeleton laid over the part it stands in for, which is kept unseen beneath so the size holds */
+	.lb-hold { display: grid; min-width: 0; }
+	.lb-ghost,
+	.lb-state { grid-area: 1 / 1; display: grid; align-items: center; min-width: 0; }
+	.lb-ghost { visibility: hidden; }
+
+}
