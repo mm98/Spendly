@@ -1,4 +1,5 @@
 import { join, pick, reject } from './variants.js'
+import { Skeleton } from './Utilities.jsx'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
@@ -25,8 +26,16 @@ export function GaugeKey(props) {
 
 const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
 
-export function Bars({ columns = [], variant = 'default', selected, onSelect, ...rest }) {
+// the columns that have not arrived, as States 6b draws them
+const LOADING_BARS = ['40', '56', '46', '68', '60', '82', '74', '96']
+
+export function Bars({ columns = [], variant = 'default', selected, onSelect, loading = false, ...rest }) {
 	reject(rest, 'Bars')
+	if (loading) return (
+		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'))} {...rest}>
+			{LOADING_BARS.map((h, i) => <Skeleton shape="bar" data-h-pc={h} key={i} />)}
+		</span>
+	)
 	for (const c of columns) {
 		if (!!c.from !== !!c.to) console.error(`<Bars> column "${c.key}" has ${c.from ? 'from' : 'to'} without the other: a period is the pair`)
 		if (c.from && c.to && c.from > c.to) console.error(`<Bars> column "${c.key}" runs backwards: ${c.from} → ${c.to}`)
@@ -61,6 +70,7 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, ..
 					<button
 						type="button"
 						className="sp-bars__col"
+						aria-label={column.label}
 						aria-pressed={selected === column.key ? 'true' : 'false'}
 						data-from={column.from}
 						data-to={column.to}
@@ -91,12 +101,14 @@ export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 	)
 }
 
-export function Stat({ figure, large = false, label, delta, ...rest }) {
+const STAT_INK = { default: null, success: 'sp-ink-success' }
+
+export function Stat({ figure, large = false, color = 'default', label, delta, ...rest }) {
 	reject(rest, 'Stat')
 	return (
 		<div className="sp-stat" {...rest}>
 			{label ? <span className="sp-section-label">{label}</span> : null}
-			<span className={join('sp-stat__figure', large && 'sp-stat__figure--large')}>{figure}</span>
+			<span className={join('sp-stat__figure', large && 'sp-stat__figure--large', pick(STAT_INK, color, 'color', 'Stat'))}>{figure}</span>
 			{delta ? <span className="sp-stat__delta">{delta}</span> : null}
 		</div>
 	)
