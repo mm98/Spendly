@@ -13,6 +13,10 @@ const src = join(root, 'src')
 const read = p => readFileSync(p, 'utf8')
 const tokens = read(join(src, 'styles/tokens.css'))
 const components = read(join(src, 'styles/components.css'))
+// one layout file per screen, as the handoff's styles/pages/ has; never a component rule
+const layoutDir = join(src, 'styles/pages')
+const pageCss = (() => { try { return readdirSync(layoutDir).filter(n => n.endsWith('.css')).map(n => join(layoutDir, n)) } catch { return [] } })()
+const pages = pageCss.map(p => [p, read(p)])
 
 const findings = []
 const seen = new Set()
@@ -53,7 +57,7 @@ const stringsIn = node => {
 
 /* ---- classes resolve, tokens are defined ---- */
 
-const cssClasses = new Set([...components.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map(m => m[1]))
+const cssClasses = new Set([...[components, ...pages.map(([, css]) => css)].join('\n').matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map(m => m[1]))
 const defined = new Set([...(tokens + components).matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]))
 // set per instance by a component, which is the one place a fallback is legitimate
 const HOOKS = ['--swatch', '--p', '--a', '--b']
@@ -69,13 +73,13 @@ for (const [p, ast] of parsed) {
 		const literal = n.value.type === 'Literal'
 		for (const s of stringsIn(n.value))
 			for (const c of s.split(/\s+/).filter(Boolean))
-				if ((literal || c.startsWith('sp-')) && c !== 'sp' && !cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css`)
+				if ((literal || c.startsWith('sp-')) && c !== 'sp' && !cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css or a page layout file`)
 	})
 	// a class chosen from a variant map or join() never sits in a className literal
 	for (const s of stringsIn(ast)) {
 		const parts = s.trim().split(/\s+/)
 		if (parts.length && parts.every(c => /^sp-[\w-]+$/.test(c)))
-			for (const c of parts) if (!cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css`)
+			for (const c of parts) if (!cssClasses.has(c)) fail('classes resolve', rel(p), `.${c} has no rule in components.css or a page layout file`)
 		for (const v of s.matchAll(/var\((--[\w-]+)/g))
 			if (!defined.has(v[1])) fail('tokens defined', rel(p), `${v[1]} is not defined`)
 	}
@@ -92,6 +96,17 @@ const RAW_SPACING = { '-4px': 4, '1px': 4, '3px': 3, '-2px': 2, '2px': 2, '-12px
 		for (const px of m[1].matchAll(/(?<![\w.-])-?\d*\.?\d+px/g)) found[px[0]] = (found[px[0]] ?? 0) + 1
 	for (const [px, n] of Object.entries(found))
 		if (n > (RAW_SPACING[px] ?? 0)) fail('spacing on the scale', 'components.css', `${n - (RAW_SPACING[px] ?? 0)} new spacing value(s) of ${px}: use a --sp-* token`)
+}
+
+/* ---- page layout files: in @layer base, page-prefixed, spacing from tokens only ---- */
+for (const [p, css] of pages) {
+	const plain = css.replace(/\/\*[\s\S]*?\*\//g, '')
+	if (!/^\s*@layer base\s*\{[\s\S]*\}\s*$/.test(plain)) fail('page css in @layer base', rel(p), 'wrap the whole file in @layer base { }')
+	for (const m of plain.matchAll(/\.(sp-[\w-]+)\s*[{,]/g)) fail('page css styles no component', rel(p), `.${m[1]} is a component's class`)
+	for (const m of plain.matchAll(/(?<![\w-])(?:gap|row-gap|column-gap|padding|margin)(?:-[a-z]+)?\s*:\s*([^;}]+)/g))
+		if (/(?<![\w.-])-?\d*\.?[1-9]\d*px/.test(m[1])) fail('spacing on the scale', rel(p), m[0].trim())
+	for (const v of plain.matchAll(/var\((--[\w-]+)/g))
+		if (!defined.has(v[1])) fail('tokens defined', rel(p), `${v[1]} is not defined`)
 }
 
 /* ---- the variant sets, read from the components themselves ---- */
@@ -170,7 +185,7 @@ for (const [p, ast] of parsed) {
 /* ---- what the product says ---- */
 
 const TELLS = [/—/, /–/, /[‘’“”]/, /&(mdash|ndash|rsquo|lsquo|ldquo|rdquo);/, /\p{Extended_Pictographic}/u]
-const sweep = [...checked, join(root, 'index.html'), join(src, 'styles/tokens.css'), join(src, 'styles/components.css')]
+const sweep = [...checked, ...pageCss, join(root, 'index.html'), join(src, 'styles/tokens.css'), join(src, 'styles/components.css')]
 for (const p of sweep) read(p).split('\n').forEach((line, i) => {
 	for (const t of TELLS) if (t.test(line)) fail('typographic tells', `${rel(p)}:${i + 1}`, line.trim().slice(0, 90))
 })

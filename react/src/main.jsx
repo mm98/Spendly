@@ -7,6 +7,9 @@ import './styles/fonts.css'
 import './styles/tokens.css'
 import './styles/components.css'
 
+// each screen's layout file (styles/pages): in @layer base, so a component rule always wins
+import.meta.glob('./styles/pages/*.css', { eager: true })
+
 // before first paint, so a dark reader never sees a light frame
 applyTheme()
 
