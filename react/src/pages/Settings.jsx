@@ -12,6 +12,8 @@ import { Segmented } from '../components/Segmented.jsx'
 import { NavItem } from '../components/Shell.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
+import { Halves } from '../components/Well.jsx'
+import { SaveBar } from '../components/Touch.jsx'
 import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setTheme, useTheme } from '../app/theme.js'
 import { invalidate, useApi } from '../api/useApi.js'
@@ -82,8 +84,8 @@ export default function Settings() {
 		return out
 	})
 	const dirty = SECTIONS.filter(s => s.keys?.some(k => k in draft))
-	// moving between panes keeps the draft, so only leaving Settings asks first
-	const guard = useLeaveGuard(dirty.length > 0, { within: '/settings' })
+	// moving between panes keeps the draft, so only leaving Settings asks first, naming what is lost
+	const guard = useLeaveGuard(dirty.length > 0, { within: '/settings', names: dirty.map(s => s.label) })
 
 	const save = () => {
 		setSaving(true)
@@ -96,14 +98,18 @@ export default function Settings() {
 				setDraft({})
 				toast({ message: 'Your settings are saved.' })
 			})
-			.catch(e => toast({ message: failureMessage(e, 'Your changes were not saved. Try again.'), color: 'danger' }))
+			.catch(e => {
+				const message = failureMessage(e, 'Your changes were not saved. Try again.')
+				if (message) toast({ message, color: 'danger' })
+			})
 			.finally(() => setSaving(false))
 	}
 
-	const fields = { value, change, touch: shape === 'touch' }
+	const touch = shape === 'touch'
+	const fields = { value, change, touch }
 	const cards = {
 		account: <AccountCard key="account" email={user.data?.email} />,
-		appearance: <AppearanceCard key="appearance" touch={shape === 'touch'} />,
+		appearance: <AppearanceCard key="appearance" touch={touch} />,
 		money: <MoneyCard key="money" {...fields} />,
 		defaults: <DefaultsCard key="defaults" {...fields} />,
 		lists: <ListsCard key="lists" {...fields} />,
@@ -112,18 +118,27 @@ export default function Settings() {
 		build: <BuildCard key="build" />
 	}
 
-	const saveBar = dirty.length
-		? (
-			<ListItem variant="sticky">
-				<span className="sp-data">
-					{dirty.length === 1 ? `Unsaved changes in ${dirty[0].label}` : `Unsaved changes in ${dirty.length} sections`}
-				</span>
-				<span className="sp-grow" />
-				<Button variant="outline" size="small" disabled={saving} onClick={() => setDraft({})}>Discard</Button>
-				<Button disabled={saving} onClick={save}>Save</Button>
-			</ListItem>
-		)
-		: null
+	const discard = () => setDraft({})
+	// on a phone the bar takes the tab bar's place at the bottom edge (r13, 5b)
+	const saveBar = !dirty.length ? null
+		: touch
+			? (
+				<SaveBar>
+					<span className="sp-subtitle sp-grow">Unsaved changes</span>
+					<Button variant="outline" disabled={saving} onClick={discard}>Discard</Button>
+					<Button disabled={saving} onClick={save}>Save</Button>
+				</SaveBar>
+			)
+			: (
+				<ListItem variant="sticky">
+					<span className="sp-data">
+						{dirty.length === 1 ? `Unsaved changes in ${dirty[0].label}` : `Unsaved changes in ${dirty.length} sections`}
+					</span>
+					<span className="sp-grow" />
+					<Button variant="outline" size="small" disabled={saving} onClick={discard}>Discard</Button>
+					<Button disabled={saving} onClick={save}>Save</Button>
+				</ListItem>
+			)
 
 	const body = settings.error && !saved
 		? <LoadFailed onRetry={settings.refresh} />
@@ -131,7 +146,7 @@ export default function Settings() {
 			? <><LoadingCard /><LoadingCard /><LoadingCard /></>
 			: null
 
-	if (shape === 'touch') {
+	if (touch) {
 		if (body) return body
 		const open = current && current !== 'account' ? current : null
 		return (
@@ -207,11 +222,11 @@ function AccountCard({ email }) {
 	return (
 		<Card>
 			<Heading section="account">Account and profile</Heading>
-			<div className="sp-halves">
+			<Halves>
 				<Field label="Email">
 					<TextField type="email" variant="readonly" readOnly value={email ?? ''} />
 				</Field>
-			</div>
+			</Halves>
 		</Card>
 	)
 }
@@ -237,7 +252,7 @@ function AppearanceCard({ touch }) {
 
 /* Two fields side by side on a wide screen; stacked on a phone, where a half is too narrow. */
 function Pair({ touch, children }) {
-	return touch ? children : <div className="sp-halves">{children}</div>
+	return touch ? children : <Halves>{children}</Halves>
 }
 
 function MoneyCard({ value, change, touch }) {
@@ -282,6 +297,9 @@ function DefaultsCard({ value, change, touch }) {
 	)
 }
 
+// a stored sort the lists do not offer opens them on their first, so that is what shows here
+const known = (options, id) => (options.some(o => o.id === id) ? id : options[0].id)
+
 function ListsCard({ value, change, touch }) {
 	const rows = value('pageSize')
 	return (
@@ -295,10 +313,10 @@ function ListsCard({ value, change, touch }) {
 			</Field>
 			<Pair touch={touch}>
 				<Field label="Sort orders by" message="The order All orders opens with.">
-					<Choose value={value('sort')} onChange={v => change('sort', v)} options={sorts} />
+					<Choose value={known(sorts, value('sort'))} onChange={v => change('sort', v)} options={sorts} />
 				</Field>
 				<Field label="Sort vendors and categories by" message="The order both lists open with.">
-					<Choose value={value('listSort')} onChange={v => change('listSort', v)} options={listSorts} />
+					<Choose value={known(listSorts, value('listSort'))} onChange={v => change('listSort', v)} options={listSorts} />
 				</Field>
 			</Pair>
 		</Card>

@@ -1,7 +1,7 @@
 /* The API client. useApi.js keys its cache off each function's name, so a reader keeps its name;
    paths are relative, since the dev server proxies /api (vite.config.js). */
 
-import { detectLocale, parseAmount } from './format.js'
+import { detectLocale, parseAmount, today } from './format.js'
 import { forgetAll, invalidate } from './useApi.js'
 import { forgetRecent } from '../app/recent.js'
 
@@ -16,10 +16,44 @@ class ApiError extends Error {
 	}
 }
 
+/** A failure with no sentence for the reader (a gateway, a crash, a server note): the same kind
+    as no connection, so the page's own words show. The answer is kept whole, as ApiError keeps it. */
+class NoAnswer extends Error {
+	constructor(status, fields, body) {
+		super('No answer')
+		this.name = 'NoAnswer'
+		this.status = status
+		this.fields = fields
+		this.body = body
+	}
+}
+
+// what the server says reaches the reader only as a refusal written for them: a whole sentence,
+// never a crash's note or a record's internal id
+const forReader = (status, text) => status < 500 && typeof text === 'string'
+	&& /^[A-Z0-9"'(].*[.?!]$/s.test(text.trim()) && !/\b[a-z]{1,3}-[0-9a-f]{8,}\b/.test(text)
+
 /** The sentence a failed request shows: the server's own words, or `fallback` for a failure that
-    has none (no connection), whose browser message is not about what the reader did. */
+    has none (no connection), whose browser message is not about what the reader did. Empty for a
+    session that ended: the shell's signed-out dialog says it once. */
 export const failureMessage = (error, fallback) =>
-	error?.name === 'ApiError' ? error.message : fallback
+	error?.signedOut ? '' : error?.name === 'ApiError' ? error.message : fallback
+
+// the records a "not found" can name, by the address asked; the server's own text carries an id
+const THINGS = [
+	[/^\/api\/orders\/(?!import|draft|overview)[^/?]+/, 'order'],
+	[/^\/api\/vendors\/[^/?]+/, 'vendor'],
+	[/^\/api\/categories\/(?!uncategorised)[^/?]+/, 'category'],
+	[/^\/api\/bookmarks\/(?!preview)[^/?]+/, 'bookmark'],
+	[/^\/api\/budget\/lines\//, 'budget row'],
+	[/^\/api\/budget\/groups\//, 'budget group'],
+	[/^\/api\/budget\/accounts\//, 'account']
+]
+
+/** What a record that is gone says: a save names the loss, never the record's id. */
+const goneMessage = (thing, method) => (method === 'GET' ? `This ${thing} does not exist. It may have been deleted.`
+	: method === 'DELETE' ? `This ${thing} was already deleted in another window.`
+	: `This ${thing} was deleted in another window. Your changes cannot be saved.`)
 
 const qs = params => {
 	const usp = new URLSearchParams()
@@ -37,17 +71,33 @@ export function onSessionEnded(fn) {
 	return () => { if (sessionListener === fn) sessionListener = null }
 }
 
+/** The error a refused request throws: `signedOut` for a session that ended, `gone` for a record that is gone. */
+function refusal(path, method, status, data) {
+	const ended = status === 401 && !path.startsWith('/api/auth/')
+	if (ended && !signedOut) sessionListener?.()
+	const thing = status === 404 ? THINGS.find(([at]) => at.test(path))?.[1] : null
+	const error = thing ? new ApiError(goneMessage(thing, method), status, data?.fields, data)
+		: forReader(status, data?.error) ? new ApiError(data.error, status, data.fields, data)
+		: new NoAnswer(status, data?.fields, data)
+	if (ended) error.signedOut = true
+	if (thing) error.gone = true
+	return error
+}
+
+// the reader's own date, which the server takes as today
+const TODAY = 'X-Spendly-Today'
+
 async function request(path, { method = 'GET', body, signal, form } = {}) {
+	const json = !form && body !== undefined
 	const res = await fetch(path, {
 		method, signal, credentials: 'include',
-		headers: form || body === undefined ? undefined : { 'Content-Type': 'application/json' },
-		body: form ?? (body === undefined ? undefined : JSON.stringify(body))
+		headers: { [TODAY]: today(), ...(json ? { 'Content-Type': 'application/json' } : {}) },
+		body: form ?? (json ? JSON.stringify(body) : undefined)
 	})
-	if (res.status === 401 && !signedOut && !path.startsWith('/api/auth/')) sessionListener?.()
 	if (res.status === 204) return null
 	let data = null
 	try { data = await res.json() } catch { /* empty body */ }
-	if (!res.ok) throw new ApiError(data?.error || res.statusText || 'Request failed', res.status, data?.fields, data)
+	if (!res.ok) throw refusal(path, method, res.status, data)
 	return data
 }
 
@@ -98,14 +148,20 @@ export async function createVendor(name, look = {}, signal) {
 }
 
 export async function getVendor(id, signal) {
-	return request(`/api/vendors/${id}`, { signal })
+	return request(`/api/vendors/${id}`, { signal }).catch(forgetGone('vendor', id))
 }
 
 export async function updateVendor(id, patch, signal) {
 	return request(`/api/vendors/${id}`, { method: 'PATCH', body: patch, signal })
 }
 
-/* A deleted order or vendor leaves Jump back in here, so the palette never asks for it (9d). */
+/* A deleted order or vendor leaves Jump back in, so the palette never asks for it (9d): here, or
+   on the first read that finds it gone. */
+const forgetGone = (kind, id) => error => {
+	if (error?.gone) forgetRecent(kind, id)
+	throw error
+}
+
 export async function deleteVendor(id, signal) {
 	const out = await request(`/api/vendors/${id}`, { method: 'DELETE', signal })
 	forgetRecent('vendor', id)
@@ -350,7 +406,7 @@ export async function getOrders(params = {}, signal) {
 }
 
 export async function getOrder(id, signal) {
-	return request(`/api/orders/${id}`, { signal })
+	return request(`/api/orders/${id}`, { signal }).catch(forgetGone('order', id))
 }
 
 export async function createOrder(draft, signal) {
@@ -405,6 +461,7 @@ function uploadJson(path, body, { signal, onSent, onLine } = {}) {
 		const xhr = new XMLHttpRequest()
 		xhr.open('POST', path)
 		xhr.setRequestHeader('Content-Type', 'application/json')
+		xhr.setRequestHeader(TODAY, today())
 		xhr.withCredentials = true
 		if (onSent) xhr.upload.onprogress = e => { if (e.lengthComputable && e.total) onSent(e.loaded / e.total) }
 		const streamed = () => (xhr.getResponseHeader('Content-Type') || '').includes('x-ndjson')
@@ -433,7 +490,7 @@ function uploadJson(path, body, { signal, onSent, onLine } = {}) {
 				let data = null
 				try { data = JSON.parse(xhr.responseText) } catch { /* empty body */ }
 				if (xhr.status >= 200 && xhr.status < 300) resolve(data)
-				else reject(new ApiError(data?.error || xhr.statusText || 'Request failed', xhr.status, data?.fields, data))
+				else reject(refusal(path, 'POST', xhr.status, data))
 			}
 		}
 		xhr.send(JSON.stringify(body))
@@ -553,37 +610,34 @@ export const bookmarkSorts = [
 /* ---- what a write invalidates: the cache trusts an answer until a write drops it (useApi.js),
    so a read missing from its group shows old figures. Grouped by what changed. ---- */
 
-/** An order changed: everything sums orders, the vendor and category records included. */
+const orderReads = [getOrders, getOrder, getStats]
+const vendorReads = [getVendors, getVendor]
+const categoryReads = [getCategories, getCategoriesThisMonth, getCategory, getUncategorised]
+const bookmarkReads = [getBookmarks, getBookmark]
+const drop = (...groups) => { for (const fn of groups.flat()) invalidate(fn) }
+
+/** An order changed: everything sums orders, and saving one can create a vendor or a category. */
 export function invalidateOrderData() {
-	invalidate(getOrders); invalidate(getOrder)
-	invalidate(getStats)
-	invalidate(getVendors); invalidate(getVendor)
-	invalidate(getCategories); invalidate(getCategoriesThisMonth); invalidate(getCategory)
-	invalidate(getUncategorised)
+	drop(orderReads, vendorReads, categoryReads)
 }
 
-/** A vendor changed or was created. Order rows carry its name, so the order reads go too. */
+/** A vendor changed or was created. Order rows carry its name, and its default categories can
+    create a category. */
 export function invalidateVendorData() {
-	invalidate(getVendors); invalidate(getVendor)
-	invalidate(getOrders); invalidate(getOrder)
-	invalidate(getStats)
+	drop(vendorReads, orderReads, categoryReads)
 }
 
-/** A bookmark changed. Saving one can create a category it names, so the category reads go too. */
+/** A bookmark changed. Saving one can create a category it names. */
 function invalidateBookmarkData() {
-	invalidate(getBookmarks); invalidate(getBookmark)
-	invalidate(getCategories); invalidate(getCategoriesThisMonth); invalidate(getUncategorised)
+	drop(bookmarkReads, categoryReads)
 }
 
-/** A category changed or was created. Order rows carry its name, so the order reads go too. */
+/** A category changed or was created. Orders, vendors' defaults and bookmarks carry its name. */
 export function invalidateCategoryData() {
-	invalidate(getCategories); invalidate(getCategoriesThisMonth); invalidate(getCategory)
-	invalidate(getUncategorised)
-	invalidate(getOrders); invalidate(getOrder)
-	invalidate(getStats)
+	drop(categoryReads, orderReads, vendorReads, bookmarkReads)
 }
 
 /** The budget changed: only the budget page and the bank check read it. */
 function invalidateBudgetData() {
-	invalidate(getBudgetYears); invalidate(getBudgetYear); invalidate(getBudgetAccounts); invalidate(getBankLinks)
+	drop(getBudgetYears, getBudgetYear, getBudgetAccounts, getBankLinks)
 }

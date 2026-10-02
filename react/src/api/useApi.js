@@ -1,27 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-/* One hook for every read in the app.
+/* One hook for every read: it aborts a request whose arguments changed, caches by endpoint and
+   arguments, keeps the last good data across a refetch, and reports the error.
 
-   It does four things, and each of them is a defect somewhere that skips it: it aborts the
-   request in flight when the arguments change or the component goes away, so a slow answer
-   cannot overwrite a fast one that came after it; it caches by endpoint and arguments, so
-   walking back to a page paints from what is already known instead of flashing a skeleton
-   at a value that has not changed; it keeps the last good data across a refetch, so the
-   layout does not collapse and reflow under the user; and it reports the error rather than
-   rendering an empty page that looks like an answer.
+   A cached answer is trusted for FRESH_MS with no request: every write invalidates the reads it
+   can change (the groups at the foot of client.js). Past it a hit paints at once and asks again
+   quietly, for what invalidation cannot see: another device, or the day rolling over.
 
-   A cached answer is *trusted*, not just painted: within FRESH_MS a hit costs no request at
-   all. Every write in the app already invalidates the reads it can change (the grouped
-   helpers at the foot of client.js), so re-asking on every mount bought nothing within a tab
-   and charged the server a full aggregation per tab switch for it. The horizon exists for
-   what invalidation cannot see -- another device editing the account, and the day rolling
-   over under a window left open (Home's hero and the stats windows are anchored to today) --
-   past it a hit still paints instantly and revalidates in the background, so the cost is at
-   most one quiet request per entry per horizon, never a skeleton.
-
-   The cache key is the endpoint's name and its arguments as JSON. That is also why `args`
-   need not be memoised at the call site: a fresh array with the same contents is the same
-   key, so passing one inline does not re-run the effect on every render. */
+   The key is the endpoint's name and its arguments as JSON, so `args` need not be memoised. */
 
 const cache = new Map()   // key -> { data, at }
 
@@ -121,6 +107,30 @@ export async function cachedFetch(fn, args = [], signal) {
 	cache.set(key, { data, at: Date.now() })
 	evict()
 	return data
+}
+
+/** Asks the server even when the cache holds an answer, and keeps what it says: for a record
+    about to be offered as live. A record that is gone leaves the cache. */
+export async function freshFetch(fn, args = [], signal) {
+	const key = keyOf(fn, args)
+	try {
+		const data = await fn(...args, signal)
+		cache.set(key, { data, at: Date.now() })
+		evict()
+		return data
+	} catch (error) {
+		if (error?.gone) cache.delete(key)
+		throw error
+	}
+}
+
+/** What the cache holds for a read, however old, without asking. */
+export const peek = (fn, args = []) => cache.get(keyOf(fn, args))?.data
+
+/** Forgets one cached answer received before `since` (a Date.now()), so its next reader asks. */
+export function forgetOlder(fn, args, since) {
+	const key = keyOf(fn, args)
+	if ((cache.get(key)?.at ?? Infinity) < since) cache.delete(key)
 }
 
 /** Forgets every cached answer without telling the readers on screen to ask again. */
