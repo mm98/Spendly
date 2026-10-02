@@ -2,8 +2,8 @@ import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router'
 import { Palette as Surface, PaletteAll, PaletteGroup, PaletteRow, PaletteRule, Scrim } from '../components/Shell.jsx'
-import { getCurrentUser, getOrder, getOrders, getVendors, searchRecords, SEARCH_CAP } from '../api/client.js'
-import { cachedFetch, useApi } from '../api/useApi.js'
+import { getCurrentUser, getOrder, getOrders, getVendor, getVendors, searchRecords, SEARCH_CAP } from '../api/client.js'
+import { cachedFetch, forgetOlder, freshFetch, peek, useApi } from '../api/useApi.js'
 import { amount, currency, dayShortMonth, dot, plural } from '../api/format.js'
 import { MAC } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
@@ -31,43 +31,56 @@ export function useRecentRecords() {
 	}, [pathname, user])
 }
 
-const orderRow = o => ({
-	key: 'recent-order-' + o.id, icon: 'file', name: o.vendor?.name ?? 'No vendor', open: true,
-	meta: [o.reference, dayShortMonth(o.date), currency(o.total)].filter(Boolean).join(dot), to: `/orders/${o.id}`
+// a phone keeps the name and one line of detail, without the amount (7b)
+const orderRow = (o, touch) => ({
+	key: 'recent-order-' + o.id, icon: 'file', name: o.vendor?.name ?? 'No vendor', open: true, read: [getOrder, [o.id]],
+	meta: [o.reference, dayShortMonth(o.date), touch ? null : currency(o.total)].filter(Boolean).join(dot), to: `/orders/${o.id}`
 })
 const vendorRow = v => ({
-	key: 'recent-vendor-' + v.id, icon: 'shopping-bag', name: v.name, open: true,
+	key: 'recent-vendor-' + v.id, icon: 'shopping-bag', name: v.name, open: true, read: [getVendor, [v.id]],
 	meta: 'vendor' + dot + plural(v.orders, 'order'), to: `/vendors/${v.id}/edit`
 })
 
-/* A deleted record drops out without a trace (9d); a vendor is looked up in the list, so a gone
-   one costs no request. Null until read, so the actions do not jump down when it arrives. */
-function useRecentRows() {
+const rowsOf = (list, answers, touch) => list.flatMap((r, i) => (answers[i] == null ? []
+	: [r.kind === 'order' ? orderRow(answers[i], touch) : vendorRow(answers[i])]))
+
+// what the cache already knows, painted while the server is asked; null when any is missing
+function cachedRows(list, touch) {
+	const vendors = peek(getVendors)
+	const answers = list.map(r => (r.kind === 'order' ? peek(getOrder, [r.id]) : vendors?.find(v => v.id === r.id)))
+	return answers.every(Boolean) ? rowsOf(list, answers, touch) : null
+}
+
+/* Each record is asked for again, never taken from the cache, so one deleted elsewhere drops out
+   without a trace (9d) and opening it never shows it as live. */
+function useRecentRows(touch) {
 	const user = useApi(getCurrentUser).data?.id
-	const [rows, setRows] = useState(() => (user && readRecent(user).length ? null : []))
+	const [rows, setRows] = useState(() => {
+		const list = user ? readRecent(user) : []
+		return list.length ? cachedRows(list, touch) : []
+	})
 	useEffect(() => {
 		if (!user) return
 		const list = readRecent(user)
 		if (!list.length) return
-		let live = true
-		const vendors = list.some(r => r.kind === 'vendor') ? cachedFetch(getVendors) : Promise.resolve([])
-		vendors.then(all => Promise.allSettled(list.map(r => r.kind === 'order'
-			? cachedFetch(getOrder, [r.id])
-			: Promise.resolve(all.find(v => v.id === r.id) ?? Promise.reject({ status: 404 })))))
+		const controller = new AbortController()
+		const vendors = list.some(r => r.kind === 'vendor') ? freshFetch(getVendors, [], controller.signal) : Promise.resolve([])
+		vendors.then(all => Promise.allSettled(list.map(r => (r.kind === 'order'
+			? freshFetch(getOrder, [r.id], controller.signal)
+			: Promise.resolve(all.find(v => v.id === r.id) ?? Promise.reject({ gone: true }))))))
 			.then(answers => {
-				if (!live) return
-				list.forEach((r, i) => { if (answers[i].reason?.status === 404) forgetRecent(r.kind, r.id) })
-				setRows(list.flatMap((r, i) => answers[i].status !== 'fulfilled' ? []
-					: [r.kind === 'order' ? orderRow(answers[i].value) : vendorRow(answers[i].value)]))
-			}, () => { if (live) setRows([]) })
-		return () => { live = false }
-	}, [user])
+				if (controller.signal.aborted) return
+				list.forEach((r, i) => { if (answers[i].reason?.gone) forgetRecent(r.kind, r.id) })
+				setRows(rowsOf(list, answers.map(a => (a.status === 'fulfilled' ? a.value : null)), touch))
+			}, () => { if (!controller.signal.aborted) setRows([]) })
+		return () => controller.abort()
+	}, [user, touch])
 	return rows
 }
 
 /* ---- the search: debounced, the request before it cancelled, the last answer kept on screen ---- */
 
-function shape(needle, list, hits, vendors) {
+function shape(needle, list, hits, vendors, touch) {
 	const stats = new Map(vendors.map(v => [v.id, v]))
 	const lower = needle.toLowerCase()
 	// one row per title in an order: two lines with the same name open the same record
@@ -93,7 +106,7 @@ function shape(needle, list, hits, vendors) {
 		ordersCount: list.matched,
 		vendors: hits.vendors.slice(0, SHOWN).map(v => {
 			const s = stats.get(v.id)
-			const facts = s ? [plural(s.orders, 'order'), currency(s.spend, 0)] : []
+			const facts = s ? [plural(s.orders, 'order'), touch ? null : currency(s.spend, 0)].filter(Boolean) : []
 			return {
 				key: 'vendor-' + v.id, icon: 'shopping-bag', name: v.name, to: `/vendors/${v.id}/edit`,
 				// the alias leads: it is why a name without the typed text is here at all (9d)
@@ -108,7 +121,7 @@ function shape(needle, list, hits, vendors) {
 	}
 }
 
-function useSearch(needle) {
+function useSearch(needle, touch) {
 	const [found, setFound] = useState(null)
 	useEffect(() => {
 		if (!needle) return
@@ -119,12 +132,12 @@ function useSearch(needle) {
 				searchRecords(needle, controller.signal),
 				cachedFetch(getVendors)
 			]).then(
-				([list, hits, vendors]) => setFound(shape(needle, list, hits, vendors)),
+				([list, hits, vendors]) => setFound(shape(needle, list, hits, vendors, touch)),
 				error => { if (error.name !== 'AbortError') setFound({ needle, failed: true }) }
 			)
 		}, WAIT_MS)
 		return () => { clearTimeout(timer); controller.abort() }
-	}, [needle])
+	}, [needle, touch])
 	return found
 }
 
@@ -141,10 +154,10 @@ const GO = [
 	['Settings', 'settings', '/settings']
 ]
 
-// `first` is what the empty palette offers; the rest are found by name
+// `first` is what the empty palette offers, the rest are found by name; `action` fills the mark (9d)
 const actionsFor = theme => [
-	{ key: 'scan', icon: 'camera', name: 'Scan a receipt', to: '/orders/new?source=scan', first: true },
-	{ key: 'new', icon: 'plus', name: 'New order', to: '/orders/new', first: true },
+	{ key: 'scan', icon: 'camera', name: 'Scan a receipt', to: '/orders/new?source=scan', first: true, action: true },
+	{ key: 'new', icon: 'plus', name: 'New order', to: '/orders/new', first: true, action: true },
 	{ key: 'import', icon: 'upload', name: 'Import a file', to: '/settings/import' },
 	...GO.map(([name, icon, to]) => ({ key: 'go-' + name, icon, name: 'Go to ' + name, to })),
 	{ key: 'add-vendor', icon: 'building-store', name: 'Add a vendor', to: '/vendors/new' },
@@ -152,7 +165,7 @@ const actionsFor = theme => [
 	theme === 'dark'
 		? { key: 'theme', icon: 'sun', name: 'Switch to light mode', run: () => setTheme('light'), first: true }
 		: { key: 'theme', icon: 'moon', name: 'Switch to dark mode', run: () => setTheme('dark'), first: true }
-].map(a => ({ ...a, plain: true, action: true }))
+].map(a => ({ ...a, plain: true }))
 
 const countLabel = (name, count) => (count == null ? name : name + dot + count)
 
@@ -218,11 +231,13 @@ export function Palette({ query = '', touch = false, onClose }) {
 	const input = useRef(null)
 	// what had focus, given back when the palette is cancelled
 	const back = useRef(document.activeElement)
+	// a recent record opens on an answer from after this, never on one the cache kept from before
+	const [opened] = useState(() => Date.now())
 	const ids = useId()
 
 	const needle = text.trim()
-	const found = useSearch(needle)
-	const recent = useRecentRows()
+	const found = useSearch(needle, touch)
+	const recent = useRecentRows(touch)
 	const groups = groupsFor(text, found, recent, actionsFor(theme))
 	const flat = groups.flatMap(g => g.entries)
 
@@ -249,6 +264,7 @@ export function Palette({ query = '', touch = false, onClose }) {
 	}
 	const run = (entry, newTab) => {
 		if (entry.run) { entry.run(); cancel(); return }
+		if (entry.read) forgetOlder(...entry.read, opened)
 		if (newTab) {
 			window.open(window.location.origin + window.location.pathname + '#' + entry.to, '_blank', 'noopener')
 			return
@@ -262,7 +278,8 @@ export function Palette({ query = '', touch = false, onClose }) {
 		if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
 			ev.preventDefault()
 			if (flat.length) move((index + (ev.key === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length)
-		} else if (ev.key === 'Enter') {
+		} else if (ev.key === 'Enter' && ev.target === input.current) {
+			// Enter on the field opens the current row; on Cancel or Clear it presses that button
 			ev.preventDefault()
 			if (flat[index]) run(flat[index], ev.metaKey || ev.ctrlKey)
 		} else if (ev.key === 'Escape' || (ev.key.toLowerCase() === 'k' && (ev.metaKey || ev.ctrlKey))) {

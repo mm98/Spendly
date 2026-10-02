@@ -11,7 +11,7 @@ import { Spinner } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import { getVendors, importOrders, vendorByAnyName } from '../api/client.js'
 import { amount, amountRound, dot, plural } from '../api/format.js'
-import { Heading } from './SettingsParts.jsx'
+import { Heading, useStepFocus } from './SettingsParts.jsx'
 
 /* The server takes 50 MB per request and a receipt rides along as base64, so orders are sent
    in slices under this many bytes of JSON. */
@@ -49,6 +49,8 @@ const newVendors = (orders, vendors) => {
 	}
 	return seen.size
 }
+
+const FILE_ID = 'import-file'
 
 const ordersWord = n => `${amount(n, 0)} ${n === 1 ? 'order' : 'orders'}`
 
@@ -90,9 +92,10 @@ const reason = error => {
 export function ImportCard() {
 	const vendors = useApi(getVendors)
 	const [stage, setStage] = useState({ name: 'rest' })
+	const { box, then } = useStepFocus(stage)
 
 	// a refused file mounts a fresh picker, which is what lets the same file be chosen again
-	const refuse = problem => setStage(s => ({ name: 'rest', problem, attempt: (s.attempt ?? 0) + 1 }))
+	const refuse = problem => { then(FILE_ID); setStage(s => ({ name: 'rest', problem, attempt: (s.attempt ?? 0) + 1 })) }
 
 	const read = async files => {
 		const file = files?.[0]
@@ -103,6 +106,7 @@ export function ImportCard() {
 		}
 		const orders = Array.isArray(parsed) ? parsed : parsed?.orders
 		if (!Array.isArray(orders) || !orders.length) return refuse('empty')
+		then('heading')
 		setStage({ name: 'review', file: file.name, orders })
 	}
 
@@ -110,6 +114,7 @@ export function ImportCard() {
 		const { orders, file } = stage
 		const failed = []
 		let imported = 0, lines = 0
+		then('heading')
 		setStage({ name: 'importing', file, orders, done: 0 })
 		try {
 			for (const batch of slices(orders)) {
@@ -128,23 +133,25 @@ export function ImportCard() {
 				}
 			}
 			if (imported) invalidate()
+			then('heading')
 			setStage({ name: 'done', imported, lines, failed })
 		} catch {
 			// the batch in flight may have written orders that never came back counted
 			invalidate()
+			then('heading')
 			setStage({ name: 'done', imported, lines, failed, stopped: true })
 		}
 	}
 
 	const heading = <Heading section="import">Import</Heading>
-	const restart = () => setStage({ name: 'rest' })
+	const restart = () => { then(FILE_ID); setStage({ name: 'rest' }) }
 
 	if (stage.name === 'review' || stage.name === 'importing') {
 		const { orders, file } = stage
 		const busy = stage.name === 'importing'
 		const fresh = vendors.data ? newVendors(orders, vendors.data) : null
 		return (
-			<Card footerCommits footerLayout="split" footer={[
+			<Card ref={box} footerCommits footerLayout="split" footer={[
 				<Button key="cancel" variant="outline" disabled={busy} onClick={restart}>Cancel</Button>,
 				busy
 					? <Button key="import" disabled><Spinner />Importing…</Button>
@@ -194,7 +201,7 @@ export function ImportCard() {
 			: null
 
 		if (stopped) return (
-			<Card footerCommits footerLayout="split" footer={[again, <Button key="see" to="/orders">See your orders</Button>]}>
+			<Card ref={box} footerCommits footerLayout="split" footer={[again, <Button key="see" to="/orders">See your orders</Button>]}>
 				{heading}
 				<Well color="danger">
 					<span className="sp-title sp-ink-danger">The import stopped before the end.</span>
@@ -210,7 +217,7 @@ export function ImportCard() {
 		)
 
 		if (!imported) return (
-			<Card footerCommits footer={again}>
+			<Card ref={box} footerCommits footer={again}>
 				{heading}
 				<Well color="danger">
 					<span className="sp-title sp-ink-danger">No orders were imported.</span>
@@ -222,8 +229,9 @@ export function ImportCard() {
 
 		const facts = [plural(lines, 'item line')]
 		if (failed.length) facts.push(`${plural(failed.length, 'order')} skipped`)
+		// the list holds every order, not only these, so the way there says so
 		return (
-			<Card footerCommits footerLayout="split" footer={[again, <Button key="see" to="/orders">See the {ordersWord(imported)}</Button>]}>
+			<Card ref={box} footerCommits footerLayout="split" footer={[again, <Button key="see" to="/orders">See your orders</Button>]}>
 				{heading}
 				<div className="sp-row-flex sp-gap-12">
 					<Mark size="medium" round aria-label="Imported"><Icon name="check" /></Mark>
@@ -238,9 +246,9 @@ export function ImportCard() {
 	}
 
 	return (
-		<Card>
+		<Card ref={box}>
 			{heading}
-			<FileDrop key={stage.attempt ?? 0} accept=".json,application/json" onFiles={read}
+			<FileDrop key={stage.attempt ?? 0} id={FILE_ID} accept=".json,application/json" onFiles={read}
 				onDragOver={ev => ev.preventDefault()}
 				onDrop={ev => { ev.preventDefault(); read(ev.dataTransfer.files) }}>
 				<Mark size="medium" fill="solid" aria-label="Upload" aria-hidden="true"><Icon name="upload" /></Mark>
