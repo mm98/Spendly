@@ -18,11 +18,11 @@ Spendly is an application and its documentation. **`react/` is the source.** The
 what a change is made in and what a claim is measured against: `npm install && npm run dev` in that
 directory, and the pages are real ones with the controls wired.
 
-`spendly.html` is the prototype the design system was first drawn in. It is frozen: no longer synced
-to `react/src/styles/app.css`, and no fix needs to reach it. It stays only as a historical artifact.
+`spendly.html` is the prototype the first design system was drawn in. It is frozen: nothing syncs
+to it, and no fix needs to reach it. It stays only as a historical artifact.
 
-`README.md` is the design system the app implements; `docs/` holds the screenshots that document shows
-and the defect log its rules link to.
+`README.md` introduces the design system the app implements, whose specification is `design/`; `docs/`
+holds the screenshots that document shows and the defect log its rules link to.
 
 ## Whitespace
 
@@ -166,8 +166,8 @@ writing a number down; don't call a guess "measured" because it passed once.
 ### The environment, settled — do not re-derive it
 
 - **A rendered account with real records is one flow.** No seed script, no shortcut route: register
-  at `#/register`, open Settings' "Demo data" card, click FILL WITH DEMO DATA, then confirm (YES,
-  FILL IT). Seeds two favourite vendors and three favourite categories every time.
+  at `#/register`, open Settings' "Demo data" section, click "Fill with demo data", then confirm ("Yes,
+  fill it"). Seeds two favourite vendors and three favourite categories every time.
 - **Chromium is the default and only installed engine.** `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`
   (Playwright 1.56.1). Firefox/WebKit need an explicit install first
   (`npx playwright install firefox`, or `webkit` + `install-deps webkit`) and are an explicit
@@ -180,9 +180,9 @@ writing a number down; don't call a guess "measured" because it passed once.
   from the calendar alone, with zero app change. Before trusting a diff, render the *unchanged*
   source and confirm it reproduces the committed shot at 0 pixels; only then diff the real change.
   `all-orders.png` is a filtered, dateless view and should always come back byte-identical.
-- **`all-orders.png` holds three pieces of state**, each has to be driven into it: FILTERS panel
-  open, list filtered to a specific vendor/status/date range, and the global finder open with text
-  typed in. `react/scripts/regen-docs.mjs` is the canonical record of how. Demo data is a function of
+- **`all-orders.png` holds three pieces of state**, each has to be driven into it: the facet rail
+  showing, the list filtered to a specific vendor/status/date range, and the search palette open with
+  text typed in. `react/scripts/regen-docs.mjs` is the canonical record of how. Demo data is a function of
   (seed, today), so a render day picks its own `SEED` — the one giving the account the three August
   Bilka deliveries that shot is filtered to; the script reads the count back and refuses to shoot when
   it does not hold, so the seed is found by trying rather than reasoned about.
