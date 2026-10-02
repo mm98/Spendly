@@ -1,8 +1,8 @@
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Card, CardBody } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Segmented } from '../components/Segmented.jsx'
-import { Combobox, ComboboxEmpty, ComboboxGroup, ComboboxOption } from '../components/Combobox.jsx'
+import { Combobox, ComboboxEmpty, ComboboxGroup, ComboboxOption, ComboboxSeparator } from '../components/Combobox.jsx'
 import { BulkBar, Controls } from '../components/List.jsx'
 import { Gauge, Stat } from '../components/Data.jsx'
 import { Field } from '../components/Field.jsx'
@@ -214,42 +214,44 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 					</Choice>
 				</div>
 			</CardBody>
-			<table className="sp-table sp-table--static">
-				<thead>
-					<tr>
-						<th scope="col" className="sp-col-title">File</th>
-						<th scope="col" className="sp-col-flex">First three values</th>
-						<th scope="col" className="sp-col-flex">Spendly</th>
-					</tr>
-				</thead>
-				<tbody>
-					{Array.from({ length: width }, (_, i) => {
-						const role = roleOf(i)
-						const name = mapping.header && rows[0][i] ? rows[0][i] : `Column ${i + 1}`
-						return (
-							<tr key={i}>
-								<td><span className="sp-title">{name}</span></td>
-								<td><span className="sp-subtitle sp-truncate">{body.slice(0, 3).map(r => r[i] || '(empty)').join(' · ')}</span></td>
-								<td>
-									<div className="sp-stack sp-gap-8">
-										<PickOnly aria-label={`${name} is mapped to`}
-											value={role.id === 'none' ? <span className="sp-ink-5">{role.label}</span> : role.label}
-											options={ROLES.map(r => ({ id: r.id, label: r.label, selected: r.id === role.id }))}
-											onPick={id => set(i, id)} />
-										{mapping.date !== i || dateFits.length === 1 ? null : dateFits.length ? (
-											<Field label="Every date can be read two ways. Which is right?">
-												<PickOnly value={DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? ''}
-													options={DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: f.label, selected: f.id === dateFormat }))}
-													onPick={id => onChange({ dateFormat: id })} />
-											</Field>
-										) : <span className="sp-note sp-ink-danger">These are not dates Spendly can read.</span>}
-									</div>
-								</td>
-							</tr>
-						)
-					})}
-				</tbody>
-			</table>
+			<div className="bg-sideways">
+				<table className="sp-table sp-table--static bg-map">
+					<thead>
+						<tr>
+							<th scope="col" className="sp-col-title">File</th>
+							<th scope="col" className="sp-col-flex">First three values</th>
+							<th scope="col" className="bg-col-map">Spendly</th>
+						</tr>
+					</thead>
+					<tbody>
+						{Array.from({ length: width }, (_, i) => {
+							const role = roleOf(i)
+							const name = mapping.header && rows[0][i] ? rows[0][i] : `Column ${i + 1}`
+							return (
+								<tr key={i}>
+									<td><span className="sp-title">{name}</span></td>
+									<td><span className="sp-subtitle sp-truncate">{body.slice(0, 3).map(r => r[i] || '(empty)').join(' · ')}</span></td>
+									<td>
+										<div className="sp-stack sp-gap-8">
+											<PickOnly aria-label={`${name} is mapped to`}
+												value={role.id === 'none' ? <span className="sp-ink-5">{role.label}</span> : role.label}
+												options={ROLES.map(r => ({ id: r.id, label: r.label, selected: r.id === role.id }))}
+												onPick={id => set(i, id)} />
+											{mapping.date !== i || dateFits.length === 1 ? null : dateFits.length ? (
+												<Field label="Every date can be read two ways. Which is right?">
+													<PickOnly value={DATE_FORMATS.find(f => f.id === dateFormat)?.label ?? ''}
+														options={DATE_FORMATS.filter(f => dateFits.includes(f.id)).map(f => ({ id: f.id, label: f.label, selected: f.id === dateFormat }))}
+														onPick={id => onChange({ dateFormat: id })} />
+												</Field>
+											) : <span className="sp-note sp-ink-danger">These are not dates Spendly can read.</span>}
+										</div>
+									</td>
+								</tr>
+							)
+						})}
+					</tbody>
+				</table>
+			</div>
 			<CardBody>
 				<span className="sp-note">Money out is read as a minus amount. Choose a column as money out only when your bank shows it in a column of its own.</span>
 			</CardBody>
@@ -268,11 +270,12 @@ function PickOnly({ value, options, onPick, ...rest }) {
 	)
 }
 
-/** A budget row picked by typing part of its name, or from the list: the rows of one side of
-    the payment's year, each with what that month holds. */
-function RowPicker({ id, label, kind, sheet, month, onPick, disabled }) {
+/** A budget row picked by typing or from the list of one side of the payment's year, with what each
+    holds that month. It takes focus as it opens; Escape on its closed list puts it away. */
+function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled }) {
 	const [open, setOpen] = useState(true)
 	const [query, setQuery] = useState('')
+	useEffect(() => { document.getElementById(id)?.focus() }, [id])
 	const short = monthNames('short')[month]
 	const groups = (sheet?.groups ?? []).filter(g => g.kind === kind)
 		.map(g => ({ ...g, lines: g.lines.filter(l => l.name.toLocaleLowerCase('da').includes(query.trim().toLocaleLowerCase('da'))) }))
@@ -280,22 +283,22 @@ function RowPicker({ id, label, kind, sheet, month, onPick, disabled }) {
 	return (
 		<Field label={label} id={id}>
 			<Combobox searchable search={query} onSearch={setQuery} open={open} onOpenChange={setOpen}
-				placeholder={kind === 'income' ? 'Type or pick from your income' : 'Type or pick from your costs'} aria-label={label}>
-				{groups.length ? groups.map((g, gi) => (
-					<Fragment key={g.id}>
-						{gi ? <li><hr /></li> : null}
-						<ComboboxGroup>{g.name}</ComboboxGroup>
-						{g.lines.map(l => {
-							const m = l.months[month]
-							const value = m.real ?? m.expected
-							return (
-								<ComboboxOption key={l.id} disabled={disabled}
-									meta={value != null ? `${money(value)} in ${short}` : `No amount in ${short}`}
-									onSelect={() => { setOpen(false); onPick(l.name) }}>{l.name}</ComboboxOption>
-							)
-						})}
-					</Fragment>
-				)) : <ComboboxEmpty>No row has that name.</ComboboxEmpty>}
+				placeholder={kind === 'income' ? 'Type or pick from your income' : 'Type or pick from your costs'} aria-label={label}
+				onKeyDown={ev => { if (ev.key === 'Escape' && !open && onClose) { ev.preventDefault(); onClose() } }}>
+				{/* one flat list, so the arrow keys reach every option */}
+				{groups.length ? groups.flatMap((g, gi) => [
+					gi ? <ComboboxSeparator key={`rule-${g.id}`} /> : null,
+					<ComboboxGroup key={g.id}>{g.name}</ComboboxGroup>,
+					...g.lines.map(l => {
+						const m = l.months[month]
+						const value = m.real ?? m.expected
+						return (
+							<ComboboxOption key={l.id} disabled={disabled}
+								meta={value != null ? `${money(value)} in ${short}` : `No amount in ${short}`}
+								onSelect={() => { setOpen(false); onPick(l.name) }}>{l.name}</ComboboxOption>
+						)
+					})
+				]) : <ComboboxEmpty>No row has that name.</ComboboxEmpty>}
 			</Combobox>
 		</Field>
 	)
@@ -314,6 +317,16 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 	const [leaveAlone, setLeaveAlone] = useState(() => new Set())
 	const [writing, setWriting] = useState(false)
 	useEffect(() => { setPicked(new Set()); setOpen(null); setBulkOpen(false) }, [view])
+	// a picker that closes with focus inside it gives focus back to the button that opened it, or to Undo once its text is placed
+	const opened = useRef(null)
+	useLayoutEffect(() => {
+		if (open != null) { opened.current = open; return }
+		const was = opened.current
+		opened.current = null
+		if (was == null || (document.activeElement && document.activeElement !== document.body)) return
+		const back = document.querySelector(`[data-opener="pick:${was}"]`) ?? document.querySelector(`[data-opener="undo:${was}"]`)
+		back?.focus()
+	}, [open])
 
 	const count = status => checked.filter(p => status.includes(p.status)).length
 	const missing = count(TO_PLACE)
@@ -446,7 +459,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 		if (g.saved) return line({
 			key: g.id, title: g.text, subtitle: when(g), total: g.total,
 			check: <Check checked disabled aria-label={`${g.text || 'This text'}, saved`} />,
-			note: `Saved: ${g.saved}.`, ink: 'sp-ink-success', buttons: [small('Undo', () => undo(g))]
+			note: `Saved: ${g.saved}.`, ink: 'sp-ink-success', buttons: [small('Undo', () => undo(g), { 'data-opener': `undo:${g.id}` })]
 		})
 		const last = g.payments[g.payments.length - 1]
 		return line({
@@ -456,13 +469,13 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 			ink: g.noSheet ? 'sp-ink-danger' : 'sp-ink-warning',
 			buttons: [
 				g.suggestion ? small(`Use ${g.suggestion}`, () => saveGroups([g], g.suggestion)) : null,
-				g.noSheet ? null : small('Pick from budget', () => setOpen(open === g.id ? null : g.id), { 'aria-expanded': open === g.id ? 'true' : 'false' }),
+				g.noSheet ? null : small('Pick from budget', () => setOpen(open === g.id ? null : g.id), { 'aria-expanded': open === g.id ? 'true' : 'false', 'data-opener': `pick:${g.id}` }),
 				small('Always leave out', () => saveGroups([g], null)),
 				small('Leave out once', () => saveGroups([g], null, true))
 			],
 			children: open === g.id
 				? <RowPicker id={`bank-place-${g.id}`} label="All payments with this text go to" kind={g.kind} sheet={sheetOf(last)}
-					month={monthOf(last)} disabled={busy} onPick={name => saveGroups([g], name)} />
+					month={monthOf(last)} disabled={busy} onPick={name => saveGroups([g], name)} onClose={() => setOpen(null)} />
 				: null
 		})
 	}
@@ -481,15 +494,15 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 	}
 	const paymentRow = p => line({
 		key: p.row, title: p.text, subtitle: `${dayMonth(p.date)} · ${statusText(p)}`, total: p.amount,
-		buttons: p.status === 'year' ? null : [small(open === p.row ? 'Close' : 'Pick from budget', () => setOpen(open === p.row ? null : p.row), { 'aria-expanded': open === p.row ? 'true' : 'false' })],
+		buttons: p.status === 'year' ? null : [small(open === p.row ? 'Close' : 'Pick from budget', () => setOpen(open === p.row ? null : p.row), { 'aria-expanded': open === p.row ? 'true' : 'false', 'data-opener': `pick:${p.row}` })],
 		children: open === p.row
 			? <RowPicker id={`bank-payment-${p.row}`} label="All payments with this text go to" kind={kindOf(p)} sheet={sheetOf(p)}
-				month={monthOf(p)} disabled={busy} onPick={name => saveGroups(groupPayments([p]), name)} />
+				month={monthOf(p)} disabled={busy} onPick={name => saveGroups(groupPayments([p]), name)} onClose={() => setOpen(null)} />
 			: null
 	})
 
 	const bulk = [
-		oneKind ? small('Put them all on', () => setBulkOpen(!bulkOpen), { 'aria-expanded': bulkOpen ? 'true' : 'false' }) : null,
+		oneKind ? small('Put them all on', () => setBulkOpen(!bulkOpen), { 'aria-expanded': bulkOpen ? 'true' : 'false', 'data-opener': 'bulk' }) : null,
 		small('Always leave out', () => saveGroups(chosen, null)),
 		small('Leave out once', () => saveGroups(chosen, null, true))
 	]
@@ -509,7 +522,8 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 				) : null}
 				{chosen.length && bulkOpen && oneKind ? (
 					<RowPicker id="bank-bulk" label="Put them all on" kind={chosen[0].kind} sheet={sheetOf(chosen[0].payments.at(-1))}
-						month={monthOf(chosen[0].payments.at(-1))} disabled={busy} onPick={name => saveGroups(chosen, name)} />
+						month={monthOf(chosen[0].payments.at(-1))} disabled={busy} onPick={name => saveGroups(chosen, name)}
+						onClose={() => { setBulkOpen(false); document.querySelector('[data-opener="bulk"]')?.focus() }} />
 				) : null}
 				{groups.length ? (
 					<Choice control={<Check checked={chosen.length === groups.length} indeterminate={chosen.length > 0 && chosen.length < groups.length}

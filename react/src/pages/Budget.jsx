@@ -79,11 +79,11 @@ function monthUse(sheet, totals, month) {
 	}
 }
 
-function versusExpected(counted, planned, hasPlan, kind) {
+function versusExpected(counted, planned, hasPlan) {
 	if (!hasPlan) return 'No expected amounts yet'
 	const diff = cents(counted - planned)
 	if (!diff) return 'As expected'
-	return `${money(Math.abs(diff))} ${(diff > 0) === (kind === 'income') ? 'more' : 'less'} than expected`
+	return `${money(Math.abs(diff))} ${diff > 0 ? 'more' : 'less'} than expected`
 }
 
 /* The expected amount a row holds every month, if it is one figure: null when there is none,
@@ -133,6 +133,24 @@ const withReal = (sheet, lineId, month, real) => ({
 			: { ...l, months: l.months.map((m, i) => (i === month ? { ...m, real } : m)) }))
 	}))
 })
+
+const opener = (kind, key) => `[data-opener="${kind}:${key}"]`
+
+/* An editor that closes with focus inside it gives focus back to the first of back(what was
+   open) still on the page: what opened it, or the add row of its set once that is deleted. */
+function useGiveBack(open, back) {
+	const was = useRef(null)
+	useLayoutEffect(() => {
+		if (open) { was.current = open; return }
+		const last = was.current
+		was.current = null
+		if (!last || (document.activeElement && document.activeElement !== document.body)) return
+		for (const selector of back(last)) {
+			const el = document.querySelector(selector)
+			if (el) { el.focus(); return }
+		}
+	}, [open])
+}
 
 /** A pick-only list that closes when a choice is made. */
 function Pick({ value, id, children, ...rest }) {
@@ -434,17 +452,19 @@ function Actions({ editing, onEdit, onNewYear }) {
 }
 
 function YearView({ year, view, editing, touch, onYearsChanged }) {
-	const loaded = useApi(getBudgetYear, [year])
+	const [busy, setBusy] = useState(false)
+	// a year being deleted is not read again, so its view does not ask for what is gone
+	const loaded = useApi(getBudgetYear, [year], { enabled: !busy })
 	const [sheet, setSheet] = useState(null)
 	useEffect(() => { if (loaded.data?.year === year) setSheet(loaded.data) }, [loaded.data, year])
 	const write = useWrites(setSheet, loaded.refresh)
 	const navigate = useNavigate()
 	const toast = useToast()
 	const [deleting, setDeleting] = useState(false)
-	const [busy, setBusy] = useState(false)
 	// one editor open at a time, in the one month it was opened from
 	const [panel, setPanel] = useState(null)
 	useEffect(() => { if (!editing) setPanel(null) }, [editing])
+	useGiveBack(panel, was => was.back)
 
 	if (!sheet) return loaded.error ? <Failed onRetry={loaded.refresh} /> : <Loading />
 	const rows = sheet.groups.reduce((n, g) => n + g.lines.length, 0)
@@ -499,19 +519,21 @@ function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete })
 	const card = useRef(null)
 	const count = useMonthsThatFit(card, touch)
 	const thisMonth = nowMonthOf(sheet.year)
-	const [start, setStart] = useState(Math.max(thisMonth, 0))
-	const from = clamp(start, 0, MONTHS - count)
+	// the month chosen is the one in front; the window starts there, or one earlier at December
+	const [month, setMonth] = useState(Math.max(thisMonth, 0))
+	const from = clamp(month, 0, MONTHS - count)
 	const totals = totalsOf(sheet)
-	const go = to => setStart(clamp(to, 0, MONTHS - count))
-	const amounts = useAmounts(sheet, write, long)
+	const go = to => setMonth(clamp(to, 0, MONTHS - 1))
+	const reveal = m => { if (m < from || m >= from + count) go(m) }
+	const amounts = useAmounts(sheet, write, long, reveal)
 	const stepper = (
 		<PeriodWindow unit="month" label={count === 1 ? long[from] : `${short[from]} to ${short[from + 1]}`}
 			previousLabel="Earlier month" nextLabel="Later month"
-			onPrevious={from === 0 ? undefined : () => go(from - 1)} onNext={from >= MONTHS - count ? undefined : () => go(from + 1)} />
+			onPrevious={month === 0 ? undefined : () => go(month - 1)} onNext={month === MONTHS - 1 ? undefined : () => go(month + 1)} />
 	)
 	return (
 		<>
-			{editing ? null : <MonthHero sheet={sheet} month={from} totals={totals} long={long} touch={touch} />}
+			{editing ? null : <MonthHero sheet={sheet} month={month} totals={totals} long={long} touch={touch} />}
 			<Card ref={card} footer={editing ? <Button key="delete" color="danger" onClick={onDelete}>Delete {sheet.year}</Button> : null} footerCommits>
 				{touch
 					? <span className="sp-section-label">Months {sheet.year}</span>
@@ -525,8 +547,9 @@ function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete })
 					)}
 				{/* on touch the window fills its own row, which is how the library sizes it there */}
 				{touch ? stepper : null}
-				{touch ? null : (
-					<Segmented variant="facet" fixed name="budget-month" aria-label="Month" value={from} onChange={go}
+				{/* twelve segments fit beside two months only; with one month the window steps through them */}
+				{count === 1 ? null : (
+					<Segmented variant="facet" fixed name="budget-month" aria-label="Month" value={month} onChange={go}
 						options={short.map((label, m) => ({ value: m, label }))} />
 				)}
 				{count === 1
@@ -535,7 +558,7 @@ function MonthsView({ sheet, write, editing, touch, panel, setPanel, onDelete })
 						<Halves>
 							{[from, from + 1].map(m => (
 								// the shape is edited in the month in front only, so no control is drawn twice (21c)
-								<MonthWell key={m} month={m} editing={editing && m === from} {...{ sheet, write, touch, panel, setPanel, totals, short, long, thisMonth, amounts }} />
+								<MonthWell key={m} month={m} editing={editing && m === month} {...{ sheet, write, touch, panel, setPanel, totals, short, long, thisMonth, amounts }} />
 							))}
 						</Halves>
 					)}
@@ -557,9 +580,9 @@ function MonthHero({ sheet, month, totals, long, touch }) {
 			<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
 				<Stat label="Left over" figure={currency(cents(totals.left[month]), 0)} />
 				<Stat label="Income" figure={currency(cents(totals.income[month]), 0)}
-					meta={versusExpected(totals.income[month], use.plannedIncome, use.incomePlanned, 'income')} />
+					meta={versusExpected(totals.income[month], use.plannedIncome, use.incomePlanned)} />
 				<Stat label="Costs" figure={currency(cents(totals.costs[month]), 0)}
-					meta={versusExpected(totals.costs[month], use.plannedCosts, use.costsPlanned, 'expense')} />
+					meta={versusExpected(totals.costs[month], use.plannedCosts, use.costsPlanned)} />
 				{touch ? null : (
 					<Stat label="Real amounts" figure={`${real} of ${withAmount.length}`}
 						meta={!withAmount.length ? 'No amounts this month' : waiting ? `${plural(waiting, 'row')} still expected` : 'Every row has its real amount'} />
@@ -584,9 +607,9 @@ function Use({ use, month, thin = false }) {
 	)
 }
 
-/* Typing a real amount in the months view: the figure becomes a NumberField in place. Enter
-   saves and moves down, Escape cancels, a digit typed on a focused row starts the edit. */
-function useAmounts(sheet, write, long) {
+/* Typing a real amount in the months view, in a NumberField in place. Enter saves and moves down,
+   Tab saves and moves to the next month, Escape cancels, a digit on a focused row starts the edit. */
+function useAmounts(sheet, write, long, reveal) {
 	const toast = useToast()
 	const [edit, setEdit] = useState(null)
 	const done = useRef(false)
@@ -638,6 +661,14 @@ function useAmounts(sheet, write, long) {
 						const row = ev.target.closest('[data-row]')
 						finish(line, month, ev.target.value)
 						queueMicrotask(() => focusRow(row, 1))
+					} else if (ev.key === 'Tab') {
+						// past December or before January, Tab leaves the months the usual way
+						const to = month + (ev.shiftKey ? -1 : 1)
+						if (to < 0 || to >= MONTHS) return
+						ev.preventDefault()
+						finish(line, month, ev.target.value)
+						reveal(to)
+						queueMicrotask(() => document.querySelector(`[data-row="${line.id}-${to}"]`)?.focus())
 					}
 				}}
 				onBlur={ev => finish(line, month, ev.target.value)} />
@@ -649,7 +680,7 @@ function useAmounts(sheet, write, long) {
 function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, short, long, thisMonth, amounts, month }) {
 	const accountName = id => sheet.accounts.find(a => a.id === id)?.name
 	const isOpen = (kind, key) => panel?.kind === kind && panel.key === key && panel.month === month
-	const open = (kind, key) => setPanel({ kind, key, month })
+	const open = (kind, key, back) => setPanel({ kind, key, month, back })
 	const close = () => setPanel(null)
 	const left = totals.left[month]
 
@@ -661,13 +692,14 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 		const typing = amounts.edit?.line === line.id && amounts.edit.month === month
 		const meta = [accountName(line.accountId), rowTag(line, short)].filter(Boolean).join(' · ')
 		const said = m.real != null ? `real ${money(m.real)}` : m.expected != null ? `expected ${money(m.expected)}` : 'empty'
+		const edit = () => open('row', line.id, [`[data-row="${line.id}-${month}"]`, opener('new-row', group.id)])
 		const control = typing ? {} : {
 			role: 'button',
 			tabIndex: 0,
 			'aria-label': editing ? `Edit the row ${line.name}` : `Real amount, ${line.name}, ${long[month]}: ${said}`,
-			onClick: ev => (editing && !ev.target.closest('.sp-sum__value') ? open('row', line.id) : amounts.start(line, month)),
+			onClick: ev => (editing && !ev.target.closest('.sp-sum__value') ? edit() : amounts.start(line, month)),
 			onKeyDown: ev => {
-				if (editing && ev.key === 'Enter' && ev.target === ev.currentTarget) { ev.preventDefault(); open('row', line.id); return }
+				if (editing && ev.key === 'Enter' && ev.target === ev.currentTarget) { ev.preventDefault(); edit(); return }
 				if (!editing && ev.key === 'Enter' && ev.target === ev.currentTarget) { ev.preventDefault(); amounts.start(line, month); return }
 				amounts.rowKeys(line, month)(ev)
 			}
@@ -690,13 +722,14 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 				: (
 					<div className="sp-row-flex sp-gap-8">
 						<span className="sp-subtitle sp-strong sp-ink">{g.name}</span>
-						{editing ? <IconButton variant="outline" icon={<Icon name="pencil" size={14} />} aria-label={`Edit the group ${g.name}`} onClick={() => open('group', g.id)} /> : null}
+						{editing ? <IconButton variant="outline" icon={<Icon name="pencil" size={14} />} aria-label={`Edit the group ${g.name}`} data-opener={`group:${g.id}`}
+							onClick={() => open('group', g.id, [opener('group', g.id), opener('new-group', g.kind)])} /> : null}
 					</div>
 				)}
 			{g.lines.length ? <div className="sp-stack">{g.lines.map((line, i) => row(g, line, i))}</div> : null}
 			{!editing ? null : isOpen('new-row', g.id)
 				? <RowEditor sheet={sheet} group={g} write={write} onClose={close} />
-				: <AddRow onClick={() => open('new-row', g.id)}>Add a row to {g.name}</AddRow>}
+				: <AddRow data-opener={`new-row:${g.id}`} onClick={() => open('new-row', g.id, [opener('new-row', g.id)])}>Add a row to {g.name}</AddRow>}
 		</div>
 	)
 
@@ -717,7 +750,7 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 						{groups.map((g, gi) => group(g, gi, groups))}
 						{!editing ? null : isOpen('new-group', kind)
 							? <GroupEditor sheet={sheet} kind={kind} write={write} onClose={close} />
-							: <AddRow onClick={() => open('new-group', kind)}>Add a group to {title.toLowerCase()}</AddRow>}
+							: <AddRow data-opener={`new-group:${kind}`} onClick={() => open('new-group', kind, [opener('new-group', kind)])}>Add a group to {title.toLowerCase()}</AddRow>}
 						<Sum value={money(kind === 'income' ? totals.income[month] : totals.costs[month])}>
 							<span className="sp-strong">{title}</span>
 						</Sum>
@@ -798,14 +831,13 @@ function RowEditor({ sheet, line, group, index, write, onClose }) {
 				</Field>
 				<Field label="Group">
 					<Pick value={target?.name ?? ''}>
-						{choose => SIDES.map(({ kind, title }) => (
-							<Fragment key={kind}>
-								<ComboboxGroup>{title}</ComboboxGroup>
-								{sheet.groups.filter(g => g.kind === kind).map(g => (
-									<ComboboxOption key={g.id} selected={g.id === groupId} onSelect={() => choose(() => setGroupId(g.id))}>{g.name}</ComboboxOption>
-								))}
-							</Fragment>
-						))}
+						{/* one flat list, so the arrow keys reach every option */}
+						{choose => SIDES.flatMap(({ kind, title }) => [
+							<ComboboxGroup key={kind}>{title}</ComboboxGroup>,
+							...sheet.groups.filter(g => g.kind === kind).map(g => (
+								<ComboboxOption key={g.id} selected={g.id === groupId} onSelect={() => choose(() => setGroupId(g.id))}>{g.name}</ComboboxOption>
+							))
+						])}
 					</Pick>
 				</Field>
 			</LineEditor>
@@ -865,6 +897,7 @@ function AccountsCard({ sheet, onChanged }) {
 	useEffect(() => { if (loaded.data) setList(loaded.data) }, [loaded.data])
 	const toast = useToast()
 	const [open, setOpen] = useState(null)
+	useGiveBack(open, id => [opener('account', id), opener('account', 'new')])
 	const [drag, setDrag] = useState(null)
 	const rowsRef = useRef(null)
 	const write = async (send, optimistic) => {
@@ -942,7 +975,7 @@ function AccountsCard({ sheet, onChanged }) {
 							: (
 								<ListItem variant={drag?.id === account.id ? 'carried' : 'default'} handle={<Icon name="grip-vertical" size={14} />}
 									data-account={account.id} {...handleEvents(account)}>
-									<span className="sp-stacked sp-grow" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`}
+									<span className="sp-stacked sp-grow" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`} data-opener={`account:${account.id}`}
 										onClick={() => setOpen(account.id)}
 										onKeyDown={ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setOpen(account.id) } }}>
 										<span className="sp-title sp-truncate">{account.name}</span>
@@ -955,7 +988,7 @@ function AccountsCard({ sheet, onChanged }) {
 				{drag && drag.at === list.length ? <Insertion /> : null}
 				{open === 'new'
 					? <AccountEditor list={list} write={write} onClose={() => setOpen(null)} />
-					: <AddRow onClick={() => setOpen('new')}>{list.length ? 'Add an account' : 'Add the first account'}</AddRow>}
+					: <AddRow data-opener="account:new" onClick={() => setOpen('new')}>{list.length ? 'Add an account' : 'Add the first account'}</AddRow>}
 			</div>
 		</Card>
 	)
@@ -1039,15 +1072,21 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 	}, [span])
 	const wide = (key, content) => (
 		<tr key={key}>
-			<td colSpan={fit}>{content}</td>
+			<td colSpan={fit} className="bg-hold">{content}</td>
 			{fit < span ? <td colSpan={span - fit} /> : null}
 		</tr>
 	)
+	// it opens on the month it is now, just right of the row names, with Account and the months before to the left
+	useLayoutEffect(() => {
+		const box = scroller.current
+		if (!box || thisMonth < 0 || box.scrollWidth <= box.clientWidth) return
+		const heads = box.querySelectorAll('thead th')
+		const month = heads[2 + thisMonth].getBoundingClientRect()
+		box.scrollLeft += month.left - box.getBoundingClientRect().left - heads[0].getBoundingClientRect().width
+	}, [])
 	const isOpen = (kind, key) => panel?.kind === kind && panel.key === key
-	const open = (kind, key) => {
-		setPanel({ kind, key })
-		if (scroller.current) scroller.current.scrollLeft = 0
-	}
+	const open = (kind, key, back) => setPanel({ kind, key, back })
+	const editRow = (line, group) => open('row', line.id, [opener('row', line.id), opener('new-row', group.id)])
 	const close = () => setPanel(null)
 
 	const save = (line, month, value) => {
@@ -1121,8 +1160,8 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 					<span className="sp-note">{touch ? '' : 'Grey amounts are expected · '}Amounts in {currencySymbol()}</span>
 				</div>
 			</CardBody>
-			<div className="sp-strip sp-scrolls" ref={scroller}>
-				<table ref={table} className="sp-table sp-table--compact sp-table--static sp-table--borderless" aria-label={`Budget ${sheet.year}, amounts in ${currencySymbol()}`}>
+			<div className="bg-scroll" ref={scroller}>
+				<table ref={table} className="sp-table sp-table--compact sp-table--static sp-table--borderless bg-sheet" aria-label={`Budget ${sheet.year}, amounts in ${currencySymbol()}`}>
 					{/* the widths sit on the columns, so the name column takes a width without the amount column's right alignment */}
 					<colgroup>
 						<col className="sp-col-amount" />
@@ -1157,9 +1196,13 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 														<td colSpan={span}>
 															{editing
 																? (
-																	<span className="sp-row-flex sp-gap-8">
-																		<span className="sp-title">{g.name}</span>
-																		<IconButton variant="outline" icon={<Icon name="pencil" size={14} />} aria-label={`Edit the group ${g.name}`} onClick={() => open('group', g.id)} />
+																	// the outer span is what holds still at the left while the sheet scrolls
+																	<span>
+																		<span className="sp-row-flex sp-gap-8">
+																			<span className="sp-title">{g.name}</span>
+																			<IconButton variant="outline" icon={<Icon name="pencil" size={14} />} aria-label={`Edit the group ${g.name}`} data-opener={`group:${g.id}`}
+																				onClick={() => open('group', g.id, [opener('group', g.id), opener('new-group', g.kind)])} />
+																		</span>
 																	</span>
 																)
 																: <span className="sp-title">{g.name}</span>}
@@ -1173,9 +1216,9 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 														<td>
 															<span className="sp-cell-flex">
 																<span className="sp-truncate" title={line.name} {...(editing ? {
-																	role: 'button', tabIndex: 0, 'aria-label': `Edit the row ${line.name}`,
-																	onClick: () => open('row', line.id),
-																	onKeyDown: ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open('row', line.id) } }
+																	role: 'button', tabIndex: 0, 'aria-label': `Edit the row ${line.name}`, 'data-opener': `row:${line.id}`,
+																	onClick: () => editRow(line, g),
+																	onKeyDown: ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); editRow(line, g) } }
 																} : {})}>{line.name}</span>
 															</span>
 														</td>
@@ -1187,12 +1230,12 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 												)))}
 											{!editing ? null : isOpen('new-row', g.id)
 												? wide(`new-${g.id}`, <RowEditor sheet={sheet} group={g} write={write} onClose={close} />)
-												: wide(`add-${g.id}`, <AddRow onClick={() => open('new-row', g.id)}>Add a row to {g.name}</AddRow>)}
+												: wide(`add-${g.id}`, <AddRow data-opener={`new-row:${g.id}`} onClick={() => open('new-row', g.id, [opener('new-row', g.id)])}>Add a row to {g.name}</AddRow>)}
 										</Fragment>
 									))}
 									{!editing ? null : isOpen('new-group', kind)
 										? wide(`new-group-${kind}`, <GroupEditor sheet={sheet} kind={kind} write={write} onClose={close} />)
-										: wide(`add-${kind}`, <AddRow onClick={() => open('new-group', kind)}>Add a group to {title.toLowerCase()}</AddRow>)}
+										: wide(`add-${kind}`, <AddRow data-opener={`new-group:${kind}`} onClick={() => open('new-group', kind, [opener('new-group', kind)])}>Add a group to {title.toLowerCase()}</AddRow>)}
 								</Fragment>
 							)
 						})}
