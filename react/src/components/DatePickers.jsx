@@ -21,7 +21,8 @@ const weekdays = locale => {
 	return Array.from({ length: 7 }, (unused, i) => fmt.format(new Date(2026, 1, 1 + ((first + i) % 7))))
 }
 const firstDayOfWeek = locale => {
-	const week = new Intl.Locale(locale ?? navigator.language).weekInfo
+	// the browser's own as Intl resolved it: a raw language tag can be one Intl.Locale refuses
+	const week = new Intl.Locale(locale ?? new Intl.DateTimeFormat().resolvedOptions().locale).weekInfo
 	return week ? week.firstDay % 7 : 1
 }
 

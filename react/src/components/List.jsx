@@ -280,9 +280,8 @@ export function List({
 	)
 }
 
-/** The foot of a list that grows by pages (c1): how many of how many are shown, in grouped figures,
-    and Load more while more remain. Drawn once there is more than one page. `loose` sits under a grid
-    of cards, as ListFooter's; `children` is anything the foot carries beside the count. */
+/** The foot of a list that grows by pages (c1), once there is more than one: how many of how many, and
+    Load more while more remain. `loose` as ListFooter's; `children` sits beside the count. */
 export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, locale, children, ...rest }) {
 	reject(rest, 'ListMore')
 	if (!(total > pageSize)) return null

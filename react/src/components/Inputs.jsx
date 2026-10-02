@@ -253,9 +253,8 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 	)
 }
 
-/** A set of typed values as chips. Given `children` (ComboboxOption) it also offers them in a
-    panel under the field, the page filtering them by what `onSearch` reports (Bookmarks 22c);
-    `noun` names them, plural, in the count read out as typing narrows them. */
+/** Typed values as chips. Given `children` (ComboboxOption) it offers them in a panel, the page filtering
+    them by `onSearch` (Bookmarks 22c); `noun`, plural, names them in the count read out as they narrow. */
 export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, children, ...rest }) {
 	reject(rest, 'TokensField')
 	// what Field hands the control belongs on the input that takes focus, not on the box around it

@@ -2368,6 +2368,9 @@ a.sp-tabbar__item { text-decoration: none; }
   font-weight: 600;
 }
 .sp-chip--facet:focus-within { box-shadow: var(--ring); }
+/* a value with nothing behind it stays in its place, greyed, as a disabled choice is (c12) */
+.sp-chip--facet:has(input:disabled),
+.sp-chip--facet:has(input:disabled):hover { border-color: var(--line-3); color: var(--ink-5); cursor: not-allowed; }
 
 /* segmented, facet variant: a filled track, options sharing the width */
 .sp-segmented--facet {
@@ -4175,7 +4178,9 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 /* a token field that failed validation: the input's own invalid state, on the box
    that holds the values - c3 */
 .sp-tokens:has([aria-invalid="true"]),
-.sp-stepper:has([aria-invalid="true"]) { border-color: var(--red); background: var(--red-tint-2); }
+.sp-stepper:has([aria-invalid="true"]),
+.sp-combobox__trigger[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
+.sp-combobox__trigger[aria-invalid="true"]:focus-visible { border-color: var(--red-ink); box-shadow: var(--ring-error); }
 
 /* a chip carrying a problem - c6 variant */
 .sp-chip[data-color="danger"] { background: var(--red-tint); border-color: var(--red); color: var(--red-ink); font-weight: 600; }

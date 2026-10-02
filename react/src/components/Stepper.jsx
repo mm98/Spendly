@@ -3,6 +3,8 @@ import { reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { formatNumber, parseNumber, round } from './format.js'
 
+/** `step` is what minus and plus move by; `decimals` how many places a typed value keeps, the step's
+    own when absent (14a). A value with places is typed and read in `locale`, shown without trailing zeros. */
 export function Stepper({
 	value,
 	defaultValue = 1,
@@ -10,6 +12,7 @@ export function Stepper({
 	min,
 	max,
 	step = 1,
+	decimals: places,
 	locale,
 	// the field's label points at the value, not at the group around it
 	id,
@@ -24,8 +27,8 @@ export function Stepper({
 	const controlled = value !== undefined
 	const current = controlled ? value : held
 
-	// the decimals the step implies: 0.25 is two, 1 is none
-	const decimals = (String(step).split('.')[1] || '').length
+	// the decimals the step implies when none are named: 0.25 is two, 1 is none
+	const decimals = places ?? (String(step).split('.')[1] || '').length
 	const fractional = decimals > 0
 
 	const clamp = n => {
@@ -41,7 +44,9 @@ export function Stepper({
 		return n
 	}
 
-	const shown = typing ?? (fractional ? formatNumber(current, { locale, decimals }) : String(current))
+	const shown = typing ?? (fractional
+		? (places === undefined ? formatNumber(current, { locale, decimals }) : new Intl.NumberFormat(locale, { maximumFractionDigits: decimals }).format(current))
+		: String(current))
 
 	return (
 		<div className="sp-stepper" {...box}>
@@ -53,7 +58,8 @@ export function Stepper({
 				onClick={() => {
 					setTyping(null)
 					// a button that disables itself at the bound would drop focus to the page
-					if (min !== undefined && set(current - step) <= min) input.current?.focus()
+					const n = set(current - step)
+					if (min !== undefined && n <= min) input.current?.focus()
 				}}
 			>
 				<Icon name="minus" size={13} />
@@ -101,7 +107,8 @@ export function Stepper({
 				disabled={max !== undefined && current >= max}
 				onClick={() => {
 					setTyping(null)
-					if (max !== undefined && set(current + step) >= max) input.current?.focus()
+					const n = set(current + step)
+					if (max !== undefined && n >= max) input.current?.focus()
 				}}
 			>
 				<Icon name="plus" size={13} />

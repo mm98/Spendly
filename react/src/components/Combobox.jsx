@@ -97,9 +97,8 @@ const roomOf = root => {
 	return { top, bottom }
 }
 
-/** Opens a panel where it can be read (c9): below, above when only above has room, scrolling
-    inside when neither has, and lifted out of a card or scroller that would cut it off. The bars
-    pinned over the window's edges count as no room. */
+/** Opens a panel where it can be read (c9): below, above when only above has room (bars pinned over
+    the window count as none), scrolling inside when neither has, lifted out of a box that would cut it. */
 export function usePanelPlace(root, panel, open, size) {
 	useLayoutEffect(() => {
 		const list = panel.current
@@ -170,9 +169,16 @@ export function Combobox({
 	// input when the set is searched, the button when it is only opened
 	id,
 	'aria-label': label,
+	// what Field hands the control belongs on the element that takes focus, not on the box around it
+	'aria-invalid': invalid,
+	'aria-describedby': describedBy,
+	required,
+	trail,
+	unit,
 	...rest
 }) {
 	reject(rest, 'Combobox')
+	const told = { 'aria-describedby': describedBy, ...(invalid === true || invalid === 'true' ? { 'aria-invalid': 'true' } : {}) }
 	if (searchable && !onSearch) console.error('<Combobox searchable> needs onSearch: the page filters its own options, so typing narrows nothing without it')
 	if (!searchable && (onSearch || search !== undefined)) console.error('<Combobox> a query belongs to a searchable one')
 	const [held, setHeld] = useState(defaultOpen)
@@ -253,6 +259,8 @@ export function Combobox({
 							aria-controls={panelId}
 							aria-activedescendant={activeId}
 							aria-label={label}
+							required={required}
+							{...told}
 							autoComplete="off"
 							placeholder={placeholder}
 							value={shown}
@@ -296,6 +304,7 @@ export function Combobox({
 						aria-activedescendant={activeId}
 						aria-label={label}
 						aria-labelledby={`${label ? triggerId : prefix ? triggerId + '-prefix' : triggerId + '-label'} ${triggerId}-value`}
+						{...told}
 						onClick={toggle}
 						onKeyDown={onKeys}
 					>

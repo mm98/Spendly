@@ -6,7 +6,7 @@ import { Mark } from './Mark.jsx'
 import { Scrim } from './Shell.jsx'
 import { reject } from './variants.js'
 import { useFocusTrap } from './Utilities.jsx'
-import { FILE_TYPES, sortFiles } from './FileDrop.jsx'
+import { FILE_TYPES, fileProblem } from './FileDrop.jsx'
 
 /** The attachment strip (c16): tiles in one row that scrolls sideways under two chevrons. A
     chevron is disabled, and so hidden, when there is nothing further that way. */
@@ -54,16 +54,13 @@ export function Attachment({ name, children, ...rest }) {
 	)
 }
 
-/** The tile the strip always ends with: a label over a file input, so it needs no script. Files chosen
-    or dropped on it reach `onFiles(taken, refused)`: the ones it takes, and `{ file, problem }` for
-    each it does not, whose tile shows that reason with a Remove (17b). */
+/** The tile the strip ends with, a label over a file input. `onFiles(files, problems)`: each file chosen
+    or dropped, and why it cannot be kept (`fileProblem`) or null, so its tile can say so (17b). */
 export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, ...rest }) {
 	reject(rest, 'AttachmentAdd')
 	const take = list => {
 		const files = [...(list ?? [])].slice(0, multiple ? undefined : 1)
-		if (!files.length) return
-		const { taken, refused } = sortFiles(files, accept)
-		onFiles?.(taken, refused)
+		if (files.length) onFiles?.(files, files.map(file => fileProblem(file, accept)))
 	}
 	return (
 		<Mark as="label" size="xlarge" fill="add" aria-label="Add attachment" data-tip="Add attachment"
@@ -83,9 +80,8 @@ export function AttachmentAdd({ accept = FILE_TYPES, multiple = true, onFiles, .
 // what a file is, as its tile names it when there is no picture of it
 const kindOf = item => (item.kind === 'pdf' ? 'PDF' : String(item.name).includes('.') ? String(item.name).split('.').pop().toUpperCase().slice(0, 4) : 'File')
 
-/** One file at full size over the page, with the set it belongs to (12b). `items` are
-    `{ name, src, download, kind }`: `src` is what the stage shows, `download` the file as stored; a
-    file with no picture shows the tile that names its kind. */
+/** One file at full size over the page, with its set (12b). `items` are `{ name, src, download, kind }`:
+    `src` is what the stage shows, else the tile naming its kind; `download` the file as stored. */
 export function Viewer({ items = [], at = 0, onMove, onClose, ...rest }) {
 	reject(rest, 'Viewer')
 	const box = useRef(null)

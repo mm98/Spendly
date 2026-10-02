@@ -21,10 +21,13 @@ export function Chip({
 	defaultSelected,
 	onSelect,
 	onClick,
+	// a facet value with nothing behind it: in its place, greyed, not hidden (c12)
+	disabled = false,
 	children,
 	...rest
 }) {
 	reject(rest, 'Chip')
+	if (disabled && variant !== 'facet') console.error('<Chip> disabled belongs to a facet chip: any other chip is text or a button that acts')
 	const acts = !!onClick || variant === 'facet'
 	const classes = join(
 		'sp-chip',
@@ -47,6 +50,7 @@ export function Chip({
 					type={inputType}
 					name={name}
 					value={stored}
+					disabled={disabled}
 					{...(controlled
 						? { checked: selected, onChange: e => onSelect?.(e.target.checked, stored) }
 						: { defaultChecked: defaultSelected, onChange: e => onSelect?.(e.target.checked, stored) })}

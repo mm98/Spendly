@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { join, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
@@ -24,28 +24,13 @@ export function fileProblem(file, accept = FILE_TYPES, maxMb = MAX_FILE_MB) {
 	return null
 }
 
-/** Splits what arrived into the files a place takes and the ones it refuses, each with its reason. */
-export function sortFiles(list, accept, maxMb) {
-	const taken = []
-	const refused = []
-	for (const file of list ?? []) {
-		const problem = fileProblem(file, accept, maxMb)
-		if (problem) refused.push({ file, problem })
-		else taken.push(file)
-	}
-	return { taken, refused }
-}
-
-/** `action` is the button-shaped words inside the zone (3a): a span, since the zone is the label that
-    opens the picker. `onFiles(taken, refused)` gets what was chosen or dropped, checked against
-    `accept` and `maxMb`; `grow` takes the room left in its row (10a). */
+/** `action` is the button-shaped words inside the zone (3a); `grow` takes the room left in its row (10a).
+    `onFiles(files, problems)`: each file chosen or dropped, and why it cannot be taken (`fileProblem`) or null. */
 export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX_FILE_MB, onFiles, action, grow = false, id, ...rest }) {
 	reject(rest, 'FileDrop')
 	const take = list => {
 		const files = [...(list ?? [])].slice(0, multiple ? undefined : 1)
-		if (!files.length) return
-		const { taken, refused } = sortFiles(files, accept ?? FILE_TYPES, maxMb)
-		onFiles?.(taken, refused)
+		if (files.length) onFiles?.(files, files.map(file => fileProblem(file, accept ?? FILE_TYPES, maxMb)))
 	}
 	const dropping = onFiles
 		? {
@@ -69,21 +54,18 @@ export function FileDrop({ icon, children, accept, multiple = false, maxMb = MAX
 	)
 }
 
-/** The file slot (c17): the frame is the control, empty or filled; choosing, dropping or pasting
-    a picture replaces what is there. A file it cannot take keeps the frame with the reason and a
-    Remove (17b), and nothing reaches `onFile`. `start` is a slot that is a field of its own. */
-export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, onFile, onRemove, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
+/** The file slot (c17): choosing, dropping or pasting a picture replaces what is there. A file it cannot
+    take, or a page's `problem`, shows its reason over the frame with a Remove (17b); `start` is its own field. */
+export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', name = 'the image', start = false, accept = PHOTO_TYPES, problem, onFile, onRemove, lead, trail, unit, 'aria-describedby': describedBy, ...rest }) {
 	reject(rest, 'Slot')
 	const [refused, setRefused] = useState(null)
 	const take = file => {
 		if (!file) return
-		const problem = fileProblem(file, accept)
-		// a picture too large to keep still shows itself, so the reader sees which one it was
-		const shows = problem === 'Too large' && /^image\//.test(file.type)
-		setRefused(problem ? { name: file.name, problem, src: shows ? URL.createObjectURL(file) : null } : null)
-		if (!problem) onFile?.(file)
+		const own = fileProblem(file, accept)
+		setRefused(own ? { name: file.name, problem: own } : null)
+		if (!own) onFile?.(file)
 	}
-	useEffect(() => () => { if (refused?.src) URL.revokeObjectURL(refused.src) }, [refused])
+	const failed = refused?.problem ?? problem
 	const what = src ? `Replace ${name}` : `Add ${name}`
 	return (
 		<span
@@ -97,22 +79,22 @@ export function Slot({ id, src, size = 'large', kind = 'Photo', word = 'Add', na
 			<Mark
 				as="label"
 				size={size}
-				fill={refused ? (refused.src ? 'photo' : 'none') : src ? 'photo' : 'empty'}
-				text={src && !refused ? kind : undefined}
-				danger={refused?.problem}
+				fill={src ? 'photo' : 'empty'}
+				text={src && !failed ? kind : undefined}
+				danger={failed || undefined}
 				htmlFor={id}
-				aria-label={refused ? `${refused.name}: ${refused.problem}. ${what}` : what}
+				aria-label={failed ? `${refused ? refused.name + ': ' : ''}${failed}. ${what}` : what}
 				data-tip={what}
 				onDragOver={ev => ev.preventDefault()}
 				onDrop={ev => { ev.preventDefault(); take(ev.dataTransfer?.files?.[0]) }}
 			>
-				{refused ? (refused.src ? <img src={refused.src} alt="" /> : null) : src ? <img src={src} alt="" /> : <Icon name="camera" size={26} />}
+				{src ? <img src={src} alt="" /> : <Icon name="camera" size={26} />}
 				<input id={id} type="file" accept={accept} aria-describedby={describedBy}
 					onChange={ev => { take(ev.target.files?.[0]); ev.target.value = '' }} />
 			</Mark>
 			{refused
 				? <button type="button" className="sp-slot__remove" aria-label={`Remove ${refused.name}`} onClick={() => setRefused(null)}>Remove</button>
-				: src ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
+				: src || problem ? <button type="button" className="sp-slot__remove" onClick={onRemove}>Remove</button> : <span className="sp-meta">{word}</span>}
 		</span>
 	)
 }
