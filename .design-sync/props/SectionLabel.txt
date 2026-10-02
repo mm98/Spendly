@@ -1,3 +1,0 @@
-	/** The label text. Drawn uppercase; write it in sentence case. */
-	children?: React.ReactNode;
-	[key: string]: unknown;

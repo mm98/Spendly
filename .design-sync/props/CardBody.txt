@@ -1,9 +1,0 @@
-	/** Extra class words, written in full: `card-body-tight` (a list opening under the
-	 *  hairline), `card-body-page` (even padding), `card-body-centered` (children centred),
-	 *  `card-body-filters`, `card-body-fill` (the body takes the card's leftover height),
-	 *  `entry-list` (a list of EntryRows). Combine them with a space. Never override
-	 *  padding-top yourself. */
-	variant?: string;
-	children?: React.ReactNode;
-	className?: string;
-	[key: string]: unknown;

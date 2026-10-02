@@ -1,7 +1,0 @@
-	/** Any JSON-serialisable value. Rendered as `JSON.stringify(value, null, 2)` and coloured
-	 *  from that output, so the block never drifts from the value it stands for. */
-	value?: unknown;
-	/** The block's accessible name, e.g. "Import request shape". */
-	label?: string;
-	/** Extra classes on the `<pre>`. `json-dialog-body` is the one the app uses. */
-	className?: string;
