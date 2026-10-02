@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { formatNumber, parseNumber, round } from './format.js'
@@ -16,6 +16,9 @@ export function Stepper({
 	...rest
 }) {
 	reject(rest, 'Stepper')
+	// what Field hands the control belongs on the value, the element that takes focus
+	const { 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
+	const input = useRef(null)
 	const [held, setHeld] = useState(defaultValue)
 	const [typing, setTyping] = useState(null)
 	const controlled = value !== undefined
@@ -41,22 +44,30 @@ export function Stepper({
 	const shown = typing ?? (fractional ? formatNumber(current, { locale, decimals }) : String(current))
 
 	return (
-		<div className="sp-stepper" {...rest}>
+		<div className="sp-stepper" {...box}>
 			<button
 				type="button"
 				className="sp-stepper__btn"
 				aria-label={`One step fewer ${rest['aria-label']}`}
 				disabled={min !== undefined && current <= min}
-				onClick={() => { setTyping(null); set(current - step) }}
+				onClick={() => {
+					setTyping(null)
+					// a button that disables itself at the bound would drop focus to the page
+					if (min !== undefined && set(current - step) <= min) input.current?.focus()
+				}}
 			>
-				<Icon name="minus" />
+				<Icon name="minus" size={13} />
 			</button>
 			<input
 				type={fractional ? 'text' : 'number'}
 				inputMode="decimal"
 				size={4}
 				id={id}
+				ref={input}
 				className="sp-stepper__value"
+				aria-describedby={describedBy}
+				aria-invalid={invalid}
+				required={required}
 				aria-label={rest['aria-label']}
 				role={fractional ? 'spinbutton' : undefined}
 				aria-valuenow={fractional ? current : undefined}
@@ -88,9 +99,12 @@ export function Stepper({
 				className="sp-stepper__btn"
 				aria-label={`One step more ${rest['aria-label']}`}
 				disabled={max !== undefined && current >= max}
-				onClick={() => { setTyping(null); set(current + step) }}
+				onClick={() => {
+					setTyping(null)
+					if (max !== undefined && set(current + step) >= max) input.current?.focus()
+				}}
 			>
-				<Icon name="plus" />
+				<Icon name="plus" size={13} />
 			</button>
 		</div>
 	)

@@ -3,15 +3,15 @@ import { Skeleton } from './Utilities.jsx'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
-/** `passed` is a limit already passed, drawn as one full fill in the over colour - the rail's
-    and the form's shape, where a list row splits it with `over` (5i). */
-export function Gauge({ value, over, marker, untargeted = false, thin = false, negative = false, passed = false, ...rest }) {
+/** `passed` is a limit already passed, one full fill in the over colour (5i); a list row splits
+    it with `over`. `remainder` is the share of what is not listed, that colour at its width (4d). */
+export function Gauge({ value, over, marker, untargeted = false, thin = false, negative = false, passed = false, remainder = false, ...rest }) {
 	reject(rest, 'Gauge')
 	return (
 		<span className={join('sp-gauge', untargeted && 'sp-gauge--untargeted', thin && 'sp-gauge--thin')} {...rest}>
 			<meter value={value} min="0" max="100" aria-label={rest['aria-label']} />
 			<span
-				className={join('sp-gauge__fill', (over || passed) && 'sp-gauge__fill--over', negative && 'sp-gauge__fill--negative')}
+				className={join('sp-gauge__fill', (over || passed || remainder) && 'sp-gauge__fill--over', negative && 'sp-gauge__fill--negative')}
 				{...(passed ? { 'data-fill': '100' } : {})}
 				style={{ width: pct(passed ? 100 : value) }}
 			/>
@@ -141,7 +141,8 @@ export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 	)
 }
 
-const STAT_INK = { default: null, success: 'sp-ink-success' }
+// zero is a figure that holds nothing, a saving of 0 above all: it stays grey
+const STAT_INK = { default: null, success: 'sp-ink-success', zero: 'sp-ink-5' }
 
 /** `meta` is the quiet line under the figure that says what it is measured against. */
 export function Stat({ figure, large = false, color = 'default', label, delta, meta, ...rest }) {
@@ -165,7 +166,7 @@ export function Sum({ variant = 'default', tone = 'default', value, children, ..
 	reject(rest, 'Sum')
 	return (
 		<div className={join('sp-sum', pick(SUM, variant, 'variant', 'Sum'))} {...rest}>
-			<span className="sp-grow">{children}</span>
+			<span className="sp-ink-2">{children}</span>
 			<span className={join('sp-sum__value', pick(SUM_TONE, tone, 'tone', 'Sum'))}>{value}</span>
 		</div>
 	)

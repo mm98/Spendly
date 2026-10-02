@@ -184,12 +184,12 @@ function Month({
 	return (
 		<div className={join('sp-range__month', showWeeks && 'sp-range__month--weeks')} {...rest}>
 			<div className="sp-range__month-head">
-				{showPrevious ? <button type="button" className="sp-range__nav" aria-label="The month before" disabled={!!min && iso(new Date(year, month, 0)) < min} onClick={() => onMove?.(-1)}><Icon name="chevron-left" /></button> : null}
+				{showPrevious ? <button type="button" className="sp-range__nav" aria-label="The month before" disabled={!!min && iso(new Date(year, month, 0)) < min} onClick={() => onMove?.(-1)}><Icon name="chevron-left" size={13} /></button> : null}
 				{/* the month is announced when it changes, so walking into the next one is
 				    not a silent jump for a screen-reader user */}
 				<span aria-live="polite">{monthName(year, month, locale)}</span>
 				<span className="sp-grow" />
-				{showNext ? <button type="button" className="sp-range__nav" aria-label="The month after" disabled={!!max && iso(new Date(year, month + 1, 1)) > max} onClick={() => onMove?.(1)}><Icon name="chevron-right" /></button> : null}
+				{showNext ? <button type="button" className="sp-range__nav" aria-label="The month after" disabled={!!max && iso(new Date(year, month + 1, 1)) > max} onClick={() => onMove?.(1)}><Icon name="chevron-right" size={13} /></button> : null}
 			</div>
 			<div className="sp-range__weekdays" aria-hidden="true">
 				{showWeeks ? <span className="sp-range__week">W</span> : null}
@@ -429,28 +429,22 @@ const STANDARD_PERIODS = [
 	{ value: 'custom', label: 'Custom' }
 ]
 
-const readableRange = ([from, to], locale) => {
-	const a = typeof from === 'string' ? parse(from) : from
-	const b = typeof to === 'string' ? parse(to) : to
+// the dates as c14 writes them: day and month numbers, the year once at the end unless they differ
+const numericRange = ([from, to], locale) => {
+	const a = parse(from)
+	const b = parse(to)
 	if (!a || !b) return ''
-	const sameYear = a.getFullYear() === b.getFullYear()
-	const sameMonth = sameYear && a.getMonth() === b.getMonth()
-	const day = new Intl.DateTimeFormat(locale, { day: 'numeric' })
-	const dayMonth = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' })
-	const full = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' })
-	if (sameMonth) return day.format(a) + ' - ' + full.format(b)
-	if (sameYear) return dayMonth.format(a) + ' - ' + full.format(b)
-	return full.format(a) + ' - ' + full.format(b)
+	const full = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
+	if (a.getFullYear() !== b.getFullYear()) return full.format(a) + ' - ' + full.format(b)
+	return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(a) + ' - ' + full.format(b)
 }
 
-const periodNote = (preset, [from, to]) => {
+const periodNote = (preset, [from, to], today) => {
 	const a = parse(from)
 	const b = parse(to)
 	if (!a || !b) return null
-	const today = new Date()
-	today.setHours(0, 0, 0, 0)
-	const unit = { week: 'week', month: 'month', quarter: 'quarter', year: 'year' }[preset]
-	if (unit && b > today && a <= today) return unit + ' to date'
+	const running = { week: 'to today', month: 'month to date', quarter: 'quarter to date', year: 'year to date' }[preset]
+	if (running && from <= today && today <= to) return running
 	const days = Math.round((b - a) / 86400000) + 1
 	return days === 1 ? '1 day' : days + ' days'
 }
@@ -505,9 +499,9 @@ export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous 
 	)
 }
 
-/* `at` is a day inside the window the presets resolve around, today when absent; `stepper`
-   is the PeriodWindow that moves it, drawn after the presets. */
-export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, children, locale, ...rest }) {
+/* `at` is a day in the window the presets resolve around, today when absent; `stepper` moves it.
+   `onPresent` returns a window stepped away from today to the one holding it (c14). */
+export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, onPresent, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
 	// the child is read, not rendered: what it holds is a function of values this
 	// component derives, so it cannot be resolved until they exist
@@ -535,8 +529,12 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 			past: before ? { from: before[0], to: before[1], name: precedingName(preset, span, locale) } : null
 		}
 	}
-	const resolved = dates ? readableRange(dates, locale) : null
-	const note = dates ? periodNote(value, dates) : null
+	const now = iso(today)
+	const current = !!dates && value !== 'custom' && dates[0] <= now && now <= dates[1]
+	// the window still running reads to today, never into days that have not happened
+	const resolved = dates ? numericRange(current ? [dates[0], now] : dates, locale) : null
+	const note = dates ? periodNote(value, dates, now) : null
+	const away = !!dates && value !== 'custom' && !current && !!onPresent && !!PERIODS[value]
 	const offers = dates && picked
 	const against = offers
 		? { name: precedingName(value, dates, locale), dates: precedingDates(value, dates) }
@@ -579,7 +577,9 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 			{against && picked
 				? <span className="sp-period__compare">{typeof picked === 'function' ? picked(shapeOf(value, dates)) : picked}</span>
 				: null}
-			{note ? <span className="sp-period__note">{note}</span> : null}
+			{away
+				? <Button variant="text" size="small" onClick={onPresent}>Back to this {value}</Button>
+				: note ? <span className="sp-period__note">{note}</span> : null}
 		</div>
 	)
 }
@@ -615,8 +615,12 @@ function fromReadable(text, locale) {
 	return `${got.year}-${String(got.month).padStart(2, '0')}-${String(got.day).padStart(2, '0')}`
 }
 
-export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, locale, id, ...rest }) {
+/** `placeholder` is what the empty field says, as an open end reads Today (c12). */
+export function DateField({ value, onChange, min, max, unavailable, native, danger = false, showWeeks = true, locale, id, placeholder, ...rest }) {
 	reject(rest, 'DateField')
+	// what Field hands the control: its message and its state, on the input that takes focus
+	const { 'aria-describedby': message, 'aria-invalid': invalid, required, lead, trail, unit, ...unused } = rest
+	const marked = danger || invalid === true || invalid === 'true'
 	// the same reporting the range does, and for the same reason: a value the reader
 	// could not have picked is the page's to fix, not this control's to overwrite
 	if (value) {
@@ -649,7 +653,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 
 	const close = ({ toTrigger } = {}) => {
 		setOpen(false)
-		if (toTrigger) trigger.current?.focus()
+		if (toTrigger) trigger.current?.querySelector('button')?.focus()
 	}
 
 	// clicking away closes it: a panel that stays open behind the reader's next
@@ -671,7 +675,10 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 				min={min}
 				max={max}
 				onChange={ev => onChange?.(ev.target.value)}
-				{...(danger ? { 'aria-invalid': 'true' } : {})}
+				aria-describedby={message}
+				required={required}
+				{...(marked ? { 'aria-invalid': 'true' } : {})}
+				{...unused}
 			/>
 		)
 
@@ -692,13 +699,18 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 			ref={wrap}
 			data-open={open ? 'true' : 'false'}
 			onKeyDown={ev => { if (ev.key === 'Escape' && open) { ev.stopPropagation(); close({ toTrigger: true }) } }}
+			// tabbing out closes it; a focused day that leaves the page names no new target
+			onBlur={ev => { if (open && ev.relatedTarget && !wrap.current?.contains(ev.relatedTarget)) setOpen(false) }}
 		>
 			<input
 				id={id}
 				className="sp-input sp-input--trail sp-number"
-				aria-describedby={hintId}
+				aria-describedby={[message, hintId].filter(Boolean).join(' ') || undefined}
+				required={required}
+				placeholder={placeholder}
 				{...field(text)}
-				{...(danger || text.invalid ? { 'aria-invalid': 'true' } : {})}
+				{...(marked || text.invalid ? { 'aria-invalid': 'true' } : {})}
+				{...unused}
 				onKeyDown={ev => {
 					// the panel opens on the key that opens every other panel in the system
 					if (ev.key === 'ArrowDown' && ev.altKey && !open) { ev.preventDefault(); return openTo(value) }
@@ -708,7 +720,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 			{hintId ? <span id={hintId} hidden>{readable(iso(new Date(2026, 10, 22)), locale)}</span> : null}
 			<span className="sp-field__trail" ref={trigger}>
 				<IconButton
-					icon={<Icon name="calendar" />}
+					icon={<Icon name="calendar" size={15} />}
 					aria-label="Open the calendar"
 					size="field"
 					aria-haspopup="dialog"
