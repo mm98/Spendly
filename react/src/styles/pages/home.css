@@ -1,0 +1,37 @@
+/* Home (10a): the month beside the capture zone, then two columns beneath them. */
+
+@layer base {
+
+	/* the width the fold measures: the page's own, never the window's */
+	.hm-page { container-type: inline-size; }
+
+	/* both rows share one column split, so the second row starts level on both sides */
+	.hm-split { display: grid; grid-template-columns: 1.35fr 1fr; align-items: stretch; }
+	.hm-split--start { align-items: start; }
+
+	@container (max-width: 900px) {
+		.hm-split { grid-template-columns: minmax(0, 1fr); }
+	}
+
+	/* the month panel is as tall as the capture zone beside it, so its groups spread over it */
+	.hm-spread { justify-content: space-between; }
+
+	/* a skeleton held at the line box of the text it stands in for */
+	.hm-line { display: flex; align-items: center; height: 1lh; }
+	.hm-mark { display: grid; place-items: center; flex: none; width: var(--mark-small); height: var(--mark-small); }
+
+	/* a state laid over the resting form, which is kept unseen beneath so the height holds */
+	.hm-hold { display: grid; }
+	.hm-ghost,
+	.hm-state { grid-area: 1 / 1; display: grid; min-width: 0; }
+	.hm-ghost { visibility: hidden; }
+	.hm-fill { display: flex; flex-direction: column; justify-content: center; }
+
+	/* a recent order on the phone: the whole row is the link, at the touch height */
+	.hm-order { min-height: var(--control-h-touch); }
+	/* [href] outranks the base link ink, which loads after this file */
+	a.hm-order[href],
+	a.hm-order[href]:hover { color: inherit; text-decoration: none; border-radius: var(--r-tile); }
+	a.hm-order[href]:focus-visible { outline: none; box-shadow: var(--ring); }
+
+}

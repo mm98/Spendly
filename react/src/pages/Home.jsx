@@ -1,5 +1,5 @@
-import { useId, useLayoutEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useId } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { Card, CardBody, Toolbar } from '../components/Card.jsx'
 import { Bars, Gauge, GaugeKey, Stat } from '../components/Data.jsx'
 import { FileDrop } from '../components/FileDrop.jsx'
@@ -24,6 +24,7 @@ import { activeLocaleCode, amount, currency, monthNames, plural, shortDate, toda
 const ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/gif'
 const RECENT = 4
 const MONTHS = 8
+const ALERTS = 3
 const CHEVRON = <Icon name="chevron-right" size={15} />
 
 /* ---- reading the data ---- */
@@ -34,12 +35,14 @@ function monthView(window, list) {
 	const categories = withMonthSpend(list, window.split)
 	const limits = categories.reduce((sum, c) => sum + (c.budget > 0 ? c.budget : 0), 0)
 	const byOverage = c => c.monthSpend - c.budget
+	const spent = categories.filter(c => c.monthSpend > 0).sort((a, b) => b.monthSpend - a.monthSpend)
 	return {
 		window,
 		count: categories.length,
+		withSpend: spent.length,
 		limits,
 		over: categories.filter(overBudget).sort((a, b) => byOverage(b) - byOverage(a)),
-		top: categories.filter(c => c.monthSpend > 0).sort((a, b) => b.monthSpend - a.monthSpend).slice(0, 4),
+		top: spent.slice(0, 4),
 		pace: window.pace.unitDays ? (window.pace.daysIn / window.pace.unitDays) * 100 : 100
 	}
 }
@@ -53,6 +56,10 @@ function against(spent, limit, pace) {
 		marker: pace === undefined ? undefined : (pace * limit) / scale
 	}
 }
+
+/** The window's month in the account's own language, as Statistics and the month bars write it. */
+const monthOf = w => monthNames('long')[Number(w.from.slice(5, 7)) - 1]
+const capital = text => text.charAt(0).toLocaleUpperCase() + text.slice(1)
 
 const ordersFor = (category, window) => `/orders?category=${category.id}&from=${window.from}&to=${window.to}`
 
@@ -102,19 +109,6 @@ function greeting() {
 	return hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-/* The page's own width, never the window's. Not 18a's 900: the rail is as wide as its content,
-   and below this the main column leaves the order table no room for the vendor's name. */
-const TWO_COLUMNS = 1060
-function useWide(ref) {
-	const [wide, setWide] = useState(true)
-	useLayoutEffect(() => {
-		const watch = new ResizeObserver(([entry]) => setWide(entry.contentRect.width >= TWO_COLUMNS))
-		watch.observe(ref.current)
-		return () => watch.disconnect()
-	}, [ref])
-	return wide
-}
-
 /* ---- the page ---- */
 
 export default function Home() {
@@ -123,29 +117,64 @@ export default function Home() {
 	const categories = useApi(getCategories)
 	const recent = useApi(getOrders, [{ pageSize: RECENT }])
 	const view = monthView(month.data?.window, categories.data)
-	const failed = month.error || categories.error
-	const retry = () => { if (month.error) month.refresh(); if (categories.error) categories.refresh() }
-	const props = { view, failed, retry, recent }
+	const props = { month, categories, view, recent }
 	return touch ? <PhoneHome {...props} /> : <DesktopHome {...props} />
 }
 
-function DesktopHome({ view, failed, retry, recent }) {
-	const ref = useRef(null)
-	const wide = useWide(ref)
+/** Asks again only for what failed. */
+const retrying = (...reads) => () => reads.forEach(read => { if (read.error) read.refresh() })
+
+function DesktopHome({ month, categories, view, recent }) {
 	const newest = recent.data?.orders[0]
+	const lost = month.error || categories.error
 	return (
-		<div ref={ref} className={wide ? 'sp-shell__body--split' : 'sp-stack sp-gap-12'}>
-			<div className="sp-stack sp-gap-12">
-				{failed ? <Failed label="This month" what="This month did not load." error={failed} retry={retry} /> : <MonthCard view={view} newest={newest} />}
-				{view?.over.length ? <AlertsCard view={view} /> : null}
-				<RecentCard recent={recent} />
-			</div>
-			<div className="sp-stack sp-gap-12">
+		<div className="hm-page sp-stack sp-gap-12">
+			<div className="hm-split sp-gap-12">
+				{month.error
+					? (
+						<Held shape={<MonthCard />}>
+							<Failed label="This month" what="This month did not load." error={month.error} retry={month.refresh} />
+						</Held>
+					)
+					: <MonthCard w={month.data?.window} view={view} limitsLost={!!categories.error} newest={newest} />}
 				<CaptureCard newest={newest} loading={recent.loading && !recent.data} />
-				{failed ? null : <CategoriesCard view={view} />}
-				<MonthsCard />
+			</div>
+			<div className="hm-split hm-split--start sp-gap-12">
+				<div className="sp-stack sp-gap-12">
+					{lost ? null : <AlertsCard view={view} />}
+					<RecentCard recent={recent} />
+				</div>
+				<div className="sp-stack sp-gap-12">
+					{lost
+						? (
+							<Held shape={<CategoriesCard />}>
+								<Failed label="Categories this month" what="This month's categories did not load." error={lost} retry={retrying(month, categories)} />
+							</Held>
+						)
+						: <CategoriesCard view={view} />}
+					<MonthsCard />
+				</div>
 			</div>
 		</div>
+	)
+}
+
+/** Another state of a card, laid over its loading form so the card keeps its resting height. */
+function Held({ shape, children }) {
+	return (
+		<div className="hm-hold">
+			<div className="hm-ghost" aria-hidden="true">{shape}</div>
+			<div className="hm-state">{children}</div>
+		</div>
+	)
+}
+
+/** A skeleton the size of the small text button it stands in for. */
+function ButtonSkeleton({ label }) {
+	return (
+		<Held shape={<Button variant="text" size="small">{label}</Button>}>
+			<span className="hm-fill"><Skeleton shape="line" data-w="44" data-h="13" /></span>
+		</Held>
 	)
 }
 
@@ -153,35 +182,42 @@ function Failed({ label, what, error, retry }) {
 	return (
 		<Card footer={<Button variant="outline" size="small" onClick={retry} key="retry">Try again</Button>}>
 			<span className="sp-section-label">{label}</span>
-			<Alert color="danger" mark="!" title={what}>{failureMessage(error, 'Check the connection, then try again.')}</Alert>
+			<div className="sp-stack sp-grow hm-fill">
+				<Alert color="danger" mark="!" title={what}>{failureMessage(error, 'Check the connection, then try again.')}</Alert>
+			</div>
 		</Card>
 	)
 }
 
-function MonthCard({ view, newest }) {
-	const w = view?.window
+function MonthCard({ w, view, limitsLost = false, newest }) {
 	const ago = newest ? daysAgo(newest.date) : null
+	const figure = width => <span className="hm-line"><Skeleton shape="line" data-w={width} data-h="22" /></span>
 	return (
 		<Card variant="shell">
-			<div className="sp-row-flex sp-gap-12">
-				{w
-					? <span className="sp-section-label">{w.label} · day {w.pace.daysIn} of {w.pace.unitDays}</span>
-					: <Skeleton shape="line" data-w="130" data-h="18" />}
-				<span className="sp-grow" />
-				{ago ? <span className="sp-meta">last order {ago}</span> : null}
-			</div>
-			<div className="sp-row-flex sp-gap-16 sp-wrap">
-				<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : <Skeleton shape="line" data-w="130" data-h="22" />} />
-				<Stat label="Saved" color={w?.saved > 0 ? 'success' : 'default'}
-					figure={w ? currency(w.saved, 0) : <Skeleton shape="line" data-w="96" data-h="22" />} />
-				<Stat label="Orders" figure={w ? w.orders : <Skeleton shape="line" data-w="44" data-h="22" />} />
-			</div>
-			{view ? <Limits view={view} /> : (
-				<div className="sp-stack sp-gap-8">
-					<Gauge value={0} aria-label="Share of this month's limits used" />
-					<Skeleton shape="line" data-w="130" data-h="18" />
+			<div className="sp-stack sp-grow sp-gap-12 hm-spread">
+				<div className="sp-row-flex sp-gap-12">
+					{w
+						? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)} · day {w.pace.daysIn} of {w.pace.unitDays}</span>
+						: <span className="sp-section-label hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
+					<span className="sp-grow" />
+					{ago ? <span className="sp-meta">last order {ago}</span> : null}
 				</div>
-			)}
+				<div className="sp-row-flex sp-gap-16 sp-wrap">
+					<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
+					<Stat label="Saved" color={w?.saved > 0 ? 'success' : 'default'} figure={w ? currency(w.saved, 0) : figure('96')} />
+					<Stat label="Orders" figure={w ? w.orders : figure('44')} />
+				</div>
+				{view
+					? <Limits view={view} />
+					: (
+						<div className="sp-stack sp-gap-8">
+							<Gauge value={0} untargeted={limitsLost} aria-label="Share of this month's limits used" />
+							{limitsLost
+								? <span className="sp-meta">Your limits did not load.</span>
+								: <span className="sp-meta hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
+						</div>
+					)}
+			</div>
 		</Card>
 	)
 }
@@ -210,23 +246,40 @@ function Limits({ view }) {
 	)
 }
 
+/** An alert row while the month loads: the row's own box, holding bars. */
+function AlertSkeleton({ width }) {
+	return (
+		<ListItem mark={<span className="hm-mark"><Skeleton shape="line" data-w="18" data-h="22" /></span>}>
+			<span className="sp-data sp-grow hm-line"><Skeleton shape="line" data-w={width} data-h="13" /></span>
+		</ListItem>
+	)
+}
+
 function AlertsCard({ view }) {
-	const { window: w, over } = view
+	if (view && !view.over.length) return null
+	const w = view?.window
+	const over = view?.over ?? []
+	const shown = view ? <span className="sp-meta">{plural(Math.min(over.length, ALERTS), 'thing')}</span> : null
+	// past the cap the true total rides on a link, as Recent orders' does
+	const more = over.length > ALERTS
 	return (
 		<Card variant="flush">
 			<Toolbar>
 				<span className="sp-section-label">Needs a look</span>
+				{more ? shown : null}
 				<span className="sp-grow" />
-				<span className="sp-meta">{plural(over.length, 'thing')}</span>
+				{more ? <Button variant="text" size="small" to="/categories">All {over.length}</Button> : shown}
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-8">
-					{over.slice(0, 3).map(c => (
-						<ListItem key={c.id} to={ordersFor(c, w)} color="warning" chevron={CHEVRON}
-							mark={<span className="sp-list-item__count">!</span>}>
-							<span className="sp-grow"><b>{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {w.shortLabelFull}</span>
-						</ListItem>
-					))}
+					{view
+						? over.slice(0, ALERTS).map(c => (
+							<ListItem key={c.id} to={ordersFor(c, w)} color="warning" chevron={CHEVRON}
+								mark={<span className="sp-list-item__count">!</span>}>
+								<span className="sp-grow"><b>{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {monthOf(w)}</span>
+							</ListItem>
+						))
+						: ['62pc', '48pc', '55pc'].map(width => <AlertSkeleton key={width} width={width} />)}
 				</div>
 			</CardBody>
 		</Card>
@@ -235,30 +288,42 @@ function AlertsCard({ view }) {
 
 function RecentCard({ recent }) {
 	const navigate = useNavigate()
-	if (recent.error) return <Failed label="Recent orders" what="Your recent orders did not load." error={recent.error} retry={recent.refresh} />
 	const orders = recent.data?.orders
 	const total = recent.data?.total
 	const caption = (
 		<>
 			<span className="sp-section-label">Recent orders</span>
-			{total ? <span className="sp-meta">newest {RECENT}</span> : null}
+			{total ? <span className="sp-meta">newest {Math.min(RECENT, orders.length)}</span> : null}
 			<span className="sp-grow" />
 			{total ? <Button variant="text" size="small" to="/orders">All {total}</Button> : null}
 		</>
 	)
-	if (orders && !orders.length) return (
-		<Card variant="flush">
-			<Toolbar>{caption}</Toolbar>
-			<Empty>
-				<span className="sp-heading">No orders yet</span>
-				<span className="sp-meta">Drop a receipt and it becomes your first order. Or start an empty order and type it yourself.</span>
-				<Button size="small" to="/orders/new">Empty order</Button>
-			</Empty>
-		</Card>
+	const loading = <RecentList caption={caption} />
+	if (recent.error) return (
+		<Held shape={loading}>
+			<Failed label="Recent orders" what="Your recent orders did not load." error={recent.error} retry={recent.refresh} />
+		</Held>
 	)
+	if (orders && !orders.length) return (
+		<Held shape={loading}>
+			<Card variant="flush">
+				<Toolbar>{caption}</Toolbar>
+				<div className="sp-stack sp-grow hm-fill">
+					<Empty>
+						<span className="sp-heading">No orders yet</span>
+						<span className="sp-meta">Drop a receipt and it becomes your first order. Or start an empty order and type it yourself.</span>
+						<Button size="small" to="/orders/new">Empty order</Button>
+					</Empty>
+				</div>
+			</Card>
+		</Held>
+	)
+	return <RecentList caption={caption} orders={orders} onOpen={o => navigate(`/orders/${o.id}`)} />
+}
+
+function RecentList({ caption, orders, onOpen }) {
 	return (
-		<List data={orders ?? [1, 2, 3, 4]} recordKey={o => o.id ?? o} noun="orders" headless
-			onRowClick={orders ? o => navigate(`/orders/${o.id}`) : undefined}>
+		<List data={orders ?? [1, 2, 3, 4]} recordKey={o => o.id ?? o} noun="orders" headless onRowClick={orders ? onOpen : undefined}>
 			<Caption>{caption}</Caption>
 			<ListHead>
 				<ListCell width="title" />
@@ -310,7 +375,12 @@ function CaptureCard({ newest, loading }) {
 			<span className="sp-subtitle sp-grow" key="ask">Bought from {newest.vendor?.name} again?</span>,
 			<Button variant="text" size="small" to={`/orders/new?duplicate=${newest.id}`} key="copy">Duplicate last order</Button>
 		]
-		: loading ? [<Skeleton shape="line" data-h="18" key="ask" />, <Skeleton shape="pill" key="copy" />] : undefined
+		: loading
+			? [
+				<span className="sp-subtitle sp-grow hm-line" key="ask"><Skeleton shape="line" data-w="130" data-h="13" /></span>,
+				<ButtonSkeleton label="Duplicate last order" key="copy" />
+			]
+			: undefined
 	return (
 		<Card footer={footer}>
 			<span className="sp-section-label">Add an order</span>
@@ -334,32 +404,50 @@ function CaptureCard({ newest, loading }) {
 
 function CategoriesCard({ view }) {
 	const top = view?.top
-	return (
+	const loading = (
 		<Card>
 			<div className="sp-row-flex sp-gap-8">
 				<span className="sp-section-label">Categories this month</span>
-				{top?.length ? <span className="sp-meta">top {top.length} by spend</span> : null}
 				<span className="sp-grow" />
-				{view?.count ? <Button variant="text" size="small" to="/categories">All {view.count}</Button> : view ? null : <Skeleton shape="pill" />}
+				<ButtonSkeleton label="All 10" />
 			</div>
-			{!view
-				? [0, 1, 2, 3].map(i => (
-					<div className="sp-stack sp-gap-6" key={i}>
-						<div className="sp-row-flex sp-gap-8">
-							<Skeleton shape="line" data-w="18" data-h="22" />
-							<Skeleton shape="line" data-w="96" />
-							<span className="sp-grow" />
-							<Skeleton shape="line" data-w="76" data-h="11" />
-						</div>
-						<Gauge value={0} untargeted aria-label="Loading" />
+			{['96', '76', '88', '64'].map(width => (
+				<div className="sp-stack sp-gap-6" key={width}>
+					<div className="sp-row-flex sp-gap-8">
+						<span className="hm-mark"><Skeleton shape="line" data-w="18" data-h="22" /></span>
+						<span className="sp-data hm-line"><Skeleton shape="line" data-w={width} data-h="13" /></span>
+						<span className="sp-grow" />
+						<span className="sp-meta hm-line"><Skeleton shape="line" data-w="76" data-h="11" /></span>
 					</div>
-				))
-				: top.length
-					? top.map(c => <CategoryLine key={c.id} category={c} />)
-					: view.count
+					<Gauge value={0} untargeted aria-label="Loading" />
+				</div>
+			))}
+		</Card>
+	)
+	if (!view) return loading
+	const header = (
+		<div className="sp-row-flex sp-gap-8">
+			<span className="sp-section-label">Categories this month</span>
+			{top.length ? <span className="sp-meta">top {top.length} by spend</span> : null}
+			<span className="sp-grow" />
+			{view.withSpend ? <Button variant="text" size="small" to="/categories">All {view.withSpend}</Button> : null}
+		</div>
+	)
+	if (top.length) return (
+		<Card>
+			{header}
+			{top.map(c => <CategoryLine key={c.id} category={c} />)}
+		</Card>
+	)
+	return (
+		<Held shape={loading}>
+			<Card>
+				{header}
+				<div className="sp-stack sp-grow hm-fill">
+					{view.count
 						? (
 							<Empty>
-								<span className="sp-heading">Nothing spent in {view.window.shortLabelFull} yet</span>
+								<span className="sp-heading">Nothing spent in {monthOf(view.window)} yet</span>
 								<span className="sp-meta">Add an order and its categories show here, against their limits.</span>
 							</Empty>
 						)
@@ -370,7 +458,9 @@ function CategoriesCard({ view }) {
 								<Button size="small" to="/categories/new">New category</Button>
 							</Empty>
 						)}
-		</Card>
+				</div>
+			</Card>
+		</Held>
 	)
 }
 
@@ -397,13 +487,14 @@ function CategoryLine({ category: c }) {
 function MonthsCard() {
 	const navigate = useNavigate()
 	const year = useApi(getStats, ['year', undefined, undefined])
-	if (year.error) return <Failed label={`Last ${MONTHS} months`} what="The last months did not load." error={year.error} retry={year.refresh} />
 	const months = year.data ? lastMonths(year.data.window) : null
 	const average = months ? months.reduce((sum, c) => sum + c.spend, 0) / months.length : null
-	return (
+	const card = (
 		<Card footer={[
 			<span className="sp-subtitle sp-grow" key="label">Monthly average</span>,
-			average === null ? <Skeleton shape="line" data-w="76" data-h="20" key="value" /> : <span className="sp-amount" key="value">{currency(average, 0)}</span>
+			average === null
+				? <span className="sp-amount hm-line" key="value"><Skeleton shape="line" data-w="76" data-h="13" /></span>
+				: <span className="sp-amount" key="value">{currency(average, 0)}</span>
 		]}>
 			<div className="sp-row-flex sp-gap-8">
 				<span className="sp-section-label">Last {MONTHS} months</span>
@@ -414,28 +505,35 @@ function MonthsCard() {
 				onSelect={(key, from, to) => navigate(`/orders?from=${from}&to=${to}`)} />
 		</Card>
 	)
+	if (year.error) return (
+		<Held shape={card}>
+			<Failed label={`Last ${MONTHS} months`} what="The last months did not load." error={year.error} retry={year.refresh} />
+		</Held>
+	)
+	return card
 }
 
 /* ---- below 640: the phone's own composition (7a) ---- */
 
-function PhoneHome({ view, failed, retry, recent }) {
-	const w = view?.window
+function PhoneHome({ month, categories, view, recent }) {
+	const w = month.data?.window
+	const lost = month.error || categories.error
 	return (
 		<>
 			<div className="sp-stacked">
 				<span className="sp-stat__figure">{greeting()}</span>
-				{w ? <span className="sp-data">{w.shortLabelFull}, day {w.pace.daysIn} of {w.pace.unitDays}</span> : <Skeleton shape="line" data-w="130" data-h="20" />}
+				{w
+					? <span className="sp-data">{capital(monthOf(w))}, day {w.pace.daysIn} of {w.pace.unitDays}</span>
+					: <span className="sp-data hm-line"><Skeleton shape="line" data-w="130" data-h="13" /></span>}
 			</div>
-			{failed ? <Failed label="This month" what="This month did not load." error={failed} retry={retry} /> : <PhoneMonth view={view} />}
-			{view?.over.length ? (
-				<Card>
-					<span className="sp-section-label">Needs a look</span>
-					<ListItem to="/categories" color="warning" chevron={<Icon name="chevron-right" size={13} />}
-						mark={<span className="sp-list-item__count">{view.over.length}</span>}>
-						<span className="sp-data sp-ink-warning sp-grow">over {view.over.length === 1 ? 'its' : 'their'} limit</span>
-					</ListItem>
-				</Card>
-			) : null}
+			{lost
+				? (
+					<Held shape={<PhoneMonth />}>
+						<Failed label="This month" what="This month did not load." error={lost} retry={retrying(month, categories)} />
+					</Held>
+				)
+				: <PhoneMonth view={view} />}
+			{lost ? null : <PhoneAlerts view={view} />}
 			<PhoneRecent recent={recent} />
 		</>
 	)
@@ -445,7 +543,7 @@ function PhoneMonth({ view }) {
 	if (!view) return (
 		<Card>
 			<span className="sp-section-label">This month</span>
-			<Skeleton shape="line" data-w="130" data-h="22" />
+			<span className="sp-stat__figure sp-stat__figure--large hm-line"><Skeleton shape="line" data-w="130" data-h="22" /></span>
 			<Gauge value={0} aria-label="Share of this month's limits used" />
 		</Card>
 	)
@@ -468,39 +566,70 @@ function PhoneMonth({ view }) {
 	)
 }
 
+function PhoneAlerts({ view }) {
+	if (view && !view.over.length) return null
+	return (
+		<Card>
+			<span className="sp-section-label">Needs a look</span>
+			{view
+				? (
+					<ListItem to="/categories" color="warning" chevron={<Icon name="chevron-right" size={13} />}
+						mark={<span className="sp-list-item__count">{view.over.length}</span>}>
+						<span className="sp-data sp-ink-warning sp-grow">over {view.over.length === 1 ? 'its' : 'their'} limit</span>
+					</ListItem>
+				)
+				: <AlertSkeleton width="44pc" />}
+		</Card>
+	)
+}
+
 function PhoneRecent({ recent }) {
-	if (recent.error) return <Failed label="Recent orders" what="Your recent orders did not load." error={recent.error} retry={recent.refresh} />
 	const orders = recent.data?.orders
+	const loading = (
+		<Card>
+			<span className="sp-section-label">Recent orders</span>
+			{[0, 1, 2].map(i => (
+				<div className="sp-row-flex sp-gap-12 hm-order" key={i}>
+					<Skeleton shape="mark" />
+					<span className="sp-stacked sp-grow"><Skeleton shape="line" data-w="62pc" data-h="13" /><Skeleton shape="line" data-w="44pc" data-h="10" /></span>
+					<Skeleton shape="line" data-w="64" />
+				</div>
+			))}
+		</Card>
+	)
+	if (recent.error) return (
+		<Held shape={loading}>
+			<Failed label="Recent orders" what="Your recent orders did not load." error={recent.error} retry={recent.refresh} />
+		</Held>
+	)
+	if (!orders) return loading
+	if (!orders.length) return (
+		<Held shape={loading}>
+			<Card>
+				<span className="sp-section-label">Recent orders</span>
+				<div className="sp-stack sp-grow hm-fill">
+					<span className="sp-meta">No orders yet. Press the plus button to add your first.</span>
+				</div>
+			</Card>
+		</Held>
+	)
 	return (
 		<Card>
 			<span className="sp-section-label">Recent orders</span>
-			{!orders
-				? [0, 1, 2].map(i => (
-					<div className="sp-row-flex sp-gap-12" key={i}>
-						<Skeleton shape="mark" />
-						<span className="sp-stacked sp-grow"><Skeleton shape="line" data-w="62pc" data-h="13" /><Skeleton shape="line" data-w="44pc" data-h="10" /></span>
-						<Skeleton shape="line" data-w="64" />
-					</div>
-				))
-				: orders.length
-					? orders.slice(0, 3).map(o => <PhoneOrder key={o.id} order={o} />)
-					: <span className="sp-meta">No orders yet. Press the plus button to add your first.</span>}
+			{orders.slice(0, 3).map(o => <PhoneOrder key={o.id} order={o} />)}
 		</Card>
 	)
 }
 
 function PhoneOrder({ order }) {
-	const navigate = useNavigate()
-	const open = () => navigate(`/orders/${order.id}`)
 	return (
-		<div className="sp-row-flex sp-gap-12" role="link" tabIndex={0} onClick={open}
-			onKeyDown={ev => { if (ev.key === 'Enter') open() }}>
+		<Link className="sp-row-flex sp-gap-12 hm-order" to={`/orders/${order.id}`}>
 			<OrderPhoto order={order} />
 			<div className="sp-stacked sp-grow">
 				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
 				<span className="sp-meta">{rowDate(order.date)} · {plural(order.itemCount, 'item')}</span>
 			</div>
 			<span className="sp-title sp-nowrap">{amount(order.total)}</span>
-		</div>
+		</Link>
 	)
 }
