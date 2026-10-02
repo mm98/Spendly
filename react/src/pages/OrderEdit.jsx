@@ -13,7 +13,7 @@ export default function OrderEdit() {
 	const order = state.data?.id === id && !state.loading ? state.data : null
 
 	if (!order && state.error) return <OrderFailed error={state.error} retry={state.refresh} />
-	if (!order) return <OrderLoading />
+	if (!order) return <OrderLoading form />
 	return (
 		<OrderForm
 			key={order.id}

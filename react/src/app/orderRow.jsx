@@ -4,12 +4,12 @@ import { itemAttachmentThumbnailUrl } from '../api/client.js'
 import { dot } from '../api/format.js'
 
 /** An order row's picture (2b): its first line photo with the rest counted over it, or the
-    dashed box of an order with none. */
+    dashed box of an order with none. Hidden from a screen reader: the row's vendor names it. */
 export function OrderPhoto({ order }) {
-	if (!order.photo) return <Mark size="medium" fill="empty" aria-label="No photo" />
+	if (!order.photo) return <Mark size="medium" fill="empty" aria-label="No photo" aria-hidden="true" />
 	const more = order.photoCount > 1 ? `+${order.photoCount - 1}` : null
 	return (
-		<Mark size="medium" fill="photo" count={more} aria-label={`Photo from ${order.vendor?.name ?? 'this order'}`}>
+		<Mark size="medium" fill="photo" count={more} aria-label={`Photo from ${order.vendor?.name ?? 'this order'}`} aria-hidden="true">
 			<img src={itemAttachmentThumbnailUrl(order.id, order.photo.itemId, order.photo.attachmentId)} alt="" />
 		</Mark>
 	)

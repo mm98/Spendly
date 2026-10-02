@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Card, ListFooter } from '../components/Card.jsx'
@@ -20,6 +20,7 @@ import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useDismiss, useF
 import { failureMessage, getCategories, getCurrentUser, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
+import { useListMemory } from '../app/listMemory.js'
 import { useShellShape, useWidth } from '../app/useMedia.js'
 import { OrderPhoto, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
@@ -44,12 +45,14 @@ const day = (y, m, d) => iso(new Date(y, m, d))
 const isDay = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && iso(new Date(s + 'T00:00')) === s
 const isAmount = s => s !== '' && Number.isFinite(Number(s)) && Number(s) >= 0
 
-/* What the address asks for. A date or an amount the page cannot read counts as not set, so a
-   bad link shows the whole list instead of breaking the page. */
+/* What the address asks for. A date or an amount the page cannot read, or a range that ends
+   before it starts, counts as not set, so a bad link shows the whole list instead of none. */
 const readFilters = params => {
 	const f = Object.fromEntries([...FILTERS, 'sort'].map(k => [k, params.get(k) ?? '']))
 	for (const k of ['from', 'to']) if (!isDay(f[k])) f[k] = ''
 	for (const k of ['min', 'max']) if (!isAmount(f[k])) f[k] = ''
+	if (f.from && f.to && f.to < f.from) f.from = f.to = ''
+	if (f.min && f.max && Number(f.max) < Number(f.min)) f.min = f.max = ''
 	return f
 }
 
@@ -112,21 +115,32 @@ export default function Orders() {
 	// a date range typed by hand is held open here, so the crumb and Clear all can close it
 	const [custom, setCustom] = useState(false)
 	useEffect(() => { if (!f.from && !f.to) setCustom(false) }, [f.from, f.to])
-	const clearAll = () => { setCustom(false); setSearchKey(n => n + 1); update(Object.fromEntries(FILTERS.map(k => [k, '']))) }
+	// every facet goes and the search and sort stay, at every width (c12)
+	const clearAll = () => { setCustom(false); update(Object.fromEntries(FACETS.map(k => [k, '']))) }
 	const clearSearch = () => { setSearchKey(n => n + 1); update({ q: '' }) }
 
 	const request = requestOf(f, sort)
-	const signature = JSON.stringify(request)
-	const [more, setMore] = useState({ signature, pages: 1 })
-	const pages = more.signature === signature ? more.pages : 1
+	// the pages loaded for this history step and these filters, so Back returns to the same rows
+	const { pages, setPages, restored } = useListMemory(`orders?${JSON.stringify(request)}`)
 	const orders = useApi(getOrders, [{ ...request, page: 1, pageSize: size * pages }])
-	const loadMore = () => setMore({ signature, pages: pages + 1 })
+	const loadMore = () => setPages(pages + 1)
+	useEffect(() => { if ((orders.data || orders.error) && !orders.loading) restored() }, [orders.data, orders.error, orders.loading, restored])
 
 	const column = useRef(null)
 	const width = useWidth(column)
 	const narrow = touch || (width > 0 && width <= 640)
 
 	const [deleting, setDeleting] = useState(null)
+	// once a deleted order has left the list, focus goes to the menu of the row that took its
+	// place, so it never falls back to the top of the page
+	const [refocus, setRefocus] = useState(null)
+	useEffect(() => {
+		if (!refocus || !orders.data || orders.data.orders.some(o => o.id === refocus.id)) return
+		setRefocus(null)
+		const menus = [...(column.current?.querySelectorAll('button[aria-haspopup="menu"]') ?? [])]
+		const target = menus[Math.min(refocus.at, menus.length - 1)] ?? column.current?.querySelector('input, button, a')
+		target?.focus()
+	}, [refocus, orders.data])
 	const [filtersOpen, setFiltersOpen] = useState(false)
 	useEffect(() => { if (railed) setFiltersOpen(false) }, [railed])
 
@@ -173,9 +187,16 @@ export default function Orders() {
 	)
 
 	const sortLabel = SORTS.find(s => s.id === sort).label
+	const filtersButton = (
+		<Button variant="outline" aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'} onClick={() => setFiltersOpen(true)}>
+			{crumbs.length ? `Filters${dot}${crumbs.length}` : 'Filters'}
+		</Button>
+	)
+	// without the rail, Filters joins the bar before sort (15e); a phone gives it its own row (c12)
 	const controls = (
 		<Controls>
 			<OrderSearch key={searchKey} q={f.q} onSearch={search} touch={touch} />
+			{railed || touch ? null : filtersButton}
 			<Combobox variant="sort-end" prefix="Sort" value={sortLabel}>
 				{SORTS.map(s => (
 					<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => update({ sort: s.id })}>
@@ -233,13 +254,15 @@ export default function Orders() {
 			<Card variant="flush">
 				<Empty>
 					<EmptyTitle>No orders match these filters</EmptyTitle>
-					<EmptyBody>Remove one of the filters, or clear all of them to see every order.</EmptyBody>
+					<EmptyBody>{f.q
+						? 'Remove one of the filters, or clear all of them to see every order that matches the search.'
+						: 'Remove one of the filters, or clear all of them to see every order.'}</EmptyBody>
 					<Button size="small" onClick={clearAll}>Clear filters</Button>
 				</Empty>
 			</Card>
 		)
 	else if (narrow)
-		body = <OrderCards data={data} onOpen={open} onLoadMore={loadMore} />
+		body = <OrderCards data={data} size={size} touch={touch} onOpen={open} onLoadMore={loadMore} />
 	else
 		body = <OrderRows data={data} width={width} size={size} onLoadMore={loadMore} onDelete={setDeleting} />
 
@@ -249,15 +272,7 @@ export default function Orders() {
 	const main = (
 		<div className={alone ? 'sp-grow sp-stack sp-gap-12 ol-alone' : 'sp-grow sp-stack sp-gap-12'} ref={column}>
 			{none ? null : controls}
-			{none || railed
-				? null
-				: (
-					<div className="sp-row-flex sp-gap-8">
-						<Button variant="outline" aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'} onClick={() => setFiltersOpen(true)}>
-							{crumbs.length ? `Filters${dot}${crumbs.length}` : 'Filters'}
-						</Button>
-					</div>
-				)}
+			{none || !touch ? null : <div className="sp-row-flex sp-gap-8">{filtersButton}</div>}
 			{crumbs.length ? <Filters onClear={clearAll}>{crumbs}</Filters> : null}
 			{body}
 			{filtersOpen
@@ -272,7 +287,10 @@ export default function Orders() {
 				)
 				: null}
 			{deleting
-				? <DeleteOrder order={deleting} onClose={() => setDeleting(null)} onDeleted={() => setDeleting(null)} />
+				? (
+					<DeleteOrder order={deleting} onClose={() => setDeleting(null)}
+						onDeleted={() => { setDeleting(null); setRefocus({ id: deleting.id, at: data.orders.findIndex(o => o.id === deleting.id) }) }} />
+				)
 				: null}
 		</div>
 	)
@@ -314,7 +332,7 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
 				<span className="sp-heading">Filters</span>
 				<div className="ol-sheet-body">
-					<OrderFacets f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={count.loading ? undefined : count.data?.matched} {...facetData} />
+					<OrderFacets bare f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={count.loading ? undefined : count.data?.matched} {...facetData} />
 				</div>
 				<div className="sp-row-flex sp-gap-8">
 					<Button variant="outline" size="small" onClick={clear}>Clear all</Button>
@@ -442,7 +460,7 @@ function RowMenu({ order, onDelete }) {
 
 /** At 640 of list column and under, rows become cards (2i): the photo, then name and total,
     reference and status, date and saving. */
-function OrderCards({ data, onOpen, onLoadMore }) {
+function OrderCards({ data, size, touch, onOpen, onLoadMore }) {
 	return (
 		<>
 			<span className="sp-meta">{plural(data.matched, 'order')}</span>
@@ -464,11 +482,13 @@ function OrderCards({ data, onOpen, onLoadMore }) {
 					</Stacked>
 				</ListItem>
 			))}
-			{data.matched > data.orders.length || data.pages > 1
+			{/* there while the orders run past one page, by the table footer's own rule */}
+			{data.matched > size
 				? (
 					<ListFooter loose>
 						<span className="sp-subtitle">Showing {amount(data.orders.length, 0)} of {amount(data.matched, 0)}</span>
-						<span className="sp-grow" />
+						{/* a phone stacks the two, so the spacer would add a second gap */}
+						{touch ? null : <span className="sp-grow" />}
 						{data.orders.length < data.matched ? <Button variant="outline" size="small" onClick={onLoadMore}>Load more</Button> : null}
 					</ListFooter>
 				)
@@ -529,19 +549,22 @@ function CardsLoading({ size }) {
 	))]
 }
 
-/** The rail's groups (c12, 2b), each one a filter the orders can take today. */
-function OrderFacets({ f, update, custom, setCustom, vendors, categories, highest, matched }) {
-	// every vendor, so the group's total is the count the sidebar shows (2b)
+/** The rail's groups (c12, 2b), each one a filter the orders can take today. `bare` gives the
+    groups alone, for the sheet that spaces them itself (7b). */
+function OrderFacets({ bare = false, f, update, custom, setCustom, vendors, categories, highest, matched }) {
+	// every vendor and category, so a group's total is the count the sidebar shows (2b); one
+	// with no orders comes last and cannot be picked (c12)
 	const byUse = list => [...(list ?? [])].sort((a, b) => b.orders - a.orders)
 	const shownVendors = byUse(vendors)
-	const shownCategories = byUse(categories).filter(c => c.orders > 0 || c.id === f.category)
+	const shownCategories = byUse(categories)
 	const [allVendors, setAllVendors] = useState(false)
 	const [find, setFind] = useState('')
 	const found = find ? shownVendors.filter(v => v.name.toLowerCase().includes(find.toLowerCase())) : shownVendors
 	const listed = allVendors || find ? found : found.filter((v, i) => i < 4 || v.id === f.vendor)
 
+	const Groups = bare ? Fragment : Facets
 	return (
-		<Facets>
+		<Groups>
 			<DateFacet from={f.from} to={f.to} matched={matched} update={update} custom={custom} setCustom={setCustom} />
 
 			<FieldGroup facet legend="Status">
@@ -572,7 +595,7 @@ function OrderFacets({ f, update, custom, setCustom, vendors, categories, highes
 					<FieldGroup facet legend="Categories">
 						<Filters>
 							{shownCategories.map(c => (
-								<Chip key={c.id} variant="facet" value={c.id} selected={f.category === c.id}
+								<Chip key={c.id} variant="facet" value={c.id} selected={f.category === c.id} disabled={!c.orders && f.category !== c.id}
 									onSelect={on => update({ category: on ? c.id : '' })}>{c.name}</Chip>
 							))}
 						</Filters>
@@ -591,7 +614,7 @@ function OrderFacets({ f, update, custom, setCustom, vendors, categories, highes
 			</FieldGroup>
 
 			{highest ? <AmountFacet top={Math.max(1000, Math.ceil(highest / 1000) * 1000)} min={f.min} max={f.max} update={update} /> : null}
-		</Facets>
+		</Groups>
 	)
 }
 
@@ -604,13 +627,14 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 	useEffect(() => setDraft({ from, to }), [from, to])
 	const wrong = !!(draft.from && draft.to && draft.to < draft.from)
 
-	// an impossible range, or a year still being typed, is held in the fields only: the list
-	// keeps the last range that made sense
+	// a range that ends before it starts waits in the fields while the reader is in them; a date
+	// the page cannot read is never kept, and leaving the two fields shows the range in force
 	const edit = next => {
+		if (![next.from, next.to].every(d => !d || isDay(d))) return
 		setDraft(next)
-		const readable = [next.from, next.to].every(d => !d || isDay(d))
-		if (readable && !(next.from && next.to && next.to < next.from)) update({ from: next.from, to: next.to })
+		if (!(next.from && next.to && next.to < next.from)) update({ from: next.from, to: next.to })
 	}
+	const leave = ev => { if (!ev.currentTarget.contains(ev.relatedTarget)) setDraft({ from, to }) }
 	// a count not known yet is left out rather than shown as zero (6b)
 	const summary = [from ? plural(daysBetween(from, to || today()), 'day') : null, matched == null ? null : plural(matched, 'order')]
 		.filter(Boolean).join(dot)
@@ -629,8 +653,8 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 					Custom…
 				</Chip>
 			</Filters>
-			<FieldGroupPanel>
-				<Field label="From"><DateField value={draft.from} placeholder="dd/mm/yyyy" locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
+			<FieldGroupPanel onBlur={leave}>
+				<Field label="From"><DateField value={draft.from} locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
 				<Field label="To"><DateField value={draft.to} placeholder="Today" danger={wrong} locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} /></Field>
 				{wrong
 					? <span className="sp-field__help" data-color="danger">To must be on or after From. The list keeps the last valid range.</span>

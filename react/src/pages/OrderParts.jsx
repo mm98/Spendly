@@ -1,10 +1,14 @@
-import { Card, Panel } from '../components/Card.jsx'
+import { Card, Panel, Toolbar } from '../components/Card.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Button } from '../components/Button.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
 import { Mark, MarkRemove } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Attachment } from '../components/Attachments.jsx'
+import { Sum } from '../components/Data.jsx'
+import { Totals } from '../components/LineEditor.jsx'
+import { SaveBar } from '../components/Touch.jsx'
+import { useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import {
 	attachmentFileUrl, attachmentThumbnailUrl, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
@@ -25,7 +29,8 @@ export const lineSaving = line =>
 /** The orders table's own three formulas, so a draft's figures are the ones the save stores. */
 export function totalsOf(lines, shipping, discount) {
 	const paid = lines.reduce((sum, l) => sum + lineTotal(l), 0)
-	const retail = lines.reduce((sum, l) => sum + (Number(l.retail ?? l.price) || 0) * (Number(l.quantity) || 0), 0)
+	// a line's retail counts as at least its price, as the server stores it, so no line saves below zero
+	const retail = lines.reduce((sum, l) => sum + Math.max(Number(l.retail ?? l.price) || 0, Number(l.price) || 0) * (Number(l.quantity) || 0), 0)
 	const off = Number(discount) || 0
 	return { paid, total: paid + (Number(shipping) || 0) - off, saved: retail - paid + off }
 }
@@ -36,6 +41,18 @@ export const lineMeta = (line, compact = false) =>
 	+ (line.retail != null && !compact ? `${dot}retail ${money(line.retail)}` : '')
 
 export const itemsWord = n => plural(n, 'item')
+
+/* What each place takes (17a): the strip PDFs and pictures, a line's photo pictures only, and the
+   server refuses anything over 25 MB. Checked before a file is kept, so it never reaches a save. */
+export const MAX_MB = 25
+const PICTURE = /^image\/(jpeg|png|webp|heic|heif|gif)$/
+const PICTURE_NAME = /\.(jpe?g|png|webp|heic|heif|gif)$/i
+export const isPdf = file => file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
+export function fileProblem(file, { pdf = true } = {}) {
+	if (!(PICTURE.test(file.type) || PICTURE_NAME.test(file.name) || (pdf && isPdf(file)))) return 'Not a supported type'
+	if (file.size > MAX_MB * 1024 * 1024) return 'Too large'
+	return null
+}
 
 /** The line's total, with its saving under it; `compact` is the phone's, the total alone (1c). */
 export function LineAmount({ line, compact = false }) {
@@ -48,11 +65,13 @@ export function LineAmount({ line, compact = false }) {
 	)
 }
 
+/** A line's name and what it is made of; `compact` is the phone's, whose narrow widths wrap the
+    quantity and price rather than cut them. */
 export function LineText({ line, compact = false }) {
 	return (
 		<span className="sp-stacked">
 			<span className="sp-title sp-truncate">{line.title}</span>
-			<span className="sp-subtitle sp-truncate">{lineMeta(line, compact)}</span>
+			<span className={compact ? 'sp-subtitle' : 'sp-subtitle sp-truncate'}>{lineMeta(line, compact)}</span>
 		</span>
 	)
 }
@@ -93,15 +112,22 @@ export function filesOf(order) {
 	return files
 }
 
-/** One attachment in the strip; without a `thumb` the tile names the file's kind. */
-export function AttachmentTile({ name, kind, thumb, onOpen, onRemove, bare = false }) {
+/** One attachment in the strip; without a `thumb` the tile names the file's kind. A `problem` is
+    why the file cannot be kept, said on the tile until it is removed (17b). */
+export function AttachmentTile({ name, kind, thumb, problem, onOpen, onRemove, bare = false }) {
 	const label = kindOf({ name, kind })
 	const remove = onRemove
 		? <MarkRemove aria-label={`Remove ${name}`} onClick={onRemove}><Icon name="x" size={11} /></MarkRemove>
 		: null
 	const named = onOpen ? `Open ${name}` : name
 	let mark
-	if (thumb)
+	if (problem)
+		mark = (
+			<Mark size="xlarge" fill="photo" danger={problem} aria-label={`${name}: ${problem.toLowerCase()}`} remove={remove}>
+				{thumb ? <img src={thumb} alt="" /> : null}
+			</Mark>
+		)
+	else if (thumb)
 		mark = (
 			<Mark size="xlarge" fill="photo" text={kind === 'pdf' ? 'PDF' : undefined} aria-label={named} onClick={onOpen} remove={remove}>
 				<img src={thumb} alt="" />
@@ -117,35 +143,104 @@ export function AttachmentTile({ name, kind, thumb, onOpen, onRemove, bare = fal
 	return bare ? mark : <Attachment name={name}>{mark}</Attachment>
 }
 
-/** The page while the order loads: its cards at their own size, so nothing jumps (6b). */
-export function OrderLoading({ region = false }) {
-	const rows = [0, 1, 2].map(i => (
-		<ListItem key={i} mark={<Skeleton shape="mark" />}>
-			<span className="sp-stacked sp-grow">
-				<Skeleton shape="line" data-w="62pc" data-h="13" />
-				<Skeleton shape="line" data-w="44pc" data-h="10" />
-			</span>
-			<Skeleton shape="end" data-w="88" data-h="13" />
-		</ListItem>
-	))
-	const main = (
+/* An empty text of the line's own type sizes a skeleton line to the real one exactly. */
+const strut = role => <span className={role} aria-hidden="true">{'\u200b'}</span>
+// a box a field or a button will fill, at its own height; `small` is a commit's
+const control = (key, small = false) => <div key={key} className={small ? 'or-control or-control--small' : 'or-control'}><Skeleton shape="bar" /></div>
+
+const rowsLoading = n => Array.from({ length: n }, (_, i) => (
+	<ListItem key={i} mark={<Skeleton shape="mark" />}>
+		<span className="sp-stacked sp-grow">
+			<Skeleton shape="line" data-w="62pc" data-h="13" />
+			<Skeleton shape="line" data-w="44pc" data-h="10" />
+		</span>
+		<Skeleton shape="end" data-w="88" data-h="13" />
+	</ListItem>
+))
+
+/** The page while the order loads: its cards at their own size, so nothing jumps (6b). `form`
+    is the edit and create screen's shape, else the read view's. */
+export function OrderLoading({ region = false, form = false }) {
+	const touch = useShellShape() === 'touch'
+	const fieldLoading = key => (
+		<div key={key} className="sp-stack sp-gap-6">
+			<Skeleton shape="line" data-w="60" data-h="18" />
+			{control()}
+		</div>
+	)
+	// a total's figure is an empty text at its own size, so the row keeps the figure's height
+	const sum = (label, variant) => (
+		<Sum key={label} variant={variant} value={variant ? '\u200b' : <Skeleton shape="line" data-w="88" data-h="13" />}>{label}</Sum>
+	)
+	const items = (
 		<Card aria-busy="true" aria-label="Loading the order">
-			<Skeleton shape="line" data-w="96" data-h="11" />
-			<div className="sp-stack sp-gap-8">{rows}</div>
+			{form
+				? <div className="sp-row-flex sp-gap-8"><span className="sp-section-label">Items</span>{touch ? <><span className="sp-grow" />{control('reorder', true)}</> : null}</div>
+				: <div className="sp-row-flex sp-gap-12"><span className="sp-section-label">Items</span><Skeleton shape="line" data-w="130" data-h="13" /><span className="sp-grow" /><Skeleton shape="line" data-w="74" data-h="22" /></div>}
+			<div className="sp-stack sp-gap-8">
+				{rowsLoading(3)}
+				{form ? <ListItem mark={<Skeleton shape="mark" />}><Skeleton shape="line" data-w="88" data-h="13" /></ListItem> : null}
+			</div>
+			{form ? null : <Totals>{strut('sp-strong')}<Skeleton shape="line" data-w="130" data-h="13" /><span className="sp-grow" /><Skeleton shape="line" data-w="104" data-h="13" /></Totals>}
 		</Card>
 	)
-	const rail = (
-		<Card aria-hidden="true">
-			<Skeleton shape="line" data-w="96" data-h="11" />
-			{[0, 1, 2, 3].map(i => (
-				<div className="sp-stack sp-gap-8" key={i}>
-					<Skeleton shape="line" data-w="60" data-h="10" />
-					<Skeleton shape="line" data-h="20" />
-				</div>
-			))}
-		</Card>
-	)
-	const split = <><div className="sp-stack sp-gap-12">{main}</div><Panel>{rail}</Panel></>
+	const attachments = form
+		? (
+			<Card aria-hidden="true">
+				<span className="sp-section-label">Attachments</span>
+				<div className="or-tiles">{control()}</div>
+			</Card>
+		)
+		: null
+	let rail
+	if (form && touch)
+		rail = (
+			<Card variant="flush" aria-hidden="true">
+				<Toolbar>
+					<span className="sp-stacked sp-grow">
+						<span className="sp-title">Order details</span>
+						<Skeleton shape="line" data-w="130" data-h="13" />
+					</span>
+				</Toolbar>
+			</Card>
+		)
+	else if (form)
+		rail = (
+			<>
+				<Card aria-hidden="true">
+					<div className="sp-row-flex sp-gap-8"><span className="sp-section-label">Order details</span></div>
+					{fieldLoading('vendor')}
+					<div className="sp-fields">{fieldLoading('date')}{fieldLoading('kind')}</div>
+					{fieldLoading('status')}
+					{fieldLoading('categories')}
+					<div className="sp-fields">{fieldLoading('discount')}{fieldLoading('shipping')}</div>
+					<div className="sp-fields">{fieldLoading('reference')}{fieldLoading('note')}</div>
+				</Card>
+				<Card aria-hidden="true" footer={[control('leave', true), control('save', true)]} footerLayout="split" footerCommits>
+					<div className="sp-stack">{sum('Total', 'total')}</div>
+					<span className="sp-row-flex">{strut('sp-meta')}<Skeleton shape="line" data-w="130" data-h="11" /></span>
+					<span className="sp-row-flex">{strut('sp-amount-secondary')}<Skeleton shape="line" data-w="104" data-h="11" /></span>
+				</Card>
+			</>
+		)
+	else
+		rail = (
+			<>
+				<Card aria-hidden="true">
+					<span className="sp-section-label">Order details</span>
+					<div className="sp-stack">{['Vendor', 'Date', 'Kind', 'Categories', 'Reference'].map(k => sum(k))}</div>
+				</Card>
+				<Card aria-hidden="true" footer={[control('copy', true), control('edit', true)]} footerLayout="split" footerCommits
+					after={control('delete', true)}>
+					<span className="sp-section-label">Totals</span>
+					<div className="sp-stack">{['Items', 'Discount', 'Shipping'].map(k => sum(k))}{sum('Total', 'total')}</div>
+					<span className="sp-row-flex">{strut('sp-amount-secondary')}<Skeleton shape="line" data-w="104" data-h="11" /></span>
+				</Card>
+			</>
+		)
+	const bar = form && touch ? <SaveBar aria-hidden="true">{control('leave')}{control('save')}</SaveBar> : null
+	if (touch) return <div className="sp-stack sp-gap-12">{items}{attachments}{rail}{bar}</div>
+	const split = <><div className="sp-stack sp-gap-12">{items}{attachments}</div><Panel>{rail}</Panel></>
 	return region ? <div className="sp-shell__body--split">{split}</div> : split
 }
 
