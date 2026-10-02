@@ -11,6 +11,12 @@
 
 	/* an expanded breakdown scrolls inside its card rather than growing the page (4d); its rows
 	   keep the card's own gap */
-	.os-scroll { max-height: 322px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-12); padding-right: var(--sp-8); }
+	.os-scroll { max-height: 322px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-12); padding-right: var(--sp-4); }
+
+	/* a skeleton laid over the button it stands in for, which is kept unseen beneath so its size holds */
+	.os-hold { display: grid; flex: 1; }
+	.os-ghost,
+	.os-over { grid-area: 1 / 1; display: grid; }
+	.os-ghost { visibility: hidden; }
 
 }
