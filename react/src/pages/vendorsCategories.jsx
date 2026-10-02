@@ -149,18 +149,14 @@ export function GoneNotice({ message, list }) {
 export const isGone = error => Boolean(error?.gone)
 
 /** The rail's cards while the record loads (5c, 5f, 22d), each at its loaded size. */
-export function SummaryLoading({ label, mark = true, sums, action, children }) {
+export function SummaryLoading({ label, sums, action, children }) {
 	return (
 		<Card aria-busy="true">
 			<span className="sp-section-label">{label}</span>
-			{mark
-				? (
-					<div className="sp-row-flex sp-gap-12">
-						<Skeleton shape="mark" />
-						<Stacked><Bar role="sp-title" w="62pc" h="13" /><Bar role="sp-meta" w="44pc" h="10" /></Stacked>
-					</div>
-				)
-				: null}
+			<div className="sp-row-flex sp-gap-12">
+				<Skeleton shape="mark" />
+				<Stacked><Bar role="sp-title" w="62pc" h="13" /><Bar role="sp-meta" w="44pc" h="10" /></Stacked>
+			</div>
 			{children}
 			<div className="sp-stack">
 				{sums.map(([name, w]) => <Sum key={name} value={<Skeleton shape="end" data-w={w} data-h="13" />}>{name}</Sum>)}

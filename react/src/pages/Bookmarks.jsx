@@ -74,7 +74,6 @@ export default function Bookmarks() {
 	const [busy, setBusy] = useState(false)
 	// the phone's filter sheet: what it holds until Apply, or null while it is closed
 	const [draft, setDraft] = useState(null)
-	const filtersButton = useRef(null)
 	const closeMenus = () => setMenuFor(null)
 	useEffect(() => {
 		if (!menuFor) return
@@ -177,7 +176,7 @@ export default function Bookmarks() {
 	)
 
 	const filtersButtonProps = {
-		variant: 'outline', ref: filtersButton, 'aria-haspopup': 'dialog', 'aria-expanded': draft ? 'true' : 'false',
+		variant: 'outline', 'aria-haspopup': 'dialog', 'aria-expanded': draft ? 'true' : 'false',
 		onClick: () => setDraft({ category, archived })
 	}
 	const head = touch
@@ -394,7 +393,6 @@ function FilterSheet({ draft, setDraft, used, withoutCount, onClose, onApply }) 
 		</Sheet>
 	)
 }
-
 
 const noop = () => {}
 const LOADING_WIDTHS = [['62pc', '44pc'], ['48pc', '36pc'], ['55pc', '30pc']]
