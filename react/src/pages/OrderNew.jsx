@@ -1,21 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
-import { ListItem } from '../components/ListItem.jsx'
 import { FileDrop } from '../components/FileDrop.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
+import { ComboboxEmpty, ComboboxGroup, ComboboxOption } from '../components/Combobox.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Spinner } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getOrder, getOrderDraft, getOrders, getScanDraft, putScanDocument, scanThumbnailUrl
+	failureMessage, getCurrentUser, getOrder, getOrderDraft, getOrders, getScanDraft, putScanDocument, scanThumbnailUrl
 } from '../api/client.js'
-import { amount, dayMonth } from '../api/format.js'
+import { amount } from '../api/format.js'
 import { OrderForm } from './OrderForm.jsx'
-import { OrderFailed, OrderLoading, SEP, useNarrow, useTouch } from './OrderParts.jsx'
+import { OrderFailed, OrderLoading, SEP, dayShortMonth } from './OrderParts.jsx'
 
 /* A new order (3a, 3b): a way to start, then the order form unsaved. The address names the
    start, so a reload lands where the reader was. */
@@ -24,6 +24,13 @@ const RECEIPTS = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,ima
 const TYPES = /^(application\/pdf|image\/(jpeg|png|webp|heic|heif|gif))$/
 const MAX_MB = 25
 const started = new WeakSet()
+
+/** The label the server gives an upload, so the size reads the same before and after it is sent. */
+const sizeLabel = bytes => {
+	const kb = Math.max(1, Math.round(bytes / 1024))
+	return kb > 1024 ? `${(kb / 1024).toFixed(1).replace('.', ',')} MB` : `${kb} KB`
+}
+const kindWord = file => (file.kind === 'pdf' ? 'PDF' : String(file.name ?? '').split('.').pop().toUpperCase().slice(0, 4) || 'FILE')
 
 export default function OrderNew() {
 	const [params] = useSearchParams()
@@ -112,36 +119,39 @@ function Scanned({ documentKey, upload }) {
 
 /** Step 2 (3a): the receipt while it is sent and read. */
 function Reading({ file, onCancel }) {
+	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const thumb = file.key && file.hasThumbnail ? scanThumbnailUrl(file.key) : null
+	const doing = !file.key ? 'Sending the receipt…' : reads ? 'Reading the receipt…' : 'Opening the receipt…'
 	return (
-		<Card aria-busy="true">
-			<div className="sp-row-flex sp-top sp-gap-12">
-				{thumb
-					? <Mark size="xlarge" fill="photo" aria-label={file.name ?? 'The receipt'}><img src={thumb} alt="" /></Mark>
-					: <Mark size="xlarge" fill="none" aria-label={file.name ?? 'The receipt'}><span>{file.kind === 'pdf' ? 'PDF' : 'FILE'}</span></Mark>}
-				<div className="sp-stack sp-gap-12 sp-grow">
-					{file.name
-						? (
-							<div className="sp-row-flex sp-gap-12">
-								<span className="sp-title sp-truncate">{file.name}</span>
-								{file.meta ? <span className="sp-meta">{file.meta.replace(' • ', SEP)}</span> : null}
-							</div>
-						)
-						: null}
-					<div className="sp-stack sp-gap-8">
-						<div className="sp-row-flex sp-gap-8">
-							<Spinner />
-							<strong className="sp-data">{file.key ? 'Reading the receipt…' : 'Sending the receipt…'}</strong>
-						</div>
-						<span className="sp-meta">Usually 5 - 10 seconds.</span>
+		<div className="oc-narrow">
+			<Card aria-busy="true">
+				<div className="oc-row-top">
+					<div className="oc-preview" role="img" aria-label={file.name ?? 'The receipt'}>
+						{thumb ? <img src={thumb} alt="" /> : kindWord(file)}
 					</div>
-					<div className="sp-row-flex">
-						<span className="sp-grow" />
-						<Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>
+					<div className="oc-read">
+						{file.name
+							? (
+								<div className="sp-row-flex sp-gap-12">
+									<span className="sp-title sp-truncate">{file.name}</span>
+									{file.meta ? <span className="sp-meta sp-nowrap">{file.meta.replace(' • ', SEP)}</span> : null}
+								</div>
+							)
+							: null}
+						<div className="sp-stack sp-gap-8">
+							<div className="sp-row-flex sp-gap-8">
+								<Spinner />
+								<strong className="sp-data">{doing}</strong>
+							</div>
+							{reads && file.key ? <span className="sp-meta">Usually 5 - 10 seconds.</span> : null}
+						</div>
+						<div className="oc-read__foot">
+							<Button variant="outline" size="small" onClick={onCancel}>Cancel</Button>
+						</div>
 					</div>
 				</div>
-			</div>
-		</Card>
+			</Card>
+		</div>
 	)
 }
 
@@ -150,9 +160,9 @@ function Start({ scanOnly, file, picking }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const any = useApi(getOrders, [{ pageSize: 1 }])
+	const reads = useApi(getCurrentUser).data?.scanAiEnabled !== false
 	const [sending, setSending] = useState(null)
 	const [refused, setRefused] = useState(null)
-	const touch = useTouch()
 
 	const send = picked => {
 		const f = picked?.[0]
@@ -166,7 +176,8 @@ function Start({ scanOnly, file, picking }) {
 				note: `Up to ${MAX_MB} MB per file. A PDF export or a smaller photo will go through.`
 			})
 		setRefused(null)
-		setSending({ name: f.name, meta: `${(f.size / 1024 / 1024).toFixed(1).replace('.', ',')} MB` })
+		const pdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name)
+		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : 'Image'}${SEP}${sizeLabel(f.size)}` })
 		putScanDocument(f)
 			.then(upload => {
 				invalidate(getScanDraft)
@@ -189,23 +200,27 @@ function Start({ scanOnly, file, picking }) {
 
 	const copyable = (any.data?.total ?? 0) > 0
 	return (
-		<>
-			<Empty>
-				<EmptyTitle>{scanOnly ? 'Start from a receipt' : 'Start from a receipt, or from scratch'}</EmptyTitle>
-				<EmptyBody>Drop a PDF or a photo and the vendor, date, amounts and lines are read for you. You confirm everything before it is saved.</EmptyBody>
-			</Empty>
-			<FileDrop accept={RECEIPTS} onFiles={send} action="Select a receipt">
-				<Mark size="large" aria-label="Receipt" aria-hidden="true"><Icon name="upload" size={24} /></Mark>
-				<span className="sp-title">Drop receipt here</span>
-				<span className="sp-meta">PDF, JPG, PNG, WebP, HEIC or GIF{SEP}up to {MAX_MB} MB per file</span>
-			</FileDrop>
-			{refused ? <Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert> : null}
+		<Empty>
+			<EmptyTitle>{scanOnly ? 'Start from a receipt' : 'Start from a receipt, or from scratch'}</EmptyTitle>
+			<EmptyBody>
+				{reads
+					? 'Drop a PDF or a photo and the vendor, date, amounts and lines are read for you. You confirm everything before it is saved.'
+					: 'Drop a PDF or a photo and it is attached to a new order. You type in the details.'}
+			</EmptyBody>
+			<div className="oc-narrow">
+				<FileDrop accept={RECEIPTS} onFiles={send} action="Select a receipt">
+					<Mark size="large" aria-label="Receipt" aria-hidden="true"><Icon name="upload" size={24} /></Mark>
+					<span className="sp-title">Drop receipt here</span>
+					<span className="sp-meta">PDF, JPG, PNG, WebP, HEIC or GIF{SEP}up to {MAX_MB} MB per file</span>
+				</FileDrop>
+			</div>
+			{refused ? <div className="oc-narrow oc-left"><Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert></div> : null}
 			{scanOnly
 				? null
 				: (
 					<>
-						<div className="sp-divider">or</div>
-						<div className={touch ? 'sp-stack sp-gap-12' : 'sp-fields'}>
+						<div className="sp-divider oc-narrow">or</div>
+						<div className="oc-choices">
 							<Choice to="/orders/new?source=empty" icon="file-text" title="Empty order" body="Type the details yourself." />
 							{copyable
 								? <Choice to="/orders/new?pick=copy" icon="copy" title="Copy a previous order" body="Same vendor, same lines, new date." />
@@ -214,7 +229,7 @@ function Start({ scanOnly, file, picking }) {
 					</>
 				)}
 			{picking ? <CopyPicker onClose={() => navigate('/orders/new', { replace: true })} /> : null}
-		</>
+		</Empty>
 	)
 }
 
@@ -233,39 +248,70 @@ function Choice({ to, icon, title, body }) {
 	)
 }
 
-/** The third way to start (3b): pick the order to copy, by vendor or by an item on it. */
+/** The third way to start (3b): pick the order to copy, by vendor or by an item on it. The
+    arrow keys walk the rows from the search field, as in every combobox (14a). */
 function CopyPicker({ onClose }) {
 	const navigate = useNavigate()
 	const [query, setQuery] = useState('')
 	const [asked, setAsked] = useState('')
+	const [active, setActive] = useState(-1)
 	const timer = useRef(null)
+	const search = useRef(null)
+	const listId = useId()
 	useEffect(() => {
 		clearTimeout(timer.current)
 		timer.current = setTimeout(() => setAsked(query.trim()), 300)
 		return () => clearTimeout(timer.current)
 	}, [query])
+	// after the dialog has focused its first button, so the reader starts where they type
+	useEffect(() => { search.current?.focus() }, [])
 	const found = useApi(getOrders, [{ pageSize: 6, query: asked }])
 	const orders = found.data?.orders ?? []
-	return (
-		<Dialog onCancel={onClose} aria-label="Copy a previous order">
-			<DialogTitle>Copy a previous order</DialogTitle>
-			<DialogBody>The vendor, category and item lines are copied. The date becomes today, the status resets, and the receipt stays on the original order.</DialogBody>
-			<SearchInput value={query} onChange={setQuery} placeholder="Search by vendor or item…" aria-label="Search previous orders" />
-			<div className="sp-stack sp-gap-6">
-				{asked ? null : <span className="sp-combobox__group">Recent</span>}
-				{orders.map(o => (
-					<ListItem key={o.id} onClick={() => navigate(`/orders/new?duplicate=${o.id}`)}>
+	useEffect(() => setActive(-1), [asked])
+	const pick = o => navigate(`/orders/new?duplicate=${o.id}`)
+	const keys = ev => {
+		if ((ev.key === 'ArrowDown' || ev.key === 'ArrowUp') && orders.length) {
+			ev.preventDefault()
+			const by = ev.key === 'ArrowDown' ? 1 : -1
+			setActive(at => (at + by + orders.length + (at < 0 && by < 0 ? 1 : 0)) % orders.length)
+		} else if (ev.key === 'Enter' && orders[active]) {
+			ev.preventDefault()
+			pick(orders[active])
+		}
+	}
+	let rows
+	if (!found.data) rows = null
+	else if (!orders.length) rows = <ComboboxEmpty>{asked ? `No order matches "${asked}".` : 'There are no orders to copy yet.'}</ComboboxEmpty>
+	else rows = (
+		<>
+			{asked ? null : <ComboboxGroup>Recent</ComboboxGroup>}
+			{orders.map((o, i) => (
+				<ComboboxOption key={o.id} id={`${listId}-${i}`} active={i === active} onSelect={() => pick(o)}>
+					<span className="sp-row-flex sp-gap-8">
 						<span className="sp-stacked sp-grow">
 							<span className="sp-title sp-truncate">{o.vendor?.name}</span>
 							<span className="sp-meta sp-truncate">{o.itemCount === 1 ? '1 line' : `${o.itemCount} lines`}</span>
 						</span>
-						<span className="sp-stacked sp-cell-amount">
+						<span className="sp-stacked sp-cell-amount sp-flex-none">
 							<span className="sp-amount">{amount(o.total)}</span>
-							<span className="sp-meta">{dayMonth(o.date)}</span>
+							<span className="sp-meta">{dayShortMonth(o.date)}</span>
 						</span>
-					</ListItem>
-				))}
-				{found.data && !orders.length ? <span className="sp-meta">No order matches "{asked}".</span> : null}
+					</span>
+				</ComboboxOption>
+			))}
+		</>
+	)
+	return (
+		<Dialog onCancel={onClose} aria-label="Copy a previous order">
+			<div className="sp-stack sp-gap-12">
+				<div className="sp-stack sp-gap-6">
+					<DialogTitle>Copy a previous order</DialogTitle>
+					<DialogBody>The vendor, category and item lines are copied. The date becomes today, the status resets, and the receipt stays on the original order.</DialogBody>
+				</div>
+				<SearchInput value={query} onChange={setQuery} placeholder="Search by vendor or item…" aria-label="Search previous orders"
+					inputRef={search} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list"
+					aria-activedescendant={active > -1 ? `${listId}-${active}` : undefined} onKeyDown={keys} />
+				<ul className="oc-options" id={listId} role="listbox" aria-label="Previous orders">{rows}</ul>
 			</div>
 			<DialogActions>
 				<span className="sp-meta">Nothing is created until you save.</span>
@@ -277,5 +323,5 @@ function CopyPicker({ onClose }) {
 }
 
 function Waiting() {
-	return <OrderLoading touch={useNarrow()} region />
+	return <OrderLoading region />
 }

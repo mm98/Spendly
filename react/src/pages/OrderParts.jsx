@@ -10,7 +10,7 @@ import { useMedia } from '../app/useMedia.js'
 import {
 	attachmentFileUrl, attachmentThumbnailUrl, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
 } from '../api/client.js'
-import { currency, quantity, plural } from '../api/format.js'
+import { activeLocaleCode, currency, quantity, plural } from '../api/format.js'
 
 /* The parts the order's read view and its form share: one row, one tile and one set of sums,
    so reading an order and editing it draw the same things in the same places (1a, 1d). */
@@ -21,8 +21,12 @@ export const money = n => currency(Number(n) || 0)
 /** Below 640 the shell is the phone's, and the page is one column. */
 export const useTouch = () => useMedia('(max-width: 639.98px)')
 
-/** Below 1000 the body is under 900 beside the collapsed sidebar, too narrow for the rail. */
-export const useNarrow = () => useMedia('(max-width: 999.98px)')
+/** "2026-08-03" -> "3 Aug", with the year once it is not this one (3b). */
+export function dayShortMonth(iso) {
+	const [y, m, d] = String(iso).split('-').map(Number)
+	const year = y === new Date().getFullYear() ? {} : { year: 'numeric' }
+	return new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', ...year }).format(new Date(y, m - 1, d))
+}
 
 const PILLS = { Delivered: { color: 'success' }, Returned: { color: 'danger' }, Ordered: { state: 'progress' } }
 
@@ -52,9 +56,12 @@ export const lineMeta = (line, compact = false) =>
 
 export const itemsWord = n => plural(n, 'item')
 
+/** Whether a saving prints as more than 0,00: the colour follows the printed figure. */
+export const saves = n => Math.round((Number(n) || 0) * 100) > 0
+
 /** A saving is an amount: green when there is one, grey at zero. */
 export function Saving({ value }) {
-	return value > 0
+	return saves(value)
 		? <span className="sp-amount-secondary" data-color="success">Saved {money(value)}</span>
 		: <span className="sp-amount-secondary">Saved {money(0)}</span>
 }
@@ -63,7 +70,7 @@ export function Saving({ value }) {
 export function LineAmount({ line, compact = false }) {
 	const saved = compact ? null : lineSaving(line)
 	return (
-		<span className="sp-stacked sp-cell-amount">
+		<span className="sp-stacked sp-cell-amount sp-flex-none">
 			<span className="sp-amount">{money(lineTotal(line))}</span>
 			{saved == null ? null : <Saving value={saved} />}
 		</span>
@@ -74,7 +81,7 @@ export function LineText({ line, compact = false }) {
 	return (
 		<span className="sp-stacked">
 			<span className="sp-title sp-truncate">{line.title}</span>
-			<span className="sp-subtitle">{lineMeta(line, compact)}</span>
+			<span className="sp-subtitle sp-truncate">{lineMeta(line, compact)}</span>
 		</span>
 	)
 }
@@ -142,7 +149,7 @@ export function AttachmentTile({ name, kind, thumb, onOpen, onRemove, bare = fal
 }
 
 /** The page while the order loads: its cards at their own size, so nothing jumps (6b). */
-export function OrderLoading({ touch, region = false }) {
+export function OrderLoading({ region = false }) {
 	const rows = [0, 1, 2].map(i => (
 		<ListItem key={i} mark={<Skeleton shape="mark" />}>
 			<span className="sp-stacked sp-grow">
@@ -169,7 +176,6 @@ export function OrderLoading({ touch, region = false }) {
 			))}
 		</Card>
 	)
-	if (touch) return <div className="sp-stack sp-gap-12">{main}{rail}</div>
 	const split = <><div className="sp-stack sp-gap-12">{main}</div><Panel>{rail}</Panel></>
 	return region ? <div className="sp-shell__body--split">{split}</div> : split
 }

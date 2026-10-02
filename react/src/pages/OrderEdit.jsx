@@ -2,19 +2,18 @@ import { useParams } from 'react-router'
 import { useApi } from '../api/useApi.js'
 import { attachmentThumbnailUrl, getOrder, itemAttachmentThumbnailUrl } from '../api/client.js'
 import { OrderForm, draftOf } from './OrderForm.jsx'
-import { OrderFailed, OrderLoading, useNarrow } from './OrderParts.jsx'
+import { OrderFailed, OrderLoading } from './OrderParts.jsx'
 
 /* Editing a saved order (1d): the read view's grid with controls in it. */
 
 export default function OrderEdit() {
 	const { id } = useParams()
 	const state = useApi(getOrder, [id])
-	const narrow = useNarrow()
 	// the form seeds once, so it waits for this order rather than painting the last one
 	const order = state.data?.id === id && !state.loading ? state.data : null
 
 	if (!order && state.error) return <OrderFailed error={state.error} retry={state.refresh} />
-	if (!order) return <OrderLoading touch={narrow} />
+	if (!order) return <OrderLoading />
 	return (
 		<OrderForm
 			key={order.id}

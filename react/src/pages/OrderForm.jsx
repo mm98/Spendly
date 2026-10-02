@@ -28,10 +28,12 @@ import {
 	failureMessage, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
 	removeItemAttachment, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
-import { activeLocaleCode, amount, currencySymbol, dayMonth, today } from '../api/format.js'
+import { activeLocaleCode, amount, currencySymbol, today } from '../api/format.js'
 import {
-	AttachmentTile, LineAmount, LinePhoto, SEP, Saving, itemsWord, lineMeta, lineTotal, money, totalsOf, useNarrow, useTouch
+	AttachmentTile, LineAmount, LinePhoto, SEP, Saving, dayShortMonth, itemsWord, lineMeta, lineTotal, money, saves, totalsOf,
+	useTouch
 } from './OrderParts.jsx'
+import { useLeaveGuard } from './vendorsCategories.jsx'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
    state (3a, 3b). Nothing reaches the server until Save or Create writes the order, then its files. */
@@ -101,7 +103,6 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const navigate = useNavigate()
 	const toast = useToast()
 	const touch = useTouch()
-	const narrow = useNarrow()
 	const vendors = useApi(getVendors)
 	const creating = mode === 'new'
 	const scan = origin.scan ?? null
@@ -118,6 +119,10 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const [carried, setCarried] = useState(null)
 	const [asking, setAsking] = useState(false)
 	const list = useRef(null)
+	// the line or add control whose editor is open, which takes focus back when it closes
+	const reopen = useRef(editing?.isNew ? 'add' : null)
+	const dragged = useRef(false)
+	const [start] = useState(seed)
 	const staged = useRef(files)
 	staged.current = files
 	const statusName = useId()
@@ -128,6 +133,14 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const included = lines.filter(l => l.include !== false)
 	const sums = totalsOf(included, draft.shipping, draft.discount)
 
+	const lineChanged = editing && (editing.isNew
+		? editing.values.title.trim() || editing.values.price != null || editing.values.newPhoto
+		: JSON.stringify(editing.values) !== JSON.stringify(lines.find(l => l.key === editing.key)))
+	const dirty = Boolean(lineChanged) || files.length > 0 || gone.length > 0
+		|| JSON.stringify(draft) !== JSON.stringify({ ...start, lines: undefined })
+		|| JSON.stringify(lines) !== JSON.stringify(start.lines)
+	const guard = useLeaveGuard(dirty)
+
 	/* ---- lines ---- */
 
 	function newEditing() {
@@ -135,7 +148,12 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	}
 	const openLine = line => {
 		if (editing && !Object.keys(lineErrors(editing.values)).length) commitInto(editing)
+		reopen.current = line.key
 		setEditing({ key: line.key, isNew: false, values: { ...line } })
+	}
+	const openNew = () => {
+		reopen.current = 'add'
+		setEditing(e => (e?.isNew ? e : newEditing()))
 	}
 	const commitInto = current => setLines(ls => current.isNew
 		? [...ls, { ...current.values, key: current.key, include: true, uncertain: false }]
@@ -150,8 +168,18 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		if (!next) return setEditing(null)
 		const at = lines.findIndex(l => l.key === editing.key)
 		const following = editing.isNew || at === lines.length - 1 ? null : lines[at + 1]
+		reopen.current = following?.key ?? 'add'
 		setEditing(following ? { key: following.key, isNew: false, values: { ...following } } : newEditing())
 	}
+	useEffect(() => {
+		if (editing || !reopen.current) return
+		const key = reopen.current
+		reopen.current = null
+		const card = list.current?.closest('.sp-card')
+		const row = list.current?.querySelector(`[data-line="${CSS.escape(key)}"]`)
+		const target = row?.matches('button') ? row : row?.querySelector('button[aria-label="Edit this line"]')
+		;(target ?? card?.querySelector('[data-add]'))?.focus()
+	}, [editing])
 	const cancelLine = () => {
 		if (editing?.values.newPhoto && editing.values.newPhoto !== lines.find(l => l.key === editing.key)?.newPhoto)
 			URL.revokeObjectURL(editing.values.newPhoto.url)
@@ -182,7 +210,17 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		const row = handle?.closest('[data-line]')
 		if (!row || ev.button !== 0) return
 		ev.preventDefault()
+		dragged.current = true
 		setCarried(row.dataset.line)
+	}
+	// a click on a row opens it, as its pencil does (c15); the click that ends a drag does not
+	const rowClick = ev => {
+		const afterDrag = dragged.current
+		dragged.current = false
+		const row = ev.target.closest?.('[data-line]')
+		if (afterDrag || !row || ev.target.closest('button, input, label, a')) return
+		const line = lines.find(l => l.key === row.dataset.line)
+		if (line) openLine(line)
 	}
 	useEffect(() => {
 		if (!carried) return
@@ -198,7 +236,11 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			const middle = box.top + box.height / 2
 			if ((over > at && ev.clientY > middle) || (over < at && ev.clientY < middle)) moveTo(carried, over)
 		}
-		const drop = () => setCarried(null)
+		const drop = () => {
+			setCarried(null)
+			// the click that ends the drag reads the flag first; a drop that makes no click clears it
+			setTimeout(() => { dragged.current = false })
+		}
 		window.addEventListener('pointermove', drag)
 		window.addEventListener('pointerup', drop)
 		window.addEventListener('pointercancel', drop)
@@ -245,12 +287,18 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	/* ---- save ---- */
 
-	const leave = () => (onLeave ? onLeave() : navigate(creating ? '/orders/new' : `/orders/${orderId}`))
+	// Discard throws a new order away on purpose; Cancel on a saved one asks first, as the other forms do
+	const leave = () => {
+		if (creating) guard.release()
+		if (onLeave) onLeave()
+		else navigate(creating ? '/orders/new' : `/orders/${orderId}`)
+	}
 
 	const save = async () => {
 		setTried(true)
 		let current = lines
 		const untouched = editing?.isNew && !editing.values.title.trim() && editing.values.price == null && !editing.values.newPhoto
+		reopen.current = null
 		if (untouched) setEditing(null)
 		else if (editing) {
 			if (Object.keys(lineErrors(editing.values)).length) {
@@ -273,7 +321,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			setEditing({ key: broken.key, isNew: false, values: { ...broken }, tried: true })
 			return focusFirst('.sp-line-editor')
 		}
-		if (!kept.length) return focusFirst('.sp-list-item--add')
+		if (!kept.length) return focusFirst('[data-add]')
 
 		setSaving(true)
 		try {
@@ -299,6 +347,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			}
 			if (scan) learnAlias(scan.vendor, order)
 			invalidateOrderData()
+			guard.release()
 			toast(problems.length || clash
 				? {
 					message: problems.length
@@ -349,12 +398,12 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			<>
 				<span className="sp-stacked">
 					<span className="sp-title sp-truncate">{line.title || 'Unnamed line'}</span>
-					<span className={warn ? 'sp-subtitle sp-ink-warning' : 'sp-subtitle'}>
+					<span className={warn ? 'sp-subtitle sp-truncate sp-ink-warning' : 'sp-subtitle sp-truncate'}>
 						{warn ? 'Check this line against the receipt' : lineMetaWith(line, photo, scan || touch)}
 					</span>
 				</span>
 				<span className="sp-grow" />
-				{line.price == null ? <span className="sp-subtitle sp-nowrap">No price</span> : <LineAmount line={line} compact={touch} />}
+				{line.price == null ? <span className="sp-subtitle sp-nowrap">No price</span> : <LineAmount line={line} compact />}
 			</>
 		)
 		if (touch && !reordering)
@@ -380,7 +429,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 					</>
 					: <>
 						<IconButton variant="outline" icon="pencil" aria-label="Edit this line" onClick={() => openLine(line)} />
-						<IconButton variant="outline" danger icon="trash" aria-label="Remove this line" onClick={() => removeLine(line)} />
+						{scan ? null : <IconButton variant="outline" danger icon="trash" aria-label="Remove this line" onClick={() => removeLine(line)} />}
 					</>}
 			>
 				{text}
@@ -408,7 +457,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const itemsCard = (
 		<Card>
 			{itemsHead}
-			<div className="sp-stack sp-gap-8" ref={list} onPointerDown={touch ? undefined : grab} onKeyDown={keyMove}>
+			<div className="sp-stack sp-gap-8" ref={list} onPointerDown={touch ? undefined : grab} onClick={touch ? undefined : rowClick}
+				onKeyDown={keyMove}>
 				{lines.map(line => (editing && !touch && editing.key === line.key ? editor : lineRow(line)))}
 				{!lines.length && !(editing?.isNew) && tried
 					? (
@@ -420,16 +470,27 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 					: null}
 				{editing?.isNew && !touch
 					? editor
-					: (
-						<ListItem variant="add" onClick={() => setEditing(e => (e?.isNew ? e : newEditing()))}
-							mark={<>
-								{scan || touch ? null : <span className="sp-list-item__handle" aria-hidden="true" />}
-								<Mark size="medium" fill="add" aria-label="Add" aria-hidden="true"><Icon name="plus" /></Mark>
-							</>}>
-							<span className="sp-title">{scan ? 'Add a line the scan missed' : 'Add item'}</span>
-						</ListItem>
-					)}
+					: scan && !touch
+						? null
+						: (
+							<ListItem variant="add" onClick={openNew} data-add=""
+								mark={<>
+									{touch ? null : <span className="sp-list-item__handle" aria-hidden="true" />}
+									<Mark size="medium" fill="add" aria-label="Add" aria-hidden="true"><Icon name="plus" /></Mark>
+								</>}>
+								<span className="sp-title">{scan ? 'Add a line the scan missed' : 'Add item'}</span>
+							</ListItem>
+						)}
 			</div>
+			{scan && !touch
+				? (
+					<div className="sp-row-flex sp-gap-12">
+						{editing?.isNew ? null : <Button variant="outline" size="small" iconStart="plus" data-add="" onClick={openNew}>Add a line the scan missed</Button>}
+						<span className="sp-grow" />
+						<span className="sp-subtitle">Lines {money(sums.paid)}{SEP}shipping {money(draft.shipping || 0)}</span>
+					</div>
+				)
+				: null}
 			{mismatch
 				? (
 					<ListItem color="warning" mark={<span className="sp-list-item__count">!</span>}>
@@ -553,18 +614,14 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				? (printed != null && !mismatch ? <Pill color="success">Totals match</Pill> : null)
 				: <>
 					<span className="sp-meta">{itemsWord(included.length)}{SEP}discount {amount(draft.discount || 0)}{SEP}shipping {amount(draft.shipping || 0)}</span>
-					{sums.saved > 0 ? <span className="sp-stat__delta">Saved {money(sums.saved)}</span> : <Saving value={0} />}
+					{saves(sums.saved) ? <span className="sp-stat__delta">Saved {money(sums.saved)}</span> : <Saving value={0} />}
 				</>}
 		</Card>
 	)
 
 	const saveBar = (
 		<ListItem variant="sticky">
-			<div className="sp-stack sp-gap-6">
-				<span className="sp-stat__figure">{money(sums.total)}</span>
-				{sums.saved > 0 ? <span className="sp-stat__delta">Saved {money(sums.saved)}</span> : <Saving value={0} />}
-			</div>
-			<span className="sp-grow" />
+			<span className="sp-subtitle sp-grow">{dirty ? 'Unsaved changes' : creating ? 'Nothing saved yet' : null}</span>
 			<Button variant="outline" onClick={discard}>{leaveWord}</Button>
 			<Button disabled={saving} onClick={save}>{commitWord}</Button>
 		</ListItem>
@@ -591,13 +648,14 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	const dialog = asking
 		? (
-			<Dialog onCancel={() => setAsking(false)}>
-				<DialogTitle>Discard this scan?</DialogTitle>
-				<DialogBody>The receipt was read and {itemsWord(lines.length).replace('item', 'line')} {lines.length === 1 ? 'is' : 'are'} waiting to be checked. Nothing is saved if you discard.</DialogBody>
+			<Dialog onCancel={() => setAsking(false)} aria-label="Discard this scan?">
+				<div className="sp-stack sp-gap-12">
+					<DialogTitle>Discard this scan?</DialogTitle>
+					<DialogBody>The receipt was read and {itemsWord(lines.length).replace('item', 'line')} {lines.length === 1 ? 'is' : 'are'} waiting to be checked. Nothing is saved if you discard.</DialogBody>
+				</div>
 				<DialogActions>
-					<Button variant="outline" onClick={() => setAsking(false)}>Keep checking</Button>
-					<span className="sp-grow" />
-					<Button color="danger" onClick={leave}>Discard</Button>
+					<Button variant="outline" fullWidth onClick={() => setAsking(false)}>Keep checking</Button>
+					<Button color="danger" fullWidth onClick={leave}>Discard</Button>
 				</DialogActions>
 			</Dialog>
 		)
@@ -605,23 +663,20 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12">
-			{notice}{itemsCard}{attachmentsCard}{detailsCard}{saveBar}{sheet}{dialog}
-		</div>
-	)
-	if (narrow) return (
-		<div className="sp-stack sp-gap-12">
-			{notice}{itemsCard}{attachmentsCard}{detailsCard}{totalsCard}{dialog}
+			{notice}{itemsCard}{attachmentsCard}{detailsCard}{saveBar}{sheet}{dialog}{guard.prompt}
 		</div>
 	)
 	const main = <div className="sp-stack sp-gap-12">{itemsCard}{attachmentsCard}</div>
-	const rail = <Panel>{detailsCard}{totalsCard}{dialog}</Panel>
+	const rail = <Panel>{detailsCard}{totalsCard}{dialog}{guard.prompt}</Panel>
 	if (!region) return <>{main}{rail}</>
 	return <>{notice}<div className="sp-shell__body--split">{main}{rail}</div></>
 }
 
+const INVALID = '[aria-invalid="true"] input, input[aria-invalid="true"], [aria-invalid="true"] button, button[aria-invalid="true"]'
+
 const focusFirst = selector => requestAnimationFrame(() => {
 	const box = document.querySelector(selector)
-	const target = box?.querySelector('[aria-invalid="true"], input, button') ?? box
+	const target = box?.querySelector(INVALID) ?? box?.querySelector('input, button') ?? box
 	target?.focus?.()
 	box?.scrollIntoView?.({ block: 'nearest' })
 })
@@ -643,9 +698,8 @@ function notices({ origin, scan, lines, leave, touch }) {
 	if (origin.copy)
 		return (
 			<Alert color="success" mark={<Icon name="copy" size={13} />}
-				title={`Copied from ${origin.copy.vendor}, ${dayMonth(origin.copy.date)}`}
 				action={touch ? null : <Button variant="outline" size="small" onClick={leave}>Discard</Button>}>
-				The receipt stays on that order.
+				Copied from <b>{origin.copy.vendor}, {dayShortMonth(origin.copy.date)}</b> - the receipt stays on that order.
 			</Alert>
 		)
 	if (!scan) return null
@@ -711,7 +765,7 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 			</Field>
 			<div className="sp-line-editor__grid">
 				<Field label="Quantity" {...problem(errors.quantity)}>
-					<Stepper value={Number(v.quantity) || 0} min={0} step={1} aria-label="Quantity" onChange={quantity => set({ quantity })} />
+					<Stepper value={Number(v.quantity) || 0} min={1} step={1} aria-label="Quantity" onChange={quantity => set({ quantity })} />
 				</Field>
 				<Field label="Unit price" unit={currencySymbol()} {...problem(errors.price)}>
 					<NumberField value={v.price} min={0} locale={MONEY} placeholder="0,00" onChange={price => set({ price })} />
