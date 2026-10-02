@@ -8,7 +8,7 @@ import { FieldGroup } from '../components/Choice.jsx'
 import { Combobox, ComboboxOption, ComboboxSeparator } from '../components/Combobox.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
-import { Controls, Crumb, Filters, Record, Records } from '../components/List.jsx'
+import { Controls, Crumb, Filters, ListMore, Record, Records } from '../components/List.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Segmented } from '../components/Segmented.jsx'
@@ -23,7 +23,7 @@ import {
 	bookmarkPhotoThumbnailUrl, bookmarkSorts, deleteBookmark, getBookmarks, getCategories,
 	getSettings, getUncategorised, setBookmarkArchived
 } from '../api/client.js'
-import { amount, currency, plural, shortDate } from '../api/format.js'
+import { NUMBER_LOCALE, currency, plural, shortDate } from '../api/format.js'
 import { Bar, CategoryMark, ConfirmDelete, Failed, Held, bookmarkDeleteNote, isGone, sayFailure, useFold, useRefocus } from './vendorsCategories.jsx'
 
 const SORT_LABEL = {
@@ -279,18 +279,7 @@ export default function Bookmarks() {
 			</Card>
 		)
 	} else {
-		const footer = data.matched > step
-			? (
-				<>
-					<span className="sp-subtitle">Showing {amount(data.bookmarks.length, 0)} of {amount(data.matched, 0)}</span>
-					<span className="sp-grow" />
-					{/* gone once everything is loaded: a disabled Load more promises more that will not come */}
-					{data.bookmarks.length < data.matched
-						? <Button variant="outline" size="small" onClick={() => setPages(pages + 1)}>Load more</Button>
-						: null}
-				</>
-			)
-			: null
+		const footer = <ListMore loose shown={data.bookmarks.length} total={data.matched} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
 		body = (
 			<Records footer={footer}>
 				{data.bookmarks.map(bookmark => {

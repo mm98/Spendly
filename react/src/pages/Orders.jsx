@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router'
-import { Card, ListFooter } from '../components/Card.jsx'
+import { Card } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Check, Choice, FieldGroup, FieldGroupMore, FieldGroupPanel } from '../components/Choice.jsx'
 import { Chip } from '../components/Chip.jsx'
@@ -10,7 +10,7 @@ import { DateField } from '../components/DatePickers.jsx'
 import { Field } from '../components/Field.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { RangeSlider, SearchInput } from '../components/Inputs.jsx'
-import { Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
+import { Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Menu, MenuItem, MenuSeparator } from '../components/Overlays.jsx'
@@ -245,7 +245,7 @@ export default function Orders() {
 				<Empty>
 					<EmptyTitle>No orders match "{f.q}"</EmptyTitle>
 					<EmptyBody>Check the spelling, or clear the search.</EmptyBody>
-					<Button size="small" onClick={clearSearch}>Clear the search</Button>
+					<Button variant="outline" size="small" onClick={clearSearch}>Clear search</Button>
 				</Empty>
 			</Card>
 		)
@@ -257,12 +257,12 @@ export default function Orders() {
 					<EmptyBody>{f.q
 						? 'Remove one of the filters, or clear all of them to see every order that matches the search.'
 						: 'Remove one of the filters, or clear all of them to see every order.'}</EmptyBody>
-					<Button size="small" onClick={clearAll}>Clear filters</Button>
+					<Button variant="outline" size="small" onClick={clearAll}>Clear filters</Button>
 				</Empty>
 			</Card>
 		)
 	else if (narrow)
-		body = <OrderCards data={data} size={size} touch={touch} onOpen={open} onLoadMore={loadMore} />
+		body = <OrderCards data={data} size={size} onOpen={open} onLoadMore={loadMore} />
 	else
 		body = <OrderRows data={data} width={width} size={size} onLoadMore={loadMore} onDelete={setDeleting} />
 
@@ -445,7 +445,7 @@ function RowMenu({ order, onDelete }) {
 	useDismiss(anchor, open, close)
 	const go = to => () => { close(); navigate(to) }
 	return (
-		<Anchor ref={anchor} open={open} data-menu-open={open ? 'true' : undefined} onClick={ev => ev.stopPropagation()}>
+		<Anchor ref={anchor} open={open} onClick={ev => ev.stopPropagation()}>
 			<IconButton icon="dots-vertical" aria-label={`Order menu, ${order.vendor?.name ?? 'order'} ${shortDate(order.date)}`}
 				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
 			<Menu position="floating" aria-label="Order">
@@ -460,7 +460,7 @@ function RowMenu({ order, onDelete }) {
 
 /** At 640 of list column and under, rows become cards (2i): the photo, then name and total,
     reference and status, date and saving. */
-function OrderCards({ data, size, touch, onOpen, onLoadMore }) {
+function OrderCards({ data, size, onOpen, onLoadMore }) {
 	return (
 		<>
 			<span className="sp-meta">{plural(data.matched, 'order')}</span>
@@ -482,17 +482,7 @@ function OrderCards({ data, size, touch, onOpen, onLoadMore }) {
 					</Stacked>
 				</ListItem>
 			))}
-			{/* there while the orders run past one page, by the table footer's own rule */}
-			{data.matched > size
-				? (
-					<ListFooter loose>
-						<span className="sp-subtitle">Showing {amount(data.orders.length, 0)} of {amount(data.matched, 0)}</span>
-						{/* a phone stacks the two, so the spacer would add a second gap */}
-						{touch ? null : <span className="sp-grow" />}
-						{data.orders.length < data.matched ? <Button variant="outline" size="small" onClick={onLoadMore}>Load more</Button> : null}
-					</ListFooter>
-				)
-				: null}
+			<ListMore loose shown={data.orders.length} total={data.matched} pageSize={size} onMore={onLoadMore} locale={NUMBER_LOCALE} />
 		</>
 	)
 }

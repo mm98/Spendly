@@ -14,7 +14,7 @@ import { DateField } from '../components/DatePickers.jsx'
 import { Check } from '../components/Choice.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Pill } from '../components/Pill.jsx'
-import { Slot } from '../components/FileDrop.jsx'
+import { MAX_FILE_MB, PHOTO_TYPES, Slot, fileProblem } from '../components/FileDrop.jsx'
 import { AttachmentAdd, Strip, Viewer } from '../components/Attachments.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
 import { Empty, useFocusTrap } from '../components/Utilities.jsx'
@@ -33,7 +33,7 @@ import { useListReturn } from '../app/listMemory.js'
 import { MAC, useShellShape } from '../app/useMedia.js'
 import { Saving } from '../app/saving.jsx'
 import {
-	AttachmentTile, LineAmount, LinePhoto, fileProblem, isPdf, itemsWord, lineMeta, lineTotal, money, totalsOf
+	AttachmentTile, LineAmount, LinePhoto, isPdf, itemsWord, lineMeta, lineTotal, money, totalsOf
 } from './OrderParts.jsx'
 import { useLeaveGuard } from './vendorsCategories.jsx'
 
@@ -312,8 +312,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	/* ---- attachments, staged until the save ---- */
 
 	// each file is checked on its own: a refused one keeps its tile with the reason, and is never sent (17b)
-	const addFiles = picked => setFiles(fs => [...fs, ...picked.map(file => ({
-		key: freshKey(), file, name: file.name, problem: fileProblem(file),
+	const addFiles = (picked, problems) => setFiles(fs => [...fs, ...picked.map((file, i) => ({
+		key: freshKey(), file, name: file.name, problem: problems[i],
 		kind: isPdf(file) ? 'pdf' : 'image',
 		thumb: /^image\//.test(file.type) ? URL.createObjectURL(file) : null
 	}))])
@@ -629,7 +629,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 				: null}
 			{mismatch
 				? (
-					<ListItem color="warning" mark={<span className="sp-list-item__count">!</span>}>
+					<ListItem color="warning" count="!">
 						<span className="sp-data sp-ink-warning">
 							The order comes to <strong className="sp-strong">{money(sums.total)}</strong> but the receipt says <strong className="sp-strong">{money(printed)}</strong> - a line may be missing.
 						</span>
@@ -858,7 +858,7 @@ const focusFirst = (selector, quiet) => requestAnimationFrame(() => {
 })
 
 // the server's own words for the two refusals, for a file the form refused before sending it
-const refusalOf = f => (f.problem === 'Too large' ? 'A file is too large. Each file can be up to 25 MB.' : `${f.name} is not an image or a PDF.`)
+const refusalOf = f => (f.problem === 'Too large' ? `A file is too large. Each file can be up to ${MAX_FILE_MB} MB.` : `${f.name} is not an image or a PDF.`)
 
 const sameName = (a, b) => a.toLowerCase() === b.toLowerCase()
 // the server keeps one file per name on a line, so a replacement with the old one's name is sent under another
@@ -932,7 +932,7 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 	const photo = v.newPhoto?.url ?? (v.dropPhoto ? null : photoUrl(v))
 	// a file the line cannot take leaves the photo as it was and says why on the slot (17b)
 	const take = file => {
-		const refused = fileProblem(file, { pdf: false })
+		const refused = fileProblem(file, PHOTO_TYPES)
 		if (refused) return set({ photoProblem: refused })
 		if (v.newPhoto) URL.revokeObjectURL(v.newPhoto.url)
 		set({ newPhoto: { file, url: URL.createObjectURL(file) }, dropPhoto: false, photoProblem: null })
@@ -967,7 +967,8 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 			</Field>
 			<div className="sp-line-editor__grid">
 				<Field label="Quantity" {...problem(errors.quantity)}>
-					<Stepper value={Number(v.quantity) || 0} min={1} step={1} decimals={2} locale={NUMBER_LOCALE} aria-label="Quantity" onChange={quantity => set({ quantity })} />
+					{/* the smallest quantity the server keeps: more than 0, two decimals */}
+					<Stepper value={Number(v.quantity) || 0} min={0.01} step={1} decimals={2} locale={NUMBER_LOCALE} aria-label="Quantity" onChange={quantity => set({ quantity })} />
 				</Field>
 				<Field label="Unit price" unit={currencySymbol()} {...problem(errors.price)}>
 					<NumberField value={v.price} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={price => set({ price })} />
@@ -1010,7 +1011,7 @@ function VendorPicker({ vendors, recent, value, onPick, quiet, ...rest }) {
 				setOpen(next)
 				if (!next) setQuery('')
 			}}
-			onSearch={setQuery} aria-label="Vendor" {...rest}>
+			onSearch={setQuery} noun="vendors" aria-label="Vendor" {...rest}>
 			{groups.map(([name, xs], i) => (
 				<Fragment key={name}>
 					{i ? <ComboboxSeparator /> : null}
@@ -1022,7 +1023,7 @@ function VendorPicker({ vendors, recent, value, onPick, quiet, ...rest }) {
 				</Fragment>
 			))}
 			{typed && !known
-				? <>{groups.length ? <ComboboxSeparator /> : null}<ComboboxOption onSelect={() => onPick(typed)}>Create "{typed}"</ComboboxOption></>
+				? <>{groups.length ? <ComboboxSeparator /> : null}<ComboboxOption create onSelect={() => onPick(typed)}>Create "{typed}"</ComboboxOption></>
 				: null}
 		</Combobox>
 	)

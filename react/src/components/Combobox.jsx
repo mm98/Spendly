@@ -143,8 +143,10 @@ export function usePanelPlace(root, panel, open, size) {
 	}, [root, panel, open, size])
 }
 
-/** What a filtered list reads out as it narrows (c9: "6 vendors"). `noun` is the plural. Internal. */
-export function countOf(n, noun = 'options') {
+/** What a filtered list reads out as it narrows (c9: "6 vendors"): its options, less the create row,
+    which is not one of them. `noun` is the plural. Internal. */
+export function countOf(options, noun = 'options') {
+	const n = options.filter(o => !o.create).length
 	return n === 0 ? `No ${noun}` : `${n} ${n === 1 ? singular(noun) : noun}`
 }
 
@@ -287,7 +289,7 @@ export function Combobox({
 							}}
 						/>
 						<span className="sp-field__chevron"><Icon name="chevron-down" size={14} /></span>
-						<span className="sp-announce" aria-live="polite">{query ? countOf(options.length, noun) : ''}</span>
+						<span className="sp-announce" aria-live="polite">{query ? countOf(options, noun) : ''}</span>
 					</span>
 				)
 				: (
@@ -319,7 +321,8 @@ export function Combobox({
 	)
 }
 
-export function ComboboxOption({ selected = false, active = false, id, dot, mark, meta, onSelect, children, ...rest }) {
+/** `create` marks the row that makes the typed value (c5), left out of the count a narrowed list reads out. */
+export function ComboboxOption({ selected = false, active = false, id, dot, mark, meta, onSelect, create = false, children, ...rest }) {
 	reject(rest, 'ComboboxOption')
 	if (dot && !DOTS.includes(dot)) console.error(`<ComboboxOption> dot="${dot}" is not one of: ${DOTS.join(' | ')}`)
 	return (

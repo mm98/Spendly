@@ -416,7 +416,7 @@ function arrange({ shape, stacked, period, notice = null, kpis, chart, byCategor
 			{figures}
 			{shape === 'wide'
 				? <div className="sp-shell__body--split">{chart}<Panel>{byCategory}{byStatus}</Panel></div>
-				: <>{chart}<Halves>{byCategory}{byStatus}</Halves></>}
+				: <>{chart}<Halves cards>{byCategory}{byStatus}</Halves></>}
 			<Halves>
 				<div className="sp-stack sp-gap-12">{vendors}{saving}</div>
 				{limits}
@@ -576,6 +576,7 @@ function SpendChart({ range, chart, running: soon, touch, onOpen }) {
 		tick: tickOf(chart, column, touch)
 	}))
 	const select = unit === 'day' ? undefined : key => onOpen(columns.find(column => column.key === key).open)
+	const current = columns.find(column => column.running)?.key
 	return (
 		<Card aria-busy={chart ? undefined : 'true'}>
 			<div className="sp-row-flex sp-gap-12">
@@ -591,10 +592,10 @@ function SpendChart({ range, chart, running: soon, touch, onOpen }) {
 					: null}
 			</div>
 			{touch
-				? <Bars ref={bars} columns={drawn} onSelect={select} loading={!chart} />
+				? <Bars ref={bars} columns={drawn} current={current} onSelect={select} loading={!chart} />
 				: (
 					<Plot axis={chart ? [4, 3, 2, 1, 0].map(step => compactAmount((top / 4) * step)) : AXIS_HOLD} gridlines={5}>
-						<Bars ref={bars} variant="plot" columns={drawn} onSelect={select} loading={!chart} />
+						<Bars ref={bars} variant="plot" columns={drawn} current={current} onSelect={select} loading={!chart} />
 					</Plot>
 				)}
 		</Card>
@@ -785,6 +786,7 @@ function SavingChart({ chart, name, touch, onOpen }) {
 							pair: [share(column.spend, most), share(column.saved, most)],
 							tick: tickOf(chart, column, touch)
 						}))}
+						current={columns.find(column => column.running)?.key}
 						onSelect={chart.unit === 'day' ? undefined : key => onOpen(columns.find(column => column.key === key).open)}
 					/>
 				)

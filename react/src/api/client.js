@@ -184,11 +184,6 @@ export const vendorByAnyName = (vendors, name) => {
 		|| (v.aliases ?? []).some(a => a.toLowerCase() === needle))
 }
 
-/** The categories an order carries once it names this vendor: what it already has, or else the
-    vendor's own defaults. Never a merge -- categories already chosen answer the same question. */
-export const categoriesForVendor = (vendors, name, current = []) =>
-	(current.length ? current : vendorByAnyName(vendors, name)?.defaultCategories ?? [])
-
 /** Whether typed text finds this vendor, and the alias that did; `alias` is null when the name
     matched. Empty text matches everything. */
 export const vendorTextMatch = (vendor, text) => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { Caption, Controls, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
-import { Card, ListFooter } from '../components/Card.jsx'
+import { Caption, Controls, List, ListCell, ListHead, ListMore, ListRow } from '../components/List.jsx'
+import { Card } from '../components/Card.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Button } from '../components/Button.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -121,14 +121,7 @@ export default function Vendors() {
 					</div>
 				</Card>
 			))}
-			{rows.length > step
-				? (
-					<ListFooter loose>
-						<span className="sp-subtitle">Showing {amount(shown.length, 0)} of {amount(rows.length, 0)}</span>
-						{shown.length < rows.length ? <Button variant="outline" size="small" onClick={() => setPages(pages + 1)}>Load more</Button> : null}
-					</ListFooter>
-				)
-				: null}
+			<ListMore loose shown={shown.length} total={rows.length} pageSize={step} onMore={() => setPages(pages + 1)} locale={NUMBER_LOCALE} />
 		</>
 	)
 	else body = (

@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
-import { FileDrop } from '../components/FileDrop.jsx'
+import { FILE_TYPES, FileDrop, MAX_FILE_MB, fileProblem } from '../components/FileDrop.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { ComboboxEmpty, ComboboxGroup, ComboboxOption } from '../components/Combobox.jsx'
 import { Mark } from '../components/Mark.jsx'
@@ -15,12 +15,11 @@ import {
 } from '../api/client.js'
 import { amount, dayShortMonth, dot, plural, sep } from '../api/format.js'
 import { OrderForm } from './OrderForm.jsx'
-import { MAX_MB, OrderFailed, OrderLoading, fileProblem, isPdf } from './OrderParts.jsx'
+import { OrderFailed, OrderLoading, isPdf } from './OrderParts.jsx'
 
 /* A new order (3a, 3b): a way to start, then the order form unsaved. The address names the
    start, so a reload lands where the reader was. */
 
-const RECEIPTS = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif'
 const started = new WeakSet()
 
 /** The label the server gives an upload, so the size reads the same before and after it is sent. */
@@ -166,13 +165,13 @@ function Start({ scanOnly, file, picking }) {
 		const f = picked?.[0]
 		if (!f) return
 		const kind = f.name.split('.').pop()
-		const problem = fileProblem(f)
+		const problem = fileProblem(f, FILE_TYPES)
 		if (problem === 'Not a supported type')
 			return setRefused({ title: `.${kind} is not supported`, note: 'Images and PDF only. The file was not sent.' })
 		if (problem === 'Too large')
 			return setRefused({
 				title: `File is ${Math.ceil(f.size / 1024 / 1024)} MB - too large`,
-				note: `Up to ${MAX_MB} MB per file. A PDF export or a smaller photo will go through.`
+				note: `Up to ${MAX_FILE_MB} MB per file. A PDF export or a smaller photo will go through.`
 			})
 		setRefused(null)
 		const pdf = isPdf(f)
@@ -207,10 +206,10 @@ function Start({ scanOnly, file, picking }) {
 					: 'Drop a PDF or a photo and it is attached to a new order. You type in the details.'}
 			</EmptyBody>
 			<div className="oc-narrow">
-				<FileDrop accept={RECEIPTS} onFiles={send} action="Select a receipt">
+				<FileDrop accept={FILE_TYPES} onFiles={send} action="Select a receipt">
 					<Mark size="large" aria-label="Receipt" aria-hidden="true"><Icon name="upload" size={24} /></Mark>
 					<span className="sp-title">Drop receipt here</span>
-					<span className="sp-meta">PDF, JPG, PNG, WebP, HEIC or GIF{dot}up to {MAX_MB} MB per file</span>
+					<span className="sp-meta">PDF, JPG, PNG, WebP, HEIC or GIF{dot}up to {MAX_FILE_MB} MB per file</span>
 				</FileDrop>
 			</div>
 			{refused ? <div className="oc-narrow oc-left"><Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert></div> : null}
@@ -312,6 +311,7 @@ function CopyPicker({ onClose }) {
 					inputRef={search} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list"
 					aria-activedescendant={active > -1 ? `${listId}-${active}` : undefined} onKeyDown={keys} />
 				<ul className="oc-options" id={listId} role="listbox" aria-label="Previous orders">{rows}</ul>
+				<span className="sp-announce" aria-live="polite">{asked && found.data ? (orders.length ? plural(orders.length, 'order') : 'No orders') : ''}</span>
 				<DialogActions>
 					<span className="sp-meta">Nothing is created until you save.</span>
 					<span className="sp-grow" />

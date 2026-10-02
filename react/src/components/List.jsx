@@ -407,13 +407,13 @@ export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, 
 }
 
 /** The list as a grid of Record cards (c1 cards, Order list 2c, Bookmarks 22a): no ground of its
-    own, the grid, then `footer` under it at the grid's width. */
+    own, the grid, then `footer` under it at the grid's width: a `<ListMore loose>`. */
 export function Records({ footer, children, ...rest }) {
 	reject(rest, 'Records')
 	return (
 		<div className="sp-list sp-list--cards" {...rest}>
 			<Cards>{children}</Cards>
-			{footer ? <ListFooter loose>{footer}</ListFooter> : null}
+			{footer}
 		</div>
 	)
 }
