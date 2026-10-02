@@ -32,8 +32,8 @@ import { fileURLToPath } from 'url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const CSS_SOURCE = path.join(here, '..', 'src', 'styles', 'app.css')
-const SHELL_SOURCE = path.join(here, '..', 'src', 'components', 'Shell.jsx')
-const ICON_SOURCE = path.join(here, '..', 'src', 'components', 'Icon.jsx')
+const SHELL_SOURCE = path.join(here, '..', 'src', 'legacy', 'Shell.jsx')
+const ICON_SOURCE = path.join(here, '..', 'src', 'legacy', 'Icon.jsx')
 const OUT = path.join(here, '..', 'public')
 const check = process.argv.includes('--check')
 
