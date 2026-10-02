@@ -39,9 +39,10 @@ export default function Register() {
 			.then(() => navigate(landing(params), { replace: true }))
 			.catch(e => {
 				setBusy(false)
+				const said = failureMessage(e, '')
 				if (e?.status === 409) { setTaken(address); focusField('register-email') }
-				else if (e?.status === 400 && /password/i.test(e.message)) { setPasswordProblem(e.message); focusField('register-password') }
-				else if (e?.status === 400) { setEmailProblem(e.message); focusField('register-email') }
+				else if (e?.status === 400 && /password/i.test(said)) { setPasswordProblem(said); focusField('register-password') }
+				else if (e?.status === 400 && said) { setEmailProblem(said); focusField('register-email') }
 				else setAlert(failureMessage(e, 'Spendly could not be reached. Check your connection and try again.'))
 			})
 	}

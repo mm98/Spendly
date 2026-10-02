@@ -8,9 +8,9 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
    the create/scan-review form — that parsing is client.js's job, same as it is today, so a
    value required at one door (manual entry) is required and checked the same way at every
    other (import, scan review save). Returns a { field: message } map, empty if the draft is
-   valid. */
+   valid. `today` is the reader's date (req.today). */
 
-export function validateOrderDraft(draft) {
+export function validateOrderDraft(draft, today = todayIso()) {
 	const errors = {}
 
 	const vendor = String(draft.vendor ?? '').trim()
@@ -19,7 +19,7 @@ export function validateOrderDraft(draft) {
 
 	const date = String(draft.date ?? '')
 	if (!ISO_DATE.test(date)) errors.date = 'When was the order placed?'
-	else if (date > todayIso()) errors.date = 'An order cannot be dated in the future.'
+	else if (date > today) errors.date = 'An order cannot be dated in the future.'
 
 	const kind = String(draft.kind ?? '')
 	if (!kind) errors.kind = 'Pick a kind.'
@@ -34,13 +34,13 @@ export function validateOrderDraft(draft) {
 	if (draft.deliveredDate) {
 		const deliveredDate = String(draft.deliveredDate)
 		if (!ISO_DATE.test(deliveredDate)) errors.deliveredDate = 'That is not a valid date.'
-		else if (deliveredDate > todayIso()) errors.deliveredDate = 'A delivery cannot be dated in the future.'
+		else if (deliveredDate > today) errors.deliveredDate = 'A delivery cannot be dated in the future.'
 		else if (deliveredDate < date) errors.deliveredDate = 'That is before the order date.'
 	}
 	if (draft.returnedDate) {
 		const returnedDate = String(draft.returnedDate)
 		if (!ISO_DATE.test(returnedDate)) errors.returnedDate = 'That is not a valid date.'
-		else if (returnedDate > todayIso()) errors.returnedDate = 'A return cannot be dated in the future.'
+		else if (returnedDate > today) errors.returnedDate = 'A return cannot be dated in the future.'
 		else if (draft.deliveredDate && !errors.deliveredDate && returnedDate < String(draft.deliveredDate))
 			errors.returnedDate = 'That is before the delivery date.'
 	}
@@ -86,8 +86,8 @@ export function validateOrderDraft(draft) {
 	return errors
 }
 
-export function assertValidOrderDraft(draft) {
-	const errors = validateOrderDraft(draft)
+export function assertValidOrderDraft(draft, today) {
+	const errors = validateOrderDraft(draft, today)
 	if (Object.keys(errors).length) {
 		const err = new Error(Object.values(errors)[0])
 		err.status = 400

@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Outlet, useLocation, useMatches, useNavigate, useNavigationType } from 'react-router'
+import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
@@ -14,6 +14,7 @@ import { amount } from '../api/format.js'
 import { MAC, useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
 import { Palette, useRecentRecords } from './Palette.jsx'
+import { rememberList, rememberedList, useScrollMemory } from './listMemory.js'
 
 
 /* The route's handle names the page for the browser tab, the sidebar row it belongs to, the
@@ -35,27 +36,19 @@ export function AppShell() {
 	const handle = handleOf(useMatches())
 	const { navKey, layout = 'default', fab = false, title, remember = false } = handle
 	const navigate = useNavigate()
-	const navigation = useNavigationType()
 	const { pathname, search: params, key: visit, state } = useLocation()
 
 	useEffect(() => { document.title = title ? `${title} - Spendly` : 'Spendly' }, [title])
 
 	useRecentRecords()
 
-	// another section opens at its top; Back keeps the place the browser gives it (c11)
-	const at = useRef(pathname)
-	useLayoutEffect(() => {
-		if (at.current === pathname) return
-		at.current = pathname
-		if (navigation !== 'POP') window.scrollTo(0, 0)
-	}, [pathname, navigation])
+	useScrollMemory()
 
-	// where each section's list was left, so its destination returns to it; from that very list,
-	// the destination starts it over (c11)
-	const left = useRef({})
-	if (remember && navKey) left.current[navKey] = pathname + params
+	// a section's destination returns to its list as it was left; from that very list, it starts
+	// it over (c11)
+	if (remember && navKey) rememberList(navKey, pathname + params)
 	const go = (key, to) => {
-		const back = left.current[key]
+		const back = rememberedList(key)
 		return !back || back === pathname + params ? to : back
 	}
 
@@ -221,23 +214,27 @@ function DarkMode({ rail }) {
 	)
 }
 
-/* Sign out leaves first: the page's own leave check asks, and the session ends only on the
-   sign-in page, once the reader has been let go (9c). */
+/** The account menu (9c). Sign out leaves first, so the page's own leave check asks; the session
+    ends on the sign-in page, once the reader has been let go. */
+export function AccountMenu({ email, position, onClose }) {
+	const navigate = useNavigate()
+	return (
+		<Menu position={position} aria-label="Account">
+			<li className="ns-menu-head" role="presentation"><span className="sp-meta sp-truncate">{email}</span></li>
+			<MenuItem icon="user" onClick={() => { onClose(); navigate('/settings/account') }}>Account and profile</MenuItem>
+			<MenuItem icon="power" onClick={() => { onClose(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>
+		</Menu>
+	)
+}
+
 function Account({ rail }) {
 	const user = useApi(getCurrentUser)
 	const [open, setOpen] = useState(false)
-	const navigate = useNavigate()
 	const close = useCallback(() => setOpen(false), [])
 	const email = user.data?.email
 	if (!email) return null
-	const menu = (
-		<Menu aria-label="Account">
-			<MenuItem icon="user" onClick={() => { close(); navigate('/settings/account') }}>Account and profile</MenuItem>
-			<MenuItem icon="power" onClick={() => { close(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>
-		</Menu>
-	)
 	return (
 		<SidebarAccount email={email} expanded={open} tip={rail ? email : undefined} aria-label={email}
-			onClick={() => setOpen(!open)} onDismiss={close} menu={menu} />
+			onClick={() => setOpen(!open)} onDismiss={close} menu={<AccountMenu email={email} onClose={close} />} />
 	)
 }

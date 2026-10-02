@@ -246,7 +246,7 @@ const REQUESTS = [
 	'/orders?from=2026-01-01', '/orders?to=2026-06-30', '/orders?from=2026-01-01&to=2026-06-30',
 	'/orders?query=kaffe', '/orders?query=zzznomatch', '/orders?query=æg',
 	`/orders?vendorId=${ids.vendor}&status=Delivered&sort=amount-desc`,
-	'/orders/overview', '/orders/draft', `/orders/${ids.order}`,
+	'/orders?pageSize=6&with=itemTitles', '/orders/draft', `/orders/${ids.order}`,
 	'/vendors', `/vendors/${ids.vendor}`,
 	'/categories', `/categories/${ids.category}`, '/categories/uncategorised',
 	'/stats?range=week', '/stats?range=month', '/stats?range=quarter', '/stats?range=year',
@@ -256,9 +256,9 @@ const REQUESTS = [
 	`/bookmarks?categoryId=${ids.category}`, '/bookmarks?categoryId=none',
 	'/bookmarks?query=sko', '/bookmarks?query=æg', '/bookmarks?from=2020-01-01&to=2030-12-31',
 	`/bookmarks/${ids.bookmark}`,
-	'/home/hero', '/home/onboarding', '/settings', '/dashboard-cards',
+	'/settings',
 	'/search?query=bil', '/search?query=zzznomatch', '/search?query=æg', '/search?query=w',
-	'/scan/recent', '/budget', '/budget/2026', '/budget/accounts', '/budget/links'
+	'/budget', '/budget/2026', '/budget/accounts', '/budget/links'
 ]
 
 for (const request of REQUESTS) {
@@ -269,32 +269,9 @@ for (const request of REQUESTS) {
 	}
 	await response.arrayBuffer()
 }
-/* The two bulk moves, run last and in this order because each one rewrites the fixture: every
-   read above is captured against the account as seeded, and a move re-pointing a category's or
-   a vendor's whole order set would otherwise be doing it underneath them. Their targets are read
-   back out of the list responses rather than queried for, so driving them adds no SELECT of this
-   script's own to the baseline. */
-const idsFrom = async (path, not) => {
-	const rows = await (await fetch(BASE + path, { headers: H })).json()
-	return rows.find(r => r.id !== not)?.id
-}
-
-for (const [path, to] of [
-	[`/categories/${ids.category}/move-orders`, await idsFrom('/categories', ids.category)],
-	[`/vendors/${ids.vendor}/move-orders`, await idsFrom('/vendors', ids.vendor)]
-]) {
-	const response = await fetch(BASE + path, {
-		method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify({ to })
-	})
-	if (!response.ok) {
-		console.error(`  ${path} answered ${response.status} -- the check cannot read plans for it`)
-		process.exitCode = 1
-	}
-	await response.arrayBuffer()
-}
-
-/* The budget's writes, last for the same reason as the moves above. Their ids come out of the
-   sheet the app itself answers with, so no SELECT of this script's own joins the baseline. */
+/* The writes, run last because each one rewrites the fixture every read above is captured
+   against. The budget's ids come out of the sheet the app itself answers with, so no SELECT of
+   this script's own joins the baseline. */
 const sheet = await (await fetch(BASE + '/budget/2026', { headers: H })).json()
 const [group, second] = sheet.groups.filter(g => g.kind === 'expense')
 const line = group.lines[1]
@@ -313,7 +290,10 @@ for (const [method, path, body] of [
 	['PATCH', `/budget/accounts/${other.id}`, { name: 'Budget account', index: 0 }],
 	['DELETE', `/budget/accounts/${account.id}`],
 	['PUT', '/budget/links', { pattern: 'betalingsservice aquaren aftalenr', kind: 'expense', line: 'Water' }],
-	['DELETE', '/budget/links?pattern=betalingsservice%20aquaren%20aftalenr&kind=expense']
+	['DELETE', '/budget/links?pattern=betalingsservice%20aquaren%20aftalenr&kind=expense'],
+	// a padded name with no orders, so each delete runs its in-use counts and then deletes
+	['DELETE', `/categories/c-main-${CATEGORY_COUNT - 1}`],
+	['DELETE', `/vendors/v-main-${VENDOR_COUNT - 1}`]
 ]) {
 	const response = await fetch(BASE + path, {
 		method, headers: { ...H, 'Content-Type': 'application/json' }, body: body && JSON.stringify(body)

@@ -8,7 +8,7 @@ import { Icon } from '../components/Icon.jsx'
 import { invalidate } from '../api/useApi.js'
 import { populateDemoData } from '../api/client.js'
 import { amount, plural } from '../api/format.js'
-import { Choose, Heading } from './SettingsParts.jsx'
+import { Choose, Heading, useStepFocus } from './SettingsParts.jsx'
 
 const COUNTS = [500, 1000, 5000, 10000, 25000, 50000]
 // months, which is the unit the fill spreads by; offered in years
@@ -16,6 +16,8 @@ const SPANS = [12, 24, 48, 72, 96, 120, 144, 216, 288]
 
 const orders = n => `${amount(n, 0)} ${n === 1 ? 'order' : 'orders'}`
 const lastSpan = months => (months === 12 ? 'the last year' : `the last ${months / 12} years`)
+
+const COUNT_ID = 'demo-count'
 
 const INTRO = 'Fill the account with made-up orders so the lists and charts have something to show. Each fill creates a new, different set.'
 
@@ -25,27 +27,33 @@ export function DemoCard() {
 	const [stage, setStage] = useState({ name: 'rest' })
 	const [count, setCount] = useState(COUNTS[0])
 	const [months, setMonths] = useState(SPANS[0])
+	const { box, then } = useStepFocus(stage)
+	const go = (next, target = 'heading') => { then(target); setStage(next) }
+	// choosing asks how many first, so a second Enter never lands on Yes, fill it
+	const choose = () => go({ name: 'choosing' }, COUNT_ID)
 
 	const fill = () => {
-		setStage({ name: 'filling' })
+		go({ name: 'filling' })
 		populateDemoData(count, months)
 			.then(made => {
 				invalidate()
-				setStage({ name: 'done', made })
+				go({ name: 'done', made })
 			})
-			.catch(error => setStage({ name: 'failed', answered: error?.name === 'ApiError' }))
+			// the fill is one transaction: any answer from Spendly itself means nothing changed; a
+			// gateway's (502 to 504) or none means it may still be running
+			.catch(error => go({ name: 'failed', answered: error?.status > 0 && !(error.status >= 502 && error.status <= 504) }))
 	}
 
 	const heading = <Heading section="demo">Demo data</Heading>
 
 	if (stage.name === 'choosing') return (
-		<Card footerCommits footerLayout="split" footer={[
-			<Button key="cancel" variant="outline" onClick={() => setStage({ name: 'rest' })}>Cancel</Button>,
-			<Button key="fill" color="danger" onClick={fill}>Yes, fill it</Button>
+		<Card ref={box} footerCommits footerLayout="split" footer={[
+			<Button key="cancel" variant="outline" onClick={() => go({ name: 'rest' }, 'action')}>Cancel</Button>,
+			<Button key="confirm" color="danger" onClick={fill}>Yes, fill it</Button>
 		]}>
 			{heading}
 			<span className="sp-data">{INTRO}</span>
-			<Field label="How many orders">
+			<Field label="How many orders" id={COUNT_ID}>
 				<Choose value={count} onChange={setCount} options={COUNTS.map(n => ({ id: n, label: orders(n) }))} />
 			</Field>
 			<Field label="Over how long" message="How far back the orders reach, ending today.">
@@ -59,7 +67,7 @@ export function DemoCard() {
 	)
 
 	if (stage.name === 'filling') return (
-		<Card aria-busy="true">
+		<Card ref={box} aria-busy="true">
 			{heading}
 			<span className="sp-data">Creating {orders(count)} over {lastSpan(months)}.</span>
 			<span className="sp-meta">This can take a moment.</span>
@@ -69,8 +77,8 @@ export function DemoCard() {
 	if (stage.name === 'done') {
 		const { made } = stage
 		return (
-			<Card footerCommits footerLayout="split" footer={[
-				<Button key="again" variant="outline" onClick={() => setStage({ name: 'choosing' })}>Fill again</Button>,
+			<Card ref={box} footerCommits footerLayout="split" footer={[
+				<Button key="again" variant="outline" onClick={choose}>Fill again</Button>,
 				<Button key="see" to="/orders">See the orders</Button>
 			]}>
 				{heading}
@@ -85,7 +93,7 @@ export function DemoCard() {
 	}
 
 	if (stage.name === 'failed') return (
-		<Card footerCommits footer={<Button key="again" variant="outline" fullWidth onClick={() => setStage({ name: 'choosing' })}>Try again</Button>}>
+		<Card ref={box} footerCommits footer={<Button key="again" variant="outline" fullWidth onClick={choose}>Try again</Button>}>
 			{heading}
 			<Well color="danger">
 				<span className="sp-title sp-ink-danger">Couldn't finish filling.</span>
@@ -99,7 +107,7 @@ export function DemoCard() {
 	)
 
 	return (
-		<Card footerCommits footer={<Button key="fill" variant="outline" fullWidth onClick={() => setStage({ name: 'choosing' })}>Fill with demo data</Button>}>
+		<Card ref={box} footerCommits footer={<Button key="start" variant="outline" fullWidth onClick={choose}>Fill with demo data</Button>}>
 			{heading}
 			<span className="sp-data">{INTRO}</span>
 		</Card>
