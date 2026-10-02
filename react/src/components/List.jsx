@@ -253,6 +253,20 @@ export function List({
 }
 
 
+/** What can be done to the records picked (c1, c12), standing in for whatever sat there before
+    the first pick. `loose` carries its own border, for a set with no list around it. */
+export function BulkBar({ loose = false, count, onClear, children, ...rest }) {
+	reject(rest, 'BulkBar')
+	return (
+		<div className={join('sp-bulkbar', loose && 'sp-bulkbar--loose')} {...rest}>
+			<Check checked aria-label="Clear the selection" onChange={() => onClear?.()} />
+			<span className="sp-bulkbar__count">{count}</span>
+			<span className="sp-grow" />
+			<div className="sp-row-flex sp-gap-8">{children}</div>
+		</div>
+	)
+}
+
 /** The bar above a list (c20): search, then pickers and the one button, each at its own width. */
 export function Controls({ children, ...rest }) {
 	reject(rest, 'Controls')

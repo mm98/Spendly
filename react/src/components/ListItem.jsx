@@ -61,6 +61,19 @@ export function ListItem({
 	return <div className={classes} {...attrs}>{body}</div>
 }
 
+/** The heading over a set of rows that carries a total (c33, sp-list-head): on the rows' inset,
+    so the label starts on their first column and the total ends on their amounts. */
+export function ListItemHead({ label, amount, ...rest }) {
+	reject(rest, 'ListItemHead')
+	return (
+		<div className="sp-list-head" {...rest}>
+			<span className="sp-section-label">{label}</span>
+			<span className="sp-grow" />
+			<span className="sp-amount">{amount}</span>
+		</div>
+	)
+}
+
 /** Where a carried row will land. Belongs to the drag, not to the data. */
 export function Insertion(props) {
 	reject(props, 'Insertion')

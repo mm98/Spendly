@@ -143,26 +143,30 @@ export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 
 const STAT_INK = { default: null, success: 'sp-ink-success' }
 
-export function Stat({ figure, large = false, color = 'default', label, delta, ...rest }) {
+/** `meta` is the quiet line under the figure that says what it is measured against. */
+export function Stat({ figure, large = false, color = 'default', label, delta, meta, ...rest }) {
 	reject(rest, 'Stat')
 	return (
 		<div className="sp-stat" {...rest}>
 			{label ? <span className="sp-section-label">{label}</span> : null}
 			<span className={join('sp-stat__figure', large && 'sp-stat__figure--large', pick(STAT_INK, color, 'color', 'Stat'))}>{figure}</span>
 			{delta ? <span className="sp-stat__delta">{delta}</span> : null}
+			{meta ? <span className="sp-meta">{meta}</span> : null}
 		</div>
 	)
 }
 
 const SUM = { default: null, stacked: 'sp-sum--stacked', total: 'sp-sum--total' }
+// expected is a figure that is only planned so far (Budget 21a); the other two are a sign
+const SUM_TONE = { default: null, expected: 'sp-ink-5', success: 'sp-ink-success', danger: 'sp-ink-danger' }
 
 /** A line of a sum: what it is, and what it comes to. `total` is the last line. */
-export function Sum({ variant = 'default', value, children, ...rest }) {
+export function Sum({ variant = 'default', tone = 'default', value, children, ...rest }) {
 	reject(rest, 'Sum')
 	return (
 		<div className={join('sp-sum', pick(SUM, variant, 'variant', 'Sum'))} {...rest}>
 			<span className="sp-grow">{children}</span>
-			<span className="sp-sum__value">{value}</span>
+			<span className={join('sp-sum__value', pick(SUM_TONE, tone, 'tone', 'Sum'))}>{value}</span>
 		</div>
 	)
 }

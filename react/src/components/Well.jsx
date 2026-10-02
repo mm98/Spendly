@@ -15,3 +15,9 @@ export function Well({ variant = 'default', color = 'default', children, ...rest
 		</div>
 	)
 }
+
+/** Two wells side by side in one card, each half the width (Budget 21a). */
+export function Halves({ children, ...rest }) {
+	reject(rest, 'Halves')
+	return <div className="sp-halves" {...rest}>{children}</div>
+}

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Icon } from './Icon.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Chip } from './Chip.jsx'
-import { join, reject } from './variants.js'
+import { join, pick, reject } from './variants.js'
 
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const parse = s => {
@@ -487,7 +487,9 @@ export function Selected() { return null }
 
 /** The stepper inside the period control (c14): one box, an arrow either side of the window's
     name. An arrow with no handler is disabled, never hidden, so the box keeps its width. */
-export function PeriodWindow({ label, unit, previousLabel = 'Previous window', nextLabel = 'Next window', onPrevious, onNext, touch = false, ...rest }) {
+const WINDOW = { week: 'week', month: 'month', quarter: 'quarter', year: 'year' }
+
+export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous window', nextLabel = 'Next window', onPrevious, onNext, touch = false, ...rest }) {
 	reject(rest, 'PeriodWindow')
 	const size = touch ? 15 : 14
 	return (
@@ -495,7 +497,7 @@ export function PeriodWindow({ label, unit, previousLabel = 'Previous window', n
 			<button type="button" className="sp-window__btn" aria-label={previousLabel} disabled={!onPrevious} onClick={onPrevious}>
 				<Icon name="chevron-left" size={size} />
 			</button>
-			<span className="sp-window__label" data-w={unit}>{label}</span>
+			<span className="sp-window__label" data-w={pick(WINDOW, unit, 'unit', 'PeriodWindow')}>{label}</span>
 			<button type="button" className="sp-window__btn" aria-label={nextLabel} disabled={!onNext} onClick={onNext}>
 				<Icon name="chevron-right" size={size} />
 			</button>
@@ -735,3 +737,4 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 		</span>
 	)
 }
+
