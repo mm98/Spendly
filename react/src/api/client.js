@@ -305,7 +305,7 @@ const toApiDraft = draft => ({
 	deliveredDate: draft.deliveredDate, returnedDate: draft.returnedDate,
 	categories: draft.categories ?? [], shipping: draft.shipping ? parseAmount(draft.shipping) : 0,
 	discount: draft.discount ? parseAmount(draft.discount) : 0,
-	reference: draft.reference ?? '', note: draft.note ?? '',
+	reference: draft.reference ?? '', note: draft.note ?? '', refunded: Boolean(draft.refunded),
 	/* A saved order's own item id travels through -- PUT matches a submitted item against what's
 	   already in the database by id, updating it in place rather than deleting and recreating it
 	   under a fresh one, so anything keyed to that id (an item's own attachment) survives an edit
@@ -950,7 +950,7 @@ const krLabel = (n, decimals = 2) => {
 
 const COMMANDS = [
 	{ id: 'cmd-new', label: 'New order', meta: 'Create', to: '/orders/new', keywords: 'new order create add' },
-	{ id: 'cmd-scan', label: 'Scan a receipt', meta: 'Create', to: '/scan', keywords: 'scan receipt upload pdf photo ai' },
+	{ id: 'cmd-scan', label: 'Scan a receipt', meta: 'Create', to: '/orders/new?source=scan', keywords: 'scan receipt upload pdf photo ai' },
 	{ id: 'cmd-new-bookmark', label: 'New bookmark', meta: 'Create', to: '/bookmarks/new', keywords: 'new bookmark bookmarks want create add' },
 	{ id: 'cmd-new-vendor', label: 'New vendor', meta: 'Create', to: '/vendors/new', keywords: 'new vendor shop store create add' },
 	{ id: 'cmd-new-category', label: 'New category', meta: 'Create', to: '/categories/new', keywords: 'new category tag budget create add' },

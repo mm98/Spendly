@@ -22,6 +22,8 @@ export function Card({
 	footer,
 	footerLayout = 'fill',
 	footerCommits = false,
+	// set under the footer, apart from the commits: the rail's Delete order (1a)
+	after,
 	chevron,
 	children,
 	...rest
@@ -46,6 +48,7 @@ export function Card({
 					</div>
 				)
 				: null}
+			{after}
 		</>
 	)
 	if (to) return <Link className={classes} to={to} data-go={to} {...paint} {...rest}>{body}</Link>
