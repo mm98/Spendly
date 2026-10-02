@@ -348,7 +348,7 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 			{field}
 			{/* a press on an option must not blur the field first, or the half-typed text is added as a value */}
 			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={listbox.panel} onMouseDown={ev => ev.preventDefault()}>{listbox.list}</ul>
-			<span className="sp-announce" aria-live="polite">{typed && open ? countOf(options.length, noun) : ''}</span>
+			<span className="sp-announce" aria-live="polite">{typed && open ? countOf(options, noun) : ''}</span>
 		</div>
 	)
 }

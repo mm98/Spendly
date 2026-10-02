@@ -336,11 +336,11 @@ export function CategoryTokens({ value, onChange, ...rest }) {
 	const matches = known.filter(c => !value.some(n => same(n, c.name)) && c.name.toLowerCase().includes(query.toLowerCase()))
 	const exists = [...value, ...known.map(c => c.name)].some(n => same(n, query))
 	return (
-		<TokensField value={value} onChange={change} onSearch={setTyping} placeholder="Add…" aria-label="Add a category" {...rest}>
+		<TokensField value={value} onChange={change} onSearch={setTyping} noun="categories" placeholder="Add…" aria-label="Add a category" {...rest}>
 			{[
 				...matches.map(c => <ComboboxOption key={c.id} onSelect={() => change([...value, c.name])}>{c.name}</ComboboxOption>),
 				query && !exists
-					? <ComboboxOption key="create" mark={<Icon name="plus" size={13} />} onSelect={() => change([...value, query])}>Create "{query}"</ComboboxOption>
+					? <ComboboxOption key="create" create mark={<Icon name="plus" size={13} />} onSelect={() => change([...value, query])}>Create "{query}"</ComboboxOption>
 					: null
 			]}
 		</TokensField>

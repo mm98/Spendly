@@ -174,7 +174,7 @@ function CategoryFields({ category, loading = false, onGone }) {
 					<Field label="Icon">
 						{h(<Picker icons={shown.map(name => ({ name, label: ICON_LABELS[name], icon: <Icon name={name} /> }))}
 							value={values.icon} onChange={v => set('icon', v)}
-							search={iconSearch} onSearch={setIconSearch} searchLabel="Search icons…"
+							search={iconSearch} onSearch={setIconSearch} searchLabel="Search icons…" noun="icons"
 							more={hidden ? `+${hidden}` : undefined} onMore={() => setAllIcons(true)} />)}
 					</Field>
 					<Field label="Colour" message="Pick one of the eight, or choose your own in the last box.">

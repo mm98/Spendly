@@ -1,6 +1,7 @@
 import { cloneElement, useEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { SearchInput } from './Inputs.jsx'
+import { countOf } from './Combobox.jsx'
 
 export function Check({ indeterminate = false, ...rest }) {
 	reject(rest, 'Check')
@@ -145,9 +146,9 @@ function walk(ev) {
 	cells[Math.min(Math.max(to, 0), cells.length - 1)].focus()
 }
 
-/** `search` with `onSearch` puts the tile picker's search above the cells; `more` is the
-    "+N" cell that shows the rest, with `onMore` (c7). An icon option may carry a `label`. */
-export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, more, onMore, ...rest }) {
+/** `search` with `onSearch` puts the search above the cells, `noun` (plural) naming them in the count read
+    out as they narrow; `more` is the "+N" cell, with `onMore` (c7). An icon option may carry a `label`. */
+export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, noun, more, onMore, ...rest }) {
 	reject(rest, 'Picker')
 	if (swatches && icons) console.error('<Picker> takes swatches or icons, not both')
 	if (custom && !swatches) console.error('<Picker> a custom colour belongs to a colour group')
@@ -221,6 +222,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 		<div className="sp-picker">
 			<SearchInput value={search ?? ''} onChange={onSearch} placeholder={searchLabel} aria-label={searchLabel} />
 			{cells}
+			<span className="sp-announce" aria-live="polite">{search ? countOf(icons ?? [], noun) : ''}</span>
 		</div>
 	)
 }

@@ -2,7 +2,7 @@ import { useId } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Card, CardBody, Toolbar } from '../components/Card.jsx'
 import { Bars, Gauge, GaugeKey, Stat } from '../components/Data.jsx'
-import { FileDrop } from '../components/FileDrop.jsx'
+import { FILE_TYPES, FileDrop } from '../components/FileDrop.jsx'
 import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
@@ -20,7 +20,6 @@ import {
 import { useApi } from '../api/useApi.js'
 import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
 
-const ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/gif'
 const RECENT = 4
 const MONTHS = 8
 const ALERTS = 3
@@ -380,8 +379,7 @@ function CaptureCard({ newest, loading }) {
 	return (
 		<Card footer={footer}>
 			<span className="sp-section-label">Add an order</span>
-			<FileDrop id={input} accept={ACCEPT} onFiles={take}
-				onDragOver={ev => ev.preventDefault()} onDrop={ev => { ev.preventDefault(); take(ev.dataTransfer.files) }}>
+			<FileDrop id={input} accept={FILE_TYPES} onFiles={take}>
 				<Mark size="medium" fill="solid" aria-hidden="true" aria-label="Receipt"><Icon name="camera" size={19} /></Mark>
 				<span className="sp-title">Drop a receipt here</span>
 				<span className="sp-subtitle">
@@ -497,7 +495,8 @@ function MonthsCard() {
 				<span className="sp-grow" />
 				<Button variant="text" size="small" to="/statistics">Statistics</Button>
 			</div>
-			<Bars columns={months ?? []} loading={!months} onSelect={(key, from, to) => navigate(`/orders?from=${from}&to=${to}`)} />
+			<Bars columns={months ?? []} loading={!months} current={today().slice(0, 7)}
+				onSelect={(key, from, to) => navigate(`/orders?from=${from}&to=${to}`)} />
 		</Card>
 	)
 	if (year.error) return (

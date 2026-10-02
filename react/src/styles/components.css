@@ -881,6 +881,8 @@ button.sp-mark:focus-visible { outline: none; box-shadow: var(--ring); }
 /* below a card grid there is no list border to sit inside, so the footer takes
    the grid's own width: the count at one edge, Load more at the other */
 .sp-touch .sp-list__footer--loose { flex-direction: column; gap: var(--sp-8); }
+/* stacked, the spacer would add a second gap between the count and Load more */
+.sp-touch .sp-list__footer--loose > .sp-grow { display: none; }
 .sp-touch .sp-list__footer--loose .sp-btn { width: 100%; }
 .sp-list__footer--loose { padding: 0; }
 

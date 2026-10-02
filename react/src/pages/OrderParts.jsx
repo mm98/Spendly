@@ -42,17 +42,7 @@ export const lineMeta = (line, compact = false) =>
 
 export const itemsWord = n => plural(n, 'item')
 
-/* What each place takes (17a): the strip PDFs and pictures, a line's photo pictures only, and the
-   server refuses anything over 25 MB. Checked before a file is kept, so it never reaches a save. */
-export const MAX_MB = 25
-const PICTURE = /^image\/(jpeg|png|webp|heic|heif|gif)$/
-const PICTURE_NAME = /\.(jpe?g|png|webp|heic|heif|gif)$/i
 export const isPdf = file => file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
-export function fileProblem(file, { pdf = true } = {}) {
-	if (!(PICTURE.test(file.type) || PICTURE_NAME.test(file.name) || (pdf && isPdf(file)))) return 'Not a supported type'
-	if (file.size > MAX_MB * 1024 * 1024) return 'Too large'
-	return null
-}
 
 /** The line's total, with its saving under it; `compact` is the phone's, the total alone (1c). */
 export function LineAmount({ line, compact = false }) {
