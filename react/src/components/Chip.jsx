@@ -33,7 +33,8 @@ export function Chip({
 		!acts && 'sp-chip--static'
 	)
 	const paint = color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'Chip') }
-	const text = children
+	// plain words are cut with "…" where the chip runs out of room, not mid-letter
+	const text = typeof children === 'string' ? <span className="sp-truncate">{children}</span> : children
 
 	if (variant === 'facet') {
 		if (typeof children !== 'string') console.error('<Chip variant="facet"> needs its text as a plain string: the selected width is reserved from a copy of it')
@@ -56,7 +57,7 @@ export function Chip({
 	}
 	if (trail) {
 		if (onClick) console.error('<Chip> a chip with a trail is not itself a control')
-		return <span className={classes} {...paint} {...rest}><span>{text}</span>{trail}</span>
+		return <span className={classes} {...paint} {...rest}>{typeof children === 'string' ? text : <span>{children}</span>}{trail}</span>
 	}
 	if (onClick) return <button type="button" className={classes} onClick={onClick} {...paint} {...rest}>{text}</button>
 	return <span className={classes} {...paint} {...rest}>{text}</span>

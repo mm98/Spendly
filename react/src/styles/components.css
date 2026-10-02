@@ -36,6 +36,11 @@
 /* ---------- layout helpers: the only spacing primitives ---------- */
 
 .sp-stack { display: flex; flex-direction: column; }
+/* on a phone a stacked pair - a line and its second line - sits 2 apart (Mobile screens); a stack
+   that needs a real gap asks for it with a gap class, which outranks this */
+@layer base {
+  .sp-touch .sp-stack { gap: var(--sp-2); }
+}
 .sp-stacked {
   display: flex;
   flex-direction: column;
@@ -1021,6 +1026,7 @@ a.sp-cell-flex:focus-visible { box-shadow: var(--ring); }
   height: var(--control-h-touch);
 }
 .sp-record__menu .sp-menu--floating { top: 100%; right: 0; }
+.sp-record__menu .sp-menu--floating[data-place="up"] { top: auto; bottom: 100%; }
 /* the button's target is the whole hit box around it, not the 22px glyph */
 .sp-record__menu > .sp-record__act::after { content: ""; position: absolute; inset: 0; }
 .sp-record__act {
@@ -1236,6 +1242,8 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
 .sp-segmented {
   display: inline-flex;
   align-self: flex-start;
+  /* in a column narrower than its labels it gives up the segments' padding, never the column's edge */
+  max-width: 100%;
   height: var(--control-h);
   padding: var(--sp-6);
   gap: var(--sp-6);
@@ -1247,6 +1255,7 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
   display: grid;
   place-items: center;
   position: relative;
+  min-width: 0;
   padding: 0 var(--sp-12);
   border-radius: var(--r-tile);
   font-size: var(--t-13);
@@ -1416,7 +1425,9 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
 .sp-touch .sp-icon-btn--small::after,
 .sp-touch .sp-icon-btn--field::after,
 .sp-touch .sp-crumb__remove::after,
-.sp-touch .sp-list-item__handle::after {
+.sp-touch .sp-list-item__handle::after,
+.sp-touch .sp-slot__remove::after,
+.sp-touch .sp-toast__undo::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -1428,7 +1439,9 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
 .sp-touch .sp-icon-btn--small,
 .sp-touch .sp-icon-btn--field:not(.sp-field__trail),
 .sp-touch .sp-crumb__remove,
-.sp-touch .sp-list-item__handle { position: relative; }
+.sp-touch .sp-list-item__handle,
+.sp-touch .sp-slot__remove,
+.sp-touch .sp-toast__undo { position: relative; }
 /* every other icon button is a touch control: its box takes the touch size, so two side
    by side are two targets rather than one shared one */
 .sp-touch .sp-icon-btn:not(.sp-icon-btn--small):not(.sp-icon-btn--field) { width: var(--control-h-touch); height: var(--control-h-touch); }
@@ -1436,8 +1449,10 @@ label.sp-option--swatch[aria-pressed="true"]:focus-within {
 .sp-touch .sp-choice,
 .sp-touch .sp-menu__item,
 .sp-touch .sp-combobox__option,
-.sp-touch .sp-field-group__more,
-.sp-touch .sp-slot__remove { min-height: var(--control-h-touch); }
+.sp-touch .sp-field-group__more { min-height: var(--control-h-touch); }
+/* a sum line that opens something is a row too; one with a single line centres it in that height */
+.sp-touch .sp-sum[role="button"] { min-height: var(--control-h-touch); }
+.sp-touch .sp-sum[role="button"]:not(:has(.sp-meta)) { align-items: center; }
 
 .sp-touch .sp-input,
 .sp-touch .sp-btn { min-height: var(--control-h-touch); font-size: var(--t-14); }
@@ -2207,6 +2222,7 @@ a.sp-tabbar__item { text-decoration: none; }
   margin-top: auto;
 }
 .sp-sheet__handle {
+  flex: none;
   width: 32px;
   height: 4px;
   border-radius: var(--r-marker);
@@ -2472,12 +2488,16 @@ label.sp-mark:focus-within { outline: 2px solid var(--green); outline-offset: 1p
 .sp-slot--start { align-self: flex-start; }
 .sp-line-editor--sheet .sp-line-editor__grid { grid-template-columns: 132px 1fr; }
 /* on touch there are no keys to name, and a row editor's fields stack as a phone's do */
+/* the keys are one line beside the commits (1b), cut with "…" where the editor is narrower than drawn */
+.sp-line-editor .sp-dialog__actions > .sp-note { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-touch .sp-line-editor .sp-dialog__actions > .sp-note { display: none; }
 .sp-touch .sp-line-editor--plain .sp-line-editor__grid { grid-template-columns: minmax(0, 1fr); }
 
 .sp-line-editor--plain { padding-top: var(--sp-12); }
 .sp-line-editor--plain .sp-list-item__handle { padding-top: 0; height: 30px; }
 .sp-line-editor__head { display: flex; align-items: center; gap: var(--sp-8); }
+/* a title that wraps takes its room from itself, never from the buttons beside it */
+.sp-line-editor__head > .sp-icon-btn { flex-shrink: 0; }
 /* fields two by two, or one, on the editor's 8px rhythm */
 .sp-line-editor--plain .sp-line-editor__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .sp-line-editor--plain .sp-line-editor__grid--one { grid-template-columns: minmax(0, 1fr); }
@@ -2676,16 +2696,16 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
 .sp-period__preset:has(:focus-visible) { box-shadow: var(--ring); }
 .sp-period__preset { min-width: 0; }
 
-/* the gloss is the first thing to go when the row runs out of room, rather than being shown half-written;
-   measured on the shell's column, so the wide sidebar counts as it does at 1100 with the rail */
-@container (max-width: 1000px) {
-  .sp-period__note { display: none; }
-}
 
 .sp-period__resolved { flex: none; font-size: var(--t-13); color: var(--ink-4); white-space: nowrap; }
 .sp-period__compare { display: flex; align-items: center; gap: var(--sp-8); flex: none; }
 
 .sp-period__note { flex: none; font-size: var(--t-12); color: var(--ink-5); white-space: nowrap; }
+/* the note and the way back to the present share one place, as wide as the wider of the two, at the
+   row's right edge on whichever line it lands: stepping away from the present moves nothing */
+.sp-period__end { display: grid; flex: none; margin-left: auto; }
+.sp-period__end > * { grid-area: 1 / 1; justify-self: end; align-self: center; }
+.sp-period__end > [aria-hidden="true"] { visibility: hidden; }
 
 /* the window: one bordered control, arrows either side of the label */
 .sp-window__btn { flex: none;
@@ -2865,6 +2885,19 @@ button.sp-bars__col:hover .sp-bars__bar { background: var(--green-2); }
   right: calc(var(--sp-4) * -1);
   width: var(--control-h-touch);
   height: var(--control-h-touch);
+}
+/* a touch screen wider than a phone has no hover either: the control shows, at its touch size (c16) */
+@media (hover: none), (pointer: coarse) {
+  .sp-mark__remove,
+  .sp-list-item__remove { opacity: 1; }
+  .sp-mark__remove::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--sp-4) * -1);
+    right: calc(var(--sp-4) * -1);
+    width: var(--control-h-touch);
+    height: var(--control-h-touch);
+  }
 }
 
 /* an empty photo mark inside an editable line is the file control itself */
@@ -3191,6 +3224,7 @@ label.sp-mark--empty:focus-within { box-shadow: var(--ring); }
 /* the panel is a control's own overlay, so its labels sit one step down */
 .sp-field-group__panel .sp-field__label { font-size: var(--t-11); }
 .sp-field-group__panel .sp-input { min-height: 40px; padding: 0 var(--sp-10); }
+.sp-touch .sp-field-group__panel .sp-input { min-height: var(--control-h-touch); }
 .sp-field-group__panel .sp-input--trail { padding-right: calc(var(--sp-10) + var(--box) + var(--sp-10)); }
 
 /* ---------- inline alert - LOCKED c19 ----------
@@ -3269,6 +3303,11 @@ button.sp-nav-item--light[aria-current="page"]:hover {
   color: var(--green);
   font-weight: 600;
 }
+/* the bold label of the current row is held in every state, so choosing one moves nothing */
+.sp-nav-item--light > [data-label] { display: grid; align-items: center; }
+.sp-nav-item--light > [data-label] > span,
+.sp-nav-item--light > [data-label]::after { grid-area: 1 / 1; }
+.sp-nav-item--light > [data-label]::after { content: attr(data-label); font-weight: 600; visibility: hidden; }
 .sp-nav-item--light .sp-nav-item__count { color: var(--ink-4); }
 .sp-nav-item--light.sp-nav-item--edited { background: var(--amber-tint-2); color: var(--amber-ink-2); }
 a.sp-nav-item--light.sp-nav-item--edited:hover,
@@ -3689,8 +3728,10 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 /* a figure of nothing stays grey on the dark panel too, in the panel's own quiet ink */
 .sp-card--shell .sp-stat__figure.sp-ink-5 { color: var(--shell-item); }
 
-/* the chosen column's label reads as chosen too, not just its bar - c14 */
-.sp-bars__col[aria-pressed="true"] .sp-bars__tick { color: var(--green); font-weight: 600; }
+/* the chosen column's label reads as chosen too, not just its bar - c14; the column holding today
+   is marked the same way where nothing is chosen (10a) */
+.sp-bars__col[aria-pressed="true"] .sp-bars__tick,
+.sp-bars__col[aria-current] .sp-bars__tick { color: var(--green); font-weight: 600; }
 
 /* measurements as data */
 .sp-gauge__fill[data-fill="40"] { width: 40%; }
@@ -3947,6 +3988,19 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 }
 /* off touch it is the drawer a narrower window opens (18b), at a dialog's width */
 body:not(.sp-touch) > .sp-scrim--dialog > .sp-sheet { justify-self: center; width: var(--dialog-w); max-width: 100%; }
+/* on a phone a sheet rises at most this far, so the page stays in view above it (Mobile screens) */
+body.sp-touch > .sp-scrim--dialog > .sp-sheet { max-height: 88%; }
+/* on a phone a dialog is a sheet: anchored to the bottom, rounded at its top corners only (15b) */
+body.sp-touch > .sp-scrim--dialog:has(> .sp-dialog) { padding: 0; grid-template-rows: minmax(0, 1fr); place-items: end stretch; }
+body.sp-touch > .sp-scrim--dialog > .sp-dialog {
+  width: auto;
+  max-height: 88%;
+  overflow-y: auto;
+  border: 0;
+  border-radius: var(--r-card) var(--r-card) 0 0;
+  box-shadow: var(--shadow-sheet);
+  padding-bottom: calc(var(--card-pad) + env(safe-area-inset-bottom));
+}
 .sp-phone > .sp-sheet,
 .sp-phone > * > .sp-sheet { position: relative; }
 
@@ -4044,7 +4098,7 @@ body:not(.sp-touch) > .sp-scrim--dialog > .sp-sheet { justify-self: center; widt
   /* the last thing in its column, so at the strip arrows' level it covers what scrolls
      under it, while a menu or a panel (3 and up) still opens over it */
   z-index: 2;
-  min-height: 68px;
+  min-height: var(--commit-bar-h);
   box-shadow: var(--shadow-sheet);
 }
 button.sp-list-item--card:active { background: var(--surface-2); }
@@ -4218,7 +4272,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   text-transform: uppercase;
 }
 
-.sp-menu--up { top: auto; bottom: calc(var(--control-h) + var(--sp-2)); }
+.sp-menu--up,
+.sp-menu--floating[data-place="up"] { top: auto; bottom: calc(var(--control-h) + var(--sp-2)); }
 .sp-menu--start { right: auto; left: 0; }
 /* a menu that is not a panel: inside a sheet or a dialog it has no box of its own,
    because the surface it sits on is already the surface */
@@ -4311,6 +4366,8 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-touch .sp-add-row { height: var(--control-h-touch); }
 
 .sp-halves { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-12); align-items: start; }
+/* cards in a grid row share a height (15a) */
+.sp-halves--cards { align-items: stretch; }
 
 .sp-input.sp-input--cell {
   height: 22px;
@@ -4330,9 +4387,14 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   font-size: inherit;
   text-align: right;
 }
+/* in a sum line the field takes the width of the figure it stands in for, not a text box's
+   own, so the line's name keeps its room while an amount is typed */
+.sp-sum__value > .sp-input.sp-input--cell { width: calc(12ch + var(--sp-4)); }
 .sp-input.sp-input--cell:hover { border-color: var(--line-3); }
 .sp-input.sp-input--cell:focus,
 .sp-input.sp-input--cell[data-focus="true"] { border-color: var(--green); background: var(--surface); box-shadow: var(--ring); }
+/* a figure that could not be read looks it, as any invalid field does */
+.sp-input.sp-input--cell[aria-invalid="true"] { border-color: var(--red); background: var(--red-tint-2); }
 
 /* a table read as a sheet of figures rather than a list of records (Budget 21b): the
    rules between rows and under the header go, and the columns carry the structure */
@@ -4387,6 +4449,16 @@ button.sp-list-item--card:active { background: var(--surface-2); }
   z-index: 5;
   padding-bottom: env(safe-area-inset-bottom);
 }
+/* a task's save bar takes the tab bar's place at the bottom edge (r13, Mobile screens 5b) */
+.sp-shell--touch .sp-savebar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  height: calc(var(--phone-bar-h) + env(safe-area-inset-bottom));
+  padding: 0 var(--phone-gutter) env(safe-area-inset-bottom);
+}
 .sp-shell--touch > .sp-fab {
   position: fixed;
   right: var(--sp-12);
@@ -4395,9 +4467,19 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 }
 /* the content also clears the floating action, so the last control never sits under it */
 .sp-shell--touch:has(> .sp-fab) { padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + var(--fab) + env(safe-area-inset-bottom)); }
-/* a task takes the bottom edge for its save bar; the tab bar steps aside (9h) */
+/* a task takes the bottom edge for its save bar; the tab bar steps aside (9h), and the room
+   under the page is the save bar's, as it was the tab bar's */
 .sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-tabbar,
 .sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-fab { display: none; }
+.sp-shell--touch:has(.sp-savebar) { padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom)); }
+/* focus the keyboard moves stops 12 clear of the bars pinned over the page, at the top and the bottom */
+html:has(.sp-shell--viewport) { scroll-padding-top: calc(var(--control-h) + 3 * var(--sp-12) + 1px); }
+html:has(.sp-shell--viewport .sp-list-item--sticky) { scroll-padding-bottom: calc(var(--commit-bar-h) + var(--sp-12)); }
+html:has(.sp-shell--touch) {
+  scroll-padding-top: calc(var(--phone-bar-h) + var(--sp-12));
+  scroll-padding-bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom));
+}
+html:has(.sp-shell--touch > .sp-fab) { scroll-padding-bottom: calc(var(--phone-bar-h) + var(--fab) + 2 * var(--sp-12) + env(safe-area-inset-bottom)); }
 
 /* a real picture fills the box its placeholder drew, at the same size and corners */
 .sp-mark--photo > img,
@@ -4416,19 +4498,25 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-mark--photo:has(> img),
 .sp-record__photo:has(> img) { background: var(--surface); opacity: 1; }
 .sp-viewer__stage > img { display: block; max-width: 100%; max-height: 70dvh; object-fit: contain; }
-.sp-viewer__stage:has(> img) { background: none; }
+.sp-viewer__stage:has(> img),
+.sp-viewer__stage:has(> .sp-mark) { background: none; }
 /* the rail's label, fixed to the window where [data-tip] would clip inside a scrolling sidebar */
 .sp-tip--float { position: fixed; z-index: 30; transform: translate(-50%, calc(-100% - var(--sp-6))); pointer-events: none; }
-/* one toast at a time, bottom centre of the window; above the tab bar on touch */
+/* one toast at a time, bottom centre of the window, taking no press but its own; above the tab
+   bar on touch, where it spans the window inside a 16 inset (c18). A bar it would cover lifts it. */
 .sp-toast-region {
   position: fixed;
-  left: 50%;
+  left: var(--sp-16);
+  right: var(--sp-16);
   bottom: var(--sp-16);
-  transform: translateX(-50%);
   z-index: 40;
-  max-width: calc(100% - var(--sp-16) - var(--sp-16));
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
 }
+.sp-toast-region > * { pointer-events: auto; }
 body:has(.sp-shell--touch) .sp-toast-region { bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom)); }
+body:has(.sp-shell--touch) .sp-toast-region > .sp-toast { flex: 1; min-width: 0; }
 /* a scrim over the whole document covers the window, not the first screen of it */
 body > .sp-scrim { position: fixed; z-index: 50; border-radius: 0; }
 /* the window's own edge: the page meets it, and a key cap reads in the product's face */

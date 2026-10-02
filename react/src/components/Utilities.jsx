@@ -71,13 +71,33 @@ export function AddRow({ children, onClick, ...rest }) {
 	)
 }
 
+// a surface drawn on the body for a control (a menu's sheet on touch) and that control's own box
+const owners = new WeakMap()
+
+/** Marks `surface`, drawn on the body, as part of `owner`: inside it counts as inside the owner. */
+export function own(surface, owner) {
+	if (surface && owner) owners.set(surface, owner)
+}
+
+/** Whether `el` sits in `box`, or in a surface drawn on the body for something in it. */
+export function within(box, el) {
+	for (let at = el; box && at instanceof Node; ) {
+		if (box.contains(at)) return true
+		const surface = at.closest?.('[data-surface]') ?? at.parentElement?.closest('[data-surface]')
+		at = surface ? owners.get(surface) : null
+	}
+	return false
+}
+
 /** The button that opened the menu `el` sits in, if it sits in one: where focus belongs once
     that menu has closed under it. */
 export function menuTrigger(el) {
 	let menu = el?.closest?.('.sp-menu')
 	if (!menu) return null
 	while (menu.parentElement?.closest('.sp-menu')) menu = menu.parentElement.closest('.sp-menu')
-	return [...(menu.parentElement?.querySelectorAll('[aria-haspopup="menu"]') ?? [])].find(b => !menu.contains(b)) ?? null
+	const surface = menu.closest('[data-surface]')
+	const host = (surface && owners.get(surface)) ?? menu.parentElement
+	return [...(host?.querySelectorAll('[aria-haspopup="menu"]') ?? [])].find(b => !menu.contains(b)) ?? null
 }
 
 /** Closes an open menu, popover or combobox panel on a press outside, Escape or a Tab out of it,
@@ -86,21 +106,25 @@ export function useDismiss(ref, open, onClose) {
 	useEffect(() => {
 		if (!open) return
 		const box = ref.current
-		const away = ev => { if (box && !box.contains(ev.target)) onClose() }
+		const away = ev => { if (box && !within(box, ev.target)) onClose() }
 		const key = ev => {
 			if (ev.key !== 'Escape') return
 			ev.stopPropagation()
 			// the item that had focus is about to be hidden, so focus goes to the control that opened it
-			if (box?.contains(document.activeElement)) box.querySelector('[aria-expanded]')?.focus()
+			if (within(box, document.activeElement)) box.querySelector('[aria-expanded]')?.focus()
 			onClose()
 		}
+		// a surface drawn on the body sends its keys to the document, not through the box
+		const keyAway = ev => { if (box && !box.contains(ev.target) && within(box, ev.target)) key(ev) }
 		// only a move to a known element counts: a focused node that leaves the page reports none
-		const left = ev => { if (ev.relatedTarget && box && !box.contains(ev.relatedTarget)) onClose() }
+		const left = ev => { if (ev.relatedTarget && box && !within(box, ev.relatedTarget)) onClose() }
 		document.addEventListener('pointerdown', away)
+		document.addEventListener('keydown', keyAway)
 		box?.addEventListener('keydown', key)
 		box?.addEventListener('focusout', left)
 		return () => {
 			document.removeEventListener('pointerdown', away)
+			document.removeEventListener('keydown', keyAway)
 			box?.removeEventListener('keydown', key)
 			box?.removeEventListener('focusout', left)
 		}

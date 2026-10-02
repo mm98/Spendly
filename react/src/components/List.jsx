@@ -1,12 +1,13 @@
 import { cloneElement, useEffect, useId, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { join, pick, reject } from './variants.js'
-import { useMenuButton } from './Overlays.jsx'
+import { MenuHostOf, useMenuButton, useMenuPlace } from './Overlays.jsx'
+import { within } from './Utilities.jsx'
 import { Check } from './Choice.jsx'
 import { Button } from './Button.jsx'
 import { Cards, ListFooter } from './Card.jsx'
 import { Icon } from './Icon.jsx'
-import { formatNumber } from './format.js'
+import { formatNumber, singular } from './format.js'
 
 const WIDTH = {
 	title: 'sp-col-title',
@@ -209,12 +210,12 @@ export function List({
 		navigate(to)
 	}
 
-	const one = noun.replace(/s$/, '')
+	const one = singular(noun)
 	const chosen = data.filter(r => picked.includes(recordKey(r)))
 
 	const slot = (given, arg, fallback) =>
 		given === null || given === undefined ? fallback : typeof given === 'function' ? given(arg) : given
-	const captionContent = slot(caption, data, <strong className="sp-data">{counted(count)} {noun}</strong>)
+	const captionContent = slot(caption, data, <strong className="sp-data">{counted(count)} {count === 1 ? one : noun}</strong>)
 	const selectedContent = slot(selected, chosen,
 		<span className="sp-bulkbar__count">{chosen.length === 1 ? `1 ${one} picked` : `${chosen.length} ${noun} picked`}</span>)
 
@@ -273,21 +274,28 @@ export function List({
 				</tbody>
 			</table>
 
-			{foot || count > pageSize
-				? (
-					<ListFooter>
-						<span className="sp-subtitle">Showing {counted(page.length)} of {counted(count)}</span>
-						{foot}
-						<span className="sp-grow" />
-						{/* gone once everything is loaded, not disabled: a disabled Load more is
-						    a promise of more that will not be kept */}
-						{page.length < count
-							? <Button variant="outline" size="small" onClick={served ? onLoadMore : () => setShown(s => s + pageSize)}>Load more</Button>
-							: null}
-					</ListFooter>
-				)
-				: null}
+			<ListMore shown={page.length} total={count} pageSize={foot ? 0 : pageSize} locale={locale}
+				onMore={served ? onLoadMore : () => setShown(s => s + pageSize)}>{foot}</ListMore>
 		</div>
+	)
+}
+
+/** The foot of a list that grows by pages (c1): how many of how many are shown, in grouped figures,
+    and Load more while more remain. Drawn once there is more than one page. `loose` sits under a grid
+    of cards, as ListFooter's; `children` is anything the foot carries beside the count. */
+export function ListMore({ shown, total, pageSize = 0, onMore, loose = false, locale, children, ...rest }) {
+	reject(rest, 'ListMore')
+	if (!(total > pageSize)) return null
+	const counted = n => formatNumber(n, { locale, decimals: 0 })
+	return (
+		<ListFooter loose={loose} {...rest}>
+			<span className="sp-subtitle">Showing {counted(shown)} of {counted(total)}</span>
+			{children}
+			<span className="sp-grow" />
+			{/* gone once everything is loaded, not disabled: a disabled Load more is
+			    a promise of more that will not be kept */}
+			{shown < total ? <Button variant="outline" size="small" onClick={onMore}>Load more</Button> : null}
+		</ListFooter>
 	)
 }
 
@@ -360,6 +368,7 @@ export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, 
 	reject(rest, 'Record')
 	const menuBox = useRef(null)
 	const menuKeys = useMenuButton(menuBox, !!menu?.open)
+	useMenuPlace(menuBox, !!menu?.open)
 	const strip = photos.length
 		? photos.map((photo, i) => <span className="sp-record__photo" key={i}>{photo}</span>)
 		: <><Icon name="photo" size={22} /><span className="sp-meta">{empty}</span></>
@@ -372,11 +381,11 @@ export function Record({ photos = [], empty, more, href, hrefLabel, pick, menu, 
 				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" aria-label={hrefLabel} onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
 				: <div className={stripClass}>{strip}{extras}</div>}
 			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open ? 'true' : undefined} ref={menuBox} {...menuKeys} onClick={ev => ev.stopPropagation()}
-				onBlur={ev => { if (menu.open && ev.relatedTarget && !menuBox.current?.contains(ev.relatedTarget)) menu.onClose?.() }}>
+				onBlur={ev => { if (menu.open && ev.relatedTarget && !within(menuBox.current, ev.relatedTarget)) menu.onClose?.() }}>
 				<button type="button" className="sp-record__act" aria-label={menu.label} aria-haspopup="menu" aria-expanded={menu.open ? 'true' : 'false'} onClick={menu.onToggle}>
 					<Icon name="dots-vertical" size={12} />
 				</button>
-				{menu.children}
+				<MenuHostOf open={!!menu.open} box={menuBox}>{menu.children}</MenuHostOf>
 			</div> : null}
 			<div className="sp-record__body">
 				<div className="sp-record__head">

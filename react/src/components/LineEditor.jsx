@@ -30,6 +30,8 @@ export function LineEditor({
 		if (ev.key === 'Escape') { ev.preventDefault(); onCancel?.() }
 		else if (ev.key === 'Enter' && ev.target instanceof HTMLInputElement) {
 			ev.preventDefault()
+			// a save in progress is answered once: a second Enter must not write the line again
+			if (saving) return
 			if ((ev.metaKey || ev.ctrlKey) && onCommitNext) onCommitNext()
 			else onCommit?.()
 		}

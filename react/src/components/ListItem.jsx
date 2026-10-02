@@ -54,9 +54,10 @@ export function ListItem({
 		<>
 			{handle ? <button type="button" className="sp-list-item__handle" aria-label={handleLabel}>{handle}</button> : null}
 			{mark}
+			{/* the count leads what it counts, as the attention row draws it (Components) */}
+			{count != null ? <span className="sp-list-item__count">{count}</span> : null}
 			{children}
 			{actions ? <div className="sp-list-item__actions">{actions}</div> : null}
-			{count != null ? <span className="sp-list-item__count">{count}</span> : null}
 			{chevron ? <span className="sp-list-item__chevron">{chevron}</span> : null}
 		</>
 	)

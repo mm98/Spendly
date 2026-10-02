@@ -1,5 +1,5 @@
 import { cloneElement, useId } from 'react'
-import { join, pick, reject } from './variants.js'
+import { pick, reject } from './variants.js'
 import { Choice, FieldGroup } from './Choice.jsx'
 
 const MESSAGE = { hint: null, warning: 'warning', danger: 'danger' }
@@ -83,7 +83,7 @@ export function Field({
 
 	return (
 		<div className="sp-field">
-			<label className="sp-field__label" htmlFor={fieldId}>
+			<label className="sp-field__label" htmlFor={fieldId} id={fieldId + '-label'}>
 				{label}
 				{required ? <span className="sp-field__required" aria-hidden="true"> *</span> : null}
 			</label>
