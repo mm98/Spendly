@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Card, ListFooter } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
@@ -14,10 +15,12 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
+import { Scrim } from '../components/Shell.jsx'
+import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
-import { deleteOrder, failureMessage, getCategories, getOrder, getOrders, getSettings, getVendors, invalidateOrderData, spendKinds } from '../api/client.js'
+import { deleteOrder, failureMessage, getCategories, getCurrentUser, getOrder, getOrders, getSettings, getVendors, invalidateOrderData, spendKinds } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { amount, currency, fullStop, plural, shortDate, today } from '../api/format.js'
+import { activeLocaleCode, amount, currency, fullStop, plural, shortDate, today } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { OrderPhoto, orderLine } from '../app/orderRow.jsx'
 
@@ -31,10 +34,37 @@ const SORTS = [
 
 const STATUSES = ['Delivered', 'Ordered', 'Returned']
 
-const FILTERS = ['q', 'vendor', 'category', 'status', 'from', 'to', 'kind', 'min', 'max']
+const FACETS = ['vendor', 'category', 'status', 'from', 'to', 'kind', 'min', 'max']
+const FILTERS = ['q', ...FACETS]
 
 const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const day = (y, m, d) => iso(new Date(y, m, d))
+
+const isDay = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && iso(new Date(s + 'T00:00')) === s
+const isAmount = s => s !== '' && Number.isFinite(Number(s)) && Number(s) >= 0
+
+/* What the address asks for. A date or an amount the page cannot read counts as not set, so a
+   bad link shows the whole list instead of breaking the page. */
+const readFilters = params => {
+	const f = Object.fromEntries([...FILTERS, 'sort'].map(k => [k, params.get(k) ?? '']))
+	for (const k of ['from', 'to']) if (!isDay(f[k])) f[k] = ''
+	for (const k of ['min', 'max']) if (!isAmount(f[k])) f[k] = ''
+	return f
+}
+
+const withChanges = (params, changes) => {
+	const next = new URLSearchParams(params)
+	for (const [k, v] of Object.entries(changes)) {
+		if (v === '' || v == null) next.delete(k)
+		else next.set(k, String(v))
+	}
+	return next
+}
+
+const requestOf = (f, sort) => ({
+	query: f.q, vendorId: f.vendor, categoryId: f.category, status: f.status, kind: f.kind,
+	from: f.from, to: f.to, minAmount: f.min, maxAmount: f.max, sort
+})
 
 /* A preset is a calendar period around today; the URL holds its two dates, and the chip reads
    them back, so a link that carries the same dates lands on the same chip. */
@@ -62,37 +92,39 @@ const saved = n => (
 export default function Orders() {
 	const navigate = useNavigate()
 	const [params, setParams] = useSearchParams()
-	const f = useMemo(() => Object.fromEntries([...FILTERS, 'sort'].map(k => [k, params.get(k) ?? ''])), [params])
-	const touch = useShellShape() === 'touch'
+	const f = useMemo(() => readFilters(params), [params])
+	const shape = useShellShape()
+	const touch = shape === 'touch'
+	// the facet rail stands beside the list only on a wide window; below that it is a sheet (18b)
+	const railed = shape === 'wide'
 
 	const settings = useApi(getSettings)
 	const vendors = useApi(getVendors)
 	const categories = useApi(getCategories)
 	const highest = useApi(getOrders, [{ sort: 'amount-desc', pageSize: 1 }])
+	const reads = useApi(getCurrentUser).data?.scanAiEnabled
 
 	const sort = SORTS.some(s => s.id === f.sort) ? f.sort
 		: SORTS.some(s => s.id === settings.data?.sort) ? settings.data.sort : 'date-desc'
 	const size = settings.data?.pageSize ?? 10
 
-	const update = useCallback(changes => setParams(prev => {
-		const next = new URLSearchParams(prev)
-		for (const [k, v] of Object.entries(changes)) {
-			if (v === '' || v == null) next.delete(k)
-			else next.set(k, String(v))
-		}
-		return next
-	}, { replace: true }), [setParams])
+	// starts from the address itself: the page can still be drawing the one before it, and
+	// building on that would undo the change made just before this one
+	const update = useCallback(changes => {
+		setParams(withChanges(window.location.hash.split('?')[1] ?? '', changes), { replace: true })
+	}, [setParams])
+
+	// a new key starts the search field over from the address, dropping text not yet written
+	const [searchKey, setSearchKey] = useState(0)
+	const search = useCallback(q => update({ q }), [update])
 
 	// a date range typed by hand is held open here, so the crumb and Clear all can close it
 	const [custom, setCustom] = useState(false)
 	useEffect(() => { if (!f.from && !f.to) setCustom(false) }, [f.from, f.to])
-	const clearAll = () => { setCustom(false); update(Object.fromEntries(FILTERS.map(k => [k, '']))) }
+	const clearAll = () => { setCustom(false); setSearchKey(n => n + 1); update(Object.fromEntries(FILTERS.map(k => [k, '']))) }
+	const clearSearch = () => { setSearchKey(n => n + 1); update({ q: '' }) }
 
-	const query = useSettled(f.q)
-	const request = {
-		query, vendorId: f.vendor, categoryId: f.category, status: f.status, kind: f.kind,
-		from: f.from, to: f.to, minAmount: f.min, maxAmount: f.max, sort
-	}
+	const request = requestOf(f, sort)
 	const signature = JSON.stringify(request)
 	const [more, setMore] = useState({ signature, pages: 1 })
 	const pages = more.signature === signature ? more.pages : 1
@@ -101,43 +133,44 @@ export default function Orders() {
 
 	const column = useRef(null)
 	const width = useWidth(column)
-	const narrow = touch || (width > 0 && width < 640)
+	const narrow = touch || (width > 0 && width <= 640)
 
 	const [deleting, setDeleting] = useState(null)
 	const [filtersOpen, setFiltersOpen] = useState(false)
+	const trigger = useRef(null)
+	useEffect(() => { if (railed) setFiltersOpen(false) }, [railed])
 
 	const vendorName = id => vendors.data?.find(v => v.id === id)?.name ?? 'Vendor'
 	const categoryName = id => (id === 'none' ? 'No category' : categories.data?.find(c => c.id === id)?.name ?? 'Category')
-	const crumbs = []
-	if (f.from || f.to) {
-		const preset = custom ? null : presetOf(f.from, f.to)
-		const label = preset ? preset.label
-			: f.from && f.to ? `${shortDate(f.from)} - ${shortDate(f.to)}`
-				: f.from ? `From ${shortDate(f.from)}` : `Until ${shortDate(f.to)}`
-		crumbs.push(<Crumb key="date" name={preset ? label : 'the date range'} onRemove={() => { setCustom(false); update({ from: '', to: '' }) }}>{label}</Crumb>)
+	const crumbOf = {
+		date: () => {
+			if (!f.from && !f.to) return null
+			const preset = custom ? null : presetOf(f.from, f.to)
+			const label = preset ? preset.label
+				: f.from && f.to ? `${shortDate(f.from)} - ${shortDate(f.to)}`
+					: f.from ? `From ${shortDate(f.from)}` : `Until ${shortDate(f.to)}`
+			return <Crumb key="date" name={preset ? label : 'the date range'} onRemove={() => { setCustom(false); update({ from: '', to: '' }) }}>{label}</Crumb>
+		},
+		status: () => f.status && <Crumb key="status" onRemove={() => update({ status: '' })}>{f.status}</Crumb>,
+		vendor: () => f.vendor && <Crumb key="vendor" onRemove={() => update({ vendor: '' })}>{vendorName(f.vendor)}</Crumb>,
+		category: () => f.category && <Crumb key="category" onRemove={() => update({ category: '' })}>{categoryName(f.category)}</Crumb>,
+		kind: () => f.kind && <Crumb key="kind" onRemove={() => update({ kind: '' })}>{f.kind}</Crumb>,
+		amount: () => {
+			if (!f.min && !f.max) return null
+			const label = f.min && f.max ? `${amount(Number(f.min), 0)} - ${currency(Number(f.max), 0)}`
+				: f.min ? `From ${currency(Number(f.min), 0)}` : `Up to ${currency(Number(f.max), 0)}`
+			return <Crumb key="amount" name="the amount range" onRemove={() => update({ min: '', max: '' })}>{label}</Crumb>
+		}
 	}
-	if (f.status) crumbs.push(<Crumb key="status" onRemove={() => update({ status: '' })}>{f.status}</Crumb>)
-	if (f.vendor) crumbs.push(<Crumb key="vendor" onRemove={() => update({ vendor: '' })}>{vendorName(f.vendor)}</Crumb>)
-	if (f.category) crumbs.push(<Crumb key="category" onRemove={() => update({ category: '' })}>{categoryName(f.category)}</Crumb>)
-	if (f.kind) crumbs.push(<Crumb key="kind" onRemove={() => update({ kind: '' })}>{f.kind}</Crumb>)
-	if (f.min || f.max) {
-		const label = f.min && f.max ? `${amount(Number(f.min), 0)} - ${currency(Number(f.max), 0)}`
-			: f.min ? `From ${currency(Number(f.min), 0)}` : `Up to ${currency(Number(f.max), 0)}`
-		crumbs.push(<Crumb key="amount" name="the amount range" onRemove={() => update({ min: '', max: '' })}>{label}</Crumb>)
-	}
+	// in the order the filters were applied (c12): a new one joins the end of the address
+	const groupOf = k => (k === 'from' || k === 'to' ? 'date' : k === 'min' || k === 'max' ? 'amount' : k)
+	const crumbs = [...new Set([...params.keys()].map(groupOf))].map(g => crumbOf[g]?.()).filter(Boolean)
 
-	const facets = (
-		<OrderFacets
-			f={f}
-			update={update}
-			custom={custom}
-			setCustom={setCustom}
-			vendors={vendors.data}
-			categories={categories.data}
-			highest={highest.data?.orders?.[0]?.total}
-			matched={orders.data?.matched}
-		/>
-	)
+	const facetData = {
+		vendors: vendors.data,
+		categories: categories.data,
+		highest: highest.data?.orders?.[0]?.total
+	}
 	const filtersCard = (
 		<Card>
 			<div className="sp-row-flex">
@@ -145,7 +178,7 @@ export default function Orders() {
 				<span className="sp-grow" />
 				<Button variant="outline" size="small" onClick={clearAll}>Clear all</Button>
 			</div>
-			{facets}
+			<OrderFacets f={f} update={update} custom={custom} setCustom={setCustom} matched={orders.data?.matched} {...facetData} />
 		</Card>
 	)
 
@@ -153,12 +186,7 @@ export default function Orders() {
 	const [sortOpen, setSortOpen] = useState(false)
 	const controls = (
 		<Controls>
-			<SearchInput
-				value={f.q}
-				onChange={text => update({ q: text })}
-				placeholder={touch ? 'Search orders' : 'Search orders, vendors, items…'}
-				aria-label="Search orders"
-			/>
+			<OrderSearch key={searchKey} q={f.q} onSearch={search} touch={touch} />
 			<Combobox variant="sort-end" aria-label="Sort" lead={<span className="sp-combobox__chevron">Sort</span>}
 				value={sortLabel} open={sortOpen} onOpenChange={setSortOpen}>
 				{SORTS.map(s => (
@@ -183,18 +211,32 @@ export default function Orders() {
 				</Empty>
 			</Card>
 		)
-	else if (!data) body = narrow ? <CardsLoading /> : <RowsLoading width={width} />
+	else if (!data) body = narrow ? <CardsLoading size={size} /> : <RowsLoading width={width} size={size} />
 	else if (data.total === 0)
 		body = (
 			<Card variant="flush">
 				<Empty>
 					<Mark size="large" aria-hidden="true" aria-label="Receipt"><Icon name="receipt" size={26} /></Mark>
 					<EmptyTitle>No orders yet</EmptyTitle>
-					<EmptyBody>Drop a receipt and the vendor, date and lines are filled in for you. Or start an empty order and type it yourself.</EmptyBody>
+					<EmptyBody>
+						{reads === false
+							? 'Drop a receipt and it is attached to a new order. Or start an empty order. Either way, you type in the details.'
+							: 'Drop a receipt and the vendor, date and lines are filled in for you. Or start an empty order and type it yourself.'}
+					</EmptyBody>
 					<div className="sp-row-flex sp-gap-8">
 						<Button size="small" to="/orders/new?source=scan">Scan a receipt</Button>
 						<Button variant="outline" size="small" to="/orders/new">Empty order</Button>
 					</div>
+				</Empty>
+			</Card>
+		)
+	else if (data.matched === 0 && !crumbs.length && f.q)
+		body = (
+			<Card variant="flush">
+				<Empty>
+					<EmptyTitle>No orders match "{f.q}"</EmptyTitle>
+					<EmptyBody>Check the spelling, or clear the search.</EmptyBody>
+					<Button size="small" onClick={clearSearch}>Clear the search</Button>
 				</Empty>
 			</Card>
 		)
@@ -213,34 +255,119 @@ export default function Orders() {
 	else
 		body = <OrderRows data={data} width={width} size={size} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting} />
 
+	// an account with no orders has nothing to filter (6a): one empty card, no rail
+	const none = data?.total === 0
+	const alone = !railed || none
 	const main = (
-		<div className="sp-grow sp-stack sp-gap-12" ref={column}>
-			{data?.total === 0 ? null : controls}
-			{touch
-				? (
-					<>
-						<Button variant="outline" aria-expanded={filtersOpen ? 'true' : 'false'} onClick={() => setFiltersOpen(!filtersOpen)}>
+		<div className={alone ? 'sp-grow sp-stack sp-gap-12 ol-alone' : 'sp-grow sp-stack sp-gap-12'} ref={column}>
+			{none ? null : controls}
+			{none || railed
+				? null
+				: (
+					<div className="sp-row-flex sp-gap-8">
+						<Button variant="outline" ref={trigger} aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'} onClick={() => setFiltersOpen(true)}>
 							{crumbs.length ? `Filters · ${crumbs.length}` : 'Filters'}
 						</Button>
-						{filtersOpen ? filtersCard : null}
-					</>
-				)
-				: null}
+					</div>
+				)}
 			{crumbs.length ? <Filters onClear={clearAll}>{crumbs}</Filters> : null}
 			{body}
+			{filtersOpen
+				? (
+					<FiltersSheet
+						params={params}
+						custom={custom}
+						facetData={facetData}
+						onApply={(next, nextCustom) => { setFiltersOpen(false); setCustom(nextCustom); update(next) }}
+						onClose={() => setFiltersOpen(false)}
+						trigger={trigger}
+					/>
+				)
+				: null}
 			{deleting
 				? <DeleteOrder order={deleting} onClose={() => setDeleting(null)} onDeleted={() => { setDeleting(null); orders.refresh() }} />
 				: null}
 		</div>
 	)
 
-	// the route's rail layout takes two children, the rail first; a phone has no rail
-	if (touch) return main
+	// the route's rail layout takes two children, the rail first
+	if (alone) return main
 	return (
 		<>
 			<div className="sp-rail sp-stack sp-gap-12">{filtersCard}</div>
 			{main}
 		</>
+	)
+}
+
+/** The facets on a phone or a narrow window (c12 touch, 18b): a sheet over the list, whose
+    choices wait for Apply rather than filtering at once. */
+function FiltersSheet({ params, custom, facetData, onApply, onClose, trigger }) {
+	const [draft, setDraft] = useState(() => new URLSearchParams(params))
+	const [draftCustom, setDraftCustom] = useState(custom)
+	const f = readFilters(draft)
+	const update = useCallback(changes => setDraft(d => withChanges(d, changes)), [])
+	// the date group's order count is for the choices in the sheet, not the list behind it
+	const count = useApi(getOrders, [{ ...requestOf(f, ''), page: 1, pageSize: 1 }])
+	const box = useRef(null)
+	useEffect(() => {
+		const back = trigger.current
+		box.current?.focus()
+		return () => back?.focus()
+	}, [trigger])
+
+	// removed facets first, then the rest in the order they were chosen in the sheet
+	const apply = () => {
+		const changes = Object.fromEntries(FACETS.filter(k => !draft.has(k)).map(k => [k, '']))
+		for (const [k, v] of draft) if (FACETS.includes(k)) changes[k] = v
+		onApply(changes, draftCustom)
+	}
+	const clear = () => { setDraftCustom(false); update(Object.fromEntries(FACETS.map(k => [k, '']))) }
+
+	return createPortal(
+		<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) onClose() }}>
+			<Sheet role="dialog" aria-modal="true" aria-label="Filters" ref={box} tabIndex={-1}
+				onKeyDown={ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }}>
+				<span className="sp-heading">Filters</span>
+				<div className="ol-sheet-body">
+					<OrderFacets f={f} update={update} custom={draftCustom} setCustom={setDraftCustom} matched={count.loading ? undefined : count.data?.matched} {...facetData} />
+				</div>
+				<div className="sp-row-flex sp-gap-8">
+					<Button variant="outline" size="small" onClick={clear}>Clear all</Button>
+					<Button size="small" onClick={apply}>Apply</Button>
+				</div>
+			</Sheet>
+		</Scrim>,
+		document.body
+	)
+}
+
+/** The list's search (c20). The field keeps what is typed and writes it to the address once it
+    settles, so a key pressed while the list redraws is never overwritten. */
+function OrderSearch({ q, onSearch, touch }) {
+	const [text, setText] = useState(q)
+	const wrote = useRef(q)
+	useEffect(() => {
+		if (q === wrote.current) return
+		wrote.current = q
+		setText(q)
+	}, [q])
+	const settled = useSettled(text)
+	const last = useRef(settled)
+	useEffect(() => {
+		if (settled === last.current) return
+		last.current = settled
+		if (settled === wrote.current) return
+		wrote.current = settled
+		onSearch(settled)
+	}, [settled, onSearch])
+	return (
+		<SearchInput
+			value={text}
+			onChange={setText}
+			placeholder={touch ? 'Search orders' : 'Search orders, vendors, items…'}
+			aria-label="Search orders"
+		/>
 	)
 }
 
@@ -269,8 +396,8 @@ function useWidth(ref) {
 	return width
 }
 
-/* The columns the list column has room for (2i): Items goes below 1040, Categories below 880. */
-const columnsFor = width => ({ items: width >= 1040, categories: width >= 880 })
+/* The columns the list column has room for (2i): Items goes at 1040 and under, Categories at 880. */
+const columnsFor = width => ({ items: width > 1040, categories: width > 880 })
 
 function OrderRows({ data, width, size, onOpen, onLoadMore, onDelete }) {
 	const show = columnsFor(width)
@@ -311,14 +438,15 @@ function OrderRows({ data, width, size, onOpen, onLoadMore, onDelete }) {
 	)
 }
 
-/* Two categories fit a row; past two the first stands for the rest, with their count (2b). */
+/* Two categories fit a row; past two the first stands for the rest, with their count (2b).
+   One line always: a long name truncates inside its chip rather than wrapping the row (2i). */
 function CategoryChips({ categories }) {
-	if (!categories.length) return <div className="sp-row-flex sp-gap-6 sp-wrap"><Chip variant="dashed">No category</Chip></div>
+	if (!categories.length) return <div className="sp-row-flex sp-gap-6"><Chip variant="dashed">No category</Chip></div>
 	const shown = categories.length > 2 ? categories.slice(0, 1) : categories
 	return (
-		<div className="sp-row-flex sp-gap-6 sp-wrap">
-			{shown.map(c => <Chip key={c.id}>{c.name}</Chip>)}
-			{categories.length > 2 ? <Chip>{`+${categories.length - 1}`}</Chip> : null}
+		<div className="sp-row-flex sp-gap-6">
+			{shown.map(c => <span key={c.id} className="ol-chip-slot"><Chip><span className="sp-truncate">{c.name}</span></Chip></span>)}
+			{categories.length > 2 ? <span className="sp-flex-none"><Chip>{`+${categories.length - 1}`}</Chip></span> : null}
 		</div>
 	)
 }
@@ -337,7 +465,6 @@ function RowMenu({ order, onDelete }) {
 				aria-haspopup="menu" aria-expanded={open ? 'true' : 'false'} onClick={() => setOpen(!open)} />
 			<Menu position="floating" aria-label="Order">
 				<MenuItem icon="external-link" onClick={go(`/orders/${order.id}`)}>Open order</MenuItem>
-				<MenuItem icon="pencil" onClick={go(`/orders/${order.id}/edit`)}>Edit order</MenuItem>
 				<MenuItem icon="file" onClick={go(`/orders/new?duplicate=${order.id}`)}>Duplicate</MenuItem>
 				<MenuSeparator />
 				<MenuItem icon="trash" danger onClick={() => { close(); onDelete(order) }}>Delete order</MenuItem>
@@ -346,24 +473,25 @@ function RowMenu({ order, onDelete }) {
 	)
 }
 
-/** Below 640 of list column, rows become cards (2i): name and total, then date and status, then saving. */
+/** At 640 of list column and under, rows become cards (2i): the photo, then name and total,
+    reference and status, date and saving. */
 function OrderCards({ data, onOpen, onLoadMore }) {
 	return (
 		<>
 			<span className="sp-meta">{plural(data.matched, 'order')}</span>
 			{data.orders.map(o => (
-				<ListItem key={o.id} variant="card" onClick={() => onOpen(o)}>
+				<ListItem key={o.id} variant="card" mark={<OrderPhoto order={o} />} onClick={() => onOpen(o)}>
 					<Stacked>
 						<Line>
 							<span className="sp-title sp-truncate sp-grow">{o.vendor?.name ?? 'No vendor'}</span>
 							<span className="sp-amount">{currency(o.total)}</span>
 						</Line>
 						<Line>
-							<span className="sp-subtitle sp-truncate sp-grow">{shortDate(o.date)} · {plural(o.itemCount, 'item')}</span>
+							<span className="sp-subtitle sp-truncate sp-grow">{orderLine(o)}</span>
 							{statusPill(o.status)}
 						</Line>
 						<Line>
-							<span className="sp-subtitle sp-truncate sp-grow">{o.categories.length ? o.categories.map(c => c.name).join(', ') : 'No category'}</span>
+							<span className="sp-subtitle sp-grow">{shortDate(o.date)} · {plural(o.itemCount, 'item')}</span>
 							{saved(o.saved)}
 						</Line>
 					</Stacked>
@@ -382,12 +510,13 @@ function OrderCards({ data, onOpen, onLoadMore }) {
 	)
 }
 
-const LOADING = [['62pc', '58', '88'], ['48pc', '74', '74'], ['55pc', '46', '92']]
+const LOADING = [['62pc', '58', '88', '44pc'], ['48pc', '74', '74', '36pc'], ['55pc', '46', '92', '30pc']]
+const loadingRows = size => Array.from({ length: size }, (_, i) => ({ id: i, r: LOADING[i % LOADING.length] }))
 
-/* Skeletons hold the real rows' places, so nothing moves when the orders land (6b). */
-function RowsLoading({ width }) {
+/* Skeletons hold the real rows' places, a page of them, so nothing moves when the orders land (6b). */
+function RowsLoading({ width, size }) {
 	const show = columnsFor(width)
-	const rows = [...LOADING, ...LOADING].map((r, i) => ({ id: i, r }))
+	const rows = loadingRows(size)
 	return (
 		<List data={rows} recordKey={x => x.id} noun="orders">
 			<Caption><Skeleton shape="line" data-w="82" data-h="13" /></Caption>
@@ -402,7 +531,10 @@ function RowsLoading({ width }) {
 			</ListHead>
 			<ListRow>{({ r }) => (
 				<>
-					<ListCell cell="flex"><span className="sp-stacked sp-grow"><Skeleton shape="line" data-w={r[0]} data-h="13" /></span></ListCell>
+					<ListCell cell="flex">
+						<Skeleton shape="mark" />
+						<span className="sp-stacked sp-grow"><Skeleton shape="line" data-w={r[0]} /><Skeleton shape="line" data-w={r[3]} data-h="10" /></span>
+					</ListCell>
 					<ListCell><Skeleton shape="line" data-w={r[1]} data-h="13" /></ListCell>
 					{show.categories ? <ListCell><Skeleton shape="line" data-w="52" data-h="22" /></ListCell> : null}
 					{show.items ? <ListCell cell="number"><Skeleton shape="end" data-w="18" data-h="13" /></ListCell> : null}
@@ -415,11 +547,14 @@ function RowsLoading({ width }) {
 	)
 }
 
-function CardsLoading() {
-	return [<Skeleton key="count" shape="line" data-w="82" data-h="18" />, ...LOADING.map(([title, , figure]) => (
-		<ListItem key={title} variant="card">
+/* An empty text of the line's own type sizes a skeleton line to the real one exactly. */
+const strut = role => <span className={role} aria-hidden="true">{'\u200b'}</span>
+
+function CardsLoading({ size }) {
+	return [<span key="count" className="sp-row-flex"><Skeleton shape="line" data-w="82" data-h="13" />{strut('sp-meta')}</span>, ...loadingRows(size).map(({ id, r: [title, , figure] }) => (
+		<ListItem key={id} variant="card" mark={<Skeleton shape="mark" />}>
 			<Stacked>
-				<Line><Skeleton shape="line" data-w={title} data-h="22" /><span className="sp-grow" /><Skeleton shape="line" data-w={figure} data-h="22" /></Line>
+				<Line><Skeleton shape="line" data-w={title} data-h="22" />{strut('sp-title')}<span className="sp-grow" /><Skeleton shape="line" data-w={figure} data-h="22" /></Line>
 				<Line><Skeleton shape="line" data-w="44pc" data-h="22" /><span className="sp-grow" /><Skeleton shape="line" data-w="74" data-h="22" /></Line>
 				<Line><Skeleton shape="line" data-w="36pc" data-h="18" /><span className="sp-grow" /><Skeleton shape="line" data-w="88" data-h="18" /></Line>
 			</Stacked>
@@ -429,13 +564,14 @@ function CardsLoading() {
 
 /** The rail's groups (c12, 2b), each one a filter the orders can take today. */
 function OrderFacets({ f, update, custom, setCustom, vendors, categories, highest, matched }) {
-	const used = (list, chosen) => (list ?? []).filter(x => x.orders > 0 || x.id === chosen).sort((a, b) => b.orders - a.orders)
-	const shownVendors = used(vendors, f.vendor)
-	const shownCategories = used(categories, f.category)
+	// every vendor, so the group's total is the count the sidebar shows (2b)
+	const byUse = list => [...(list ?? [])].sort((a, b) => b.orders - a.orders)
+	const shownVendors = byUse(vendors)
+	const shownCategories = byUse(categories).filter(c => c.orders > 0 || c.id === f.category)
 	const [allVendors, setAllVendors] = useState(false)
 	const [find, setFind] = useState('')
 	const found = find ? shownVendors.filter(v => v.name.toLowerCase().includes(find.toLowerCase())) : shownVendors
-	const listed = allVendors || find ? found : found.filter((v, i) => i < 6 || v.id === f.vendor)
+	const listed = allVendors || find ? found : found.filter((v, i) => i < 4 || v.id === f.vendor)
 	const [kindOpen, setKindOpen] = useState(false)
 
 	return (
@@ -455,7 +591,8 @@ function OrderFacets({ f, update, custom, setCustom, vendors, categories, highes
 							? <SearchInput value={find} onChange={setFind} placeholder="Find a vendor…" aria-label="Find a vendor" />
 							: null}
 						{listed.map(v => (
-							<Choice key={v.id} control={<Check checked={f.vendor === v.id} onChange={ev => update({ vendor: ev.target.checked ? v.id : '' })} />}>{v.name}</Choice>
+							<Choice key={v.id} control={<Check checked={f.vendor === v.id} disabled={!v.orders && f.vendor !== v.id}
+								onChange={ev => update({ vendor: ev.target.checked ? v.id : '' })} />}>{v.name}</Choice>
 						))}
 						{!allVendors && !find && found.length > listed.length
 							? <FieldGroupMore onClick={() => setAllVendors(true)}>Show {found.length - listed.length} more</FieldGroupMore>
@@ -501,14 +638,16 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 	useEffect(() => setDraft({ from, to }), [from, to])
 	const wrong = !!(draft.from && draft.to && draft.to < draft.from)
 
-	// an impossible range is held in the fields only: the list keeps the last one that made sense
+	// an impossible range, or a year still being typed, is held in the fields only: the list
+	// keeps the last range that made sense
 	const edit = next => {
 		setDraft(next)
-		if (!(next.from && next.to && next.to < next.from)) update({ from: next.from, to: next.to })
+		const readable = [next.from, next.to].every(d => !d || isDay(d))
+		if (readable && !(next.from && next.to && next.to < next.from)) update({ from: next.from, to: next.to })
 	}
-	const summary = from
-		? `${plural(daysBetween(from, to || today()), 'day')} · ${plural(matched ?? 0, 'order')}`
-		: plural(matched ?? 0, 'order')
+	// a count not known yet is left out rather than shown as zero (6b)
+	const summary = [from ? plural(daysBetween(from, to || today()), 'day') : null, matched == null ? null : plural(matched, 'order')]
+		.filter(Boolean).join(' · ')
 
 	return (
 		<FieldGroup facet legend="Date">
@@ -525,8 +664,8 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 				</Chip>
 			</Filters>
 			<FieldGroupPanel>
-				<Field label="From"><DateField value={draft.from} onChange={v => edit({ ...draft, from: v })} /></Field>
-				<Field label="To"><DateField value={draft.to} danger={wrong} onChange={v => edit({ ...draft, to: v })} /></Field>
+				<Field label="From"><DateField value={draft.from} locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
+				<Field label="To"><DateField value={draft.to} danger={wrong} locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} /></Field>
 				{wrong
 					? <span className="sp-field__help" data-color="danger">To must be on or after From. The list keeps the last valid range.</span>
 					: from || to
