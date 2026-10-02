@@ -3,7 +3,7 @@
 	"private": true,
 	"version": "1.0.0",
 	"type": "module",
-	"description": "Spendly, a React/Vite app backed by a phantom API",
+	"description": "Spendly's web app: React on the Spendly API",
 	"scripts": {
 		"bank:check": "node scripts/check-bank-statement.mjs",
 		"design:check": "node scripts/check-design.mjs",
