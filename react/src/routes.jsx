@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import { redirect } from 'react-router'
 import { AppShell } from './app/AppShell.jsx'
-import { RouteError } from './app/RouteError.jsx'
+import { RouteError, ShellError } from './app/RouteError.jsx'
 import { SignedOut } from './app/SignedOut.jsx'
 import { getCurrentUser, getSettings } from './api/client.js'
 import { cachedFetch } from './api/useApi.js'
@@ -67,47 +67,51 @@ export const routes = [
 	{ path: 'register', element: <Register />, handle: { title: 'Create your account' } },
 	{
 		element: <AppShell />,
-		errorElement: <RouteError />,
+		errorElement: <ShellError />,
 		loader: requireAuth,
 		// the same address again (the phone's search opening and closing) asks nothing new
 		shouldRevalidate: ({ currentUrl, nextUrl, defaultShouldRevalidate }) =>
 			currentUrl.href !== nextUrl.href && defaultShouldRevalidate,
 		HydrateFallback: () => null,
-		children: [
-			{ index: true, element: <Home />, handle: { title: 'Home', navKey: 'home', fab: true } },
+		children: [{
+			// a page that fails shows its problem in the content column, under the shell
+			errorElement: <RouteError />,
+			children: [
+				{ index: true, element: <Home />, handle: { title: 'Home', navKey: 'home', fab: true } },
 
-			{ path: 'orders', children: [
-				{ index: true, element: <Orders />, handle: { title: 'Orders', navKey: 'orders', layout: 'rail', fab: true, remember: true } },
-				{ path: 'new', element: <OrderNew />, handle: { title: 'New order', navKey: 'orders' } },
-				{ path: ':id', element: <Order />, handle: { title: 'Order', navKey: 'orders', layout: 'split' } },
-				{ path: ':id/edit', element: <OrderEdit />, handle: { title: 'Edit order', navKey: 'orders', layout: 'split' } }
-			] },
+				{ path: 'orders', children: [
+					{ index: true, element: <Orders />, handle: { title: 'Orders', navKey: 'orders', layout: 'rail', fab: true, remember: true } },
+					{ path: 'new', element: <OrderNew />, handle: { title: 'New order', navKey: 'orders' } },
+					{ path: ':id', element: <Order />, handle: { title: 'Order', navKey: 'orders', layout: 'split' } },
+					{ path: ':id/edit', element: <OrderEdit />, handle: { title: 'Edit order', navKey: 'orders', layout: 'split' } }
+				] },
 
-			{ path: 'statistics', element: <Statistics />, handle: { title: 'Statistics', navKey: 'statistics', remember: true } },
+				{ path: 'statistics', element: <Statistics />, handle: { title: 'Statistics', navKey: 'statistics', remember: true } },
 
-			{ path: 'vendors', children: [
-				{ index: true, element: <Vendors />, handle: { title: 'Vendors', navKey: 'vendors', remember: true } },
-				{ path: 'new', element: <VendorForm />, handle: { title: 'New vendor', navKey: 'vendors', layout: 'split' } },
-				{ path: ':id/edit', element: <VendorForm />, handle: { title: 'Edit vendor', navKey: 'vendors', layout: 'split' } }
-			] },
-			{ path: 'categories', children: [
-				{ index: true, element: <Categories />, handle: { title: 'Categories', navKey: 'categories', remember: true } },
-				{ path: 'new', element: <CategoryForm />, handle: { title: 'New category', navKey: 'categories', layout: 'split' } },
-				{ path: ':id/edit', element: <CategoryForm />, handle: { title: 'Edit category', navKey: 'categories', layout: 'split' } }
-			] },
-			{ path: 'bookmarks', children: [
-				{ index: true, element: <Bookmarks />, handle: { title: 'Bookmarks', navKey: 'bookmarks', remember: true } },
-				{ path: 'new', element: <BookmarkForm />, handle: { title: 'New bookmark', navKey: 'bookmarks', layout: 'split' } },
-				{ path: ':id/edit', element: <BookmarkForm />, handle: { title: 'Edit bookmark', navKey: 'bookmarks', layout: 'split' } }
-			] },
+				{ path: 'vendors', children: [
+					{ index: true, element: <Vendors />, handle: { title: 'Vendors', navKey: 'vendors', remember: true } },
+					{ path: 'new', element: <VendorForm />, handle: { title: 'New vendor', navKey: 'vendors', layout: 'split' } },
+					{ path: ':id/edit', element: <VendorForm />, handle: { title: 'Edit vendor', navKey: 'vendors', layout: 'split' } }
+				] },
+				{ path: 'categories', children: [
+					{ index: true, element: <Categories />, handle: { title: 'Categories', navKey: 'categories', remember: true } },
+					{ path: 'new', element: <CategoryForm />, handle: { title: 'New category', navKey: 'categories', layout: 'split' } },
+					{ path: ':id/edit', element: <CategoryForm />, handle: { title: 'Edit category', navKey: 'categories', layout: 'split' } }
+				] },
+				{ path: 'bookmarks', children: [
+					{ index: true, element: <Bookmarks />, handle: { title: 'Bookmarks', navKey: 'bookmarks', remember: true } },
+					{ path: 'new', element: <BookmarkForm />, handle: { title: 'New bookmark', navKey: 'bookmarks', layout: 'split' } },
+					{ path: ':id/edit', element: <BookmarkForm />, handle: { title: 'Edit bookmark', navKey: 'bookmarks', layout: 'split' } }
+				] },
 
-			{ path: 'budget/check', element: <BudgetCheck />, handle: { title: 'Check a bank statement', navKey: 'budget' } },
-			{ path: 'budget/:year?', element: <Budget />, handle: { title: 'Budget', navKey: 'budget', remember: true } },
+				{ path: 'budget/check', element: <BudgetCheck />, handle: { title: 'Check a bank statement', navKey: 'budget' } },
+				{ path: 'budget/:year?', element: <Budget />, handle: { title: 'Budget', navKey: 'budget', remember: true } },
 
-			{ path: 'settings/:section?', element: <Settings />, handle: { title: 'Settings', navKey: 'settings' } },
-			{ path: 'more', element: <More />, handle: { title: 'More', navKey: 'more' } },
+				{ path: 'settings/:section?', element: <Settings />, handle: { title: 'Settings', navKey: 'settings' } },
+				{ path: 'more', element: <More />, handle: { title: 'More', navKey: 'more' } },
 
-			{ path: '*', element: <Home />, handle: { title: 'Home', navKey: 'home', fab: true } }
-		]
+				{ path: '*', element: <Home />, handle: { title: 'Home', navKey: 'home', fab: true } }
+			]
+		}]
 	}
 ]

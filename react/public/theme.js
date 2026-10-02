@@ -3,5 +3,9 @@
 (function () {
 	var chosen = null
 	try { chosen = localStorage.getItem('spendly:theme') } catch (e) { /* storage denied */ }
-	document.documentElement.dataset.theme = chosen || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+	var theme = chosen || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+	document.documentElement.dataset.theme = theme
+	// the browser's bar takes the dark --surface (tokens.css) until app/theme.js reads the token itself
+	var bar = document.querySelector('meta[name="theme-color"]')
+	if (bar && theme === 'dark') bar.content = '#221f1b'
 })()

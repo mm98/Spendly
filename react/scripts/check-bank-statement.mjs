@@ -6,8 +6,11 @@ import {
 	realAmounts
 } from '../src/api/bankStatement.js'
 
-const bytes = readFileSync(new URL('./fixtures/bank-statement.csv', import.meta.url))
-const rows = parseCsv(await readText({ arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length) }))
+const load = async name => {
+	const bytes = readFileSync(new URL(`./fixtures/${name}`, import.meta.url))
+	return parseCsv(await readText({ arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length) }))
+}
+const rows = await load('bank-statement.csv')
 const header = hasHeader(rows)
 const columns = guessColumns(rows, header)
 const dateFormat = guessDateFormat(rows.map(r => r[columns.date]))
@@ -49,6 +52,36 @@ assert.deepEqual(status, [
 	['near', 'El'], // no name, no saved choice, 6 % from the row's amount
 	['once', null]
 ])
+// Money in and money out in two columns: named in English or Danish, either first, or not named at all.
+for (const [name, names, unreadLines] of [
+	['bank-money-in-out.csv', ['Date', 'Description', 'Money in', 'Money out'], [7]], // the closing balance has no date
+	['bank-ud-ind.csv', ['Dato', 'Tekst', 'Ind', 'Ud'], []],
+	['bank-no-names.csv', null, []]
+]) {
+	const file = await load(name)
+	const named = hasHeader(file)
+	const found = guessColumns(file, named)
+	assert.equal(named, !!names, name)
+	if (names) assert.deepEqual([found.date, found.text, found.amount, found.out].map(i => file[0][i]), names, name)
+	else assert.deepEqual(found, { date: 0, text: 1, amount: 3, out: 2 }, name)
+	const read = readPayments(file, { header: named, ...found, dateFormat: guessDateFormat((named ? file.slice(1) : file).map(r => r[found.date])) })
+	assert.deepEqual(read.unread, unreadLines, name)
+	assert.deepEqual(read.payments.map(p => p.amount), name === 'bank-money-in-out.csv'
+		? [-4449.48, -874.5, -376.49, 34000, -1212.4] : [-4449.48, -874.5, 34000, -212.4], name)
+}
+const pair = head => { const g = guessColumns(parseCsv(`${head}\n01-10-2026;x;1,00;;5,00\n02-10-2026;y;;2,00;7,00`), true); return [g.amount, g.out] }
+assert.deepEqual(pair('Dato;Tekst;Indsat;Hævet;Saldo'), [2, 3])
+assert.deepEqual(pair('Date;Text;Debit;Credit;Balance'), [3, 2])
+assert.deepEqual(pair('Date;Text;Paid out;Paid in;Balance'), [3, 2])
+// A column named as the amount stays the amount.
+assert.deepEqual(pair('Dato;Tekst;Beløb;Gebyr;Saldo'), [2, null])
+// An amount on every line and a fee on some are not a pair: the two are filled on the same line.
+const fee = guessColumns(parseCsv('01-10-2026;x;-1,00;\n02-10-2026;y;2,00;-0,50\n03-10-2026;z;-3,00;'), false)
+assert.deepEqual([fee.amount, fee.out], [2, null])
+// A date that cannot be read leaves that line out; the format comes from the others.
+assert.deepEqual(dateFormatsFor(['2026-10-02', '2026-10-01', 'Closing balance']), ['ymd'])
+assert.deepEqual(dateFormatsFor(['igår', 'idag']), [])
+
 // A one-time mark holds for that payment alone, not for a later one with the same text.
 const later = { ...payments[9], date: '2026-10-12' }
 assert.equal(checkPayments([later], new Map([[2026, sheet]]), links)[0].status, 'missing')

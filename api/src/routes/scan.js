@@ -2,7 +2,6 @@ import { Router } from 'express'
 import multer from 'multer'
 import { createHash } from 'crypto'
 import { db } from '../db.js'
-import { cardRowsFor } from '../lib/prefs.js'
 import { newId } from '../lib/ids.js'
 import { getDecoratedOrder } from '../lib/decorate.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
@@ -10,13 +9,15 @@ import { processAttachment } from '../lib/images.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { findVendorIdByAnyName } from '../lib/findOrCreate.js'
 import { parseReceipt } from '../lib/scanParse.js'
-import { toEpoch, fromEpoch, todayIso, nowEpoch } from '../lib/dates.js'
+import { toEpoch, fromEpoch, nowEpoch } from '../lib/dates.js'
 import { msUntilEndOfDay } from '../lib/backup.js'
+import { assertImageOrPdf } from '../lib/fileType.js'
+import { MAX_UPLOAD_MB } from '../lib/constants.js'
 
 export const router = Router()
 // See orders.js's own upload instance for why defParamCharset is set -- busboy decodes
 // multipart filenames as latin1 unless told otherwise, and browsers never say otherwise.
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const insertUpload = db.prepare(`INSERT INTO scan_uploads
 	(id, user_id, name, size, kind, sha256, content_type, data, data_is_compressed, thumbnail, thumbnail_is_compressed, thumbnail_content_type, expires_at)
@@ -60,17 +61,11 @@ const selectUploadByHash = db.prepare(`
 	SELECT id, kind, size, (thumbnail IS NOT NULL) AS has_thumbnail
 	FROM scan_uploads WHERE user_id = ? AND sha256 = ? AND expires_at > ?
 	ORDER BY created_at DESC LIMIT 1`)
-/* Split by what each reader draws, like attachments' own statements in routes/orders.js: the
-   draft screen wants the row's facts and whether a thumbnail exists, the file route wants the
-   display bytes, the thumbnail route its own -- one shared SELECT pulled both BLOBs (display
-   image and thumbnail) into JS for every reader, megabytes decoded to answer a metadata
-   question. */
+/* Split by what each reader draws: the draft screen wants the row's facts, the thumbnail route
+   its own bytes -- never both BLOBs decoded to answer a metadata question. */
 const selectUploadMeta = db.prepare(
 	'SELECT id, name, size, kind, (thumbnail IS NOT NULL) AS has_thumbnail FROM scan_uploads WHERE id = ? AND user_id = ?')
-const selectUploadFile = db.prepare(
-	'SELECT data, data_is_compressed, content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
 const selectUploadThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM scan_uploads WHERE id = ? AND user_id = ?')
-const deleteUpload = db.prepare('DELETE FROM scan_uploads WHERE id = ? AND user_id = ?')
 const selectDraftDefaults = db.prepare('SELECT default_status, default_kind FROM settings WHERE user_id = ?')
 const selectOrderExists = db.prepare('SELECT id FROM orders WHERE id = ? AND user_id = ?')
 // Everything parseReceipt needs (the bytes) plus everything the draft response needs (name,
@@ -96,6 +91,7 @@ const selectPossibleDuplicate = db.prepare(`
 router.post('/documents', upload.single('file'), async (req, res) => {
 	const file = req.file
 	if (!file) return res.status(400).json({ error: 'No file was uploaded.' })
+	assertImageOrPdf([file])
 
 	// The source bytes' own hash, before any resizing -- two uploads of the same file hash the
 	// same regardless of what processAttachment below would make of either.
@@ -127,16 +123,6 @@ router.post('/documents', upload.single('file'), async (req, res) => {
 	})
 })
 
-/** Discards a pending upload outright, cached AI read included -- the escape hatch for a
-    document the model read wrong. With the row gone, re-uploading the identical file afterwards
-    cannot match selectUploadByHash above, so it gets a fresh id and a fresh parseReceipt call
-    instead of the misread cached one. */
-router.delete('/documents/:key', (req, res) => {
-	const result = deleteUpload.run(req.params.key, req.user.id)
-	if (!result.changes) return res.status(404).json({ error: 'No uploaded document ' + req.params.key })
-	res.status(204).end()
-})
-
 /** The review step's starting point. Reads the document once via Claude's vision
     (lib/scanParse.js) and caches the result on the upload row, so a reload of step 2 or 3 --
     both fetch this for the same key -- never pays for a second read. Falls back to the same
@@ -150,7 +136,7 @@ router.get('/draft/:key', async (req, res) => {
 
 	const hadCachedRead = upload.ai_read_json != null
 	const { read, failure } = hadCachedRead
-		? { read: JSON.parse(upload.ai_read_json), failure: null } : await parseReceipt(upload)
+		? { read: JSON.parse(upload.ai_read_json), failure: null } : await parseReceipt(upload, req.today)
 	// Only an answer is kept: a call that failed cost nothing, and keeping it would block the retry.
 	if (!hadCachedRead && !failure) saveAiRead.run({ id: upload.id, userId: req.user.id, json: JSON.stringify(read) })
 
@@ -162,9 +148,9 @@ router.get('/draft/:key', async (req, res) => {
 	if (!read) {
 		return res.json({
 			documentKey: upload.id, file,
-			vendor: '', vendorMatched: false, date: todayIso(),
+			vendor: '', vendorMatched: false, date: req.today,
 			status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
-			deliveredDate: todayIso(), returnedDate: todayIso(),
+			deliveredDate: req.today, returnedDate: req.today,
 			shipping: 0, discount: 0, linesRead: 0, lines: [], remainder: null, total: null,
 			reconciled: failure === 'billing'
 				? 'This document was not read: the reading service reports a billing problem, such as no credits left. Add the line items and totals below yourself, or upload it again once that is fixed.'
@@ -199,9 +185,9 @@ router.get('/draft/:key', async (req, res) => {
 		// A match means the vendor record is the answer; the scanned string only speaks where
 		// there was no vendor to match it to.
 		vendor: vendorMatched ? vendorName : read.vendor, vendorMatched,
-		date: read.date ?? todayIso(),
+		date: read.date ?? req.today,
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
-		deliveredDate: read.date ?? todayIso(), returnedDate: todayIso(),
+		deliveredDate: read.date ?? req.today, returnedDate: req.today,
 		shipping: read.shipping, discount: read.discount, linesRead: read.lines.length,
 		lines: read.lines.map(l => ({
 			id: newId('l'), title: l.title, quantity: l.quantity, price: l.price,
@@ -268,37 +254,4 @@ router.get('/documents/:key/thumbnail', (req, res) => {
 	if (!upload || !upload.thumbnail) return res.status(404).json({ error: 'No thumbnail for that document.' })
 	res.set('Content-Type', upload.thumbnail_content_type || 'image/webp')
 	res.send(decompressBlob(upload.thumbnail, upload.thumbnail_is_compressed))
-})
-
-/** The full (1600px) display image — for a bigger preview than the 200px thumbnail is worth
-    rendering, e.g. the review screen's own "OPEN" state. */
-router.get('/documents/:key/file', (req, res) => {
-	const upload = selectUploadFile.get(req.params.key, req.user.id)
-	if (!upload || !upload.data) return res.status(404).json({ error: 'No file stored for that document.' })
-	res.set('Content-Type', upload.content_type || 'application/octet-stream')
-	res.send(decompressBlob(upload.data, upload.data_is_compressed))
-})
-
-/** Recently completed scans — the account's own orders that carry an attachment, newest first.
-    Real history, not the phantom store's two hardcoded rows. Cut to the account's
-    entries-per-card setting, like every other card holding a list. */
-/* Driven from the attachments side, pinned there with CROSS JOIN: an account has a handful
-   of attachments (none at all until the first upload) against tens of thousands of orders,
-   and the orders-driven shape probed attachments once per order and temp-sorted the lot --
-   ~11ms to answer a card over zero attachments at 50,000 orders, ~101ms with the account
-   dense with them; attachments-first is 0.02-0.09ms in every realistic state and still 2x
-   ahead at the dense extreme. MIN() because GROUP BY with a bare column hands back whichever
-   attachment the walk met first -- an arbitrary label when an order carries several. */
-const selectRecentScans = db.prepare(`
-	SELECT o.id AS orderId, MIN(a.name) AS name, MIN(a.meta) AS meta, o.total, o.created_at
-	FROM attachments a
-	CROSS JOIN orders o ON o.id = a.order_id
-	WHERE o.user_id = @userId
-	GROUP BY o.id
-	ORDER BY o.created_at DESC
-	LIMIT @limit
-`)
-router.get('/recent', (req, res) => {
-	const rows = selectRecentScans.all({ userId: req.user.id, limit: cardRowsFor(req.user.id) })
-	res.json(rows.map(r => ({ id: r.orderId, name: r.name, meta: r.meta, total: r.total, orderId: r.orderId })))
 })

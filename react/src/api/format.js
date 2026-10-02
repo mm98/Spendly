@@ -58,9 +58,8 @@ export const currency = (n, decimals = 2) => {
 /** The full stop after a sentence that ends in an amount: "kr." carries one already, "$20" does not. */
 export const fullStop = () => (active.symbol.endsWith('.') ? '' : '.')
 
-/** 9.4 -> "9,4%". */
-export const percent = (n, decimals = 1) =>
-	n.toFixed(decimals).replace('.', ',') + '%'
+/** 9.4 -> "9,4%", and 4567.8 -> "4.567,8%": grouped as every figure is. */
+export const percent = (n, decimals = 1) => amount(n, decimals) + '%'
 
 /* The amount grammar every money field parses and checks. No field is type=number, which
    refuses the comma; a dot only groups thousands, so 89.95 is a typo to name, never a number. */
@@ -125,8 +124,6 @@ const formatter = options => {
 		return (built = new Intl.DateTimeFormat(activeLocale, options))
 	}
 }
-const dayMonthFormat = formatter({ day: 'numeric', month: 'long' })
-const dayMonthYearFormat = formatter({ day: 'numeric', month: 'long', year: 'numeric' })
 const dayShortMonthFormat = formatter({ day: 'numeric', month: 'short' })
 const dayShortMonthYearFormat = formatter({ day: 'numeric', month: 'short', year: 'numeric' })
 const longDateFormat = formatter({ day: 'numeric', month: 'long', year: 'numeric' })
@@ -149,12 +146,6 @@ const dateOf = iso => {
 	return new Date(y, m - 1, d)
 }
 const thisYear = date => date.getFullYear() === new Date().getFullYear()
-
-/** "2026-07-18" -> "18 July", with the year once it is not this one. */
-export const dayMonth = iso => {
-	const date = dateOf(iso)
-	return (thisYear(date) ? dayMonthFormat() : dayMonthYearFormat()).format(date)
-}
 
 /** "2026-08-03" -> "3 Aug", with the year once it is not this one (3b). */
 export const dayShortMonth = iso => {

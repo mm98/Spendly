@@ -1,15 +1,15 @@
 import { Router } from 'express'
 import multer from 'multer'
 import { db } from '../db.js'
-import { cardRowsFor } from '../lib/prefs.js'
 import { newId } from '../lib/ids.js'
-import { toEpoch, todayIso } from '../lib/dates.js'
-import { getDecoratedOrder, decorateOrderSummaryRows, decorateOrderListRows } from '../lib/decorate.js'
+import { toEpoch } from '../lib/dates.js'
+import { getDecoratedOrder, decorateOrderListRows } from '../lib/decorate.js'
 import { assertValidOrderDraft, validateOrderDraft } from '../lib/validate.js'
 import { findOrCreateVendor, findOrCreateCategory } from '../lib/findOrCreate.js'
 import { orderTotalsSelectList } from '../lib/orderColumns.js'
-import { MAX_PAGE_SIZE } from '../lib/constants.js'
+import { MAX_PAGE_SIZE, MAX_UPLOAD_MB } from '../lib/constants.js'
 import { processAttachment } from '../lib/images.js'
+import { assertImageOrPdf } from '../lib/fileType.js'
 import { decompressBlob } from '../lib/blobCompression.js'
 import { sep, fileSizeLabel } from '../lib/copy.js'
 import { MATCHERS, asciiNeedle, escapeLike, vendorIdsMatching } from '../lib/textSearch.js'
@@ -20,7 +20,7 @@ export const router = Router()
 // comes back mojibake ("rengÃ¸ringsplaner.pdf" for "rengøringsplaner.pdf") -- browsers never
 // send the RFC 5987 encoding that would tell busboy otherwise. Declaring the charset here
 // decodes it correctly at the source, for every field this instance parses.
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 }, defParamCharset: 'utf8' })
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 }, defParamCharset: 'utf8' })
 
 const notFound = id => Object.assign(new Error('No order ' + id), { status: 404 })
 
@@ -56,34 +56,14 @@ const selectAttachment = db.prepare('SELECT name, content_type, data, data_is_co
 const selectItemAttachment = db.prepare('SELECT name, content_type, data, data_is_compressed FROM attachments WHERE id = ? AND order_item_id = ?')
 const selectAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_id = ?')
 const selectItemAttachmentThumbnail = db.prepare('SELECT thumbnail, thumbnail_is_compressed, thumbnail_content_type FROM attachments WHERE id = ? AND order_item_id = ?')
-const selectLatestOrders = db.prepare(
-	`SELECT ${orderTotalsSelectList()} FROM orders WHERE user_id = @userId ORDER BY date DESC, id DESC LIMIT @count`
-)
-
-/* ---- overview / draft ---- */
-
-/** "Latest N orders" — N defaults to the account's entries-per-card setting, which is what
-    every card holding a list of things is cut to, so the same card reads the same length on
-    every page that shows it. A caller may still ask for a specific count (the scan flow wants a
-    handful regardless), and it is clamped so nobody can ask for an unbounded scan. */
-router.get('/overview', (req, res) => {
-	const asked = Number(req.query.count)
-	const count = Math.min(Math.max(1, asked || cardRowsFor(req.user.id)), 100)
-	const totalsRows = selectLatestOrders.all({ userId: req.user.id, count })
-	// `latestOrders`, not `latest`: the two pages that read this each hold four other lists,
-	// and a field whose name is only an adjective is one they all answer to.
-	// decorateOrderSummaryRows, not decorateOrderRows: the card this feeds (Home.jsx
-	// LatestOrders, Orders.jsx overview) draws a vendor, a date and two figures, never an
-	// order's items or attachments.
-	res.json({ latestOrders: decorateOrderSummaryRows(totalsRows), total: countAllOrders.get(req.user.id).c })
-})
+/* ---- draft ---- */
 
 router.get('/draft', (req, res) => {
 	const settings = selectDraftDefaults.get(req.user.id)
 	res.json({
-		vendor: '', date: todayIso(),
+		vendor: '', date: req.today,
 		status: settings?.default_status ?? 'Delivered', kind: settings?.default_kind ?? 'Expense',
-		deliveredDate: todayIso(), returnedDate: todayIso(),
+		deliveredDate: req.today, returnedDate: req.today,
 		categories: [], shipping: '', discount: '', reference: '', note: '', items: []
 	})
 })
@@ -92,11 +72,13 @@ router.get('/draft', (req, res) => {
    Built as parameterized clauses reused between the COUNT (matched) and the SELECT (page), so
    the two can never disagree about which rows qualify. LIMIT/OFFSET does the paging in SQLite
    rather than in JS, and only the resulting page (not the whole table) is passed to
-   decorateOrderListRows for its 2 batched child-row queries. */
+   decorateOrderListRows for its batched child-row queries. */
 
+/* A day holds several orders, so the day's own ties go to when each was added, then the id:
+   "newest" and "last order" mean the one added last, not a random one of that day's. */
 const SORT_SQL = {
-	'date-desc': 'ot.date DESC, ot.id DESC',
-	'date-asc': 'ot.date ASC, ot.id ASC',
+	'date-desc': 'ot.date DESC, ot.created_at DESC, ot.id DESC',
+	'date-asc': 'ot.date ASC, ot.created_at ASC, ot.id ASC',
 	'amount-desc': 'ot.total DESC, ot.id DESC',
 	'amount-asc': 'ot.total ASC, ot.id ASC',
 	'discount-desc': 'ot.discount DESC, ot.id DESC',
@@ -225,14 +207,10 @@ router.get('/', (req, res) => {
 		LIMIT @limit OFFSET @offset
 	`).all({ ...params, limit: size, offset: (at - 1) * size })
 
-	/* decorateOrderListRows, not decorateOrderRows: the list row (components/Rows.jsx
-	   OrderRow) never shows an order's items or attachments, so this route never fetches
-	   them -- 2 batched child queries (categories, vendors) instead of 4. */
+	// `with=itemTitles` is the copy picker's: each row's first line names.
 	res.json({
-		orders: decorateOrderListRows(totalsRows),
-		matched, total, page: at, pages,
-		from: matched ? (at - 1) * size + 1 : 0,
-		to: Math.min(at * size, matched)
+		orders: decorateOrderListRows(totalsRows, { itemTitles: q.with === 'itemTitles' }),
+		matched, total, pages
 	})
 })
 
@@ -287,7 +265,7 @@ const insertOrderRows = db.transaction((userId, id, draft) => {
 
 router.post('/', (req, res) => {
 	const draft = req.body ?? {}
-	assertValidOrderDraft(draft)
+	assertValidOrderDraft(draft, req.today)
 	const id = newId('o')
 	insertOrderRows(req.user.id, id, draft)
 	res.status(201).json(getDecoratedOrder(req.user.id, id))
@@ -336,7 +314,7 @@ const updateOrderRows = db.transaction((userId, id, draft) => {
 router.put('/:id', (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	const draft = req.body ?? {}
-	assertValidOrderDraft(draft)
+	assertValidOrderDraft(draft, req.today)
 
 	updateOrderRows(req.user.id, req.params.id, draft)
 
@@ -388,6 +366,7 @@ async function saveAttachments(files, owner, existingNames) {
 router.post('/:id/attachments', upload.array('files'), async (req, res) => {
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	const orderId = req.params.id
+	assertImageOrPdf(req.files ?? [])
 	const existingNames = new Set(selectExistingAttachmentNames.all(orderId).map(r => r.n))
 	const { added, skipped } = await saveAttachments(req.files, { orderId }, existingNames)
 	res.status(201).json({ order: getDecoratedOrder(req.user.id, orderId), added, skipped })
@@ -427,6 +406,7 @@ router.post('/:id/items/:itemId/attachments', upload.array('files'), async (req,
 	if (!selectOrderExists.get(req.params.id, req.user.id)) throw notFound(req.params.id)
 	if (!selectItemExists.get(req.params.itemId, req.params.id)) throw notFound(req.params.itemId)
 	const itemId = req.params.itemId
+	assertImageOrPdf(req.files ?? [])
 	const existingNames = new Set(selectExistingItemAttachmentNames.all(itemId).map(r => r.n))
 	const { added, skipped } = await saveAttachments(req.files, { orderItemId: itemId }, existingNames)
 	res.status(201).json({ order: getDecoratedOrder(req.user.id, req.params.id), added, skipped })
@@ -511,7 +491,7 @@ router.post('/import', async (req, res) => {
 	const imported = [], failed = []
 	for (const [index, draft] of orders.entries()) {
 		try {
-			const errors = validateOrderDraft(draft)
+			const errors = validateOrderDraft(draft, req.today)
 			if (Object.keys(errors).length) throw new Error(Object.values(errors)[0])
 
 			const attachments = await processImportAttachments(draft.attachments)
@@ -530,8 +510,11 @@ router.post('/import', async (req, res) => {
 		} catch (e) {
 			failed.push({ index, error: e.message })
 		}
-		if (streaming && ((index + 1) % step === 0 || index + 1 === orders.length))
+		if (streaming && ((index + 1) % step === 0 || index + 1 === orders.length)) {
 			res.write(JSON.stringify({ done: index + 1, total: orders.length }) + '\n')
+			// A write leaves the socket only once the loop yields; without this every line lands at the end.
+			await new Promise(resolve => setImmediate(resolve))
+		}
 	}
 
 	const result = { imported: imported.length, orders: imported, failed }

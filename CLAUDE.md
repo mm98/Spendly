@@ -109,10 +109,10 @@ a query nobody is waiting on costs the same review and risk as the first optimiz
 ### A single-record endpoint returns the record. A list, overview or search result returns only what its own consumers read — never the shape a detail page happens to have.
 
 `GET /api/orders/:id` (and vendor/category equivalents) backs a detail/edit page that genuinely uses
-most of the record — decorate it in full. `GET /api/orders`, `/api/orders/overview` and `/api/search`
+most of the record — decorate it in full. `GET /api/orders`, `/api/stats` and `/api/search`
 are row/summary shapes; giving them the full decorator means DB work and bandwidth spent on fields the
 row never renders. Each list shape gets its own decorator, built from only the child queries it needs
-(`decorateOrderListRows`, `decorateOrderSummaryRows`, `decorateOrderSearchRows` beside the single-
+(`decorateOrderListRows` and `decorateOrderSearchRows` beside the single-
 record `decorateOrder`).
 
 The test is "is it read anywhere," not "might it be handy": before a list route returns a field, grep
