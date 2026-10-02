@@ -155,12 +155,14 @@ export const bookmarkDeleteNote = 'The bookmark and its picture are removed. To 
 
 /** Holds the page while the form has changes: in-app navigation asks first, and a reload or a
     closed tab gets the browser's own question. `release` lets a finished save leave. */
-export function useLeaveGuard(dirty) {
+export function useLeaveGuard(dirty, within) {
 	const released = useRef(false)
 	const live = useRef(dirty)
 	live.current = dirty
+	// pages under `within` share the changes, so moving among them does not ask
+	const stays = path => within != null && (path === within || path.startsWith(within + '/'))
 	const blocker = useBlocker(useCallback(({ currentLocation, nextLocation }) =>
-		live.current && !released.current && currentLocation.pathname !== nextLocation.pathname, []))
+		live.current && !released.current && currentLocation.pathname !== nextLocation.pathname && !stays(nextLocation.pathname), [within]))
 	useBeforeUnload(useCallback(ev => {
 		if (live.current && !released.current) { ev.preventDefault(); ev.returnValue = '' }
 	}, []))
