@@ -13,9 +13,11 @@ export function LineEditor({
 	first = false,
 	last = false,
 	handle = false,
+	sheet = false,
 	commit,
 	saving = false,
 	onCommit,
+	onCommitNext,
 	onCancel,
 	children,
 	...rest
@@ -26,7 +28,11 @@ export function LineEditor({
 	const keys = ev => {
 		if (ev.defaultPrevented || ev.target.getAttribute?.('aria-expanded') === 'true') return
 		if (ev.key === 'Escape') { ev.preventDefault(); onCancel?.() }
-		else if (ev.key === 'Enter' && ev.target instanceof HTMLInputElement) { ev.preventDefault(); onCommit?.() }
+		else if (ev.key === 'Enter' && ev.target instanceof HTMLInputElement) {
+			ev.preventDefault()
+			if ((ev.metaKey || ev.ctrlKey) && onCommitNext) onCommitNext()
+			else onCommit?.()
+		}
 	}
 	const parts = (
 		<>
@@ -45,14 +51,14 @@ export function LineEditor({
 			<div className="sp-dialog__actions">
 				<span className="sp-note">{hint}</span>
 				<span className="sp-grow" />
-				<Button variant="outline" onClick={onCancel}>Cancel</Button>
-				<Button disabled={saving} onClick={onCommit}>{saving ? 'Saving...' : commit}</Button>
+				<Button variant="outline" fullWidth={sheet} onClick={onCancel}>Cancel</Button>
+				<Button disabled={saving} fullWidth={sheet} onClick={onCommit}>{saving ? 'Saving...' : commit}</Button>
 			</div>
 		</>
 	)
 	const handleCol = handle ? <span className="sp-list-item__handle" aria-hidden="true"><Icon name="grip-vertical" /></span> : null
 	if (photo) return (
-		<div className="sp-line-editor" onKeyDown={keys} {...rest}>
+		<div className={join('sp-line-editor', sheet && 'sp-line-editor--sheet')} onKeyDown={keys} {...rest}>
 			{handleCol}
 			{photo}
 			<div className="sp-line-editor__form">{parts}</div>
@@ -62,6 +68,24 @@ export function LineEditor({
 		<div className="sp-line-editor sp-line-editor--plain" onKeyDown={keys} {...rest}>
 			{handleCol}
 			<div className="sp-line-editor__form">{parts}</div>
+		</div>
+	)
+}
+
+/** The line under a list of items (c15): what they come to, then the saving. */
+export function Totals({ children, ...rest }) {
+	reject(rest, 'Totals')
+	return <div className="sp-totals" {...rest}>{children}</div>
+}
+
+/** A value the editor works out rather than takes (c15's Line total): a label over a figure
+    with no box, on the line the boxes beside it sit on. */
+export function Computed({ label, children, ...rest }) {
+	reject(rest, 'Computed')
+	return (
+		<div className="sp-field" {...rest}>
+			<span className="sp-field__label">{label}</span>
+			<span className="sp-line-editor__computed">{children}</span>
 		</div>
 	)
 }

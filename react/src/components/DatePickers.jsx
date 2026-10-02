@@ -372,6 +372,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 						data-editing={editing === 'from' ? 'true' : 'false'}
 						onFocus={() => setEditing('from')}
 						{...fromText}
+						invalid={undefined}
 						{...(fromText.invalid ? { 'aria-invalid': 'true' } : {})}
 					/>
 				</label>
@@ -383,6 +384,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 						data-editing={editing === 'to' ? 'true' : 'false'}
 						onFocus={() => setEditing('to')}
 						{...toText}
+						invalid={undefined}
 						{...(toText.invalid ? { 'aria-invalid': 'true' } : {})}
 					/>
 				</label>
@@ -672,6 +674,8 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 				className="sp-input sp-input--trail sp-number"
 				aria-describedby={hintId}
 				{...text}
+				// a state, not an attribute: it becomes aria-invalid on the next line
+				invalid={undefined}
 				{...(danger || text.invalid ? { 'aria-invalid': 'true' } : {})}
 				onKeyDown={ev => {
 					// the panel opens on the key that opens every other panel in the system

@@ -184,7 +184,8 @@ export function ToastUndo({ children, onClick, ...rest }) {
 
 const ALERT_COLOR = { warning: null, danger: 'danger', success: 'success' }
 
-export function Alert({ color = 'warning', mark, title, children, ...rest }) {
+/** `action` is one button at the row's far end, after a spacer (3a, 3b). */
+export function Alert({ color = 'warning', mark, title, action, children, ...rest }) {
 	reject(rest, 'Alert')
 	return (
 		<div
@@ -197,6 +198,7 @@ export function Alert({ color = 'warning', mark, title, children, ...rest }) {
 				<span className="sp-alert__title">{title}</span>
 				{children ? <span className="sp-alert__note">{children}</span> : null}
 			</span>
+			{action ? <><span className="sp-grow" />{action}</> : null}
 		</div>
 	)
 }
