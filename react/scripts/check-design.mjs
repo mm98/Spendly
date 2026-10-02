@@ -26,11 +26,7 @@ const walk = dir => readdirSync(dir).flatMap(name => {
 	return statSync(p).isDirectory() ? walk(p) : [p]
 })
 
-// Pages still on the legacy stylesheet are reported as pending, not checked: the legacy
-// directory and everything importing it go together.
-const sources = walk(src).filter(p => /\.(jsx?|mjs)$/.test(p))
-const legacy = sources.filter(p => p.includes('/legacy/') || /from '\.{1,2}\/(\.\.\/)?legacy\//.test(read(p)))
-const checked = sources.filter(p => !legacy.includes(p))
+const checked = walk(src).filter(p => /\.(jsx?|mjs)$/.test(p))
 const rel = p => relative(root, p)
 
 const parsed = new Map(checked.map(p => [p, parseAst(read(p), { lang: p.endsWith('.jsx') ? 'jsx' : 'js' }, p)]))
@@ -174,8 +170,7 @@ for (const [p, ast] of parsed) {
 /* ---- what the product says ---- */
 
 const TELLS = [/—/, /–/, /[‘’“”]/, /&(mdash|ndash|rsquo|lsquo|ldquo|rdquo);/, /\p{Extended_Pictographic}/u]
-// the Tabler catalogue is generated from the package, word for word
-const sweep = [...checked.filter(p => !p.includes('/api/tabler/')), join(root, 'index.html'), join(src, 'styles/tokens.css'), join(src, 'styles/components.css')]
+const sweep = [...checked, join(root, 'index.html'), join(src, 'styles/tokens.css'), join(src, 'styles/components.css')]
 for (const p of sweep) read(p).split('\n').forEach((line, i) => {
 	for (const t of TELLS) if (t.test(line)) fail('typographic tells', `${rel(p)}:${i + 1}`, line.trim().slice(0, 90))
 })
@@ -211,5 +206,4 @@ for (const [rule, list] of Object.entries(byRule)) {
 	if (list.length > 40) console.log(`  ... and ${list.length - 40} more`)
 }
 console.log(`\n${checked.length} files checked, ${findings.length} findings.`)
-if (legacy.length) console.log(`${legacy.length} files still on the legacy stylesheet, not checked.`)
 process.exit(findings.length ? 1 : 0)

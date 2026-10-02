@@ -10,20 +10,14 @@
 		"dev": "vite",
 		"build": "vite build",
 		"postbuild": "node scripts/precompress.mjs",
-		"preview": "vite preview",
-		"icons:sync": "node scripts/sync-icons.mjs",
-		"icons:check": "node scripts/sync-icons.mjs --check",
-		"icons:brand": "node scripts/brand-icons.mjs",
-		"icons:brand:check": "node scripts/brand-icons.mjs --check"
+		"preview": "vite preview"
 	},
 	"dependencies": {
 		"react": "19.2.8",
 		"react-dom": "19.2.8",
-		"react-router": "8.3.0",
-		"recharts": "3.10.1"
+		"react-router": "8.3.0"
 	},
 	"devDependencies": {
-		"@tabler/icons": "3.46.0",
 		"@vitejs/plugin-react": "6.0.4",
 		"vite": "8.1.5"
 	}
