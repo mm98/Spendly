@@ -34,10 +34,10 @@ const searchVendors = perMatcher(match => `
 `)
 const searchCategories = perMatcher(match =>
 	`SELECT id, name FROM categories WHERE user_id = @userId AND ${match('name')} ORDER BY name LIMIT @limit`)
-/* The name only. A wish's address holds the shop's domain, which is the vendor's own name in
-   most rows, so matching it would answer "bilka" with the vendor and every wish bought there. */
-const searchWishes = perMatcher(match =>
-	`SELECT id, name, archived FROM wishes WHERE user_id = @userId AND ${match('name')}
+/* The name only. A bookmark's address holds the shop's domain, which is the vendor's own name in
+   most rows, so matching it would answer "bilka" with the vendor and every bookmark bought there. */
+const searchBookmarks = perMatcher(match =>
+	`SELECT id, name, archived FROM bookmarks WHERE user_id = @userId AND ${match('name')}
 		ORDER BY name COLLATE NOCASE LIMIT @limit`)
 /* Whether the account has any uncategorised order at all -- the palette offers the
    "Without category" filter only when there is something behind it, the same honesty rule
@@ -57,12 +57,12 @@ const searchOrders = perMatcher(match => `
 	ORDER BY ot.date DESC LIMIT @limit
 `)
 
-/** Cross-entity search for the command palette: vendors, categories, wishes and orders
+/** Cross-entity search for the command palette: vendors, categories, bookmarks and orders
     (matched by vendor name, note, or an item's title) that the query text appears in, each
     scoped to the account's own rows via an indexed user_id lookup. */
 router.get('/', (req, res) => {
 	const needle = String(req.query.query ?? '').trim().toLowerCase()
-	if (!needle) return res.json({ vendors: [], categories: [], wishes: [], orders: [] })
+	if (!needle) return res.json({ vendors: [], categories: [], bookmarks: [], orders: [] })
 	const shape = asciiNeedle(needle) ? 'ascii' : 'fold'
 	const params = { userId: req.user.id, limit: MAX_PER_KIND,
 		needle: shape === 'ascii' ? `%${escapeLike(needle)}%` : needle }
@@ -78,7 +78,7 @@ router.get('/', (req, res) => {
 	res.json({
 		vendors: searchVendors[shape].all(params),
 		categories,
-		wishes: searchWishes[shape].all(params),
+		bookmarks: searchBookmarks[shape].all(params),
 		orders: decorateOrderSearchRows(orderRows)
 	})
 })

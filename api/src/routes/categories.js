@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { db } from '../db.js'
 import { newId } from '../lib/ids.js'
-import { categoryStats, categoryStatsFor, uncategorisedStats, wishCategoryCounts } from '../lib/aggregate.js'
+import { categoryStats, categoryStatsFor, uncategorisedStats, bookmarkCategoryCounts } from '../lib/aggregate.js'
 
 export const router = Router()
 
@@ -16,9 +16,9 @@ const insert = db.prepare(`INSERT INTO categories (id, user_id, name, icon, icon
    start from the orders side and read all 50,000 of an account's rows to count one category's
    links: 12.2ms against 1.5ms, same count. */
 const countOrders = db.prepare('SELECT COUNT(*) c FROM order_categories oc CROSS JOIN orders o ON o.id = oc.order_id WHERE oc.category_id = ? AND o.user_id = ?')
-// A wish holds a category in use the same way an order does; without this the delete below
+// A bookmark holds a category in use the same way an order does; without this the delete below
 // reaches SQLite's foreign key and answers 500 instead of a sentence.
-const countWishes = db.prepare('SELECT COUNT(*) c FROM wish_categories wc CROSS JOIN wishes w ON w.id = wc.wish_id WHERE wc.category_id = ? AND w.user_id = ?')
+const countBookmarks = db.prepare('SELECT COUNT(*) c FROM bookmark_categories bc CROSS JOIN bookmarks b ON b.id = bc.bookmark_id WHERE bc.category_id = ? AND b.user_id = ?')
 const deleteOne = db.prepare('DELETE FROM categories WHERE id = ? AND user_id = ?')
 const update = db.prepare('UPDATE categories SET name=@name, icon=@icon, icon_path=@iconPath, colour=@colour, budget=@budget, favourite=@favourite WHERE id=@id AND user_id=@userId')
 
@@ -41,18 +41,18 @@ const moveOrders = db.transaction((fromId, toId, userId) => {
 
 const ZERO_STATS = { orders: 0, spend: 0, share: 0, saved: 0 }
 
-// Order and wish usage ride beside spend/share -- the filter panels' own answer to "is this
+// Order and bookmark usage ride beside spend/share -- the filter panels' own answer to "is this
 // category worth offering," read for free by every consumer that already fetches the list.
-const withStats = (category, stats = ZERO_STATS, wishes = 0) => ({
+const withStats = (category, stats = ZERO_STATS, bookmarks = 0) => ({
 	id: category.id, name: category.name, icon: category.icon, iconPath: category.icon_path,
 	colour: category.colour, budget: category.budget, favourite: Boolean(category.favourite),
-	spend: stats.spend, share: stats.share, saved: stats.saved, orders: stats.orders, wishes
+	spend: stats.spend, share: stats.share, saved: stats.saved, orders: stats.orders, bookmarks
 })
 
 router.get('/', (req, res) => {
 	const stats = categoryStats(req.user.id)
-	const wishCounts = wishCategoryCounts(req.user.id)
-	res.json(selectAll.all(req.user.id).map(c => withStats(c, stats.get(c.id), wishCounts.get(c.id) ?? 0)))
+	const bookmarkCounts = bookmarkCategoryCounts(req.user.id)
+	res.json(selectAll.all(req.user.id).map(c => withStats(c, stats.get(c.id), bookmarkCounts.get(c.id) ?? 0)))
 })
 
 /* Registered before /:id, or that route would answer it with "No category uncategorised".
@@ -88,7 +88,7 @@ router.post('/', (req, res) => {
 router.get('/:id', (req, res) => {
 	const category = selectOne.get(req.params.id, req.user.id)
 	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
-	res.json(withStats(category, categoryStatsFor(req.user.id, category.id), countWishes.get(category.id, req.user.id).c))
+	res.json(withStats(category, categoryStatsFor(req.user.id, category.id), countBookmarks.get(category.id, req.user.id).c))
 })
 
 router.patch('/:id', (req, res) => {
@@ -114,11 +114,11 @@ router.patch('/:id', (req, res) => {
 	}
 	update.run({ ...next, id: category.id, userId: req.user.id })
 	const updated = selectOne.get(category.id, req.user.id)
-	res.json(withStats(updated, categoryStatsFor(req.user.id, category.id), countWishes.get(category.id, req.user.id).c))
+	res.json(withStats(updated, categoryStatsFor(req.user.id, category.id), countBookmarks.get(category.id, req.user.id).c))
 })
 
 /* The delete below refuses while a category is on an order, so this is the way out of it.
-   Wishes are not touched: they carry categories through a table of their own. */
+   Bookmarks are not touched: they carry categories through a table of their own. */
 router.post('/:id/move-orders', (req, res) => {
 	const category = selectOne.get(req.params.id, req.user.id)
 	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
@@ -135,8 +135,8 @@ router.delete('/:id', (req, res) => {
 	if (!category) return res.status(404).json({ error: 'No category ' + req.params.id })
 	const used = countOrders.get(category.id, req.user.id).c
 	if (used) return res.status(409).json({ error: `That category is on ${used} order${used === 1 ? '' : 's'}.` })
-	const wished = countWishes.get(category.id, req.user.id).c
-	if (wished) return res.status(409).json({ error: `That category is on ${wished} wish${wished === 1 ? '' : 'es'}.` })
+	const bookmarked = countBookmarks.get(category.id, req.user.id).c
+	if (bookmarked) return res.status(409).json({ error: `That category is on ${bookmarked} bookmark${bookmarked === 1 ? '' : 's'}.` })
 	deleteOne.run(category.id, req.user.id)
 	res.json({ id: category.id })
 })

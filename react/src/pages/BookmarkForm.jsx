@@ -13,28 +13,28 @@ import {
 import { Combobox } from '../legacy/Combobox.jsx'
 import { useToast } from '../legacy/Toast.jsx'
 import { useApi } from '../api/useApi.js'
-import { WISH_FIELDS, httpUrl, siteOf } from '../api/rules.js'
+import { BOOKMARK_FIELDS, httpUrl, siteOf } from '../api/rules.js'
 import {
-	addWishPhoto, addWishPhotoFromUrl, createWish, deleteWish, failureMessage, getCategories,
-	getWish, getWishPreview, invalidateWishData, removeWishPhoto, updateWish, wishPhotoThumbnailUrl
+	addBookmarkPhoto, addBookmarkPhotoFromUrl, createBookmark, deleteBookmark, failureMessage, getCategories,
+	getBookmark, getBookmarkPreview, invalidateBookmarkData, removeBookmarkPhoto, updateBookmark, bookmarkPhotoThumbnailUrl
 } from '../api/client.js'
 import { amount, currency, currencySymbol, longDate, parseAmount } from '../api/format.js'
 import { categoryGroups } from '../api/pickerGroups.js'
 
-/* A wish is a record, not part of one, so it is edited on its own page like a vendor -- one way
+/* A bookmark is a record, not part of one, so it is edited on its own page like a vendor -- one way
    to edit a record here, not one per screen. Nothing saved reaches a total. */
 
-export default function WishForm({ mode = 'create' }) {
+export default function BookmarkForm({ mode = 'create' }) {
 	const { id } = useParams()
-	const existing = useApi(getWish, [id], { enabled: mode === 'edit' })
+	const existing = useApi(getBookmark, [id], { enabled: mode === 'edit' })
 
 	if (mode === 'edit' && !existing.data) {
-		return <RecordWait state={existing} label="Loading the wish" />
+		return <RecordWait state={existing} label="Loading the bookmark" />
 	}
-	return <WishFields mode={mode} wish={existing.data ?? null} />
+	return <BookmarkFields mode={mode} bookmark={existing.data ?? null} />
 }
 
-function WishFields({ mode, wish }) {
+function BookmarkFields({ mode, bookmark }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const categories = useApi(getCategories)
@@ -46,7 +46,7 @@ function WishFields({ mode, wish }) {
 	const [categoryQuery, setCategoryQuery] = useState('')
 	const [archived, setArchived] = useState(false)
 	const [saving, setSaving] = useState(false)
-	// This form's, not the record's: a wish being created has no id to hang a file on, so the
+	// This form's, not the record's: a bookmark being created has no id to hang a file on, so the
 	// bytes travel after it exists.
 	const [picked, setPicked] = useState(null)
 	const [cleared, setCleared] = useState(false)
@@ -55,28 +55,28 @@ function WishFields({ mode, wish }) {
 	const [offered, setOffered] = useState(null)   // { address, thumbnail }
 
 	useEffect(() => {
-		if (!wish) return
-		setName(wish.name)
-		setUrl(wish.url)
-		setPrice(wish.price != null ? amount(wish.price) : '')
-		setChosen(wish.categories ?? [])
-		setArchived(Boolean(wish.archived))
-	}, [wish])
+		if (!bookmark) return
+		setName(bookmark.name)
+		setUrl(bookmark.url)
+		setPrice(bookmark.price != null ? amount(bookmark.price) : '')
+		setChosen(bookmark.categories ?? [])
+		setArchived(Boolean(bookmark.archived))
+	}, [bookmark])
 
 	// The preview belongs to this page and is revoked with it.
 	useEffect(() => () => { if (picked) URL.revokeObjectURL(picked.url) }, [picked])
 
-	const values = useMemo(() => ({ 'wish-name': name, 'wish-url': url, 'wish-price': price }),
+	const values = useMemo(() => ({ 'bookmark-name': name, 'bookmark-url': url, 'bookmark-price': price }),
 		[name, url, price])
-	const { check, recheck, propsFor } = useFieldErrors(WISH_FIELDS, values)
-	const nameField = propsFor('wish-name')
-	const urlField = propsFor('wish-url')
-	const priceField = propsFor('wish-price')
+	const { check, recheck, propsFor } = useFieldErrors(BOOKMARK_FIELDS, values)
+	const nameField = propsFor('bookmark-name')
+	const urlField = propsFor('bookmark-url')
+	const priceField = propsFor('bookmark-price')
 
 	const drop = useDroppedPhoto(file => { setPicked({ file, url: URL.createObjectURL(file) }); setOffered(null); setCleared(false) })
 	const photo = picked ? { present: true, src: picked.url }
 		: cleared ? {}
-		: wish?.photoId ? { present: true, src: wishPhotoThumbnailUrl(wish.id, wish.photoId) }
+		: bookmark?.photoId ? { present: true, src: bookmarkPhotoThumbnailUrl(bookmark.id, bookmark.photoId) }
 		: offered ? { present: true, src: offered.thumbnail }
 		: {}
 
@@ -87,11 +87,11 @@ function WishFields({ mode, wish }) {
 		const address = httpUrl(value)
 		if (mode !== 'create' || !address) return
 		const ticket = ++wanted.current
-		const { title, image, thumbnail } = await getWishPreview(address)
+		const { title, image, thumbnail } = await getBookmarkPreview(address)
 		if (ticket !== wanted.current) return
 		if (title) setName(current => {
 			if (current.trim()) return current
-			recheck('wish-name', title)
+			recheck('bookmark-name', title)
 			return title
 		})
 		// Offered, not applied: the frame shows it and the reader can replace or remove it
@@ -105,7 +105,7 @@ function WishFields({ mode, wish }) {
 		setCategoryQuery('')
 	}
 
-	/** The record first, then its picture: the bytes go against a real id, so the wish has to
+	/** The record first, then its picture: the bytes go against a real id, so the bookmark has to
 	    exist before its photo can be attached. */
 	const save = async () => {
 		const failed = check()
@@ -113,15 +113,15 @@ function WishFields({ mode, wish }) {
 		setSaving(true)
 		const draft = { name: name.trim(), url: url.trim(), price: price.trim(), categories: chosen, archived }
 		try {
-			const saved = mode === 'edit' ? await updateWish(wish.id, draft) : await createWish(draft)
-			if (picked) await addWishPhoto(saved.id, picked.file)
-			else if (cleared) await removeWishPhoto(saved.id)
+			const saved = mode === 'edit' ? await updateBookmark(bookmark.id, draft) : await createBookmark(draft)
+			if (picked) await addBookmarkPhoto(saved.id, picked.file)
+			else if (cleared) await removeBookmarkPhoto(saved.id)
 			// The shop's own picture, fetched by the server against the row that now exists.
-			// Silent both ways: a wish is saved whether or not the picture could be had.
-			else if (offered) await addWishPhotoFromUrl(saved.id, offered.address)
-			invalidateWishData()
+			// Silent both ways: a bookmark is saved whether or not the picture could be had.
+			else if (offered) await addBookmarkPhotoFromUrl(saved.id, offered.address)
+			invalidateBookmarkData()
 			toast(`${saved.name} ${mode === 'edit' ? 'saved' : 'added'}.`)
-			navigate('/wishlist')
+			navigate('/bookmarks')
 		} catch (e) {
 			setSaving(false)
 			toast(failureMessage(e, 'That did not save. Try again.'), 'negative')
@@ -129,48 +129,48 @@ function WishFields({ mode, wish }) {
 	}
 
 	const del = useDelete({
-		what: 'wish',
-		detail: wish ? `${wish.name}, from ${siteOf(wish.url)}.` : '',
-		onDelete: () => deleteWish(wish.id)
-			.then(() => { invalidateWishData(); toast(`${wish.name} removed.`); navigate('/wishlist') })
+		what: 'bookmark',
+		detail: bookmark ? `${bookmark.name}, from ${siteOf(bookmark.url)}.` : '',
+		onDelete: () => deleteBookmark(bookmark.id)
+			.then(() => { invalidateBookmarkData(); toast(`${bookmark.name} removed.`); navigate('/bookmarks') })
 			.catch(e => toast(failureMessage(e, 'That did not delete.'), 'negative'))
 	})
 
 	return (
 		<FormPage
-			title={mode === 'edit' ? 'Edit wish' : 'New wish'}
+			title={mode === 'edit' ? 'Edit bookmark' : 'New bookmark'}
 			lead={mode === 'edit'
 				? 'What it is, where to buy it, and what it costs today.'
-				: 'Something you are thinking about buying. It goes on your wishlist, and counts towards nothing you have spent.'}
-			cancel={{ to: '/wishlist' }}
+				: 'Something you are thinking about buying. It goes in your bookmarks, and counts towards nothing you have spent.'}
+			cancel={{ to: '/bookmarks' }}
 			submit={{
-				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD WISH',
+				label: saving ? 'SAVING...' : mode === 'edit' ? 'SAVE CHANGES' : 'ADD BOOKMARK',
 				onClick: save, disabled: saving
 			}}
 			rail={
 				<>
-					<WishSummary name={name} url={url} price={price} categories={chosen}
-						photo={photo} wish={wish} />
+					<BookmarkSummary name={name} url={url} price={price} categories={chosen}
+						photo={photo} bookmark={bookmark} />
 					{mode === 'edit' ? (
-						<DeleteCard what="wish" del={del}>
-							Nothing else points at a wish, so removing one takes only the wish itself.
+						<DeleteCard what="bookmark" del={del}>
+							Nothing else points at a bookmark, so removing one takes only the bookmark itself.
 							To keep it without it being on your list, archive it instead.
 						</DeleteCard>
 					) : null}
 				</>
 			}>
 
-			<Field label="Name" error={nameField.error} errorId={nameField.errorId} htmlFor="wish-name">
+			<Field label="Name" error={nameField.error} errorId={nameField.errorId} htmlFor="bookmark-name">
 				<FieldShell>
-					<TextInput id="wish-name" value={name} autoFocus
-						onChange={v => { setName(v); recheck('wish-name', v) }}
-						aria-label="Wish name" aria-required="true"
+					<TextInput id="bookmark-name" value={name} autoFocus
+						onChange={v => { setName(v); recheck('bookmark-name', v) }}
+						aria-label="Bookmark name" aria-required="true"
 						invalid={nameField.invalid} describedBy={nameField.describedBy}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
 				</FieldShell>
 			</Field>
 
-			<Field label="Link" error={urlField.error} errorId={urlField.errorId} htmlFor="wish-url"
+			<Field label="Link" error={urlField.error} errorId={urlField.errorId} htmlFor="bookmark-url"
 				help={mode === 'create'
 					? 'Fill this in first and the name and picture are taken from the page.'
 					: 'The page you would buy it on.'}>
@@ -180,8 +180,8 @@ function WishFields({ mode, wish }) {
 					    go without -- and the only thing a placeholder could show for a link is a
 					    made-up address, which README: Input types forbids: a grey "shop.dk/product"
 					    reads as a field somebody has already filled in. */}
-					<TextInput id="wish-url" value={url} inputMode="url"
-						onChange={v => { setUrl(v); recheck('wish-url', v) }}
+					<TextInput id="bookmark-url" value={url} inputMode="url"
+						onChange={v => { setUrl(v); recheck('bookmark-url', v) }}
 						aria-label="Link" aria-required="true"
 						invalid={urlField.invalid} describedBy={urlField.describedBy}
 										onBlur={e => readPage(e.target.value)}
@@ -192,7 +192,7 @@ function WishFields({ mode, wish }) {
 							if (!cleaned) return
 							e.preventDefault()
 							setUrl(cleaned)
-							recheck('wish-url', cleaned)
+							recheck('bookmark-url', cleaned)
 						}}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
 				</FieldShell>
@@ -202,10 +202,10 @@ function WishFields({ mode, wish }) {
 			    the way every other pair in the app does. */}
 			<FieldPair>
 				<Field label="Price" optional error={priceField.error} errorId={priceField.errorId}
-					htmlFor="wish-price"
+					htmlFor="bookmark-price"
 					help="Leave it empty if you have not looked it up.">
-					<NumberInput id="wish-price" value={price} unit={currencySymbol()}
-						onChange={a => { setPrice(a); recheck('wish-price', a) }}
+					<NumberInput id="bookmark-price" value={price} unit={currencySymbol()}
+						onChange={a => { setPrice(a); recheck('bookmark-price', a) }}
 						aria-label="Price"
 						invalid={priceField.invalid} describedBy={priceField.describedBy}
 						onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); save() } }} />
@@ -214,9 +214,9 @@ function WishFields({ mode, wish }) {
 				{/* htmlFor for the reason every chips field in the app has one: the chips are
 				    labelable and come first, so without it the label points at the first chip's
 				    remove button and a tap on the chevron deletes a category. */}
-				<Field label="Categories" optional htmlFor="wish-categories"
+				<Field label="Categories" optional htmlFor="bookmark-categories"
 					help="Where this would land if you bought it.">
-					<Combobox id="wish-categories" label="Add category" placeholder="Add category..."
+					<Combobox id="bookmark-categories" label="Add category" placeholder="Add category..."
 						chips={chosen.map(c => (
 							<Chip key={c} label={`Remove category ${c}`}
 								onRemove={() => setChosen(chosen.filter(x => x !== c))}>{c}</Chip>
@@ -238,53 +238,53 @@ function WishFields({ mode, wish }) {
 			    the 128px frame alone. No sentence under it: at 128px the frame's own words broke
 			    over three lines, and the box already says what it takes. */}
 			<Field label="Picture" optional group>
-				<div className={drop.over ? 'wish-photo-field is-dragover' : 'wish-photo-field'}
+				<div className={drop.over ? 'bookmark-photo-field is-dragover' : 'bookmark-photo-field'}
 					{...drop.dropProps}>
-					<LinePhoto photo={photo} label="Picture of this wish" hint={false}
+					<LinePhoto photo={photo} label="Picture of this bookmark" hint={false}
 						onPick={file => { setPicked({ file, url: URL.createObjectURL(file) }); setOffered(null); setCleared(false) }}
 						onClear={() => { setPicked(null); setOffered(null); setCleared(true) }} />
 				</div>
 			</Field>
 
-			{/* Only where there is a record to put away: a wish being created is one you want
-			    now, so "archived" on a new-wish form is a state nobody would choose. Archived is
+			{/* Only where there is a record to put away: a bookmark being created is one you want
+			    now, so "archived" on a new-bookmark form is a state nobody would choose. Archived is
 			    a field on the record rather than a button on the list row, the same way a
 			    vendor's Favourite is: the list filters on it, the form sets it. */}
 			{mode === 'edit' ? (
-				<CheckRow id="wish-archived" checked={archived} onChange={setArchived}
+				<CheckRow id="bookmark-archived" checked={archived} onChange={setArchived}
 					label="Archived"
-					help="Kept, but off your wishlist until you ask for the archived ones." />
+					help="Kept, but off your bookmarks until you ask for the archived ones." />
 			) : null}
 		</FormPage>
 	)
 }
 
-/** The rail card mirroring the form. No spend total: a wish has never cost anything, and the
+/** The rail card mirroring the form. No spend total: a bookmark has never cost anything, and the
     figure it has is what the shop asks today. */
-function WishSummary({ name, url, price, categories, photo, wish }) {
+function BookmarkSummary({ name, url, price, categories, photo, bookmark }) {
 	const site = url.trim() ? siteOf(url) : ''
 	// Only an address a browser can follow becomes a link -- httpUrl is the same rule the field
 	// validates with, so the rail cannot offer a link the form would have refused.
 	const href = httpUrl(url)
 	const asNumber = price.trim() ? parseAmount(price) : null
 	return (
-		<Card aria-label="Wish summary">
+		<Card aria-label="Bookmark summary">
 			<CardBody>
-				<div className="card-subheading">Wish summary</div>
+				<div className="card-subheading">Bookmark summary</div>
 				<span className="section-label">How it will look</span>
-				{/* The row the wishlist will draw, drawn by the same component -- a preview that is
+				{/* The row the bookmark list will draw, drawn by the same component -- a preview that is
 				    a second arrangement of the same parts is one that can disagree with the list. */}
 				<div className="summary-preview">
 					<EntityRow
 						mark={<span className="document-thumb">
 							<ImageOrIcon src={photo.src ?? ''} icon="photo" imgClassName="document-thumb-img" /></span>}
-						name={name.trim() || 'Your wish'}
+						name={name.trim() || 'Your bookmark'}
 						meta={site || 'no link yet'}
 						amount={asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'} />
 				</div>
 				<SummaryRow label="Shop" value={site || '-'} />
 				<SummaryRow label="Categories" value={categories.length ? categories.join(', ') : '-'} />
-				{wish ? <SummaryRow label="Added" value={longDate(wish.createdAt)} /> : null}
+				{bookmark ? <SummaryRow label="Added" value={longDate(bookmark.createdAt)} /> : null}
 				<SummaryRow label="Price"
 					value={asNumber != null && Number.isFinite(asNumber) ? currency(asNumber) : '-'} />
 				{/* The way to the shop, on the page that holds every other action on this record --

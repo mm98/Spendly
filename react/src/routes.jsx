@@ -98,8 +98,8 @@ const NewOrderDetails = page(() => import('./pages/NewOrder.jsx'), 'NewOrderDeta
 const NewOrderItems = page(() => import('./pages/NewOrder.jsx'), 'NewOrderItems')
 const EditOrder = page(() => import('./pages/EditOrder.jsx'))
 const CopyOrder = page(() => import('./pages/EditOrder.jsx'), 'CopyOrder')
-const Wishlist = page(() => import('./pages/Wishlist.jsx'))
-const WishForm = page(() => import('./pages/WishForm.jsx'))
+const Bookmarks = page(() => import('./pages/Bookmarks.jsx'))
+const BookmarkForm = page(() => import('./pages/BookmarkForm.jsx'))
 const Settings = page(() => import('./pages/Settings.jsx'))
 const SettingsImport = page(() => import('./pages/SettingsImport.jsx'))
 const CategoryForm = page(() => import('./pages/CategoryForm.jsx'))
@@ -202,17 +202,17 @@ export const routes = [
 				] }
 			] },
 
-			/* Its own section because a wish never reaches a total. No sub-tabs: archived is a
+			/* Its own section because a bookmark never reaches a total. No sub-tabs: archived is a
 			   filter on the list, so it composes with the search, the category and the dates. */
-			{ path: 'wishlist', children: [
-				{ index: true, element: <ListState name="wishlist"><Wishlist /></ListState>,
-					handle: { title: 'Wishlist', navKey: 'wishlist' } },
-				/* A wish is a record, so it is created and edited on its own page -- the rule the
+			{ path: 'bookmarks', children: [
+				{ index: true, element: <ListState name="bookmarks"><Bookmarks /></ListState>,
+					handle: { title: 'Bookmarks', navKey: 'bookmarks' } },
+				/* A bookmark is a record, so it is created and edited on its own page -- the rule the
 				   vendor and category routes above already follow. */
-				{ path: 'new', element: <WishForm mode="create" />,
-					handle: { title: 'New wish', navKey: 'wishlist', back: { to: '/wishlist', label: 'wishlist' } } },
-				{ path: ':id/edit', element: <WishForm mode="edit" />,
-					handle: { title: 'Edit wish', navKey: 'wishlist', back: { to: '/wishlist', label: 'wishlist' } } }
+				{ path: 'new', element: <BookmarkForm mode="create" />,
+					handle: { title: 'New bookmark', navKey: 'bookmarks', back: { to: '/bookmarks', label: 'bookmarks' } } },
+				{ path: ':id/edit', element: <BookmarkForm mode="edit" />,
+					handle: { title: 'Edit bookmark', navKey: 'bookmarks', back: { to: '/bookmarks', label: 'bookmarks' } } }
 			] },
 
 			{ path: 'scan', handle: { title: 'Scan receipt', navKey: 'orders' }, children: [

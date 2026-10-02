@@ -6,7 +6,7 @@ import { router as authRouter } from './routes/auth.js'
 import { router as vendorsRouter } from './routes/vendors.js'
 import { router as categoriesRouter } from './routes/categories.js'
 import { router as ordersRouter } from './routes/orders.js'
-import { router as wishesRouter } from './routes/wishes.js'
+import { router as bookmarksRouter } from './routes/bookmarks.js'
 import { router as budgetRouter } from './routes/budget.js'
 import { router as settingsRouter } from './routes/settings.js'
 import { router as dashboardCardsRouter } from './routes/dashboardCards.js'
@@ -21,7 +21,7 @@ import { readCache } from './lib/readCache.js'
 export const app = express()
 
 /* The browser reaches this origin and nowhere else -- a shop's picture is fetched server-side
-   into a data: URI (routes/wishes.js). No inline or eval escape, so injected markup cannot run. */
+   into a data: URI (routes/bookmarks.js). No inline or eval escape, so injected markup cannot run. */
 const CSP = [
 	"default-src 'self'",
 	"script-src 'self'",
@@ -188,7 +188,7 @@ app.use('/api', requireAuth, readCache)
 app.use('/api/vendors', vendorsRouter)
 app.use('/api/categories', categoriesRouter)
 app.use('/api/orders', ordersRouter)
-app.use('/api/wishes', wishesRouter)
+app.use('/api/bookmarks', bookmarksRouter)
 app.use('/api/budget', budgetRouter)
 app.use('/api/settings', settingsRouter)
 app.use('/api/dashboard-cards', dashboardCardsRouter)

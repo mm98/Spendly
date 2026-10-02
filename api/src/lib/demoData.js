@@ -71,7 +71,7 @@ const ITEMS = {
 
 /* Two are archived, or the filter has nothing to show. `back` is days ago; the prices are what
    a shop asks and reach no total in the app. */
-const WISHES = [
+const BOOKMARKS = [
 	{ name: 'Sony WH-1000XM5', url: 'https://www.proshop.dk/hoeretelefoner/sony-wh-1000xm5', price: 2799,
 		categories: ['Electronics'], back: 3 },
 	{ name: 'Robotstøvsuger', url: 'https://www.elgiganten.dk/robotstoevsuger', price: 3499,
@@ -104,9 +104,9 @@ const insertOrderCategory = db.prepare('INSERT INTO order_categories (order_id, 
 const insertOrderStatus = db.prepare('INSERT INTO order_statuses (id, order_id, status, date) VALUES (?, ?, ?, ?)')
 const insertOrderItem = db.prepare(`INSERT INTO order_items (id, order_id, position, title, quantity, price, retail, note)
 	VALUES (@id, @orderId, @position, @title, @quantity, @price, @retail, NULL)`)
-const insertWish = db.prepare(`INSERT INTO wishes (id, user_id, name, url, price, archived, created_at)
+const insertBookmark = db.prepare(`INSERT INTO bookmarks (id, user_id, name, url, price, archived, created_at)
 	VALUES (@id, @userId, @name, @url, @price, @archived, @createdAt)`)
-const insertWishCategory = db.prepare('INSERT INTO wish_categories (wish_id, category_id) VALUES (?, ?)')
+const insertBookmarkCategory = db.prepare('INSERT INTO bookmark_categories (bookmark_id, category_id) VALUES (?, ?)')
 
 /** Populates one account with `months` months of orders ending today. Deterministic for a
     given (seed, today) so two runs of the verification harness can be compared rather than
@@ -240,12 +240,12 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 	for (const t of triggers) db.exec(t.sql)
 
 	const categoryByName = new Map(categoryIds.map(c => [c.name, c.id]))
-	for (const wish of WISHES) {
-		const id = newId('w')
-		insertWish.run({ id, userId, name: wish.name, url: wish.url, price: wish.price ?? null,
-			archived: wish.archived ?? 0, createdAt: Math.floor(today.getTime() / 1000) - wish.back * 86400 })
-		for (const name of wish.categories) insertWishCategory.run(id, categoryByName.get(name))
+	for (const bookmark of BOOKMARKS) {
+		const id = newId('bm')
+		insertBookmark.run({ id, userId, name: bookmark.name, url: bookmark.url, price: bookmark.price ?? null,
+			archived: bookmark.archived ?? 0, createdAt: Math.floor(today.getTime() / 1000) - bookmark.back * 86400 })
+		for (const name of bookmark.categories) insertBookmarkCategory.run(id, categoryByName.get(name))
 	}
 
-	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months, wishes: WISHES.length }
+	return { orders: made, vendors: vendorIds.length, categories: categoryIds.length, months, bookmarks: BOOKMARKS.length }
 })

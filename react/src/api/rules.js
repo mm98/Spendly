@@ -79,14 +79,14 @@ export const LINE_FIELDS = ITEM_FIELDS
 
 /* Required: what it is and where to buy it. The address is the one field here normalised
    rather than only judged -- api/src/lib/validate.js stores the form this mirrors. */
-export const WISH_FIELDS = [
-	{ name: 'wish-name', label: 'Name', check: v =>
-		!v ? 'What do you wish for?' : v.length > 120 ? '120 characters at most.' : '' },
-	{ name: 'wish-url', label: 'Link', check: v =>
+export const BOOKMARK_FIELDS = [
+	{ name: 'bookmark-name', label: 'Name', check: v =>
+		!v ? 'What is it called?' : v.length > 120 ? '120 characters at most.' : '' },
+	{ name: 'bookmark-url', label: 'Link', check: v =>
 		!v ? 'Where can you buy it?'
 		: v.length > 2048 ? 'That address is too long.'
 		: httpUrl(v) ? '' : 'That is not a web address. One looks like this: shop.dk/product' },
-	{ name: 'wish-price', label: 'Price', check: v =>
+	{ name: 'bookmark-price', label: 'Price', check: v =>
 		!v ? ''
 		: v.startsWith('-') ? 'A price cannot go below zero.'
 		: AMOUNT_PATTERN.test(v) ? '' : 'Amounts take a comma, such as 2.799,00.' }
@@ -117,7 +117,7 @@ export function httpUrl(value) {
 	return stripTracking(url).href
 }
 
-/** The shop's name for the line under a wish -- a whole address there is a line of query
+/** The shop's name for the line under a bookmark -- a whole address there is a line of query
     string. Falls back to the raw value. */
 export const siteOf = value => {
 	const href = httpUrl(value)

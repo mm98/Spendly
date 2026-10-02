@@ -96,13 +96,13 @@ export function assertValidOrderDraft(draft) {
 	}
 }
 
-/* Ports react/src/api/rules.js's WISH_FIELDS: one rule in the same words at both doors. */
+/* Ports react/src/api/rules.js's BOOKMARK_FIELDS: one rule in the same words at both doors. */
 
 const MAX_URL = 2048
 const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i
 
 // A link pasted from an ad, a social app or a newsletter carries the campaign that pointed at
-// it, not a fact about the product -- so it never survives into a saved wish.
+// it, not a fact about the product -- so it never survives into a saved bookmark.
 const TRACKING_PARAMS = new Set([
 	'gclid', 'gclsrc', 'dclid', 'wbraid', 'gbraid', 'fbclid', 'igshid', 'msclkid', 'twclid',
 	'ttclid', 'yclid', 'mc_cid', 'mc_eid', '_ga', '_gl'
@@ -127,11 +127,11 @@ export function normaliseUrl(value) {
 	return stripTracking(url).href
 }
 
-export function validateWishDraft(draft) {
+export function validateBookmarkDraft(draft) {
 	const errors = {}
 
 	const name = String(draft.name ?? '').trim()
-	if (!name) errors.name = 'What do you wish for?'
+	if (!name) errors.name = 'What is it called?'
 	else if (name.length > 120) errors.name = '120 characters at most.'
 
 	const url = String(draft.url ?? '').trim()
@@ -150,8 +150,8 @@ export function validateWishDraft(draft) {
 	return errors
 }
 
-export function assertValidWishDraft(draft) {
-	const errors = validateWishDraft(draft)
+export function assertValidBookmarkDraft(draft) {
+	const errors = validateBookmarkDraft(draft)
 	if (Object.keys(errors).length) {
 		const err = new Error(Object.values(errors)[0])
 		err.status = 400

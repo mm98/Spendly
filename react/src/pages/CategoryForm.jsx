@@ -176,7 +176,7 @@ function CategoryFields({ mode, category, reload }) {
 					{mode === 'edit' ? (
 						<DeleteCard what="category" del={del}>
 							Removing a category does not remove its orders. A category still on an
-							order or on a wish cannot be removed.
+							order or on a bookmark cannot be removed.
 						</DeleteCard>
 					) : null}
 				</>

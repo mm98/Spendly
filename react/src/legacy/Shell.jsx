@@ -45,7 +45,7 @@ const NAV = [
 	   door there: the top bar's chevron goes here from every page that is not already it. */
 	{ to: '/', key: 'home', icon: 'home', label: 'Home', wide: true },
 	{ to: '/orders', key: 'orders', icon: 'receipt', label: 'Orders' },
-	{ to: '/wishlist', key: 'wishlist', icon: 'cart', label: 'Wishlist', short: 'Wish' },
+	{ to: '/bookmarks', key: 'bookmarks', icon: 'cart', label: 'Bookmarks' },
 	{ to: '/vendors', key: 'vendors', icon: 'store', label: 'Vendors' },
 	{ to: '/categories', key: 'categories', icon: 'tag', label: 'Categories' },
 	// Leaves the phone bar to Budget: Home's Spent card is its door there.
@@ -145,7 +145,7 @@ function BuildQuality() {
    with none highlighted, searches all orders for the typed text, which is what the line at the
    foot of the panel says.
 
-   It searches orders, vendors, categories, wishes, item lines and notes, and it lists the commands
+   It searches orders, vendors, categories, bookmarks, item lines and notes, and it lists the commands
    the app can run -- so it is the one control that reaches every page and every create flow.
    The results come from the API on each keystroke, aborted when the next one lands, which is
    why a slow answer cannot overwrite a fast one typed after it.
@@ -334,7 +334,7 @@ function GlobalFinder() {
 				{query.trim() && !flat.length ? (
 					<div className="combobox-group">
 						<div className="combobox-group-heading">Nothing found</div>
-						<div className="combobox-option">No order, vendor, category, wish or note matches "{query}".</div>
+						<div className="combobox-option">No order, vendor, category, bookmark or note matches "{query}".</div>
 					</div>
 				) : null}
 				{query.trim() ? (

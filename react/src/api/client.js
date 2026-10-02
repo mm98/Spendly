@@ -319,78 +319,78 @@ const toApiDraft = draft => ({
 	}))
 })
 
-/* ---- wishes: nothing here reaches a total, a chart or a budget, which all read orders. The
-   photo is its own request, after the wish exists and has an id to hang it on. ---- */
+/* ---- bookmarks: nothing here reaches a total, a chart or a budget, which all read orders. The
+   photo is its own request, after the bookmark exists and has an id to hang it on. ---- */
 
-export async function getWishes(params = {}, signal) {
-	return request('/api/wishes' + qs(params), { signal })
+export async function getBookmarks(params = {}, signal) {
+	return request('/api/bookmarks' + qs(params), { signal })
 }
 
-export async function getWish(id, signal) {
-	return request(`/api/wishes/${id}`, { signal })
+export async function getBookmark(id, signal) {
+	return request(`/api/bookmarks/${id}`, { signal })
 }
 
 /** `{ title, image, thumbnail }` from the shop's page, any of them null. A request that falls
-    over is the same nothing: a wish is saved by typing a name, never by this succeeding. */
-export async function getWishPreview(url, signal) {
+    over is the same nothing: a bookmark is saved by typing a name, never by this succeeding. */
+export async function getBookmarkPreview(url, signal) {
 	try {
-		return await request('/api/wishes/preview' + qs({ url }), { signal })
+		return await request('/api/bookmarks/preview' + qs({ url }), { signal })
 	} catch {
 		return { title: null, image: null }
 	}
 }
 
 /** Fetched by the server, not the browser: it lives on the shop's host. Silent, so a picture
-    that cannot be had leaves the wish as it saved. */
-export async function addWishPhotoFromUrl(id, url, signal) {
+    that cannot be had leaves the bookmark as it saved. */
+export async function addBookmarkPhotoFromUrl(id, url, signal) {
 	try {
-		const saved = await request(`/api/wishes/${id}/photo`, { method: 'POST', body: { url }, signal })
-		invalidateWishData()
+		const saved = await request(`/api/bookmarks/${id}/photo`, { method: 'POST', body: { url }, signal })
+		invalidateBookmarkData()
 		return saved
 	} catch {
 		return null
 	}
 }
 
-const toApiWish = wish => ({
-	name: wish.name,
-	url: wish.url,
+const toApiBookmark = bookmark => ({
+	name: bookmark.name,
+	url: bookmark.url,
 	// An empty price field is "not written down", which the API stores as no price at all --
 	// not as zero, which would claim the thing is free.
-	price: wish.price ? parseAmount(wish.price) : null,
-	categories: wish.categories ?? [],
-	archived: Boolean(wish.archived)
+	price: bookmark.price ? parseAmount(bookmark.price) : null,
+	categories: bookmark.categories ?? [],
+	archived: Boolean(bookmark.archived)
 })
 
-export async function createWish(wish, signal) {
-	const saved = await request('/api/wishes', { method: 'POST', body: toApiWish(wish), signal })
-	invalidateWishData()
+export async function createBookmark(bookmark, signal) {
+	const saved = await request('/api/bookmarks', { method: 'POST', body: toApiBookmark(bookmark), signal })
+	invalidateBookmarkData()
 	return saved
 }
 
-export async function updateWish(id, wish, signal) {
-	const saved = await request(`/api/wishes/${id}`, { method: 'PATCH', body: toApiWish(wish), signal })
-	invalidateWishData()
+export async function updateBookmark(id, bookmark, signal) {
+	const saved = await request(`/api/bookmarks/${id}`, { method: 'PATCH', body: toApiBookmark(bookmark), signal })
+	invalidateBookmarkData()
 	return saved
 }
 
-export async function deleteWish(id, signal) {
-	const gone = await request(`/api/wishes/${id}`, { method: 'DELETE', signal })
-	invalidateWishData()
+export async function deleteBookmark(id, signal) {
+	const gone = await request(`/api/bookmarks/${id}`, { method: 'DELETE', signal })
+	invalidateBookmarkData()
 	return gone
 }
 
-export async function addWishPhoto(id, file, signal) {
+export async function addBookmarkPhoto(id, file, signal) {
 	const form = new FormData()
 	form.append('file', file)
-	const saved = await request(`/api/wishes/${id}/photo`, { method: 'POST', form, signal })
-	invalidateWishData()
+	const saved = await request(`/api/bookmarks/${id}/photo`, { method: 'POST', form, signal })
+	invalidateBookmarkData()
 	return saved
 }
 
-export async function removeWishPhoto(id, signal) {
-	const saved = await request(`/api/wishes/${id}/photo`, { method: 'DELETE', signal })
-	invalidateWishData()
+export async function removeBookmarkPhoto(id, signal) {
+	const saved = await request(`/api/bookmarks/${id}/photo`, { method: 'DELETE', signal })
+	invalidateBookmarkData()
 	return saved
 }
 
@@ -452,7 +452,7 @@ export const forgetBankLink = ({ pattern, kind }, signal) =>
 
 /** Carrying the picture's own id, so the address changes with the bytes and a browser told to
     keep one forever never shows a replaced photo. */
-export const wishPhotoThumbnailUrl = (id, photoId) => `/api/wishes/${id}/photo/${photoId}/thumbnail`
+export const bookmarkPhotoThumbnailUrl = (id, photoId) => `/api/bookmarks/${id}/photo/${photoId}/thumbnail`
 
 export async function getOrders(params = {}, signal) {
 	return request('/api/orders' + qs(params), { signal })
@@ -921,7 +921,7 @@ export const scanThumbnailUrl = documentKey => `/api/scan/documents/${documentKe
 export const scanFileUrl = documentKey => `/api/scan/documents/${documentKey}/file`
 
 /* ---- command palette ----
-   The server's /api/search matches vendors, categories, wishes and orders (by vendor name,
+   The server's /api/search matches vendors, categories, bookmarks and orders (by vendor name,
    note or an item's title) against the account's own rows - the same real query getOrders' text search
    runs. Grouping that into headed sections, highlighting the matched substring and mixing in
    the static "go to"/"create" commands is presentation, not data, so it stays here rather than
@@ -944,13 +944,13 @@ const krLabel = (n, decimals = 2) => {
 const COMMANDS = [
 	{ id: 'cmd-new', label: 'New order', meta: 'Create', to: '/orders/new', keywords: 'new order create add' },
 	{ id: 'cmd-scan', label: 'Scan a receipt', meta: 'Create', to: '/scan', keywords: 'scan receipt upload pdf photo ai' },
-	{ id: 'cmd-new-wish', label: 'New wish', meta: 'Create', to: '/wishlist/new', keywords: 'new wish wishlist want create add' },
+	{ id: 'cmd-new-bookmark', label: 'New bookmark', meta: 'Create', to: '/bookmarks/new', keywords: 'new bookmark bookmarks want create add' },
 	{ id: 'cmd-new-vendor', label: 'New vendor', meta: 'Create', to: '/vendors/new', keywords: 'new vendor shop store create add' },
 	{ id: 'cmd-new-category', label: 'New category', meta: 'Create', to: '/categories/new', keywords: 'new category tag budget create add' },
 	{ id: 'cmd-orders', label: 'All orders', meta: 'Go to', to: '/orders/all', keywords: 'orders list all search filter' },
 	/* The one section the phone's tab bar leaves out (components/Shell.jsx), so this row is
 	   how a phone reaches it -- which is why it is a command rather than an oversight. */
-	{ id: 'cmd-wishlist', label: 'Wishlist', meta: 'Go to', to: '/wishlist', keywords: 'wishlist wishes wanted buy later saved' },
+	{ id: 'cmd-bookmarks', label: 'Bookmarks', meta: 'Go to', to: '/bookmarks', keywords: 'bookmarks bookmark wanted buy later saved' },
 	{ id: 'cmd-vendors', label: 'Vendors', meta: 'Go to', to: '/vendors', keywords: 'vendors shops stores' },
 	{ id: 'cmd-categories', label: 'Categories', meta: 'Go to', to: '/categories', keywords: 'categories tags manage' },
 	{ id: 'cmd-stats', label: 'Statistics', meta: 'Go to', to: '/stats', keywords: 'statistics stats charts month period' },
@@ -977,7 +977,7 @@ export async function search(query, signal) {
 			.map(c => ({ id: c.id, ...highlight(c.label, ''), meta: c.meta, to: c.to })) }] }
 	}
 
-	const { vendors, categories, wishes, orders } = await request('/api/search' + qs({ query }), { signal })
+	const { vendors, categories, bookmarks, orders } = await request('/api/search' + qs({ query }), { signal })
 	const groups = []
 	const take = (heading, options) => { if (options.length) groups.push({ heading, options }) }
 	/* The last row of a group holding more than the panel shows. Its label quotes the typed text,
@@ -1029,12 +1029,12 @@ export async function search(query, signal) {
 		...more(categories, 'categories', `/categories/all?q=${encodeURIComponent(query)}`, 'All categories')
 	])
 
-	/* One row a wish, because a wish has one destination -- itself. The meta says when it is an
-	   archived one, which the wishlist's own default view leaves out. */
-	take('Wishes', [
-		...wishes.slice(0, SHOWN_PER_KIND).map(w => ({ id: w.id, ...highlight(w.name, needle),
-			meta: w.archived ? `Wish${sep}Archived` : 'Wish', to: `/wishlist/${w.id}/edit` })),
-		...more(wishes, 'wishes', `/wishlist?q=${encodeURIComponent(query)}`, 'All wishes')
+	/* One row a bookmark, because a bookmark has one destination -- itself. The meta says when it is an
+	   archived one, which the bookmark list's own default view leaves out. */
+	take('Bookmarks', [
+		...bookmarks.slice(0, SHOWN_PER_KIND).map(w => ({ id: w.id, ...highlight(w.name, needle),
+			meta: w.archived ? `Bookmark${sep}Archived` : 'Bookmark', to: `/bookmarks/${w.id}/edit` })),
+		...more(bookmarks, 'bookmarks', `/bookmarks?q=${encodeURIComponent(query)}`, 'All bookmarks')
 	])
 
 	const lines = []
@@ -1092,9 +1092,9 @@ export const sorts = [
 	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
 ]
 
-/** The two price sorts also narrow: a wish with no price is not the cheapest one
-    (api/src/routes/wishes.js). */
-export const wishSorts = [
+/** The two price sorts also narrow: a bookmark with no price is not the cheapest one
+    (api/src/routes/bookmarks.js). */
+export const bookmarkSorts = [
 	{ id: 'added-desc', label: 'Added, newest' },
 	{ id: 'added-asc', label: 'Added, oldest' },
 	{ id: 'price-desc', label: 'Price, highest' },
@@ -1153,10 +1153,10 @@ export function invalidateVendorData() {
 	invalidate(getVendorChartSplit)
 }
 
-/** Only the wishlist reads wishes -- plus the category lists, since saving a wish can create a
-    category it names (api/lib/findOrCreate.js) and changes their order/wish usage counts. */
-export function invalidateWishData() {
-	invalidate(getWishes); invalidate(getWish)
+/** Only the bookmarks reads bookmarks -- plus the category lists, since saving a bookmark can create a
+    category it names (api/lib/findOrCreate.js) and changes their order/bookmark usage counts. */
+export function invalidateBookmarkData() {
+	invalidate(getBookmarks); invalidate(getBookmark)
 	invalidate(getCategories); invalidate(getCategoriesThisMonth); invalidate(getUncategorised)
 }
 

@@ -61,9 +61,9 @@ const uncategorisedQuery = db.prepare(`
 	SELECT COUNT(*) AS orders, COALESCE(SUM(total), 0) AS spend, COALESCE(SUM(saved), 0) AS saved
 	FROM orders WHERE user_id = ? AND category_count = 0
 `)
-const uncategorisedWishesQuery = db.prepare(`
-	SELECT COUNT(*) AS wishes FROM wishes w WHERE w.user_id = ?
-	AND NOT EXISTS (SELECT 1 FROM wish_categories wc WHERE wc.wish_id = w.id)
+const uncategorisedBookmarksQuery = db.prepare(`
+	SELECT COUNT(*) AS bookmarks FROM bookmarks b WHERE b.user_id = ?
+	AND NOT EXISTS (SELECT 1 FROM bookmark_categories bc WHERE bc.bookmark_id = b.id)
 `)
 
 /* The one-vendor and one-category questions, asked of that entity's own rows -- not the
@@ -111,25 +111,25 @@ export function categoryStats(userId) {
 }
 
 /* No GROUP BY: SQLite would sort in a temp B-tree to group it, for a row count bounded by
-   one account's own wishlist -- small enough that counting in JS costs nothing instead. */
-const wishCategoryLinksQuery = db.prepare(`
-	SELECT wc.category_id AS categoryId FROM wish_categories wc
-	JOIN wishes w ON w.id = wc.wish_id WHERE w.user_id = ?
+   one account's own bookmarks -- small enough that counting in JS costs nothing instead. */
+const bookmarkCategoryLinksQuery = db.prepare(`
+	SELECT bc.category_id AS categoryId FROM bookmark_categories bc
+	JOIN bookmarks b ON b.id = bc.bookmark_id WHERE b.user_id = ?
 `)
 
-/** How many wishes each category is on, keyed by category id -- the wish-side twin of
+/** How many bookmarks each category is on, keyed by category id -- the bookmark-side twin of
     categoryStats' order counts. */
-export function wishCategoryCounts(userId) {
+export function bookmarkCategoryCounts(userId) {
 	const counts = new Map()
-	for (const { categoryId } of wishCategoryLinksQuery.all(userId))
+	for (const { categoryId } of bookmarkCategoryLinksQuery.all(userId))
 		counts.set(categoryId, (counts.get(categoryId) ?? 0) + 1)
 	return counts
 }
 
-/** Orders/wishes/spend/saved/share of the account's uncategorised records -- the all-time
+/** Orders/bookmarks/spend/saved/share of the account's uncategorised records -- the all-time
     version of the window split's "Without category" row, for whatever draws it over all time. */
 export function uncategorisedStats(userId) {
 	const row = uncategorisedQuery.get(userId)
 	const total = accountTotalQuery.get(userId).spend
-	return { ...row, wishes: uncategorisedWishesQuery.get(userId).wishes, share: total ? (row.spend / total) * 100 : 0 }
+	return { ...row, bookmarks: uncategorisedBookmarksQuery.get(userId).bookmarks, share: total ? (row.spend / total) * 100 : 0 }
 }
