@@ -11,9 +11,10 @@ import { useApi } from '../api/useApi.js'
 import {
 	deleteVendor, failureMessage, getSettings, getVendors, invalidateCategoryData, invalidateVendorData, vendorTextMatch
 } from '../api/client.js'
-import { amount, currency, plural } from '../api/format.js'
+import { NUMBER_LOCALE, amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
-import { ConfirmDelete, DOT, Failed, ListLoading, RowMenu, SortControl, deleteNote, usePaged } from './vendorsCategories.jsx'
+import { Saving } from '../app/saving.jsx'
+import { ConfirmDelete, Failed, ListLoading, RowMenu, SortControl, deleteNote, usePaged } from './vendorsCategories.jsx'
 
 const SORTS = [
 	{ id: 'spend-desc', label: 'Spend ↓', by: (a, b) => b.spend - a.spend },
@@ -107,7 +108,7 @@ export default function Vendors() {
 						<Mark size="medium">{v.name}</Mark>
 						<Stacked>
 							<span className="sp-heading sp-truncate">{v.name}</span>
-							<span className="sp-meta">{v.favourite ? `Favourite${DOT}` : null}{plural(v.orders, 'order')}</span>
+							<span className="sp-meta">{v.favourite ? `Favourite${dot}` : null}{plural(v.orders, 'order')}</span>
 						</Stacked>
 						<span className="sp-amount sp-nowrap">{amount(v.spend)}</span>
 					</div>
@@ -116,7 +117,7 @@ export default function Vendors() {
 			{rows.length > step
 				? (
 					<ListFooter loose>
-						<span className="sp-subtitle">Showing {paged.page.length} of {rows.length}</span>
+						<span className="sp-subtitle">Showing {amount(paged.page.length, 0)} of {amount(rows.length, 0)}</span>
 						{paged.more ? <Button variant="outline" size="small" onClick={paged.showMore}>Load more</Button> : null}
 					</ListFooter>
 				)
@@ -125,7 +126,7 @@ export default function Vendors() {
 	)
 	else body = (
 		<List data={rows} recordKey={v => v.id} noun="vendors" pageSize={step} selectionKey={query + sort.id}
-			onRowClick={v => navigate(`/vendors/${v.id}/edit`)}>
+			rowTo={v => `/vendors/${v.id}/edit`} locale={NUMBER_LOCALE}>
 			<ListHead>
 				<ListCell width="title">Vendor</ListCell>
 				<ListCell width="amount">{sort.id.startsWith('spend') ? sort.label : 'Spend'}</ListCell>
@@ -137,12 +138,12 @@ export default function Vendors() {
 						<Mark size="medium">{v.name}</Mark>
 						<Stacked>
 							<span className="sp-title sp-truncate">{v.name}</span>
-							<span className="sp-meta sp-truncate">{v.favourite ? `Favourite${DOT}` : null}{plural(v.orders, 'order')}</span>
+							<span className="sp-meta sp-truncate">{v.favourite ? `Favourite${dot}` : null}{plural(v.orders, 'order')}</span>
 						</Stacked>
 					</ListCell>,
 					<ListCell key="a" cell="amount">
 						<span className="sp-amount">{currency(v.spend)}</span>
-						<span className="sp-amount-secondary" {...(v.saved > 0 ? { 'data-color': 'success' } : {})}>Saved {currency(v.saved)}</span>
+						<Saving value={v.saved} />
 					</ListCell>,
 					<ListCell key="m" cell="menu">
 						<RowMenu noun="Vendor" label={v.name} open={menuFor === v.id}

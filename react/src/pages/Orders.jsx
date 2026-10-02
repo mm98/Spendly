@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Card, ListFooter } from '../components/Card.jsx'
@@ -14,15 +14,15 @@ import { Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, Li
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Anchor, Menu, MenuItem, MenuSeparator } from '../components/Overlays.jsx'
-import { Pill } from '../components/Pill.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
-import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
+import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useDismiss, useFocusTrap } from '../components/Utilities.jsx'
 import { failureMessage, getCategories, getCurrentUser, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { activeLocaleCode, amount, currency, plural, shortDate, today } from '../api/format.js'
-import { useShellShape } from '../app/useMedia.js'
-import { OrderPhoto, orderLine } from '../app/orderRow.jsx'
+import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, plural, shortDate, today } from '../api/format.js'
+import { useShellShape, useWidth } from '../app/useMedia.js'
+import { OrderPhoto, StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
+import { Saving } from '../app/saving.jsx'
 import { DeleteOrder } from './DeleteOrder.jsx'
 
 const SORTS = [
@@ -79,16 +79,6 @@ const presetOf = (from, to) => PRESETS.find(p => { const [a, b] = p.range(new Da
 
 const daysBetween = (from, to) => Math.round((new Date(to) - new Date(from)) / 864e5) + 1
 
-const statusPill = status =>
-	status === 'Delivered' ? <Pill color="success">Delivered</Pill>
-		: status === 'Ordered' ? <Pill state="progress">Ordered</Pill>
-			: status === 'Returned' ? <Pill color="danger">Returned</Pill>
-				: <Pill>{status}</Pill>
-
-const saved = n => (
-	<span className="sp-amount-secondary" {...(Math.round(n * 100) > 0 ? { 'data-color': 'success' } : {})}>Saved {currency(n)}</span>
-)
-
 /** The order list (Order list 2b): the facet rail, then search, sort, what is filtering, and the orders. */
 export default function Orders() {
 	const navigate = useNavigate()
@@ -138,7 +128,6 @@ export default function Orders() {
 
 	const [deleting, setDeleting] = useState(null)
 	const [filtersOpen, setFiltersOpen] = useState(false)
-	const trigger = useRef(null)
 	useEffect(() => { if (railed) setFiltersOpen(false) }, [railed])
 
 	const vendorName = id => vendors.data?.find(v => v.id === id)?.name ?? 'Vendor'
@@ -184,14 +173,12 @@ export default function Orders() {
 	)
 
 	const sortLabel = SORTS.find(s => s.id === sort).label
-	const [sortOpen, setSortOpen] = useState(false)
 	const controls = (
 		<Controls>
 			<OrderSearch key={searchKey} q={f.q} onSearch={search} touch={touch} />
-			<Combobox variant="sort-end" aria-label="Sort" lead={<span className="sp-combobox__chevron">Sort</span>}
-				value={sortLabel} open={sortOpen} onOpenChange={setSortOpen}>
+			<Combobox variant="sort-end" prefix="Sort" value={sortLabel}>
 				{SORTS.map(s => (
-					<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => { setSortOpen(false); update({ sort: s.id }) }}>
+					<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => update({ sort: s.id })}>
 						{s.label}
 					</ComboboxOption>
 				))}
@@ -254,7 +241,7 @@ export default function Orders() {
 	else if (narrow)
 		body = <OrderCards data={data} onOpen={open} onLoadMore={loadMore} />
 	else
-		body = <OrderRows data={data} width={width} size={size} onOpen={open} onLoadMore={loadMore} onDelete={setDeleting} />
+		body = <OrderRows data={data} width={width} size={size} onLoadMore={loadMore} onDelete={setDeleting} />
 
 	// an account with no orders has nothing to filter (6a): one empty card, no rail
 	const none = data?.total === 0
@@ -266,8 +253,8 @@ export default function Orders() {
 				? null
 				: (
 					<div className="sp-row-flex sp-gap-8">
-						<Button variant="outline" ref={trigger} aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'} onClick={() => setFiltersOpen(true)}>
-							{crumbs.length ? `Filters · ${crumbs.length}` : 'Filters'}
+						<Button variant="outline" aria-haspopup="dialog" aria-expanded={filtersOpen ? 'true' : 'false'} onClick={() => setFiltersOpen(true)}>
+							{crumbs.length ? `Filters${dot}${crumbs.length}` : 'Filters'}
 						</Button>
 					</div>
 				)}
@@ -281,7 +268,6 @@ export default function Orders() {
 						facetData={facetData}
 						onApply={(next, nextCustom) => { setFiltersOpen(false); setCustom(nextCustom); update(next) }}
 						onClose={() => setFiltersOpen(false)}
-						trigger={trigger}
 					/>
 				)
 				: null}
@@ -303,7 +289,7 @@ export default function Orders() {
 
 /** The facets on a phone or a narrow window (c12 touch, 18b): a sheet over the list, whose
     choices wait for Apply rather than filtering at once. */
-function FiltersSheet({ params, custom, facetData, onApply, onClose, trigger }) {
+function FiltersSheet({ params, custom, facetData, onApply, onClose }) {
 	const [draft, setDraft] = useState(() => new URLSearchParams(params))
 	const [draftCustom, setDraftCustom] = useState(custom)
 	const f = readFilters(draft)
@@ -311,11 +297,8 @@ function FiltersSheet({ params, custom, facetData, onApply, onClose, trigger }) 
 	// the date group's order count is for the choices in the sheet, not the list behind it
 	const count = useApi(getOrders, [{ ...requestOf(f, ''), page: 1, pageSize: 1 }])
 	const box = useRef(null)
-	useEffect(() => {
-		const back = trigger.current
-		box.current?.focus()
-		return () => back?.focus()
-	}, [trigger])
+	// modal while open; closing gives focus back to the Filters button that opened it
+	useFocusTrap(box)
 
 	// removed facets first, then the rest in the order they were chosen in the sheet
 	const apply = () => {
@@ -383,27 +366,10 @@ function useSettled(value, ms = 250) {
 	return settled
 }
 
-/** The list column's own width: which columns the table keeps answers to it, never to the window (2i). */
-function useWidth(ref) {
-	const [width, setWidth] = useState(0)
-	useLayoutEffect(() => {
-		const el = ref.current
-		if (!el) return
-		setWidth(el.getBoundingClientRect().width)
-		const watch = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width))
-		watch.observe(el)
-		return () => watch.disconnect()
-	}, [ref])
-	return width
-}
-
-/* The columns the list column has room for (2i): Items goes at 1040 and under, Categories at 880. */
-const columnsFor = width => ({ items: width > 1040, categories: width > 880 })
-
-function OrderRows({ data, width, size, onOpen, onLoadMore, onDelete }) {
+function OrderRows({ data, width, size, onLoadMore, onDelete }) {
 	const show = columnsFor(width)
 	return (
-		<List data={data.orders} recordKey={o => o.id} noun="orders" onRowClick={onOpen}
+		<List data={data.orders} recordKey={o => o.id} noun="orders" rowTo={o => `/orders/${o.id}`} locale={NUMBER_LOCALE}
 			pageSize={size} total={data.matched} onLoadMore={onLoadMore}>
 			<Caption><strong className="sp-data">{plural(data.matched, 'order')}</strong></Caption>
 			<ListHead>
@@ -427,10 +393,10 @@ function OrderRows({ data, width, size, onOpen, onLoadMore, onDelete }) {
 					<ListCell><span className="sp-data">{shortDate(o.date)}</span></ListCell>
 					{show.categories ? <ListCell><CategoryChips categories={o.categories} /></ListCell> : null}
 					{show.items ? <ListCell cell="number"><span className="sp-data">{o.itemCount}</span></ListCell> : null}
-					<ListCell>{statusPill(o.status)}</ListCell>
+					<ListCell><StatusPill status={o.status} /></ListCell>
 					<ListCell cell="amount">
 						<span className="sp-amount">{currency(o.total)}</span>
-						{saved(o.saved)}
+						<Saving value={o.saved} />
 					</ListCell>
 					<ListCell cell="menu"><RowMenu order={o} onDelete={onDelete} /></ListCell>
 				</>
@@ -489,11 +455,11 @@ function OrderCards({ data, onOpen, onLoadMore }) {
 						</Line>
 						<Line>
 							<span className="sp-subtitle sp-truncate sp-grow">{orderLine(o)}</span>
-							{statusPill(o.status)}
+							<StatusPill status={o.status} />
 						</Line>
 						<Line>
-							<span className="sp-subtitle sp-grow">{shortDate(o.date)} · {plural(o.itemCount, 'item')}</span>
-							{saved(o.saved)}
+							<span className="sp-subtitle sp-grow">{shortDate(o.date)}{dot}{plural(o.itemCount, 'item')}</span>
+							<Saving value={o.saved} />
 						</Line>
 					</Stacked>
 				</ListItem>
@@ -501,7 +467,7 @@ function OrderCards({ data, onOpen, onLoadMore }) {
 			{data.matched > data.orders.length || data.pages > 1
 				? (
 					<ListFooter loose>
-						<span className="sp-subtitle">Showing {data.orders.length} of {data.matched}</span>
+						<span className="sp-subtitle">Showing {amount(data.orders.length, 0)} of {amount(data.matched, 0)}</span>
 						<span className="sp-grow" />
 						{data.orders.length < data.matched ? <Button variant="outline" size="small" onClick={onLoadMore}>Load more</Button> : null}
 					</ListFooter>
@@ -573,7 +539,6 @@ function OrderFacets({ f, update, custom, setCustom, vendors, categories, highes
 	const [find, setFind] = useState('')
 	const found = find ? shownVendors.filter(v => v.name.toLowerCase().includes(find.toLowerCase())) : shownVendors
 	const listed = allVendors || find ? found : found.filter((v, i) => i < 4 || v.id === f.vendor)
-	const [kindOpen, setKindOpen] = useState(false)
 
 	return (
 		<Facets>
@@ -616,9 +581,9 @@ function OrderFacets({ f, update, custom, setCustom, vendors, categories, highes
 				: null}
 
 			<FieldGroup facet legend="Kind">
-				<Combobox value={f.kind || 'All kinds'} aria-label="Kind" open={kindOpen} onOpenChange={setKindOpen}>
+				<Combobox value={f.kind || 'All kinds'} aria-label="Kind">
 					{['', ...spendKinds].map(k => (
-						<ComboboxOption key={k || 'all'} selected={f.kind === k} onSelect={() => { setKindOpen(false); update({ kind: k }) }}>
+						<ComboboxOption key={k || 'all'} selected={f.kind === k} onSelect={() => update({ kind: k })}>
 							{k || 'All kinds'}
 						</ComboboxOption>
 					))}
@@ -648,7 +613,7 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 	}
 	// a count not known yet is left out rather than shown as zero (6b)
 	const summary = [from ? plural(daysBetween(from, to || today()), 'day') : null, matched == null ? null : plural(matched, 'order')]
-		.filter(Boolean).join(' · ')
+		.filter(Boolean).join(dot)
 
 	return (
 		<FieldGroup facet legend="Date">
@@ -665,8 +630,8 @@ function DateFacet({ from, to, matched, update, custom, setCustom }) {
 				</Chip>
 			</Filters>
 			<FieldGroupPanel>
-				<Field label="From"><DateField value={draft.from} locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
-				<Field label="To"><DateField value={draft.to} danger={wrong} locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} /></Field>
+				<Field label="From"><DateField value={draft.from} placeholder="dd/mm/yyyy" locale={activeLocaleCode()} onChange={v => edit({ ...draft, from: v })} /></Field>
+				<Field label="To"><DateField value={draft.to} placeholder="Today" danger={wrong} locale={activeLocaleCode()} onChange={v => edit({ ...draft, to: v })} /></Field>
 				{wrong
 					? <span className="sp-field__help" data-color="danger">To must be on or after From. The list keeps the last valid range.</span>
 					: from || to

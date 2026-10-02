@@ -3,37 +3,18 @@ import { ListItem } from '../components/ListItem.jsx'
 import { Button } from '../components/Button.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
 import { Mark, MarkRemove } from '../components/Mark.jsx'
-import { Pill } from '../components/Pill.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Attachment } from '../components/Attachments.jsx'
-import { useMedia } from '../app/useMedia.js'
+import { Saving } from '../app/saving.jsx'
 import {
 	attachmentFileUrl, attachmentThumbnailUrl, itemAttachmentFileUrl, itemAttachmentThumbnailUrl
 } from '../api/client.js'
-import { activeLocaleCode, currency, quantity, plural } from '../api/format.js'
+import { currency, dot, quantity, plural } from '../api/format.js'
 
 /* The parts the order's read view and its form share: one row, one tile and one set of sums,
    so reading an order and editing it draw the same things in the same places (1a, 1d). */
 
-export const SEP = ' · '
 export const money = n => currency(Number(n) || 0)
-
-/** Below 640 the shell is the phone's, and the page is one column. */
-export const useTouch = () => useMedia('(max-width: 639.98px)')
-
-/** "2026-08-03" -> "3 Aug", with the year once it is not this one (3b). */
-export function dayShortMonth(iso) {
-	const [y, m, d] = String(iso).split('-').map(Number)
-	const year = y === new Date().getFullYear() ? {} : { year: 'numeric' }
-	return new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', ...year }).format(new Date(y, m - 1, d))
-}
-
-const PILLS = { Delivered: { color: 'success' }, Returned: { color: 'danger' }, Ordered: { state: 'progress' } }
-
-export function StatusPill({ status }) {
-	const look = PILLS[status] ?? {}
-	return <Pill color={look.color} state={look.state}>{status}</Pill>
-}
 
 export const lineTotal = line => (Number(line.price) || 0) * (Number(line.quantity) || 0)
 
@@ -52,19 +33,9 @@ export function totalsOf(lines, shipping, discount) {
 /** "1 × 330,00 kr. · retail 1.650,00 kr."; `compact` is the phone's, quantity and price only (1c). */
 export const lineMeta = (line, compact = false) =>
 	`${quantity(Number(line.quantity) || 0)} × ${line.price == null ? '-' : money(line.price)}`
-	+ (line.retail != null && !compact ? `${SEP}retail ${money(line.retail)}` : '')
+	+ (line.retail != null && !compact ? `${dot}retail ${money(line.retail)}` : '')
 
 export const itemsWord = n => plural(n, 'item')
-
-/** Whether a saving prints as more than 0,00: the colour follows the printed figure. */
-export const saves = n => Math.round((Number(n) || 0) * 100) > 0
-
-/** A saving is an amount: green when there is one, grey at zero. */
-export function Saving({ value }) {
-	return saves(value)
-		? <span className="sp-amount-secondary" data-color="success">Saved {money(value)}</span>
-		: <span className="sp-amount-secondary">Saved {money(0)}</span>
-}
 
 /** The line's total, with its saving under it; `compact` is the phone's, the total alone (1c). */
 export function LineAmount({ line, compact = false }) {
@@ -122,25 +93,23 @@ export function filesOf(order) {
 	return files
 }
 
-/** One attachment in the strip; without a `thumb` the tile names the file's kind. A tile that
-    removes cannot also open: no rule fills the tile with a picture inside the open control. */
+/** One attachment in the strip; without a `thumb` the tile names the file's kind. */
 export function AttachmentTile({ name, kind, thumb, onOpen, onRemove, bare = false }) {
 	const label = kindOf({ name, kind })
 	const remove = onRemove
 		? <MarkRemove aria-label={`Remove ${name}`} onClick={onRemove}><Icon name="x" size={11} /></MarkRemove>
 		: null
+	const named = onOpen ? `Open ${name}` : name
 	let mark
 	if (thumb)
 		mark = (
-			<Mark size="xlarge" fill="photo" text={kind === 'pdf' ? 'PDF' : undefined}
-				aria-label={onRemove ? name : `Open ${name}`} onClick={onRemove ? undefined : onOpen} remove={remove}>
+			<Mark size="xlarge" fill="photo" text={kind === 'pdf' ? 'PDF' : undefined} aria-label={named} onClick={onOpen} remove={remove}>
 				<img src={thumb} alt="" />
 			</Mark>
 		)
 	else
 		mark = (
-			<Mark size="xlarge" fill="none" aria-label={onRemove ? name : `Open ${name}`}
-				onClick={onRemove ? undefined : onOpen} remove={remove}>
+			<Mark size="xlarge" fill="none" aria-label={named} onClick={onOpen} remove={remove}>
 				<span>{label}</span>
 			</Mark>
 		)

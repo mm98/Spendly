@@ -92,7 +92,7 @@ export function DemoCard() {
 				<span className="sp-meta sp-ink-danger">
 					{stage.answered
 						? 'Nothing was changed. Your lists are as they were.'
-						: 'The server did not answer. The fill may still finish, so look at your orders in a minute.'}
+						: 'Spendly did not answer. The fill may still finish, so look at your orders in a minute.'}
 				</span>
 			</Well>
 		</Card>

@@ -12,6 +12,9 @@
 	.bg-sheet tbody td[colspan] > span { position: sticky; left: var(--card-pad); display: inline-block; }
 	/* an open editor or an add row spans the columns in view, and holds still there with the row names */
 	.bg-sheet tbody td.bg-hold { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+	/* an editor with a list open lies over the sticky cells after it, so the list is what a press reaches */
+	.bg-sheet tbody td.bg-hold:has([aria-expanded="true"]) { z-index: 4; }
+	.bg-sheet tbody td.bg-opens { cursor: pointer; }
 
 	.sp-table .bg-col-map { width: 240px; }
 	/* on a phone the bank check's column table scrolls sideways like the sheet: never narrower than

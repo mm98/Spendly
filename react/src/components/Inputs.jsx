@@ -270,9 +270,11 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 	}
 	const shown = suggests && open && options.length > 0
 	const holder = useRef(null)
+	const input = useRef(null)
 	usePanelPlace(holder, listbox.panel, shown, options.length)
+	// a press anywhere in the box but on a token's remove types into it: the input is one line of it
 	const field = (
-		<span className="sp-tokens" {...box}>
+		<span className="sp-tokens" onClick={ev => { if (!ev.target.closest('button, input')) input.current?.focus() }} {...box}>
 			{value.map(token => (
 				<Chip
 					key={token}
@@ -289,6 +291,7 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 				</Chip>
 			))}
 			<input
+				ref={input}
 				id={id}
 				className="sp-tokens__add"
 				aria-label={label}

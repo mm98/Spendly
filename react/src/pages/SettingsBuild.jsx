@@ -86,7 +86,7 @@ export function BuildCard() {
 				? (
 					<Well color="warning">
 						<span className="sp-title sp-ink-warning">A newer version is available.</span>
-						<span className="sp-meta sp-ink-warning">The person who runs your Spendly server can install it. Nothing you have saved is affected.</span>
+						<span className="sp-meta sp-ink-warning">The person who manages your Spendly can install it. Nothing you have saved is affected.</span>
 					</Well>
 				)
 				: null}

@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { Card, CardBody } from '../components/Card.jsx'
@@ -14,15 +14,16 @@ import { LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField } from '../components/Inputs.jsx'
 import { Choice, Switch } from '../components/Choice.jsx'
-import { Insertion, ListItem } from '../components/ListItem.jsx'
+import { Announce, Insertion, ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { AddRow, Empty, EmptyBody, EmptyTitle, Skeleton, useDismiss } from '../components/Utilities.jsx'
 import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, useToast } from '../components/Overlays.jsx'
 import { parseNumber } from '../components/format.js'
+import { join } from '../components/variants.js'
 import { useShellShape } from '../app/useMedia.js'
 import { useApi } from '../api/useApi.js'
-import { amount, currency, currencySymbol, monthNames, plural } from '../api/format.js'
+import { NUMBER_LOCALE as LOCALE, amount, currency, currencySymbol, dot, monthNames, plural } from '../api/format.js'
 import { budgetFromFile } from '../api/budgetImport.js'
 import {
 	addBudgetAccount, addBudgetGroup, addBudgetLine, createBudgetYear, deleteBudgetAccount, deleteBudgetGroup,
@@ -32,8 +33,6 @@ import {
 
 const MONTHS = 12
 const SIDES = [{ kind: 'income', title: 'Income' }, { kind: 'expense', title: 'Costs' }]
-// amounts are written the way the rest of the app writes them, 1.234,56, whatever the browser's language
-const LOCALE = 'da-DK'
 
 const shown = m => m.real ?? m.expected
 const cents = n => Math.round(n * 100) / 100
@@ -150,18 +149,6 @@ function useGiveBack(open, back) {
 			if (el) { el.focus(); return }
 		}
 	}, [open])
-}
-
-/** A pick-only list that closes when a choice is made. */
-function Pick({ value, id, children, ...rest }) {
-	const [open, setOpen] = useState(false)
-	const own = useId()
-	const choose = choice => {
-		choice()
-		setOpen(false)
-		document.getElementById(id ?? own)?.focus()
-	}
-	return <Combobox id={id ?? own} value={value} open={open} onOpenChange={setOpen} {...rest}>{children(choose)}</Combobox>
 }
 
 function Confirm({ title, body, commit, onConfirm, onCancel, busy }) {
@@ -364,11 +351,11 @@ function BudgetYears({ years, onYearsChanged }) {
 
 	const yearPicker = touch || years.length > 4
 		? (
-			<Pick value={String(year)} aria-label="Year">
-				{close => years.map(y => (
-					<ComboboxOption key={y} selected={y === year} onSelect={() => close(() => goYear(y))}>{y}</ComboboxOption>
+			<Combobox value={String(year)} aria-label="Year">
+				{years.map(y => (
+					<ComboboxOption key={y} selected={y === year} onSelect={() => goYear(y)}>{y}</ComboboxOption>
 				))}
-			</Pick>
+			</Combobox>
 		)
 		: (
 			<Segmented name="budget-year" aria-label="Year" value={year} onChange={goYear}
@@ -690,7 +677,7 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 		const m = line.months[month]
 		const value = shown(m)
 		const typing = amounts.edit?.line === line.id && amounts.edit.month === month
-		const meta = [accountName(line.accountId), rowTag(line, short)].filter(Boolean).join(' · ')
+		const meta = [accountName(line.accountId), rowTag(line, short)].filter(Boolean).join(dot)
 		const said = m.real != null ? `real ${money(m.real)}` : m.expected != null ? `expected ${money(m.expected)}` : 'empty'
 		const edit = () => open('row', line.id, [`[data-row="${line.id}-${month}"]`, opener('new-row', group.id)])
 		const control = typing ? {} : {
@@ -708,7 +695,7 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 			<Sum key={line.id} data-row={`${line.id}-${month}`} tone={!typing && m.real == null && m.expected != null ? 'expected' : 'default'}
 				value={typing ? amounts.field(line, month) : value != null ? money(value) : null} {...control}>
 				<span className="sp-stacked">
-					<span className="sp-ink-2">{line.name}</span>
+					<span>{line.name}</span>
 					{meta ? <span className="sp-meta">{meta}</span> : null}
 				</span>
 			</Sum>
@@ -757,7 +744,7 @@ function MonthWell({ sheet, write, editing, touch, panel, setPanel, totals, shor
 					</div>
 				)
 			})}
-			<Sum variant="total" tone={toneOf(left)} value={money(left)}><span className="sp-ink-2">Left over</span></Sum>
+			<Sum variant="total" tone={toneOf(left)} value={money(left)}>Left over</Sum>
 		</Well>
 	)
 }
@@ -820,25 +807,22 @@ function RowEditor({ sheet, line, group, index, write, onClose }) {
 					<NumberField locale={LOCALE} value={expected} onChange={v => { setExpected(v === null ? null : cents(v)); setChanged(true) }} />
 				</Field>
 				<Field label="Account">
-					<Pick value={sheet.accounts.find(a => a.id === accountId)?.name ?? 'No account'}>
-						{choose => [
-							<ComboboxOption key="none" selected={!accountId} onSelect={() => choose(() => setAccountId(null))}>No account</ComboboxOption>,
-							...sheet.accounts.map(a => (
-								<ComboboxOption key={a.id} selected={a.id === accountId} onSelect={() => choose(() => setAccountId(a.id))}>{a.name}</ComboboxOption>
-							))
-						]}
-					</Pick>
+					<Combobox value={sheet.accounts.find(a => a.id === accountId)?.name ?? 'No account'}>
+						<ComboboxOption selected={!accountId} onSelect={() => setAccountId(null)}>No account</ComboboxOption>
+						{sheet.accounts.map(a => (
+							<ComboboxOption key={a.id} selected={a.id === accountId} onSelect={() => setAccountId(a.id)}>{a.name}</ComboboxOption>
+						))}
+					</Combobox>
 				</Field>
 				<Field label="Group">
-					<Pick value={target?.name ?? ''}>
-						{/* one flat list, so the arrow keys reach every option */}
-						{choose => SIDES.flatMap(({ kind, title }) => [
+					<Combobox value={target?.name ?? ''}>
+						{SIDES.flatMap(({ kind, title }) => [
 							<ComboboxGroup key={kind}>{title}</ComboboxGroup>,
 							...sheet.groups.filter(g => g.kind === kind).map(g => (
-								<ComboboxOption key={g.id} selected={g.id === groupId} onSelect={() => choose(() => setGroupId(g.id))}>{g.name}</ComboboxOption>
+								<ComboboxOption key={g.id} selected={g.id === groupId} onSelect={() => setGroupId(g.id)}>{g.name}</ComboboxOption>
 							))
 						])}
-					</Pick>
+					</Combobox>
 				</Field>
 			</LineEditor>
 			{asking ? (
@@ -899,6 +883,9 @@ function AccountsCard({ sheet, onChanged }) {
 	const [open, setOpen] = useState(null)
 	useGiveBack(open, id => [opener('account', id), opener('account', 'new')])
 	const [drag, setDrag] = useState(null)
+	// the account a keyboard picked up, and where it started, so Escape can put it back (c1)
+	const [held, setHeld] = useState(null)
+	const [said, setSaid] = useState('')
 	const rowsRef = useRef(null)
 	const write = async (send, optimistic) => {
 		if (optimistic) setList(optimistic)
@@ -953,12 +940,32 @@ function AccountsCard({ sheet, onChanged }) {
 			setDrag(null)
 			moveTo(account, drag.at > from ? drag.at - 1 : drag.at)
 		},
+		// Space or Enter picks the row up and drops it, the arrows move it, Escape puts it back (c1)
 		onKeyDown: ev => {
 			if (!ev.target.closest('.sp-list-item__handle')) return
+			const at = list.findIndex(a => a.id === account.id)
+			const tell = (n, word) => setSaid(`${account.name}${word ? `, ${word}` : ''}, position ${n + 1} of ${list.length}`)
+			if (ev.key === ' ' || ev.key === 'Enter') {
+				ev.preventDefault()
+				const holding = held?.id === account.id
+				setHeld(holding ? null : { id: account.id, from: at })
+				tell(at, holding ? 'dropped' : 'picked up')
+				return
+			}
+			if (ev.key === 'Escape' && held?.id === account.id) {
+				ev.preventDefault()
+				ev.stopPropagation()
+				moveTo(account, held.from)
+				setHeld(null)
+				tell(held.from, 'put back')
+				return
+			}
 			const step = ev.key === 'ArrowUp' ? -1 : ev.key === 'ArrowDown' ? 1 : 0
 			if (!step) return
 			ev.preventDefault()
-			moveTo(account, list.findIndex(a => a.id === account.id) + step)
+			if (at + step < 0 || at + step >= list.length) return
+			moveTo(account, at + step)
+			tell(at + step)
 		}
 	})
 
@@ -967,13 +974,15 @@ function AccountsCard({ sheet, onChanged }) {
 			<span className="sp-section-label">Accounts</span>
 			<span className="sp-subtitle">The accounts a row is paid from, or paid into. The totals add up the costs on each account in this order. Every year uses this list.</span>
 			<div className="sp-stack sp-gap-8" ref={rowsRef}>
+				<Announce>{said}</Announce>
 				{list.map((account, i) => (
 					<Fragment key={account.id}>
 						{drag && drag.at === i && drag.id !== account.id ? <Insertion /> : null}
 						{open === account.id
 							? <AccountEditor account={account} index={i} list={list} write={write} onMove={to => moveTo(account, to)} onClose={() => setOpen(null)} />
 							: (
-								<ListItem variant={drag?.id === account.id ? 'carried' : 'default'} handle={<Icon name="grip-vertical" size={14} />}
+								<ListItem variant={drag?.id === account.id || held?.id === account.id ? 'carried' : 'default'}
+									handle={<Icon name="grip-vertical" size={14} />} handleLabel={`Move ${account.name}`}
 									data-account={account.id} {...handleEvents(account)}>
 									<span className="sp-stacked sp-grow" role="button" tabIndex={0} aria-label={`Edit the account ${account.name}`} data-opener={`account:${account.id}`}
 										onClick={() => setOpen(account.id)}
@@ -1157,7 +1166,7 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 				<div className="sp-row-flex sp-gap-12">
 					<span className="sp-section-label">Budget {sheet.year}</span>
 					<span className="sp-grow" />
-					<span className="sp-note">{touch ? '' : 'Grey amounts are expected · '}Amounts in {currencySymbol()}</span>
+					<span className="sp-note">{touch ? '' : `Grey amounts are expected${dot}`}Amounts in {currencySymbol()}</span>
 				</div>
 			</CardBody>
 			<div className="bg-scroll" ref={scroller}>
@@ -1213,11 +1222,11 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 												? wide(line.id, <RowEditor sheet={sheet} line={line} group={g} index={i} write={write} onClose={close} />)
 												: (
 													<tr key={line.id}>
-														<td>
+														{/* while editing, a press anywhere in the name's cell opens the row; the keyboard reaches the name */}
+														<td {...(editing ? { className: 'bg-opens', onClick: () => editRow(line, g) } : {})}>
 															<span className="sp-cell-flex">
 																<span className="sp-truncate" title={line.name} {...(editing ? {
 																	role: 'button', tabIndex: 0, 'aria-label': `Edit the row ${line.name}`, 'data-opener': `row:${line.id}`,
-																	onClick: () => editRow(line, g),
 																	onKeyDown: ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); editRow(line, g) } }
 																} : {})}>{line.name}</span>
 															</span>
@@ -1255,5 +1264,3 @@ function SheetView({ sheet, write, editing, touch, panel, setPanel }) {
 		</Card>
 	)
 }
-
-const join = (...parts) => parts.filter(Boolean).join(' ')

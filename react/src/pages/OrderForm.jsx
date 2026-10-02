@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router'
 import { Card, CardBody, Panel, Toolbar } from '../components/Card.jsx'
 import { Button, IconButton } from '../components/Button.jsx'
-import { ListItem } from '../components/ListItem.jsx'
+import { Announce, ListItem } from '../components/ListItem.jsx'
 import { Computed, LineEditor } from '../components/LineEditor.jsx'
 import { Field } from '../components/Field.jsx'
 import { NumberField, TextField, TokensField } from '../components/Inputs.jsx'
@@ -15,30 +15,28 @@ import { Check } from '../components/Choice.jsx'
 import { Sum } from '../components/Data.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Slot } from '../components/FileDrop.jsx'
-import { AttachmentAdd, Strip } from '../components/Attachments.jsx'
+import { AttachmentAdd, Strip, Viewer } from '../components/Attachments.jsx'
 import { Alert, Dialog, DialogActions, DialogBody, DialogTitle, useToast } from '../components/Overlays.jsx'
-import { Empty } from '../components/Utilities.jsx'
+import { Empty, useFocusTrap } from '../components/Utilities.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	addAttachments, addItemAttachments, addVendorAlias, attachScanDocument, categoriesForVendor, createOrder,
+	addAttachments, addItemAttachments, addVendorAlias, attachScanDocument, attachmentFileUrl, categoriesForVendor, createOrder,
 	failureMessage, getVendors, invalidateOrderData, invalidateVendorData, removeAttachment,
 	removeItemAttachment, spendKinds, updateOrder, vendorByAnyName, vendorTextMatch
 } from '../api/client.js'
-import { activeLocaleCode, amount, currencySymbol, today } from '../api/format.js'
-import {
-	AttachmentTile, LineAmount, LinePhoto, SEP, Saving, dayShortMonth, itemsWord, lineMeta, lineTotal, money, saves, totalsOf,
-	useTouch
-} from './OrderParts.jsx'
+import { NUMBER_LOCALE, activeLocaleCode, amount, currencySymbol, dayShortMonth, dot, today } from '../api/format.js'
+import { MAC, useShellShape } from '../app/useMedia.js'
+import { Saving } from '../app/saving.jsx'
+import { AttachmentTile, LineAmount, LinePhoto, itemsWord, lineMeta, lineTotal, money, totalsOf } from './OrderParts.jsx'
 import { useLeaveGuard } from './vendorsCategories.jsx'
 
 /* The order as a form (1d): editing and every way to create one are this screen in another
    state (3a, 3b). Nothing reaches the server until Save or Create writes the order, then its files. */
 
-const MONEY = 'da-DK'
 const STATUSES = ['Ordered', 'Delivered', 'Returned'].map(s => ({ value: s, label: s }))
 
 const orderErrors = d => {
@@ -102,7 +100,7 @@ const freshKey = () => `new-${++made}`
 export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles = [], photoUrl = () => null, region = false, onLeave }) {
 	const navigate = useNavigate()
 	const toast = useToast()
-	const touch = useTouch()
+	const touch = useShellShape() === 'touch'
 	const vendors = useApi(getVendors)
 	const creating = mode === 'new'
 	const scan = origin.scan ?? null
@@ -118,7 +116,13 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const [reordering, setReordering] = useState(false)
 	const [carried, setCarried] = useState(null)
 	const [asking, setAsking] = useState(false)
+	const [viewing, setViewing] = useState(null)
+	// the row a keyboard picked up, and where it started, so Escape can put it back (c1)
+	const [held, setHeld] = useState(null)
+	const [said, setSaid] = useState('')
 	const list = useRef(null)
+	const sheetBox = useRef(null)
+	useFocusTrap(sheetBox, Boolean(touch && editing), '.sp-line-editor__form input')
 	// the line or add control whose editor is open, which takes focus back when it closes
 	const reopen = useRef(editing?.isNew ? 'add' : null)
 	const dragged = useRef(false)
@@ -139,7 +143,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const dirty = Boolean(lineChanged) || files.length > 0 || gone.length > 0
 		|| JSON.stringify(draft) !== JSON.stringify({ ...start, lines: undefined })
 		|| JSON.stringify(lines) !== JSON.stringify(start.lines)
-	const guard = useLeaveGuard(dirty)
+	// a new order's steps differ only in the query, so a step away asks as a page away does
+	const guard = useLeaveGuard(dirty, { search: creating })
 
 	/* ---- lines ---- */
 
@@ -202,6 +207,10 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		return next
 	})
 	const move = (key, by) => moveTo(key, lines.findIndex(l => l.key === key) + by)
+	const tell = (key, at, word) => {
+		const line = lines.find(l => l.key === key)
+		if (line) setSaid(`${line.title}${word ? `, ${word}` : ''}, position ${at + 1} of ${lines.length}`)
+	}
 
 	/* A row is carried by its handle and passes a neighbour once the pointer crosses that
 	   neighbour's middle. The window listens, since moving a row re-inserts its element. */
@@ -250,11 +259,30 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			window.removeEventListener('pointercancel', drop)
 		}
 	}, [carried])
+	// Space or Enter picks a row up and drops it, the arrows move it, Escape puts it back (c1)
 	const keyMove = ev => {
 		const row = ev.target.closest?.('.sp-list-item__handle') && ev.target.closest('[data-line]')
-		if (!row || (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown')) return
-		ev.preventDefault()
-		move(row.dataset.line, ev.key === 'ArrowUp' ? -1 : 1)
+		if (!row) return
+		const key = row.dataset.line
+		const at = lines.findIndex(l => l.key === key)
+		if (ev.key === ' ' || ev.key === 'Enter') {
+			ev.preventDefault()
+			const holding = held?.key === key
+			setHeld(holding ? null : { key, from: at })
+			tell(key, at, holding ? 'dropped' : 'picked up')
+		} else if (ev.key === 'Escape' && held?.key === key) {
+			ev.preventDefault()
+			ev.stopPropagation()
+			moveTo(key, held.from)
+			setHeld(null)
+			tell(key, held.from, 'put back')
+		} else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+			ev.preventDefault()
+			const to = at + (ev.key === 'ArrowUp' ? -1 : 1)
+			if (to < 0 || to >= lines.length) return
+			move(key, ev.key === 'ArrowUp' ? -1 : 1)
+			tell(key, to)
+		}
 	}
 
 	/* ---- attachments, staged until the save ---- */
@@ -375,6 +403,24 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	/* ---- the parts ---- */
 
+	// what the viewer walks (17b): the attachments, saved then staged, then the lines' photos
+	const viewable = [
+		...savedFiles.filter(f => !gone.includes(f.id)).map(f => ({
+			key: f.id, name: f.name,
+			src: f.kind === 'pdf' ? f.thumb : attachmentFileUrl(orderId, f.id),
+			download: attachmentFileUrl(orderId, f.id)
+		})),
+		...files.map(f => ({ key: f.key, name: f.name, src: f.thumb })),
+		...lines.flatMap(l => {
+			const src = l.newPhoto?.url ?? (l.dropPhoto ? null : photoUrl(l))
+			return src ? [{ key: `line:${l.key}`, name: l.title, src }] : []
+		})
+	]
+	const open = key => setViewing(viewable.findIndex(f => f.key === key))
+	const viewer = viewing != null && viewing > -1 && viewing < viewable.length
+		? <Viewer items={viewable} at={viewing} onMove={setViewing} onClose={() => setViewing(null)} />
+		: null
+
 	const editor = editing
 		? (
 			<LineForm
@@ -392,7 +438,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	const lineRow = line => {
 		const photo = line.newPhoto?.url ?? (line.dropPhoto ? null : photoUrl(line))
-		const mark = <LinePhoto src={photo} name={line.title} />
+		// a phone's row is itself the button that opens the line, so its photo cannot be another
+		const mark = <LinePhoto src={photo} name={line.title} onOpen={photo && !touch ? () => open(`line:${line.key}`) : undefined} />
 		const warn = line.uncertain || (tried && Object.keys(lineErrors(line)).length)
 		const text = (
 			<>
@@ -418,9 +465,11 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			<ListItem
 				key={line.key}
 				data-line={line.key}
-				variant={carried === line.key ? 'carried' : 'default'}
+				variant={carried === line.key || held?.key === line.key ? 'carried' : 'default'}
 				color={warn ? 'warning' : 'default'}
+				opens={!touch && !reordering}
 				handle={scan && !touch ? undefined : <Icon name="grip-vertical" size={14} />}
+				handleLabel={`Move ${line.title}`}
 				mark={scan ? <><Include line={line} setLines={setLines} />{mark}</> : mark}
 				actions={reordering
 					? <>
@@ -440,7 +489,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const brokenCount = tried ? lines.filter(l => l.include !== false && Object.keys(lineErrors(l)).length).length : 0
 	const itemsHead = (
 		<div className="sp-row-flex sp-wrap sp-gap-8">
-			<span className="sp-section-label">{scan ? 'Lines found' : 'Items'}{SEP}{lines.length}</span>
+			<span className="sp-section-label">{scan ? 'Lines found' : 'Items'}{dot}{lines.length}</span>
 			<span className="sp-grow" />
 			{brokenCount
 				? <span className="sp-subtitle sp-ink-danger">{brokenCount === 1 ? '1 line needs attention' : `${brokenCount} lines need attention`}</span>
@@ -459,6 +508,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			{itemsHead}
 			<div className="sp-stack sp-gap-8" ref={list} onPointerDown={touch ? undefined : grab} onClick={touch ? undefined : rowClick}
 				onKeyDown={keyMove}>
+				<Announce>{said}</Announce>
 				{lines.map(line => (editing && !touch && editing.key === line.key ? editor : lineRow(line)))}
 				{!lines.length && !(editing?.isNew) && tried
 					? (
@@ -487,7 +537,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 					<div className="sp-row-flex sp-gap-12">
 						{editing?.isNew ? null : <Button variant="outline" size="small" iconStart="plus" data-add="" onClick={openNew}>Add a line the scan missed</Button>}
 						<span className="sp-grow" />
-						<span className="sp-subtitle">Lines {money(sums.paid)}{SEP}shipping {money(draft.shipping || 0)}</span>
+						<span className="sp-subtitle">Lines {money(sums.paid)}{dot}shipping {money(draft.shipping || 0)}</span>
 					</div>
 				)
 				: null}
@@ -508,14 +558,15 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		? null
 		: (
 			<Card>
-				<span className="sp-section-label">Attachments{SEP}{shownFiles.length + files.length}</span>
+				<span className="sp-section-label">Attachments{dot}{shownFiles.length + files.length}</span>
 				<Strip>
 					{shownFiles.map(f => (
 						<AttachmentTile key={f.id} name={f.name} kind={f.kind} thumb={f.thumb} bare={touch}
-							onRemove={() => setGone(g => [...g, f.id])} />
+							onOpen={() => open(f.id)} onRemove={() => setGone(g => [...g, f.id])} />
 					))}
 					{files.map(f => (
-						<AttachmentTile key={f.key} name={f.name} kind={f.kind} thumb={f.thumb} bare={touch} onRemove={() => dropFile(f)} />
+						<AttachmentTile key={f.key} name={f.name} kind={f.kind} thumb={f.thumb} bare={touch}
+							onOpen={() => open(f.key)} onRemove={() => dropFile(f)} />
 					))}
 					<AttachmentAdd onFiles={addFiles} />
 				</Strip>
@@ -545,10 +596,10 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			</Field>
 			<div className="sp-fields">
 				<Field label="Discount" unit={currencySymbol()}>
-					<NumberField value={draft.discount} min={0} locale={MONEY} placeholder="0,00" onChange={discount => set({ discount })} />
+					<NumberField value={draft.discount} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={discount => set({ discount })} />
 				</Field>
 				<Field label="Shipping fee" unit={currencySymbol()}>
-					<NumberField value={draft.shipping} min={0} locale={MONEY} placeholder="0,00" onChange={shipping => set({ shipping })} />
+					<NumberField value={draft.shipping} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={shipping => set({ shipping })} />
 				</Field>
 			</div>
 			<div className="sp-fields">
@@ -591,7 +642,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		)
 
 	const leaveWord = creating ? 'Discard' : 'Cancel'
-	const commitWord = saving ? 'Saving...' : creating ? 'Create' : 'Save'
+	const commitWord = saving ? 'Saving…' : creating ? 'Create' : 'Save'
 	const totalsCard = (
 		<Card
 			footer={[
@@ -613,8 +664,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			{scan
 				? (printed != null && !mismatch ? <Pill color="success">Totals match</Pill> : null)
 				: <>
-					<span className="sp-meta">{itemsWord(included.length)}{SEP}discount {amount(draft.discount || 0)}{SEP}shipping {amount(draft.shipping || 0)}</span>
-					{saves(sums.saved) ? <span className="sp-stat__delta">Saved {money(sums.saved)}</span> : <Saving value={0} />}
+					<span className="sp-meta">{itemsWord(included.length)}{dot}discount {amount(draft.discount || 0)}{dot}shipping {amount(draft.shipping || 0)}</span>
+					<Saving value={sums.saved} variant="stat" />
 				</>}
 		</Card>
 	)
@@ -632,7 +683,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	const sheet = touch && editing
 		? createPortal(
 			<Scrim dialog onClick={ev => { if (ev.target === ev.currentTarget) cancelLine() }}>
-				<Sheet role="dialog" aria-modal="true" aria-label={editing.isNew ? 'Add a line' : 'Edit line'}>
+				<Sheet role="dialog" aria-modal="true" aria-label={editing.isNew ? 'Add a line' : 'Edit line'} ref={sheetBox}>
 					<div className="sp-row-flex sp-gap-8">
 						<span className="sp-heading">{editing.isNew ? 'Add a line' : 'Edit line'}</span>
 						<span className="sp-grow" />
@@ -663,11 +714,11 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	if (touch) return (
 		<div className="sp-stack sp-gap-12">
-			{notice}{itemsCard}{attachmentsCard}{detailsCard}{saveBar}{sheet}{dialog}{guard.prompt}
+			{notice}{itemsCard}{attachmentsCard}{detailsCard}{saveBar}{sheet}{dialog}{viewer}{guard.prompt}
 		</div>
 	)
 	const main = <div className="sp-stack sp-gap-12">{itemsCard}{attachmentsCard}</div>
-	const rail = <Panel>{detailsCard}{totalsCard}{dialog}{guard.prompt}</Panel>
+	const rail = <Panel>{detailsCard}{totalsCard}{dialog}{viewer}{guard.prompt}</Panel>
 	if (!region) return <>{main}{rail}</>
 	return <>{notice}<div className="sp-shell__body--split">{main}{rail}</div></>
 }
@@ -681,9 +732,9 @@ const focusFirst = selector => requestAnimationFrame(() => {
 	box?.scrollIntoView?.({ block: 'nearest' })
 })
 
-const lineMetaWith = (line, photo, plain) => (plain || photo ? lineMeta(line, plain) : `${lineMeta(line)}${SEP}no photo`)
+const lineMetaWith = (line, photo, plain) => (plain || photo ? lineMeta(line, plain) : `${lineMeta(line)}${dot}no photo`)
 
-const detailsLine = d => [d.categories.join(', '), d.kind, d.reference].filter(Boolean).join(SEP)
+const detailsLine = d => [d.categories.join(', '), d.kind, d.reference].filter(Boolean).join(dot)
 
 function Include({ line, setLines }) {
 	return (
@@ -745,7 +796,7 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 		<LineEditor
 			onPaste={paste}
 			sheet={sheet}
-			hint="Enter saves · Escape cancels · ⌘↵ saves and opens the next line"
+			hint={`Enter saves${dot}Escape cancels${dot}${MAC ? '⌘↵' : 'Ctrl ↵'} saves and opens the next line`}
 			commit={editing.isNew ? 'Add line' : 'Save line'}
 			photo={
 				<Slot
@@ -768,10 +819,10 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 					<Stepper value={Number(v.quantity) || 0} min={1} step={1} aria-label="Quantity" onChange={quantity => set({ quantity })} />
 				</Field>
 				<Field label="Unit price" unit={currencySymbol()} {...problem(errors.price)}>
-					<NumberField value={v.price} min={0} locale={MONEY} placeholder="0,00" onChange={price => set({ price })} />
+					<NumberField value={v.price} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={price => set({ price })} />
 				</Field>
 				<Field label="Retail price" unit={currencySymbol()}>
-					<NumberField value={v.retail} min={0} locale={MONEY} placeholder="0,00" onChange={retail => set({ retail })} />
+					<NumberField value={v.retail} min={0} locale={NUMBER_LOCALE} placeholder="0,00" onChange={retail => set({ retail })} />
 				</Field>
 				<Computed label="Line total">{v.price == null ? '-' : money(lineTotal(v))}</Computed>
 			</div>
@@ -786,7 +837,8 @@ function VendorPicker({ vendors, value, onPick, ...rest }) {
 	const typed = query.trim()
 	const shown = vendors.filter(v => vendorTextMatch(v, typed).matches).slice(0, 8)
 	const known = typed && vendorByAnyName(vendors, typed)
-	const pick = name => { onPick(name); setOpen(false); setQuery('') }
+	// picking closes the panel, and closing clears the search
+	const pick = name => onPick(name)
 	return (
 		<Combobox searchable value={value} placeholder="Choose a vendor" open={open}
 			onOpenChange={next => { setOpen(next); if (!next) setQuery('') }} onSearch={setQuery} aria-label="Vendor" {...rest}>
@@ -800,11 +852,10 @@ function VendorPicker({ vendors, value, onPick, ...rest }) {
 }
 
 function KindPicker({ value, onPick, ...rest }) {
-	const [open, setOpen] = useState(false)
 	return (
-		<Combobox value={value} open={open} onOpenChange={setOpen} aria-label="Kind" {...rest}>
+		<Combobox value={value} aria-label="Kind" {...rest}>
 			{spendKinds.map(kind => (
-				<ComboboxOption key={kind} selected={kind === value} onSelect={() => { onPick(kind); setOpen(false) }}>{kind}</ComboboxOption>
+				<ComboboxOption key={kind} selected={kind === value} onSelect={() => onPick(kind)}>{kind}</ComboboxOption>
 			))}
 		</Combobox>
 	)

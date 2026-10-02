@@ -114,7 +114,7 @@ export default function SignIn() {
 	return (
 		<AuthCard title="Sign in to Spendly" lead={alert ? null : 'Your orders, receipts and monthly limits.'} alert={alert}
 			onSubmit={submit} submit="Sign in" busy={busy} busyLabel="Signing in…"
-			across={<>New here? <Link className="sp-strong sp-ink-accent" to="/register">Create an account</Link></>}>
+			across={<>New here? <Link className="sp-strong sp-ink-accent au-across" to="/register">Create an account</Link></>}>
 			<Field label="Email" id="signin-email" message={emailProblem ?? undefined} messageType={emailProblem ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />

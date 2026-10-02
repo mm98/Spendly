@@ -13,9 +13,9 @@ import { invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getCurrentUser, getOrder, getOrderDraft, getOrders, getScanDraft, putScanDocument, scanThumbnailUrl
 } from '../api/client.js'
-import { amount } from '../api/format.js'
+import { amount, dayShortMonth, dot, sep } from '../api/format.js'
 import { OrderForm } from './OrderForm.jsx'
-import { OrderFailed, OrderLoading, SEP, dayShortMonth } from './OrderParts.jsx'
+import { OrderFailed, OrderLoading } from './OrderParts.jsx'
 
 /* A new order (3a, 3b): a way to start, then the order form unsaved. The address names the
    start, so a reload lands where the reader was. */
@@ -134,7 +134,7 @@ function Reading({ file, onCancel }) {
 							? (
 								<div className="sp-row-flex sp-gap-12">
 									<span className="sp-title sp-truncate">{file.name}</span>
-									{file.meta ? <span className="sp-meta sp-nowrap">{file.meta.replace(' • ', SEP)}</span> : null}
+									{file.meta ? <span className="sp-meta sp-nowrap">{file.meta.replaceAll(sep, dot)}</span> : null}
 								</div>
 							)
 							: null}
@@ -177,7 +177,7 @@ function Start({ scanOnly, file, picking }) {
 			})
 		setRefused(null)
 		const pdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name)
-		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : 'Image'}${SEP}${sizeLabel(f.size)}` })
+		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : 'Image'}${dot}${sizeLabel(f.size)}` })
 		putScanDocument(f)
 			.then(upload => {
 				invalidate(getScanDraft)
@@ -211,7 +211,7 @@ function Start({ scanOnly, file, picking }) {
 				<FileDrop accept={RECEIPTS} onFiles={send} action="Select a receipt">
 					<Mark size="large" aria-label="Receipt" aria-hidden="true"><Icon name="upload" size={24} /></Mark>
 					<span className="sp-title">Drop receipt here</span>
-					<span className="sp-meta">PDF, JPG, PNG, WebP, HEIC or GIF{SEP}up to {MAX_MB} MB per file</span>
+					<span className="sp-meta">PDF, JPG, PNG, WebP, HEIC or GIF{dot}up to {MAX_MB} MB per file</span>
 				</FileDrop>
 			</div>
 			{refused ? <div className="oc-narrow oc-left"><Alert color="danger" mark="!" title={refused.title}>{refused.note}</Alert></div> : null}
@@ -221,9 +221,9 @@ function Start({ scanOnly, file, picking }) {
 					<>
 						<div className="sp-divider oc-narrow">or</div>
 						<div className="oc-choices">
-							<Choice to="/orders/new?source=empty" icon="file-text" title="Empty order" body="Type the details yourself." />
+							<StartChoice to="/orders/new?source=empty" icon="file-text" title="Empty order" body="Type the details yourself." />
 							{copyable
-								? <Choice to="/orders/new?pick=copy" icon="copy" title="Copy a previous order" body="Same vendor, same lines, new date." />
+								? <StartChoice to="/orders/new?pick=copy" icon="copy" title="Copy a previous order" body="Same vendor, same lines, new date." />
 								: null}
 						</div>
 					</>
@@ -233,7 +233,8 @@ function Start({ scanOnly, file, picking }) {
 	)
 }
 
-function Choice({ to, icon, title, body }) {
+/** One way to start a new order, as a card that opens it (3a). */
+function StartChoice({ to, icon, title, body }) {
 	return (
 		<Card to={to}>
 			<span className="sp-sum-head">

@@ -16,8 +16,8 @@ import { useMedia, useShellShape } from '../app/useMedia.js'
 import { chosenTheme, followSystem, setTheme, useTheme } from '../app/theme.js'
 import { invalidate, useApi } from '../api/useApi.js'
 import {
-	failureMessage, getCategories, getCurrentUser, getHomeContent, getOrderDraft, getOrders, getOrdersOverview,
-	getSettings, getVendors, listSorts, orderStatuses, saveSettings, sorts, spendKinds
+	failureMessage, getCategories, getCurrentUser, getOrderDraft, getOrders, getSettings, getVendors, listSorts,
+	orderStatuses, saveSettings, sorts, spendKinds
 } from '../api/client.js'
 import { CURRENCIES, LOCALES, amount, localeSample, setCurrency, setLocale } from '../api/format.js'
 import { ImportCard } from './SettingsImport.jsx'
@@ -59,7 +59,7 @@ const previewAmount = code => {
 
 /* Saved settings are baked into these answers, so each is dropped the moment a save lands. */
 const dropStale = () => {
-	for (const fn of [getSettings, getOrderDraft, getOrders, getHomeContent, getOrdersOverview, getVendors, getCategories])
+	for (const fn of [getSettings, getOrderDraft, getOrders, getVendors, getCategories])
 		invalidate(fn)
 }
 
@@ -83,7 +83,7 @@ export default function Settings() {
 	})
 	const dirty = SECTIONS.filter(s => s.keys?.some(k => k in draft))
 	// moving between panes keeps the draft, so only leaving Settings asks first
-	const guard = useLeaveGuard(dirty.length > 0, '/settings')
+	const guard = useLeaveGuard(dirty.length > 0, { within: '/settings' })
 
 	const save = () => {
 		setSaving(true)
@@ -175,13 +175,11 @@ function SectionNav({ current }) {
 /* Below 900 the section nav is a select above the cards (11a). */
 function SectionPicker({ current }) {
 	const navigate = useNavigate()
-	const [open, setOpen] = useState(false)
 	const chosen = SECTIONS.find(s => s.key === current)
 	return (
-		<Combobox open={open} onOpenChange={setOpen} value={chosen?.label ?? 'Go to a section'} aria-label="Settings section">
+		<Combobox value={chosen?.label ?? 'Go to a section'} aria-label="Settings section">
 			{SECTIONS.map(s => (
-				<ComboboxOption key={s.key} selected={s.key === current}
-					onSelect={() => { setOpen(false); navigate(`/settings/${s.key}`) }}>{s.label}</ComboboxOption>
+				<ComboboxOption key={s.key} selected={s.key === current} onSelect={() => navigate(`/settings/${s.key}`)}>{s.label}</ComboboxOption>
 			))}
 		</Combobox>
 	)
@@ -349,7 +347,7 @@ function LoadFailed({ onRetry }) {
 		<Empty>
 			<Mark size="medium" fill="none" aria-label="Problem"><Icon name="alert-circle" /></Mark>
 			<EmptyTitle>Your settings could not be shown</EmptyTitle>
-			<EmptyBody>Try again. If it happens again, the server may be down.</EmptyBody>
+			<EmptyBody>Try again. If it happens again, Spendly may be down.</EmptyBody>
 			<Button variant="outline" onClick={onRetry}>Try again</Button>
 		</Empty>
 	)

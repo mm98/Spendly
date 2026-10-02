@@ -36,8 +36,7 @@ export function useListbox(children, { panelId, onPick }) {
 	})
 	const list = walk(children)
 
-	// the starting point is passed, never read back from state: setActive does not
-	// apply until the next render, so Home and End walked from the old position
+	// pass the starting index: setActive applies only on the next render
 	const step = (by, from = active) => {
 		if (!options.length) return
 		let next = from

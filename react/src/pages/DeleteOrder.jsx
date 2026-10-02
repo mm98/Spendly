@@ -62,11 +62,11 @@ export function DeleteOrder({ order, onClose, onDeleted }) {
 				</div>
 				{body}
 				<ListItem>This cannot be undone.</ListItem>
+				<DialogActions>
+					<Button variant="outline" fullWidth disabled={busy} onClick={onClose}>Keep it</Button>
+					<Button color="danger" fullWidth disabled={busy || !detail} onClick={remove}>Delete order</Button>
+				</DialogActions>
 			</div>
-			<DialogActions>
-				<Button variant="outline" fullWidth disabled={busy} onClick={onClose}>Keep it</Button>
-				<Button color="danger" fullWidth disabled={busy || !detail} onClick={remove}>Delete order</Button>
-			</DialogActions>
 		</Dialog>
 	)
 }

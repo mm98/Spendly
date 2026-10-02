@@ -11,10 +11,10 @@ import { useApi } from '../api/useApi.js'
 import {
 	deleteCategory, failureMessage, getCategoriesThisMonth, getSettings, invalidateCategoryData, invalidateVendorData
 } from '../api/client.js'
-import { amountRound, currency, plural } from '../api/format.js'
+import { NUMBER_LOCALE, amount, amountRound, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import {
-	CategoryMark, ConfirmDelete, DOT, Failed, ListLoading, RowMenu, SortControl, categoryDeleteNote, monthPace, usePaged
+	CategoryMark, ConfirmDelete, Failed, ListLoading, RowMenu, SortControl, categoryDeleteNote, monthPace, usePaged
 } from './vendorsCategories.jsx'
 
 const SORTS = [
@@ -44,8 +44,8 @@ function MonthLine({ category }) {
 	const { monthSpend: spend, budget } = category
 	if (!(budget > 0)) return <span className="sp-meta">{currency(spend, 0)} spent</span>
 	if (spend > budget)
-		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{DOT}{amountRound(spend - budget)} over</span>
-	return <span className="sp-meta">{currency(spend, 0)}{DOT}{amountRound(budget - spend)} left</span>
+		return <span className="sp-meta sp-ink-warning"><b className="sp-strong">{currency(spend, 0)}</b>{dot}{amountRound(spend - budget)} over</span>
+	return <span className="sp-meta">{currency(spend, 0)}{dot}{amountRound(budget - spend)} left</span>
 }
 
 /** Categories (5d): each one against its monthly limit, opened for editing from its row. */
@@ -145,7 +145,7 @@ export default function Categories() {
 			{rows.length > step
 				? (
 					<ListFooter loose>
-						<span className="sp-subtitle">Showing {paged.page.length} of {rows.length}</span>
+						<span className="sp-subtitle">Showing {amount(paged.page.length, 0)} of {amount(rows.length, 0)}</span>
 						{paged.more ? <Button variant="outline" size="small" onClick={paged.showMore}>Load more</Button> : null}
 					</ListFooter>
 				)
@@ -154,7 +154,7 @@ export default function Categories() {
 	)
 	else body = (
 		<List data={rows} recordKey={c => c.id} noun="categories" pageSize={step} selectionKey={query + sort.id}
-			onRowClick={c => navigate(`/categories/${c.id}/edit`)}>
+			rowTo={c => `/categories/${c.id}/edit`} locale={NUMBER_LOCALE}>
 			<ListHead>
 				<ListCell width="title">Category</ListCell>
 				<ListCell width="amount">{sort.id.startsWith('month-') ? sort.label : 'This month'}</ListCell>
