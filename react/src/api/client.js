@@ -1,5 +1,5 @@
 /* The real API client: a thin fetch() wrapper around the Express + SQLite backend in api/.
-   Every exported function keeps a stable name and signature — useApi.js keys its cache off
+   Every exported function keeps a stable name and signature - useApi.js keys its cache off
    `fn.name`, and every page calls this module by these names. seed.js is not imported here: the
    data it describes is real rows on the server, seeded once per account at registration
    (api/src/seed.js).
@@ -296,7 +296,7 @@ export async function deleteCategory(id, signal) {
 
 /* ---- orders ----
    A draft's `shipping` and `discount` arrive from the create/edit form as comma-formatted
-   strings (or ''), the same way shipping always has — parseAmount is what turns "49,00" into
+   strings (or ''), the same way shipping always has - parseAmount is what turns "49,00" into
    49, and the API wants a plain number. Everything else in a draft (vendor name, category names, numeric item fields)
    already matches what the server expects. */
 
@@ -474,7 +474,7 @@ export async function deleteOrder(id, signal) {
 	return request(`/api/orders/${id}`, { method: 'DELETE', signal })
 }
 
-/** Takes real File objects (from a picker or a drop) and uploads their actual bytes — the
+/** Takes real File objects (from a picker or a drop) and uploads their actual bytes - the
     backend stores them for real, unlike the phantom store's name-only record. */
 export async function addAttachments(orderId, files, signal) {
 	const form = new FormData()
@@ -486,7 +486,7 @@ export async function removeAttachment(orderId, attachmentId, signal) {
 	return request(`/api/orders/${orderId}/attachments/${attachmentId}`, { method: 'DELETE', signal })
 }
 
-/** `<img src>` reads these directly rather than going through fetch() — the browser sends the
+/** `<img src>` reads these directly rather than going through fetch() - the browser sends the
     session cookie on a same-origin image request the same way it does on any other, so there's
     nothing useApi.js needs to do here. Kept as functions (not inline template strings at every
     call site) so the URL shape lives in one place. */
@@ -494,7 +494,7 @@ export const attachmentThumbnailUrl = (orderId, attachmentId) => `/api/orders/${
 export const attachmentFileUrl = (orderId, attachmentId) => `/api/orders/${orderId}/attachments/${attachmentId}/file`
 
 /** The same as addAttachments/removeAttachment above, one level down: a photo (or a PDF) of a
-    single line item rather than the whole receipt. The item has to already exist server-side —
+    single line item rather than the whole receipt. The item has to already exist server-side -
     NewOrder.jsx uploads these after the order (and so the item) is saved, not while the item is
     still a client-side draft with no id of its own yet. */
 export async function addItemAttachments(orderId, itemId, files, signal) {
@@ -608,7 +608,7 @@ export async function getOrderAsDraft(id, signal) {
 	}
 }
 
-/* A month's statistics window, reshaped into the "period" object Home and Orders read — those
+/* A month's statistics window, reshaped into the "period" object Home and Orders read - those
    two pages were written against the phantom store's hand-authored per-month record, and this
    is what keeps them working against a real, computed window instead: same field names, real
    numbers underneath. */
@@ -667,7 +667,7 @@ export async function getOrdersOverview(signal) {
 		getSettings(signal)
 	])
 	/* The ring reads "Spent this month," so its segments and the rows under it have to be
-	   this month's spend too — categories carries all-time totals (categories with old orders
+	   this month's spend too - categories carries all-time totals (categories with old orders
 	   and none this month would otherwise fill a ring a 0 kr. centre says is empty). window.split
 	   is the same month-scoped breakdown Home's hero legend reads; icon/budget still come from
 	   categories since split doesn't carry either. */
@@ -719,16 +719,16 @@ export async function resetStoredData(signal) {
 }
 
 /** Replaces this account's ledger with generated demo orders, so the app can be looked at
-    with something in it. Replaces rather than adds — see the route's own note.
+    with something in it. Replaces rather than adds - see the route's own note.
     A different ledger each press: no seed is sent, so the route picks one. `orders` is how
-    many it holds in total and `months` how far back they reach, ending today — the two
+    many it holds in total and `months` how far back they reach, ending today - the two
     comboboxes on the card. Answers
-    { orders, vendors, categories, months, seed } — the seed it used, which is what makes a
+    { orders, vendors, categories, months, seed } - the seed it used, which is what makes a
     dataset worth reporting reproducible.
 
     30 seconds and the request is abandoned rather than spinning forever: the largest fill is
     ~5s on the API's own measurements, so six times that is a hang, not a slow day. Abandoned,
-    not cancelled — the server finishes what it started, so a fill that answers late has still
+    not cancelled - the server finishes what it started, so a fill that answers late has still
     happened, and the error toast is about this page's knowledge of it, not about the data. */
 export async function populateDemoData(orders, months, signal) {
 	return request('/api/demo-data', { method: 'POST', body: { orders, months },
@@ -749,7 +749,7 @@ export async function getStats(range, windowId, compare, signal) {
 	return request('/api/stats' + qs({ range, windowId, compare: compare === 'year' ? 'year' : undefined }), { signal })
 }
 
-/** The lighter form getOrdersOverview/getHomeContent build their "period" summary from —
+/** The lighter form getOrdersOverview/getHomeContent build their "period" summary from -
     everything periodFromWindow reads, minus the one sub-computation only the Statistics page
     itself needs (`recent`: up to 6 *extra* aggregate queries for a bar chart) that was making
     Home and Orders overview pay for a chart they throw away. The window's returns are not
@@ -770,13 +770,13 @@ export async function getHomeHero(signal) {
     inside it that opens "the orders behind this slice" has to open *those* orders. Four of them
     did not: the hero legend under "Where it went • Aug", the category rows under two rings
     reading "Spent this month", and the row for whatever has no category. Each opened every
-    order in that category since the account was made — a list whose total contradicts the
+    order in that category since the account was made - a list whose total contradicts the
     figure the reader clicked, under filters that do not mention the month.
 
     Built here rather than at each call site so the four cannot drift, and because a filter
     dropped from one of them is invisible: the destination is a real, working, filtered list
     either way, just of the wrong thing. `from`/`to` are omitted when the card has no window to
-    pass on — an all-time ring, a vendor's whole history — rather than being faked. */
+    pass on - an all-time ring, a vendor's whole history - rather than being faked. */
 export const ordersIn = ({ category, vendor, from, to } = {}) =>
 	'/orders/all' + qs({ category, vendor, from, to })
 
@@ -805,7 +805,7 @@ const defaultCardRows = 6
     storing a preference no control would obey. */
 export const cardRowOptions = [1, 2, 4, 6, 8, 10]
 
-/** The order the vendors and categories lists open in — one setting, because these are the same
+/** The order the vendors and categories lists open in - one setting, because these are the same
     kind of list and a person who wants one alphabetical wants both. Only the orders *both*
     lists have: vendors can also sort by order count and categories by share of spend, and
     neither can be the shared default, since the other list has no such column to sort on. Those
@@ -825,7 +825,7 @@ export const listSorts = [
 
 export async function getHomeContent(signal) {
 	// Fetched directly rather than through getOrdersOverview, which independently re-fetches
-	// stats/categories/home for its own callers — going through it here paid for that work
+	// stats/categories/home for its own callers - going through it here paid for that work
 	// twice on every Home load.
 	const [onboarding, { window }, vendors, categories, settings, { latestOrders }] = await Promise.all([
 		request('/api/home/onboarding', { signal }),
@@ -890,7 +890,7 @@ export async function getHomeContent(signal) {
 
 /* ---- scan ---- */
 
-/** Uploads the real file that was dropped or picked — the backend keeps its bytes until the
+/** Uploads the real file that was dropped or picked - the backend keeps its bytes until the
     review step turns it into the new order's own attachment (attachScanDocument below). */
 export async function putScanDocument(file, signal) {
 	const form = new FormData()
@@ -922,7 +922,7 @@ export const scanFileUrl = documentKey => `/api/scan/documents/${documentKey}/fi
 
 /* ---- command palette ----
    The server's /api/search matches vendors, categories, wishes and orders (by vendor name,
-   note or an item's title) against the account's own rows — the same real query getOrders' text search
+   note or an item's title) against the account's own rows - the same real query getOrders' text search
    runs. Grouping that into headed sections, highlighting the matched substring and mixing in
    the static "go to"/"create" commands is presentation, not data, so it stays here rather than
    asking the server to compose UI. */
@@ -1068,7 +1068,7 @@ export async function search(query, signal) {
 	return { query, groups }
 }
 
-/* ---- static option lists (not user data — spendKinds mirrors the server's SPEND_KINDS;
+/* ---- static option lists (not user data - spendKinds mirrors the server's SPEND_KINDS;
    the rest are the client's alone, since the server never reads a sort label or a range
    chip) ---- */
 

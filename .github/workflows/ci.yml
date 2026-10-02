@@ -31,6 +31,7 @@ jobs:
       - run: npm run icons:check
       - run: npm run icons:brand:check
       - run: npm run bank:check
+      - run: npm run design:check
 
   # Every SQL statement the API runs, against the plan SQLite picks for it, compared to the
   # blessed baseline -- so a query added or edited here arrives with its plan reviewed, and an
