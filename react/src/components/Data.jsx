@@ -85,6 +85,43 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 	)
 }
 
+const SERIES = { 1: '1', 2: '2', 3: '3', 4: '4' }
+
+/** The share list a donut is read from (c14), one ShareRow per share. */
+export function Shares({ children, ...rest }) {
+	reject(rest, 'Shares')
+	return <div className="sp-shares" {...rest}>{children}</div>
+}
+
+/** One share: its series key, what it is, and its value. A share is a filter, so it is a button. */
+export function ShareRow({ series = 1, value, onClick, children, ...rest }) {
+	reject(rest, 'ShareRow')
+	return (
+		<button type="button" className="sp-shares__row" onClick={onClick} {...rest}>
+			<span className="sp-legend__key" data-key={pick(SERIES, series, 'series', 'ShareRow')} />
+			<span>{children}</span>
+			<span className="sp-grow" />
+			<span className="sp-shares__value">{value}</span>
+		</button>
+	)
+}
+
+/** What each series of a chart is (c14). Drawn only when a chart has more than one. */
+export function Legend({ children, ...rest }) {
+	reject(rest, 'Legend')
+	return <div className="sp-legend" {...rest}>{children}</div>
+}
+
+export function LegendItem({ series = 1, children, ...rest }) {
+	reject(rest, 'LegendItem')
+	return (
+		<span className="sp-legend__item" {...rest}>
+			<span className="sp-legend__key" data-key={pick(SERIES, series, 'series', 'LegendItem')} />
+			{children}
+		</span>
+	)
+}
+
 export function Plot({ axis = [], gridlines = 4, limit, children, ...rest }) {
 	reject(rest, 'Plot')
 	return (
