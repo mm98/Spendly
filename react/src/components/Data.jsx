@@ -3,14 +3,17 @@ import { Skeleton } from './Utilities.jsx'
 
 const pct = n => `${Math.max(0, Math.min(100, n))}%`
 
-export function Gauge({ value, over, marker, untargeted = false, thin = false, negative = false, ...rest }) {
+/** `passed` is a limit already passed, drawn as one full fill in the over colour - the rail's
+    and the form's shape, where a list row splits it with `over` (5i). */
+export function Gauge({ value, over, marker, untargeted = false, thin = false, negative = false, passed = false, ...rest }) {
 	reject(rest, 'Gauge')
 	return (
 		<span className={join('sp-gauge', untargeted && 'sp-gauge--untargeted', thin && 'sp-gauge--thin')} {...rest}>
 			<meter value={value} min="0" max="100" aria-label={rest['aria-label']} />
 			<span
-				className={join('sp-gauge__fill', over && 'sp-gauge__fill--over', negative && 'sp-gauge__fill--negative')}
-				style={{ width: pct(value) }}
+				className={join('sp-gauge__fill', (over || passed) && 'sp-gauge__fill--over', negative && 'sp-gauge__fill--negative')}
+				{...(passed ? { 'data-fill': '100' } : {})}
+				style={{ width: pct(passed ? 100 : value) }}
 			/>
 			{over ? <span className="sp-gauge__over" style={{ width: pct(over) }} /> : null}
 			{marker !== undefined ? <span className="sp-gauge__marker" style={{ left: pct(marker) }} /> : null}
