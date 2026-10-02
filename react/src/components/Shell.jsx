@@ -1,14 +1,17 @@
-import { useState } from 'react'
+import { createContext, useContext, useId, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 import { Fab, TabBar } from './Touch.jsx'
+import { SearchInput } from './Inputs.jsx'
+import { Kbd } from './Utilities.jsx'
 
 /** `viewport` fills the browser window where the drawn shell is a framed one; `touch` is the
-    shell below 640 - top bar, content, tab bar and the one floating action. */
-export function Shell({ collapsed = false, viewport = false, touch = false, children, ...rest }) {
+    shell below 640 - top bar, content, tab bar and the one floating action. `cover` is a
+    surface that owns the whole touch screen (7b's search): the page stays mounted under it. */
+export function Shell({ collapsed = false, viewport = false, touch = false, cover, children, ...rest }) {
 	reject(rest, 'Shell')
 	let menu = null, topbar = null, content = null, tabbar = null, fab = null
 	for (const child of [].concat(children ?? []).flat()) {
@@ -22,12 +25,13 @@ export function Shell({ collapsed = false, viewport = false, touch = false, chil
 	}
 	if (touch) return (
 		<div className="sp-shell--touch sp-touch" {...rest}>
-			<div className="sp-shell__page">
+			<div className="sp-shell__page" hidden={!!cover}>
 				{topbar}
 				{content}
 			</div>
-			{fab}
-			{tabbar}
+			{cover ? <div className="sp-shell__page">{cover}</div> : null}
+			{cover ? null : fab}
+			{cover ? null : tabbar}
 		</div>
 	)
 	return (
@@ -174,5 +178,103 @@ function useTip(tip) {
 export function Scrim({ dialog = false, children, ...rest }) {
 	reject(rest, 'Scrim')
 	return <div className={join('sp-scrim', dialog && 'sp-scrim--dialog')} {...rest}>{children}</div>
+}
+
+/* ---------- command palette (c24) ---------- */
+
+const PaletteScreen = createContext(false)
+
+/** The command palette (c24): query line, results as one listbox, keys at its foot. `screen`
+    fills a phone (7b): the query line is the search field and rows drop figures and key caps. */
+export function Palette({ screen = false, value, onChange, count, activeId, inputRef, placeholder, label, foot, children, ...rest }) {
+	reject(rest, 'Palette')
+	const list = useId()
+	const term = {
+		role: 'combobox',
+		'aria-expanded': 'true',
+		'aria-controls': list,
+		'aria-label': label,
+		...(activeId ? { 'aria-activedescendant': activeId } : {})
+	}
+	return (
+		<PaletteScreen.Provider value={screen}>
+			<div className={join('sp-palette', screen && 'sp-palette--screen')} role="dialog" aria-modal="true" {...rest}>
+				<div className="sp-palette__search">
+					{screen
+						? <SearchInput value={value} onChange={onChange} inputRef={inputRef} placeholder={placeholder} {...term} />
+						: (
+							<>
+								<span className="sp-palette__icon"><Icon name="search" /></span>
+								<input ref={inputRef} className="sp-palette__term" type="search" value={value}
+									onChange={ev => onChange?.(ev.target.value)} placeholder={placeholder} {...term} />
+								{count ? <span className="sp-note" aria-live="polite">{count}</span> : null}
+							</>
+						)}
+				</div>
+				<div className="sp-palette__body" id={list} role="listbox" aria-label="Results">{children}</div>
+				{!screen && foot?.length
+					? <div className="sp-palette__foot">{foot.map(key => <span key={key}>{key}</span>)}</div>
+					: null}
+			</div>
+		</PaletteScreen.Provider>
+	)
+}
+
+/** The label over a group of rows. */
+export function PaletteGroup({ children, ...rest }) {
+	reject(rest, 'PaletteGroup')
+	return <span className="sp-palette__group" role="presentation" {...rest}>{children}</span>
+}
+
+/** The rule between two groups. */
+export function PaletteRule(props) {
+	reject(props, 'PaletteRule')
+	return <div className="sp-palette__rule" role="presentation" {...props} />
+}
+
+/* The typed text inside a name, at the start of a word where it sits at one, otherwise wherever
+   it first appears: a Danish compound puts the match mid-word. */
+function marked(text, match) {
+	if (typeof text !== 'string' || !match) return text
+	const hay = text.toLowerCase()
+	const needle = match.toLowerCase()
+	if (hay.length !== text.length) return text
+	let at = -1
+	for (let i = hay.indexOf(needle); i >= 0; i = hay.indexOf(needle, i + 1))
+		if (i === 0 || /[\s\-/(]/.test(hay[i - 1])) { at = i; break }
+	if (at < 0) at = hay.indexOf(needle)
+	if (at < 0) return text
+	return <>{text.slice(0, at)}<mark>{text.slice(at, at + needle.length)}</mark>{text.slice(at + needle.length)}</>
+}
+
+/** One record or one action. `icon` or `thumb` leads it, `match` is the typed text marked in the
+    name, `value` the figure at its end and `kbd` an action's key; a phone drops both (7b). */
+export function PaletteRow({ icon, thumb = false, plain = false, match, meta, value, kbd, selected = false, children, ...rest }) {
+	reject(rest, 'PaletteRow')
+	const screen = useContext(PaletteScreen)
+	const trail = !screen && (value != null || kbd)
+	return (
+		<button type="button" className="sp-palette__row" role="option" aria-selected={selected ? 'true' : 'false'} tabIndex={-1} {...rest}>
+			{thumb
+				? <span className="sp-palette__thumb" aria-hidden="true" />
+				: icon ? <span className="sp-palette__icon"><Icon name={icon} size={15} /></span> : null}
+			{/* truncated, so a long name keeps the row one line and the list from scrolling sideways */}
+			<span className={join('sp-palette__name', plain && 'sp-palette__name--plain', 'sp-truncate')}>{marked(children, match)}</span>
+			{meta ? <span className="sp-meta sp-truncate">{meta}</span> : null}
+			{trail ? <span className="sp-grow" /> : null}
+			{trail && value != null ? <span className="sp-data">{value}</span> : null}
+			{trail && kbd ? <Kbd>{kbd}</Kbd> : null}
+		</button>
+	)
+}
+
+/** The way from a group to the rest of its records, in their own list. */
+export function PaletteAll({ selected = false, children, ...rest }) {
+	reject(rest, 'PaletteAll')
+	return (
+		<button type="button" className="sp-palette__all" role="option" aria-selected={selected ? 'true' : 'false'} tabIndex={-1} {...rest}>
+			{children}
+		</button>
+	)
 }
 

@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { Outlet, useMatches, useNavigate } from 'react-router'
+import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
@@ -11,7 +11,7 @@ import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, log
 import { useApi } from '../api/useApi.js'
 import { useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
-import { Palette } from './Palette.jsx'
+import { Palette, useRecentRecords } from './Palette.jsx'
 
 const MAC = /Mac|iPhone|iPad/.test(navigator.platform)
 
@@ -37,37 +37,49 @@ export function AppShell() {
 
 	useEffect(() => { document.title = title ? `${title} - Spendly` : 'Spendly' }, [title])
 
-	const openPalette = useCallback(query => setPalette({ query: query ?? '' }), [])
+	useRecentRecords()
+	// opened over the order list, the palette starts from the list's own search (9d)
+	const { pathname, search: params, key: visit } = useLocation()
+	const listQuery = pathname === '/orders' ? new URLSearchParams(params).get('q') ?? '' : ''
+	const openPalette = useCallback(query => setPalette({ query: query ?? listQuery }), [listQuery])
+	// any navigation ends it, the browser's Back included
+	useEffect(() => setPalette(null), [visit])
 	useEffect(() => {
 		const key = ev => {
-			if (ev.key.toLowerCase() === 'k' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); openPalette() }
+			if (ev.key.toLowerCase() !== 'k' || !(ev.metaKey || ev.ctrlKey)) return
+			ev.preventDefault()
+			setPalette(open => (open ? null : { query: listQuery }))
 		}
 		document.addEventListener('keydown', key)
 		return () => document.removeEventListener('keydown', key)
-	}, [openPalette])
+	}, [listQuery])
 
 	const content = (
 		<ShellContent layout={layout}>
 			<Suspense fallback={null}><Outlet /></Suspense>
 		</ShellContent>
 	)
+	// a click or the first letter opens the palette; focus alone does not, since the palette
+	// hands focus back to this field when it closes
 	const search = (
 		<SearchInput
 			value=""
 			onChange={text => openPalette(text)}
-			onFocus={() => openPalette()}
+			onClick={() => openPalette()}
 			placeholder={shape === 'touch' ? 'Search' : 'Search orders, vendors, items…'}
 			aria-label="Search orders, vendors, items"
 			kbd={shape === 'touch' ? undefined : <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd>}
 		/>
 	)
-	const overlay = palette ? <Palette query={palette.query} onClose={() => setPalette(null)} /> : null
+	const overlay = palette
+		? <Palette query={palette.query} touch={shape === 'touch'} onClose={() => setPalette(null)} />
+		: null
 
 	if (shape === 'touch') {
 		const tab = UNDER_MORE.includes(navKey) ? 'more' : navKey
 		return (
 			<Toaster>
-				<Shell touch>
+				<Shell touch cover={overlay}>
 					<TopBar touch>{search}</TopBar>
 					{content}
 					{fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
@@ -77,7 +89,6 @@ export function AppShell() {
 						))}
 					</TabBar>
 				</Shell>
-				{overlay}
 			</Toaster>
 		)
 	}

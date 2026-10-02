@@ -1075,6 +1075,14 @@ export async function search(query, signal) {
 	return { query, groups }
 }
 
+/** The records the text appears in, as the server answers: vendors (with the alias that
+    matched), categories, bookmarks and orders with their item titles, each cut at SEARCH_CAP. */
+export async function searchRecords(query, signal) {
+	return request('/api/search' + qs({ query }), { signal })
+}
+// the server's MAX_PER_KIND (api/src/routes/search.js): a kind that fills it may hold more
+export const SEARCH_CAP = 8
+
 /* ---- static option lists (not user data - spendKinds mirrors the server's SPEND_KINDS;
    the rest are the client's alone, since the server never reads a sort label or a range
    chip) ---- */
