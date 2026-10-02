@@ -13,13 +13,16 @@ import { Mark } from '../components/Mark.jsx'
 import { Alert } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
+import { Halves } from '../components/Well.jsx'
+import { useListMemory } from '../app/listMemory.js'
 import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
 import { StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import { failureMessage, getCategories, getOrders, getStats } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import {
-	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, longDate, monthNames, percent, shortDate
+	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, longDate, monthNames, percent,
+	shortDate, today
 } from '../api/format.js'
 
 /* ---- windows: the ids the API pages through, worked out here so the control answers at once ---- */
@@ -35,7 +38,8 @@ const DAY_MS = 86400000
 const pad = n => String(n).padStart(2, '0')
 const utcOf = iso => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
 const isoOf = ms => new Date(ms).toISOString().slice(0, 10)
-const todayUtc = () => { const t = new Date(); return Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()) }
+// the reader's own date, the one the API is told is today
+const todayUtc = () => utcOf(today())
 const mondayFirst = ms => (new Date(ms).getUTCDay() + 6) % 7
 
 // ISO weeks, the same arithmetic as the API's lib/stats.js
@@ -76,10 +80,11 @@ function boundsOf(range, id) {
 	return [Date.UTC(y, 0, 1), Date.UTC(y, 11, 31)]
 }
 
-/** The same window a year earlier, which is what the switch compares with. */
+/** The same window a year earlier, which is what the switch compares with: a week keeps its number,
+    and a week 53 the year before did not have is compared with that year's week 52. */
 function yearEarlier(range, id) {
-	const from = new Date(boundsOf(range, id)[0])
-	return windowIdAt(range, Date.UTC(from.getUTCFullYear() - 1, from.getUTCMonth(), from.getUTCDate()))
+	const earlier = `${Number(id.slice(0, 4)) - 1}${id.slice(4)}`
+	return range !== 'week' || validId('week', earlier) ? earlier : `${earlier.slice(0, 4)}-W52`
 }
 
 /** A window of another size around the same stretch: the one holding this window's last day,
@@ -112,6 +117,10 @@ function stepLabel(range, id) {
 const UNIT = { week: 'day', month: 'week', quarter: 'month', year: 'month' }
 
 const weekday = iso => new Intl.DateTimeFormat(activeLocaleCode(), { weekday: 'short', timeZone: 'UTC' }).format(new Date(utcOf(iso)))
+// "2 Oct": the compare switch already names the earlier window's year
+const dayAndMonth = iso => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(utcOf(iso)))
+// a month's first and last weeks hold only the month's own days, so a week's column is named by its days
+const daySpan = (from, to) => (from === to ? String(Number(from.slice(8))) : `${Number(from.slice(8))}-${Number(to.slice(8))}`)
 
 /** Months for a quarter or a year, weeks for a month, days for a week, up to the one holding today
     (4a), each with its spend and saving from the API's running totals and the window a press opens. */
@@ -136,7 +145,7 @@ function chartOf(view) {
 			key: from,
 			from,
 			to,
-			tick: unit === 'month' ? monthNames()[month] : unit === 'week' ? `W${week}` : weekday(from),
+			tick: unit === 'month' ? monthNames()[month] : unit === 'week' ? daySpan(from, to) : weekday(from),
 			name: unit === 'month'
 				? `${monthNames('long')[month]} ${new Date(at).getUTCFullYear()}`
 				: unit === 'week' ? `Week ${week}, ${shortDate(from)} - ${shortDate(to)}` : longDate(from),
@@ -164,6 +173,8 @@ const signed = (n, text) => (n > 0 ? `+${text}` : n < 0 ? `-${text}` : text)
 const counted = (n, noun, nouns = `${noun}s`) => `${amount(n, 0)} ${n === 1 ? noun : nouns}`
 const TOP = 8
 const SLICE = 25
+// the API answers at most 1000 orders at once (MAX_PAGE_SIZE)
+const MOST_PAGES = 1000 / SLICE
 const RETRY_COPY = 'Check your connection, then try again.'
 
 /* useApi keeps its last answer while new arguments load or fail. This returns data only when it
@@ -208,17 +219,28 @@ export default function Statistics() {
 	const pace = stats.data?.window.pace
 	const [pastFrom, pastTo] = boundsOf(range, before)
 	const sameDays = pace?.running ? Math.min(pace.daysIn, Math.round((pastTo - pastFrom) / DAY_MS) + 1) : null
-	const toDate = useCurrent(getOrders, [{ from: isoOf(pastFrom), to: isoOf(pastFrom + ((sameDays ?? 1) - 1) * DAY_MS), pageSize: 1 }], { enabled: comparing && sameDays != null })
+	const pastLast = isoOf(pastFrom + ((sameDays ?? 1) - 1) * DAY_MS)
+	const toDate = useCurrent(getOrders, [{ from: isoOf(pastFrom), to: pastLast, pageSize: 1 }], { enabled: comparing && sameDays != null })
 
-	// the table pages on the server; the pages already shown are kept for this window only
+	/* The table pages on the server; the pages already shown are kept for this window only. Back to
+	   this step asks for every page the reader had open in one answer, then Load more one at a time. */
+	const { pages, setPages, restored } = useListMemory('orders')
 	const slice = `${from}/${to}`
-	const [more, setMore] = useState({ slice, pages: [] })
-	const earlier = more.slice === slice ? more.pages : []
-	const next = useCurrent(getOrders, [{ from, to, page: earlier.length + 1, pageSize: SLICE }], { enabled: !touch })
+	const [more, setMore] = useState({ slice, pages: [], count: 0 })
+	const kept = more.slice === slice ? more : { pages: [], count: 0 }
+	const earlier = kept.pages
+	const first = Math.min(pages, MOST_PAGES)
+	const ask = kept.count ? { page: kept.count + 1, pageSize: SLICE } : { page: 1, pageSize: SLICE * first }
+	const next = useCurrent(getOrders, [{ from, to, ...ask }], { enabled: !touch })
 	const loadMore = () => {
 		if (next.error) return next.refresh()
-		if (next.data) setMore({ slice, pages: [...earlier, next.data] })
+		if (!next.data) return
+		setMore({ slice, pages: [...earlier, next.data], count: kept.count ? kept.count + 1 : first })
+		setPages(n => n + 1)
 	}
+	// the window goes back to where the reader left it once the rows are drawn, or there are none to draw
+	const drawn = !!stats.error || (!!stats.data && (touch || !stats.data.window.orders || !!next.data || !!next.error))
+	useLayoutEffect(() => { if (drawn) restored() }, [drawn, restored])
 
 	const retry = () => {
 		for (const call of [stats, past, toDate, categories, delivered, ordered, returned, next]) if (call.error) call.refresh()
@@ -283,10 +305,13 @@ export default function Statistics() {
 		)
 	}
 
-	if (!stats.data) return arrange({ shape, stacked, period, ...busyParts({ range, touch, comparing }) })
+	const name = nameOf(range, id)
+	if (!stats.data) {
+		const running = fromMs <= todayUtc() && todayUtc() <= toMs
+		return arrange({ shape, stacked, period, ...busyParts({ range, name, running, touch, comparing, categories }) })
+	}
 
 	const view = stats.data.window
-	const name = nameOf(view.range, view.id)
 
 	if (!view.orders) {
 		// with no window on either side there are no orders at all yet (6a)
@@ -344,15 +369,18 @@ export default function Statistics() {
 		stacked,
 		period,
 		notice: failedNotice,
-		kpis: <Kpis view={view} chart={chart} was={was} waiting={comparing && !was && !compareFailed} touch={touch} />,
-		chart: <SpendChart chart={chart} touch={touch} onOpen={open} />,
+		kpis: (
+			<Kpis view={view} chart={chart} was={was} by={sameDays == null ? null : dayAndMonth(pastLast)}
+				waiting={comparing && !was && !compareFailed} touch={touch} />
+		),
+		chart: <SpendChart range={range} chart={chart} touch={touch} onOpen={open} />,
 		byCategory: touch
 			? <CategoryRows key={`category ${view.id}`} view={view} />
 			: <CategoryShares view={view} onOpen={category => navigate(`/orders?category=${category ?? 'none'}&from=${view.from}&to=${view.to}`)} />,
 		byStatus: <StatusCard total={view.orders} counts={[['Delivered', delivered], ['Ordered', ordered], ['Returned', returned]]} onRetry={retry} />,
 		vendors: <VendorsCard key={`vendors ${view.id}`} view={view} name={name} touch={touch} />,
 		saving: <SavingChart chart={chart} name={name} touch={touch} onOpen={open} />,
-		limits: <LimitCard view={view} name={name} categories={categories} touch={touch} onRetry={retry} />,
+		limits: <LimitCard range={range} view={view} name={name} categories={categories} touch={touch} onRetry={retry} />,
 		slice: touch
 			? <SliceCard view={view} />
 			: (
@@ -388,11 +416,11 @@ function arrange({ shape, stacked, period, notice = null, kpis, chart, byCategor
 			{figures}
 			{shape === 'wide'
 				? <div className="sp-shell__body--split">{chart}<Panel>{byCategory}{byStatus}</Panel></div>
-				: <>{chart}<div className="sp-halves">{byCategory}{byStatus}</div></>}
-			<div className="sp-halves">
+				: <>{chart}<Halves>{byCategory}{byStatus}</Halves></>}
+			<Halves>
 				<div className="sp-stack sp-gap-12">{vendors}{saving}</div>
 				{limits}
-			</div>
+			</Halves>
 			{slice}
 		</>
 	)
@@ -400,52 +428,40 @@ function arrange({ shape, stacked, period, notice = null, kpis, chart, byCategor
 
 /* ---- the frames before the figures land (6b): the loaded layout's own cards, empty ---- */
 
-// figure spaces, about as wide as a label like "80k", so the axis keeps its width
-const AXIS_HOLD = Array.from({ length: 5 }, () => '\u2007\u2007\u2007')
-const LINES = ['62pc', '48pc', '55pc', '36pc']
+// two figure spaces and an en space are as wide as a label like "60k", so the axis keeps its width
+const AXIS_HOLD = Array.from({ length: 5 }, () => '   ')
+const WIDTHS = ['96', '76', '88', '64', '104', '70', '82', '58', '92']
 
-// the figure's own line holds the card at its loaded height while the bar stands in for the number
-const figureHold = <span className="sp-row-flex"><Skeleton shape="line" data-w="104" data-h="22" />{'\u00a0'}</span>
+/** A skeleton bar on the line of text it stands in for, at that text's own height (6b). */
+const hold = (w, h = '13', shape = 'line') => <span className="sp-row-flex"><Skeleton shape={shape} data-w={w} data-h={h} />{'​'}</span>
 
-function BusyLines({ label, count = 4 }) {
-	return (
-		<Card aria-busy="true">
-			<span className="sp-section-label">{label}</span>
-			{LINES.slice(0, count).map(w => <Skeleton key={w} shape="line" data-w={w} data-h="13" />)}
-		</Card>
-	)
-}
+/** A skeleton over the outline button it stands in for, which is kept unseen beneath it so its size holds. */
+const buttonHold = key => (
+	<span className="os-hold" key={key}>
+		<span className="os-ghost" aria-hidden="true"><Button variant="outline" size="small">Show all</Button></span>
+		<span className="os-over"><Skeleton shape="bar" /></span>
+	</span>
+)
 
-function busyParts({ range, touch, comparing }) {
-	const unit = UNIT[range]
+function busyParts({ range, name, running, touch, comparing, categories }) {
 	const pending = { data: undefined, error: null }
+	// the account's categories bound a breakdown's length before its window answers
+	const known = categories.data?.length
 	return {
 		kpis: ['Total spend', 'Orders', 'Average order', 'Saved'].map((label, i) => (
 			<Card key={label} aria-busy="true">
-				<Stat label={label} figure={figureHold} />
+				<Stat label={label} figure={hold('104', '22')} />
 				{comparing ? <Skeleton shape="pill" /> : null}
 				{!touch && (i === 0 || i === 3) ? <Bars variant="spark" loading /> : null}
 			</Card>
 		)),
-		chart: (
-			<Card aria-busy="true">
-				<span className="sp-section-label">Spend by {unit}</span>
-				{touch
-					? <Bars loading />
-					: <Plot axis={AXIS_HOLD} gridlines={5}><Bars variant="plot" loading /></Plot>}
-			</Card>
-		),
-		byCategory: <BusyLines label="By category" />,
+		chart: <SpendChart range={range} running={running} touch={touch} />,
+		byCategory: touch ? <CategoryRows known={known} /> : <CategoryShares known={known} />,
 		byStatus: <StatusCard counts={[['Delivered', pending], ['Ordered', pending], ['Returned', pending]]} />,
-		vendors: <BusyLines label="Top vendors" />,
-		saving: (
-			<Card aria-busy="true">
-				<span className="sp-section-label">Spend vs saving</span>
-				<Bars loading />
-			</Card>
-		),
-		limits: <LimitCard categories={{ data: undefined, error: null }} touch={touch} />,
-		slice: touch ? <BusyLines label="Orders in this slice" count={2} /> : <OrdersTable rows={[]} />
+		vendors: <VendorsCard name={name} touch={touch} />,
+		saving: <SavingChart name={name} touch={touch} />,
+		limits: <LimitCard range={range} name={name} running={running} categories={categories} touch={touch} />,
+		slice: touch ? <SliceCard /> : <OrdersTable rows={[]} />
 	}
 }
 
@@ -462,7 +478,7 @@ function Failed({ label, what, error, onRetry }) {
 }
 
 // on touch a figure card is its label and figure only (Mobile screens 7a)
-function Kpis({ view, chart, was, waiting, touch }) {
+function Kpis({ view, chart, was, by, waiting, touch }) {
 	const shown = chart.columns
 	const spark = (key, label) => {
 		const most = Math.max(...shown.map(column => column[key]), 0)
@@ -485,13 +501,13 @@ function Kpis({ view, chart, was, waiting, touch }) {
 	return [
 		<Card key="spend">
 			<Stat label="Total spend" figure={figure(view.spent)} />
-			{compared(then => <Change tone={cost(view.spent, then.spent)} against={currency(then.spent, 0)}>{rise(view.spent, then.spent)}</Change>)}
+			{compared(then => <Change tone={cost(view.spent, then.spent)} against={currency(then.spent, 0)} by={by}>{rise(view.spent, then.spent)}</Change>)}
 			{spark('spend', `Total spend in each ${chart.unit}`)}
 		</Card>,
 		<Card key="orders">
 			<Stat label="Orders" figure={amount(view.orders, 0)} />
 			{compared(then => (
-				<Change tone={view.orders > then.orders ? 'success' : 'default'} against={amount(then.orders, 0)}>
+				<Change tone={view.orders > then.orders ? 'success' : 'default'} against={amount(then.orders, 0)} by={by}>
 					{signed(view.orders - then.orders, amount(Math.abs(view.orders - then.orders), 0))}
 				</Change>
 			))}
@@ -499,7 +515,7 @@ function Kpis({ view, chart, was, waiting, touch }) {
 		<Card key="average">
 			<Stat label="Average order" figure={figure(view.average)} />
 			{compared(then => (
-				<Change state={then.average && Math.round(view.average) !== Math.round(then.average) ? 'progress' : undefined} against={currency(then.average, 0)}>
+				<Change state={then.average && Math.round(view.average) !== Math.round(then.average) ? 'progress' : undefined} against={currency(then.average, 0)} by={by}>
 					{rise(view.average, then.average)}
 				</Change>
 			))}
@@ -507,7 +523,7 @@ function Kpis({ view, chart, was, waiting, touch }) {
 		<Card key="saved">
 			<Stat label="Saved" color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
 			{compared(then => (
-				<Change tone={view.saved > then.saved ? 'success' : 'default'} against={currency(then.saved, 0)}>
+				<Change tone={view.saved > then.saved ? 'success' : 'default'} against={currency(then.saved, 0)} by={by}>
 					{signed(view.saved - then.saved, currency(Math.abs(view.saved - then.saved), 0))}
 				</Change>
 			))}
@@ -516,12 +532,13 @@ function Kpis({ view, chart, was, waiting, touch }) {
 	]
 }
 
-/** How a figure moved since the window it is compared with, and that window's own figure. */
-function Change({ tone = 'default', state, against, children }) {
+/** How a figure moved since the window it is compared with, and that window's own figure: up to
+    the same day of it, `by`, while this window is still running. */
+function Change({ tone = 'default', state, against, by, children }) {
 	return (
 		<div className="sp-row-flex sp-gap-8">
 			<Pill color={tone} state={state}>{children}</Pill>
-			<span className="sp-meta">vs {against}</span>
+			<span className="sp-meta">vs {against}{by ? ` by ${by}` : ''}</span>
 		</div>
 	)
 }
@@ -541,12 +558,14 @@ function useFit(bars, layout) {
 // on a phone twelve months are cut to their first letter (Mobile screens 7a); the bar keeps its full name
 const tickOf = (chart, column, touch) => (touch && chart.unit === 'month' && chart.columns.length > 6 ? column.tick.slice(0, 1) : column.tick)
 
-function SpendChart({ chart, touch, onOpen }) {
-	const { unit, columns } = chart
+function SpendChart({ range, chart, running: soon, touch, onOpen }) {
+	const unit = UNIT[range]
+	const columns = chart?.columns ?? []
 	const top = scaleFor(Math.max(...columns.map(column => column.spend)))
 	const bars = useRef(null)
 	const fit = useFit(bars, `${touch} ${columns.length}`)
-	const running = columns.some(column => column.running)
+	// before the window answers, the calendar says whether it is still running
+	const running = chart ? columns.some(column => column.running) : soon
 	const drawn = columns.map(column => ({
 		key: column.key,
 		from: column.from,
@@ -558,7 +577,7 @@ function SpendChart({ chart, touch, onOpen }) {
 	}))
 	const select = unit === 'day' ? undefined : key => onOpen(columns.find(column => column.key === key).open)
 	return (
-		<Card>
+		<Card aria-busy={chart ? undefined : 'true'}>
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Spend by {unit}</span>
 				<span className="sp-grow" />
@@ -572,10 +591,10 @@ function SpendChart({ chart, touch, onOpen }) {
 					: null}
 			</div>
 			{touch
-				? <Bars ref={bars} columns={drawn} onSelect={select} />
+				? <Bars ref={bars} columns={drawn} onSelect={select} loading={!chart} />
 				: (
-					<Plot axis={[4, 3, 2, 1, 0].map(step => compactAmount((top / 4) * step))} gridlines={5}>
-						<Bars ref={bars} variant="plot" columns={drawn} onSelect={select} />
+					<Plot axis={chart ? [4, 3, 2, 1, 0].map(step => compactAmount((top / 4) * step)) : AXIS_HOLD} gridlines={5}>
+						<Bars ref={bars} variant="plot" columns={drawn} onSelect={select} loading={!chart} />
 					</Plot>
 				)}
 		</Card>
@@ -583,7 +602,19 @@ function SpendChart({ chart, touch, onOpen }) {
 }
 
 /** The top three categories and one line for the rest, which opens nothing (4d). */
-function CategoryShares({ view, onOpen }) {
+function CategoryShares({ view, known, onOpen }) {
+	if (!view) {
+		return (
+			<Card aria-busy="true">
+				<span className="sp-section-label">By category</span>
+				<Shares aria-hidden="true">
+					{WIDTHS.slice(0, Math.min(4, Math.max(1, known ?? 4))).map((w, i) => (
+						<ShareRow key={w} series={i + 1} value={hold('18')} disabled>{hold(w)}</ShareRow>
+					))}
+				</Shares>
+			</Card>
+		)
+	}
 	const split = view.split
 	const rest = split.slice(3)
 	const folded = rest.length > 1
@@ -610,8 +641,27 @@ function CategoryShares({ view, onOpen }) {
 }
 
 /** A ranked list with a bar under each line: the top eight and one line for the rest, or all of
-    them in a region that scrolls inside the card (4d). */
-function Ranked({ entries, noun, touch, open }) {
+    them in a region that scrolls inside the card (4d). With no entries yet, `rows` skeleton lines. */
+function Ranked({ entries, rows = TOP + 1, noun, touch, open }) {
+	if (!entries) {
+		return WIDTHS.slice(0, rows).map(w => (touch
+			? (
+				<div className="sp-stack" key={w} aria-hidden="true">
+					<Sum value={hold('44')}>{hold(w)}</Sum>
+					<Gauge thin value={0} />
+				</div>
+			)
+			: (
+				<div className="sp-stack sp-gap-6" key={w} aria-hidden="true">
+					<div className="sp-row-flex sp-gap-8">
+						<span className="sp-data">{hold(w)}</span>
+						<span className="sp-grow" />
+						<span className="sp-amount">{hold('76')}</span>
+					</div>
+					<Gauge value={0} />
+				</div>
+			)))
+	}
 	const rest = entries.slice(TOP)
 	const folded = !open && rest.length > 1
 	const lines = folded
@@ -639,12 +689,21 @@ function Ranked({ entries, noun, touch, open }) {
 	return open ? <div className="os-scroll sp-scrolls">{drawn}</div> : drawn
 }
 
-function CategoryRows({ view }) {
+/** The card's footer: the way to every line once there are more than the resting nine. */
+function moreFooter(entries, count, noun, open, setOpen) {
+	if (count <= TOP + 1) return null
+	if (!entries) return [buttonHold('all')]
+	return [<ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={count} noun={noun} />]
+}
+
+function CategoryRows({ view, known }) {
 	const [open, setOpen] = useState(false)
+	const entries = view?.split
+	const count = entries ? entries.length : known ?? TOP + 2
 	return (
-		<Card footer={view.split.length > TOP + 1 ? [<ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={view.split.length} noun="categories" />] : null}>
+		<Card aria-busy={entries ? undefined : 'true'} footer={moreFooter(entries, count, 'categories', open, setOpen)}>
 			<span className="sp-section-label">By category</span>
-			<Ranked entries={view.split} noun="categories" touch open={open} />
+			<Ranked entries={entries} rows={Math.min(count, TOP + 1)} noun="categories" touch open={open} />
 		</Card>
 	)
 }
@@ -659,9 +718,11 @@ function ShowAll({ open, onClick, count, noun }) {
 
 function VendorsCard({ view, name, touch }) {
 	const [open, setOpen] = useState(false)
-	const vendors = view.vendorSplit
+	const vendors = view?.vendorSplit
+	// before the window answers, the card holds its resting cap: eight, the rest, and the way to all
+	const count = vendors ? vendors.length : TOP + 2
 	return (
-		<Card footer={vendors.length > TOP + 1 ? [<ShowAll key="all" open={open} onClick={() => setOpen(!open)} count={vendors.length} noun="vendors" />] : null}>
+		<Card aria-busy={vendors ? undefined : 'true'} footer={moreFooter(vendors, count, 'vendors', open, setOpen)}>
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Top vendors</span>
 				<span className="sp-grow" />
@@ -687,7 +748,7 @@ function StatusCard({ total, counts, onRetry }) {
 							<span className="sp-data">{status}</span>
 							<span className="sp-grow" />
 							{count == null
-								? <Skeleton shape="line" data-w="44" />
+								? <span className="sp-amount">{hold('44')}</span>
 								: (
 									<>
 										<span className="sp-amount">{amount(count, 0)}</span>
@@ -704,26 +765,30 @@ function StatusCard({ total, counts, onRetry }) {
 }
 
 function SavingChart({ chart, name, touch, onOpen }) {
-	const { unit, columns } = chart
-	const most = Math.max(...columns.map(column => column.spend), 0)
+	const columns = chart?.columns
+	const most = Math.max(...(columns ?? []).map(column => column.spend), 0)
 	return (
-		<Card>
+		<Card aria-busy={chart ? undefined : 'true'}>
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label">Spend vs saving</span>
 				<span className="sp-grow" />
 				<span className="sp-meta">{name}</span>
 			</div>
-			<Bars
-				columns={columns.map(column => ({
-					key: column.key,
-					from: column.from,
-					to: column.to,
-					label: `${column.name}, paid ${currency(column.spend, 0)}, saved ${currency(column.saved, 0)}`,
-					pair: [share(column.spend, most), share(column.saved, most)],
-					tick: tickOf(chart, column, touch)
-				}))}
-				onSelect={unit === 'day' ? undefined : key => onOpen(columns.find(column => column.key === key).open)}
-			/>
+			{chart
+				? (
+					<Bars
+						columns={columns.map(column => ({
+							key: column.key,
+							from: column.from,
+							to: column.to,
+							label: `${column.name}, paid ${currency(column.spend, 0)}, saved ${currency(column.saved, 0)}`,
+							pair: [share(column.spend, most), share(column.saved, most)],
+							tick: tickOf(chart, column, touch)
+						}))}
+						onSelect={chart.unit === 'day' ? undefined : key => onOpen(columns.find(column => column.key === key).open)}
+					/>
+				)
+				: <Bars loading />}
 			<Legend>
 				<LegendItem series={1}>Paid</LegendItem>
 				<LegendItem series={4}>Saved</LegendItem>
@@ -732,7 +797,7 @@ function SavingChart({ chart, name, touch, onOpen }) {
 	)
 }
 
-function LimitCard({ view, name, categories, touch, onRetry }) {
+function LimitCard({ range, view, name, running, categories, touch, onRetry }) {
 	const edit = <Button key="edit" variant="outline" size="small" to="/categories">Edit on category</Button>
 	// a phone button takes the full width, so there it sits in the card's footer rather than squeezing the label
 	const head = (
@@ -743,25 +808,11 @@ function LimitCard({ view, name, categories, touch, onRetry }) {
 		</div>
 	)
 	if (categories.error) return <Failed label="Monthly limit" what="The limits did not load." error={categories.error} onRetry={onRetry} />
-	if (!categories.data || !view) {
-		return <Card aria-busy="true">{head}<Skeleton shape="line" /><Skeleton shape="short" /></Card>
-	}
 	const footer = touch ? [edit] : null
-	const months = view.budgets.months
-	const spendOf = new Map(view.split.map(entry => [entry.id, entry.amount]))
-	const rows = categories.data
-		.filter(category => category.budget > 0)
-		.map(category => {
-			const spend = spendOf.get(category.id) ?? 0
-			const allowed = category.budget * months
-			return { id: category.id, name: category.name, spend, allowed, used: share(spend, allowed) }
-		})
-		.sort((a, b) => b.used - a.used || b.spend - a.spend || a.name.localeCompare(b.name))
-	const pace = view.pace.running ? share(view.pace.daysIn, view.pace.unitDays) : null
-	const note = Math.abs(months - 1) < 0.005
-		? 'Each category has one limit that applies to every month.'
-		: `Each category has one limit that applies to every month. The amounts below cover ${name}.`
-	if (!rows.length) {
+	// the limits set the card's length, so until they answer it holds two lines
+	if (!categories.data) return <Card aria-busy="true" footer={footer}>{head}<Skeleton shape="line" /><Skeleton shape="short" /></Card>
+	const limited = categories.data.filter(category => category.budget > 0)
+	if (!limited.length) {
 		return (
 			<Card footer={footer}>
 				{head}
@@ -769,6 +820,47 @@ function LimitCard({ view, name, categories, touch, onRetry }) {
 			</Card>
 		)
 	}
+	const note = range === 'month'
+		? 'Each category has one limit that applies to every month.'
+		: `Each category has one limit that applies to every month. The amounts below cover ${name}.`
+	if (!view) {
+		return (
+			<Card aria-busy="true" footer={footer}>
+				{head}
+				<span className="sp-meta">{note}</span>
+				{running
+					? <ListItem aria-hidden="true"><span className="sp-data">{hold('130')}</span><span className="sp-grow" /><span className="sp-amount">{hold('18')}</span></ListItem>
+					: null}
+				{limited.map((category, i) => (
+					<div className="sp-stack sp-gap-6" key={category.id} aria-hidden="true">
+						<div className="sp-row-flex sp-gap-8">
+							<span className="sp-data">{hold(WIDTHS[i % WIDTHS.length])}</span>
+							<span className="sp-grow" />
+							<span className="sp-amount">{hold('104')}</span>
+						</div>
+						<Gauge value={0} />
+						<span className="sp-meta">{hold('88', '11')}</span>
+					</div>
+				))}
+				<div className="sp-card__footer" aria-hidden="true">
+					<span className="sp-data">All categories</span>
+					<span className="sp-grow" />
+					<span className="sp-amount">{hold('104')}</span>
+				</div>
+				{running ? <div className="sp-row-flex sp-gap-8" aria-hidden="true"><GaugeKey /><span className="sp-meta">{hold('130', '11')}</span></div> : null}
+			</Card>
+		)
+	}
+	const months = view.budgets.months
+	const spendOf = new Map(view.split.map(entry => [entry.id, entry.amount]))
+	const rows = limited
+		.map(category => {
+			const spend = spendOf.get(category.id) ?? 0
+			const allowed = category.budget * months
+			return { id: category.id, name: category.name, spend, allowed, used: share(spend, allowed) }
+		})
+		.sort((a, b) => b.used - a.used || b.spend - a.spend || a.name.localeCompare(b.name))
+	const pace = view.pace.running ? share(view.pace.daysIn, view.pace.unitDays) : null
 	const allowed = rows.reduce((sum, row) => sum + row.allowed, 0)
 	return (
 		<Card footer={footer}>
@@ -856,7 +948,8 @@ function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry }) {
 			</Card>
 		)
 	}
-	else if (!rows.length) body = <RowsLoading show={show} />
+	// a page of rows holds the table's place, or the window's own count once it is known
+	else if (!rows.length) body = <RowsLoading show={show} size={view ? Math.min(view.orders, SLICE) : SLICE} />
 	else {
 		body = (
 			<List data={rows} recordKey={order => order.id} noun="orders" pageSize={SLICE} total={matched} onLoadMore={onLoadMore} selectionKey={view.id}
@@ -899,20 +992,20 @@ function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry }) {
 const LOADING_ROWS = [['62pc', '58', '88'], ['48pc', '74', '74'], ['55pc', '46', '92']]
 
 /* Skeletons hold the real rows' places, so nothing moves when the orders land (6b). */
-function RowsLoading({ show }) {
-	const rows = [...LOADING_ROWS, ...LOADING_ROWS].map((r, i) => ({ id: i, r }))
+function RowsLoading({ show, size }) {
+	const rows = Array.from({ length: size }, (unused, i) => ({ id: i, r: LOADING_ROWS[i % LOADING_ROWS.length] }))
 	return (
-		<List data={rows} recordKey={x => x.id} noun="orders">
+		<List data={rows} recordKey={x => x.id} noun="orders" pageSize={SLICE}>
 			<Caption><Skeleton shape="line" data-w="82" data-h="13" /></Caption>
 			{sliceHead(show)}
 			<ListRow>{({ r }) => (
 				<>
-					<ListCell><span className="sp-stacked sp-grow"><Skeleton shape="line" data-w={r[0]} data-h="13" /><Skeleton shape="line" data-w="44pc" data-h="10" /></span></ListCell>
-					<ListCell><Skeleton shape="line" data-w={r[1]} data-h="13" /></ListCell>
+					<ListCell><Stacked><span className="sp-title">{hold(r[0])}</span><span className="sp-meta">{hold('44pc', '10')}</span></Stacked></ListCell>
+					<ListCell><span className="sp-data">{hold(r[1])}</span></ListCell>
 					{show.categories ? <ListCell><Skeleton shape="line" data-w="52" data-h="22" /></ListCell> : null}
-					{show.items ? <ListCell cell="number"><Skeleton shape="end" data-w="18" data-h="13" /></ListCell> : null}
+					{show.items ? <ListCell cell="number"><span className="sp-data">{hold('18', '13', 'end')}</span></ListCell> : null}
 					<ListCell><Skeleton shape="pill" /></ListCell>
-					<ListCell cell="amount"><Skeleton shape="end" data-w={r[2]} data-h="13" /></ListCell>
+					<ListCell cell="amount"><span className="sp-amount">{hold(r[2], '13', 'end')}</span></ListCell>
 				</>
 			)}</ListRow>
 		</List>
@@ -920,12 +1013,24 @@ function RowsLoading({ show }) {
 }
 
 function SliceCard({ view }) {
+	const chevron = <Icon name="chevron-right" />
+	if (!view) {
+		return (
+			<ListItem variant="card" chevron={chevron} aria-busy="true">
+				<Stacked><span className="sp-title">{hold('130')}</span></Stacked>
+				<span className="sp-stacked sp-cell-amount">
+					<span className="sp-amount">{hold('96', '13', 'end')}</span>
+					<span className="sp-amount-secondary">{hold('104', '11', 'end')}</span>
+				</span>
+			</ListItem>
+		)
+	}
+	// the title wraps rather than cut: on the narrowest phone the count does not fit beside the total
 	return (
-		<ListItem variant="card" to={`/orders?from=${view.from}&to=${view.to}`} chevron={<Icon name="chevron-right" />}>
+		<ListItem variant="card" to={`/orders?from=${view.from}&to=${view.to}`} chevron={chevron}>
 			<Stacked>
-				<span className="sp-title sp-truncate">{counted(view.orders, 'order')} in this slice</span>
+				<span className="sp-title">{counted(view.orders, 'order')} in this slice</span>
 			</Stacked>
-			<span className="sp-grow" />
 			<span className="sp-stacked sp-cell-amount">
 				<span className="sp-amount">{currency(view.spent)}</span>
 				<Saving value={view.saved} />
