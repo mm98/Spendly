@@ -13,7 +13,7 @@ import { useShellShape } from '../app/useMedia.js'
 import { useApi } from '../api/useApi.js'
 import { BOOKMARK_FIELDS, httpUrl, siteOf } from '../api/rules.js'
 import {
-	addBookmarkPhoto, addBookmarkPhotoFromUrl, bookmarkPhotoThumbnailUrl, createBookmark, deleteBookmark,
+	addBookmarkPhoto, addBookmarkPhotoFromUrl, bookmarkPhotoThumbnailUrl, createBookmark, deleteBookmark, failureMessage,
 	getBookmark, getBookmarkPreview, removeBookmarkPhoto, setBookmarkArchived, updateBookmark
 } from '../api/client.js'
 import { amount, currency, currencySymbol, shortDate } from '../api/format.js'
@@ -64,8 +64,8 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 	const [chosen, setChosen] = useState(bookmark?.categories ?? [])
 	const [errors, setErrors] = useState({})
 	const [saving, setSaving] = useState(false)
-	// the bookmark was deleted after this page opened it: nothing here can be saved any more
-	const [lost, setLost] = useState(false)
+	// the bookmark was deleted after this page opened it: what the save said, and nothing left to save
+	const [lost, setLost] = useState(null)
 	const [archived, setArchived] = useState(Boolean(bookmark?.archived))
 	const [confirming, setConfirming] = useState(false)
 	const [busy, setBusy] = useState(false)
@@ -134,7 +134,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 			leave()
 		} catch (e) {
 			setSaving(false)
-			if (editing && isGone(e)) { guard.release(); return setLost(true) }
+			if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
 			sayFailure(toast, e, 'That did not save. Try again.')
 		}
 	}
@@ -149,7 +149,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 			})
 			navigate(list)
 		} catch (e) {
-			if (isGone(e)) { guard.release(); return setLost(true) }
+			if (isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
 			sayFailure(toast, e, 'That did not change. Try again.')
 		}
 	}
@@ -269,7 +269,7 @@ function BookmarkFields({ bookmark, loading = false, onGone }) {
 	// a phone has no rail: the form, then the end-of-life card, then the bar it commits from (Mobile 5b)
 	return (
 		<>
-			<RecordPage notice={lost ? <GoneNotice noun="bookmark" list={{ to: list, label: 'Open Bookmarks' }} /> : null}
+			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Bookmarks' }} /> : null}
 				cards={form} rail={<>{summaryCard}{endOfLife}</>} alone={endOfLife} bar={bar} />
 			{prompt}
 		</>

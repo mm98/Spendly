@@ -78,8 +78,8 @@ function CategoryFields({ category, loading = false, onGone }) {
 	const [deleting, setDeleting] = useState(false)
 	const [busy, setBusy] = useState(false)
 	const [saving, setSaving] = useState(false)
-	// the category was deleted after this page opened it: nothing here can be saved any more
-	const [lost, setLost] = useState(false)
+	// the category was deleted after this page opened it: what the save said, and nothing left to save
+	const [lost, setLost] = useState(null)
 	const writing = useRef(false)
 	const set = (key, value) => setValues(v => ({ ...v, [key]: value }))
 
@@ -121,7 +121,7 @@ function CategoryFields({ category, loading = false, onGone }) {
 			.catch(e => {
 				writing.current = false
 				setSaving(false)
-				if (editing && isGone(e)) { guard.release(); return setLost(true) }
+				if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
 				const message = failureMessage(e, 'The category was not saved. Check the connection and try again.')
 				if (!message) return
 				if (e?.status === 409 || e?.status === 400) {
@@ -246,7 +246,7 @@ function CategoryFields({ category, loading = false, onGone }) {
 
 	return (
 		<>
-			<RecordPage notice={lost ? <GoneNotice noun="category" list={{ to: list, label: 'Open Categories' }} /> : null}
+			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Categories' }} /> : null}
 				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
 			{guard.prompt}
 			{deleting

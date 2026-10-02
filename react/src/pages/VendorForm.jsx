@@ -69,8 +69,8 @@ function VendorFields({ vendor, loading = false, onGone }) {
 	const [deleting, setDeleting] = useState(false)
 	const [busy, setBusy] = useState(false)
 	const [saving, setSaving] = useState(false)
-	// the vendor was deleted after this page opened it: nothing here can be saved any more
-	const [lost, setLost] = useState(false)
+	// the vendor was deleted after this page opened it: what the save said, and nothing left to save
+	const [lost, setLost] = useState(null)
 	const writing = useRef(false)
 	const set = (key, value) => setValues(v => ({ ...v, [key]: value }))
 
@@ -133,7 +133,7 @@ function VendorFields({ vendor, loading = false, onGone }) {
 			.catch(e => {
 				writing.current = false
 				setSaving(false)
-				if (editing && isGone(e)) { guard.release(); return setLost(true) }
+				if (editing && isGone(e)) { guard.release(); return setLost(failureMessage(e, '')) }
 				const message = failureMessage(e, 'The vendor was not saved. Check the connection and try again.')
 				if (!message) return
 				const about = !e?.status || e.status >= 500 ? null
@@ -267,7 +267,7 @@ function VendorFields({ vendor, loading = false, onGone }) {
 
 	return (
 		<>
-			<RecordPage notice={lost ? <GoneNotice noun="vendor" list={{ to: list, label: 'Open Vendors' }} /> : null}
+			<RecordPage notice={lost ? <GoneNotice message={lost} list={{ to: list, label: 'Open Vendors' }} /> : null}
 				cards={cards} rail={rail} alone={editing ? rail : null} bar={bar} />
 			{guard.prompt}
 			{deleting

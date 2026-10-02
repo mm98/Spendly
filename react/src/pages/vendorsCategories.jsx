@@ -137,17 +137,16 @@ export function CommitBar({ status, quiet = false, onCancel, onSave, commit, sav
 	return <ListItem variant="sticky"><span className={quiet ? 'sp-data sp-grow sp-ink-5' : 'sp-data sp-grow'}>{status}</span>{buttons}</ListItem>
 }
 
-/** What a save meets when the record was deleted after this page opened it: said once, above the
-    form, with the way back to its list. */
-export function GoneNotice({ noun, list }) {
+/** A save that found its record deleted: the client's sentence, kept above the form, with the
+    way back to the list. */
+export function GoneNotice({ message, list }) {
 	return (
-		<Alert color="danger" mark="!" title={`This ${noun} no longer exists`}
-			action={<Button variant="outline" size="small" to={list.to}>{list.label}</Button>}>
-			It was deleted after this page opened it, so your changes cannot be saved.
+		<Alert color="danger" mark="!" action={<Button variant="outline" size="small" to={list.to}>{list.label}</Button>}>
+			{message}
 		</Alert>
 	)
 }
-export const isGone = error => Boolean(error?.gone || error?.status === 404)
+export const isGone = error => Boolean(error?.gone)
 
 /** The rail's cards while the record loads (5c, 5f, 22d), each at its loaded size. */
 export function SummaryLoading({ label, mark = true, sums, action, children }) {
