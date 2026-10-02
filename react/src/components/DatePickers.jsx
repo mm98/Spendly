@@ -251,6 +251,9 @@ function standardRanges(locale) {
 	]
 }
 
+// what the typed-text hook hands an input, less its own `invalid` flag, which is no attribute
+const field = ({ invalid, ...props }) => props
+
 export function RangePicker({ from, to, onChange, quick, min, max, minDays, unavailable, onApply, onCancel, showWeeks = true, locale, ...rest }) {
 	reject(rest, 'RangePicker')
 	if (minDays !== undefined && minDays < 1) console.error('<RangePicker> minDays counts days inclusively, so the smallest range is 1')
@@ -371,7 +374,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 						className="sp-range__input"
 						data-editing={editing === 'from' ? 'true' : 'false'}
 						onFocus={() => setEditing('from')}
-						{...fromText}
+						{...field(fromText)}
 						{...(fromText.invalid ? { 'aria-invalid': 'true' } : {})}
 					/>
 				</label>
@@ -382,7 +385,7 @@ export function RangePicker({ from, to, onChange, quick, min, max, minDays, unav
 						className="sp-range__input"
 						data-editing={editing === 'to' ? 'true' : 'false'}
 						onFocus={() => setEditing('to')}
-						{...toText}
+						{...field(toText)}
 						{...(toText.invalid ? { 'aria-invalid': 'true' } : {})}
 					/>
 				</label>
@@ -671,8 +674,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 				id={id}
 				className="sp-input sp-input--trail sp-number"
 				aria-describedby={hintId}
-				{...text}
-				invalid={undefined}
+				{...field(text)}
 				{...(danger || text.invalid ? { 'aria-invalid': 'true' } : {})}
 				onKeyDown={ev => {
 					// the panel opens on the key that opens every other panel in the system
