@@ -9,17 +9,16 @@ import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.j
 import { Mark } from '../components/Mark.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { ICONS } from '../components/icons.js'
 import { Alert } from '../components/Overlays.jsx'
 import { Empty, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
+import { CategoryMark } from '../app/categoryMark.jsx'
 import {
 	failureMessage, getCategories, getCurrentUser, getOrder, getOrders, getStats, itemAttachmentThumbnailUrl, overBudget,
 	withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { activeLocaleCode, amount, currency, monthNames, plural, shortDate, today } from '../api/format.js'
-import { resolveColour } from '../api/colour.js'
 
 const ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/gif'
 const RECENT = 4
@@ -77,17 +76,6 @@ function daysAgo(iso) {
 
 const PILL = { Delivered: { color: 'success' }, Ordered: { state: 'progress' }, Returned: { color: 'danger' } }
 
-/* A category's stored colour is any hex; a mark paints one of the design's nine swatches, so it
-   takes the nearest. The glyph falls back to a tag when the register does not hold the icon. */
-const SWATCHES = ['green', 'green-2', 'green-3', 'green-4', 'green-5', 'amber-ink', 'amber-2', 'red-ink', 'ink-6']
-const rgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
-function swatchFor(colour) {
-	if (!/^#[0-9a-f]{6}$/i.test(colour ?? '')) return 'green'
-	const [r, g, b] = rgb(colour)
-	const distance = s => { const [x, y, z] = rgb(resolveColour(`var(--${s})`)); return (r - x) ** 2 + (g - y) ** 2 + (b - z) ** 2 }
-	return SWATCHES.reduce((best, s) => (distance(s) < distance(best) ? s : best))
-}
-const glyphOf = icon => (ICONS[icon] ? icon : 'tag')
 
 /** The last eight calendar months, ending with this one, from the year's running totals. */
 function lastMonths(window) {
@@ -409,9 +397,7 @@ function CategoryLine({ category: c }) {
 	return (
 		<div className="sp-stack sp-gap-6">
 			<div className="sp-row-flex sp-gap-8">
-				<Mark size="small" fill="solid" swatch={swatchFor(c.colour)} aria-hidden="true" aria-label={c.name}>
-					<Icon name={glyphOf(c.icon)} size={13} />
-				</Mark>
+				<CategoryMark category={c} size="small" />
 				<span className="sp-data">{c.name}</span>
 				<span className="sp-grow" />
 				<span className={over ? 'sp-meta sp-meta--over' : 'sp-meta'}>

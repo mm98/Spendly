@@ -151,6 +151,26 @@ for (const [p, ast] of parsed) {
 	})
 }
 
+/* ---- every component a file draws is one it imports or defines ---- */
+
+for (const [p, ast] of parsed) {
+	const known = new Set()
+	visit(ast, n => {
+		if (n.type === 'ImportSpecifier' || n.type === 'ImportDefaultSpecifier' || n.type === 'ImportNamespaceSpecifier') known.add(n.local.name)
+		if ((n.type === 'FunctionDeclaration' || n.type === 'ClassDeclaration') && n.id) known.add(n.id.name)
+		if (n.type === 'VariableDeclarator' && n.id.type === 'Identifier') known.add(n.id.name)
+		if (n.type === 'VariableDeclarator' && n.id.type === 'ObjectPattern')
+			for (const prop of n.id.properties) if (prop.value?.type === 'Identifier') known.add(prop.value.name)
+		if ((n.type === 'FunctionDeclaration' || n.type === 'ArrowFunctionExpression' || n.type === 'FunctionExpression'))
+			for (const param of n.params) visit(param, m => { if (m.type === 'Identifier') known.add(m.name) })
+	})
+	visit(ast, n => {
+		if (n.type !== 'JSXOpeningElement' || n.name.type !== 'JSXIdentifier') return
+		const name = n.name.name
+		if (/^[A-Z]/.test(name) && !known.has(name)) fail('components resolve', rel(p), `<${name}> is neither imported nor defined`)
+	})
+}
+
 /* ---- what the product says ---- */
 
 const TELLS = [/—/, /–/, /[‘’“”]/, /&(mdash|ndash|rsquo|lsquo|ldquo|rdquo);/, /\p{Extended_Pictographic}/u]

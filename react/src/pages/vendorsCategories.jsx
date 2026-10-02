@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBeforeUnload, useBlocker } from 'react-router'
-import { Mark } from '../components/Mark.jsx'
-import { Icon } from '../components/Icon.jsx'
-import { ICONS } from '../components/icons.js'
 import { Button, IconButton } from '../components/Button.jsx'
 import { Card, Panel } from '../components/Card.jsx'
 import { Combobox, ComboboxOption } from '../components/Combobox.jsx'
@@ -19,32 +16,9 @@ import { useShellShape } from '../app/useMedia.js'
 
 export const DOT = ' · '
 
-/* The design's eight colours as the hex the app stores. These are the light theme's values,
-   so a picked swatch reads back as the same swatch in either theme. */
-export const SWATCHES = {
-	green: '#1d4d33',
-	'green-2': '#2f7a51',
-	'green-3': '#4f7f63',
-	'green-4': '#8caf97',
-	'amber-ink': '#7a5c23',
-	'amber-2': '#d3b98a',
-	'red-ink': '#8a4a41',
-	'ink-6': '#b3b1a9'
-}
-export const swatchOf = hex => Object.keys(SWATCHES).find(s => SWATCHES[s] === String(hex ?? '').toLowerCase())
-/** A stored hex as the colour picker's value: one of the eight by name, or the hex itself. */
-export const pickedColour = hex => swatchOf(hex) ?? String(hex ?? '').toLowerCase()
-export const storedColour = picked => SWATCHES[picked] ?? picked
-
-/** A category's mark: its icon on its colour. Only a register icon and one of the eight
-    colours can be drawn, so anything else falls back to the name or to the unpainted mark. */
-export function CategoryMark({ category, size = 'medium' }) {
-	if (!ICONS[category.icon]) return <Mark size={size} aria-hidden="true">{category.name || 'New category'}</Mark>
-	const swatch = swatchOf(category.colour)
-	if (swatch)
-		return <Mark size={size} fill="solid" swatch={swatch} aria-hidden="true" aria-label={category.name}><Icon name={category.icon} /></Mark>
-	return <Mark size={size} aria-hidden="true" aria-label={category.name}><Icon name={category.icon} /></Mark>
-}
+export { SWATCHES, swatchOf, storedColour, CategoryMark } from '../app/categoryMark.jsx'
+/** A stored colour as the colour picker's value: one of the eight by name, or the colour itself. */
+export { swatchOf as pickedColour } from '../app/categoryMark.jsx'
 
 /** Where the month stands today, as a share of it: the gauge's pace marker. */
 export function monthPace(now = new Date()) {

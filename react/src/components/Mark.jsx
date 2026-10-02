@@ -56,7 +56,8 @@ export function Mark({
 	if (derives && swatch) console.error('<Mark> a name derives its own colour: passing a swatch as well is how two lists show one record in two colours')
 	// the passed one, not the derived one: only a caller can get this wrong
 	if (swatch && !paints) console.error('<Mark> a swatch paints only a solid mark, so this one does nothing')
-	if (swatch && !SWATCHES.includes(swatch)) console.error(`<Mark> swatch="${swatch}" is not one of: ${SWATCHES.join(' | ')}`)
+	const isColour = s => /^(#[0-9a-f]{3,8}|rgb|hsl)/i.test(s)
+	if (swatch && !SWATCHES.includes(swatch) && !isColour(swatch)) console.error(`<Mark> swatch="${swatch}" is not one of: ${SWATCHES.join(' | ')}, or a colour value`)
 	if (text && danger) console.error('<Mark> a box states what it is or why it failed, not both')
 	const classes = join(
 		'sp-mark',
@@ -64,7 +65,8 @@ export function Mark({
 		pick(FILL, fill, 'fill', 'Mark'),
 		round && 'sp-mark--round'
 	)
-	const paint = chosen ? { 'data-swatch': chosen } : {}
+	// a colour the user picked outside the set rides in the hook its rule reads
+	const paint = !chosen ? {} : SWATCHES.includes(chosen) ? { 'data-swatch': chosen } : { 'data-swatch': 'custom', style: { '--swatch': chosen } }
 	if (!derives && !rest['aria-label'])
 		console.error('<Mark> needs a name: a string child it derives from, or an aria-label')
 	const named = derives && !rest['aria-label']
