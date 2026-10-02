@@ -13,6 +13,14 @@ export function applyTheme() {
 	for (const fn of listeners) fn()
 }
 
+export function followSystem() {
+	try { localStorage.removeItem(KEY) } catch { /* storage denied */ }
+	applyTheme()
+}
+
+/** The reader's choice: 'light', 'dark', or null when the system decides. */
+export const chosenTheme = () => chosen()
+
 export function setTheme(theme) {
 	try { localStorage.setItem(KEY, theme) } catch { /* storage denied: this tab only */ }
 	applyTheme()

@@ -3,6 +3,7 @@ import { join, pick, reject } from './variants.js'
 import { Check } from './Choice.jsx'
 import { Button } from './Button.jsx'
 import { ListFooter } from './Card.jsx'
+import { Icon } from './Icon.jsx'
 
 const WIDTH = {
 	title: 'sp-col-title',
@@ -243,3 +244,86 @@ export function List({
 	)
 }
 
+
+/** The bar above a list (c20): search, then pickers and the one button, each at its own width. */
+export function Controls({ children, ...rest }) {
+	reject(rest, 'Controls')
+	return <div className="sp-controls" {...rest}>{children}</div>
+}
+
+/** What is filtering the list, one removable crumb each, and Clear all (c12, Order list 2b). */
+export function Filters({ onClear, children, ...rest }) {
+	reject(rest, 'Filters')
+	return (
+		<div className="sp-filters" {...rest}>
+			{children}
+			{onClear ? <Button variant="outline" size="small" onClick={onClear}>Clear all</Button> : null}
+		</div>
+	)
+}
+
+/** One filter or one drill level. `name` is what the remove control says it removes. */
+export function Crumb({ name, onRemove, children, ...rest }) {
+	reject(rest, 'Crumb')
+	return (
+		<span className="sp-crumb" {...rest}>
+			{children}
+			<button type="button" className="sp-crumb__remove" aria-label={`Remove ${name ?? children}`} onClick={onRemove}>×</button>
+		</span>
+	)
+}
+
+/** The drill path (c8): the root as text, then a Crumb for every level drilled into. */
+export function Crumbs({ root, children, ...rest }) {
+	reject(rest, 'Crumbs')
+	const levels = [].concat(children ?? []).flat().filter(Boolean)
+	return (
+		<nav aria-label="Drill path" {...rest}>
+			<ol className="sp-crumbs">
+				{root ? <li><span className="sp-crumbs__root">{root}</span></li> : null}
+				{levels.map((level, i) => <li key={level.key ?? i}>{level}</li>)}
+			</ol>
+		</nav>
+	)
+}
+
+/** A record as a card (Order list 2c, Bookmarks 22a). No `photos` draws the `empty` band; `meta` is
+    one line beside the amount or two above it; `href` makes the picture strip a link out. */
+export function Record({ photos = [], empty, more, href, pick, menu, title, subtitle, status, chips, meta, amount, onClick, void: isVoid = false, ...rest }) {
+	reject(rest, 'Record')
+	const strip = photos.length
+		? photos.map((photo, i) => <span className="sp-record__photo" key={i}>{photo}</span>)
+		: <><Icon name="photo" size={22} /><span className="sp-meta">{empty}</span></>
+	const stripClass = join('sp-record__photos', !photos.length && 'sp-record__photos--empty')
+	const extras = <>{more ? <span className="sp-mark__count">{more}</span> : null}{pick ? <label className="sp-record__pick">{pick}</label> : null}</>
+	const lines = [].concat(meta ?? [])
+	return (
+		<article className="sp-record" onClick={onClick} {...(isVoid ? { 'data-void': 'true' } : {})} {...rest}>
+			{href
+				? <a className={stripClass} href={href} target="_blank" rel="noopener noreferrer" onClick={ev => ev.stopPropagation()}>{strip}{extras}</a>
+				: <div className={stripClass}>{strip}{extras}</div>}
+			{menu ? <div className="sp-cell-menu sp-record__menu" data-open={menu.open ? 'true' : 'false'} data-menu-open={menu.open ? 'true' : undefined} onClick={ev => ev.stopPropagation()}>
+				<button type="button" className="sp-record__act" aria-label={menu.label} aria-haspopup="menu" aria-expanded={menu.open ? 'true' : 'false'} onClick={menu.onToggle}>
+					<Icon name="dots-vertical" size={12} />
+				</button>
+				{menu.children}
+			</div> : null}
+			<div className="sp-record__body">
+				<div className="sp-record__head">
+					<span className="sp-stacked sp-grow">
+						<span className="sp-title sp-truncate">{title}</span>
+						{subtitle ? <span className="sp-subtitle sp-truncate">{subtitle}</span> : null}
+					</span>
+					{status}
+				</div>
+				{chips ? <div className="sp-record__chips" onClick={ev => ev.stopPropagation()}>{chips}</div> : null}
+				<span className="sp-grow" />
+				<div className={join('sp-record__foot', lines.length < 2 && 'sp-record__foot--single')}>
+					{lines.length < 2 ? lines[0] : <span className="sp-stack sp-gap-6">{lines}</span>}
+					<span className="sp-grow" />
+					<span className="sp-amount">{amount}</span>
+				</div>
+			</div>
+		</article>
+	)
+}

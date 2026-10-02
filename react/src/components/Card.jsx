@@ -83,3 +83,10 @@ export function ListFooter({ loose = false, children, ...rest }) {
 	reject(rest, 'ListFooter')
 	return <div className={join('sp-list__footer', loose && 'sp-list__footer--loose')} {...rest}>{children}</div>
 }
+
+/** The rail beside a record's form (c21): its cards in a column, held in view while the form
+    scrolls. `wide` is the 400 rail. */
+export function Panel({ wide = false, children, ...rest }) {
+	reject(rest, 'Panel')
+	return <div className={join('sp-panel', wide && 'sp-panel--wide')} {...rest}>{children}</div>
+}
