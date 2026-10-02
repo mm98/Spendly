@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useMatches, useNavigate, useSearchParams } from 'react-router'
-import { ShellContent } from '../components/Shell.jsx'
-import { Card, Panel } from '../components/Card.jsx'
+import { Card } from '../components/Card.jsx'
 import { Button } from '../components/Button.jsx'
 import { Field } from '../components/Field.jsx'
 import { PasswordField, TextField } from '../components/Inputs.jsx'
@@ -24,8 +23,8 @@ export function AuthCard({ title, lead, alert, onSubmit, submit, busy, busyLabel
 	const named = useMatches().at(-1)?.handle?.title
 	useEffect(() => { if (named) document.title = `${named} - Spendly` }, [named])
 	const card = (
-		<Card>
-			<div className="sp-stack sp-gap-12">
+		<Card variant="float">
+			<div className="sp-stack sp-gap-12 sp-center">
 				<Mark size="large" fill="solid" aria-label="Spendly"><span>S</span></Mark>
 				<div className="sp-stack sp-gap-6">
 					<span className="sp-heading">{title}</span>
@@ -51,7 +50,7 @@ export function AuthCard({ title, lead, alert, onSubmit, submit, busy, busyLabel
 			</form>
 		</Card>
 	)
-	return <ShellContent>{shape === 'touch' ? card : <Panel wide>{card}</Panel>}</ShellContent>
+	return <div className={shape === 'touch' ? 'sp-auth sp-touch' : 'sp-auth'}>{card}</div>
 }
 
 /** Where to go once signed in: the page that sent the reader here, or Home. */

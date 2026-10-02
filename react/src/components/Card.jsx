@@ -5,7 +5,9 @@ const VARIANT = {
 	default: null,
 	flush: 'sp-card--flush',
 	row: 'sp-card--row',
-	shell: 'sp-card--shell'
+	shell: 'sp-card--shell',
+	// the sign-in card, the one card that floats on the page rather than in the shell (20a)
+	float: 'sp-card--float'
 }
 
 const COLOR = { default: null, warning: 'warning', danger: 'danger' }

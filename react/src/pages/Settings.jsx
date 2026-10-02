@@ -139,7 +139,7 @@ export default function Settings() {
 	return (
 		<div className="sp-row-flex sp-top sp-gap-12">
 			{narrow ? null : <SectionNav current={current} />}
-			<div className="sp-stack sp-gap-12 sp-grow">
+			<div className="sp-stack sp-gap-12 sp-grow sp-column--form">
 				{narrow ? <SectionPicker current={current} /> : null}
 				{body ?? <Arrive section={current}>{SECTIONS.map(s => cards[s.key])}</Arrive>}
 				{body ? null : saveBar}
