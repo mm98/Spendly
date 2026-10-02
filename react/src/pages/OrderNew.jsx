@@ -313,12 +313,12 @@ function CopyPicker({ onClose }) {
 					inputRef={search} role="combobox" aria-expanded="true" aria-controls={listId} aria-autocomplete="list"
 					aria-activedescendant={active > -1 ? `${listId}-${active}` : undefined} onKeyDown={keys} />
 				<ul className="oc-options" id={listId} role="listbox" aria-label="Previous orders">{rows}</ul>
+				<DialogActions>
+					<span className="sp-meta">Nothing is created until you save.</span>
+					<span className="sp-grow" />
+					<Button variant="outline" onClick={onClose}>Cancel</Button>
+				</DialogActions>
 			</div>
-			<DialogActions>
-				<span className="sp-meta">Nothing is created until you save.</span>
-				<span className="sp-grow" />
-				<Button variant="outline" onClick={onClose}>Cancel</Button>
-			</DialogActions>
 		</Dialog>
 	)
 }
