@@ -29,7 +29,8 @@ export const lineSaving = line =>
 /** The orders table's own three formulas, so a draft's figures are the ones the save stores. */
 export function totalsOf(lines, shipping, discount) {
 	const paid = lines.reduce((sum, l) => sum + lineTotal(l), 0)
-	const retail = lines.reduce((sum, l) => sum + (Number(l.retail ?? l.price) || 0) * (Number(l.quantity) || 0), 0)
+	// a line's retail counts as at least its price, as the server stores it, so no line saves below zero
+	const retail = lines.reduce((sum, l) => sum + Math.max(Number(l.retail ?? l.price) || 0, Number(l.price) || 0) * (Number(l.quantity) || 0), 0)
 	const off = Number(discount) || 0
 	return { paid, total: paid + (Number(shipping) || 0) - off, saved: retail - paid + off }
 }

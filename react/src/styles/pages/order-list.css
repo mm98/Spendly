@@ -9,9 +9,8 @@
 	   rest and truncates (2i) */
 	.ol-chip-slot { display: flex; flex: 1 1 0; min-width: 0; max-width: max-content; }
 
-	/* the facets scroll between the Filters sheet's heading and its Apply row, which stay in
-	   view (18b), 12 apart as the sheet's own parts are. The body reaches the sheet's edges so
-	   a focus ring and a slider handle's touch target are not cut by the scroll box. */
+	/* the facets scroll between the sheet's heading and its Apply row (18b), 12 apart as the sheet's
+	   parts are; the body reaches the sheet's edges so no focus ring or touch target is cut */
 	.ol-sheet-body {
 		flex: 1 1 auto;
 		min-height: 0;

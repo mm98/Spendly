@@ -131,8 +131,8 @@ export default function Orders() {
 	const narrow = touch || (width > 0 && width <= 640)
 
 	const [deleting, setDeleting] = useState(null)
-	// once the list no longer holds a deleted order, focus goes to the menu of the row that took
-	// its place, so it never falls back to the top of the page
+	// once a deleted order has left the list, focus goes to the menu of the row that took its
+	// place, so it never falls back to the top of the page
 	const [refocus, setRefocus] = useState(null)
 	useEffect(() => {
 		if (!refocus || !orders.data || orders.data.orders.some(o => o.id === refocus.id)) return

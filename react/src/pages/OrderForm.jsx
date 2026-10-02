@@ -115,8 +115,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 	// defaults offered as an add when the field already had some
 	const [suggested, setSuggested] = useState(null)
 	const [offer, setOffer] = useState(null)
-	// the order was deleted elsewhere: nothing here can be saved any more
-	const [lost, setLost] = useState(false)
+	// the order was deleted elsewhere, in the sentence that says so: nothing here can be saved any more
+	const [lost, setLost] = useState(null)
 	const [lines, setLines] = useState(seed.lines)
 	const [editing, setEditing] = useState(() => (creating && !seed.lines.length && !scan ? newEditing() : null))
 	const [tried, setTried] = useState(false)
@@ -327,9 +327,6 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 
 	/* ---- the vendor ---- */
 
-	/* On a new order a vendor's default categories fill an empty field and say where they came
-	   from; a field that already has some is offered them as an add. Another vendor takes back
-	   only what the last one filled in. A saved order is never re-suggested (5l). */
 	const suggest = (vendor, current) => {
 		const defaults = vendorByAnyName(vendors.data ?? [], vendor)?.defaultCategories ?? []
 		const kept = current.filter(c => !suggested?.names.includes(c))
@@ -338,6 +335,8 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		setOffer(kept.length && missing.length ? { vendor, names: missing } : null)
 		return kept.length ? kept : defaults
 	}
+	// a new order's vendor fills empty categories with its defaults or offers them, and another vendor
+	// takes back only what the last one filled in; a saved order is never refilled (5l)
 	const pickVendor = name => {
 		const vendor = vendorByAnyName(vendors.data ?? [], name)?.name ?? name.trim()
 		set({ vendor, ...(creating && vendor !== draft.vendor ? { categories: suggest(vendor, draft.categories) } : {}) })
@@ -408,13 +407,23 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		} catch (e) {
 			setSaving(false)
 			// a deleted order stays deleted: say so where it stays in view, and offer no second try
-			if (e.gone && !creating) { setLost(true); return }
+			if (e.gone && !creating) { setLost(e.message); return }
 			const said = failureMessage(e, 'The order was not saved. Try again.')
 			if (said) toast({ message: said, color: 'danger' })
 			return
 		}
-		// the files follow one at a time, each kept or missed on its own (17b)
+		// the files follow one at a time, each kept or missed on its own (17b); a refusal's own
+		// sentence says why, and one without (no connection) is worth trying again
 		const missed = []
+		const reasons = new Set()
+		let retry = false
+		const refused = (name, e) => {
+			missed.push(name)
+			const said = e && failureMessage(e, '')
+			if (said) reasons.add(said)
+			else if (!e?.signedOut) retry = true
+			return null
+		}
 		let receiptMissed = false, notRemoved = 0
 		const clashes = []
 		if (scan) await attachScanDocument(scan.documentKey, order.id).catch(() => { receiptMissed = true })
@@ -426,16 +435,16 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			if (!saved) return
 			if (line.newPhoto) {
 				const file = line.newPhoto.file
-				const sent = await addItemAttachments(order.id, saved.id, [old && sameName(old.name, file.name) ? renamed(file) : file]).catch(() => null)
-				if (!sent?.added?.length) return missed.push(file.name)
+				const sent = await addItemAttachments(order.id, saved.id, [old && sameName(old.name, file.name) ? renamed(file) : file]).catch(e => refused(file.name, e))
+				if (!sent) return
+				if (!sent.added?.length) return refused(file.name)
 				if (old) await removeItemAttachment(order.id, saved.id, old.id).catch(() => { notRemoved++ })
 			} else if (old && line.dropPhoto) await removeItemAttachment(order.id, saved.id, old.id).catch(() => { notRemoved++ })
 		}))
 		for (const f of files) {
-			if (f.problem) { missed.push(f.name); continue }
-			const sent = await addAttachments(order.id, [f.file]).catch(() => null)
-			if (!sent) missed.push(f.name)
-			else if (sent.skipped?.length) clashes.push(f.name)
+			if (f.problem) { missed.push(f.name); reasons.add(refusalOf(f)); continue }
+			const sent = await addAttachments(order.id, [f.file]).catch(e => refused(f.name, e))
+			if (sent?.skipped?.length) clashes.push(f.name)
 		}
 		if (scan) learnAlias(scan.vendor, order)
 		invalidateOrderData()
@@ -445,7 +454,9 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 			receiptMissed ? 'the receipt was not kept with it' : null,
 			notRemoved ? `${plural(notRemoved, 'file')} ${notRemoved === 1 ? 'was' : 'were'} not removed` : null
 		].filter(Boolean)
-		if (lapses.length) toast({ message: `The order was saved, but ${lapses.join(', and ')}. Try again from Edit order.`, color: 'danger' })
+		if (receiptMissed || notRemoved) retry = true
+		if (lapses.length)
+			toast({ message: [`The order was saved, but ${lapses.join(', and ')}.`, ...reasons, retry ? 'Try again from Edit order.' : null].filter(Boolean).join(' '), color: 'danger' })
 		else if (clashes.length)
 			toast({ message: `The order was saved. ${names(clashes)} ${clashes.length === 1 ? 'was' : 'were'} not added: the order already has a file with that name.`, color: 'danger' })
 		else toast({ message: creating ? (scan ? `Order created from ${scan.file.name}. The receipt is kept as an attachment.` : 'Order created.') : 'Changes saved.' })
@@ -775,13 +786,7 @@ export function OrderForm({ mode, orderId, seed, origin = {}, files: savedFiles 
 		</ListItem>
 	)
 
-	const lostNotice = lost
-		? (
-			<Alert color="danger" mark="!" title="This order no longer exists.">
-				It was deleted in another window or on another device, so these changes cannot be saved.
-			</Alert>
-		)
-		: null
+	const lostNotice = lost ? <Alert color="danger" mark="!">{lost}</Alert> : null
 
 	const notice = notices({ origin, scan, lines, leave, touch })
 
@@ -851,6 +856,9 @@ const focusFirst = (selector, quiet) => requestAnimationFrame(() => {
 	if (quiet) quiet.current = false
 	box?.scrollIntoView?.({ block: 'nearest' })
 })
+
+// the server's own words for the two refusals, for a file the form refused before sending it
+const refusalOf = f => (f.problem === 'Too large' ? 'A file is too large. Each file can be up to 25 MB.' : `${f.name} is not an image or a PDF.`)
 
 const sameName = (a, b) => a.toLowerCase() === b.toLowerCase()
 // the server keeps one file per name on a line, so a replacement with the old one's name is sent under another
@@ -974,7 +982,7 @@ function LineForm({ editing, sheet, photoUrl, onChange, onCommit, onCommitNext, 
 }
 
 /** The vendors of the latest orders, newest first: the picker's Recent group. */
-const recentVendors = orders => [...new Set((orders ?? []).map(o => o.vendor?.id).filter(Boolean))].slice(0, 5)
+const recentVendors = orders => [...new Set((orders ?? []).map(o => o.vendor?.name).filter(Boolean))].slice(0, 5)
 
 /** The typed text in bold where it falls in a name (c5). */
 const bolded = (name, typed) => {
@@ -991,7 +999,7 @@ function VendorPicker({ vendors, recent, value, onPick, quiet, ...rest }) {
 	const typed = query.trim()
 	const found = vendors.map(v => ({ v, hit: vendorTextMatch(v, typed) })).filter(x => x.hit.matches)
 	const favourites = found.filter(x => x.v.favourite)
-	const recents = recent.map(id => found.find(x => x.v.id === id && !x.v.favourite)).filter(Boolean)
+	const recents = recent.map(name => found.find(x => x.v.name === name && !x.v.favourite)).filter(Boolean)
 	const others = found.filter(x => !favourites.includes(x) && !recents.includes(x)).sort((a, b) => a.v.name.localeCompare(b.v.name))
 	const groups = [['Favourites', favourites], ['Recent', recents], ['Other vendors', others]].filter(([, xs]) => xs.length)
 	const known = typed && vendorByAnyName(vendors, typed)

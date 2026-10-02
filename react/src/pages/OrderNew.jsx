@@ -13,7 +13,7 @@ import { invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getCurrentUser, getOrder, getOrderDraft, getOrders, getScanDraft, putScanDocument, scanThumbnailUrl
 } from '../api/client.js'
-import { amount, dayShortMonth, dot, sep } from '../api/format.js'
+import { amount, dayShortMonth, dot, plural, sep } from '../api/format.js'
 import { OrderForm } from './OrderForm.jsx'
 import { MAX_MB, OrderFailed, OrderLoading, fileProblem, isPdf } from './OrderParts.jsx'
 
@@ -265,7 +265,7 @@ function CopyPicker({ onClose }) {
 	}, [query])
 	// after the dialog has focused its first button, so the reader starts where they type
 	useEffect(() => { search.current?.focus() }, [])
-	const found = useApi(getOrders, [{ pageSize: 6, query: asked }])
+	const found = useApi(getOrders, [{ pageSize: 6, query: asked, with: 'itemTitles' }])
 	const orders = found.data?.orders ?? []
 	useEffect(() => setActive(-1), [asked])
 	const pick = o => navigate(`/orders/new?duplicate=${o.id}`)
@@ -290,7 +290,7 @@ function CopyPicker({ onClose }) {
 					<span className="sp-row-flex sp-gap-8">
 						<span className="sp-stacked sp-grow">
 							<span className="sp-title sp-truncate">{o.vendor?.name}</span>
-							<span className="sp-meta sp-truncate">{[o.itemCount === 1 ? '1 line' : `${o.itemCount} lines`, o.itemTitles?.join(', ')].filter(Boolean).join(dot)}</span>
+							<span className="sp-meta sp-truncate">{plural(o.itemCount, 'line')}{o.itemTitles?.length ? `${dot}${o.itemTitles.join(', ')}${o.itemCount > o.itemTitles.length ? '…' : ''}` : null}</span>
 						</span>
 						<span className="sp-stacked sp-cell-amount sp-flex-none">
 							<span className="sp-amount">{amount(o.total)}</span>
