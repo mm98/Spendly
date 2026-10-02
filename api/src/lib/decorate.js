@@ -49,9 +49,8 @@ const mapItem = (i, itemAttachments) => ({
 
 /** Turns one orders row plus its already-fetched child rows into the full order shape a
     single-order reader needs (the order detail/edit page — the one place every field here is
-    read). A list of orders never wants this whole shape; see decorateOrderListRows,
-    decorateOrderSummaryRows and decorateOrderSearchRows below for the leaner ones each list
-    actually renders. */
+    read). A list of orders never wants this whole shape; see decorateOrderListRows and
+    decorateOrderSearchRows below for the leaner ones each list actually renders. */
 export function decorateOrder(totals, { items, attachments, itemAttachments, categories, vendor, statuses }) {
 	return {
 		id: totals.id,
@@ -99,9 +98,8 @@ export function getDecoratedOrder(userId, id) {
 	})
 }
 
-// id and title only -- what the command palette's item-line search matches against and links
-// from (routes/search.js). No quantity, price, retail, note or attachments: a list of orders
-// never wants a whole order's worth of item detail for a row it only searches and links from.
+// id and title only -- what the command palette's item-line search matches against, and the
+// names the copy picker's rows list. A list of orders never wants a whole order's item detail.
 const selectItemTitlesFor = db.prepare(`
 	SELECT order_id, id, title FROM order_items
 	WHERE order_id IN (SELECT value FROM json_each(?)) ORDER BY order_id, position
@@ -109,12 +107,12 @@ const selectItemTitlesFor = db.prepare(`
 // Same ordering as selectCategories above, or one order reads differently in a list than it
 // does on its own page -- the batched query is the list's and the single one is the record's.
 const selectCategoriesFor = db.prepare(`
-	SELECT oc.order_id, c.id, c.name, c.colour, c.icon FROM categories c
+	SELECT oc.order_id, c.id, c.name FROM categories c
 	JOIN order_categories oc ON oc.category_id = c.id
 	WHERE oc.order_id IN (SELECT value FROM json_each(?))
 	ORDER BY oc.order_id, c.name
 `)
-const selectVendorsFor = db.prepare(`SELECT id, name, initials, colour FROM vendors WHERE id IN (SELECT value FROM json_each(?))`)
+const selectVendorsFor = db.prepare(`SELECT id, name FROM vendors WHERE id IN (SELECT value FROM json_each(?))`)
 // An order row's pictures, for the thumbnail and the count; the first is chosen in code, which
 // spares the page a sort over every photo it carries
 const selectLinePhotosFor = db.prepare(`
@@ -134,10 +132,14 @@ const groupBy = (rows, key) => {
 	return map
 }
 
+// The copy picker's row names this many of an order's lines, first by position (3b).
+const ITEM_TITLES_SHOWN = 3
+
 /** The row shape the order lists render (pages/Orders.jsx, Home's recent orders, Statistics'
-    slice, a vendor's recent orders): the row's facts, its reference and note line, and its first
-    line photo with the count - no items, no receipts, no detail fields no row reads. */
-export function decorateOrderListRows(totalsRows) {
+    slice, a vendor's recent orders, the palette and the copy picker): the row's facts, its
+    reference and note line, and its first line photo with the count. `itemTitles` adds the
+    first line names, which only the copy picker asks for. */
+export function decorateOrderListRows(totalsRows, { itemTitles = false } = {}) {
 	if (!totalsRows.length) return []
 	const ids = JSON.stringify(totalsRows.map(t => t.id))
 	const vendorIds = JSON.stringify([...new Set(totalsRows.map(t => t.vendor_id))])
@@ -145,6 +147,7 @@ export function decorateOrderListRows(totalsRows) {
 	const categoriesByOrder = groupBy(selectCategoriesFor.all(ids), 'order_id')
 	const vendorById = new Map(selectVendorsFor.all(vendorIds).map(v => [v.id, v]))
 	const photosByOrder = groupBy(selectLinePhotosFor.all(ids), 'order_id')
+	const itemsByOrder = itemTitles ? groupBy(selectItemTitlesFor.all(ids), 'order_id') : null
 
 	return totalsRows.map(totals => {
 		const vendor = vendorById.get(totals.vendor_id)
@@ -157,32 +160,12 @@ export function decorateOrderListRows(totalsRows) {
 			note: totals.note,
 			photo: photos.length ? (p => ({ itemId: p.order_item_id, attachmentId: p.id }))(firstPhoto(photos)) : null,
 			photoCount: photos.length,
-			vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,
+			vendor: vendor ? { name: vendor.name } : null,
 			categories: (categoriesByOrder.get(totals.id) ?? []).map(({ order_id, ...c }) => c),
 			itemCount: totals.item_count,
 			total: totals.total,
-			saved: totals.saved
-		}
-	})
-}
-
-/** The row shape a "latest orders" card renders (Home.jsx LatestOrders, Orders.jsx overview,
-    both via EntryRow): id, date, vendor (for its avatar and name) and the two figures the row
-    shows. No status, no categories, no item count, no items, no attachments -- one batched
-    query (vendor) instead of getDecoratedOrder's five. */
-export function decorateOrderSummaryRows(totalsRows) {
-	if (!totalsRows.length) return []
-	const vendorIds = JSON.stringify([...new Set(totalsRows.map(t => t.vendor_id))])
-	const vendorById = new Map(selectVendorsFor.all(vendorIds).map(v => [v.id, v]))
-
-	return totalsRows.map(totals => {
-		const vendor = vendorById.get(totals.vendor_id)
-		return {
-			id: totals.id,
-			date: fromEpoch(totals.date),
-			vendor: vendor ? { id: vendor.id, name: vendor.name, initials: vendor.initials, colour: vendor.colour } : null,
-			total: totals.total,
-			saved: totals.saved
+			saved: totals.saved,
+			...(itemsByOrder ? { itemTitles: (itemsByOrder.get(totals.id) ?? []).slice(0, ITEM_TITLES_SHOWN).map(i => i.title) } : {})
 		}
 	})
 }

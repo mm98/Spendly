@@ -119,8 +119,8 @@ const insertBookmarkCategory = db.prepare('INSERT INTO bookmark_categories (book
 
     `orders` is the total the whole year lands on, exactly: the months split it between them
     with some jitter, and the current month absorbs the rounding. Left off, each month rolls
-    its own 28..44 as before. */
-export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242, orders } = {}) => {
+    its own 28..44 as before. `today` is the reader's date, YYYY-MM-DD. */
+export const populateDemoData = db.transaction((userId, { months = 12, seed = 424242, orders, today: day } = {}) => {
 	let s = seed
 	const rnd = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
 	const pick = arr => arr[Math.floor(rnd() * arr.length)]
@@ -154,7 +154,7 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 		return { id, ...c }
 	})
 
-	const today = new Date()
+	const today = day ? new Date(day + 'T00:00:00Z') : new Date()
 	today.setUTCHours(0, 0, 0, 0)
 	const todayEpoch = Math.floor(today.getTime() / 1000)
 	let made = 0, reference = 1000
@@ -231,7 +231,7 @@ export const populateDemoData = db.transaction((userId, { months = 12, seed = 42
 	db.prepare(`UPDATE orders SET
 			(item_count, paid, retail) = (
 				SELECT COUNT(*), COALESCE(SUM(price * quantity), 0),
-					COALESCE(SUM(COALESCE(retail, price) * quantity), 0)
+					COALESCE(SUM(MAX(COALESCE(retail, price), price) * quantity), 0)
 				FROM order_items WHERE order_id = orders.id),
 			search_text = note || char(10) ||
 				COALESCE((SELECT group_concat(title, char(10)) FROM order_items WHERE order_id = orders.id), ''),

@@ -74,12 +74,12 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
     invented or malformed date dropped rather than passed through to a form field that would
     reject it silently. Never throws: a model that returns nonsense for one field should not
     cost the fields it got right. */
-function normalise(input) {
+function normalise(input, today) {
 	if (!input || typeof input !== 'object') return null
 	const vendor = String(input.vendor ?? '').trim()
 	if (!vendor) return null
 
-	const date = ISO_DATE.test(input.date) && input.date <= todayIso()
+	const date = ISO_DATE.test(input.date) && input.date <= today
 		? input.date : null
 	const currency = typeof input.currency === 'string' && /^[A-Z]{3}$/.test(input.currency) ? input.currency : null
 	const shipping = isFiniteNumber(input.shipping) && input.shipping >= 0 ? input.shipping : 0
@@ -120,7 +120,7 @@ const isBillingRefusal = e => e instanceof APIError
     serves) via Claude, and returns `{ read, failure }`: the normalised fields above or null, and
     null when the model answered, 'billing' when the account was refused, 'failed' otherwise.
     `upload` is a full row from scan_uploads -- data, data_is_compressed, content_type, kind. */
-export async function parseReceipt(upload) {
+export async function parseReceipt(upload, today = todayIso()) {
 	const anthropic = getClient()
 	if (!anthropic || !upload.data) return { read: null, failure: 'failed' }
 	const bytes = decompressBlob(upload.data, upload.data_is_compressed)
@@ -152,7 +152,7 @@ export async function parseReceipt(upload) {
 			}]
 		})
 		const call = response.content.find(b => b.type === 'tool_use' && b.name === READ_RECEIPT_TOOL.name)
-		return { read: call ? normalise(call.input) : null, failure: null }
+		return { read: call ? normalise(call.input, today) : null, failure: null }
 	} catch (error) {
 		// The log is the one place a bad key, a timeout or a rate limit is told apart.
 		console.error('Receipt read failed:', error.message)
