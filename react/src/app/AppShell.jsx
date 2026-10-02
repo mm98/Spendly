@@ -1,13 +1,14 @@
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Outlet, useLocation, useMatches, useNavigate, useNavigationType } from 'react-router'
 import { Shell, Sidebar, SidebarBrand, SidebarGroup, SidebarDivider, SidebarAccount, NavItem, TopBar, ShellContent } from '../components/Shell.jsx'
 import { TabBar, TabBarItem, Fab } from '../components/Touch.jsx'
 import { SearchInput } from '../components/Inputs.jsx'
 import { Switch } from '../components/Choice.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { Kbd, useDismiss } from '../components/Utilities.jsx'
-import { Anchor, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
-import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, logout } from '../api/client.js'
+import { Button } from '../components/Button.jsx'
+import { Kbd } from '../components/Utilities.jsx'
+import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
+import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onSessionEnded } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
 import { useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
@@ -30,32 +31,78 @@ const UNDER_MORE = ['budget', 'vendors', 'categories', 'bookmarks', 'settings', 
 
 export function AppShell() {
 	const shape = useShellShape()
+	const touch = shape === 'touch'
 	const handle = handleOf(useMatches())
-	const { navKey, layout = 'default', fab = false, title } = handle
+	const { navKey, layout = 'default', fab = false, title, remember = false } = handle
 	const navigate = useNavigate()
-	const [palette, setPalette] = useState(null)
+	const navigation = useNavigationType()
+	const { pathname, search: params, key: visit, state } = useLocation()
 
 	useEffect(() => { document.title = title ? `${title} - Spendly` : 'Spendly' }, [title])
 
 	useRecentRecords()
-	// opened over the order list, the palette starts from the list's own search (9d)
-	const { pathname, search: params, key: visit } = useLocation()
+
+	// another section opens at its top; Back keeps the place the browser gives it (c11)
+	const at = useRef(pathname)
+	useLayoutEffect(() => {
+		if (at.current === pathname) return
+		at.current = pathname
+		if (navigation !== 'POP') window.scrollTo(0, 0)
+	}, [pathname, navigation])
+
+	// where each section's list was left, so its destination returns to it; from that very list,
+	// the destination starts it over (c11)
+	const left = useRef({})
+	if (remember && navKey) left.current[navKey] = pathname + params
+	const go = (key, to) => {
+		const back = left.current[key]
+		return !back || back === pathname + params ? to : back
+	}
+
+	/* On a desktop the palette floats over the page. On a phone it takes the screen and is a
+	   step in the history, so Back closes it and the page comes back where it stood (7b). */
 	const listQuery = pathname === '/orders' ? new URLSearchParams(params).get('q') ?? '' : ''
-	const openPalette = useCallback(query => setPalette({ query: query ?? listQuery }), [listQuery])
-	// any navigation ends it, the browser's Back included
-	useEffect(() => setPalette(null), [visit])
+	const [floating, setFloating] = useState(null)
+	const screen = state?.palette ?? null
+	const palette = touch ? screen : floating
+	const stood = useRef(null)
+	const openPalette = useCallback(query => {
+		const start = { query: query ?? listQuery }
+		if (!touch) { setFloating(start); return }
+		if (screen) return
+		stood.current = { visit, scroll: window.scrollY, focus: document.activeElement }
+		navigate({ pathname, search: params }, { state: { palette: start } })
+	}, [touch, screen, listQuery, visit, pathname, params, navigate])
+	const closePalette = useCallback(() => (touch ? navigate(-1) : setFloating(null)), [touch, navigate])
+	// any navigation ends the floating one, the browser's Back included
+	useEffect(() => setFloating(null), [visit])
+	useLayoutEffect(() => {
+		if (screen || !stood.current) return
+		const back = stood.current
+		stood.current = null
+		if (back.visit !== visit) return
+		back.focus?.focus?.({ preventScroll: true })
+		window.scrollTo(0, back.scroll)
+	}, [screen, visit])
 	useEffect(() => {
 		const key = ev => {
 			if (ev.key.toLowerCase() !== 'k' || !(ev.metaKey || ev.ctrlKey)) return
 			ev.preventDefault()
-			setPalette(open => (open ? null : { query: listQuery }))
+			if (palette) closePalette()
+			else openPalette()
 		}
 		document.addEventListener('keydown', key)
 		return () => document.removeEventListener('keydown', key)
-	}, [listQuery])
+	}, [palette, openPalette, closePalette])
 
+	// a session that ends mid-use asks over the page rather than throwing the reader out (20e)
+	const [ended, setEnded] = useState(false)
+	useEffect(() => onSessionEnded(() => setEnded(true)), [])
+
+	// below 1280 the facet rail leaves and the list takes the column (18b)
+	const body = layout === 'rail' && shape !== 'wide' ? 'default' : layout
 	const content = (
-		<ShellContent layout={layout}>
+		<ShellContent layout={body}>
 			<Suspense fallback={null}><Outlet /></Suspense>
 		</ShellContent>
 	)
@@ -66,76 +113,88 @@ export function AppShell() {
 			value=""
 			onChange={text => openPalette(text)}
 			onClick={() => openPalette()}
-			placeholder={shape === 'touch' ? 'Search' : 'Search orders, vendors, items…'}
+			placeholder={touch ? 'Search' : 'Search orders, vendors, items…'}
 			aria-label="Search orders, vendors, items"
-			kbd={shape === 'touch' ? undefined : <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd>}
+			kbd={touch ? undefined : <Kbd>{MAC ? '⌘K' : 'Ctrl K'}</Kbd>}
 		/>
 	)
 	const overlay = palette
-		? <Palette query={palette.query} touch={shape === 'touch'} onClose={() => setPalette(null)} />
+		? <Palette query={palette.query} touch={touch} onClose={closePalette} />
+		: null
+	const signedOut = ended
+		? (
+			<Dialog onCancel={() => setEnded(false)}>
+				<DialogTitle>You've been signed out</DialogTitle>
+				<DialogBody>Your session expired. Sign in again to carry on - nothing was lost.</DialogBody>
+				<DialogActions>
+					<Button variant="outline" size="small" onClick={() => setEnded(false)}>Later</Button>
+					<Button size="small" onClick={() => { setEnded(false); navigate(`/signin?next=${encodeURIComponent(pathname + params)}`) }}>
+						Sign in
+					</Button>
+				</DialogActions>
+			</Dialog>
+		)
 		: null
 
-	if (shape === 'touch') {
-		const tab = UNDER_MORE.includes(navKey) ? 'more' : navKey
-		return (
-			<Toaster>
-				<Shell touch cover={overlay}>
-					<TopBar touch>{search}</TopBar>
-					{content}
-					{fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
-					<TabBar aria-label="Sections">
-						{TABS.map(t => (
-							<TabBarItem key={t.key} icon={t.icon} current={t.key === tab} onClick={() => navigate(t.to)}>{t.label}</TabBarItem>
-						))}
-					</TabBar>
-				</Shell>
-			</Toaster>
-		)
-	}
+	const tab = UNDER_MORE.includes(navKey) ? 'more' : navKey
+	/* One tree for every shape, so crossing a breakpoint keeps the page mounted with whatever
+	   the reader had not saved. */
 	return (
 		<Toaster>
-			<Shell viewport collapsed={shape === 'rail'}>
-				{sidebar({ navKey, rail: shape === 'rail' })}
-				<TopBar>{search}</TopBar>
+			<Shell touch={touch} viewport={!touch} collapsed={shape === 'rail'} cover={touch ? overlay : undefined}>
+				{touch ? null : sidebar({ navKey, rail: shape === 'rail', go })}
+				<TopBar touch={touch}>{search}</TopBar>
 				{content}
+				{touch && fab ? <Fab to="/orders/new" aria-label="New order" /> : null}
+				{touch
+					? (
+						<TabBar aria-label="Sections">
+							{TABS.map(t => (
+								<TabBarItem key={t.key} icon={t.icon} current={t.key === tab} to={go(t.key, t.to)}>{t.label}</TabBarItem>
+							))}
+						</TabBar>
+					)
+					: null}
 			</Shell>
-			{overlay}
+			{touch ? null : overlay}
+			{signedOut}
 		</Toaster>
 	)
 }
 
-/* The sidebar is built as an element rather than a component, because the shell places its
-   children by type and a wrapper would hide the Sidebar inside it. */
-function sidebar({ navKey, rail }) {
+/* An element rather than a component: the shell places its children by type. On the rail the
+   groups and the wordmark go, and a rule sets the two creating actions apart (9b, 9h). */
+function sidebar({ navKey, rail, go }) {
+	const brand = <Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
 	return (
 		<Sidebar aria-label="Sections">
-			<SidebarBrand>
-				<Mark size="small" fill="solid" aria-hidden="true" aria-label="Spendly"><span>S</span></Mark>
-				<span>Spendly</span>
-			</SidebarBrand>
+			{rail
+				? <>{brand}<SidebarDivider /></>
+				: <SidebarBrand>{brand}<span>Spendly</span></SidebarBrand>}
 			<Row to="/" icon="home" rail={rail} current={navKey === 'home'}>Home</Row>
 			<Row to="/orders/new?source=scan" icon="camera" variant="action" rail={rail}>Scan receipt</Row>
 			<Row to="/orders/new" icon="plus" rail={rail}>New order</Row>
-			<SidebarGroup>Orders</SidebarGroup>
-			<Counted to="/orders" icon="receipt" rail={rail} current={navKey === 'orders'} useCount={useOrdersCount}>All orders</Counted>
-			<SidebarGroup>Budget</SidebarGroup>
-			<Row to="/budget" icon="wallet" rail={rail} current={navKey === 'budget'}>This year</Row>
-			<SidebarGroup>Library</SidebarGroup>
-			<Counted to="/vendors" icon="building-store" rail={rail} current={navKey === 'vendors'} useCount={useVendorsCount}>Vendors</Counted>
-			<Counted to="/categories" icon="category" rail={rail} current={navKey === 'categories'} useCount={useCategoriesCount}>Categories</Counted>
-			<Counted to="/bookmarks" icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
-			<Row to="/statistics" icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
+			{rail ? <SidebarDivider /> : <SidebarGroup>Orders</SidebarGroup>}
+			<Counted to={go('orders', '/orders')} icon="receipt" rail={rail} current={navKey === 'orders'} useCount={useOrdersCount}>All orders</Counted>
+			{rail ? null : <SidebarGroup>Budget</SidebarGroup>}
+			<Row to={go('budget', '/budget')} icon="wallet" rail={rail} current={navKey === 'budget'}>This year</Row>
+			{rail ? null : <SidebarGroup>Library</SidebarGroup>}
+			<Counted to={go('vendors', '/vendors')} icon="building-store" rail={rail} current={navKey === 'vendors'} useCount={useVendorsCount}>Vendors</Counted>
+			<Counted to={go('categories', '/categories')} icon="category" rail={rail} current={navKey === 'categories'} useCount={useCategoriesCount}>Categories</Counted>
+			<Counted to={go('bookmarks', '/bookmarks')} icon="heart" rail={rail} current={navKey === 'bookmarks'} useCount={useBookmarksCount}>Bookmarks</Counted>
+			<Row to={go('statistics', '/statistics')} icon="chart-bar" rail={rail} current={navKey === 'statistics'}>Statistics</Row>
 			<span className="sp-grow" />
 			<Row to="/settings" icon="settings" rail={rail} current={navKey === 'settings'}>Settings</Row>
-			<SidebarDivider />
+			{rail ? null : <SidebarDivider />}
 			<DarkMode rail={rail} />
 			<Account rail={rail} />
 		</Sidebar>
 	)
 }
 
-function Row({ rail, children, ...rest }) {
-	return <NavItem tip={rail ? children : undefined} aria-label={children} {...rest}>{children}</NavItem>
+/* A count is read with its destination; on the rail the label is the tile's only name. */
+function Row({ rail, count, children, ...rest }) {
+	return <NavItem tip={rail ? children : undefined} aria-label={count != null ? `${children}, ${count}` : children} count={count} {...rest}>{children}</NavItem>
 }
 
 /* A count the sidebar has not received yet renders as nothing, never as a zero (9e). */
@@ -147,36 +206,37 @@ const useVendorsCount = () => useApi(getVendors).data?.length
 const useCategoriesCount = () => useApi(getCategories).data?.length
 const useBookmarksCount = () => useApi(getBookmarks, [{ pageSize: 1 }]).data?.matched
 
+/* A switch beside its label on the wide sidebar; on the rail a tile of its own, which keeps it
+   in the keyboard's reach once the label and the switch are gone (9b). */
 function DarkMode({ rail }) {
 	const theme = useTheme()
+	const toggle = () => setTheme(theme === 'dark' ? 'light' : 'dark')
+	if (rail) return <NavItem icon="moon" tip="Dark mode" aria-label="Dark mode" aria-pressed={theme === 'dark'} onClick={toggle}>Dark mode</NavItem>
 	return (
-		<NavItem icon="moon" tip={rail ? 'Dark mode' : undefined}
+		<NavItem icon="moon"
 			control={<Switch checked={theme === 'dark'} onChange={ev => setTheme(ev.target.checked ? 'dark' : 'light')} aria-label="Dark mode" />}>
 			Dark mode
 		</NavItem>
 	)
 }
 
-/* The account block opens its menu upward, the block's own width (9c). */
+/* Sign out leaves first: the page's own leave check asks, and the session ends only on the
+   sign-in page, once the reader has been let go (9c). */
 function Account({ rail }) {
 	const user = useApi(getCurrentUser)
 	const [open, setOpen] = useState(false)
-	const anchor = useRef(null)
 	const navigate = useNavigate()
 	const close = useCallback(() => setOpen(false), [])
-	useDismiss(anchor, open, close)
 	const email = user.data?.email
 	if (!email) return null
+	const menu = (
+		<Menu aria-label="Account">
+			<MenuItem icon="user" onClick={() => { close(); navigate('/settings/account') }}>Account and profile</MenuItem>
+			<MenuItem icon="power" onClick={() => { close(); navigate('/signin', { state: { signOut: true } }) }}>Sign out</MenuItem>
+		</Menu>
+	)
 	return (
-		<span ref={anchor}>
-			<Anchor open={open}>
-				<SidebarAccount email={email} expanded={open} tip={rail ? email : undefined} aria-label={email}
-					onClick={() => setOpen(!open)} />
-				<Menu position="up" aria-label="Account">
-					<MenuItem icon="user" onClick={() => { close(); navigate('/settings/account') }}>Account and profile</MenuItem>
-					<MenuItem icon="power" onClick={() => logout().finally(() => { close(); navigate('/signin') })}>Sign out</MenuItem>
-				</Menu>
-			</Anchor>
-		</span>
+		<SidebarAccount email={email} expanded={open} tip={rail ? email : undefined} aria-label={email}
+			onClick={() => setOpen(!open)} onDismiss={close} menu={menu} />
 	)
 }

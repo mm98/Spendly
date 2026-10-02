@@ -123,6 +123,11 @@ export async function cachedFetch(fn, args = [], signal) {
 	return data
 }
 
+/** Forgets every cached answer without telling the readers on screen to ask again. */
+export function forgetAll() {
+	cache.clear()
+}
+
 /** Forgets one endpoint's cached answers, or all of them. Called after a write. */
 export function invalidate(fn) {
 	const prefix = fn ? (fn.name || 'anonymous') + ':' : null

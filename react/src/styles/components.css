@@ -1988,6 +1988,8 @@ button.sp-nav-item--action:hover { background: var(--green-2); color: #fff; }
   cursor: pointer;
   outline: none;
 }
+/* a destination is a link (9h), which must not read as underlined text */
+a.sp-tabbar__item { text-decoration: none; }
 .sp-tabbar__item[aria-current="page"] { color: var(--green); font-weight: 600; }
 .sp-tabbar__item:focus-visible { box-shadow: var(--ring); }
 
@@ -3378,6 +3380,7 @@ button.sp-list-item:focus-visible { box-shadow: var(--ring); }
    is that bar's height and gutter - not the floating palette's own padding */
 .sp-palette--screen .sp-palette__search { height: var(--phone-bar-h); padding: 0 var(--phone-gutter); }
 .sp-palette--screen .sp-picker__search { flex: 1; min-width: 0; }
+.sp-palette--screen .sp-palette__search > .sp-btn { width: auto; flex: none; }
 /* the trail stays centred whatever height the field is, so a touch field's clear
    control does not sit high in it */
 .sp-field__wrap .sp-field__trail { top: 50%; transform: translateY(-50%); }
@@ -3604,6 +3607,15 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
 .sp-nav-item__sub--email { display: flex; min-width: 0; }
 .sp-nav-item__sub--email > .sp-nav-item__local { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-nav-item__sub--email > .sp-nav-item__domain { flex: none; }
+/* the local part gives way first; a domain wider than the line less the local part's first
+   letters is cut too, so the email never leaves its block */
+.sp-nav-item__sub--email > .sp-nav-item__domain { max-width: calc(100% - 4ch); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The account menu (9c), fixed to the window over the account block so the sidebar's own
+   scrolling cannot clip it: 4 above the block and its width, or beside the avatar on the rail. */
+.sp-sidebar__menu { position: fixed; z-index: 30; }
+.sp-sidebar__menu > .sp-menu { position: absolute; box-shadow: var(--shadow-menu); }
+.sp-sidebar__menu--up > .sp-menu { left: 0; right: 0; bottom: calc(100% + var(--sp-4)); min-width: 0; }
+.sp-sidebar__menu--side > .sp-menu { left: calc(100% + var(--sp-4)); bottom: 0; }
 
 .sp-nav-item__count[data-color="warning"] { color: var(--amber-3); }
 .sp-nav-item--light .sp-nav-item__count[data-color="warning"] { color: var(--amber-ink); }
