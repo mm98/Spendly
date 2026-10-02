@@ -206,6 +206,7 @@ export function decorateOrderSearchRows(totalsRows) {
 			id: totals.id,
 			date: fromEpoch(totals.date),
 			note: totals.note,
+			reference: totals.reference,
 			total: totals.total,
 			vendor: vendor ? { name: vendor.name } : null,
 			items: (itemsByOrder.get(totals.id) ?? []).map(i => ({ id: i.id, title: i.title }))

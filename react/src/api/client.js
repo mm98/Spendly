@@ -1128,8 +1128,6 @@ export const sorts = [
 	{ id: 'date-asc', label: 'Date, oldest' },
 	{ id: 'amount-desc', label: 'Amount, highest' },
 	{ id: 'amount-asc', label: 'Amount, lowest' },
-	{ id: 'discount-desc', label: 'Discount, highest' },
-	{ id: 'discount-asc', label: 'Discount, lowest' },
 	{ id: 'vendor-asc', label: 'Vendor, A to Z' }
 ]
 
