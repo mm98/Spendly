@@ -2,9 +2,9 @@ import { join, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Mark } from './Mark.jsx'
 
-/** `action` is the button-shaped words inside the zone (3a): a span, since the zone itself is
-    the label that opens the picker. `onDrop` takes files dropped anywhere on it. */
-export function FileDrop({ icon, children, accept, multiple = false, onFiles, action, id, ...rest }) {
+/** `action` is the button-shaped words inside the zone (3a): a span, since the zone is the label that
+    opens the picker. `onFiles` also takes files dropped on it; `grow` takes the room left in its row (10a). */
+export function FileDrop({ icon, children, accept, multiple = false, onFiles, action, grow = false, id, ...rest }) {
 	reject(rest, 'FileDrop')
 	const dropping = onFiles
 		? {
@@ -13,7 +13,7 @@ export function FileDrop({ icon, children, accept, multiple = false, onFiles, ac
 		}
 		: {}
 	return (
-		<label className="sp-filedrop" {...dropping} {...rest}>
+		<label className={join('sp-filedrop', grow && 'sp-grow')} {...dropping} {...rest}>
 			{icon ? <Icon name={icon} /> : null}
 			{children}
 			{action ? <span className="sp-btn sp-btn--small">{action}</span> : null}
