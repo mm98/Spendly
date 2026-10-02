@@ -1,3 +1,4 @@
+import { Children } from 'react'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
 
@@ -28,7 +29,7 @@ export function Card({
 	reject(rest, 'Card')
 	const classes = join('sp-card', pick(VARIANT, variant, 'variant', 'Card'))
 	const paint = color === 'default' ? {} : { 'data-color': pick(COLOR, color, 'color', 'Card') }
-	const actions = Array.isArray(footer) ? footer.filter(Boolean) : footer ? [footer] : []
+	const actions = Children.toArray(footer)
 	if (actions.length > 2) console.error('<Card> three actions is a menu, not a footer')
 	const body = (
 		<>
