@@ -482,7 +482,27 @@ const precedingName = (preset, [from, to], locale) => {
 
 export function Selected() { return null }
 
-export function PeriodPicker({ presets, value, onChange, from, to, name, custom, children, locale, ...rest }) {
+/** The stepper inside the period control (c14): one box, an arrow either side of the window's
+    name. An arrow with no handler is disabled, never hidden, so the box keeps its width. */
+export function PeriodWindow({ label, unit, previousLabel = 'Previous window', nextLabel = 'Next window', onPrevious, onNext, touch = false, ...rest }) {
+	reject(rest, 'PeriodWindow')
+	const size = touch ? 15 : 14
+	return (
+		<div className="sp-window" {...rest}>
+			<button type="button" className="sp-window__btn" aria-label={previousLabel} disabled={!onPrevious} onClick={onPrevious}>
+				<Icon name="chevron-left" size={size} />
+			</button>
+			<span className="sp-window__label" data-w={unit}>{label}</span>
+			<button type="button" className="sp-window__btn" aria-label={nextLabel} disabled={!onNext} onClick={onNext}>
+				<Icon name="chevron-right" size={size} />
+			</button>
+		</div>
+	)
+}
+
+/* `at` is a day inside the window the presets resolve around, today when absent; `stepper`
+   is the PeriodWindow that moves it, drawn after the presets. */
+export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, name, custom, children, locale, ...rest }) {
 	reject(rest, 'PeriodPicker', ['note', 'compareLabel', 'compare', 'defaultCompare', 'onCompareChange'])
 	// the child is read, not rendered: what it holds is a function of values this
 	// component derives, so it cannot be resolved until they exist
@@ -501,7 +521,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, name, custom,
 	const today = new Date()
 	const dates = value === 'custom'
 		? [from, to]
-		: PERIODS[value] && PERIODS[value](today).map(iso)
+		: PERIODS[value] && PERIODS[value]((at && parse(at)) || today).map(iso)
 	const shapeOf = (preset, span) => {
 		const before = span && precedingDates(preset, span)
 		return {
@@ -549,6 +569,7 @@ export function PeriodPicker({ presets, value, onChange, from, to, name, custom,
 					)
 					: null}
 			</div>
+			{stepper}
 			{resolved ? <span className="sp-period__resolved">{resolved}</span> : null}
 			{against && picked
 				? <span className="sp-period__compare">{typeof picked === 'function' ? picked(shapeOf(value, dates)) : picked}</span>
