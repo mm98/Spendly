@@ -1,0 +1,24 @@
+/* Layout for the budget's whole-year sheet (21b) and the bank check's column table (21h).
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+	.bg-scroll { overflow: auto; max-height: 560px; }
+	.bg-sheet thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+	.bg-sheet tbody td:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+	.bg-sheet thead th:first-child { left: 0; z-index: 3; }
+	/* a section or group row spans the sheet, so its label is what holds still, at the card's inset */
+	.bg-sheet tbody td[colspan] { position: static; }
+	.bg-sheet tbody td[colspan] > span { position: sticky; left: var(--card-pad); display: inline-block; }
+	/* an open editor or an add row spans the columns in view, and holds still there with the row names */
+	.bg-sheet tbody td.bg-hold { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+
+	.sp-table .bg-col-map { width: 240px; }
+	/* on a phone the bank check's column table scrolls sideways like the sheet: never narrower than
+	   twice the Spendly column, so the other two share at least its width and part of it shows */
+	@media (max-width: 639.98px) {
+		.bg-sideways { overflow-x: auto; }
+		.bg-map { min-width: 480px; }
+	}
+
+}

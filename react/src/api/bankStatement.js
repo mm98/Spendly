@@ -78,9 +78,10 @@ export const guessDateFormat = values => dateFormatsFor(values)[0] ?? 'dmy'
 /* ---- amounts ---- */
 
 // One decimal mark for the whole column: comma if any value ends in a comma and one or two digits.
-export const guessDecimal = samples => (samples.some(s => /,\d{1,2}$/.test(clean(s))) ? ',' : '.')
+export const guessDecimal = samples => (samples.some(s => /,\d{1,2}[+-]?$/.test(clean(s))) ? ',' : '.')
 
-const clean = value => String(value ?? '').replace(/[\s ]/g, '').replace(/[^\d,.+-]/g, '')
+// a word such as "kr." goes whole, so its full stop is not read as a decimal mark
+const clean = value => String(value ?? '').replace(/\p{L}+\.?/gu, '').replace(/[\s ]/g, '').replace(/[^\d,.+-]/g, '')
 
 /** A signed number, or null for a cell that holds none. "1.234,56-" is read as negative too. */
 export function readAmount(value, decimal) {
@@ -111,13 +112,24 @@ export function guessColumns(rows, header) {
 	const words = columns.filter(i => !dates.includes(i) && !numbers.includes(i))
 
 	const date = named(/dato|date|bogf|booking/) ?? dates[0] ?? null
-	const amount = named(/beløb|belob|amount|beløp/) ?? numbers.find(i => !/saldo|balance/.test(names[i] ?? '')) ?? null
-	const text = named(/tekst|text|beskriv|descr|posteringstekst|modtager|narrative/)
+	const money = numbers.filter(i => !/saldo|balance/.test(names[i] ?? '') && !sample(i).some(accountLike))
+	const best = money.reduce((b, i) => (moneyScore(sample(i)) > (b == null ? 0 : moneyScore(sample(b))) ? i : b), null)
+	const amount = named(/beløb|belob|amount|beløp/) ?? best ?? money[0] ?? null
+	// a receiver column often holds an account number, so a text or description column comes first
+	const text = named(/tekst|text|beskriv|descr|narrative/) ?? named(/modtager/)
 		?? words.sort((a, b) => avgLength(sample(b)) - avgLength(sample(a)))[0] ?? null
 	return { date, text, amount, out: null }
 }
 
 const avgLength = values => values.reduce((n, v) => n + v.length, 0) / (values.length || 1)
+
+// An account or registration number: digits joined by a minus, or a long run of digits alone.
+const accountLike = value => /\d-\d/.test(value) || /^\d{8,}$/.test(value.trim())
+const signed = value => /^[+-]|-$/.test(clean(value)) || /^\(.*\)$/.test(value.trim())
+// How much a column reads like money: the share of its cells with øre, more when any is signed.
+// On a tie the column further left wins, since banks put the amount before the balance.
+const moneyScore = values => values.filter(v => /\d[.,]\d{2}(?!\d)/.test(v)).length / values.length
+	+ (values.some(signed) ? 0.5 : 0)
 
 // A first row is names, not a payment, when none of its cells reads as a date.
 export const hasHeader = rows => rows.length > 1

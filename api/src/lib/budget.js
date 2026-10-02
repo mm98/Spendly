@@ -143,7 +143,8 @@ const COPY = {
 	none: () => ({ expected: null, real: null })
 }
 
-/** A new year, empty or copied from another. Refuses a year that is already there. */
+/** A new year, copied from another, or with no groups: each side already carries its own heading,
+    so a starter group would only repeat it. Refuses a year that is already there. */
 export const createYear = db.transaction((userId, year, { from, amounts = 'same' } = {}) => {
 	if (selectYear.get(userId, year)) throw Object.assign(new Error(`${year} is already there.`), { status: 409 })
 	const source = from == null ? null : readYear(userId, from)
@@ -152,7 +153,7 @@ export const createYear = db.transaction((userId, year, { from, amounts = 'same'
 	insertYear.run(yearId, userId, year)
 	const groups = source
 		? source.groups.map(g => ({ ...g, lines: g.lines.map(l => ({ ...l, months: l.months.map(COPY[amounts]) })) }))
-		: [{ kind: 'income', name: 'Income', lines: [] }, { kind: 'expense', name: 'Costs', lines: [] }]
+		: []
 	groups.forEach((group, i) => addGroupRows(userId, yearId, group, i))
 })
 
