@@ -10,13 +10,17 @@
 	.ol-chip-slot { display: flex; flex: 1 1 0; min-width: 0; max-width: max-content; }
 
 	/* the facets scroll between the Filters sheet's heading and its Apply row, which stay in
-	   view (18b); the inset gives a focused field's ring room inside the scroll box */
+	   view (18b), 12 apart as the sheet's own parts are. The body reaches the sheet's edges so
+	   a focus ring and a slider handle's touch target are not cut by the scroll box. */
 	.ol-sheet-body {
 		flex: 1 1 auto;
 		min-height: 0;
 		overflow-y: auto;
-		margin: calc(var(--sp-6) * -1);
-		padding: var(--sp-6);
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-12);
+		margin: calc(var(--sp-6) * -1) calc(var(--card-pad) * -1);
+		padding: var(--sp-6) var(--card-pad);
 	}
 
 }

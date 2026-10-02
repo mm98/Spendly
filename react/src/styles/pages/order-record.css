@@ -1,0 +1,13 @@
+/* One order, read and edited (1a, 1d): the boxes its loading form holds open. Layout only. */
+
+@layer base {
+
+	/* a field's or a button's box while the order loads, at the height it will have; small is
+	   the library's small button, which a card's commits and the rail's Delete order are */
+	.or-control { display: flex; height: var(--control-h); }
+	.or-control--small { height: 34px; }
+	.sp-touch .or-control { height: var(--control-h-touch); }
+	/* the attachment strip with its add tile */
+	.or-tiles { display: flex; height: calc(var(--mark-xlarge) + var(--sp-6)); }
+
+}

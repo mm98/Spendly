@@ -9,11 +9,12 @@ import { Strip, Viewer } from '../components/Attachments.jsx'
 import { useApi } from '../api/useApi.js'
 import { attachmentFileUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
 import { dot, shortDate } from '../api/format.js'
+import { useListReturn } from '../app/listMemory.js'
 import { useShellShape } from '../app/useMedia.js'
 import { StatusPill } from '../app/orderRow.jsx'
 import { Saving } from '../app/saving.jsx'
 import {
-	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, money
+	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, lineMeta, lineTotal, money
 } from './OrderParts.jsx'
 import { DeleteOrder } from './DeleteOrder.jsx'
 
@@ -35,6 +36,7 @@ export default function Order() {
 
 function OrderView({ order, touch, onGone }) {
 	const navigate = useNavigate()
+	const list = useListReturn('orders')
 	const [viewing, setViewing] = useState(null)
 	const [asking, setAsking] = useState(false)
 	const files = filesOf(order)
@@ -44,7 +46,8 @@ function OrderView({ order, touch, onGone }) {
 		<Card>
 			<div className="sp-row-flex sp-gap-12">
 				<span className="sp-section-label sp-nowrap">Items{dot}{order.items.length}</span>
-				<span className="sp-meta sp-truncate">{order.vendor?.name}{dot}{shortDate(order.date)}</span>
+				{/* a narrow phone wraps the line rather than cutting the date */}
+				<span className={touch ? 'sp-meta' : 'sp-meta sp-truncate'}>{order.vendor?.name}{dot}{shortDate(order.date)}</span>
 				<span className="sp-grow" />
 				<StatusPill status={order.status} />
 			</div>
@@ -52,6 +55,16 @@ function OrderView({ order, touch, onGone }) {
 				{order.items.map(item => {
 					const photo = itemPhoto(order.id, item)
 					const fileKey = item.attachments?.[0]?.id
+					// on a phone the photo is smaller than a fingertip, so the whole row opens it, and says so
+					if (touch && photo)
+						return (
+							<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} />} onClick={() => open(fileKey)}
+								aria-label={`Open the photo of ${item.title}, ${lineMeta(item, true)}, ${money(lineTotal(item))}`}>
+								<LineText line={item} compact />
+								<span className="sp-grow" />
+								<LineAmount line={item} compact />
+							</ListItem>
+						)
 					return (
 						<ListItem key={item.id} mark={<LinePhoto src={photo} name={item.title} onOpen={photo ? () => open(fileKey) : undefined} />}>
 							<LineText line={item} compact={touch} />
@@ -124,7 +137,7 @@ function OrderView({ order, touch, onGone }) {
 	)
 
 	const dialog = asking
-		? <DeleteOrder order={order} onClose={() => setAsking(false)} onDeleted={() => { onGone(); navigate('/orders') }} />
+		? <DeleteOrder order={order} onClose={() => setAsking(false)} onDeleted={() => { onGone(); navigate(list) }} />
 		: null
 
 	const viewer = viewing != null && viewing > -1
