@@ -1,0 +1,22 @@
+/* Order list (2b, c12, 18b). In @layer base, so a component rule always wins. */
+
+@layer base {
+
+	/* with no rail beside it, the list takes both columns of the rail body */
+	.ol-alone { grid-column: 1 / -1; }
+
+	/* two category chips share their cell: a short name keeps its width, a long one takes the
+	   rest and truncates (2i) */
+	.ol-chip-slot { display: flex; flex: 1 1 0; min-width: 0; max-width: max-content; }
+
+	/* the facets scroll between the Filters sheet's heading and its Apply row, which stay in
+	   view (18b); the inset gives a focused field's ring room inside the scroll box */
+	.ol-sheet-body {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		margin: calc(var(--sp-6) * -1);
+		padding: var(--sp-6);
+	}
+
+}
