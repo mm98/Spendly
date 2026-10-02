@@ -1,0 +1,7 @@
+/* The shell (9c): the account menu's header. */
+
+@layer base {
+
+	.ns-menu-head { padding: var(--sp-8) var(--sp-10); border-bottom: 1px solid var(--line-2); margin-bottom: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-6); }
+
+}

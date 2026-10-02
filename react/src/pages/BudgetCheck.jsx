@@ -42,6 +42,11 @@ const ROLES = [
 	{ id: 'none', label: 'Not used' }
 ]
 
+// a failure the shell already tells of (the session ended) has no sentence, and takes no toast
+const toastFailure = (toast, error, fallback) => {
+	const message = failureMessage(error, fallback)
+	if (message) toast({ message, color: 'danger' })
+}
 const cents = n => Math.round(n * 100) / 100
 const money = n => currency(cents(n))
 const when = g => (g.payments.length === 1 ? dayShortMonth(g.first)
@@ -128,7 +133,7 @@ export default function BudgetCheck() {
 		: dateFormatsFor((mapping.header ? rows.slice(1) : rows).map(r => r[mapping.date] ?? ''))), [rows, mapping])
 	const dateFormat = dateFits.includes(mapping?.dateFormat) ? mapping.dateFormat : dateFits[0] ?? 'dmy'
 	const ready = mapping && mapping.date != null && mapping.text != null && mapping.amount != null
-	const { payments } = useMemo(() => (ready ? readPayments(rows, { ...mapping, dateFormat }) : { payments: [] }),
+	const { payments, unread } = useMemo(() => (ready ? readPayments(rows, { ...mapping, dateFormat }) : { payments: [], unread: [] }),
 		[ready, rows, mapping, dateFormat])
 	const years = useMemo(() => [...new Set(payments.map(p => Number(p.date.slice(0, 4))))].sort(), [payments])
 
@@ -140,7 +145,7 @@ export default function BudgetCheck() {
 			.then(found => {
 			if (live) setSheets(new Map(years.map((y, i) => [y, found[i]]).filter(([, s]) => s)))
 		}).catch(e => {
-			if (live) toast({ message: failureMessage(e, 'The budget could not be read.'), color: 'danger' })
+			if (live) toastFailure(toast, e, 'The budget could not be read.')
 		})
 		return () => { live = false }
 	}, [years, toast])
@@ -165,10 +170,11 @@ export default function BudgetCheck() {
 				? <Columns file={file} rows={rows} body={body} width={width} mapping={mapping} dateFits={dateFits} dateFormat={dateFormat}
 					problem={!ready ? 'Tell Spendly which column holds the date, the text and the amount.'
 						: !payments.length ? 'No payments were found with these columns.' : null}
+					left={ready && payments.length && unread.length ? `${plural(unread.length, 'line')} could not be read with these columns.` : null}
 					onChange={change} />
 				: !checked
 					? <Card aria-busy="true"><Skeleton shape="title" /><Skeleton shape="line" /><Skeleton shape="short" /></Card>
-					: <Results key={file} file={file} payments={payments} checked={checked} sheets={sheets} setSheets={setSheets}
+					: <Results key={file} file={file} payments={payments} unread={unread.length} checked={checked} sheets={sheets} setSheets={setSheets}
 						setLinks={setLinks} view={view} onFailed={saved.refresh} />}
 		</>
 	)
@@ -188,7 +194,7 @@ function PickFile({ onFile }) {
 }
 
 /** Which column of the file holds what (21h). Each role is taken by one column at most. */
-function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, problem, onChange }) {
+function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, problem, left, onChange }) {
 	const roleOf = i => ROLES.find(r => mapping[r.id] === i) ?? ROLES[ROLES.length - 1]
 	const set = (i, role) => {
 		const patch = Object.fromEntries(ROLES.filter(r => r.id !== 'none' && mapping[r.id] === i).map(r => [r.id, null]))
@@ -206,6 +212,7 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 					</div>
 					<span className="sp-subtitle">Your file has {plural(width, 'column')}. What does each one hold?</span>
 					{problem ? <span className="sp-note sp-ink-danger">{problem}</span> : null}
+					{left ? <span className="sp-note sp-ink-warning">{left}</span> : null}
 					<Choice control={<Check checked={!!mapping.header} onChange={ev => onChange({ header: ev.target.checked })} />}>
 						The first line of the file holds column names
 					</Choice>
@@ -300,7 +307,7 @@ function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled })
 	)
 }
 
-function Results({ file, payments, checked, sheets, setSheets, setLinks, view, onFailed }) {
+function Results({ file, payments, unread, checked, sheets, setSheets, setLinks, view, onFailed }) {
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
 	const long = monthNames('long')
@@ -323,6 +330,32 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 		const back = document.querySelector(`[data-opener="pick:${was}"]`) ?? document.querySelector(`[data-opener="undo:${was}"]`)
 		back?.focus()
 	}, [open])
+	// an action that takes away the control it started from leaves focus on the first of goOn() still there once it is done
+	const settle = useRef(null)
+	const keepFocus = goOn => {
+		const from = document.activeElement
+		settle.current = () => [from, ...goOn()].find(el => el?.isConnected && !el.disabled && el !== document.body)
+	}
+	useLayoutEffect(() => {
+		if (busy || writing || !settle.current) return
+		const find = settle.current
+		settle.current = null
+		if (!document.activeElement || document.activeElement === document.body) find()?.focus()
+	}, [busy, writing])
+	const showing = () => document.querySelector('input[name="bank-show"]:checked')
+	// for a row: its Undo once placed, else its first button, else the next row's, the one before's, else Show
+	const keepFocusOn = ids => {
+		const rows = () => [...document.querySelectorAll('[data-group]')]
+		const order = rows().map(r => r.dataset.group)
+		const mine = order.filter(id => ids.includes(id))
+		const at = order.indexOf(mine[0])
+		const later = at < 0 ? [] : order.slice(at + 1).filter(id => !ids.includes(id))
+		const earlier = at < 0 ? [] : order.slice(0, at).reverse()
+		const row = id => rows().find(r => r.dataset.group === id)
+		const button = id => [...(row(id)?.querySelectorAll('button') ?? [])].find(b => !b.disabled)
+		keepFocus(() => [...mine.map(id => row(id)?.querySelector('[data-opener^="undo:"]')),
+			...[...mine, ...later, ...earlier].map(button), showing()])
+	}
 
 	const count = status => checked.filter(p => status.includes(p.status)).length
 	const missing = count(TO_PLACE)
@@ -336,6 +369,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 	const oneKind = new Set(chosen.map(g => g.kind)).size === 1 && !chosen.some(g => g.noSheet)
 	const writes = useMemo(() => realAmounts(checked, sheets), [checked, sheets])
 	const toWrite = writes.filter(w => !leaveAlone.has(w.id))
+	const skipped = writes.length - toWrite.length
 	const sheetOf = p => sheets.get(Number(p.date.slice(0, 4)))
 	const monthOf = p => Number(p.date.slice(5, 7)) - 1
 	const toggle = (set, id) => set(s => {
@@ -347,6 +381,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 	/* A text placed on a row, or always left out, is one saved choice for every payment with
 	   that text; left out once is a choice per payment, so the text teaches nothing for later. */
 	const saveGroups = async (list, line, once) => {
+		keepFocusOn(list.map(g => g.id))
 		setBusy(true)
 		try {
 			let latest = null
@@ -361,13 +396,14 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 			setOpen(null)
 			setBulkOpen(false)
 		} catch (e) {
-			toast({ message: failureMessage(e, 'Not every choice was saved.'), color: 'danger' })
+			toastFailure(toast, e, 'Not every choice was saved.')
 			onFailed()
 		} finally {
 			setBusy(false)
 		}
 	}
 	const undo = async g => {
+		keepFocusOn([g.id])
 		setBusy(true)
 		try {
 			let latest = null
@@ -376,13 +412,14 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 			if (latest) setLinks(latest)
 			setRecent(r => r.filter(x => x.id !== g.id))
 		} catch (e) {
-			toast({ message: failureMessage(e, 'Your choice was not taken back.'), color: 'danger' })
+			toastFailure(toast, e, 'Your choice was not taken back.')
 			onFailed()
 		} finally {
 			setBusy(false)
 		}
 	}
 	const bringBack = async g => {
+		keepFocusOn([g.id])
 		setBusy(true)
 		try {
 			let latest = null
@@ -390,13 +427,14 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 			if (latest) setLinks(latest)
 			toast({ message: `${plural(g.payments.length, 'payment')} brought back to the list.` })
 		} catch (e) {
-			toast({ message: failureMessage(e, 'Not every payment was brought back.'), color: 'danger' })
+			toastFailure(toast, e, 'Not every payment was brought back.')
 			onFailed()
 		} finally {
 			setBusy(false)
 		}
 	}
 	const saveReal = async () => {
+		keepFocus(() => [document.getElementById('bank-every-amount'), showing()])
 		setWriting(true)
 		const next = new Map(sheets)
 		let done = 0
@@ -407,10 +445,9 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 			}
 			toast({ message: `${plural(done, 'amount')} saved in the budget.` })
 		} catch (e) {
-			toast({ message: failureMessage(e, 'Not every amount was saved.'), color: 'danger' })
+			toastFailure(toast, e, 'Not every amount was saved.')
 		} finally {
 			setSheets(next)
-			setLeaveAlone(new Set())
 			setWriting(false)
 		}
 	}
@@ -422,8 +459,8 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 	}
 	const small = (label, onClick, extra = {}) => <Button key={label} variant="outline" size="small" disabled={busy} onClick={onClick} {...extra}>{label}</Button>
 	// a row with a box to tick ticks from a press anywhere on it but its own controls (14a)
-	const line = ({ key, check, title, subtitle, note, ink, buttons, children, total }) => (
-		<ListItem key={key} variant="top" {...(check?.props.onChange ? { opens: true, 'data-pick': '' } : {})}>
+	const line = ({ key, group, check, title, subtitle, note, ink, buttons, children, total }) => (
+		<ListItem key={key} variant="top" data-group={group} {...(check?.props.onChange ? { opens: true, 'data-pick': '' } : {})}>
 			{check}
 			<span className="sp-stack sp-gap-8 sp-grow">
 				<span className="sp-stacked">
@@ -458,13 +495,13 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 
 	const placeRow = g => {
 		if (g.saved) return line({
-			key: g.id, title: g.text, subtitle: when(g), total: g.total,
+			key: g.id, group: g.id, title: g.text, subtitle: when(g), total: g.total,
 			check: <Check checked disabled aria-label={`${g.text || 'This text'}, saved`} />,
 			note: `Saved: ${g.saved}.`, ink: 'sp-ink-success', buttons: [small('Undo', () => undo(g), { 'data-opener': `undo:${g.id}` })]
 		})
 		const last = g.payments[g.payments.length - 1]
 		return line({
-			key: g.id, title: g.text, subtitle: when(g), total: g.total,
+			key: g.id, group: g.id, title: g.text, subtitle: when(g), total: g.total,
 			check: <Check checked={picked.has(g.id)} aria-label={`Select ${g.text || 'this text'}`} onChange={() => toggle(setPicked, g.id)} />,
 			note: g.noSheet ? `There is no budget for ${g.payments[0].date.slice(0, 4)}.` : g.suggestion ? `Close to ${g.suggestion} in amount.` : null,
 			ink: g.noSheet ? 'sp-ink-danger' : 'sp-ink-warning',
@@ -494,7 +531,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 		}
 	}
 	const paymentRow = p => line({
-		key: p.row, title: p.text, subtitle: `${dayShortMonth(p.date)}${dot}${statusText(p)}`, total: p.amount,
+		key: p.row, group: String(p.row), title: p.text, subtitle: `${dayShortMonth(p.date)}${dot}${statusText(p)}`, total: p.amount,
 		buttons: p.status === 'year' ? null : [small(open === p.row ? 'Close' : 'Pick from budget', () => setOpen(open === p.row ? null : p.row), { 'aria-expanded': open === p.row ? 'true' : 'false', 'data-opener': `pick:${p.row}` })],
 		children: open === p.row
 			? <RowPicker id={`bank-payment-${p.row}`} label="All payments with this text go to" kind={kindOf(p)} sheet={sheetOf(p)}
@@ -536,7 +573,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 		: view === 'left'
 			? (leftOut.length
 				? sides(leftOut, g => line({
-					key: g.id, title: g.text, total: g.total,
+					key: g.id, group: g.id, title: g.text, total: g.total,
 					subtitle: `${when(g)}${dot}${g.payments[0].status === 'once' ? 'Left out once' : 'Always left out'}`,
 					buttons: [small('Bring back', () => bringBack(g))]
 				}))
@@ -561,7 +598,9 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 				<div className="sp-row-flex sp-gap-12">
 					<span className="sp-section-label">{file}</span>
 					<span className="sp-grow" />
-					<span className="sp-meta">{plural(payments.length, 'payment')} read{dot}{longDate(dates[0])} to {longDate(dates[dates.length - 1])}</span>
+					<span className="sp-meta">
+						{plural(payments.length, 'payment')} read{unread ? `${dot}${plural(unread, 'line')} could not be read` : ''}{dot}{longDate(dates[0])} to {longDate(dates[dates.length - 1])}
+					</span>
 				</div>
 				<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
 					<Stat label="Not in the budget" figure={plural(missing, 'payment')} />
@@ -587,7 +626,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 					{writing ? 'Saving…' : `Save ${plural(toWrite.length, 'amount')}`}</Button>}>
 					{head('Save to the budget')}
 					<span className="sp-subtitle">These amounts from the bank are found on a budget item, but are not yet the real amount for their month. Saving writes them into the budget. Payments that still need a place are not saved.</span>
-					<Choice control={<Check checked={!leaveAlone.size} indeterminate={leaveAlone.size > 0 && leaveAlone.size < writes.length}
+					<Choice control={<Check id="bank-every-amount" checked={!skipped} indeterminate={skipped > 0 && skipped < writes.length}
 						onChange={ev => setLeaveAlone(new Set(ev.target.checked ? [] : writes.map(w => w.id)))} />}>Select every amount</Choice>
 					{sides(writes.map(w => ({ ...w, total: w.amount })), w => line({
 						key: w.id, title: w.name, total: w.amount,

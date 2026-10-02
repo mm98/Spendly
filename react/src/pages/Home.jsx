@@ -91,9 +91,10 @@ function lastMonths(window) {
 		const at = new Date(y0, m0 - 1 - (MONTHS - 1 - i), 1)
 		const y = at.getFullYear(), m = at.getMonth()
 		const mm = String(m + 1).padStart(2, '0')
+		const spend = spendIn(y, m)
 		return {
 			key: `${y}-${mm}`, from: `${y}-${mm}-01`, to: `${y}-${mm}-${String(new Date(y, m + 1, 0).getDate()).padStart(2, '0')}`,
-			tick: short[m].charAt(0).toLocaleUpperCase(), label: `${long[m]} ${y}`, spend: spendIn(y, m)
+			tick: short[m].charAt(0).toLocaleUpperCase(), label: `${long[m]} ${y}, ${currency(spend, 0)}`, spend
 		}
 	})
 	const most = Math.max(...months.map(c => c.spend), 0)
@@ -201,7 +202,7 @@ function MonthCard({ w, view, limitsLost = false, newest }) {
 				<div className="sp-row-flex sp-gap-16 sp-wrap">
 					<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
 					<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
-					<Stat label="Orders" figure={w ? w.orders : figure('44')} />
+					<Stat label="Orders" figure={w ? amount(w.orders, 0) : figure('44')} />
 				</div>
 				{view
 					? <Limits view={view} />
@@ -232,7 +233,7 @@ function Limits({ view }) {
 		<div className="sp-stack sp-gap-8">
 			<Gauge {...against(w.spent, limits, pace)} aria-label="Share of this month's limits used" />
 			<div className="sp-row-flex sp-gap-12">
-				<span className="sp-meta">{Math.round(used)}% of {currency(limits, 0)} in limits</span>
+				<span className="sp-meta">{amount(Math.round(used), 0)}% of {currency(limits, 0)} in limits</span>
 				<span className="sp-grow" />
 				<span className={ahead ? 'sp-meta sp-meta--over sp-row-flex sp-gap-6' : 'sp-meta sp-row-flex sp-gap-6'}>
 					<GaugeKey aria-hidden="true" />{ahead ? 'ahead of pace' : 'below pace'}
@@ -264,14 +265,13 @@ function AlertsCard({ view }) {
 				<span className="sp-section-label">Needs a look</span>
 				{more ? shown : null}
 				<span className="sp-grow" />
-				{more ? <Button variant="text" size="small" to="/categories">All {over.length}</Button> : shown}
+				{more ? <Button variant="text" size="small" to="/categories">All {amount(over.length, 0)}</Button> : shown}
 			</Toolbar>
 			<CardBody>
 				<div className="sp-stack sp-gap-8">
 					{view
 						? over.slice(0, ALERTS).map(c => (
-							<ListItem key={c.id} to={ordersFor(c, w)} color="warning" chevron={CHEVRON}
-								mark={<span className="sp-list-item__count">!</span>}>
+							<ListItem key={c.id} to={ordersFor(c, w)} color="warning" chevron={CHEVRON} count="!">
 								<span className="sp-grow"><b>{c.name} is {currency(c.monthSpend - c.budget, 0)} over</b> its limit for {monthOf(w)}</span>
 							</ListItem>
 						))
@@ -426,7 +426,7 @@ function CategoriesCard({ view }) {
 			<span className="sp-section-label">Categories this month</span>
 			{top.length ? <span className="sp-meta">top {top.length} by spend</span> : null}
 			<span className="sp-grow" />
-			{view.withSpend ? <Button variant="text" size="small" to="/categories">All {view.withSpend}</Button> : null}
+			{view.withSpend ? <Button variant="text" size="small" to="/categories">All {amount(view.withSpend, 0)}</Button> : null}
 		</div>
 	)
 	if (top.length) return (
@@ -497,8 +497,7 @@ function MonthsCard() {
 				<span className="sp-grow" />
 				<Button variant="text" size="small" to="/statistics">Statistics</Button>
 			</div>
-			<Bars columns={months ?? []} loading={!months} selected={months?.at(-1).key}
-				onSelect={(key, from, to) => navigate(`/orders?from=${from}&to=${to}`)} />
+			<Bars columns={months ?? []} loading={!months} onSelect={(key, from, to) => navigate(`/orders?from=${from}&to=${to}`)} />
 		</Card>
 	)
 	if (year.error) return (
@@ -513,7 +512,6 @@ function MonthsCard() {
 
 function PhoneHome({ month, categories, view, recent }) {
 	const w = month.data?.window
-	const lost = month.error || categories.error
 	return (
 		<>
 			<div className="sp-stacked">
@@ -522,20 +520,34 @@ function PhoneHome({ month, categories, view, recent }) {
 					? <span className="sp-data">{capital(monthOf(w))}, day {w.pace.daysIn} of {w.pace.unitDays}</span>
 					: <span className="sp-data hm-line"><Skeleton shape="line" data-w="130" data-h="13" /></span>}
 			</div>
-			{lost
+			{month.error
 				? (
 					<Held shape={<PhoneMonth />}>
-						<Failed label="This month" what="This month did not load." error={lost} retry={retrying(month, categories)} />
+						<Failed label="This month" what="This month did not load." error={month.error} retry={retrying(month, categories)} />
 					</Held>
 				)
-				: <PhoneMonth view={view} />}
-			{lost ? null : <PhoneAlerts view={view} />}
+				: <PhoneMonth w={w} view={view} limitsLost={categories.error ? categories.refresh : null} />}
+			{month.error || categories.error ? null : <PhoneAlerts view={view} />}
 			<PhoneRecent recent={recent} />
 		</>
 	)
 }
 
-function PhoneMonth({ view }) {
+/** `limitsLost` asks for the limits again when only they failed: the month's own figure still shows. */
+function PhoneMonth({ w, view, limitsLost }) {
+	if (w && limitsLost) return (
+		<Card>
+			<span className="sp-section-label">This month</span>
+			<span className="sp-stat__figure sp-stat__figure--large">{currency(w.spent, 0)}</span>
+			<div className="sp-stack sp-gap-8">
+				<Gauge value={0} untargeted aria-label="Share of this month's limits used" />
+				<div className="sp-row-flex sp-gap-8">
+					<span className="sp-meta sp-grow">Your limits did not load.</span>
+					<Button variant="text" size="small" onClick={limitsLost}>Try again</Button>
+				</div>
+			</div>
+		</Card>
+	)
 	if (!view) return (
 		<Card>
 			<span className="sp-section-label">This month</span>
@@ -543,7 +555,7 @@ function PhoneMonth({ view }) {
 			<Gauge value={0} aria-label="Share of this month's limits used" />
 		</Card>
 	)
-	const { window: w, limits, pace } = view
+	const { limits, pace } = view
 	return (
 		<Card>
 			<span className="sp-section-label">This month</span>
@@ -570,7 +582,7 @@ function PhoneAlerts({ view }) {
 			{view
 				? (
 					<ListItem to="/categories" color="warning" chevron={<Icon name="chevron-right" size={13} />}
-						mark={<span className="sp-list-item__count">{view.over.length}</span>}>
+						count={amount(view.over.length, 0)}>
 						<span className="sp-data sp-ink-warning sp-grow">over {view.over.length === 1 ? 'its' : 'their'} limit</span>
 					</ListItem>
 				)

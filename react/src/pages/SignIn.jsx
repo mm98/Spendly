@@ -52,7 +52,7 @@ export function AuthCard({ title, lead, alert, onSubmit, submit, busy, busyLabel
 			</form>
 		</Card>
 	)
-	return <div className={shape === 'touch' ? 'sp-auth sp-touch' : 'sp-auth'}>{card}</div>
+	return <main className={shape === 'touch' ? 'sp-auth sp-touch' : 'sp-auth'}>{card}</main>
 }
 
 /** Where to go once signed in: the page that sent the reader here, or Home. Never back to
@@ -85,6 +85,7 @@ export default function SignIn() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [emailProblem, setEmailProblem] = useState(null)
+	const [passwordProblem, setPasswordProblem] = useState(null)
 	const [alert, setAlert] = useState(null)
 	const [busy, setBusy] = useState(false)
 	const signedOut = useSignedOut()
@@ -95,8 +96,13 @@ export default function SignIn() {
 		return ok
 	}
 
+	// an empty field is named on its own, as Register does; only a sent pair is answered vaguely (20a)
 	const submit = () => {
-		if (!checkEmail()) return focusField('signin-email')
+		const emailOk = checkEmail() && EMAIL_PATTERN.test(email.trim())
+		if (!emailOk) setEmailProblem(EMAIL_PROBLEM)
+		const passwordOk = password !== ''
+		setPasswordProblem(passwordOk ? null : 'Enter your password.')
+		if (!emailOk || !passwordOk) return focusField(emailOk ? 'signin-password' : 'signin-email')
 		setBusy(true)
 		setAlert(null)
 		login(email.trim().toLowerCase(), password)
@@ -119,8 +125,9 @@ export default function SignIn() {
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />
 			</Field>
-			<Field label="Password" id="signin-password">
-				<PasswordField autoComplete="current-password" value={password} onChange={setPassword} />
+			<Field label="Password" id="signin-password" message={passwordProblem ?? undefined} messageType={passwordProblem ? 'danger' : 'hint'}>
+				<PasswordField autoComplete="current-password" value={password}
+					onChange={v => { setPassword(v); setPasswordProblem(null) }} />
 			</Field>
 		</AuthCard>
 	)

@@ -1,14 +1,10 @@
 import { Router } from 'express'
 import { db } from '../db.js'
-import { seedAccountDefaults } from '../seed.js'
 import { populateDemoData } from '../lib/demoData.js'
-import { wipeBudget } from '../lib/budget.js'
 
 export const router = Router()
 
-/* The ledger: what the demo fill replaces. Settings and dashboard cards are preferences, not
-   data -- filling the account with demo orders must not hand back someone's page size, sort
-   order or card layout, so the fill uses this narrower wipe rather than the full one below. */
+/* The ledger: what the demo fill replaces. Settings are preferences, not data, and stay. */
 const wipeLedger = userId => {
 	// orders first: cascades order_items, order_categories, attachments
 	db.prepare('DELETE FROM orders WHERE user_id = ?').run(userId)
@@ -19,43 +15,24 @@ const wipeLedger = userId => {
 	db.prepare('DELETE FROM categories WHERE user_id = ?').run(userId)
 }
 
-const wipe = db.transaction(userId => {
-	wipeLedger(userId)
-	wipeBudget(userId)
-	db.prepare('DELETE FROM settings WHERE user_id = ?').run(userId)
-	db.prepare('DELETE FROM dashboard_cards WHERE user_id = ?').run(userId)
-	db.prepare('DELETE FROM scan_uploads WHERE user_id = ?').run(userId)
-	seedAccountDefaults(db, userId)
-})
-
-/** Forgets everything this account has added and returns it to the empty state a fresh
-    registration starts from -- settings and dashboard cards reset to their defaults, every
-    order, bookmark, vendor, category and budget year gone. */
-router.post('/reset', (req, res) => {
-	wipe(req.user.id)
-	refreshStatistics()
-	res.json({ cleared: true })
-})
-
-/* The two routes here are the only ones that rewrite a whole ledger in one request, which is
-   exactly the move that dates the planner statistics db.js gathered at boot: statistics taken
-   over an empty account say every table is tiny, and plans made from those over the 50,000
-   orders a fill just wrote pick the wrong index the same way no statistics did. Re-gathered
-   here, after the transaction commits -- ~90ms at 50,000 orders under the analysis_limit
-   db.js sets, on requests that already spend seconds writing. */
+/* The demo fill rewrites a whole ledger in one request, which dates the planner statistics
+   db.js gathered at boot: statistics taken over an empty account say every table is tiny, and
+   plans made from those over the 50,000 orders a fill just wrote pick the wrong index the same
+   way no statistics did. Re-gathered here, after the transaction commits -- ~90ms at 50,000
+   orders under the analysis_limit db.js sets, on requests that already spend seconds writing. */
 const refreshStatistics = () => db.exec('ANALYZE')
 
 /* Fills the account with a year of demo orders. Replaces rather than appends: pressed twice,
    appending would double a year of orders and leave every per-month figure quietly wrong,
    which is a worse answer than the obvious one. It replaces the ledger only -- the button
    promises "every order, bookmark, vendor and category is removed first" and keeps exactly that
-   promise; CLEAR STORED DATA is the button that resets preferences too.
+   promise.
 
    Only ever this account -- populateDemoData writes every row against req.user.id, the same
    rule every other route here follows. */
-const replaceWithDemo = db.transaction((userId, seed, orders, months) => {
+const replaceWithDemo = db.transaction((userId, seed, orders, months, today) => {
 	wipeLedger(userId)
-	return populateDemoData(userId, { seed, orders, months })
+	return populateDemoData(userId, { seed, orders, months, today })
 })
 
 /* A different year every time it is pressed.
@@ -85,7 +62,7 @@ router.post('/demo-data', (req, res) => {
 	const askedMonths = Number(req.body?.months)
 	const months = Number.isFinite(askedMonths) && askedMonths > 0
 		? Math.min(288, Math.floor(askedMonths)) : undefined
-	const result = replaceWithDemo(req.user.id, seed, orders, months)
+	const result = replaceWithDemo(req.user.id, seed, orders, months, req.today)
 	refreshStatistics()
 	res.json({ ...result, seed })
 })
