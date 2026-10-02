@@ -1,4 +1,0 @@
-	/** The sentence in the card. Printed with a trailing "..." and used as the card's
-	 *  accessible name, so name what is loading: "Loading the document". Defaults to
-	 *  "Loading". */
-	label?: string;

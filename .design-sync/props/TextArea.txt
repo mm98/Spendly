@@ -1,9 +1,0 @@
-	/** The control's id, and what the Field's `htmlFor` points at. Generated when left out. */
-	id?: string;
-	value?: string;
-	/** Gets the new text, not the event. */
-	onChange?: (value: string) => void;
-	placeholder?: string;
-	/** The accessible name, e.g. "Note". */
-	"aria-label"?: string;
-	[key: string]: unknown;

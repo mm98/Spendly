@@ -1,7 +1,0 @@
-	/** Pushes the two children to opposite ends: the leave action left, the save right. Use it
-	 *  for the footer of a whole form. Without it the buttons sit together at the left, in
-	 *  reading order, which is what a card's own actions do. */
-	split?: boolean;
-	/** The buttons, and anything riding with them: a `field-help form-actions-note` span for a
-	 *  muted note, a `push-end` span for a control that belongs at the far end. */
-	children?: React.ReactNode;

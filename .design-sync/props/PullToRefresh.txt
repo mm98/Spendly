@@ -1,3 +1,0 @@
-	/** Everything the gesture moves — in the app, the whole shell. Rendered inside
-	 *  `.pull-shell`, untouched until a finger drags the top of the page down. */
-	children?: React.ReactNode;

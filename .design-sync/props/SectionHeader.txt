@@ -1,4 +1,0 @@
-	/** Normally a `SectionLabel` and, opposite it, the actions for the whole group. Wrap two
-	 *  or more controls in `<span className="row-inline">`. */
-	children?: React.ReactNode;
-	[key: string]: unknown;
