@@ -228,7 +228,7 @@ button.sp-mark:focus-visible { box-shadow: var(--ring); }
 }
 .sp-mark__open:focus-visible { box-shadow: var(--ring); }
 /* a photo inside the open control fills the tile, as it does a bare photo mark */
-.sp-mark__open > img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.sp-mark__open > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 
 /* a mark that picks a file wraps a real input, clipped rather than hidden so it
    stays focusable and the label around it opens the platform's own picker */
@@ -3888,6 +3888,16 @@ button.sp-list-item--primary:hover { background: var(--green-tint); }
   border-radius: var(--r-tile);
   box-shadow: var(--shadow-menu);
   transform: rotate(-0.6deg);
+}
+/* a line read out to a screen reader and drawn nowhere */
+.sp-announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 /* Where it will land. */
 .sp-list-item__insertion {

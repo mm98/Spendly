@@ -79,6 +79,12 @@ export function ListItemHead({ label, amount, ...rest }) {
 	)
 }
 
+/** What a reorder by keyboard says after each move, read out and not drawn (c1 Ordering by hand). */
+export function Announce({ children, ...rest }) {
+	reject(rest, 'Announce')
+	return <span className="sp-announce" aria-live="polite" {...rest}>{children}</span>
+}
+
 /** Where a carried row will land. Belongs to the drag, not to the data. */
 export function Insertion(props) {
 	reject(props, 'Insertion')
