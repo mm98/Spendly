@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="currentColor"/><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="46" font-weight="600" fill="currentColor" text-anchor="middle">8</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/duplicate-and-alerts.css?v=v20260917b">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="8a">8a</span>
+    <span class="doc-section__title">Duplicate an order</span>
+  </div>
+  <div class="doc-lede">Reached from Duplicate on the read view, or from the order row menu. One sheet decides what carries over - the point of duplicating is a repeat purchase, so lines and prices come by default while the date resets to today and attachments do not follow. Confirming opens the copy in the edit screen, unsaved, so it can still be abandoned.</div>
+
+  <div class="doc-specimens">
+    <div class="sp-dialog da-w520">
+      <div class="sp-stack sp-gap-6">
+        <span class="sp-heading sp-truncate">Duplicate SPENDLY-447</span>
+        <span class="sp-dialog__body">Indbo Møbler · 08/08/2026 · 4 items · 3.980,00 kr.</span>
+      </div>
+
+      <div class="sp-stack sp-gap-6">
+        <label class="sp-field__label" for="da-date">Date for the copy</label>
+        <span class="sp-field__wrap">
+          <input class="sp-input sp-input--unit sp-number" id="da-date" type="text" inputMode="numeric" defaultValue="20/08/2026">
+          <span class="sp-field__unit">today</span>
+        </span>
+      </div>
+
+      <div class="sp-stack sp-gap-6">
+        <span class="sp-title">Carry over</span>
+        <div class="sp-list-item">
+          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry1" defaultChecked="{{ true }}">4 lines with quantities</label>
+          <span class="sp-meta">3.980,00 kr.</span>
+        </div>
+        <div class="sp-list-item">
+          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry2" defaultChecked="{{ true }}">Prices as they were</label>
+          <span class="sp-meta">or clear them</span>
+        </div>
+        <div class="sp-list-item">
+          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry5" defaultChecked="{{ true }}">Categories, kind and note</label>
+        </div>
+        <div class="sp-list-item">
+          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry3" defaultChecked="{{ true }}">3 attachments</label>
+          <span class="sp-meta">not copied</span>
+        </div>
+        <div class="sp-list-item">
+          <label class="sp-choice sp-grow"><input class="sp-check" type="checkbox" id="da-carry4" defaultChecked="{{ true }}">Order reference</label>
+          <span class="sp-meta">a new one will be given</span>
+        </div>
+      </div>
+
+      <div class="sp-stack sp-gap-6">
+        <span class="sp-title">Status of the copy</span>
+        <div class="sp-segmented sp-segmented--facet" role="radiogroup">
+          <label class="sp-segmented__item" data-label="Ordered"><input type="radio" name="da-seg1" defaultChecked="{{ true }}"><span class="sp-label">Ordered</span></label>
+          <label class="sp-segmented__item" data-label="Delivered"><input type="radio" name="da-seg1"><span class="sp-label">Delivered</span></label>
+          <label class="sp-segmented__item" data-label="Returned"><input type="radio" name="da-seg1"><span class="sp-label">Returned</span></label>
+        </div>
+      </div>
+
+      <div class="sp-list-item" data-color="warning">
+        <span class="sp-list-item__count">!</span>
+        <span class="sp-meta sp-ink-warning">Decor is 2.100 kr. over its limit this month. Adding this copy takes it to 6.080 kr. over.</span>
+      </div>
+
+      <div class="sp-dialog__actions">
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Cancel</button>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--small">Create copy</button>
+        </div>
+    </div>
+
+    <div class="sp-stack sp-gap-14 da-w640">
+      <span class="sp-section-label">WHERE IT IS REACHED FROM</span>
+      <div class="sp-list da-list-headroom">
+        <table class="sp-table">
+          <tbody>
+            <tr class="sp-anchor" data-open="true">
+              <td>
+                <div class="sp-cell-flex">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Indbo Møbler</span>
+                    <span class="sp-subtitle sp-truncate">SPENDLY-447</span>
+                  </span>
+                </div>
+              </td>
+              <td class="sp-data sp-col-date">08/08/2026</td>
+              <td class="sp-data sp-right">4</td>
+              <td>
+                <div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.980,00 kr.</span></div>
+              </td>
+              <td class="sp-cell-menu-cell">
+                <div class="sp-cell-menu">
+                  <button type="button" class="sp-icon-btn" aria-label="Row actions" aria-haspopup="menu">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>
+                  </button>
+                  <menu class="sp-menu sp-menu--floating da-menu" role="menu">
+            <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg>
+              Edit</button></li>
+              <li role="menuitem"><button type="button" class="sp-menu__item" data-active="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg>
+              Duplicate</button></li>
+              <li role="menuitem"><button type="button" class="sp-menu__item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></svg>
+              Export as PDF</button></li>
+              <li><hr></li>
+            <li role="menuitem"><button type="button" class="sp-menu__item sp-ink-danger"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+              Delete</button></li>
+            </menu>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <span class="sp-section-label">AFTER CONFIRMING</span>
+      <div class="sp-list">
+        <div class="sp-list__toolbar da-toolbar--done">
+          <span class="sp-mark sp-mark--small sp-mark--round sp-mark--solid">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg>
+          </span>
+          <span class="sp-data sp-ink-accent"><strong class="sp-strong">Copy of SPENDLY-447, not saved yet.</strong> Change what you need, then Save.</span>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap">Discard</button>
+        </div>
+        <div class="sp-card__body sp-stack sp-gap-10">
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-section-label">ITEMS · 4</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">dated 20/08/2026 · status Ordered</span>
+          </div>
+          <div class="sp-list-item">
+            <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+            <span class="sp-title sp-grow">Vitra - Nuage Céramique</span>
+            <span class="sp-data">1 × 330,00</span>
+            <span class="sp-title">330,00 kr.</span>
+          </div>
+          <div class="sp-list-item">
+            <span class="sp-mark sp-mark--medium sp-mark--photo"></span>
+            <span class="sp-title sp-grow">Hay - Palissade chair</span>
+            <span class="sp-data">2 × 890,00</span>
+            <span class="sp-title">1.780,00 kr.</span>
+          </div>
+          <div class="sp-list-item sp-list-item--outline">
+            <span class="sp-data">Attachments were not copied - add this trip's receipt</span>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap">Add files</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="8b">8b</span>
+    <span class="doc-section__title">Budget alerts</span>
+  </div>
+  <div class="doc-lede">A limit is only useful if it speaks up. Three moments, in order of usefulness: while you are adding the order that crosses it, on the pages that show the category, and once a month as a summary. All of it derives from the limit already on the category - no new settings beyond how loudly to be told.</div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b class="sp-ink">A limit is a fact about the month, not a validation rule.</b> Crossing one never disables Save and never routes through the validation layer - keep the check out of that code path entirely, or it eventually starts blocking. Amber informs; red blocks.</div>
+    <div class="doc-note"><b class="sp-ink">The over-limit chip travels.</b> The same dot renders wherever the category appears - list rows, facet lists and order details - so the state is recognisable without reading the number.</div>
+    <div class="doc-note"><b class="sp-ink">Attachments do not follow a duplicate</b> because a receipt is evidence of one specific purchase; copying it to another order makes the record lie. Items, vendor, category, reference and notes do carry over.</div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="sp-stack sp-gap-14 da-w520">
+      <span class="sp-section-label">1 · AS YOU CROSS IT</span>
+      <div class="sp-card">
+        <div class="sp-list-item" data-color="warning">
+          <span class="sp-list-item__count">!</span>
+          <div class="sp-stack sp-gap-6">
+            <span class="sp-title sp-ink-warning">This order puts Decor over its limit</span>
+            <span class="sp-meta sp-ink-warning">24.100 of 22.000 kr. for August. Saving is fine - you will just see it flagged.</span>
+          </div>
+        </div>
+        <div class="sp-row-flex sp-baseline">
+          <span class="sp-heading">Total</span>
+          <span class="sp-grow"></span>
+          <span class="sp-stat__figure">3.980,00 kr.</span>
+        </div>
+        <div class="sp-dialog__actions">
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Cancel</button>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--small">Save anyway</button>
+        </div>
+        <span class="sp-meta">You can still save. Nothing is blocked.</span>
+      </div>
+
+      <span class="sp-section-label">2 · WHERE THE CATEGORY APPEARS</span>
+      <div class="sp-card">
+        <div class="sp-row-flex sp-gap-10">
+          <span class="sp-mark sp-mark--small sp-mark--solid">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg>
+          </span>
+          <span class="sp-title">Decor</span>
+          <span class="sp-pill" data-color="danger">over limit</span>
+          <span class="sp-grow"></span>
+          <span class="sp-title">24.100 / 22.000</span>
+        </div>
+        <div class="sp-row-flex sp-gap-8 sp-wrap">
+          <span class="sp-chip sp-chip--static">
+            <span class="sp-combobox__dot"></span>Decor
+            <span class="sp-combobox__dot" data-dot="problem"></span>
+          </span>
+          <span class="sp-meta">over limit</span>
+        </div>
+      </div>
+
+      <span class="sp-section-label">HOW LOUD (SETTINGS)</span>
+      <div class="sp-card">
+        <label class="sp-choice"><input class="sp-switch" type="checkbox" role="switch" id="da-sw1" defaultChecked="{{ true }}">Warn me while I am saving an order</label>
+        <label class="sp-choice"><input class="sp-switch" type="checkbox" role="switch" id="da-sw2" defaultChecked="{{ true }}">Monthly summary on the first of the month</label>
+        <label class="sp-choice"><input class="sp-switch" type="checkbox" role="switch" id="da-sw3" defaultChecked="{{ true }}">Also by email</label>
+        <div class="sp-card__footer sp-card__footer--stack">
+          <span class="sp-section-label">Tell me early, at</span>
+          <div class="sp-segmented sp-segmented--facet" role="radiogroup">
+          <label class="sp-segmented__item" data-label="75%"><input type="radio" name="da-seg2"><span class="sp-label">75%</span></label>
+          <label class="sp-segmented__item" data-label="90%"><input type="radio" name="da-seg2" defaultChecked="{{ true }}"><span class="sp-label">90%</span></label>
+          <label class="sp-segmented__item" data-label="Only over"><input type="radio" name="da-seg2"><span class="sp-label">Only over</span></label>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-14 da-w520">
+      <span class="sp-section-label">3 · MONTHLY SUMMARY</span>
+      <div class="sp-card">
+        <div class="sp-stack sp-gap-6">
+          <span class="sp-section-label">AUGUST 2026</span>
+          <span class="sp-heading">You spent 61.480 kr. against 68.000 in limits</span>
+          <span class="sp-data">One category went over, one finished close, and Textiles has room to spare.</span>
+        </div>
+
+        <div>
+          <div class="sp-stack sp-gap-12">
+            <div class="sp-list-item" data-color="danger">
+              <span class="sp-mark sp-mark--small sp-mark--solid">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg>
+              </span>
+              <div class="sp-stack sp-gap-6">
+                <span class="sp-title sp-truncate">Decor went 2.100 kr. over</span>
+                <span class="sp-meta">Third time in twelve months. The limit may be too low.</span>
+              </div>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small sp-nowrap">Adjust</button>
+            </div>
+            <div class="sp-list-item">
+              <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-3">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" /><path d="M12 16h.01" /></svg>
+              </span>
+              <div class="sp-stack sp-gap-6">
+                <span class="sp-title sp-truncate">Lighting finished at 91%</span>
+                <span class="sp-meta">12.740 of 14.000 kr.</span>
+              </div>
+            </div>
+            <div class="sp-list-item">
+              <span class="sp-mark sp-mark--small">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg>
+              </span>
+              <div class="sp-stack sp-gap-6">
+                <span class="sp-title sp-truncate">Textiles used 40%</span>
+                <span class="sp-meta">3.180 of 8.000 kr.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-card__footer sp-row-flex sp-gap-12">
+          <div class="sp-stack">
+            <span class="sp-section-label">Saved in August</span>
+            <span class="sp-stat__figure sp-ink-accent">24.310 kr.</span>
+          </div>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--small sp-nowrap">Open statistics</button>
+        </div>
+      </div>
+
+      <span class="sp-section-label">ON THE PHONE</span>
+      <div class="sp-phone sp-touch">
+        <div class="da-push">
+          <span class="sp-mark sp-mark--medium sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8 sp-baseline">
+              <span class="sp-title">Spendly</span>
+              <span class="sp-meta">now</span>
+            </div>
+            <span class="sp-data">Decor is at 90% of its monthly limit - 19.800 of 22.000 kr. with 11 days to go.</span>
+          </div>
+        </div>
+        <div class="da-push">
+          <span class="sp-mark sp-mark--medium sp-mark--solid">S</span>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8 sp-baseline">
+              <span class="sp-title">Spendly</span>
+              <span class="sp-meta">1 Sep, 08:00</span>
+            </div>
+            <span class="sp-data">August: 61.480 kr. spent, 24.310 kr. saved. Decor went over by 2.100 kr.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+/* Page composition for Settings and import.dc.html.
+   Layout scaffolding and the two illustrations this page owns: the theme preview
+   and the column sets of its two tables. Everything else is a component class.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  .st-screen { width: 1180px; min-width: 1180px; }
+  .st-main { background: var(--bg); }
+
+  /* settings has a second navigation inside the content column: a list of panes */
+  .st-subnav {
+    width: 208px;
+    flex: none;
+    /* the divider is the boundary between the two columns, so it runs the whole
+       height of the pane beside it rather than stopping at the last entry */
+    align-self: stretch;
+    padding: var(--card-pad);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    border-right: 1px solid var(--line-3);
+  }
+  .st-subnav__head { padding: 0 var(--sp-10) var(--sp-10); }
+  /* the pane being edited, at the reading width a form wants */
+  .st-pane { padding: var(--card-pad); max-width: 640px; }
+  /* the account row's divider inside the dark rail */
+  
+
+  .st-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-12); }
+  .st-trio > .sp-well { position: relative; }
+  .st-quad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-12); }
+
+  /* Import step 2: a column in the file, an arrow, and the field it maps to. The
+     two sides start at the top rather than being centred: a row whose right side
+     carries a note is taller than its left, and centring floats the file column
+     halfway down it with the arrow pointing between the two. The arrow instead
+     sits on the line of the control it points at. */
+  .st-map { display: grid; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr); gap: var(--sp-10); align-items: stretch; }
+  /* the arrow's column is exactly the arrow, so it sits on the centre line
+     between the two boxes rather than at the left of a wider track */
+  .st-map > svg { align-self: center; justify-self: center; }
+  .st-map--head { padding: 0 2px 2px; }
+  /* the file column reads as one control beside the field it maps to, so its box
+     is the control's height and its name is the size the field's label is */
+  /* the file column holds two things - the column's name and the values in it -
+     so it is taller than the 42px field it maps to. Both sides start at the top
+     and the arrow sits on the field's line, which is what makes them read as
+     one mapping rather than two boxes of different heights. */
+  .st-map > .sp-well { min-height: var(--control-h); box-sizing: border-box; }
+
+  /* Both tables are the list component's own table, and every column it names
+     takes its width from there - title, date, amount. Only the two columns the
+     component has no name for are the page's business, and the title column
+     states nothing, so it absorbs the slack. */
+  .st-table .st-w-lines { width: 48px; }
+  /* the item line is the longest text in this table, so it states its width and
+     the title column absorbs what is left - stating the title instead cannot
+     work, since .sp-table .sp-col-title sets width:auto unlayered */
+  .st-table[data-cols="imports"] th:nth-child(3) { width: 152px; }
+  .st-table[data-cols="preview"] th:nth-child(4) { width: 100px; }
+
+  /* a status tone is chosen by clicking the pill that shows it. Four tones, which
+     is what the pill component has; the ring marks the chosen one the same way the
+     theme tiles are marked, since both are a picked swatch. */
+  .st-tone { display: inline-flex; cursor: pointer; border-radius: var(--r-pill); }
+  .st-tone input { position: absolute; opacity: 0; pointer-events: none; }
+  .st-tone:has(input:checked) { outline: 2px solid var(--green); outline-offset: 1px; }
+  .st-tone:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 3px; }
+
+  /* a theme is chosen by clicking its preview, so each is a label over a radio.
+     The well is the component; being selectable is what this page adds to it. */
+  .st-theme { cursor: pointer; }
+  .st-theme .sp-radio { position: absolute; opacity: 0; pointer-events: none; }
+  /* the ring, not the border: .sp-well sets border-color unlayered, so a page rule
+     can never win there - box-shadow is a property the component leaves alone */
+  .st-theme:has(input:checked) { box-shadow: inset 0 0 0 2px var(--green); }
+  .st-theme:hover { box-shadow: inset 0 0 0 1px var(--line-5); }
+  .st-theme:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
+  .st-theme:has(input:checked) .sp-subtitle { font-weight: 600; }
+
+  /* The theme preview: a drawing of the app at thumbnail size, not a component. The
+     dark tile carries data-theme="dark", so its ground, border and lines resolve from
+     the same token block the dark theme itself uses - no literals here. */
+  .st-theme__preview {
+    position: relative;
+    height: 46px;
+    border-radius: var(--r-tile);
+    border: 1px solid var(--line-3);
+    display: flex;
+    overflow: hidden;
+  }
+  .st-theme__preview--light { background: var(--bg); }
+  .st-theme__preview--dark { background: var(--bg); border-color: var(--line); }
+  /* follow the system: the two themes side by side in one tile */
+  .st-theme__preview--split { background: var(--bg); }
+  .st-theme__rail { width: 14px; background: var(--shell); }
+  /* the thumbnail is a drawing of the app at about a tenth of its size, so its
+     insets are fractions of the drawing rather than steps on the spacing scale */
+  .st-theme__body { flex: 1; padding: 5px; display: flex; flex-direction: column; gap: 3px; }
+  .st-theme__line { height: 6px; border-radius: 2px; }
+  .st-theme__line--light { background: var(--surface); }
+  .st-theme__line--dark { background: var(--surface); }
+  /* each half draws the same app the other two tiles draw, clipped down the middle,
+     so the tile reads as one window changing theme rather than two colour blocks */
+  .st-theme__half { width: 50%; display: flex; overflow: hidden; }
+  .st-theme__half--light { background: var(--bg); }
+  .st-theme__half--dark { background: var(--bg); }
+  .st-theme__half--dark .st-theme__line--dark { background: var(--surface-3); }
+
+  /* widths the page draws at */
+  /* the toolbar search, at the width the shell gives it */
+  .st-search { width: 420px; flex: none; }
+
+  
+  .st-w40 { width: 40px; flex: none; display: flex; align-items: center; }
+  .st-w120 { min-width: 120px; }
+  .st-w260 { max-width: 260px; }
+  .st-w280 { max-width: 280px; }
+  .st-w560 { width: 560px; }
+
+}

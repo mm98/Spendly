@@ -1,0 +1,39 @@
+/* Page composition for Images and files.dc.html.
+   Layout scaffolding only: the specimen widths, the aspect-ratio diagram, and the
+   column widths of 17d's specification table. Every control comes from
+   components.css. In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  /* widths the specimens are drawn at */
+  .if-w430 { width: 430px; }
+  .if-w470 { width: 470px; }
+  .if-w620 { width: 620px; }
+
+  /* 17d's table: the first two columns are fixed so the two prose columns share
+     the rest evenly - a position name and a size never need more */
+  .if-spec .if-col-position { width: 150px; }
+  /* The size column holds token and component names. The longest, .sp-record__photos,
+     measures 121px unwrapped - plus the cell's 16px left padding and the code
+     element's own, so 144px. Measure these with white-space: nowrap; a rect on
+     text that has already wrapped returns a line fragment, not the true width. */
+  .if-spec .if-col-size { width: 144px; }
+  .if-spec td { vertical-align: top; }
+
+
+  /* The card photo strip is full-bleed across a card, so in a table cell it takes
+     the cell's content width. Its height is the component's own - a page rule is
+     layered and cannot shorten it, so it is not attempted. */
+  .if-strip-demo { width: 100%; }
+
+  /* The viewer stage rests at 220px, which is right in a card and far too tall in
+     a table cell. Its height is unlayered, so the page cannot shorten it - this
+     wrapper crops it to a band instead, which a page rule can do. */
+  .if-stage-demo { display: block; height: 56px; overflow: hidden; border-radius: var(--r-tile); }
+
+  /* the drop zone at specimen scale: it fills its column in the app, so here it
+     takes the cell's width and only as much height as its glyph needs */
+  .if-drop-demo { display: flex; padding: var(--sp-8); }
+
+
+}

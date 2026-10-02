@@ -1,0 +1,37 @@
+/* Page composition for Duplicate and alerts.dc.html.
+   Layout scaffolding only: the specimen widths, the duplicate list's column set,
+   and the headroom an open row menu needs. Every control comes from
+   components.css. In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  /* widths the specimens are drawn at */
+  .da-w520 { width: 520px; }
+  .da-w640 { width: 640px; }
+
+  /* the row menu drawn open, and the room the list needs to show it */
+  .da-menu { top: 44px; right: var(--sp-12); }
+  .da-list-headroom { overflow: visible; padding-bottom: 132px; }
+
+  /* A push notification is the operating system's card, not our toast: app name,
+     time, body, no Undo. It is drawn here to show what the alert says off-screen,
+     so it is page-local and never a component. */
+  .da-push {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-12);
+    padding: var(--sp-12) var(--sp-14);
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow: var(--shadow-menu);
+  }
+  /* the text column beside the mark takes the remaining width and no more, so the
+     body line truncates inside the notification instead of running past it */
+  .da-push > div {
+    min-width: 0;
+  }
+
+  /* the toolbar of a list whose work is finished */
+  .da-toolbar--done { background: var(--green-tint); border-bottom-color: var(--green-5); }
+
+}

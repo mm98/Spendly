@@ -1,0 +1,17 @@
+/* Page composition for Actions inventory.dc.html.
+   Layout scaffolding only: the inventory table and the widths its specimens are
+   drawn at. Everything else is a component class.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  /* One row of the inventory: the control, what it does, what the user sees. The look
+     is doc.css's .doc-table__row; this states only the columns. */
+  .ai-act { grid-template-columns: 210px minmax(0, 1fr) minmax(0, 1fr); }
+
+  /* widths the specimens are drawn at */
+  .ai-w430 { width: 430px; }
+  .ai-w640 { width: 640px; }
+  .ai-w1320 { max-width: 1320px; }
+
+}

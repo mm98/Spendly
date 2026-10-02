@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"></rect><text x="50" y="70" font-family="Poppins,system-ui,sans-serif" font-size="46" font-weight="600" fill="#f2f0ea" text-anchor="middle">⌂</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/home.css?v=v20260917b">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="10a">10a</span>
+    <span class="doc-section__title">Home</span>
+  </div>
+  <div class="doc-lede">The screen you land on. It answers three things without scrolling: where this month stands against the limits, what needs your attention, and what you last recorded. Capture is the largest thing on the page, since adding a receipt is the most common reason to open the app.</div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Note on the frame</span>
+    <div class="doc-note">The rounded corners, the 1px outline and the drop shadow around the shell below are <b>presentation only</b> - they exist so the mockup reads as a window on this page. In the app the shell fills the browser viewport edge to edge: the sidebar runs the full height with square corners, and the content column meets the window edge with no border and no radius. Same for the fixed 1400px width, which stands in for a viewport.</div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Every card is capped at a constant and none of them expand.</b> Recent orders: newest 4. Categories this month: top 4 by spend. Needs attention: at most 3 alerts. The cap is a number, not a fraction of the viewport, so the page is the same height for a user with 12 orders and one with 2.400.</div>
+    <div class="doc-note"><b>The header link carries the true total</b> - "All 248", "All 9" - and the muted label beside the card name says what the visible rows are. No Other row and no Show all: the link hands off to the order list or to Statistics, which own the full data. A card that grows with the data has stopped being a summary.</div>
+    <div class="doc-note"><b>Card scopes differ and each says so.</b> Recent orders is all time, newest first. Categories this month is the current calendar month, and its total counts only categories with spend in that month. Last 8 months ends with the current month.</div>
+    <div class="doc-note"><b>Alerts are ordered by severity, then recency:</b> over limit, then missing receipt, then possible duplicate vendors. Each row links to the filtered list that resolves it, and the card is absent when there is nothing to say - never a card with a tick in it.</div>
+    <div class="doc-note"><b>Each card loads independently</b> and shows its own skeleton at its resting height. One slow query does not delay the capture zone, which is the most common reason the page was opened and must be usable first.</div>
+    <div class="doc-note"><b>A zero total renders the label without a link.</b> An empty card states the one action that fills it, in the card, at the same height it has when full.</div>
+    <div class="doc-note"><b>Nothing on Home is a filter or a drill target.</b> Clicking a category, a month bar or an order leaves Home for the screen that owns it, with the equivalent state applied. Home holds no filter state of its own, so there is nothing to restore when the user comes back.</div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Where each link goes</span>
+    <div class="doc-note">Every one is a real route, so it middle-clicks, deep-links and comes back with the browser button. Nothing on this screen opens a modal.</div>
+    <div class="hm-routes doc-note">
+      <div><b>Scan receipt · drop zone</b></div>
+      <div><code>/orders/new?source=scan</code> - order create, scan stage. Dropping a file starts the read with that file already attached.</div>
+      <div><b>Duplicate last order</b></div>
+      <div><code>/orders/new?duplicate=447</code> - order create, prefilled from that order, nothing saved yet.</div>
+      <div><b>See orders (over limit)</b></div>
+      <div><code>/orders?category=decor&amp;month=2026-08</code> - the order list, filtered, filter chips visible and removable.</div>
+      <div><b>Review (missing receipt)</b></div>
+      <div><code>/orders?view=missing-receipt</code> - the saved view, the same one the sidebar entry opens.</div>
+      <div><b>Merge (duplicate vendors)</b></div>
+      <div><code>/vendors?flag=possible-duplicate</code> - the vendor list filtered to the flagged pairs, panel closed.</div>
+      <div><b>All 248</b></div>
+      <div><code>/orders</code> - unfiltered, default sort.</div>
+      <div><b>An order row</b></div>
+      <div><code>/orders/447</code> - the order, read mode.</div>
+      <div><b>All 9 (categories)</b></div>
+      <div><code>/categories</code> - the category list, panel closed.</div>
+      <div><b>A category row</b></div>
+      <div><code>/statistics?period=2026-08&amp;crumbs=category:decor</code> - statistics for the month the card is about, that category as the crumb.</div>
+      <div><b>Statistics (last 8 months)</b></div>
+      <div><code>/statistics?period=2026</code> - the resting page, no crumbs.</div>
+      <div><b>A month bar</b></div>
+      <div><code>/statistics?period=2026&amp;crumbs=month:2026-08</code> - that month as the crumb.</div>
+      <div><b>Sidebar saved views</b></div>
+      <div><code>/orders?view=&lt;slug&gt;</code> - the order list with the view applied; the badge is that view's live count.</div>
+    </div>
+    <div class="doc-note">A row whose count is zero is text, not a link - an alert with nothing behind it does not appear at all.</div>
+  </div>
+
+  <div class="hm-screen sp-shell">
+    <nav class="sp-sidebar" aria-label="Sections">
+      <div class="sp-sidebar__brand"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">S</span><span>Spendly</span></div>
+      <a class="sp-nav-item" href="#10a" aria-current="page"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Home</span></a>
+      <a class="sp-nav-item sp-nav-item--action" href="#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Scan receipt</span></a>
+      <a class="sp-nav-item" href="#3a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg></span><span>New order</span></a>
+      <div class="sp-sidebar__group">Orders</div>
+      <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" /></svg></span><span>All orders</span><span class="sp-nav-item__count">248</span></a>
+      <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg></span><span>Awaiting delivery</span><span class="sp-nav-item__count">31</span></a>
+      <a class="sp-nav-item" href="#2b"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg></span><span>Missing receipt</span><span class="sp-nav-item__count" data-color="warning">12</span></a>
+      <div class="sp-sidebar__group">Budget</div>
+      <a class="sp-nav-item" href="Budget.dc.html#21a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg></span><span>This year</span></a>
+      <div class="sp-sidebar__group">Library</div>
+      <a class="sp-nav-item" href="#10a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></span><span>Vendors</span><span class="sp-nav-item__count">42</span></a>
+      <a class="sp-nav-item" href="#10a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6h-6l0 -6" /><path d="M14 4h6v6h-6l0 -6" /><path d="M4 14h6v6h-6l0 -6" /><path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></span><span>Categories</span><span class="sp-nav-item__count">9</span></a>
+      <a class="sp-nav-item" href="Bookmarks.dc.html#22a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg></span><span>Bookmarks</span><span class="sp-nav-item__count">23</span></a>
+      <a class="sp-nav-item" href="#10a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" /><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" /><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" /><path d="M4 20h14" /></svg></span><span>Statistics</span></a>
+      <span class="sp-grow"></span>
+      <a class="sp-nav-item" href="#10a"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span><span>Settings</span></a>
+      <hr class="sp-sidebar__divider">
+      <label class="sp-nav-item"><span class="sp-nav-item__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /></svg></span><span>Dark mode</span><span class="sp-grow"></span><input class="sp-switch" type="checkbox" role="switch" aria-label="Dark mode"></label>
+      <a class="sp-nav-item" href="#10a">
+        <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true">MM</span>
+        <span class="sp-stack sp-grow">
+          <span class="sp-truncate">Mikkel M.</span>
+          <span class="sp-nav-item__sub sp-nav-item__sub--email"><span class="sp-nav-item__local">mikkel</span><span class="sp-nav-item__domain">@example.net</span></span>
+        </span>
+        <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
+      </a>
+      </nav>
+
+    <div class="sp-stack">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+
+      <div class="sp-shell__body">
+        <div class="hm-split">
+          <div class="sp-card sp-card--shell">
+            <div class="sp-row-flex sp-gap-12">
+              <span class="sp-section-label">August 2026 · day 21 of 31</span>
+              <span class="sp-grow"></span>
+              <span class="sp-meta">last added 2 days ago</span>
+            </div>
+            <div class="sp-row-flex sp-gap-16 sp-wrap">
+              <div class="sp-stat">
+                <span class="sp-section-label">Spent this month</span>
+                <span class="sp-stat__figure sp-stat__figure--large">61.480 kr.</span>
+              </div>
+              <div class="sp-stat">
+                <span class="sp-section-label">Saved</span>
+                <span class="sp-stat__figure sp-ink-success">24.310 kr.</span>
+              </div>
+              <div class="sp-stat">
+                <span class="sp-section-label">Orders</span>
+                <span class="sp-stat__figure">18</span>
+              </div>
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-gauge">
+                <meter value="90" min="0" max="100" aria-label="Share of this month's limits used"></meter>
+                <span class="sp-gauge__fill" data-fill="90"></span>
+                <span class="sp-gauge__marker" data-at="68"></span>
+              </span>
+              <div class="sp-row-flex sp-gap-12">
+                <span class="sp-meta">90% of 68.000 kr. in limits</span>
+                <span class="sp-grow"></span>
+                <span class="sp-meta sp-meta--over sp-row-flex sp-gap-6"><span class="hm-marker-key" aria-hidden="true"></span>ahead of pace</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="sp-card">
+            <span class="sp-section-label">Add an order</span>
+            <label class="sp-filedrop sp-grow">
+              <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/gif" capture="environment">
+              <span class="sp-mark sp-mark--medium sp-mark--solid" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></span>
+              <span class="sp-title">Drop a receipt here</span>
+              <span class="sp-subtitle">Image or PDF. The vendor, date and lines are read for you to check.</span>
+            </label>
+            <div class="sp-fields">
+              <button type="button" class="sp-btn sp-btn--small">Choose file</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Empty order</button>
+            </div>
+            <div class="sp-card__footer">
+              <span class="sp-subtitle">Bought from Indbo Møbler again?</span>
+              <span class="sp-grow"></span>
+              <a class="sp-btn sp-btn--text sp-btn--small" href="#3b">Duplicate last order</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="hm-split hm-split--start">
+          <div class="sp-stack">
+            <div class="sp-card sp-card--flush">
+              <div class="sp-list__toolbar">
+                <span class="sp-section-label">Needs a look</span>
+                <span class="sp-grow"></span>
+                <span class="sp-meta">3 things</span>
+              </div>
+              <div class="sp-card__body sp-stack sp-gap-8">
+                <a class="sp-list-item" data-color="warning" href="#2b">
+                  <span class="sp-list-item__count">!</span>
+                  <span class="sp-grow"><b>Decor is 2.100 kr. over</b> its limit for August</span>
+                  <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+                </a>
+                <a class="sp-list-item" href="#2b">
+                  <span class="sp-list-item__count">12</span>
+                  <span class="sp-grow">orders without a receipt attached</span>
+                  <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+                </a>
+                <a class="sp-list-item" href="#10a">
+                  <span class="sp-list-item__count">3</span>
+                  <span class="sp-grow">vendors look like duplicates from scanning</span>
+                  <span class="sp-list-item__chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+                </a>
+              </div>
+            </div>
+
+            <div class="sp-list">
+              <div class="sp-list__toolbar">
+                <span class="sp-section-label">Recent orders</span>
+                <span class="sp-meta">newest 4</span>
+                <span class="sp-grow"></span>
+                <a class="sp-btn sp-btn--text sp-btn--small" href="#2b">All 248</a>
+              </div>
+              <table class="sp-table">
+                <tbody>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-cell-flex">
+                        <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                        <span class="sp-stacked">
+                          <span class="sp-title sp-truncate">Indbo Møbler</span>
+                          <span class="sp-meta sp-truncate">SPENDLY-447 · 4 items</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">08/08</span></td>
+                    <td class="sp-col-status"><span class="sp-pill" data-color="success">Delivered</span></td>
+                    <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.980,00 kr.</span></div></td>
+                  </tr>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-cell-flex">
+                        <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                        <span class="sp-stacked">
+                          <span class="sp-title sp-truncate">Indbo Møbler</span>
+                          <span class="sp-meta sp-truncate">SPENDLY-441 · 2 items</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">02/08</span></td>
+                    <td class="sp-col-status"><span class="sp-pill" data-color="success">Delivered</span></td>
+                    <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.240,00 kr.</span></div></td>
+                  </tr>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-cell-flex">
+                        <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                        <span class="sp-stacked">
+                          <span class="sp-title sp-truncate">Hay</span>
+                          <span class="sp-meta sp-truncate">SPENDLY-438 · 8 items</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">28/07</span></td>
+                    <td class="sp-col-status"><span class="sp-pill" data-state="progress">Ordered</span></td>
+                    <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">14.910,00 kr.</span></div></td>
+                  </tr>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-cell-flex">
+                        <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                        <span class="sp-stacked">
+                          <span class="sp-title sp-truncate">Ferm Living</span>
+                          <span class="sp-meta sp-truncate">SPENDLY-427 · 6 items</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">11/07</span></td>
+                    <td class="sp-col-status"><span class="sp-pill" data-color="success">Delivered</span></td>
+                    <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">2.630,00 kr.</span></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sp-stack">
+            <div class="sp-card">
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-section-label">Categories this month</span>
+                <span class="sp-meta">top 4 by spend</span>
+                <span class="sp-grow"></span>
+                <a class="sp-btn sp-btn--text sp-btn--small" href="#10a">All 9</a>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 2a3 3 0 0 1 3 3c0 .562 -.259 1.442 -.776 2.64l-.724 1.36l1.76 -1.893c.499 -.6 .922 -1 1.27 -1.205a2.968 2.968 0 0 1 4.07 1.099a3.011 3.011 0 0 1 -1.09 4.098c-.374 .217 -.99 .396 -1.846 .535l-2.664 .366l2.4 .326c1 .145 1.698 .337 2.11 .576a3.011 3.011 0 0 1 1.09 4.098a2.968 2.968 0 0 1 -4.07 1.098c-.348 -.202 -.771 -.604 -1.27 -1.205l-1.76 -1.893l.724 1.36c.516 1.199 .776 2.079 .776 2.64a3 3 0 0 1 -6 0c0 -.562 .259 -1.442 .776 -2.64l.724 -1.36l-1.76 1.893c-.499 .601 -.922 1 -1.27 1.205a2.968 2.968 0 0 1 -4.07 -1.098a3.011 3.011 0 0 1 1.09 -4.098c.374 -.218 .99 -.396 1.846 -.536l2.664 -.366l-2.4 -.325c-1 -.145 -1.698 -.337 -2.11 -.576a3.011 3.011 0 0 1 -1.09 -4.099a2.968 2.968 0 0 1 4.07 -1.099c.348 .203 .771 .604 1.27 1.205l1.76 1.894c-1 -2.292 -1.5 -3.625 -1.5 -4a3 3 0 0 1 3 -3" /></svg></span>
+                  <span class="sp-data">Decor</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-meta sp-meta--over">24.100 / 22.000</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="110" min="0" max="100" aria-label="Decor against its limit"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="91"></span>
+                  <span class="sp-gauge__over" data-over="9"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-3" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
+                  <span class="sp-data">Seating</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-meta">17.320 / 24.000</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="72" min="0" max="100" aria-label="Seating against its limit"></meter>
+                  <span class="sp-gauge__fill" data-fill="72"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-4" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" /><path d="M12 16h.01" /></svg></span>
+                  <span class="sp-data">Lighting</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-meta">12.740 / 14.000</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="91" min="0" max="100" aria-label="Lighting against its limit"></meter>
+                  <span class="sp-gauge__fill" data-fill="91"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-mark sp-mark--small sp-mark--solid" data-swatch="green-5" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" /><path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" /><path d="M6 19v2" /><path d="M18 19v2" /></svg></span>
+                  <span class="sp-data">Textiles</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-meta">3.180 / 8.000</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="40" min="0" max="100" aria-label="Textiles against its limit"></meter>
+                  <span class="sp-gauge__fill" data-fill="40"></span>
+                </span>
+              </div>
+            </div>
+
+            <div class="sp-card">
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-section-label">Last 8 months</span>
+                <span class="sp-grow"></span>
+                <a class="sp-btn sp-btn--text sp-btn--small" href="#10a">Statistics</a>
+              </div>
+              <div class="sp-bars">
+                <button type="button" class="sp-bars__col" aria-label="January"><span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span><span class="sp-bars__tick">J</span></button>
+                <button type="button" class="sp-bars__col" aria-label="February"><span class="sp-bars__bar sp-bars__bar--muted" data-h="33"></span><span class="sp-bars__tick">F</span></button>
+                <button type="button" class="sp-bars__col" aria-label="March"><span class="sp-bars__bar sp-bars__bar--muted" data-h="51"></span><span class="sp-bars__tick">M</span></button>
+                <button type="button" class="sp-bars__col" aria-label="April"><span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span><span class="sp-bars__tick">A</span></button>
+                <button type="button" class="sp-bars__col" aria-label="May"><span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span><span class="sp-bars__tick">M</span></button>
+                <button type="button" class="sp-bars__col" aria-label="June"><span class="sp-bars__bar sp-bars__bar--muted" data-h="54"></span><span class="sp-bars__tick">J</span></button>
+                <button type="button" class="sp-bars__col" aria-label="July"><span class="sp-bars__bar sp-bars__bar--muted" data-h="71"></span><span class="sp-bars__tick">J</span></button>
+                <button type="button" class="sp-bars__col" aria-pressed="true" aria-label="August"><span class="sp-bars__bar" data-h="81"></span><span class="sp-bars__tick">A</span></button>
+              </div>
+              <div class="sp-card__footer">
+                <span class="sp-subtitle">Monthly average</span>
+                <span class="sp-grow"></span>
+                <span class="sp-amount">48.910 kr.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    // the page's ground follows the switch; any specimen whose subject is a theme
+    // declares its own data-theme and is unaffected
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

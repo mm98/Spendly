@@ -1,0 +1,20 @@
+/* Page composition for Icon legend.dc.html.
+   Layout scaffolding only: the legend table's column widths and the two specimen
+   card widths. Every control comes from components.css.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  .il-w430 { width: 430px; }
+
+  /* The legend: a fixed first column for the glyph and a fixed name column, so the
+     28 rows read as one list; the two right-hand columns are fixed because their
+     content is short and the prose column should take the slack. */
+  .il-legend-wrap { max-width: 1320px; }
+  .il-legend .il-col-icon { width: 60px; }
+  .il-legend .il-col-name { width: 128px; }
+  .il-legend .il-col-where { width: 168px; }
+  .il-legend .il-col-label { width: 150px; }
+  .il-legend td { vertical-align: top; }
+
+}

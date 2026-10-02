@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">PG</text></svg></template>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260918a">
+<link rel="stylesheet" href="styles/components.css?v=v20260918a">
+<link rel="stylesheet" href="styles/doc.css?v=v20260918a">
+<script src="./icons.js?v=v20260918a"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<style>
+	body { margin: 0; background: var(--bg); font-family: Poppins, system-ui, sans-serif; color: var(--ink); }
+	a { color: var(--green); }
+	a:hover { color: var(--green-2); }
+</style>
+</helmet>
+
+<div style="display: grid; grid-template-columns: 236px minmax(0, 1fr) 320px; grid-template-rows: minmax(0, 1fr); height: 100vh; overflow: hidden; background: var(--bg); color: var(--ink); font-size: 13px;">
+
+	<aside style="display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid var(--line); background: var(--surface);">
+		<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 14px 10px;">
+			<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-4);">Library</span>
+			<input type="search" aria-label="Filter the component list" value="{{ q }}" onChange="{{ onQuery }}" placeholder="Filter" style="width: 100%; box-sizing: border-box; font: inherit; font-size: 12px; color: var(--ink); background: var(--bg); border: 1px solid var(--line-3); border-radius: 6px; padding: 6px 8px;">
+		</div>
+		<div style="flex: 1; min-height: 0; overflow: auto; padding: 0 8px 14px;">
+			<sc-for list="{{ drawer }}" as="it" hint-placeholder-count="14">
+				<div>
+					<sc-if value="{{ it.head }}" hint-placeholder-val="{{ true }}">
+						<span style="display: block; padding: 12px 6px 4px; font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-5);">{{ it.head }}</span>
+					</sc-if>
+					<div draggable="true" onDragStart="{{ it.onDragStart }}" onDoubleClick="{{ it.onAdd }}" title="{{ it.title }}" style="display: flex; align-items: baseline; gap: 6px; padding: 5px 6px; border-radius: 5px; cursor: grab;" style-hover="background: var(--hover);">
+						<span style="font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">{{ it.name }}</span>
+						<sc-if value="{{ it.needs }}" hint-placeholder-val="{{ true }}">
+							<span style="font-size: 10px; color: var(--ink-5);">in {{ it.needs }}</span>
+						</sc-if>
+					</div>
+				</div>
+			</sc-for>
+			<span style="display: block; padding: 14px 6px 0; font-size: 10px; line-height: 1.5; color: var(--ink-5);">Drag onto the canvas, or double-click. {{ drawerNote }}</span>
+		</div>
+	</aside>
+
+	<main style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+		<div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--surface);">
+			<span style="font-size: 13px; font-weight: 600;">Playground</span>
+			<span style="font-size: 11px; color: var(--ink-4);">{{ countLabel }}</span>
+			<span style="flex: 1;"></span>
+			<button type="button" onClick="{{ onClear }}" style="font: inherit; font-size: 11px; color: var(--ink-3); background: none; border: 1px solid var(--line-3); border-radius: 5px; padding: 4px 9px; cursor: pointer;" style-hover="color: var(--ink); border-color: var(--ink-4);">Clear canvas</button>
+		</div>
+		<div class="sp" onDragOver="{{ onCanvasOver }}" onDrop="{{ onCanvasDrop }}" onPointerDown="{{ onCanvasDown }}" style="flex: 1; min-height: 0; position: relative; overflow: auto; background-color: var(--bg); background-image: {{ canvasGrid }}; background-size: 16px 16px;">
+			{{ canvas }}
+		</div>
+		<div style="display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--surface-2);">
+			<div style="display: flex; align-items: center; gap: 10px; padding: 7px 16px;">
+				<span style="font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-4);">JSX</span>
+				<span style="flex: 1;"></span>
+				<button type="button" onClick="{{ onCopy }}" style="font: inherit; font-size: 11px; color: var(--ink-3); background: none; border: 1px solid var(--line-3); border-radius: 5px; padding: 3px 8px; cursor: pointer;" style-hover="color: var(--ink); border-color: var(--ink-4);">{{ copyLabel }}</button>
+			</div>
+			<pre style="margin: 0; max-height: 184px; overflow: auto; padding: 0 16px 14px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; line-height: 1.65; color: var(--ink-3); white-space: pre; tab-size: 2;">{{ code }}</pre>
+		</div>
+	</main>
+
+	<aside style="min-width: 0; min-height: 0; overflow: auto; border-left: 1px solid var(--line); background: var(--surface);">
+		{{ panel }}
+	</aside>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+/* The playground. It evaluates the real component files, so what the canvas renders
+   is the library rather than a copy of it, and the properties panel is driven by
+   `playground-registry.js` rather than by anything typed here.
+
+   The canvas and the panel are built with createElement instead of template markup
+   because neither has authorable markup: a canvas is whatever the reader dropped,
+   and a panel is the props of whatever they selected. */
+
+const FILES = ['variants.js', 'format.js',
+		'Button.jsx', 'Mark.jsx', 'Chip.jsx', 'Pill.jsx',
+	// Choice before Field: a field handed a box renders a Choice around it, and a
+	// file evaluated after its callers leaves them with no binding at all
+	'Choice.jsx', 'Field.jsx',
+	'Card.jsx', 'Well.jsx', 'ListItem.jsx', 'Combobox.jsx',
+	'Segmented.jsx', 'Stepper.jsx', 'FileDrop.jsx',
+	'DatePickers.jsx', 'Inputs.jsx', 'Utilities.jsx',
+	'Shell.jsx', 'Touch.jsx', 'Overlays.jsx', 'List.jsx', 'Data.jsx', 'LineEditor.jsx'];
+
+const STORE = 'spendly-playground-v1';
+
+/* One bad prop value must not take the page with it. A component that throws is
+   drawn as its own error, so the reader can see which drop is broken and fix the
+   value rather than reloading and losing the canvas. */
+class Boundary extends React.Component {
+	constructor(props) { super(props); this.state = { err: null }; }
+	static getDerivedStateFromError(err) { return { err: String(err && err.message || err) }; }
+	componentDidUpdate(prev) { if (prev.signature !== this.props.signature && this.state.err) this.setState({ err: null }); }
+	render() {
+		if (this.state.err) return React.createElement('span', {
+			style: { display: 'inline-block', maxWidth: 280, padding: '6px 8px', border: '1px solid var(--red)', borderRadius: 6, fontSize: 11, color: 'var(--red-ink)', background: 'var(--surface)' }
+		}, this.props.name + ': ' + this.state.err);
+		return this.props.children;
+	}
+}
+
+class Component extends DCLogic {
+	state = {
+		mods: null, reg: null, error: null, sigDefaults: {},
+		nodes: {}, roots: [], sel: null, seq: 1,
+		q: '', copied: false, lastCall: ''
+	};
+
+	componentDidMount() {
+		this.load();
+		this.onKey = ev => {
+			if ((ev.key !== 'Delete' && ev.key !== 'Backspace') || !this.state.sel) return;
+			const t = ev.target;
+			if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+			ev.preventDefault();
+			this.remove(this.state.sel);
+		};
+		window.addEventListener('keydown', this.onKey);
+	}
+
+	componentWillUnmount() { window.removeEventListener('keydown', this.onKey); }
+
+	async load() {
+		try {
+			const reg = await import('./playground-registry.js');
+			await this.waitForBabel();
+			const Link = ({ children, to, ...rest }) => React.createElement('a', { href: '#', ...rest }, children);
+			const Icon = ({ name, size }) => React.createElement('span', {
+				style: { display: 'inline-flex' },
+				dangerouslySetInnerHTML: { __html: window.spIcon(name, size) }
+			});
+			const scope = {
+				React, Link, Icon,
+				useId: React.useId, cloneElement: React.cloneElement, Children: React.Children,
+				createContext: React.createContext, useContext: React.useContext, Fragment: React.Fragment,
+				useState: React.useState, useRef: React.useRef, useEffect: React.useEffect,
+				useMemo: React.useMemo, useCallback: React.useCallback
+			};
+			/* What each component defaults a prop to, read off its own signature. The
+			   registry's default is the value a fresh drop starts at, which is not the
+			   same thing - `Mark` declares no default size, so a drop that starts at
+			   medium must print `size="medium"` or the call will not reproduce it. */
+			const sigDefaults = {};
+			for (const file of FILES) {
+				const src = await (await fetch('react_handoff/' + file, { cache: 'reload' })).text();
+				for (const m of src.matchAll(/export function (\w+)\(\{([\s\S]*?)\}\s*(?:=\s*\{\})?\)/g)) {
+					const own = {};
+					for (const d of m[2].matchAll(/([\w]+)\s*=\s*('[^']*'|"[^"]*"|true|false|-?[\d.]+)/g))
+						own[d[1]] = d[2].replace(/^['"]|['"]$/g, '');
+					sigDefaults[m[1]] = own;
+				}
+				Object.assign(scope, this.evaluate(file, src, scope));
+			}
+			this.setState({ mods: scope, reg, sigDefaults }, () => this.restore());
+		} catch (e) {
+			this.setState({ error: String(e && e.message || e) });
+		}
+	}
+
+	waitForBabel() {
+		return new Promise((ok, no) => {
+			let n = 0;
+			const tick = () => window.Babel ? ok() : (++n > 200 ? no(new Error('Babel did not load')) : setTimeout(tick, 50));
+			tick();
+		});
+	}
+
+	evaluate(file, src, scope) {
+		const names = [...src.matchAll(/export\s+(?:function|const)\s+(\w+)/g)].map(m => m[1]);
+		const body = src
+			.replace(/^[ \t]*import[^\n;]*;?[ \t]*$/gm, '')
+			.replace(/export\s+(function|const)/g, '$1');
+		const code = window.Babel.transform(body, { filename: file, presets: ['react'] }).code;
+		const keys = Object.keys(scope);
+		return new Function(...keys, code + '\nreturn {' + names.join(',') + '};')(...keys.map(k => scope[k]));
+	}
+
+	/* ---- the canvas as data ------------------------------------------------ */
+
+	restore() {
+		try {
+			const raw = window.localStorage.getItem(STORE);
+			if (!raw) return;
+			const saved = JSON.parse(raw);
+			if (saved && saved.nodes && Array.isArray(saved.roots))
+				this.setState({ nodes: saved.nodes, roots: saved.roots, seq: saved.seq || 1 });
+		} catch (e) { /* a canvas that cannot be read is an empty canvas, not an error */ }
+	}
+
+	persist(nodes, roots, seq) {
+		try {
+			window.localStorage.setItem(STORE, JSON.stringify({ nodes, roots, seq }));
+		} catch (e) { /* storage refused: the canvas still works for this session */ }
+	}
+
+	write(fn) {
+		this.setState(s => {
+			const next = fn({ nodes: { ...s.nodes }, roots: [...s.roots], seq: s.seq, sel: s.sel });
+			this.persist(next.nodes, next.roots, next.seq);
+			return next;
+		});
+	}
+
+	make(name, x, y) {
+		const c = this.state.reg.BY_NAME[name];
+		return {
+			name,
+			props: this.state.reg.seed(name),
+			slots: {},
+			kids: [],
+			text: c && (c.kids === 'text' || c.kids === 'both') ? (c.sample || '') : '',
+			x: x, y: y
+		};
+	}
+
+	add(name, x, y, parentId, slot) {
+		this.write(st => {
+			const id = 'n' + st.seq;
+			st.nodes[id] = this.make(name, x, y);
+			st.seq += 1;
+			if (parentId && st.nodes[parentId]) {
+				const p = { ...st.nodes[parentId] };
+				if (slot) p.slots = { ...p.slots, [slot]: id };
+				else p.kids = [...p.kids, id];
+				st.nodes[parentId] = p;
+				// the reader is composing the parent, so the parent keeps the panel:
+				// its slot and child lists name the new node and select it on click
+				st.sel = parentId;
+			} else {
+				st.roots = [...st.roots, id];
+				st.sel = id;
+			}
+			return st;
+		});
+	}
+
+	remove(id) {
+		this.write(st => {
+			const drop = n => {
+				const node = st.nodes[n];
+				if (!node) return;
+				for (const k of node.kids) drop(k);
+				for (const s of Object.values(node.slots)) drop(s);
+				delete st.nodes[n];
+			};
+			drop(id);
+			st.roots = st.roots.filter(r => r !== id);
+			for (const [k, node] of Object.entries(st.nodes)) {
+				if (node.kids.includes(id) || Object.values(node.slots).includes(id)) {
+					const copy = { ...node, kids: node.kids.filter(x => x !== id), slots: { ...node.slots } };
+					for (const [sk, sv] of Object.entries(copy.slots)) if (sv === id) delete copy.slots[sk];
+					st.nodes[k] = copy;
+				}
+			}
+			if (st.sel === id) st.sel = null;
+			return st;
+		});
+	}
+
+	setProp(id, prop, value) {
+		this.write(st => {
+			const n = { ...st.nodes[id], props: { ...st.nodes[id].props } };
+			if (value === '' || value === null || value === undefined) delete n.props[prop];
+			else n.props[prop] = value;
+			st.nodes[id] = n;
+			return st;
+		});
+	}
+
+	setText(id, text) {
+		this.write(st => { st.nodes[id] = { ...st.nodes[id], text }; return st; });
+	}
+
+	/* ---- the canvas as elements -------------------------------------------- */
+
+	build(id, seen) {
+		const { mods, reg } = this.state;
+		const node = this.state.nodes[id];
+		if (!node) return null;
+		if (seen.has(id)) return null;
+		seen.add(id);
+		const comp = mods[node.name];
+		const meta = reg.BY_NAME[node.name];
+		if (!comp) return React.createElement('span', { style: { fontSize: 11, color: 'var(--red-ink)' } }, node.name + ' is not exported');
+
+		const props = { key: id };
+		for (const [prop, kind] of (meta ? meta.p : [])) {
+			const raw = node.props[prop];
+			if (kind === 'fn') {
+				if (raw) props[prop] = (...args) => this.setState({ lastCall: node.name + '.' + prop + '(' + args.map(a => JSON.stringify(a === undefined ? null : (typeof a === 'object' ? '…' : a))).join(', ') + ')' });
+				continue;
+			}
+			if (kind === 'node') {
+				const child = node.slots[prop];
+				if (child) props[prop] = this.build(child, seen);
+				continue;
+			}
+			if (raw === undefined || raw === '') continue;
+			if (kind === 'json') { try { props[prop] = JSON.parse(raw); } catch (e) { throw new Error(prop + ' is not valid JSON'); } continue; }
+			props[prop] = raw;
+		}
+
+		let kids = node.kids.length ? node.kids.map(k => this.build(k, seen)) : null;
+		/* One child is passed as itself, not as a list of one. `Field` clones its
+		   child to bind the label, the message and the slot padding to it, and
+		   `cloneElement` on an array has no element to clone - so a control dropped
+		   into a field rendered as nothing until the array went away. */
+		if (kids && kids.length === 1 && !node.text) kids = kids[0];
+		else if (!kids && node.text) kids = node.text;
+		else if (kids && node.text) kids = [node.text].concat(kids);
+		return kids === null ? React.createElement(comp, props) : React.createElement(comp, props, kids);
+	}
+
+	/* ---- the call that produced it ----------------------------------------- */
+
+	jsx(id, depth) {
+		const node = this.state.nodes[id];
+		const meta = this.state.reg.BY_NAME[node.name];
+		const pad = '  '.repeat(depth);
+		const attrs = [];
+		for (const [prop, kind, def] of (meta ? meta.p : [])) {
+			const raw = node.props[prop];
+			if (kind === 'node') {
+				const child = node.slots[prop];
+				if (child) attrs.push(prop + '={' + this.jsx(child, 0).trim().replace(/\n\s*/g, ' ') + '}');
+				continue;
+			}
+			if (kind === 'fn') { if (raw) attrs.push(prop + '={fn}'); continue; }
+			if (raw === undefined || raw === '') continue;
+			// omitted only where the component itself would supply the same value
+			const own = (this.state.sigDefaults[node.name] || {})[prop];
+			if (own !== undefined && String(raw) === own) continue;
+			if (kind === 'bool') attrs.push(raw === true ? prop : prop + '={false}');
+			else if (kind === 'num' || kind === 'json') attrs.push(prop + '={' + raw + '}');
+			else attrs.push(prop + '="' + raw + '"');
+		}
+		const open = node.name + (attrs.length ? ' ' + attrs.join(' ') : '');
+		const inner = [];
+		if (node.text) inner.push(pad + '  ' + node.text);
+		for (const k of node.kids) inner.push(this.jsx(k, depth + 1));
+		if (!inner.length) return pad + '<' + open + ' />';
+		return pad + '<' + open + '>\n' + inner.join('\n') + '\n' + pad + '</' + node.name + '>';
+	}
+
+	/* ---- the panel's controls ---------------------------------------------- */
+
+	label(text) {
+		return React.createElement('span', { style: { fontSize: 11, color: 'var(--ink-4)' } }, text);
+	}
+
+	field(labelText, control) {
+		return React.createElement('label', {
+			style: { display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', alignItems: 'center', gap: 8 }
+		}, this.label(labelText), control);
+	}
+
+	control(id, node, prop, kind, def, options) {
+		const e = React.createElement;
+		const box = {
+			width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 11,
+			color: 'var(--ink)', background: 'var(--bg)', border: '1px solid var(--line-3)',
+			borderRadius: 5, padding: '4px 6px'
+		};
+		const value = node.props[prop];
+
+		if (kind === 'bool') return e('input', {
+			type: 'checkbox', checked: value === true,
+			onChange: ev => this.setProp(id, prop, ev.target.checked ? true : ''),
+			style: { justifySelf: 'start', width: 15, height: 15, accentColor: 'var(--green)' }
+		});
+		if (kind === 'fn') return e('input', {
+			type: 'checkbox', checked: value === true,
+			onChange: ev => this.setProp(id, prop, ev.target.checked ? true : ''),
+			style: { justifySelf: 'start', width: 15, height: 15, accentColor: 'var(--green)' }
+		});
+		if (kind === 'enum' || kind === 'icon') {
+			const list = kind === 'icon' ? [''].concat(this.state.reg.ICONS) : options;
+			return e('select', {
+				value: value === undefined ? '' : value, style: box,
+				onChange: ev => this.setProp(id, prop, ev.target.value)
+			}, list.map(o => e('option', { key: o, value: o }, o === '' ? '(none)' : o)));
+		}
+		if (kind === 'num') return e('input', {
+			type: 'number', value: value === undefined ? '' : value, style: box,
+			onChange: ev => this.setProp(id, prop, ev.target.value === '' ? '' : Number(ev.target.value))
+		});
+		if (kind === 'json') return e('textarea', {
+			rows: 3, value: value === undefined ? '' : value,
+			style: { ...box, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', resize: 'vertical' },
+			onChange: ev => this.setProp(id, prop, ev.target.value)
+		});
+		return e('input', {
+			type: 'text', value: value === undefined ? '' : value, style: box,
+			onChange: ev => this.setProp(id, prop, ev.target.value)
+		});
+	}
+
+	dropTarget(parentId, slot, childId, onPick) {
+		const e = React.createElement;
+		const child = childId ? this.state.nodes[childId] : null;
+		return e('div', {
+			onDragOver: ev => { ev.preventDefault(); ev.stopPropagation(); },
+			onDrop: ev => {
+				ev.preventDefault(); ev.stopPropagation();
+				const name = ev.dataTransfer.getData('text/plain');
+				if (name && this.state.reg.BY_NAME[name]) this.add(name, 0, 0, parentId, slot);
+			},
+			style: {
+				display: 'flex', alignItems: 'center', gap: 6, minHeight: 26, padding: '3px 6px',
+				border: '1px dashed ' + (child ? 'var(--line-3)' : 'var(--line-2)'),
+				borderRadius: 5, fontSize: 11, color: child ? 'var(--ink)' : 'var(--ink-5)'
+			}
+		}, child
+			? [
+				e('button', {
+					key: 'p', type: 'button', onClick: () => onPick(childId),
+					style: { font: 'inherit', fontSize: 11, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: 'var(--green)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }
+				}, child.name),
+				e('span', { key: 'g', style: { flex: 1 } }),
+				e('button', {
+					key: 'x', type: 'button', onClick: () => this.remove(childId),
+					style: { font: 'inherit', fontSize: 11, color: 'var(--ink-4)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }
+				}, 'Remove')
+			]
+			: 'Drop a component');
+	}
+
+	panelFor(id) {
+		const e = React.createElement;
+		const node = this.state.nodes[id];
+		const meta = this.state.reg.BY_NAME[node.name];
+		const heading = text => e('span', {
+			style: { fontSize: 10, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--ink-5)' }
+		}, text);
+		const sections = [];
+
+		const scalars = (meta ? meta.p : []).filter(([, k]) => k !== 'node' && k !== 'fn');
+		const slots = (meta ? meta.p : []).filter(([, k]) => k === 'node');
+		const fns = (meta ? meta.p : []).filter(([, k]) => k === 'fn');
+
+		sections.push(e('div', { key: 'head', style: { display: 'flex', alignItems: 'baseline', gap: 8 } },
+			e('span', { style: { fontSize: 13, fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' } }, node.name),
+			e('span', { style: { fontSize: 10, color: 'var(--ink-5)' } }, meta ? meta.f : ''),
+			e('span', { style: { flex: 1 } }),
+			e('button', {
+				type: 'button', onClick: () => this.remove(id),
+				style: { font: 'inherit', fontSize: 11, color: 'var(--red-ink)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }
+			}, 'Delete')));
+
+		if (meta && meta.needs) sections.push(e('span', {
+			key: 'needs', style: { fontSize: 11, lineHeight: 1.5, color: 'var(--ink-4)' }
+		}, 'The library puts this inside ' + meta.needs + '. It renders alone so you can see it, but that is not where it belongs.'));
+
+		if (meta && (meta.kids === 'text' || meta.kids === 'both')) sections.push(e('div', { key: 'text', style: { display: 'grid', gap: 6 } },
+			heading('Text'),
+			e('textarea', {
+				rows: 2, value: node.text,
+				onChange: ev => this.setText(id, ev.target.value),
+				style: { width: '100%', boxSizing: 'border-box', font: 'inherit', fontSize: 11, color: 'var(--ink)', background: 'var(--bg)', border: '1px solid var(--line-3)', borderRadius: 5, padding: '4px 6px', resize: 'vertical' }
+			})));
+
+		if (scalars.length) sections.push(e('div', { key: 'props', style: { display: 'grid', gap: 7 } },
+			heading('Props'),
+			...scalars.map(([prop, kind, def, options]) => e('div', { key: prop }, this.field(prop, this.control(id, node, prop, kind, def, options))))));
+
+		if (slots.length) sections.push(e('div', { key: 'slots', style: { display: 'grid', gap: 7 } },
+			heading('Slots'),
+			...slots.map(([prop]) => e('div', { key: prop, style: { display: 'grid', gap: 4 } },
+				this.label(prop),
+				this.dropTarget(id, prop, node.slots[prop], cid => this.setState({ sel: cid }))))));
+
+		if (meta && (meta.kids === 'nodes' || meta.kids === 'both')) sections.push(e('div', { key: 'kids', style: { display: 'grid', gap: 6 } },
+			heading('Children'),
+			...node.kids.map(k => e('div', { key: k, style: { display: 'flex', alignItems: 'center', gap: 6, padding: '3px 6px', border: '1px solid var(--line-2)', borderRadius: 5 } },
+				e('button', {
+					type: 'button', onClick: () => this.setState({ sel: k }),
+					style: { font: 'inherit', fontSize: 11, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: 'var(--green)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }
+				}, this.state.nodes[k] ? this.state.nodes[k].name : '?'),
+				e('span', { style: { flex: 1 } }),
+				e('button', {
+					type: 'button', onClick: () => this.remove(k),
+					style: { font: 'inherit', fontSize: 11, color: 'var(--ink-4)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }
+				}, 'Remove'))),
+			this.dropTarget(id, null, null, () => {})));
+
+		if (fns.length) sections.push(e('div', { key: 'fns', style: { display: 'grid', gap: 7 } },
+			heading('Handlers'),
+			...fns.map(([prop, kind, def, options]) => e('div', { key: prop }, this.field(prop, this.control(id, node, prop, kind, def, options)))),
+			this.state.lastCall
+				? e('span', { style: { fontSize: 10, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: 'var(--ink-4)' } }, this.state.lastCall)
+				: null));
+
+		return e('div', { style: { display: 'grid', gap: 16, padding: 14 } }, sections);
+	}
+
+	/* ---- pointer drag on the canvas ---------------------------------------- */
+
+	startMove(ev, id) {
+		if (ev.button !== 0) return;
+		ev.stopPropagation();
+		this.setState({ sel: id });
+		const node = this.state.nodes[id];
+		const x0 = ev.clientX, y0 = ev.clientY, ox = node.x, oy = node.y;
+		let moved = false;
+		const move = m => {
+			if (!moved && Math.abs(m.clientX - x0) < 3 && Math.abs(m.clientY - y0) < 3) return;
+			moved = true;
+			this.write(st => {
+				st.nodes[id] = { ...st.nodes[id], x: Math.max(0, ox + m.clientX - x0), y: Math.max(0, oy + m.clientY - y0) };
+				return st;
+			});
+		};
+		const up = () => {
+			window.removeEventListener('pointermove', move);
+			window.removeEventListener('pointerup', up);
+		};
+		window.addEventListener('pointermove', move);
+		window.addEventListener('pointerup', up);
+	}
+
+	renderVals() {
+		const e = React.createElement;
+		const { mods, reg, error } = this.state;
+
+		if (error) return {
+			canvas: e('span', { style: { display: 'block', padding: 24, fontSize: 12, color: 'var(--red-ink)' } }, 'The playground could not load: ' + error),
+			panel: null, code: '', drawer: [], countLabel: '', copyLabel: 'Copy', canvasGrid: 'none', q: '', drawerNote: ''
+		};
+		if (!mods || !reg) return {
+			canvas: e('span', { style: { display: 'block', padding: 24, fontSize: 12, color: 'var(--ink-4)' } }, 'Loading the component files.'),
+			panel: null, code: '', drawer: [], countLabel: '', copyLabel: 'Copy', canvasGrid: 'none', q: '', drawerNote: ''
+		};
+
+		// the drawer: one flat list so a group heading rides on its first item
+		const q = this.state.q.trim().toLowerCase();
+		const drawer = [];
+		for (const group of reg.GROUPS) {
+			const items = reg.COMPONENTS.filter(c => c.g === group && (!q || c.n.toLowerCase().includes(q)));
+			items.forEach((c, i) => drawer.push({
+				name: c.n,
+				needs: c.needs || '',
+				head: i === 0 ? group : '',
+				title: c.f,
+				onDragStart: ev => ev.dataTransfer.setData('text/plain', c.n),
+				onAdd: () => this.add(c.n, 40 + (this.state.roots.length % 5) * 24, 40 + (this.state.roots.length % 5) * 24)
+			}));
+		}
+
+		const seen = new Set();
+		const canvas = this.state.roots.map(id => {
+			const node = this.state.nodes[id];
+			if (!node) return null;
+			const on = this.state.sel === id;
+			return e('div', {
+				key: id,
+				onPointerDown: ev => this.startMove(ev, id),
+				onDragOver: ev => { ev.preventDefault(); ev.stopPropagation(); },
+				onDrop: ev => {
+					ev.preventDefault(); ev.stopPropagation();
+					const name = ev.dataTransfer.getData('text/plain');
+					const meta = reg.BY_NAME[node.name];
+					const nests = meta && (meta.kids === 'nodes' || meta.kids === 'both');
+					if (name && reg.BY_NAME[name]) this.add(name, 0, 0, nests ? id : null, null);
+				},
+				style: {
+					position: 'absolute', left: node.x, top: node.y, cursor: 'grab',
+					outline: on ? '2px solid var(--green)' : 'none', outlineOffset: 4, borderRadius: 2
+				}
+			}, e(Boundary, { name: node.name, signature: JSON.stringify(node) }, this.build(id, seen)));
+		});
+
+		const code = this.state.roots.length
+			? this.state.roots.map(id => this.jsx(id, 0)).join('\n')
+			: 'Nothing on the canvas yet.';
+
+		return {
+			drawer,
+			drawerNote: 'List.jsx and DatePickers.jsx both export a Selected, which React resolves by import and a drawer cannot, so it is the one export absent here.',
+			q: this.state.q,
+			onQuery: ev => this.setState({ q: ev.target.value }),
+			countLabel: this.state.roots.length === 1 ? '1 component' : this.state.roots.length + ' components',
+			canvasGrid: 'radial-gradient(var(--line-2) 1px, transparent 1px)',
+			canvas,
+			code,
+			copyLabel: this.state.copied ? 'Copied' : 'Copy',
+			onCopy: () => {
+				if (!navigator.clipboard) return;
+				navigator.clipboard.writeText(code).then(() => {
+					this.setState({ copied: true });
+					setTimeout(() => this.setState({ copied: false }), 1400);
+				});
+			},
+			onClear: () => this.write(st => { st.nodes = {}; st.roots = []; st.sel = null; st.seq = 1; return st; }),
+			onCanvasOver: ev => ev.preventDefault(),
+			onCanvasDown: () => this.setState({ sel: null }),
+			onCanvasDrop: ev => {
+				ev.preventDefault();
+				const name = ev.dataTransfer.getData('text/plain');
+				if (!name || !reg.BY_NAME[name]) return;
+				const box = ev.currentTarget.getBoundingClientRect();
+				this.add(name, Math.max(0, ev.clientX - box.left + ev.currentTarget.scrollLeft - 8), Math.max(0, ev.clientY - box.top + ev.currentTarget.scrollTop - 8));
+			},
+			panel: this.state.sel && this.state.nodes[this.state.sel]
+				? this.panelFor(this.state.sel)
+				: e('span', { style: { display: 'block', padding: 14, fontSize: 11, lineHeight: 1.6, color: 'var(--ink-5)' } }, 'Select a component on the canvas to change its props, fill its slots, and nest components inside it.')
+		};
+	}
+}
+
+</script>
+</body>
+</html>

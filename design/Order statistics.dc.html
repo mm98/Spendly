@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#4f7f63"/><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="46" font-weight="600" fill="#f2f0ea" text-anchor="middle">4</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/order-statistics.css?v=v20260917b">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="4a">4a</span>
+    <span class="doc-section__title">Statistics</span>
+  </div>
+  <div class="doc-lede">One period control drives everything on the page. Every chart element is a filter: click a month, a vendor, a category or a status and it becomes a crumb in the drill path, with the order table at the bottom always showing exactly what the current path selects.</div>
+
+  <div class="os-screen doc-frame">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+
+    <div class="os-body">
+      <div class="sp-period">
+        <div class="sp-period__presets" role="radiogroup" aria-label="Period">
+          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4a-period"><span class="sp-label">30 days</span></label>
+          <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4a-period"><span class="sp-label">Quarter</span></label>
+          <label class="sp-period__preset" data-label="Year"><input type="radio" name="4a-period" defaultChecked="{{ true }}"><span class="sp-label">Year</span></label>
+          <label class="sp-period__preset" data-label="Custom"><input type="radio" name="4a-period"><span class="sp-label">Custom</span></label>
+        </div>
+        <span class="sp-period__resolved">01/01/2026 - 20/08/2026</span>
+        <label class="sp-row-flex sp-gap-8">
+          <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
+          <span class="sp-data">Compare with 2025</span>
+        </label>
+        <span class="sp-grow"></span>
+        <div class="sp-combobox">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
+            <span class="sp-grow">Expenses only</span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+          </button>
+        </div>
+        <button type="button" class="sp-btn sp-btn--outline">Export</button>
+      </div>
+
+      <div class="os-stats">
+          <div class="sp-card">
+            <span class="sp-section-label">Total spend</span>
+            <span class="sp-stat__figure">486.320 kr.</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-pill" data-color="danger">+18,4%</span>
+              <span class="sp-meta">vs 410.700 kr.</span>
+            </div>
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Total spend over the last eight months">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="80"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar" data-h="100"></span>
+            </div>
+          </div>
+          <div class="sp-card">
+            <span class="sp-section-label">Orders</span>
+            <span class="sp-stat__figure">248</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-pill" data-color="success">+31</span>
+              <span class="sp-meta">vs 217</span>
+            </div>
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Orders over the last eight months">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="55"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="90"></span>
+              <span class="sp-bars__bar" data-h="75"></span>
+            </div>
+          </div>
+          <div class="sp-card">
+            <span class="sp-section-label">Average order</span>
+            <span class="sp-stat__figure">1.961 kr.</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-pill" data-state="progress">+3,6%</span>
+              <span class="sp-meta">vs 1.893 kr.</span>
+            </div>
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Average order over the last eight months">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="65"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="75"></span>
+              <span class="sp-bars__bar" data-h="80"></span>
+            </div>
+          </div>
+          <div class="sp-card">
+            <span class="sp-section-label">Saved</span>
+            <span class="sp-stat__figure sp-ink-success">138.410 kr.</span>
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-pill" data-color="success">22,1%</span>
+              <span class="sp-meta">of retail value</span>
+            </div>
+            <div class="sp-bars sp-bars--spark" role="img" aria-label="Saved over the last eight months">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="35"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="55"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="85"></span>
+              <span class="sp-bars__bar" data-h="90"></span>
+            </div>
+          </div>
+      </div>
+
+      <div class="sp-shell__body sp-shell__body--split">
+        <div class="sp-card">
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-section-label">Spend by month</span>
+            <span class="sp-grow"></span>
+            <div class="sp-legend">
+              <span class="sp-legend__item"><span class="sp-legend__key" data-key="1"></span>Decor</span>
+              <span class="sp-legend__item"><span class="sp-legend__key" data-key="2"></span>Seating</span>
+              <span class="sp-legend__item"><span class="sp-legend__key" data-key="3"></span>Lighting</span>
+              <span class="sp-legend__item"><span class="sp-legend__key" data-key="4"></span>Other</span>
+            </div>
+            <div class="sp-segmented" role="radiogroup" aria-label="Bar shape">
+              <label class="sp-segmented__item" data-label="Stacked"><input type="radio" name="4a-shape" defaultChecked="{{ true }}"><span class="sp-label">Stacked</span></label>
+              <label class="sp-segmented__item" data-label="Total"><input type="radio" name="4a-shape"><span class="sp-label">Total</span></label>
+            </div>
+          </div>
+
+          <div class="sp-plot">
+            <div class="sp-plot__axis">
+              <span>80k</span><span>60k</span><span>40k</span><span>20k</span><span>0</span>
+            </div>
+            <div class="sp-plot__area">
+              <div class="sp-plot__grid" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div class="sp-plot__limit" data-at="34"><span>Monthly limit 68.000 kr.</span></div>
+              <div class="sp-bars sp-bars--plot">
+                <button type="button" class="sp-bars__col" data-from="2026-01-01" data-to="2026-01-31" aria-label="Jan">
+                  <span class="sp-bars__stack" data-h="45">
+                    <span class="sp-bars__seg" data-key="1" data-share="35"></span>
+                    <span class="sp-bars__seg" data-key="2" data-share="25"></span>
+                    <span class="sp-bars__seg" data-key="3" data-share="20"></span>
+                    <span class="sp-bars__seg" data-key="4" data-share="20"></span>
+                  </span>
+                  <span class="sp-bars__tick">Jan</span>
+                </button>
+                <button type="button" class="sp-bars__col" data-from="2026-02-01" data-to="2026-02-28" aria-label="Feb">
+                  <span class="sp-bars__stack" data-h="35">
+                    <span class="sp-bars__seg" data-key="1" data-share="30"></span>
+                    <span class="sp-bars__seg" data-key="2" data-share="30"></span>
+                    <span class="sp-bars__seg" data-key="3" data-share="25"></span>
+                    <span class="sp-bars__seg" data-key="4" data-share="15"></span>
+                  </span>
+                  <span class="sp-bars__tick">Feb</span>
+                </button>
+                <button type="button" class="sp-bars__col" data-from="2026-03-01" data-to="2026-03-31" aria-label="Mar">
+                  <span class="sp-bars__stack" data-h="55">
+                    <span class="sp-bars__seg" data-key="1" data-share="40"></span>
+                    <span class="sp-bars__seg" data-key="2" data-share="25"></span>
+                    <span class="sp-bars__seg" data-key="3" data-share="20"></span>
+                    <span class="sp-bars__seg" data-key="4" data-share="15"></span>
+                  </span>
+                  <span class="sp-bars__tick">Mar</span>
+                </button>
+                <button type="button" class="sp-bars__col" data-from="2026-04-01" data-to="2026-04-30" aria-label="Apr">
+                  <span class="sp-bars__stack" data-h="50">
+                    <span class="sp-bars__seg" data-key="1" data-share="30"></span>
+                    <span class="sp-bars__seg" data-key="2" data-share="30"></span>
+                    <span class="sp-bars__seg" data-key="3" data-share="25"></span>
+                    <span class="sp-bars__seg" data-key="4" data-share="15"></span>
+                  </span>
+                  <span class="sp-bars__tick">Apr</span>
+                </button>
+                <button type="button" class="sp-bars__col" data-from="2026-05-01" data-to="2026-05-31" aria-label="May">
+                  <span class="sp-bars__stack" data-h="65">
+                    <span class="sp-bars__seg" data-key="1" data-share="35"></span>
+                    <span class="sp-bars__seg" data-key="2" data-share="25"></span>
+                    <span class="sp-bars__seg" data-key="3" data-share="25"></span>
+                    <span class="sp-bars__seg" data-key="4" data-share="15"></span>
+                  </span>
+                  <span class="sp-bars__tick">May</span>
+                </button>
+                <button type="button" class="sp-bars__col" data-from="2026-06-01" data-to="2026-06-30" aria-label="Jun">
+                  <span class="sp-bars__stack" data-h="60">
+                    <span class="sp-bars__seg" data-key="1" data-share="30"></span>
+                    <span class="sp-bars__seg" data-key="2" data-share="30"></span>
+                    <span class="sp-bars__seg" data-key="3" data-share="25"></span>
+                    <span class="sp-bars__seg" data-key="4" data-share="15"></span>
+                  </span>
+                  <span class="sp-bars__tick">Jun</span>
+                </button>
+                <button type="button" class="sp-bars__col" data-from="2026-07-01" data-to="2026-07-31" aria-label="Jul">
+                  <span class="sp-bars__stack" data-h="75">
+                    <span class="sp-bars__seg" data-key="1" data-share="40"></span>
+                    <span class="sp-bars__seg" data-key="2" data-share="25"></span>
+                    <span class="sp-bars__seg" data-key="3" data-share="20"></span>
+                    <span class="sp-bars__seg" data-key="4" data-share="15"></span>
+                  </span>
+                  <span class="sp-bars__tick">Jul</span>
+                </button>
+                <button type="button" class="sp-bars__col os-col" aria-pressed="true" data-from="2026-08-01" data-to="2026-08-31" aria-label="Aug">
+                  <div class="sp-tip sp-tip--panel os-tip">
+                    <div class="sp-tip__head"><span>August 2026</span><span>61.480 kr.</span></div>
+                    <div class="sp-tip__row"><span class="sp-legend__key" data-key="1"></span><span>Decor</span><span>24.100</span></div>
+                    <div class="sp-tip__row"><span class="sp-legend__key" data-key="2"></span><span>Seating</span><span>17.320</span></div>
+                    <div class="sp-tip__row"><span class="sp-legend__key" data-key="3"></span><span>Lighting</span><span>12.740</span></div>
+                    <div class="sp-tip__row"><span class="sp-legend__key" data-key="4"></span><span>Other</span><span>7.320</span></div>
+                    <span class="sp-meta">18 orders · click to drill in</span>
+                  </div>
+                  <span class="sp-bars__stack" data-h="80">
+                    <span class="sp-bars__seg" data-key="1" data-share="40"></span>
+                    <span class="sp-bars__seg" data-key="2" data-share="30"></span>
+                    <span class="sp-bars__seg" data-key="3" data-share="20"></span>
+                    <span class="sp-bars__seg" data-key="4" data-share="10"></span>
+                  </span>
+                  <span class="sp-bars__tick">Aug</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-panel">
+          <div class="sp-card">
+            <span class="sp-section-label">By category</span>
+            <div class="sp-row-flex sp-gap-16">
+              <div class="sp-donut" data-stops="39-67-88" role="img" aria-label="Share of August spend by category">
+                <div class="sp-donut__hole">
+                  <span class="sp-donut__figure">61,5k</span>
+                  <span class="sp-meta">August</span>
+                </div>
+              </div>
+              <div class="sp-shares sp-grow">
+                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="1"></span><span>Decor</span><span class="sp-grow"></span><span class="sp-shares__value">39%</span></button>
+                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="2"></span><span>Seating</span><span class="sp-grow"></span><span class="sp-shares__value">28%</span></button>
+                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="3"></span><span>Lighting</span><span class="sp-grow"></span><span class="sp-shares__value">21%</span></button>
+                <button type="button" class="sp-shares__row"><span class="sp-legend__key" data-key="4"></span><span>Other</span><span class="sp-grow"></span><span class="sp-shares__value">12%</span></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sp-card">
+            <span class="sp-section-label">By status</span>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Delivered</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">176</span>
+                  <span class="sp-meta">71%</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="70" min="0" max="100" aria-label="Delivered"></meter>
+                  <span class="sp-gauge__fill" data-fill="70"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Ordered</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">54</span>
+                  <span class="sp-meta">22%</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="20" min="0" max="100" aria-label="Ordered"></meter>
+                  <span class="sp-gauge__fill" data-fill="20"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Returned</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">18</span>
+                  <span class="sp-meta">7%</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="5" min="0" max="100" aria-label="Returned"></meter>
+                  <span class="sp-gauge__fill" data-fill="5"></span>
+                </span>
+              </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sp-halves">
+        <div class="sp-stack sp-gap-12">
+          <div class="sp-card">
+            <div class="sp-row-flex sp-gap-12">
+              <span class="sp-section-label">Top vendors</span>
+              <span class="sp-grow"></span>
+              <span class="sp-meta">August · select a vendor to see its orders</span>
+            </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Indbo Møbler</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">24.310 kr.</span>
+                  <span class="sp-meta">7 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="100" min="0" max="100" aria-label="Indbo Møbler"></meter>
+                  <span class="sp-gauge__fill" data-fill="100"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Hay</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">16.980 kr.</span>
+                  <span class="sp-meta">4 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="70" min="0" max="100" aria-label="Hay"></meter>
+                  <span class="sp-gauge__fill" data-fill="70"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Muuto</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">11.240 kr.</span>
+                  <span class="sp-meta">3 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="45" min="0" max="100" aria-label="Muuto"></meter>
+                  <span class="sp-gauge__fill" data-fill="45"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Ferm Living</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">6.320 kr.</span>
+                  <span class="sp-meta">3 orders</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="25" min="0" max="100" aria-label="Ferm Living"></meter>
+                  <span class="sp-gauge__fill" data-fill="25"></span>
+                </span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Other 6 vendors</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">2.630 kr.</span>
+                  <span class="sp-meta">1 order</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="10" min="0" max="100" aria-label="Other 6 vendors"></meter>
+                  <span class="sp-gauge__fill" data-fill="10"></span>
+                </span>
+              </div>
+            <div class="sp-card__footer">
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Show all 10 vendors</button>
+            </div>
+          </div>
+
+          <div class="sp-card">
+            <div class="sp-row-flex sp-gap-12">
+              <span class="sp-section-label">Spend vs saving</span>
+              <span class="sp-grow"></span>
+              <span class="sp-meta">last 8 months</span>
+            </div>
+            <div class="sp-bars">
+              <button type="button" class="sp-bars__col" data-from="2026-01-01" data-to="2026-01-31" aria-label="Jan">
+                <span class="sp-bars__pair">
+                  <span class="sp-bars__bar" data-h="60"></span>
+                  <span class="sp-bars__bar sp-bars__bar--muted" data-h="20"></span>
+                </span>
+                <span class="sp-bars__tick">Jan</span>
+              </button>
+              <button type="button" class="sp-bars__col" data-from="2026-02-01" data-to="2026-02-28" aria-label="Feb">
+                <span class="sp-bars__pair">
+                  <span class="sp-bars__bar" data-h="45"></span>
+                  <span class="sp-bars__bar sp-bars__bar--muted" data-h="20"></span>
+                </span>
+                <span class="sp-bars__tick">Feb</span>
+              </button>
+              <button type="button" class="sp-bars__col" data-from="2026-03-01" data-to="2026-03-31" aria-label="Mar">
+                <span class="sp-bars__pair">
+                  <span class="sp-bars__bar" data-h="70"></span>
+                  <span class="sp-bars__bar sp-bars__bar--muted" data-h="30"></span>
+                </span>
+                <span class="sp-bars__tick">Mar</span>
+              </button>
+              <button type="button" class="sp-bars__col" data-from="2026-04-01" data-to="2026-04-30" aria-label="Apr">
+                <span class="sp-bars__pair">
+                  <span class="sp-bars__bar" data-h="60"></span>
+                  <span class="sp-bars__bar sp-bars__bar--muted" data-h="25"></span>
+                </span>
+                <span class="sp-bars__tick">Apr</span>
+              </button>
+              <button type="button" class="sp-bars__col" data-from="2026-05-01" data-to="2026-05-31" aria-label="May">
+                <span class="sp-bars__pair">
+                  <span class="sp-bars__bar" data-h="80"></span>
+                  <span class="sp-bars__bar sp-bars__bar--muted" data-h="30"></span>
+                </span>
+                <span class="sp-bars__tick">May</span>
+              </button>
+              <button type="button" class="sp-bars__col" data-from="2026-06-01" data-to="2026-06-30" aria-label="Jun">
+                <span class="sp-bars__pair">
+                  <span class="sp-bars__bar" data-h="75"></span>
+                  <span class="sp-bars__bar sp-bars__bar--muted" data-h="35"></span>
+                </span>
+                <span class="sp-bars__tick">Jun</span>
+              </button>
+              <button type="button" class="sp-bars__col" data-from="2026-07-01" data-to="2026-07-31" aria-label="Jul">
+                <span class="sp-bars__pair">
+                  <span class="sp-bars__bar" data-h="95"></span>
+                  <span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span>
+                </span>
+                <span class="sp-bars__tick">Jul</span>
+              </button>
+              <button type="button" class="sp-bars__col" aria-pressed="true" data-from="2026-08-01" data-to="2026-08-31" aria-label="Aug">
+                <span class="sp-bars__pair">
+                  <span class="sp-bars__bar" data-h="100"></span>
+                  <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+                </span>
+                <span class="sp-bars__tick">Aug</span>
+              </button>
+            </div>
+            <div class="sp-legend">
+              <span class="sp-legend__item"><span class="sp-legend__key" data-key="1"></span>Paid</span>
+              <span class="sp-legend__item"><span class="sp-legend__key" data-key="4"></span>Saved</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-row-flex sp-gap-12">
+            <span class="sp-section-label">Monthly limit</span>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Edit on category</button>
+          </div>
+          <span class="sp-meta">Each category has one limit that applies to every month.</span>
+          <div class="sp-list-item">
+            <span class="sp-data">Day 20 of 31 - expected pace</span>
+            <span class="sp-grow"></span>
+            <span class="sp-amount">65%</span>
+          </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Decor</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">24.100</span>
+                  <span class="sp-meta">/ 22.000 kr.</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="90" min="0" max="100" aria-label="Decor"></meter>
+                  <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="90"></span>
+                  <span class="sp-gauge__over" data-over="10"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta sp-meta--over">2.100 kr. over budget</span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Seating</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">17.320</span>
+                  <span class="sp-meta">/ 24.000 kr.</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="70" min="0" max="100" aria-label="Seating"></meter>
+                  <span class="sp-gauge__fill" data-fill="70"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta">6.680 kr. left</span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Lighting</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">12.740</span>
+                  <span class="sp-meta">/ 14.000 kr.</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="90" min="0" max="100" aria-label="Lighting"></meter>
+                  <span class="sp-gauge__fill" data-fill="90"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta sp-meta--over">1.260 kr. left · ahead of pace</span>
+              </div>
+              <div class="sp-stack sp-gap-6">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-data">Textiles</span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-amount">3.180</span>
+                  <span class="sp-meta">/ 8.000 kr.</span>
+                </div>
+                <span class="sp-gauge">
+                  <meter value="40" min="0" max="100" aria-label="Textiles"></meter>
+                  <span class="sp-gauge__fill" data-fill="40"></span>
+                  <span class="sp-gauge__marker" data-at="65"></span>
+                </span>
+                <span class="sp-meta">4.820 kr. left</span>
+              </div>
+          <div class="sp-card__footer">
+            <span class="sp-data">All categories</span>
+            <span class="sp-grow"></span>
+            <span class="sp-amount">61.480</span>
+            <span class="sp-meta">/ 68.000 kr.</span>
+          </div>
+          <div class="sp-row-flex sp-gap-8">
+            <span class="os-marker-key" aria-hidden="true"></span>
+            <span class="sp-meta">Marker shows where you should be on day 20.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sp-list">
+        <div class="sp-list__toolbar sp-wrap">
+          <span class="sp-meta">Drill path</span>
+          <nav aria-label="Drill path">
+            <ol class="sp-crumbs">
+            <li><span class="sp-crumbs__root">2026</span></li>
+            <li><span class="sp-crumb">August<button type="button" class="sp-crumb__remove" aria-label="Remove August">×</button></span></li>
+            <li><span class="sp-crumb">Indbo Møbler<button type="button" class="sp-crumb__remove" aria-label="Remove Indbo Møbler">×</button></span></li>
+            <li><span class="sp-crumb">Decor<button type="button" class="sp-crumb__remove" aria-label="Remove Decor">×</button></span></li>
+            </ol>
+          </nav>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Reset</button>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Open in orders</button>
+        </div>
+
+        <div class="sp-list__toolbar">
+          <strong class="sp-data">7 orders in this slice</strong>
+          <span class="sp-meta">· 24.310,00 kr.</span>
+          <span class="sp-field__help" data-color="success">Saved 8.140,00 kr.</span>
+          <span class="sp-grow"></span>
+          <span class="sp-meta">39% of August spend</span>
+        </div>
+
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th class="sp-col-title">Order</th>
+              <th class="sp-col-date">Date</th>
+              <th class="sp-col-flex">Categories</th>
+              <th class="sp-col-number">Items</th>
+              <th class="sp-col-status">Status</th>
+              <th class="sp-col-amount">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-stacked sp-grow">
+                        <span class="sp-title sp-truncate">Indbo Møbler</span>
+                        <span class="sp-meta sp-truncate">SPENDLY-447 · Sommertilbud 80%</span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">08/08/2026</span></td>
+                    <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Decor</span></span></td>
+                    <td class="sp-col-number"><span class="sp-data">4</span></td>
+                    <td class="sp-col-status"><span class="sp-pill" data-color="success">Delivered</span></td>
+                    <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.980,00 kr.</span></div></td>
+                  </tr>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-stacked sp-grow">
+                        <span class="sp-title sp-truncate">Indbo Møbler</span>
+                        <span class="sp-meta sp-truncate">SPENDLY-441</span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">02/08/2026</span></td>
+                    <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Decor</span></span></td>
+                    <td class="sp-col-number"><span class="sp-data">2</span></td>
+                    <td class="sp-col-status"><span class="sp-pill" data-color="success">Delivered</span></td>
+                    <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.240,00 kr.</span></div></td>
+                  </tr>
+                  <tr>
+                    <td class="sp-col-title">
+                      <div class="sp-stacked sp-grow">
+                        <span class="sp-title sp-truncate">Indbo Møbler</span>
+                        <span class="sp-meta sp-truncate">SPENDLY-436 · Udstillingsmodel</span>
+                      </div>
+                    </td>
+                    <td class="sp-col-date"><span class="sp-data">21/08/2026</span></td>
+                    <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Decor</span></span></td>
+                    <td class="sp-col-number"><span class="sp-data">5</span></td>
+                    <td class="sp-col-status"><span class="sp-pill" data-state="progress">Ordered</span></td>
+                    <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">6.410,00 kr.</span></div></td>
+                  </tr>
+          </tbody>
+        </table>
+
+        <div class="sp-list__footer">
+          <span class="sp-meta">Showing 3 of 7</span>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Load more</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="4b">4b</span>
+    <span class="doc-section__title">Arriving from a &quot;See in Statistics&quot; link</span>
+  </div>
+  <div class="doc-lede">Every vendor and category panel carries one. It opens this page with that record already applied as a crumb - the same state as clicking its bar on the resting page, so there is one code path, not two.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>The link is a URL, not a handler.</b> <code>/statistics?period=2026&amp;crumbs=vendor:indbo</code> - so it is linkable, survives reload, and the browser back button returns to the panel. A click that pushes state without touching the URL cannot do any of those.</div>
+    <div class="doc-note"><b>The crumb row appears only when there is at least one crumb.</b> On the resting page (<a href="#4a">4a</a>) it is absent, not an empty strip - nothing is being narrowed, so there is nothing to say.</div>
+    <div class="doc-note"><b>Every card re-filters to the crumb, including the KPIs.</b> A card that cannot express the filter is not left showing unfiltered numbers - it is removed. Two figures side by side, one filtered and one not, is the worst outcome available here.</div>
+    <div class="doc-note"><b>KPI deltas change what they compare against.</b> At rest they compare with the previous period; inside a crumb they compare with the parent - &quot;29% of the year&quot;, &quot;+91% vs all vendors&quot;. The number alone is meaningless without knowing which.</div>
+    <div class="doc-note"><b>The order table at the bottom is always the orders behind exactly what is shown.</b> It is the answer to &quot;which orders is this number made of&quot;, and it is the reason a user trusts the chart above it. Its row component is the order list's, unchanged.</div>
+    <div class="doc-note"><b>The period control keeps working alongside crumbs.</b> Period and crumbs are independent filters - switching to Quarter narrows the same vendor, it does not drop it.</div>
+  </div>
+
+  <div class="os-screen doc-frame">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+    <div class="os-body">
+      <div class="sp-period">
+        <div class="sp-period__presets" role="radiogroup" aria-label="Period">
+          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4b-period"><span class="sp-label">30 days</span></label>
+          <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4b-period"><span class="sp-label">Quarter</span></label>
+          <label class="sp-period__preset" data-label="Year"><input type="radio" name="4b-period" defaultChecked="{{ true }}"><span class="sp-label">Year</span></label>
+          <label class="sp-period__preset" data-label="Custom"><input type="radio" name="4b-period"><span class="sp-label">Custom</span></label>
+        </div>
+        <span class="sp-period__resolved">01/01/2026 - 20/08/2026</span>
+        <label class="sp-row-flex sp-gap-8">
+          <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
+          <span class="sp-data">Compare with 2025</span>
+        </label>
+        <span class="sp-grow"></span>
+        <div class="sp-combobox">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
+            <span class="sp-grow">Expenses only</span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+          </button>
+        </div>
+        <button type="button" class="sp-btn sp-btn--outline">Export</button>
+      </div>
+
+      <div class="sp-card sp-crumbs-bar">
+        <span class="sp-section-label">Showing</span>
+        <nav aria-label="Drill path">
+          <ol class="sp-crumbs">
+            <li><span class="sp-crumbs__root">2026</span></li>
+            <li><span class="sp-crumb"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">IM</span>Indbo Møbler<button type="button" class="sp-crumb__remove" aria-label="Remove Indbo Møbler">×</button></span></li>
+          </ol>
+        </nav>
+      </div>
+
+      <div class="os-stats">
+        <div class="sp-card">
+          <span class="sp-section-label">Spend</span>
+          <span class="sp-stat__figure">142.310 kr.</span>
+          <span class="sp-field__help">29% of the year</span>
+        </div>
+        <div class="sp-card">
+          <span class="sp-section-label">Orders</span>
+          <span class="sp-stat__figure">38</span>
+        </div>
+        <div class="sp-card">
+          <span class="sp-section-label">Average order</span>
+          <span class="sp-stat__figure">3.745 kr.</span>
+          <span class="sp-field__help" data-color="warning">+91% vs all vendors</span>
+        </div>
+        <div class="sp-card">
+          <span class="sp-section-label">Saved</span>
+          <span class="sp-stat__figure">41.220 kr.</span>
+        </div>
+      </div>
+
+      <div class="sp-halves">
+        <div class="sp-card">
+          <div class="sp-row-flex sp-gap-8">
+            <span class="sp-section-label">Spend by month</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">Indbo Møbler only</span>
+          </div>
+          <div class="sp-bars">
+            <button type="button" class="sp-bars__col" data-from="2026-01-01" data-to="2026-01-31" aria-label="Jan">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="40"></span>
+              <span class="sp-bars__tick">Jan</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-02-01" data-to="2026-02-28" aria-label="Feb">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__tick">Feb</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-03-01" data-to="2026-03-31" aria-label="Mar">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+              <span class="sp-bars__tick">Mar</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-04-01" data-to="2026-04-30" aria-label="Apr">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__tick">Apr</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-05-01" data-to="2026-05-31" aria-label="May">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="60"></span>
+              <span class="sp-bars__tick">May</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-06-01" data-to="2026-06-30" aria-label="Jun">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="80"></span>
+              <span class="sp-bars__tick">Jun</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-07-01" data-to="2026-07-31" aria-label="Jul">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="70"></span>
+              <span class="sp-bars__tick">Jul</span>
+            </button>
+            <button type="button" class="sp-bars__col" aria-pressed="true" data-from="2026-08-01" data-to="2026-08-31" aria-label="Aug">
+              <span class="sp-bars__bar" data-h="100"></span>
+              <span class="sp-bars__tick">Aug</span>
+            </button>
+          </div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-row-flex sp-gap-8">
+            <span class="sp-section-label">By category</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">click to drill further</span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Decor</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">62.400</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="100" min="0" max="100" aria-label="Decor"></meter>
+              <span class="sp-gauge__fill" data-fill="100"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Storage</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">42.180</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="70" min="0" max="100" aria-label="Storage"></meter>
+              <span class="sp-gauge__fill" data-fill="70"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Seating</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">27.310</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="45" min="0" max="100" aria-label="Seating"></meter>
+              <span class="sp-gauge__fill" data-fill="45"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Lighting</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">10.420</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="15" min="0" max="100" aria-label="Lighting"></meter>
+              <span class="sp-gauge__fill" data-fill="15"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sp-list">
+        <div class="sp-list__toolbar">
+          <span class="sp-section-label">The 38 orders behind this</span>
+        </div>
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th class="sp-col-title">Order</th>
+              <th class="sp-col-date">Date</th>
+              <th class="sp-col-flex">Categories</th>
+              <th class="sp-col-amount">Total</th>
+              <th class="sp-col-menu"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">SPENDLY-447</span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">12/08/2026</span></td>
+              <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Decor</span></span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.635,00</span></div></td>
+              <td class="sp-cell-menu-cell">
+                <div class="sp-cell-menu sp-anchor">
+                  <button type="button" class="sp-icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">SPENDLY-441</span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">03/08/2026</span></td>
+              <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Storage</span></span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">3.240,00</span></div></td>
+              <td class="sp-cell-menu-cell">
+                <div class="sp-cell-menu sp-anchor">
+                  <button type="button" class="sp-icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">SPENDLY-436</span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">21/07/2026</span></td>
+              <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Decor</span></span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.240,00</span></div></td>
+              <td class="sp-cell-menu-cell">
+                <div class="sp-cell-menu sp-anchor">
+                  <button type="button" class="sp-icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="4c">4c</span>
+    <span class="doc-section__title">Two crumbs deep, and how a crumb is removed</span>
+  </div>
+  <div class="doc-lede">Crumbs are an ordered stack. Each one narrows what the last one left, and each is independently removable - the last carries the ×, and clicking an earlier one truncates to it.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Only the last crumb carries an ×.</b> Earlier ones are clickable to truncate back to that level. Two ways to remove the same thing invites the question of what removing a middle crumb means.</div>
+    <div class="doc-note"><b>Removing a middle crumb keeps the ones after it if they are still valid, and drops those that are not.</b> Vendor ▸ Decor with the vendor removed is still a valid Decor view; Decor ▸ August with Decor removed leaves August alone.</div>
+    <div class="doc-note"><b>Drill order is not fixed.</b> Vendor then category and category then vendor reach the same set, and the crumb row reads in the order the user drilled - it is a record of their path, not a fixed hierarchy.</div>
+    <div class="doc-note"><b>Cards can appear as you drill, not only disappear.</b> Two crumbs in, a category limit becomes meaningful, so the limit-by-month card exists here and not at rest. A card that only makes sense inside a crumb belongs inside it.</div>
+    <div class="doc-note"><b>Depth is capped at three.</b> Beyond that the order table below is the better answer than another chart of four rows.</div>
+    <div class="doc-note"><b>The crumb row wraps rather than scrolling</b>, and never truncates a record's name - a crumb the user cannot read is a filter they cannot verify.</div>
+  </div>
+
+  <div class="os-screen doc-frame">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+    <div class="os-body">
+      <div class="sp-period">
+        <div class="sp-period__presets" role="radiogroup" aria-label="Period">
+          <label class="sp-period__preset" data-label="30 days"><input type="radio" name="4c-period"><span class="sp-label">30 days</span></label>
+          <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4c-period"><span class="sp-label">Quarter</span></label>
+          <label class="sp-period__preset" data-label="Year"><input type="radio" name="4c-period" defaultChecked="{{ true }}"><span class="sp-label">Year</span></label>
+          <label class="sp-period__preset" data-label="Custom"><input type="radio" name="4c-period"><span class="sp-label">Custom</span></label>
+        </div>
+        <span class="sp-period__resolved">01/01/2026 - 20/08/2026</span>
+        <label class="sp-row-flex sp-gap-8">
+          <input class="sp-switch" type="checkbox" role="switch" defaultChecked="{{ true }}">
+          <span class="sp-data">Compare with 2025</span>
+        </label>
+        <span class="sp-grow"></span>
+        <div class="sp-combobox">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
+            <span class="sp-grow">Expenses only</span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+          </button>
+        </div>
+        <button type="button" class="sp-btn sp-btn--outline">Export</button>
+      </div>
+
+      <div class="sp-card sp-crumbs-bar">
+        <span class="sp-section-label">Showing</span>
+        <nav aria-label="Drill path">
+          <ol class="sp-crumbs">
+            <li><span class="sp-crumbs__root">2026</span></li>
+            <li><span class="sp-crumb"><span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true">IM</span>Indbo Møbler</span></li>
+            <li><span class="sp-crumb">Decor<button type="button" class="sp-crumb__remove" aria-label="Remove Decor">×</button></span></li>
+          </ol>
+        </nav>
+      </div>
+
+      <div class="os-stats">
+        <div class="sp-card">
+          <span class="sp-section-label">Spend</span>
+          <span class="sp-stat__figure">62.400 kr.</span>
+          <span class="sp-field__help">44% of this vendor</span>
+        </div>
+        <div class="sp-card">
+          <span class="sp-section-label">Orders</span>
+          <span class="sp-stat__figure">19</span>
+        </div>
+        <div class="sp-card">
+          <span class="sp-section-label">Average order</span>
+          <span class="sp-stat__figure">3.284 kr.</span>
+        </div>
+        <div class="sp-card">
+          <span class="sp-section-label">Against the limit</span>
+          <span class="sp-stat__figure">7.240 / 6.000</span>
+          <span class="sp-field__help" data-color="warning">August, over</span>
+        </div>
+      </div>
+
+      <div class="sp-halves">
+        <div class="sp-card">
+          <div class="sp-row-flex sp-gap-8">
+            <span class="sp-section-label">Spend by month</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">Indbo Møbler · Decor</span>
+          </div>
+          <div class="sp-bars">
+            <button type="button" class="sp-bars__col" data-from="2026-01-01" data-to="2026-01-31" aria-label="Jan">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="20"></span>
+              <span class="sp-bars__tick">Jan</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-02-01" data-to="2026-02-28" aria-label="Feb">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="30"></span>
+              <span class="sp-bars__tick">Feb</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-03-01" data-to="2026-03-31" aria-label="Mar">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="30"></span>
+              <span class="sp-bars__tick">Mar</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-04-01" data-to="2026-04-30" aria-label="Apr">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="45"></span>
+              <span class="sp-bars__tick">Apr</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-05-01" data-to="2026-05-31" aria-label="May">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="35"></span>
+              <span class="sp-bars__tick">May</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-06-01" data-to="2026-06-30" aria-label="Jun">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__tick">Jun</span>
+            </button>
+            <button type="button" class="sp-bars__col" data-from="2026-07-01" data-to="2026-07-31" aria-label="Jul">
+              <span class="sp-bars__bar sp-bars__bar--muted" data-h="50"></span>
+              <span class="sp-bars__tick">Jul</span>
+            </button>
+            <button type="button" class="sp-bars__col" aria-pressed="true" data-from="2026-08-01" data-to="2026-08-31" aria-label="Aug">
+              <span class="sp-bars__bar" data-h="100"></span>
+              <span class="sp-bars__tick">Aug</span>
+            </button>
+          </div>
+        </div>
+        <div class="sp-card">
+          <div class="sp-row-flex sp-gap-8">
+            <span class="sp-section-label">By month, against the limit</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">limit 6.000 kr.</span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">June</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">3.740</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="60" min="0" max="100" aria-label="June"></meter>
+              <span class="sp-gauge__fill" data-fill="60"></span>
+              <span class="sp-gauge__marker" data-at="65"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">July</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">5.180</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="85" min="0" max="100" aria-label="July"></meter>
+              <span class="sp-gauge__fill" data-fill="85"></span>
+              <span class="sp-gauge__marker" data-at="65"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data sp-subtitle">August</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">7.240</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="100" min="0" max="100" aria-label="August"></meter>
+              <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="100"></span>
+              <span class="sp-gauge__marker" data-at="65"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sp-list">
+        <div class="sp-list__toolbar">
+          <span class="sp-section-label">The 19 orders behind this</span>
+        </div>
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th class="sp-col-title">Order</th>
+              <th class="sp-col-date">Date</th>
+              <th class="sp-col-flex">Categories</th>
+              <th class="sp-col-amount">Total</th>
+              <th class="sp-col-menu"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">SPENDLY-447</span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">12/08/2026</span></td>
+              <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Decor</span></span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.635,00</span></div></td>
+              <td class="sp-cell-menu-cell">
+                <div class="sp-cell-menu sp-anchor">
+                  <button type="button" class="sp-icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">SPENDLY-436</span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">21/07/2026</span></td>
+              <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Decor</span></span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.240,00</span></div></td>
+              <td class="sp-cell-menu-cell">
+                <div class="sp-cell-menu sp-anchor">
+                  <button type="button" class="sp-icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="4d">4d</span>
+    <span class="doc-section__title">A year with 200 vendors</span>
+  </div>
+  <div class="doc-lede">A mature account, three years on: 200 vendors and 34 categories in one year. At that scale a breakdown has hundreds of rows, and a 200-row card is unreadable whether it scrolls or not. Every breakdown rests at its top eight with the remainder carried as one row, and expands in place when asked. Nothing on this page is an open-ended list.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Eight rows, then one Other row, then the link.</b> The Other row carries the summed remainder and its count, so the column still adds to the KPI above it. Without it the card silently understates the total and every percentage on it is wrong.</div>
+    <div class="doc-note"><b>Expansion happens in the card, not on a new page.</b> The link swaps the eight rows for all of them inside a height-capped scroll region; the card keeps its position in the grid and the crumb state is untouched. A separate ranked page would need its own period control, its own crumbs and its own back behaviour.</div>
+    <div class="doc-note"><b>The Other row is not clickable, and once expanded it is gone.</b> Drilling into &quot;192 vendors&quot; has no meaning as a crumb; expanded, the remainder is the rows themselves.</div>
+    <div class="doc-note"><b>Charts cap at ten series plus Other.</b> Beyond ten bars the axis labels collide and the small values fall below a pixel. The cap is on the chart, not the query - the Other bar is the same remainder the ranked list uses.</div>
+    <div class="doc-note"><b>The order table loads 25 at a time.</b> Load more appends and keeps scroll position; the footer count always names the real total, so the user knows what they have not seen. No page numbers - the table is proof of the slice above it, not something to navigate.</div>
+    <div class="doc-note"><b>Expanded and loaded state is not persisted.</b> Changing the period or any crumb collapses every card back to eight and the table back to 25, because the rows answer a query that just changed.</div>
+    <div class="doc-note"><b>No search or sort inside a breakdown.</b> It is ranked by the measure the card is about. A user looking for one named vendor uses the vendor list or search, which are built for that.</div>
+    <div class="doc-note"><b>Which of these change the URL.</b> A vendor row does - it appends a crumb (<code>crumbs=vendor:hay</code>) and every card refilters. Show all, Show top 8 and Load more do not: they are card-local view state, so a reload comes back at top 8 and 25 rows. An order row leaves the page for <code>/orders/:id</code>; Open in orders leaves for <code>/orders</code> with the crumbs translated into filter chips. The Other row and the Other bar are inert.</div>
+  </div>
+
+  <div class="os-screen doc-frame">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+    <div class="os-body">
+      <div class="sp-card sp-crumbs-bar">
+        <span class="sp-section-label">Showing</span>
+        <nav aria-label="Drill path">
+          <ol class="sp-crumbs">
+            <li><span class="sp-crumbs__root">2029</span></li>
+          </ol>
+        </nav>
+        <span class="sp-grow"></span>
+        <span class="sp-meta">1.960 orders · 200 vendors · 34 categories</span>
+      </div>
+
+      <div class="sp-halves">
+        <div class="sp-card">
+          <div class="sp-row-flex sp-gap-8">
+            <span class="sp-section-label">By vendor</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">top 8 of 200</span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Indbo Møbler</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">742.310</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="100" min="0" max="100" aria-label="Indbo Møbler"></meter>
+              <span class="sp-gauge__fill" data-fill="100"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Hay</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">498.400</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="65" min="0" max="100" aria-label="Hay"></meter>
+              <span class="sp-gauge__fill" data-fill="65"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Muuto</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">401.240</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="55" min="0" max="100" aria-label="Muuto"></meter>
+              <span class="sp-gauge__fill" data-fill="55"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Ferm Living</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">344.900</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="45" min="0" max="100" aria-label="Ferm Living"></meter>
+              <span class="sp-gauge__fill" data-fill="45"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Normann Copenhagen</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">288.180</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="40" min="0" max="100" aria-label="Normann Copenhagen"></meter>
+              <span class="sp-gauge__fill" data-fill="40"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">&Tradition</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">236.640</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="30" min="0" max="100" aria-label="&Tradition"></meter>
+              <span class="sp-gauge__fill" data-fill="30"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Skagerak</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">191.310</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="25" min="0" max="100" aria-label="Skagerak"></meter>
+              <span class="sp-gauge__fill" data-fill="25"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Menu</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">147.050</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="20" min="0" max="100" aria-label="Menu"></meter>
+              <span class="sp-gauge__fill" data-fill="20"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data sp-subtitle">Other 192 vendors</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">492.570</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="65" min="0" max="100" aria-label="Other 192 vendors"></meter>
+              <span class="sp-gauge__fill sp-gauge__fill--over" data-fill="65"></span>
+            </span>
+          </div>
+          <div class="sp-card__footer">
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Show all 200 vendors</button>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">3.342.600 kr. total</span>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <div class="sp-row-flex sp-gap-8">
+            <span class="sp-section-label">By vendor</span>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">expanded · 200 of 200</span>
+          </div>
+          <div class="os-scroll sp-scrolls">
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Indbo Møbler</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">742.310</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="100" min="0" max="100" aria-label="Indbo Møbler"></meter>
+              <span class="sp-gauge__fill" data-fill="100"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Hay</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">498.400</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="65" min="0" max="100" aria-label="Hay"></meter>
+              <span class="sp-gauge__fill" data-fill="65"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Muuto</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">401.240</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="55" min="0" max="100" aria-label="Muuto"></meter>
+              <span class="sp-gauge__fill" data-fill="55"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Ferm Living</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">344.900</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="45" min="0" max="100" aria-label="Ferm Living"></meter>
+              <span class="sp-gauge__fill" data-fill="45"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Normann Copenhagen</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">288.180</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="40" min="0" max="100" aria-label="Normann Copenhagen"></meter>
+              <span class="sp-gauge__fill" data-fill="40"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">&Tradition</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">236.640</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="30" min="0" max="100" aria-label="&Tradition"></meter>
+              <span class="sp-gauge__fill" data-fill="30"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Skagerak</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">191.310</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="25" min="0" max="100" aria-label="Skagerak"></meter>
+              <span class="sp-gauge__fill" data-fill="25"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Menu</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">147.050</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="20" min="0" max="100" aria-label="Menu"></meter>
+              <span class="sp-gauge__fill" data-fill="20"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Louis Poulsen</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">121.480</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="15" min="0" max="100" aria-label="Louis Poulsen"></meter>
+              <span class="sp-gauge__fill" data-fill="15"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Frama</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">98.220</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="15" min="0" max="100" aria-label="Frama"></meter>
+              <span class="sp-gauge__fill" data-fill="15"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">String Furniture</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">84.640</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="10" min="0" max="100" aria-label="String Furniture"></meter>
+              <span class="sp-gauge__fill" data-fill="10"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Gubi</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">71.310</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="10" min="0" max="100" aria-label="Gubi"></meter>
+              <span class="sp-gauge__fill" data-fill="10"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Bolia</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">62.900</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="10" min="0" max="100" aria-label="Bolia"></meter>
+              <span class="sp-gauge__fill" data-fill="10"></span>
+            </span>
+          </div>
+          </div>
+          <div class="sp-card__footer">
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Show top 8 only</button>
+            <span class="sp-grow"></span>
+            <span class="sp-meta">scrolls inside the card</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sp-card">
+        <div class="sp-row-flex sp-gap-8">
+          <span class="sp-section-label">Spend by vendor</span>
+          <span class="sp-grow"></span>
+          <span class="sp-meta">top 10, remainder as one bar</span>
+        </div>
+        <div class="sp-bars">
+          <button type="button" class="sp-bars__col" aria-label="Indbo">
+            <span class="sp-bars__bar" data-h="80"></span>
+            <span class="sp-bars__tick">Indbo</span>
+          </button>
+          <button type="button" class="sp-bars__col" aria-label="Hay">
+            <span class="sp-bars__bar" data-h="55"></span>
+            <span class="sp-bars__tick">Hay</span>
+          </button>
+          <button type="button" class="sp-bars__col" aria-label="Muuto">
+            <span class="sp-bars__bar" data-h="45"></span>
+            <span class="sp-bars__tick">Muuto</span>
+          </button>
+          <button type="button" class="sp-bars__col" aria-label="Ferm">
+            <span class="sp-bars__bar" data-h="40"></span>
+            <span class="sp-bars__tick">Ferm</span>
+          </button>
+          <button type="button" class="sp-bars__col" aria-label="Normann">
+            <span class="sp-bars__bar" data-h="30"></span>
+            <span class="sp-bars__tick">Normann</span>
+          </button>
+          <button type="button" class="sp-bars__col" aria-label="&Tradition">
+            <span class="sp-bars__bar" data-h="25"></span>
+            <span class="sp-bars__tick">&Tradition</span>
+          </button>
+          <button type="button" class="sp-bars__col" aria-label="Skagerak">
+            <span class="sp-bars__bar" data-h="20"></span>
+            <span class="sp-bars__tick">Skagerak</span>
+          </button>
+          <button type="button" class="sp-bars__col" aria-label="Menu">
+            <span class="sp-bars__bar" data-h="15"></span>
+            <span class="sp-bars__tick">Menu</span>
+          </button>
+          <button type="button" class="sp-bars__col" aria-label="Poulsen">
+            <span class="sp-bars__bar" data-h="15"></span>
+            <span class="sp-bars__tick">Poulsen</span>
+          </button>
+          <button type="button" class="sp-bars__col" aria-label="Frama">
+            <span class="sp-bars__bar" data-h="10"></span>
+            <span class="sp-bars__tick">Frama</span>
+          </button>
+          <span class="sp-bars__col">
+            <span class="sp-bars__bar sp-bars__bar--muted" data-h="30"></span>
+            <span class="sp-bars__tick">Other 190</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="sp-list">
+        <div class="sp-list__toolbar">
+          <strong class="sp-data">1.960 orders in this slice</strong>
+          <span class="sp-meta">· 3.342.600,00 kr.</span>
+          <span class="sp-grow"></span>
+          <span class="sp-meta">newest first</span>
+        </div>
+        <table class="sp-table">
+          <thead>
+            <tr>
+              <th class="sp-col-title">Order</th>
+              <th class="sp-col-date">Date</th>
+              <th class="sp-col-flex">Categories</th>
+              <th class="sp-col-amount">Total</th>
+              <th class="sp-col-menu"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">SPENDLY-447</span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">12/08/2026</span></td>
+              <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Decor</span></span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.635,00</span></div></td>
+              <td class="sp-cell-menu-cell">
+                <div class="sp-cell-menu sp-anchor">
+                  <button type="button" class="sp-icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Hay</span>
+                  <span class="sp-meta sp-truncate">SPENDLY-446</span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">11/08/2026</span></td>
+              <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Seating</span></span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">4.180,00</span></div></td>
+              <td class="sp-cell-menu-cell">
+                <div class="sp-cell-menu sp-anchor">
+                  <button type="button" class="sp-icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="sp-col-title">
+                <div class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Louis Poulsen</span>
+                  <span class="sp-meta sp-truncate">SPENDLY-445</span>
+                </div>
+              </td>
+              <td class="sp-col-date"><span class="sp-data">09/08/2026</span></td>
+              <td class="sp-col-flex"><span class="sp-chip sp-chip--static"><span>Lighting</span></span></td>
+              <td class="sp-col-amount"><div class="sp-stacked sp-cell-amount"><span class="sp-amount">2.940,00</span></div></td>
+              <td class="sp-cell-menu-cell">
+                <div class="sp-cell-menu sp-anchor">
+                  <button type="button" class="sp-icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Actions"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="sp-list__footer">
+          <span class="sp-meta">Showing 25 of 1.960</span>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Load more</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="4e">4e</span>
+    <span class="doc-section__title">The &quot;Expenses only&quot; menu</span>
+  </div>
+  <div class="doc-lede">Three options, single choice, because an order is either money out or money back and a user asking about spend means one of three things: what I paid, what came back, or the difference. The control always reads the choice, never the word &quot;Filter&quot;.</div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Values:</b> <code>expenses</code> (default) · <code>refunds</code> · <code>net</code>. In the URL as <code>flow=</code>, alongside <code>period</code> and <code>crumbs</code>, so a shared link carries it.</div>
+    <div class="doc-note"><b>What each value selects.</b> <code>expenses</code>: orders with a positive total. <code>refunds</code>: returned orders and credit notes - anything whose total is negative. <code>net</code>: both, summed with sign. <b>⚠ CONFIRM</b> whether a partially returned order is one record with a reduced total or two records; if two, <code>expenses</code> shows the original and the option list is correct as drawn.</div>
+    <div class="doc-note"><b>It filters, it does not change definitions.</b> Average order, the saving and every breakdown recompute over the selected set. Under <code>refunds</code> the KPI labels stay the same and the figures are refund figures - no relabelling, or two screenshots of the page cannot be compared.</div>
+    <div class="doc-note"><b>Under <code>net</code>, negative values are possible</b> in a breakdown row and in a month bar. Rows render with a minus sign in the red token; bars draw downward from the axis. A card that cannot express a negative (the donut) is removed at that setting rather than drawn with a false slice.</div>
+    <div class="doc-note"><b>The choice survives crumb and period changes</b> and is not reset by them. It is a lens on the data, not part of the drill path, so it never appears as a crumb.</div>
+    <div class="doc-note"><b>Budget limits only apply under <code>expenses</code> and <code>net</code>.</b> A limit compared against refunds is meaningless, so the limit cards and the pace marker come out under <code>refunds</code>.</div>
+    <div class="doc-note"><b>Not a multi-select.</b> Two of three checked is either <code>net</code> or a single value, so checkboxes would offer a state that has no answer.</div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Open</span>
+      <div class="os-menu-stage doc-frame">
+        <div class="os-body">
+          <div class="sp-period">
+            <span class="sp-period__resolved">01/01/2026 - 20/08/2026</span>
+            <span class="sp-grow"></span>
+            <div class="sp-combobox sp-combobox--end" data-open="true">
+              <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="true" aria-label="Lens">
+                <span class="sp-grow">Expenses only</span>
+                <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6" /></svg>
+              </button>
+              <ul class="sp-combobox__panel" role="listbox" aria-label="Which orders">
+                <li role="option" aria-selected="true"><button type="button" class="sp-combobox__option" aria-selected="true">
+                  <span class="sp-stack sp-grow">
+                    <span class="sp-data">Expenses only</span>
+                    <span class="sp-meta">What you paid.</span>
+                  </span>
+                  <svg class="sp-combobox__check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10" /></svg>
+                </button></li>
+                <li role="option"><button type="button" class="sp-combobox__option">
+                  <span class="sp-stack sp-grow">
+                    <span class="sp-data">Refunds only</span>
+                    <span class="sp-meta">Returns and credit notes.</span>
+                  </span>
+                </button></li>
+                <li role="option"><button type="button" class="sp-combobox__option">
+                  <span class="sp-stack sp-grow">
+                    <span class="sp-data">Net of refunds</span>
+                    <span class="sp-meta">What you paid, less what came back.</span>
+                  </span>
+                </button></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Closed, one per choice</span>
+      <div class="sp-stack sp-gap-12">
+        <div class="sp-combobox doc-w400">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
+            <span class="sp-grow">Expenses only</span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+          </button>
+        </div>
+        <div class="sp-combobox doc-w400">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
+            <span class="sp-grow">Refunds only</span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+          </button>
+        </div>
+        <div class="sp-combobox doc-w400">
+          <button type="button" class="sp-combobox__trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lens">
+            <span class="sp-grow">Net of refunds</span>
+            <svg class="sp-combobox__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">A negative row and month, under net</span>
+      <div class="sp-card os-col-320">
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Indbo Møbler</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount">128.900</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="100" min="0" max="100" aria-label="Indbo Møbler"></meter>
+              <span class="sp-gauge__fill" data-fill="100"></span>
+            </span>
+          </div>
+          <div class="sp-stack sp-gap-6">
+            <div class="sp-row-flex sp-gap-8">
+              <span class="sp-data">Skagerak</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount sp-ink-danger">−4.180</span>
+            </div>
+            <span class="sp-gauge">
+              <meter value="5" min="0" max="100" aria-label="Skagerak"></meter>
+              <span class="sp-gauge__fill sp-gauge__fill--negative" data-fill="5"></span>
+            </span>
+          </div>
+        <div class="sp-bars os-signed">
+          <span class="sp-bars__col"><span class="sp-bars__bar" data-h="50"></span></span>
+          <span class="sp-bars__col"><span class="sp-bars__bar" data-h="70"></span></span>
+          <span class="sp-bars__col"><span class="sp-bars__bar" data-h="45"></span></span>
+          <span class="sp-bars__col"><span class="sp-bars__bar" data-h="90"></span></span>
+        </div>
+        <div class="os-below" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span class="os-below__bar"></span>
+          <span></span>
+        </div>
+        <span class="sp-meta">March returned more than it bought.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="4f">4f</span>
+    <span class="doc-section__title">Custom - the range picker</span>
+  </div>
+  <div class="doc-lede">What the fifth preset opens. The four named windows resolve to a range on their own; Custom is the one that asks, so the control grows a panel under it rather than sending the user to another screen. Everything in it is <a href="Components.dc.html#c14">c14</a>'s period control unchanged - the quick ranges, the two date fields, two months of days, and the count of what is selected.</div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>Nothing recomputes until Apply.</b> The panel is a draft: picking days changes the fields and the count, and the page behind it is untouched. Cancel closes it and leaves the period as it was. This is the one control on the page that does not filter as you touch it, because a half-entered range is not a range.</div>
+    <div class="doc-note"><b>The quick ranges are shortcuts to a range, not presets of their own.</b> This month, Last month, Year to date and All time each fill both fields and leave the panel open, so the user can still adjust before applying. They are not a second set of windows - the four presets are the windows.</div>
+    <div class="doc-note"><b>Two months, always.</b> A range crosses a month boundary more often than not, and one month means paging back and forth to see both ends. The arrows move the pair together.</div>
+    <div class="doc-note"><b>The fields accept typing.</b> Someone who knows the dates should not have to click 43 times. Typing a date moves the calendar to it; the field being edited is marked, so it is clear which end the next click sets.</div>
+    <div class="doc-note"><b>Custom stays selected after Apply</b>, with the resolved range beside it and the day count after that - the same two readouts the named windows use. There is no stepper: a range of its own has no next or previous.</div>
+    <div class="doc-note"><b>On touch the panel is a sheet, not a dropdown</b>, with one scrolling month instead of two - <a href="Components.dc.html#c14">c14</a> draws that state. The fields stay above the days so the keyboard never covers them.</div>
+  </div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen">
+      <span class="doc-specimen__label">Custom picked, the panel open, a range part-entered</span>
+      <div class="os-picker">
+        <div class="sp-period">
+        <div class="sp-period__presets" role="group" aria-label="Window size">
+          <label class="sp-period__preset" data-label="Week"><input type="radio" name="4f-period"><span class="sp-label">Week</span></label>
+          <label class="sp-period__preset" data-label="Month"><input type="radio" name="4f-period"><span class="sp-label">Month</span></label>
+          <label class="sp-period__preset" data-label="Quarter"><input type="radio" name="4f-period"><span class="sp-label">Quarter</span></label>
+          <label class="sp-period__preset" data-label="Year"><input type="radio" name="4f-period"><span class="sp-label">Year</span></label>
+          <span class="sp-period__anchor">
+          <label class="sp-period__preset" data-label="Custom"><input type="radio" name="4f-period" defaultChecked="{{ true }}"><span class="sp-label">Custom</span></label>
+          <div class="sp-period__custom">
+            <div class="sp-range" role="group" aria-label="Custom range">
+              <div class="sp-range__quick">
+                <button type="button" class="sp-chip sp-chip--pill"><span>This month</span></button>
+                <button type="button" class="sp-chip sp-chip--pill"><span>Last month</span></button>
+                <button type="button" class="sp-chip sp-chip--pill"><span>Year to date</span></button>
+                <button type="button" class="sp-chip sp-chip--pill"><span>All time</span></button>
+              </div>
+              <div class="sp-range__fields">
+                <div class="sp-range__field">
+                  <label class="sp-range__label" for="4f-from">From</label>
+                  <input class="sp-range__input" id="4f-from" type="text" inputMode="numeric" defaultValue="08/03/2026" data-editing="true">
+                </div>
+                <span class="sp-range__arrow" aria-hidden="true">→</span>
+                <div class="sp-range__field">
+                  <label class="sp-range__label" for="4f-to">To</label>
+                  <input class="sp-range__input" id="4f-to" type="text" inputMode="numeric" defaultValue="19/04/2026">
+                </div>
+              </div>
+              <div class="sp-range__months">
+                <div class="sp-range__month">
+                  <div class="sp-range__month-head">
+                    <button type="button" class="sp-range__nav" aria-label="Previous month"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6" /></svg></button>
+                    <span>March 2026</span>
+                  </div>
+                  <div class="sp-range__weekdays" aria-hidden="true"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+                  <div class="sp-range__days">
+                    <button type="button" class="sp-range__day sp-range__day--outside">23</button><button type="button" class="sp-range__day sp-range__day--outside">24</button><button type="button" class="sp-range__day sp-range__day--outside">25</button><button type="button" class="sp-range__day sp-range__day--outside">26</button><button type="button" class="sp-range__day sp-range__day--outside">27</button><button type="button" class="sp-range__day sp-range__day--outside">28</button><button type="button" class="sp-range__day">1</button>
+                    <button type="button" class="sp-range__day">2</button><button type="button" class="sp-range__day">3</button><button type="button" class="sp-range__day">4</button><button type="button" class="sp-range__day">5</button><button type="button" class="sp-range__day">6</button><button type="button" class="sp-range__day">7</button><button type="button" class="sp-range__day">8</button>
+                    <button type="button" class="sp-range__day sp-range__day--in">9</button><button type="button" class="sp-range__day sp-range__day--in">10</button><button type="button" class="sp-range__day sp-range__day--in">11</button><button type="button" class="sp-range__day sp-range__day--in">12</button><button type="button" class="sp-range__day sp-range__day--in">13</button><button type="button" class="sp-range__day sp-range__day--in">14</button><button type="button" class="sp-range__day sp-range__day--in">15</button>
+                    <button type="button" class="sp-range__day sp-range__day--in">16</button><button type="button" class="sp-range__day sp-range__day--in">17</button><button type="button" class="sp-range__day sp-range__day--in">18</button><button type="button" class="sp-range__day sp-range__day--in">19</button><button type="button" class="sp-range__day sp-range__day--in">20</button><button type="button" class="sp-range__day sp-range__day--in">21</button><button type="button" class="sp-range__day sp-range__day--in">22</button>
+                    <button type="button" class="sp-range__day sp-range__day--in">23</button><button type="button" class="sp-range__day sp-range__day--in">24</button><button type="button" class="sp-range__day sp-range__day--in">25</button><button type="button" class="sp-range__day sp-range__day--in">26</button><button type="button" class="sp-range__day sp-range__day--in">27</button><button type="button" class="sp-range__day sp-range__day--in">28</button><button type="button" class="sp-range__day sp-range__day--in">29</button>
+                    <button type="button" class="sp-range__day sp-range__day--in">30</button><button type="button" class="sp-range__day sp-range__day--in">31</button><span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                </div>
+                <div class="sp-range__month">
+                  <div class="sp-range__month-head">
+                    <span>April 2026</span>
+                    <span class="sp-grow"></span>
+                    <button type="button" class="sp-range__nav" aria-label="Next month"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></button>
+                  </div>
+                  <div class="sp-range__weekdays" aria-hidden="true"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+                  <div class="sp-range__days">
+                    <span></span><span></span><button type="button" class="sp-range__day sp-range__day--in">1</button><button type="button" class="sp-range__day sp-range__day--in">2</button><button type="button" class="sp-range__day sp-range__day--in">3</button><button type="button" class="sp-range__day sp-range__day--in">4</button><button type="button" class="sp-range__day sp-range__day--in">5</button>
+                    <button type="button" class="sp-range__day sp-range__day--in">6</button><button type="button" class="sp-range__day sp-range__day--in">7</button><button type="button" class="sp-range__day sp-range__day--in">8</button><button type="button" class="sp-range__day sp-range__day--in">9</button><button type="button" class="sp-range__day sp-range__day--in">10</button><button type="button" class="sp-range__day sp-range__day--in">11</button><button type="button" class="sp-range__day sp-range__day--in">12</button>
+                    <button type="button" class="sp-range__day sp-range__day--in">13</button><button type="button" class="sp-range__day sp-range__day--in">14</button><button type="button" class="sp-range__day sp-range__day--in">15</button><button type="button" class="sp-range__day sp-range__day--in">16</button><button type="button" class="sp-range__day sp-range__day--in">17</button><button type="button" class="sp-range__day sp-range__day--in">18</button><button type="button" class="sp-range__day sp-range__day--in">19</button>
+                    <button type="button" class="sp-range__day">20</button><button type="button" class="sp-range__day">21</button><button type="button" class="sp-range__day">22</button><button type="button" class="sp-range__day">23</button><button type="button" class="sp-range__day">24</button><button type="button" class="sp-range__day">25</button><button type="button" class="sp-range__day">26</button>
+                    <button type="button" class="sp-range__day">27</button><button type="button" class="sp-range__day">28</button><button type="button" class="sp-range__day">29</button><button type="button" class="sp-range__day">30</button><span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
+              <div class="sp-range__foot">
+                <span class="sp-note">43 days selected</span>
+                <span class="sp-grow"></span>
+                <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+                <button type="button" class="sp-btn">Apply</button>
+              </div>
+              </div>
+          </div>
+        </span>
+        </div>
+        <span class="sp-period__resolved">08/03 - 19/04/2026</span>
+        <span class="sp-grow"></span>
+        <span class="sp-period__note">43 days</span>
+      </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    // the page's ground follows the switch; any specimen whose subject is a theme
+    // declares its own data-theme and is unaffected
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

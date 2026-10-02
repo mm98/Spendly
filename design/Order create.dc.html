@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"></rect><text x="50" y="66" font-family="Poppins,system-ui,sans-serif" font-size="46" font-weight="600" fill="#f2f0ea" text-anchor="middle">3</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/order-create.css?v=v20260917b">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="3a">3a</span>
+    <span class="doc-section__title">New order - scan a receipt</span>
+  </div>
+  <div class="doc-lede">Three steps: pick a way to start, drop the file, then check what was read - in the ordinary edit screen, which is also where you stay once it is saved. Reviewing a scan and editing a saved order are one screen in two states, not two screens. Nothing is saved until you create the order, and every extracted value stays editable.</div>
+
+  <div class="doc-specimen">
+    <span class="doc-specimen__label">Step 1 · how to start</span>
+    <div class="doc-screen doc-frame">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+      <div class="sp-shell__body">
+        <div class="sp-empty sp-gap-16">
+          <span class="sp-empty__title">Start from a receipt, or from scratch</span>
+          <span class="sp-empty__body">Drop a PDF or a photo and the vendor, date, amounts and lines are read for you. You confirm everything before it is saved.</span>
+          <label class="sp-filedrop oc-narrow sp-gap-12">
+            <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/gif" capture="environment">
+            <span class="sp-mark sp-mark--large" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></svg></span>
+            <span class="sp-title">Drop receipt here</span>
+            <span class="sp-meta">PDF, JPG, PNG, WebP, HEIC or GIF · up to 25 MB per file</span>
+            <span class="sp-btn sp-btn--small">Select a receipt</span>
+          </label>
+          <div class="sp-divider oc-narrow">or</div>
+          <div class="oc-choices">
+            <a class="sp-card" href="#3a">
+              <span class="sp-sum-head">
+                <span class="sp-mark sp-mark--large" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></svg></span>
+                <span class="sp-alert__body">
+                  <span class="sp-title">Empty order</span>
+                  <span class="sp-subtitle">Type the details yourself.</span>
+                </span>
+                <span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+              </span>
+            </a>
+            <a class="sp-card" href="#3b">
+              <span class="sp-sum-head">
+                <span class="sp-mark sp-mark--large" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></span>
+                <span class="sp-alert__body">
+                  <span class="sp-title">Copy a previous order</span>
+                  <span class="sp-subtitle">Same vendor, same lines, new date.</span>
+                </span>
+                <span class="sp-card__chevron"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg></span>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-notes">
+    <span class="doc-notes__label">Notes for implementation</span>
+    <div class="doc-note"><b>One button for the file, not two.</b> Camera versus files is the device's decision, not a design choice: a single input with the right <b>accept</b> and <b>capture</b> attributes gets a camera option on a phone, a photo library on a tablet, and a plain file dialog on desktop - each in the form that platform's users already know. Offering "Choose file" and "Use camera" as separate buttons duplicates the OS picker's own first screen, and one of the two is always dead weight on whatever device you are holding.</div>
+    <div class="doc-note"><b>Drop is the desktop path and needs no button</b> - the zone is the affordance. Keep the button anyway for keyboard users and for anyone who does not think to drag.</div>
+    <div class="doc-note"><b>Three ways to start, ranked by frequency:</b> receipt (the common case, so it gets the whole zone), empty order, copy a previous order. Copy is hidden entirely when there are no orders yet.</div>
+  </div>
+
+  <div class="doc-specimen">
+    <span class="doc-specimen__label">Step 2 · reading</span>
+    <div class="doc-screen doc-frame">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+      <div class="sp-shell__body">
+        <div class="sp-card oc-narrow">
+          <div class="oc-row-top">
+            <div class="oc-preview">PDF</div>
+            <div class="oc-read">
+              <div class="sp-row-flex sp-gap-12">
+                <span class="sp-title">faktura-indbo-4471.pdf</span>
+                <span class="sp-meta">1,4 MB · 2 pages</span>
+              </div>
+              <span class="sp-gauge">
+                <meter value="68" min="0" max="100" aria-label="Reading the receipt"></meter>
+                <span class="sp-gauge__fill" data-fill="68"></span>
+              </span>
+              <div class="sp-stack sp-gap-8">
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+                  <span class="sp-data">Vendor and date found</span>
+                </div>
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-mark sp-mark--small sp-mark--solid" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+                  <span class="sp-data">4 lines found</span>
+                </div>
+                <div class="sp-row-flex sp-gap-8">
+                  <span class="sp-spinner" aria-hidden="true"></span>
+                  <strong class="sp-data">Reading the lines…</strong>
+                </div>
+                <span class="sp-meta">Usually 5 - 10 seconds. You can keep working.</span>
+              </div>
+              <div class="oc-read__foot">
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-specimen">
+    <span class="doc-specimen__label">Step 3 · the edit screen, from a scan, not saved yet</span>
+    <div class="doc-screen doc-frame">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+      <div class="sp-shell__body">
+        <div class="sp-alert">
+          <span class="sp-alert__mark" aria-hidden="true">!</span>
+          <div class="sp-alert__body">
+            <span class="sp-alert__title">2 values need a look.</span>
+            <span class="sp-alert__note">Shipping and one line price were hard to read. Everything else matched cleanly.</span>
+          </div>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Jump to first</button>
+        </div>
+
+        <div class="sp-shell__body--split">
+          <div class="sp-stack sp-gap-12">
+            <div class="sp-card">
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-section-label">Lines found · 4</span>
+                <span class="sp-grow"></span>
+                <span class="sp-meta">Untick a line to leave it out</span>
+              </div>
+              <div class="sp-stack sp-gap-8">
+                <div class="sp-list-item">
+                  <input type="checkbox" class="sp-check" defaultChecked="{{ true }}" aria-label="Include Vitra - Nuage Céramique">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Vitra - Nuage Céramique</span>
+                    <span class="sp-subtitle sp-ink-success">read clearly</span>
+                  </span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-subtitle">1 × 330,00 kr.</span>
+                  <div class="sp-stacked sp-cell-amount"><span class="sp-amount">330,00 kr.</span></div>
+                </div>
+                <div class="sp-list-item">
+                  <input type="checkbox" class="sp-check" defaultChecked="{{ true }}" aria-label="Include Hay - Palissade chair">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Hay - Palissade chair</span>
+                    <span class="sp-subtitle sp-ink-success">read clearly</span>
+                  </span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-subtitle">2 × 890,00 kr.</span>
+                  <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.780,00 kr.</span></div>
+                </div>
+                <div class="sp-list-item" data-color="warning">
+                  <input type="checkbox" class="sp-check" defaultChecked="{{ true }}" aria-label="Include Muuto - Ambit rail lamp">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Muuto - Ambit rail lamp</span>
+                    <span class="sp-subtitle sp-ink-warning">price unclear - check against the receipt</span>
+                  </span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-subtitle">1 ×</span>
+                  <span class="sp-stacked sp-cell-amount">
+                    <span class="sp-field__wrap oc-amount-field">
+                      <input class="sp-input sp-input--unit" data-color="warning" type="text" defaultValue="1.240,00" aria-label="Muuto - Ambit rail lamp, price">
+                      <span class="sp-field__unit">kr.</span>
+                    </span>
+                  </span>
+                </div>
+                <div class="sp-list-item">
+                  <input type="checkbox" class="sp-check" defaultChecked="{{ true }}" aria-label="Include Ferm Living - Vuelta vase">
+                  <span class="sp-mark sp-mark--medium sp-mark--empty" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 8h.01" /><path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12" /><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" /><path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" /></svg></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Ferm Living - Vuelta vase</span>
+                    <span class="sp-subtitle">name was partly readable - check the spelling</span>
+                  </span>
+                  <span class="sp-grow"></span>
+                  <span class="sp-subtitle">3 × 210,00 kr.</span>
+                  <div class="sp-stacked sp-cell-amount"><span class="sp-amount">630,00 kr.</span></div>
+                </div>
+              </div>
+              <div class="sp-row-flex sp-gap-12">
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">+ Add a line the scan missed</button>
+                <span class="sp-grow"></span>
+                <span class="sp-subtitle">Lines 3.980,00 kr. · shipping 149,00 kr.</span>
+              </div>
+            </div>
+          </div>
+          <div class="sp-panel">
+            <div class="sp-card">
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-section-label">Order details</span>
+                <span class="sp-grow"></span>
+                <span class="sp-meta">Every value can be changed</span>
+              </div>
+              <div class="sp-field">
+                <div class="sp-row-flex sp-gap-8">
+                  <label class="sp-field__label" for="oc-fv">Vendor</label>
+                  <span class="sp-field__help" data-color="success">matched existing vendor</span>
+                </div>
+                <input class="sp-input" id="oc-fv" type="text" defaultValue="Indbo Møbler" aria-label="Vendor">
+              </div>
+              <div class="sp-fields">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-f1">Date</label>
+                  <input id="oc-f1" class="sp-input" type="text" defaultValue="08/08/2026">
+                </div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-f2">Reference</label>
+                  <input id="oc-f2" class="sp-input" type="text" defaultValue="4471">
+                </div>
+              </div>
+              <div class="sp-field">
+                <label class="sp-field__label" for="oc-f3">Kind</label>
+                <input id="oc-f3" class="sp-input" type="text" defaultValue="Expense">
+              </div>
+              <div class="sp-field">
+                <span  class="sp-field__label" id="oc-grp2">Status</span>
+                <div class="sp-segmented sp-segmented--facet" role="radiogroup" aria-labelledby="oc-grp2">
+                  <label class="sp-segmented__item" data-label="Ordered"><input type="radio" name="oc-review-status" defaultChecked="{{ true }}"><span class="sp-label">Ordered</span></label>
+                  <label class="sp-segmented__item" data-label="Delivered"><input type="radio" name="oc-review-status"><span class="sp-label">Delivered</span></label>
+                  <label class="sp-segmented__item" data-label="Returned"><input type="radio" name="oc-review-status"><span class="sp-label">Returned</span></label>
+                </div>
+              </div>
+              <div class="sp-fields">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-f4">Discount</label>
+                  <span class="sp-field__wrap">
+                    <input id="oc-f4" class="sp-input sp-input--unit" type="text" placeholder="0,00">
+                    <span class="sp-field__unit">kr.</span>
+                  </span>
+                </div>
+                <div class="sp-field">
+                  <div class="sp-row-flex sp-gap-8">
+                    <label class="sp-field__label" for="oc-fs">Shipping fee</label>
+                    <span class="sp-field__help" data-color="warning">needs a look</span>
+                  </div>
+                  <span class="sp-field__wrap" data-tip="read as &quot;l49,00&quot;">
+                    <input class="sp-input sp-input--unit sp-number" data-color="warning" id="oc-fs" type="text" inputMode="decimal" defaultValue="149,00" title="read as &quot;l49,00&quot;">
+                    <span class="sp-field__unit">kr.</span>
+                  </span>
+                </div>
+              </div>
+              <div class="sp-field">
+                <div class="sp-row-flex sp-gap-8">
+                  <label  class="sp-field__label" for="oc-tok2">Categories</label>
+                  <span class="sp-field__help">suggested from your history</span>
+                </div>
+                <div class="sp-tokens">
+                  <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                  </span>
+                  <button type="button" class="sp-chip sp-chip--dashed"><span>+ Lighting</span></button>
+                  <input id="oc-tok2" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
+                </div>
+              </div>
+            </div>
+            <div class="sp-card">
+              <span class="sp-section-label">Totals</span>
+              <div class="sp-stack">
+                <div class="sp-sum">
+                <span class="sp-ink-2">Order total</span>
+                <span class="sp-sum__value">4.129,00 kr.</span>
+                </div>
+                <div class="sp-sum">
+                <span class="sp-ink-2">On the receipt</span>
+                <span class="sp-sum__value">4.129,00 kr.</span>
+                </div>
+              </div>
+              <span class="sp-pill" data-color="success">Totals match</span>
+              <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+                <button type="button" class="sp-btn sp-btn--outline">Discard</button>
+                <button type="button" class="sp-btn">Create</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+  <div class="doc-specimen">
+    <span class="doc-specimen__label">The same screen, saved</span>
+    <div class="doc-screen doc-frame">
+      <div class="sp-topbar">
+        <div class="sp-picker__search doc-w400">
+          <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+          <input class="sp-input sp-input--lead sp-input--search sp-input--search-kbd" type="search" placeholder="Search orders, vendors, items…" aria-label="Search orders">
+          <span class="sp-field__kbd"><span class="sp-kbd">⌘K</span></span>
+        </div>
+      </div>
+      <div class="sp-shell__body">
+        <div class="sp-alert" data-color="success">
+          <span class="sp-alert__mark" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg></span>
+          <div class="sp-alert__body">
+            <span class="sp-alert__title">Order created from faktura-indbo-4471.pdf.</span>
+            <span class="sp-alert__note">The receipt is kept as an attachment.</span>
+          </div>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Undo</button>
+        </div>
+
+        <div class="sp-shell__body--split">
+          <div class="sp-stack sp-gap-12">
+            <div class="sp-card">
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-section-label">Items · 4</span>
+                <span class="sp-grow"></span>
+                <button type="button" class="sp-btn sp-btn--outline sp-btn--small">+ Add item</button>
+              </div>
+              <div class="sp-stack sp-gap-8">
+                <div class="sp-list-item">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Vitra - Nuage Céramique</span>
+                    <span class="sp-grow"></span>
+                    <span class="sp-subtitle">1 × 330,00 kr.</span>
+                  </span>
+                  <span class="sp-grow"></span>
+                  <div class="sp-stacked sp-cell-amount"><span class="sp-amount">330,00 kr.</span></div>
+                </div>
+                <div class="sp-list-item">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Hay - Palissade chair</span>
+                    <span class="sp-grow"></span>
+                    <span class="sp-subtitle">2 × 890,00 kr.</span>
+                  </span>
+                  <span class="sp-grow"></span>
+                  <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.780,00 kr.</span></div>
+                </div>
+                <div class="sp-list-item">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Muuto - Ambit rail lamp</span>
+                    <span class="sp-grow"></span>
+                    <span class="sp-subtitle">1 × 1.240,00 kr.</span>
+                  </span>
+                  <span class="sp-grow"></span>
+                  <div class="sp-stacked sp-cell-amount"><span class="sp-amount">1.240,00 kr.</span></div>
+                </div>
+                <div class="sp-list-item">
+                  <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+                  <span class="sp-stacked">
+                    <span class="sp-title sp-truncate">Ferm Living - Vuelta vase</span>
+                    <span class="sp-grow"></span>
+                    <span class="sp-subtitle">3 × 210,00 kr.</span>
+                  </span>
+                  <span class="sp-grow"></span>
+                  <div class="sp-stacked sp-cell-amount"><span class="sp-amount">630,00 kr.</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-card">
+              <span class="sp-section-label">Attachments · 1</span>
+              <div class="sp-strip">
+                <span class="sp-attachment">
+                  <span class="sp-mark sp-mark--xlarge sp-mark--none"><button type="button" class="sp-mark__open">PDF</button></span>
+                  <span class="sp-attachment__name">faktura-indbo-4471.pdf</span>
+                </span>
+                <label class="sp-mark sp-mark--xlarge sp-mark--add">
+                  <input type="file" multiple="{{ true }}" accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/gif">
+                  <span class="sp-meta">Add files</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="sp-panel">
+            <div class="sp-card">
+              <div class="sp-row-flex sp-gap-8">
+                <span class="sp-section-label">Order details</span>
+                <span class="sp-grow"></span>
+                <span class="sp-meta">Every value can be changed</span>
+              </div>
+              <div class="sp-field">
+                <label class="sp-field__label" for="oc-f5">Vendor</label>
+                <input id="oc-f5" class="sp-input" type="text" defaultValue="Indbo Møbler">
+              </div>
+              <div class="sp-fields">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-f6">Date</label>
+                  <input id="oc-f6" class="sp-input" type="text" defaultValue="08/08/2026">
+                </div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-f7">Reference</label>
+                  <input id="oc-f7" class="sp-input" type="text" defaultValue="4471">
+                </div>
+              </div>
+              <div class="sp-field">
+                <label class="sp-field__label" for="oc-f8">Kind</label>
+                <input id="oc-f8" class="sp-input" type="text" defaultValue="Expense">
+              </div>
+              <div class="sp-field">
+                <span  class="sp-field__label" id="oc-grp1">Status</span>
+                <div class="sp-segmented sp-segmented--facet" role="radiogroup" aria-labelledby="oc-grp1">
+                  <label class="sp-segmented__item" data-label="Ordered"><input type="radio" name="oc-status" defaultChecked="{{ true }}"><span class="sp-label">Ordered</span></label>
+                  <label class="sp-segmented__item" data-label="Delivered"><input type="radio" name="oc-status"><span class="sp-label">Delivered</span></label>
+                  <label class="sp-segmented__item" data-label="Returned"><input type="radio" name="oc-status"><span class="sp-label">Returned</span></label>
+                </div>
+              </div>
+              <div class="sp-fields">
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-f9">Discount</label>
+                  <span class="sp-field__wrap">
+                    <input id="oc-f9" class="sp-input sp-input--unit" type="text" placeholder="0,00">
+                    <span class="sp-field__unit">kr.</span>
+                  </span>
+                </div>
+                <div class="sp-field">
+                  <label class="sp-field__label" for="oc-f10">Shipping fee</label>
+                  <span class="sp-field__wrap">
+                    <input id="oc-f10" class="sp-input sp-input--unit" type="text" defaultValue="149,00">
+                    <span class="sp-field__unit">kr.</span>
+                  </span>
+                </div>
+              </div>
+              <div class="sp-field">
+                <label  class="sp-field__label" for="oc-tok1">Categories</label>
+                <div class="sp-tokens">
+                  <span class="sp-chip sp-chip--static">Decor<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Decor"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                  </span>
+                  <span class="sp-chip sp-chip--static">Lighting<button type="button" class="sp-icon-btn sp-icon-btn--small" aria-label="Remove Lighting"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                  </span>
+                  <input id="oc-tok1" class="sp-tokens__add" type="text" placeholder="Add…" aria-label="Add a category">
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-card">
+              <div class="sp-sum sp-sum--total">
+                <span class="sp-ink-2">Total</span>
+                <span class="sp-sum__value">4.129,00 kr.</span>
+              </div>
+              <span class="sp-meta">4 items · shipping 149,00</span>
+              <div class="sp-card__footer sp-card__footer--split sp-card__footer--commits">
+                <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+                <button type="button" class="sp-btn">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-notes">
+    <span class="doc-notes__label">One screen, two states</span>
+    <div class="doc-note">The two renders above are the same screen. Same grid, same cards, same order of fields - what differs is whether the order exists yet, and that is four things.</div>
+    <div class="doc-note"><b>A tick on every line, and the confidence tones,</b> belong to the unsaved state: a line can still be left out, and a value read badly is marked amber. Once the order is saved there is nothing to leave out, so the column and the tones go.</div>
+    <div class="doc-note"><b>The bar at the top changes tone, not place:</b> amber with a count of values to look at while the order is a proposal, green with the file it came from once it is created.</div>
+    <div class="doc-note"><b>The action pair is Discard / Create order, then Cancel / Save.</b> Same footer, same two slots.</div>
+    <div class="doc-note"><b>Attachments appear only in the saved state,</b> because the receipt is attached by the save. Before that the file is an upload, not an attachment.</div>
+    <div class="doc-note">Building it twice would produce two screens in code that have to be kept identical by hand. It is one screen with an <b>unsaved</b> flag.</div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="3b">3b</span>
+    <span class="doc-section__title">Copy a previous order</span>
+  </div>
+  <div class="doc-lede">The third way to start, for the purchase that repeats. The copy itself is 8a's duplicate, unchanged - all this adds is the picker, because starting from the create screen means the source has not been chosen yet.</div>
+
+  <div class="doc-specimens">
+    <div class="oc-col--narrow sp-stack sp-gap-16">
+      <div class="doc-specimen">
+        <span class="doc-specimen__label">The picker</span>
+        <div class="oc-stage">
+          <div class="sp-dialog sp-stack sp-gap-16" role="dialog" aria-label="Copy a previous order">
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-heading sp-truncate">Copy a previous order</span>
+              <span class="sp-dialog__body">The vendor, category and item lines are copied. The date becomes today, the status resets, and the receipt stays on the original order.</span>
+            </div>
+            <div class="sp-picker__search">
+              <span class="sp-field__lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg></span>
+              <input class="sp-input sp-input--lead sp-input--search" type="search" placeholder="Search by vendor or item…" aria-label="Search previous orders">
+            </div>
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-combobox__group">You order these often</span>
+              <button type="button" class="sp-combobox__option" aria-selected="true">
+                <span class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Indbo Møbler</span>
+                  <span class="sp-meta sp-truncate">4 lines · Nordal vase, Stol - eg, Bord…</span>
+                </span>
+                <span class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">7.635,00</span>
+                  <span class="sp-meta">6 times · last 12 Aug</span>
+                </span>
+              </button>
+              <button type="button" class="sp-combobox__option">
+                <span class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Ferm Living</span>
+                  <span class="sp-meta sp-truncate">1 line · Pude, uld</span>
+                </span>
+                <span class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">890,00</span>
+                  <span class="sp-meta">4 times · last 28 Jul</span>
+                </span>
+              </button>
+            </div>
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-combobox__group">Recent</span>
+              <button type="button" class="sp-combobox__option">
+                <span class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Hay</span>
+                  <span class="sp-meta sp-truncate">2 lines · Stol × 2</span>
+                </span>
+                <span class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">3.240,00</span>
+                  <span class="sp-meta">3 Aug</span>
+                </span>
+              </button>
+              <button type="button" class="sp-combobox__option">
+                <span class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Muuto</span>
+                  <span class="sp-meta sp-truncate">3 lines · Lampe, Skål, Plakat</span>
+                </span>
+                <span class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">5.120,00</span>
+                  <span class="sp-meta">1 Aug</span>
+                </span>
+              </button>
+              <button type="button" class="sp-combobox__option">
+                <span class="sp-stacked sp-grow">
+                  <span class="sp-title sp-truncate">Normann</span>
+                  <span class="sp-meta sp-truncate">2 lines · Skål, Lysestage</span>
+                </span>
+                <span class="sp-stacked sp-cell-amount">
+                  <span class="sp-amount">1.640,00</span>
+                  <span class="sp-meta">21 Jul</span>
+                </span>
+              </button>
+            </div>
+            <div class="sp-card__footer sp-card__footer--commits">
+              <span class="sp-meta">Nothing is created until you save.</span>
+              <span class="sp-grow"></span>
+              <button type="button" class="sp-btn sp-btn--outline">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-card">
+        <span class="doc-eyebrow">What you land on</span>
+        <div class="sp-card sp-gap-12">
+          <div class="sp-alert" data-color="success">
+            <span class="sp-alert__mark" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" /><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" /></svg></span>
+            <div class="sp-alert__body">
+              <span class="sp-alert__note">Copied from <b>Indbo Møbler, 12 Aug</b> - the receipt stays on that order.</span>
+            </div>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Discard</button>
+          </div>
+          <div class="sp-fields">
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label">Item lines · 4</span>
+              <input class="sp-input" type="text" defaultValue="Nordal vase, large" readOnly aria-label="Item line 1">
+              <input class="sp-input" type="text" defaultValue="Stol - eg × 2" readOnly aria-label="Item line 2">
+            </div>
+            <div class="sp-stack sp-gap-8">
+              <span class="sp-section-label">Details</span>
+              <input class="sp-input" type="text" defaultValue="Today" readOnly aria-label="Date">
+              <input class="sp-input" type="text" defaultValue="Draft" readOnly aria-label="Status">
+            </div>
+          </div>
+        </div>
+        <div class="doc-note">The ordinary edit screen (1d) with the 8a notice on top. Date is today and status is reset - the two fields most likely to be wrong on a copy are the two that do not carry over.</div>
+      </div>
+    </div>
+
+    <div class="oc-notes-col">
+      <div class="doc-notes">
+        <span class="doc-notes__label">Notes for implementation</span>
+        <div class="doc-note"><b>Every row has to be identifiable without opening it.</b> Vendor alone is not enough - there may be twelve orders from the same shop. The line count, the first item names and the total are what separate them, and the total does most of the work.</div>
+        <div class="doc-note"><b>Two groups, not a flat list.</b> <b>You order these often</b> is orders whose vendor and line shape have recurred, with the repeat count - that is the case this feature exists for, so it comes first. <b>Recent</b> is the fallback. Same grouped pattern as the vendor Combobox in 14a: arrow keys cross both groups as one list, headers are never focusable.</div>
+        <div class="doc-note"><b>Search covers vendor and item name</b>, because the thing you remember is often "the order with the oak chairs" rather than the shop. Same 300ms debounce and prefix matching as every other search.</div>
+        <div class="doc-note"><b>Picking opens the edit screen unsaved.</b> No confirm - nothing exists yet, and the notice's Discard is the way out. This is the same reason the duplicate in 8a needs no dialog.</div>
+        <div class="doc-note"><b>The copy rules are 8a's, unchanged.</b> Vendor, category, reference, notes and all lines with quantities and prices carry over; date becomes today, status resets, attachments do not follow. The dialog states this up front, because "copy" otherwise implies the receipt comes with it.</div>
+        <div class="doc-note"><b>Amounts are copied, not re-priced.</b> They are what you paid last time, and they are editable like any other field. Nothing looks up a current price - this is a record of what happened, not a shopping basket.</div>
+      </div>
+
+      <div class="doc-card">
+        <span class="doc-eyebrow">Three entry points, one dialog</span>
+        <div class="doc-note"><b>Create screen</b> - the third card, hidden when there are no orders yet.</div>
+        <div class="doc-note"><b>New order split button</b> - the chevron menu, for starting a copy without passing through the create screen.</div>
+        <div class="doc-note"><b>Home's Duplicate last order</b> - skips the dialog entirely, since "last" needs no picking.</div>
+        <div class="doc-note">The order list's per-row <b>Duplicate</b> is deliberately not one of these: there the source is already chosen, so it goes straight to the edit screen. This dialog exists only for the case where it is not.</div>
+      </div>
+
+      <div class="doc-card">
+        <span class="doc-eyebrow">Why a dialog rather than a list page</span>
+        <div class="doc-note">The order list already does browsing, and has Duplicate on every row - that is the path for "I know which one". This dialog serves the other case: you are starting an order and want the last one like it, without leaving what you are doing.</div>
+        <div class="doc-note">So it stays small and shows five or six rows with search rather than facets and paging. If you need filters to find the source, the order list is the better tool and Duplicate is waiting there.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="doc-section">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="3c">3c</span>
+    <span class="doc-section__title">This receipt has been scanned before</span>
+  </div>
+  <div class="doc-lede">The file's SHA-256 matches one already stored, so this receipt has been read before. It interrupts between upload and reading because the reading is cached - the answer is already in the database, and re-running the scanner on the same bytes buys nothing. The user never sees a cost; they see that reusing the saved reading is simply the faster path.</div>
+
+  <div class="doc-specimens">
+    <div class="doc-specimen oc-col">
+      <span class="doc-specimen__label">Stage 2, replaced</span>
+      <div class="sp-card sp-gap-16">
+        <div class="sp-list-item sp-list-item--top">
+          <span class="sp-mark sp-mark--medium sp-mark--photo" aria-hidden="true"></span>
+          <span class="sp-stack sp-gap-8">
+            <span class="sp-stacked">
+              <span class="sp-title sp-truncate">Indbo Møbler</span>
+              <span class="sp-subtitle">SPENDLY-447 · 12 Aug 2026 · 4 lines · Received</span>
+            </span>
+            <span class="sp-meta">Scanned 12 Aug, 14:32 · kvittering-indbo-12082026.pdf</span>
+            <span class="sp-row-flex sp-gap-8">
+              <button type="button" class="sp-btn sp-btn--small">Open that order</button>
+              <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Compare the files</button>
+            </span>
+          </span>
+          <span class="sp-grow"></span>
+          <div class="sp-stacked sp-cell-amount"><span class="sp-amount">7.635,00</span></div>
+        </div>
+
+        <div class="sp-stack sp-gap-12">
+          <span class="sp-section-label">If that is not what you meant</span>
+          <div class="sp-list-item sp-list-item--primary sp-list-item--top">
+            <span class="sp-mark sp-mark--small sp-mark--plain" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></svg></span>
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-title sp-truncate">New order from the saved reading</span>
+              <span class="sp-meta">Starts a new order with the same lines, ready for you to check and change.</span>
+            </div>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--small">Use the reading</button>
+          </div>
+          <div class="sp-list-item sp-list-item--top">
+            <span class="sp-mark sp-mark--small sp-mark--plain" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg></span>
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-title sp-truncate">Read it again</span>
+              <span class="sp-meta">Use this if the lines came out wrong last time.</span>
+            </div>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small">Scan again</button>
+          </div>
+          <div class="sp-list-item sp-list-item--top">
+            <span class="sp-mark sp-mark--small sp-mark--plain" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M11 15h1" /><path d="M12 15v3" /></svg></span>
+            <div class="sp-stack sp-gap-6">
+              <span class="sp-title sp-truncate">Attach it to that order instead</span>
+              <span class="sp-meta">Adds the file to SPENDLY-447 without creating another order.</span>
+            </div>
+            <span class="sp-grow"></span>
+            <button type="button" class="sp-btn sp-btn--outline sp-btn--small" disabled="{{ true }}" data-tip="SPENDLY-447 already has this file">Attach</button>
+          </div>
+        </div>
+
+        <div class="sp-card__footer sp-card__footer--commits">
+          <span class="sp-meta">The upload is kept for 24 hours either way.</span>
+          <span class="sp-grow"></span>
+          <button type="button" class="sp-btn sp-btn--outline">Discard the upload</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="oc-notes-col">
+      <div class="doc-notes">
+        <span class="doc-notes__label">Notes for implementation</span>
+        <div class="doc-note"><b>Hash on upload, before reading.</b> SHA-256 of the bytes as received, stored on the attachment row and indexed. The check is a single lookup and costs nothing, so it runs on every upload - including the ones that arrive through Import and through the item-photo slot.</div>
+        <div class="doc-note"><b>It replaces the reading stage rather than covering it.</b> A dialog over a progress bar would mean the scan is running behind a question about whether it should. And asking after the proposal exists wastes the read and puts the user in review with a decision they should have made first.</div>
+        <div class="doc-note"><b>Store the reading, not just the hash.</b> The scan output is cached against the file hash, so a repeat upload can produce a full order without a second API call. This is the whole return on the feature: the three legitimate reasons to continue - a repeated purchase on an identical receipt, a re-import after deleting the original, and one receipt covering two orders - are all served for free by the cached reading. None of them needs the scanner to look at the same bytes twice.</div>
+        <div class="doc-note"><b>The cost is ours, so it stays out of the UI.</b> Each scan is a paid API call, which is the reason this screen exists - but a per-action price tag would make the user manage our infrastructure bill, and they cannot act on a figure they did not agree to. The design carries the intent instead: reusing the reading is the primary button and reads as the obvious choice, re-reading is a secondary. No amounts, no warnings, no counters.</div>
+        <div class="doc-note"><b>Never blocks.</b> Re-reading is legitimate when the cached reading was wrong and the model has improved since - the one case where a second call is worth making. It stays one click.</div>
+        <div class="doc-note"><b>Show the matched order, not just the fact.</b> Vendor, reference, date, line count, total, and when it was scanned. "You have already imported this file" without the order is a dead end - the user's next question is always <i>which one</i>, and answering it here saves a trip to the list.</div>
+        <div class="doc-note"><b>Compare the files</b> opens both in the viewer (12b) side by side. Rarely needed for an exact hash match, but it is the only way to be sure the stored file is what you think it is - and it costs one link.</div>
+        <div class="doc-note"><b>Attach instead</b> is shown disabled here on purpose: the matched order already holds this exact file, so there is nothing to add. It is enabled when the hash matches a file sitting on a <i>different</i> order - you scanned this receipt for order A and now want it on order B. When disabled, the tooltip says why ("SPENDLY-447 already has this file"); the row is not hidden, because its absence would leave the user wondering whether attaching is possible at all.</div>
+        <div class="doc-note"><b>Multiple matches</b> list up to three orders, newest first, with a count if there are more. Each row carries its own "Open that order".</div>
+      </div>
+
+      <div class="doc-card">
+        <span class="doc-eyebrow">What the hash does and does not catch</span>
+        <div class="doc-note"><b>Catches:</b> the same file uploaded twice - the common case, where a receipt was already forwarded once and lands in the uploads folder again, or a phone photo is re-picked from the library.</div>
+        <div class="doc-note"><b>Misses:</b> a second photo of the same paper receipt, the same PDF re-saved by a different reader, or a re-download that changed one byte of metadata. All are different bytes and therefore a different hash.</div>
+        <div class="doc-note">So this is <b>not</b> duplicate-order detection, and must not be presented as such. The fuzzy check on vendor plus date plus total - the one behind "2 rows look like orders you already have" in Import (11b) and the possible-duplicates list in 5c - is the separate mechanism that catches those, and it runs later, on the proposed order rather than on the file.</div>
+        <div class="doc-note">Both can fire on one upload. When they do, this screen comes first - it is certain, and it is the only one of the two that can run before the scanner is called at all.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    // the page's ground follows the switch; any specimen whose subject is a theme
+    // declares its own data-theme and is unaffected
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

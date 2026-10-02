@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1d4d33"/><text x="50" y="64" font-family="Poppins,system-ui,sans-serif" font-size="38" font-weight="600" fill="#f2f0ea" text-anchor="middle">Aa</text></svg></template>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<link rel="stylesheet" href="styles/components.css?v=v20260917b">
+<link rel="stylesheet" href="styles/doc.css?v=v20260917b">
+<link rel="stylesheet" href="styles/pages/typography.css?v=v20260917b">
+<script src="./components.js?v=v20260917b"></script>
+<style>
+  body { margin: 0; background: #eceae4; font-family: Poppins, system-ui, sans-serif; color: #1b1a17; -webkit-font-smoothing: antialiased; }
+  a { color: #1d4d33; }
+  a:hover { color: #2f7a51; }
+</style>
+</helmet>
+
+<div class="sp">
+
+<section class="doc-section doc-section--first" data-screen-label="13a">
+  <div class="doc-section__head">
+    <span class="doc-badge" id="13a">13a</span>
+    <span class="doc-section__title">Typography</span>
+  </div>
+  <div class="doc-lede">One family, four weights. Hierarchy comes from size and weight, never from a second typeface. Everything below is rendered at the real size - measure off this page rather than off a screenshot.</div>
+
+  <div class="doc-specimens">
+
+    <div class="sp-stack sp-gap-16 ty-w620">
+      <div class="sp-section-label">THE FAMILY</div>
+      <div class="sp-card ty-card--roomy">
+        <div class="sp-row-flex sp-gap-16 sp-baseline">
+          <div class="ty-s44">Poppins</div>
+          <div class="sp-data sp-ink-5">400 · 500 · 600 · 700</div>
+        </div>
+        <div class="sp-stack sp-gap-8">
+          <div class="ty-s22 ty-w400">Nordal vase, large - 7.635,00 kr.</div>
+          <div class="ty-s22 ty-w500">Nordal vase, large - 7.635,00 kr.</div>
+          <div class="ty-s22 ty-w600">Nordal vase, large - 7.635,00 kr.</div>
+          <div class="ty-s22 ty-w700">Nordal vase, large - 7.635,00 kr.</div>
+        </div>
+        <div class="sp-card__footer sp-card__footer--stack">
+          <div class="ty-s17">ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ</div>
+          <div class="ty-s17">abcdefghijklmnopqrstuvwxyzæøå</div>
+          <div class="ty-s17">0123456789 . , kr. % × - - </div>
+        </div>
+        <div class="sp-card__footer doc-note">Danish characters matter here: <b>æ ø å</b> appear in vendor names, categories and receipt text throughout, and the uppercase forms show up in the small-caps labels. Any substitute family has to carry them at all four weights.</div>
+      </div>
+
+      <div class="sp-section-label ty-label--spaced">THE SCALE, AT SIZE</div>
+      <div class="sp-card ty-card--roomy ty-card--flush">
+        <div class="ty-row">
+          <div class="sp-stat__figure sp-stat__figure--large">Good morning, Mikkel</div>
+          <div class="sp-meta sp-right">34 / 700<br><code>--t-34</code><br><code>.sp-stat__figure--large</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="sp-stat__figure">61.480 kr.</div>
+          <div class="sp-meta sp-right">24 / 700<br><code>--t-24</code><br><code>.sp-stat__figure</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="doc-section__title">Order details</div>
+          <div class="sp-meta sp-right">20 / 600<br><code>--t-20</code><br><code>.doc-section__title</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="sp-amount sp-number">7.635,00</div>
+          <div class="sp-meta sp-right">14 / 600<br><code>--t-14</code><br><code>.sp-amount</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="sp-heading">Indbo Møbler</div>
+          <div class="sp-meta sp-right">15 / 600<br><code>--t-15</code><br><code>.sp-heading</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="sp-title">Stol - eg</div>
+          <div class="sp-meta sp-right">14 / 600<br><code>--t-14</code><br><code>.sp-title</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="ty-prose">Body text at fourteen. Used for input values, and for a sentence that has to be read rather than scanned.</div>
+          <div class="sp-meta sp-right">14 / 400 · 1.55<br><code>--t-14</code><br><code>.ty-prose</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="sp-data">Secondary text carries most of the description in this interface - table cells, card explanations, the line under a heading.</div>
+          <div class="sp-meta sp-right">13 / 400 · 1.5<br><code>--t-13</code><br><code>.sp-data</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="sp-field__label">Order date</div>
+          <div class="sp-meta sp-right">12 / 600<br><code>--t-12</code><br><code>.sp-field__label</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="sp-subtitle">12 Aug 2026 · 4 items</div>
+          <div class="sp-meta sp-right">12 / 400<br><code>--t-12</code><br><code>.sp-subtitle</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="sp-section-label">WHERE THE MONEY GOES</div>
+          <div class="sp-meta sp-right">11 / 400 · 0.12em<br><code>--t-11</code><br><code>.sp-section-label</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="sp-meta">The marker shows where you should be on day 20 of 31.</div>
+          <div class="sp-meta sp-right">11 / 400<br><code>--t-11</code><br><code>.sp-meta</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="ty-dark-label">LIBRARY</div>
+          <div class="sp-meta sp-right">10 / 400 · 0.14em<br><code>--t-10</code><br><code>.doc-notes__label</code></div>
+        </div>
+        <div class="sp-rule"></div>
+        <div class="ty-row">
+          <div class="ty-s16">Indbo Møbler</div>
+          <div class="sp-meta sp-right">16 / 400<br><code>--t-16</code><br>field and stepper on touch</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sp-stack sp-gap-16 ty-w440">
+      <div class="sp-section-label">LOADING, AND FALLING BACK</div>
+      <div class="sp-card">
+        <div class="sp-stack sp-gap-6">
+          <div class="sp-field__label">Stack</div>
+          <div class="sp-list-item ty-prose--tinted">Poppins, system-ui, sans-serif</div>
+        </div>
+        <div class="sp-data">Weights 400, 500, 600 and 700, latin and latin-ext. Nothing else - no italics anywhere in the interface, and no 300 or 800. If a weight is missing, the browser synthesises it and the amounts stop lining up.</div>
+        <div class="sp-list-item sp-list-item--top">
+          <svg class="sp-flex-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg>
+          <div class="sp-subtitle">Self-host the four weights rather than calling Google Fonts. The mockups use the CDN for convenience; a receipt tracker shouldn't need a third party to render a total. <b>font-display: swap</b>, and preload the 400 and 600 files - those two carry almost every screen.</div>
+        </div>
+        <div class="sp-card__footer sp-card__footer--stack">
+          <div class="sp-field__label">What the fallback looks like</div>
+          <div class="sp-list">
+            <div class="sp-fields">
+              <div class="ty-half">
+                <div class="doc-notes__label">Poppins</div>
+                <div class="sp-title">Indbo Møbler</div>
+                <div class="sp-stat__figure">7.635,00</div>
+              </div>
+              <div class="ty-half ty-half--fallback">
+                <div class="doc-notes__label">System-ui</div>
+                <div class="sp-title">Indbo Møbler</div>
+                <div class="sp-stat__figure">7.635,00</div>
+              </div>
+            </div>
+          </div>
+          <div class="sp-meta">The fallback runs narrower, so a swap shifts row content slightly. Acceptable - nothing in the layout depends on the exact glyph width, and no column is sized to fit text exactly.</div>
+        </div>
+      </div>
+
+      <div class="sp-section-label ty-label--spaced">NUMBERS</div>
+      <div class="sp-card">
+        <div class="sp-data">Poppins' figures are proportional by default, so a column of amounts doesn't align on the decimal. Every amount in a list, table or total gets <b>font-variant-numeric: tabular-nums</b>.</div>
+        <div class="sp-fields">
+          <div class="sp-well" data-color="danger">
+            <div class="doc-notes__label sp-ink-danger">PROPORTIONAL</div>
+            <div class="sp-heading sp-right">7.635,00</div>
+            <div class="sp-heading sp-right">1.111,11</div>
+            <div class="sp-heading sp-right">486.320,50</div>
+          </div>
+          <div class="sp-well ty-well--success">
+            <div class="doc-notes__label sp-ink-accent">TABULAR</div>
+            <div class="sp-heading sp-right sp-number">7.635,00</div>
+            <div class="sp-heading sp-right sp-number">1.111,11</div>
+            <div class="sp-heading sp-right sp-number">486.320,50</div>
+          </div>
+        </div>
+        <div class="sp-meta">Amounts are right-aligned wherever they sit in a column. A single amount in prose stays proportional - tabular figures look loose in a sentence.</div>
+      </div>
+
+      <div class="sp-section-label ty-label--spaced">TRUNCATION AND OVERFLOW</div>
+      <div class="sp-card">
+        <div class="sp-data">Vendor names, item names and filenames are user data and can be any length. Every one of them sits in a cell that must not grow. The rule is per role, not per component - decide once what each role does when the text is too long.</div>
+
+        <div class="sp-stack sp-gap-8">
+          <div class="sp-section-label">ONE LINE, ELLIPSIS</div>
+          <div class="sp-list">
+            <div class="sp-list-item sp-list-item--card">
+              <span class="sp-mark sp-mark--small sp-mark--photo" aria-hidden="true"></span>
+              <span class="sp-title sp-truncate">Hay</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount sp-number sp-nowrap">3.240,00</span>
+            </div>
+            <div class="sp-list-item sp-list-item--card">
+              <span class="sp-mark sp-mark--small sp-mark--photo" aria-hidden="true"></span>
+              <span class="sp-title sp-truncate" title="Indbo Møbler &amp; Interiør Aarhus Nord ApS">Indbo Møbler &amp; Interiør Aarhus Nord ApS</span>
+              <span class="sp-grow"></span>
+              <span class="sp-amount sp-number sp-nowrap">7.635,00</span>
+            </div>
+          </div>
+          <div class="sp-meta">Used for every list row primary, every table cell, filenames under attachment tiles, and the sidebar account name. The amount never truncates - it is the reason the row exists. Full text on hover as a <b>title</b>, and in the detail view.</div>
+        </div>
+
+        <div class="sp-card__footer sp-card__footer--stack">
+          <div class="sp-section-label">TWO LINES, THEN ELLIPSIS</div>
+          <div class="sp-well">
+            <div class="sp-title ty-clamp-2">Egetræsbord med sortmalet stålstel, 200 × 95 cm, inklusive tillægsplade og montering</div>
+            <div class="sp-subtitle sp-ink-5">1 × 4.190,00</div>
+          </div>
+          <div class="sp-meta">Item names in a card view and on mobile, where the row has the height to spare and the name is what identifies the line. Two lines, never three - a clamp of three makes rows uneven enough to break the scan. Reserve the height whether or not the text needs it, or the grid jumps.</div>
+        </div>
+
+        <div class="sp-card__footer sp-card__footer--stack">
+          <div class="sp-section-label">NEVER TRUNCATED</div>
+          <div class="sp-row-flex sp-gap-8 sp-wrap">
+            <div class="ty-stack-name">amounts</div>
+            <div class="ty-stack-name">dates</div>
+            <div class="ty-stack-name">status pills</div>
+            <div class="ty-stack-name">validation messages</div>
+            <div class="ty-stack-name">button labels</div>
+            <div class="ty-stack-name">dialog body</div>
+          </div>
+          <div class="sp-meta">A clipped amount is a wrong amount, and a clipped error message is worse than none. These get <b>white-space: nowrap</b> and <b>flex: none</b>, and the flexible cell beside them absorbs the shortfall. Category chips truncate their label but keep their icon.</div>
+        </div>
+
+        <div class="sp-card__footer sp-card__footer--stack">
+          <div class="sp-section-label">THE ONE THAT ALWAYS CATCHES PEOPLE</div>
+          <div class="sp-fields">
+            <div class="sp-well ty-well--clipped" data-color="danger">
+              <div class="doc-notes__label sp-ink-danger">WRAPPER WITHOUT MIN-WIDTH: 0</div>
+              <div class="sp-row-flex sp-gap-8">
+                <div class="sp-stack sp-gap-6 ty-nomin">
+                  <div class="sp-data sp-strong sp-truncate">Indbo Møbler &amp; Interiør Aarhus</div>
+                  <div class="sp-meta">12 Aug · 4 items</div>
+                </div>
+                <div class="sp-amount sp-number sp-nowrap">7.635,00</div>
+              </div>
+            </div>
+            <div class="sp-well ty-well--success ty-well--clipped">
+              <div class="doc-notes__label sp-ink-accent">WRAPPER WITH MIN-WIDTH: 0</div>
+              <div class="sp-row-flex sp-gap-8">
+                <div class="sp-stack sp-gap-6 sp-grow">
+                  <div class="sp-data sp-strong sp-truncate">Indbo Møbler &amp; Interiør Aarhus</div>
+                  <div class="sp-meta">12 Aug · 4 items</div>
+                </div>
+                <div class="sp-amount sp-number sp-nowrap">7.635,00</div>
+              </div>
+            </div>
+          </div>
+          <div class="sp-meta">A flex child's automatic minimum size stops it shrinking below its content, so the ellipsis never fires and the amount gets pushed out of the row. The catch is <i>which</i> element needs the fix: <b>min-width: 0</b> belongs on the <b>flex child</b> - usually the wrapper holding the name and its meta line - not on the truncating text itself, which already escapes the rule by having <b>overflow: hidden</b>. Two levels of wrapper means two declarations. Grid cells need the same treatment. This is the most common cause of a row overflowing on mobile.</div>
+        </div>
+
+        <div class="sp-list-item sp-list-item--top">
+          <svg class="sp-flex-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg>
+          <div class="sp-subtitle">Test every list with a 60-character vendor name and a 120-character item name. Both exist in real receipts, and a layout that only holds for "Hay" isn't finished. <b>overflow-wrap: anywhere</b> on notes and references, which can be one unbroken string.</div>
+        </div>
+      </div>
+
+      <div class="sp-section-label ty-label--spaced">RULES</div>
+      <div class="sp-card">
+        <div class="sp-row-flex sp-gap-12">
+          <div class="ty-bar"></div>
+          <div class="sp-data sp-ink"><b>Nothing below 10px.</b> 10px is the sidebar label only. 11px is the floor for anything a user reads, and it is always uppercase or muted.</div>
+        </div>
+        <div class="sp-row-flex sp-gap-12">
+          <div class="ty-bar"></div>
+          <div class="sp-data sp-ink"><b>Letter-spacing only goes up, and only on uppercase.</b> 0.12em at 11px, 0.14em at 10px, 0.08em on table headers. Never negative, at any size.</div>
+        </div>
+        <div class="sp-row-flex sp-gap-12">
+          <div class="ty-bar"></div>
+          <div class="sp-data sp-ink"><b>Line-height follows length.</b> 1.15 for titles, 1.5 - 1.55 for anything over one line, 1 for figures standing alone. Add <b>text-wrap: pretty</b> to every heading and paragraph.</div>
+        </div>
+        <div class="sp-row-flex sp-gap-12">
+          <div class="ty-bar"></div>
+          <div class="sp-data sp-ink"><b>Weight carries emphasis, not colour.</b> 600 is the strongest thing in a row. Bold plus a colour change on the same word is doubling up.</div>
+        </div>
+        <div class="sp-row-flex sp-gap-12">
+          <div class="ty-bar"></div>
+          <div class="sp-data sp-ink"><b>Mobile keeps these sizes.</b> The phone layout drops fields rather than shrinking type. Row primaries go up to 15px, nothing goes down.</div>
+        </div>
+        <div class="sp-row-flex sp-gap-12">
+          <div class="ty-bar ty-bar--ink"></div>
+          <div class="sp-data sp-ink"><b>On dark, drop one step of weight where you can.</b> Light text on a dark surface reads heavier than the reverse: a 600 row primary at 14px holds, but 700 at 28px can go to 600 without losing the hierarchy.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;\&quot;light\&quot; | \&quot;dark\&quot;&quot;,&quot;section&quot;:&quot;View&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;View&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() { this.applyView(); }
+  componentDidUpdate() { this.applyView(); }
+  applyView() {
+    const el = document.querySelector('.sp');
+    if (!el) return;
+    // the page's ground follows the switch; any specimen whose subject is a theme
+    // declares its own data-theme and is unaffected
+    el.setAttribute('data-theme', (this.props.theme ?? 'light') === 'dark' ? 'dark' : 'light');
+    el.setAttribute('data-notes', (this.props.showNotes ?? true) ? 'on' : 'off');
+  }
+}
+</script>
+</body>
+</html>

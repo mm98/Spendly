@@ -1,0 +1,125 @@
+/* Page composition for Mobile screens.dc.html.
+   Layout scaffolding only: the device frame these screens are drawn inside, the
+   parts of that frame the library does not own (status bar, app bar, the one
+   scrolling region, the floating action), and the two chart heights.
+   Everything else is a component class from components.css.
+   In @layer base, so none of it can outrank a component rule. */
+
+@layer base {
+
+  /* The device. .sp-phone owns the surface, the border and the hidden scrollbars;
+     a real phone is taller and more rounded than a specimen frame, and it holds a
+     status bar, an app bar and a tab bar edge to edge - so the device states its
+     own size and drops the padding those three would otherwise sit inside. */
+  .ms-device {
+    /* the width is .sp-phone's own, 375 - the page does not restate it */
+    /* these screens are drawn at a 12 inset rather than the frame's 16, and every bar
+       pinned inside the frame follows this rather than restating it */
+    --phone-gutter: var(--sp-12);
+    height: 780px;
+    border-radius: var(--r-phone);
+    overflow: hidden;
+    position: relative;
+  }
+  /* .sp-phone pads itself by --sp-16 and sets that unlayered, so a page rule cannot
+     remove it. A phone's bars reach the glass, so each part that must bleed cancels
+     that padding the same way .sp-phone > .sp-tabbar already does. */
+  .ms-device > .ms-status,
+  .ms-device > .ms-scroll,
+  .ms-device > .ms-pane,
+  .ms-device > .sp-palette,
+  .ms-device > .sp-tabbar,
+  .ms-device > .sp-savebar,
+  .ms-layer > .ms-status,
+  .ms-layer > .sp-topbar,
+  .ms-layer > .ms-scroll,
+  .ms-layer > .ms-pane,
+  .ms-layer > .sp-tabbar,
+  .ms-layer > .sp-savebar { margin-left: calc(var(--sp-16) * -1); margin-right: calc(var(--sp-16) * -1); }
+  /* the first part starts at the top edge, the last ends at the bottom */
+  .ms-device > .ms-status:first-child,
+  .ms-device > .sp-topbar:first-child,
+  .ms-layer > .ms-status:first-child { margin-top: calc(var(--sp-16) * -1); }
+  .ms-device > .sp-tabbar:last-child,
+  .ms-device > .sp-savebar:last-child,
+  .ms-device > .sp-palette:last-child,
+  .ms-layer > .sp-tabbar:last-child,
+  .ms-layer > .sp-savebar:last-child { margin-bottom: calc(var(--sp-16) * -1); }
+  /* the scroll fills what is left, and pads its own content */
+  .ms-device > .ms-scroll,
+  .ms-layer > .ms-scroll { padding-left: var(--sp-12); padding-right: var(--sp-12); }
+  /* the layer already fills the frame, so it cancels the padding for its children */
+  .ms-layer { padding: var(--sp-16); }
+  .ms-device--tall { height: 844px; }
+  /* a screen whose subject is at the bottom - a sheet, a keyboard */
+  .ms-device--bottom { justify-content: flex-end; }
+  /* the screen behind an overlay, filling the device */
+  .ms-layer { position: absolute; inset: 0; display: flex; flex-direction: column; }
+
+  /* The status bar: the clock and the indicators the operating system draws, not
+     the app. It is here rather than in the library because no screen in the app
+     renders it - only a mockup of a phone does. */
+  .ms-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-12) 22px var(--sp-2);
+    font-size: var(--t-13);
+    font-weight: 600;
+    background: var(--surface);
+    flex: none;
+  }
+
+  /* The bar at the top of a screen is c11's .sp-topbar in its touch variant - the
+     page only states that it does not stretch, and that the search field inside it
+     takes the width the bar has left. */
+  .ms-device > .sp-topbar,
+  .ms-pane > .sp-topbar,
+  .ms-layer > .sp-topbar { flex: none; }
+  /* a heading above the scroll, with no bar of its own */
+  /* the gap above it is the pane's, not its own */
+  .ms-head { padding: 0 var(--sp-12); flex: none; }
+
+  /* The one scrolling region: everything between the bar and the tab bar. A phone
+     scrolls in exactly one place, so this is the only element on the page that may. */
+  .ms-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  /* The scroll clips at its own edge, so a card flush with that edge loses its top
+     border and corners: the 12 above the first card is the scroll's own padding, and
+     the gap the column would have put above the scroll is taken back out. */
+  .ms-device > .ms-scroll,
+  .ms-pane > .ms-scroll { margin-top: calc(var(--sp-12) * -1); }
+  /* the layer is a column with no gap, so there is nothing to take back */
+  .ms-layer > .ms-scroll { margin-top: 0; }
+  .ms-scroll--pad { padding: var(--sp-12); gap: var(--sp-12); }
+  /* A screen that stacks a bar, a heading or a summary above the scroll puts them
+     in a pane: it fills the frame like the scroll does but never scrolls itself, so
+     the one scrolling region stays the one inside it - and the content keeps a
+     single 16 gutter instead of one from each nested region. */
+  .ms-pane { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-12); }
+  /* a strip that runs to the device's edges from inside a padded region */
+  .ms-strip-bleed { margin: 0 calc(var(--sp-12) * -1); padding: 0 var(--sp-12); }
+
+  /* Where the floating action sits. What it looks like is .sp-fab's, not the page's:
+     one 56px round button, the same on every screen that shows it. */
+  .ms-fab { position: absolute; right: var(--sp-12); bottom: 80px; }
+
+  /* how far a sheet may rise on these screens; its corners are the component's - its
+     own at the top, the frame's at the bottom */
+  .ms-sheet { max-height: 88%; }
+  /* A stacked pair on a phone - a title with its second line - is tighter than the
+     scale's smallest step, the same --sp-2 a row card already gives it. It is every
+     pair in every frame, so the pairs carry no gap class of their own and this is
+     the one rule that spaces them. A stack that needs a real gap still asks for it
+     with .sp-gap-8 or .sp-gap-12, which outrank this. */
+  .ms-device .sp-stack { gap: var(--sp-2); }
+
+  /* a specimen column the width of the device it holds */
+  .ms-w375 { width: 375px; }
+
+}

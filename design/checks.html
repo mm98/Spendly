@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Spendly checks</title>
+<link rel="stylesheet" href="styles/tokens.css?v=v20260917b">
+<style>
+  body { margin: 0; padding: 24px; background: var(--bg); color: var(--ink);
+         font-family: Poppins, system-ui, sans-serif; font-size: 13px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .lede { color: var(--ink-4); margin: 0 0 20px; max-width: 70ch; line-height: 1.5; }
+  #status { padding: 10px 14px; border-radius: 8px; background: var(--surface);
+            border: 1px solid var(--line); margin-bottom: 16px; }
+  .rule { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+          padding: 14px 16px; margin-bottom: 10px; }
+  .rule h2 { font-size: 13px; font-weight: 600; margin: 0 0 8px; display: flex; gap: 10px; align-items: baseline; }
+  .count { font-size: 11px; color: var(--ink-5); font-weight: 400; }
+  .why { color: var(--ink-4); font-size: 11px; margin: 0 0 8px; line-height: 1.5; }
+  ul { margin: 0; padding-left: 18px; }
+  li { margin-bottom: 3px; line-height: 1.45; }
+  .page { color: var(--ink-2); font-weight: 600; }
+  .clean { color: var(--green-2); font-weight: 600; }
+  .info { border-color: var(--line-3); }
+  .info h2 { color: var(--ink-3); }
+  iframe { position: absolute; left: -9999px; width: 1500px; height: 3000px; border: 0; }
+  button.show { font: inherit; font-size: 11px; padding: 1px 7px; margin-left: 6px;
+                border: 1px solid var(--line-3); border-radius: var(--r-pill);
+                background: var(--surface); color: var(--ink-3); cursor: pointer; }
+  button.show:hover { border-color: var(--green); color: var(--green); }
+  #viewer { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: none; }
+  #viewer.on { display: block; }
+  #viewer header { display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+                   border-bottom: 1px solid var(--line); background: var(--surface); }
+  #viewer .what { font-weight: 600; }
+  #viewer .grow { flex: 1; }
+  #viewer .hold { flex: 1; overflow: auto; }
+  #viewer header { position: relative; z-index: 22; }
+</style>
+</head>
+<body>
+<h1>Design system checks</h1>
+<p class="lede">Every rule runs against the rendered page, not its source, so parent,
+child and sibling are exact rather than guessed from a text window. Open this page to
+run it; the report below is also on <code>window.__report</code>.</p>
+<div id="status">Loading pages…</div>
+<div id="out"></div>
+<div id="frames"></div>
+<div id="viewer">
+  <header>
+    <span class="what" id="viewer-what"></span>
+    <span class="grow"></span>
+    <button class="show" onclick="closeViewer()">close</button>
+  </header>
+  <div class="hold" id="viewer-hold"></div>
+</div>
+
+<script>
+const PAGES = ['Actions inventory','Auth and first run','Bookmarks','Budget','Components','Dark mode and image viewer',
+  'Duplicate and alerts','Home','Icon legend','Images and files','Input types','Layout rules',
+  'Mobile screens','Navigation shell','Order create','Order editing layouts','Order list',
+  'Order statistics','Playground','React components','Responsive reference','Settings and import','States and confirmations',
+  'Type specimen','Typography','Vendors and categories'];
+
+/* Each rule says what it asserts and why it exists. A rule earns its place by having
+   caught a real defect; `why` names it, so nobody has to guess whether it matters. */
+const RULES = [
+{
+  id: 'unique ids',
+  why: 'Responsive reference drew one field grid at two widths, so three ids existed twice and every label pointed at the first copy.',
+  run(doc, add) {
+    const seen = {};
+    doc.querySelectorAll('[id]').forEach(e => (seen[e.id] = (seen[e.id] || 0) + 1));
+    for (const [id, n] of Object.entries(seen)) if (n > 1) add(`id "${id}" declared ${n}×`);
+  }
+},
+{
+  id: 'references resolve',
+  why: 'A for or aria-labelledby pointing at nothing is a label that labels nothing.',
+  run(doc, add) {
+    for (const attr of ['for','aria-labelledby','aria-describedby','aria-controls'])
+      doc.querySelectorAll('[' + attr + ']').forEach(e => {
+        for (const ref of e.getAttribute(attr).split(/\s+/))
+          if (ref && !doc.getElementById(ref)) add(`${e.tagName.toLowerCase()} ${attr}="${ref}" points at no element`);
+      });
+  }
+},
+{
+  id: 'every control is named',
+  why: 'Ten controls had no name at all - row selects, scan lines, a status field.',
+  run(doc, add) {
+    doc.querySelectorAll('input, select, textarea').forEach(e => {
+      if (e.type === 'hidden') return;
+      if (e.getAttribute('aria-label') || e.getAttribute('aria-labelledby')) return;
+      if (e.id && doc.querySelector('label[for="' + CSS.escape(e.id) + '"]')) return;
+      const wrap = e.closest('label');
+      if (wrap && wrap.textContent.trim()) return;
+      add(`${e.tagName.toLowerCase()}${e.className ? '.' + e.className.split(' ')[0] : ''} has no name`);
+    });
+  }
+},
+{
+  id: 'a field label names its own control',
+  why: 'A regex bound a merge control to an unrelated "Colour" label, and 13 group labels had no id at all so the text on screen labelled nothing.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-field__label').forEach(l => {
+      const next = l.nextElementSibling;
+      if (!next) return;
+      const text = l.textContent.trim().slice(0, 44);
+      const combo = next.classList.contains('sp-combobox');
+      const group = next.getAttribute && /^(group|radiogroup)$/.test(next.getAttribute('role') || '');
+      const control = next.matches && next.matches('input, select, textarea');
+      const wrapControl = next.querySelector && next.querySelector(':scope > input, :scope > select, :scope > textarea');
+
+      if (control || wrapControl) {
+        const target = control ? next : wrapControl;
+        if (l.tagName !== 'LABEL') return add(`"${text}" names one control but is a <${l.tagName.toLowerCase()}>`);
+        const f = l.getAttribute('for');
+        if (!f || doc.getElementById(f) !== target) add(`"${text}" is a label whose for does not point at the control beside it`);
+        return;
+      }
+      if (combo) {
+        const trig = next.querySelector('.sp-combobox__trigger');
+        const input = next.querySelector('input[role="combobox"]');
+        if (input) {
+          if (l.tagName !== 'LABEL' || doc.getElementById(l.getAttribute('for')) !== input)
+            add(`"${text}" names a combobox input but is not bound to it`);
+          return;
+        }
+        if (!trig) return;
+        if (l.tagName === 'LABEL') add(`"${text}" is a <label> naming a button, which cannot be labelled by for`);
+        if (!l.id) return add(`"${text}" names a combobox but carries no id`);
+        if (trig.getAttribute('aria-labelledby') !== l.id)
+          add(`"${text}" has id ${l.id} but its trigger names ${trig.getAttribute('aria-labelledby') || 'nothing'}`);
+        if (trig.getAttribute('aria-labelledby') && trig.getAttribute('aria-label'))
+          add(`"${text}" combobox carries both aria-label and aria-labelledby`);
+        return;
+      }
+      if (group) {
+        if (l.tagName === 'LABEL') add(`"${text}" is a <label> naming a group, which a label cannot do`);
+        if (!l.id) return add(`"${text}" names a group but carries no id`);
+        if (next.getAttribute('aria-labelledby') !== l.id)
+          add(`"${text}" has id ${l.id} but its group names ${next.getAttribute('aria-labelledby') || 'nothing'}`);
+        if (next.getAttribute('aria-labelledby') && next.getAttribute('aria-label'))
+          add(`"${text}" group carries both aria-label and aria-labelledby`);
+      }
+    });
+  }
+},
+{
+  id: 'a combobox trigger is named',
+  why: '48 triggers had no name; the rest were named two different ways.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-combobox__trigger').forEach(t => {
+      if (!t.getAttribute('aria-label') && !t.getAttribute('aria-labelledby'))
+        add(`a trigger showing "${t.textContent.trim().slice(0, 30)}" has no name`);
+    });
+  }
+},
+{
+  id: 'a title stack is a record identity',
+  why: 'Derived from a full pass over every instance. Container cannot decide it - a dialog and a note row both legitimately hold record rows, and a phone top bar holds a name and meta that looks identical to a row identity. So this checks only what IS objective: the stack holds text, not a control; its lines are labels rather than prose; and it is not a documentation cell. Whether a given name is a record identity or a screen title stays a judgement.',
+  run(doc, add) {
+    const CONTROL = '.sp-combobox, .sp-input, .sp-select, .sp-textarea, .sp-stepper, .sp-segmented, .sp-switch, .sp-check, .sp-radio';
+    const CHROME = '.doc-table__row, .doc-table__head, .doc-note, .doc-notes, .doc-lede, .sc-surf, .ai-act, .lr-row, .rr-row, .au-row, .it-row';
+    doc.querySelectorAll('.sp-stacked').forEach(s => {
+      if (!inProduct(s)) return;
+      const label = (s.firstElementChild?.textContent || '').trim().slice(0, 26);
+      /* A DIRECT child only: a chip or a button nested inside a meta row is part of the
+         record's own line, not a field's control. */
+      if ([...s.children].some(k => k.matches(CONTROL)))
+        add(`a title stack holds a control, so it is a field: "${label}"`, s);
+      /* Prose is a sentence, and the test has to survive Danish currency: "3.980,00 kr."
+         ends in a full stop, and a meta run joined by · is not prose however long it is.
+         So: six words or more, no separator, and not ending in an amount. */
+      const prose = [...s.children].find(k => {
+        const t = k.textContent.trim().replace(/\s+/g, ' ');
+        if (t.includes('·') || /kr\.$/.test(t)) return false;
+        return /[.!?]$/.test(t) && t.split(' ').length >= 6;
+      });
+      if (prose)
+        add(`a title stack holds prose, so it is a message body: "${prose.textContent.trim().slice(0, 30)}"`, prose);
+      const chrome = s.closest(CHROME);
+      if (chrome)
+        add(`a title stack in documentation chrome (.${chrome.className.split(' ')[0]}): "${label}"`, s);
+    });
+  }
+},
+{
+  id: 'a title stack is one block',
+  why: 'Authored as sp-stack + sp-gap-6 + sp-truncate it drifted into three behaviours - 6px, 2px inside .sp-card--row, and display:block in a table cell where the gap did nothing at all. It is .sp-stacked now: one class, one gap, changed in one place.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-stacked').forEach(s => {
+      if (!inProduct(s)) return;
+      const cs = CS(s);
+      if (cs.display !== 'flex') add(`a title stack is ${cs.display}, not flex, so its gap does nothing`, s);
+      if (cs.rowGap !== '2px') add(`a title stack has gap ${cs.rowGap}, not 2px`, s);
+      if (cs.overflow !== 'hidden' && !s.matches('.sp-cell-amount, .sp-list-card__body'))
+        add('a title stack does not hide its overflow', s);
+
+      /* Truncation only matters where content can overflow. "Period" in a 342px card
+         will never clip, so requiring sp-truncate on it is a rule about nothing -
+         nine of twelve findings here were that. The test is real geometry: is a line
+         actually cut, and is the thing being cut prose or a name?
+
+         And the test is the CUT CHILD's own overflow, never the stack's class. A stack
+         with sp-truncate hides its overflow, so a child without an ellipsis of its own
+         is simply chopped mid-word - checking the stack instead let four toast
+         sentences and a line title through a report that said clean. */
+      const cut = [...s.children].filter(k => k.scrollWidth > k.clientWidth + 1);
+      if (!cut.length) return;
+      const prose = s.querySelector('.sp-field__help, .sp-empty__body, p') || [...s.children].some(k => /[.!?]\s|[.!?]$/.test(k.textContent.trim()) && k.textContent.trim().length > 40);
+      for (const k of cut) {
+        const cs = CS(k);
+        const ellipsis = cs.textOverflow === 'ellipsis' && cs.overflow === 'hidden';
+        if (ellipsis) continue;
+        if (prose) add(`a stack clips prose: "${k.textContent.trim().slice(0, 34)}"`, k);
+        else add(`a line is cut without an ellipsis of its own: "${k.textContent.trim().slice(0, 30)}"`, k);
+      }
+    });
+  }
+},
+{
+  id: 'a saving is an amount, under its amount',
+  why: 'Savings appeared as percentages, as prose, in grey, and inside meta lines beside the record name.',
+  run(doc, add) {
+    const leaves = [...doc.querySelectorAll('span, div, td, b, strong')].filter(e => !e.children.length && e.textContent.trim());
+    for (const e of leaves) {
+      if (!inProduct(e)) continue;
+      const t = e.textContent.trim();
+      if (/sav(ed|ing)/i.test(t) && /%/.test(t)) add(`a saving states a percentage: "${t.slice(0, 50)}"`);
+      if (/^saved\b/.test(t)) add(`a saving reads lowercase: "${t.slice(0, 50)}"`);
+      if (/vs retail|compared to retail/i.test(t)) add(`a saving says "vs retail": "${t.slice(0, 50)}"`);
+      if (!/^Saved [\d.,]+ kr\.$/.test(t)) continue;
+      const zero = /^Saved 0,00/.test(t);
+      const green = CS(e).color === 'rgb(47, 122, 81)';
+      if (zero && green) add(`a zero saving is green: "${t}"`);
+      if (!zero && !green) add(`a saving is not green: "${t}" is ${CS(e).color}`, e);
+      /* Where a saving must sit is a rule about ROWS: a row states its amount, and the
+         saving goes beneath it. Only the three components that ARE rows - a table row,
+         a record card, a list card - have an amount slot. A saving anywhere else (a
+         card's totals, a save bar, a summary, a line-item editor) is stating a figure,
+         and .sp-list / .sp-lines are boxes that hold anything, not row components. */
+      const row = e.closest('tr, .sp-record, .sp-list-card');
+      if (!row) continue;
+      const slot = e.closest('.sp-cell-amount, .sp-record__foot, .sp-list-card__line, .sp-sum');
+      if (!slot) add(`a saving in a row sits outside its amount slot: "${t}"`, e);
+    }
+  }
+},
+{
+  id: 'a screen uses the split body',
+  why: 'Order create drew its own 2fr/1fr grid, so its rail was 403 at one artboard width and 452 at another, against the component\u2019s fixed 360.',
+  run(doc, add) {
+    doc.querySelectorAll('.doc-screen, .doc-frame').forEach(frame => {
+      [...frame.children].forEach(kid => {
+        const cs = CS(kid);
+        if (cs.display !== 'grid') return;
+        const cols = cs.gridTemplateColumns.split(' ').filter(Boolean);
+        if (cols.length !== 2) return;
+        const a = parseFloat(cols[0]), b = parseFloat(cols[1]);
+        if (!(a && b) || Math.abs(a - b) < 40) return;          // a pair of equals is .sp-fields
+        // the component pair, either way round: --split puts the rail after the content,
+        // --rail puts it first (the order list's views beside its table)
+        if (kid.classList.contains('sp-shell__body--split') || kid.classList.contains('sp-shell__body--rail')) return;
+        add(`.${kid.className.split(' ')[0]} draws a main column and a rail; use .sp-shell__body--split or --rail with a .sp-panel`, kid);
+      });
+    });
+  }
+},
+{
+  id: 'a rail is the component\u2019s width',
+  why: 'A proportional rail changes width with the artboard; every record screen\u2019s rail is 360.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-shell__body--split').forEach(b => {
+      const panel = b.querySelector(':scope > .sp-panel');
+      if (!panel) return add('a split body has no .sp-panel rail');
+      const w = Math.round(panel.getBoundingClientRect().width);
+      if (w && w !== 360) add(`a rail is ${w}px, not 360`);
+    });
+  }
+},
+{
+  id: 'cards sit 12 apart, padded 16',
+  why: 'Eleven rules across five pages separated cards at 8, 10 or 16, so a screen\u2019s rhythm changed page to page.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-card').forEach(c => {
+      if (!inProduct(c)) return;
+      const cs = CS(c);
+      if (c.classList.contains('sp-card--flush') || c.classList.contains('sp-card--row')) return;
+      /* What must hold is the INSET: 16 either side, so a bar's content lines up with
+         the cards above and below it. A bar carrying text rather than a 42px control
+         is legitimately shorter - the crumbs bar pads 12/16 - so asserting paddingTop
+         reported four defects on a system where every inset was already right. */
+      const isBar = /sp-crumbs-bar|sp-controls|sp-savebar|sp-list__toolbar|sp-topbar/.test(c.className);
+      if (cs.paddingLeft !== '16px' && cs.paddingLeft !== '0px') add(`a card is inset ${cs.paddingLeft}, not 16`, c);
+      if (!isBar && cs.paddingTop !== '16px' && cs.paddingTop !== '0px') add(`a card is padded ${cs.paddingTop}, not 16`, c);
+    });
+    doc.querySelectorAll('.sp-shell__body, .sp-panel, .sp-cards').forEach(col => {
+      if (!inProduct(col)) return;
+      const cs = CS(col);
+      const kids = [...col.children].filter(k => k.classList.contains('sp-card') || k.classList.contains('sp-record'));
+      if (kids.length < 2) return;
+      if (cs.rowGap !== '12px') add(`.${col.className.split(' ')[0]} separates cards by ${cs.rowGap}, not 12`, col);
+    });
+  }
+},
+{
+  id: 'a screen body is inset 16',
+  why: 'Order create nested one body inside another for 32; Order list had none at all, so content sat flush to the frame.',
+  run(doc, add) {
+    doc.querySelectorAll('.doc-screen, .doc-frame, .sp-phone').forEach(frame => {
+      const body = frame.querySelector(':scope > .sp-shell__body, :scope > [class*="-screen"] > .sp-shell__body');
+      if (body) {
+        const cs = CS(body);
+        if (cs.paddingTop !== '16px') add(`a screen body is inset ${cs.paddingTop}, not 16`, body);
+        if (body.querySelector(':scope > .sp-shell__body')) add('a screen body is nested inside another, doubling the inset');
+      }
+      /* The body's own edge is NOT the test: a body sits flush to the frame and insets
+         its content internally, so measuring the body's left edge reports the frame's
+         1px border as a defect - 35 of them on a system where every body pads 16. The
+         padding above is the assertion. */
+    });
+  }
+},
+{
+  id: 'documentation chrome is not product layout',
+  why: 'Order list laid out a drawn screen with .doc-specimens, so the page frame governed the rail gap - 16 where cards sit 12.',
+  run(doc, add) {
+    const CHROME_CLASSES = ['doc-specimens','doc-specimen','doc-section','doc-notes','doc-card','doc-table__row'];
+    doc.querySelectorAll('.doc-screen, .doc-frame, .sp-phone').forEach(frame => {
+      frame.querySelectorAll('*').forEach(e => {
+        for (const c of CHROME_CLASSES)
+          if (e.classList.contains(c)) add(`.${c} used inside a drawn screen`, e);
+      });
+    });
+  }
+},
+{
+  id: 'an amount never wraps',
+  why: 'An amount broke across two lines and overlapped the text beside it.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-amount, .sp-amount-secondary').forEach(a => {
+      if (!inProduct(a)) return;
+      if (CS(a).whiteSpace !== 'nowrap') add(`an amount can wrap: "${a.textContent.trim().slice(0, 24)}"`, a);
+    });
+  }
+},
+{
+  id: 'no inline styles',
+  why: 'A measurement from data belongs in a rule keyed by a data attribute. Three kinds are not authored style and never were: the per-instance hooks the system documents, an attribute components.js sets at runtime, and the host\u2019s own color-scheme on <html>.',
+  run(doc, add) {
+    const HOOKS = /^\s*--(a|b|p|swatch)\s*:/;                    // documented per-instance hooks
+    const RUNTIME = '.sp-strip-nav, .sp-track__handle, .sp-track__span';  // set by components.js
+    const offenders = [...doc.querySelectorAll('[style]')].filter(e => {
+      if (e.tagName === 'HTML' || e.tagName === 'BODY') return false;
+      if (e.hasAttribute('data-om-id')) return false;
+      if (e.matches(RUNTIME)) return false;
+      const v = e.getAttribute('style').trim();
+      if (!v) return false;
+      return !v.split(';').filter(x => x.trim()).every(d => HOOKS.test(d));
+    });
+    for (const e of offenders)
+      add(`a style attribute on .${(e.className || e.tagName).split(' ')[0]}: ${e.getAttribute('style').slice(0, 44)}`, e);
+  }
+},
+{
+  id: 'no typographic tells',
+  why: 'Em dashes, curly quotes and their entity forms read as machine-written.',
+  run(doc, add) {
+    const text = doc.body ? doc.body.innerText : '';
+    for (const [ch, what] of [['\u2014','em dash'],['\u2013','en dash'],['\u2019','curly apostrophe'],['\u201C','curly quote'],['\u201D','curly quote']]) {
+      const n = text.split(ch).length - 1;
+      if (n) add(`${n}× ${what}`);
+    }
+  }
+},
+{
+  id: 'a line row states whether it reorders',
+  why: '.sp-line--plain hides the handle and takes --surface-2, so a line either reorders with a handle or is plain without one. The add row is decided by its LIST, not by itself: it carries a handle for alignment with the rows above, so where no row reorders - 1c reorders from a button, 3a lists lines in scan order - the add row is plain too, and it was not.',
+  run(doc, add) {
+    doc.querySelectorAll('.sp-lines').forEach(list => {
+      if (!inProduct(list)) return;
+      const lines = [...list.querySelectorAll(':scope > .sp-line')];
+      const addRow = lines.find(l => l.classList.contains('sp-line--add'));
+      const rows = lines.filter(l => l !== addRow && !l.closest('.sp-line-editor'));
+      for (const e of rows) {
+        const plain = e.classList.contains('sp-line--plain');
+        const handle = e.querySelector(':scope > .sp-line__handle');
+        if (!plain && !handle) add('a reorderable line has no handle: add .sp-line__handle, or --plain if it does not reorder', e);
+        if (plain && handle) add('a plain line carries a handle, which --plain hides', e);
+      }
+      if (!addRow || !rows.length) return;
+      const reorders = rows.some(l => l.querySelector(':scope > .sp-line__handle'));
+      if (addRow.classList.contains('sp-line--plain') === reorders)
+        add(`the add row does not follow its list: the rows ${reorders ? 'reorder, so it must not be --plain' : 'do not reorder, so it must be --plain'}`, addRow);
+    });
+  }
+},
+{
+  id: 'a hover ground follows the rest ground',
+  why: 'Hover looked like drift - 13 different grounds - but it is three rules nobody had written down, so the fourteenth value would have gone unnoticed. A control resting on the page ground tints to --hover; one resting on a white surface darkens to --surface-2; anything green-inked or green-tinted steps down the green scale; a toned variant stays in its own tone.',
+  run(doc, add) {
+    const ALLOWED = ['--hover','--surface-2','--surface','--green-tint','--green-tint-2','--green-2','--green-5',
+      '--amber-tint','--amber-tint-2','--amber-ink-2','--red-tint','--red-hover','--red-ink','--shell-item-hover','--shell-count','none'];
+    const seen = new Set();
+    [...doc.styleSheets].forEach(sheet => {
+      let rules;
+      try { rules = [...sheet.cssRules]; } catch (e) { return; }      // cross-origin webfont
+      const walk = rs => rs.forEach(r => {
+        if (r.cssRules) return walk([...r.cssRules]);
+        if (!r.selectorText || !r.selectorText.includes(':hover')) return;
+        const v = (r.style.background || r.style.backgroundColor || '').trim();
+        if (!v) return;
+        const token = (v.match(/--[\w-]+/) || [v])[0];
+        if (ALLOWED.includes(token)) return;
+        const key = r.selectorText.split(',')[0].trim() + ' => ' + v;
+        if (seen.has(key)) return;
+        seen.add(key);
+        add(`a hover ground outside the three rules: ${key}`);
+      });
+      walk(rules);
+    });
+  }
+},
+{
+  id: 'a specimen gap follows its content',
+  why: 'The documentation frame separates DRAWINGS at 16, and a drawing is a labelled specimen. Where the children are bare components with no label between them, nothing says they are separate examples, so they read as cards side by side and must take the card gap. 47 wrappers were 16 for that reason - the recurring "this card gap is wrong".',
+  run(doc, add) {
+    doc.querySelectorAll('.doc-specimens').forEach(w => {
+      const kids = [...w.children];
+      if (kids.length < 2) return;
+      const drawings = kids.some(k => k.classList.contains('doc-specimen') || k.querySelector(':scope > .doc-specimen__label'));
+      const want = drawings ? '16px' : '12px';
+      const got = CS(w).columnGap;
+      if (got !== want)
+        add(`a wrapper of ${drawings ? 'labelled drawings' : 'bare components'} has gap ${got}, not ${want}`, w);
+    });
+  }
+},
+{
+  id: 'a full screen sits in a screen frame',
+  why: 'A drawn screen is a screen frame - .doc-screen.doc-frame on desktop, .sp-phone on a phone - so every screen is the same width, on the same ground, with the same border and radius. Order create and Order editing each had their own 1240 frame instead, and a screen laid out directly on the documentation page takes the page frame\u2019s spacing rather than its own.',
+  run(doc, add) {
+    const FRAME = '.doc-screen, .doc-frame, .sp-phone, .ms-device, .sp-shell, .rr-frame, .au-frame';
+    // a screen is a shell: something that carries a bar AND the content under it
+    doc.querySelectorAll('div, section, article').forEach(e => {
+      const bar = e.querySelector(':scope > .sp-topbar, :scope > .sp-sidebar, :scope > .sp-tabbar');
+      const body = e.querySelector(':scope > [class*="sp-shell__body"], :scope > .ms-scroll, :scope > [class*="-body"]');
+      if (!bar || !body) return;
+      if (e.matches(FRAME) || e.closest(FRAME)) return;
+      add(`a full screen is not in a screen frame: .${e.className.split(' ')[0] || e.tagName.toLowerCase()}`, e);
+    });
+  }
+},
+{
+  id: 'selection is one ground',
+  why: 'Selection was drawn three ways: --green-tint on five components, --green-tint-2 on a choice row (which is the HOVER tint of a selected row elsewhere), and --hover on a palette row, where a selected row and a hovered one were indistinguishable. A card also marks selection on its border, since it has one to change; a row inside a bordered list has only the ground.',
+  run(doc, add) {
+    const TINT = 'rgb(231, 239, 232)';                 // --green-tint
+    const CARDS = '.sp-record, .sp-list-card';         // selection also moves their border
+    doc.querySelectorAll('.sp-line, .sp-table tbody tr, .sp-record, .sp-list-card, .sp-choice--row, .sp-combobox__option, .sp-palette__row').forEach(e => {
+      if (!inProduct(e)) return;
+      const on = e.querySelector('input:checked') || e.getAttribute('aria-selected') === 'true';
+      if (!on) return;
+      // an attention row keeps its own tone: over a limit is a state, not a selection
+      if (/--attention|--problem|--over/.test(e.className)) return;
+      const cs = CS(e);
+      if (cs.backgroundColor !== TINT)
+        add(`a selected ${e.className.split(' ')[0] || e.tagName.toLowerCase()} is ${cs.backgroundColor}, not --green-tint`, e);
+      if (e.matches(CARDS) && cs.borderTopColor !== 'rgb(29, 77, 51)')
+        add(`a selected card does not carry the green border: ${cs.borderTopColor}`, e);
+    });
+  }
+},
+{
+  id: 'nothing overlaps or is clipped',
+  why: 'The one class of defect no source scan can see: real geometry. It only means anything for elements actually on screen - comparing a collapsed rail against the expanded sidebar it sits behind produced 24 findings about nothing.',
+  run(doc, add) {
+    const win = doc.defaultView;
+    /* On screen, and the topmost thing at its own centre. An element behind another
+       layer, faded out, or scrolled out of its own clipping parent is not something a
+       user can see overlap. elementFromPoint returning null means the point is outside
+       the frame's viewport - unknowable, so not reported. */
+    const shown = e => {
+      let p = e;
+      while (p && p !== doc.body) {
+        const c = CS(p);
+        if (c.display === 'none' || c.visibility !== 'visible' || parseFloat(c.opacity) < 0.99) return false;
+        p = p.parentElement;
+      }
+      const r = e.getBoundingClientRect();
+      if (!r.width || !r.height) return false;
+      const x = r.left + Math.min(r.width / 2, 6), y = r.top + r.height / 2;
+      if (x < 0 || y < 0 || x > win.innerWidth || y > win.innerHeight) return false;
+      const hit = doc.elementFromPoint(x, y);
+      if (!hit) return false;
+      return hit === e || e.contains(hit) || hit.contains(e);
+    };
+    const leaves = [...doc.querySelectorAll('span, div, td, b, strong, label, a')]
+      .filter(e => !e.children.length && e.textContent.trim() && e.getBoundingClientRect().width && inProduct(e) && shown(e));
+    for (const e of leaves) {
+      const cs = CS(e);
+      if (cs.textOverflow === 'ellipsis' || cs.overflow === 'hidden') continue;
+      if (e.scrollWidth > e.clientWidth + 1 && e.clientWidth) add(`clipped: "${e.textContent.trim().slice(0, 34)}"`, e);
+    }
+    /* overlap, ignoring anything drawn deliberately over the page. An open combobox
+       panel is one of those layers: Bookmarks 22b draws the category filter open over
+       the cards, and its "Textiles" option was reported as overlapping a card title. */
+    const floating = e => !!e.closest('.sp-menu, .sp-popover, .sp-dialog, .sp-sheet, .sp-scrim, .sp-tip, .sp-toast, .sp-palette, .sp-combobox__panel');
+    /* Two texts only collide when they share a layer. One lifted above the other - a
+       positioned box with its own z-index, a sticky header, a fixed bar - is drawn on top
+       by design, so the pair is compared only when both resolve to the same layer. */
+    const layerOf = e => {
+      for (let p = e.parentElement; p && p !== doc.body; p = p.parentElement) {
+        const c = CS(p);
+        if (c.position === 'fixed' || c.position === 'sticky') return p;
+        if (c.position !== 'static' && c.zIndex !== 'auto') return p;
+      }
+      return doc.body;
+    };
+    const boxes = leaves.filter(e => !floating(e)).map(e => ({ e, r: e.getBoundingClientRect(), l: layerOf(e) })).filter(x => x.r.height);
+    for (let i = 0; i < boxes.length; i++)
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j];
+        if (a.e.contains(b.e) || b.e.contains(a.e)) continue;
+        if (a.l !== b.l) continue;
+        if (a.r.left < b.r.right - 2 && b.r.left < a.r.right - 2 && a.r.top < b.r.bottom - 2 && b.r.top < a.r.bottom - 2)
+          add(`overlap: "${a.e.textContent.trim().slice(0, 22)}" over "${b.e.textContent.trim().slice(0, 22)}"`, a.e);
+      }
+  }
+}
+];
+
+/* Informational: how each component draws one state. Not a defect on its own - it is
+   the question a checker cannot answer, collected so the decision can be made once. */
+const SURVEYS = [
+{
+  id: 'how a selected row is drawn',
+  collapse: true,          // one line per treatment: the question is how many ways, not where
+  run(doc, note) {
+    doc.querySelectorAll('.sp-line, .sp-table tbody tr, .sp-record, .sp-list-card, .sp-choice--row, .sp-combobox__option, .sp-palette__row').forEach(e => {
+      const on = e.querySelector('input:checked') || e.getAttribute('aria-selected') === 'true';
+      if (!on) return;
+      note(`${e.className.split(' ')[0] || e.tagName.toLowerCase()} → bg ${CS(e).backgroundColor}`, e);
+    });
+  }
+}
+];
+
+let CS = getComputedStyle;
+
+/* What the rules govern. A mockup drawn inside a frame or a phone is the product; the
+   page around it - notes, ledes, specimen labels, code panels, type specimens - is
+   documentation, and holds none of the product's rules. Checking both is how a clean
+   system reported 294 findings, most of them prose. */
+/* Product, not documentation. PRODUCT must list every frame a page draws a mockup in,
+   not just the shared ones: Responsive reference draws its screens in .rr-frame, and
+   while that was missing, every rule using inProduct was blind to that whole page -
+   three handleless lines in 18a went unreported by a checker that said it was clean. */
+const PRODUCT = '.doc-screen, .doc-frame, .sp-phone, .sp-shell, .doc-specimen, .rr-frame, .au-frame, .dm-frame, .ns-frame, .ms-device, .ol-frame, .hm-screen, .ns-screen, .os-screen, .st-screen, .oc-stage, .au-stage, .oe-phone';
+const CHROME = '.doc-note, .doc-notes, .doc-lede, .doc-section__head, .doc-specimen__label, .doc-table__row, .doc-table__head, .doc-card, .rr-code, .ty-spec, .ty-row, .il-cell, .ai-act, .lr-row, .au-row, .rr-row, .it-row, .sc-surf, .ns-table__row, .dm-map, code, pre';
+const inProduct = e => !!e.closest(PRODUCT) && !e.closest(CHROME);
+const findings = [], surveys = {};
+let parked = null;
+
+/* Clicking a finding shows it: the page is moved into a viewer, scrolled to the
+   element and outlined, so a visual claim can be judged rather than taken on trust.
+   Only findings that carry an element get a link - a missing name or a duplicate id
+   has nothing to look at. */
+function reveal(f) {
+  closeViewer();
+  const v = document.getElementById('viewer');
+  document.getElementById('viewer-what').textContent = f.page + ' - ' + f.detail;
+  v.classList.add('on');
+  /* The frame stays where it is. Re-parenting an iframe reloads it, which wipes both
+     the outline and the scroll position - the first version of this did that and
+     showed an empty page. */
+  const fr = f.frame;
+  fr.dataset.parked = fr.getAttribute('style') || '';
+  fr.setAttribute('style', 'position:fixed;left:0;top:46px;width:100vw;height:calc(100vh - 46px);z-index:21;border:0;background:#fff;');
+  // the frame is a different width now, so the element has moved: measure after
+  requestAnimationFrame(() => {
+    const doc = fr.contentDocument, win = fr.contentWindow;
+    const r = f.el.getBoundingClientRect();
+    const top = r.top + win.scrollY, left = r.left + win.scrollX;
+    const mark = doc.createElement('div');
+    mark.id = '__check_mark';
+    mark.setAttribute('style', 'position:absolute;z-index:99999;pointer-events:none;'
+      + 'border:2px solid #c0392b;border-radius:4px;box-shadow:0 0 0 4px rgba(192,57,43,0.18);'
+      + 'left:' + (left - 2) + 'px;top:' + (top - 2) + 'px;width:' + Math.max(r.width, 4) + 'px;height:' + Math.max(r.height, 4) + 'px;');
+    (doc.body || doc.documentElement).appendChild(mark);
+    win.scrollTo(0, Math.max(0, top - 160));
+    parked = { fr, doc };
+  });
+}
+function closeViewer() {
+  document.getElementById('viewer').classList.remove('on');
+  if (!parked) return;
+  const m = parked.doc.getElementById('__check_mark');
+  if (m) m.remove();
+  parked.fr.setAttribute('style', parked.fr.dataset.parked || '');
+  parked = null;
+}
+window.closeViewer = closeViewer;
+let done = 0;
+
+let CURRENT = null;
+function runOn(name, doc, win) {
+  CS = win.getComputedStyle.bind(win);
+  CURRENT = { name, doc, win, frame: win.frameElement };
+  for (const rule of RULES) {
+    try { rule.run(doc, (detail, el) => findings.push({ rule: rule.id, why: rule.why, page: name, detail, el: el || null, frame: CURRENT.frame })); }
+    catch (err) { findings.push({ rule: rule.id, why: rule.why, page: name, detail: 'rule threw: ' + err.message }); }
+  }
+  for (const s of SURVEYS) {
+    try { s.run(doc, (detail, el) => { (surveys[s.id] ||= []).push({ page: name, detail, el: el || null, frame: CURRENT.frame }); }); } catch (err) {}
+  }
+}
+
+function render() {
+  const out = document.getElementById('out');
+  const byRule = {};
+  for (const f of findings) (byRule[f.rule] ||= []).push(f);
+  const total = findings.length;
+  document.getElementById('status').innerHTML = total
+    ? `<b>${total} finding(s)</b> across ${PAGES.length} pages`
+    : `<span class="clean">Clean.</span> ${RULES.length} rules over ${PAGES.length} pages, nothing to report.`;
+  out.innerHTML = '';
+  for (const [rule, list] of Object.entries(byRule).sort((a, b) => b[1].length - a[1].length)) {
+    const div = document.createElement('div');
+    div.className = 'rule';
+    div.innerHTML = `<h2>${rule}<span class="count">${list.length}</span></h2><p class="why">${list[0].why}</p>`;
+    const ul = document.createElement('ul');
+    const byPage = {};
+    for (const f of list) (byPage[f.page] ||= []).push(f.detail);
+    for (const [page, details] of Object.entries(byPage)) {
+      const seen = new Set();
+      for (const f of list.filter(x => x.page === page)) {
+        if (seen.has(f.detail) || seen.size >= 8) continue;
+        seen.add(f.detail);
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="page">${page}</span> — ${f.detail} `;
+        if (f.el && f.frame) {
+          const a = document.createElement('button');
+          a.className = 'show';
+          a.textContent = 'show';
+          a.onclick = () => reveal(f);
+          li.appendChild(a);
+        }
+        ul.appendChild(li);
+      }
+      if (new Set(details).size > 8) {
+        const li = document.createElement('li');
+        li.textContent = `${page} — and ${new Set(details).size - 8} more`;
+        ul.appendChild(li);
+      }
+    }
+    div.appendChild(ul);
+    out.appendChild(div);
+  }
+  for (const [id, list] of Object.entries(surveys)) {
+    const div = document.createElement('div');
+    div.className = 'rule info';
+    const kinds = new Set(list.map(x => x.detail)).size;
+    const survey = SURVEYS.find(s => s.id === id);
+    /* A survey either asks "how many ways is this drawn" - one line per treatment, no
+       point looking at each - or "where is this used", which is a list to walk, so
+       every use gets its own show link. */
+    const collapse = survey && survey.collapse;
+    div.innerHTML = `<h2>${id}<span class="count">${collapse ? kinds + ' treatment(s)' : list.length + ' use(s)'}</span></h2>`;
+    const ul = document.createElement('ul');
+    const rows = collapse
+      ? [...new Map(list.map(x => [x.detail, x])).values()]
+      : list;
+    for (const x of rows.slice(0, 80)) {
+      const li = document.createElement('li');
+      li.innerHTML = collapse ? `${x.detail} ` : `<span class="page">${x.page}</span> — ${x.detail} `;
+      if (!collapse && x.el && x.frame) {
+        const b = document.createElement('button');
+        b.className = 'show';
+        b.textContent = 'show';
+        b.onclick = () => reveal(x);
+        li.appendChild(b);
+      }
+      ul.appendChild(li);
+    }
+    if (rows.length > 80) {
+      const li = document.createElement('li');
+      li.textContent = `and ${rows.length - 80} more`;
+      ul.appendChild(li);
+    }
+    div.appendChild(ul);
+    out.appendChild(div);
+  }
+  window.__report = { total, findings, surveys: Object.fromEntries(Object.entries(surveys).map(([k, v]) => [k, v.map(x => x.page + ' | ' + x.detail)])) };
+  window.__done = true;
+}
+
+PAGES.forEach(name => {
+  const fr = document.createElement('iframe');
+  fr.src = name + '.dc.html';
+  fr.onload = () => {
+    const doc = fr.contentDocument;
+    let tries = 0;
+    /* Two things have to be true before a rule can read anything: the template has
+       rendered, AND its stylesheets have applied. Reading between the two reports
+       every gap as "normal" and every width as the frame's - 804 false findings on a
+       clean system, which is worse than no checker. The probe is a real component
+       value, not a timer. */
+    /* Every stylesheet the page links must have PARSED, not just one of them. An OR
+       over probe values passes as soon as tokens.css lands, while components.css is
+       still in flight - which reported 142 title stacks at "gap normal" on a system
+       where every one is 6. */
+    const styled = () => {
+      // the project's own sheets: a cross-origin webfont throws on cssRules and can
+      // never be inspected, so it cannot be part of the gate
+      const links = [...doc.querySelectorAll('link[rel="stylesheet"]')]
+        .filter(l => !/^https?:/.test(l.getAttribute('href') || ''));
+      if (!links.length) return false;
+      for (const l of links) {
+        if (!l.sheet) return false;
+        try { if (!l.sheet.cssRules.length) return false; } catch (e) { return false; }
+      }
+      const probe = doc.querySelector('.sp-stack.sp-gap-6, .sp-card');
+      if (!probe) return false;
+      const cs = fr.contentWindow.getComputedStyle(probe);
+      return cs.rowGap === '6px' || cs.paddingTop === '16px';
+    };
+    const wait = () => {
+      const ready = doc.querySelector('#dc-root .sp') && styled();
+      if (!ready && tries < 60) { tries++; return setTimeout(wait, 100); }
+      if (!ready) { findings.push({ rule: 'the page renders', why: 'A rule cannot read a page that has not painted.', page: name, detail: 'did not render or style within 6s' }); }
+      else runOn(name, doc, fr.contentWindow);
+      if (++done === PAGES.length) render();
+      else document.getElementById('status').textContent = `Checked ${done} of ${PAGES.length} pages…`;
+    };
+    wait();
+  };
+  document.getElementById('frames').appendChild(fr);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+/* Page composition for Navigation shell.dc.html.
+   Layout scaffolding and documentation tables only: the viewport stand-ins, the
+   short-screen frames, the scrim a palette is drawn over, and the rule tables.
+   Everything else is a component class from components.css.
+   In @layer base, so it can never outrank a component rule. */
+
+@layer base {
+
+  /* viewport stand-ins */
+  .ns-screen { width: 1400px; height: 880px; }
+  .ns-frame { border-radius: var(--r-card); overflow: hidden; }
+  /* the frame is a fixed viewport stand-in, never a flex item that resizes to its
+     content; the rail's own content sets the floor, as 9b's standalone rail states */
+  .ns-frame--768 { width: 768px; height: 600px; flex: none; }
+  .ns-frame--390 {
+    width: 390px;
+    height: 520px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg);
+    border: 1px solid var(--line-3);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  .ns-frame--720 {
+    width: 720px;
+    height: 520px;
+    flex: none;
+    position: relative;
+    background: var(--surface-2);
+    border: 1px solid var(--line-3);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+
+  /* the placeholder standing in for whatever page renders in the column */
+  .ns-page {
+    flex: 1;
+    min-height: 0;
+    margin: var(--sp-16);
+    border: 1px dashed var(--line-4);
+    border-radius: var(--r-card);
+    display: grid;
+    place-items: center;
+  }
+
+  /* a palette drawn over a page: the page behind, the scrim, the panel */
+  .ns-behind { position: absolute; inset: 0; padding: var(--sp-16); display: flex; flex-direction: column; gap: var(--sp-12); }
+  .ns-behind > * { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
+  .ns-behind__bar { height: 44px; flex: none; }
+  .ns-behind__strip { height: 74px; flex: none; }
+  .ns-behind__body { flex: 1; }
+  .ns-over { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); }
+
+  /* the sidebar shown on its own, at three heights */
+  .ns-side { width: 248px; border-radius: var(--r-card); overflow: hidden; box-sizing: border-box; }
+  .ns-side--tall { height: 760px; }
+  .ns-side--mid { height: 620px; }
+  .ns-side--short { height: 500px; }
+  /* the one scrolling region: the nav between the brand and the bottom zone */
+  .ns-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-6); }
+  .ns-scroll--faded { mask-image: linear-gradient(to bottom, #1b1a17 calc(100% - 22px), transparent); }
+  .ns-side .sp-grow { min-height: var(--sp-16); }
+
+  /* the collapsed rail drawn on its own */
+  .ns-rail { width: 68px; min-height: 560px; border-radius: var(--r-card); }
+
+  /* the account menu is drawn where it opens: above the block, on the sidebar's ground */
+  .ns-menu-stage { width: 320px; min-height: 300px; justify-content: flex-end; }
+  /* the panel is the account block's own width, edge to edge with it */
+  .ns-menu-stage > .sp-menu { align-self: stretch; }
+  .ns-menu-head { padding: var(--sp-8) var(--sp-10); border-bottom: 1px solid var(--line-2); margin-bottom: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-6); }
+  /* the email case, drawn at the width that forces it */
+  .ns-email { width: 220px; }
+  /* the one floating action on a phone */
+  .ns-fab { position: absolute; right: var(--sp-12); bottom: 80px; }
+
+  /* The documentation tables: doc.css draws the row and the head, c1's .sp-list is the
+     box around them, and the page states only which columns each table has. */
+  .ns-table--keys .ns-table__row { grid-template-columns: minmax(0, 1fr) 90px minmax(0, 1fr); }
+  .ns-table--where .ns-table__row { grid-template-columns: minmax(0, 1fr) 66px 66px; }
+  .ns-table--trunc .ns-table__row { grid-template-columns: minmax(0, 1fr) 130px; }
+  .ns-table--widths .ns-table__row { grid-template-columns: 74px minmax(0, 1fr); }
+  .ns-table--heights .ns-table__row { grid-template-columns: 106px minmax(0, 1fr); }
+  .ns-table--rule .ns-table__row { grid-template-columns: 22px minmax(0, 1fr); }
+
+  /* column widths the documentation lays itself out in */
+  .ns-col-260 { width: 260px; }
+  .ns-col-400 { width: 400px; }
+  .ns-col-420 { width: 420px; }
+  .ns-col-440 { width: 440px; }
+  .ns-col-460 { width: 460px; }
+  .ns-col-520 { width: 520px; }
+  .ns-cap { width: 248px; }
+  .ns-cap--wide { width: 540px; }
+
+}
