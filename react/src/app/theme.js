@@ -8,8 +8,16 @@ const listeners = new Set()
 const chosen = () => { try { return localStorage.getItem(KEY) } catch { return null } }
 export const currentTheme = () => chosen() ?? (system.matches ? 'dark' : 'light')
 
+// the browser's own bar takes the top bar's ground
+const paintBar = () => {
+	const meta = document.querySelector('meta[name="theme-color"]')
+	const surface = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim()
+	if (meta && surface) meta.content = surface
+}
+
 export function applyTheme() {
 	document.documentElement.dataset.theme = currentTheme()
+	paintBar()
 	for (const fn of listeners) fn()
 }
 

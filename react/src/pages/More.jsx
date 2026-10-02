@@ -1,8 +1,10 @@
+import { Navigate } from 'react-router'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { getCurrentUser } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
+import { useShellShape } from '../app/useMedia.js'
 
 const ROWS = [
 	{ to: '/budget', label: 'Budget' },
@@ -12,11 +14,14 @@ const ROWS = [
 	{ to: '/settings', label: 'Settings' }
 ]
 
-/** Below 640, what the sidebar holds beyond the four tabs, in sidebar order (9h). */
+/** Below 640, what the sidebar holds beyond the four tabs, in sidebar order (9h). Wider, the
+    sidebar holds them itself, so the page gives way to Settings. */
 export default function More() {
 	const user = useApi(getCurrentUser)
+	const touch = useShellShape() === 'touch'
 	const email = user.data?.email
-	const chevron = <Icon name="chevron-right" />
+	const chevron = <Icon name="chevron-right" size={14} />
+	if (!touch) return <Navigate to="/settings" replace />
 	return (
 		<>
 			{email

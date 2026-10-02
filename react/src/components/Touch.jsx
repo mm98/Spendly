@@ -8,21 +8,13 @@ export function TabBar({ children, ...rest }) {
 	return <nav className="sp-tabbar" {...rest}>{children}</nav>
 }
 
-/** One destination in that bar. */
-export function TabBarItem({ icon, current = false, onClick, children, ...rest }) {
+/** One destination in that bar: a link when it has a `to`, since a destination navigates. */
+export function TabBarItem({ icon, current = false, to, onClick, children, ...rest }) {
 	reject(rest, 'TabBarItem')
-	return (
-		<button
-			type="button"
-			className="sp-tabbar__item"
-			onClick={onClick}
-			{...(current ? { 'aria-current': 'page' } : {})}
-			{...rest}
-		>
-			{icon ? <Icon name={icon} /> : null}
-			<span>{children}</span>
-		</button>
-	)
+	const body = <>{icon ? <Icon name={icon} size={18} /> : null}{children}</>
+	const state = { ...(current ? { 'aria-current': 'page' } : {}), ...rest }
+	if (to) return <Link className="sp-tabbar__item" to={to} data-go={to} onClick={onClick} {...state}>{body}</Link>
+	return <button type="button" className="sp-tabbar__item" onClick={onClick} {...state}>{body}</button>
 }
 
 export function Sheet({ handle = true, children, ...rest }) {

@@ -8,8 +8,9 @@
    relative. `credentials: 'include'` carries the session cookie on every request. */
 
 import { dayMonth, detectLocale, parseAmount, sep } from './format.js'
-import { invalidate } from './useApi.js'
+import { forgetAll, invalidate } from './useApi.js'
 import { noteServerBuild, writeSettled, writeStarted } from './build.js'
+import { forgetRecent } from '../app/recent.js'
 
 class ApiError extends Error {
 	constructor(message, status, fields, body) {
@@ -40,6 +41,15 @@ const qs = params => {
 	return s ? '?' + s : ''
 }
 
+/* A session that ends while the shell is open (20e). Only a listener present at the time hears
+   it, and never after the reader signed out themselves. */
+let sessionListener = null
+let signedOut = false
+export function onSessionEnded(fn) {
+	sessionListener = fn
+	return () => { if (sessionListener === fn) sessionListener = null }
+}
+
 async function request(path, { method = 'GET', body, signal, form } = {}) {
 	/* Anything that is not a read is announced to api/build.js as it goes out and again once it
 	   is answered, which is what keeps the reload prompt off the screen until a save has landed. */
@@ -54,6 +64,7 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
 		/* Read before the status is judged: a 401 or a 500 names the build that refused just as an
 		   answer does, and a container replaced mid-session is exactly when refusals arrive. */
 		noteServerBuild(res.headers.get('Build'))
+		if (res.status === 401 && !signedOut && !path.startsWith('/api/auth/')) sessionListener?.()
 		if (res.status === 204) return null
 		let data = null
 		try { data = await res.json() } catch { /* empty body */ }
@@ -79,6 +90,7 @@ async function request(path, { method = 'GET', body, signal, form } = {}) {
 export async function register(email, password, signal) {
 	const user = await request('/api/auth/register',
 		{ method: 'POST', body: { email, password, locale: detectLocale() }, signal })
+	signedOut = false
 	invalidate()
 	return user
 }
@@ -93,14 +105,23 @@ export async function markSetupSeen(signal) {
 
 export async function login(email, password, signal) {
 	const user = await request('/api/auth/login', { method: 'POST', body: { email, password }, signal })
+	signedOut = false
 	invalidate()
 	return user
 }
 
+/* The page still on screen is leaving: its readers are not asked again, since every answer
+   now would be a refusal. */
 export async function logout(signal) {
-	const out = await request('/api/auth/logout', { method: 'POST', signal })
-	invalidate()
-	return out
+	signedOut = true
+	try {
+		const out = await request('/api/auth/logout', { method: 'POST', signal })
+		forgetAll()
+		return out
+	} catch (error) {
+		signedOut = false
+		throw error
+	}
 }
 
 export async function getCurrentUser(signal) {
@@ -130,8 +151,11 @@ export async function moveVendorOrders(id, to, signal) {
 	return request(`/api/vendors/${id}/move-orders`, { method: 'POST', body: { to }, signal })
 }
 
+/* A deleted order or vendor leaves Jump back in here, so the palette never asks for it (9d). */
 export async function deleteVendor(id, signal) {
-	return request(`/api/vendors/${id}`, { method: 'DELETE', signal })
+	const out = await request(`/api/vendors/${id}`, { method: 'DELETE', signal })
+	forgetRecent('vendor', id)
+	return out
 }
 
 /** Adds one alias to a vendor -- another string that resolves to it when an order names its
@@ -478,7 +502,9 @@ export async function updateOrder(id, draft, signal) {
 }
 
 export async function deleteOrder(id, signal) {
-	return request(`/api/orders/${id}`, { method: 'DELETE', signal })
+	const out = await request(`/api/orders/${id}`, { method: 'DELETE', signal })
+	forgetRecent('order', id)
+	return out
 }
 
 /** Takes real File objects (from a picker or a drop) and uploads their actual bytes - the

@@ -1,4 +1,4 @@
-import { createContext, useContext, useId, useState } from 'react'
+import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
 import { join, pick, reject } from './variants.js'
@@ -7,6 +7,7 @@ import { Mark } from './Mark.jsx'
 import { Fab, TabBar } from './Touch.jsx'
 import { SearchInput } from './Inputs.jsx'
 import { Kbd } from './Utilities.jsx'
+import { Button } from './Button.jsx'
 
 /** `viewport` fills the browser window where the drawn shell is a framed one; `touch` is the
     shell below 640 - top bar, content, tab bar and the one floating action. `cover` is a
@@ -23,24 +24,24 @@ export function Shell({ collapsed = false, viewport = false, touch = false, cove
 		else if (child.type === Fab) fab = child
 		else console.error('<Shell> takes Sidebar, TopBar, ShellContent, TabBar and Fab - nothing else')
 	}
-	if (touch) return (
-		<div className="sp-shell--touch sp-touch" {...rest}>
-			<div className="sp-shell__page" hidden={!!cover}>
-				{topbar}
-				{content}
-			</div>
-			{cover ? <div className="sp-shell__page">{cover}</div> : null}
-			{cover ? null : fab}
-			{cover ? null : tabbar}
-		</div>
-	)
+	// sheets, dialogs and the viewer render on the body, so the touch sizes have to reach it too
+	useEffect(() => {
+		if (!touch) return
+		document.body.classList.add('sp-touch')
+		return () => document.body.classList.remove('sp-touch')
+	}, [touch])
+	/* Both shapes keep the page in the same slot of the same tree, so crossing 640 re-styles
+	   the page rather than mounting it again and losing what the reader had not saved. */
 	return (
-		<div className={join('sp-shell', collapsed && 'sp-shell--collapsed', viewport && 'sp-shell--viewport')} {...rest}>
-			{menu}
-			<div className="sp-shell__page">
+		<div className={touch ? 'sp-shell--touch sp-touch' : join('sp-shell', collapsed && 'sp-shell--collapsed', viewport && 'sp-shell--viewport')} {...rest}>
+			{touch ? null : menu}
+			<div className="sp-shell__page" hidden={touch && !!cover}>
 				{topbar}
 				{content}
 			</div>
+			{touch && cover ? <div className="sp-shell__page">{cover}</div> : null}
+			{touch && !cover ? fab : null}
+			{touch && !cover ? tabbar : null}
 		</div>
 	)
 }
@@ -54,7 +55,7 @@ const BODY = { default: null, split: 'sp-shell__body--split', rail: 'sp-shell__b
 
 export function ShellContent({ layout = 'default', children, ...rest }) {
 	reject(rest, 'ShellContent')
-	return <div className={join('sp-shell__body', pick(BODY, layout, 'layout', 'ShellContent'))} {...rest}>{children}</div>
+	return <main className={join('sp-shell__body', pick(BODY, layout, 'layout', 'ShellContent'))} {...rest}>{children}</main>
 }
 
 const SIDEBAR = {
@@ -132,36 +133,95 @@ export function NavItem({ variant = 'default', icon, count, countColor, sub, cur
 	return <button type="button" className={classes} onClick={onClick} {...state}>{body}</button>
 }
 
-/** The account at the sidebar's foot: the mark, the name over the email, and the chevron
-    of the menu it opens. The domain never truncates; the local part does. */
-export function SidebarAccount({ name, email, expanded = false, onClick, tip, ...rest }) {
+/** The account at the sidebar's foot: the mark, the name over the email, and the chevron of
+    `menu`, shown while `expanded` and fixed to the window so the sidebar cannot clip it (9c).
+    `onDismiss` is a press outside both, Escape or Tab. */
+export function SidebarAccount({ name, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
 	reject(rest, 'SidebarAccount')
-	const [hint, tipEvents] = useTip(tip)
-	const at = email.lastIndexOf('@')
+	const [hint, tipEvents] = useTip(expanded ? null : tip)
+	const block = useRef(null)
+	const panel = useRef(null)
+	const [at, setAt] = useState(null)
+	useLayoutEffect(() => {
+		if (!expanded) { setAt(null); return }
+		const place = () => {
+			const r = block.current.getBoundingClientRect()
+			const side = !!block.current.closest('.sp-shell--collapsed, .sp-sidebar--rail')
+			setAt({ side, left: r.left, top: r.top, width: r.width, height: r.height })
+		}
+		place()
+		window.addEventListener('resize', place)
+		return () => window.removeEventListener('resize', place)
+	}, [expanded])
+	const shown = !!at
+	useEffect(() => {
+		if (!shown) return
+		panel.current?.querySelector('.sp-menu__item:not(:disabled)')?.focus()
+		const away = ev => {
+			if (!block.current?.contains(ev.target) && !panel.current?.contains(ev.target)) onDismiss?.()
+		}
+		document.addEventListener('pointerdown', away)
+		return () => document.removeEventListener('pointerdown', away)
+	}, [shown, onDismiss])
+	const keys = ev => {
+		const items = [...panel.current.querySelectorAll('.sp-menu__item:not(:disabled)')]
+		const i = items.indexOf(document.activeElement)
+		if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+			ev.preventDefault()
+			items[(i + (ev.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus()
+		} else if (ev.key === 'Escape' || ev.key === 'Tab') {
+			// Tab goes on from the block, where the menu sits in the reading order
+			if (ev.key === 'Escape') ev.preventDefault()
+			block.current?.focus()
+			onDismiss?.()
+		}
+	}
+	const split = email.lastIndexOf('@')
 	const address = (
 		<span className="sp-nav-item__sub sp-nav-item__sub--email">
-			<span className="sp-nav-item__local">{at > 0 ? email.slice(0, at) : email}</span>
-			{at > 0 ? <span className="sp-nav-item__domain">{email.slice(at)}</span> : null}
+			<span className="sp-nav-item__local">{split > 0 ? email.slice(0, split) : email}</span>
+			{split > 0 ? <span className="sp-nav-item__domain">{email.slice(split)}</span> : null}
 		</span>
 	)
 	return (
-		<button type="button" className="sp-nav-item" onClick={onClick} aria-haspopup="menu"
-			aria-expanded={expanded ? 'true' : 'false'} {...tipEvents} {...rest}>
-			<Mark size="medium" fill="solid">{name || (at > 0 ? email.slice(0, at) : email)}</Mark>
-			<span className="sp-stack sp-grow">
-				{name ? <span className="sp-truncate">{name}</span> : null}
-				{address}
-			</span>
-			<Icon name="chevron-up" />
-			{hint}
-		</button>
+		<>
+			<button type="button" className="sp-nav-item" ref={block} onClick={onClick} aria-haspopup="menu"
+				aria-expanded={expanded ? 'true' : 'false'} {...tipEvents} {...rest}>
+				<Mark size="medium" fill="solid">{name || (split > 0 ? email.slice(0, split) : email)}</Mark>
+				<span className="sp-stack sp-grow">
+					{name ? <span className="sp-truncate">{name}</span> : null}
+					{address}
+				</span>
+				<span className="sp-combobox__chevron"><Icon name="chevron-up" size={14} /></span>
+				{hint}
+			</button>
+			{at && menu
+				? createPortal(
+					<div ref={panel} className={join('sp-sidebar__menu', at.side ? 'sp-sidebar__menu--side' : 'sp-sidebar__menu--up')}
+						style={{ left: at.left, top: at.top, width: at.width, height: at.height }} onKeyDown={keys}>
+						{menu}
+					</div>,
+					document.body)
+				: null}
+		</>
 	)
 }
 
 /* The rail's label, drawn where [data-tip] draws it but fixed to the window, so the
-   sidebar's own scrolling cannot clip it. Only its position is set here. */
+   sidebar's own scrolling cannot clip it, and held inside the window's edge. Only its
+   position is set here. */
 function useTip(tip) {
 	const [at, setAt] = useState(null)
+	const box = useRef(null)
+	useEffect(() => { if (!tip) setAt(null) }, [tip])
+	useLayoutEffect(() => {
+		const el = box.current
+		if (!at || !el) return
+		const edge = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp-8'))
+		const half = el.offsetWidth / 2
+		const left = Math.min(Math.max(at.left, edge + half), window.innerWidth - edge - half)
+		if (left !== at.left) setAt({ ...at, left })
+	}, [at])
 	if (!tip) return [null, {}]
 	const show = ev => {
 		const r = ev.currentTarget.getBoundingClientRect()
@@ -169,7 +229,7 @@ function useTip(tip) {
 	}
 	const hide = () => setAt(null)
 	const hint = at
-		? createPortal(<span className="sp-tip sp-tip--float" role="tooltip" style={{ left: at.left, top: at.top }}>{tip}</span>, document.body)
+		? createPortal(<span ref={box} className="sp-tip sp-tip--float" role="tooltip" style={{ left: at.left, top: at.top }}>{tip}</span>, document.body)
 		: null
 	return [hint, { onMouseEnter: show, onMouseLeave: hide, onFocus: show, onBlur: hide }]
 }
@@ -185,8 +245,8 @@ export function Scrim({ dialog = false, children, ...rest }) {
 const PaletteScreen = createContext(false)
 
 /** The command palette (c24): query line, results as one listbox, keys at its foot. `screen`
-    fills a phone (7b): the query line is the search field and rows drop figures and key caps. */
-export function Palette({ screen = false, value, onChange, count, activeId, inputRef, placeholder, label, foot, children, ...rest }) {
+    fills a phone (7b): the search field with `onCancel` beside it, rows without figures or keys. */
+export function Palette({ screen = false, value, onChange, onCancel, count, activeId, inputRef, placeholder, label, foot, children, ...rest }) {
 	reject(rest, 'Palette')
 	const list = useId()
 	const term = {
@@ -201,7 +261,12 @@ export function Palette({ screen = false, value, onChange, count, activeId, inpu
 			<div className={join('sp-palette', screen && 'sp-palette--screen')} role="dialog" aria-modal="true" {...rest}>
 				<div className="sp-palette__search">
 					{screen
-						? <SearchInput value={value} onChange={onChange} inputRef={inputRef} placeholder={placeholder} {...term} />
+						? (
+							<>
+								<SearchInput value={value} onChange={onChange} inputRef={inputRef} placeholder={placeholder} {...term} />
+								{onCancel ? <Button variant="text" onClick={onCancel}>Cancel</Button> : null}
+							</>
+						)
 						: (
 							<>
 								<span className="sp-palette__icon"><Icon name="search" /></span>
@@ -247,17 +312,19 @@ function marked(text, match) {
 	return <>{text.slice(0, at)}<mark>{text.slice(at, at + needle.length)}</mark>{text.slice(at + needle.length)}</>
 }
 
-/** One record or one action. `icon` or `thumb` leads it, `match` is the typed text marked in the
-    name, `value` the figure at its end and `kbd` an action's key; a phone drops both (7b). */
-export function PaletteRow({ icon, thumb = false, plain = false, match, meta, value, kbd, selected = false, children, ...rest }) {
+/** One record or one action. `icon` or `thumb` leads it (a small mark on a phone, filled for an
+    `action`), `match` is marked in the name, `value` and `kbd` end it; a phone drops both (7b). */
+export function PaletteRow({ icon, thumb = false, plain = false, action = false, match, meta, value, kbd, selected = false, children, ...rest }) {
 	reject(rest, 'PaletteRow')
 	const screen = useContext(PaletteScreen)
 	const trail = !screen && (value != null || kbd)
+	let lead = null
+	if (thumb) lead = <span className="sp-palette__thumb" aria-hidden="true" />
+	else if (icon && screen) lead = <Mark size="small" fill={action ? 'solid' : 'none'} aria-hidden="true" aria-label={icon}><Icon name={icon} size={14} /></Mark>
+	else if (icon) lead = <span className="sp-palette__icon"><Icon name={icon} size={15} /></span>
 	return (
 		<button type="button" className="sp-palette__row" role="option" aria-selected={selected ? 'true' : 'false'} tabIndex={-1} {...rest}>
-			{thumb
-				? <span className="sp-palette__thumb" aria-hidden="true" />
-				: icon ? <span className="sp-palette__icon"><Icon name={icon} size={15} /></span> : null}
+			{lead}
 			{/* truncated, so a long name keeps the row one line and the list from scrolling sideways */}
 			<span className={join('sp-palette__name', plain && 'sp-palette__name--plain', 'sp-truncate')}>{marked(children, match)}</span>
 			{meta ? <span className="sp-meta sp-truncate">{meta}</span> : null}
