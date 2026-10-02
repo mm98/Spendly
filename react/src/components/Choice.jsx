@@ -1,5 +1,6 @@
 import { cloneElement, useEffect, useRef } from 'react'
 import { join, pick, reject } from './variants.js'
+import { SearchInput } from './Inputs.jsx'
 
 export function Check({ indeterminate = false, ...rest }) {
 	reject(rest, 'Check')
@@ -64,17 +65,20 @@ export function FieldGroup({ legend, children, ...rest }) {
 	)
 }
 
-export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, ...rest }) {
+/** `search` with `onSearch` puts the tile picker's search above the cells; `more` is the
+    "+N" cell that shows the rest, with `onMore` (c7). */
+export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, more, onMore, ...rest }) {
 	reject(rest, 'Picker')
 	if (swatches && icons) console.error('<Picker> takes swatches or icons, not both')
 	if (custom && !swatches) console.error('<Picker> a custom colour belongs to a colour group')
+	if (onSearch && !icons) console.error('<Picker> a search belongs to a tile group')
 
 	// a name is painted by the stylesheet; a value has to be carried to it
 	const named = s => /^[a-z][a-z0-9-]*$/.test(s)
 	const paint = s => named(s) ? { 'data-swatch': s } : { style: { '--swatch': s } }
 	const chosenOutside = custom && value && !named(value) && !(swatches ?? []).includes(value)
 
-	return (
+	const cells = (
 		<span className="sp-options" role="group" {...rest}>
 			{(swatches ?? []).map(swatch => (
 				<button
@@ -116,7 +120,15 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 					</label>
 				)
 				: null}
+			{more ? <button type="button" className="sp-option sp-ink-5" onClick={onMore}>{more}</button> : null}
 		</span>
+	)
+	if (!onSearch) return cells
+	return (
+		<div className="sp-picker">
+			<SearchInput value={search ?? ''} onChange={onSearch} placeholder={searchLabel} aria-label={searchLabel} />
+			{cells}
+		</div>
 	)
 }
 
