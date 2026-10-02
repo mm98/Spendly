@@ -32,7 +32,9 @@ const BARS = { default: null, plot: 'sp-bars--plot', spark: 'sp-bars--spark' }
 // the columns that have not arrived, as States 6b draws them
 const LOADING_BARS = ['40', '56', '46', '68', '60', '82', '74', '96']
 
-export function Bars({ columns = [], variant = 'default', selected, onSelect, loading = false, ...rest }) {
+/** `selected` is the column a chart that filters by its columns has chosen: only such a chart has a
+    pressed one. `current` is the column holding today (10a), its label marked without being chosen. */
+export function Bars({ columns = [], variant = 'default', selected, current, onSelect, loading = false, ...rest }) {
 	reject(rest, 'Bars')
 	if (loading) return (
 		<span className={join('sp-bars', pick(BARS, variant, 'variant', 'Bars'))} {...rest}>
@@ -68,13 +70,15 @@ export function Bars({ columns = [], variant = 'default', selected, onSelect, lo
 						{column.tick ? <span className="sp-bars__tick">{column.tick}</span> : null}
 					</>
 				)
-				if (!onSelect) return <span className="sp-bars__col" key={column.key}>{body}</span>
+				const today = current !== undefined && current === column.key ? { 'aria-current': 'date' } : {}
+				if (!onSelect) return <span className="sp-bars__col" key={column.key} {...today}>{body}</span>
 				return (
 					<button
 						type="button"
 						className="sp-bars__col"
 						aria-label={column.label}
-						aria-pressed={selected === column.key ? 'true' : 'false'}
+						{...(selected === undefined ? {} : { 'aria-pressed': selected === column.key ? 'true' : 'false' })}
+						{...today}
 						data-from={column.from}
 						data-to={column.to}
 						onClick={() => onSelect(column.key, column.from, column.to)}

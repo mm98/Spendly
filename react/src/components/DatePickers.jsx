@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Icon } from './Icon.jsx'
 import { Button, IconButton } from './Button.jsx'
 import { Chip } from './Chip.jsx'
@@ -21,7 +21,8 @@ const weekdays = locale => {
 	return Array.from({ length: 7 }, (unused, i) => fmt.format(new Date(2026, 1, 1 + ((first + i) % 7))))
 }
 const firstDayOfWeek = locale => {
-	const week = new Intl.Locale(locale ?? navigator.language).weekInfo
+	// the browser's own as Intl resolved it: a raw language tag can be one Intl.Locale refuses
+	const week = new Intl.Locale(locale ?? new Intl.DateTimeFormat().resolvedOptions().locale).weekInfo
 	return week ? week.firstDay % 7 : 1
 }
 
@@ -72,18 +73,24 @@ function useDateText({ value, onChange, min, max, unavailable, locale }) {
 	const outOfRange = !!parsedNow && ((min && parsedNow < min) || (max && parsedNow > max) || unpickable(parsedNow))
 	const invalid = (typed !== null && typed !== '' && parsedNow === null) || outOfRange
 
+	const takes = parsed => !!parsed && !((min && parsed < min) || (max && parsed > max) || unpickable(parsed))
+
 	return {
 		value: shown,
 		invalid,
 		type: 'text',
 		inputMode: 'numeric',
 		autoComplete: 'off',
+		// a two-digit year may be the start of a four-digit one, so it is applied only on leaving
 		onChange: ev => {
 			setTyped(ev.target.value)
-			const parsed = fromReadable(ev.target.value, locale)
-			if (parsed && !((min && parsed < min) || (max && parsed > max) || unpickable(parsed))) onChange?.(parsed)
+			const parsed = fromReadable(ev.target.value, locale, { short: false })
+			if (takes(parsed)) onChange?.(parsed)
 		},
-		onBlur: () => setTyped(null),
+		onBlur: () => {
+			if (takes(parsedNow) && parsedNow !== value) onChange?.(parsedNow)
+			setTyped(null)
+		},
 		onKeyDown: ev => {
 			const base = clampDate(value || iso(new Date()), min, max)
 			const step = {
@@ -486,13 +493,24 @@ const WINDOW = { week: 'week', month: 'month', quarter: 'quarter', year: 'year' 
 export function PeriodWindow({ label, unit = 'month', previousLabel = 'Previous window', nextLabel = 'Next window', onPrevious, onNext, touch = false, ...rest }) {
 	reject(rest, 'PeriodWindow')
 	const size = touch ? 15 : 14
+	const previous = useRef(null)
+	const next = useRef(null)
+	// the arrow that had focus when it ran out of windows hands focus to the other one
+	const held = useRef(null)
+	useLayoutEffect(() => {
+		const lost = document.activeElement === document.body || document.activeElement?.disabled
+		if (!lost) return
+		if (held.current === 'previous' && !onPrevious && onNext) next.current?.focus()
+		if (held.current === 'next' && !onNext && onPrevious) previous.current?.focus()
+	}, [onPrevious, onNext])
+	const track = which => ({ onFocus: () => { held.current = which }, onBlur: ev => { if (ev.relatedTarget) held.current = null } })
 	return (
 		<div className="sp-window" {...rest}>
-			<button type="button" className="sp-window__btn" aria-label={previousLabel} disabled={!onPrevious} onClick={onPrevious}>
+			<button type="button" className="sp-window__btn" aria-label={previousLabel} disabled={!onPrevious} onClick={onPrevious} ref={previous} {...track('previous')}>
 				<Icon name="chevron-left" size={size} />
 			</button>
 			<span className="sp-window__label" data-w={pick(WINDOW, unit, 'unit', 'PeriodWindow')}>{label}</span>
-			<button type="button" className="sp-window__btn" aria-label={nextLabel} disabled={!onNext} onClick={onNext}>
+			<button type="button" className="sp-window__btn" aria-label={nextLabel} disabled={!onNext} onClick={onNext} ref={next} {...track('next')}>
 				<Icon name="chevron-right" size={size} />
 			</button>
 		</div>
@@ -518,6 +536,9 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 	}
 	const list = presets ?? STANDARD_PERIODS
 	const today = new Date()
+	const box = useRef(null)
+	// Back to the present goes away under the reader, so focus moves to the stepper's live arrow
+	const back = useRef(false)
 	const dates = value === 'custom'
 		? [from, to]
 		: PERIODS[value] && PERIODS[value]((at && parse(at)) || today).map(iso)
@@ -534,7 +555,13 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 	// the window still running reads to today, never into days that have not happened
 	const resolved = dates ? numericRange(current ? [dates[0], now] : dates, locale) : null
 	const note = dates ? periodNote(value, dates, now) : null
-	const away = !!dates && value !== 'custom' && !current && !!onPresent && !!PERIODS[value]
+	const returns = value !== 'custom' && !!onPresent && !!PERIODS[value]
+	const away = !!dates && returns && !current
+	useLayoutEffect(() => {
+		if (away || !back.current) return
+		back.current = false
+		;(box.current?.querySelector('.sp-window__btn:not(:disabled)') ?? box.current?.querySelector('.sp-period__preset input:checked'))?.focus()
+	}, [away])
 	const offers = dates && picked
 	const against = offers
 		? { name: precedingName(value, dates, locale), dates: precedingDates(value, dates) }
@@ -560,8 +587,8 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 	)
 
 	return (
-		<div className="sp-period" {...rest}>
-			<div className="sp-period__presets">
+		<div className="sp-period" ref={box} {...rest}>
+			<div className="sp-period__presets" role="group" aria-label="Window size">
 				{before.map(preset)}
 				{withCustom
 					? (
@@ -577,9 +604,24 @@ export function PeriodPicker({ presets, value, onChange, from, to, at, stepper, 
 			{against && picked
 				? <span className="sp-period__compare">{typeof picked === 'function' ? picked(shapeOf(value, dates)) : picked}</span>
 				: null}
-			{away
-				? <Button variant="text" size="small" onClick={onPresent}>Back to this {value}</Button>
-				: note ? <span className="sp-period__note">{note}</span> : null}
+			{note || away ? <span className="sp-grow" /> : null}
+			{/* the note and the way back share one place as wide as the wider of them, so stepping
+			    away from the present moves nothing on the page */}
+			{note || away
+				? (
+					<span className="sp-period__end">
+						{returns
+							? (
+								<Button variant="text" size="small" onClick={() => { back.current = true; onPresent() }}
+									{...(away ? {} : { tabIndex: -1, 'aria-hidden': 'true' })}>
+									Back to this {value}
+								</Button>
+							)
+							: null}
+						{note ? <span className="sp-period__note" {...(away ? { 'aria-hidden': 'true' } : {})}>{note}</span> : null}
+					</span>
+				)
+				: null}
 		</div>
 	)
 }
@@ -600,9 +642,21 @@ function readable(value, locale) {
 	return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(parse(value))
 }
 
-/** What they typed, back to an ISO date. The locale says which number is the day. */
-function fromReadable(text, locale) {
-	const parts = String(text).split(/[^\d]+/).filter(Boolean).map(Number)
+const LETTERS = { day: 'dd', month: 'mm', year: 'yyyy' }
+
+/** How the reader writes a date, as an empty field shows it: their locale's order and separator
+    ("dd.mm.yyyy", "mm/dd/yyyy"). */
+export function datePattern(locale) {
+	return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
+		.formatToParts(new Date(2026, 10, 22))
+		.map(p => LETTERS[p.type] ?? p.value)
+		.join('')
+}
+
+/** What they typed, back to an ISO date. The locale says which number is the day; a two-digit
+    year is this century's, and any other short year is no date at all. */
+function fromReadable(text, locale, { short = true } = {}) {
+	const parts = String(text).split(/[^\d]+/).filter(Boolean)
 	if (parts.length < 3) return null
 	const order = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
 		.formatToParts(new Date(2026, 10, 22))
@@ -611,8 +665,11 @@ function fromReadable(text, locale) {
 	const got = {}
 	order.forEach((type, i) => { got[type] = parts[i] })
 	if (!got.year || !got.month || !got.day) return null
-	if (got.month > 12 || got.day > 31) return null
-	return `${got.year}-${String(got.month).padStart(2, '0')}-${String(got.day).padStart(2, '0')}`
+	const year = got.year.length === 4 ? Number(got.year) : got.year.length === 2 && short ? 2000 + Number(got.year) : null
+	const month = Number(got.month)
+	const day = Number(got.day)
+	if (!year || !month || !day || month > 12 || day > new Date(year, month, 0).getDate()) return null
+	return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
 /** `placeholder` is what the empty field says, as an open end reads Today (c12). */
@@ -707,7 +764,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 				className="sp-input sp-input--trail sp-number"
 				aria-describedby={[message, hintId].filter(Boolean).join(' ') || undefined}
 				required={required}
-				placeholder={placeholder}
+				placeholder={placeholder ?? datePattern(locale)}
 				{...field(text)}
 				{...(marked || text.invalid ? { 'aria-invalid': 'true' } : {})}
 				{...unused}
@@ -721,7 +778,7 @@ export function DateField({ value, onChange, min, max, unavailable, native, dang
 			<span className="sp-field__trail" ref={trigger}>
 				<IconButton
 					icon={<Icon name="calendar" size={15} />}
-					aria-label="Open the calendar"
+					aria-label="Pick a date"
 					size="field"
 					aria-haspopup="dialog"
 					aria-expanded={open ? 'true' : 'false'}

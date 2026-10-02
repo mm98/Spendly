@@ -1,4 +1,4 @@
-import { cloneElement, useEffect, useRef } from 'react'
+import { cloneElement, useEffect, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { SearchInput } from './Inputs.jsx'
 
@@ -116,6 +116,35 @@ const iconName = name => {
 	return words.charAt(0).toUpperCase() + words.slice(1)
 }
 
+const centre = r => r.left + r.width / 2
+// where a cell is drawn: the custom colour's input sits hidden inside its tile
+const drawn = cell => (cell.closest('.sp-option') ?? cell).getBoundingClientRect()
+
+/* The arrow keys walk a grid of cells in two dimensions, Home and End reach the true first and last
+   (c7). Up and Down land on the nearest cell of the next row, by where the cells are drawn. */
+function walk(ev) {
+	const cells = [...ev.currentTarget.querySelectorAll('[data-cell]')]
+	const at = cells.indexOf(document.activeElement)
+	if (at < 0) return
+	let to
+	if (ev.key === 'Home') to = 0
+	else if (ev.key === 'End') to = cells.length - 1
+	else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') to = at + (ev.key === 'ArrowRight' ? 1 : -1)
+	else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+		const from = drawn(cells[at])
+		const down = ev.key === 'ArrowDown'
+		const others = cells.map((cell, i) => ({ i, r: drawn(cell) }))
+			.filter(c => (down ? c.r.top >= from.bottom - 1 : c.r.bottom <= from.top + 1))
+		if (!others.length) return ev.preventDefault()
+		const rowTop = down ? Math.min(...others.map(c => c.r.top)) : Math.max(...others.map(c => c.r.top))
+		const row = others.filter(c => Math.abs(c.r.top - rowTop) < 1)
+		to = row.reduce((best, c) => (Math.abs(centre(c.r) - centre(from)) < Math.abs(centre(best.r) - centre(from)) ? c : best)).i
+	}
+	else return
+	ev.preventDefault()
+	cells[Math.min(Math.max(to, 0), cells.length - 1)].focus()
+}
+
 /** `search` with `onSearch` puts the tile picker's search above the cells; `more` is the
     "+N" cell that shows the rest, with `onMore` (c7). An icon option may carry a `label`. */
 export function Picker({ swatches, icons, value, onChange, custom = false, customIcon, search, onSearch, searchLabel, more, onMore, ...rest }) {
@@ -129,8 +158,15 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 	const paint = s => named(s) ? { 'data-swatch': s } : { style: { '--swatch': s } }
 	const chosenOutside = custom && value && !named(value) && !(swatches ?? []).includes(value)
 
+	// one Tab stop for the whole grid (c7): the cell last moved to, else the chosen one, else the first
+	const keys = [...(swatches ?? []), ...(icons ?? []).map(o => o.name), ...(custom ? ['custom'] : []), ...(more ? ['more'] : [])]
+	const [moved, setMoved] = useState(null)
+	const chosen = chosenOutside ? 'custom' : keys.includes(value) ? value : null
+	const stop = keys.includes(moved) ? moved : chosen ?? keys[0]
+	const cell = key => ({ 'data-cell': '', tabIndex: key === stop ? 0 : -1, onFocus: () => setMoved(key) })
+
 	const cells = (
-		<span className="sp-options" role="group" {...rest}>
+		<span className="sp-options" role="group" onKeyDown={walk} {...rest}>
 			{(swatches ?? []).map(swatch => (
 				<button
 					type="button"
@@ -140,6 +176,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 					aria-pressed={value === swatch ? 'true' : 'false'}
 					onClick={() => onChange?.(swatch)}
 					key={swatch}
+					{...cell(swatch)}
 					{...paint(swatch)}
 				/>
 			))}
@@ -152,6 +189,7 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 					aria-pressed={value === option.name ? 'true' : 'false'}
 					onClick={() => onChange?.(option.name)}
 					key={option.name}
+					{...cell(option.name)}
 				>
 					{option.icon}
 				</button>
@@ -170,11 +208,12 @@ export function Picker({ swatches, icons, value, onChange, custom = false, custo
 							aria-label="Custom colour"
 							value={chosenOutside ? value : '#1d4d33'}
 							onChange={ev => onChange?.(ev.target.value)}
+							{...cell('custom')}
 						/>
 					</label>
 				)
 				: null}
-			{more ? <button type="button" className="sp-option sp-ink-5" onClick={onMore}>{more}</button> : null}
+			{more ? <button type="button" className="sp-option sp-ink-5" onClick={onMore} {...cell('more')}>{more}</button> : null}
 		</span>
 	)
 	if (!onSearch) return cells

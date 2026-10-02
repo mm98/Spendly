@@ -36,3 +36,8 @@ export function round(value, decimals = 0) {
 	const f = 10 ** decimals
 	return Math.round(value * f) / f
 }
+
+/** One of a plural noun ("vendors" to "vendor", "categories" to "category"). */
+export function singular(noun) {
+	return noun.endsWith('ies') ? noun.slice(0, -3) + 'y' : noun.replace(/s$/, '')
+}

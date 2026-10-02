@@ -2,6 +2,7 @@ import { Children, Fragment, cloneElement, isValidElement, useEffect, useId, use
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { useDismiss } from './Utilities.jsx'
+import { singular } from './format.js'
 
 const VARIANT = {
 	default: null,
@@ -82,8 +83,22 @@ const clipperOf = el => {
 	return null
 }
 
-/** Opens a panel where it can be read (c9): below, above when only above has room, scrolling
-    inside when neither has, and lifted out of a card or scroller that would cut it off. */
+// the window's room less the bars pinned over its edges (the top bar, the tab bar, a save bar)
+const roomOf = root => {
+	let top = 0
+	let bottom = window.innerHeight
+	for (const bar of document.querySelectorAll('.sp-topbar, .sp-tabbar, .sp-savebar')) {
+		if (bar.contains(root) || bar.checkVisibility?.() === false) continue
+		if (!['fixed', 'sticky'].includes(getComputedStyle(bar).position)) continue
+		const r = bar.getBoundingClientRect()
+		if (r.top <= 0.5) top = Math.max(top, r.bottom)
+		else if (r.bottom >= window.innerHeight - 0.5) bottom = Math.min(bottom, r.top)
+	}
+	return { top, bottom }
+}
+
+/** Opens a panel where it can be read (c9): below, above when only above has room (bars pinned over
+    the window count as none), scrolling inside when neither has, lifted out of a box that would cut it. */
 export function usePanelPlace(root, panel, open, size) {
 	useLayoutEffect(() => {
 		const list = panel.current
@@ -95,8 +110,9 @@ export function usePanelPlace(root, panel, open, size) {
 			const drawn = list.getBoundingClientRect()
 			const height = list.scrollHeight
 			const gap = drawn.top - at.bottom
-			const below = window.innerHeight - at.bottom - gap - 8
-			const above = at.top - gap - 8
+			const edge = roomOf(root.current)
+			const below = edge.bottom - at.bottom - gap - 8
+			const above = at.top - edge.top - gap - 8
 			const up = height > below && above > below
 			const room = Math.max(0, up ? above : below)
 			const shown = Math.min(height, room)
@@ -115,7 +131,8 @@ export function usePanelPlace(root, panel, open, size) {
 			Object.assign(list.style, { top: top + (top - landed.top) + 'px', left: left + (left - landed.left) + 'px' })
 		}
 		place()
-		const again = ev => { if (!list.contains(ev.target)) place() }
+		// a resize comes from the window, which is no node a panel can contain
+		const again = ev => { if (!(ev.target instanceof Node) || !list.contains(ev.target)) place() }
 		window.addEventListener('scroll', again, true)
 		window.addEventListener('resize', again)
 		return () => {
@@ -126,8 +143,14 @@ export function usePanelPlace(root, panel, open, size) {
 	}, [root, panel, open, size])
 }
 
+/** What a filtered list reads out as it narrows (c9: "6 vendors"). `noun` is the plural. Internal. */
+export function countOf(n, noun = 'options') {
+	return n === 0 ? `No ${noun}` : `${n} ${n === 1 ? singular(noun) : noun}`
+}
+
 /** Picking an option applies it and closes the panel (c5), focus staying on the trigger. `prefix`
-    is the word kept inside the trigger ahead of the value, as the sort control's Sort (c8). */
+    is the word kept inside the trigger ahead of the value, as the sort control's Sort (c8). `noun`
+    names the options in the count a narrowed list reads out, plural ("vendors"). */
 export function Combobox({
 	variant = 'default',
 	value,
@@ -140,14 +163,22 @@ export function Combobox({
 	search,
 	onSearch,
 	placeholder,
+	noun,
 	children,
 	// a field's label points at whichever element is the trigger in this mode: the
 	// input when the set is searched, the button when it is only opened
 	id,
 	'aria-label': label,
+	// what Field hands the control belongs on the element that takes focus, not on the box around it
+	'aria-invalid': invalid,
+	'aria-describedby': describedBy,
+	required,
+	trail,
+	unit,
 	...rest
 }) {
 	reject(rest, 'Combobox')
+	const told = { 'aria-describedby': describedBy, ...(invalid === true || invalid === 'true' ? { 'aria-invalid': 'true' } : {}) }
 	if (searchable && !onSearch) console.error('<Combobox searchable> needs onSearch: the page filters its own options, so typing narrows nothing without it')
 	if (!searchable && (onSearch || search !== undefined)) console.error('<Combobox> a query belongs to a searchable one')
 	const [held, setHeld] = useState(defaultOpen)
@@ -157,6 +188,8 @@ export function Combobox({
 	const root = useRef(null)
 	const isOpen = open ?? held
 	const panelId = useId()
+	const own = useId()
+	const triggerId = id ?? own
 	const setOpen = next => {
 		if (open === undefined) setHeld(next)
 		onOpenChange?.(next)
@@ -226,6 +259,8 @@ export function Combobox({
 							aria-controls={panelId}
 							aria-activedescendant={activeId}
 							aria-label={label}
+							required={required}
+							{...told}
 							autoComplete="off"
 							placeholder={placeholder}
 							value={shown}
@@ -234,7 +269,8 @@ export function Combobox({
 								onSearch?.(ev.target.value)
 								if (!isOpen) setOpen(true)
 							}}
-							onFocus={() => { if (!isOpen) setOpen(true) }}
+							// a press opens it, focus alone does not: focus a page moves here must not cover the field
+							onClick={() => { if (!isOpen) setOpen(true) }}
 							// the query is display state, not the value: leaving the field
 							// puts the chosen value back rather than stranding a half-typed one
 							onBlur={() => setTyped(null)}
@@ -251,24 +287,30 @@ export function Combobox({
 							}}
 						/>
 						<span className="sp-field__chevron"><Icon name="chevron-down" size={14} /></span>
+						<span className="sp-announce" aria-live="polite">{query ? countOf(options.length, noun) : ''}</span>
 					</span>
 				)
 				: (
+					/* a select-style trigger (c9): its name is what it picks, then the value it holds,
+					   so the value is read with it however the trigger is labelled */
 					<button
-						id={id}
+						id={triggerId}
 						type="button"
 						className="sp-combobox__trigger"
+						role="combobox"
 						aria-haspopup="listbox"
 						aria-expanded={isOpen ? 'true' : 'false'}
 						aria-controls={panelId}
 						aria-activedescendant={activeId}
 						aria-label={label}
+						aria-labelledby={`${label ? triggerId : prefix ? triggerId + '-prefix' : triggerId + '-label'} ${triggerId}-value`}
+						{...told}
 						onClick={toggle}
 						onKeyDown={onKeys}
 					>
-						{prefix ? <span className="sp-combobox__chevron">{prefix}</span> : null}
+						{prefix ? <span className="sp-combobox__chevron" id={triggerId + '-prefix'}>{prefix}</span> : null}
 						{lead}
-						<span className="sp-grow">{value}</span>
+						<span className="sp-grow" id={triggerId + '-value'}>{value}</span>
 						<span className="sp-combobox__chevron"><Icon name="chevron-down" size={14} /></span>
 					</button>
 				)}

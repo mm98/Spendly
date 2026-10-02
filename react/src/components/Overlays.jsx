@@ -1,9 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
-import { Scrim } from './Shell.jsx'
-import { menuTrigger, useFocusTrap } from './Utilities.jsx'
+import { Scrim, ShellTouch } from './Shell.jsx'
+import { Sheet } from './Touch.jsx'
+import { usePanelPlace } from './Combobox.jsx'
+import { menuTrigger, own, useFocusTrap, within } from './Utilities.jsx'
 
 const MENU = {
 	floating: 'sp-menu--floating',
@@ -20,8 +22,47 @@ const MENU = {
 // a menu's own items, not its submenu's: the arrow keys walk one level at a time
 const itemsOf = menu => [...(menu?.querySelectorAll(':scope > li > .sp-menu__item:not(:disabled)') ?? [])]
 
+// the control a floating menu belongs to (Anchor, a record's menu): whether it is open, and its box
+const MenuHost = createContext(null)
+const FLOATS = ['floating', 'up', 'start']
+
+/** The provider an Anchor or a record's menu wraps its menu in. Internal. */
+export function MenuHostOf({ open, box, children }) {
+	const value = useMemo(() => ({ open, box }), [open, box])
+	return <MenuHost.Provider value={value}>{children}</MenuHost.Provider>
+}
+
+/** Places a host's floating menu where it can be read (c9): the one positioner every overlay uses.
+    Internal. */
+export function useMenuPlace(box, open) {
+	const touch = useContext(ShellTouch)
+	const menu = useMemo(() => ({ get current() { return box.current?.querySelector(':scope > .sp-menu--floating') ?? null } }), [box])
+	usePanelPlace(box, menu, open && !touch)
+}
+
+/** On touch a floating menu is the c13 sheet from the bottom edge (c9), holding the same items.
+    A press on the backdrop is a press on the menu's own button, so the press lands on nothing under it. */
+function MenuSheet({ owner, children }) {
+	const sheet = useRef(null)
+	useLayoutEffect(() => own(sheet.current, owner.current), [owner])
+	useFocusTrap(sheet, true, '.sp-menu__item:not(:disabled)')
+	const bare = ev => ev.target === ev.currentTarget
+	return createPortal(
+		<Scrim dialog
+			onPointerDown={ev => { if (bare(ev)) ev.stopPropagation() }}
+			onMouseDown={ev => { if (bare(ev)) ev.preventDefault() }}
+			onClick={ev => { if (bare(ev)) menuTrigger(sheet.current?.querySelector('.sp-menu'))?.click() }}>
+			<Sheet ref={sheet} data-surface="" data-menu-open="true">{children}</Sheet>
+		</Scrim>,
+		document.body
+	)
+}
+
 export function Menu({ position, scrolls = false, children, ...rest }) {
 	reject(rest, 'Menu')
+	const host = useContext(MenuHost)
+	const touch = useContext(ShellTouch)
+	const sheet = touch && !!host && FLOATS.includes(position)
 	const keys = ev => {
 		const items = itemsOf(ev.currentTarget)
 		if (!items.length) return
@@ -32,9 +73,9 @@ export function Menu({ position, scrolls = false, children, ...rest }) {
 		ev.stopPropagation()
 		items[(to + items.length) % items.length].focus()
 	}
-	return (
+	const menu = (
 		<menu
-			className={join('sp-menu', position && pick(MENU, position, 'position', 'Menu'), scrolls && 'sp-menu--scrolls')}
+			className={join('sp-menu', sheet ? 'sp-menu--plain' : position && pick(MENU, position, 'position', 'Menu'), scrolls && !sheet && 'sp-menu--scrolls')}
 			role="menu"
 			onKeyDown={keys}
 			{...rest}
@@ -42,6 +83,8 @@ export function Menu({ position, scrolls = false, children, ...rest }) {
 			{children}
 		</menu>
 	)
+	if (!sheet) return menu
+	return host.open ? <MenuSheet owner={host.box}>{menu}</MenuSheet> : null
 }
 
 /** What a menu's button needs from the keyboard (c9): Enter, Space or Down opens it on its first
@@ -69,8 +112,8 @@ export function useMenuButton(box, open) {
 			;(want.current === 'last' ? items.at(-1) : items[0])?.focus()
 			want.current = null
 		},
-		// a click with no pointer behind it came from Enter or Space
-		onClickCapture: ev => { if (ev.detail === 0 && !open && trigger(ev.target)) want.current = 'first' }
+		// a click with no pointer behind it came from Enter or Space, unless an arrow sent it
+		onClickCapture: ev => { if (ev.detail === 0 && !open && trigger(ev.target) && !want.current) want.current = 'first' }
 	}
 }
 
@@ -142,18 +185,22 @@ export function Popover({ position = 'default', head, children, summary, note, a
 	)
 }
 
+/** The element a floating panel hangs from. Open, it lets its menu out of a card that clips
+    (`data-menu-open`), places it above when the room below is short, and on touch makes it a sheet. */
 export function Anchor({ open, ref, children, ...rest }) {
 	reject(rest, 'Anchor')
-	const own = useRef(null)
-	const keys = useMenuButton(own, open)
+	const box = useRef(null)
+	const keys = useMenuButton(box, open)
+	useMenuPlace(box, !!open)
 	const bind = el => {
-		own.current = el
+		box.current = el
 		if (typeof ref === 'function') ref(el)
 		else if (ref) ref.current = el
 	}
 	return (
-		<span className="sp-anchor" ref={bind} {...keys} {...(open === undefined ? {} : { 'data-open': open ? 'true' : 'false' })} {...rest}>
-			{children}
+		<span className="sp-anchor" ref={bind} {...keys}
+			{...(open === undefined ? {} : { 'data-open': open ? 'true' : 'false', 'data-menu-open': open ? 'true' : undefined })} {...rest}>
+			<MenuHostOf open={!!open} box={box}>{children}</MenuHostOf>
 		</span>
 	)
 }
@@ -170,11 +217,13 @@ function useDialogPart(kind) {
 
 const isActions = c => c && typeof c === 'object' && c.type === DialogActions
 
-/** `onCancel` is what Escape does: the dialog's own way out. A page that spaces its blocks wider
-    than the dialog does passes them, the actions last, in one stack of its own (6d). */
+/** `onCancel` is what Escape and a press on the backdrop do: the dialog's own way out (c13). A page
+    that spaces its blocks wider than the dialog does passes them, the actions last, in one stack of its own (6d). */
 export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	reject(rest, 'Dialog')
 	const box = useRef(null)
+	const backdrop = useRef(null)
+	const pressed = useRef(false)
 	const [parts, setParts] = useState({ title: [], body: [] })
 	const register = useCallback((kind, id) => {
 		setParts(p => ({ ...p, [kind]: [...p[kind], id] }))
@@ -182,6 +231,19 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	}, [])
 	useFocusTrap(box, scrim, '.sp-dialog__actions button:not(:disabled)')
 	const keys = ev => { if (ev.key === 'Escape' && onCancel) { ev.stopPropagation(); onCancel() } }
+	// Escape with focus outside the box (on the page's body) still answers as cancel
+	const cancel = useRef(onCancel)
+	useEffect(() => { cancel.current = onCancel })
+	useEffect(() => {
+		if (!scrim) return
+		const key = ev => {
+			if (ev.key !== 'Escape' || !cancel.current) return
+			if (ev.target !== document.body && !within(backdrop.current, ev.target)) return
+			cancel.current()
+		}
+		document.addEventListener('keydown', key)
+		return () => document.removeEventListener('keydown', key)
+	}, [scrim])
 	const kids = [].concat(children ?? []).flat()
 	const actions = kids.find(isActions)
 	const elements = kids.filter(c => c && typeof c === 'object')
@@ -204,7 +266,16 @@ export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 		</DialogParts.Provider>
 	)
 	if (!scrim) return panel
-	return createPortal(<Scrim dialog>{panel}</Scrim>, document.body)
+	// a press on the backdrop keeps focus in the dialog, and cancels it once it is let go there too
+	return createPortal(
+		<Scrim dialog ref={backdrop}
+			onMouseDown={ev => { if (ev.target === ev.currentTarget) ev.preventDefault() }}
+			onPointerDown={ev => { pressed.current = ev.target === ev.currentTarget }}
+			onClick={ev => { if (pressed.current && ev.target === ev.currentTarget) onCancel?.(); pressed.current = false }}>
+			{panel}
+		</Scrim>,
+		document.body
+	)
 }
 
 /** What the dialog asks, as its heading. It names the dialog. */
@@ -278,22 +349,62 @@ export function Alert({ color = 'warning', mark, title, action, children, ...res
 }
 
 /* One toast at a time, bottom centre, for six seconds; a second replaces the first and
-   restarts the time, hovering holds it, Escape dismisses it and Cmd/Ctrl+Z is its Undo (c18). */
+   restarts the time, hovering or focus inside holds it, Escape dismisses it and Cmd/Ctrl+Z is its Undo (c18). */
 const ToastContext = createContext(() => {})
+const PINNED = '.sp-tabbar, .sp-savebar, .sp-list-item--sticky, .sp-fab'
 
 /** Shows a toast: `show({ message, icon, color, undo: { label, onClick } })`. */
 export const useToast = () => useContext(ToastContext)
 
 export function Toaster({ children }) {
 	const [toast, setToast] = useState(null)
-	const [held, setHeld] = useState(false)
-	const show = useCallback(next => setToast({ ...next, key: Date.now() }), [])
+	const [hovered, setHovered] = useState(false)
+	const [focused, setFocused] = useState(false)
+	// where focus was before it came into the toast, so it has somewhere to go when the toast goes
+	const before = useRef(null)
+	const region = useRef(null)
+	// a toast with nothing to say is not shown: a page that has no words for a failure (a session that
+	// ended) leaves the speaking to whatever does
+	const show = useCallback(next => { if (next?.message) setToast({ ...next, key: Date.now() }) }, [])
 	const dismiss = useCallback(() => setToast(null), [])
 	useEffect(() => {
-		if (!toast || held) return
+		if (!toast || hovered || focused) return
 		const timer = setTimeout(dismiss, 6000)
 		return () => clearTimeout(timer)
-	}, [toast, held, dismiss])
+	}, [toast, hovered, focused, dismiss])
+	useLayoutEffect(() => {
+		if (toast || !focused) return
+		setFocused(false)
+		const lost = document.activeElement === document.body || !document.activeElement
+		if (lost && before.current?.isConnected) before.current.focus()
+	}, [toast, focused])
+	// a bar pinned along the bottom that the toast would cover lifts it to 12 above that bar
+	useLayoutEffect(() => {
+		const el = region.current
+		if (!toast || !el) return
+		const place = () => {
+			el.style.removeProperty('bottom')
+			const shown = el.firstElementChild?.getBoundingClientRect()
+			if (!shown) return
+			const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sp-12'))
+			let top = Infinity
+			for (const bar of document.querySelectorAll(PINNED)) {
+				if (bar.checkVisibility?.() === false) continue
+				const r = bar.getBoundingClientRect()
+				if (r.top < shown.bottom + gap && r.bottom > shown.top && r.left < shown.right && r.right > shown.left) top = Math.min(top, r.top)
+			}
+			if (top === Infinity) return
+			const floor = el.getBoundingClientRect().bottom + parseFloat(getComputedStyle(el).bottom)
+			el.style.bottom = floor - top + gap + 'px'
+		}
+		place()
+		window.addEventListener('scroll', place, true)
+		window.addEventListener('resize', place)
+		return () => {
+			window.removeEventListener('scroll', place, true)
+			window.removeEventListener('resize', place)
+		}
+	}, [toast])
 	useEffect(() => {
 		if (!toast) return
 		const key = ev => {
@@ -306,7 +417,10 @@ export function Toaster({ children }) {
 	return (
 		<ToastContext.Provider value={show}>
 			{children}
-			<div className="sp-toast-region" aria-live="polite" onMouseEnter={() => setHeld(true)} onMouseLeave={() => setHeld(false)}>
+			<div className="sp-toast-region" aria-live="polite" ref={region}
+				onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+				onFocus={ev => { if (!focused) before.current = ev.relatedTarget; setFocused(true) }}
+				onBlur={ev => { if (!region.current?.contains(ev.relatedTarget)) setFocused(false) }}>
 				{toast
 					? (
 						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'}>

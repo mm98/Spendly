@@ -9,6 +9,9 @@ import { SearchInput } from './Inputs.jsx'
 import { Kbd } from './Utilities.jsx'
 import { Button } from './Button.jsx'
 
+/** Whether the page sits in the touch shell: what a part that changes its form on touch reads. */
+export const ShellTouch = createContext(false)
+
 /** `viewport` fills the window; `touch` is the shell below 640: top bar, content, tab bar, one
     floating action. `cover` owns the whole touch screen (7b's search), the page mounted under it. */
 export function Shell({ collapsed = false, viewport = false, touch = false, cover, children, ...rest }) {
@@ -32,16 +35,18 @@ export function Shell({ collapsed = false, viewport = false, touch = false, cove
 	/* Both shapes keep the page in the same slot of the same tree, so crossing 640 re-styles
 	   the page rather than mounting it again and losing what the reader had not saved. */
 	return (
-		<div className={touch ? 'sp-shell--touch sp-touch' : join('sp-shell', collapsed && 'sp-shell--collapsed', viewport && 'sp-shell--viewport')} {...rest}>
-			{touch ? null : menu}
-			<div className="sp-shell__page" hidden={touch && !!cover}>
-				{topbar}
-				{content}
+		<ShellTouch.Provider value={touch}>
+			<div className={touch ? 'sp-shell--touch sp-touch' : join('sp-shell', collapsed && 'sp-shell--collapsed', viewport && 'sp-shell--viewport')} {...rest}>
+				{touch ? null : menu}
+				<div className="sp-shell__page" hidden={touch && !!cover}>
+					{topbar}
+					{content}
+				</div>
+				{touch && cover ? <div className="sp-shell__page">{cover}</div> : null}
+				{touch && !cover ? fab : null}
+				{touch && !cover ? tabbar : null}
 			</div>
-			{touch && cover ? <div className="sp-shell__page">{cover}</div> : null}
-			{touch && !cover ? fab : null}
-			{touch && !cover ? tabbar : null}
-		</div>
+		</ShellTouch.Provider>
 	)
 }
 
@@ -116,7 +121,10 @@ export function NavItem({ variant = 'default', icon, count, countColor, sub, cur
 	const body = (
 		<>
 			{icon ? <span className="sp-nav-item__icon"><Icon name={icon} /></span> : null}
-			<span className="sp-grow">{children}</span>
+			{/* a light row holds its current, bold label's room in every state, as Segmented does */}
+			{variant === 'light' && typeof children === 'string'
+				? <span className="sp-grow" data-label={children}><span>{children}</span></span>
+				: <span className="sp-grow">{children}</span>}
 			{sub ? <span className="sp-nav-item__sub">{sub}</span> : null}
 			{count != null
 				? <span className="sp-nav-item__count" {...(countColor ? { 'data-color': countColor } : {})}>{count}</span>
@@ -139,6 +147,8 @@ export function SidebarAccount({ name, email, expanded = false, onClick, onDismi
 	const [hint, tipEvents] = useTip(expanded ? null : tip)
 	const block = useRef(null)
 	const panel = useRef(null)
+	// which end of the menu an arrow on the closed button asked for (c9: Up opens on the last item)
+	const end = useRef('first')
 	const [at, setAt] = useState(null)
 	useLayoutEffect(() => {
 		if (!expanded) { setAt(null); return }
@@ -154,7 +164,9 @@ export function SidebarAccount({ name, email, expanded = false, onClick, onDismi
 	const shown = !!at
 	useEffect(() => {
 		if (!shown) return
-		panel.current?.querySelector('.sp-menu__item:not(:disabled)')?.focus()
+		const items = panel.current?.querySelectorAll('.sp-menu__item:not(:disabled)') ?? []
+		;(end.current === 'last' ? items[items.length - 1] : items[0])?.focus()
+		end.current = 'first'
 		const away = ev => {
 			if (!block.current?.contains(ev.target) && !panel.current?.contains(ev.target)) onDismiss?.()
 		}
@@ -184,7 +196,14 @@ export function SidebarAccount({ name, email, expanded = false, onClick, onDismi
 	return (
 		<>
 			<button type="button" className="sp-nav-item" ref={block} onClick={onClick} aria-haspopup="menu"
-				aria-expanded={expanded ? 'true' : 'false'} {...tipEvents} {...rest}>
+				aria-expanded={expanded ? 'true' : 'false'} {...tipEvents}
+				onKeyDown={ev => {
+					if (expanded || (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp')) return
+					ev.preventDefault()
+					end.current = ev.key === 'ArrowUp' ? 'last' : 'first'
+					onClick?.(ev)
+				}}
+				{...rest}>
 				<Mark size="medium" fill="solid">{name || (split > 0 ? email.slice(0, split) : email)}</Mark>
 				<span className="sp-stack sp-grow">
 					{name ? <span className="sp-truncate">{name}</span> : null}

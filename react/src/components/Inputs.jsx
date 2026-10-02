@@ -3,7 +3,7 @@ import { IconButton } from './Button.jsx'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Chip } from './Chip.jsx'
-import { usePanelPlace, useListbox } from './Combobox.jsx'
+import { countOf, usePanelPlace, useListbox } from './Combobox.jsx'
 import { formatNumber, parseNumber } from './format.js'
 
 const TEXT = {
@@ -106,8 +106,14 @@ export function NumberField({ value, onChange, onBlur, decimals = 2, min, locale
 	)
 }
 
-export function SearchInput({ value, onChange, kbd, ...rest }) {
+export function SearchInput({ value, onChange, kbd, inputRef, ...rest }) {
 	const clearable = !!value
+	const own = useRef(null)
+	const bind = el => {
+		own.current = el
+		if (typeof inputRef === 'function') inputRef(el)
+		else if (inputRef) inputRef.current = el
+	}
 	return (
 		<span className="sp-picker__search">
 			<span className="sp-field__lead"><Icon name="search" size={14} /></span>
@@ -117,10 +123,12 @@ export function SearchInput({ value, onChange, kbd, ...rest }) {
 				component="SearchInput"
 				value={value}
 				onChange={onChange}
+				inputRef={bind}
 				{...rest}
 			/>
+			{/* clearing hands focus back to the field, where the reader types the next search */}
 			{clearable
-				? <Trail label="Clear the search" onClick={() => onChange?.('')}><Icon name="x" /></Trail>
+				? <Trail label="Clear the search" onClick={() => { onChange?.(''); own.current?.focus() }}><Icon name="x" /></Trail>
 				: null}
 			{!clearable && kbd ? <span className="sp-field__kbd">{kbd}</span> : null}
 		</span>
@@ -245,9 +253,9 @@ export function RangeSlider({ value, onChange, min, max, step = 1, label, format
 	)
 }
 
-/** A set of typed values as chips. Given `children` (ComboboxOption) it also offers them in a
-    panel under the field, the page filtering them by what `onSearch` reports (Bookmarks 22c). */
-export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, children, ...rest }) {
+/** Typed values as chips. Given `children` (ComboboxOption) it offers them in a panel, the page filtering
+    them by `onSearch` (Bookmarks 22c); `noun`, plural, names them in the count read out as they narrow. */
+export function TokensField({ value = [], onChange, placeholder, danger = false, id, onSearch, noun, children, ...rest }) {
 	reject(rest, 'TokensField')
 	// what Field hands the control belongs on the input that takes focus, not on the box around it
 	const { 'aria-label': label, 'aria-describedby': describedBy, 'aria-invalid': invalid, required, ...box } = rest
@@ -274,7 +282,7 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 	usePanelPlace(holder, listbox.panel, shown, options.length)
 	// a press anywhere in the box but on a token's remove types into it: the input is one line of it
 	const field = (
-		<span className="sp-tokens" onClick={ev => { if (!ev.target.closest('button, input')) input.current?.focus() }} {...box}>
+		<span className="sp-tokens" onClick={ev => { if (!ev.target.closest('button, input')) { input.current?.focus(); setOpen(true) } }} {...box}>
 			{value.map(token => (
 				<Chip
 					key={token}
@@ -307,7 +315,8 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 						'aria-controls': panelId,
 						'aria-autocomplete': 'list',
 						'aria-activedescendant': shown ? listbox.activeId : undefined,
-						onFocus: () => setOpen(true)
+						// a press opens it, focus alone does not: focus a page moves here must not cover the field
+						onClick: () => setOpen(true)
 					}
 					: {})}
 				onChange={ev => { type(ev.target.value); setOpen(true) }}
@@ -339,6 +348,7 @@ export function TokensField({ value = [], onChange, placeholder, danger = false,
 			{field}
 			{/* a press on an option must not blur the field first, or the half-typed text is added as a value */}
 			<ul className="sp-combobox__panel" id={panelId} role="listbox" ref={listbox.panel} onMouseDown={ev => ev.preventDefault()}>{listbox.list}</ul>
+			<span className="sp-announce" aria-live="polite">{typed && open ? countOf(options.length, noun) : ''}</span>
 		</div>
 	)
 }
