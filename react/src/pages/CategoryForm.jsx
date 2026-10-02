@@ -34,8 +34,11 @@ const fold = s => String(s).normalize('NFD').replace(/\p{M}/gu, '').trim().toLow
 /** A category, created (5e) or edited (5f): one page, one form, one rail. */
 export default function CategoryForm() {
 	const { id } = useParams()
-	const record = useApi(getCategory, [id], { enabled: Boolean(id) })
-	if (id && !record.data) {
+	// once deleted, the record is not read again: the page is on its way out
+	const [gone, setGone] = useState(false)
+	const record = useApi(getCategory, [id], { enabled: Boolean(id) && !gone })
+	// the last record stays in hand while the next one loads, so it has to be the one the address names
+	if (id && record.data?.id !== id) {
 		if (record.error) return (
 			<div className="sp-stack sp-gap-12">
 				<Failed title="This category could not be opened" error={record.error} onRetry={record.refresh}
@@ -44,10 +47,10 @@ export default function CategoryForm() {
 		)
 		return <FormLoading />
 	}
-	return <CategoryFields key={id ?? 'new'} category={record.data ?? null} />
+	return <CategoryFields key={id ?? 'new'} category={record.data ?? null} onGone={setGone} />
 }
 
-function CategoryFields({ category }) {
+function CategoryFields({ category, onGone }) {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const touch = useShellShape() === 'touch'
@@ -115,6 +118,7 @@ function CategoryFields({ category }) {
 
 	const remove = () => {
 		setBusy(true)
+		onGone(true)
 		deleteCategory(category.id)
 			.then(() => {
 				invalidateCategoryData()
@@ -124,6 +128,7 @@ function CategoryFields({ category }) {
 			})
 			.catch(e => {
 				setBusy(false)
+				onGone(false)
 				toast({ message: failureMessage(e, 'The category was not deleted. Try again.'), color: 'danger' })
 			})
 	}
@@ -149,7 +154,7 @@ function CategoryFields({ category }) {
 
 			<Card>
 				<span className="sp-section-label">Mark</span>
-				<div className="sp-stack sp-gap-16">
+				<div className="sp-stack sp-gap-12">
 					<Field label="Icon">
 						<Picker icons={shown.map(name => ({ name, icon: <Icon name={name} /> }))}
 							value={values.icon} onChange={v => set('icon', v)}

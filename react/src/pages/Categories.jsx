@@ -9,7 +9,7 @@ import { MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
 import { Empty, EmptyBody, EmptyTitle, Stacked } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import {
-	deleteCategory, failureMessage, getCategoriesThisMonth, invalidateCategoryData, invalidateVendorData
+	deleteCategory, failureMessage, getCategoriesThisMonth, getSettings, invalidateCategoryData, invalidateVendorData
 } from '../api/client.js'
 import { amountRound, currency, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
@@ -20,10 +20,12 @@ import {
 const SORTS = [
 	{ id: 'name-asc', label: 'Name A - Z', by: (a, b) => a.name.localeCompare(b.name) },
 	{ id: 'month-desc', label: 'This month ↓', by: (a, b) => b.monthSpend - a.monthSpend },
+	{ id: 'month-asc', label: 'This month ↑', by: (a, b) => a.monthSpend - b.monthSpend },
 	{ id: 'limit-desc', label: 'Limit ↓', by: (a, b) => b.budget - a.budget },
 	{ id: 'orders-desc', label: 'Orders ↓', by: (a, b) => b.orders - a.orders }
 ]
-const PAGE = 20
+// Settings' shared sort in this list's terms: spend here is the month's, and a category saves nothing
+const FROM_SETTING = { 'spend-desc': 'month-desc', 'spend-asc': 'month-asc' }
 
 /* The month against the limit in the thin bar. Past the limit, a table row splits the track into
    the part up to it and the overage (5i); a phone card fills it, with the overage in words. */
@@ -52,9 +54,13 @@ export default function Categories() {
 	const navigate = useNavigate()
 	const toast = useToast()
 	const state = useApi(getCategoriesThisMonth)
+	const settings = useApi(getSettings).data
+	const step = settings?.pageSize ?? 10
+	// the order Settings names, until the address names another
+	const opening = SORTS.find(s => s.id === FROM_SETTING[settings?.listSort]) ?? SORTS[0]
 	const [params, setParams] = useSearchParams()
 	const query = touch ? '' : params.get('q') ?? ''
-	const sort = SORTS.find(s => s.id === params.get('sort')) ?? SORTS[0]
+	const sort = SORTS.find(s => s.id === params.get('sort')) ?? opening
 	const [menuFor, setMenuFor] = useState(null)
 	const [deleting, setDeleting] = useState(null)
 	const [busy, setBusy] = useState(false)
@@ -63,14 +69,14 @@ export default function Categories() {
 	const write = (q, sortId) => {
 		const next = {}
 		if (q) next.q = q
-		if (sortId !== SORTS[0].id) next.sort = sortId
+		if (sortId !== opening.id) next.sort = sortId
 		setParams(next, { replace: true })
 	}
 
 	const all = state.data?.categories ?? []
 	const needle = query.trim().toLowerCase()
 	const rows = all.filter(c => !needle || c.name.toLowerCase().includes(needle)).sort(sort.by)
-	const paged = usePaged(rows, PAGE, query + sort.id)
+	const paged = usePaged(rows, step, query + sort.id)
 
 	const remove = () => {
 		setBusy(true)
@@ -136,7 +142,7 @@ export default function Categories() {
 					</Card>
 				)
 			})}
-			{rows.length > PAGE
+			{rows.length > step
 				? (
 					<ListFooter loose>
 						<span className="sp-subtitle">Showing {paged.page.length} of {rows.length}</span>
@@ -147,11 +153,11 @@ export default function Categories() {
 		</>
 	)
 	else body = (
-		<List data={rows} recordKey={c => c.id} noun="categories" pageSize={PAGE} selectionKey={query + sort.id}
+		<List data={rows} recordKey={c => c.id} noun="categories" pageSize={step} selectionKey={query + sort.id}
 			onRowClick={c => navigate(`/categories/${c.id}/edit`)}>
 			<ListHead>
 				<ListCell width="title">Category</ListCell>
-				<ListCell width="amount">{sort.id === 'month-desc' ? 'This month ↓' : 'This month'}</ListCell>
+				<ListCell width="amount">{sort.id.startsWith('month-') ? sort.label : 'This month'}</ListCell>
 				<ListCell width="amount">{sort.id === 'limit-desc' ? 'Monthly limit ↓' : 'Monthly limit'}</ListCell>
 				<ListCell width="menu" />
 			</ListHead>
@@ -174,7 +180,7 @@ export default function Categories() {
 						{c.budget > 0 ? <span className="sp-amount">{currency(c.budget, 0)}</span> : <span className="sp-data sp-ink-5">no limit</span>}
 					</ListCell>,
 					<ListCell key="x" cell="menu">
-						<RowMenu label={c.name} open={menuFor === c.id}
+						<RowMenu noun="Category" label={c.name} open={menuFor === c.id}
 							onToggle={() => setMenuFor(menuFor === c.id ? null : c.id)} onClose={() => setMenuFor(null)}>
 							<MenuItem icon="external-link" onClick={() => navigate(`/orders?category=${c.id}`)}>Open in the order list</MenuItem>
 							<MenuItem icon="pencil" onClick={() => navigate(`/categories/${c.id}/edit`)}>Edit category</MenuItem>
