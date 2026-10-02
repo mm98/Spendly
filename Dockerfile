@@ -12,14 +12,6 @@ COPY react/package.json react/package-lock.json react/
 # --include=dev regardless of NODE_ENV: vite is a devDependency and is the build.
 RUN npm --prefix react ci --include=dev
 COPY react react
-# The same commit the final stage stamps into /api/version, given to the bundle as well, so a
-# tab already open can tell that the container has been replaced under it and offer to reload
-# (react/src/components/UpdateNotice.jsx reads it, vite.config.js bakes it in). An ARG is
-# per-stage, so the final stage's copy does not reach this one and it is declared twice on
-# purpose. Unset, the bundle stamps null and the notice never fires -- the same "no build to be
-# out of date" the endpoint answers with.
-ARG GIT_SHA
-ENV GIT_SHA=$GIT_SHA
 RUN npm --prefix react run build
 
 # api deps in their own stage with a toolchain: better-sqlite3 falls back to a node-gyp
