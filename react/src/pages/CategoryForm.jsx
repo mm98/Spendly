@@ -17,16 +17,18 @@ import {
 	createCategory, deleteCategory, failureMessage, getCategories, getCategoriesThisMonth, getCategory,
 	invalidateCategoryData, invalidateVendorData, updateCategory
 } from '../api/client.js'
-import { currency, plural } from '../api/format.js'
+import { amount, currency, dot, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import {
-	CategoryMark, ConfirmDelete, DOT, Failed, FormLoading, RecentOrders, SWATCHES, categoryDeleteNote, focusFirst,
+	CategoryMark, ConfirmDelete, Failed, FormLoading, RecentOrders, SWATCHES, categoryDeleteNote, focusFirst,
 	monthPace, pickedColour, storedColour, swatchOf, useLeaveGuard
 } from './vendorsCategories.jsx'
 
 /* The icons the picker leads with (5e), then the rest of the register. */
 const FIRST = ['flower', 'armchair', 'lamp', 'photo', 'star', 'home', 'shopping-bag', 'heart', 'diamond', 'clock', 'archive', 'tag', 'building-store']
 const ICON_NAMES = [...FIRST, ...Object.keys(ICONS).filter(n => !FIRST.includes(n)).sort()]
+// an icon the drawing names otherwise than its register name reads (5e)
+const ICON_LABELS = { 'building-store': 'Store' }
 
 // case and accents do not make two names different: "Decor" and "décor" chart as one
 const fold = s => String(s).normalize('NFD').replace(/\p{M}/gu, '').trim().toLowerCase()
@@ -156,7 +158,7 @@ function CategoryFields({ category, onGone }) {
 				<span className="sp-section-label">Mark</span>
 				<div className="sp-stack sp-gap-12">
 					<Field label="Icon">
-						<Picker icons={shown.map(name => ({ name, icon: <Icon name={name} /> }))}
+						<Picker icons={shown.map(name => ({ name, label: ICON_LABELS[name], icon: <Icon name={name} /> }))}
 							value={values.icon} onChange={v => set('icon', v)}
 							search={iconSearch} onSearch={setIconSearch} searchLabel="Search icons…"
 							more={hidden ? `+${hidden}` : undefined} onMore={() => setAllIcons(true)} />
@@ -211,8 +213,8 @@ function CategoryFields({ category, onGone }) {
 					</Stacked>
 				</div>
 				<div className="sp-stack">
-					<Sum value={values.name.trim() || '-'}><span className="sp-ink-2">Name</span></Sum>
-					<Sum value={values.budget ? currency(values.budget, 0) : 'none'}><span className="sp-ink-2">Monthly limit</span></Sum>
+					<Sum value={values.name.trim() || '-'}>Name</Sum>
+					<Sum value={values.budget ? currency(values.budget, 0) : 'none'}>Monthly limit</Sum>
 				</div>
 			</Card>
 		)
@@ -252,7 +254,7 @@ function CategorySummary({ category, preview, budget }) {
 				<Stacked>
 					<span className="sp-title sp-truncate">{preview.name}</span>
 					<span className="sp-meta">
-						{plural(category.orders, 'order')}{spend === undefined ? null : <>{DOT}{currency(spend, 0)} this month</>}
+						{plural(category.orders, 'order')}{spend === undefined ? null : <>{dot}{currency(spend, 0)} this month</>}
 					</span>
 				</Stacked>
 			</div>
@@ -273,7 +275,7 @@ function CategorySummary({ category, preview, budget }) {
 					</>
 				)}
 			<div className="sp-stack">
-				<Sum value={category.orders}><span className="sp-ink-2">Orders</span></Sum>
+				<Sum value={amount(category.orders, 0)}>Orders</Sum>
 			</div>
 			<Button variant="outline" size="small" to="/statistics">See more in statistics</Button>
 		</Card>

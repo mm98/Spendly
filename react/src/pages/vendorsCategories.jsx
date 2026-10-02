@@ -10,13 +10,11 @@ import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu } from '..
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
 import { useApi } from '../api/useApi.js'
 import { failureMessage, getCategories, getOrders } from '../api/client.js'
-import { currency, plural, shortDate } from '../api/format.js'
+import { currency, dot, plural, shortDate } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 
 /* What the Library's lists (Vendors, Categories, Bookmarks) and their forms share: the colour a
    record stores, the mark it is drawn with, the bars above and around a list, and the parts of a record's form. */
-
-export const DOT = ' · '
 
 export { SWATCHES, swatchOf, storedColour, CategoryMark } from '../app/categoryMark.jsx'
 /** A stored colour as the colour picker's value: one of the eight by name, or the colour itself. */
@@ -30,14 +28,11 @@ export function monthPace(now = new Date()) {
 
 /** The bar's sort, a Combobox that only picks (c8). */
 export function SortControl({ sorts, value, onChange }) {
-	const [open, setOpen] = useState(false)
 	const current = sorts.find(s => s.id === value) ?? sorts[0]
 	return (
-		<Combobox variant="sort" aria-label="Sort" lead={<span className="sp-combobox__chevron">Sort</span>}
-			value={current.label} open={open} onOpenChange={setOpen}>
+		<Combobox variant="sort" prefix="Sort" value={current.label}>
 			{sorts.map(s => (
-				<ComboboxOption key={s.id} selected={s.id === current.id}
-					onSelect={() => { setOpen(false); onChange(s.id) }}>
+				<ComboboxOption key={s.id} selected={s.id === current.id} onSelect={() => onChange(s.id)}>
 					{s.label}
 				</ComboboxOption>
 			))}
@@ -155,14 +150,16 @@ export const bookmarkDeleteNote = 'The bookmark and its picture are removed. To 
 
 /** Holds the page while the form has changes: in-app navigation asks first, and a reload or a
     closed tab gets the browser's own question. `release` lets a finished save leave. */
-export function useLeaveGuard(dirty, within) {
+export function useLeaveGuard(dirty, { within, search = false } = {}) {
 	const released = useRef(false)
 	const live = useRef(dirty)
 	live.current = dirty
 	// pages under `within` share the changes, so moving among them does not ask
 	const stays = path => within != null && (path === within || path.startsWith(within + '/'))
+	// with `search`, the same path with another query is another page too
+	const moves = (from, to) => from.pathname !== to.pathname || (search && from.search !== to.search)
 	const blocker = useBlocker(useCallback(({ currentLocation, nextLocation }) =>
-		live.current && !released.current && currentLocation.pathname !== nextLocation.pathname && !stays(nextLocation.pathname), [within]))
+		live.current && !released.current && moves(currentLocation, nextLocation) && !stays(nextLocation.pathname), [within, search]))
 	useBeforeUnload(useCallback(ev => {
 		if (live.current && !released.current) { ev.preventDefault(); ev.returnValue = '' }
 	}, []))
@@ -209,7 +206,7 @@ function RecentOrder({ order }) {
 		<ListItem to={`/orders/${order.id}`}>
 			<Stacked>
 				<span className="sp-title sp-truncate">{order.reference || 'No reference yet'}</span>
-				<span className="sp-meta">{shortDate(order.date)}{DOT}{plural(order.itemCount, 'item')}</span>
+				<span className="sp-meta">{shortDate(order.date)}{dot}{plural(order.itemCount, 'item')}</span>
 			</Stacked>
 			<span className="sp-title sp-nowrap">{currency(order.total)}</span>
 		</ListItem>

@@ -10,7 +10,7 @@ import { Gauge, Stat } from '../components/Data.jsx'
 import { Spinner } from '../components/Utilities.jsx'
 import { invalidate, useApi } from '../api/useApi.js'
 import { getVendors, importOrders, vendorByAnyName } from '../api/client.js'
-import { amount, amountRound, plural } from '../api/format.js'
+import { amount, amountRound, dot, plural } from '../api/format.js'
 import { Heading } from './SettingsParts.jsx'
 
 /* The server takes 50 MB per request and a receipt rides along as base64, so orders are sent
@@ -229,7 +229,7 @@ export function ImportCard() {
 					<Mark size="medium" round aria-label="Imported"><Icon name="check" /></Mark>
 					<div className="sp-stack sp-gap-6">
 						<span className="sp-heading sp-truncate">{ordersWord(imported)} imported</span>
-						<span className="sp-subtitle">{facts.join(' · ')}</span>
+						<span className="sp-subtitle">{facts.join(dot)}</span>
 					</div>
 				</div>
 				{reasons}

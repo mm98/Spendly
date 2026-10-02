@@ -4,17 +4,16 @@ import { useLocation, useNavigate } from 'react-router'
 import { Palette as Surface, PaletteAll, PaletteGroup, PaletteRow, PaletteRule, Scrim } from '../components/Shell.jsx'
 import { getCurrentUser, getOrder, getOrders, getVendors, searchRecords, SEARCH_CAP } from '../api/client.js'
 import { cachedFetch, useApi } from '../api/useApi.js'
-import { activeLocaleCode, amount, currency, plural } from '../api/format.js'
+import { amount, currency, dayShortMonth, dot, plural } from '../api/format.js'
+import { MAC } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
 import { forgetRecent, noteRecent, readRecent } from './recent.js'
 
 export { forgetRecent }
 
-const MAC = /Mac|iPhone|iPad/.test(navigator.platform)
 const WAIT_MS = 300
 // rows a group of records shows before its "See all" (9d)
 const SHOWN = 3
-const SEP = ' · '
 
 /* ---- Jump back in: the last five records opened, kept in this browser for each account ---- */
 
@@ -32,21 +31,13 @@ export function useRecentRecords() {
 	}, [pathname, user])
 }
 
-// a day and a short month, as the rows draw it ("12 Aug"), with the year when it is not this one
-const shortDay = iso => {
-	const [y, m, d] = String(iso).split('-').map(Number)
-	const date = new Date(y, m - 1, d)
-	const options = { day: 'numeric', month: 'short', ...(y === new Date().getFullYear() ? {} : { year: 'numeric' }) }
-	return new Intl.DateTimeFormat(activeLocaleCode(), options).format(date)
-}
-
 const orderRow = o => ({
 	key: 'recent-order-' + o.id, icon: 'file', name: o.vendor?.name ?? 'No vendor', open: true,
-	meta: [o.reference, shortDay(o.date), currency(o.total)].filter(Boolean).join(SEP), to: `/orders/${o.id}`
+	meta: [o.reference, dayShortMonth(o.date), currency(o.total)].filter(Boolean).join(dot), to: `/orders/${o.id}`
 })
 const vendorRow = v => ({
 	key: 'recent-vendor-' + v.id, icon: 'shopping-bag', name: v.name, open: true,
-	meta: 'vendor' + SEP + plural(v.orders, 'order'), to: `/vendors/${v.id}/edit`
+	meta: 'vendor' + dot + plural(v.orders, 'order'), to: `/vendors/${v.id}/edit`
 })
 
 /* A deleted record drops out without a trace (9d); a vendor is looked up in the list, so a gone
@@ -91,13 +82,13 @@ function shape(needle, list, hits, vendors) {
 		})
 		.map(i => ({
 			key: 'item-' + i.id, thumb: true, plain: true, name: i.title, to: `/orders/${o.id}`,
-			meta: 'in ' + (o.reference || [o.vendor?.name, shortDay(o.date)].filter(Boolean).join(SEP))
+			meta: 'in ' + (o.reference || [o.vendor?.name, dayShortMonth(o.date)].filter(Boolean).join(dot))
 		})))
 	return {
 		needle,
 		orders: list.orders.map(o => ({
 			key: 'order-' + o.id, icon: 'file', name: o.vendor?.name ?? 'No vendor',
-			meta: [o.reference, shortDay(o.date)].filter(Boolean).join(SEP), value: amount(o.total), to: `/orders/${o.id}`
+			meta: [o.reference, dayShortMonth(o.date)].filter(Boolean).join(dot), value: amount(o.total), to: `/orders/${o.id}`
 		})),
 		ordersCount: list.matched,
 		vendors: hits.vendors.slice(0, SHOWN).map(v => {
@@ -106,7 +97,7 @@ function shape(needle, list, hits, vendors) {
 			return {
 				key: 'vendor-' + v.id, icon: 'shopping-bag', name: v.name, to: `/vendors/${v.id}/edit`,
 				// the alias leads: it is why a name without the typed text is here at all (9d)
-				meta: [v.alias ? 'matched ' + v.alias : null, ...facts].filter(Boolean).join(SEP)
+				meta: [v.alias ? 'matched ' + v.alias : null, ...facts].filter(Boolean).join(dot)
 			}
 		}),
 		vendorsFound: hits.vendors.length,
@@ -163,7 +154,7 @@ const actionsFor = theme => [
 		: { key: 'theme', icon: 'moon', name: 'Switch to dark mode', run: () => setTheme('dark'), first: true }
 ].map(a => ({ ...a, plain: true, action: true }))
 
-const countLabel = (name, count) => (count == null ? name : name + SEP + count)
+const countLabel = (name, count) => (count == null ? name : name + dot + count)
 
 function groupsFor(text, found, recent, actions) {
 	const needle = text.trim()

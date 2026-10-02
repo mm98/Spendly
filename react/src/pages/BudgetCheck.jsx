@@ -11,11 +11,11 @@ import { ListItem, ListItemHead } from '../components/ListItem.jsx'
 import { FileDrop } from '../components/FileDrop.jsx'
 import { Mark } from '../components/Mark.jsx'
 import { Icon } from '../components/Icon.jsx'
-import { Empty, EmptyBody, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
+import { Empty, EmptyTitle, Skeleton } from '../components/Utilities.jsx'
 import { useToast } from '../components/Overlays.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { cachedFetch, useApi } from '../api/useApi.js'
-import { activeLocaleCode, amount, currency, currencySymbol, fullStop, longDate, monthNames, plural } from '../api/format.js'
+import { amount, currency, currencySymbol, dayShortMonth, dot, fullStop, longDate, monthNames, plural } from '../api/format.js'
 import { failureMessage, forgetBankLink, getBankLinks, getBudgetYear, getBudgetYears, saveBankLink, updateBudgetLine } from '../api/client.js'
 import {
 	DATE_FORMATS, checkPayments, dateFormatsFor, guessColumns, hasHeader, kindOf, onceKey, parseCsv, readPayments, readText,
@@ -44,12 +44,9 @@ const ROLES = [
 
 const cents = n => Math.round(n * 100) / 100
 const money = n => currency(cents(n))
-const dayMonth = iso => new Intl.DateTimeFormat(activeLocaleCode(), { day: 'numeric', month: 'short' })
-	.format(new Date(`${iso}T12:00:00`))
-
-const when = g => (g.payments.length === 1 ? dayMonth(g.first)
-	: g.first === g.last ? `${plural(g.payments.length, 'payment')} on ${dayMonth(g.first)}`
-		: `${plural(g.payments.length, 'payment')}, ${dayMonth(g.first)} to ${dayMonth(g.last)}`)
+const when = g => (g.payments.length === 1 ? dayShortMonth(g.first)
+	: g.first === g.last ? `${plural(g.payments.length, 'payment')} on ${dayShortMonth(g.first)}`
+		: `${plural(g.payments.length, 'payment')}, ${dayShortMonth(g.first)} to ${dayShortMonth(g.last)}`)
 
 /* Payments no row accounts for, one group per text: placing the text once places them all. */
 function groupPayments(list) {
@@ -230,7 +227,7 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 							return (
 								<tr key={i}>
 									<td><span className="sp-title">{name}</span></td>
-									<td><span className="sp-subtitle sp-truncate">{body.slice(0, 3).map(r => r[i] || '(empty)').join(' · ')}</span></td>
+									<td><span className="sp-subtitle sp-truncate">{body.slice(0, 3).map(r => r[i] || '(empty)').join(dot)}</span></td>
 									<td>
 										<div className="sp-stack sp-gap-8">
 											<PickOnly aria-label={`${name} is mapped to`}
@@ -260,11 +257,10 @@ function Columns({ file, rows, body, width, mapping, dateFits, dateFormat, probl
 }
 
 function PickOnly({ value, options, onPick, ...rest }) {
-	const [open, setOpen] = useState(false)
 	return (
-		<Combobox value={value} open={open} onOpenChange={setOpen} {...rest}>
+		<Combobox value={value} {...rest}>
 			{options.map(o => (
-				<ComboboxOption key={o.id} selected={o.selected} onSelect={() => { setOpen(false); onPick(o.id) }}>{o.label}</ComboboxOption>
+				<ComboboxOption key={o.id} selected={o.selected} onSelect={() => onPick(o.id)}>{o.label}</ComboboxOption>
 			))}
 		</Combobox>
 	)
@@ -295,7 +291,7 @@ function RowPicker({ id, label, kind, sheet, month, onPick, onClose, disabled })
 						return (
 							<ComboboxOption key={l.id} disabled={disabled}
 								meta={value != null ? `${money(value)} in ${short}` : `No amount in ${short}`}
-								onSelect={() => { setOpen(false); onPick(l.name) }}>{l.name}</ComboboxOption>
+								onSelect={() => onPick(l.name)}>{l.name}</ComboboxOption>
 						)
 					})
 				]) : <ComboboxEmpty>No row has that name.</ComboboxEmpty>}
@@ -420,9 +416,14 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 	}
 
 	const actions = buttons => <span className="sp-row-flex sp-wrap sp-gap-8">{buttons}</span>
+	const pickRow = ev => {
+		const row = ev.target.closest('[data-pick]')
+		if (row && !ev.target.closest('button, input, label, a, ul, [role="combobox"]')) row.querySelector('input[type="checkbox"]')?.click()
+	}
 	const small = (label, onClick, extra = {}) => <Button key={label} variant="outline" size="small" disabled={busy} onClick={onClick} {...extra}>{label}</Button>
+	// a row with a box to tick ticks from a press anywhere on it but its own controls (14a)
 	const line = ({ key, check, title, subtitle, note, ink, buttons, children, total }) => (
-		<ListItem key={key} variant="top">
+		<ListItem key={key} variant="top" {...(check?.props.onChange ? { opens: true, 'data-pick': '' } : {})}>
 			{check}
 			<span className="sp-stack sp-gap-8 sp-grow">
 				<span className="sp-stacked">
@@ -442,7 +443,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 		return mine.length ? (
 			<div className="sp-stack sp-gap-8" key={kind}>
 				<ListItemHead label={title} amount={money(Math.abs(mine.reduce((n, i) => n + i.total, 0)))} />
-				<div className="sp-stack sp-gap-8">{mine.map(render)}</div>
+				<div className="sp-stack sp-gap-8" onClick={pickRow}>{mine.map(render)}</div>
 			</div>
 		) : null
 	})
@@ -493,7 +494,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 		}
 	}
 	const paymentRow = p => line({
-		key: p.row, title: p.text, subtitle: `${dayMonth(p.date)} · ${statusText(p)}`, total: p.amount,
+		key: p.row, title: p.text, subtitle: `${dayShortMonth(p.date)}${dot}${statusText(p)}`, total: p.amount,
 		buttons: p.status === 'year' ? null : [small(open === p.row ? 'Close' : 'Pick from budget', () => setOpen(open === p.row ? null : p.row), { 'aria-expanded': open === p.row ? 'true' : 'false', 'data-opener': `pick:${p.row}` })],
 		children: open === p.row
 			? <RowPicker id={`bank-payment-${p.row}`} label="All payments with this text go to" kind={kindOf(p)} sheet={sheetOf(p)}
@@ -536,7 +537,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 			? (leftOut.length
 				? sides(leftOut, g => line({
 					key: g.id, title: g.text, total: g.total,
-					subtitle: `${when(g)} · ${g.payments[0].status === 'once' ? 'Left out once' : 'Always left out'}`,
+					subtitle: `${when(g)}${dot}${g.payments[0].status === 'once' ? 'Left out once' : 'Always left out'}`,
 					buttons: [small('Bring back', () => bringBack(g))]
 				}))
 				: nothing('You have not left any payment out'))
@@ -560,7 +561,7 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 				<div className="sp-row-flex sp-gap-12">
 					<span className="sp-section-label">{file}</span>
 					<span className="sp-grow" />
-					<span className="sp-meta">{plural(payments.length, 'payment')} read · {longDate(dates[0])} to {longDate(dates[dates.length - 1])}</span>
+					<span className="sp-meta">{plural(payments.length, 'payment')} read{dot}{longDate(dates[0])} to {longDate(dates[dates.length - 1])}</span>
 				</div>
 				<div className="sp-row-flex sp-gap-16 sp-wrap sp-top">
 					<Stat label="Not in the budget" figure={plural(missing, 'payment')} />
@@ -583,14 +584,14 @@ function Results({ file, payments, checked, sheets, setSheets, setLinks, view, o
 			</Card>
 			{writes.length ? (
 				<Card footer={<Button key="save" disabled={writing || !toWrite.length} onClick={saveReal}>
-					{writing ? 'Saving...' : `Save ${plural(toWrite.length, 'amount')}`}</Button>}>
+					{writing ? 'Saving…' : `Save ${plural(toWrite.length, 'amount')}`}</Button>}>
 					{head('Save to the budget')}
 					<span className="sp-subtitle">These amounts from the bank are found on a budget item, but are not yet the real amount for their month. Saving writes them into the budget. Payments that still need a place are not saved.</span>
 					<Choice control={<Check checked={!leaveAlone.size} indeterminate={leaveAlone.size > 0 && leaveAlone.size < writes.length}
 						onChange={ev => setLeaveAlone(new Set(ev.target.checked ? [] : writes.map(w => w.id)))} />}>Select every amount</Choice>
 					{sides(writes.map(w => ({ ...w, total: w.amount })), w => line({
 						key: w.id, title: w.name, total: w.amount,
-						subtitle: `${long[w.month - 1]} ${w.year} · ${w.group}${w.count > 1 ? ` · ${plural(w.count, 'payment')}` : ''}`,
+						subtitle: `${long[w.month - 1]} ${w.year}${dot}${w.group}${w.count > 1 ? `${dot}${plural(w.count, 'payment')}` : ''}`,
 						check: <Check checked={!leaveAlone.has(w.id)} aria-label={`Select ${w.name}`} onChange={() => toggle(setLeaveAlone, w.id)} />,
 						note: writeNote(w), ink: 'sp-ink-warning'
 					}))}

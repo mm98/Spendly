@@ -60,10 +60,8 @@ const BudgetCheck = page(() => import('./pages/BudgetCheck.jsx'))
 const Settings = page(() => import('./pages/Settings.jsx'))
 const More = page(() => import('./pages/More.jsx'))
 
-/* A route's handle: `title` names the browser tab (never drawn in the page), `navKey` the
-   sidebar row it belongs to, `layout` the body its columns sit in (default, split, rail), `fab`
-   whether a phone shows the New order button over it, and `remember` that its destination
-   returns to it as it was left. */
+/* handle: `title` names the tab and is never drawn, `navKey` the sidebar row, `layout` the body
+   (default, split, rail), `fab` the phone's New order button, `remember` a return as it was left. */
 export const routes = [
 	{ path: 'signin', element: <SignedOut><SignIn /></SignedOut>, handle: { title: 'Sign in' } },
 	{ path: 'register', element: <Register />, handle: { title: 'Create your account' } },

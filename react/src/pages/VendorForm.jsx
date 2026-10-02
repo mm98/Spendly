@@ -17,7 +17,7 @@ import {
 	createVendor, deleteVendor, failureMessage, getOrders, getStats, getVendor, getVendors,
 	invalidateCategoryData, invalidateVendorData, updateVendor
 } from '../api/client.js'
-import { currency, plural } from '../api/format.js'
+import { currency, isSaving, plural } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import {
 	CategoryTokens, ConfirmDelete, Failed, FormLoading, RecentOrders, SWATCHES, deleteNote, focusFirst, pickedColour, storedColour,
@@ -236,9 +236,9 @@ function VendorFields({ vendor, onGone }) {
 					</Stacked>
 				</div>
 				<div className="sp-stack">
-					<Sum value={name || '-'}><span className="sp-ink-2">Name</span></Sum>
-					<Sum value={values.aliases.length}><span className="sp-ink-2">Aliases</span></Sum>
-					<Sum value={values.defaultCategories.length}><span className="sp-ink-2">Default categories</span></Sum>
+					<Sum value={name || '-'}>Name</Sum>
+					<Sum value={values.aliases.length}>Aliases</Sum>
+					<Sum value={values.defaultCategories.length}>Default categories</Sum>
 				</div>
 			</Card>
 		)
@@ -278,12 +278,10 @@ function VendorSummary({ vendor, name }) {
 				</Stacked>
 			</div>
 			<div className="sp-stack">
-				<Sum value={thisYear === null ? '' : currency(thisYear, 0)}><span className="sp-ink-2">Spend this year</span></Sum>
-				<Sum value={currency(vendor.orders ? vendor.spend / vendor.orders : 0, 0)}><span className="sp-ink-2">Average order</span></Sum>
-				<Sum value={<span className={vendor.saved > 0 ? 'sp-ink-accent' : undefined}>{currency(vendor.saved, 0)}</span>}>
-					<span className="sp-ink-2">Saved</span>
-				</Sum>
-				<Sum value={returned.data ? plural(returned.data.matched, 'order') : ''}><span className="sp-ink-2">Returned</span></Sum>
+				<Sum value={thisYear === null ? '' : currency(thisYear, 0)}>Spend this year</Sum>
+				<Sum value={currency(vendor.orders ? vendor.spend / vendor.orders : 0, 0)}>Average order</Sum>
+				<Sum value={<span className={isSaving(vendor.saved, 0) ? 'sp-ink-accent' : undefined}>{currency(vendor.saved, 0)}</span>}>Saved</Sum>
+				<Sum value={returned.data ? plural(returned.data.matched, 'order') : ''}>Returned</Sum>
 			</div>
 			<Button variant="outline" size="small" to="/statistics">See more in statistics</Button>
 		</Card>

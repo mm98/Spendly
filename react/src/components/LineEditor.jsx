@@ -52,7 +52,7 @@ export function LineEditor({
 				{/* in a sheet the two commits share the row (1c), with no keys to name */}
 				{sheet ? null : <><span className="sp-note">{hint}</span><span className="sp-grow" /></>}
 				<Button variant="outline" fullWidth={sheet} onClick={onCancel}>Cancel</Button>
-				<Button disabled={saving} fullWidth={sheet} onClick={onCommit}>{saving ? 'Saving...' : commit}</Button>
+				<Button disabled={saving} fullWidth={sheet} onClick={onCommit}>{saving ? 'Saving…' : commit}</Button>
 			</div>
 		</>
 	)

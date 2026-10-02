@@ -268,12 +268,7 @@ function BookmarkFields({ bookmark, onGone }) {
 	)
 
 	// a phone has no rail: the form, then the end-of-life card, then the bar it commits from (Mobile 5b)
-	if (touch) return (
-		<>
-			<div className="sp-stack sp-gap-12">{form}{endOfLife}{bar}{prompt}</div>
-			{null}
-		</>
-	)
+	if (touch) return <div className="sp-stack sp-gap-12">{form}{endOfLife}{bar}{prompt}</div>
 	return (
 		<>
 			<div className="sp-stack sp-gap-12">{form}{bar}{prompt}</div>

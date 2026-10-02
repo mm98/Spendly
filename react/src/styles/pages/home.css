@@ -27,11 +27,11 @@
 	.hm-ghost { visibility: hidden; }
 	.hm-fill { display: flex; flex-direction: column; justify-content: center; }
 
-	/* a recent order on the phone: the whole row is the link, at the touch height */
+	/* a recent order on the phone: the whole row is the link, at the touch height. a.hm-order weighs
+	   the same as the base link ink, which loads before this file, so these win the tie */
 	.hm-order { min-height: var(--control-h-touch); }
-	/* [href] outranks the base link ink, which loads after this file */
-	a.hm-order[href],
-	a.hm-order[href]:hover { color: inherit; text-decoration: none; border-radius: var(--r-tile); }
-	a.hm-order[href]:focus-visible { outline: none; box-shadow: var(--ring); }
+	a.hm-order,
+	a.hm-order:hover { color: inherit; text-decoration: none; border-radius: var(--r-tile); }
+	a.hm-order:focus-visible { outline: none; box-shadow: var(--ring); }
 
 }

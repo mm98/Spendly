@@ -48,7 +48,7 @@ export default function Register() {
 
 	const isTaken = taken !== null && taken === email.trim().toLowerCase()
 	const emailMessage = isTaken
-		? <>There's already an account with this email. <Link className="sp-strong" to="/signin">Sign in instead?</Link></>
+		? <>There's already an account with this email. <Link className="sp-strong au-across" to="/signin">Sign in instead?</Link></>
 		: emailProblem
 
 	if (!signedOut) return null
@@ -56,7 +56,7 @@ export default function Register() {
 		<AuthCard title="Create your account" lead={isTaken || alert ? null : 'Takes a minute. Nothing to set up afterwards.'}
 			alert={alert} onSubmit={submit} submit="Create account" busy={busy} busyLabel="Creating your account…"
 			disabled={isTaken}
-			across={<>Already have one? <Link className="sp-strong sp-ink-accent" to="/signin">Sign in</Link></>}>
+			across={<>Already have one? <Link className="sp-strong sp-ink-accent au-across" to="/signin">Sign in</Link></>}>
 			<Field label="Email" id="register-email" message={emailMessage ?? undefined} messageType={emailMessage ? 'danger' : 'hint'}>
 				<TextField type="email" autoComplete="email" inputMode="email" autoFocus value={email}
 					onChange={v => { setEmail(v); setEmailProblem(null) }} onBlur={checkEmail} />

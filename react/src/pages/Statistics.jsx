@@ -13,11 +13,14 @@ import { Mark } from '../components/Mark.jsx'
 import { Alert } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Empty, EmptyBody, EmptyTitle, Skeleton, Stacked } from '../components/Utilities.jsx'
-import { useMedia, useShellShape } from '../app/useMedia.js'
-import { orderLine } from '../app/orderRow.jsx'
+import { useMedia, useShellShape, useWidth } from '../app/useMedia.js'
+import { StatusPill, columnsFor, orderLine } from '../app/orderRow.jsx'
+import { Saving } from '../app/saving.jsx'
 import { failureMessage, getCategories, getOrders, getStats } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { activeLocaleCode, amount, compactAmount, currency, longDate, monthNames, percent, shortDate } from '../api/format.js'
+import {
+	NUMBER_LOCALE, activeLocaleCode, amount, compactAmount, currency, dot, isSaving, longDate, monthNames, percent, shortDate
+} from '../api/format.js'
 
 /* ---- windows: the ids the API pages through, worked out here so the control answers at once ---- */
 
@@ -110,8 +113,8 @@ const UNIT = { week: 'day', month: 'week', quarter: 'month', year: 'month' }
 
 const weekday = iso => new Intl.DateTimeFormat(activeLocaleCode(), { weekday: 'short', timeZone: 'UTC' }).format(new Date(utcOf(iso)))
 
-/** Months for a quarter or a year, weeks for a month, days for a week, each with its spend and
-    saving taken from the API's running totals, and the window a press on it opens. */
+/** Months for a quarter or a year, weeks for a month, days for a week, up to the one holding today
+    (4a), each with its spend and saving from the API's running totals and the window a press opens. */
 function chartOf(view) {
 	const spend = view.series.current
 	const saved = view.series.savedCumulative
@@ -144,7 +147,7 @@ function chartOf(view) {
 			future: view.todayIndex != null && view.todayIndex < start
 		}
 	})
-	return { unit, columns }
+	return { unit, columns: columns.filter(column => !column.future) }
 }
 
 /** An axis of four even steps whose top is a round number at or above the largest value. */
@@ -241,6 +244,7 @@ export default function Statistics() {
 			at={from}
 			locale={activeLocaleCode()}
 			onChange={({ period: nextRange }) => show(nextRange, reanchor(range, id, nextRange))}
+			onPresent={() => show(range, windowIdAt(range, todayUtc()))}
 			stepper={(
 				<PeriodWindow
 					touch={touch}
@@ -359,7 +363,6 @@ export default function Statistics() {
 					failed={next.error}
 					onLoadMore={loadMore}
 					onRetry={retry}
-					onOpen={order => navigate(`/orders/${order.id}`)}
 				/>
 			)
 	})
@@ -460,7 +463,7 @@ function Failed({ label, what, error, onRetry }) {
 
 // on touch a figure card is its label and figure only (Mobile screens 7a)
 function Kpis({ view, chart, was, waiting, touch }) {
-	const shown = chart.columns.filter(column => !column.future)
+	const shown = chart.columns
 	const spark = (key, label) => {
 		const most = Math.max(...shown.map(column => column[key]), 0)
 		if (touch) return null
@@ -502,7 +505,7 @@ function Kpis({ view, chart, was, waiting, touch }) {
 			))}
 		</Card>,
 		<Card key="saved">
-			<Stat label="Saved" color={view.saved > 0 ? 'success' : 'default'} figure={figure(view.saved)} />
+			<Stat label="Saved" color={isSaving(view.saved, 0) ? 'success' : 'zero'} figure={figure(view.saved)} />
 			{compared(then => (
 				<Change tone={view.saved > then.saved ? 'success' : 'default'} against={currency(then.saved, 0)}>
 					{signed(view.saved - then.saved, currency(Math.abs(view.saved - then.saved), 0))}
@@ -620,7 +623,7 @@ function Ranked({ entries, noun, touch, open }) {
 		? (
 			<div className="sp-stack" key={entry.id ?? 'none'}>
 				<Sum value={amount(entry.amount, 0)}>{entry.other ? <span className="sp-subtitle">{entry.name}</span> : entry.name}</Sum>
-				<Gauge thin value={share(entry.amount, most)} aria-label={entry.name} />
+				<Gauge thin value={share(entry.amount, most)} remainder={entry.other} aria-label={entry.name} />
 			</div>
 		)
 		: (
@@ -630,7 +633,7 @@ function Ranked({ entries, noun, touch, open }) {
 					<span className="sp-grow" />
 					<span className="sp-amount">{currency(entry.amount, 0)}</span>
 				</div>
-				<Gauge value={share(entry.amount, most)} aria-label={entry.name} />
+				<Gauge value={share(entry.amount, most)} remainder={entry.other} aria-label={entry.name} />
 			</div>
 		)))
 	return open ? <div className="os-scroll sp-scrolls">{drawn}</div> : drawn
@@ -786,7 +789,7 @@ function LimitCard({ view, name, categories, touch, onRetry }) {
 				const ahead = !over && pace != null && row.used > pace
 				const text = over
 					? `${currency(row.spend - row.allowed, 0)} over budget`
-					: `${currency(row.allowed - row.spend, 0)} left${ahead ? ' · ahead of pace' : ''}`
+					: `${currency(row.allowed - row.spend, 0)} left${ahead ? `${dot}ahead of pace` : ''}`
 				return (
 					<div className="sp-stack sp-gap-6" key={row.id}>
 						<div className="sp-row-flex sp-gap-8">
@@ -824,35 +827,6 @@ function LimitCard({ view, name, categories, touch, onRetry }) {
 	)
 }
 
-const STATUS_PILL = {
-	Delivered: { color: 'success' },
-	Ordered: { state: 'progress' },
-	Returned: { color: 'danger' }
-}
-
-function savingLine(saved, kind) {
-	const text = `Saved ${currency(saved)}`
-	if (kind === 'help') return saved > 0 ? <span className="sp-field__help" data-color="success">{text}</span> : <span className="sp-field__help">{text}</span>
-	return saved > 0 ? <span className="sp-amount-secondary" data-color="success">{text}</span> : <span className="sp-amount-secondary">{text}</span>
-}
-
-/** The table's own width: which columns it keeps answers to it, never to the window (2i). */
-function useWidth(ref) {
-	const [width, setWidth] = useState(0)
-	useLayoutEffect(() => {
-		const el = ref.current
-		if (!el) return
-		setWidth(el.getBoundingClientRect().width)
-		const watch = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width))
-		watch.observe(el)
-		return () => watch.disconnect()
-	}, [ref])
-	return width
-}
-
-// the order list's rule (2i): Items goes below 1040, Categories below 880
-const columnsFor = width => ({ items: width >= 1040, categories: width >= 880 })
-
 // List reads its head from its own children, so this returns the element rather than being a component
 function sliceHead(show) {
 	return (
@@ -867,7 +841,7 @@ function sliceHead(show) {
 	)
 }
 
-function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry, onOpen }) {
+function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry }) {
 	const column = useRef(null)
 	const show = columnsFor(useWidth(column))
 	let body
@@ -885,11 +859,12 @@ function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry, onOpen 
 	else if (!rows.length) body = <RowsLoading show={show} />
 	else {
 		body = (
-			<List data={rows} recordKey={order => order.id} noun="orders" pageSize={SLICE} total={matched} onLoadMore={onLoadMore} selectionKey={view.id} onRowClick={onOpen}>
+			<List data={rows} recordKey={order => order.id} noun="orders" pageSize={SLICE} total={matched} onLoadMore={onLoadMore} selectionKey={view.id}
+				rowTo={order => `/orders/${order.id}`} locale={NUMBER_LOCALE}>
 				<Caption>
 					<strong className="sp-data">{counted(view.orders, 'order')} in this slice</strong>
-					<span className="sp-meta">· {currency(view.spent)}</span>
-					{savingLine(view.saved, 'help')}
+					<span className="sp-meta">{dot}{currency(view.spent)}</span>
+					<Saving value={view.saved} variant="help" />
 					<span className="sp-grow" />
 					<span className="sp-meta">newest first</span>
 				</Caption>
@@ -909,7 +884,7 @@ function OrdersTable({ view, rows, matched, failed, onLoadMore, onRetry, onOpen 
 								)
 								: null}
 							{show.items ? <ListCell cell="number"><span className="sp-data">{order.itemCount}</span></ListCell> : null}
-							<ListCell><Pill {...STATUS_PILL[order.status]}>{order.status}</Pill></ListCell>
+							<ListCell><StatusPill status={order.status} /></ListCell>
 							<ListCell cell="amount"><span className="sp-amount">{currency(order.total)}</span></ListCell>
 						</>
 					)}
@@ -953,7 +928,7 @@ function SliceCard({ view }) {
 			<span className="sp-grow" />
 			<span className="sp-stacked sp-cell-amount">
 				<span className="sp-amount">{currency(view.spent)}</span>
-				{savingLine(view.saved, 'amount')}
+				<Saving value={view.saved} />
 			</span>
 		</ListItem>
 	)

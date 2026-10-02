@@ -8,10 +8,12 @@ import { Sum } from '../components/Data.jsx'
 import { Strip, Viewer } from '../components/Attachments.jsx'
 import { useApi } from '../api/useApi.js'
 import { attachmentFileUrl, attachmentThumbnailUrl, getOrder } from '../api/client.js'
-import { shortDate } from '../api/format.js'
+import { dot, shortDate } from '../api/format.js'
+import { useShellShape } from '../app/useMedia.js'
+import { StatusPill } from '../app/orderRow.jsx'
+import { Saving } from '../app/saving.jsx'
 import {
-	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, SEP, Saving, StatusPill, filesOf, itemPhoto,
-	itemsWord, money, saves, useTouch
+	AttachmentTile, LineAmount, LinePhoto, LineText, OrderFailed, OrderLoading, filesOf, itemPhoto, itemsWord, money
 } from './OrderParts.jsx'
 import { DeleteOrder } from './DeleteOrder.jsx'
 
@@ -23,7 +25,7 @@ export default function Order() {
 	// off once the order is deleted, so the page never asks for it again on its way out
 	const [gone, setGone] = useState(false)
 	const state = useApi(getOrder, [id], { enabled: !gone })
-	const touch = useTouch()
+	const touch = useShellShape() === 'touch'
 	const order = state.data?.id === id ? state.data : null
 
 	if (!order && state.error) return <OrderFailed error={state.error} retry={state.refresh} />
@@ -41,8 +43,8 @@ function OrderView({ order, touch, onGone }) {
 	const items = (
 		<Card>
 			<div className="sp-row-flex sp-gap-12">
-				<span className="sp-section-label sp-nowrap">Items{SEP}{order.items.length}</span>
-				<span className="sp-meta sp-truncate">{order.vendor?.name}{SEP}{shortDate(order.date)}</span>
+				<span className="sp-section-label sp-nowrap">Items{dot}{order.items.length}</span>
+				<span className="sp-meta sp-truncate">{order.vendor?.name}{dot}{shortDate(order.date)}</span>
 				<span className="sp-grow" />
 				<StatusPill status={order.status} />
 			</div>
@@ -60,7 +62,7 @@ function OrderView({ order, touch, onGone }) {
 				})}
 			</div>
 			<Totals>
-				<span className="sp-strong">{itemsWord(order.items.length)}{SEP}{money(order.subtotal)} paid</span>
+				<span className="sp-strong">{itemsWord(order.items.length)}{dot}{money(order.subtotal)} paid</span>
 				<span className="sp-grow" />
 				<Saving value={order.saved} />
 			</Totals>
@@ -71,7 +73,7 @@ function OrderView({ order, touch, onGone }) {
 		? (
 			<Card>
 				<div className="sp-row-flex sp-wrap sp-gap-8">
-					<span className="sp-section-label">Attachments{SEP}{order.attachments.length}</span>
+					<span className="sp-section-label">Attachments{dot}{order.attachments.length}</span>
 					<span className="sp-grow" />
 					<Button variant="outline" size="small" onClick={() => downloadAll(order)}>Download all</Button>
 				</div>
@@ -93,7 +95,7 @@ function OrderView({ order, touch, onGone }) {
 				<Sum value={order.vendor?.name}>Vendor</Sum>
 				<Sum value={shortDate(order.date)}>Date</Sum>
 				<Sum value={order.kind}>Kind</Sum>
-				<Sum value={order.categories.length ? order.categories.map(c => c.name).join(SEP) : 'None'}>Categories</Sum>
+				<Sum value={order.categories.length ? order.categories.map(c => c.name).join(dot) : 'None'}>Categories</Sum>
 				{order.reference ? <Sum value={order.reference}>Reference</Sum> : null}
 				{order.note ? <Sum variant="stacked" value={order.note}>Note</Sum> : null}
 			</div>
@@ -117,9 +119,7 @@ function OrderView({ order, touch, onGone }) {
 				<Sum value={money(order.shipping)}>Shipping</Sum>
 				<Sum variant="total" value={money(order.total)}>Total</Sum>
 			</div>
-			{saves(order.saved)
-				? <span className="sp-stat__delta">Saved {money(order.saved)}</span>
-				: <Saving value={0} />}
+			<Saving value={order.saved} variant="stat" />
 		</Card>
 	)
 

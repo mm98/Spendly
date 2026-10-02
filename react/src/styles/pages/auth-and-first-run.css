@@ -1,0 +1,11 @@
+/* Sign in and create an account (20a). */
+
+@layer base {
+
+	/* on a phone the link to the other page keeps its drawn line and carries a touch-sized target */
+	@media (max-width: 639.98px) {
+		.au-across { position: relative; }
+		.au-across::after { content: ""; position: absolute; top: 50%; right: 0; left: 0; height: var(--control-h-touch); transform: translateY(-50%); }
+	}
+
+}

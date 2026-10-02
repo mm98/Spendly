@@ -10,11 +10,11 @@ import { Kbd } from '../components/Utilities.jsx'
 import { Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, Toaster } from '../components/Overlays.jsx'
 import { getBookmarks, getCategories, getCurrentUser, getOrders, getVendors, onSessionEnded } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { useShellShape } from './useMedia.js'
+import { amount } from '../api/format.js'
+import { MAC, useShellShape } from './useMedia.js'
 import { setTheme, useTheme } from './theme.js'
 import { Palette, useRecentRecords } from './Palette.jsx'
 
-const MAC = /Mac|iPhone|iPad/.test(navigator.platform)
 
 /* The route's handle names the page for the browser tab, the sidebar row it belongs to, the
    body layout its columns sit in, and whether the one floating action shows on a phone. */
@@ -194,7 +194,8 @@ function sidebar({ navKey, rail, go }) {
 
 /* A count is read with its destination; on the rail the label is the tile's only name. */
 function Row({ rail, count, children, ...rest }) {
-	return <NavItem tip={rail ? children : undefined} aria-label={count != null ? `${children}, ${count}` : children} count={count} {...rest}>{children}</NavItem>
+	const shown = count == null ? count : amount(count, 0)
+	return <NavItem tip={rail ? children : undefined} aria-label={shown != null ? `${children}, ${shown}` : children} count={shown} {...rest}>{children}</NavItem>
 }
 
 /* A count the sidebar has not received yet renders as nothing, never as a zero (9e). */

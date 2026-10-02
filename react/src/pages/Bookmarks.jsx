@@ -133,30 +133,28 @@ export default function Bookmarks() {
 		}
 	}
 
-	const categoryOptions = close => {
-		const choose = next => () => { write(next); close() }
-		return [
-			<ComboboxOption key="any" selected={!category} onSelect={choose({ category: '' })}>Any category</ComboboxOption>,
-			used.length ? <ComboboxSeparator key="used" /> : null,
-			...used.map(c => (
-				<ComboboxOption key={c.id} selected={category === c.id} mark={<CategoryMark category={c} size="small" />} meta={c.bookmarks}
-					onSelect={choose({ category: c.id })}>{c.name}</ComboboxOption>
-			)),
-			withoutCount > 0 ? <ComboboxSeparator key="without" /> : null,
-			withoutCount > 0
-				? <ComboboxOption key={NONE} selected={category === NONE} meta={withoutCount} onSelect={choose({ category: NONE })}>Without category</ComboboxOption>
-				: null,
-			<ComboboxSeparator key="edit" />,
-			<ComboboxOption key="edit-categories" mark={<Icon name="pencil" size={13} />} onSelect={() => { close(); navigate('/categories') }}>Edit categories</ComboboxOption>
-		]
-	}
+	const choose = next => () => write(next)
+	const categoryOptions = [
+		<ComboboxOption key="any" selected={!category} onSelect={choose({ category: '' })}>Any category</ComboboxOption>,
+		used.length ? <ComboboxSeparator key="used" /> : null,
+		...used.map(c => (
+			<ComboboxOption key={c.id} selected={category === c.id} mark={<CategoryMark category={c} size="small" />} meta={c.bookmarks}
+				onSelect={choose({ category: c.id })}>{c.name}</ComboboxOption>
+		)),
+		withoutCount > 0 ? <ComboboxSeparator key="without" /> : null,
+		withoutCount > 0
+			? <ComboboxOption key={NONE} selected={category === NONE} meta={withoutCount} onSelect={choose({ category: NONE })}>Without category</ComboboxOption>
+			: null,
+		<ComboboxSeparator key="edit" />,
+		<ComboboxOption key="edit-categories" mark={<Icon name="pencil" size={13} />} onSelect={() => navigate('/categories')}>Edit categories</ComboboxOption>
+	]
 
 	const sortControl = (
-		<Picked variant={touch ? 'end' : 'sort'} label="Sort" value={sortLabel} lead={touch ? null : 'Sort'}>
-			{close => SORTS.map(s => (
-				<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => { write({ sort: s.id }); close() }}>{s.label}</ComboboxOption>
+		<Combobox variant={touch ? 'end' : 'sort'} aria-label="Sort" value={sortLabel} prefix={touch ? null : 'Sort'}>
+			{SORTS.map(s => (
+				<ComboboxOption key={s.id} selected={s.id === sort} onSelect={() => write({ sort: s.id })}>{s.label}</ComboboxOption>
 			))}
-		</Picked>
+		</Combobox>
 	)
 
 	const head = touch
@@ -176,9 +174,9 @@ export default function Bookmarks() {
 			<Controls>
 				<SearchInput value={query} onChange={q => write({ q })}
 					placeholder="Search bookmarks, shops or categories" aria-label="Search bookmarks" />
-				<Picked variant="sort" label="Category" value={category ? categoryName : 'Any'} lead="Category">
+				<Combobox variant="sort" aria-label="Category" value={category ? categoryName : 'Any'} prefix="Category">
 					{categoryOptions}
-				</Picked>
+				</Combobox>
 				{sortControl}
 				<Segmented name="bookmarks-shown" options={SHOWN} value={archived ? 'archived' : 'open'}
 					onChange={v => write({ archived: v === 'archived' ? 'yes' : '' })}
@@ -284,8 +282,9 @@ export default function Bookmarks() {
 						<Record
 							key={bookmark.id}
 							href={href ?? undefined}
+							hrefLabel={href ? `Open ${bookmark.name} at ${site}` : undefined}
 							photos={bookmark.photoId
-								? [<img key="p" src={bookmarkPhotoThumbnailUrl(bookmark.id, bookmark.photoId)} alt={bookmark.name} />]
+								? [<img key="p" src={bookmarkPhotoThumbnailUrl(bookmark.id, bookmark.photoId)} alt="" />]
 								: []}
 							empty="No picture"
 							title={bookmark.name}
@@ -299,6 +298,7 @@ export default function Bookmarks() {
 								open,
 								label: `Bookmark menu, ${bookmark.name}`,
 								onToggle: () => setMenuFor(open ? null : bookmark.id),
+								onClose: closeMenus,
 								children: open
 									? (
 										<Menu position="floating" aria-label={`${bookmark.name} actions`}>
@@ -379,14 +379,3 @@ function FilterSheet({ draft, setDraft, used, withoutCount, onClose, onApply }) 
 	)
 }
 
-/** A pick-only combobox that closes once a choice is made; `lead` names it inside the trigger. */
-function Picked({ variant = 'default', label, value, lead, children }) {
-	const [open, setOpen] = useState(false)
-	const close = () => setOpen(false)
-	return (
-		<Combobox variant={variant} aria-label={label} value={value} open={open} onOpenChange={setOpen}
-			lead={lead ? <span className="sp-combobox__chevron">{lead}</span> : null}>
-			{children(close)}
-		</Combobox>
-	)
-}

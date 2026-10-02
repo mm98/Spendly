@@ -7,19 +7,18 @@ import { Button } from '../components/Button.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Caption, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { Pill } from '../components/Pill.jsx'
 import { Icon } from '../components/Icon.jsx'
 import { Alert } from '../components/Overlays.jsx'
 import { Empty, Skeleton } from '../components/Utilities.jsx'
 import { useShellShape } from '../app/useMedia.js'
 import { CategoryMark } from '../app/categoryMark.jsx'
-import { OrderPhoto } from '../app/orderRow.jsx'
+import { OrderPhoto, StatusPill } from '../app/orderRow.jsx'
 import {
 	failureMessage, getCategories, getCurrentUser, getOrders, getStats, overBudget,
 	withMonthSpend
 } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { activeLocaleCode, amount, currency, monthNames, plural, shortDate, today } from '../api/format.js'
+import { NUMBER_LOCALE, activeLocaleCode, amount, currency, dot, isSaving, monthNames, plural, shortDate, today } from '../api/format.js'
 
 const ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/gif'
 const RECENT = 4
@@ -73,9 +72,6 @@ function daysAgo(iso) {
 	if (days < 0) return null
 	return days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`
 }
-
-const PILL = { Delivered: { color: 'success' }, Ordered: { state: 'progress' }, Returned: { color: 'danger' } }
-
 
 /** The last eight calendar months, ending with this one, from the year's running totals. */
 function lastMonths(window) {
@@ -197,14 +193,14 @@ function MonthCard({ w, view, limitsLost = false, newest }) {
 			<div className="sp-stack sp-grow sp-gap-12 hm-spread">
 				<div className="sp-row-flex sp-gap-12">
 					{w
-						? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)} · day {w.pace.daysIn} of {w.pace.unitDays}</span>
+						? <span className="sp-section-label">{capital(monthOf(w))} {w.from.slice(0, 4)}{dot}day {w.pace.daysIn} of {w.pace.unitDays}</span>
 						: <span className="sp-section-label hm-line"><Skeleton shape="line" data-w="130" data-h="11" /></span>}
 					<span className="sp-grow" />
 					{ago ? <span className="sp-meta">last order {ago}</span> : null}
 				</div>
 				<div className="sp-row-flex sp-gap-16 sp-wrap">
 					<Stat label="Spent this month" large figure={w ? currency(w.spent, 0) : figure('130')} />
-					<Stat label="Saved" color={w?.saved > 0 ? 'success' : 'default'} figure={w ? currency(w.saved, 0) : figure('96')} />
+					<Stat label="Saved" color={!w ? 'default' : isSaving(w.saved, 0) ? 'success' : 'zero'} figure={w ? currency(w.saved, 0) : figure('96')} />
 					<Stat label="Orders" figure={w ? w.orders : figure('44')} />
 				</div>
 				{view
@@ -287,7 +283,6 @@ function AlertsCard({ view }) {
 }
 
 function RecentCard({ recent }) {
-	const navigate = useNavigate()
 	const orders = recent.data?.orders
 	const total = recent.data?.total
 	const caption = (
@@ -295,7 +290,7 @@ function RecentCard({ recent }) {
 			<span className="sp-section-label">Recent orders</span>
 			{total ? <span className="sp-meta">newest {Math.min(RECENT, orders.length)}</span> : null}
 			<span className="sp-grow" />
-			{total ? <Button variant="text" size="small" to="/orders">All {total}</Button> : null}
+			{total ? <Button variant="text" size="small" to="/orders">All {amount(total, 0)}</Button> : null}
 		</>
 	)
 	const loading = <RecentList caption={caption} />
@@ -318,12 +313,13 @@ function RecentCard({ recent }) {
 			</Card>
 		</Held>
 	)
-	return <RecentList caption={caption} orders={orders} onOpen={o => navigate(`/orders/${o.id}`)} />
+	return <RecentList caption={caption} orders={orders} />
 }
 
-function RecentList({ caption, orders, onOpen }) {
+function RecentList({ caption, orders }) {
 	return (
-		<List data={orders ?? [1, 2, 3, 4]} recordKey={o => o.id ?? o} noun="orders" headless onRowClick={orders ? onOpen : undefined}>
+		<List data={orders ?? [1, 2, 3, 4]} recordKey={o => o.id ?? o} noun="orders" headless locale={NUMBER_LOCALE}
+			rowTo={orders ? o => `/orders/${o.id}` : undefined}>
 			<Caption>{caption}</Caption>
 			<ListHead>
 				<ListCell width="title" />
@@ -335,7 +331,7 @@ function RecentList({ caption, orders, onOpen }) {
 				<>
 					<ListCell cell="flex"><OrderHead order={o} /></ListCell>
 					<ListCell><span className="sp-data">{rowDate(o.date)}</span></ListCell>
-					<ListCell><Pill {...PILL[o.status]}>{o.status}</Pill></ListCell>
+					<ListCell><StatusPill status={o.status} /></ListCell>
 					<ListCell cell="amount"><span className="sp-amount">{currency(o.total)}</span></ListCell>
 				</>
 			) : (
@@ -359,7 +355,7 @@ function OrderHead({ order }) {
 			<OrderPhoto order={order} />
 			<span className="sp-stacked">
 				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
-				<span className="sp-meta sp-truncate">{order.reference ? `${order.reference} · ` : ''}{plural(order.itemCount, 'item')}</span>
+				<span className="sp-meta sp-truncate">{order.reference ? `${order.reference}${dot}` : ''}{plural(order.itemCount, 'item')}</span>
 			</span>
 		</>
 	)
@@ -474,7 +470,7 @@ function CategoryLine({ category: c }) {
 				<span className="sp-data">{c.name}</span>
 				<span className="sp-grow" />
 				<span className={over ? 'sp-meta sp-meta--over' : 'sp-meta'}>
-					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : `${amount(c.monthSpend, 0)} · no limit`}
+					{limited ? `${amount(c.monthSpend, 0)} / ${amount(c.budget, 0)}` : `${amount(c.monthSpend, 0)}${dot}no limit`}
 				</span>
 			</div>
 			{limited
@@ -627,7 +623,7 @@ function PhoneOrder({ order }) {
 			<OrderPhoto order={order} />
 			<div className="sp-stacked sp-grow">
 				<span className="sp-title sp-truncate">{order.vendor?.name}</span>
-				<span className="sp-meta">{rowDate(order.date)} · {plural(order.itemCount, 'item')}</span>
+				<span className="sp-meta">{rowDate(order.date)}{dot}{plural(order.itemCount, 'item')}</span>
 			</div>
 			<span className="sp-title sp-nowrap">{amount(order.total)}</span>
 		</Link>

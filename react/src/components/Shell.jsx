@@ -9,9 +9,8 @@ import { SearchInput } from './Inputs.jsx'
 import { Kbd } from './Utilities.jsx'
 import { Button } from './Button.jsx'
 
-/** `viewport` fills the browser window where the drawn shell is a framed one; `touch` is the
-    shell below 640 - top bar, content, tab bar and the one floating action. `cover` is a
-    surface that owns the whole touch screen (7b's search): the page stays mounted under it. */
+/** `viewport` fills the window; `touch` is the shell below 640: top bar, content, tab bar, one
+    floating action. `cover` owns the whole touch screen (7b's search), the page mounted under it. */
 export function Shell({ collapsed = false, viewport = false, touch = false, cover, children, ...rest }) {
 	reject(rest, 'Shell')
 	let menu = null, topbar = null, content = null, tabbar = null, fab = null
@@ -133,9 +132,8 @@ export function NavItem({ variant = 'default', icon, count, countColor, sub, cur
 	return <button type="button" className={classes} onClick={onClick} {...state}>{body}</button>
 }
 
-/** The account at the sidebar's foot: the mark, the name over the email, and the chevron of
-    `menu`, shown while `expanded` and fixed to the window so the sidebar cannot clip it (9c).
-    `onDismiss` is a press outside both, Escape or Tab. */
+/** The account at the sidebar's foot (9c). `menu` shows while `expanded`, fixed to the window so the
+    sidebar cannot clip it; `onDismiss` is a press outside both, Escape or Tab. */
 export function SidebarAccount({ name, email, expanded = false, onClick, onDismiss, menu, tip, ...rest }) {
 	reject(rest, 'SidebarAccount')
 	const [hint, tipEvents] = useTip(expanded ? null : tip)
@@ -207,9 +205,8 @@ export function SidebarAccount({ name, email, expanded = false, onClick, onDismi
 	)
 }
 
-/* The rail's label, drawn where [data-tip] draws it but fixed to the window, so the
-   sidebar's own scrolling cannot clip it, and held inside the window's edge. Only its
-   position is set here. */
+/* The rail's label where [data-tip] draws it, but fixed to the window so the sidebar's scroll cannot
+   clip it, and held inside the window's edge. Only its position is set here. */
 function useTip(tip) {
 	const [at, setAt] = useState(null)
 	const box = useRef(null)

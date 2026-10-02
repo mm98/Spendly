@@ -12,7 +12,7 @@ export function RouteError() {
 		<Empty>
 			<Mark size="medium" fill="none" aria-label="Problem"><Icon name="alert-circle" /></Mark>
 			<EmptyTitle>{missing ? 'This page does not exist' : 'This page could not be shown'}</EmptyTitle>
-			<EmptyBody>{missing ? 'The address may be old, or the record was deleted.' : 'Reload the page to try again. If it happens again, the server may be down.'}</EmptyBody>
+			<EmptyBody>{missing ? 'The address may be old, or the record was deleted.' : 'Reload the page to try again. If it happens again, Spendly may be down.'}</EmptyBody>
 			<Button variant="outline" onClick={() => window.location.reload()}>Reload</Button>
 		</Empty>
 	)
