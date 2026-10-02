@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 
@@ -68,4 +69,18 @@ export function AddRow({ children, onClick, ...rest }) {
 			<span>{children}</span>
 		</button>
 	)
+}
+
+/** Closes an open surface - a menu, a popover, a combobox's panel - when the reader presses
+    outside it or presses Escape, and hands focus back to whatever is inside it that opened it. */
+export function useDismiss(ref, open, onClose) {
+	useEffect(() => {
+		if (!open) return
+		const away = ev => { if (ref.current && !ref.current.contains(ev.target)) onClose() }
+		const key = ev => { if (ev.key === 'Escape') { ev.stopPropagation(); onClose() } }
+		document.addEventListener('pointerdown', away)
+		const box = ref.current
+		box?.addEventListener('keydown', key)
+		return () => { document.removeEventListener('pointerdown', away); box?.removeEventListener('keydown', key) }
+	}, [ref, open, onClose])
 }

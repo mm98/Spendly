@@ -75,7 +75,7 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', requireAuth, (req, res) => {
 	res.json({
-		id: req.user.id, needsSetup: Boolean(req.user.needs_setup),
+		id: req.user.id, email: req.user.email, needsSetup: Boolean(req.user.needs_setup),
 		// An install fact, not an account one -- whether this server can actually read a
 		// scanned document (lib/scanParse.js needs ANTHROPIC_API_KEY) or only store it. Scan
 		// itself works either way; this is what lets the page stop promising a read it can't

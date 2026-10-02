@@ -1,4 +1,0 @@
-/* The stylesheet of the pages not yet rebuilt on the design system. In its own layer, below
-   `base`, so it can never outrank a component. Goes when the last such page does. */
-@layer legacy, base;
-@import './app.css' layer(legacy);

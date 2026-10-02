@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 
@@ -37,4 +38,13 @@ export function Sheet({ handle = true, children, ...rest }) {
 export function SaveBar({ children, ...rest }) {
 	reject(rest, 'SaveBar')
 	return <div className="sp-savebar" {...rest}>{children}</div>
+}
+
+/** The one floating action (7a): New order, above the tab bar. Its label is required, since
+    a glyph names nothing. */
+export function Fab({ icon = 'plus', to, onClick, ...rest }) {
+	reject(rest, 'Fab')
+	if (!rest['aria-label']) console.error('<Fab> needs an aria-label: a glyph names nothing')
+	if (to) return <Link className="sp-fab" to={to} data-go={to} {...rest}><Icon name={icon} size={24} /></Link>
+	return <button type="button" className="sp-fab" onClick={onClick} {...rest}><Icon name={icon} size={24} /></button>
 }

@@ -1490,7 +1490,7 @@
 				"idx_order_statuses_order"
 			]
 		},
-		"SELECT u.id, u.needs_setup, s.expires_at FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?": {
+		"SELECT u.id, u.email, u.needs_setup, s.expires_at FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?": {
 			"plan": [
 				"SEARCH s USING INDEX sqlite_autoindex_sessions_1 (id=?)",
 				"SEARCH u USING INDEX sqlite_autoindex_users_1 (id=?)"

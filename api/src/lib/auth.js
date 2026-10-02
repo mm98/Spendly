@@ -71,7 +71,7 @@ export function destroySession(req, res) {
 }
 
 const selectSessionUser = db.prepare(`
-	SELECT u.id, u.needs_setup, s.expires_at FROM sessions s
+	SELECT u.id, u.email, u.needs_setup, s.expires_at FROM sessions s
 	JOIN users u ON u.id = s.user_id
 	WHERE s.id = ? AND s.expires_at > ?
 `)

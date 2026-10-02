@@ -1,6 +1,7 @@
 import { Children, cloneElement, useEffect, useId, useRef, useState } from 'react'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
+import { useDismiss } from './Utilities.jsx'
 
 const VARIANT = {
 	default: null,
@@ -36,6 +37,7 @@ export function Combobox({
 	// typing, so the field shows what is chosen instead
 	const [typed, setTyped] = useState(null)
 	const panel = useRef(null)
+	const root = useRef(null)
 	const isOpen = open ?? held
 	const panelId = useId()
 	const setOpen = next => {
@@ -49,6 +51,7 @@ export function Combobox({
 	// wherever the keyboard happened to be left
 	const close = () => { setOpen(false); setActive(-1) }
 	const toggle = () => (isOpen ? close() : setOpen(true))
+	useDismiss(root, isOpen, close)
 
 	const options = []
 	const walk = nodes => Children.map(nodes, child => {
@@ -119,6 +122,7 @@ export function Combobox({
 	const shown = query || (typeof value === 'string' ? value : '')
 	return (
 		<div
+			ref={root}
 			className={join('sp-combobox', pick(VARIANT, variant, 'variant', 'Combobox'))}
 			data-open={isOpen ? 'true' : 'false'}
 			{...rest}

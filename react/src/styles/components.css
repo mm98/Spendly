@@ -4202,3 +4202,89 @@ button.sp-list-item--card:active { background: var(--surface-2); }
 .sp-card--flush .sp-table--compact td:first-child { padding-left: var(--card-pad); }
 .sp-card--flush .sp-table--compact th:last-child,
 .sp-card--flush .sp-table--compact td:last-child { padding-right: var(--card-pad); }
+
+/* ---------- the shell in a browser window (9a, 9f, 9h) ----------
+   The drawn shell is a framed window; in use it fills the viewport edge to edge. */
+
+.sp-shell--viewport {
+  min-height: 100dvh;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+.sp-shell--viewport > .sp-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+}
+.sp-shell--viewport .sp-shell__page > .sp-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+/* search is one field at a fixed width, flush with the content's own inset (9f) */
+.sp-topbar:not(.sp-topbar--touch) > .sp-picker__search { width: 420px; max-width: 100%; }
+
+/* below 640 the sidebar is a tab bar along the bottom of the window, and the content
+   scrolls beneath it and the one floating action */
+.sp-shell--touch {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--bg);
+  --phone-gutter: var(--sp-12);
+  padding-bottom: calc(var(--phone-bar-h) + env(safe-area-inset-bottom));
+}
+.sp-shell--touch > .sp-shell__page > .sp-topbar { position: sticky; top: 0; z-index: 5; }
+.sp-shell--touch .sp-shell__body { padding: var(--sp-12); }
+.sp-shell--touch > .sp-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.sp-shell--touch > .sp-fab {
+  position: fixed;
+  right: var(--sp-12);
+  bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom));
+  z-index: 5;
+}
+/* a task takes the bottom edge for its save bar; the tab bar steps aside (9h) */
+.sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-tabbar,
+.sp-shell--touch:has(.sp-savebar, .sp-list-item--sticky) > .sp-fab { display: none; }
+
+/* a real picture fills the box its placeholder drew, at the same size and corners */
+.sp-mark--photo > img,
+.sp-record__photo > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+.sp-mark--photo:has(> img),
+.sp-record__photo:has(> img) { background: var(--surface); opacity: 1; }
+.sp-viewer__stage > img { display: block; max-width: 100%; max-height: 70dvh; object-fit: contain; }
+.sp-viewer__stage:has(> img) { background: none; }
+/* the rail's label, fixed to the window where [data-tip] would clip inside a scrolling sidebar */
+.sp-tip--float { position: fixed; z-index: 30; transform: translate(-50%, calc(-100% - var(--sp-6))); pointer-events: none; }
+/* one toast at a time, bottom centre of the window; above the tab bar on touch */
+.sp-toast-region {
+  position: fixed;
+  left: 50%;
+  bottom: var(--sp-16);
+  transform: translateX(-50%);
+  z-index: 40;
+  max-width: calc(100% - var(--sp-16) - var(--sp-16));
+}
+body:has(.sp-shell--touch) .sp-toast-region { bottom: calc(var(--phone-bar-h) + var(--sp-12) + env(safe-area-inset-bottom)); }
+/* a scrim over the whole document covers the window, not the first screen of it */
+body > .sp-scrim { position: fixed; z-index: 50; border-radius: 0; }
+/* the window's own edge: the page meets it, and a key cap reads in the product's face */
+@layer base {
+  body.sp { margin: 0; }
+  .sp kbd { font-family: inherit; }
+}

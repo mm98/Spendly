@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { join, pick, reject } from './variants.js'
 import { Icon } from './Icon.jsx'
 import { Scrim } from './Shell.jsx'
@@ -8,10 +9,11 @@ const MENU = {
 	sub: 'sp-menu__sub',
 	row: 'sp-menu--row',
 	plain: 'sp-menu--plain',
-	up: 'sp-menu--up',
-	start: 'sp-menu--start',
-	'side-left': 'sp-menu--side-left',
-	'side-right': 'sp-menu--side-right'
+	// these place a floating panel, so each carries the floating class it modifies
+	up: 'sp-menu--floating sp-menu--up',
+	start: 'sp-menu--floating sp-menu--start',
+	'side-left': 'sp-menu--floating sp-menu--side-left',
+	'side-right': 'sp-menu--floating sp-menu--side-right'
 }
 
 export function Menu({ position, scrolls = false, children, ...rest }) {
@@ -96,8 +98,26 @@ export function Anchor({ open, children, ...rest }) {
 	)
 }
 
-export function Dialog({ children, scrim = true, ...rest }) {
+/** `onCancel` is what Escape does: the dialog's own way out. */
+export function Dialog({ children, scrim = true, onCancel, ...rest }) {
 	reject(rest, 'Dialog')
+	const box = useRef(null)
+	useEffect(() => {
+		if (!scrim) return
+		const back = document.activeElement
+		const first = box.current?.querySelector('.sp-dialog__actions button')
+		;(first ?? box.current)?.focus()
+		return () => back?.focus?.()
+	}, [scrim])
+	const keys = ev => {
+		if (ev.key === 'Escape' && onCancel) { ev.stopPropagation(); onCancel() }
+		if (ev.key !== 'Tab') return
+		const stops = [...box.current.querySelectorAll('button:not(:disabled), input:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])')]
+		if (!stops.length) return
+		const [head, tail] = [stops[0], stops.at(-1)]
+		if (ev.shiftKey && document.activeElement === head) { ev.preventDefault(); tail.focus() }
+		else if (!ev.shiftKey && document.activeElement === tail) { ev.preventDefault(); head.focus() }
+	}
 	const kids = [].concat(children ?? []).flat()
 	const actions = kids.find(c => c && typeof c === 'object' && c.type === DialogActions)
 	// plain words passed straight to the dialog are the body, so the common case
@@ -106,13 +126,13 @@ export function Dialog({ children, scrim = true, ...rest }) {
 		typeof c === 'string' ? <DialogBody key={'body' + i}>{c}</DialogBody> : c)
 	if (!actions) console.error('<Dialog> has no <DialogActions>: a decision with no way out cannot be answered')
 	const panel = (
-		<div className="sp-dialog" role="dialog" aria-modal="true" {...rest}>
+		<div className="sp-dialog" role="dialog" aria-modal="true" ref={box} tabIndex={-1} onKeyDown={keys} {...rest}>
 			<div className="sp-stack sp-gap-6">{above}</div>
 			{actions}
 		</div>
 	)
 	if (!scrim) return panel
-	return <Scrim dialog>{panel}</Scrim>
+	return createPortal(<Scrim dialog>{panel}</Scrim>, document.body)
 }
 
 /** What the dialog asks, as its heading. */
@@ -178,5 +198,48 @@ export function Alert({ color = 'warning', mark, title, children, ...rest }) {
 				{children ? <span className="sp-alert__note">{children}</span> : null}
 			</span>
 		</div>
+	)
+}
+
+/* One toast at a time, bottom centre, for six seconds; a second replaces the first and
+   restarts the time, hovering holds it, Escape dismisses it and Cmd/Ctrl+Z is its Undo (c18). */
+const ToastContext = createContext(() => {})
+
+/** Shows a toast: `show({ message, icon, color, undo: { label, onClick } })`. */
+export const useToast = () => useContext(ToastContext)
+
+export function Toaster({ children }) {
+	const [toast, setToast] = useState(null)
+	const [held, setHeld] = useState(false)
+	const show = useCallback(next => setToast({ ...next, key: Date.now() }), [])
+	const dismiss = useCallback(() => setToast(null), [])
+	useEffect(() => {
+		if (!toast || held) return
+		const timer = setTimeout(dismiss, 6000)
+		return () => clearTimeout(timer)
+	}, [toast, held, dismiss])
+	useEffect(() => {
+		if (!toast) return
+		const key = ev => {
+			if (ev.key === 'Escape') dismiss()
+			if (toast.undo && ev.key === 'z' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); toast.undo.onClick(); dismiss() }
+		}
+		document.addEventListener('keydown', key)
+		return () => document.removeEventListener('keydown', key)
+	}, [toast, dismiss])
+	return (
+		<ToastContext.Provider value={show}>
+			{children}
+			<div className="sp-toast-region" aria-live="polite" onMouseEnter={() => setHeld(true)} onMouseLeave={() => setHeld(false)}>
+				{toast
+					? (
+						<Toast key={toast.key} icon={toast.icon ?? (toast.color === 'danger' ? 'alert-circle' : 'check')} color={toast.color ?? 'default'}>
+							{toast.message}
+							{toast.undo ? <ToastUndo onClick={() => { toast.undo.onClick(); dismiss() }}>{toast.undo.label ?? 'Undo'}</ToastUndo> : null}
+						</Toast>
+					)
+					: null}
+			</div>
+		</ToastContext.Provider>
 	)
 }
