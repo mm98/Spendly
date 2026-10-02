@@ -13,16 +13,17 @@ import { RangeSlider, SearchInput } from '../components/Inputs.jsx'
 import { Caption, Controls, Crumb, Facets, Filters, List, ListCell, ListHead, ListRow } from '../components/List.jsx'
 import { ListItem } from '../components/ListItem.jsx'
 import { Mark } from '../components/Mark.jsx'
-import { Anchor, Dialog, DialogActions, DialogBody, DialogTitle, Menu, MenuItem, MenuSeparator, useToast } from '../components/Overlays.jsx'
+import { Anchor, Menu, MenuItem, MenuSeparator } from '../components/Overlays.jsx'
 import { Pill } from '../components/Pill.jsx'
 import { Scrim } from '../components/Shell.jsx'
 import { Sheet } from '../components/Touch.jsx'
 import { Empty, EmptyBody, EmptyTitle, Line, Skeleton, Stacked, useDismiss } from '../components/Utilities.jsx'
-import { deleteOrder, failureMessage, getCategories, getCurrentUser, getOrder, getOrders, getSettings, getVendors, invalidateOrderData, spendKinds } from '../api/client.js'
+import { failureMessage, getCategories, getCurrentUser, getOrders, getSettings, getVendors, spendKinds } from '../api/client.js'
 import { useApi } from '../api/useApi.js'
-import { activeLocaleCode, amount, currency, fullStop, plural, shortDate, today } from '../api/format.js'
+import { activeLocaleCode, amount, currency, plural, shortDate, today } from '../api/format.js'
 import { useShellShape } from '../app/useMedia.js'
 import { OrderPhoto, orderLine } from '../app/orderRow.jsx'
+import { DeleteOrder } from './DeleteOrder.jsx'
 
 const SORTS = [
 	{ id: 'date-desc', label: 'Newest first' },
@@ -285,7 +286,7 @@ export default function Orders() {
 				)
 				: null}
 			{deleting
-				? <DeleteOrder order={deleting} onClose={() => setDeleting(null)} onDeleted={() => { setDeleting(null); orders.refresh() }} />
+				? <DeleteOrder order={deleting} onClose={() => setDeleting(null)} onDeleted={() => setDeleting(null)} />
 				: null}
 		</div>
 	)
@@ -696,48 +697,5 @@ function AmountFacet({ top, min, max, update }) {
 		<FieldGroup facet legend="Amount" meta={`0 - ${currency(top, 0)}`}>
 			<RangeSlider value={range} min={0} max={top} step={100} label="Amount" format={n => amount(n, 0)} onChange={setRange} />
 		</FieldGroup>
-	)
-}
-
-/** Deleting is the one thing a list does that cannot be undone, so it asks first and names what goes (6d). */
-function DeleteOrder({ order, onClose, onDeleted }) {
-	const full = useApi(getOrder, [order.id])
-	const toast = useToast()
-	const [busy, setBusy] = useState(false)
-	const detail = full.data
-	const lines = detail?.items.length ?? order.itemCount
-	const files = detail ? detail.attachments.length + detail.items.reduce((n, i) => n + i.attachments.length, 0) : 0
-	const vendor = order.vendor?.name ?? 'no vendor'
-	const which = detail?.reference
-		? `Order ${detail.reference} from ${vendor}`
-		: `The order from ${vendor} on ${shortDate(order.date)}`
-	const goes = files ? `${plural(lines, 'line')} and ${plural(files, 'attachment')} go` : `${plural(lines, 'line')} ${lines === 1 ? 'goes' : 'go'}`
-
-	const remove = async () => {
-		setBusy(true)
-		try {
-			await deleteOrder(order.id)
-			invalidateOrderData()
-			onDeleted()
-		} catch (error) {
-			setBusy(false)
-			onClose()
-			toast({ message: failureMessage(error, 'The order could not be deleted. Try again.'), color: 'danger' })
-		}
-	}
-
-	return (
-		<Dialog onCancel={onClose} aria-label="Delete this order?">
-			<div className="sp-row-flex sp-gap-12">
-				<Mark size="medium" aria-hidden="true" aria-label="Delete"><Icon name="trash" size={17} /></Mark>
-				<DialogTitle>Delete this order?</DialogTitle>
-			</div>
-			<DialogBody>{which}, {currency(order.total)}{fullStop()} Its {goes} with it.</DialogBody>
-			<ListItem>This cannot be undone.</ListItem>
-			<DialogActions>
-				<Button variant="outline" fullWidth disabled={busy} onClick={onClose}>Keep it</Button>
-				<Button color="danger" fullWidth disabled={busy} onClick={remove}>Delete order</Button>
-			</DialogActions>
-		</Dialog>
 	)
 }
