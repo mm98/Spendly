@@ -21,7 +21,7 @@ export default function More() {
 		<>
 			{email
 				? (
-					<ListItem variant="card" chevron={chevron} to="/settings"
+					<ListItem variant="card" chevron={chevron} to="/settings/account"
 						mark={<Mark size="large" fill="solid" round>{email.split('@')[0]}</Mark>}>
 						<span className="sp-stack sp-gap-6 sp-grow"><span className="sp-meta sp-truncate">{email}</span></span>
 					</ListItem>

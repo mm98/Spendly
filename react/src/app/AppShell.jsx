@@ -162,7 +162,7 @@ function Account({ rail }) {
 				<SidebarAccount email={email} expanded={open} tip={rail ? email : undefined} aria-label={email}
 					onClick={() => setOpen(!open)} />
 				<Menu position="up" aria-label="Account">
-					<MenuItem icon="user" onClick={() => { close(); navigate('/settings') }}>Account and profile</MenuItem>
+					<MenuItem icon="user" onClick={() => { close(); navigate('/settings/account') }}>Account and profile</MenuItem>
 					<MenuItem icon="power" onClick={() => logout().finally(() => { close(); navigate('/signin') })}>Sign out</MenuItem>
 				</Menu>
 			</Anchor>

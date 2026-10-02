@@ -8,13 +8,16 @@ import { setCurrency, setLocale } from './api/format.js'
 
 /* Every route under the shell needs a signed-in session, checked once per navigation; the
    account's currency and date format are read on the same wait, before any figure is drawn. */
-const requireAuth = async () => {
+const requireAuth = async ({ request }) => {
 	try {
 		await cachedFetch(getCurrentUser)
 		await cachedFetch(getSettings).then(s => { setCurrency(s?.currency); setLocale(s?.locale) }).catch(() => {})
 		return null
 	} catch (e) {
-		if (e.status === 401) throw redirect('/signin')
+		if (e.status === 401) {
+			const { pathname, search } = new URL(request.url)
+			throw redirect(pathname === '/' ? '/signin' : `/signin?next=${encodeURIComponent(pathname + search)}`)
+		}
 		throw e
 	}
 }

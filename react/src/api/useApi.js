@@ -39,6 +39,9 @@ const evict = () => { while (cache.size > MAX_ENTRIES) cache.delete(cache.keys()
 
 const keyOf = (fn, args) => (fn.name || 'anonymous') + ':' + JSON.stringify(args)
 
+// mounted readers, told when a write forgets their answer so what is on screen asks again
+const readers = new Set()
+
 export function useApi(fn, args = [], { enabled = true } = {}) {
 	const key = enabled ? keyOf(fn, args) : null
 	const [state, setState] = useState(() => ({
@@ -88,6 +91,13 @@ export function useApi(fn, args = [], { enabled = true } = {}) {
 		return () => { live = false; controller.abort() }
 	}, [key, nonce])
 
+	useEffect(() => {
+		if (key === null) return
+		const reader = prefix => { if (prefix === null || key.startsWith(prefix)) setNonce(n => n + 1) }
+		readers.add(reader)
+		return () => readers.delete(reader)
+	}, [key])
+
 	/* Drops the cached answer and asks again -- what a mutation calls once it has changed
 	   something the page is showing. */
 	const refresh = useCallback(() => {
@@ -115,7 +125,8 @@ export async function cachedFetch(fn, args = [], signal) {
 
 /** Forgets one endpoint's cached answers, or all of them. Called after a write. */
 export function invalidate(fn) {
-	if (!fn) { cache.clear(); return }
-	const prefix = (fn.name || 'anonymous') + ':'
-	for (const k of [...cache.keys()]) if (k.startsWith(prefix)) cache.delete(k)
+	const prefix = fn ? (fn.name || 'anonymous') + ':' : null
+	if (prefix === null) cache.clear()
+	else for (const k of [...cache.keys()]) if (k.startsWith(prefix)) cache.delete(k)
+	for (const reader of [...readers]) reader(prefix)
 }
