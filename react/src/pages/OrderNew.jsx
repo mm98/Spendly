@@ -13,16 +13,14 @@ import { invalidate, useApi } from '../api/useApi.js'
 import {
 	failureMessage, getCurrentUser, getOrder, getOrderDraft, getOrders, getScanDraft, putScanDocument, scanThumbnailUrl
 } from '../api/client.js'
-import { amount, dayShortMonth, dot, sep } from '../api/format.js'
+import { amount, dayShortMonth, dot, plural, sep } from '../api/format.js'
 import { OrderForm } from './OrderForm.jsx'
-import { OrderFailed, OrderLoading } from './OrderParts.jsx'
+import { MAX_MB, OrderFailed, OrderLoading, fileProblem, isPdf } from './OrderParts.jsx'
 
 /* A new order (3a, 3b): a way to start, then the order form unsaved. The address names the
    start, so a reload lands where the reader was. */
 
 const RECEIPTS = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif'
-const TYPES = /^(application\/pdf|image\/(jpeg|png|webp|heic|heif|gif))$/
-const MAX_MB = 25
 const started = new WeakSet()
 
 /** The label the server gives an upload, so the size reads the same before and after it is sent. */
@@ -168,15 +166,16 @@ function Start({ scanOnly, file, picking }) {
 		const f = picked?.[0]
 		if (!f) return
 		const kind = f.name.split('.').pop()
-		if (!TYPES.test(f.type) && !/\.(pdf|jpe?g|png|webp|heic|heif|gif)$/i.test(f.name))
+		const problem = fileProblem(f)
+		if (problem === 'Not a supported type')
 			return setRefused({ title: `.${kind} is not supported`, note: 'Images and PDF only. The file was not sent.' })
-		if (f.size > MAX_MB * 1024 * 1024)
+		if (problem === 'Too large')
 			return setRefused({
 				title: `File is ${Math.ceil(f.size / 1024 / 1024)} MB - too large`,
 				note: `Up to ${MAX_MB} MB per file. A PDF export or a smaller photo will go through.`
 			})
 		setRefused(null)
-		const pdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name)
+		const pdf = isPdf(f)
 		setSending({ name: f.name, kind: pdf ? 'pdf' : 'image', meta: `${pdf ? 'PDF' : 'Image'}${dot}${sizeLabel(f.size)}` })
 		putScanDocument(f)
 			.then(upload => {
@@ -266,7 +265,7 @@ function CopyPicker({ onClose }) {
 	}, [query])
 	// after the dialog has focused its first button, so the reader starts where they type
 	useEffect(() => { search.current?.focus() }, [])
-	const found = useApi(getOrders, [{ pageSize: 6, query: asked }])
+	const found = useApi(getOrders, [{ pageSize: 6, query: asked, with: 'itemTitles' }])
 	const orders = found.data?.orders ?? []
 	useEffect(() => setActive(-1), [asked])
 	const pick = o => navigate(`/orders/new?duplicate=${o.id}`)
@@ -291,7 +290,7 @@ function CopyPicker({ onClose }) {
 					<span className="sp-row-flex sp-gap-8">
 						<span className="sp-stacked sp-grow">
 							<span className="sp-title sp-truncate">{o.vendor?.name}</span>
-							<span className="sp-meta sp-truncate">{o.itemCount === 1 ? '1 line' : `${o.itemCount} lines`}</span>
+							<span className="sp-meta sp-truncate">{plural(o.itemCount, 'line')}{o.itemTitles?.length ? `${dot}${o.itemTitles.join(', ')}${o.itemCount > o.itemTitles.length ? '…' : ''}` : null}</span>
 						</span>
 						<span className="sp-stacked sp-cell-amount sp-flex-none">
 							<span className="sp-amount">{amount(o.total)}</span>
@@ -324,5 +323,5 @@ function CopyPicker({ onClose }) {
 }
 
 function Waiting() {
-	return <OrderLoading region />
+	return <OrderLoading region form />
 }
