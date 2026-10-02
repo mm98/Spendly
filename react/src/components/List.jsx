@@ -33,7 +33,7 @@ export function ListRow() { return null }
 /** Anything the foot carries beside the count and Load more, which the list builds itself. */
 export function Foot() { return null }
 
-export function ListCell({ width, cell = 'default', truncate = false, children, head, selectedCount, total, noun, onToggleAll, checked, labelledBy, onToggle, id, ...rest }) {
+export function ListCell({ width, column, cell = 'default', truncate = false, children, head, selectedCount, total, noun, onToggleAll, checked, labelledBy, onToggle, id, ...rest }) {
 	reject(rest, 'ListCell')
 	if (cell === 'checkbox') {
 		if (head)
@@ -56,7 +56,7 @@ export function ListCell({ width, cell = 'default', truncate = false, children, 
 	}
 	const plain = (cell === 'default' || cell === 'number') && !truncate
 	return (
-		<td className={join(cell === 'menu' && 'sp-cell-menu-cell', cell === 'number' && 'sp-col-number')} id={id}>
+		<td className={join(column && WIDTH[column], cell === 'menu' && 'sp-cell-menu-cell', cell === 'number' && 'sp-col-number')} id={id}>
 			{plain
 				? children
 				: (
@@ -111,6 +111,7 @@ export function List({
 	compact = false,
 	total,
 	onLoadMore,
+	headless = false,
 	children,
 	...rest
 }) {
@@ -173,7 +174,8 @@ export function List({
 			if (c.type === ListCell && c.props.cell === 'checkbox')
 				return cloneElement(c, { key: 'check', checked: isPicked, labelledBy: titleId, onToggle: shift => toggle(key, shift) })
 			bodyIndex++
-			return cloneElement(c, { key: c.key ?? n, ...(bodyIndex === titleAt ? { id: titleId } : {}) })
+			// with no head row, each cell carries its column's width itself
+			return cloneElement(c, { key: c.key ?? n, ...(bodyIndex === titleAt ? { id: titleId } : {}), ...(headless ? { column: head[bodyIndex]?.width } : {}) })
 		})
 	}
 
@@ -205,7 +207,7 @@ export function List({
 				className={join('sp-table', compact && 'sp-table--compact', allOnPage && 'sp-table--all-selected')}
 				onKeyDown={ev => { if (ev.key === 'Escape' && picked.length) { ev.stopPropagation(); setPicked([]) } }}
 			>
-				<thead>
+				{headless ? null : <thead>
 					<tr>
 						{selecting ? <ListCell cell="checkbox" head selectedCount={onPage.length} total={order.length} noun={noun} onToggleAll={toggleAll} /> : null}
 						{head.map((c, n) => (
@@ -214,7 +216,7 @@ export function List({
 							</th>
 						))}
 					</tr>
-				</thead>
+				</thead>}
 				<tbody>
 					{page.map(record => {
 						const key = recordKey(record)
